@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+package db;
+
+message TestData {
+    bool           deleted = 1;
+    repeated bytes reps    = 2;
+    repeated int32 age     = 3;
+}

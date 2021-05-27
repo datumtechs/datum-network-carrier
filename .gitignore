@@ -1,38 +1,22 @@
-# Ignore bazel directories
-bazel-*
-
-.DS_Store
-.swp
-
-# Ignore VI/Vim swapfiles
-.*.sw?
-
-# IntelliJ
-.idea
-.ijwb
-
-# delve debugger output (not sure how to get rid of these)
-**/debug.test
-
-# Coverage outputs
-coverage.txt
-profile.out
-profile.grind
-
-# Nodejs
-node_modules
-yarn-error.log
-.vscode/
-
-# Ignore password file
-password.txt
-
-# Dist files
-dist
-
-# libfuzzer
-oom-*
-crash-*
-
-# deepsource cli
+/syncthing
+/stdiscosrv
+syncthing.exe
+stdiscosrv.exe
+*.tar.gz
+*.zip
+*.asc
+*.deb
+.jshintrc
+coverage.out
+files/pidx
 bin
+perfstats*.csv
+coverage.xml
+syncthing.sig
+RELEASE
+deb
+*.bz2
+/repos
+/proto/scripts/protoc-gen-gorosetta
+/gui/next-gen-gui
+.idea
