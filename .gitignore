@@ -36,6 +36,3 @@ crash-*
 
 # deepsource cli
 bin
-
-# gitkeep
-!.gitkeep
