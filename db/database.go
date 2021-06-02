@@ -6,16 +6,17 @@ import (
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"github.com/syndtr/goleveldb/leveldb/util"
 	"sync"
 )
 
 // LDBDatabase LevelDB implementation of db interface.
 type LDBDatabase struct {
-	fileName	string
-	db 			*leveldb.DB
+	fileName string
+	db       *leveldb.DB
 
 	// todo:
-	quitLock	sync.Mutex
+	quitLock sync.Mutex
 	quitChan chan chan error
 }
 
@@ -32,9 +33,9 @@ func NewLDBDatabase(filename string, cache int, handles int) (*LDBDatabase, erro
 	// Open the db and recover any potential corruptions
 	db, err := leveldb.OpenFile(filename, &opt.Options{
 		OpenFilesCacheCapacity: handles,
-		BlockCacheCapacity: 	cache / 2 * opt.MiB,
-		WriteBuffer: 			cache /4 * opt.MiB,	// Two of these are used internally
-		Filter: 				filter.NewBloomFilter(10),
+		BlockCacheCapacity:     cache / 2 * opt.MiB,
+		WriteBuffer:            cache / 4 * opt.MiB, // Two of these are used internally
+		Filter:                 filter.NewBloomFilter(10),
 	})
 	if _, corrupted := err.(*errors.ErrCorrupted); corrupted {
 		db, err = leveldb.RecoverFile(filename, nil)
@@ -44,8 +45,8 @@ func NewLDBDatabase(filename string, cache int, handles int) (*LDBDatabase, erro
 		return nil, err
 	}
 	return &LDBDatabase{
-		fileName: 	filename,
-		db: 		db,
+		fileName: filename,
+		db:       db,
 	}, nil
 }
 
@@ -81,4 +82,30 @@ func (db *LDBDatabase) NewIterator() iterator.Iterator {
 	return db.db.NewIterator(nil, nil)
 }
 
+// NewIteratorWithPrefix returns a iterator to iterate over subset of database content with a particular prefix.
+func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) iterator.Iterator {
+	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
+}
 
+func (db *LDBDatabase) Close() {
+	db.quitLock.Lock()
+	defer db.quitLock.Unlock()
+	if db.quitChan != nil {
+		errc := make(chan error)
+		db.quitChan <- errc
+		if err := <- errc; err != nil {
+			log.WithError(err).Error("Metrics collection failed")
+		}
+		db.quitChan = nil
+	}
+	err := db.db.Close()
+	if err == nil {
+		log.Info("Database closed")
+	} else {
+		log.WithError(err).Error("Failed to close database")
+	}
+}
+
+func (db *LDBDatabase) LDB() *leveldb.DB {
+	return db.db
+}
