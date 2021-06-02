@@ -4,6 +4,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
+	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"sync"
 )
@@ -47,3 +48,37 @@ func NewLDBDatabase(filename string, cache int, handles int) (*LDBDatabase, erro
 		db: 		db,
 	}, nil
 }
+
+// Path returns the path to the database directory.
+func (db *LDBDatabase) Path() string {
+	return db.fileName
+}
+
+// Put puts the given key/value to the queue.
+func (db *LDBDatabase) Put(key []byte, value []byte) error {
+	return db.db.Put(key, value, nil)
+}
+
+func (db *LDBDatabase) Has(key []byte) (bool, error) {
+	return db.db.Has(key, nil)
+}
+
+// Get returns the given key if it's present.
+func (db *LDBDatabase) Get(key []byte) ([]byte, error) {
+	dat, err := db.db.Get(key, nil)
+	if err != nil {
+		return nil, err
+	}
+	return dat, nil
+}
+
+// Delete deletes the key from the queue and database.
+func (db *LDBDatabase) Delete(key []byte) error {
+	return db.db.Delete(key, nil)
+}
+
+func (db *LDBDatabase) NewIterator() iterator.Iterator {
+	return db.db.NewIterator(nil, nil)
+}
+
+
