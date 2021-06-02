@@ -109,3 +109,41 @@ func (db *LDBDatabase) Close() {
 func (db *LDBDatabase) LDB() *leveldb.DB {
 	return db.db
 }
+
+func (db *LDBDatabase) NewBatch() Batch {
+	return &ldbBatch{
+		db: db.db,
+		b: new(leveldb.Batch),
+	}
+}
+
+type ldbBatch struct {
+	db		*leveldb.DB
+	b 		*leveldb.Batch
+	size 	int
+}
+
+func (b *ldbBatch) Put(key, value []byte) error {
+	b.b.Put(key, value)
+	b.size += len(value)
+	return nil
+}
+
+func (b *ldbBatch) Delete(key []byte) error {
+	b.b.Delete(key)
+	b.size += 1
+	return nil
+}
+
+func (b *ldbBatch) Write() error {
+	return b.db.Write(b.b, nil)
+}
+
+func (b *ldbBatch) ValueSize() int {
+	return b.size
+}
+
+func (b *ldbBatch) Reset()  {
+	b.b.Reset()
+	b.size = 0
+}
