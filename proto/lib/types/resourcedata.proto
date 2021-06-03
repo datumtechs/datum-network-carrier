@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package types;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+message ResourceData {
+    string identity = 1;
+    string nodeId   = 2 ;
+    string nodeName = 3;
+    string dataId   = 4;
+  // the status of data, N means normal, D means deleted.
+    string dataStatus = 5;
+  // resource status, eg: create/release/revoke
+    string state = 6;
+  // unit: MB
+    string totalMem = 7;
+  // unit: MB
+    string usedMem = 8;
+  // number of cpu cores.
+    uint64 totalProcessor = 9;
+  // unit: MB
+    string totalBandWidth = 10;
+}

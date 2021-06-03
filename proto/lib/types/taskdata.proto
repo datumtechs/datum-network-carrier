@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package types;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+message TaskData {
+    string identity   = 1;
+    string nodeId     = 2;
+    string nodeName   = 3;
+    string dataId     = 4;
+    string dataStatus = 5;
+    string taskId     = 6;
+  // success/failed/running/pending/waiting
+    string             state         = 7;
+    string             reason        = 8;
+    uint32             eventCount    = 9;
+    string             desc          = 10;
+    repeated Partner   partnerList   = 11;
+    repeated EventData eventDataList = 12;
+}
+
+message Partner {
+    string alias    = 1;
+    string identity = 2;
+    string nodeId   = 3;
+    string nodeName = 4;
+}
+
+message EventData {
+    string taskId       = 1;
+    string eventType    = 2;
+    uint64 eventAt      = 3;
+    string eventContent = 4;
+    string identity     = 5;
+}

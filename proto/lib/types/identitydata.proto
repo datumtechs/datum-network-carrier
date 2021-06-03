@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package types;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+message IdentityData {
+    string identity = 1;
+    string nodeId   = 2;
+    string nodeName = 3;
+    string dataId   = 4;
+  // N means normal, D means deleted
+    string dataStatus = 5;
+  // Y : normal, N non-normal
+    string status = 6;
+  // json format for credential
+    string credential = 7;
+}
