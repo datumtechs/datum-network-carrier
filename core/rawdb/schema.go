@@ -44,13 +44,34 @@ var (
 	taskDataIdSuffix 			= []byte("n")	// taskDataIdPrefix + num + index + taskDataIdSuffix -> task dataId
 	taskDataHashPrefix			= []byte("tn")	// taskDataHashPrefix + nodeId + type -> task hash
 	taskDataTypeHashPrefix 		= []byte("tb")	// taskDataTypeHashPrefix + type + dataId -> task hash
+
+	dataLookupPrefix  			= []byte("l") 	// dataLookupPrefix + dataId -> metadata lookup metadata
+	//resourceLookupPrefix  		= []byte("r") 	// resourceLookupPrefix + dataId -> resource lookup metadata
+	//identityLookupPrefix  		= []byte("i") 	// identityLookupPrefix + dataId -> identity lookup metadata
+	//taskLookupPrefix  			= []byte("t") 	// taskLookupPrefix + dataId -> task lookup metadata
+
 )
+
+// MetadataLookupEntry is a positional metadata to help looking up the data content of
+// a metadata given only its dataId.
+//type DataLookupEntry struct {
+//	BlockHash  common.Hash
+//	BlockIndex uint64
+//	Index      uint64
+//	NodeId	   string
+//	Type	   string
+//}
 
 // encodeNumber encodes a number as big endian uint64
 func encodeNumber(number uint64) []byte {
 	enc := make([]byte, 8)
 	binary.BigEndian.PutUint64(enc, number)
 	return enc
+}
+
+// dataLookupKey = dataLookupPrefix + hash
+func dataLookupKey(hash common.Hash) []byte {
+	return append(dataLookupPrefix, hash.Bytes()...)
 }
 
 // headerKey = headerPrefix + num (uint64 big endian) + hash
