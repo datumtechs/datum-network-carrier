@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package types;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+// MetaData body data struct.
+message MetaData {
+    string              identity       = 1;
+    string              nodeId         = 2;
+    string              dataId         = 3;
+    string              dataStatus     = 4;
+    string              filePath       = 5;
+    string              desc           = 6;
+    uint64              rows           = 7;
+    uint64              columns        = 8;
+    uint64              size           = 9;
+    string              fileType       = 10;
+    string              state          = 11;
+    bool                hasTitleRow    = 12;
+    repeated ColumnMeta columnMetaList = 13;
+}
+
+message ColumnMeta {
+    uint64 cindex = 1;
+    string cname  = 2;
+    string ctype  = 3;
+  // unit: byte
+    uint64 csize = 4;
+}
