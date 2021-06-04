@@ -33,3 +33,13 @@ message BodyData {
     repeated types.TaskData     taskdata     = 4;
     bytes                       extraData    = 5;
 }
+
+// MetadataLookupEntry is a positional metadata to help looking up the data content of
+// a metadata given only its dataId.
+message DataLookupEntry {
+    bytes  blockHash  = 1;
+    uint64 blockIndex = 2;
+    uint64 index      = 3;
+    string nodeId     = 4;
+    string type       = 5;
+}
