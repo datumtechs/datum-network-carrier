@@ -25,3 +25,11 @@ message BlockData {
     uint64 receivedAt   = 6;
     string receivedFrom = 7;
 }
+
+message BodyData {
+    repeated types.MetaData     metadata     = 1;
+    repeated types.ResourceData resourcedata = 2;
+    repeated types.IdentityData identitydata = 3;
+    repeated types.TaskData     taskdata     = 4;
+    bytes                       extraData    = 5;
+}
