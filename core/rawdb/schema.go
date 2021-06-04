@@ -53,20 +53,14 @@ func encodeNumber(number uint64) []byte {
 	return enc
 }
 
-func headerKey(number uint64, hash common.Hash)  {
-	
-}
-
-/*// TxLookupEntry is a positional metadata to help looking up the data content of
-
 // headerKey = headerPrefix + num (uint64 big endian) + hash
 func headerKey(number uint64, hash common.Hash) []byte {
-	return append(append(headerPrefix, encodeBlockNumber(number)...), hash.Bytes()...)
+	return append(append(headerPrefix, encodeNumber(number)...), hash.Bytes()...)
 }
 
-// headerHashKey = headerPrefix + num (uint64 big endian) + headerHashSuffix
+// headerHashKey = headerPrefix + num + headerHashSuffix
 func headerHashKey(number uint64) []byte {
-	return append(append(headerPrefix, encodeBlockNumber(number)...), headerHashSuffix...)
+	return append(append(headerPrefix, encodeNumber(number)...), headerHashSuffix...)
 }
 
 // headerNumberKey = headerNumberPrefix + hash
@@ -74,47 +68,72 @@ func headerNumberKey(hash common.Hash) []byte {
 	return append(headerNumberPrefix, hash.Bytes()...)
 }
 
-// blockBodyKey = blockBodyPrefix + num (uint64 big endian) + hash
+// blockBodyKey = blockBodyPrefix + num + hash
 func blockBodyKey(number uint64, hash common.Hash) []byte {
-	return append(append(blockBodyPrefix, encodeBlockNumber(number)...), hash.Bytes()...)
+	return append(append(blockBodyPrefix, encodeNumber(number)...), hash.Bytes()...)
 }
 
-// blockReceiptsKey = blockReceiptsPrefix + num (uint64 big endian) + hash
-func blockReceiptsKey(number uint64, hash common.Hash) []byte {
-	return append(append(blockReceiptsPrefix, encodeBlockNumber(number)...), hash.Bytes()...)
+// metadataIdKey = metadataIdPrefix + num + index + metadataIdSuffix
+func metadataIdKey(number uint64, index uint64) []byte {
+	return append(append(append(metadataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), metadataIdSuffix...)
 }
 
-// blockConfirmSignsKey = blockConfirmSignsPrefix + num (uint64 big endian) + hash
-func blockConfirmSignsKey(number uint64, hash common.Hash) []byte {
-	return append(append(blockConfirmSignsPrefix, encodeBlockNumber(number)...), hash.Bytes()...)
+// metadataHashKey = metadataHashPrefix + nodeId + type
+func metadataHashKey(nodeId []byte, typ []byte) []byte {
+	return append(append(metadataHashPrefix, nodeId...), typ...)
 }
 
-// txLookupKey = txLookupPrefix + hash
-func txLookupKey(hash common.Hash) []byte {
-	return append(txLookupPrefix, hash.Bytes()...)
+// metadataTypeHashKey = metadataTypeHashPrefix + type + dataId
+func metadataTypeHashKey(dataId []byte, typ []byte) []byte  {
+	return append(append(metadataTypeHashPrefix, typ...), dataId...)
 }
 
-// bloomBitsKey = bloomBitsPrefix + bit (uint16 big endian) + section (uint64 big endian) + hash
-func bloomBitsKey(bit uint, section uint64, hash common.Hash) []byte {
-	key := append(append(bloomBitsPrefix, make([]byte, 10)...), hash.Bytes()...)
-
-	binary.BigEndian.PutUint16(key[1:], uint16(bit))
-	binary.BigEndian.PutUint64(key[3:], section)
-
-	return key
+// metadataApplyHashKey = metadataApplyHashPrefix + type + dataId
+func metadataApplyHashKey(tpy []byte, dataId []byte) []byte {
+	return append(append(metadataApplyHashPrefix, tpy...), dataId...)
 }
 
-// preimageKey = preimagePrefix + hash
-func preimageKey(hash common.Hash) []byte {
-	return append(preimagePrefix, hash.Bytes()...)
+// resourceDataIdKey = resourceDataIdPrefix + num + index + resourceDataIdSuffix
+func resourceDataIdKey(number uint64, index uint64) []byte {
+	return append(append(append(resourceDataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), resourceDataIdSuffix...)
 }
 
-// configKey = configPrefix + hash
-func configKey(hash common.Hash) []byte {
-	return append(configPrefix, hash.Bytes()...)
+// resourceDataHashKey = resourceDataHashPrefix + nodeId + type
+func resourceDataHashKey(nodeId []byte, typ []byte) []byte {
+	return append(append(resourceDataHashPrefix, nodeId...), typ...)
 }
 
-// economicModelKey = economicModelPrefix + hash
-func economicModelKey(hash common.Hash) []byte {
-	return append(economicModelPrefix, hash.Bytes()...)
-}*/
+// resourceDataTypeHashKey = resourceDataTypeHashPrefix + type + dataId
+func resourceDataTypeHashKey(dataId []byte, typ []byte) []byte  {
+	return append(append(resourceDataTypeHashPrefix, typ...), dataId...)
+}
+
+// identityDataIdKey = identityDataIdPrefix + num + index + identityDataIdSuffix
+func identityDataIdKey(number uint64, index uint64) []byte {
+	return append(append(append(identityDataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), identityDataIdSuffix...)
+}
+
+// identityDataHashKey = identityDataHashPrefix + nodeId + type
+func identityDataHashKey(nodeId []byte, typ []byte) []byte {
+	return append(append(identityDataHashPrefix, nodeId...), typ...)
+}
+
+// identityDataTypeHashKey = identityDataTypeHashPrefix + type + dataId
+func identityDataTypeHashKey(dataId []byte, typ []byte) []byte  {
+	return append(append(identityDataTypeHashPrefix, typ...), dataId...)
+}
+
+// taskDataIdKey = taskDataIdPrefix + num + index + taskDataIdSuffix
+func taskDataIdKey(number uint64, index uint64) []byte {
+	return append(append(append(taskDataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), taskDataIdSuffix...)
+}
+
+// taskDataHashKey = taskDataHashPrefix + nodeId + type
+func taskDataHashKey(nodeId []byte, typ []byte) []byte {
+	return append(append(taskDataHashPrefix, nodeId...), typ...)
+}
+
+// taskDataTypeHashKey = taskDataTypeHashPrefix + type + dataId
+func taskDataTypeHashKey(dataId []byte, typ []byte) []byte  {
+	return append(append(taskDataTypeHashPrefix, typ...), dataId...)
+}
