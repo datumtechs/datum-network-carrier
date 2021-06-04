@@ -66,7 +66,7 @@ func DeleteDataLookupEntry(db DatabaseDeleter, dataId string) {
 }
 
 
-// ReadTransaction retrieves a specific transaction from the database, along with
+// ReadMetadata retrieves a specific metadata from the database, along with
 // its added positional metadata.
 func ReadMetadata(db DatabaseReader, dataId string) (*types.MetaData, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
@@ -82,4 +82,58 @@ func ReadMetadata(db DatabaseReader, dataId string) (*types.MetaData, common.Has
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
 	return &body.Metadata[index], blockHash, blockNumber, index, nodeId, typ
+}
+
+// ReadResource retrieves a specific resource from the database, along with
+// its added positional metadata.
+func ReadResource(db DatabaseReader, dataId string) (*types.ResourceData, common.Hash, uint64, uint64, string, string) {
+	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
+	if blockHash == (common.Hash{}) {
+		return nil, common.Hash{}, 0, 0, "", ""
+	}
+	body := ReadBody(db, blockHash, blockNumber)
+	if body == nil || len(body.Resourcedata) <= int(index) {
+		log.WithField("number", blockNumber).
+			WithField("hash", blockHash).
+			WithField("index", index).
+			Error("Resource referenced missing")
+		return nil, common.Hash{}, 0, 0, "", ""
+	}
+	return &body.Resourcedata[index], blockHash, blockNumber, index, nodeId, typ
+}
+
+// ReadIdentity retrieves a specific identity from the database, along with
+// its added positional metadata.
+func ReadIdentity(db DatabaseReader, dataId string) (*types.IdentityData, common.Hash, uint64, uint64, string, string) {
+	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
+	if blockHash == (common.Hash{}) {
+		return nil, common.Hash{}, 0, 0, "", ""
+	}
+	body := ReadBody(db, blockHash, blockNumber)
+	if body == nil || len(body.Identitydata) <= int(index) {
+		log.WithField("number", blockNumber).
+			WithField("hash", blockHash).
+			WithField("index", index).
+			Error("Identity referenced missing")
+		return nil, common.Hash{}, 0, 0, "", ""
+	}
+	return &body.Identitydata[index], blockHash, blockNumber, index, nodeId, typ
+}
+
+// ReadIdentity retrieves a specific taskData from the database, along with
+// its added positional metadata.
+func ReadTask(db DatabaseReader, dataId string) (*types.TaskData, common.Hash, uint64, uint64, string, string) {
+	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
+	if blockHash == (common.Hash{}) {
+		return nil, common.Hash{}, 0, 0, "", ""
+	}
+	body := ReadBody(db, blockHash, blockNumber)
+	if body == nil || len(body.Taskdata) <= int(index) {
+		log.WithField("number", blockNumber).
+			WithField("hash", blockHash).
+			WithField("index", index).
+			Error("Task referenced missing")
+		return nil, common.Hash{}, 0, 0, "", ""
+	}
+	return &body.Taskdata[index], blockHash, blockNumber, index, nodeId, typ
 }
