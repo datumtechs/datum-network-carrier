@@ -25,3 +25,21 @@ message BlockData {
     uint64 receivedAt   = 6;
     string receivedFrom = 7;
 }
+
+message BodyData {
+    repeated types.MetaData     metadata     = 1;
+    repeated types.ResourceData resourcedata = 2;
+    repeated types.IdentityData identitydata = 3;
+    repeated types.TaskData     taskdata     = 4;
+    bytes                       extraData    = 5;
+}
+
+// MetadataLookupEntry is a positional metadata to help looking up the data content of
+// a metadata given only its dataId.
+message DataLookupEntry {
+    bytes  blockHash  = 1;
+    uint64 blockIndex = 2;
+    uint64 index      = 3;
+    string nodeId     = 4;
+    string type       = 5;
+}
