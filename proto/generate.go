@@ -33,8 +33,9 @@ func main() {
 		args := []string{
 			"-I", "..",
 			"-I", ".",
-			"--plugin=protoc-gen-gosyncthing=scripts/protoc-gen-gorosetta",
-			"--gosyncthing_out=paths=source_relative:..",
+			//"--plugin=protoc-gen-gorosetta=scripts/protoc-gen-gorosetta",
+			//"--gorosetta_out=paths=source_relative:..",
+			"--gogofast_out=paths=source_relative:..",
 		}
 		args = append(args, matches...)
 		cmd := exec.Command("protoc", args...)

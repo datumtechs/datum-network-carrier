@@ -27,24 +27,36 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 func WriteDataLookupEntries(db DatabaseWriter, block *types.BlockData) {
 	// todo: what is the type means???
 	for i, metadata := range block.Metadata {
-		storeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
 			block.Header.Version, uint64(i), metadata.NodeId, "", metadata.DataId)
+		// store extra data for metadata
 	}
 	for i, resource := range block.Resourcedata {
-		storeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
 			block.Header.Version, uint64(i), resource.NodeId, "", resource.DataId)
+		// store extra data for resource
 	}
 	for i, identity := range block.Identitydata {
-		storeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
 			block.Header.Version, uint64(i), identity.NodeId, "", identity.DataId)
+		// store extra data for identity
 	}
 	for i, task := range block.Taskdata {
-		storeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
 			block.Header.Version, uint64(i), task.NodeId, "", task.DataId)
+		// store extra data for task
 	}
 }
 
-func storeDataLookupEntries(db DatabaseWriter, hash common.Hash, number uint64,
+// writeMetadata save detailed data separately for metadata.
+func writeMetadata(db DatabaseWriter, number uint64, index uint64, metadata *types.MetaData) {
+	// todo: need to update, the param is wrong.
+	WriteMetadataHash(db, number, index, common.Hash{})
+	WriteMetadataId(db, metadata.NodeId, common.Hash{}, metadata.DataId)
+	WriteMetadataTypeHash(db, metadata.DataId, "", common.Hash{})
+}
+
+func writeDataLookupEntries(db DatabaseWriter, hash common.Hash, number uint64,
 							index uint64, nodeId string, typ string, dataId string)  {
 	entry := types.DataLookupEntry{
 		BlockHash: hash.Bytes(),
