@@ -2,7 +2,42 @@
 
 package rawdb
 
-import "github.com/RosettaFlow/Carrier-Go/common"
+import (
+	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/db"
+)
+
+// ReadAllMetadataHashes retrieves all the hashes of metadata.
+func ReadAllMetadataHashes(db db.Iteratee) []common.Hash {
+	prefix := metadataIdPrefix
+
+	hashes := make([]common.Hash, 0, 1)
+	it := db.NewIterator(prefix, nil)
+	defer it.Release()
+
+	for it.Next() {
+		// todo: need to determine the length of nodeId.
+		if key := it.Key(); len(key) > len(prefix)+32 {
+			hashes = append(hashes, common.BytesToHash(key[len(key)-32:]))
+		}
+	}
+	return hashes
+}
+
+// ReadAllMetadataHashes retrieves all the hashes of metadata by special nodeId.
+func ReadAllMetadataHashesByNodeId(db db.Iteratee, nodeId string) []common.Hash {
+	prefix := metadataIdKeyPrefix(nodeId)
+	hashes := make([]common.Hash, 0, 1)
+	it := db.NewIterator(prefix, nil)
+	defer it.Release()
+
+	for it.Next() {
+		if key := it.Key(); len(key) == len(prefix)+32 {
+			hashes = append(hashes, common.BytesToHash(key[len(key)-32:]))
+		}
+	}
+	return hashes
+}
 
 // ReadMetadataHash retrieves the hash assigned to a canonical number and index.
 func ReadMetadataHash(db DatabaseReader, number uint64, index uint64) common.Hash {
