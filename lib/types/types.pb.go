@@ -7,7 +7,7 @@ import (
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	_ "google.golang.org/protobuf/types/known/anypb"
+	_ "github.com/golang/protobuf/ptypes/any"
 	io "io"
 	math "math"
 	math_bits "math/bits"
