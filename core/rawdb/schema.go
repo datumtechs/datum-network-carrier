@@ -24,25 +24,25 @@ var (
 	blockBodyPrefix		= []byte("b")	// blockBodyPrefix + num(uint64 big endian) + hash -> block body
 
 	// data item prefixes for metadata
-	metadataIdPrefix			= []byte("mh")
-	metadataIdSuffix			= []byte("n")	// metadataIdPrefix + num + index + metadataIdSuffix -> metadata dataId
-	metadataHashPrefix			= []byte("mn")	// metadataHashPrefix + nodeId + type -> metadata hash
+	metadataHashPrefix			= []byte("mh")
+	metadataHashSuffix			= []byte("n")	// metadataHashPrefix + num + index + metadataHashSuffix -> metadata hash
+	metadataIdPrefix			= []byte("mn")	// metadataIdPrefix + nodeId + hash -> metadata dataId
 	metadataTypeHashPrefix		= []byte("md")	// metadataTypeHashPrefix + type + dataId -> metadata hash
 	metadataApplyHashPrefix 	= []byte("ma")	// metadataApplyHashPrefix + type + dataId -> apply metadata hash
 
-	resourceDataIdPrefix 		= []byte("rh")
-	resourceDataIdSuffix 		= []byte("n")	// resourceDataIdPrefix + num + index + resourceDataIdSuffix -> resource dataId
-	resourceDataHashPrefix		= []byte("rn")	// resourceDataHashPrefix + nodeId + type -> resource hash
+	resourceHashPrefix 			= []byte("rh")
+	resourceHashSuffix 			= []byte("n")	// resourceHashPrefix + num + index + resourceHashSuffix -> resource hash
+	resourceDataIdPrefix		= []byte("rn")	// resourceDataHashPrefix + nodeId + hash -> resource dataId
 	resourceDataTypeHashPrefix 	= []byte("rd")	// resourceDataTypeHashPrefix + type + dataId -> resource hash
 
-	identityDataIdPrefix 		= []byte("ch")
-	identityDataIdSuffix 		= []byte("n")	// identityDataIdPrefix + num + index + identityDataIdSuffix -> identity dataId
-	identityDataHashPrefix		= []byte("cn")	// identityDataHashPrefix + nodeId + type -> identity hash
+	identityHashPrefix 			= []byte("ch")
+	identityHashSuffix 			= []byte("n")	// identityHashPrefix + num + index + identityHashSuffix -> identity hash
+	identityDataIdPrefix		= []byte("cn")	// identityDataIdPrefix + nodeId + hash -> identity dataId
 	identityDataTypeHashPrefix 	= []byte("cb")	// identityDataTypeHashPrefix + type + dataId -> identity hash
 
-	taskDataIdPrefix 			= []byte("th")
-	taskDataIdSuffix 			= []byte("n")	// taskDataIdPrefix + num + index + taskDataIdSuffix -> task dataId
-	taskDataHashPrefix			= []byte("tn")	// taskDataHashPrefix + nodeId + type -> task hash
+	taskDataHashPrefix 			= []byte("th")
+	taskDataHashSuffix 			= []byte("n")	// taskDataHashPrefix + num + index + taskDataHashSuffix -> task hash
+	taskDataIdPrefix			= []byte("tn")	// taskDataIdPrefix + nodeId + hash -> task dataId
 	taskDataTypeHashPrefix 		= []byte("tb")	// taskDataTypeHashPrefix + type + dataId -> task hash
 
 	dataLookupPrefix  			= []byte("l") 	// dataLookupPrefix + dataId -> metadata lookup metadata
@@ -52,16 +52,10 @@ var (
 
 )
 
-// MetadataLookupEntry is a positional metadata to help looking up the data content of
-// a metadata given only its dataId.
-//type DataLookupEntry struct {
-//	BlockHash  common.Hash
-//	BlockIndex uint64
-//	Index      uint64
-//	NodeId	   string
-//	Type	   string
-//}
-
+// headerKeyPrefix = headerPrefix + num (uint64 big endian)
+func headerKeyPrefix(number uint64) []byte {
+	return append(headerPrefix, encodeNumber(number)...)
+}
 // encodeNumber encodes a number as big endian uint64
 func encodeNumber(number uint64) []byte {
 	enc := make([]byte, 8)
@@ -94,18 +88,18 @@ func blockBodyKey(number uint64, hash common.Hash) []byte {
 	return append(append(blockBodyPrefix, encodeNumber(number)...), hash.Bytes()...)
 }
 
-// metadataIdKey = metadataIdPrefix + num + index + metadataIdSuffix
-func metadataIdKey(number uint64, index uint64) []byte {
-	return append(append(append(metadataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), metadataIdSuffix...)
+// metadataHashKey = metadataHashPrefix + num + index + metadataHashSuffix
+func metadataHashKey(number uint64, index uint64) []byte {
+	return append(append(append(metadataHashPrefix, encodeNumber(number)...), encodeNumber(index)...), metadataHashSuffix...)
 }
 
-// metadataHashKey = metadataHashPrefix + nodeId + type
-func metadataHashKey(nodeId []byte, typ []byte) []byte {
-	return append(append(metadataHashPrefix, nodeId...), typ...)
+// metadataIdKey = metadataIdPrefix + nodeId + hash
+func metadataIdKey(nodeId []byte, hash common.Hash) []byte {
+	return append(append(metadataIdPrefix, nodeId...), hash.Bytes()...)
 }
 
 // metadataTypeHashKey = metadataTypeHashPrefix + type + dataId
-func metadataTypeHashKey(dataId []byte, typ []byte) []byte  {
+func metadataTypeHashKey( typ []byte, dataId []byte) []byte  {
 	return append(append(metadataTypeHashPrefix, typ...), dataId...)
 }
 
@@ -114,14 +108,14 @@ func metadataApplyHashKey(tpy []byte, dataId []byte) []byte {
 	return append(append(metadataApplyHashPrefix, tpy...), dataId...)
 }
 
-// resourceDataIdKey = resourceDataIdPrefix + num + index + resourceDataIdSuffix
-func resourceDataIdKey(number uint64, index uint64) []byte {
-	return append(append(append(resourceDataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), resourceDataIdSuffix...)
+// resourceHashKey = resourceHashPrefix + num + index + resourceHashSuffix
+func resourceHashKey(number uint64, index uint64) []byte {
+	return append(append(append(resourceHashPrefix, encodeNumber(number)...), encodeNumber(index)...), resourceHashSuffix...)
 }
 
-// resourceDataHashKey = resourceDataHashPrefix + nodeId + type
-func resourceDataHashKey(nodeId []byte, typ []byte) []byte {
-	return append(append(resourceDataHashPrefix, nodeId...), typ...)
+// resourceDataIdKey = resourceDataIdKey + nodeId + type
+func resourceDataIdKey(nodeId []byte, typ []byte) []byte {
+	return append(append(resourceDataIdPrefix, nodeId...), typ...)
 }
 
 // resourceDataTypeHashKey = resourceDataTypeHashPrefix + type + dataId
@@ -129,14 +123,14 @@ func resourceDataTypeHashKey(dataId []byte, typ []byte) []byte  {
 	return append(append(resourceDataTypeHashPrefix, typ...), dataId...)
 }
 
-// identityDataIdKey = identityDataIdPrefix + num + index + identityDataIdSuffix
-func identityDataIdKey(number uint64, index uint64) []byte {
-	return append(append(append(identityDataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), identityDataIdSuffix...)
+// identityHashKey = identityHashPrefix + num + index + identityHashSuffix
+func identityHashKey(number uint64, index uint64) []byte {
+	return append(append(append(identityHashPrefix, encodeNumber(number)...), encodeNumber(index)...), identityHashSuffix...)
 }
 
-// identityDataHashKey = identityDataHashPrefix + nodeId + type
-func identityDataHashKey(nodeId []byte, typ []byte) []byte {
-	return append(append(identityDataHashPrefix, nodeId...), typ...)
+// identityDataIdKey = identityDataIdPrefix + nodeId + type
+func identityDataIdKey(nodeId []byte, typ []byte) []byte {
+	return append(append(identityDataIdPrefix, nodeId...), typ...)
 }
 
 // identityDataTypeHashKey = identityDataTypeHashPrefix + type + dataId
@@ -144,14 +138,14 @@ func identityDataTypeHashKey(dataId []byte, typ []byte) []byte  {
 	return append(append(identityDataTypeHashPrefix, typ...), dataId...)
 }
 
-// taskDataIdKey = taskDataIdPrefix + num + index + taskDataIdSuffix
-func taskDataIdKey(number uint64, index uint64) []byte {
-	return append(append(append(taskDataIdPrefix, encodeNumber(number)...), encodeNumber(index)...), taskDataIdSuffix...)
+// taskDataHashKey = taskDataHashPrefix + num + index + taskDataHashSuffix
+func taskDataHashKey(number uint64, index uint64) []byte {
+	return append(append(append(taskDataHashPrefix, encodeNumber(number)...), encodeNumber(index)...), taskDataHashSuffix...)
 }
 
-// taskDataHashKey = taskDataHashPrefix + nodeId + type
-func taskDataHashKey(nodeId []byte, typ []byte) []byte {
-	return append(append(taskDataHashPrefix, nodeId...), typ...)
+// taskDataIdKey = taskDataIdPrefix + nodeId + type
+func taskDataIdKey(nodeId []byte, typ []byte) []byte {
+	return append(append(taskDataIdPrefix, nodeId...), typ...)
 }
 
 // taskDataTypeHashKey = taskDataTypeHashPrefix + type + dataId
