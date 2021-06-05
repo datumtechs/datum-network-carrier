@@ -1,8 +1,11 @@
+// Copyright (C) 2021 The RosettaNet Authors.
+
 package rawdb
 
 import (
 	"encoding/binary"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
@@ -27,6 +30,21 @@ func DeleteDataHash(db DatabaseDeleter, number uint64) {
 	if err := db.Delete(headerHashKey(number)); err != nil {
 		log.WithError(err).Error("Failed to delete number to hash mapping")
 	}
+}
+
+// ReadAllHashes retrieves all the hashes assigned to blocks at a certain heights
+func ReadAllHashes(db db.Iteratee, number uint64) []common.Hash {
+	prefix := headerKeyPrefix(number)
+	hashes := make([]common.Hash, 0, 1)
+	it := db.NewIterator(prefix, nil)
+	defer it.Release()
+
+	for it.Next() {
+		if key := it.Key(); len(key) == len(prefix) + 32 {
+			hashes = append(hashes, common.BytesToHash(key[len(key)-32:]))
+		}
+	}
+	return hashes
 }
 
 // ReadHeaderNumber returns the header number assigned to a hash.
