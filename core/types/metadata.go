@@ -16,7 +16,7 @@ func (s MetadataArray) GetPb(i int) []byte {
 	return enc
 }
 
-func (s MetadataArray) Copy() []libTypes.MetaData {
+/*func (s MetadataArray) Copy() []libTypes.MetaData {
 	result := make([]libTypes.MetaData, 0, 1)
 	for _, v := range s {
 		cpy := *v
@@ -32,5 +32,5 @@ func (s MetadataArray) BuildFrom(metadata []libTypes.MetaData) []*libTypes.MetaD
 	}
 	copy(s, result)
 	return result
-}
+}*/
 
