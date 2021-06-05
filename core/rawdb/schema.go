@@ -99,12 +99,12 @@ func metadataIdKey(nodeId []byte, hash common.Hash) []byte {
 }
 
 // metadataTypeHashKey = metadataTypeHashPrefix + type + dataId
-func metadataTypeHashKey( typ []byte, dataId []byte) []byte  {
+func metadataTypeHashKey(dataId []byte, typ []byte) []byte  {
 	return append(append(metadataTypeHashPrefix, typ...), dataId...)
 }
 
 // metadataApplyHashKey = metadataApplyHashPrefix + type + dataId
-func metadataApplyHashKey(tpy []byte, dataId []byte) []byte {
+func metadataApplyHashKey(dataId []byte, tpy []byte) []byte {
 	return append(append(metadataApplyHashPrefix, tpy...), dataId...)
 }
 
