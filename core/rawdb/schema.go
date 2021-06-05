@@ -113,9 +113,9 @@ func resourceHashKey(number uint64, index uint64) []byte {
 	return append(append(append(resourceHashPrefix, encodeNumber(number)...), encodeNumber(index)...), resourceHashSuffix...)
 }
 
-// resourceDataIdKey = resourceDataIdKey + nodeId + type
-func resourceDataIdKey(nodeId []byte, typ []byte) []byte {
-	return append(append(resourceDataIdPrefix, nodeId...), typ...)
+// resourceDataIdKey = resourceDataIdKey + nodeId + hash
+func resourceDataIdKey(nodeId []byte, hash common.Hash) []byte {
+	return append(append(resourceDataIdPrefix, nodeId...), hash.Bytes()...)
 }
 
 // resourceDataTypeHashKey = resourceDataTypeHashPrefix + type + dataId
@@ -128,9 +128,9 @@ func identityHashKey(number uint64, index uint64) []byte {
 	return append(append(append(identityHashPrefix, encodeNumber(number)...), encodeNumber(index)...), identityHashSuffix...)
 }
 
-// identityDataIdKey = identityDataIdPrefix + nodeId + type
-func identityDataIdKey(nodeId []byte, typ []byte) []byte {
-	return append(append(identityDataIdPrefix, nodeId...), typ...)
+// identityDataIdKey = identityDataIdPrefix + nodeId + hash
+func identityDataIdKey(nodeId []byte, hash common.Hash) []byte {
+	return append(append(identityDataIdPrefix, nodeId...), hash.Bytes()...)
 }
 
 // identityDataTypeHashKey = identityDataTypeHashPrefix + type + dataId
