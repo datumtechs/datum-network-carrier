@@ -26,14 +26,17 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MetaData body data struct.
 type BlockData struct {
-	Header       Header         `protobuf:"bytes,1,opt,name=header,proto3" json:"header" xml:"header"`
-	Metadata     []MetaData     `protobuf:"bytes,2,rep,name=metadata,proto3" json:"metadata" xml:"metadata"`
-	Resourcedata []ResourceData `protobuf:"bytes,3,rep,name=resourcedata,proto3" json:"resourcedata" xml:"resourcedata"`
-	Identitydata []IdentityData `protobuf:"bytes,4,rep,name=identitydata,proto3" json:"identitydata" xml:"identitydata"`
-	Taskdata     []TaskData     `protobuf:"bytes,5,rep,name=taskdata,proto3" json:"taskdata" xml:"taskdata"`
+	Header       *HeaderPb       `protobuf:"bytes,1,opt,name=header,proto3" json:"header,omitempty"`
+	Metadata     []*MetaData     `protobuf:"bytes,2,rep,name=metadata,proto3" json:"metadata,omitempty"`
+	Resourcedata []*ResourceData `protobuf:"bytes,3,rep,name=resourcedata,proto3" json:"resourcedata,omitempty"`
+	Identitydata []*IdentityData `protobuf:"bytes,4,rep,name=identitydata,proto3" json:"identitydata,omitempty"`
+	Taskdata     []*TaskData     `protobuf:"bytes,5,rep,name=taskdata,proto3" json:"taskdata,omitempty"`
 	//
-	ReceivedAt   uint64 `protobuf:"varint,6,opt,name=receivedAt,proto3" json:"receivedat" xml:"receivedat"`
-	ReceivedFrom string `protobuf:"bytes,7,opt,name=receivedFrom,proto3" json:"receivedfrom" xml:"receivedfrom"`
+	ReceivedAt           uint64   `protobuf:"varint,6,opt,name=receivedAt,proto3" json:"receivedAt,omitempty"`
+	ReceivedFrom         string   `protobuf:"bytes,7,opt,name=receivedFrom,proto3" json:"receivedFrom,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *BlockData) Reset()         { *m = BlockData{} }
@@ -61,7 +64,7 @@ func (m *BlockData) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BlockData.Merge(m, src)
 }
 func (m *BlockData) XXX_Size() int {
-	return m.ProtoSize()
+	return m.Size()
 }
 func (m *BlockData) XXX_DiscardUnknown() {
 	xxx_messageInfo_BlockData.DiscardUnknown(m)
@@ -69,12 +72,64 @@ func (m *BlockData) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BlockData proto.InternalMessageInfo
 
+func (m *BlockData) GetHeader() *HeaderPb {
+	if m != nil {
+		return m.Header
+	}
+	return nil
+}
+
+func (m *BlockData) GetMetadata() []*MetaData {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *BlockData) GetResourcedata() []*ResourceData {
+	if m != nil {
+		return m.Resourcedata
+	}
+	return nil
+}
+
+func (m *BlockData) GetIdentitydata() []*IdentityData {
+	if m != nil {
+		return m.Identitydata
+	}
+	return nil
+}
+
+func (m *BlockData) GetTaskdata() []*TaskData {
+	if m != nil {
+		return m.Taskdata
+	}
+	return nil
+}
+
+func (m *BlockData) GetReceivedAt() uint64 {
+	if m != nil {
+		return m.ReceivedAt
+	}
+	return 0
+}
+
+func (m *BlockData) GetReceivedFrom() string {
+	if m != nil {
+		return m.ReceivedFrom
+	}
+	return ""
+}
+
 type BodyData struct {
-	Metadata     []MetaData     `protobuf:"bytes,1,rep,name=metadata,proto3" json:"metadata" xml:"metadata"`
-	Resourcedata []ResourceData `protobuf:"bytes,2,rep,name=resourcedata,proto3" json:"resourcedata" xml:"resourcedata"`
-	Identitydata []IdentityData `protobuf:"bytes,3,rep,name=identitydata,proto3" json:"identitydata" xml:"identitydata"`
-	Taskdata     []TaskData     `protobuf:"bytes,4,rep,name=taskdata,proto3" json:"taskdata" xml:"taskdata"`
-	ExtraData    []byte         `protobuf:"bytes,5,opt,name=extraData,proto3" json:"extradata" xml:"extradata"`
+	Metadata             []*MetaData     `protobuf:"bytes,1,rep,name=metadata,proto3" json:"metadata,omitempty"`
+	Resourcedata         []*ResourceData `protobuf:"bytes,2,rep,name=resourcedata,proto3" json:"resourcedata,omitempty"`
+	Identitydata         []*IdentityData `protobuf:"bytes,3,rep,name=identitydata,proto3" json:"identitydata,omitempty"`
+	Taskdata             []*TaskData     `protobuf:"bytes,4,rep,name=taskdata,proto3" json:"taskdata,omitempty"`
+	ExtraData            []byte          `protobuf:"bytes,5,opt,name=extraData,proto3" json:"extraData,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
 func (m *BodyData) Reset()         { *m = BodyData{} }
@@ -102,7 +157,7 @@ func (m *BodyData) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_BodyData.Merge(m, src)
 }
 func (m *BodyData) XXX_Size() int {
-	return m.ProtoSize()
+	return m.Size()
 }
 func (m *BodyData) XXX_DiscardUnknown() {
 	xxx_messageInfo_BodyData.DiscardUnknown(m)
@@ -110,14 +165,52 @@ func (m *BodyData) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_BodyData proto.InternalMessageInfo
 
+func (m *BodyData) GetMetadata() []*MetaData {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *BodyData) GetResourcedata() []*ResourceData {
+	if m != nil {
+		return m.Resourcedata
+	}
+	return nil
+}
+
+func (m *BodyData) GetIdentitydata() []*IdentityData {
+	if m != nil {
+		return m.Identitydata
+	}
+	return nil
+}
+
+func (m *BodyData) GetTaskdata() []*TaskData {
+	if m != nil {
+		return m.Taskdata
+	}
+	return nil
+}
+
+func (m *BodyData) GetExtraData() []byte {
+	if m != nil {
+		return m.ExtraData
+	}
+	return nil
+}
+
 // MetadataLookupEntry is a positional metadata to help looking up the data content of
 // a metadata given only its dataId.
 type DataLookupEntry struct {
-	BlockHash  []byte `protobuf:"bytes,1,opt,name=blockHash,proto3" json:"blockhash" xml:"blockhash"`
-	BlockIndex uint64 `protobuf:"varint,2,opt,name=blockIndex,proto3" json:"blockindex" xml:"blockindex"`
-	Index      uint64 `protobuf:"varint,3,opt,name=index,proto3" json:"index" xml:"index"`
-	NodeId     string `protobuf:"bytes,4,opt,name=nodeId,proto3" json:"nodeid" xml:"nodeid"`
-	Type       string `protobuf:"bytes,5,opt,name=type,proto3" json:"type" xml:"type"`
+	BlockHash            []byte   `protobuf:"bytes,1,opt,name=blockHash,proto3" json:"blockHash,omitempty"`
+	BlockIndex           uint64   `protobuf:"varint,2,opt,name=blockIndex,proto3" json:"blockIndex,omitempty"`
+	Index                uint64   `protobuf:"varint,3,opt,name=index,proto3" json:"index,omitempty"`
+	NodeId               string   `protobuf:"bytes,4,opt,name=nodeId,proto3" json:"nodeId,omitempty"`
+	Type                 string   `protobuf:"bytes,5,opt,name=type,proto3" json:"type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *DataLookupEntry) Reset()         { *m = DataLookupEntry{} }
@@ -145,13 +238,48 @@ func (m *DataLookupEntry) XXX_Merge(src proto.Message) {
 	xxx_messageInfo_DataLookupEntry.Merge(m, src)
 }
 func (m *DataLookupEntry) XXX_Size() int {
-	return m.ProtoSize()
+	return m.Size()
 }
 func (m *DataLookupEntry) XXX_DiscardUnknown() {
 	xxx_messageInfo_DataLookupEntry.DiscardUnknown(m)
 }
 
 var xxx_messageInfo_DataLookupEntry proto.InternalMessageInfo
+
+func (m *DataLookupEntry) GetBlockHash() []byte {
+	if m != nil {
+		return m.BlockHash
+	}
+	return nil
+}
+
+func (m *DataLookupEntry) GetBlockIndex() uint64 {
+	if m != nil {
+		return m.BlockIndex
+	}
+	return 0
+}
+
+func (m *DataLookupEntry) GetIndex() uint64 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *DataLookupEntry) GetNodeId() string {
+	if m != nil {
+		return m.NodeId
+	}
+	return ""
+}
+
+func (m *DataLookupEntry) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
 
 func init() {
 	proto.RegisterType((*BlockData)(nil), "types.BlockData")
@@ -162,52 +290,40 @@ func init() {
 func init() { proto.RegisterFile("lib/types/types.proto", fileDescriptor_7dc2b82598ae74bd) }
 
 var fileDescriptor_7dc2b82598ae74bd = []byte{
-	// 652 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x94, 0x4f, 0x6b, 0x13, 0x41,
-	0x18, 0xc6, 0xb3, 0xf9, 0x67, 0x33, 0xad, 0x56, 0x56, 0x2c, 0x63, 0x91, 0xdd, 0x30, 0x82, 0x84,
-	0x8a, 0x09, 0xd4, 0x9b, 0x07, 0xc1, 0xd5, 0xd6, 0x56, 0x2c, 0xc2, 0xe0, 0xc9, 0xdb, 0x24, 0x3b,
-	0x4d, 0x96, 0xfc, 0x99, 0x30, 0x3b, 0xd1, 0xe6, 0x5b, 0xf8, 0x11, 0xbc, 0xf8, 0x15, 0xfc, 0x0c,
-	0x3d, 0x49, 0x8f, 0x9e, 0x16, 0xda, 0xdc, 0x72, 0xcc, 0x27, 0x90, 0x7d, 0x67, 0x76, 0x76, 0x17,
-	0x3c, 0x5a, 0x2f, 0x61, 0xdf, 0xdf, 0xfb, 0x3e, 0xcf, 0x30, 0x4f, 0x5e, 0x06, 0x3d, 0x9c, 0x44,
-	0xfd, 0x9e, 0x5a, 0xce, 0x79, 0xac, 0x7f, 0xbb, 0x73, 0x29, 0x94, 0x70, 0x1b, 0x50, 0xec, 0xef,
-	0xe5, 0xdd, 0x11, 0x67, 0x21, 0x97, 0xba, 0xbd, 0x8f, 0x73, 0x3e, 0xe5, 0x8a, 0x85, 0x4c, 0x31,
-	0xd3, 0x79, 0x9c, 0x77, 0x24, 0x8f, 0xc5, 0x42, 0x0e, 0x78, 0xa1, 0x5b, 0xd0, 0x29, 0x16, 0x8f,
-	0xff, 0xae, 0x8b, 0x42, 0x3e, 0x53, 0x91, 0x5a, 0x16, 0xba, 0x4f, 0x24, 0x9f, 0x8b, 0xb8, 0x07,
-	0x45, 0x7f, 0x71, 0xde, 0x1b, 0x8a, 0xa1, 0x80, 0x02, 0xbe, 0xcc, 0xd0, 0xa3, 0xa1, 0x10, 0xc3,
-	0x09, 0xcf, 0xa7, 0xd8, 0x6c, 0xa9, 0x5b, 0xe4, 0x57, 0x1d, 0xb5, 0x82, 0x89, 0x18, 0x8c, 0xdf,
-	0x32, 0xc5, 0xdc, 0x23, 0xd4, 0xd4, 0xb7, 0xc1, 0x4e, 0xdb, 0xe9, 0x6c, 0x1f, 0xde, 0xed, 0xea,
-	0xab, 0x9f, 0x00, 0x0c, 0xbc, 0xcb, 0xc4, 0xaf, 0xac, 0x13, 0xdf, 0x0c, 0x6d, 0x12, 0x7f, 0xe7,
-	0x62, 0x3a, 0x79, 0x49, 0x74, 0x49, 0xa8, 0xe1, 0xee, 0x47, 0xb4, 0x95, 0x5d, 0x1e, 0x57, 0xdb,
-	0xb5, 0xce, 0xf6, 0xe1, 0xae, 0x31, 0x3a, 0xe3, 0x8a, 0xa5, 0x27, 0x05, 0xc4, 0x58, 0xd9, 0xc1,
-	0x4d, 0xe2, 0xdf, 0x03, 0xb3, 0x0c, 0x10, 0x6a, 0x7b, 0xee, 0x00, 0xed, 0x14, 0x33, 0xc3, 0x35,
-	0x30, 0x7d, 0x60, 0x4c, 0xa9, 0x69, 0x81, 0xf1, 0x81, 0x31, 0x2e, 0x09, 0x36, 0x89, 0xef, 0x82,
-	0x79, 0x11, 0x12, 0x5a, 0x9a, 0x49, 0x0f, 0x29, 0x06, 0x8c, 0xeb, 0xa5, 0x43, 0x4e, 0x4d, 0xab,
-	0x7c, 0x48, 0x51, 0x60, 0x0f, 0x29, 0x42, 0x42, 0x4b, 0x33, 0x69, 0x34, 0xd9, 0xff, 0x8b, 0x1b,
-	0xa5, 0x68, 0x3e, 0xb1, 0x78, 0x5c, 0x8e, 0x26, 0x1b, 0xb4, 0xd1, 0x64, 0x80, 0x50, 0xdb, 0x73,
-	0x03, 0x84, 0x24, 0x1f, 0xf0, 0xe8, 0x0b, 0x0f, 0x5f, 0x2b, 0xdc, 0x6c, 0x3b, 0x9d, 0x7a, 0x40,
-	0xd6, 0x89, 0x6f, 0x29, 0x53, 0x9b, 0xc4, 0xbf, 0x6f, 0x6e, 0x9f, 0x21, 0x42, 0x0b, 0x2a, 0xf7,
-	0x7d, 0x1a, 0xaf, 0xae, 0x8e, 0xa5, 0x98, 0xe2, 0x3b, 0x6d, 0xa7, 0xd3, 0x0a, 0x9e, 0xea, 0x14,
-	0x35, 0x3f, 0x97, 0x62, 0x5a, 0x48, 0x31, 0x87, 0x90, 0x62, 0xae, 0x25, 0x3f, 0x6b, 0x68, 0x2b,
-	0x10, 0x21, 0xe4, 0x54, 0x5a, 0x04, 0xe7, 0x36, 0x16, 0xa1, 0xfa, 0x3f, 0x16, 0xa1, 0x76, 0xdb,
-	0x8b, 0x50, 0xff, 0x17, 0x8b, 0xf0, 0x0a, 0xb5, 0xf8, 0x85, 0x92, 0x90, 0x2a, 0x6e, 0xb4, 0x9d,
-	0xce, 0x4e, 0xd0, 0x5e, 0x27, 0xbe, 0x86, 0x46, 0xbd, 0x0b, 0x6a, 0x4b, 0x08, 0xcd, 0x25, 0xe4,
-	0x47, 0x15, 0xed, 0xa6, 0x1f, 0x1f, 0x84, 0x18, 0x2f, 0xe6, 0x47, 0x33, 0x25, 0x97, 0xa9, 0x67,
-	0x3f, 0x7d, 0x1c, 0x4e, 0x58, 0x3c, 0x82, 0x27, 0xc1, 0x78, 0x02, 0x1c, 0xb1, 0x78, 0x64, 0x3d,
-	0x2d, 0x21, 0x34, 0x97, 0xa4, 0xcb, 0x09, 0xc5, 0xe9, 0x2c, 0xe4, 0x17, 0xb8, 0x9a, 0x2f, 0x27,
-	0xd0, 0x28, 0xa5, 0x76, 0x39, 0x73, 0x44, 0x68, 0x41, 0xe5, 0x76, 0x51, 0x03, 0x28, 0xae, 0x81,
-	0x1c, 0xaf, 0x13, 0xbf, 0x91, 0x29, 0xb7, 0x75, 0xcc, 0x5a, 0xa4, 0xa9, 0x7b, 0x88, 0x9a, 0x33,
-	0x11, 0xf2, 0xd3, 0x10, 0xd7, 0x61, 0x8d, 0xf7, 0xd3, 0x07, 0x2b, 0x25, 0x51, 0x68, 0x1f, 0x2c,
-	0x5d, 0x12, 0x6a, 0x26, 0xdd, 0x03, 0x54, 0x4f, 0xb3, 0x87, 0xd8, 0x5a, 0xc1, 0xde, 0x3a, 0xf1,
-	0xa1, 0xde, 0x24, 0x3e, 0xd2, 0x79, 0x2f, 0xe7, 0x9c, 0x50, 0x60, 0xc1, 0xd9, 0xe5, 0xb5, 0x57,
-	0xb9, 0xba, 0xf6, 0x2a, 0x97, 0x37, 0x9e, 0x73, 0x75, 0xe3, 0x39, 0xdf, 0x56, 0x5e, 0xe5, 0xfb,
-	0xca, 0x73, 0xae, 0x56, 0x5e, 0xe5, 0xf7, 0xca, 0xab, 0x7c, 0x7e, 0x36, 0x8c, 0xd4, 0x68, 0xd1,
-	0xef, 0x0e, 0xc4, 0xb4, 0x47, 0x45, 0xcc, 0x95, 0x62, 0xc7, 0x13, 0xf1, 0xb5, 0xf7, 0x86, 0x49,
-	0x19, 0x71, 0xf9, 0xfc, 0x9d, 0xe8, 0xd9, 0x37, 0xbd, 0xdf, 0x84, 0x77, 0xf8, 0xc5, 0x9f, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0xbb, 0xa8, 0xad, 0xf9, 0x6f, 0x06, 0x00, 0x00,
+	// 460 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0xdd, 0x8a, 0xd3, 0x40,
+	0x14, 0x66, 0xda, 0xb4, 0x6e, 0xc7, 0xc2, 0xc2, 0xa8, 0xcb, 0xb8, 0x2c, 0x25, 0xd4, 0x0b, 0x0b,
+	0x8b, 0x0d, 0xe8, 0x85, 0x78, 0x69, 0xd5, 0x75, 0x0b, 0x0a, 0x32, 0x78, 0xe5, 0xdd, 0xa4, 0x39,
+	0xa6, 0xa1, 0x6d, 0x4e, 0x99, 0x4c, 0x75, 0xf3, 0x18, 0xbe, 0x93, 0x17, 0x5e, 0xfa, 0x08, 0xd2,
+	0x67, 0xf0, 0x01, 0x64, 0xce, 0xa4, 0x9b, 0x04, 0x04, 0xb1, 0x37, 0x61, 0xce, 0xf7, 0x13, 0xbe,
+	0xf3, 0x31, 0xc3, 0x1f, 0xac, 0xb3, 0x38, 0xb2, 0xe5, 0x16, 0x0a, 0xff, 0x9d, 0x6e, 0x0d, 0x5a,
+	0x14, 0x3d, 0x1a, 0xce, 0xcf, 0x6a, 0x76, 0x09, 0x3a, 0x01, 0xe3, 0xe9, 0x73, 0x59, 0xe3, 0x1b,
+	0xb0, 0x3a, 0xd1, 0x56, 0x57, 0xcc, 0x45, 0xcd, 0x18, 0x28, 0x70, 0x67, 0x16, 0xd0, 0x60, 0x1b,
+	0x3e, 0xab, 0x8b, 0xd5, 0xdf, 0x7d, 0x59, 0x02, 0xb9, 0xcd, 0x6c, 0xd9, 0x60, 0x1f, 0x19, 0xd8,
+	0x62, 0x11, 0xd1, 0x10, 0xef, 0x3e, 0x47, 0x29, 0xa6, 0x48, 0x03, 0x9d, 0x2a, 0xd1, 0xc3, 0x14,
+	0x31, 0x5d, 0x43, 0xad, 0xd2, 0x79, 0xe9, 0xa9, 0xf1, 0xf7, 0x0e, 0x1f, 0xcc, 0xd6, 0xb8, 0x58,
+	0xbd, 0xd6, 0x56, 0x8b, 0xc7, 0xbc, 0xef, 0xb7, 0x91, 0x2c, 0x64, 0x93, 0xbb, 0x4f, 0x4f, 0xa7,
+	0x7e, 0xf5, 0x6b, 0x02, 0x3f, 0xc4, 0xaa, 0xa2, 0xc5, 0x25, 0x3f, 0x39, 0xac, 0x27, 0x3b, 0x61,
+	0xb7, 0x21, 0x7d, 0x0f, 0x56, 0xbb, 0x7f, 0xa9, 0x5b, 0x81, 0x78, 0xce, 0x87, 0xcd, 0x8d, 0x65,
+	0x97, 0x0c, 0xf7, 0x2a, 0x83, 0xaa, 0x28, 0x32, 0xb5, 0x84, 0xce, 0xd8, 0x5c, 0x59, 0x06, 0x2d,
+	0xe3, 0xbc, 0xa2, 0xbc, 0xb1, 0x29, 0x74, 0xf1, 0x0e, 0x2d, 0xca, 0x5e, 0x2b, 0xde, 0x47, 0x5d,
+	0xac, 0x7c, 0xbc, 0x83, 0x40, 0x8c, 0x38, 0x37, 0xb0, 0x80, 0xec, 0x0b, 0x24, 0x2f, 0xad, 0xec,
+	0x87, 0x6c, 0x12, 0xa8, 0x06, 0x22, 0xc6, 0x2e, 0xbe, 0x9f, 0xae, 0x0c, 0x6e, 0xe4, 0x9d, 0x90,
+	0x4d, 0x06, 0xaa, 0x85, 0x8d, 0x7f, 0x33, 0x7e, 0x32, 0xc3, 0x84, 0xb2, 0xb4, 0xca, 0x61, 0xff,
+	0x5b, 0x4e, 0xe7, 0xd8, 0x72, 0xba, 0xc7, 0x94, 0x13, 0xfc, 0xab, 0x9c, 0x0b, 0x3e, 0x80, 0x1b,
+	0x6b, 0x28, 0xb5, 0xec, 0x85, 0x6c, 0x32, 0x54, 0x35, 0x30, 0xfe, 0xc6, 0xf8, 0xa9, 0x3b, 0xbc,
+	0x43, 0x5c, 0xed, 0xb6, 0x6f, 0x72, 0x6b, 0x4a, 0xe7, 0x88, 0xdd, 0x85, 0xba, 0xd6, 0xc5, 0x92,
+	0xae, 0xd1, 0x50, 0xd5, 0x80, 0x2b, 0x9b, 0x86, 0x79, 0x9e, 0xc0, 0x8d, 0xec, 0xf8, 0xb2, 0x6b,
+	0x44, 0xdc, 0xe7, 0xbd, 0x8c, 0xa8, 0x2e, 0x51, 0x7e, 0x10, 0x67, 0xbc, 0x9f, 0x63, 0x02, 0xf3,
+	0x44, 0x06, 0x54, 0x7e, 0x35, 0x09, 0xc1, 0x03, 0x97, 0x9c, 0x82, 0x0d, 0x14, 0x9d, 0x67, 0x2f,
+	0x7e, 0xec, 0x47, 0xec, 0xe7, 0x7e, 0xc4, 0x7e, 0xed, 0x47, 0xec, 0xd3, 0x65, 0x9a, 0xd9, 0xe5,
+	0x2e, 0x9e, 0x2e, 0x70, 0x13, 0x29, 0x2c, 0xc0, 0x5a, 0x7d, 0xb5, 0xc6, 0xaf, 0xd1, 0x2b, 0x6d,
+	0x4c, 0x06, 0xe6, 0xc9, 0x5b, 0x8c, 0x6e, 0xdf, 0x57, 0xdc, 0xa7, 0x37, 0xf1, 0xec, 0x4f, 0x00,
+	0x00, 0x00, 0xff, 0xff, 0xd2, 0xb7, 0x1b, 0x50, 0xfb, 0x03, 0x00, 0x00,
 }
 
 func (m *BlockData) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
+	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
@@ -217,7 +333,7 @@ func (m *BlockData) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *BlockData) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
+	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
@@ -226,6 +342,10 @@ func (m *BlockData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if len(m.ReceivedFrom) > 0 {
 		i -= len(m.ReceivedFrom)
 		copy(dAtA[i:], m.ReceivedFrom)
@@ -294,21 +414,23 @@ func (m *BlockData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x12
 		}
 	}
-	{
-		size, err := m.Header.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
+	if m.Header != nil {
+		{
+			size, err := m.Header.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTypes(dAtA, i, uint64(size))
 		}
-		i -= size
-		i = encodeVarintTypes(dAtA, i, uint64(size))
+		i--
+		dAtA[i] = 0xa
 	}
-	i--
-	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
 func (m *BodyData) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
+	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
@@ -318,7 +440,7 @@ func (m *BodyData) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *BodyData) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
+	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
@@ -327,6 +449,10 @@ func (m *BodyData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if len(m.ExtraData) > 0 {
 		i -= len(m.ExtraData)
 		copy(dAtA[i:], m.ExtraData)
@@ -394,7 +520,7 @@ func (m *BodyData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 }
 
 func (m *DataLookupEntry) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
+	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
@@ -404,7 +530,7 @@ func (m *DataLookupEntry) Marshal() (dAtA []byte, err error) {
 }
 
 func (m *DataLookupEntry) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
+	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
@@ -413,6 +539,10 @@ func (m *DataLookupEntry) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
 	if len(m.Type) > 0 {
 		i -= len(m.Type)
 		copy(dAtA[i:], m.Type)
@@ -458,35 +588,37 @@ func encodeVarintTypes(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *BlockData) ProtoSize() (n int) {
+func (m *BlockData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = m.Header.ProtoSize()
-	n += 1 + l + sovTypes(uint64(l))
+	if m.Header != nil {
+		l = m.Header.Size()
+		n += 1 + l + sovTypes(uint64(l))
+	}
 	if len(m.Metadata) > 0 {
 		for _, e := range m.Metadata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
 	if len(m.Resourcedata) > 0 {
 		for _, e := range m.Resourcedata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
 	if len(m.Identitydata) > 0 {
 		for _, e := range m.Identitydata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
 	if len(m.Taskdata) > 0 {
 		for _, e := range m.Taskdata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
@@ -497,10 +629,13 @@ func (m *BlockData) ProtoSize() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
 	return n
 }
 
-func (m *BodyData) ProtoSize() (n int) {
+func (m *BodyData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -508,25 +643,25 @@ func (m *BodyData) ProtoSize() (n int) {
 	_ = l
 	if len(m.Metadata) > 0 {
 		for _, e := range m.Metadata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
 	if len(m.Resourcedata) > 0 {
 		for _, e := range m.Resourcedata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
 	if len(m.Identitydata) > 0 {
 		for _, e := range m.Identitydata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
 	if len(m.Taskdata) > 0 {
 		for _, e := range m.Taskdata {
-			l = e.ProtoSize()
+			l = e.Size()
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
@@ -534,10 +669,13 @@ func (m *BodyData) ProtoSize() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
 	return n
 }
 
-func (m *DataLookupEntry) ProtoSize() (n int) {
+func (m *DataLookupEntry) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -560,6 +698,9 @@ func (m *DataLookupEntry) ProtoSize() (n int) {
 	l = len(m.Type)
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
 	}
 	return n
 }
@@ -628,6 +769,9 @@ func (m *BlockData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
+			if m.Header == nil {
+				m.Header = &HeaderPb{}
+			}
 			if err := m.Header.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -661,7 +805,7 @@ func (m *BlockData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Metadata = append(m.Metadata, MetaData{})
+			m.Metadata = append(m.Metadata, &MetaData{})
 			if err := m.Metadata[len(m.Metadata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -695,7 +839,7 @@ func (m *BlockData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Resourcedata = append(m.Resourcedata, ResourceData{})
+			m.Resourcedata = append(m.Resourcedata, &ResourceData{})
 			if err := m.Resourcedata[len(m.Resourcedata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -729,7 +873,7 @@ func (m *BlockData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Identitydata = append(m.Identitydata, IdentityData{})
+			m.Identitydata = append(m.Identitydata, &IdentityData{})
 			if err := m.Identitydata[len(m.Identitydata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -763,7 +907,7 @@ func (m *BlockData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Taskdata = append(m.Taskdata, TaskData{})
+			m.Taskdata = append(m.Taskdata, &TaskData{})
 			if err := m.Taskdata[len(m.Taskdata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -831,6 +975,7 @@ func (m *BlockData) Unmarshal(dAtA []byte) error {
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
 			iNdEx += skippy
 		}
 	}
@@ -898,7 +1043,7 @@ func (m *BodyData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Metadata = append(m.Metadata, MetaData{})
+			m.Metadata = append(m.Metadata, &MetaData{})
 			if err := m.Metadata[len(m.Metadata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -932,7 +1077,7 @@ func (m *BodyData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Resourcedata = append(m.Resourcedata, ResourceData{})
+			m.Resourcedata = append(m.Resourcedata, &ResourceData{})
 			if err := m.Resourcedata[len(m.Resourcedata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -966,7 +1111,7 @@ func (m *BodyData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Identitydata = append(m.Identitydata, IdentityData{})
+			m.Identitydata = append(m.Identitydata, &IdentityData{})
 			if err := m.Identitydata[len(m.Identitydata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1000,7 +1145,7 @@ func (m *BodyData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Taskdata = append(m.Taskdata, TaskData{})
+			m.Taskdata = append(m.Taskdata, &TaskData{})
 			if err := m.Taskdata[len(m.Taskdata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1051,6 +1196,7 @@ func (m *BodyData) Unmarshal(dAtA []byte) error {
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
 			iNdEx += skippy
 		}
 	}
@@ -1237,6 +1383,7 @@ func (m *DataLookupEntry) Unmarshal(dAtA []byte) error {
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
 			iNdEx += skippy
 		}
 	}

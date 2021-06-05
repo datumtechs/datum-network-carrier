@@ -23,25 +23,28 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type Header struct {
-	Hash       string `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash" xml:"hash"`
-	ParentHash string `protobuf:"bytes,2,opt,name=parentHash,proto3" json:"parenthash" xml:"parenthash"`
-	Version    uint64 `protobuf:"varint,3,opt,name=version,proto3" json:"version" xml:"version"`
-	Timestamp  uint64 `protobuf:"varint,4,opt,name=timestamp,proto3" json:"timestamp" xml:"timestamp"`
+type HeaderPb struct {
+	ParentHash           []byte   `protobuf:"bytes,1,opt,name=parentHash,proto3" json:"parentHash,omitempty"`
+	Version              uint64   `protobuf:"varint,2,opt,name=version,proto3" json:"version,omitempty"`
+	Timestamp            uint64   `protobuf:"varint,3,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	Extra                []byte   `protobuf:"bytes,4,opt,name=extra,proto3" json:"extra,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *Header) Reset()         { *m = Header{} }
-func (m *Header) String() string { return proto.CompactTextString(m) }
-func (*Header) ProtoMessage()    {}
-func (*Header) Descriptor() ([]byte, []int) {
+func (m *HeaderPb) Reset()         { *m = HeaderPb{} }
+func (m *HeaderPb) String() string { return proto.CompactTextString(m) }
+func (*HeaderPb) ProtoMessage()    {}
+func (*HeaderPb) Descriptor() ([]byte, []int) {
 	return fileDescriptor_87736b9d033c718d, []int{0}
 }
-func (m *Header) XXX_Unmarshal(b []byte) error {
+func (m *HeaderPb) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *Header) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *HeaderPb) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_Header.Marshal(b, m, deterministic)
+		return xxx_messageInfo_HeaderPb.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -51,49 +54,72 @@ func (m *Header) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *Header) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Header.Merge(m, src)
+func (m *HeaderPb) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_HeaderPb.Merge(m, src)
 }
-func (m *Header) XXX_Size() int {
-	return m.ProtoSize()
+func (m *HeaderPb) XXX_Size() int {
+	return m.Size()
 }
-func (m *Header) XXX_DiscardUnknown() {
-	xxx_messageInfo_Header.DiscardUnknown(m)
+func (m *HeaderPb) XXX_DiscardUnknown() {
+	xxx_messageInfo_HeaderPb.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_Header proto.InternalMessageInfo
+var xxx_messageInfo_HeaderPb proto.InternalMessageInfo
+
+func (m *HeaderPb) GetParentHash() []byte {
+	if m != nil {
+		return m.ParentHash
+	}
+	return nil
+}
+
+func (m *HeaderPb) GetVersion() uint64 {
+	if m != nil {
+		return m.Version
+	}
+	return 0
+}
+
+func (m *HeaderPb) GetTimestamp() uint64 {
+	if m != nil {
+		return m.Timestamp
+	}
+	return 0
+}
+
+func (m *HeaderPb) GetExtra() []byte {
+	if m != nil {
+		return m.Extra
+	}
+	return nil
+}
 
 func init() {
-	proto.RegisterType((*Header)(nil), "types.Header")
+	proto.RegisterType((*HeaderPb)(nil), "types.HeaderPb")
 }
 
 func init() { proto.RegisterFile("lib/types/header.proto", fileDescriptor_87736b9d033c718d) }
 
 var fileDescriptor_87736b9d033c718d = []byte{
-	// 297 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x90, 0x3f, 0x4e, 0xc3, 0x30,
-	0x18, 0x47, 0x63, 0x28, 0x45, 0xb5, 0x84, 0x40, 0x19, 0xaa, 0x0a, 0x21, 0xbb, 0x32, 0x4b, 0x05,
-	0xa2, 0x1e, 0x90, 0x18, 0x18, 0x18, 0x82, 0x04, 0x5d, 0x58, 0x32, 0xb2, 0x39, 0x60, 0x9a, 0x48,
-	0x49, 0x1d, 0xd9, 0x2e, 0x7f, 0x6e, 0xc1, 0x11, 0x38, 0x4e, 0xc7, 0x8c, 0x4c, 0x96, 0xda, 0x6c,
-	0x99, 0x50, 0x4e, 0x80, 0xfa, 0x91, 0x36, 0x6c, 0x7e, 0xef, 0xf3, 0x5b, 0x7e, 0xb8, 0x9f, 0x26,
-	0x11, 0xb7, 0x1f, 0xb9, 0x34, 0x3c, 0x96, 0xe2, 0x59, 0xea, 0x71, 0xae, 0x95, 0x55, 0xfe, 0x1e,
-	0xb8, 0xe3, 0x53, 0x2d, 0x73, 0x65, 0x38, 0xb8, 0x68, 0xfe, 0xc2, 0xa7, 0x6a, 0xaa, 0x00, 0xe0,
-	0xf5, 0xf7, 0x97, 0xfd, 0x20, 0xdc, 0x9d, 0x40, 0xec, 0x9f, 0xe1, 0x4e, 0x2c, 0x4c, 0x3c, 0x40,
-	0x43, 0x34, 0xea, 0x05, 0xfd, 0xca, 0x51, 0xe0, 0xda, 0x51, 0xfc, 0x9e, 0xa5, 0xd7, 0x6c, 0x0d,
-	0x2c, 0x04, 0xe7, 0x07, 0x18, 0xe7, 0x42, 0xcb, 0x99, 0x9d, 0xac, 0x8b, 0x1d, 0x28, 0x58, 0xe5,
-	0x68, 0x63, 0x9b, 0xee, 0x08, 0xba, 0x56, 0xb1, 0xf0, 0x5f, 0xe5, 0x5f, 0xe1, 0xfd, 0x57, 0xa9,
-	0x4d, 0xa2, 0x66, 0x83, 0xdd, 0x21, 0x1a, 0x75, 0x82, 0x93, 0xca, 0xd1, 0x8d, 0xaa, 0x1d, 0x3d,
-	0x80, 0xba, 0x61, 0x16, 0x6e, 0x2e, 0xfe, 0x0d, 0xee, 0xd9, 0x24, 0x93, 0xc6, 0x8a, 0x2c, 0x1f,
-	0x74, 0xa0, 0x1c, 0x56, 0x8e, 0xb6, 0xb2, 0x76, 0xf4, 0x10, 0xda, 0xad, 0x61, 0x61, 0x7b, 0x0d,
-	0x1e, 0x16, 0x4b, 0xe2, 0x15, 0x4b, 0xe2, 0x2d, 0x56, 0x04, 0x15, 0x2b, 0x82, 0x3e, 0x4b, 0xe2,
-	0x7d, 0x95, 0x04, 0x15, 0x25, 0xf1, 0xbe, 0x4b, 0xe2, 0x3d, 0x9e, 0x4f, 0x13, 0x1b, 0xcf, 0xa3,
-	0xf1, 0x93, 0xca, 0x78, 0xa8, 0x8c, 0xb4, 0x56, 0xdc, 0xa5, 0xea, 0x8d, 0xdf, 0x0a, 0xad, 0x13,
-	0xa9, 0x2f, 0xee, 0x15, 0xdf, 0x4e, 0x1f, 0x75, 0x61, 0xc8, 0xcb, 0xdf, 0x00, 0x00, 0x00, 0xff,
-	0xff, 0xce, 0x0b, 0xca, 0xff, 0x8e, 0x01, 0x00, 0x00,
+	// 218 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x8f, 0xbd, 0x4a, 0x04, 0x31,
+	0x10, 0xc7, 0x89, 0xde, 0xf9, 0x11, 0xac, 0x82, 0x48, 0x10, 0x09, 0x87, 0x36, 0x07, 0xe2, 0xa5,
+	0xb0, 0xb2, 0x55, 0xd0, 0x2b, 0x65, 0x4b, 0xbb, 0x44, 0xc7, 0xdd, 0xc0, 0xed, 0x4e, 0x98, 0xcc,
+	0xea, 0xfa, 0x86, 0x96, 0x3e, 0x82, 0xec, 0x93, 0x08, 0xb3, 0xa8, 0xd7, 0xcd, 0xef, 0x37, 0x1f,
+	0xcc, 0x5f, 0x9f, 0x6c, 0x52, 0xf4, 0xfc, 0x91, 0xa1, 0xf8, 0x06, 0xc2, 0x0b, 0xd0, 0x2a, 0x13,
+	0x32, 0x9a, 0xb9, 0xb8, 0xd3, 0x0b, 0x82, 0x8c, 0xc5, 0x8b, 0x8b, 0xfd, 0xab, 0xaf, 0xb1, 0x46,
+	0x01, 0xa9, 0xa6, 0xd9, 0xf3, 0x41, 0x1f, 0xac, 0x65, 0xf7, 0x31, 0x1a, 0xa7, 0x75, 0x0e, 0x04,
+	0x1d, 0xaf, 0x43, 0x69, 0xac, 0x5a, 0xa8, 0xe5, 0x51, 0xb5, 0x65, 0x8c, 0xd5, 0xfb, 0x6f, 0x40,
+	0x25, 0x61, 0x67, 0x77, 0x16, 0x6a, 0x39, 0xab, 0x7e, 0xd1, 0x9c, 0xe9, 0x43, 0x4e, 0x2d, 0x14,
+	0x0e, 0x6d, 0xb6, 0xbb, 0xd2, 0xfb, 0x17, 0xe6, 0x58, 0xcf, 0x61, 0x60, 0x0a, 0x76, 0x26, 0x27,
+	0x27, 0xb8, 0xbd, 0xf9, 0x1c, 0x9d, 0xfa, 0x1a, 0x9d, 0xfa, 0x1e, 0x9d, 0x7a, 0xba, 0xac, 0x13,
+	0x37, 0x7d, 0x5c, 0x3d, 0x63, 0xeb, 0x2b, 0x2c, 0xc0, 0x1c, 0xee, 0x37, 0xf8, 0xee, 0xef, 0x02,
+	0x51, 0x02, 0xba, 0x7a, 0x40, 0xff, 0x97, 0x36, 0xee, 0xc9, 0xef, 0xd7, 0x3f, 0x01, 0x00, 0x00,
+	0xff, 0xff, 0x93, 0x22, 0x40, 0xea, 0x01, 0x01, 0x00, 0x00,
 }
 
-func (m *Header) Marshal() (dAtA []byte, err error) {
-	size := m.ProtoSize()
+func (m *HeaderPb) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
 	if err != nil {
@@ -102,37 +128,41 @@ func (m *Header) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Header) MarshalTo(dAtA []byte) (int, error) {
-	size := m.ProtoSize()
+func (m *HeaderPb) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Header) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *HeaderPb) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Extra) > 0 {
+		i -= len(m.Extra)
+		copy(dAtA[i:], m.Extra)
+		i = encodeVarintHeader(dAtA, i, uint64(len(m.Extra)))
+		i--
+		dAtA[i] = 0x22
+	}
 	if m.Timestamp != 0 {
 		i = encodeVarintHeader(dAtA, i, uint64(m.Timestamp))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x18
 	}
 	if m.Version != 0 {
 		i = encodeVarintHeader(dAtA, i, uint64(m.Version))
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x10
 	}
 	if len(m.ParentHash) > 0 {
 		i -= len(m.ParentHash)
 		copy(dAtA[i:], m.ParentHash)
 		i = encodeVarintHeader(dAtA, i, uint64(len(m.ParentHash)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Hash) > 0 {
-		i -= len(m.Hash)
-		copy(dAtA[i:], m.Hash)
-		i = encodeVarintHeader(dAtA, i, uint64(len(m.Hash)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -150,16 +180,12 @@ func encodeVarintHeader(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *Header) ProtoSize() (n int) {
+func (m *HeaderPb) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Hash)
-	if l > 0 {
-		n += 1 + l + sovHeader(uint64(l))
-	}
 	l = len(m.ParentHash)
 	if l > 0 {
 		n += 1 + l + sovHeader(uint64(l))
@@ -170,6 +196,13 @@ func (m *Header) ProtoSize() (n int) {
 	if m.Timestamp != 0 {
 		n += 1 + sovHeader(uint64(m.Timestamp))
 	}
+	l = len(m.Extra)
+	if l > 0 {
+		n += 1 + l + sovHeader(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
 	return n
 }
 
@@ -179,7 +212,7 @@ func sovHeader(x uint64) (n int) {
 func sozHeader(x uint64) (n int) {
 	return sovHeader(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *Header) Unmarshal(dAtA []byte) error {
+func (m *HeaderPb) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -202,49 +235,17 @@ func (m *Header) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Header: wiretype end group for non-group")
+			return fmt.Errorf("proto: HeaderPb: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Header: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: HeaderPb: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Hash", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowHeader
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthHeader
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthHeader
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Hash = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ParentHash", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowHeader
@@ -254,25 +255,27 @@ func (m *Header) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthHeader
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthHeader
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ParentHash = string(dAtA[iNdEx:postIndex])
+			m.ParentHash = append(m.ParentHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.ParentHash == nil {
+				m.ParentHash = []byte{}
+			}
 			iNdEx = postIndex
-		case 3:
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Version", wireType)
 			}
@@ -291,7 +294,7 @@ func (m *Header) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 4:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Timestamp", wireType)
 			}
@@ -310,6 +313,40 @@ func (m *Header) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Extra", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowHeader
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthHeader
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthHeader
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Extra = append(m.Extra[:0], dAtA[iNdEx:postIndex]...)
+			if m.Extra == nil {
+				m.Extra = []byte{}
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipHeader(dAtA[iNdEx:])
@@ -322,6 +359,7 @@ func (m *Header) Unmarshal(dAtA []byte) error {
 			if (iNdEx + skippy) > l {
 				return io.ErrUnexpectedEOF
 			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
 			iNdEx += skippy
 		}
 	}
