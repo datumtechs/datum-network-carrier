@@ -129,17 +129,19 @@ func CopyHeader(h *Header) *Header {
 func (b *Block) UnmarshalPb(data []byte) error {
 	var blockData types.BlockData
 	blockData.Unmarshal(data)
-	b.header = (*Header)(&blockData.Header)
-	b.metadatas.BuildFrom(blockData.Metadata)
-	// todo: to completion the block data....
+	b.header = (*Header)((blockData.Header))
+	copy(b.metadatas, blockData.Metadata)
+	copy(b.resources, blockData.Resourcedata)
+	copy(b.identities, blockData.Identitydata)
+	copy(b.taskDatas, blockData.Taskdata)
 	return nil
 }
 
 // EncodeRLP serializes b into the Ethereum RLP block format.
 func (b *Block) MarshalPb() ([]byte, error) {
 	blockData := &types.BlockData{
-		Header: *b.header.GetHeaderPb(),
-		Metadata: b.metadatas.Copy(),
+		Header: b.header.GetHeaderPb(),
+		Metadata: b.metadatas,
 		// todo: to completion the extra params...
 	}
 	return blockData.Marshal()
