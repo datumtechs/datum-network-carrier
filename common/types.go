@@ -8,12 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
+	"golang.org/x/crypto/sha3"
 	"math/big"
 	"math/rand"
 	"reflect"
 	"strings"
-
-	"golang.org/x/crypto/sha3"
 )
 
 // Lengths of hashes and addresses in bytes.
