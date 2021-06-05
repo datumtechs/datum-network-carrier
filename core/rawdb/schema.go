@@ -49,13 +49,18 @@ var (
 	//resourceLookupPrefix  		= []byte("r") 	// resourceLookupPrefix + dataId -> resource lookup metadata
 	//identityLookupPrefix  		= []byte("i") 	// identityLookupPrefix + dataId -> identity lookup metadata
 	//taskLookupPrefix  			= []byte("t") 	// taskLookupPrefix + dataId -> task lookup metadata
-
 )
 
 // headerKeyPrefix = headerPrefix + num (uint64 big endian)
 func headerKeyPrefix(number uint64) []byte {
 	return append(headerPrefix, encodeNumber(number)...)
 }
+
+// metadataIdKeyPrefix = metadataIdPrefix + nodeId
+func metadataIdKeyPrefix(nodeId string) []byte {
+	return append(metadataIdPrefix, common.Hex2Bytes(nodeId)...)
+}
+
 // encodeNumber encodes a number as big endian uint64
 func encodeNumber(number uint64) []byte {
 	enc := make([]byte, 8)

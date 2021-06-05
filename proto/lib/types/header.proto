@@ -6,9 +6,9 @@ import "repos/protobuf/gogoproto/gogo.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
-message Header {
-    string hash       = 1;
-    string parentHash = 2;
-    uint64 version    = 3;
-    uint64 timestamp  = 4;
+message HeaderPb {
+    bytes  parentHash = 1;
+    uint64 version    = 2;
+    uint64 timestamp  = 3;
+    bytes  extra      = 4;
 }
