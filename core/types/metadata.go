@@ -59,15 +59,16 @@ func (s MetadataArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func (s MetadataArray) Build(metaData []*libTypes.MetaData) error {
+func NewMetadataArray(metaData []*libTypes.MetaData) MetadataArray {
+	var s MetadataArray
 	for _, v := range metaData {
 		s = append(s, NewMetadata(v))
 	}
-	return nil
+	return s
 }
 
 func (s MetadataArray) To() []*libTypes.MetaData {
-	arr := make([]*libTypes.MetaData, s.Len())
+	arr := make([]*libTypes.MetaData, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

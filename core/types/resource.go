@@ -59,15 +59,16 @@ func (s ResourceArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func (s ResourceArray) Build(metaData []*libTypes.ResourceData) error {
+func NewResourceArray(metaData []*libTypes.ResourceData) ResourceArray {
+	var s ResourceArray
 	for _, v := range metaData {
 		s = append(s, NewResource(v))
 	}
-	return nil
+	return s
 }
 
 func (s ResourceArray) To() []*libTypes.ResourceData {
-	arr := make([]*libTypes.ResourceData, s.Len())
+	arr := make([]*libTypes.ResourceData, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}
