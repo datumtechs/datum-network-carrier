@@ -1,6 +1,41 @@
 package types
 
-import libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+import (
+	"github.com/RosettaFlow/Carrier-Go/common"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"sync/atomic"
+)
+
+type Metadata struct {
+	data *libTypes.MetaData
+
+	// caches
+	hash atomic.Value
+	size atomic.Value
+}
+
+func NewMetadata(data *libTypes.MetaData) *Metadata {
+	return &Metadata{data: data}
+}
+
+func (m *Metadata) EncodePb() ([]byte, error) {
+	return m.data.Marshal()
+}
+
+func (m *Metadata) DecodePb(data []byte) error {
+	m.size.Store(common.StorageSize(len(data)))
+	return m.data.Unmarshal(data)
+}
+
+func (m *Metadata) Hash() common.Hash {
+	if hash := m.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	data, _ := m.EncodePb()
+	v := protoBufHash(data)
+	m.hash.Store(v)
+	return v
+}
 
 // MetadataArray is a Transaction slice type for basic sorting.
 type MetadataArray []*libTypes.MetaData
@@ -15,22 +50,4 @@ func (s MetadataArray) GetPb(i int) []byte {
 	enc, _ := s[i].Marshal()
 	return enc
 }
-
-/*func (s MetadataArray) Copy() []libTypes.MetaData {
-	result := make([]libTypes.MetaData, 0, 1)
-	for _, v := range s {
-		cpy := *v
-		result = append(result, cpy)
-	}
-	return result
-}
-
-func (s MetadataArray) BuildFrom(metadata []libTypes.MetaData) []*libTypes.MetaData {
-	result := make([]*libTypes.MetaData, 0)
-	for _, meta := range metadata {
-		result = append(result, &meta)
-	}
-	copy(s, result)
-	return result
-}*/
 
