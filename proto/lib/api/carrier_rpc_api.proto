@@ -40,20 +40,24 @@ message YarnNodeSysInfo {
 
 // 调度服务上被注册的资源节点信息
 message YarnRegisteredPeer {
-  string node_type = 1;                     // 计算or数据服务node的类型
-  string id = 2;                            // 计算or数据服务的唯一Id
-  string internal_ip = 3;                   // 计算or数据服务的内网 ip, 给 管理台用
-  string external_ip = 4;                   // 计算or数据服务的外网 ip, 给 多方协作任务用
-  string internal_port = 5;                 // 计算or数据服务的内网 port, 给 管理台用
-  string external_port = 6;                 // 计算or数据服务的外网 port, 给 多方协作任务用
-  int32 conn_state = 7;                     // 计算or数据服务的状态 (-1: 未被调度服务连接上; 0: 算力为启用<计算服务>; 1: 算力启用<计算服务>; 2: 算力被占用<计算服务算力正在被任务占用>)
+  string                            node_type = 1;                      // 计算or数据服务node的类型
+  YarnRegisteredPeerDetail          node_detail = 2;                    // 计算or数据服务node的网络信息
+}
+
+message YarnRegisteredPeerDetail {
+    string id = 1;                            // 计算or数据服务的唯一Id
+    string internal_ip = 2;                   // 计算or数据服务的内网 ip, 给 管理台用
+    string external_ip = 3;                   // 计算or数据服务的外网 ip, 给 多方协作任务用
+    string internal_port = 4;                 // 计算or数据服务的内网 port, 给 管理台用
+    string external_port = 5;                 // 计算or数据服务的外网 port, 给 多方协作任务用
+    int32  conn_state = 6;                    // 计算or数据服务的状态 (-1: 未被调度服务连接上; 0: 连接上; 1: 算力为启用<计算服务>; 2: 算力启用<计算服务>; 3: 算力被占用<计算服务算力正在被任务占用>)
 }
 
 message SeedPeer {
-    string id = 1;                            // 种子节点的唯一Id
-    string internal_ip = 2;                   // 种子节点的内网 ip, 给 管理台用
-    string internal_port = 4;                 // 种子节点的内网 port, 给 管理台用
-    int32 conn_state = 5;                     // 是否被调度服务连接上 (-1: 未被调度服务连接上; 0: 连接上)
+  string id = 1;                            // 种子节点的唯一Id
+  string internal_ip = 2;                   // 种子节点的内网 ip, 给 管理台用
+  string internal_port = 3;                 // 种子节点的内网 port, 给 管理台用
+  int32  conn_state = 4;                    // 是否被调度服务连接上 (-1: 未被调度服务连接上; 0: 连接上)
 }
 
 // 调度服务上的 计算服务详情信息
@@ -91,15 +95,13 @@ message YarnRegisteredDataNodeDelta {
 }
 
 
-message GetNodeInfoRequest {}
 message GetNodeInfoResponse {
-    int32        status = 1;                      // 响应码
-    string       msg = 2;                         // 错误信息
-    YarnNodeInfo information = 3;                 // 调度服务系统信息
+  int32        status = 1;                      // 响应码
+  string       msg = 2;                         // 错误信息
+  YarnNodeInfo information = 3;                 // 调度服务系统信息
 }
 
 
-message GetRegisteredPeersRequest {}
 message GetRegisteredPeersResponse {
   int32                           status = 1;                               // 响应码
   string                          msg = 2;                                  // 错误信息
@@ -107,13 +109,113 @@ message GetRegisteredPeersResponse {
   repeated YarnRegisteredDataNode data_nodes = 4;                           // 注册在调度服务上的 数据服务信息
 }
 
+
+message SetSeedNodeRequest {
+    string internal_ip = 1;                   // 种子节点的内网 ip, 给 管理台用
+    string internal_port = 2;                 // 种子节点的内网 port, 给 管理台用
+}
+message SetSeedNodeResponse {
+    int32        status = 1;                      // 响应码
+    string       msg = 2;                         // 错误信息
+    SeedPeer     seed_peer = 3;
+}
+
+
+message UpdateSeedNodeRequest {
+    string id = 1;                            // 种子节点的唯一Id
+    string internal_ip = 2;                   // 种子节点的内网 ip, 给 管理台用
+    string internal_port = 3;                 // 种子节点的内网 port, 给 管理台用
+}
+
+
+
+
+message GetSeedNodeListResponse {
+    int32                   status = 1;                      // 响应码
+    string                  msg = 2;                         // 错误信息
+    repeated  SeedPeer      seed_peers = 3;
+}
+
+
+
+message SetDataNodeRequest {
+    string                      internal_ip = 3;                   // 数据服务的内网 ip, 给 管理台用
+    string                      external_ip = 4;                   // 数据服务的外网 ip, 给 多方协作任务用
+    string                      internal_port = 5;                 // 数据服务的内网 port, 给 管理台用
+    string                      external_port = 6;                 // 数据服务的外网 port, 给 多方协作任务用
+}
+
+message SetDataNodeResponse {
+    int32                           status = 1;                      // 响应码
+    string                          msg = 2;                         // 错误信息
+    YarnRegisteredPeerDetail        data_node = 3;
+}
+
+message UpdateDataNodeRequest {
+    string                      id = 1;                            // 数据服务的唯一id
+    string                      internal_ip = 3;                   // 数据服务的内网 ip, 给 管理台用
+    string                      external_ip = 4;                   // 数据服务的外网 ip, 给 多方协作任务用
+    string                      internal_port = 5;                 // 数据服务的内网 port, 给 管理台用
+    string                      external_port = 6;                 // 数据服务的外网 port, 给 多方协作任务用
+}
+
+message GetRegisteredNodeListResponse {
+    int32                                   status = 1;                      // 响应码
+    string                                  msg = 2;                         // 错误信息
+    repeated  YarnRegisteredPeer            nodes = 3;
+}
+
+
+message SetJobNodeRequest {
+    string                      internal_ip = 3;                   // 计算服务的内网 ip, 给 管理台用
+    string                      external_ip = 4;                   // 计算服务的外网 ip, 给 多方协作任务用
+    string                      internal_port = 5;                 // 计算服务的内网 port, 给 管理台用
+    string                      external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
+}
+
+message SetJobNodeResponse {
+    int32                           status = 1;                      // 响应码
+    string                          msg = 2;                         // 错误信息
+    YarnRegisteredPeerDetail        job_node = 3;
+}
+
+message UpdateJobNodeRequest {
+    string                      id = 1;                            // 计算服务的唯一id
+    string                      internal_ip = 3;                   // 计算服务的内网 ip, 给 管理台用
+    string                      external_ip = 4;                   // 计算服务的外网 ip, 给 多方协作任务用
+    string                      internal_port = 5;                 // 计算服务的内网 port, 给 管理台用
+    string                      external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
+}
+
 // ## 调度服务 - 系统状态 接口
 service YarnService {
 
+  // Getter YarnNode ...
   // 查看自身调度服务信息
-  rpc GetNodeInfo (GetNodeInfoRequest) returns (GetNodeInfoResponse);
+  rpc GetNodeInfo (EmptyGetParams) returns (GetNodeInfoResponse);
   // 查看自身调度服务的 peer注册信息
-  rpc GetRegisteredPeers (GetRegisteredPeersRequest) returns (GetRegisteredPeersResponse);
+  rpc GetRegisteredPeers (EmptyGetParams) returns (GetRegisteredPeersResponse);
+
+
+
+  // about seed
+  rpc SetSeedNode (SetSeedNodeRequest) returns (SetSeedNodeResponse);
+  rpc UpdateSeedNode (UpdateSeedNodeRequest) returns (SetSeedNodeResponse);
+  rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  rpc GetSeedNodeList (EmptyGetParams) returns (GetSeedNodeListResponse);
+
+  // about dataNode
+  rpc SetDataNode (SetDataNodeRequest) returns (SetDataNodeResponse);
+  rpc UpdateDataNode (UpdateDataNodeRequest) returns (SetDataNodeResponse);
+  rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  rpc GetDataNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse);
+
+  // about jobNode
+  rpc SetJobNode (SetJobNodeRequest) returns (SetJobNodeResponse);
+  rpc UpdateJobNode (UpdateJobNodeRequest) returns (SetJobNodeResponse);
+  rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  rpc GetJobNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse);
+
 }
 
 
@@ -122,172 +224,210 @@ service YarnService {
 
 // 源数据的摘要内容 (不包含详细 列描述)
 message MetaDataSummary {
-    string                          meta_id = 1;                // 元数据Id
-    string                          origin_id =2;               // 源文件Id
-    string                          table_name = 3;             // 元数据名称 (表名)
-    string                          desc = 4;                   // 元数据的描述 (摘要)
-    string                          file_path = 5;              // 源文件存放路径
-    uint32                          rows = 6;                   // 源文件的行数
-    uint32                          columns = 7;                // 源文件的列数
-    string                          size = 8;                   // 源文件的大小
-    string                          file_type = 9;              // 源文件的类型 (目前只有 csv)
-    bool                            has_hasTitleRow = 10;       // 源文件是否包含标题
-    string                          state = 11;                 // 元数据的状态 (create: 还未发布的新表; release: 已发布的表; revoke: 已撤销的表)
+  string meta_data_id = 1;           // 元数据Id
+  string origin_id = 2;              // 源文件Id
+  string table_name = 3;             // 元数据名称 (表名)
+  string desc = 4;                   // 元数据的描述 (摘要)
+  string file_path = 5;              // 源文件存放路径
+  uint32 rows = 6;                   // 源文件的行数
+  uint32 columns = 7;                // 源文件的列数
+  string size = 8;                   // 源文件的大小
+  string file_type = 9;              // 源文件的类型 (目前只有 csv)
+  bool   has_hasTitleRow = 10;       // 源文件是否包含标题
+  string state = 11;                 // 元数据的状态 (create: 还未发布的新表; release: 已发布的表; revoke: 已撤销的表)
 }
 
 
 
 // 源文件的列的描述详情
 message MetaDataColumnDetail {
-    uint64              cindex = 1;                         // 列的索引
-    string              cname = 2;                          // 列名
-    string              ctype = 3;                          // 列类型
-    uint64              csize = 4;                          // 列大小(单位: byte)
-    string              ccomment = 5;                       // 列描述
+  uint64 cindex = 1;                         // 列的索引
+  string cname = 2;                          // 列名
+  string ctype = 3;                          // 列类型
+  uint64 csize = 4;                          // 列大小(单位: byte)
+  string ccomment = 5;                       // 列描述
 }
 
 // 源文件的详情
-message MetaDataDetail {
-    MetaDataSummary                             meta_summary = 1;
-    repeated MetaDataColumnDetail               column_meta = 2;
+message MetaDataDetailShow {
+  MetaDataSummary               meta_summary = 1;
+  repeated MetaDataColumnDetail column_meta = 2;
 }
 
 
-message GetMetaDataSummaryListRequest {}
 message GetMetaDataSummaryResponse {
-    OrganizationIdentityInfo            owner = 1;              // 元数据的拥有者
-    MetaDataSummary                     information = 2;        // 元文件摘要主体
+  OrganizationIdentityInfo owner = 1;              // 元数据的拥有者
+  MetaDataSummary          information = 2;        // 元文件摘要主体
 }
 message GetMetaDataSummaryListResponse {
-    repeated GetMetaDataSummaryResponse meta_list = 1;
+  repeated GetMetaDataSummaryResponse meta_list = 1;
 }
 
 message GetMetaDataSummaryByStateRequest {
-    string          state = 1;
+  string state = 1;
 }
 
 
 message GetMetaDataSummaryByOwnerRequest {
-    string     identity_id = 1;
+  string identity_id = 1;
 }
 
 message GetMetaDataDetailRequest {
-    string     identity_id = 1;
-    string     meta_id = 2;
+  string identity_id = 1;
+  string meta_data_id = 2;
 }
 message GetMetaDataDetailResponse {
-    OrganizationIdentityInfo            owner = 1;              // 元数据的拥有者
-    MetaDataDetail                      information = 2;        // 元文件详情主体
+  OrganizationIdentityInfo      owner = 1;              // 元数据的拥有者
+  MetaDataDetailShow            information = 2;        // 元文件详情主体
 }
+
+
+
+message PublishMetaDataRequest {
+    OrganizationIdentityInfo                        owner = 1;                          // 元数据拥有者
+    MetaDataDetailShow                              information = 2;                    // 元数据详情
+}
+message PublishMetaDataResponse {
+    int32           status = 1;                         // 响应码
+    string          msg = 2;                            // 错误信息
+    string          meta_data_id = 3;                   // 元数据id
+}
+
+message RevokeMetaDataRequest {
+    OrganizationIdentityInfo                        owner = 1;                          // 元数据拥有者
+    string                                          meta_data_id = 2;
+}
+
+
 
 // ## 元数据 相关接口
 service MetaDataService {
-    // 查看全部元数据摘要列表 (不包含 列字段描述)
-    rpc GetMetaDataSummaryList (GetMetaDataSummaryListRequest) returns (GetMetaDataSummaryListResponse);
-    // 查看指定状态的元数据摘要列表 (不包含 列字段描述)
-    rpc GetMetaDataSummaryByState (GetMetaDataSummaryByStateRequest) returns (GetMetaDataSummaryListResponse);
-    // 查看指定拥有者的元数据摘要列表 (不包含 列字段描述)
-    rpc GetMetaDataSummaryByOwner (GetMetaDataSummaryByOwnerRequest) returns (GetMetaDataSummaryListResponse);
-    // 查看单个元数据详情 (包含 列字段描述)
-    rpc GetMetaDataDetail (GetMetaDataDetailRequest) returns (GetMetaDataDetailResponse);
+  // 查看全部元数据摘要列表 (不包含 列字段描述)
+  rpc GetMetaDataSummaryList (EmptyGetParams) returns (GetMetaDataSummaryListResponse);
+  // 查看指定状态的元数据摘要列表 (不包含 列字段描述)
+  rpc GetMetaDataSummaryByState (GetMetaDataSummaryByStateRequest) returns (GetMetaDataSummaryListResponse);
+  // 查看指定拥有者的元数据摘要列表 (不包含 列字段描述)
+  rpc GetMetaDataSummaryByOwner (GetMetaDataSummaryByOwnerRequest) returns (GetMetaDataSummaryListResponse);
+  // 查看单个元数据详情 (包含 列字段描述)
+  rpc GetMetaDataDetail (GetMetaDataDetailRequest) returns (GetMetaDataDetailResponse);
+
+  // 发布元数据  (新增和编辑 都是发布新的元数据) <底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId>
+  rpc PublishMetaData (PublishMetaDataRequest) returns (PublishMetaDataResponse);
+  // 撤销元数据 (从底层网络撤销)
+  rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponseCode);
 }
 
 //  ------------------------  power  ------------------------
 
 // 单个算力摘要 (不包含 正在处理的任务信息)
 message PowerSingleSummary {
-  string                      job_node_id = 1;                      // 计算服务id (节点内部的)
-  string                      power_id = 2;                         // 算力id
-  ResourceUsedDetailShow      information = 3;                      // 算力实况
-  string                      state = 4;                            // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+  string                 job_node_id = 1;                      // 计算服务id (节点内部的)
+  string                 power_id = 2;                         // 算力id
+  ResourceUsedDetailShow information = 3;                      // 算力实况
+  string                 state = 4;                            // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
 
 //  总算力摘要
 message PowerTotalSummary {
-    ResourceUsedDetailShow        information = 1;                 // 算力实况
-    uint32                        total_task_count = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
-    string                        state = 3;                       // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+  ResourceUsedDetailShow information = 1;                 // 算力实况
+  uint32                 total_task_count = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
+  string                 state = 3;                       // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
 
 // 算力任务使用情况
 message  PowerTaskDetail {
-    uint32                  total_task_count = 1;                     // 算力上总共执行的任务数 (已完成的和正在执行的)
-    uint32                  current_task_count = 2;                   // 算力上正在执行的任务数
-    repeated PowerTask      tasks = 3;                                // 算力上正在执行的任务详情信息
+  uint32             total_task_count = 1;                     // 算力上总共执行的任务数 (已完成的和正在执行的)
+  uint32             current_task_count = 2;                   // 算力上正在执行的任务数
+  repeated PowerTask tasks = 3;                                // 算力上正在执行的任务详情信息
 }
 
 // 算力上的任务信息
 message PowerTask {
-  string                                  task_id = 1;              // 任务Id
-  OrganizationIdentityInfo                owner = 2;                // 任务发起方身份信息
-  repeated OrganizationIdentityInfo       patners = 3;              // 任务协作方信息
-  repeated OrganizationIdentityInfo       receivers = 4;            // 任务结果接收方信息
-  TaskOperationCostShow                   operation_cost = 5;       // 任务所需的资源大小信息
-  TaskOperationCostShow                   operation_spend = 6;      // 任务已经花费的资源大小信息
+  string                            task_id = 1;              // 任务Id
+  OrganizationIdentityInfo          owner = 2;                // 任务发起方身份信息
+  repeated OrganizationIdentityInfo patners = 3;              // 任务协作方信息
+  repeated OrganizationIdentityInfo receivers = 4;            // 任务结果接收方信息
+  TaskOperationCostShow             operation_cost = 5;       // 任务所需的资源大小信息
+  TaskOperationCostShow             operation_spend = 6;      // 任务已经花费的资源大小信息
 }
 
 
 
 
-message GetPowerTotalSummaryListRequest {}
 message GetPowerTotalSummaryResponse {
-    OrganizationIdentityInfo    owner = 1;                  // 算力拥有者信息
-    PowerTotalSummary           power = 2;                  // 算力总摘要
+  OrganizationIdentityInfo owner = 1;                  // 算力拥有者信息
+  PowerTotalSummary        power = 2;                  // 算力总摘要
 }
 message GetPowerTotalSummaryListResponse {
-    repeated GetPowerTotalSummaryResponse    power_list = 1;  // 全网的算力总摘要列表
+  repeated GetPowerTotalSummaryResponse power_list = 1;  // 全网的算力总摘要列表
 }
 
 
-message GetPowerSingleSummaryListRequest {}
 message GetPowerSingleSummaryResponse {
-  OrganizationIdentityInfo    owner = 1;                  // 算力拥有者信息
-  PowerSingleSummary          power = 2;                  // 算力单个摘要
+  OrganizationIdentityInfo owner = 1;                  // 算力拥有者信息
+  PowerSingleSummary       power = 2;                  // 算力单个摘要
 }
 message GetPowerSingleSummaryListResponse {
-    repeated  GetPowerSingleSummaryResponse       power_list = 1;  // 单个节点的算力总摘要列表
+  repeated GetPowerSingleSummaryResponse power_list = 1;  // 单个节点的算力总摘要列表
 }
 
 message GetPowerTotalSummaryByStateRequest {
-    string                      state = 1;                         // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+  string state = 1;                         // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
 
 message GetPowerSingleSummaryByStateRequest {
-    string                      state = 1;                         // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+  string state = 1;                         // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
 
 
 message GetPowerTotalSummaryByOwnerRequest {
-  string     identity_id = 1;
+  string identity_id = 1;
 }
 
 message GetPowerSingleSummaryByOwnerRequest {
-  string     identity_id = 1;
+  string identity_id = 1;
 }
 
 
 message GetPowerSingleDetailRequest {
-  string     identity_id = 1;
-  string     power_id = 2;
+  string identity_id = 1;
+  string power_id = 2;
 }
 message GetPowerSingleDetailResponse {
-  OrganizationIdentityInfo            owner = 1;              // 算力的拥有者
-  PowerTaskDetail                     information = 2;        // 算力详情主体
+  OrganizationIdentityInfo      owner = 1;              // 算力的拥有者
+  PowerTaskDetail               information = 2;        // 算力详情主体
 }
 
+
+message PublishPowerRequest {
+    OrganizationIdentityInfo        owner = 1;           // 算力的拥有者
+    string                          job_node_id = 2;     // 计算服务id (节点内部的)
+    PurePower                       information = 3;     // 发布的算力信息
+}
+
+message PublishPowerResponse {
+    int32           status = 1;                         // 响应码
+    string          msg = 2;                            // 错误信息
+    string          power_id = 3;                       // 算力id
+}
+
+message RevokePowerRequest {
+    OrganizationIdentityInfo        owner = 1;           // 算力的拥有者
+    string                          power_id = 2;        // 算力id
+}
 
 // ## 算力 相关接口
 ///           【注意】 算力和元数据 不一样, 对外面人来说, 算力只需要知道总的, 而元数据则需要知道单个单个的; 对自己来说, 算力和元数据都需要知道单个单个的.
 service PowerService {
   // 查看各个节点的总算力摘要列表 (不包含 任务描述, 管理台算力中心和浏览器用)
-  rpc GetPowerTotalSummaryList (GetPowerTotalSummaryListRequest) returns (GetPowerTotalSummaryListResponse);
+  rpc GetPowerTotalSummaryList (EmptyGetParams) returns (GetPowerTotalSummaryListResponse);
   // 查看某个节点各个单算力摘要列表 (不包含 任务描述, 管理台 计算节点管理用)
-  rpc GetPowerSingleSummaryList (GetPowerSingleSummaryListRequest) returns (GetPowerSingleSummaryListResponse);
+  rpc GetPowerSingleSummaryList (EmptyGetParams) returns (GetPowerSingleSummaryListResponse);
 
   // 查看指定状态的总算力摘要列表  (不包含 任务描述, 管理台算力中心和浏览器用)
   rpc GetPowerTotalSummaryByState (GetPowerTotalSummaryByStateRequest) returns (GetPowerTotalSummaryListResponse);
   // 查看指定状态的各个单个算力摘要列表  (不包含 任务描述, 管理台 计算节点管理用)
-    rpc GetPowerSingleSummaryByState (GetPowerSingleSummaryByStateRequest) returns (GetPowerSingleSummaryListResponse);
+  rpc GetPowerSingleSummaryByState (GetPowerSingleSummaryByStateRequest) returns (GetPowerSingleSummaryListResponse);
 
   // 查看指定拥有者的总算力摘要  (不包含 任务描述, 管理台算力中心和浏览器用)
   rpc GetPowerTotalSummaryByOwner (GetPowerTotalSummaryByOwnerRequest) returns (GetPowerTotalSummaryResponse);
@@ -296,27 +436,53 @@ service PowerService {
 
   // 查看单个算力详情 (包含 任务描述, 管理台 计算节点查看用)
   rpc GetPowerSingleDetail (GetPowerSingleDetailRequest) returns (GetPowerSingleDetailResponse);
+
+
+
+  // 启用算力 (发布算力)
+  rpc PublishPower (PublishPowerRequest) returns (PublishPowerResponse);
+  // 停用算力 (撤销算力)
+  rpc RevokePower (RevokePowerRequest) returns (SimpleResponseCode);
 }
 
 
 //  ------------------------  auth  ------------------------
 
-// 数据授权
+// 数据授权 (申请/投票)
 // 身份授权
 
 
 //  ------------------------  task  ------------------------
 
+message Task {
+
+}
+
+
+
+// ## 任务 相关接口
+service TaskService {
+
+    // 查看全部任务 摘要列表 (浏览器用)
+    rpc GetTaskList () returns ();
+
+    // 查看某个节点参与过的任务 摘要列表 (管理台 计算任务, 浏览器 节点任务)
+
+    // 查看某个任务详情
+
+
+
+}
 
 
 
 
 // 任务的所需操作成本 展示结构 (定义任务的大小)
 message TaskOperationCostShow {
-  string            cost_mem = 1;               // 任务所需的内存
-  string            cost_processor = 2;         // 任务所需的核数
-  string            cost_bandwidth = 3;         // 任务所需的带宽
-  string            duration = 4;               // 任务所需的运行时长
+  string cost_mem = 1;               // 任务所需的内存
+  string cost_processor = 2;         // 任务所需的核数
+  string cost_bandwidth = 3;         // 任务所需的带宽
+  string duration = 4;               // 任务所需的运行时长
 }
 
 
@@ -335,9 +501,29 @@ message ResourceUsedDetailShow {
   string used_bandwidth = 7;        // 服务的已用带宽数
 }
 
+// 算力的基本仨元素
+message PurePower {
+    string mem = 1;             // 系统的总内存
+    string processor = 2;       // 系统的总内核数
+    string bandwidth = 3;       // 系统的总带宽数
+}
+
 // 组织(节点)唯一标识抽象
 message OrganizationIdentityInfo  {
-    string                  name = 1;                           // 组织名称
-    string                  node_id = 2;                        // 组织中调度服务的 nodeId
-    string                  identity_id = 3;                    // 组织的身份标识Id
+  string name = 1;                           // 组织名称
+  string node_id = 2;                        // 组织中调度服务的 nodeId
+  string identity_id = 3;                    // 组织的身份标识Id
+}
+
+
+message DeleteRegisteredNodeRequest {
+    string id = 1;                            // 种子节点的唯一Id
+}
+
+
+message EmptyGetParams {}
+
+message SimpleResponseCode {
+    int32        status = 1;                      // 响应码
+    string       msg = 2;                         // 错误信息
 }
