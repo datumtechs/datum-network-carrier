@@ -21,8 +21,11 @@ func NewTask(data *libTypes.TaskData) *Task {
 }
 
 func (m *Task) EncodePb(w io.Writer) error {
+	if m.data == nil {
+		m.data = new(libTypes.TaskData)
+	}
 	data, err := m.data.Marshal()
-	if err != nil {
+	if err == nil {
 		w.Write(data)
 	}
 	return err
