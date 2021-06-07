@@ -63,7 +63,7 @@ message YarnRegisteredJobNode {
   string                       external_ip = 4;                   // 计算服务的外网 ip, 给 多方协作任务用
   string                       internal_port = 5;                 // 计算服务的内网 port, 给 管理台用
   string                       external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
-  ResourceUsedDetail           information = 7;                   // 计算服务的算力资源使用情况
+  ResourceUsedDetailShow       information = 7;                   // 计算服务的算力资源使用情况
   uint64                       duration = 8;                      // 计算服务远行时长 (从加入网络中的时间点计算)
   YarnRegisteredJobNodeTaskIds task = 9;                          // 计算服务上的任务Id和个数
 }
@@ -80,7 +80,7 @@ message YarnRegisteredDataNode {
   string                      external_ip = 4;                   // 数据服务的外网 ip, 给 多方协作任务用
   string                      internal_port = 5;                 // 数据服务的内网 port, 给 管理台用
   string                      external_port = 6;                 // 数据服务的外网 port, 给 多方协作任务用
-  ResourceUsedDetail          information = 7;                   // 数据服务的算力资源使用情况
+  ResourceUsedDetailShow      information = 7;                   // 数据服务的算力资源使用情况
   uint64                      duration = 8;                      // 数据服务远行时长 (从加入网络中的时间点计算)
   YarnRegisteredDataNodeDelta delta = 9;                         // 数据服务上的文件统计信息
 }
@@ -120,7 +120,7 @@ service YarnService {
 
 //  ------------------------  metadata  ------------------------
 
-// (查看自身节点) 源数据的摘要内容 (不包含详细 列描述)
+// 源数据的摘要内容 (不包含详细 列描述)
 message MetaDataSummary {
     string                          meta_id = 1;                // 元数据Id
     string                          origin_id =2;               // 源文件Id
@@ -134,6 +134,8 @@ message MetaDataSummary {
     bool                            has_hasTitleRow = 10;       // 源文件是否包含标题
     string                          state = 11;                 // 元数据的状态 (create: 还未发布的新表; release: 已发布的表; revoke: 已撤销的表)
 }
+
+
 
 // 源文件的列的描述详情
 message MetaDataColumnDetail {
@@ -157,7 +159,7 @@ message GetMetaDataSummaryResponse {
     MetaDataSummary                     information = 2;        // 元文件摘要主体
 }
 message GetMetaDataSummaryListResponse {
-    repeated GetMetaDataSummaryResponse list = 1;
+    repeated GetMetaDataSummaryResponse meta_list = 1;
 }
 
 message GetMetaDataSummaryByStateRequest {
@@ -180,35 +182,151 @@ message GetMetaDataDetailResponse {
 
 // ## 元数据 相关接口
 service MetaDataService {
+    // 查看全部元数据摘要列表 (不包含 列字段描述)
     rpc GetMetaDataSummaryList (GetMetaDataSummaryListRequest) returns (GetMetaDataSummaryListResponse);
+    // 查看指定状态的元数据摘要列表 (不包含 列字段描述)
     rpc GetMetaDataSummaryByState (GetMetaDataSummaryByStateRequest) returns (GetMetaDataSummaryListResponse);
+    // 查看指定拥有者的元数据摘要列表 (不包含 列字段描述)
     rpc GetMetaDataSummaryByOwner (GetMetaDataSummaryByOwnerRequest) returns (GetMetaDataSummaryListResponse);
+    // 查看单个元数据详情 (包含 列字段描述)
     rpc GetMetaDataDetail (GetMetaDataDetailRequest) returns (GetMetaDataDetailResponse);
 }
 
 //  ------------------------  power  ------------------------
 
-// (对外) 组织的总算力实况
-message PowerTotalDetail {
-    OrganizationIdentityInfo    owner = 2;                          // 算力所属方
-    ResourceUsedDetail          information = 3;                    // 算力实况
+// 单个算力摘要 (不包含 正在处理的任务信息)
+message PowerSingleSummary {
+  string                      job_node_id = 1;                      // 计算服务id (节点内部的)
+  string                      power_id = 2;                         // 算力id
+  ResourceUsedDetailShow      information = 3;                      // 算力实况
+  string                      state = 4;                            // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
 
-// (对外) 算力任务使用情况
-message  PowerTask {
-    string                  power_hash = 1;                     // 算力
+//  总算力摘要
+message PowerTotalSummary {
+    ResourceUsedDetailShow        information = 1;                 // 算力实况
+    uint32                        total_task_count = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
+    string                        state = 3;                       // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
+
+// 算力任务使用情况
+message  PowerTaskDetail {
+    uint32                  total_task_count = 1;                     // 算力上总共执行的任务数 (已完成的和正在执行的)
+    uint32                  current_task_count = 2;                   // 算力上正在执行的任务数
+    repeated PowerTask      tasks = 3;                                // 算力上正在执行的任务详情信息
+}
+
+// 算力上的任务信息
+message PowerTask {
+  string                                  task_id = 1;              // 任务Id
+  OrganizationIdentityInfo                owner = 2;                // 任务发起方身份信息
+  repeated OrganizationIdentityInfo       patners = 3;              // 任务协作方信息
+  repeated OrganizationIdentityInfo       receivers = 4;            // 任务结果接收方信息
+  TaskOperationCostShow                   operation_cost = 5;       // 任务所需的资源大小信息
+  TaskOperationCostShow                   operation_spend = 6;      // 任务已经花费的资源大小信息
+}
+
+
+
+
+message GetPowerTotalSummaryListRequest {}
+message GetPowerTotalSummaryResponse {
+    OrganizationIdentityInfo    owner = 1;                  // 算力拥有者信息
+    PowerTotalSummary           power = 2;                  // 算力总摘要
+}
+message GetPowerTotalSummaryListResponse {
+    repeated GetPowerTotalSummaryResponse    power_list = 1;  // 全网的算力总摘要列表
+}
+
+
+message GetPowerSingleSummaryListRequest {}
+message GetPowerSingleSummaryResponse {
+  OrganizationIdentityInfo    owner = 1;                  // 算力拥有者信息
+  PowerSingleSummary          power = 2;                  // 算力单个摘要
+}
+message GetPowerSingleSummaryListResponse {
+    repeated  GetPowerSingleSummaryResponse       power_list = 1;  // 单个节点的算力总摘要列表
+}
+
+message GetPowerTotalSummaryByStateRequest {
+    string                      state = 1;                         // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+}
+
+message GetPowerSingleSummaryByStateRequest {
+    string                      state = 1;                         // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+}
+
+
+message GetPowerTotalSummaryByOwnerRequest {
+  string     identity_id = 1;
+}
+
+message GetPowerSingleSummaryByOwnerRequest {
+  string     identity_id = 1;
+}
+
+
+message GetPowerSingleDetailRequest {
+  string     identity_id = 1;
+  string     power_id = 2;
+}
+message GetPowerSingleDetailResponse {
+  OrganizationIdentityInfo            owner = 1;              // 算力的拥有者
+  PowerTaskDetail                     information = 2;        // 算力详情主体
+}
+
+
+// ## 算力 相关接口
+///           【注意】 算力和元数据 不一样, 对外面人来说, 算力只需要知道总的, 而元数据则需要知道单个单个的; 对自己来说, 算力和元数据都需要知道单个单个的.
+service PowerService {
+  // 查看各个节点的总算力摘要列表 (不包含 任务描述, 管理台算力中心和浏览器用)
+  rpc GetPowerTotalSummaryList (GetPowerTotalSummaryListRequest) returns (GetPowerTotalSummaryListResponse);
+  // 查看某个节点各个单算力摘要列表 (不包含 任务描述, 管理台 计算节点管理用)
+  rpc GetPowerSingleSummaryList (GetPowerSingleSummaryListRequest) returns (GetPowerSingleSummaryListResponse);
+
+  // 查看指定状态的总算力摘要列表  (不包含 任务描述, 管理台算力中心和浏览器用)
+  rpc GetPowerTotalSummaryByState (GetPowerTotalSummaryByStateRequest) returns (GetPowerTotalSummaryListResponse);
+  // 查看指定状态的各个单个算力摘要列表  (不包含 任务描述, 管理台 计算节点管理用)
+    rpc GetPowerSingleSummaryByState (GetPowerSingleSummaryByStateRequest) returns (GetPowerSingleSummaryListResponse);
+
+  // 查看指定拥有者的总算力摘要  (不包含 任务描述, 管理台算力中心和浏览器用)
+  rpc GetPowerTotalSummaryByOwner (GetPowerTotalSummaryByOwnerRequest) returns (GetPowerTotalSummaryResponse);
+  // 查看指定拥有者的单个算力摘要 (不包含 任务描述, 管理台 计算节点管理用)
+  rpc GetPowerSingleSummaryByOwner (GetPowerSingleSummaryByOwnerRequest) returns (GetPowerSingleSummaryListResponse);
+
+  // 查看单个算力详情 (包含 任务描述, 管理台 计算节点查看用)
+  rpc GetPowerSingleDetail (GetPowerSingleDetailRequest) returns (GetPowerSingleDetailResponse);
+}
+
+
 //  ------------------------  auth  ------------------------
 
+// 数据授权
+// 身份授权
 
 
 //  ------------------------  task  ------------------------
 
 
+
+
+
+// 任务的所需操作成本 展示结构 (定义任务的大小)
+message TaskOperationCostShow {
+  string            cost_mem = 1;               // 任务所需的内存
+  string            cost_processor = 2;         // 任务所需的核数
+  string            cost_bandwidth = 3;         // 任务所需的带宽
+  string            duration = 4;               // 任务所需的运行时长
+}
+
+
+
+
+
 //  ------------------------  common  ------------------------
 
 // 系统本身资源抽象
-message ResourceUsedDetail {
+message ResourceUsedDetailShow {
   string total_mem = 2;             // 服务系统的总内存
   string used_mem = 3;              // 服务系统的已用内存
   string total_processor = 4;       // 服务的总内核数
