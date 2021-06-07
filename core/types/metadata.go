@@ -45,7 +45,7 @@ func (m *Metadata) Hash() common.Hash {
 }
 
 // MetadataArray is a Transaction slice type for basic sorting.
-type MetadataArray []*libTypes.MetaData
+type MetadataArray []*Metadata
 
 // Len returns the length of s.
 func (s MetadataArray) Len() int { return len(s) }
@@ -54,7 +54,24 @@ func (s MetadataArray) Len() int { return len(s) }
 func (s MetadataArray) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 func (s MetadataArray) GetPb(i int) []byte {
-	enc, _ := s[i].Marshal()
-	return enc
+	buffer := new(bytes.Buffer)
+	s[i].EncodePb(buffer)
+	return buffer.Bytes()
 }
+
+func (s MetadataArray) Build(metaData []*libTypes.MetaData) error {
+	for _, v := range metaData {
+		s = append(s, NewMetadata(v))
+	}
+	return nil
+}
+
+func (s MetadataArray) To() []*libTypes.MetaData {
+	arr := make([]*libTypes.MetaData, s.Len())
+	for _, v := range s {
+		arr = append(arr, v.data)
+	}
+	return arr
+}
+
 

@@ -45,7 +45,7 @@ func (m *Task) Hash() common.Hash {
 }
 
 // TaskDataArray is a Transaction slice type for basic sorting.
-type TaskDataArray []*libTypes.TaskData
+type TaskDataArray []*Task
 
 // Len returns the length of s.
 func (s TaskDataArray) Len() int { return len(s) }
@@ -54,7 +54,22 @@ func (s TaskDataArray) Len() int { return len(s) }
 func (s TaskDataArray) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 func (s TaskDataArray) GetPb(i int) []byte {
-	enc, _ := s[i].Marshal()
-	return enc
+	buffer := new(bytes.Buffer)
+	s[i].EncodePb(buffer)
+	return buffer.Bytes()
 }
 
+func (s TaskDataArray) Build(metaData []*libTypes.TaskData) error {
+	for _, v := range metaData {
+		s = append(s, NewTask(v))
+	}
+	return nil
+}
+
+func (s TaskDataArray) To() []*libTypes.TaskData {
+	arr := make([]*libTypes.TaskData, s.Len())
+	for _, v := range s {
+		arr = append(arr, v.data)
+	}
+	return arr
+}

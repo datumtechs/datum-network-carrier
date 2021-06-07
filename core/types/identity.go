@@ -46,7 +46,7 @@ func (m *Identity) Hash() common.Hash {
 }
 
 // IdentityArray is a Transaction slice type for basic sorting.
-type IdentityArray []*libTypes.IdentityData
+type IdentityArray []*Identity
 
 // Len returns the length of s.
 func (s IdentityArray) Len() int { return len(s) }
@@ -55,7 +55,22 @@ func (s IdentityArray) Len() int { return len(s) }
 func (s IdentityArray) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 func (s IdentityArray) GetPb(i int) []byte {
-	enc, _ := s[i].Marshal()
-	return enc
+	buffer := new(bytes.Buffer)
+	s[i].EncodePb(buffer)
+	return buffer.Bytes()
 }
 
+func (s IdentityArray) Build(metaData []*libTypes.IdentityData) error {
+	for _, v := range metaData {
+		s = append(s, NewIdentity(v))
+	}
+	return nil
+}
+
+func (s IdentityArray) To() []*libTypes.IdentityData {
+	arr := make([]*libTypes.IdentityData, s.Len())
+	for _, v := range s {
+		arr = append(arr, v.data)
+	}
+	return arr
+}

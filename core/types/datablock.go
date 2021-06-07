@@ -83,8 +83,8 @@ type Block struct {
 	extraData    []byte
 }
 
-func NewBlock(header *Header, metadataList []*types.MetaData, resourcesList []*types.ResourceData,
-					identityList []*types.IdentityData, taskDataList []*types.TaskData) *Block {
+func NewBlock(header *Header, metadataList []*Metadata, resourcesList []*Resource,
+					identityList []*Identity, taskDataList []*Task) *Block {
 	b := &Block{header: CopyHeader(header)}
 	if len(metadataList) != 0 {
 		b.metadatas = make(MetadataArray, len(metadataList))
@@ -125,24 +125,27 @@ func CopyHeader(h *Header) *Header {
 	return &cpy
 }
 
-// DecodeRLP decodes the RosettaNet
-func (b *Block) UnmarshalPb(data []byte) error {
+// DecodePb decodes the RosettaNet
+func (b *Block) DecodePb(data []byte) error {
 	var blockData types.BlockData
 	blockData.Unmarshal(data)
 	b.header = (*Header)(blockData.Header)
-	b.metadatas = blockData.Metadata
-	b.resources = blockData.Resourcedata
-	b.identities = blockData.Identitydata
-	b.taskDatas = blockData.Taskdata
+	//
+	b.metadatas.Build(blockData.Metadata)
+	b.resources.Build(blockData.Resourcedata)
+	b.identities.Build(blockData.Identitydata)
+	b.taskDatas.Build(blockData.Taskdata)
 	return nil
 }
 
-// EncodeRLP serializes b into the Ethereum RLP block format.
-func (b *Block) MarshalPb() ([]byte, error) {
+// EncodePb serializes b into the Ethereum RLP block format.
+func (b *Block) EncodePb() ([]byte, error) {
 	blockData := &types.BlockData{
 		Header: b.header.GetHeaderPb(),
-		Metadata: b.metadatas,
-		// todo: to completion the extra params...
+		Metadata: b.metadatas.To(),
+		Resourcedata: b.resources.To(),
+		Taskdata: b.taskDatas.To(),
+		Identitydata: b.identities.To(),
 	}
 	return blockData.Marshal()
 }
@@ -152,12 +155,12 @@ func (b *Block) Resources() ResourceArray { return b.resources }
 func (b *Block) Identities() IdentityArray { return b.identities }
 func (b *Block) TaskDatas() TaskDataArray { return b.taskDatas }
 
-func (b *Block) Metadata(hash common.Hash) *types.MetaData {
-	/*for _, metadata := range b.metadatas {
+func (b *Block) Metadata(hash common.Hash) *Metadata {
+	for _, metadata := range b.metadatas {
 		if metadata.Hash() == hash {
 			return metadata
 		}
-	}*/
+	}
 	return nil
 }
 func (b *Block) SetExtraData(extraData []byte) { b.extraData = extraData }
@@ -171,8 +174,8 @@ func (b *Block) Extra() []byte            { return common.CopyBytes(b.header.Ext
 func (b *Block) Header() *Header { return CopyHeader(b.header) }
 
 // WithBody returns a new block with the given data(metadata/identity/resource/taskdata).
-func (b *Block) WithBody(metadataList []*types.MetaData, resourcesList []*types.ResourceData,
-	identityList []*types.IdentityData, taskDataList []*types.TaskData, extraData []byte) *Block {
+func (b *Block) WithBody(metadataList []*Metadata, resourcesList []*Resource,
+	identityList []*Identity, taskDataList []*Task, extraData []byte) *Block {
 	block := &Block{
 		header:       CopyHeader(b.header),
 		metadatas: 	  make(MetadataArray, len(metadataList)),
