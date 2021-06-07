@@ -1,8 +1,10 @@
 package types
 
 import (
+	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"io"
 	"sync/atomic"
 )
 
@@ -18,8 +20,12 @@ func NewMetadata(data *libTypes.MetaData) *Metadata {
 	return &Metadata{data: data}
 }
 
-func (m *Metadata) EncodePb() ([]byte, error) {
-	return m.data.Marshal()
+func (m *Metadata) EncodePb(w io.Writer) error {
+	data, err := m.data.Marshal()
+	if err != nil {
+		w.Write(data)
+	}
+	return err
 }
 
 func (m *Metadata) DecodePb(data []byte) error {
@@ -31,8 +37,9 @@ func (m *Metadata) Hash() common.Hash {
 	if hash := m.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	data, _ := m.EncodePb()
-	v := protoBufHash(data)
+	buffer := new(bytes.Buffer)
+	m.EncodePb(buffer)
+	v := protoBufHash(buffer.Bytes())
 	m.hash.Store(v)
 	return v
 }
