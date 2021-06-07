@@ -1,6 +1,49 @@
 package types
 
-import libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+import (
+	"bytes"
+	"github.com/RosettaFlow/Carrier-Go/common"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"io"
+	"sync/atomic"
+)
+
+
+type Identity struct {
+	data *libTypes.IdentityData
+
+	// caches
+	hash atomic.Value
+	size atomic.Value
+}
+
+func NewIdentity(data *libTypes.IdentityData) *Identity {
+	return &Identity{data: data}
+}
+
+func (m *Identity) EncodePb(w io.Writer) error {
+	data, err := m.data.Marshal()
+	if err != nil {
+		w.Write(data)
+	}
+	return err
+}
+
+func (m *Identity) DecodePb(data []byte) error {
+	m.size.Store(common.StorageSize(len(data)))
+	return m.data.Unmarshal(data)
+}
+
+func (m *Identity) Hash() common.Hash {
+	if hash := m.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	buffer := new(bytes.Buffer)
+	m.EncodePb(buffer)
+	v := protoBufHash(buffer.Bytes())
+	m.hash.Store(v)
+	return v
+}
 
 // IdentityArray is a Transaction slice type for basic sorting.
 type IdentityArray []*libTypes.IdentityData
