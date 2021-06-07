@@ -129,11 +129,11 @@ func CopyHeader(h *Header) *Header {
 func (b *Block) UnmarshalPb(data []byte) error {
 	var blockData types.BlockData
 	blockData.Unmarshal(data)
-	b.header = (*Header)((blockData.Header))
-	copy(b.metadatas, blockData.Metadata)
-	copy(b.resources, blockData.Resourcedata)
-	copy(b.identities, blockData.Identitydata)
-	copy(b.taskDatas, blockData.Taskdata)
+	b.header = (*Header)(blockData.Header)
+	b.metadatas = blockData.Metadata
+	b.resources = blockData.Resourcedata
+	b.identities = blockData.Identitydata
+	b.taskDatas = blockData.Taskdata
 	return nil
 }
 
