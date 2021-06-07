@@ -22,13 +22,16 @@ func NewResource(data *libTypes.ResourceData) *Resource {
 
 func (m *Resource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()
-	if err != nil {
+	if err == nil {
 		w.Write(data)
 	}
 	return err
 }
 
 func (m *Resource) DecodePb(data []byte) error {
+	if m.data == nil {
+		m.data = new(libTypes.ResourceData)
+	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
 }
