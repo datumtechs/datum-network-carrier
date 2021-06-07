@@ -131,12 +131,13 @@ func (b *Block) DecodePb(data []byte) error {
 	blockData.Unmarshal(data)
 	b.header = (*Header)(blockData.Header)
 	//
-	b.metadatas.Build(blockData.Metadata)
-	b.resources.Build(blockData.Resourcedata)
-	b.identities.Build(blockData.Identitydata)
-	b.taskDatas.Build(blockData.Taskdata)
+	b.metadatas = NewMetadataArray(blockData.Metadata)
+	b.resources = NewResourceArray(blockData.Resourcedata)
+	b.identities = NewIdentityArray(blockData.Identitydata)
+	b.taskDatas = NewTaskDataArray(blockData.Taskdata)
 	return nil
 }
+
 
 // EncodePb serializes b into the Ethereum RLP block format.
 func (b *Block) EncodePb() ([]byte, error) {

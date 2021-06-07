@@ -60,15 +60,16 @@ func (s IdentityArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func (s IdentityArray) Build(metaData []*libTypes.IdentityData) error {
+func NewIdentityArray(metaData []*libTypes.IdentityData) IdentityArray {
+	var s IdentityArray
 	for _, v := range metaData {
 		s = append(s, NewIdentity(v))
 	}
-	return nil
+	return s
 }
 
 func (s IdentityArray) To() []*libTypes.IdentityData {
-	arr := make([]*libTypes.IdentityData, s.Len())
+	arr := make([]*libTypes.IdentityData, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

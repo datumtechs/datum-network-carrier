@@ -59,15 +59,16 @@ func (s TaskDataArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func (s TaskDataArray) Build(metaData []*libTypes.TaskData) error {
+func NewTaskDataArray(metaData []*libTypes.TaskData) TaskDataArray {
+	var s TaskDataArray
 	for _, v := range metaData {
 		s = append(s, NewTask(v))
 	}
-	return nil
+	return s
 }
 
 func (s TaskDataArray) To() []*libTypes.TaskData {
-	arr := make([]*libTypes.TaskData, s.Len())
+	arr := make([]*libTypes.TaskData, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}
