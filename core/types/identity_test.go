@@ -15,9 +15,6 @@ var identities = NewIdentity(&types.IdentityData{
 	DataStatus:           "",
 	Status:               "",
 	Credential:           "",
-	XXX_NoUnkeyedLiteral: struct{}{},
-	XXX_unrecognized:     nil,
-	XXX_sizecache:        0,
 })
 
 func TestIdentitiesEncode(t *testing.T) {
