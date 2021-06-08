@@ -4,9 +4,13 @@
 package rpcapi
 
 import (
+	context "context"
 	fmt "fmt"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -257,16 +261,11 @@ func (m *YarnNodeSysInfo) GetUsedBandwidth() string {
 
 // 调度服务上被注册的资源节点信息
 type YarnRegisteredPeer struct {
-	NodeType             string   `protobuf:"bytes,1,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
-	Id                   string   `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
-	InternalPort         string   `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ExternalPort         string   `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
-	ConnState            int32    `protobuf:"varint,7,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	NodeType             string                    `protobuf:"bytes,1,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
+	NodeDetail           *YarnRegisteredPeerDetail `protobuf:"bytes,2,opt,name=node_detail,json=nodeDetail,proto3" json:"node_detail,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
 }
 
 func (m *YarnRegisteredPeer) Reset()         { *m = YarnRegisteredPeer{} }
@@ -309,42 +308,94 @@ func (m *YarnRegisteredPeer) GetNodeType() string {
 	return ""
 }
 
-func (m *YarnRegisteredPeer) GetId() string {
+func (m *YarnRegisteredPeer) GetNodeDetail() *YarnRegisteredPeerDetail {
+	if m != nil {
+		return m.NodeDetail
+	}
+	return nil
+}
+
+type YarnRegisteredPeerDetail struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	ExternalIp           string   `protobuf:"bytes,3,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalPort         string   `protobuf:"bytes,5,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	ConnState            int32    `protobuf:"varint,6,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *YarnRegisteredPeerDetail) Reset()         { *m = YarnRegisteredPeerDetail{} }
+func (m *YarnRegisteredPeerDetail) String() string { return proto.CompactTextString(m) }
+func (*YarnRegisteredPeerDetail) ProtoMessage()    {}
+func (*YarnRegisteredPeerDetail) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{3}
+}
+func (m *YarnRegisteredPeerDetail) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *YarnRegisteredPeerDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_YarnRegisteredPeerDetail.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *YarnRegisteredPeerDetail) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_YarnRegisteredPeerDetail.Merge(m, src)
+}
+func (m *YarnRegisteredPeerDetail) XXX_Size() int {
+	return m.Size()
+}
+func (m *YarnRegisteredPeerDetail) XXX_DiscardUnknown() {
+	xxx_messageInfo_YarnRegisteredPeerDetail.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_YarnRegisteredPeerDetail proto.InternalMessageInfo
+
+func (m *YarnRegisteredPeerDetail) GetId() string {
 	if m != nil {
 		return m.Id
 	}
 	return ""
 }
 
-func (m *YarnRegisteredPeer) GetInternalIp() string {
+func (m *YarnRegisteredPeerDetail) GetInternalIp() string {
 	if m != nil {
 		return m.InternalIp
 	}
 	return ""
 }
 
-func (m *YarnRegisteredPeer) GetExternalIp() string {
+func (m *YarnRegisteredPeerDetail) GetExternalIp() string {
 	if m != nil {
 		return m.ExternalIp
 	}
 	return ""
 }
 
-func (m *YarnRegisteredPeer) GetInternalPort() string {
+func (m *YarnRegisteredPeerDetail) GetInternalPort() string {
 	if m != nil {
 		return m.InternalPort
 	}
 	return ""
 }
 
-func (m *YarnRegisteredPeer) GetExternalPort() string {
+func (m *YarnRegisteredPeerDetail) GetExternalPort() string {
 	if m != nil {
 		return m.ExternalPort
 	}
 	return ""
 }
 
-func (m *YarnRegisteredPeer) GetConnState() int32 {
+func (m *YarnRegisteredPeerDetail) GetConnState() int32 {
 	if m != nil {
 		return m.ConnState
 	}
@@ -354,8 +405,8 @@ func (m *YarnRegisteredPeer) GetConnState() int32 {
 type SeedPeer struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	InternalPort         string   `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ConnState            int32    `protobuf:"varint,5,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
+	InternalPort         string   `protobuf:"bytes,3,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ConnState            int32    `protobuf:"varint,4,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -365,7 +416,7 @@ func (m *SeedPeer) Reset()         { *m = SeedPeer{} }
 func (m *SeedPeer) String() string { return proto.CompactTextString(m) }
 func (*SeedPeer) ProtoMessage()    {}
 func (*SeedPeer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{3}
+	return fileDescriptor_650bcbee121628aa, []int{4}
 }
 func (m *SeedPeer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -441,7 +492,7 @@ func (m *YarnRegisteredJobNode) Reset()         { *m = YarnRegisteredJobNode{} }
 func (m *YarnRegisteredJobNode) String() string { return proto.CompactTextString(m) }
 func (*YarnRegisteredJobNode) ProtoMessage()    {}
 func (*YarnRegisteredJobNode) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{4}
+	return fileDescriptor_650bcbee121628aa, []int{5}
 }
 func (m *YarnRegisteredJobNode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -538,7 +589,7 @@ func (m *YarnRegisteredJobNodeTaskIds) Reset()         { *m = YarnRegisteredJobN
 func (m *YarnRegisteredJobNodeTaskIds) String() string { return proto.CompactTextString(m) }
 func (*YarnRegisteredJobNodeTaskIds) ProtoMessage()    {}
 func (*YarnRegisteredJobNodeTaskIds) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{5}
+	return fileDescriptor_650bcbee121628aa, []int{6}
 }
 func (m *YarnRegisteredJobNodeTaskIds) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -599,7 +650,7 @@ func (m *YarnRegisteredDataNode) Reset()         { *m = YarnRegisteredDataNode{}
 func (m *YarnRegisteredDataNode) String() string { return proto.CompactTextString(m) }
 func (*YarnRegisteredDataNode) ProtoMessage()    {}
 func (*YarnRegisteredDataNode) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{6}
+	return fileDescriptor_650bcbee121628aa, []int{7}
 }
 func (m *YarnRegisteredDataNode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -696,7 +747,7 @@ func (m *YarnRegisteredDataNodeDelta) Reset()         { *m = YarnRegisteredDataN
 func (m *YarnRegisteredDataNodeDelta) String() string { return proto.CompactTextString(m) }
 func (*YarnRegisteredDataNodeDelta) ProtoMessage()    {}
 func (*YarnRegisteredDataNodeDelta) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{7}
+	return fileDescriptor_650bcbee121628aa, []int{8}
 }
 func (m *YarnRegisteredDataNodeDelta) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -738,45 +789,6 @@ func (m *YarnRegisteredDataNodeDelta) GetFileTotalSize() string {
 	}
 	return ""
 }
-
-type GetNodeInfoRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetNodeInfoRequest) Reset()         { *m = GetNodeInfoRequest{} }
-func (m *GetNodeInfoRequest) String() string { return proto.CompactTextString(m) }
-func (*GetNodeInfoRequest) ProtoMessage()    {}
-func (*GetNodeInfoRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{8}
-}
-func (m *GetNodeInfoRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *GetNodeInfoRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_GetNodeInfoRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *GetNodeInfoRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetNodeInfoRequest.Merge(m, src)
-}
-func (m *GetNodeInfoRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *GetNodeInfoRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetNodeInfoRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetNodeInfoRequest proto.InternalMessageInfo
 
 type GetNodeInfoResponse struct {
 	Status               int32         `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
@@ -841,45 +853,6 @@ func (m *GetNodeInfoResponse) GetInformation() *YarnNodeInfo {
 	return nil
 }
 
-type GetRegisteredPeersRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetRegisteredPeersRequest) Reset()         { *m = GetRegisteredPeersRequest{} }
-func (m *GetRegisteredPeersRequest) String() string { return proto.CompactTextString(m) }
-func (*GetRegisteredPeersRequest) ProtoMessage()    {}
-func (*GetRegisteredPeersRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{10}
-}
-func (m *GetRegisteredPeersRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *GetRegisteredPeersRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_GetRegisteredPeersRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *GetRegisteredPeersRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetRegisteredPeersRequest.Merge(m, src)
-}
-func (m *GetRegisteredPeersRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *GetRegisteredPeersRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetRegisteredPeersRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetRegisteredPeersRequest proto.InternalMessageInfo
-
 type GetRegisteredPeersResponse struct {
 	Status               int32                     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -894,7 +867,7 @@ func (m *GetRegisteredPeersResponse) Reset()         { *m = GetRegisteredPeersRe
 func (m *GetRegisteredPeersResponse) String() string { return proto.CompactTextString(m) }
 func (*GetRegisteredPeersResponse) ProtoMessage()    {}
 func (*GetRegisteredPeersResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{11}
+	return fileDescriptor_650bcbee121628aa, []int{10}
 }
 func (m *GetRegisteredPeersResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -951,9 +924,742 @@ func (m *GetRegisteredPeersResponse) GetDataNodes() []*YarnRegisteredDataNode {
 	return nil
 }
 
+type SetSeedNodeRequest struct {
+	InternalIp           string   `protobuf:"bytes,1,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,2,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetSeedNodeRequest) Reset()         { *m = SetSeedNodeRequest{} }
+func (m *SetSeedNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*SetSeedNodeRequest) ProtoMessage()    {}
+func (*SetSeedNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{11}
+}
+func (m *SetSeedNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SetSeedNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SetSeedNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SetSeedNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetSeedNodeRequest.Merge(m, src)
+}
+func (m *SetSeedNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *SetSeedNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetSeedNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetSeedNodeRequest proto.InternalMessageInfo
+
+func (m *SetSeedNodeRequest) GetInternalIp() string {
+	if m != nil {
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *SetSeedNodeRequest) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+type SetSeedNodeResponse struct {
+	Status               int32     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	SeedPeer             *SeedPeer `protobuf:"bytes,3,opt,name=seed_peer,json=seedPeer,proto3" json:"seed_peer,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
+}
+
+func (m *SetSeedNodeResponse) Reset()         { *m = SetSeedNodeResponse{} }
+func (m *SetSeedNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*SetSeedNodeResponse) ProtoMessage()    {}
+func (*SetSeedNodeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{12}
+}
+func (m *SetSeedNodeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SetSeedNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SetSeedNodeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SetSeedNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetSeedNodeResponse.Merge(m, src)
+}
+func (m *SetSeedNodeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SetSeedNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetSeedNodeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetSeedNodeResponse proto.InternalMessageInfo
+
+func (m *SetSeedNodeResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *SetSeedNodeResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *SetSeedNodeResponse) GetSeedPeer() *SeedPeer {
+	if m != nil {
+		return m.SeedPeer
+	}
+	return nil
+}
+
+type UpdateSeedNodeRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,3,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateSeedNodeRequest) Reset()         { *m = UpdateSeedNodeRequest{} }
+func (m *UpdateSeedNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateSeedNodeRequest) ProtoMessage()    {}
+func (*UpdateSeedNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{13}
+}
+func (m *UpdateSeedNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateSeedNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateSeedNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateSeedNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateSeedNodeRequest.Merge(m, src)
+}
+func (m *UpdateSeedNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateSeedNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateSeedNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateSeedNodeRequest proto.InternalMessageInfo
+
+func (m *UpdateSeedNodeRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *UpdateSeedNodeRequest) GetInternalIp() string {
+	if m != nil {
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *UpdateSeedNodeRequest) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+type GetSeedNodeListResponse struct {
+	Status               int32       `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string      `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	SeedPeers            []*SeedPeer `protobuf:"bytes,3,rep,name=seed_peers,json=seedPeers,proto3" json:"seed_peers,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
+	XXX_unrecognized     []byte      `json:"-"`
+	XXX_sizecache        int32       `json:"-"`
+}
+
+func (m *GetSeedNodeListResponse) Reset()         { *m = GetSeedNodeListResponse{} }
+func (m *GetSeedNodeListResponse) String() string { return proto.CompactTextString(m) }
+func (*GetSeedNodeListResponse) ProtoMessage()    {}
+func (*GetSeedNodeListResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{14}
+}
+func (m *GetSeedNodeListResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetSeedNodeListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetSeedNodeListResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetSeedNodeListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetSeedNodeListResponse.Merge(m, src)
+}
+func (m *GetSeedNodeListResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetSeedNodeListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetSeedNodeListResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetSeedNodeListResponse proto.InternalMessageInfo
+
+func (m *GetSeedNodeListResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *GetSeedNodeListResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *GetSeedNodeListResponse) GetSeedPeers() []*SeedPeer {
+	if m != nil {
+		return m.SeedPeers
+	}
+	return nil
+}
+
+type SetDataNodeRequest struct {
+	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalPort         string   `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetDataNodeRequest) Reset()         { *m = SetDataNodeRequest{} }
+func (m *SetDataNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*SetDataNodeRequest) ProtoMessage()    {}
+func (*SetDataNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{15}
+}
+func (m *SetDataNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SetDataNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SetDataNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SetDataNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetDataNodeRequest.Merge(m, src)
+}
+func (m *SetDataNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *SetDataNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetDataNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetDataNodeRequest proto.InternalMessageInfo
+
+func (m *SetDataNodeRequest) GetInternalIp() string {
+	if m != nil {
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *SetDataNodeRequest) GetExternalIp() string {
+	if m != nil {
+		return m.ExternalIp
+	}
+	return ""
+}
+
+func (m *SetDataNodeRequest) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+func (m *SetDataNodeRequest) GetExternalPort() string {
+	if m != nil {
+		return m.ExternalPort
+	}
+	return ""
+}
+
+type SetDataNodeResponse struct {
+	Status               int32                     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string                    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	DataNode             *YarnRegisteredPeerDetail `protobuf:"bytes,3,opt,name=data_node,json=dataNode,proto3" json:"data_node,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *SetDataNodeResponse) Reset()         { *m = SetDataNodeResponse{} }
+func (m *SetDataNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*SetDataNodeResponse) ProtoMessage()    {}
+func (*SetDataNodeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{16}
+}
+func (m *SetDataNodeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SetDataNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SetDataNodeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SetDataNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetDataNodeResponse.Merge(m, src)
+}
+func (m *SetDataNodeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SetDataNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetDataNodeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetDataNodeResponse proto.InternalMessageInfo
+
+func (m *SetDataNodeResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *SetDataNodeResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *SetDataNodeResponse) GetDataNode() *YarnRegisteredPeerDetail {
+	if m != nil {
+		return m.DataNode
+	}
+	return nil
+}
+
+type UpdateDataNodeRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalPort         string   `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateDataNodeRequest) Reset()         { *m = UpdateDataNodeRequest{} }
+func (m *UpdateDataNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateDataNodeRequest) ProtoMessage()    {}
+func (*UpdateDataNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{17}
+}
+func (m *UpdateDataNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateDataNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateDataNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateDataNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateDataNodeRequest.Merge(m, src)
+}
+func (m *UpdateDataNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateDataNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateDataNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateDataNodeRequest proto.InternalMessageInfo
+
+func (m *UpdateDataNodeRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *UpdateDataNodeRequest) GetInternalIp() string {
+	if m != nil {
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *UpdateDataNodeRequest) GetExternalIp() string {
+	if m != nil {
+		return m.ExternalIp
+	}
+	return ""
+}
+
+func (m *UpdateDataNodeRequest) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+func (m *UpdateDataNodeRequest) GetExternalPort() string {
+	if m != nil {
+		return m.ExternalPort
+	}
+	return ""
+}
+
+type GetRegisteredNodeListResponse struct {
+	Status               int32                 `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string                `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Nodes                []*YarnRegisteredPeer `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *GetRegisteredNodeListResponse) Reset()         { *m = GetRegisteredNodeListResponse{} }
+func (m *GetRegisteredNodeListResponse) String() string { return proto.CompactTextString(m) }
+func (*GetRegisteredNodeListResponse) ProtoMessage()    {}
+func (*GetRegisteredNodeListResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{18}
+}
+func (m *GetRegisteredNodeListResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetRegisteredNodeListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetRegisteredNodeListResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetRegisteredNodeListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetRegisteredNodeListResponse.Merge(m, src)
+}
+func (m *GetRegisteredNodeListResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetRegisteredNodeListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetRegisteredNodeListResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetRegisteredNodeListResponse proto.InternalMessageInfo
+
+func (m *GetRegisteredNodeListResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *GetRegisteredNodeListResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *GetRegisteredNodeListResponse) GetNodes() []*YarnRegisteredPeer {
+	if m != nil {
+		return m.Nodes
+	}
+	return nil
+}
+
+type SetJobNodeRequest struct {
+	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalPort         string   `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetJobNodeRequest) Reset()         { *m = SetJobNodeRequest{} }
+func (m *SetJobNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*SetJobNodeRequest) ProtoMessage()    {}
+func (*SetJobNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{19}
+}
+func (m *SetJobNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SetJobNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SetJobNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SetJobNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetJobNodeRequest.Merge(m, src)
+}
+func (m *SetJobNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *SetJobNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetJobNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetJobNodeRequest proto.InternalMessageInfo
+
+func (m *SetJobNodeRequest) GetInternalIp() string {
+	if m != nil {
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *SetJobNodeRequest) GetExternalIp() string {
+	if m != nil {
+		return m.ExternalIp
+	}
+	return ""
+}
+
+func (m *SetJobNodeRequest) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+func (m *SetJobNodeRequest) GetExternalPort() string {
+	if m != nil {
+		return m.ExternalPort
+	}
+	return ""
+}
+
+type SetJobNodeResponse struct {
+	Status               int32                     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string                    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	JobNode              *YarnRegisteredPeerDetail `protobuf:"bytes,3,opt,name=job_node,json=jobNode,proto3" json:"job_node,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *SetJobNodeResponse) Reset()         { *m = SetJobNodeResponse{} }
+func (m *SetJobNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*SetJobNodeResponse) ProtoMessage()    {}
+func (*SetJobNodeResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{20}
+}
+func (m *SetJobNodeResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SetJobNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SetJobNodeResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SetJobNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetJobNodeResponse.Merge(m, src)
+}
+func (m *SetJobNodeResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *SetJobNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetJobNodeResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetJobNodeResponse proto.InternalMessageInfo
+
+func (m *SetJobNodeResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *SetJobNodeResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *SetJobNodeResponse) GetJobNode() *YarnRegisteredPeerDetail {
+	if m != nil {
+		return m.JobNode
+	}
+	return nil
+}
+
+type UpdateJobNodeRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalPort         string   `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdateJobNodeRequest) Reset()         { *m = UpdateJobNodeRequest{} }
+func (m *UpdateJobNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdateJobNodeRequest) ProtoMessage()    {}
+func (*UpdateJobNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{21}
+}
+func (m *UpdateJobNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *UpdateJobNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_UpdateJobNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *UpdateJobNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdateJobNodeRequest.Merge(m, src)
+}
+func (m *UpdateJobNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *UpdateJobNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdateJobNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdateJobNodeRequest proto.InternalMessageInfo
+
+func (m *UpdateJobNodeRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+func (m *UpdateJobNodeRequest) GetInternalIp() string {
+	if m != nil {
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *UpdateJobNodeRequest) GetExternalIp() string {
+	if m != nil {
+		return m.ExternalIp
+	}
+	return ""
+}
+
+func (m *UpdateJobNodeRequest) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+func (m *UpdateJobNodeRequest) GetExternalPort() string {
+	if m != nil {
+		return m.ExternalPort
+	}
+	return ""
+}
+
 // 源数据的摘要内容 (不包含详细 列描述)
 type MetaDataSummary struct {
-	MetaId               string   `protobuf:"bytes,1,opt,name=meta_id,json=metaId,proto3" json:"meta_id,omitempty"`
+	MetaDataId           string   `protobuf:"bytes,1,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
 	OriginId             string   `protobuf:"bytes,2,opt,name=origin_id,json=originId,proto3" json:"origin_id,omitempty"`
 	TableName            string   `protobuf:"bytes,3,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
 	Desc                 string   `protobuf:"bytes,4,opt,name=desc,proto3" json:"desc,omitempty"`
@@ -973,7 +1679,7 @@ func (m *MetaDataSummary) Reset()         { *m = MetaDataSummary{} }
 func (m *MetaDataSummary) String() string { return proto.CompactTextString(m) }
 func (*MetaDataSummary) ProtoMessage()    {}
 func (*MetaDataSummary) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{12}
+	return fileDescriptor_650bcbee121628aa, []int{22}
 }
 func (m *MetaDataSummary) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1002,9 +1708,9 @@ func (m *MetaDataSummary) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MetaDataSummary proto.InternalMessageInfo
 
-func (m *MetaDataSummary) GetMetaId() string {
+func (m *MetaDataSummary) GetMetaDataId() string {
 	if m != nil {
-		return m.MetaId
+		return m.MetaDataId
 	}
 	return ""
 }
@@ -1095,7 +1801,7 @@ func (m *MetaDataColumnDetail) Reset()         { *m = MetaDataColumnDetail{} }
 func (m *MetaDataColumnDetail) String() string { return proto.CompactTextString(m) }
 func (*MetaDataColumnDetail) ProtoMessage()    {}
 func (*MetaDataColumnDetail) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{13}
+	return fileDescriptor_650bcbee121628aa, []int{23}
 }
 func (m *MetaDataColumnDetail) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1160,7 +1866,7 @@ func (m *MetaDataColumnDetail) GetCcomment() string {
 }
 
 // 源文件的详情
-type MetaDataDetail struct {
+type MetaDataDetailShow struct {
 	MetaSummary          *MetaDataSummary        `protobuf:"bytes,1,opt,name=meta_summary,json=metaSummary,proto3" json:"meta_summary,omitempty"`
 	ColumnMeta           []*MetaDataColumnDetail `protobuf:"bytes,2,rep,name=column_meta,json=columnMeta,proto3" json:"column_meta,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
@@ -1168,18 +1874,18 @@ type MetaDataDetail struct {
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *MetaDataDetail) Reset()         { *m = MetaDataDetail{} }
-func (m *MetaDataDetail) String() string { return proto.CompactTextString(m) }
-func (*MetaDataDetail) ProtoMessage()    {}
-func (*MetaDataDetail) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{14}
+func (m *MetaDataDetailShow) Reset()         { *m = MetaDataDetailShow{} }
+func (m *MetaDataDetailShow) String() string { return proto.CompactTextString(m) }
+func (*MetaDataDetailShow) ProtoMessage()    {}
+func (*MetaDataDetailShow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{24}
 }
-func (m *MetaDataDetail) XXX_Unmarshal(b []byte) error {
+func (m *MetaDataDetailShow) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaDataDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetaDataDetailShow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaDataDetail.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetaDataDetailShow.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1189,70 +1895,31 @@ func (m *MetaDataDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, erro
 		return b[:n], nil
 	}
 }
-func (m *MetaDataDetail) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaDataDetail.Merge(m, src)
+func (m *MetaDataDetailShow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetaDataDetailShow.Merge(m, src)
 }
-func (m *MetaDataDetail) XXX_Size() int {
+func (m *MetaDataDetailShow) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaDataDetail) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaDataDetail.DiscardUnknown(m)
+func (m *MetaDataDetailShow) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetaDataDetailShow.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaDataDetail proto.InternalMessageInfo
+var xxx_messageInfo_MetaDataDetailShow proto.InternalMessageInfo
 
-func (m *MetaDataDetail) GetMetaSummary() *MetaDataSummary {
+func (m *MetaDataDetailShow) GetMetaSummary() *MetaDataSummary {
 	if m != nil {
 		return m.MetaSummary
 	}
 	return nil
 }
 
-func (m *MetaDataDetail) GetColumnMeta() []*MetaDataColumnDetail {
+func (m *MetaDataDetailShow) GetColumnMeta() []*MetaDataColumnDetail {
 	if m != nil {
 		return m.ColumnMeta
 	}
 	return nil
 }
-
-type GetMetaDataSummaryListRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetMetaDataSummaryListRequest) Reset()         { *m = GetMetaDataSummaryListRequest{} }
-func (m *GetMetaDataSummaryListRequest) String() string { return proto.CompactTextString(m) }
-func (*GetMetaDataSummaryListRequest) ProtoMessage()    {}
-func (*GetMetaDataSummaryListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{15}
-}
-func (m *GetMetaDataSummaryListRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *GetMetaDataSummaryListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_GetMetaDataSummaryListRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *GetMetaDataSummaryListRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetMetaDataSummaryListRequest.Merge(m, src)
-}
-func (m *GetMetaDataSummaryListRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *GetMetaDataSummaryListRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetMetaDataSummaryListRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetMetaDataSummaryListRequest proto.InternalMessageInfo
 
 type GetMetaDataSummaryResponse struct {
 	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -1266,7 +1933,7 @@ func (m *GetMetaDataSummaryResponse) Reset()         { *m = GetMetaDataSummaryRe
 func (m *GetMetaDataSummaryResponse) String() string { return proto.CompactTextString(m) }
 func (*GetMetaDataSummaryResponse) ProtoMessage()    {}
 func (*GetMetaDataSummaryResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{16}
+	return fileDescriptor_650bcbee121628aa, []int{25}
 }
 func (m *GetMetaDataSummaryResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1320,7 +1987,7 @@ func (m *GetMetaDataSummaryListResponse) Reset()         { *m = GetMetaDataSumma
 func (m *GetMetaDataSummaryListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetMetaDataSummaryListResponse) ProtoMessage()    {}
 func (*GetMetaDataSummaryListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{17}
+	return fileDescriptor_650bcbee121628aa, []int{26}
 }
 func (m *GetMetaDataSummaryListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1367,7 +2034,7 @@ func (m *GetMetaDataSummaryByStateRequest) Reset()         { *m = GetMetaDataSum
 func (m *GetMetaDataSummaryByStateRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMetaDataSummaryByStateRequest) ProtoMessage()    {}
 func (*GetMetaDataSummaryByStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{18}
+	return fileDescriptor_650bcbee121628aa, []int{27}
 }
 func (m *GetMetaDataSummaryByStateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1414,7 +2081,7 @@ func (m *GetMetaDataSummaryByOwnerRequest) Reset()         { *m = GetMetaDataSum
 func (m *GetMetaDataSummaryByOwnerRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMetaDataSummaryByOwnerRequest) ProtoMessage()    {}
 func (*GetMetaDataSummaryByOwnerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{19}
+	return fileDescriptor_650bcbee121628aa, []int{28}
 }
 func (m *GetMetaDataSummaryByOwnerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1452,7 +2119,7 @@ func (m *GetMetaDataSummaryByOwnerRequest) GetIdentityId() string {
 
 type GetMetaDataDetailRequest struct {
 	IdentityId           string   `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	MetaId               string   `protobuf:"bytes,2,opt,name=meta_id,json=metaId,proto3" json:"meta_id,omitempty"`
+	MetaDataId           string   `protobuf:"bytes,2,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1462,7 +2129,7 @@ func (m *GetMetaDataDetailRequest) Reset()         { *m = GetMetaDataDetailReque
 func (m *GetMetaDataDetailRequest) String() string { return proto.CompactTextString(m) }
 func (*GetMetaDataDetailRequest) ProtoMessage()    {}
 func (*GetMetaDataDetailRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{20}
+	return fileDescriptor_650bcbee121628aa, []int{29}
 }
 func (m *GetMetaDataDetailRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1498,16 +2165,16 @@ func (m *GetMetaDataDetailRequest) GetIdentityId() string {
 	return ""
 }
 
-func (m *GetMetaDataDetailRequest) GetMetaId() string {
+func (m *GetMetaDataDetailRequest) GetMetaDataId() string {
 	if m != nil {
-		return m.MetaId
+		return m.MetaDataId
 	}
 	return ""
 }
 
 type GetMetaDataDetailResponse struct {
 	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	Information          *MetaDataDetail           `protobuf:"bytes,2,opt,name=information,proto3" json:"information,omitempty"`
+	Information          *MetaDataDetailShow       `protobuf:"bytes,2,opt,name=information,proto3" json:"information,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
 	XXX_unrecognized     []byte                    `json:"-"`
 	XXX_sizecache        int32                     `json:"-"`
@@ -1517,7 +2184,7 @@ func (m *GetMetaDataDetailResponse) Reset()         { *m = GetMetaDataDetailResp
 func (m *GetMetaDataDetailResponse) String() string { return proto.CompactTextString(m) }
 func (*GetMetaDataDetailResponse) ProtoMessage()    {}
 func (*GetMetaDataDetailResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{21}
+	return fileDescriptor_650bcbee121628aa, []int{30}
 }
 func (m *GetMetaDataDetailResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1553,11 +2220,184 @@ func (m *GetMetaDataDetailResponse) GetOwner() *OrganizationIdentityInfo {
 	return nil
 }
 
-func (m *GetMetaDataDetailResponse) GetInformation() *MetaDataDetail {
+func (m *GetMetaDataDetailResponse) GetInformation() *MetaDataDetailShow {
 	if m != nil {
 		return m.Information
 	}
 	return nil
+}
+
+type PublishMetaDataRequest struct {
+	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	Information          *MetaDataDetailShow       `protobuf:"bytes,2,opt,name=information,proto3" json:"information,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *PublishMetaDataRequest) Reset()         { *m = PublishMetaDataRequest{} }
+func (m *PublishMetaDataRequest) String() string { return proto.CompactTextString(m) }
+func (*PublishMetaDataRequest) ProtoMessage()    {}
+func (*PublishMetaDataRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{31}
+}
+func (m *PublishMetaDataRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublishMetaDataRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublishMetaDataRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublishMetaDataRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishMetaDataRequest.Merge(m, src)
+}
+func (m *PublishMetaDataRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublishMetaDataRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishMetaDataRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublishMetaDataRequest proto.InternalMessageInfo
+
+func (m *PublishMetaDataRequest) GetOwner() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *PublishMetaDataRequest) GetInformation() *MetaDataDetailShow {
+	if m != nil {
+		return m.Information
+	}
+	return nil
+}
+
+type PublishMetaDataResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	MetaDataId           string   `protobuf:"bytes,3,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PublishMetaDataResponse) Reset()         { *m = PublishMetaDataResponse{} }
+func (m *PublishMetaDataResponse) String() string { return proto.CompactTextString(m) }
+func (*PublishMetaDataResponse) ProtoMessage()    {}
+func (*PublishMetaDataResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{32}
+}
+func (m *PublishMetaDataResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublishMetaDataResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublishMetaDataResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublishMetaDataResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishMetaDataResponse.Merge(m, src)
+}
+func (m *PublishMetaDataResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublishMetaDataResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishMetaDataResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublishMetaDataResponse proto.InternalMessageInfo
+
+func (m *PublishMetaDataResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *PublishMetaDataResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *PublishMetaDataResponse) GetMetaDataId() string {
+	if m != nil {
+		return m.MetaDataId
+	}
+	return ""
+}
+
+type RevokeMetaDataRequest struct {
+	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	MetaDataId           string                    `protobuf:"bytes,2,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *RevokeMetaDataRequest) Reset()         { *m = RevokeMetaDataRequest{} }
+func (m *RevokeMetaDataRequest) String() string { return proto.CompactTextString(m) }
+func (*RevokeMetaDataRequest) ProtoMessage()    {}
+func (*RevokeMetaDataRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{33}
+}
+func (m *RevokeMetaDataRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RevokeMetaDataRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RevokeMetaDataRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RevokeMetaDataRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RevokeMetaDataRequest.Merge(m, src)
+}
+func (m *RevokeMetaDataRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RevokeMetaDataRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RevokeMetaDataRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RevokeMetaDataRequest proto.InternalMessageInfo
+
+func (m *RevokeMetaDataRequest) GetOwner() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *RevokeMetaDataRequest) GetMetaDataId() string {
+	if m != nil {
+		return m.MetaDataId
+	}
+	return ""
 }
 
 // 单个算力摘要 (不包含 正在处理的任务信息)
@@ -1575,7 +2415,7 @@ func (m *PowerSingleSummary) Reset()         { *m = PowerSingleSummary{} }
 func (m *PowerSingleSummary) String() string { return proto.CompactTextString(m) }
 func (*PowerSingleSummary) ProtoMessage()    {}
 func (*PowerSingleSummary) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{22}
+	return fileDescriptor_650bcbee121628aa, []int{34}
 }
 func (m *PowerSingleSummary) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1646,7 +2486,7 @@ func (m *PowerTotalSummary) Reset()         { *m = PowerTotalSummary{} }
 func (m *PowerTotalSummary) String() string { return proto.CompactTextString(m) }
 func (*PowerTotalSummary) ProtoMessage()    {}
 func (*PowerTotalSummary) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{23}
+	return fileDescriptor_650bcbee121628aa, []int{35}
 }
 func (m *PowerTotalSummary) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1710,7 +2550,7 @@ func (m *PowerTaskDetail) Reset()         { *m = PowerTaskDetail{} }
 func (m *PowerTaskDetail) String() string { return proto.CompactTextString(m) }
 func (*PowerTaskDetail) ProtoMessage()    {}
 func (*PowerTaskDetail) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{24}
+	return fileDescriptor_650bcbee121628aa, []int{36}
 }
 func (m *PowerTaskDetail) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1777,7 +2617,7 @@ func (m *PowerTask) Reset()         { *m = PowerTask{} }
 func (m *PowerTask) String() string { return proto.CompactTextString(m) }
 func (*PowerTask) ProtoMessage()    {}
 func (*PowerTask) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{25}
+	return fileDescriptor_650bcbee121628aa, []int{37}
 }
 func (m *PowerTask) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1848,45 +2688,6 @@ func (m *PowerTask) GetOperationSpend() *TaskOperationCostShow {
 	return nil
 }
 
-type GetPowerTotalSummaryListRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetPowerTotalSummaryListRequest) Reset()         { *m = GetPowerTotalSummaryListRequest{} }
-func (m *GetPowerTotalSummaryListRequest) String() string { return proto.CompactTextString(m) }
-func (*GetPowerTotalSummaryListRequest) ProtoMessage()    {}
-func (*GetPowerTotalSummaryListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{26}
-}
-func (m *GetPowerTotalSummaryListRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *GetPowerTotalSummaryListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_GetPowerTotalSummaryListRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *GetPowerTotalSummaryListRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetPowerTotalSummaryListRequest.Merge(m, src)
-}
-func (m *GetPowerTotalSummaryListRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *GetPowerTotalSummaryListRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetPowerTotalSummaryListRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetPowerTotalSummaryListRequest proto.InternalMessageInfo
-
 type GetPowerTotalSummaryResponse struct {
 	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	Power                *PowerTotalSummary        `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
@@ -1899,7 +2700,7 @@ func (m *GetPowerTotalSummaryResponse) Reset()         { *m = GetPowerTotalSumma
 func (m *GetPowerTotalSummaryResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPowerTotalSummaryResponse) ProtoMessage()    {}
 func (*GetPowerTotalSummaryResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{27}
+	return fileDescriptor_650bcbee121628aa, []int{38}
 }
 func (m *GetPowerTotalSummaryResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1953,7 +2754,7 @@ func (m *GetPowerTotalSummaryListResponse) Reset()         { *m = GetPowerTotalS
 func (m *GetPowerTotalSummaryListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPowerTotalSummaryListResponse) ProtoMessage()    {}
 func (*GetPowerTotalSummaryListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{28}
+	return fileDescriptor_650bcbee121628aa, []int{39}
 }
 func (m *GetPowerTotalSummaryListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1989,45 +2790,6 @@ func (m *GetPowerTotalSummaryListResponse) GetPowerList() []*GetPowerTotalSummar
 	return nil
 }
 
-type GetPowerSingleSummaryListRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *GetPowerSingleSummaryListRequest) Reset()         { *m = GetPowerSingleSummaryListRequest{} }
-func (m *GetPowerSingleSummaryListRequest) String() string { return proto.CompactTextString(m) }
-func (*GetPowerSingleSummaryListRequest) ProtoMessage()    {}
-func (*GetPowerSingleSummaryListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{29}
-}
-func (m *GetPowerSingleSummaryListRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *GetPowerSingleSummaryListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_GetPowerSingleSummaryListRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *GetPowerSingleSummaryListRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetPowerSingleSummaryListRequest.Merge(m, src)
-}
-func (m *GetPowerSingleSummaryListRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *GetPowerSingleSummaryListRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetPowerSingleSummaryListRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_GetPowerSingleSummaryListRequest proto.InternalMessageInfo
-
 type GetPowerSingleSummaryResponse struct {
 	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	Power                *PowerSingleSummary       `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
@@ -2040,7 +2802,7 @@ func (m *GetPowerSingleSummaryResponse) Reset()         { *m = GetPowerSingleSum
 func (m *GetPowerSingleSummaryResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleSummaryResponse) ProtoMessage()    {}
 func (*GetPowerSingleSummaryResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{30}
+	return fileDescriptor_650bcbee121628aa, []int{40}
 }
 func (m *GetPowerSingleSummaryResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2094,7 +2856,7 @@ func (m *GetPowerSingleSummaryListResponse) Reset()         { *m = GetPowerSingl
 func (m *GetPowerSingleSummaryListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleSummaryListResponse) ProtoMessage()    {}
 func (*GetPowerSingleSummaryListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{31}
+	return fileDescriptor_650bcbee121628aa, []int{41}
 }
 func (m *GetPowerSingleSummaryListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2141,7 +2903,7 @@ func (m *GetPowerTotalSummaryByStateRequest) Reset()         { *m = GetPowerTota
 func (m *GetPowerTotalSummaryByStateRequest) String() string { return proto.CompactTextString(m) }
 func (*GetPowerTotalSummaryByStateRequest) ProtoMessage()    {}
 func (*GetPowerTotalSummaryByStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{32}
+	return fileDescriptor_650bcbee121628aa, []int{42}
 }
 func (m *GetPowerTotalSummaryByStateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2188,7 +2950,7 @@ func (m *GetPowerSingleSummaryByStateRequest) Reset()         { *m = GetPowerSin
 func (m *GetPowerSingleSummaryByStateRequest) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleSummaryByStateRequest) ProtoMessage()    {}
 func (*GetPowerSingleSummaryByStateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{33}
+	return fileDescriptor_650bcbee121628aa, []int{43}
 }
 func (m *GetPowerSingleSummaryByStateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2235,7 +2997,7 @@ func (m *GetPowerTotalSummaryByOwnerRequest) Reset()         { *m = GetPowerTota
 func (m *GetPowerTotalSummaryByOwnerRequest) String() string { return proto.CompactTextString(m) }
 func (*GetPowerTotalSummaryByOwnerRequest) ProtoMessage()    {}
 func (*GetPowerTotalSummaryByOwnerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{34}
+	return fileDescriptor_650bcbee121628aa, []int{44}
 }
 func (m *GetPowerTotalSummaryByOwnerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2282,7 +3044,7 @@ func (m *GetPowerSingleSummaryByOwnerRequest) Reset()         { *m = GetPowerSin
 func (m *GetPowerSingleSummaryByOwnerRequest) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleSummaryByOwnerRequest) ProtoMessage()    {}
 func (*GetPowerSingleSummaryByOwnerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{35}
+	return fileDescriptor_650bcbee121628aa, []int{45}
 }
 func (m *GetPowerSingleSummaryByOwnerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2330,7 +3092,7 @@ func (m *GetPowerSingleDetailRequest) Reset()         { *m = GetPowerSingleDetai
 func (m *GetPowerSingleDetailRequest) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleDetailRequest) ProtoMessage()    {}
 func (*GetPowerSingleDetailRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{36}
+	return fileDescriptor_650bcbee121628aa, []int{46}
 }
 func (m *GetPowerSingleDetailRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2385,7 +3147,7 @@ func (m *GetPowerSingleDetailResponse) Reset()         { *m = GetPowerSingleDeta
 func (m *GetPowerSingleDetailResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleDetailResponse) ProtoMessage()    {}
 func (*GetPowerSingleDetailResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{37}
+	return fileDescriptor_650bcbee121628aa, []int{47}
 }
 func (m *GetPowerSingleDetailResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2428,6 +3190,551 @@ func (m *GetPowerSingleDetailResponse) GetInformation() *PowerTaskDetail {
 	return nil
 }
 
+type PublishPowerRequest struct {
+	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	JobNodeId            string                    `protobuf:"bytes,2,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
+	Information          *PurePower                `protobuf:"bytes,3,opt,name=information,proto3" json:"information,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *PublishPowerRequest) Reset()         { *m = PublishPowerRequest{} }
+func (m *PublishPowerRequest) String() string { return proto.CompactTextString(m) }
+func (*PublishPowerRequest) ProtoMessage()    {}
+func (*PublishPowerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{48}
+}
+func (m *PublishPowerRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublishPowerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublishPowerRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublishPowerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishPowerRequest.Merge(m, src)
+}
+func (m *PublishPowerRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublishPowerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishPowerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublishPowerRequest proto.InternalMessageInfo
+
+func (m *PublishPowerRequest) GetOwner() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *PublishPowerRequest) GetJobNodeId() string {
+	if m != nil {
+		return m.JobNodeId
+	}
+	return ""
+}
+
+func (m *PublishPowerRequest) GetInformation() *PurePower {
+	if m != nil {
+		return m.Information
+	}
+	return nil
+}
+
+type PublishPowerResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	PowerId              string   `protobuf:"bytes,3,opt,name=power_id,json=powerId,proto3" json:"power_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PublishPowerResponse) Reset()         { *m = PublishPowerResponse{} }
+func (m *PublishPowerResponse) String() string { return proto.CompactTextString(m) }
+func (*PublishPowerResponse) ProtoMessage()    {}
+func (*PublishPowerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{49}
+}
+func (m *PublishPowerResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublishPowerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublishPowerResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublishPowerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishPowerResponse.Merge(m, src)
+}
+func (m *PublishPowerResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublishPowerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishPowerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublishPowerResponse proto.InternalMessageInfo
+
+func (m *PublishPowerResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *PublishPowerResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *PublishPowerResponse) GetPowerId() string {
+	if m != nil {
+		return m.PowerId
+	}
+	return ""
+}
+
+type RevokePowerRequest struct {
+	Owner                *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	PowerId              string                    `protobuf:"bytes,2,opt,name=power_id,json=powerId,proto3" json:"power_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *RevokePowerRequest) Reset()         { *m = RevokePowerRequest{} }
+func (m *RevokePowerRequest) String() string { return proto.CompactTextString(m) }
+func (*RevokePowerRequest) ProtoMessage()    {}
+func (*RevokePowerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{50}
+}
+func (m *RevokePowerRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RevokePowerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RevokePowerRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RevokePowerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RevokePowerRequest.Merge(m, src)
+}
+func (m *RevokePowerRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RevokePowerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RevokePowerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RevokePowerRequest proto.InternalMessageInfo
+
+func (m *RevokePowerRequest) GetOwner() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *RevokePowerRequest) GetPowerId() string {
+	if m != nil {
+		return m.PowerId
+	}
+	return ""
+}
+
+type ApplyIdentityJoinRequest struct {
+	Member               *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *ApplyIdentityJoinRequest) Reset()         { *m = ApplyIdentityJoinRequest{} }
+func (m *ApplyIdentityJoinRequest) String() string { return proto.CompactTextString(m) }
+func (*ApplyIdentityJoinRequest) ProtoMessage()    {}
+func (*ApplyIdentityJoinRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{51}
+}
+func (m *ApplyIdentityJoinRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ApplyIdentityJoinRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ApplyIdentityJoinRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ApplyIdentityJoinRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ApplyIdentityJoinRequest.Merge(m, src)
+}
+func (m *ApplyIdentityJoinRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *ApplyIdentityJoinRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ApplyIdentityJoinRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ApplyIdentityJoinRequest proto.InternalMessageInfo
+
+func (m *ApplyIdentityJoinRequest) GetMember() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.Member
+	}
+	return nil
+}
+
+type RevokeIdentityJoinRequest struct {
+	Member               *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *RevokeIdentityJoinRequest) Reset()         { *m = RevokeIdentityJoinRequest{} }
+func (m *RevokeIdentityJoinRequest) String() string { return proto.CompactTextString(m) }
+func (*RevokeIdentityJoinRequest) ProtoMessage()    {}
+func (*RevokeIdentityJoinRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{52}
+}
+func (m *RevokeIdentityJoinRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RevokeIdentityJoinRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RevokeIdentityJoinRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RevokeIdentityJoinRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RevokeIdentityJoinRequest.Merge(m, src)
+}
+func (m *RevokeIdentityJoinRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *RevokeIdentityJoinRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RevokeIdentityJoinRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RevokeIdentityJoinRequest proto.InternalMessageInfo
+
+func (m *RevokeIdentityJoinRequest) GetMember() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.Member
+	}
+	return nil
+}
+
+// 任务摘要 (浏览器展示用)
+type TaskSummaryShow struct {
+	TaskId               string                      `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	TaskName             string                      `protobuf:"bytes,2,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
+	Owner                *OrganizationIdentityInfo   `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
+	Partners             []*OrganizationIdentityInfo `protobuf:"bytes,4,rep,name=partners,proto3" json:"partners,omitempty"`
+	Receivers            []*OrganizationIdentityInfo `protobuf:"bytes,5,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	CreateAt             string                      `protobuf:"bytes,6,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
+	EndAt                string                      `protobuf:"bytes,7,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	State                string                      `protobuf:"bytes,8,opt,name=state,proto3" json:"state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *TaskSummaryShow) Reset()         { *m = TaskSummaryShow{} }
+func (m *TaskSummaryShow) String() string { return proto.CompactTextString(m) }
+func (*TaskSummaryShow) ProtoMessage()    {}
+func (*TaskSummaryShow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{53}
+}
+func (m *TaskSummaryShow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskSummaryShow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskSummaryShow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskSummaryShow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskSummaryShow.Merge(m, src)
+}
+func (m *TaskSummaryShow) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskSummaryShow) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskSummaryShow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskSummaryShow proto.InternalMessageInfo
+
+func (m *TaskSummaryShow) GetTaskId() string {
+	if m != nil {
+		return m.TaskId
+	}
+	return ""
+}
+
+func (m *TaskSummaryShow) GetTaskName() string {
+	if m != nil {
+		return m.TaskName
+	}
+	return ""
+}
+
+func (m *TaskSummaryShow) GetOwner() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *TaskSummaryShow) GetPartners() []*OrganizationIdentityInfo {
+	if m != nil {
+		return m.Partners
+	}
+	return nil
+}
+
+func (m *TaskSummaryShow) GetReceivers() []*OrganizationIdentityInfo {
+	if m != nil {
+		return m.Receivers
+	}
+	return nil
+}
+
+func (m *TaskSummaryShow) GetCreateAt() string {
+	if m != nil {
+		return m.CreateAt
+	}
+	return ""
+}
+
+func (m *TaskSummaryShow) GetEndAt() string {
+	if m != nil {
+		return m.EndAt
+	}
+	return ""
+}
+
+func (m *TaskSummaryShow) GetState() string {
+	if m != nil {
+		return m.State
+	}
+	return ""
+}
+
+// 任务数据供应者信息
+type TaskDataSupplierDeclare struct {
+	MemberInfo           *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=member_info,json=memberInfo,proto3" json:"member_info,omitempty"`
+	MetaDataInfo         *TaskMetaDataDeclare      `protobuf:"bytes,2,opt,name=meta_data_info,json=metaDataInfo,proto3" json:"meta_data_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *TaskDataSupplierDeclare) Reset()         { *m = TaskDataSupplierDeclare{} }
+func (m *TaskDataSupplierDeclare) String() string { return proto.CompactTextString(m) }
+func (*TaskDataSupplierDeclare) ProtoMessage()    {}
+func (*TaskDataSupplierDeclare) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{54}
+}
+func (m *TaskDataSupplierDeclare) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskDataSupplierDeclare) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskDataSupplierDeclare.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskDataSupplierDeclare) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskDataSupplierDeclare.Merge(m, src)
+}
+func (m *TaskDataSupplierDeclare) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskDataSupplierDeclare) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskDataSupplierDeclare.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskDataSupplierDeclare proto.InternalMessageInfo
+
+func (m *TaskDataSupplierDeclare) GetMemberInfo() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.MemberInfo
+	}
+	return nil
+}
+
+func (m *TaskDataSupplierDeclare) GetMetaDataInfo() *TaskMetaDataDeclare {
+	if m != nil {
+		return m.MetaDataInfo
+	}
+	return nil
+}
+
+type TaskMetaDataDeclare struct {
+	MetaDataId           string   `protobuf:"bytes,1,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
+	ColumnIndexList      []uint64 `protobuf:"varint,2,rep,packed,name=column_index_list,json=columnIndexList,proto3" json:"column_index_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TaskMetaDataDeclare) Reset()         { *m = TaskMetaDataDeclare{} }
+func (m *TaskMetaDataDeclare) String() string { return proto.CompactTextString(m) }
+func (*TaskMetaDataDeclare) ProtoMessage()    {}
+func (*TaskMetaDataDeclare) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{55}
+}
+func (m *TaskMetaDataDeclare) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskMetaDataDeclare) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskMetaDataDeclare.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskMetaDataDeclare) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskMetaDataDeclare.Merge(m, src)
+}
+func (m *TaskMetaDataDeclare) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskMetaDataDeclare) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskMetaDataDeclare.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskMetaDataDeclare proto.InternalMessageInfo
+
+func (m *TaskMetaDataDeclare) GetMetaDataId() string {
+	if m != nil {
+		return m.MetaDataId
+	}
+	return ""
+}
+
+func (m *TaskMetaDataDeclare) GetColumnIndexList() []uint64 {
+	if m != nil {
+		return m.ColumnIndexList
+	}
+	return nil
+}
+
+type TaskResultReceiverDeclare struct {
+	MemberInfo           *OrganizationIdentityInfo   `protobuf:"bytes,1,opt,name=member_info,json=memberInfo,proto3" json:"member_info,omitempty"`
+	Providers            []*OrganizationIdentityInfo `protobuf:"bytes,2,rep,name=providers,proto3" json:"providers,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                    `json:"-"`
+	XXX_unrecognized     []byte                      `json:"-"`
+	XXX_sizecache        int32                       `json:"-"`
+}
+
+func (m *TaskResultReceiverDeclare) Reset()         { *m = TaskResultReceiverDeclare{} }
+func (m *TaskResultReceiverDeclare) String() string { return proto.CompactTextString(m) }
+func (*TaskResultReceiverDeclare) ProtoMessage()    {}
+func (*TaskResultReceiverDeclare) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{56}
+}
+func (m *TaskResultReceiverDeclare) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskResultReceiverDeclare) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskResultReceiverDeclare.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskResultReceiverDeclare) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskResultReceiverDeclare.Merge(m, src)
+}
+func (m *TaskResultReceiverDeclare) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskResultReceiverDeclare) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskResultReceiverDeclare.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskResultReceiverDeclare proto.InternalMessageInfo
+
+func (m *TaskResultReceiverDeclare) GetMemberInfo() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.MemberInfo
+	}
+	return nil
+}
+
+func (m *TaskResultReceiverDeclare) GetProviders() []*OrganizationIdentityInfo {
+	if m != nil {
+		return m.Providers
+	}
+	return nil
+}
+
 // 任务的所需操作成本 展示结构 (定义任务的大小)
 type TaskOperationCostShow struct {
 	CostMem              string   `protobuf:"bytes,1,opt,name=cost_mem,json=costMem,proto3" json:"cost_mem,omitempty"`
@@ -2443,7 +3750,7 @@ func (m *TaskOperationCostShow) Reset()         { *m = TaskOperationCostShow{} }
 func (m *TaskOperationCostShow) String() string { return proto.CompactTextString(m) }
 func (*TaskOperationCostShow) ProtoMessage()    {}
 func (*TaskOperationCostShow) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{38}
+	return fileDescriptor_650bcbee121628aa, []int{57}
 }
 func (m *TaskOperationCostShow) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2500,6 +3807,447 @@ func (m *TaskOperationCostShow) GetDuration() string {
 	return ""
 }
 
+type TaskOperationCostDeclare struct {
+	CostMem              uint64   `protobuf:"varint,1,opt,name=cost_mem,json=costMem,proto3" json:"cost_mem,omitempty"`
+	CostProcessor        uint64   `protobuf:"varint,2,opt,name=cost_processor,json=costProcessor,proto3" json:"cost_processor,omitempty"`
+	CostBandwidth        uint64   `protobuf:"varint,3,opt,name=cost_bandwidth,json=costBandwidth,proto3" json:"cost_bandwidth,omitempty"`
+	Duration             uint64   `protobuf:"varint,4,opt,name=duration,proto3" json:"duration,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *TaskOperationCostDeclare) Reset()         { *m = TaskOperationCostDeclare{} }
+func (m *TaskOperationCostDeclare) String() string { return proto.CompactTextString(m) }
+func (*TaskOperationCostDeclare) ProtoMessage()    {}
+func (*TaskOperationCostDeclare) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{58}
+}
+func (m *TaskOperationCostDeclare) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskOperationCostDeclare) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskOperationCostDeclare.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskOperationCostDeclare) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskOperationCostDeclare.Merge(m, src)
+}
+func (m *TaskOperationCostDeclare) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskOperationCostDeclare) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskOperationCostDeclare.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskOperationCostDeclare proto.InternalMessageInfo
+
+func (m *TaskOperationCostDeclare) GetCostMem() uint64 {
+	if m != nil {
+		return m.CostMem
+	}
+	return 0
+}
+
+func (m *TaskOperationCostDeclare) GetCostProcessor() uint64 {
+	if m != nil {
+		return m.CostProcessor
+	}
+	return 0
+}
+
+func (m *TaskOperationCostDeclare) GetCostBandwidth() uint64 {
+	if m != nil {
+		return m.CostBandwidth
+	}
+	return 0
+}
+
+func (m *TaskOperationCostDeclare) GetDuration() uint64 {
+	if m != nil {
+		return m.Duration
+	}
+	return 0
+}
+
+type GetTaskSummaryListResponse struct {
+	Status               int32              `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string             `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	TaskList             []*TaskSummaryShow `protobuf:"bytes,3,rep,name=task_list,json=taskList,proto3" json:"task_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
+	XXX_unrecognized     []byte             `json:"-"`
+	XXX_sizecache        int32              `json:"-"`
+}
+
+func (m *GetTaskSummaryListResponse) Reset()         { *m = GetTaskSummaryListResponse{} }
+func (m *GetTaskSummaryListResponse) String() string { return proto.CompactTextString(m) }
+func (*GetTaskSummaryListResponse) ProtoMessage()    {}
+func (*GetTaskSummaryListResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{59}
+}
+func (m *GetTaskSummaryListResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetTaskSummaryListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetTaskSummaryListResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetTaskSummaryListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTaskSummaryListResponse.Merge(m, src)
+}
+func (m *GetTaskSummaryListResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetTaskSummaryListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTaskSummaryListResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTaskSummaryListResponse proto.InternalMessageInfo
+
+func (m *GetTaskSummaryListResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *GetTaskSummaryListResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *GetTaskSummaryListResponse) GetTaskList() []*TaskSummaryShow {
+	if m != nil {
+		return m.TaskList
+	}
+	return nil
+}
+
+type GetTaskJoinSummaryListRequest struct {
+	MemberInfo           *OrganizationIdentityInfo `protobuf:"bytes,1,opt,name=member_info,json=memberInfo,proto3" json:"member_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *GetTaskJoinSummaryListRequest) Reset()         { *m = GetTaskJoinSummaryListRequest{} }
+func (m *GetTaskJoinSummaryListRequest) String() string { return proto.CompactTextString(m) }
+func (*GetTaskJoinSummaryListRequest) ProtoMessage()    {}
+func (*GetTaskJoinSummaryListRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{60}
+}
+func (m *GetTaskJoinSummaryListRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetTaskJoinSummaryListRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetTaskJoinSummaryListRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetTaskJoinSummaryListRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTaskJoinSummaryListRequest.Merge(m, src)
+}
+func (m *GetTaskJoinSummaryListRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetTaskJoinSummaryListRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTaskJoinSummaryListRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTaskJoinSummaryListRequest proto.InternalMessageInfo
+
+func (m *GetTaskJoinSummaryListRequest) GetMemberInfo() *OrganizationIdentityInfo {
+	if m != nil {
+		return m.MemberInfo
+	}
+	return nil
+}
+
+type GetTaskJoinSummaryResponse struct {
+	Role                 string           `protobuf:"bytes,1,opt,name=role,proto3" json:"role,omitempty"`
+	Task                 *TaskSummaryShow `protobuf:"bytes,2,opt,name=task,proto3" json:"task,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
+}
+
+func (m *GetTaskJoinSummaryResponse) Reset()         { *m = GetTaskJoinSummaryResponse{} }
+func (m *GetTaskJoinSummaryResponse) String() string { return proto.CompactTextString(m) }
+func (*GetTaskJoinSummaryResponse) ProtoMessage()    {}
+func (*GetTaskJoinSummaryResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{61}
+}
+func (m *GetTaskJoinSummaryResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetTaskJoinSummaryResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetTaskJoinSummaryResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetTaskJoinSummaryResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTaskJoinSummaryResponse.Merge(m, src)
+}
+func (m *GetTaskJoinSummaryResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetTaskJoinSummaryResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTaskJoinSummaryResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTaskJoinSummaryResponse proto.InternalMessageInfo
+
+func (m *GetTaskJoinSummaryResponse) GetRole() string {
+	if m != nil {
+		return m.Role
+	}
+	return ""
+}
+
+func (m *GetTaskJoinSummaryResponse) GetTask() *TaskSummaryShow {
+	if m != nil {
+		return m.Task
+	}
+	return nil
+}
+
+type GetTaskJoinSummaryListResponse struct {
+	Status               int32                         `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string                        `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	TaskList             []*GetTaskJoinSummaryResponse `protobuf:"bytes,3,rep,name=task_list,json=taskList,proto3" json:"task_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
+}
+
+func (m *GetTaskJoinSummaryListResponse) Reset()         { *m = GetTaskJoinSummaryListResponse{} }
+func (m *GetTaskJoinSummaryListResponse) String() string { return proto.CompactTextString(m) }
+func (*GetTaskJoinSummaryListResponse) ProtoMessage()    {}
+func (*GetTaskJoinSummaryListResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{62}
+}
+func (m *GetTaskJoinSummaryListResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetTaskJoinSummaryListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetTaskJoinSummaryListResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetTaskJoinSummaryListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTaskJoinSummaryListResponse.Merge(m, src)
+}
+func (m *GetTaskJoinSummaryListResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetTaskJoinSummaryListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTaskJoinSummaryListResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetTaskJoinSummaryListResponse proto.InternalMessageInfo
+
+func (m *GetTaskJoinSummaryListResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *GetTaskJoinSummaryListResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *GetTaskJoinSummaryListResponse) GetTaskList() []*GetTaskJoinSummaryResponse {
+	if m != nil {
+		return m.TaskList
+	}
+	return nil
+}
+
+type PublishTaskDeclareRequest struct {
+	TaskName             string                       `protobuf:"bytes,1,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
+	Owner                *TaskDataSupplierDeclare     `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
+	Partners             []*TaskDataSupplierDeclare   `protobuf:"bytes,3,rep,name=partners,proto3" json:"partners,omitempty"`
+	Receivers            []*TaskResultReceiverDeclare `protobuf:"bytes,4,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	OperationCost        *TaskOperationCostDeclare    `protobuf:"bytes,5,opt,name=operation_cost,json=operationCost,proto3" json:"operation_cost,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
+}
+
+func (m *PublishTaskDeclareRequest) Reset()         { *m = PublishTaskDeclareRequest{} }
+func (m *PublishTaskDeclareRequest) String() string { return proto.CompactTextString(m) }
+func (*PublishTaskDeclareRequest) ProtoMessage()    {}
+func (*PublishTaskDeclareRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{63}
+}
+func (m *PublishTaskDeclareRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublishTaskDeclareRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublishTaskDeclareRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublishTaskDeclareRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishTaskDeclareRequest.Merge(m, src)
+}
+func (m *PublishTaskDeclareRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublishTaskDeclareRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishTaskDeclareRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublishTaskDeclareRequest proto.InternalMessageInfo
+
+func (m *PublishTaskDeclareRequest) GetTaskName() string {
+	if m != nil {
+		return m.TaskName
+	}
+	return ""
+}
+
+func (m *PublishTaskDeclareRequest) GetOwner() *TaskDataSupplierDeclare {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *PublishTaskDeclareRequest) GetPartners() []*TaskDataSupplierDeclare {
+	if m != nil {
+		return m.Partners
+	}
+	return nil
+}
+
+func (m *PublishTaskDeclareRequest) GetReceivers() []*TaskResultReceiverDeclare {
+	if m != nil {
+		return m.Receivers
+	}
+	return nil
+}
+
+func (m *PublishTaskDeclareRequest) GetOperationCost() *TaskOperationCostDeclare {
+	if m != nil {
+		return m.OperationCost
+	}
+	return nil
+}
+
+type PublishTaskDeclareResponse struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	TaskId               string   `protobuf:"bytes,3,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PublishTaskDeclareResponse) Reset()         { *m = PublishTaskDeclareResponse{} }
+func (m *PublishTaskDeclareResponse) String() string { return proto.CompactTextString(m) }
+func (*PublishTaskDeclareResponse) ProtoMessage()    {}
+func (*PublishTaskDeclareResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{64}
+}
+func (m *PublishTaskDeclareResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublishTaskDeclareResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublishTaskDeclareResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublishTaskDeclareResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishTaskDeclareResponse.Merge(m, src)
+}
+func (m *PublishTaskDeclareResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublishTaskDeclareResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishTaskDeclareResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublishTaskDeclareResponse proto.InternalMessageInfo
+
+func (m *PublishTaskDeclareResponse) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *PublishTaskDeclareResponse) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
+func (m *PublishTaskDeclareResponse) GetTaskId() string {
+	if m != nil {
+		return m.TaskId
+	}
+	return ""
+}
+
 // 系统本身资源抽象
 type ResourceUsedDetailShow struct {
 	TotalMem             string   `protobuf:"bytes,2,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
@@ -2517,7 +4265,7 @@ func (m *ResourceUsedDetailShow) Reset()         { *m = ResourceUsedDetailShow{}
 func (m *ResourceUsedDetailShow) String() string { return proto.CompactTextString(m) }
 func (*ResourceUsedDetailShow) ProtoMessage()    {}
 func (*ResourceUsedDetailShow) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{39}
+	return fileDescriptor_650bcbee121628aa, []int{65}
 }
 func (m *ResourceUsedDetailShow) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2588,6 +4336,70 @@ func (m *ResourceUsedDetailShow) GetUsedBandwidth() string {
 	return ""
 }
 
+// 算力的基本仨元素
+type PurePower struct {
+	Mem                  string   `protobuf:"bytes,1,opt,name=mem,proto3" json:"mem,omitempty"`
+	Processor            string   `protobuf:"bytes,2,opt,name=processor,proto3" json:"processor,omitempty"`
+	Bandwidth            string   `protobuf:"bytes,3,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PurePower) Reset()         { *m = PurePower{} }
+func (m *PurePower) String() string { return proto.CompactTextString(m) }
+func (*PurePower) ProtoMessage()    {}
+func (*PurePower) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{66}
+}
+func (m *PurePower) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PurePower) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PurePower.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PurePower) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PurePower.Merge(m, src)
+}
+func (m *PurePower) XXX_Size() int {
+	return m.Size()
+}
+func (m *PurePower) XXX_DiscardUnknown() {
+	xxx_messageInfo_PurePower.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PurePower proto.InternalMessageInfo
+
+func (m *PurePower) GetMem() string {
+	if m != nil {
+		return m.Mem
+	}
+	return ""
+}
+
+func (m *PurePower) GetProcessor() string {
+	if m != nil {
+		return m.Processor
+	}
+	return ""
+}
+
+func (m *PurePower) GetBandwidth() string {
+	if m != nil {
+		return m.Bandwidth
+	}
+	return ""
+}
+
 // 组织(节点)唯一标识抽象
 type OrganizationIdentityInfo struct {
 	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
@@ -2602,7 +4414,7 @@ func (m *OrganizationIdentityInfo) Reset()         { *m = OrganizationIdentityIn
 func (m *OrganizationIdentityInfo) String() string { return proto.CompactTextString(m) }
 func (*OrganizationIdentityInfo) ProtoMessage()    {}
 func (*OrganizationIdentityInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_650bcbee121628aa, []int{40}
+	return fileDescriptor_650bcbee121628aa, []int{67}
 }
 func (m *OrganizationIdentityInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2652,37 +4464,188 @@ func (m *OrganizationIdentityInfo) GetIdentityId() string {
 	return ""
 }
 
+type DeleteRegisteredNodeRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteRegisteredNodeRequest) Reset()         { *m = DeleteRegisteredNodeRequest{} }
+func (m *DeleteRegisteredNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteRegisteredNodeRequest) ProtoMessage()    {}
+func (*DeleteRegisteredNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{68}
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DeleteRegisteredNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteRegisteredNodeRequest.Merge(m, src)
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *DeleteRegisteredNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteRegisteredNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteRegisteredNodeRequest proto.InternalMessageInfo
+
+func (m *DeleteRegisteredNodeRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
+}
+
+type EmptyGetParams struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *EmptyGetParams) Reset()         { *m = EmptyGetParams{} }
+func (m *EmptyGetParams) String() string { return proto.CompactTextString(m) }
+func (*EmptyGetParams) ProtoMessage()    {}
+func (*EmptyGetParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{69}
+}
+func (m *EmptyGetParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EmptyGetParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EmptyGetParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EmptyGetParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EmptyGetParams.Merge(m, src)
+}
+func (m *EmptyGetParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *EmptyGetParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_EmptyGetParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EmptyGetParams proto.InternalMessageInfo
+
+type SimpleResponseCode struct {
+	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SimpleResponseCode) Reset()         { *m = SimpleResponseCode{} }
+func (m *SimpleResponseCode) String() string { return proto.CompactTextString(m) }
+func (*SimpleResponseCode) ProtoMessage()    {}
+func (*SimpleResponseCode) Descriptor() ([]byte, []int) {
+	return fileDescriptor_650bcbee121628aa, []int{70}
+}
+func (m *SimpleResponseCode) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SimpleResponseCode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SimpleResponseCode.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SimpleResponseCode) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SimpleResponseCode.Merge(m, src)
+}
+func (m *SimpleResponseCode) XXX_Size() int {
+	return m.Size()
+}
+func (m *SimpleResponseCode) XXX_DiscardUnknown() {
+	xxx_messageInfo_SimpleResponseCode.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SimpleResponseCode proto.InternalMessageInfo
+
+func (m *SimpleResponseCode) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *SimpleResponseCode) GetMsg() string {
+	if m != nil {
+		return m.Msg
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*YarnNodeInfo)(nil), "rpcapi.YarnNodeInfo")
 	proto.RegisterType((*YarnNodeSysInfo)(nil), "rpcapi.YarnNodeSysInfo")
 	proto.RegisterType((*YarnRegisteredPeer)(nil), "rpcapi.YarnRegisteredPeer")
+	proto.RegisterType((*YarnRegisteredPeerDetail)(nil), "rpcapi.YarnRegisteredPeerDetail")
 	proto.RegisterType((*SeedPeer)(nil), "rpcapi.SeedPeer")
 	proto.RegisterType((*YarnRegisteredJobNode)(nil), "rpcapi.YarnRegisteredJobNode")
 	proto.RegisterType((*YarnRegisteredJobNodeTaskIds)(nil), "rpcapi.YarnRegisteredJobNodeTaskIds")
 	proto.RegisterType((*YarnRegisteredDataNode)(nil), "rpcapi.YarnRegisteredDataNode")
 	proto.RegisterType((*YarnRegisteredDataNodeDelta)(nil), "rpcapi.YarnRegisteredDataNodeDelta")
-	proto.RegisterType((*GetNodeInfoRequest)(nil), "rpcapi.GetNodeInfoRequest")
 	proto.RegisterType((*GetNodeInfoResponse)(nil), "rpcapi.GetNodeInfoResponse")
-	proto.RegisterType((*GetRegisteredPeersRequest)(nil), "rpcapi.GetRegisteredPeersRequest")
 	proto.RegisterType((*GetRegisteredPeersResponse)(nil), "rpcapi.GetRegisteredPeersResponse")
+	proto.RegisterType((*SetSeedNodeRequest)(nil), "rpcapi.SetSeedNodeRequest")
+	proto.RegisterType((*SetSeedNodeResponse)(nil), "rpcapi.SetSeedNodeResponse")
+	proto.RegisterType((*UpdateSeedNodeRequest)(nil), "rpcapi.UpdateSeedNodeRequest")
+	proto.RegisterType((*GetSeedNodeListResponse)(nil), "rpcapi.GetSeedNodeListResponse")
+	proto.RegisterType((*SetDataNodeRequest)(nil), "rpcapi.SetDataNodeRequest")
+	proto.RegisterType((*SetDataNodeResponse)(nil), "rpcapi.SetDataNodeResponse")
+	proto.RegisterType((*UpdateDataNodeRequest)(nil), "rpcapi.UpdateDataNodeRequest")
+	proto.RegisterType((*GetRegisteredNodeListResponse)(nil), "rpcapi.GetRegisteredNodeListResponse")
+	proto.RegisterType((*SetJobNodeRequest)(nil), "rpcapi.SetJobNodeRequest")
+	proto.RegisterType((*SetJobNodeResponse)(nil), "rpcapi.SetJobNodeResponse")
+	proto.RegisterType((*UpdateJobNodeRequest)(nil), "rpcapi.UpdateJobNodeRequest")
 	proto.RegisterType((*MetaDataSummary)(nil), "rpcapi.MetaDataSummary")
 	proto.RegisterType((*MetaDataColumnDetail)(nil), "rpcapi.MetaDataColumnDetail")
-	proto.RegisterType((*MetaDataDetail)(nil), "rpcapi.MetaDataDetail")
-	proto.RegisterType((*GetMetaDataSummaryListRequest)(nil), "rpcapi.GetMetaDataSummaryListRequest")
+	proto.RegisterType((*MetaDataDetailShow)(nil), "rpcapi.MetaDataDetailShow")
 	proto.RegisterType((*GetMetaDataSummaryResponse)(nil), "rpcapi.GetMetaDataSummaryResponse")
 	proto.RegisterType((*GetMetaDataSummaryListResponse)(nil), "rpcapi.GetMetaDataSummaryListResponse")
 	proto.RegisterType((*GetMetaDataSummaryByStateRequest)(nil), "rpcapi.GetMetaDataSummaryByStateRequest")
 	proto.RegisterType((*GetMetaDataSummaryByOwnerRequest)(nil), "rpcapi.GetMetaDataSummaryByOwnerRequest")
 	proto.RegisterType((*GetMetaDataDetailRequest)(nil), "rpcapi.GetMetaDataDetailRequest")
 	proto.RegisterType((*GetMetaDataDetailResponse)(nil), "rpcapi.GetMetaDataDetailResponse")
+	proto.RegisterType((*PublishMetaDataRequest)(nil), "rpcapi.PublishMetaDataRequest")
+	proto.RegisterType((*PublishMetaDataResponse)(nil), "rpcapi.PublishMetaDataResponse")
+	proto.RegisterType((*RevokeMetaDataRequest)(nil), "rpcapi.RevokeMetaDataRequest")
 	proto.RegisterType((*PowerSingleSummary)(nil), "rpcapi.PowerSingleSummary")
 	proto.RegisterType((*PowerTotalSummary)(nil), "rpcapi.PowerTotalSummary")
 	proto.RegisterType((*PowerTaskDetail)(nil), "rpcapi.PowerTaskDetail")
 	proto.RegisterType((*PowerTask)(nil), "rpcapi.PowerTask")
-	proto.RegisterType((*GetPowerTotalSummaryListRequest)(nil), "rpcapi.GetPowerTotalSummaryListRequest")
 	proto.RegisterType((*GetPowerTotalSummaryResponse)(nil), "rpcapi.GetPowerTotalSummaryResponse")
 	proto.RegisterType((*GetPowerTotalSummaryListResponse)(nil), "rpcapi.GetPowerTotalSummaryListResponse")
-	proto.RegisterType((*GetPowerSingleSummaryListRequest)(nil), "rpcapi.GetPowerSingleSummaryListRequest")
 	proto.RegisterType((*GetPowerSingleSummaryResponse)(nil), "rpcapi.GetPowerSingleSummaryResponse")
 	proto.RegisterType((*GetPowerSingleSummaryListResponse)(nil), "rpcapi.GetPowerSingleSummaryListResponse")
 	proto.RegisterType((*GetPowerTotalSummaryByStateRequest)(nil), "rpcapi.GetPowerTotalSummaryByStateRequest")
@@ -2691,140 +4654,1693 @@ func init() {
 	proto.RegisterType((*GetPowerSingleSummaryByOwnerRequest)(nil), "rpcapi.GetPowerSingleSummaryByOwnerRequest")
 	proto.RegisterType((*GetPowerSingleDetailRequest)(nil), "rpcapi.GetPowerSingleDetailRequest")
 	proto.RegisterType((*GetPowerSingleDetailResponse)(nil), "rpcapi.GetPowerSingleDetailResponse")
+	proto.RegisterType((*PublishPowerRequest)(nil), "rpcapi.PublishPowerRequest")
+	proto.RegisterType((*PublishPowerResponse)(nil), "rpcapi.PublishPowerResponse")
+	proto.RegisterType((*RevokePowerRequest)(nil), "rpcapi.RevokePowerRequest")
+	proto.RegisterType((*ApplyIdentityJoinRequest)(nil), "rpcapi.ApplyIdentityJoinRequest")
+	proto.RegisterType((*RevokeIdentityJoinRequest)(nil), "rpcapi.RevokeIdentityJoinRequest")
+	proto.RegisterType((*TaskSummaryShow)(nil), "rpcapi.TaskSummaryShow")
+	proto.RegisterType((*TaskDataSupplierDeclare)(nil), "rpcapi.TaskDataSupplierDeclare")
+	proto.RegisterType((*TaskMetaDataDeclare)(nil), "rpcapi.TaskMetaDataDeclare")
+	proto.RegisterType((*TaskResultReceiverDeclare)(nil), "rpcapi.TaskResultReceiverDeclare")
 	proto.RegisterType((*TaskOperationCostShow)(nil), "rpcapi.TaskOperationCostShow")
+	proto.RegisterType((*TaskOperationCostDeclare)(nil), "rpcapi.TaskOperationCostDeclare")
+	proto.RegisterType((*GetTaskSummaryListResponse)(nil), "rpcapi.GetTaskSummaryListResponse")
+	proto.RegisterType((*GetTaskJoinSummaryListRequest)(nil), "rpcapi.GetTaskJoinSummaryListRequest")
+	proto.RegisterType((*GetTaskJoinSummaryResponse)(nil), "rpcapi.GetTaskJoinSummaryResponse")
+	proto.RegisterType((*GetTaskJoinSummaryListResponse)(nil), "rpcapi.GetTaskJoinSummaryListResponse")
+	proto.RegisterType((*PublishTaskDeclareRequest)(nil), "rpcapi.PublishTaskDeclareRequest")
+	proto.RegisterType((*PublishTaskDeclareResponse)(nil), "rpcapi.PublishTaskDeclareResponse")
 	proto.RegisterType((*ResourceUsedDetailShow)(nil), "rpcapi.ResourceUsedDetailShow")
+	proto.RegisterType((*PurePower)(nil), "rpcapi.PurePower")
 	proto.RegisterType((*OrganizationIdentityInfo)(nil), "rpcapi.OrganizationIdentityInfo")
+	proto.RegisterType((*DeleteRegisteredNodeRequest)(nil), "rpcapi.DeleteRegisteredNodeRequest")
+	proto.RegisterType((*EmptyGetParams)(nil), "rpcapi.EmptyGetParams")
+	proto.RegisterType((*SimpleResponseCode)(nil), "rpcapi.SimpleResponseCode")
 }
 
 func init() { proto.RegisterFile("lib/api/carrier_rpc_api.proto", fileDescriptor_650bcbee121628aa) }
 
 var fileDescriptor_650bcbee121628aa = []byte{
-	// 1994 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x19, 0x4b, 0x8f, 0x1b, 0x49,
-	0x59, 0xed, 0xc7, 0xd8, 0xfe, 0x3c, 0x8f, 0xa4, 0x98, 0x9d, 0x75, 0x3c, 0xc9, 0x64, 0xd2, 0x93,
-	0x90, 0x01, 0x96, 0x78, 0x35, 0x48, 0xab, 0xec, 0xa0, 0x05, 0x94, 0x19, 0x32, 0x18, 0x91, 0xcd,
-	0xa8, 0x3d, 0x48, 0x2c, 0x1c, 0xac, 0xb2, 0xbb, 0x62, 0xf7, 0xc6, 0xee, 0x6a, 0xba, 0xca, 0x99,
-	0x9d, 0xbd, 0x70, 0x44, 0x08, 0x10, 0x02, 0x89, 0x1b, 0x77, 0x38, 0xaf, 0xc4, 0x0f, 0xe0, 0x86,
-	0x40, 0x48, 0xfc, 0x04, 0x94, 0x03, 0x27, 0x0e, 0xfc, 0x01, 0x24, 0x54, 0x5f, 0x55, 0xbb, 0x1f,
-	0x6e, 0x7b, 0xc6, 0x1a, 0x21, 0x45, 0xec, 0xad, 0xeb, 0xab, 0xef, 0xfd, 0x2e, 0x1b, 0xee, 0x8c,
-	0xbc, 0x5e, 0x8b, 0x06, 0x5e, 0xab, 0x4f, 0xc3, 0xd0, 0x63, 0x61, 0x37, 0x0c, 0xfa, 0x5d, 0x1a,
-	0x78, 0x8f, 0x82, 0x90, 0x4b, 0x4e, 0x56, 0xc2, 0xa0, 0x4f, 0x03, 0xaf, 0xb9, 0x17, 0xb2, 0x80,
-	0x8b, 0x16, 0x02, 0x7b, 0x93, 0x17, 0xad, 0x01, 0x1f, 0x70, 0x3c, 0xe0, 0x97, 0x46, 0xb6, 0xff,
-	0x52, 0x84, 0xd5, 0x8f, 0x68, 0xe8, 0x7f, 0xc8, 0x5d, 0xd6, 0xf6, 0x5f, 0x70, 0xb2, 0x0d, 0x35,
-	0x9f, 0xbb, 0xac, 0x2b, 0x2f, 0x02, 0xd6, 0xb0, 0x76, 0xad, 0xfd, 0x9a, 0x53, 0x55, 0x80, 0xb3,
-	0x8b, 0x80, 0x91, 0xb7, 0xa1, 0x82, 0x97, 0x9e, 0xdb, 0x28, 0xe0, 0xd5, 0x8a, 0x3a, 0xb6, 0x5d,
-	0x72, 0x17, 0xea, 0x9e, 0x2f, 0x59, 0xe8, 0xd3, 0x51, 0xd7, 0x0b, 0x1a, 0x45, 0xbc, 0x84, 0x08,
-	0xd4, 0x0e, 0x14, 0x02, 0xfb, 0x24, 0x46, 0x28, 0x69, 0x84, 0x08, 0xd4, 0x0e, 0xc8, 0x1e, 0xac,
-	0x4d, 0x39, 0x04, 0x3c, 0x94, 0x8d, 0x32, 0xa2, 0xac, 0x46, 0xc0, 0x53, 0x1e, 0x4a, 0x85, 0x34,
-	0xe5, 0x82, 0x48, 0x2b, 0x1a, 0x29, 0x02, 0x46, 0x48, 0x9e, 0xcb, 0x7c, 0xe9, 0xc9, 0x0b, 0x6d,
-	0x45, 0xc5, 0x70, 0x32, 0x40, 0xb4, 0x44, 0x29, 0x1c, 0x21, 0x79, 0x6e, 0xa3, 0x6a, 0x14, 0x36,
-	0xa0, 0xb6, 0x4b, 0xde, 0x57, 0x16, 0xbd, 0xe0, 0xe1, 0x98, 0x4a, 0x8f, 0xfb, 0x8d, 0xda, 0xae,
-	0xb5, 0x5f, 0x3f, 0x78, 0xfb, 0x91, 0xf6, 0xed, 0xa3, 0xc8, 0x65, 0x9d, 0x0b, 0xa1, 0xbc, 0xe6,
-	0x24, 0x71, 0xc9, 0xbb, 0x50, 0x0e, 0x18, 0x0b, 0x45, 0x03, 0x76, 0x8b, 0xfb, 0xf5, 0x83, 0x66,
-	0x92, 0xc8, 0x61, 0x03, 0x4f, 0x48, 0x16, 0x32, 0xf7, 0x94, 0xb1, 0xd0, 0xd1, 0x88, 0xa4, 0x05,
-	0x20, 0x18, 0x73, 0xbb, 0x9a, 0xac, 0x8e, 0x64, 0x37, 0x22, 0xb2, 0x0e, 0x33, 0xc8, 0x35, 0x61,
-	0xbe, 0x04, 0xd9, 0x84, 0xb2, 0x90, 0x54, 0xb2, 0xc6, 0x2a, 0x2a, 0xae, 0x0f, 0xf6, 0x7f, 0x2c,
-	0xd8, 0xc8, 0x68, 0x46, 0x08, 0x94, 0x7c, 0x3a, 0x8e, 0x42, 0x89, 0xdf, 0x2a, 0xc6, 0x92, 0x4b,
-	0x3a, 0xea, 0x8e, 0xd9, 0xd8, 0x04, 0xb2, 0x8a, 0x80, 0x67, 0x6c, 0x4c, 0x6e, 0x41, 0x75, 0x22,
-	0x98, 0x8b, 0x77, 0x3a, 0x8e, 0x15, 0x75, 0x56, 0x57, 0x0f, 0x61, 0x43, 0xd3, 0x05, 0x21, 0xef,
-	0x33, 0x21, 0x78, 0x68, 0x02, 0xb9, 0x8e, 0xe0, 0xd3, 0x08, 0x4a, 0x1e, 0xc0, 0x3a, 0xf2, 0x88,
-	0xf1, 0x74, 0x34, 0xd7, 0x14, 0x34, 0x46, 0x9b, 0xf2, 0xeb, 0x51, 0xdf, 0x3d, 0xf7, 0x5c, 0x39,
-	0x34, 0x01, 0xd5, 0xfc, 0x9e, 0x44, 0xd0, 0x29, 0xbf, 0x18, 0xaf, 0x12, 0xf3, 0x9b, 0xa2, 0xd9,
-	0xff, 0xb2, 0x80, 0xcc, 0x3a, 0x79, 0x71, 0x4a, 0xaf, 0x43, 0x61, 0x9a, 0xcd, 0x05, 0xef, 0xcd,
-	0xca, 0xe4, 0x3b, 0x00, 0x7d, 0xee, 0xfb, 0x5d, 0x1d, 0x6a, 0x65, 0x72, 0xd9, 0xa9, 0x29, 0x48,
-	0x07, 0xc3, 0xfd, 0x13, 0xa8, 0x46, 0xb9, 0x61, 0xcc, 0xb0, 0xe6, 0x99, 0x51, 0x98, 0x31, 0x63,
-	0x46, 0xcb, 0x52, 0x8e, 0x96, 0x69, 0x05, 0xca, 0x59, 0x05, 0xfe, 0x5a, 0x80, 0xb7, 0xd2, 0xfe,
-	0xfe, 0x2e, 0xef, 0xa9, 0xe4, 0x7b, 0xa3, 0xbd, 0xfa, 0xad, 0x74, 0x65, 0x57, 0xb0, 0xb2, 0x77,
-	0xa2, 0x6a, 0x73, 0x98, 0xe0, 0x93, 0xb0, 0xcf, 0xbe, 0x2f, 0x98, 0x7b, 0xcc, 0x24, 0xf5, 0x46,
-	0x9d, 0x21, 0x3f, 0x4f, 0x17, 0x78, 0x13, 0xaa, 0xee, 0x24, 0xd4, 0xe4, 0xaa, 0x73, 0x94, 0x9c,
-	0xe9, 0x99, 0x3c, 0x86, 0x92, 0xa4, 0xe2, 0xa5, 0x69, 0x18, 0xf7, 0xf3, 0x6b, 0xdf, 0xb8, 0xe9,
-	0x8c, 0x8a, 0x97, 0x6d, 0x57, 0x38, 0x48, 0x61, 0x3f, 0x87, 0xdb, 0x8b, 0xb0, 0x54, 0xcd, 0xf7,
-	0xf9, 0xc4, 0x97, 0x18, 0xe5, 0x35, 0x47, 0x1f, 0x54, 0xb9, 0x2a, 0xea, 0xae, 0xe7, 0x8a, 0x46,
-	0x61, 0xb7, 0xa8, 0xca, 0x55, 0x6a, 0x02, 0xfb, 0x6f, 0x05, 0xd8, 0x4a, 0x73, 0x3c, 0xa6, 0x92,
-	0x7e, 0xce, 0xe3, 0xf3, 0x3e, 0x94, 0x5d, 0x36, 0x92, 0xd4, 0x04, 0x68, 0x2f, 0x3f, 0x40, 0x91,
-	0xa3, 0x8e, 0x15, 0xaa, 0xa3, 0x29, 0x6c, 0x0a, 0xdb, 0x0b, 0xb0, 0xc8, 0x6d, 0xa8, 0xbd, 0xf0,
-	0x46, 0xec, 0x68, 0x1a, 0xa3, 0x92, 0x13, 0x03, 0xc8, 0x7d, 0x58, 0x53, 0x87, 0x33, 0xd5, 0xd8,
-	0x3a, 0xde, 0xa7, 0xcc, 0x38, 0x3f, 0x0d, 0xb4, 0x37, 0x81, 0x9c, 0x30, 0x19, 0x0d, 0x63, 0x87,
-	0xfd, 0x78, 0xc2, 0x84, 0xb4, 0xcf, 0xe1, 0x0b, 0x29, 0xa8, 0x08, 0xb8, 0x2f, 0x18, 0xd9, 0x82,
-	0x15, 0x55, 0x98, 0x13, 0x81, 0xd2, 0xca, 0x8e, 0x39, 0x91, 0x1b, 0x50, 0x1c, 0x8b, 0x81, 0x11,
-	0xa0, 0x3e, 0xc9, 0x7b, 0x69, 0x97, 0x16, 0xd1, 0xf4, 0xcd, 0xec, 0x30, 0x9b, 0x99, 0x64, 0xf6,
-	0x36, 0xdc, 0x3a, 0x61, 0x32, 0xdd, 0x4e, 0x45, 0xa4, 0xd5, 0x9f, 0x2c, 0x68, 0xe6, 0xdd, 0x2e,
-	0xad, 0xdd, 0x21, 0xd4, 0x3e, 0xe6, 0xbd, 0xae, 0x6a, 0xc9, 0xa2, 0x51, 0xc4, 0xe1, 0x77, 0x67,
-	0x61, 0xdd, 0x38, 0xd5, 0x8f, 0xf5, 0x87, 0x20, 0x1f, 0x00, 0xb8, 0x54, 0x52, 0x43, 0x5c, 0x42,
-	0xe2, 0x9d, 0xc5, 0x31, 0x75, 0x6a, 0xae, 0xf9, 0x12, 0xf6, 0x1f, 0x0b, 0xb0, 0xf1, 0x8c, 0x49,
-	0xaa, 0xee, 0x3a, 0x93, 0xf1, 0x98, 0x86, 0x17, 0x6a, 0xc9, 0x19, 0x33, 0x49, 0xbb, 0xd3, 0x7e,
-	0xba, 0xa2, 0x8e, 0x6d, 0x57, 0xcd, 0x11, 0x1e, 0x7a, 0x03, 0xcf, 0x8f, 0xf7, 0x9f, 0xaa, 0x06,
-	0xb4, 0x5d, 0xd5, 0x2a, 0x25, 0xed, 0x8d, 0x58, 0x17, 0xa7, 0xad, 0x2e, 0xa0, 0x1a, 0x42, 0x3e,
-	0x54, 0x23, 0x97, 0x40, 0xc9, 0x65, 0xa2, 0x6f, 0x0a, 0x07, 0xbf, 0x15, 0x3f, 0x15, 0xfd, 0x6e,
-	0x40, 0xe5, 0xd0, 0x94, 0x4b, 0x55, 0x01, 0x4e, 0xa9, 0x1c, 0x2a, 0x82, 0x90, 0x9f, 0x0b, 0xac,
-	0x90, 0x35, 0x07, 0xbf, 0x49, 0x03, 0x2a, 0x7d, 0x3e, 0x9a, 0x8c, 0x7d, 0x81, 0x55, 0xb1, 0xe6,
-	0x44, 0x47, 0x85, 0x2d, 0x54, 0x52, 0xe9, 0x3d, 0x06, 0xbf, 0xa7, 0xec, 0x71, 0xec, 0xd5, 0x62,
-	0xf6, 0x38, 0xf6, 0x1e, 0xc2, 0xc6, 0x90, 0x8a, 0xee, 0x90, 0x8a, 0x33, 0x4f, 0x8e, 0x98, 0xc3,
-	0xcf, 0x1b, 0xb0, 0x6b, 0xed, 0x57, 0x9d, 0xf5, 0x21, 0x15, 0xdf, 0x89, 0xa1, 0xf1, 0xa6, 0x51,
-	0x4f, 0x6e, 0x1a, 0xbf, 0xb0, 0x60, 0x33, 0xf2, 0xdb, 0x11, 0xea, 0xa0, 0x6b, 0x51, 0x45, 0xbd,
-	0xef, 0xf9, 0x2e, 0xfb, 0xc4, 0x54, 0x80, 0x39, 0x61, 0xf3, 0x42, 0xcf, 0x68, 0xbf, 0xe9, 0x03,
-	0x42, 0x51, 0xbd, 0xa2, 0x81, 0xaa, 0x03, 0x42, 0xd1, 0x9a, 0x12, 0xb2, 0xd0, 0x07, 0x55, 0xd4,
-	0xfd, 0x3e, 0x1f, 0x8f, 0x99, 0x1f, 0xf5, 0x96, 0xe9, 0xd9, 0xfe, 0xb9, 0x05, 0xeb, 0x91, 0x3a,
-	0x46, 0x91, 0x43, 0x58, 0xc5, 0x28, 0x0a, 0x1d, 0x55, 0x54, 0x27, 0xb1, 0xc0, 0x65, 0x82, 0xee,
-	0xd4, 0x15, 0x72, 0x94, 0x01, 0x1f, 0x40, 0x5d, 0x3b, 0xb6, 0xab, 0xa0, 0xd8, 0x56, 0xeb, 0x07,
-	0xb7, 0xb3, 0xa4, 0x49, 0xbb, 0x1d, 0xd0, 0x04, 0xea, 0xce, 0xbe, 0x0b, 0x77, 0x4e, 0x98, 0xcc,
-	0x48, 0xf8, 0x9e, 0x27, 0x64, 0x54, 0x39, 0xbf, 0xd2, 0x95, 0x93, 0xd5, 0x21, 0xaa, 0x9c, 0xf7,
-	0xa0, 0xcc, 0xcf, 0x7d, 0x16, 0x1a, 0x9d, 0x77, 0x23, 0xc1, 0xcf, 0xc3, 0x01, 0xf5, 0xbd, 0x4f,
-	0xb1, 0x34, 0xdb, 0xd1, 0xa6, 0xaa, 0x6a, 0x56, 0xa3, 0x67, 0x57, 0xd6, 0xc2, 0x25, 0x16, 0x27,
-	0x0b, 0x9d, 0xc2, 0xce, 0x3c, 0x95, 0x8d, 0x52, 0xdf, 0x84, 0x1a, 0xfa, 0x73, 0xe4, 0x09, 0xd5,
-	0xdd, 0x94, 0x47, 0xec, 0x88, 0xf5, 0x7c, 0x5b, 0x9c, 0xaa, 0x22, 0x52, 0x8c, 0xec, 0xc7, 0xb0,
-	0x3b, 0x8b, 0xf7, 0xe4, 0x02, 0x37, 0x09, 0xe3, 0x98, 0x38, 0xd9, 0xac, 0x64, 0xb2, 0x1d, 0xe5,
-	0x53, 0x3e, 0x57, 0x46, 0x47, 0x94, 0x99, 0x7d, 0xde, 0xca, 0xee, 0xf3, 0xf6, 0x19, 0x34, 0x12,
-	0x4c, 0x4c, 0xd4, 0xae, 0x48, 0x9c, 0x6c, 0x09, 0x85, 0x64, 0x4b, 0xb0, 0x7f, 0x69, 0x61, 0x87,
-	0xcc, 0xb2, 0xbd, 0x66, 0x20, 0x1f, 0xe7, 0x05, 0x72, 0x2b, 0x1b, 0x48, 0x23, 0x2c, 0x15, 0xc7,
-	0xdf, 0x5b, 0x40, 0x4e, 0xf9, 0x39, 0x0b, 0x3b, 0x9e, 0x3f, 0x18, 0xb1, 0x28, 0xa1, 0x77, 0xa0,
-	0x1e, 0x75, 0xd8, 0xd8, 0xc0, 0x9a, 0x69, 0xa2, 0x6d, 0x57, 0x2d, 0x11, 0x81, 0xa2, 0x8a, 0x0d,
-	0xac, 0xe0, 0xb9, 0xed, 0x66, 0xa7, 0x71, 0x71, 0xf9, 0x69, 0x3c, 0x0d, 0x6a, 0x29, 0x19, 0xd4,
-	0xdf, 0x5a, 0x70, 0x13, 0x35, 0xd5, 0xc3, 0xcf, 0x28, 0x9a, 0x91, 0x66, 0x2d, 0x2f, 0x6d, 0x1f,
-	0x6e, 0xe8, 0x37, 0x05, 0x6e, 0x45, 0x7a, 0x61, 0x2a, 0x60, 0xb3, 0xd4, 0x8f, 0x0a, 0xb5, 0x4d,
-	0xe9, 0x89, 0x3c, 0xd5, 0xab, 0x98, 0xd4, 0xeb, 0x37, 0x16, 0x6c, 0x68, 0xbd, 0xa8, 0x78, 0x69,
-	0x7a, 0x49, 0x1e, 0x4f, 0x2b, 0x97, 0xe7, 0x3b, 0x40, 0xfa, 0x93, 0x30, 0x64, 0xbe, 0x9c, 0x95,
-	0x7f, 0xc3, 0xdc, 0xc4, 0xd8, 0x0f, 0xa1, 0xac, 0xb0, 0xa2, 0xa1, 0x77, 0x33, 0xb2, 0x73, 0x2a,
-	0xdf, 0xd1, 0xf7, 0xf6, 0x3f, 0x0b, 0x50, 0x9b, 0x02, 0x55, 0x36, 0x9a, 0x95, 0x2f, 0x1a, 0x50,
-	0x7a, 0xe3, 0x8b, 0xf3, 0xad, 0xb0, 0x5c, 0xbe, 0x1d, 0x42, 0x25, 0xa0, 0xd2, 0x57, 0x6f, 0x4f,
-	0xad, 0xc9, 0xe5, 0x94, 0x11, 0x01, 0xf9, 0x06, 0xd4, 0x42, 0xd6, 0x67, 0xde, 0x2b, 0x45, 0x5d,
-	0xba, 0x22, 0x75, 0x4c, 0x42, 0x8e, 0x61, 0x9d, 0x07, 0x4c, 0x2f, 0x67, 0xdd, 0x3e, 0x17, 0xba,
-	0xb9, 0x27, 0x36, 0x00, 0x65, 0xf2, 0xf3, 0x08, 0xe3, 0x88, 0x0b, 0x89, 0x31, 0x5f, 0xe3, 0x49,
-	0x10, 0x79, 0x0a, 0x1b, 0x31, 0x17, 0x11, 0x30, 0xdf, 0xc5, 0xc1, 0x79, 0x29, 0x9b, 0x58, 0x76,
-	0x47, 0x11, 0xd9, 0xf7, 0xe0, 0xee, 0x09, 0x93, 0x33, 0x79, 0x99, 0x6c, 0xde, 0x3f, 0xb5, 0xe0,
-	0x76, 0x1e, 0xce, 0xb5, 0xab, 0xbe, 0x05, 0x65, 0x2c, 0x3a, 0x13, 0xbd, 0x5b, 0xe9, 0x6c, 0x48,
-	0x4a, 0xd2, 0x78, 0xf6, 0x00, 0xfb, 0xe2, 0x1c, 0x65, 0x8d, 0x32, 0x47, 0x00, 0xba, 0xb2, 0x13,
-	0x7d, 0xfb, 0x7e, 0xa2, 0x6f, 0xcf, 0x35, 0xc3, 0xa9, 0x21, 0x1d, 0xb6, 0x6e, 0x3b, 0x16, 0x94,
-	0xea, 0x2b, 0x49, 0xb7, 0xfc, 0xcc, 0xc2, 0xa9, 0x37, 0x8b, 0x74, 0x6d, 0xbf, 0xbc, 0x9b, 0xf6,
-	0x4b, 0x33, 0xe5, 0x97, 0xb4, 0x28, 0xe3, 0x18, 0x0f, 0xee, 0x2d, 0xd0, 0xd7, 0xa8, 0x73, 0x9c,
-	0xe3, 0x99, 0x07, 0x59, 0xcf, 0xe4, 0x5a, 0x92, 0x74, 0xcd, 0x21, 0xd8, 0x79, 0x5e, 0xbc, 0xd2,
-	0x5c, 0xfb, 0x3a, 0xec, 0xe5, 0xca, 0xb9, 0x12, 0xf1, 0xb7, 0xe7, 0x09, 0x5e, 0x6e, 0x2c, 0x3e,
-	0x9d, 0xab, 0xc3, 0x72, 0x7c, 0x3e, 0x82, 0xed, 0x34, 0x9f, 0x25, 0x27, 0xec, 0xfc, 0x09, 0x64,
-	0xff, 0x3a, 0x51, 0x70, 0x69, 0xde, 0xff, 0xd3, 0x7d, 0x29, 0x33, 0x04, 0xd2, 0x73, 0xf6, 0x77,
-	0x16, 0xbc, 0x95, 0xdb, 0x51, 0x94, 0x21, 0xaa, 0x8b, 0xe1, 0xcf, 0x67, 0xda, 0xcc, 0x8a, 0x3a,
-	0x3f, 0x63, 0x63, 0xf2, 0x00, 0xd6, 0xf1, 0x2a, 0xfe, 0x55, 0xcc, 0xbc, 0x01, 0x15, 0x34, 0xf5,
-	0xe3, 0x19, 0xa2, 0xc5, 0x3f, 0x76, 0x15, 0x63, 0xb4, 0xf8, 0x37, 0xb1, 0xe4, 0x23, 0x57, 0x4f,
-	0xd6, 0xe9, 0xd9, 0xfe, 0xb7, 0x05, 0x5b, 0xf9, 0xc3, 0xf2, 0xff, 0xf6, 0xb7, 0xbf, 0x21, 0x34,
-	0xe6, 0xc5, 0x3b, 0xf7, 0x37, 0xd0, 0x85, 0x3f, 0x65, 0x27, 0x52, 0xb5, 0x98, 0x4d, 0xd5, 0x83,
-	0xcf, 0x2c, 0xa8, 0xab, 0x97, 0x65, 0x87, 0x85, 0xaf, 0xbc, 0x3e, 0x23, 0x4f, 0xa1, 0x9e, 0x78,
-	0x9d, 0x93, 0x66, 0xa2, 0x87, 0x64, 0x1e, 0xf2, 0xcd, 0xed, 0xdc, 0x3b, 0x93, 0xc6, 0x3f, 0xc2,
-	0xb7, 0x7f, 0xe6, 0x39, 0x4d, 0xee, 0x25, 0x48, 0xf2, 0x1f, 0xe2, 0x4d, 0x7b, 0x11, 0x8a, 0x66,
-	0x7e, 0xf0, 0x59, 0x31, 0xf1, 0xd0, 0x35, 0x8a, 0x0f, 0x60, 0x2b, 0x7f, 0xe9, 0x27, 0x0f, 0xe6,
-	0x6f, 0xf6, 0x89, 0x9e, 0xdf, 0xfc, 0xe2, 0x65, 0x68, 0xc6, 0xb2, 0x71, 0x6a, 0x49, 0x4e, 0x77,
-	0x39, 0xb2, 0x3f, 0x9f, 0x49, 0xba, 0x11, 0x5e, 0x57, 0x1c, 0x36, 0xb4, 0xc5, 0xe2, 0x92, 0x3d,
-	0xef, 0xca, 0xe2, 0x7e, 0x00, 0x37, 0x67, 0x9e, 0x00, 0x64, 0x37, 0x87, 0x38, 0xd5, 0x12, 0x9b,
-	0xf7, 0x16, 0x60, 0x98, 0xa0, 0xfd, 0x61, 0x05, 0x56, 0x75, 0xdb, 0x33, 0x11, 0x1b, 0xe3, 0x23,
-	0x26, 0x77, 0xe2, 0x93, 0x87, 0x8b, 0xa6, 0x7a, 0x32, 0x6a, 0xfb, 0x97, 0x23, 0x1a, 0xcb, 0x02,
-	0x74, 0x64, 0xfe, 0x1c, 0x25, 0xfb, 0x0b, 0x67, 0x65, 0x52, 0xe0, 0x97, 0xae, 0x80, 0x69, 0x24,
-	0x8a, 0x78, 0x8c, 0xe4, 0x8c, 0x53, 0xf2, 0xe5, 0x45, 0xaa, 0x67, 0xb2, 0xe5, 0xea, 0x66, 0xbe,
-	0xca, 0xce, 0x97, 0x8c, 0xd4, 0xaf, 0x2c, 0xd4, 0x3f, 0x23, 0x76, 0x09, 0x63, 0xf9, 0x3c, 0x63,
-	0x75, 0xa6, 0x5e, 0x62, 0x6c, 0x2a, 0x57, 0xaf, 0xb4, 0xd2, 0x2d, 0x30, 0x54, 0x4b, 0xbc, 0xcc,
-	0xd0, 0x94, 0xc8, 0x25, 0x0c, 0xa5, 0xb0, 0x99, 0x37, 0xc0, 0xc9, 0x5e, 0x3e, 0x8b, 0x74, 0x9d,
-	0xdc, 0x5f, 0x8c, 0xa4, 0x45, 0x3c, 0x39, 0xfc, 0xf3, 0xeb, 0x1d, 0xeb, 0xef, 0xaf, 0x77, 0xac,
-	0x7f, 0xbc, 0xde, 0xb1, 0x7e, 0xf8, 0xce, 0xc0, 0x93, 0xc3, 0x49, 0xef, 0x51, 0x9f, 0x8f, 0x5b,
-	0x0e, 0x17, 0x4c, 0x4a, 0xfa, 0x74, 0xc4, 0xcf, 0x5b, 0x47, 0xfa, 0x0f, 0xd3, 0xaf, 0x9e, 0xf0,
-	0xd6, 0xc8, 0xeb, 0xb5, 0x34, 0xe3, 0xde, 0x0a, 0xfe, 0x15, 0xfa, 0xb5, 0xff, 0x06, 0x00, 0x00,
-	0xff, 0xff, 0x6f, 0xab, 0xe6, 0xdc, 0x58, 0x1d, 0x00, 0x00,
+	// 3096 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x3b, 0xdb, 0x6f, 0x1c, 0x57,
+	0xf9, 0x9a, 0xbd, 0xd8, 0xbb, 0xdf, 0xc6, 0x76, 0x72, 0x92, 0xd8, 0xeb, 0xb5, 0xe3, 0x3a, 0x93,
+	0xe6, 0x57, 0xff, 0x7a, 0x89, 0x2b, 0x17, 0xaa, 0x36, 0xa5, 0x2d, 0x89, 0xdd, 0x98, 0x2d, 0x6d,
+	0xe3, 0xce, 0xa6, 0x52, 0xd3, 0x52, 0x56, 0xe3, 0x9d, 0x13, 0x7b, 0x9a, 0xdd, 0x99, 0xe9, 0xcc,
+	0x6c, 0x5c, 0xb7, 0x08, 0x1e, 0x11, 0x02, 0x81, 0x40, 0x42, 0xbc, 0x20, 0x8a, 0x90, 0x10, 0xef,
+	0x20, 0x78, 0x44, 0x42, 0x42, 0x80, 0x40, 0x48, 0xbc, 0xf0, 0x8e, 0xfa, 0xc0, 0x33, 0xff, 0x00,
+	0x12, 0x3a, 0xdf, 0x39, 0x33, 0x73, 0xce, 0x5c, 0xf6, 0x52, 0xa7, 0x4a, 0x05, 0x6f, 0x33, 0x67,
+	0xbe, 0xf3, 0x9d, 0xef, 0x76, 0xbe, 0xeb, 0x2e, 0x5c, 0xe8, 0xdb, 0xfb, 0x9b, 0xa6, 0x67, 0x6f,
+	0xf6, 0x4c, 0xdf, 0xb7, 0xa9, 0xdf, 0xf5, 0xbd, 0x5e, 0xd7, 0xf4, 0xec, 0x2b, 0x9e, 0xef, 0x86,
+	0x2e, 0x99, 0xf1, 0xbd, 0x9e, 0xe9, 0xd9, 0xad, 0x4b, 0x3e, 0xf5, 0xdc, 0x60, 0x13, 0x17, 0xf7,
+	0x87, 0x77, 0x36, 0x0f, 0xdc, 0x03, 0x17, 0x5f, 0xf0, 0x89, 0x03, 0xeb, 0x7f, 0x2e, 0xc3, 0xa9,
+	0xdb, 0xa6, 0xef, 0xbc, 0xe6, 0x5a, 0xb4, 0xed, 0xdc, 0x71, 0xc9, 0x0a, 0xd4, 0x1d, 0xd7, 0xa2,
+	0xdd, 0xf0, 0xd8, 0xa3, 0x4d, 0x6d, 0x5d, 0xdb, 0xa8, 0x1b, 0x35, 0xb6, 0x70, 0xeb, 0xd8, 0xa3,
+	0x64, 0x09, 0x66, 0xf1, 0xa3, 0x6d, 0x35, 0x4b, 0xf8, 0x69, 0x86, 0xbd, 0xb6, 0x2d, 0xf2, 0x10,
+	0x34, 0x6c, 0x27, 0xa4, 0xbe, 0x63, 0xf6, 0xbb, 0xb6, 0xd7, 0x2c, 0xe3, 0x47, 0x88, 0x96, 0xda,
+	0x1e, 0x03, 0xa0, 0xef, 0x27, 0x00, 0x15, 0x0e, 0x10, 0x2d, 0xb5, 0x3d, 0x72, 0x09, 0xe6, 0x62,
+	0x0c, 0x9e, 0xeb, 0x87, 0xcd, 0x2a, 0x82, 0x9c, 0x8a, 0x16, 0xf7, 0x5c, 0x3f, 0x64, 0x40, 0x31,
+	0x16, 0x04, 0x9a, 0xe1, 0x40, 0xd1, 0x62, 0x04, 0x64, 0x5b, 0xd4, 0x09, 0xed, 0xf0, 0x98, 0x73,
+	0x31, 0x2b, 0x30, 0x89, 0x45, 0xe4, 0x84, 0x11, 0x1c, 0x01, 0xd9, 0x56, 0xb3, 0x26, 0x08, 0x16,
+	0x4b, 0x6d, 0x8b, 0x3c, 0xcb, 0x38, 0xba, 0xe3, 0xfa, 0x03, 0x33, 0xb4, 0x5d, 0xa7, 0x59, 0x5f,
+	0xd7, 0x36, 0x1a, 0x5b, 0x4b, 0x57, 0xb8, 0x6c, 0xaf, 0x44, 0x22, 0xeb, 0x1c, 0x07, 0x4c, 0x6a,
+	0x86, 0x0c, 0x4b, 0x9e, 0x84, 0xaa, 0x47, 0xa9, 0x1f, 0x34, 0x61, 0xbd, 0xbc, 0xd1, 0xd8, 0x6a,
+	0xc9, 0x9b, 0x0c, 0x7a, 0x60, 0x07, 0x21, 0xf5, 0xa9, 0xb5, 0x47, 0xa9, 0x6f, 0x70, 0x40, 0xb2,
+	0x09, 0x10, 0x50, 0x6a, 0x75, 0xf9, 0xb6, 0x06, 0x6e, 0x3b, 0x1d, 0x6d, 0xeb, 0x50, 0x01, 0x5c,
+	0x0f, 0xc4, 0x53, 0x40, 0xce, 0x41, 0x35, 0x08, 0xcd, 0x90, 0x36, 0x4f, 0x21, 0xe1, 0xfc, 0x45,
+	0xff, 0xb7, 0x06, 0x0b, 0x29, 0xca, 0x08, 0x81, 0x8a, 0x63, 0x0e, 0x22, 0x55, 0xe2, 0x33, 0xd3,
+	0x71, 0xe8, 0x86, 0x66, 0xbf, 0x3b, 0xa0, 0x03, 0xa1, 0xc8, 0x1a, 0x2e, 0xbc, 0x4a, 0x07, 0x64,
+	0x19, 0x6a, 0xc3, 0x80, 0x5a, 0xf8, 0x8d, 0xeb, 0x71, 0x96, 0xbd, 0xb3, 0x4f, 0x8f, 0xc0, 0x02,
+	0xdf, 0xe7, 0xf9, 0x6e, 0x8f, 0x06, 0x81, 0xeb, 0x0b, 0x45, 0xce, 0xe3, 0xf2, 0x5e, 0xb4, 0x4a,
+	0x2e, 0xc3, 0x3c, 0xe2, 0x48, 0xe0, 0xb8, 0x36, 0xe7, 0xd8, 0x6a, 0x02, 0x16, 0xe3, 0xdb, 0x37,
+	0x1d, 0xeb, 0xc8, 0xb6, 0xc2, 0x43, 0xa1, 0x50, 0x8e, 0xef, 0x7a, 0xb4, 0x1a, 0xe3, 0x4b, 0xe0,
+	0x66, 0x13, 0x7c, 0x31, 0x98, 0x1e, 0x02, 0xc9, 0xca, 0x78, 0xb4, 0x45, 0x5f, 0x83, 0x06, 0x7e,
+	0xb4, 0x68, 0x68, 0xda, 0x7d, 0x14, 0x46, 0x63, 0x6b, 0xbd, 0x58, 0x63, 0x3b, 0x08, 0x67, 0x00,
+	0xdb, 0xc4, 0x9f, 0xf5, 0xbf, 0x6b, 0xd0, 0x2c, 0x02, 0x24, 0xf3, 0x50, 0xb2, 0x2d, 0x71, 0x6a,
+	0xc9, 0xce, 0x5c, 0x94, 0xd2, 0xb8, 0x8b, 0x52, 0x1e, 0x7f, 0x51, 0x2a, 0x93, 0x5c, 0x94, 0x6a,
+	0xce, 0x45, 0xb9, 0x00, 0xd0, 0x73, 0x1d, 0xa7, 0xcb, 0x2d, 0x89, 0x49, 0xbe, 0x6a, 0xd4, 0xd9,
+	0x4a, 0x07, 0xad, 0xe9, 0x1b, 0x50, 0x8b, 0x4c, 0x6f, 0x7a, 0x36, 0x32, 0x54, 0x96, 0x73, 0xa8,
+	0x54, 0x09, 0xa8, 0xa4, 0x09, 0xf8, 0x4b, 0x09, 0xce, 0xab, 0x82, 0x7d, 0xd9, 0xdd, 0x67, 0xb6,
+	0x2d, 0xc8, 0x29, 0x15, 0x91, 0xf3, 0x40, 0xdd, 0xcf, 0x17, 0x55, 0xc7, 0x31, 0x8b, 0x16, 0xb5,
+	0x16, 0x59, 0x94, 0x41, 0x03, 0x77, 0xe8, 0xf7, 0xe8, 0x1b, 0x01, 0xb5, 0xb8, 0x89, 0x74, 0x0e,
+	0xdd, 0x23, 0xd5, 0x7f, 0xb4, 0xa0, 0x66, 0x0d, 0x7d, 0xbe, 0x9d, 0x39, 0xa6, 0x8a, 0x11, 0xbf,
+	0x93, 0x67, 0xa0, 0x12, 0x9a, 0xc1, 0x5d, 0xe1, 0x8f, 0x1e, 0xce, 0x37, 0x54, 0x21, 0xa6, 0x5b,
+	0x66, 0x70, 0xb7, 0x6d, 0x05, 0x06, 0xee, 0xd0, 0x6f, 0xc2, 0xea, 0x28, 0x28, 0xe6, 0x52, 0x7a,
+	0xee, 0xd0, 0x09, 0x51, 0xcb, 0x73, 0x06, 0x7f, 0x61, 0xde, 0x80, 0xed, 0xee, 0xda, 0x56, 0xd0,
+	0x2c, 0xad, 0x97, 0x99, 0x37, 0x08, 0xf9, 0x06, 0xfd, 0xaf, 0x25, 0x58, 0x54, 0x31, 0xee, 0x98,
+	0xa1, 0xf9, 0x3f, 0xae, 0x9f, 0x67, 0xa1, 0x6a, 0xd1, 0x7e, 0x68, 0x0a, 0x05, 0x5d, 0xca, 0x57,
+	0x50, 0x24, 0xa8, 0x1d, 0x06, 0x6a, 0xf0, 0x1d, 0xba, 0x09, 0x2b, 0x23, 0xa0, 0xc8, 0x2a, 0xd4,
+	0xef, 0xd8, 0x7d, 0xba, 0x1d, 0xeb, 0xa8, 0x62, 0x24, 0x0b, 0xe4, 0x61, 0x98, 0x63, 0x2f, 0xb7,
+	0x98, 0xdf, 0xec, 0xd8, 0x1f, 0x50, 0x21, 0x7c, 0x75, 0x51, 0x3f, 0x82, 0xb3, 0xbb, 0x34, 0x8c,
+	0x62, 0xbd, 0x41, 0x03, 0xcf, 0x75, 0x02, 0x4a, 0x16, 0x61, 0x86, 0x5d, 0xc1, 0x61, 0x80, 0x78,
+	0xab, 0x86, 0x78, 0x23, 0xa7, 0xa1, 0x3c, 0x08, 0x0e, 0x04, 0x2a, 0xf6, 0x48, 0x9e, 0x56, 0x85,
+	0x57, 0x46, 0x26, 0xcf, 0xa5, 0xa3, 0x62, 0x26, 0x24, 0xea, 0xbf, 0xd3, 0xa0, 0xb5, 0x4b, 0x43,
+	0xd5, 0x45, 0x06, 0x9f, 0x80, 0x80, 0xab, 0x50, 0x7f, 0xd7, 0xdd, 0xef, 0x32, 0xf7, 0x1b, 0x34,
+	0xcb, 0x18, 0x28, 0x2f, 0x8c, 0xbc, 0x04, 0x46, 0xed, 0x5d, 0xfe, 0x10, 0x90, 0xe7, 0x01, 0x2c,
+	0x33, 0x34, 0xc5, 0xe6, 0x0a, 0x6e, 0x5e, 0x1b, 0xad, 0x20, 0xa3, 0x6e, 0x89, 0xa7, 0x40, 0x7f,
+	0x0b, 0x48, 0x87, 0x86, 0xcc, 0x25, 0xe2, 0x17, 0xfa, 0xde, 0x90, 0x06, 0x61, 0xda, 0xb4, 0xb5,
+	0xf1, 0x9e, 0xb0, 0x94, 0xb5, 0x5c, 0xdd, 0x81, 0xb3, 0x0a, 0xee, 0xa9, 0xe5, 0xf2, 0x04, 0xd4,
+	0xe3, 0x0c, 0x42, 0xa8, 0x25, 0x9b, 0x40, 0xd4, 0xa2, 0x04, 0x42, 0x1f, 0xc0, 0xf9, 0x37, 0x3c,
+	0xcb, 0x0c, 0x69, 0x9a, 0x9d, 0x4f, 0xc5, 0xd1, 0xeb, 0x21, 0x2c, 0xed, 0x26, 0xec, 0xbd, 0x62,
+	0x07, 0xe1, 0x27, 0x60, 0x51, 0x4d, 0x92, 0xca, 0x63, 0x93, 0x24, 0xfd, 0xa7, 0x1a, 0x6a, 0x2c,
+	0xd6, 0x65, 0xbe, 0xc6, 0x1e, 0xa4, 0x33, 0xd2, 0xbf, 0x8e, 0x7a, 0x4f, 0x28, 0x9c, 0x5a, 0x28,
+	0xcf, 0x43, 0x3d, 0xb6, 0x69, 0xa1, 0xf7, 0xf1, 0xd9, 0x4b, 0x2d, 0x32, 0x6a, 0xfd, 0x57, 0x5a,
+	0x64, 0x08, 0x69, 0x29, 0x8d, 0x31, 0x84, 0x07, 0x2a, 0xb5, 0x0f, 0xe1, 0x82, 0xe2, 0x4c, 0x4e,
+	0x60, 0x54, 0x4f, 0x42, 0x55, 0xf6, 0x25, 0x23, 0x73, 0x75, 0x04, 0xd4, 0x3f, 0xd2, 0xe0, 0x4c,
+	0x87, 0x86, 0x91, 0x7b, 0xf9, 0x0c, 0x1a, 0xd5, 0x87, 0x68, 0xf6, 0x31, 0x81, 0x53, 0xcb, 0xe4,
+	0x39, 0xa8, 0x45, 0x3e, 0x76, 0x62, 0x93, 0x9a, 0x15, 0x5e, 0x56, 0xff, 0xa5, 0x06, 0xe7, 0xb8,
+	0x45, 0xa5, 0x24, 0xf4, 0x59, 0x36, 0xa8, 0xdf, 0x96, 0x60, 0xe1, 0x55, 0x1a, 0x9a, 0xec, 0x12,
+	0x74, 0x86, 0x83, 0x81, 0xe9, 0x1f, 0x93, 0x75, 0x38, 0x35, 0xa0, 0xa1, 0xd9, 0xc5, 0xeb, 0x15,
+	0x53, 0x0e, 0x03, 0x01, 0xd6, 0xb6, 0x58, 0x61, 0xe1, 0xfa, 0xf6, 0x81, 0xed, 0x24, 0xf5, 0x70,
+	0x8d, 0x2f, 0xb4, 0x2d, 0x96, 0xdb, 0x86, 0xe6, 0x7e, 0x9f, 0x76, 0xb1, 0xfa, 0xe2, 0xdc, 0xd5,
+	0x71, 0xe5, 0x35, 0x56, 0x82, 0x11, 0xa8, 0x58, 0x34, 0xe8, 0x09, 0xae, 0xf0, 0x99, 0xe1, 0x63,
+	0xe1, 0xba, 0xeb, 0x99, 0xe1, 0xa1, 0xe0, 0xa5, 0xc6, 0x16, 0xf6, 0xcc, 0xf0, 0x90, 0x6d, 0xf0,
+	0xdd, 0xa3, 0x00, 0xc9, 0x9f, 0x33, 0xf0, 0x99, 0x34, 0x61, 0xb6, 0xe7, 0xf6, 0x87, 0x03, 0x27,
+	0xc0, 0x34, 0x66, 0xce, 0x88, 0x5e, 0x19, 0x74, 0xc0, 0xb2, 0x00, 0x5e, 0xd7, 0xe2, 0x73, 0x8c,
+	0x1e, 0xeb, 0xa0, 0x7a, 0x82, 0x1e, 0xeb, 0xa0, 0x47, 0x60, 0xe1, 0xd0, 0x0c, 0xba, 0x87, 0x66,
+	0x70, 0xcb, 0x0e, 0xfb, 0xd4, 0x70, 0x8f, 0x9a, 0xb0, 0xae, 0x6d, 0xd4, 0x8c, 0xf9, 0x43, 0x33,
+	0xf8, 0x52, 0xb2, 0x9a, 0x54, 0x9e, 0x0d, 0xb9, 0xf2, 0xfc, 0x8e, 0x06, 0xe7, 0x22, 0x01, 0x6e,
+	0x23, 0x0d, 0xa2, 0xfe, 0x59, 0x84, 0x99, 0x9e, 0xed, 0x58, 0xf4, 0x7d, 0x91, 0xb2, 0x88, 0x37,
+	0xcc, 0x36, 0x51, 0x32, 0x5c, 0x6e, 0xfc, 0x05, 0x57, 0x91, 0xbc, 0xb2, 0x58, 0x65, 0x2f, 0xb8,
+	0x8a, 0xdc, 0x54, 0x10, 0x05, 0x7f, 0x61, 0x59, 0x58, 0xaf, 0xe7, 0x0e, 0x06, 0xd4, 0x89, 0x14,
+	0x1f, 0xbf, 0xeb, 0xdf, 0xd3, 0x80, 0x44, 0xe4, 0x24, 0x59, 0x1c, 0xb9, 0x2a, 0x54, 0x1a, 0x70,
+	0x15, 0x23, 0x49, 0x52, 0x51, 0x9f, 0xb2, 0x00, 0xa3, 0xc1, 0x80, 0x23, 0x73, 0x78, 0x1e, 0x1a,
+	0x5c, 0xb8, 0x5d, 0xb6, 0x8a, 0xb9, 0x70, 0x63, 0x6b, 0x35, 0xbd, 0x55, 0xe6, 0xdd, 0x00, 0xbe,
+	0x81, 0x7d, 0x63, 0x14, 0xb1, 0x04, 0x28, 0x7d, 0x44, 0x74, 0x39, 0x9f, 0x86, 0xaa, 0x7b, 0xe4,
+	0x50, 0x5f, 0x90, 0x14, 0xdf, 0xb7, 0x9b, 0xfe, 0x81, 0xe9, 0xd8, 0x1f, 0x60, 0x12, 0xd5, 0x8e,
+	0x9a, 0x13, 0x2c, 0xbb, 0xe2, 0xe0, 0xe9, 0x2e, 0x45, 0x69, 0x0c, 0x43, 0x72, 0x4a, 0x66, 0xc2,
+	0x5a, 0x96, 0x20, 0xc5, 0x8b, 0xbe, 0x08, 0x75, 0x14, 0x57, 0xdf, 0x0e, 0x58, 0xc6, 0xc9, 0x18,
+	0xd6, 0x23, 0xd4, 0xc5, 0xbc, 0x18, 0x35, 0xb6, 0x89, 0x21, 0xd2, 0x9f, 0x81, 0xf5, 0x2c, 0xdc,
+	0xf5, 0x63, 0xac, 0xee, 0x22, 0xb7, 0x10, 0xdb, 0x93, 0x26, 0xdb, 0xd3, 0x76, 0xfe, 0xce, 0x9b,
+	0x8c, 0x69, 0xd9, 0xe5, 0x4a, 0x2d, 0x1c, 0x2d, 0xdd, 0xc2, 0xd1, 0xdf, 0x81, 0xa6, 0x84, 0x44,
+	0x28, 0x65, 0xc2, 0xcd, 0x99, 0xeb, 0x5f, 0x4a, 0x5f, 0x7f, 0xfd, 0xfb, 0x1a, 0x2c, 0xe7, 0xe0,
+	0x3f, 0xa1, 0x46, 0xbf, 0x90, 0xa7, 0xd1, 0x56, 0x5a, 0xa3, 0x05, 0xa5, 0x89, 0xfe, 0x5d, 0x0d,
+	0x16, 0xf7, 0x86, 0xfb, 0x7d, 0x3b, 0x38, 0x8c, 0x40, 0x23, 0x8e, 0x1f, 0x0c, 0x41, 0x14, 0x96,
+	0x32, 0xf4, 0x4c, 0x1d, 0x90, 0xd2, 0xba, 0x28, 0x67, 0x74, 0xf1, 0x1e, 0x9c, 0x37, 0xe8, 0x3d,
+	0xf7, 0x2e, 0xbd, 0x5f, 0x5c, 0x8f, 0x57, 0xff, 0x2f, 0x34, 0x20, 0x7b, 0xee, 0x11, 0xf5, 0x3b,
+	0xb6, 0x73, 0xd0, 0xa7, 0x91, 0x9f, 0x58, 0x83, 0x46, 0x14, 0x3c, 0x13, 0xc3, 0xaa, 0x8b, 0xe8,
+	0xd8, 0xb6, 0x58, 0x41, 0xed, 0xb1, 0x5d, 0x09, 0xd2, 0x59, 0x7c, 0x6f, 0x5b, 0xe9, 0xca, 0xb4,
+	0x3c, 0x7d, 0x65, 0x1a, 0x5f, 0xa6, 0x8a, 0x7c, 0x99, 0x7e, 0xa8, 0xc1, 0x19, 0xa4, 0x94, 0x17,
+	0x82, 0x82, 0xd0, 0xd4, 0x69, 0xda, 0xf4, 0xa7, 0x6d, 0xc0, 0x69, 0xde, 0xbe, 0xc3, 0x0e, 0x01,
+	0x6f, 0x1e, 0x94, 0x30, 0x0e, 0xf1, 0xfe, 0xdd, 0x2d, 0x33, 0xb8, 0xcb, 0xab, 0xd3, 0x98, 0xae,
+	0xb2, 0x4c, 0xd7, 0x0f, 0x34, 0x58, 0xe0, 0x74, 0x99, 0xc1, 0x5d, 0x11, 0x2f, 0xf2, 0x70, 0x6a,
+	0xb9, 0x38, 0x1f, 0x07, 0xd2, 0x1b, 0xfa, 0x3e, 0x75, 0xc2, 0xec, 0xf9, 0xa7, 0xc5, 0x97, 0x04,
+	0xfa, 0x11, 0xa8, 0x32, 0xa8, 0x28, 0xcf, 0x3b, 0x13, 0xf1, 0x19, 0x9f, 0x6f, 0xf0, 0xef, 0xfa,
+	0x3f, 0x4b, 0x50, 0x8f, 0x17, 0xc9, 0x12, 0xcc, 0x8a, 0xf6, 0x87, 0xd0, 0xe4, 0x0c, 0xef, 0x7e,
+	0x24, 0x76, 0x55, 0x9a, 0xce, 0xae, 0xae, 0xc2, 0xac, 0x67, 0x86, 0x4e, 0x52, 0xc1, 0x8c, 0xdf,
+	0x19, 0x6d, 0x20, 0x2f, 0x40, 0xdd, 0xa7, 0x3d, 0x6a, 0xdf, 0x63, 0xbb, 0x2b, 0x13, 0xee, 0x4e,
+	0xb6, 0x90, 0x1d, 0x98, 0x77, 0x3d, 0xca, 0x1b, 0x15, 0xdd, 0x9e, 0x1b, 0xf0, 0xb8, 0x29, 0x15,
+	0xd0, 0x8c, 0xe5, 0x9b, 0x11, 0xc4, 0xb6, 0x1b, 0x84, 0xa8, 0xf3, 0x39, 0x57, 0x5e, 0x22, 0x37,
+	0x60, 0x21, 0xc1, 0x12, 0x78, 0xd4, 0xb1, 0x30, 0x27, 0x19, 0x8b, 0x26, 0x39, 0xbb, 0xc3, 0x36,
+	0xe9, 0xdf, 0xd4, 0x60, 0x75, 0x97, 0x86, 0x19, 0xc3, 0x3c, 0xb1, 0x07, 0xdd, 0x84, 0x2a, 0xde,
+	0x28, 0xa1, 0x9a, 0x65, 0x55, 0xd5, 0xf2, 0x49, 0x1c, 0x4e, 0x3f, 0xc0, 0x60, 0x93, 0xf9, 0xac,
+	0xc4, 0xc2, 0x6d, 0x00, 0x7e, 0x6d, 0xa5, 0x60, 0xf8, 0xb0, 0x14, 0x0c, 0x0b, 0xd9, 0x30, 0xea,
+	0xb8, 0x0f, 0xe3, 0xe1, 0xb7, 0x34, 0x2c, 0x5c, 0xb2, 0x5e, 0xe3, 0xc4, 0x3c, 0x3f, 0xa9, 0xf2,
+	0xdc, 0x52, 0x78, 0x56, 0x8f, 0x12, 0x4c, 0xdb, 0x70, 0x31, 0x97, 0x14, 0x85, 0xeb, 0x9d, 0x1c,
+	0xae, 0x2f, 0xa7, 0xb9, 0xce, 0xe5, 0x44, 0x66, 0xfb, 0x2a, 0xe8, 0x79, 0x12, 0x9a, 0x28, 0x11,
+	0x78, 0x0e, 0x2e, 0xe5, 0x9e, 0x33, 0xd1, 0xe6, 0x97, 0x8a, 0x0e, 0x9e, 0x2e, 0x8f, 0xb8, 0x51,
+	0x48, 0xc3, 0x74, 0x78, 0x6e, 0xc3, 0x8a, 0x8a, 0x67, 0xca, 0x94, 0xa4, 0x38, 0x74, 0xb0, 0x5c,
+	0x64, 0x35, 0x1f, 0xf7, 0xa7, 0x9a, 0x60, 0xa6, 0xbc, 0xb7, 0x1a, 0xfa, 0x7f, 0xa6, 0xc1, 0x59,
+	0x11, 0xfb, 0x11, 0xee, 0xa4, 0x21, 0x39, 0x15, 0x59, 0x4b, 0xe9, 0xc8, 0xfa, 0x54, 0x5e, 0xf8,
+	0x4c, 0x1c, 0xfd, 0xd0, 0xa7, 0x9c, 0x0c, 0x85, 0xc8, 0xb7, 0xe1, 0x9c, 0x4a, 0xe3, 0xd4, 0xc9,
+	0x89, 0xac, 0x95, 0xb2, 0xaa, 0x95, 0x03, 0x20, 0x3c, 0x2b, 0xb9, 0x2f, 0xfc, 0x8f, 0x50, 0xff,
+	0x2d, 0x68, 0x5e, 0xf3, 0xbc, 0xfe, 0x71, 0xb4, 0xed, 0x65, 0xd7, 0x76, 0xa2, 0xe3, 0x9e, 0x81,
+	0x99, 0x01, 0x1d, 0xec, 0x4f, 0x71, 0x9e, 0x80, 0xd7, 0xdf, 0x80, 0x65, 0x4e, 0xfe, 0xfd, 0x45,
+	0xfb, 0xc7, 0x12, 0x2c, 0x30, 0x9b, 0x11, 0xb7, 0x08, 0x2b, 0xb3, 0xc2, 0x38, 0xbb, 0x02, 0x75,
+	0xfc, 0x20, 0xd5, 0x8a, 0x38, 0x90, 0xc0, 0x22, 0x3a, 0x96, 0x64, 0x79, 0xda, 0x94, 0xb6, 0xe6,
+	0x99, 0x3e, 0x8f, 0xc2, 0x93, 0xc6, 0xd1, 0x78, 0x87, 0x1a, 0x86, 0xab, 0xd3, 0x87, 0xe1, 0x15,
+	0xa8, 0xf7, 0x7c, 0x6a, 0x86, 0xb4, 0x6b, 0x46, 0xdd, 0x88, 0x1a, 0x5f, 0xb8, 0x16, 0x92, 0xf3,
+	0x30, 0x43, 0x1d, 0x8b, 0x7d, 0xe1, 0x13, 0xce, 0x2a, 0x75, 0xac, 0x6b, 0x92, 0x7f, 0xab, 0xc9,
+	0xfe, 0xed, 0x23, 0x0d, 0x96, 0xf0, 0xf6, 0x61, 0x8d, 0xe4, 0x79, 0x7d, 0x9b, 0xfa, 0x3b, 0xb4,
+	0xd7, 0x37, 0x7d, 0x1c, 0x6c, 0x72, 0x79, 0x77, 0x99, 0xb9, 0x4f, 0xac, 0x24, 0xe0, 0x9b, 0x70,
+	0x74, 0x7c, 0x0d, 0xe6, 0xa5, 0x1c, 0x98, 0x61, 0xe1, 0xd7, 0x7f, 0x45, 0x0e, 0xf4, 0x49, 0x01,
+	0x80, 0xe7, 0x1a, 0xa7, 0xe2, 0x14, 0xd9, 0xb9, 0xe3, 0xea, 0x3d, 0x38, 0x9b, 0x03, 0x34, 0x41,
+	0x6f, 0xe5, 0x51, 0x38, 0x23, 0xca, 0x6d, 0xec, 0x17, 0xf0, 0x00, 0xc4, 0x8a, 0xee, 0x8a, 0xb1,
+	0xc0, 0x3f, 0xb4, 0xd9, 0x3a, 0xc6, 0x97, 0x9f, 0x68, 0xb0, 0x8c, 0x29, 0x1c, 0x0d, 0x86, 0xfd,
+	0xd0, 0x10, 0x82, 0xbe, 0x8f, 0x82, 0x78, 0x01, 0xea, 0x9e, 0xef, 0xde, 0xb3, 0x2d, 0xa6, 0xf1,
+	0xd2, 0xa4, 0x1a, 0x8f, 0xb7, 0xe8, 0x3f, 0xd6, 0xe0, 0x7c, 0x6e, 0x52, 0xc4, 0xee, 0x34, 0x4b,
+	0xc4, 0x70, 0xd8, 0xce, 0x85, 0x30, 0xcb, 0xde, 0x5f, 0xa5, 0x03, 0x72, 0x19, 0xe6, 0xf1, 0x53,
+	0x32, 0x43, 0x17, 0x23, 0x1d, 0xb6, 0xaa, 0x8c, 0xda, 0x11, 0x2c, 0x19, 0x8d, 0x97, 0x13, 0xb0,
+	0x64, 0x82, 0x2e, 0xcf, 0xac, 0x78, 0x71, 0x10, 0xbf, 0x33, 0x33, 0x6a, 0x66, 0xc8, 0x8b, 0xc4,
+	0x97, 0xa6, 0xb0, 0x32, 0x8e, 0xc2, 0xca, 0x64, 0x14, 0x56, 0xc6, 0x51, 0x28, 0x4d, 0xd5, 0xf4,
+	0xaf, 0x61, 0xf3, 0x44, 0x72, 0x1a, 0x9f, 0xb0, 0xdb, 0xfb, 0x39, 0xe1, 0x4d, 0xd0, 0x9a, 0x78,
+	0xfe, 0xbd, 0x24, 0x1b, 0xb3, 0xe4, 0x92, 0xb8, 0x9b, 0x41, 0xfb, 0xda, 0xc7, 0xac, 0x8d, 0x7d,
+	0x67, 0x0e, 0x50, 0xa1, 0x80, 0xfb, 0xc2, 0x93, 0x9b, 0x98, 0xfe, 0x4e, 0xcc, 0xa1, 0x74, 0x46,
+	0xcc, 0x21, 0x36, 0xff, 0xfa, 0xf1, 0x8f, 0x38, 0xd8, 0x33, 0x79, 0x4c, 0x4c, 0x82, 0x53, 0x21,
+	0x39, 0xcd, 0x06, 0x1f, 0xfe, 0x7e, 0x5b, 0xc3, 0x6e, 0x4f, 0x2e, 0x0f, 0x53, 0x4b, 0xf1, 0xc5,
+	0xac, 0x14, 0xe5, 0xbe, 0x50, 0x01, 0x13, 0x92, 0x40, 0x7f, 0x53, 0x82, 0x65, 0x11, 0x75, 0x79,
+	0xf2, 0xc0, 0x5d, 0x87, 0x90, 0xa6, 0xe2, 0xf2, 0xb5, 0x94, 0xcb, 0xff, 0xbc, 0x5a, 0x77, 0x3d,
+	0x24, 0xb3, 0x9d, 0xe3, 0x06, 0x23, 0x8f, 0xff, 0x9c, 0xe4, 0xf1, 0x39, 0xc5, 0x63, 0x77, 0x26,
+	0x0e, 0xff, 0xc5, 0x6c, 0xdd, 0x75, 0x51, 0xde, 0x9d, 0xeb, 0x77, 0x64, 0x8f, 0xbf, 0x5b, 0x50,
+	0x78, 0xad, 0x17, 0x56, 0x4c, 0x11, 0x12, 0xb5, 0xf6, 0xd2, 0xbb, 0xd0, 0xca, 0x93, 0xdb, 0xd4,
+	0x1a, 0x94, 0xc2, 0x6d, 0x59, 0x0e, 0xb7, 0xfa, 0xbf, 0x34, 0x58, 0xcc, 0x2f, 0xfd, 0xff, 0x6b,
+	0x7f, 0x34, 0x74, 0x1b, 0xea, 0x71, 0x6e, 0x88, 0xa2, 0x8a, 0x5d, 0x31, 0x7b, 0x24, 0xab, 0xe8,
+	0xfb, 0x15, 0x0f, 0x9c, 0x2c, 0xb0, 0xaf, 0x69, 0xc7, 0x9b, 0x2c, 0xe8, 0x87, 0xd0, 0x2c, 0xba,
+	0xfc, 0xb9, 0xbf, 0xcb, 0x1a, 0xf9, 0xf3, 0x3a, 0xa9, 0x34, 0x28, 0x67, 0x4a, 0x8b, 0x27, 0x60,
+	0x65, 0x87, 0xf6, 0x29, 0x2b, 0x88, 0xe4, 0xa1, 0x58, 0xc1, 0xec, 0x45, 0x3f, 0x0d, 0xf3, 0x2f,
+	0x0d, 0xbc, 0xf0, 0x98, 0x95, 0x0c, 0xa6, 0x6f, 0x0e, 0x02, 0xfd, 0x05, 0x20, 0x1d, 0x7b, 0xe0,
+	0xf5, 0x63, 0x6b, 0xda, 0x76, 0xad, 0x29, 0x2c, 0x6a, 0xeb, 0x0f, 0x35, 0x68, 0xdc, 0x36, 0x7d,
+	0xa7, 0x43, 0xfd, 0x7b, 0x76, 0x8f, 0x92, 0xeb, 0xd0, 0x90, 0x7e, 0x69, 0x40, 0x16, 0x23, 0x4b,
+	0x57, 0x8f, 0x6d, 0xad, 0x48, 0x7e, 0x23, 0xf3, 0xb3, 0x84, 0x3d, 0x20, 0xd9, 0xdf, 0x0c, 0x14,
+	0xa2, 0x92, 0x5d, 0x50, 0xd1, 0xef, 0x0c, 0x6e, 0x40, 0x43, 0x1a, 0xb3, 0x93, 0x56, 0x32, 0x3d,
+	0x4e, 0xcf, 0xf5, 0x13, 0xca, 0xf2, 0xe6, 0xf2, 0xaf, 0xc0, 0xbc, 0x3a, 0x3e, 0x27, 0x71, 0xf3,
+	0x23, 0x77, 0xac, 0x3e, 0x1a, 0xdb, 0xeb, 0x30, 0xcf, 0x95, 0x17, 0x63, 0x8b, 0x7f, 0x36, 0x32,
+	0x42, 0xa9, 0xad, 0x84, 0xfa, 0xac, 0xe2, 0x5e, 0x86, 0x85, 0xd4, 0xc0, 0xbd, 0x50, 0x6e, 0x0f,
+	0x49, 0x72, 0xcb, 0x9d, 0xd0, 0x73, 0xa1, 0xc5, 0xbf, 0xed, 0x91, 0x85, 0x96, 0x1a, 0x1a, 0x2b,
+	0x6c, 0x66, 0x86, 0xda, 0xb1, 0xd0, 0x62, 0x54, 0x29, 0xa1, 0x4d, 0x85, 0x2d, 0x16, 0x5a, 0x8c,
+	0xed, 0xc4, 0x42, 0xdb, 0x43, 0xa1, 0x45, 0xf8, 0x46, 0x0a, 0xed, 0x72, 0xae, 0xb1, 0x65, 0x44,
+	0xb7, 0x0d, 0x90, 0x4c, 0x62, 0xc9, 0xb2, 0xc4, 0x8f, 0x3a, 0x1c, 0x6d, 0xb5, 0xf2, 0x3e, 0x09,
+	0x24, 0x6d, 0x98, 0x53, 0x06, 0xaa, 0x64, 0x55, 0x15, 0xdb, 0x14, 0xa8, 0xf6, 0x60, 0x8e, 0x0b,
+	0x27, 0x42, 0x75, 0x62, 0x99, 0xdd, 0x84, 0xf9, 0xdd, 0xf8, 0x9c, 0xfb, 0x20, 0xb2, 0xad, 0xdf,
+	0x57, 0xa4, 0x51, 0xac, 0x70, 0x26, 0x6f, 0xc2, 0x62, 0xfe, 0xa8, 0xaa, 0xf0, 0xb0, 0xff, 0x2b,
+	0x9e, 0x53, 0x29, 0x0a, 0x1a, 0x28, 0x23, 0x1c, 0xb5, 0xb7, 0x44, 0x36, 0x8a, 0x91, 0xa8, 0xed,
+	0xa7, 0x93, 0x1e, 0x87, 0x6d, 0xa4, 0xd1, 0xc7, 0xc9, 0x9d, 0xa6, 0x89, 0x8f, 0x7b, 0x13, 0xce,
+	0x64, 0x06, 0x54, 0x64, 0x3d, 0x67, 0xb3, 0xd2, 0x88, 0x6a, 0x5d, 0x1c, 0x01, 0x21, 0x30, 0x1b,
+	0xb0, 0x90, 0x1a, 0xeb, 0x90, 0xb5, 0xa4, 0xd3, 0x92, 0x37, 0x7f, 0x4a, 0xfc, 0x4c, 0xd1, 0x3c,
+	0xe8, 0xcb, 0x30, 0xaf, 0xce, 0x70, 0x12, 0xff, 0x90, 0x3b, 0xdb, 0x19, 0x65, 0x97, 0x5b, 0x3f,
+	0x9a, 0x85, 0x53, 0xbc, 0x1b, 0x26, 0x6c, 0xe8, 0x2b, 0x38, 0x0c, 0xcc, 0x6d, 0xf2, 0x16, 0x5a,
+	0xd1, 0xc6, 0xa8, 0x06, 0xaf, 0x22, 0xe9, 0xaf, 0xa2, 0x62, 0xf3, 0xbb, 0xa9, 0x85, 0xe8, 0xff,
+	0x7f, 0x64, 0x27, 0x55, 0xc1, 0x1f, 0x24, 0xad, 0xc3, 0x9c, 0x16, 0x2a, 0x79, 0x74, 0x14, 0xa1,
+	0x29, 0x5b, 0x9d, 0x9c, 0xa9, 0x7b, 0xe9, 0x9e, 0x62, 0xea, 0xd4, 0xc7, 0x46, 0xd2, 0x9f, 0x3a,
+	0x76, 0x0a, 0x66, 0xdd, 0x22, 0x66, 0xf9, 0x3d, 0x19, 0xc3, 0xac, 0x72, 0x53, 0x26, 0x6a, 0xd1,
+	0x8f, 0x60, 0x94, 0x9f, 0x38, 0x8e, 0x51, 0xe5, 0xc8, 0x29, 0x18, 0x35, 0xe1, 0x5c, 0x5e, 0xd3,
+	0x36, 0xf1, 0xca, 0x23, 0xda, 0xc5, 0x59, 0xd6, 0x72, 0xfb, 0xbe, 0x6d, 0x38, 0x25, 0xf7, 0x37,
+	0xc9, 0x4a, 0xea, 0x16, 0xca, 0x9d, 0xc9, 0xd6, 0x6a, 0xfe, 0x47, 0x81, 0xea, 0x25, 0x68, 0x48,
+	0xdd, 0xcc, 0x24, 0x0f, 0xc8, 0xb6, 0x38, 0x47, 0xde, 0xcc, 0x5f, 0x6b, 0xd0, 0xb8, 0x36, 0x0c,
+	0x0f, 0xa3, 0x8b, 0xf9, 0x3a, 0x9c, 0xc9, 0xf4, 0x2e, 0x13, 0x27, 0x55, 0xd4, 0xd6, 0x1c, 0x19,
+	0x94, 0x3a, 0x51, 0xdf, 0x55, 0xc1, 0x79, 0x51, 0x25, 0x78, 0x4a, 0xa4, 0x5b, 0x3f, 0x2f, 0x41,
+	0x03, 0x8b, 0x6b, 0x41, 0x37, 0xcf, 0x4e, 0x53, 0x3d, 0x89, 0x89, 0xb2, 0xd3, 0xa2, 0x3e, 0xc6,
+	0x01, 0x86, 0xb9, 0x9c, 0x1a, 0x9d, 0x5c, 0x2e, 0x2e, 0xaf, 0xa5, 0x3e, 0x84, 0x12, 0x17, 0x46,
+	0x95, 0xfa, 0x6f, 0x03, 0xc9, 0x96, 0x91, 0x89, 0x7c, 0x0a, 0x4b, 0xf3, 0x84, 0x8b, 0xe2, 0x2a,
+	0xf4, 0xfa, 0xd5, 0x3f, 0x7d, 0xbc, 0xa6, 0xfd, 0xed, 0xe3, 0x35, 0xed, 0x1f, 0x1f, 0xaf, 0x69,
+	0x6f, 0x3d, 0x7e, 0x60, 0x87, 0x87, 0xc3, 0xfd, 0x2b, 0x3d, 0x77, 0xb0, 0x69, 0xb8, 0x01, 0x0d,
+	0x43, 0xf3, 0x46, 0xdf, 0x3d, 0xda, 0xdc, 0xe6, 0x7f, 0x5d, 0x7a, 0x62, 0xd7, 0xdd, 0xec, 0xdb,
+	0xfb, 0x9b, 0x1c, 0xed, 0xfe, 0x0c, 0xfe, 0x29, 0xe9, 0xa9, 0xff, 0x04, 0x00, 0x00, 0xff, 0xff,
+	0x70, 0x5c, 0xd1, 0x2f, 0xe2, 0x34, 0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// YarnServiceClient is the client API for YarnService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type YarnServiceClient interface {
+	// Getter YarnNode ...
+	// 查看自身调度服务信息
+	GetNodeInfo(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
+	// 查看自身调度服务的 peer注册信息
+	GetRegisteredPeers(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredPeersResponse, error)
+	// about seed
+	SetSeedNode(ctx context.Context, in *SetSeedNodeRequest, opts ...grpc.CallOption) (*SetSeedNodeResponse, error)
+	UpdateSeedNode(ctx context.Context, in *UpdateSeedNodeRequest, opts ...grpc.CallOption) (*SetSeedNodeResponse, error)
+	DeleteSeedNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	GetSeedNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error)
+	// about dataNode
+	SetDataNode(ctx context.Context, in *SetDataNodeRequest, opts ...grpc.CallOption) (*SetDataNodeResponse, error)
+	UpdateDataNode(ctx context.Context, in *UpdateDataNodeRequest, opts ...grpc.CallOption) (*SetDataNodeResponse, error)
+	DeleteDataNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	GetDataNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
+	// about jobNode
+	SetJobNode(ctx context.Context, in *SetJobNodeRequest, opts ...grpc.CallOption) (*SetJobNodeResponse, error)
+	UpdateJobNode(ctx context.Context, in *UpdateJobNodeRequest, opts ...grpc.CallOption) (*SetJobNodeResponse, error)
+	DeleteJobNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	GetJobNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
+}
+
+type yarnServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewYarnServiceClient(cc *grpc.ClientConn) YarnServiceClient {
+	return &yarnServiceClient{cc}
+}
+
+func (c *yarnServiceClient) GetNodeInfo(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetNodeInfoResponse, error) {
+	out := new(GetNodeInfoResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetNodeInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) GetRegisteredPeers(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredPeersResponse, error) {
+	out := new(GetRegisteredPeersResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetRegisteredPeers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) SetSeedNode(ctx context.Context, in *SetSeedNodeRequest, opts ...grpc.CallOption) (*SetSeedNodeResponse, error) {
+	out := new(SetSeedNodeResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/SetSeedNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) UpdateSeedNode(ctx context.Context, in *UpdateSeedNodeRequest, opts ...grpc.CallOption) (*SetSeedNodeResponse, error) {
+	out := new(SetSeedNodeResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/UpdateSeedNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) DeleteSeedNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
+	out := new(SimpleResponseCode)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/DeleteSeedNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) GetSeedNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error) {
+	out := new(GetSeedNodeListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetSeedNodeList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) SetDataNode(ctx context.Context, in *SetDataNodeRequest, opts ...grpc.CallOption) (*SetDataNodeResponse, error) {
+	out := new(SetDataNodeResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/SetDataNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) UpdateDataNode(ctx context.Context, in *UpdateDataNodeRequest, opts ...grpc.CallOption) (*SetDataNodeResponse, error) {
+	out := new(SetDataNodeResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/UpdateDataNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) DeleteDataNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
+	out := new(SimpleResponseCode)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/DeleteDataNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) GetDataNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
+	out := new(GetRegisteredNodeListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetDataNodeList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) SetJobNode(ctx context.Context, in *SetJobNodeRequest, opts ...grpc.CallOption) (*SetJobNodeResponse, error) {
+	out := new(SetJobNodeResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/SetJobNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) UpdateJobNode(ctx context.Context, in *UpdateJobNodeRequest, opts ...grpc.CallOption) (*SetJobNodeResponse, error) {
+	out := new(SetJobNodeResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/UpdateJobNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) DeleteJobNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
+	out := new(SimpleResponseCode)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/DeleteJobNode", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *yarnServiceClient) GetJobNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
+	out := new(GetRegisteredNodeListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetJobNodeList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// YarnServiceServer is the server API for YarnService service.
+type YarnServiceServer interface {
+	// Getter YarnNode ...
+	// 查看自身调度服务信息
+	GetNodeInfo(context.Context, *EmptyGetParams) (*GetNodeInfoResponse, error)
+	// 查看自身调度服务的 peer注册信息
+	GetRegisteredPeers(context.Context, *EmptyGetParams) (*GetRegisteredPeersResponse, error)
+	// about seed
+	SetSeedNode(context.Context, *SetSeedNodeRequest) (*SetSeedNodeResponse, error)
+	UpdateSeedNode(context.Context, *UpdateSeedNodeRequest) (*SetSeedNodeResponse, error)
+	DeleteSeedNode(context.Context, *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error)
+	GetSeedNodeList(context.Context, *EmptyGetParams) (*GetSeedNodeListResponse, error)
+	// about dataNode
+	SetDataNode(context.Context, *SetDataNodeRequest) (*SetDataNodeResponse, error)
+	UpdateDataNode(context.Context, *UpdateDataNodeRequest) (*SetDataNodeResponse, error)
+	DeleteDataNode(context.Context, *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error)
+	GetDataNodeList(context.Context, *EmptyGetParams) (*GetRegisteredNodeListResponse, error)
+	// about jobNode
+	SetJobNode(context.Context, *SetJobNodeRequest) (*SetJobNodeResponse, error)
+	UpdateJobNode(context.Context, *UpdateJobNodeRequest) (*SetJobNodeResponse, error)
+	DeleteJobNode(context.Context, *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error)
+	GetJobNodeList(context.Context, *EmptyGetParams) (*GetRegisteredNodeListResponse, error)
+}
+
+// UnimplementedYarnServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedYarnServiceServer struct {
+}
+
+func (*UnimplementedYarnServiceServer) GetNodeInfo(ctx context.Context, req *EmptyGetParams) (*GetNodeInfoResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetNodeInfo not implemented")
+}
+func (*UnimplementedYarnServiceServer) GetRegisteredPeers(ctx context.Context, req *EmptyGetParams) (*GetRegisteredPeersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRegisteredPeers not implemented")
+}
+func (*UnimplementedYarnServiceServer) SetSeedNode(ctx context.Context, req *SetSeedNodeRequest) (*SetSeedNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSeedNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) UpdateSeedNode(ctx context.Context, req *UpdateSeedNodeRequest) (*SetSeedNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeedNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) DeleteSeedNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteSeedNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) GetSeedNodeList(ctx context.Context, req *EmptyGetParams) (*GetSeedNodeListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSeedNodeList not implemented")
+}
+func (*UnimplementedYarnServiceServer) SetDataNode(ctx context.Context, req *SetDataNodeRequest) (*SetDataNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetDataNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) UpdateDataNode(ctx context.Context, req *UpdateDataNodeRequest) (*SetDataNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateDataNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) DeleteDataNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteDataNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) GetDataNodeList(ctx context.Context, req *EmptyGetParams) (*GetRegisteredNodeListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDataNodeList not implemented")
+}
+func (*UnimplementedYarnServiceServer) SetJobNode(ctx context.Context, req *SetJobNodeRequest) (*SetJobNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetJobNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) UpdateJobNode(ctx context.Context, req *UpdateJobNodeRequest) (*SetJobNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateJobNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) DeleteJobNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteJobNode not implemented")
+}
+func (*UnimplementedYarnServiceServer) GetJobNodeList(ctx context.Context, req *EmptyGetParams) (*GetRegisteredNodeListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetJobNodeList not implemented")
+}
+
+func RegisterYarnServiceServer(s *grpc.Server, srv YarnServiceServer) {
+	s.RegisterService(&_YarnService_serviceDesc, srv)
+}
+
+func _YarnService_GetNodeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).GetNodeInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/GetNodeInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).GetNodeInfo(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_GetRegisteredPeers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).GetRegisteredPeers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/GetRegisteredPeers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).GetRegisteredPeers(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_SetSeedNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetSeedNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).SetSeedNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/SetSeedNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).SetSeedNode(ctx, req.(*SetSeedNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_UpdateSeedNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateSeedNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).UpdateSeedNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/UpdateSeedNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).UpdateSeedNode(ctx, req.(*UpdateSeedNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_DeleteSeedNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRegisteredNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).DeleteSeedNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/DeleteSeedNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).DeleteSeedNode(ctx, req.(*DeleteRegisteredNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_GetSeedNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).GetSeedNodeList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/GetSeedNodeList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).GetSeedNodeList(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_SetDataNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetDataNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).SetDataNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/SetDataNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).SetDataNode(ctx, req.(*SetDataNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_UpdateDataNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateDataNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).UpdateDataNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/UpdateDataNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).UpdateDataNode(ctx, req.(*UpdateDataNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_DeleteDataNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRegisteredNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).DeleteDataNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/DeleteDataNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).DeleteDataNode(ctx, req.(*DeleteRegisteredNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_GetDataNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).GetDataNodeList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/GetDataNodeList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).GetDataNodeList(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_SetJobNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetJobNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).SetJobNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/SetJobNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).SetJobNode(ctx, req.(*SetJobNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_UpdateJobNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateJobNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).UpdateJobNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/UpdateJobNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).UpdateJobNode(ctx, req.(*UpdateJobNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_DeleteJobNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRegisteredNodeRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).DeleteJobNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/DeleteJobNode",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).DeleteJobNode(ctx, req.(*DeleteRegisteredNodeRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _YarnService_GetJobNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(YarnServiceServer).GetJobNodeList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.YarnService/GetJobNodeList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(YarnServiceServer).GetJobNodeList(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _YarnService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpcapi.YarnService",
+	HandlerType: (*YarnServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetNodeInfo",
+			Handler:    _YarnService_GetNodeInfo_Handler,
+		},
+		{
+			MethodName: "GetRegisteredPeers",
+			Handler:    _YarnService_GetRegisteredPeers_Handler,
+		},
+		{
+			MethodName: "SetSeedNode",
+			Handler:    _YarnService_SetSeedNode_Handler,
+		},
+		{
+			MethodName: "UpdateSeedNode",
+			Handler:    _YarnService_UpdateSeedNode_Handler,
+		},
+		{
+			MethodName: "DeleteSeedNode",
+			Handler:    _YarnService_DeleteSeedNode_Handler,
+		},
+		{
+			MethodName: "GetSeedNodeList",
+			Handler:    _YarnService_GetSeedNodeList_Handler,
+		},
+		{
+			MethodName: "SetDataNode",
+			Handler:    _YarnService_SetDataNode_Handler,
+		},
+		{
+			MethodName: "UpdateDataNode",
+			Handler:    _YarnService_UpdateDataNode_Handler,
+		},
+		{
+			MethodName: "DeleteDataNode",
+			Handler:    _YarnService_DeleteDataNode_Handler,
+		},
+		{
+			MethodName: "GetDataNodeList",
+			Handler:    _YarnService_GetDataNodeList_Handler,
+		},
+		{
+			MethodName: "SetJobNode",
+			Handler:    _YarnService_SetJobNode_Handler,
+		},
+		{
+			MethodName: "UpdateJobNode",
+			Handler:    _YarnService_UpdateJobNode_Handler,
+		},
+		{
+			MethodName: "DeleteJobNode",
+			Handler:    _YarnService_DeleteJobNode_Handler,
+		},
+		{
+			MethodName: "GetJobNodeList",
+			Handler:    _YarnService_GetJobNodeList_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lib/api/carrier_rpc_api.proto",
+}
+
+// MetaDataServiceClient is the client API for MetaDataService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type MetaDataServiceClient interface {
+	// 查看全部元数据摘要列表 (不包含 列字段描述)
+	GetMetaDataSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetMetaDataSummaryListResponse, error)
+	// 查看指定状态的元数据摘要列表 (不包含 列字段描述)
+	GetMetaDataSummaryByState(ctx context.Context, in *GetMetaDataSummaryByStateRequest, opts ...grpc.CallOption) (*GetMetaDataSummaryListResponse, error)
+	// 查看指定拥有者的元数据摘要列表 (不包含 列字段描述)
+	GetMetaDataSummaryByOwner(ctx context.Context, in *GetMetaDataSummaryByOwnerRequest, opts ...grpc.CallOption) (*GetMetaDataSummaryListResponse, error)
+	// 查看单个元数据详情 (包含 列字段描述)
+	GetMetaDataDetail(ctx context.Context, in *GetMetaDataDetailRequest, opts ...grpc.CallOption) (*GetMetaDataDetailResponse, error)
+	// 发布元数据  (新增和编辑 都是发布新的元数据) <底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId>
+	PublishMetaData(ctx context.Context, in *PublishMetaDataRequest, opts ...grpc.CallOption) (*PublishMetaDataResponse, error)
+	// 撤销元数据 (从底层网络撤销)
+	RevokeMetaData(ctx context.Context, in *RevokeMetaDataRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+}
+
+type metaDataServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewMetaDataServiceClient(cc *grpc.ClientConn) MetaDataServiceClient {
+	return &metaDataServiceClient{cc}
+}
+
+func (c *metaDataServiceClient) GetMetaDataSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetMetaDataSummaryListResponse, error) {
+	out := new(GetMetaDataSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.MetaDataService/GetMetaDataSummaryList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metaDataServiceClient) GetMetaDataSummaryByState(ctx context.Context, in *GetMetaDataSummaryByStateRequest, opts ...grpc.CallOption) (*GetMetaDataSummaryListResponse, error) {
+	out := new(GetMetaDataSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.MetaDataService/GetMetaDataSummaryByState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metaDataServiceClient) GetMetaDataSummaryByOwner(ctx context.Context, in *GetMetaDataSummaryByOwnerRequest, opts ...grpc.CallOption) (*GetMetaDataSummaryListResponse, error) {
+	out := new(GetMetaDataSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.MetaDataService/GetMetaDataSummaryByOwner", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metaDataServiceClient) GetMetaDataDetail(ctx context.Context, in *GetMetaDataDetailRequest, opts ...grpc.CallOption) (*GetMetaDataDetailResponse, error) {
+	out := new(GetMetaDataDetailResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.MetaDataService/GetMetaDataDetail", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metaDataServiceClient) PublishMetaData(ctx context.Context, in *PublishMetaDataRequest, opts ...grpc.CallOption) (*PublishMetaDataResponse, error) {
+	out := new(PublishMetaDataResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.MetaDataService/PublishMetaData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *metaDataServiceClient) RevokeMetaData(ctx context.Context, in *RevokeMetaDataRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
+	out := new(SimpleResponseCode)
+	err := c.cc.Invoke(ctx, "/rpcapi.MetaDataService/RevokeMetaData", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// MetaDataServiceServer is the server API for MetaDataService service.
+type MetaDataServiceServer interface {
+	// 查看全部元数据摘要列表 (不包含 列字段描述)
+	GetMetaDataSummaryList(context.Context, *EmptyGetParams) (*GetMetaDataSummaryListResponse, error)
+	// 查看指定状态的元数据摘要列表 (不包含 列字段描述)
+	GetMetaDataSummaryByState(context.Context, *GetMetaDataSummaryByStateRequest) (*GetMetaDataSummaryListResponse, error)
+	// 查看指定拥有者的元数据摘要列表 (不包含 列字段描述)
+	GetMetaDataSummaryByOwner(context.Context, *GetMetaDataSummaryByOwnerRequest) (*GetMetaDataSummaryListResponse, error)
+	// 查看单个元数据详情 (包含 列字段描述)
+	GetMetaDataDetail(context.Context, *GetMetaDataDetailRequest) (*GetMetaDataDetailResponse, error)
+	// 发布元数据  (新增和编辑 都是发布新的元数据) <底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId>
+	PublishMetaData(context.Context, *PublishMetaDataRequest) (*PublishMetaDataResponse, error)
+	// 撤销元数据 (从底层网络撤销)
+	RevokeMetaData(context.Context, *RevokeMetaDataRequest) (*SimpleResponseCode, error)
+}
+
+// UnimplementedMetaDataServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedMetaDataServiceServer struct {
+}
+
+func (*UnimplementedMetaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *EmptyGetParams) (*GetMetaDataSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataSummaryList not implemented")
+}
+func (*UnimplementedMetaDataServiceServer) GetMetaDataSummaryByState(ctx context.Context, req *GetMetaDataSummaryByStateRequest) (*GetMetaDataSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataSummaryByState not implemented")
+}
+func (*UnimplementedMetaDataServiceServer) GetMetaDataSummaryByOwner(ctx context.Context, req *GetMetaDataSummaryByOwnerRequest) (*GetMetaDataSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataSummaryByOwner not implemented")
+}
+func (*UnimplementedMetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *GetMetaDataDetailRequest) (*GetMetaDataDetailResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataDetail not implemented")
+}
+func (*UnimplementedMetaDataServiceServer) PublishMetaData(ctx context.Context, req *PublishMetaDataRequest) (*PublishMetaDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishMetaData not implemented")
+}
+func (*UnimplementedMetaDataServiceServer) RevokeMetaData(ctx context.Context, req *RevokeMetaDataRequest) (*SimpleResponseCode, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeMetaData not implemented")
+}
+
+func RegisterMetaDataServiceServer(s *grpc.Server, srv MetaDataServiceServer) {
+	s.RegisterService(&_MetaDataService_serviceDesc, srv)
+}
+
+func _MetaDataService_GetMetaDataSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaDataServiceServer).GetMetaDataSummaryList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.MetaDataService/GetMetaDataSummaryList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaDataServiceServer).GetMetaDataSummaryList(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetaDataService_GetMetaDataSummaryByState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMetaDataSummaryByStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaDataServiceServer).GetMetaDataSummaryByState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.MetaDataService/GetMetaDataSummaryByState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaDataServiceServer).GetMetaDataSummaryByState(ctx, req.(*GetMetaDataSummaryByStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetaDataService_GetMetaDataSummaryByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMetaDataSummaryByOwnerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaDataServiceServer).GetMetaDataSummaryByOwner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.MetaDataService/GetMetaDataSummaryByOwner",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaDataServiceServer).GetMetaDataSummaryByOwner(ctx, req.(*GetMetaDataSummaryByOwnerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetaDataService_GetMetaDataDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMetaDataDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaDataServiceServer).GetMetaDataDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.MetaDataService/GetMetaDataDetail",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaDataServiceServer).GetMetaDataDetail(ctx, req.(*GetMetaDataDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetaDataService_PublishMetaData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishMetaDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaDataServiceServer).PublishMetaData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.MetaDataService/PublishMetaData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaDataServiceServer).PublishMetaData(ctx, req.(*PublishMetaDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MetaDataService_RevokeMetaData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeMetaDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MetaDataServiceServer).RevokeMetaData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.MetaDataService/RevokeMetaData",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MetaDataServiceServer).RevokeMetaData(ctx, req.(*RevokeMetaDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _MetaDataService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpcapi.MetaDataService",
+	HandlerType: (*MetaDataServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetMetaDataSummaryList",
+			Handler:    _MetaDataService_GetMetaDataSummaryList_Handler,
+		},
+		{
+			MethodName: "GetMetaDataSummaryByState",
+			Handler:    _MetaDataService_GetMetaDataSummaryByState_Handler,
+		},
+		{
+			MethodName: "GetMetaDataSummaryByOwner",
+			Handler:    _MetaDataService_GetMetaDataSummaryByOwner_Handler,
+		},
+		{
+			MethodName: "GetMetaDataDetail",
+			Handler:    _MetaDataService_GetMetaDataDetail_Handler,
+		},
+		{
+			MethodName: "PublishMetaData",
+			Handler:    _MetaDataService_PublishMetaData_Handler,
+		},
+		{
+			MethodName: "RevokeMetaData",
+			Handler:    _MetaDataService_RevokeMetaData_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lib/api/carrier_rpc_api.proto",
+}
+
+// PowerServiceClient is the client API for PowerService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type PowerServiceClient interface {
+	// 查看各个节点的总算力摘要列表 (不包含 任务描述, 管理台算力中心和浏览器用)
+	GetPowerTotalSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetPowerTotalSummaryListResponse, error)
+	// 查看某个节点各个单算力摘要列表 (不包含 任务描述, 管理台 计算节点管理用)
+	GetPowerSingleSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetPowerSingleSummaryListResponse, error)
+	// 查看指定状态的总算力摘要列表  (不包含 任务描述, 管理台算力中心和浏览器用)
+	GetPowerTotalSummaryByState(ctx context.Context, in *GetPowerTotalSummaryByStateRequest, opts ...grpc.CallOption) (*GetPowerTotalSummaryListResponse, error)
+	// 查看指定状态的各个单个算力摘要列表  (不包含 任务描述, 管理台 计算节点管理用)
+	GetPowerSingleSummaryByState(ctx context.Context, in *GetPowerSingleSummaryByStateRequest, opts ...grpc.CallOption) (*GetPowerSingleSummaryListResponse, error)
+	// 查看指定拥有者的总算力摘要  (不包含 任务描述, 管理台算力中心和浏览器用)
+	GetPowerTotalSummaryByOwner(ctx context.Context, in *GetPowerTotalSummaryByOwnerRequest, opts ...grpc.CallOption) (*GetPowerTotalSummaryResponse, error)
+	// 查看指定拥有者的单个算力摘要 (不包含 任务描述, 管理台 计算节点管理用)
+	GetPowerSingleSummaryByOwner(ctx context.Context, in *GetPowerSingleSummaryByOwnerRequest, opts ...grpc.CallOption) (*GetPowerSingleSummaryListResponse, error)
+	// 查看单个算力详情 (包含 任务描述, 管理台 计算节点查看用)
+	GetPowerSingleDetail(ctx context.Context, in *GetPowerSingleDetailRequest, opts ...grpc.CallOption) (*GetPowerSingleDetailResponse, error)
+	// 启用算力 (发布算力)
+	PublishPower(ctx context.Context, in *PublishPowerRequest, opts ...grpc.CallOption) (*PublishPowerResponse, error)
+	// 停用算力 (撤销算力)
+	RevokePower(ctx context.Context, in *RevokePowerRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+}
+
+type powerServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewPowerServiceClient(cc *grpc.ClientConn) PowerServiceClient {
+	return &powerServiceClient{cc}
+}
+
+func (c *powerServiceClient) GetPowerTotalSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetPowerTotalSummaryListResponse, error) {
+	out := new(GetPowerTotalSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerTotalSummaryList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) GetPowerSingleSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetPowerSingleSummaryListResponse, error) {
+	out := new(GetPowerSingleSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerSingleSummaryList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) GetPowerTotalSummaryByState(ctx context.Context, in *GetPowerTotalSummaryByStateRequest, opts ...grpc.CallOption) (*GetPowerTotalSummaryListResponse, error) {
+	out := new(GetPowerTotalSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerTotalSummaryByState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) GetPowerSingleSummaryByState(ctx context.Context, in *GetPowerSingleSummaryByStateRequest, opts ...grpc.CallOption) (*GetPowerSingleSummaryListResponse, error) {
+	out := new(GetPowerSingleSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerSingleSummaryByState", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) GetPowerTotalSummaryByOwner(ctx context.Context, in *GetPowerTotalSummaryByOwnerRequest, opts ...grpc.CallOption) (*GetPowerTotalSummaryResponse, error) {
+	out := new(GetPowerTotalSummaryResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerTotalSummaryByOwner", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) GetPowerSingleSummaryByOwner(ctx context.Context, in *GetPowerSingleSummaryByOwnerRequest, opts ...grpc.CallOption) (*GetPowerSingleSummaryListResponse, error) {
+	out := new(GetPowerSingleSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerSingleSummaryByOwner", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) GetPowerSingleDetail(ctx context.Context, in *GetPowerSingleDetailRequest, opts ...grpc.CallOption) (*GetPowerSingleDetailResponse, error) {
+	out := new(GetPowerSingleDetailResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerSingleDetail", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) PublishPower(ctx context.Context, in *PublishPowerRequest, opts ...grpc.CallOption) (*PublishPowerResponse, error) {
+	out := new(PublishPowerResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/PublishPower", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *powerServiceClient) RevokePower(ctx context.Context, in *RevokePowerRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
+	out := new(SimpleResponseCode)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/RevokePower", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// PowerServiceServer is the server API for PowerService service.
+type PowerServiceServer interface {
+	// 查看各个节点的总算力摘要列表 (不包含 任务描述, 管理台算力中心和浏览器用)
+	GetPowerTotalSummaryList(context.Context, *EmptyGetParams) (*GetPowerTotalSummaryListResponse, error)
+	// 查看某个节点各个单算力摘要列表 (不包含 任务描述, 管理台 计算节点管理用)
+	GetPowerSingleSummaryList(context.Context, *EmptyGetParams) (*GetPowerSingleSummaryListResponse, error)
+	// 查看指定状态的总算力摘要列表  (不包含 任务描述, 管理台算力中心和浏览器用)
+	GetPowerTotalSummaryByState(context.Context, *GetPowerTotalSummaryByStateRequest) (*GetPowerTotalSummaryListResponse, error)
+	// 查看指定状态的各个单个算力摘要列表  (不包含 任务描述, 管理台 计算节点管理用)
+	GetPowerSingleSummaryByState(context.Context, *GetPowerSingleSummaryByStateRequest) (*GetPowerSingleSummaryListResponse, error)
+	// 查看指定拥有者的总算力摘要  (不包含 任务描述, 管理台算力中心和浏览器用)
+	GetPowerTotalSummaryByOwner(context.Context, *GetPowerTotalSummaryByOwnerRequest) (*GetPowerTotalSummaryResponse, error)
+	// 查看指定拥有者的单个算力摘要 (不包含 任务描述, 管理台 计算节点管理用)
+	GetPowerSingleSummaryByOwner(context.Context, *GetPowerSingleSummaryByOwnerRequest) (*GetPowerSingleSummaryListResponse, error)
+	// 查看单个算力详情 (包含 任务描述, 管理台 计算节点查看用)
+	GetPowerSingleDetail(context.Context, *GetPowerSingleDetailRequest) (*GetPowerSingleDetailResponse, error)
+	// 启用算力 (发布算力)
+	PublishPower(context.Context, *PublishPowerRequest) (*PublishPowerResponse, error)
+	// 停用算力 (撤销算力)
+	RevokePower(context.Context, *RevokePowerRequest) (*SimpleResponseCode, error)
+}
+
+// UnimplementedPowerServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedPowerServiceServer struct {
+}
+
+func (*UnimplementedPowerServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *EmptyGetParams) (*GetPowerTotalSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalSummaryList not implemented")
+}
+func (*UnimplementedPowerServiceServer) GetPowerSingleSummaryList(ctx context.Context, req *EmptyGetParams) (*GetPowerSingleSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSingleSummaryList not implemented")
+}
+func (*UnimplementedPowerServiceServer) GetPowerTotalSummaryByState(ctx context.Context, req *GetPowerTotalSummaryByStateRequest) (*GetPowerTotalSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalSummaryByState not implemented")
+}
+func (*UnimplementedPowerServiceServer) GetPowerSingleSummaryByState(ctx context.Context, req *GetPowerSingleSummaryByStateRequest) (*GetPowerSingleSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSingleSummaryByState not implemented")
+}
+func (*UnimplementedPowerServiceServer) GetPowerTotalSummaryByOwner(ctx context.Context, req *GetPowerTotalSummaryByOwnerRequest) (*GetPowerTotalSummaryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalSummaryByOwner not implemented")
+}
+func (*UnimplementedPowerServiceServer) GetPowerSingleSummaryByOwner(ctx context.Context, req *GetPowerSingleSummaryByOwnerRequest) (*GetPowerSingleSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSingleSummaryByOwner not implemented")
+}
+func (*UnimplementedPowerServiceServer) GetPowerSingleDetail(ctx context.Context, req *GetPowerSingleDetailRequest) (*GetPowerSingleDetailResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSingleDetail not implemented")
+}
+func (*UnimplementedPowerServiceServer) PublishPower(ctx context.Context, req *PublishPowerRequest) (*PublishPowerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishPower not implemented")
+}
+func (*UnimplementedPowerServiceServer) RevokePower(ctx context.Context, req *RevokePowerRequest) (*SimpleResponseCode, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokePower not implemented")
+}
+
+func RegisterPowerServiceServer(s *grpc.Server, srv PowerServiceServer) {
+	s.RegisterService(&_PowerService_serviceDesc, srv)
+}
+
+func _PowerService_GetPowerTotalSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).GetPowerTotalSummaryList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/GetPowerTotalSummaryList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).GetPowerTotalSummaryList(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_GetPowerSingleSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).GetPowerSingleSummaryList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/GetPowerSingleSummaryList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).GetPowerSingleSummaryList(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_GetPowerTotalSummaryByState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPowerTotalSummaryByStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).GetPowerTotalSummaryByState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/GetPowerTotalSummaryByState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).GetPowerTotalSummaryByState(ctx, req.(*GetPowerTotalSummaryByStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_GetPowerSingleSummaryByState_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPowerSingleSummaryByStateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).GetPowerSingleSummaryByState(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/GetPowerSingleSummaryByState",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).GetPowerSingleSummaryByState(ctx, req.(*GetPowerSingleSummaryByStateRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_GetPowerTotalSummaryByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPowerTotalSummaryByOwnerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).GetPowerTotalSummaryByOwner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/GetPowerTotalSummaryByOwner",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).GetPowerTotalSummaryByOwner(ctx, req.(*GetPowerTotalSummaryByOwnerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_GetPowerSingleSummaryByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPowerSingleSummaryByOwnerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).GetPowerSingleSummaryByOwner(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/GetPowerSingleSummaryByOwner",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).GetPowerSingleSummaryByOwner(ctx, req.(*GetPowerSingleSummaryByOwnerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_GetPowerSingleDetail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPowerSingleDetailRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).GetPowerSingleDetail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/GetPowerSingleDetail",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).GetPowerSingleDetail(ctx, req.(*GetPowerSingleDetailRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_PublishPower_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishPowerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).PublishPower(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/PublishPower",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).PublishPower(ctx, req.(*PublishPowerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _PowerService_RevokePower_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokePowerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PowerServiceServer).RevokePower(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.PowerService/RevokePower",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PowerServiceServer).RevokePower(ctx, req.(*RevokePowerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _PowerService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpcapi.PowerService",
+	HandlerType: (*PowerServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetPowerTotalSummaryList",
+			Handler:    _PowerService_GetPowerTotalSummaryList_Handler,
+		},
+		{
+			MethodName: "GetPowerSingleSummaryList",
+			Handler:    _PowerService_GetPowerSingleSummaryList_Handler,
+		},
+		{
+			MethodName: "GetPowerTotalSummaryByState",
+			Handler:    _PowerService_GetPowerTotalSummaryByState_Handler,
+		},
+		{
+			MethodName: "GetPowerSingleSummaryByState",
+			Handler:    _PowerService_GetPowerSingleSummaryByState_Handler,
+		},
+		{
+			MethodName: "GetPowerTotalSummaryByOwner",
+			Handler:    _PowerService_GetPowerTotalSummaryByOwner_Handler,
+		},
+		{
+			MethodName: "GetPowerSingleSummaryByOwner",
+			Handler:    _PowerService_GetPowerSingleSummaryByOwner_Handler,
+		},
+		{
+			MethodName: "GetPowerSingleDetail",
+			Handler:    _PowerService_GetPowerSingleDetail_Handler,
+		},
+		{
+			MethodName: "PublishPower",
+			Handler:    _PowerService_PublishPower_Handler,
+		},
+		{
+			MethodName: "RevokePower",
+			Handler:    _PowerService_RevokePower_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lib/api/carrier_rpc_api.proto",
+}
+
+// AuthServiceClient is the client API for AuthService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type AuthServiceClient interface {
+	// 申请准入网络
+	ApplyIdentityJoin(ctx context.Context, in *ApplyIdentityJoinRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	// 注销准入网络
+	RevokeIdentityJoin(ctx context.Context, in *RevokeIdentityJoinRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+}
+
+type authServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewAuthServiceClient(cc *grpc.ClientConn) AuthServiceClient {
+	return &authServiceClient{cc}
+}
+
+func (c *authServiceClient) ApplyIdentityJoin(ctx context.Context, in *ApplyIdentityJoinRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
+	out := new(SimpleResponseCode)
+	err := c.cc.Invoke(ctx, "/rpcapi.AuthService/ApplyIdentityJoin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *authServiceClient) RevokeIdentityJoin(ctx context.Context, in *RevokeIdentityJoinRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
+	out := new(SimpleResponseCode)
+	err := c.cc.Invoke(ctx, "/rpcapi.AuthService/RevokeIdentityJoin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// AuthServiceServer is the server API for AuthService service.
+type AuthServiceServer interface {
+	// 申请准入网络
+	ApplyIdentityJoin(context.Context, *ApplyIdentityJoinRequest) (*SimpleResponseCode, error)
+	// 注销准入网络
+	RevokeIdentityJoin(context.Context, *RevokeIdentityJoinRequest) (*SimpleResponseCode, error)
+}
+
+// UnimplementedAuthServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedAuthServiceServer struct {
+}
+
+func (*UnimplementedAuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *ApplyIdentityJoinRequest) (*SimpleResponseCode, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ApplyIdentityJoin not implemented")
+}
+func (*UnimplementedAuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *RevokeIdentityJoinRequest) (*SimpleResponseCode, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeIdentityJoin not implemented")
+}
+
+func RegisterAuthServiceServer(s *grpc.Server, srv AuthServiceServer) {
+	s.RegisterService(&_AuthService_serviceDesc, srv)
+}
+
+func _AuthService_ApplyIdentityJoin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ApplyIdentityJoinRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).ApplyIdentityJoin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.AuthService/ApplyIdentityJoin",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).ApplyIdentityJoin(ctx, req.(*ApplyIdentityJoinRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AuthService_RevokeIdentityJoin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeIdentityJoinRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AuthServiceServer).RevokeIdentityJoin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.AuthService/RevokeIdentityJoin",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AuthServiceServer).RevokeIdentityJoin(ctx, req.(*RevokeIdentityJoinRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _AuthService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpcapi.AuthService",
+	HandlerType: (*AuthServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ApplyIdentityJoin",
+			Handler:    _AuthService_ApplyIdentityJoin_Handler,
+		},
+		{
+			MethodName: "RevokeIdentityJoin",
+			Handler:    _AuthService_RevokeIdentityJoin_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lib/api/carrier_rpc_api.proto",
+}
+
+// TaskServiceClient is the client API for TaskService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type TaskServiceClient interface {
+	// 查看全部任务 摘要列表 (浏览器用)
+	GetTaskSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetTaskSummaryListResponse, error)
+	// 查看某个节点参与过的任务 摘要列表 (管理台 计算任务, 浏览器 节点任务)
+	GetTaskJoinSummaryList(ctx context.Context, in *GetTaskJoinSummaryListRequest, opts ...grpc.CallOption) (*GetTaskJoinSummaryListResponse, error)
+	// 发布任务
+	PublishTaskDeclare(ctx context.Context, in *PublishTaskDeclareRequest, opts ...grpc.CallOption) (*PublishTaskDeclareResponse, error)
+}
+
+type taskServiceClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewTaskServiceClient(cc *grpc.ClientConn) TaskServiceClient {
+	return &taskServiceClient{cc}
+}
+
+func (c *taskServiceClient) GetTaskSummaryList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetTaskSummaryListResponse, error) {
+	out := new(GetTaskSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.TaskService/GetTaskSummaryList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) GetTaskJoinSummaryList(ctx context.Context, in *GetTaskJoinSummaryListRequest, opts ...grpc.CallOption) (*GetTaskJoinSummaryListResponse, error) {
+	out := new(GetTaskJoinSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.TaskService/GetTaskJoinSummaryList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *taskServiceClient) PublishTaskDeclare(ctx context.Context, in *PublishTaskDeclareRequest, opts ...grpc.CallOption) (*PublishTaskDeclareResponse, error) {
+	out := new(PublishTaskDeclareResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.TaskService/PublishTaskDeclare", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// TaskServiceServer is the server API for TaskService service.
+type TaskServiceServer interface {
+	// 查看全部任务 摘要列表 (浏览器用)
+	GetTaskSummaryList(context.Context, *EmptyGetParams) (*GetTaskSummaryListResponse, error)
+	// 查看某个节点参与过的任务 摘要列表 (管理台 计算任务, 浏览器 节点任务)
+	GetTaskJoinSummaryList(context.Context, *GetTaskJoinSummaryListRequest) (*GetTaskJoinSummaryListResponse, error)
+	// 发布任务
+	PublishTaskDeclare(context.Context, *PublishTaskDeclareRequest) (*PublishTaskDeclareResponse, error)
+}
+
+// UnimplementedTaskServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedTaskServiceServer struct {
+}
+
+func (*UnimplementedTaskServiceServer) GetTaskSummaryList(ctx context.Context, req *EmptyGetParams) (*GetTaskSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTaskSummaryList not implemented")
+}
+func (*UnimplementedTaskServiceServer) GetTaskJoinSummaryList(ctx context.Context, req *GetTaskJoinSummaryListRequest) (*GetTaskJoinSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTaskJoinSummaryList not implemented")
+}
+func (*UnimplementedTaskServiceServer) PublishTaskDeclare(ctx context.Context, req *PublishTaskDeclareRequest) (*PublishTaskDeclareResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PublishTaskDeclare not implemented")
+}
+
+func RegisterTaskServiceServer(s *grpc.Server, srv TaskServiceServer) {
+	s.RegisterService(&_TaskService_serviceDesc, srv)
+}
+
+func _TaskService_GetTaskSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EmptyGetParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetTaskSummaryList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.TaskService/GetTaskSummaryList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetTaskSummaryList(ctx, req.(*EmptyGetParams))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_GetTaskJoinSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTaskJoinSummaryListRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).GetTaskJoinSummaryList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.TaskService/GetTaskJoinSummaryList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).GetTaskJoinSummaryList(ctx, req.(*GetTaskJoinSummaryListRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TaskService_PublishTaskDeclare_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PublishTaskDeclareRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TaskServiceServer).PublishTaskDeclare(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpcapi.TaskService/PublishTaskDeclare",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TaskServiceServer).PublishTaskDeclare(ctx, req.(*PublishTaskDeclareRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _TaskService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "rpcapi.TaskService",
+	HandlerType: (*TaskServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetTaskSummaryList",
+			Handler:    _TaskService_GetTaskSummaryList_Handler,
+		},
+		{
+			MethodName: "GetTaskJoinSummaryList",
+			Handler:    _TaskService_GetTaskJoinSummaryList_Handler,
+		},
+		{
+			MethodName: "PublishTaskDeclare",
+			Handler:    _TaskService_PublishTaskDeclare_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lib/api/carrier_rpc_api.proto",
 }
 
 func (m *YarnNodeInfo) Marshal() (dAtA []byte, err error) {
@@ -3057,43 +6573,15 @@ func (m *YarnRegisteredPeer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.ConnState != 0 {
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.ConnState))
-		i--
-		dAtA[i] = 0x38
-	}
-	if len(m.ExternalPort) > 0 {
-		i -= len(m.ExternalPort)
-		copy(dAtA[i:], m.ExternalPort)
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
-		i--
-		dAtA[i] = 0x32
-	}
-	if len(m.InternalPort) > 0 {
-		i -= len(m.InternalPort)
-		copy(dAtA[i:], m.InternalPort)
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.ExternalIp) > 0 {
-		i -= len(m.ExternalIp)
-		copy(dAtA[i:], m.ExternalIp)
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.InternalIp) > 0 {
-		i -= len(m.InternalIp)
-		copy(dAtA[i:], m.InternalIp)
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Id) > 0 {
-		i -= len(m.Id)
-		copy(dAtA[i:], m.Id)
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Id)))
+	if m.NodeDetail != nil {
+		{
+			size, err := m.NodeDetail.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0x12
 	}
@@ -3101,6 +6589,73 @@ func (m *YarnRegisteredPeer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.NodeType)
 		copy(dAtA[i:], m.NodeType)
 		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.NodeType)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *YarnRegisteredPeerDetail) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *YarnRegisteredPeerDetail) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *YarnRegisteredPeerDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.ConnState != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.ConnState))
+		i--
+		dAtA[i] = 0x30
+	}
+	if len(m.ExternalPort) > 0 {
+		i -= len(m.ExternalPort)
+		copy(dAtA[i:], m.ExternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.ExternalIp) > 0 {
+		i -= len(m.ExternalIp)
+		copy(dAtA[i:], m.ExternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Id)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3134,14 +6689,14 @@ func (m *SeedPeer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.ConnState != 0 {
 		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.ConnState))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x20
 	}
 	if len(m.InternalPort) > 0 {
 		i -= len(m.InternalPort)
 		copy(dAtA[i:], m.InternalPort)
 		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x1a
 	}
 	if len(m.InternalIp) > 0 {
 		i -= len(m.InternalIp)
@@ -3422,33 +6977,6 @@ func (m *YarnRegisteredDataNodeDelta) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *GetNodeInfoRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *GetNodeInfoRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *GetNodeInfoRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *GetNodeInfoResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -3496,33 +7024,6 @@ func (m *GetNodeInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
 		i--
 		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *GetRegisteredPeersRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *GetRegisteredPeersRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *GetRegisteredPeersRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	return len(dAtA) - i, nil
 }
@@ -3590,6 +7091,588 @@ func (m *GetRegisteredPeersResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SetSeedNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetSeedNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SetSeedNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SetSeedNodeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetSeedNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SetSeedNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.SeedPeer != nil {
+		{
+			size, err := m.SeedPeer.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *UpdateSeedNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpdateSeedNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *UpdateSeedNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GetSeedNodeListResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetSeedNodeListResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GetSeedNodeListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.SeedPeers) > 0 {
+		for iNdEx := len(m.SeedPeers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.SeedPeers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SetDataNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetDataNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SetDataNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ExternalPort) > 0 {
+		i -= len(m.ExternalPort)
+		copy(dAtA[i:], m.ExternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ExternalIp) > 0 {
+		i -= len(m.ExternalIp)
+		copy(dAtA[i:], m.ExternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SetDataNodeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetDataNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SetDataNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.DataNode != nil {
+		{
+			size, err := m.DataNode.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *UpdateDataNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpdateDataNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *UpdateDataNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ExternalPort) > 0 {
+		i -= len(m.ExternalPort)
+		copy(dAtA[i:], m.ExternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ExternalIp) > 0 {
+		i -= len(m.ExternalIp)
+		copy(dAtA[i:], m.ExternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GetRegisteredNodeListResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetRegisteredNodeListResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GetRegisteredNodeListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Nodes) > 0 {
+		for iNdEx := len(m.Nodes) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Nodes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SetJobNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetJobNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SetJobNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ExternalPort) > 0 {
+		i -= len(m.ExternalPort)
+		copy(dAtA[i:], m.ExternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ExternalIp) > 0 {
+		i -= len(m.ExternalIp)
+		copy(dAtA[i:], m.ExternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SetJobNodeResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SetJobNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SetJobNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.JobNode != nil {
+		{
+			size, err := m.JobNode.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *UpdateJobNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *UpdateJobNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *UpdateJobNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ExternalPort) > 0 {
+		i -= len(m.ExternalPort)
+		copy(dAtA[i:], m.ExternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ExternalIp) > 0 {
+		i -= len(m.ExternalIp)
+		copy(dAtA[i:], m.ExternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -3687,10 +7770,10 @@ func (m *MetaDataSummary) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.MetaId) > 0 {
-		i -= len(m.MetaId)
-		copy(dAtA[i:], m.MetaId)
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.MetaId)))
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.MetaDataId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3755,7 +7838,7 @@ func (m *MetaDataColumnDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaDataDetail) Marshal() (dAtA []byte, err error) {
+func (m *MetaDataDetailShow) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -3765,12 +7848,12 @@ func (m *MetaDataDetail) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaDataDetail) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetaDataDetailShow) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaDataDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetaDataDetailShow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -3804,33 +7887,6 @@ func (m *MetaDataDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i--
 		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *GetMetaDataSummaryListRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *GetMetaDataSummaryListRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *GetMetaDataSummaryListRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	return len(dAtA) - i, nil
 }
@@ -4019,10 +8075,10 @@ func (m *GetMetaDataDetailRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.MetaId) > 0 {
-		i -= len(m.MetaId)
-		copy(dAtA[i:], m.MetaId)
-		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.MetaId)))
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.MetaDataId)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -4069,6 +8125,149 @@ func (m *GetMetaDataDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 			i -= size
 			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PublishMetaDataRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublishMetaDataRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublishMetaDataRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Information != nil {
+		{
+			size, err := m.Information.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PublishMetaDataResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublishMetaDataResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublishMetaDataResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.MetaDataId)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RevokeMetaDataRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RevokeMetaDataRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RevokeMetaDataRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.MetaDataId)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -4347,33 +8546,6 @@ func (m *PowerTask) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *GetPowerTotalSummaryListRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *GetPowerTotalSummaryListRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *GetPowerTotalSummaryListRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *GetPowerTotalSummaryResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -4462,33 +8634,6 @@ func (m *GetPowerTotalSummaryListResponse) MarshalToSizedBuffer(dAtA []byte) (in
 			i--
 			dAtA[i] = 0xa
 		}
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *GetPowerSingleSummaryListRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *GetPowerSingleSummaryListRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *GetPowerSingleSummaryListRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	return len(dAtA) - i, nil
 }
@@ -4813,6 +8958,492 @@ func (m *GetPowerSingleDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
+func (m *PublishPowerRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublishPowerRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublishPowerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Information != nil {
+		{
+			size, err := m.Information.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.JobNodeId) > 0 {
+		i -= len(m.JobNodeId)
+		copy(dAtA[i:], m.JobNodeId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.JobNodeId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PublishPowerResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublishPowerResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublishPowerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.PowerId) > 0 {
+		i -= len(m.PowerId)
+		copy(dAtA[i:], m.PowerId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.PowerId)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RevokePowerRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RevokePowerRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RevokePowerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.PowerId) > 0 {
+		i -= len(m.PowerId)
+		copy(dAtA[i:], m.PowerId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.PowerId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ApplyIdentityJoinRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ApplyIdentityJoinRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ApplyIdentityJoinRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Member != nil {
+		{
+			size, err := m.Member.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RevokeIdentityJoinRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RevokeIdentityJoinRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RevokeIdentityJoinRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Member != nil {
+		{
+			size, err := m.Member.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskSummaryShow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskSummaryShow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskSummaryShow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.State)))
+		i--
+		dAtA[i] = 0x42
+	}
+	if len(m.EndAt) > 0 {
+		i -= len(m.EndAt)
+		copy(dAtA[i:], m.EndAt)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.EndAt)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.CreateAt) > 0 {
+		i -= len(m.CreateAt)
+		copy(dAtA[i:], m.CreateAt)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.CreateAt)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Receivers) > 0 {
+		for iNdEx := len(m.Receivers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Receivers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.Partners) > 0 {
+		for iNdEx := len(m.Partners) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Partners[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.TaskName) > 0 {
+		i -= len(m.TaskName)
+		copy(dAtA[i:], m.TaskName)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.TaskName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.TaskId) > 0 {
+		i -= len(m.TaskId)
+		copy(dAtA[i:], m.TaskId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.TaskId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskDataSupplierDeclare) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskDataSupplierDeclare) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskDataSupplierDeclare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.MetaDataInfo != nil {
+		{
+			size, err := m.MetaDataInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.MemberInfo != nil {
+		{
+			size, err := m.MemberInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskMetaDataDeclare) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskMetaDataDeclare) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskMetaDataDeclare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ColumnIndexList) > 0 {
+		dAtA39 := make([]byte, len(m.ColumnIndexList)*10)
+		var j38 int
+		for _, num := range m.ColumnIndexList {
+			for num >= 1<<7 {
+				dAtA39[j38] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j38++
+			}
+			dAtA39[j38] = uint8(num)
+			j38++
+		}
+		i -= j38
+		copy(dAtA[i:], dAtA39[:j38])
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(j38))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.MetaDataId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskResultReceiverDeclare) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskResultReceiverDeclare) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskResultReceiverDeclare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Providers) > 0 {
+		for iNdEx := len(m.Providers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Providers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.MemberInfo != nil {
+		{
+			size, err := m.MemberInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *TaskOperationCostShow) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -4864,6 +9495,376 @@ func (m *TaskOperationCostShow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.CostMem)))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskOperationCostDeclare) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskOperationCostDeclare) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskOperationCostDeclare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Duration != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Duration))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.CostBandwidth != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.CostBandwidth))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.CostProcessor != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.CostProcessor))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.CostMem != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.CostMem))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GetTaskSummaryListResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetTaskSummaryListResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GetTaskSummaryListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.TaskList) > 0 {
+		for iNdEx := len(m.TaskList) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.TaskList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GetTaskJoinSummaryListRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetTaskJoinSummaryListRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GetTaskJoinSummaryListRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.MemberInfo != nil {
+		{
+			size, err := m.MemberInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GetTaskJoinSummaryResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetTaskJoinSummaryResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GetTaskJoinSummaryResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Task != nil {
+		{
+			size, err := m.Task.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Role) > 0 {
+		i -= len(m.Role)
+		copy(dAtA[i:], m.Role)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Role)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GetTaskJoinSummaryListResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetTaskJoinSummaryListResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GetTaskJoinSummaryListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.TaskList) > 0 {
+		for iNdEx := len(m.TaskList) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.TaskList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PublishTaskDeclareRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublishTaskDeclareRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublishTaskDeclareRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.OperationCost != nil {
+		{
+			size, err := m.OperationCost.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Receivers) > 0 {
+		for iNdEx := len(m.Receivers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Receivers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.Partners) > 0 {
+		for iNdEx := len(m.Partners) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Partners[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintCarrierRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.TaskName) > 0 {
+		i -= len(m.TaskName)
+		copy(dAtA[i:], m.TaskName)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.TaskName)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PublishTaskDeclareResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublishTaskDeclareResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublishTaskDeclareResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.TaskId) > 0 {
+		i -= len(m.TaskId)
+		copy(dAtA[i:], m.TaskId)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.TaskId)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -4937,6 +9938,54 @@ func (m *ResourceUsedDetailShow) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
+func (m *PurePower) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PurePower) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PurePower) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Bandwidth) > 0 {
+		i -= len(m.Bandwidth)
+		copy(dAtA[i:], m.Bandwidth)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Bandwidth)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Processor) > 0 {
+		i -= len(m.Processor)
+		copy(dAtA[i:], m.Processor)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Processor)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Mem) > 0 {
+		i -= len(m.Mem)
+		copy(dAtA[i:], m.Mem)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Mem)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *OrganizationIdentityInfo) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -4981,6 +10030,106 @@ func (m *OrganizationIdentityInfo) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Name)))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DeleteRegisteredNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DeleteRegisteredNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DeleteRegisteredNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EmptyGetParams) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EmptyGetParams) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EmptyGetParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SimpleResponseCode) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SimpleResponseCode) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SimpleResponseCode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Msg) > 0 {
+		i -= len(m.Msg)
+		copy(dAtA[i:], m.Msg)
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(len(m.Msg)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Status != 0 {
+		i = encodeVarintCarrierRpcApi(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -5110,6 +10259,22 @@ func (m *YarnRegisteredPeer) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
+	if m.NodeDetail != nil {
+		l = m.NodeDetail.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *YarnRegisteredPeerDetail) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	l = len(m.Id)
 	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
@@ -5292,18 +10457,6 @@ func (m *YarnRegisteredDataNodeDelta) Size() (n int) {
 	return n
 }
 
-func (m *GetNodeInfoRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *GetNodeInfoResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -5321,18 +10474,6 @@ func (m *GetNodeInfoResponse) Size() (n int) {
 		l = m.Information.Size()
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *GetRegisteredPeersRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -5370,13 +10511,296 @@ func (m *GetRegisteredPeersResponse) Size() (n int) {
 	return n
 }
 
+func (m *SetSeedNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SetSeedNodeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.SeedPeer != nil {
+		l = m.SeedPeer.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *UpdateSeedNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetSeedNodeListResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.SeedPeers) > 0 {
+		for _, e := range m.SeedPeers {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SetDataNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SetDataNodeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.DataNode != nil {
+		l = m.DataNode.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *UpdateDataNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetRegisteredNodeListResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.Nodes) > 0 {
+		for _, e := range m.Nodes {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SetJobNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SetJobNodeResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.JobNode != nil {
+		l = m.JobNode.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *UpdateJobNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalIp)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.ExternalPort)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *MetaDataSummary) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.MetaId)
+	l = len(m.MetaDataId)
 	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
@@ -5453,7 +10877,7 @@ func (m *MetaDataColumnDetail) Size() (n int) {
 	return n
 }
 
-func (m *MetaDataDetail) Size() (n int) {
+func (m *MetaDataDetailShow) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -5469,18 +10893,6 @@ func (m *MetaDataDetail) Size() (n int) {
 			n += 1 + l + sovCarrierRpcApi(uint64(l))
 		}
 	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *GetMetaDataSummaryListRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -5567,7 +10979,7 @@ func (m *GetMetaDataDetailRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
-	l = len(m.MetaId)
+	l = len(m.MetaDataId)
 	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
@@ -5589,6 +11001,69 @@ func (m *GetMetaDataDetailResponse) Size() (n int) {
 	}
 	if m.Information != nil {
 		l = m.Information.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PublishMetaDataRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.Information != nil {
+		l = m.Information.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PublishMetaDataResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.MetaDataId)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *RevokeMetaDataRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.MetaDataId)
+	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -5712,18 +11187,6 @@ func (m *PowerTask) Size() (n int) {
 	return n
 }
 
-func (m *GetPowerTotalSummaryListRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *GetPowerTotalSummaryResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -5756,18 +11219,6 @@ func (m *GetPowerTotalSummaryListResponse) Size() (n int) {
 			n += 1 + l + sovCarrierRpcApi(uint64(l))
 		}
 	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *GetPowerSingleSummaryListRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -5916,6 +11367,218 @@ func (m *GetPowerSingleDetailResponse) Size() (n int) {
 	return n
 }
 
+func (m *PublishPowerRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.JobNodeId)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.Information != nil {
+		l = m.Information.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PublishPowerResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.PowerId)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *RevokePowerRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.PowerId)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *ApplyIdentityJoinRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Member != nil {
+		l = m.Member.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *RevokeIdentityJoinRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Member != nil {
+		l = m.Member.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskSummaryShow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.TaskId)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.TaskName)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.Partners) > 0 {
+		for _, e := range m.Partners {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if len(m.Receivers) > 0 {
+		for _, e := range m.Receivers {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	l = len(m.CreateAt)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.EndAt)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.State)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskDataSupplierDeclare) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MemberInfo != nil {
+		l = m.MemberInfo.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.MetaDataInfo != nil {
+		l = m.MetaDataInfo.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskMetaDataDeclare) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.MetaDataId)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.ColumnIndexList) > 0 {
+		l = 0
+		for _, e := range m.ColumnIndexList {
+			l += sovCarrierRpcApi(uint64(e))
+		}
+		n += 1 + sovCarrierRpcApi(uint64(l)) + l
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskResultReceiverDeclare) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MemberInfo != nil {
+		l = m.MemberInfo.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.Providers) > 0 {
+		for _, e := range m.Providers {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *TaskOperationCostShow) Size() (n int) {
 	if m == nil {
 		return 0
@@ -5935,6 +11598,175 @@ func (m *TaskOperationCostShow) Size() (n int) {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
 	l = len(m.Duration)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskOperationCostDeclare) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.CostMem != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.CostMem))
+	}
+	if m.CostProcessor != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.CostProcessor))
+	}
+	if m.CostBandwidth != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.CostBandwidth))
+	}
+	if m.Duration != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Duration))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetTaskSummaryListResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.TaskList) > 0 {
+		for _, e := range m.TaskList {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetTaskJoinSummaryListRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MemberInfo != nil {
+		l = m.MemberInfo.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetTaskJoinSummaryResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Role)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.Task != nil {
+		l = m.Task.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *GetTaskJoinSummaryListResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.TaskList) > 0 {
+		for _, e := range m.TaskList {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PublishTaskDeclareRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.TaskName)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if len(m.Partners) > 0 {
+		for _, e := range m.Partners {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if len(m.Receivers) > 0 {
+		for _, e := range m.Receivers {
+			l = e.Size()
+			n += 1 + l + sovCarrierRpcApi(uint64(l))
+		}
+	}
+	if m.OperationCost != nil {
+		l = m.OperationCost.Size()
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PublishTaskDeclareResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.TaskId)
 	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
@@ -5980,6 +11812,30 @@ func (m *ResourceUsedDetailShow) Size() (n int) {
 	return n
 }
 
+func (m *PurePower) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Mem)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.Processor)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	l = len(m.Bandwidth)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *OrganizationIdentityInfo) Size() (n int) {
 	if m == nil {
 		return 0
@@ -5995,6 +11851,53 @@ func (m *OrganizationIdentityInfo) Size() (n int) {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
 	l = len(m.IdentityId)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *DeleteRegisteredNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovCarrierRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *EmptyGetParams) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SimpleResponseCode) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Status != 0 {
+		n += 1 + sovCarrierRpcApi(uint64(m.Status))
+	}
+	l = len(m.Msg)
 	if l > 0 {
 		n += 1 + l + sovCarrierRpcApi(uint64(l))
 	}
@@ -6791,6 +12694,93 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeDetail", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.NodeDetail == nil {
+				m.NodeDetail = &YarnRegisteredPeerDetail{}
+			}
+			if err := m.NodeDetail.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *YarnRegisteredPeerDetail) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: YarnRegisteredPeerDetail: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: YarnRegisteredPeerDetail: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
 			}
 			var stringLen uint64
@@ -6821,7 +12811,7 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.Id = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
 			}
@@ -6853,7 +12843,7 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalIp = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
 			}
@@ -6885,7 +12875,7 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.ExternalIp = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
 			}
@@ -6917,7 +12907,7 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalPort = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
 			}
@@ -6949,7 +12939,7 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.ExternalPort = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ConnState", wireType)
 			}
@@ -7083,7 +13073,7 @@ func (m *SeedPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalIp = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
 			}
@@ -7115,7 +13105,7 @@ func (m *SeedPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalPort = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ConnState", wireType)
 			}
@@ -7964,57 +13954,6 @@ func (m *YarnRegisteredDataNodeDelta) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GetNodeInfoRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCarrierRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GetNodeInfoRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetNodeInfoRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthCarrierRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *GetNodeInfoResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -8131,57 +14070,6 @@ func (m *GetNodeInfoResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthCarrierRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *GetRegisteredPeersRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCarrierRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GetRegisteredPeersRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetRegisteredPeersRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
@@ -8374,6 +14262,1734 @@ func (m *GetRegisteredPeersResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *SetSeedNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetSeedNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetSeedNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetSeedNodeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetSeedNodeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetSeedNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SeedPeer", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.SeedPeer == nil {
+				m.SeedPeer = &SeedPeer{}
+			}
+			if err := m.SeedPeer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateSeedNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateSeedNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateSeedNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetSeedNodeListResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetSeedNodeListResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetSeedNodeListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SeedPeers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SeedPeers = append(m.SeedPeers, &SeedPeer{})
+			if err := m.SeedPeers[len(m.SeedPeers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetDataNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetDataNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetDataNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetDataNodeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetDataNodeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetDataNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DataNode", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.DataNode == nil {
+				m.DataNode = &YarnRegisteredPeerDetail{}
+			}
+			if err := m.DataNode.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateDataNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateDataNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateDataNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetRegisteredNodeListResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetRegisteredNodeListResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetRegisteredNodeListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Nodes", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Nodes = append(m.Nodes, &YarnRegisteredPeer{})
+			if err := m.Nodes[len(m.Nodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetJobNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetJobNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetJobNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SetJobNodeResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SetJobNodeResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SetJobNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field JobNode", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.JobNode == nil {
+				m.JobNode = &YarnRegisteredPeerDetail{}
+			}
+			if err := m.JobNode.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *UpdateJobNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: UpdateJobNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: UpdateJobNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *MetaDataSummary) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -8405,7 +16021,7 @@ func (m *MetaDataSummary) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MetaId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -8433,7 +16049,7 @@ func (m *MetaDataSummary) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetaId = string(dAtA[iNdEx:postIndex])
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -8924,7 +16540,7 @@ func (m *MetaDataColumnDetail) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetaDataDetail) Unmarshal(dAtA []byte) error {
+func (m *MetaDataDetailShow) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -8947,10 +16563,10 @@ func (m *MetaDataDetail) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaDataDetail: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetaDataDetailShow: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaDataDetail: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetaDataDetailShow: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -9023,57 +16639,6 @@ func (m *MetaDataDetail) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthCarrierRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *GetMetaDataSummaryListRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCarrierRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GetMetaDataSummaryListRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetMetaDataSummaryListRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
@@ -9533,7 +17098,7 @@ func (m *GetMetaDataDetailRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MetaId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -9561,7 +17126,7 @@ func (m *GetMetaDataDetailRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetaId = string(dAtA[iNdEx:postIndex])
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -9680,11 +17245,387 @@ func (m *GetMetaDataDetailResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Information == nil {
-				m.Information = &MetaDataDetail{}
+				m.Information = &MetaDataDetailShow{}
 			}
 			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PublishMetaDataRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublishMetaDataRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublishMetaDataRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &OrganizationIdentityInfo{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Information == nil {
+				m.Information = &MetaDataDetailShow{}
+			}
+			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PublishMetaDataResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublishMetaDataResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublishMetaDataResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RevokeMetaDataRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RevokeMetaDataRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RevokeMetaDataRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &OrganizationIdentityInfo{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -10411,57 +18352,6 @@ func (m *PowerTask) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GetPowerTotalSummaryListRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCarrierRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GetPowerTotalSummaryListRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetPowerTotalSummaryListRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthCarrierRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *GetPowerTotalSummaryResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -10648,57 +18538,6 @@ func (m *GetPowerTotalSummaryListResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthCarrierRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *GetPowerSingleSummaryListRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCarrierRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: GetPowerSingleSummaryListRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetPowerSingleSummaryListRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
@@ -11499,6 +19338,1306 @@ func (m *GetPowerSingleDetailResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *PublishPowerRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublishPowerRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublishPowerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &OrganizationIdentityInfo{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.JobNodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Information == nil {
+				m.Information = &PurePower{}
+			}
+			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PublishPowerResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublishPowerResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublishPowerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PowerId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RevokePowerRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RevokePowerRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RevokePowerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &OrganizationIdentityInfo{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PowerId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ApplyIdentityJoinRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ApplyIdentityJoinRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ApplyIdentityJoinRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Member", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Member == nil {
+				m.Member = &OrganizationIdentityInfo{}
+			}
+			if err := m.Member.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RevokeIdentityJoinRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RevokeIdentityJoinRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RevokeIdentityJoinRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Member", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Member == nil {
+				m.Member = &OrganizationIdentityInfo{}
+			}
+			if err := m.Member.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskSummaryShow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskSummaryShow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskSummaryShow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &OrganizationIdentityInfo{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Partners", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Partners = append(m.Partners, &OrganizationIdentityInfo{})
+			if err := m.Partners[len(m.Partners)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Receivers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Receivers = append(m.Receivers, &OrganizationIdentityInfo{})
+			if err := m.Receivers[len(m.Receivers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CreateAt = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EndAt", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.EndAt = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskDataSupplierDeclare) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskDataSupplierDeclare: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskDataSupplierDeclare: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MemberInfo == nil {
+				m.MemberInfo = &OrganizationIdentityInfo{}
+			}
+			if err := m.MemberInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MetaDataInfo == nil {
+				m.MetaDataInfo = &TaskMetaDataDeclare{}
+			}
+			if err := m.MetaDataInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskMetaDataDeclare) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskMetaDataDeclare: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskMetaDataDeclare: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType == 0 {
+				var v uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowCarrierRpcApi
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.ColumnIndexList = append(m.ColumnIndexList, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowCarrierRpcApi
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthCarrierRpcApi
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthCarrierRpcApi
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.ColumnIndexList) == 0 {
+					m.ColumnIndexList = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowCarrierRpcApi
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.ColumnIndexList = append(m.ColumnIndexList, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field ColumnIndexList", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskResultReceiverDeclare) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskResultReceiverDeclare: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskResultReceiverDeclare: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MemberInfo == nil {
+				m.MemberInfo = &OrganizationIdentityInfo{}
+			}
+			if err := m.MemberInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Providers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Providers = append(m.Providers, &OrganizationIdentityInfo{})
+			if err := m.Providers[len(m.Providers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *TaskOperationCostShow) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -11655,6 +20794,968 @@ func (m *TaskOperationCostShow) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Duration = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskOperationCostDeclare) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskOperationCostDeclare: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskOperationCostDeclare: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CostMem", wireType)
+			}
+			m.CostMem = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CostMem |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CostProcessor", wireType)
+			}
+			m.CostProcessor = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CostProcessor |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CostBandwidth", wireType)
+			}
+			m.CostBandwidth = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CostBandwidth |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
+			}
+			m.Duration = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Duration |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetTaskSummaryListResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetTaskSummaryListResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetTaskSummaryListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskList", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskList = append(m.TaskList, &TaskSummaryShow{})
+			if err := m.TaskList[len(m.TaskList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetTaskJoinSummaryListRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetTaskJoinSummaryListRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetTaskJoinSummaryListRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MemberInfo == nil {
+				m.MemberInfo = &OrganizationIdentityInfo{}
+			}
+			if err := m.MemberInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetTaskJoinSummaryResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetTaskJoinSummaryResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetTaskJoinSummaryResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Role", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Role = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Task", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Task == nil {
+				m.Task = &TaskSummaryShow{}
+			}
+			if err := m.Task.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GetTaskJoinSummaryListResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetTaskJoinSummaryListResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetTaskJoinSummaryListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskList", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskList = append(m.TaskList, &GetTaskJoinSummaryResponse{})
+			if err := m.TaskList[len(m.TaskList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PublishTaskDeclareRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublishTaskDeclareRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublishTaskDeclareRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &TaskDataSupplierDeclare{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Partners", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Partners = append(m.Partners, &TaskDataSupplierDeclare{})
+			if err := m.Partners[len(m.Partners)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Receivers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Receivers = append(m.Receivers, &TaskResultReceiverDeclare{})
+			if err := m.Receivers[len(m.Receivers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperationCost", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.OperationCost == nil {
+				m.OperationCost = &TaskOperationCostDeclare{}
+			}
+			if err := m.OperationCost.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PublishTaskDeclareResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublishTaskDeclareResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublishTaskDeclareResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -11921,6 +22022,153 @@ func (m *ResourceUsedDetailShow) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *PurePower) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PurePower: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PurePower: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Mem", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Mem = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Processor", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Processor = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Bandwidth", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Bandwidth = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *OrganizationIdentityInfo) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -12045,6 +22293,242 @@ func (m *OrganizationIdentityInfo) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.IdentityId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DeleteRegisteredNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DeleteRegisteredNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DeleteRegisteredNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EmptyGetParams) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EmptyGetParams: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EmptyGetParams: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCarrierRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SimpleResponseCode) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCarrierRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SimpleResponseCode: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SimpleResponseCode: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Msg", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCarrierRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCarrierRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Msg = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
