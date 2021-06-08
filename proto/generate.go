@@ -35,7 +35,7 @@ func main() {
 			"-I", ".",
 			//"--plugin=protoc-gen-gorosetta=scripts/protoc-gen-gorosetta",
 			//"--gorosetta_out=paths=source_relative:..",
-			"--gogofast_out=paths=source_relative:..",
+			"--gogofast_out=plugins=grpc,paths=source_relative:..",
 		}
 		args = append(args, matches...)
 		cmd := exec.Command("protoc", args...)
