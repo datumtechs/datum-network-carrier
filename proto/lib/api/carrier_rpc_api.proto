@@ -187,6 +187,18 @@ message UpdateJobNodeRequest {
     string                      external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
 }
 
+
+
+message ReportTaskEventRequest {
+  TaskEventShow               task_event = 1;
+}
+
+
+// 未定义
+message ReportTaskResourceExpenseRequest {
+
+}
+
 // ## 调度服务 - 系统状态 接口
 service YarnService {
 
@@ -199,22 +211,40 @@ service YarnService {
 
 
   // about seed
+  // 新增种子节点信息
   rpc SetSeedNode (SetSeedNodeRequest) returns (SetSeedNodeResponse);
+  // 修改种子节点信息
   rpc UpdateSeedNode (UpdateSeedNodeRequest) returns (SetSeedNodeResponse);
+  // 删除种子节点信息
   rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  // 查询种子节点列表
   rpc GetSeedNodeList (EmptyGetParams) returns (GetSeedNodeListResponse);
 
   // about dataNode
+  // 新增数据服务信息
   rpc SetDataNode (SetDataNodeRequest) returns (SetDataNodeResponse);
+  // 修改数据服务信息
   rpc UpdateDataNode (UpdateDataNodeRequest) returns (SetDataNodeResponse);
+  // 删除数据服务信息
   rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  // 查询数据服务列表
   rpc GetDataNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse);
 
   // about jobNode
+  // 新增计算服务信息
   rpc SetJobNode (SetJobNodeRequest) returns (SetJobNodeResponse);
+  // 修改计算服务信息
   rpc UpdateJobNode (UpdateJobNodeRequest) returns (SetJobNodeResponse);
+  // 删除计算服务信息
   rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  // 查询计算服务列表
   rpc GetJobNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse);
+
+  // about report
+  // 上报任务事件 (供 计算OR数据服务调用)
+  rpc ReportTaskEvent (ReportTaskEventRequest) returns (SimpleResponseCode);
+  // 上报资源使用实况  (供 计算OR数据服务调用)
+  rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (SimpleResponseCode);
 
 }
 
@@ -457,10 +487,13 @@ message RevokeIdentityJoinRequest {
   OrganizationIdentityInfo        member = 1;           // 注销准入身份
 }
 
-// 数据授权 (申请/投票)
-
 
 service AuthService {
+
+  // 数据授权申请
+
+  // 数据授权投票
+
   // 申请准入网络
   rpc ApplyIdentityJoin (ApplyIdentityJoinRequest) returns (SimpleResponseCode);
   // 注销准入网络
@@ -486,10 +519,44 @@ message TaskSummaryShow {
     string                             state = 8;                           // 任务的状态
 }
 
+// 任务详情 (供展示用)
+message TaskDetailShow {
+  string                             task_id = 1;                         // 任务Id
+  string                             task_name = 2;                       // 任务名称
+  OrganizationIdentityInfo           owner = 3;                           // 任务发起发
+  OrganizationIdentityInfo           algo_supplier = 4;                   // 算法提供方
+  repeated TaskDataSupplierShow      data_supplier = 5;                   // 数据提供方
+  repeated TaskPowerSupplierShow     power_supplier = 6;                  // 算力提供方
+  repeated OrganizationIdentityInfo  receivers = 7;                       // 任务结果方
+  string                             create_at = 8;                       // 任务发起时间
+  string                             end_at = 9;                          // 任务结束时间
+  string                             state = 10;                          // 任务的状态
+  TaskOperationCostDeclare           operation_cost = 11;                 // 任务所需资源声明
+}
+// 任务数据提供方信息 (任务详情展示用)
+message TaskDataSupplierShow {
+  OrganizationIdentityInfo            member_info  = 1;                       // 身份信息
+  string                              meta_id = 2;                            // 元数据Id
+  string                              meta_name = 3;                          // 元数据名称
+}
+// 任务算力提供方信息 (任务详情展示用)
+message TaskPowerSupplierShow {
+  OrganizationIdentityInfo            member_info  = 1;                       // 身份信息
+  ResourceUsedDetailShow              power_info = 2;                         // 算力使用情况
+}
+
+// 任务事件定义
+message TaskEventShow {
+  string                              type = 1;                       // 事件类型码
+  string                              task_id = 2;                    // 事件对应的任务id
+  OrganizationIdentityInfo            owner  = 3;                     // 产生事件的节点身份
+  string                              content = 4;                    // 事件内容
+  string                              create_at = 5;                  // 事件产生时间
+}
 
 
 
-// 任务数据供应者信息
+// 任务数据供应者信息 (任务详情定义用)
 message TaskDataSupplierDeclare {
     OrganizationIdentityInfo            member_info  = 1;                       // 身份信息
     TaskMetaDataDeclare                 meta_data_info = 2;                     // 任务使用的元数据信息
@@ -514,6 +581,7 @@ message TaskOperationCostShow {
   string duration = 4;               // 任务所需的运行时长
 }
 
+// 定义任务所需资源的大小
 message TaskOperationCostDeclare {
   uint64 cost_mem = 1;               // 任务所需的内存 (单位: byte)
   uint64 cost_processor = 2;         // 任务所需的核数 (单位: 个)
@@ -543,6 +611,24 @@ message GetTaskJoinSummaryListResponse {
 }
 
 
+message GetTaskDetailRequest {
+  string              task_id = 1;
+}
+message GetTaskDetailResponse {
+  int32                       status = 1;                      // 响应码
+  string                      msg = 2;                         // 错误信息
+  TaskDetailShow              information = 3;
+}
+
+
+message GetTaskEventListRequest {
+  string              task_id = 1;
+}
+message GetTaskEventListResponse {
+  int32                       status = 1;                      // 响应码
+  string                      msg = 2;                         // 错误信息
+  repeated TaskEventShow      task_event_list = 3;             // 任务事件列表
+}
 
 
 message PublishTaskDeclareRequest {
@@ -565,24 +651,16 @@ service TaskService {
 
     // 查看全部任务 摘要列表 (浏览器用)
     rpc GetTaskSummaryList (EmptyGetParams) returns (GetTaskSummaryListResponse);
-
     // 查看某个节点参与过的任务 摘要列表 (管理台 计算任务, 浏览器 节点任务)
     rpc GetTaskJoinSummaryList (GetTaskJoinSummaryListRequest) returns (GetTaskJoinSummaryListResponse);
-    // 查看某个任务详情
-
+    // 查看某个任务详情 (管理台 和 浏览器用)
+    rpc GetTaskDetail (GetTaskDetailRequest) returns (GetTaskDetailResponse);
     // 查看某个任务的全部事件列表
-
+    rpc GetTaskEventList (GetTaskEventListRequest) returns (GetTaskEventListResponse);
     // 发布任务
     rpc PublishTaskDeclare (PublishTaskDeclareRequest) returns (PublishTaskDeclareResponse);
 
-
 }
-
-
-
-
-
-
 
 
 
