@@ -109,7 +109,7 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 }
 
 func (b *CarrierNode) registerBackendService() error {
-	backendService, err := service.NewService(b.ctx, &params.RosettaConfig{}, &params.DataCenterConfig{})
+	backendService, err := service.NewService(b.ctx, &params.CarrierConfig{}, &params.DataCenterConfig{})
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
