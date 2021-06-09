@@ -13,10 +13,10 @@ import (
 	"syscall"
 )
 
-// RosettaNode defines a struct that handles the services running a random rosetta net.
+// CarrierNode defines a struct that handles the services running a random rosetta net.
 // It handles the lifecycle of the entire system and registers
 // services to a service registry.
-type RosettaNode struct {
+type CarrierNode struct {
 	cliCtx          *cli.Context
 	ctx             context.Context
 	cancel          context.CancelFunc
@@ -27,14 +27,14 @@ type RosettaNode struct {
 
 // New creates a new node instance, sets up configuration options, and registers
 // every required service to the node.
-func New(cliCtx *cli.Context) (*RosettaNode, error) {
+func New(cliCtx *cli.Context) (*CarrierNode, error) {
 
 	// todo: to init config
 
 	registry := common.NewServiceRegistry()
 
 	ctx, cancel := context.WithCancel(cliCtx.Context)
-	rosetta := &RosettaNode{
+	carrier := &CarrierNode{
 		cliCtx:          cliCtx,
 		ctx:             ctx,
 		cancel:          cancel,
@@ -42,27 +42,27 @@ func New(cliCtx *cli.Context) (*RosettaNode, error) {
 		stop:            make(chan struct{}),
 	}
 	// register P2P service
-	if err := rosetta.registerP2P(cliCtx); err != nil {
+	if err := carrier.registerP2P(cliCtx); err != nil {
 		return nil, err
 	}
 	// register core backend service
-	if err := rosetta.registerBackendService(); err != nil {
+	if err := carrier.registerBackendService(); err != nil {
 		return nil, err
 	}
 
-	if err := rosetta.registerSyncService(); err != nil {
+	if err := carrier.registerSyncService(); err != nil {
 		return nil, err
 	}
 
-	if err := rosetta.registerRPCService(); err != nil {
+	if err := carrier.registerRPCService(); err != nil {
 		return nil, err
 	}
 	// todo: some logic to be added here...
-	return rosetta, nil
+	return carrier, nil
 }
 
-// Start the RosettaNode and kicks off every registered service.
-func (b *RosettaNode) Start() {
+// Start the CarrierNode and kicks off every registered service.
+func (b *CarrierNode) Start() {
 	b.lock.Lock()
 
 	log.Info("Starting rosetta node")
@@ -94,7 +94,7 @@ func (b *RosettaNode) Start() {
 }
 
 // Close handles graceful shutdown of the system.
-func (b *RosettaNode) Close() {
+func (b *CarrierNode) Close() {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
@@ -104,11 +104,11 @@ func (b *RosettaNode) Close() {
 	close(b.stop)
 }
 
-func (b *RosettaNode) registerP2P(cliCtx *cli.Context) error {
+func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	return nil
 }
 
-func (b *RosettaNode) registerBackendService() error {
+func (b *CarrierNode) registerBackendService() error {
 	backendService, err := service.NewService(b.ctx, &params.RosettaConfig{}, &params.DataCenterConfig{})
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
@@ -116,10 +116,10 @@ func (b *RosettaNode) registerBackendService() error {
 	return b.services.RegisterService(backendService)
 }
 
-func (b *RosettaNode) registerSyncService() error {
+func (b *CarrierNode) registerSyncService() error {
 	return nil
 }
 
-func (b *RosettaNode) registerRPCService() error {
+func (b *CarrierNode) registerRPCService() error {
 	return nil
 }
