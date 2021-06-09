@@ -10,14 +10,14 @@ import (
 type Service struct {
 	isRunning               bool
 	processingLock          sync.RWMutex
-	config 					*params.RosettaConfig
+	config 					*params.CarrierConfig
 	proxy 					*core.DataCenter
 	ctx                     context.Context
 	cancel                  context.CancelFunc
 	runError                error
 }
 
-func NewService(ctx context.Context, config *params.RosettaConfig, dataCenterConfig *params.DataCenterConfig) (*Service, error) {
+func NewService(ctx context.Context, config *params.CarrierConfig, dataCenterConfig *params.DataCenterConfig) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 	proxy, err := core.NewDataCenter(dataCenterConfig)
