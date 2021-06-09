@@ -12,3 +12,8 @@ func (c *RosettaConfig) String() string {
 	return fmt.Sprintf("{%v}", "config")
 }
 
+// DataCenterConfig is the datacenter service config.
+type DataCenterConfig struct {
+	GrpcUrl string
+	Port uint64
+}

@@ -9,7 +9,6 @@ import (
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	lru "github.com/hashicorp/golang-lru"
-	"google.golang.org/grpc"
 	"sync"
 	"sync/atomic"
 )
@@ -20,8 +19,6 @@ const (
 
 type DataChain struct {
 	rosettaConfig *params.RosettaConfig // network configuration
-
-	conn *grpc.ClientConn // grpc client conn, used to access grpc service
 
 	db        db.Database // Low level persistent database to store final content.
 	chainFeed event.Feed
