@@ -62,6 +62,14 @@ func (dc *DataCenter) SetProcessor(processor Processor) {
 	dc.processor = processor
 }
 
+// interface:
+// 1、插入元数据、资源、身份、任务（一个接口接入，传多个参数[列表]）
+// 2、修改元数据、资源、身份、任务（同样支持批量多少数据）
+// 3、删除元数据、资源、身份、任务（支持批量多数据）
+// 4、查询元数据、资源、身份、任务列表
+// 5、根据节点ID查询元数据、资源、身份、任务
+// 6、根据节点ID查询参与的任务列表
+
 func (dc *DataCenter) Insert(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
 	return nil
 }
