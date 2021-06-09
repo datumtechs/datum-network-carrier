@@ -62,11 +62,34 @@ func (dc *DataCenter) SetProcessor(processor Processor) {
 	dc.processor = processor
 }
 
-
-
-func (dc *DataCenter) Insert(block *types.Block) {
-
+func (dc *DataCenter) Insert(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
+	return nil
 }
+
+func (dc *DataCenter) Update(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
+	return nil
+}
+
+func (dc *DataCenter) Delete(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
+	return nil
+}
+
+func (dc *DataCenter) MetadataList(nodeId string) (types.MetadataArray, error) {
+	return nil, nil
+}
+
+func (dc *DataCenter) ResourceList(nodeId string) (types.ResourceArray, error) {
+	return nil, nil
+}
+
+func (dc *DataCenter) IdentityList(nodeId string) (types.IdentityArray, error) {
+	return nil, nil
+}
+
+func (dc *DataCenter) TaskDataList(nodeId string) (types.TaskDataArray, error) {
+	return nil, nil
+}
+
 
 
 
