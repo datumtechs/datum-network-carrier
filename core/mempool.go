@@ -3,7 +3,6 @@ package core
 import (
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"log"
 )
 
 type MempoolConfig struct {
