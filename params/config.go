@@ -2,13 +2,13 @@ package params
 
 import "fmt"
 
-// RosettaConfig is the core config which determines the rosettaNet settings.
-type RosettaConfig struct {
+// CarrierConfig is the core config which determines the rosettaNet settings.
+type CarrierConfig struct {
 
 }
 
 // String implements the fmt.Stringer interface.
-func (c *RosettaConfig) String() string {
+func (c *CarrierConfig) String() string {
 	return fmt.Sprintf("{%v}", "config")
 }
 
