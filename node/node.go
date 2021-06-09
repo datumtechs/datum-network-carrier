@@ -2,9 +2,9 @@ package node
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/RosettaFlow/Carrier-Go/service"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -109,7 +109,7 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 }
 
 func (b *CarrierNode) registerBackendService() error {
-	backendService, err := service.NewService(b.ctx, &params.CarrierConfig{}, &params.DataCenterConfig{})
+	backendService, err := carrier.NewService(b.ctx, &params.CarrierConfig{}, &params.DataCenterConfig{})
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
