@@ -1,5 +1,13 @@
 package types
 
+
+type Msg interface {
+	Marshal() ([]byte, error)
+	Unmarshal(b []byte) error
+	String() string
+	MsgType() string
+}
+
 // ------------------- SeedNode -------------------
 // ------------------- JobNode -------------------
 // ------------------- DataNode -------------------
