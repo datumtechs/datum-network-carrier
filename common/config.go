@@ -6,7 +6,6 @@ type RpcConfig struct {
 	Protocol 		string 				`json:"protocol"`
 }
 
-
 type CarrierConfig struct {
 
 }
