@@ -56,11 +56,10 @@ func main() {
 
 func startNode(ctx *cli.Context) error {
 	// todo: some logic could be added here
-
-	beacon, err := node.New(ctx)
+	node, err := node.New(ctx)
 	if err != nil {
 		return err
 	}
-	beacon.Start()
+	node.Start()
 	return nil
 }
