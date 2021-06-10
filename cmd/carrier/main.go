@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/cmd/carrier/flags"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
+	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/node"
 	"os"
 	runtimeDebug "runtime/debug"
@@ -10,13 +10,15 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-var appFlags = []cli.Flag{
-	flags.RPCHost,
-	flags.RPCPort,
-	flags.GRPCGatewayHost,
-	flags.GRPCGatewayPort,
-	// todo: more flags could be define here.
-}
+var (
+	appFlags = []cli.Flag{
+		flags.RPCHost,
+		flags.RPCPort,
+		flags.GRPCGatewayHost,
+		flags.GRPCGatewayPort,
+		// todo: more flags could be define here.
+	}
+)
 
 func init() {
 	appFlags = WrapFlags(appFlags)
@@ -24,8 +26,8 @@ func init() {
 
 func main() {
 	app := cli.App{}
-	app.Name = "beacon-chain"
-	app.Usage = "this is a beacon chain implementation for Ethereum 2.0"
+	app.Name = "carrier"
+	app.Usage = "this is a carrier network implementation for RosettaNet"
 	// set action func.
 	app.Action = startNode
 	app.Version = common.Version()
@@ -54,11 +56,10 @@ func main() {
 
 func startNode(ctx *cli.Context) error {
 	// todo: some logic could be added here
-
-	beacon, err := node.New(ctx)
+	node, err := node.New(ctx)
 	if err != nil {
 		return err
 	}
-	beacon.Start()
+	node.Start()
 	return nil
 }
