@@ -5,8 +5,9 @@ package rawdb
 import (
 	"encoding/binary"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	"github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 // ReadDataHash retrieves the hash assigned to a canonical block number
@@ -110,18 +111,19 @@ func ReadHeader(db DatabaseReader, hash common.Hash, number uint64) *types.Heade
 	if len(data) == 0 {
 		return nil
 	}
-	header := new(types.Header)
+	header := new(libTypes.HeaderPb)
 	if err := header.Unmarshal(data); err != nil {
 		log.WithField("hash", hash).WithError(err).Error("Invalid block header ProtoBuf")
 		return nil
 	}
-	return header
+	// todo: To be continued..
+	return nil
 }
 
 // WriteHeader stores a block header into the database and also stores the hash-to-number mapping.
 func WriteHeader(db DatabaseWriter, header *types.Header) {
 	var (
-		hash 	= common.HexToHash(header.Hash)
+		hash 	= header.Hash()
 		number 	= header.Version
 		encoded = encodeNumber(number)
 	)
@@ -129,14 +131,15 @@ func WriteHeader(db DatabaseWriter, header *types.Header) {
 	if err := db.Put(key, encoded); err != nil {
 		log.WithError(err).Error("Failed to store hash to number mapping")
 	}
-	data, err := header.Marshal()
-	if err != nil {
-		log.WithError(err).Error("Failed to PB encode header")
-	}
-	key  = headerKey(number, hash)
-	if err := db.Put(key, data); err != nil {
-		log.WithError(err).Error("Failed to store header")
-	}
+	// todo: To be continued..
+	//data, err := header.Marshal()
+	//if err != nil {
+	//	log.WithError(err).Error("Failed to PB encode header")
+	//}
+	//key  = headerKey(number, hash)
+	//if err := db.Put(key, data); err != nil {
+	//	log.WithError(err).Error("Failed to store header")
+	//}
 }
 
 // DeleteHeader remove all block header data associated with a hash.
@@ -171,12 +174,12 @@ func HasBody(db DatabaseReader, hash common.Hash, number uint64) bool {
 }
 
 // ReadBody retrieves the block body corresponding to the hash.
-func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *types.BodyData {
+func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *libTypes.BodyData {
 	data := ReadBodyPB(db, hash, number)
 	if len(data) == 0 {
 		return nil
 	}
-	body := new(types.BodyData)
+	body := new(libTypes.BodyData)
 	if err := body.Unmarshal(data); err != nil {
 		log.WithField("hash", hash).WithError(err).Error("Invalid block body Protobuf")
 		return nil
@@ -185,7 +188,7 @@ func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *types.BodyDat
 }
 
 // WriteBOdy store a block body into the database.
-func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *types.BodyData) {
+func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *libTypes.BodyData) {
 	data, err := body.Marshal()
 	if err != nil {
 		log.WithError(err).Error("Failed to ProtoBuf encode body")
@@ -203,7 +206,7 @@ func DeleteBody(db DatabaseDeleter, hash common.Hash, number uint64) {
 	// todo: remove metadata/resource/identity/task at the same time.
 }
 
-func ReadBlock(db DatabaseReader, hash common.Hash, number uint64) *types.BlockData {
+func ReadBlock(db DatabaseReader, hash common.Hash, number uint64) *libTypes.BlockData {
 	header := ReadHeader(db, hash , number)
 	if header == nil {
 		return nil
@@ -218,7 +221,7 @@ func ReadBlock(db DatabaseReader, hash common.Hash, number uint64) *types.BlockD
 }
 
 // WriteBlock serializes a block into the database, header and body separately.
-func WriteBlock(db DatabaseWriter, block *types.BlockData) {
+func WriteBlock(db DatabaseWriter, block *libTypes.BlockData) {
 	//WriteBody(db, block.Hash(), block.NumberU64(), block.Body())
 	//WriteHeader(db, &block.Header)
 }
