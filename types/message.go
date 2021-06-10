@@ -1,10 +1,8 @@
 package types
 
-
 // ------------------- SeedNode -------------------
 // ------------------- JobNode -------------------
 // ------------------- DataNode -------------------
-
 
 // ------------------- identity -------------------
 type IdentityMsg struct {
@@ -26,11 +24,18 @@ type PowerMsg struct {
 	CreateAt uint64 `json:"createAt"`
 }
 
-func (msg *PowerMsg) Marshal() ([]byte, error) {return nil, nil}
-func (msg *PowerMsg) Unmarshal(b []byte) error {return nil}
-func (msg *PowerMsg) String() string {return ""}
-func (msg *PowerMsg) MsgType () string {return ""}
+func (msg *PowerMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *PowerMsg) Unmarshal(b []byte) error { return nil }
+func (msg *PowerMsg) String() string           { return "" }
+func (msg *PowerMsg) MsgType() string          { return "" }
 
+type PowerMsgs []*PowerMsg
+
+// Len returns the length of s.
+func (s PowerMsgs) Len() int { return len(s) }
+
+// Swap swaps the i'th and the j'th element in s.
+func (s PowerMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 // ------------------- metaData -------------------
 
@@ -59,14 +64,21 @@ type MetaDataMsg struct {
 			Ccomment string `json:"ccomment,omitempty"`
 		} `json:"columnMeta"`
 	} `json:"information"`
-	CreateAt 		string 		`json:"createAt"`
+	CreateAt uint64 `json:"createAt"`
 }
 
-func (msg *MetaDataMsg) Marshal() ([]byte, error) {return nil, nil}
-func (msg *MetaDataMsg) Unmarshal(b []byte) error {return nil}
-func (msg *MetaDataMsg) String() string {return ""}
-func (msg *MetaDataMsg) MsgType () string {return ""}
+func (msg *MetaDataMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *MetaDataMsg) Unmarshal(b []byte) error { return nil }
+func (msg *MetaDataMsg) String() string           { return "" }
+func (msg *MetaDataMsg) MsgType() string          { return "" }
 
+type MetaDataMsgs []*MetaDataMsg
+
+// Len returns the length of s.
+func (s MetaDataMsgs) Len() int { return len(s) }
+
+// Swap swaps the i'th and the j'th element in s.
+func (s MetaDataMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 // ------------------- task -------------------
 
@@ -79,13 +91,21 @@ type TaskMsg struct {
 	CalculateContractCode string                `json:"calculateContractCode"`
 	DataSplitContractCode string                `json:"dataSplitContractCode"`
 	OperationCost         *TaskOperationCost    `json:"spend"`
+	CreateAt              uint64                `json:"createAt"`
 }
 
-func (msg *TaskMsg) Marshal() ([]byte, error) {return nil, nil}
-func (msg *TaskMsg) Unmarshal(b []byte) error {return nil}
-func (msg *TaskMsg) String() string {return ""}
-func (msg *TaskMsg) MsgType () string {return ""}
+func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
+func (msg *TaskMsg) String() string           { return "" }
+func (msg *TaskMsg) MsgType() string          { return "" }
 
+type TaskMsgs []*TaskMsg
+
+// Len returns the length of s.
+func (s TaskMsgs) Len() int { return len(s) }
+
+// Swap swaps the i'th and the j'th element in s.
+func (s TaskMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 
 type TaskSupplier struct {
 	*NodeAlias
