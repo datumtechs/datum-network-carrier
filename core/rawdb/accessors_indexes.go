@@ -4,6 +4,7 @@ package rawdb
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
+	types2 "github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
@@ -25,24 +26,25 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 // WriteDataLookupEntries stores a positional metadata for every metadata/resource/identity from
 // a block, enabling dataId hash based metadata、resource、identity and task lookups.
 func WriteDataLookupEntries(db DatabaseWriter, block *types.BlockData) {
+	header := (*types2.Header)(block.Header)
 	// todo: what is the type means???
 	for i, metadata := range block.Metadata {
-		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, header.Hash(),
 			block.Header.Version, uint64(i), metadata.NodeId, "", metadata.DataId)
 		// store extra data for metadata
 	}
 	for i, resource := range block.Resourcedata {
-		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, header.Hash(),
 			block.Header.Version, uint64(i), resource.NodeId, "", resource.DataId)
 		// store extra data for resource
 	}
 	for i, identity := range block.Identitydata {
-		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, header.Hash(),
 			block.Header.Version, uint64(i), identity.NodeId, "", identity.DataId)
 		// store extra data for identity
 	}
 	for i, task := range block.Taskdata {
-		writeDataLookupEntries(db, common.HexToHash(block.Header.Hash),
+		writeDataLookupEntries(db, header.Hash(),
 			block.Header.Version, uint64(i), task.NodeId, "", task.DataId)
 		// store extra data for task
 	}
@@ -95,7 +97,7 @@ func ReadMetadata(db DatabaseReader, dataId string) (*types.MetaData, common.Has
 			Error("Medata referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
-	return &body.Metadata[index], blockHash, blockNumber, index, nodeId, typ
+	return body.Metadata[index], blockHash, blockNumber, index, nodeId, typ
 }
 
 // ReadResource retrieves a specific resource from the database, along with
@@ -113,7 +115,7 @@ func ReadResource(db DatabaseReader, dataId string) (*types.ResourceData, common
 			Error("Resource referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
-	return &body.Resourcedata[index], blockHash, blockNumber, index, nodeId, typ
+	return body.Resourcedata[index], blockHash, blockNumber, index, nodeId, typ
 }
 
 // ReadIdentity retrieves a specific identity from the database, along with
@@ -131,7 +133,7 @@ func ReadIdentity(db DatabaseReader, dataId string) (*types.IdentityData, common
 			Error("Identity referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
-	return &body.Identitydata[index], blockHash, blockNumber, index, nodeId, typ
+	return body.Identitydata[index], blockHash, blockNumber, index, nodeId, typ
 }
 
 // ReadIdentity retrieves a specific taskData from the database, along with
@@ -149,5 +151,5 @@ func ReadTask(db DatabaseReader, dataId string) (*types.TaskData, common.Hash, u
 			Error("Task referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
-	return &body.Taskdata[index], blockHash, blockNumber, index, nodeId, typ
+	return body.Taskdata[index], blockHash, blockNumber, index, nodeId, typ
 }
