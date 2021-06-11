@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package api;
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
+
+import "lib/center/base.proto";
+import "google/protobuf/empty.proto";
+
+message SaveIdentityRequest {
+  Organization member = 1;
+  // 节点的身份凭证（DID中的凭证信息）
+  string credential = 2;
+}
+
+message RevokeIdentityJoinRequest {
+  Organization member = 1;
+}
+
+// 身份信息服务
+service IdentityService {
+
+  // 存储身份信息（节点用于申请接入网络的基本信息，详细的存于本地）
+  rpc SaveIdentity (SaveIdentityRequest) returns (SimpleResponse);
+
+  // 注销准入网络
+  rpc RevokeIdentityJoin (RevokeIdentityJoinRequest) returns (SimpleResponse);
+}
