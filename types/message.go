@@ -79,6 +79,7 @@ func (msg *PowerMsg) Onwer() *NodeAlias {
 		IdentityId: msg.Data.IdentityId,
 	}
 }
+
 func (msg *PowerMsg) OwnerName() string       { return msg.Data.Name }
 func (msg *PowerMsg) OwnerNodeId() string     { return msg.Data.NodeId }
 func (msg *PowerMsg) OwnerIdentityId() string { return msg.Data.IdentityId }
