@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"sync"
 	"sync/atomic"
@@ -15,6 +16,13 @@ type DataCenter struct {
 	client 			*grpclient.GrpcClient
 	mu     			sync.RWMutex 	// global mutex for locking data center operations.
 	procmu 			sync.RWMutex 	// data processor lock
+
+	// grpc service
+	metadataService api.MetaDataServiceClient
+	resourceService api.ResourceServiceClient
+	identityService api.IdentityServiceClient
+	taskService 	api.TaskServiceClient
+
 	processor 		Processor	 	// block processor interface
 	running     	int32         	// running must be called atomically
 	procInterrupt 	int32          	// interrupt signaler for block processing
@@ -30,8 +38,12 @@ func NewDataCenter(config *params.DataCenterConfig) (*DataCenter, error) {
 		return nil, err
 	}
 	dc := &DataCenter{
-		config: 		config,
-		client: 		client,
+		config:          config,
+		client:          client,
+		metadataService: api.NewMetaDataServiceClient(client.GetClientConn()),
+		resourceService: api.NewResourceServiceClient(client.GetClientConn()),
+		identityService: api.NewIdentityServiceClient(client.GetClientConn()),
+		taskService:     api.NewTaskServiceClient(client.GetClientConn()),
 	}
 	return dc, nil
 }
@@ -75,6 +87,14 @@ func (dc *DataCenter) TaskDataList(nodeId string) (types.TaskDataArray, error) {
 	return nil, nil
 }
 
-
+func (dc *DataCenter) Stop() {
+	if !atomic.CompareAndSwapInt32(&dc.running, 0, 1) {
+		return
+	}
+	atomic.StoreInt32(&dc.procInterrupt, 1)
+	dc.wg.Wait()
+	dc.client.Close()
+	log.Info("Datacenter manager stopped")
+}
 
 
