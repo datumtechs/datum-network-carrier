@@ -3,6 +3,8 @@ package rpc
 import (
 	"context"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	"github.com/RosettaFlow/Carrier-Go/types"
+	"time"
 )
 
 type yarnServiceServer struct {
@@ -113,6 +115,23 @@ func (svr *powerServiceServer) GetPowerSingleDetail(ctx context.Context, req *pb
 	return nil, nil
 }
 func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
+
+	powerMsg := new(types.PowerMsg)
+	powerMsg.Data.JobNodeId = req.JobNodeId
+	powerMsg.Data.CreateAt = uint64(time.Now().UnixNano())
+	powerMsg.Data.Name = req.Owner.Name
+	powerMsg.Data.NodeId = req.Owner.NodeId
+	powerMsg.Data.IdentityId = req.Owner.IdentityId
+	powerMsg.Data.Information.Processor = req.Information.Processor
+	powerMsg.Data.Information.Mem = req.Information.Mem
+	powerMsg.Data.Information.Bandwidth = req.Information.Bandwidth
+	powerMsg.GetPowerId()
+
+	err := svr.b.SendMsg(powerMsg)
+	if nil != err {
+
+	}
+
 	return nil, nil
 }
 func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {

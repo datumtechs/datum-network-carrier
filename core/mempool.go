@@ -7,12 +7,7 @@ import (
 	"sync"
 )
 
-type Msg interface {
-	Marshal() ([]byte, error)
-	Unmarshal(b []byte) error
-	String() string
-	MsgType() string
-}
+
 
 type MempoolConfig struct {
 }
@@ -36,7 +31,7 @@ type Mempool struct {
 	all			*msgLookup
 }
 
-func New(cfg *MempoolConfig) *Mempool {
+func NewMempool(cfg *MempoolConfig) *Mempool {
 	return &Mempool{
 		cfg:              cfg,
 		mateDataMsgQueue: message.NewMetaDataMsgList(),
@@ -58,7 +53,7 @@ func (pool *Mempool) SubscribeNewTaskMsgsEvent(ch chan<- event.TaskMsgEvent) eve
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
 
-func (pool *Mempool) Add(msg Msg) error {
+func (pool *Mempool) Add(msg types.Msg) error {
 
 	switch msg.(type) {
 	case *types.PowerMsg:
