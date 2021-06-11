@@ -4,79 +4,79 @@ package api;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
-import "lib/center/base.proto";
+import "lib/center/api/base.proto";
 import "google/protobuf/empty.proto";
 
 // 系统本身资源抽象
 message ResourceUsed {
   // 服务系统的总内存
-  string total_mem = 1;
+    string total_mem = 1;
   // 服务系统的已用内存
-  string used_mem = 2;
+    string used_mem = 2;
   // 服务的总内核数
-  string total_processor = 3;
+    string total_processor = 3;
   // 服务的已用内核数
-  string used_processor = 4;
+    string used_processor = 4;
   // 服务的总带宽数
-  string total_bandwidth = 5;
+    string total_bandwidth = 5;
   // 服务的已用带宽数
-  string used_bandwidth = 6;
+    string used_bandwidth = 6;
 }
 
 // 算力的基本仨元素
 message PurePower {
   // 系统的总内存
-  string mem = 1;
+    string mem = 1;
   // 系统的总内核数
-  string processor = 2;
+    string processor = 2;
   // 系统的总带宽数
-  string bandwidth = 3;
+    string bandwidth = 3;
 }
 
 // 发布算力请求参数
 message PublishPowerRequest {
   // 算力的拥有者
-  Organization owner = 1;
+    Organization owner = 1;
   // 计算服务id (节点内部的)
-  string job_node_id = 2;
+    string job_node_id = 2;
   // 发布的算力信息
-  PurePower information = 3;
+    PurePower information = 3;
 }
 
 message PublishPowerResponse {
-  int32  status = 1;
-  string msg = 2;
+    int32  status = 1;
+    string msg    = 2;
   // 算力id
-  string power_id = 3;
+    string power_id = 3;
 }
 
 message RevokePowerRequest {
   // 算力的拥有者
-  Organization owner = 1;
+    Organization owner = 1;
   // 算力id
-  string power_id = 2;
+    string power_id = 2;
 }
 
 //  总算力摘要
 message PowerTotalSummary {
   // 算力实况
-  ResourceUsed information = 1;
+    ResourceUsed information = 1;
   // 算力上总共执行的任务数 (已完成的和正在执行的)
-  uint32 total_task_count = 2;
+    uint32 total_task_count = 2;
   // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
-  string state = 3;
+    string state = 3;
 }
 
 message PowerTotalSummaryResponse {
   // 算力拥有者信息
-  Organization owner = 1;
+    Organization owner = 1;
   // 算力总摘要
-  PowerTotalSummary power = 2;
+    PowerTotalSummary power = 2;
 }
 
 message PowerTotalSummaryListResponse {
   // 全网的算力总摘要列表
-  repeated PowerTotalSummaryResponse power_list = 1;
+    repeated PowerTotalSummaryResponse power_list = 1;
 }
 
 // 资源（算力）接口定义

@@ -4,17 +4,17 @@ package api;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
-import "lib/center/base.proto";
+import "lib/center/api/base.proto";
 import "google/protobuf/empty.proto";
 
 message SaveIdentityRequest {
-  Organization member = 1;
+    Organization member = 1;
   // 节点的身份凭证（DID中的凭证信息）
-  string credential = 2;
+    string credential = 2;
 }
 
 message RevokeIdentityJoinRequest {
-  Organization member = 1;
+    Organization member = 1;
 }
 
 // 身份信息服务
