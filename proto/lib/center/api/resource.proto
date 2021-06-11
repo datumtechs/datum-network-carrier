@@ -80,7 +80,7 @@ message PowerTotalSummaryListResponse {
 }
 
 // 资源（算力）接口定义
-service PowerService {
+service ResourceService {
 
   // 存储资源
   rpc PublishResource (PublishPowerRequest) returns (PublishPowerResponse);
