@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package api;
+
+// A represents the basic information of the organization.
+message Organization  {
+  // org name
+  string name        = 1;
+  // the node_id for org
+  string node_id     = 2;
+  // the identity for org
+  string identity_id = 3;
+}
+
+message SimpleResponse {
+  int32  status = 1;
+  string msg    = 2;
+}
+
