@@ -34,6 +34,10 @@ func (gc *GrpcClient) Close() {
 	gc.c.Close()
 }
 
+func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
+	return gc.c
+}
+
 // DataChain Access
 func (gc *GrpcClient) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
 	/*conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())

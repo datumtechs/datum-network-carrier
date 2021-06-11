@@ -78,10 +78,9 @@ func (msg *PowerMsg) Onwer () *NodeAlias {
 func (msg *PowerMsg) JobNodeId() string {
 	return msg.Data.JobNodeId
 }
-func (msg *PowerMsg) Memory() string {
+func (msg *PowerMsg) Memory() uint64 {
 	return msg.Data.Information.Mem
 }
-func (msg)
 
 func (msg *PowerMsg) GetPowerId () string {
 	if "" != msg.PowerId {
