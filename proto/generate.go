@@ -21,7 +21,7 @@ import (
 
 // Inception, go generate calls the script itself that then deals with generation.
 // This is only done because go:generate does not support wildcards in paths.
-//go:generate go run generate.go lib/db lib/types lib/api
+//go:generate go run generate.go lib/db lib/types lib/api lib/center/api
 
 func main() {
 	for _, path := range os.Args[1:] {
