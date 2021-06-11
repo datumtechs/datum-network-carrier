@@ -66,3 +66,21 @@ func (s *Service) Status() error {
 func (s *Service) SendMsg (msg types.Msg) error {
 	return s.mempool.Add(msg)
 }
+func (s *Service) SetSeedNode (seed *types.SeedNodeInfo) error {
+	return nil
+}
+func (s *Service) GetSeedNode (id string) (*types.SeedNodeInfo, error) {
+	return nil, nil
+}
+func (s *Service) GetSeedNodeList () ([]*types.SeedNodeInfo, error) {
+	return nil, nil
+}
+func (s *Service) SetRegisterNode (node *types.RegisteredNodeInfo) error {
+	return nil
+}
+func (s *Service) GetRegisterNode (id string) (*types.RegisteredNodeInfo, error) {
+	return nil, nil
+}
+func (s *Service) GetRegisterNodeList () ([]*types.RegisteredNodeInfo, error) {
+	return nil, nil
+}
