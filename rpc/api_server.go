@@ -7,6 +7,15 @@ import (
 	"time"
 )
 
+var (
+	OK = "ok"
+)
+var (
+	ErrSetSeedNodeInfoStr = "Failed to set seed node info"
+	ErrSendPowerMsgStr = "Failed to send powerMsg"
+)
+
+
 type yarnServiceServer struct {
 	pb.UnimplementedYarnServiceServer
 	b 			Backend
@@ -21,7 +30,20 @@ func (svr *yarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Em
 	return nil, nil
 }
 func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
-	return nil, nil
+
+	seedNode := &types.SeedNodeInfo{
+		InternalIp: req.InternalIp,
+		InternalPort: req.InternalPort,
+		ConnState: types.NONCONNECTED,
+	}
+	seedNode.SeedNodeId()
+	err := svr.b.SetSeedNode(seedNode)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
+	}
+	return &pb.SetSeedNodeResponse{
+		// TODO 
+	}, nil
 }
 func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 	return nil, nil
@@ -125,14 +147,17 @@ func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	powerMsg.Data.Information.Processor = req.Information.Processor
 	powerMsg.Data.Information.Mem = req.Information.Mem
 	powerMsg.Data.Information.Bandwidth = req.Information.Bandwidth
-	powerMsg.GetPowerId()
+	powerId := powerMsg.GetPowerId()
 
 	err := svr.b.SendMsg(powerMsg)
 	if nil != err {
-
+		return nil, NewRpcBizErr(ErrSendPowerMsgStr)
 	}
-
-	return nil, nil
+	return &pb.PublishPowerResponse{
+		Status: 0,
+		Msg: OK,
+		PowerId: powerId,
+	}, nil
 }
 func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
 	return nil, nil

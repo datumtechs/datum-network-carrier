@@ -37,8 +37,8 @@ func NewPowerMsgList() *PowerMsgList {
 }
 
 func (lis *PowerMsgList) Put (msg *types.PowerMsg) {
-	heap.Push(lis.prioty, msg.CreateAt)
-	lis.items[msg.CreateAt] = msg
+	heap.Push(lis.prioty, msg.CreateAt())
+	lis.items[msg.CreateAt()] = msg
 }
 
 func (lis *PowerMsgList) Get (createAt uint64) *types.PowerMsg {
@@ -60,8 +60,8 @@ func NewMetaDataMsgList() *MetaDataMsgList {
 }
 
 func (lis *MetaDataMsgList) Put (msg *types.MetaDataMsg) {
-	heap.Push(lis.prioty, msg.CreateAt)
-	lis.items[msg.CreateAt] = msg
+	heap.Push(lis.prioty, msg.CreateAt())
+	lis.items[msg.CreateAt()] = msg
 }
 
 func (lis *MetaDataMsgList) Get (createAt uint64) *types.MetaDataMsg {
@@ -81,8 +81,8 @@ func NewTaskMsgList() *TaskMsgList {
 }
 
 func (lis *TaskMsgList) Put (msg *types.TaskMsg) {
-	heap.Push(lis.prioty, msg.CreateAt)
-	lis.items[msg.CreateAt] = msg
+	heap.Push(lis.prioty, msg.CreateAt())
+	lis.items[msg.CreateAt()] = msg
 }
 
 func (lis *TaskMsgList) Get (createAt uint64) *types.TaskMsg {
