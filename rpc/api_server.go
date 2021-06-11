@@ -42,7 +42,7 @@ func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
 	return &pb.SetSeedNodeResponse{
-		// TODO 
+		// TODO
 	}, nil
 }
 func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
