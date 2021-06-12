@@ -3,6 +3,8 @@ package rawdb
 import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"gotest.tools/assert"
+	"strings"
 	"testing"
 )
 
@@ -20,4 +22,15 @@ func TestSeedNode(t *testing.T) {
 	// get seed
 	rseed := ReadSeedNode(database, "id")
 	t.Logf("seed info : %v", rseed)
+	assert.Assert(t, strings.EqualFold("id", rseed.Id))
+
+	// read all
+	seedNodes := ReadAllSeedNodes(database)
+	assert.Assert(t, len(seedNodes) == 1)
+
+	// delete
+	DeleteSeedNodes(database)
+
+	seedNodes = ReadAllSeedNodes(database)
+	assert.Assert(t, len(seedNodes) == 0)
 }
