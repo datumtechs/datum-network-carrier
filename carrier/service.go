@@ -3,23 +3,25 @@ package carrier
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/core"
-	"github.com/RosettaFlow/Carrier-Go/core/task"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
 
 type Service struct {
-	isRunning               bool
-	processingLock          sync.RWMutex
-	config 					*params.CarrierConfig
-	proxy 					*core.DataCenter
-	datachain 				*core.DataChain
-	ctx                     context.Context
-	cancel                  context.CancelFunc
-	mempool 				*core.Mempool
-	TaskMng 				*task.TaskManager
-	runError                error
+	isRunning       bool
+	processingLock  sync.RWMutex
+	config          *params.CarrierConfig
+	proxy           *core.DataCenter
+	datachain       *core.DataChain
+	ctx             context.Context
+	cancel          context.CancelFunc
+	mempool         *core.Mempool
+
+	resourceManager *resource.Manager
+	runError        error
 }
 
 func NewService(ctx context.Context, config *params.CarrierConfig, dataCenterConfig *params.DataCenterConfig) (*Service, error) {
@@ -31,11 +33,12 @@ func NewService(ctx context.Context, config *params.CarrierConfig, dataCenterCon
 		return nil, err
 	}
 	s := &Service{
-		ctx:            ctx,
-		cancel:         cancel,
-		config:			config,
-		proxy: 		 	proxy,
-		mempool:        core.NewMempool(nil), // todo need  set mempool cfg
+		ctx:             ctx,
+		cancel:          cancel,
+		config:          config,
+		proxy:           proxy,
+		mempool:         core.NewMempool(nil), // todo need  set mempool cfg
+		resourceManager: resource.NewResourceManager(),
 	}
 	// todo: some logic could be added...
 
@@ -68,32 +71,35 @@ func (s *Service) Status() error {
 	return nil
 }
 
-func (s *Service) SendMsg (msg types.Msg) error {
+func (s *Service) SendMsg(msg types.Msg) error {
 	return s.mempool.Add(msg)
 }
 
-func (s *Service) SetSeedNode (seed *types.SeedNodeInfo) (types.NodeConnStatus,error) {
+func (s *Service) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
 	return types.NONCONNECTED, nil
 }
 func (s *Service) DeleteSeedNode(id string) error {
 	return nil
 }
-func (s *Service) GetSeedNode (id string) (*types.SeedNodeInfo, error) {
+func (s *Service) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
 	return nil, nil
 }
-func (s *Service) GetSeedNodeList () ([]*types.SeedNodeInfo, error) {
+func (s *Service) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
 	return nil, nil
 }
-func (s *Service) SetRegisterNode (typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus,error) {
+func (s *Service) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
 	return types.NONCONNECTED, nil
 }
-func (s *Service) DeleteRegisterNode (typ types.RegisteredNodeType, id string) error {
+func (s *Service) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
 	return nil
 }
-func (s *Service) GetRegisterNode (typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
+func (s *Service) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
 	return nil, nil
 }
-func (s *Service) GetRegisterNodeList (typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+func (s *Service) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	return nil, nil
 }
 
+func (s *Service) SendTaskEvent(event *event.TaskEvent) error  {
+	return s.resourceManager.SendTaskEvent(event)
+}

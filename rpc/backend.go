@@ -1,6 +1,7 @@
 package rpc
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -17,4 +18,6 @@ type Backend interface {
 	DeleteRegisterNode (typ types.RegisteredNodeType, id string) error
 	GetRegisterNode (typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
 	GetRegisterNodeList (typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
+
+	SendTaskEvent(event *event.TaskEvent) error
 }

@@ -285,6 +285,9 @@ func (svr *yarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 	}, nil
 }
 func (svr *yarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
+	go func() {
+		svr.b.SendTaskEvent()
+	}()
 	return nil, nil
 }
 func (svr *yarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
