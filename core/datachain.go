@@ -3,11 +3,11 @@ package core
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	lru "github.com/hashicorp/golang-lru"
 	"sync"
 	"sync/atomic"
@@ -131,4 +131,24 @@ func (dc *DataChain) HasBlock(hash common.Hash, number uint64) bool {
 		return true
 	}
 	return rawdb.HasBody(dc.db, hash, number)
+}
+
+
+func (s *DataChain) SetSeedNode (seed *types.SeedNodeInfo) error {
+	return nil
+}
+func (s *DataChain) GetSeedNode (id string) (*types.SeedNodeInfo, error) {
+	return nil, nil
+}
+func (s *DataChain) GetSeedNodeList () ([]*types.SeedNodeInfo, error) {
+	return nil, nil
+}
+func (s *DataChain) SetRegisterNode (node *types.RegisteredNodeInfo) error {
+	return nil
+}
+func (s *DataChain) GetRegisterNode (id string) (*types.RegisteredNodeInfo, error) {
+	return nil, nil
+}
+func (s *DataChain) GetRegisterNodeList () ([]*types.RegisteredNodeInfo, error) {
+	return nil, nil
 }

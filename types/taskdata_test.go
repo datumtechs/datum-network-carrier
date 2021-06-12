@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var taskdata = NewTask(&types.TaskData{
+var testTaskdata = NewTask(&types.TaskData{
 	Identity:             "",
 	NodeId:               "",
 	NodeName:             "",
@@ -24,7 +24,7 @@ var taskdata = NewTask(&types.TaskData{
 
 func TestTaskDataEncode(t *testing.T) {
 	buffer := new(bytes.Buffer)
-	err := taskdata.EncodePb(buffer)
+	err := testTaskdata.EncodePb(buffer)
 	if err != nil {
 		t.Fatal("task encode protobuf failed, err: ", err)
 	}
