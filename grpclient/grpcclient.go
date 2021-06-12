@@ -2,10 +2,9 @@ package grpclient
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
 )
 
@@ -56,85 +55,85 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 
 // MetaDataSave saves new metadata to database.
 func (gc *GrpcClient) MetaDataSave(ctx context.Context, request *api.MetaDataSaveRequest) (*api.MetaDataSaveResponse, error) {
-	cctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	return gc.metadataService.MetaDataSave(cctx, request)
+	return gc.metadataService.MetaDataSave(ctx, request)
 }
 
 func (gc *GrpcClient) GetMetaDataSummaryList(ctx context.Context) (*api.MetaDataSummaryListResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.metadataService.GetMetaDataSummaryList(ctx, &emptypb.Empty{})
 }
 
 func (gc *GrpcClient) GetMetaDataSummaryByState(ctx context.Context, request *api.MetaDataSummaryByStateRequest) (*api.MetaDataSummaryByStateResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.metadataService.GetMetaDataSummaryByState(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMetaDataRequest) (*api.SimpleResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.metadataService.RevokeMetaData(ctx, request)
 }
 
 // ************************************** Resource module *******************************************************
 
 func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*api.PublishPowerResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.resourceService.PublishResource(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*api.SimpleResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.resourceService.RevokeResource(ctx, request)
 }
 
 func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerTotalSummaryListResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.resourceService.GetPowerTotalSummaryList(ctx, &emptypb.Empty{})
 }
 
 // ************************************** Identity module *******************************************************
 
 func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*api.SimpleResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.identityService.SaveIdentity(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*api.SimpleResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.identityService.RevokeIdentityJoin(ctx, request)
 }
 
 // ************************************** Task module *******************************************************
 
-func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) error {
-	return nil
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) (*emptypb.Empty, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.taskService.SaveTask(ctx, request)
 }
 
 func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.DetailTaskRequest) (*api.TaskDetail, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.taskService.GetDetailTask(ctx, request)
 }
 
 func (gc *GrpcClient) ListTask(ctx context.Context, request *api.TaskListRequest) (*api.TaskListResponse, error) {
-	return nil, nil
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.taskService.ListTask(ctx, request)
 }
 
 func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.TaskEventRequest) (*api.TaskEventResponse, error) {
-	return nil, nil
-}
-
-// DataChain Access
-func (gc *GrpcClient) BlockByHash(ctx context.Context, hash common.Hash) (*types.Block, error) {
-	/*conn, err := grpc.Dial(address, grpc.WithInsecure(), grpc.WithBlock())
-	if err != nil {
-		log.Fatalf("did not connect: %v", err)
-	}
-	defer conn.Close()
-	c := pb.NewGreeterClient(conn)
-
-	// Contact the server and print out its response.
-	name := defaultName
-	if len(os.Args) > 1 {
-		name = os.Args[1]
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	r, err := c.SayHello(ctx, &pb.HelloRequest{Name: name})
-	if err != nil {
-		log.Fatalf("could not greet: %v", err)
-	}
-	log.Printf("Greeting: %s", r.GetMessage())*/
-	return nil, nil
+	return gc.taskService.ListTaskEvent(ctx, request)
 }
