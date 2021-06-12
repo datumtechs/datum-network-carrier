@@ -14,3 +14,9 @@ type DatabaseWriter interface {
 type DatabaseDeleter interface {
 	Delete(key []byte) error
 }
+
+type KeyValueStore interface {
+	DatabaseReader
+	DatabaseWriter
+	DatabaseDeleter
+}
