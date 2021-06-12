@@ -133,27 +133,34 @@ func (dc *DataChain) HasBlock(hash common.Hash, number uint64) bool {
 	return rawdb.HasBody(dc.db, hash, number)
 }
 
-// SetSeedNode saves the seed node info to database.
-func (s *DataChain) SetSeedNode (seed *types.SeedNodeInfo) error {
+func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+	return types.NONCONNECTED, nil
+}
+
+func (dc *DataChain) DeleteSeedNode(id string) error {
 	return nil
 }
 
-func (s *DataChain) GetSeedNode (id string) (*types.SeedNodeInfo, error) {
+func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
 	return nil, nil
 }
 
-func (s *DataChain) GetSeedNodeList () ([]*types.SeedNodeInfo, error) {
+func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
 	return nil, nil
 }
 
-func (s *DataChain) SetRegisterNode (node *types.RegisteredNodeInfo) error {
+func (dc *DataChain) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+	return types.NONCONNECTED, nil
+}
+
+func (dc *DataChain) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
 	return nil
 }
 
-func (s *DataChain) GetRegisterNode (id string) (*types.RegisteredNodeInfo, error) {
+func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
 	return nil, nil
 }
 
-func (s *DataChain) GetRegisterNodeList () ([]*types.RegisteredNodeInfo, error) {
+func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	return nil, nil
 }
