@@ -2,8 +2,30 @@ syntax = "proto3";
 
 package db;
 
-message TestData {
-    bool           deleted = 1;
-    repeated bytes reps    = 2;
-    repeated int32 age     = 3;
+import "repos/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/db";
+
+message SeedNodePB {
+    string id            = 1;
+    string internal_ip   = 2;
+    string internal_port = 3;
+    int32  conn_state    = 4;
+}
+
+message SeedNodeListPB {
+    repeated SeedNodePB seed_node_list = 1;
+}
+
+message RegisteredNodePB {
+    string id            = 1;
+    string internal_ip   = 2;
+    string internal_port = 3;
+    string external_ip   = 4;
+    string external_port = 5;
+    int32  conn_state    = 6;
+}
+
+message RegisteredNodeListPB {
+    repeated RegisteredNodePB registered_node_list = 1;
 }
