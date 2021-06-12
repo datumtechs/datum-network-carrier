@@ -14,6 +14,7 @@ type Service struct {
 	processingLock          sync.RWMutex
 	config 					*params.CarrierConfig
 	proxy 					*core.DataCenter
+	datachain 				*core.DataChain
 	ctx                     context.Context
 	cancel                  context.CancelFunc
 	mempool 				*core.Mempool
@@ -37,6 +38,8 @@ func NewService(ctx context.Context, config *params.CarrierConfig, dataCenterCon
 		mempool:        core.NewMempool(nil), // todo need  set mempool cfg
 	}
 	// todo: some logic could be added...
+
+	// todo: set datachain....
 	return s, nil
 }
 
@@ -68,6 +71,7 @@ func (s *Service) Status() error {
 func (s *Service) SendMsg (msg types.Msg) error {
 	return s.mempool.Add(msg)
 }
+
 func (s *Service) SetSeedNode (seed *types.SeedNodeInfo) (types.NodeConnStatus,error) {
 	return types.NONCONNECTED, nil
 }
@@ -92,3 +96,4 @@ func (s *Service) GetRegisterNode (typ types.RegisteredNodeType, id string) (*ty
 func (s *Service) GetRegisterNodeList (typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	return nil, nil
 }
+
