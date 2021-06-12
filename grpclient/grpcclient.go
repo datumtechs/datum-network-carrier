@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"google.golang.org/grpc"
+	"time"
 )
 
 // Client defines typed wrapper for the CenterData GRPC API.
@@ -49,6 +50,69 @@ func (gc *GrpcClient) Close() {
 
 func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 	return gc.c
+}
+
+// ************************************** MetaData module *******************************************************
+
+// MetaDataSave saves new metadata to database.
+func (gc *GrpcClient) MetaDataSave(ctx context.Context, request *api.MetaDataSaveRequest) (*api.MetaDataSaveResponse, error) {
+	cctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.metadataService.MetaDataSave(cctx, request)
+}
+
+func (gc *GrpcClient) GetMetaDataSummaryList(ctx context.Context) (*api.MetaDataSummaryListResponse, error) {
+	return nil, nil
+}
+
+func (gc *GrpcClient) GetMetaDataSummaryByState(ctx context.Context, request *api.MetaDataSummaryByStateRequest) (*api.MetaDataSummaryByStateResponse, error) {
+	return nil, nil
+}
+
+func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMetaDataRequest) (*api.SimpleResponse, error) {
+	return nil, nil
+}
+
+// ************************************** Resource module *******************************************************
+
+func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*api.PublishPowerResponse, error) {
+	return nil, nil
+}
+
+func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*api.SimpleResponse, error) {
+	return nil, nil
+}
+
+func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerTotalSummaryListResponse, error) {
+	return nil, nil
+}
+
+// ************************************** Identity module *******************************************************
+
+func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*api.SimpleResponse, error) {
+	return nil, nil
+}
+
+func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*api.SimpleResponse, error) {
+	return nil, nil
+}
+
+// ************************************** Task module *******************************************************
+
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) error {
+	return nil
+}
+
+func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.DetailTaskRequest) (*api.TaskDetail, error) {
+	return nil, nil
+}
+
+func (gc *GrpcClient) ListTask(ctx context.Context, request *api.TaskListRequest) (*api.TaskListResponse, error) {
+	return nil, nil
+}
+
+func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.TaskEventRequest) (*api.TaskEventResponse, error) {
+	return nil, nil
 }
 
 // DataChain Access
