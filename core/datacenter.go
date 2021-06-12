@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"sync"
 	"sync/atomic"
@@ -15,13 +14,7 @@ type DataCenter struct {
 	config 			*params.DataCenterConfig
 	client 			*grpclient.GrpcClient
 	mu     			sync.RWMutex 	// global mutex for locking data center operations.
-	procmu 			sync.RWMutex 	// data processor lock
-
-	// grpc service
-	metadataService api.MetaDataServiceClient
-	resourceService api.ResourceServiceClient
-	identityService api.IdentityServiceClient
-	taskService 	api.TaskServiceClient
+	serviceMu 		sync.RWMutex 	// data processor lock
 
 	processor 		Processor	 	// block processor interface
 	running     	int32         	// running must be called atomically
@@ -40,10 +33,6 @@ func NewDataCenter(config *params.DataCenterConfig) (*DataCenter, error) {
 	dc := &DataCenter{
 		config:          config,
 		client:          client,
-		metadataService: api.NewMetaDataServiceClient(client.GetClientConn()),
-		resourceService: api.NewResourceServiceClient(client.GetClientConn()),
-		identityService: api.NewIdentityServiceClient(client.GetClientConn()),
-		taskService:     api.NewTaskServiceClient(client.GetClientConn()),
 	}
 	return dc, nil
 }
@@ -53,37 +42,51 @@ func (dc *DataCenter) getProcInterrupt() bool {
 }
 
 func (dc *DataCenter) SetProcessor(processor Processor) {
-	dc.procmu.Lock()
-	defer dc.procmu.Unlock()
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	// do setting...
 	dc.processor = processor
 }
 
 func (dc *DataCenter) Insert(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	return nil
 }
 
 func (dc *DataCenter) Update(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	return nil
 }
 
 func (dc *DataCenter) Delete(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	return nil
 }
 
 func (dc *DataCenter) MetadataList(nodeId string) (types.MetadataArray, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	return nil, nil
 }
 
 func (dc *DataCenter) ResourceList(nodeId string) (types.ResourceArray, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	return nil, nil
 }
 
 func (dc *DataCenter) IdentityList(nodeId string) (types.IdentityArray, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	return nil, nil
 }
 
 func (dc *DataCenter) TaskDataList(nodeId string) (types.TaskDataArray, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
 	return nil, nil
 }
 

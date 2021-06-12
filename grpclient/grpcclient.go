@@ -4,12 +4,19 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/core/types"
+	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"google.golang.org/grpc"
 )
 
 // Client defines typed wrapper for the CenterData GRPC API.
 type GrpcClient struct {
 	c *grpc.ClientConn
+
+	// grpc service
+	metadataService api.MetaDataServiceClient
+	resourceService api.ResourceServiceClient
+	identityService api.IdentityServiceClient
+	taskService 	api.TaskServiceClient
 }
 
 // Dial connects a client to the given URL.
@@ -27,7 +34,13 @@ func DialContext(ctx context.Context, grpcurl string) (*GrpcClient, error) {
 
 // NewClient creates a client that uses the given GRPC client.
 func NewGrpcClient(c *grpc.ClientConn) *GrpcClient {
-	return &GrpcClient{c: c}
+	return &GrpcClient{
+		c: c,
+		metadataService: api.NewMetaDataServiceClient(c),
+		resourceService: api.NewResourceServiceClient(c),
+		identityService: api.NewIdentityServiceClient(c),
+		taskService:     api.NewTaskServiceClient(c),
+	}
 }
 
 func (gc *GrpcClient) Close() {
