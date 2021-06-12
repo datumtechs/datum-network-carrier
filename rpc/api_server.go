@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/event"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
@@ -21,6 +22,9 @@ var (
 	ErrSetJobNodeInfoStr = "Failed to set job node info"
 	ErrDeleteJobNodeInfoStr = "Failed to delete job node info"
 	ErrSendPowerMsgStr = "Failed to send powerMsg"
+	ErrSendTaskMsgStr = "Failed to send taskMsg"
+
+	ErrReportTaskEventStr = "Failed to report taskEvent"
 )
 
 type yarnServiceServer struct {
@@ -285,10 +289,20 @@ func (svr *yarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 	}, nil
 }
 func (svr *yarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
+	var err error
 	go func() {
-		svr.b.SendTaskEvent()
+		err = svr.b.SendTaskEvent(&event.TaskEvent{
+			Type:       req.TaskEvent.Type,
+			Identity:   req.TaskEvent.IdentityId,
+			TaskId:     req.TaskEvent.TaskId,
+			Content:    req.TaskEvent.Content,
+			CreateTime: req.TaskEvent.CreateAt,
+		})
 	}()
-	return nil, nil
+	if nil != err {
+		return nil, NewRpcBizErr(ErrReportTaskEventStr)
+	}
+	return &pb.SimpleResponseCode{Status: 0, Msg:  OK}, nil
 }
 func (svr *yarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
 	return nil, nil
@@ -403,5 +417,75 @@ func (svr *taskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 	return nil, nil
 }
 func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
-	return nil, nil
+	taskMsg := new(types.TaskMsg)
+	taskMsg.Data.TaskName = req.TaskName
+	taskMsg.Data.CreateAt = uint64(time.Now().UnixNano())
+	taskMsg.Data.Owner.Name = req.Owner.MemberInfo.Name
+	taskMsg.Data.Owner.NodeId = req.Owner.MemberInfo.NodeId
+	taskMsg.Data.Owner.IdentityId = req.Owner.MemberInfo.IdentityId
+	taskMsg.Data.Owner.MetaData.ColumnIndexList = req.Owner.MetaDataInfo.ColumnIndexList
+	taskMsg.Data.Owner.MetaData.MetaId = req.Owner.MetaDataInfo.MetaDataId
+
+	partners := make([]*types.TaskSupplier, len(req.Partners))
+	for i, v := range req.Partners {
+		partner := &types.TaskSupplier{
+			NodeAlias: &types.NodeAlias{
+				Name: v.MemberInfo.Name,
+				NodeId: v.MemberInfo.NodeId,
+				IdentityId: v.MemberInfo.IdentityId,
+			},
+			MetaData: &types.SupplierMetaData{
+				MetaId: v.MetaDataInfo.MetaDataId,
+				ColumnIndexList: v.MetaDataInfo.ColumnIndexList,
+			},
+		}
+		partners[i] = partner
+	}
+	taskMsg.Data.Partners = partners
+
+	receivers := make([]*types.TaskResultReceiver, len(req.Receivers))
+	for i, v := range req.Receivers {
+
+		providers := make([]*types.NodeAlias, len(v.Providers))
+		for j, val := range v.Providers {
+			provider := &types.NodeAlias{
+				Name:  val.Name,
+				NodeId: val.NodeId,
+				IdentityId: val.IdentityId,
+			}
+			providers[j] = provider
+		}
+
+		receiver := &types.TaskResultReceiver{
+			NodeAlias: &types.NodeAlias{
+				Name: v.MemberInfo.Name,
+				NodeId: v.MemberInfo.NodeId,
+				IdentityId: v.MemberInfo.IdentityId,
+			},
+			Providers: providers,
+		}
+
+		receivers[i] = receiver
+	}
+	taskMsg.Data.Receivers = receivers
+
+	taskMsg.Data.CalculateContractCode = req.CalculateContractcode
+	taskMsg.Data.DataSplitContractCode = req.DatasplitContractcode
+	taskMsg.Data.OperationCost = &types.TaskOperationCost{
+		Processor: req.OperationCost.CostProcessor,
+		Mem: req.OperationCost.CostMem,
+		Bandwidth: req.OperationCost.CostBandwidth,
+		Duration: req.OperationCost.Duration,
+	}
+	taskId := taskMsg.GetTaskId()
+
+	err := svr.b.SendMsg(taskMsg)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrSendTaskMsgStr)
+	}
+	return &pb.PublishTaskDeclareResponse{
+		Status: 0,
+		Msg: OK,
+		TaskId: taskId,
+	}, nil
 }
