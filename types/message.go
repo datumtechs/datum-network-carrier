@@ -299,7 +299,7 @@ type TaskSupplier struct {
 
 type SupplierMetaData struct {
 	MetaId          string   `json:"metaId"`
-	ColumnIndexList []uint32 `json:"columnIndexList"`
+	ColumnIndexList []uint64 `json:"columnIndexList"`
 }
 
 type TaskResultReceiver struct {
