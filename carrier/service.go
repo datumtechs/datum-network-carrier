@@ -4,9 +4,7 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
 
@@ -71,35 +69,3 @@ func (s *Service) Status() error {
 	return nil
 }
 
-func (s *Service) SendMsg(msg types.Msg) error {
-	return s.mempool.Add(msg)
-}
-
-func (s *Service) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
-	return types.NONCONNECTED, nil
-}
-func (s *Service) DeleteSeedNode(id string) error {
-	return nil
-}
-func (s *Service) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
-	return nil, nil
-}
-func (s *Service) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
-	return nil, nil
-}
-func (s *Service) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
-	return types.NONCONNECTED, nil
-}
-func (s *Service) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
-	return nil
-}
-func (s *Service) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
-	return nil, nil
-}
-func (s *Service) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	return nil, nil
-}
-
-func (s *Service) SendTaskEvent(event *event.TaskEvent) error  {
-	return s.resourceManager.SendTaskEvent(event)
-}

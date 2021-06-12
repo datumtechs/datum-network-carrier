@@ -6,9 +6,9 @@ import (
 )
 
 type Backend interface {
-	Start()
-	Stop() error
-	Status() error
+	//Start()
+	//Stop() error
+	//Status() error
 	SendMsg (msg types.Msg) error
  	SetSeedNode (seed *types.SeedNodeInfo) (types.NodeConnStatus,error)
 	DeleteSeedNode(id string) error
