@@ -3,6 +3,7 @@ package carrier
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
@@ -16,6 +17,7 @@ type Service struct {
 	ctx                     context.Context
 	cancel                  context.CancelFunc
 	mempool 				*core.Mempool
+	TaskMng 				*task.TaskManager
 	runError                error
 }
 
@@ -66,7 +68,10 @@ func (s *Service) Status() error {
 func (s *Service) SendMsg (msg types.Msg) error {
 	return s.mempool.Add(msg)
 }
-func (s *Service) SetSeedNode (seed *types.SeedNodeInfo) error {
+func (s *Service) SetSeedNode (seed *types.SeedNodeInfo) (types.NodeConnStatus,error) {
+	return types.NONCONNECTED, nil
+}
+func (s *Service) DeleteSeedNode(id string) error {
 	return nil
 }
 func (s *Service) GetSeedNode (id string) (*types.SeedNodeInfo, error) {
@@ -75,12 +80,15 @@ func (s *Service) GetSeedNode (id string) (*types.SeedNodeInfo, error) {
 func (s *Service) GetSeedNodeList () ([]*types.SeedNodeInfo, error) {
 	return nil, nil
 }
-func (s *Service) SetRegisterNode (node *types.RegisteredNodeInfo) error {
+func (s *Service) SetRegisterNode (typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus,error) {
+	return types.NONCONNECTED, nil
+}
+func (s *Service) DeleteRegisterNode (typ types.RegisteredNodeType, id string) error {
 	return nil
 }
-func (s *Service) GetRegisterNode (id string) (*types.RegisteredNodeInfo, error) {
+func (s *Service) GetRegisterNode (typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
 	return nil, nil
 }
-func (s *Service) GetRegisterNodeList () ([]*types.RegisteredNodeInfo, error) {
+func (s *Service) GetRegisterNodeList (typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	return nil, nil
 }
