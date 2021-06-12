@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/event"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
@@ -21,6 +22,8 @@ var (
 	ErrSetJobNodeInfoStr = "Failed to set job node info"
 	ErrDeleteJobNodeInfoStr = "Failed to delete job node info"
 	ErrSendPowerMsgStr = "Failed to send powerMsg"
+
+	ErrReportTaskEventStr = "Failed to report taskEvent"
 )
 
 type yarnServiceServer struct {
@@ -285,10 +288,20 @@ func (svr *yarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 	}, nil
 }
 func (svr *yarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
+	var err error
 	go func() {
-		svr.b.SendTaskEvent()
+		err = svr.b.SendTaskEvent(&event.TaskEvent{
+			Type:       req.TaskEvent.Type,
+			Identity:   req.TaskEvent.IdentityId,
+			TaskId:     req.TaskEvent.TaskId,
+			Content:    req.TaskEvent.Content,
+			CreateTime: req.TaskEvent.CreateAt,
+		})
 	}()
-	return nil, nil
+	if nil != err {
+		return nil, NewRpcBizErr(ErrReportTaskEventStr)
+	}
+	return &pb.SimpleResponseCode{Status: 0, Msg:  OK}, nil
 }
 func (svr *yarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
 	return nil, nil
