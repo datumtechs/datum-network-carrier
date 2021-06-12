@@ -5,7 +5,7 @@ package rawdb
 import (
 	"encoding/binary"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/core/types"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
