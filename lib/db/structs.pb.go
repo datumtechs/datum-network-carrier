@@ -5,6 +5,7 @@ package db
 
 import (
 	fmt "fmt"
+	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
@@ -22,27 +23,28 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type TestData struct {
-	Deleted              bool     `protobuf:"varint,1,opt,name=deleted,proto3" json:"deleted,omitempty"`
-	Reps                 [][]byte `protobuf:"bytes,2,rep,name=reps,proto3" json:"reps,omitempty"`
-	Age                  []int32  `protobuf:"varint,3,rep,packed,name=age,proto3" json:"age,omitempty"`
+type SeedNodePB struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,3,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ConnState            int32    `protobuf:"varint,4,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *TestData) Reset()         { *m = TestData{} }
-func (m *TestData) String() string { return proto.CompactTextString(m) }
-func (*TestData) ProtoMessage()    {}
-func (*TestData) Descriptor() ([]byte, []int) {
+func (m *SeedNodePB) Reset()         { *m = SeedNodePB{} }
+func (m *SeedNodePB) String() string { return proto.CompactTextString(m) }
+func (*SeedNodePB) ProtoMessage()    {}
+func (*SeedNodePB) Descriptor() ([]byte, []int) {
 	return fileDescriptor_5465d80e8cba02e3, []int{0}
 }
-func (m *TestData) XXX_Unmarshal(b []byte) error {
+func (m *SeedNodePB) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *TestData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SeedNodePB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_TestData.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SeedNodePB.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -52,59 +54,263 @@ func (m *TestData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *TestData) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TestData.Merge(m, src)
+func (m *SeedNodePB) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SeedNodePB.Merge(m, src)
 }
-func (m *TestData) XXX_Size() int {
+func (m *SeedNodePB) XXX_Size() int {
 	return m.Size()
 }
-func (m *TestData) XXX_DiscardUnknown() {
-	xxx_messageInfo_TestData.DiscardUnknown(m)
+func (m *SeedNodePB) XXX_DiscardUnknown() {
+	xxx_messageInfo_SeedNodePB.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_TestData proto.InternalMessageInfo
+var xxx_messageInfo_SeedNodePB proto.InternalMessageInfo
 
-func (m *TestData) GetDeleted() bool {
+func (m *SeedNodePB) GetId() string {
 	if m != nil {
-		return m.Deleted
+		return m.Id
 	}
-	return false
+	return ""
 }
 
-func (m *TestData) GetReps() [][]byte {
+func (m *SeedNodePB) GetInternalIp() string {
 	if m != nil {
-		return m.Reps
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *SeedNodePB) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+func (m *SeedNodePB) GetConnState() int32 {
+	if m != nil {
+		return m.ConnState
+	}
+	return 0
+}
+
+type SeedNodeListPB struct {
+	SeedNodeList         []*SeedNodePB `protobuf:"bytes,1,rep,name=seed_node_list,json=seedNodeList,proto3" json:"seed_node_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *SeedNodeListPB) Reset()         { *m = SeedNodeListPB{} }
+func (m *SeedNodeListPB) String() string { return proto.CompactTextString(m) }
+func (*SeedNodeListPB) ProtoMessage()    {}
+func (*SeedNodeListPB) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5465d80e8cba02e3, []int{1}
+}
+func (m *SeedNodeListPB) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SeedNodeListPB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SeedNodeListPB.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SeedNodeListPB) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SeedNodeListPB.Merge(m, src)
+}
+func (m *SeedNodeListPB) XXX_Size() int {
+	return m.Size()
+}
+func (m *SeedNodeListPB) XXX_DiscardUnknown() {
+	xxx_messageInfo_SeedNodeListPB.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SeedNodeListPB proto.InternalMessageInfo
+
+func (m *SeedNodeListPB) GetSeedNodeList() []*SeedNodePB {
+	if m != nil {
+		return m.SeedNodeList
 	}
 	return nil
 }
 
-func (m *TestData) GetAge() []int32 {
+type RegisteredNodePB struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,3,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	ExternalPort         string   `protobuf:"bytes,5,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	ConnState            int32    `protobuf:"varint,6,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *RegisteredNodePB) Reset()         { *m = RegisteredNodePB{} }
+func (m *RegisteredNodePB) String() string { return proto.CompactTextString(m) }
+func (*RegisteredNodePB) ProtoMessage()    {}
+func (*RegisteredNodePB) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5465d80e8cba02e3, []int{2}
+}
+func (m *RegisteredNodePB) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RegisteredNodePB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RegisteredNodePB.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RegisteredNodePB) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisteredNodePB.Merge(m, src)
+}
+func (m *RegisteredNodePB) XXX_Size() int {
+	return m.Size()
+}
+func (m *RegisteredNodePB) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisteredNodePB.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisteredNodePB proto.InternalMessageInfo
+
+func (m *RegisteredNodePB) GetId() string {
 	if m != nil {
-		return m.Age
+		return m.Id
+	}
+	return ""
+}
+
+func (m *RegisteredNodePB) GetInternalIp() string {
+	if m != nil {
+		return m.InternalIp
+	}
+	return ""
+}
+
+func (m *RegisteredNodePB) GetInternalPort() string {
+	if m != nil {
+		return m.InternalPort
+	}
+	return ""
+}
+
+func (m *RegisteredNodePB) GetExternalIp() string {
+	if m != nil {
+		return m.ExternalIp
+	}
+	return ""
+}
+
+func (m *RegisteredNodePB) GetExternalPort() string {
+	if m != nil {
+		return m.ExternalPort
+	}
+	return ""
+}
+
+func (m *RegisteredNodePB) GetConnState() int32 {
+	if m != nil {
+		return m.ConnState
+	}
+	return 0
+}
+
+type RegisteredNodeListPB struct {
+	RegisteredNodeList   []*RegisteredNodePB `protobuf:"bytes,1,rep,name=registered_node_list,json=registeredNodeList,proto3" json:"registered_node_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}            `json:"-"`
+	XXX_unrecognized     []byte              `json:"-"`
+	XXX_sizecache        int32               `json:"-"`
+}
+
+func (m *RegisteredNodeListPB) Reset()         { *m = RegisteredNodeListPB{} }
+func (m *RegisteredNodeListPB) String() string { return proto.CompactTextString(m) }
+func (*RegisteredNodeListPB) ProtoMessage()    {}
+func (*RegisteredNodeListPB) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5465d80e8cba02e3, []int{3}
+}
+func (m *RegisteredNodeListPB) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RegisteredNodeListPB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RegisteredNodeListPB.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RegisteredNodeListPB) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RegisteredNodeListPB.Merge(m, src)
+}
+func (m *RegisteredNodeListPB) XXX_Size() int {
+	return m.Size()
+}
+func (m *RegisteredNodeListPB) XXX_DiscardUnknown() {
+	xxx_messageInfo_RegisteredNodeListPB.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RegisteredNodeListPB proto.InternalMessageInfo
+
+func (m *RegisteredNodeListPB) GetRegisteredNodeList() []*RegisteredNodePB {
+	if m != nil {
+		return m.RegisteredNodeList
 	}
 	return nil
 }
 
 func init() {
-	proto.RegisterType((*TestData)(nil), "db.TestData")
+	proto.RegisterType((*SeedNodePB)(nil), "db.SeedNodePB")
+	proto.RegisterType((*SeedNodeListPB)(nil), "db.SeedNodeListPB")
+	proto.RegisterType((*RegisteredNodePB)(nil), "db.RegisteredNodePB")
+	proto.RegisterType((*RegisteredNodeListPB)(nil), "db.RegisteredNodeListPB")
 }
 
 func init() { proto.RegisterFile("lib/db/structs.proto", fileDescriptor_5465d80e8cba02e3) }
 
 var fileDescriptor_5465d80e8cba02e3 = []byte{
-	// 134 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x12, 0xc9, 0xc9, 0x4c, 0xd2,
-	0x4f, 0x49, 0xd2, 0x2f, 0x2e, 0x29, 0x2a, 0x4d, 0x2e, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9,
-	0x17, 0x62, 0x4a, 0x49, 0x52, 0xf2, 0xe2, 0xe2, 0x08, 0x49, 0x2d, 0x2e, 0x71, 0x49, 0x2c, 0x49,
-	0x14, 0x92, 0xe0, 0x62, 0x4f, 0x49, 0xcd, 0x49, 0x2d, 0x49, 0x4d, 0x91, 0x60, 0x54, 0x60, 0xd4,
-	0xe0, 0x08, 0x82, 0x71, 0x85, 0x84, 0xb8, 0x58, 0x8a, 0x52, 0x0b, 0x8a, 0x25, 0x98, 0x14, 0x98,
-	0x35, 0x78, 0x82, 0xc0, 0x6c, 0x21, 0x01, 0x2e, 0xe6, 0xc4, 0xf4, 0x54, 0x09, 0x66, 0x05, 0x66,
-	0x0d, 0xd6, 0x20, 0x10, 0xd3, 0x89, 0xe7, 0xc4, 0x23, 0x39, 0xc6, 0x0b, 0x8f, 0xe4, 0x18, 0x1f,
-	0x3c, 0x92, 0x63, 0x4c, 0x62, 0x03, 0x5b, 0x62, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x60, 0xf1,
-	0xb3, 0x6a, 0x7c, 0x00, 0x00, 0x00,
+	// 339 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x92, 0xcf, 0x4a, 0xc3, 0x40,
+	0x10, 0xc6, 0xd9, 0xf4, 0x0f, 0x74, 0x5a, 0x83, 0x84, 0x1c, 0x82, 0x60, 0x5b, 0xda, 0x4b, 0x2e,
+	0x26, 0xa0, 0xe2, 0x03, 0x54, 0xa8, 0x08, 0x22, 0x25, 0xbd, 0x79, 0x30, 0x24, 0xdd, 0x35, 0x2e,
+	0xc4, 0x4c, 0xd8, 0x9d, 0xa2, 0x57, 0xdf, 0xce, 0x8b, 0xe0, 0x23, 0x48, 0x9f, 0x44, 0xba, 0x31,
+	0xad, 0xb6, 0x5e, 0xbd, 0x25, 0xbf, 0x7c, 0xf9, 0x98, 0xf9, 0x31, 0xe0, 0xe6, 0x32, 0x0d, 0x79,
+	0x1a, 0x6a, 0x52, 0xcb, 0x05, 0xe9, 0xa0, 0x54, 0x48, 0xe8, 0x58, 0x3c, 0x3d, 0x1a, 0x2b, 0x51,
+	0xa2, 0x0e, 0x0d, 0x48, 0x97, 0x0f, 0x61, 0x86, 0x19, 0x9a, 0x17, 0xf3, 0x54, 0x05, 0x47, 0xaf,
+	0x0c, 0x60, 0x2e, 0x04, 0xbf, 0x45, 0x2e, 0x66, 0x13, 0xc7, 0x06, 0x4b, 0x72, 0x8f, 0x0d, 0x99,
+	0xdf, 0x89, 0x2c, 0xc9, 0x9d, 0x01, 0x74, 0x65, 0x41, 0x42, 0x15, 0x49, 0x1e, 0xcb, 0xd2, 0xb3,
+	0xcc, 0x07, 0xa8, 0xd1, 0x75, 0xe9, 0x8c, 0xe1, 0x60, 0x13, 0x28, 0x51, 0x91, 0xd7, 0x30, 0x91,
+	0x5e, 0x0d, 0x67, 0xa8, 0xc8, 0x39, 0x06, 0x58, 0x60, 0x51, 0xc4, 0x9a, 0x12, 0x12, 0x5e, 0x73,
+	0xc8, 0xfc, 0x56, 0xd4, 0x59, 0x93, 0xf9, 0x1a, 0x8c, 0xa6, 0x60, 0xd7, 0x23, 0xdc, 0x48, 0x4d,
+	0xb3, 0x89, 0x73, 0x0e, 0xb6, 0x16, 0x82, 0xc7, 0x05, 0x72, 0x11, 0xe7, 0x52, 0x93, 0xc7, 0x86,
+	0x0d, 0xbf, 0x7b, 0x6a, 0x07, 0x3c, 0x0d, 0xb6, 0xe3, 0x46, 0x3d, 0xfd, 0xe3, 0xbf, 0xd1, 0x3b,
+	0x83, 0xc3, 0x48, 0x64, 0x52, 0x93, 0x50, 0xff, 0xbc, 0xd1, 0x00, 0xba, 0xe2, 0x65, 0xdb, 0xd2,
+	0xac, 0x5a, 0x6a, 0x54, 0xb5, 0x6c, 0x02, 0xa6, 0xa5, 0x55, 0xb5, 0xd4, 0xf0, 0x0f, 0x2f, 0xed,
+	0x5d, 0x2f, 0xf7, 0xe0, 0xfe, 0x5e, 0xe7, 0xdb, 0xce, 0x14, 0x5c, 0xb5, 0xe1, 0x7b, 0x8e, 0xdc,
+	0xb5, 0xa3, 0x5d, 0x0d, 0x91, 0xa3, 0xf6, 0x9a, 0x26, 0x17, 0x6f, 0xab, 0x3e, 0xfb, 0x58, 0xf5,
+	0xd9, 0xe7, 0xaa, 0xcf, 0xee, 0xfc, 0x4c, 0xd2, 0xe3, 0x32, 0x0d, 0x16, 0xf8, 0x14, 0x46, 0xa8,
+	0x05, 0x51, 0x32, 0xcd, 0xf1, 0x39, 0xbc, 0x4c, 0x94, 0x92, 0x42, 0x9d, 0x5c, 0x61, 0x58, 0x9d,
+	0x5a, 0xda, 0x36, 0xa7, 0x73, 0xf6, 0x15, 0x00, 0x00, 0xff, 0xff, 0x70, 0x3e, 0xf9, 0x05, 0x7b,
+	0x02, 0x00, 0x00,
 }
 
-func (m *TestData) Marshal() (dAtA []byte, err error) {
+func (m *SeedNodePB) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -114,12 +320,12 @@ func (m *TestData) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *TestData) MarshalTo(dAtA []byte) (int, error) {
+func (m *SeedNodePB) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *TestData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SeedNodePB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -128,43 +334,180 @@ func (m *TestData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Age) > 0 {
-		dAtA2 := make([]byte, len(m.Age)*10)
-		var j1 int
-		for _, num1 := range m.Age {
-			num := uint64(num1)
-			for num >= 1<<7 {
-				dAtA2[j1] = uint8(uint64(num)&0x7f | 0x80)
-				num >>= 7
-				j1++
-			}
-			dAtA2[j1] = uint8(num)
-			j1++
-		}
-		i -= j1
-		copy(dAtA[i:], dAtA2[:j1])
-		i = encodeVarintStructs(dAtA, i, uint64(j1))
+	if m.ConnState != 0 {
+		i = encodeVarintStructs(dAtA, i, uint64(m.ConnState))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.InternalPort)))
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Reps) > 0 {
-		for iNdEx := len(m.Reps) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.Reps[iNdEx])
-			copy(dAtA[i:], m.Reps[iNdEx])
-			i = encodeVarintStructs(dAtA, i, uint64(len(m.Reps[iNdEx])))
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SeedNodeListPB) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SeedNodeListPB) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SeedNodeListPB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.SeedNodeList) > 0 {
+		for iNdEx := len(m.SeedNodeList) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.SeedNodeList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintStructs(dAtA, i, uint64(size))
+			}
 			i--
-			dAtA[i] = 0x12
+			dAtA[i] = 0xa
 		}
 	}
-	if m.Deleted {
+	return len(dAtA) - i, nil
+}
+
+func (m *RegisteredNodePB) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RegisteredNodePB) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RegisteredNodePB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.ConnState != 0 {
+		i = encodeVarintStructs(dAtA, i, uint64(m.ConnState))
 		i--
-		if m.Deleted {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
+		dAtA[i] = 0x30
+	}
+	if len(m.ExternalPort) > 0 {
+		i -= len(m.ExternalPort)
+		copy(dAtA[i:], m.ExternalPort)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.ExternalPort)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ExternalIp) > 0 {
+		i -= len(m.ExternalIp)
+		copy(dAtA[i:], m.ExternalIp)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.ExternalIp)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.InternalPort) > 0 {
+		i -= len(m.InternalPort)
+		copy(dAtA[i:], m.InternalPort)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.InternalPort)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.InternalIp) > 0 {
+		i -= len(m.InternalIp)
+		copy(dAtA[i:], m.InternalIp)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintStructs(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RegisteredNodeListPB) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RegisteredNodeListPB) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RegisteredNodeListPB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.RegisteredNodeList) > 0 {
+		for iNdEx := len(m.RegisteredNodeList) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.RegisteredNodeList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintStructs(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
 		}
-		i--
-		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -180,27 +523,97 @@ func encodeVarintStructs(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *TestData) Size() (n int) {
+func (m *SeedNodePB) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Deleted {
-		n += 2
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
 	}
-	if len(m.Reps) > 0 {
-		for _, b := range m.Reps {
-			l = len(b)
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
+	}
+	if m.ConnState != 0 {
+		n += 1 + sovStructs(uint64(m.ConnState))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *SeedNodeListPB) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.SeedNodeList) > 0 {
+		for _, e := range m.SeedNodeList {
+			l = e.Size()
 			n += 1 + l + sovStructs(uint64(l))
 		}
 	}
-	if len(m.Age) > 0 {
-		l = 0
-		for _, e := range m.Age {
-			l += sovStructs(uint64(e))
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *RegisteredNodePB) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
+	}
+	l = len(m.InternalIp)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
+	}
+	l = len(m.InternalPort)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
+	}
+	l = len(m.ExternalIp)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
+	}
+	l = len(m.ExternalPort)
+	if l > 0 {
+		n += 1 + l + sovStructs(uint64(l))
+	}
+	if m.ConnState != 0 {
+		n += 1 + sovStructs(uint64(m.ConnState))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *RegisteredNodeListPB) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.RegisteredNodeList) > 0 {
+		for _, e := range m.RegisteredNodeList {
+			l = e.Size()
+			n += 1 + l + sovStructs(uint64(l))
 		}
-		n += 1 + sovStructs(uint64(l)) + l
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -214,7 +627,7 @@ func sovStructs(x uint64) (n int) {
 func sozStructs(x uint64) (n int) {
 	return sovStructs(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *TestData) Unmarshal(dAtA []byte) error {
+func (m *SeedNodePB) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -237,37 +650,17 @@ func (m *TestData) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: TestData: wiretype end group for non-group")
+			return fmt.Errorf("proto: SeedNodePB: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TestData: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SeedNodePB: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Deleted", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowStructs
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.Deleted = bool(v != 0)
-		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Reps", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowStructs
@@ -277,100 +670,507 @@ func (m *TestData) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthStructs
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthStructs
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Reps = append(m.Reps, make([]byte, postIndex-iNdEx))
-			copy(m.Reps[len(m.Reps)-1], dAtA[iNdEx:postIndex])
+			m.Id = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
-			if wireType == 0 {
-				var v int32
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowStructs
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					v |= int32(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
 				}
-				m.Age = append(m.Age, v)
-			} else if wireType == 2 {
-				var packedLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowStructs
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					packedLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if packedLen < 0 {
-					return ErrInvalidLengthStructs
-				}
-				postIndex := iNdEx + packedLen
-				if postIndex < 0 {
-					return ErrInvalidLengthStructs
-				}
-				if postIndex > l {
+				if iNdEx >= l {
 					return io.ErrUnexpectedEOF
 				}
-				var elementCount int
-				var count int
-				for _, integer := range dAtA[iNdEx:postIndex] {
-					if integer < 128 {
-						count++
-					}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
 				}
-				elementCount = count
-				if elementCount != 0 && len(m.Age) == 0 {
-					m.Age = make([]int32, 0, elementCount)
-				}
-				for iNdEx < postIndex {
-					var v int32
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowStructs
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						v |= int32(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					m.Age = append(m.Age, v)
-				}
-			} else {
-				return fmt.Errorf("proto: wrong wireType = %d for field Age", wireType)
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnState", wireType)
+			}
+			m.ConnState = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ConnState |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipStructs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SeedNodeListPB) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowStructs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SeedNodeListPB: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SeedNodeListPB: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SeedNodeList", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SeedNodeList = append(m.SeedNodeList, &SeedNodePB{})
+			if err := m.SeedNodeList[len(m.SeedNodeList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipStructs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RegisteredNodePB) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowStructs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RegisteredNodePB: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RegisteredNodePB: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Id = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.InternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalIp = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalPort = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnState", wireType)
+			}
+			m.ConnState = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ConnState |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipStructs(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RegisteredNodeListPB) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowStructs
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RegisteredNodeListPB: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RegisteredNodeListPB: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RegisteredNodeList", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowStructs
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthStructs
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthStructs
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.RegisteredNodeList = append(m.RegisteredNodeList, &RegisteredNodePB{})
+			if err := m.RegisteredNodeList[len(m.RegisteredNodeList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipStructs(dAtA[iNdEx:])
