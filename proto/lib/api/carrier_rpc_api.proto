@@ -190,7 +190,7 @@ message UpdateJobNodeRequest {
 
 
 message ReportTaskEventRequest {
-  TaskEventShow task_event = 1;
+  TaskEventDeclare task_event = 1;
 }
 
 
@@ -558,6 +558,13 @@ message TaskEventShow {
   string                   create_at = 5;                   // 事件产生时间
 }
 
+message TaskEventDeclare {
+  string                   type = 1;                        // 事件类型码
+  string                   task_id = 2;                     // 事件对应的任务id
+  string                   identity_id = 3;                 // 产生事件的节点身份
+  string                   content = 4;                     // 事件内容
+  string                   create_at = 5;                   // 事件产生时间
+}
 
 
 // 任务数据供应者信息 (任务详情定义用)
