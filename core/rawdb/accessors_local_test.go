@@ -34,3 +34,32 @@ func TestSeedNode(t *testing.T) {
 	seedNodes = ReadAllSeedNodes(database)
 	assert.Assert(t, len(seedNodes) == 0)
 }
+
+func TestRegisteredNode(t *testing.T) {
+	// write seed
+	database := db.NewMemoryDatabase()
+	registered := &types.RegisteredNodeInfo{
+		Id:           "id",
+		InternalIp:   "internalIp",
+		InternalPort: "9999",
+		ExternalIp:   "externalIp",
+		ExternalPort: "999",
+		ConnState:    1,
+	}
+	WriteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE, registered)
+
+	// get seed
+	r := ReadRegisterNode(database, "id", types.PREFIX_TYPE_JOBNODE)
+	t.Logf("registered info : %v", r)
+	assert.Assert(t, strings.EqualFold("id", r.Id))
+
+	// read all
+	registeredNodes := ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	assert.Assert(t, len(registeredNodes) == 1)
+
+	// delete
+	DeleteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+
+	registeredNodes = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	assert.Assert(t, len(registeredNodes) == 0)
+}
