@@ -28,7 +28,7 @@ func ReadSeedNode(db DatabaseReader, nodeId string) *types.SeedNodeInfo {
 				Id:           seed.Id,
 				InternalIp:   seed.InternalIp,
 				InternalPort: seed.InternalPort,
-				ConnState:    types.RegisterNodeConnectStatus(seed.ConnState),
+				ConnState:    types.NodeConnStatus(seed.ConnState),
 			}
 		}
 	}
@@ -52,7 +52,7 @@ func ReadAllSeedNodes(db DatabaseReader) []*types.SeedNodeInfo {
 			Id:           seed.Id,
 			InternalIp:   seed.InternalIp,
 			InternalPort: seed.InternalPort,
-			ConnState:    types.RegisterNodeConnectStatus(seed.ConnState),
+			ConnState:    types.NodeConnStatus(seed.ConnState),
 		})
 	}
 	return nodes
