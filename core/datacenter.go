@@ -2,9 +2,9 @@ package core
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core/types"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 	"sync/atomic"
 )
