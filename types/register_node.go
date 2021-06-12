@@ -6,13 +6,15 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 )
 
-type RegisterNodeConnectStatus int32
+type NodeConnStatus int32
 type RegisteredNodeType string
+func (status NodeConnStatus) Int32() int32 {return int32(status)}
+func (typ RegisteredNodeType) String() string {return string(typ)}
 
 const (
-	CONNECTED             RegisterNodeConnectStatus = 0
-	NONCONNECTED          RegisterNodeConnectStatus = -1
-	ENABLECOMPUTERESOURCE RegisterNodeConnectStatus = 1
+	CONNECTED             NodeConnStatus = 0
+	NONCONNECTED          NodeConnStatus = -1
+	ENABLECOMPUTERESOURCE NodeConnStatus = 1
 )
 
 const (
@@ -26,19 +28,19 @@ const (
 )
 
 type SeedNodeInfo struct {
-	Id           string                    `json:"id"`
-	InternalIp   string                    `json:"internalIp"`
-	InternalPort string                    `json:"internalPort"`
-	ConnState    RegisterNodeConnectStatus `json:"connState"`
+	Id           string         `json:"id"`
+	InternalIp   string         `json:"internalIp"`
+	InternalPort string         `json:"internalPort"`
+	ConnState    NodeConnStatus `json:"connState"`
 }
 
 type RegisteredNodeInfo struct {
-	Id           string                    `json:"id"`
-	InternalIp   string                    `json:"internalIp"`
-	InternalPort string                    `json:"internalPort"`
-	ExternalIp   string                    `json:"externalIp"`
-	ExternalPort string                    `json:"externalPort"`
-	ConnState    RegisterNodeConnectStatus `json:"connState"`
+	Id           string         `json:"id"`
+	InternalIp   string         `json:"internalIp"`
+	InternalPort string         `json:"internalPort"`
+	ExternalIp   string         `json:"externalIp"`
+	ExternalPort string         `json:"externalPort"`
+	ConnState    NodeConnStatus `json:"connState"`
 }
 func (seed *SeedNodeInfo) SeedNodeId() string {
 	if "" != seed.Id {

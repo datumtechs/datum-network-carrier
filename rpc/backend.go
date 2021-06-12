@@ -9,10 +9,12 @@ type Backend interface {
 	Stop() error
 	Status() error
 	SendMsg (msg types.Msg) error
- 	SetSeedNode (seed *types.SeedNodeInfo) error
+ 	SetSeedNode (seed *types.SeedNodeInfo) (types.NodeConnStatus,error)
+	DeleteSeedNode(id string) error
 	GetSeedNode (id string) (*types.SeedNodeInfo, error)
 	GetSeedNodeList () ([]*types.SeedNodeInfo, error)
-	SetRegisterNode (node *types.RegisteredNodeInfo) error
-	GetRegisterNode (id string) (*types.RegisteredNodeInfo, error)
-	GetRegisterNodeList () ([]*types.RegisteredNodeInfo, error)
+	SetRegisterNode (typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus,error)
+	DeleteRegisterNode (typ types.RegisteredNodeType, id string) error
+	GetRegisterNode (typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
+	GetRegisterNodeList (typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
 }
