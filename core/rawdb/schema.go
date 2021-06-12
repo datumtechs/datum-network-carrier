@@ -16,6 +16,14 @@ var (
 	// headBlockKey tracks the latest know full block's hash.
 	headBlockKey = []byte("LastBlock")
 
+	// seedNodeKey tracks the seed node list.
+	seedNodeKey = []byte("SeedNodeKey")
+
+	// resourceNodeKey tracks the node for calc node.
+	calcNodeKey = []byte("CalcNodeKey")
+
+	dataNodeKey = []byte("DataNodeKey")
+
 	// Data item prefixes
 	headerPrefix 		= []byte("h")	// headerPrefix + num (uint64 big endian) + hash -> header
 	headerHashSuffix 	= []byte("n")	// headerPrefix + num (uint64 big endian) + headerHashSuffix -> hash
