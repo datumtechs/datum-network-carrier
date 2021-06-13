@@ -39,6 +39,11 @@ var (
 		Usage: "Data directory for the databases and keystore",
 		Value: DefaultDataDir(),
 	}
+	// ClearDB prompts user to see if they want to remove any previously stored data at the data directory.
+	ClearDB = &cli.BoolFlag{
+		Name:  "clear-db",
+		Usage: "Prompt for clearing any previously stored data at the data directory",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
