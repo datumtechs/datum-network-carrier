@@ -5,6 +5,12 @@ import (
 	"math/big"
 )
 
+const (
+	DefaultHTTPHost = "localhost" // Default host interface for the HTTP RPC server
+	DefaultHTTPPort = 8545        // Default TCP port for the HTTP RPC server
+)
+
+
 // DataChainConfig is the core config which determines the datachain settings.
 type DataChainConfig struct {
 	ChainID *big.Int `json:"chainId"`
