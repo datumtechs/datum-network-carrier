@@ -51,6 +51,9 @@ func main() {
 		}
 
 		format := ctx.String(flags.LogFormat.Name)
+		if format == "" {
+			format = "text"
+		}
 		switch format {
 		case "text":
 			formatter := new(prefixed.TextFormatter)
@@ -101,6 +104,9 @@ func startNode(ctx *cli.Context) error {
 
 	// setting log level.
 	verbosity := ctx.String(flags.VerbosityFlag.Name)
+	if verbosity == "" {
+		verbosity = flags.VerbosityFlag.Value
+	}
 	level, err := logrus.ParseLevel(verbosity)
 	if err != nil {
 		return err
