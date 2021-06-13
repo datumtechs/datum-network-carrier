@@ -68,7 +68,7 @@ func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
 	var seedNodes dbtype.SeedNodeListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); err != nil {
-			log.WithError(err).Error("Failed to decode old seed nodes")
+			log.WithError(err).Panic("Failed to decode old seed nodes")
 		}
 
 	}
@@ -90,17 +90,45 @@ func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
 	}
 	data, err := seedNodes.Marshal()
 	if err != nil {
-		log.WithError(err).Error("Failed to encode seed node")
+		log.WithError(err).Panic("Failed to encode seed node")
 	}
 	if err := db.Put(seedNodeKey, data); err != nil {
-		log.WithError(err).Error("Failed to write seed node")
+		log.WithError(err).Panic("Failed to write seed node")
+	}
+}
+
+// DeleteSeedNode deletes the seed nodes from the database with a special id
+func DeleteSeedNode(db KeyValueStore, id string) {
+	blob, err := db.Get(seedNodeKey)
+	if err != nil {
+		log.Warn("Failed to load old seed nodes", "error", err)
+	}
+	var seedNodes dbtype.SeedNodeListPB
+	if len(blob) > 0 {
+		if err := seedNodes.Unmarshal(blob); err != nil {
+			log.WithError(err).Panic("Failed to decode old seed nodes")
+		}
+	}
+	// need to test.
+	for idx, s := range seedNodes.GetSeedNodeList() {
+		if strings.EqualFold(s.Id, id) {
+			seedNodes.SeedNodeList = append(seedNodes.SeedNodeList[:idx], seedNodes.SeedNodeList[idx+1:]...)
+			break
+		}
+	}
+	data, err := seedNodes.Marshal()
+	if err != nil {
+		log.WithError(err).Panic("Failed to encode seed nodes")
+	}
+	if err := db.Put(seedNodeKey, data); err != nil {
+		log.WithError(err).Panic("Failed to write seed nodes")
 	}
 }
 
 // DeleteSeedNodes deletes all the seed nodes from the database
 func DeleteSeedNodes(db DatabaseDeleter) {
 	if err := db.Delete(seedNodeKey); err != nil {
-		log.WithError(err).Error("Failed to delete seed node")
+		log.WithError(err).Panic("Failed to delete seed node")
 	}
 }
 
@@ -175,7 +203,7 @@ func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, reg
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if len(blob) > 0 {
 		if err := registeredNodes.Unmarshal(blob); err != nil {
-			log.WithError(err).Error("Failed to decode old registered nodes")
+			log.WithError(err).Panic("Failed to decode old registered nodes")
 		}
 
 	}
