@@ -1,14 +1,17 @@
 package params
 
-import "fmt"
+import (
+	"fmt"
+	"math/big"
+)
 
-// CarrierConfig is the core config which determines the rosettaNet settings.
-type CarrierConfig struct {
-
+// DataChainConfig is the core config which determines the datachain settings.
+type DataChainConfig struct {
+	ChainID *big.Int `json:"chainId"`
 }
 
 // String implements the fmt.Stringer interface.
-func (c *CarrierConfig) String() string {
+func (c *DataChainConfig) String() string {
 	return fmt.Sprintf("{%v}", "config")
 }
 
