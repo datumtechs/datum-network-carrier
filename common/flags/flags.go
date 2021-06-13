@@ -3,6 +3,7 @@ package flags
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	"github.com/urfave/cli/v2"
+	"github.com/urfave/cli/v2/altsrc"
 	"path/filepath"
 	"runtime"
 )
@@ -62,6 +63,22 @@ var (
 		Usage: "Target directory of the restored database",
 		Value: DefaultDataDir(),
 	}
+	// ConfigFileFlag specifies the filepath to load flag values.
+	ConfigFileFlag = &cli.StringFlag{
+		Name:  "config-file",
+		Usage: "The filepath to a yaml file with flag values",
+	}
+	// LogFormat specifies the log output format.
+	LogFormat = &cli.StringFlag{
+		Name:  "log-format",
+		Usage: "Specify log formatting. Supports: text, json, fluentd, journald.",
+		Value: "text",
+	}
+	// LogFileName specifies the log output file name.
+	LogFileName = &cli.StringFlag{
+		Name:  "log-file",
+		Usage: "Specify log file name, relative or absolute",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
@@ -80,4 +97,14 @@ func DefaultDataDir() string {
 	}
 	// As we cannot guess a stable location, return empty and handle later
 	return ""
+}
+
+// LoadFlagsFromConfig sets flags values from config file if ConfigFileFlag is set.
+func LoadFlagsFromConfig(cliCtx *cli.Context, flags []cli.Flag) error {
+	if cliCtx.IsSet(ConfigFileFlag.Name) {
+		if err := altsrc.InitInputSourceWithContext(flags, altsrc.NewYamlSourceFromFlagFunc(ConfigFileFlag.Name))(cliCtx); err != nil {
+			return err
+		}
+	}
+	return nil
 }
