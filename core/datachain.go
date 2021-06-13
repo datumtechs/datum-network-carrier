@@ -162,9 +162,9 @@ func (dc *DataChain) DeleteRegisterNode(typ types.RegisteredNodeType, id string)
 }
 
 func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
-	return nil, nil
+	return rawdb.ReadRegisterNode(dc.db, typ, id), nil
 }
 
 func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	return nil, nil
+	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
 }
