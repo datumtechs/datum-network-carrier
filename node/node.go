@@ -21,6 +21,7 @@ import (
 // services to a service registry.
 type CarrierNode struct {
 	cliCtx          *cli.Context
+	config 			*Config
 	ctx             context.Context
 	cancel          context.CancelFunc
 	services        *common.ServiceRegistry
@@ -37,12 +38,25 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	// todo: to init config
 	cfg := makeConfig(cliCtx)
 
+	// Copy config and resolve the datadir so future changes to the current
+	// working directory don't affect the node.
+	confCopy := cfg.Node
+	conf := &confCopy
+	if conf.DataDir != "" {
+		absdatadir, err := filepath.Abs(conf.DataDir)
+		if err != nil {
+			return nil, err
+		}
+		conf.DataDir = absdatadir
+	}
+
 	registry := common.NewServiceRegistry()
 
 	ctx, cancel := context.WithCancel(cliCtx.Context)
 	node := &CarrierNode{
 		cliCtx:          cliCtx,
 		ctx:             ctx,
+		config: 		 conf,
 		cancel:          cancel,
 		services:        registry,
 		stop:            make(chan struct{}),
@@ -50,7 +64,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 
 	// start db
 	// todo: need to set config...
-	node.startDB(cliCtx, nil)
+	node.startDB(cliCtx, &cfg.Carrier)
 
 	// register P2P service
 	if err := node.registerP2P(cliCtx); err != nil {
