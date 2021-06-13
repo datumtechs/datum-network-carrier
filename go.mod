@@ -6,6 +6,7 @@ require (
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/gogo/protobuf v1.3.2
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
+	github.com/ipfs/go-log/v2 v2.1.3
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
