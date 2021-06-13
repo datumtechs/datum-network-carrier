@@ -68,7 +68,7 @@ func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
 	var seedNodes dbtype.SeedNodeListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); err != nil {
-			log.WithError(err).Error("Failed to decode old seed nodes")
+			log.WithError(err).Fatal("Failed to decode old seed nodes")
 		}
 
 	}
@@ -90,17 +90,45 @@ func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
 	}
 	data, err := seedNodes.Marshal()
 	if err != nil {
-		log.WithError(err).Error("Failed to encode seed node")
+		log.WithError(err).Fatal("Failed to encode seed node")
 	}
 	if err := db.Put(seedNodeKey, data); err != nil {
-		log.WithError(err).Error("Failed to write seed node")
+		log.WithError(err).Fatal("Failed to write seed node")
+	}
+}
+
+// DeleteSeedNode deletes the seed nodes from the database with a special id
+func DeleteSeedNode(db KeyValueStore, id string) {
+	blob, err := db.Get(seedNodeKey)
+	if err != nil {
+		log.Warn("Failed to load old seed nodes", "error", err)
+	}
+	var seedNodes dbtype.SeedNodeListPB
+	if len(blob) > 0 {
+		if err := seedNodes.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old seed nodes")
+		}
+	}
+	// need to test.
+	for idx, s := range seedNodes.GetSeedNodeList() {
+		if strings.EqualFold(s.Id, id) {
+			seedNodes.SeedNodeList = append(seedNodes.SeedNodeList[:idx], seedNodes.SeedNodeList[idx+1:]...)
+			break
+		}
+	}
+	data, err := seedNodes.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode seed nodes")
+	}
+	if err := db.Put(seedNodeKey, data); err != nil {
+		log.WithError(err).Fatal("Failed to write seed nodes")
 	}
 }
 
 // DeleteSeedNodes deletes all the seed nodes from the database
 func DeleteSeedNodes(db DatabaseDeleter) {
 	if err := db.Delete(seedNodeKey); err != nil {
-		log.WithError(err).Error("Failed to delete seed node")
+		log.WithError(err).Fatal("Failed to delete seed node")
 	}
 }
 
@@ -116,7 +144,7 @@ func registryNodeKey(nodeType types.RegisteredNodeType) []byte {
 }
 
 // ReadRegisterNode retrieves the register node with the corresponding nodeId.
-func ReadRegisterNode(db DatabaseReader, nodeId string, nodeType types.RegisteredNodeType) *types.RegisteredNodeInfo {
+func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, nodeId string) *types.RegisteredNodeInfo {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		return nil
@@ -175,7 +203,7 @@ func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, reg
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if len(blob) > 0 {
 		if err := registeredNodes.Unmarshal(blob); err != nil {
-			log.WithError(err).Error("Failed to decode old registered nodes")
+			log.WithError(err).Fatal("Failed to decode old registered nodes")
 		}
 
 	}
@@ -199,16 +227,42 @@ func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, reg
 	}
 	data, err := registeredNodes.Marshal()
 	if err != nil {
-		log.WithError(err).Error("Failed to encode registered node")
+		log.WithError(err).Fatal("Failed to encode registered node")
 	}
 	if err := db.Put(registryNodeKey(nodeType), data); err != nil {
-		log.WithError(err).Error("Failed to write registered node")
+		log.WithError(err).Fatal("Failed to write registered node")
+	}
+}
+
+func DeleteRegisterNode(db KeyValueStore, nodeType types.RegisteredNodeType, id string) {
+	blob, err := db.Get(registryNodeKey(nodeType))
+	if err != nil {
+		log.Warn("Failed to load old registered nodes", "error", err)
+	}
+	var registeredNodes dbtype.RegisteredNodeListPB
+	if len(blob) > 0 {
+		if err := registeredNodes.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old registered nodes")
+		}
+	}
+	for i, s := range registeredNodes.GetRegisteredNodeList() {
+		if strings.EqualFold(s.Id, id) {
+			registeredNodes.RegisteredNodeList = append(registeredNodes.RegisteredNodeList[:i], registeredNodes.RegisteredNodeList[i+1:]...)
+			break
+		}
+	}
+	data, err := registeredNodes.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode registered node")
+	}
+	if err := db.Put(registryNodeKey(nodeType), data); err != nil {
+		log.WithError(err).Fatal("Failed to write registered node")
 	}
 }
 
 // DeleteRegisterNodes deletes all the registered nodes from the database.
 func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) {
 	if err := db.Delete(registryNodeKey(nodeType)); err != nil {
-		log.WithError(err).Error("Failed to delete registered node")
+		log.WithError(err).Fatal("Failed to delete registered node")
 	}
 }

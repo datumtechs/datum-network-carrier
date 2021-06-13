@@ -138,29 +138,33 @@ func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus
 }
 
 func (dc *DataChain) DeleteSeedNode(id string) error {
+	rawdb.DeleteSeedNode(dc.db, id)
 	return nil
 }
 
 func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
-	return nil, nil
+	return rawdb.ReadSeedNode(dc.db, id), nil
 }
 
 func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
-	return nil, nil
+	return rawdb.ReadAllSeedNodes(dc.db), nil
 }
 
 func (dc *DataChain) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+	rawdb.WriteRegisterNodes(dc.db, typ, node)
+	// todo: need to establish conn to registered node. heartbeat detection
 	return types.NONCONNECTED, nil
 }
 
 func (dc *DataChain) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+	rawdb.DeleteRegisterNode(dc.db, typ, id)
 	return nil
 }
 
 func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
-	return nil, nil
+	return rawdb.ReadRegisterNode(dc.db, typ, id), nil
 }
 
 func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	return nil, nil
+	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
 }
