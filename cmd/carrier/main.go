@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/cmd"
 	golog "github.com/ipfs/go-log/v2"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
@@ -24,7 +25,7 @@ var (
 )
 
 func init() {
-	appFlags = WrapFlags(appFlags)
+	appFlags = cmd.WrapFlags(appFlags)
 }
 
 func main() {
@@ -35,7 +36,7 @@ func main() {
 	app.Action = startNode
 	app.Version = common.Version()
 	app.Commands = []*cli.Command {
-		// todo: some command cloud define here
+
 	}
 
 	app.Flags = appFlags
