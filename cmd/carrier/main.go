@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/node"
+	"github.com/sirupsen/logrus"
 	"os"
 	runtimeDebug "runtime/debug"
 
@@ -56,6 +58,19 @@ func main() {
 
 func startNode(ctx *cli.Context) error {
 	// todo: some logic could be added here
+	if args := ctx.Args(); args.Len() > 0 {
+		return fmt.Errorf("invalid command: %q", args.Get(0))
+	}
+
+	// setting log level.
+	verbosity := ctx.String(flags.VerbosityFlag.Name)
+	level, err := logrus.ParseLevel(verbosity)
+	if err != nil {
+		return err
+	}
+	logrus.SetLevel(level)
+
+	// initial no and start.
 	node, err := node.New(ctx)
 	if err != nil {
 		return err
