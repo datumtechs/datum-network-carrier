@@ -13,6 +13,7 @@ const (
 type carrierConfig struct {
 	Carrier   carrier.Config
 	Node      Config
+	// more config modules
 }
 
 func makeConfig(ctx *cli.Context) carrierConfig {
@@ -21,12 +22,14 @@ func makeConfig(ctx *cli.Context) carrierConfig {
 		Carrier:   carrier.DefaultConfig,
 		Node:      defaultNodeConfig(),
 	}
+
 	// Load config file.
 	// todo: file conf load for config.
 
 	// Apply flags.
 	flags.SetNodeConfig(ctx, &cfg.Node)
 	flags.SetCarrierConfig(ctx, &cfg.Carrier)
+
 	return cfg
 }
 
