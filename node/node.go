@@ -34,8 +34,8 @@ type CarrierNode struct {
 // New creates a new node instance, sets up configuration options, and registers
 // every required service to the node.
 func New(cliCtx *cli.Context) (*CarrierNode, error) {
-
 	// todo: to init config
+	cfg := makeConfig(cliCtx)
 
 	registry := common.NewServiceRegistry()
 
@@ -57,7 +57,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		return nil, err
 	}
 	// register core backend service
-	if err := node.registerBackendService(); err != nil {
+	if err := node.registerBackendService(&cfg.Carrier); err != nil {
 		return nil, err
 	}
 
@@ -147,8 +147,8 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	return nil
 }
 
-func (b *CarrierNode) registerBackendService() error {
-	backendService, err := carrier.NewService(b.ctx, &carrier.Config{}, &params.DataCenterConfig{})
+func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) error {
+	backendService, err := carrier.NewService(b.ctx, carrierConfig, &params.DataCenterConfig{})
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}

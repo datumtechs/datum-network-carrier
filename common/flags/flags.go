@@ -2,6 +2,7 @@ package flags
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
+	"github.com/RosettaFlow/Carrier-Go/node"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"path/filepath"
@@ -79,6 +80,40 @@ var (
 		Name:  "log-file",
 		Usage: "Specify log file name, relative or absolute",
 	}
+
+	// RPC settings
+	RPCEnabledFlag = &cli.BoolFlag{
+		Name:  "rpc",
+		Usage: "Enable the HTTP-RPC server",
+	}
+	RPCListenAddrFlag = &cli.StringFlag{
+		Name:  "rpcaddr",
+		Usage: "HTTP-RPC server listening interface",
+		Value: node.DefaultHTTPHost,
+	}
+	RPCPortFlag = &cli.IntFlag{
+		Name:  "rpcport",
+		Usage: "HTTP-RPC server listening port",
+		Value: node.DefaultHTTPPort,
+	}
+	RPCCORSDomainFlag = &cli.StringFlag{
+		Name:  "rpccorsdomain",
+		Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
+		Value: "",
+	}
+	RPCApiFlag = cli.StringFlag{
+		Name:  "rpcapi",
+		Usage: "API's offered over the HTTP-RPC interface",
+		Value: "",
+	}
+	DeveloperFlag = &cli.BoolFlag{
+		Name:  "dev",
+		Usage: "Ephemeral proof-of-authority network with a pre-funded developer account, mining enabled",
+	}
+	TestnetFlag = &cli.BoolFlag{
+		Name:  "testnet",
+		Usage: "Ropsten network: pre-configured proof-of-work test network",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
@@ -88,7 +123,7 @@ func DefaultDataDir() string {
 	home := fileutil.HomeDir()
 	if home != "" {
 		if runtime.GOOS == "darwin" {
-			return filepath.Join(home, "Library", "Eth2")
+			return filepath.Join(home, "Library", "Carrier")
 		} else if runtime.GOOS == "windows" {
 			return filepath.Join(home, "AppData", "Local", "Eth2")
 		} else {
