@@ -18,7 +18,7 @@ const (
 )
 
 type DataChain struct {
-	rosettaConfig *params.CarrierConfig // network configuration
+	chainConfig *params.DataChainConfig // network configuration
 
 	db        db.Database // Low level persistent database to store final content.
 	chainFeed event.Feed
@@ -39,17 +39,17 @@ type DataChain struct {
 }
 
 // NewDataChain returns a fully initialised data chain using information available in the database.
-func NewDataChain(db db.Database, rosettaConfig *params.CarrierConfig) (*DataChain, error) {
+func NewDataChain(db db.Database, chainConfig *params.DataChainConfig) (*DataChain, error) {
 	blockCache, _ := lru.New(blockCacheLimit)
 	bodyCache, _ := lru.New(blockCacheLimit)
 	bodyPbCache, _ := lru.New(blockCacheLimit)
 	dc := &DataChain{
-		rosettaConfig: rosettaConfig,
-		db:            db,
-		quit:          make(chan struct{}),
-		blockCache:    blockCache,
-		bodyCache:     bodyCache,
-		bodyPbCache:   bodyPbCache,
+		chainConfig: chainConfig,
+		db:          db,
+		quit:        make(chan struct{}),
+		blockCache:  blockCache,
+		bodyCache:   bodyCache,
+		bodyPbCache: bodyPbCache,
 	}
 	return dc, nil
 }
