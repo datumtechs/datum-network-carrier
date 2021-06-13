@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"sync"
 )
@@ -11,20 +12,27 @@ import (
 type Service struct {
 	isRunning       bool
 	processingLock  sync.RWMutex
-	config          *params.CarrierConfig
+	config          *Config
 	proxy           *core.DataCenter
 	datachain       *core.DataChain
 	ctx             context.Context
 	cancel          context.CancelFunc
 	mempool         *core.Mempool
 
+	// DB interfaces
+	dataDb 			db.Database
+	APIBackend 		*CarrierAPIBackend
+
 	resourceManager *resource.Manager
 	runError        error
 }
 
-func NewService(ctx context.Context, config *params.CarrierConfig, dataCenterConfig *params.DataCenterConfig) (*Service, error) {
+// NewService creates a new CarrierServer object (including the
+// initialisation of the common Carrier object)
+func NewService(ctx context.Context, config *Config, dataCenterConfig *params.DataCenterConfig) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
+
 	proxy, err := core.NewDataCenter(dataCenterConfig)
 	if err != nil {
 		cancel()
@@ -43,6 +51,7 @@ func NewService(ctx context.Context, config *params.CarrierConfig, dataCenterCon
 	// todo: set datachain....
 	return s, nil
 }
+
 
 func (s *Service) Start() {
 

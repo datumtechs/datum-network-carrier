@@ -4,11 +4,14 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"sync"
 	"syscall"
 )
@@ -21,6 +24,9 @@ type CarrierNode struct {
 	ctx             context.Context
 	cancel          context.CancelFunc
 	services        *common.ServiceRegistry
+
+	db 				db.Database
+
 	lock            sync.RWMutex
 	stop            chan struct{} // Channel to wait for termination notifications.
 }
@@ -34,31 +40,64 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	registry := common.NewServiceRegistry()
 
 	ctx, cancel := context.WithCancel(cliCtx.Context)
-	carrier := &CarrierNode{
+	node := &CarrierNode{
 		cliCtx:          cliCtx,
 		ctx:             ctx,
 		cancel:          cancel,
 		services:        registry,
 		stop:            make(chan struct{}),
 	}
+
+	// start db
+	// todo: need to set config...
+	node.startDB(cliCtx, nil)
+
 	// register P2P service
-	if err := carrier.registerP2P(cliCtx); err != nil {
+	if err := node.registerP2P(cliCtx); err != nil {
 		return nil, err
 	}
 	// register core backend service
-	if err := carrier.registerBackendService(); err != nil {
+	if err := node.registerBackendService(); err != nil {
 		return nil, err
 	}
 
-	if err := carrier.registerSyncService(); err != nil {
+	if err := node.registerSyncService(); err != nil {
 		return nil, err
 	}
 
-	if err := carrier.registerRPCService(); err != nil {
+	if err := node.registerRPCService(); err != nil {
 		return nil, err
 	}
 	// todo: some logic to be added here...
-	return carrier, nil
+	return node, nil
+}
+
+
+func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) error {
+	// parse flags for datadir
+	baseDir := cliCtx.String(flags.DataDirFlag.Name)
+	dbPath := filepath.Join(baseDir, "datachain")
+	log.WithField("database-path", dbPath).Info("Checking DB")
+	db, err := node.OpenDatabase(dbPath, config.DatabaseCache, config.DatabaseHandles)
+	if err != nil {
+		return err
+	}
+	node.db = db
+	return nil
+}
+
+// OpenDatabase opens an existing database with the given name (or creates one
+// if no previous can be found) from within the node's data directory. If the
+// node is an ephemeral one, a memory database is returned.
+func (node *CarrierNode) OpenDatabase(dbpath string, cache int, handles int) (db.Database, error) {
+	if dbpath == "" {
+		return db.NewMemoryDatabase(), nil
+	}
+	db, err := db.NewLDBDatabase(dbpath, cache, handles)
+	if err != nil {
+		return nil, err
+	}
+	return db, nil
 }
 
 // Start the CarrierNode and kicks off every registered service.
@@ -109,7 +148,7 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 }
 
 func (b *CarrierNode) registerBackendService() error {
-	backendService, err := carrier.NewService(b.ctx, &params.CarrierConfig{}, &params.DataCenterConfig{})
+	backendService, err := carrier.NewService(b.ctx, &carrier.Config{}, &params.DataCenterConfig{})
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
