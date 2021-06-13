@@ -44,6 +44,12 @@ var (
 		Name:  "clear-db",
 		Usage: "Prompt for clearing any previously stored data at the data directory",
 	}
+	// VerbosityFlag defines the logrus configuration.
+	VerbosityFlag = &cli.StringFlag{
+		Name:  "verbosity",
+		Usage: "Logging verbosity (trace, debug, info=default, warn, error, fatal, panic)",
+		Value: "info",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
