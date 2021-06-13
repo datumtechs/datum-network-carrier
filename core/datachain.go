@@ -138,11 +138,12 @@ func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus
 }
 
 func (dc *DataChain) DeleteSeedNode(id string) error {
+	rawdb.DeleteSeedNode(dc.db, id)
 	return nil
 }
 
 func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
-	return nil, nil
+	return rawdb.ReadSeedNode(dc.db, id), nil
 }
 
 func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
