@@ -26,10 +26,32 @@ var (
 		flags.GRPCGatewayPort,
 		// todo: more flags could be define here.
 	}
+
+	nodeFlags = []cli.Flag{
+		flags.DataDirFlag,
+		flags.ClearDB,
+		flags.VerbosityFlag,
+		flags.RestoreSourceFileFlag,
+		flags.RestoreTargetDirFlag,
+		flags.ConfigFileFlag,
+		flags.LogFormat,
+		flags.LogFileName,
+	}
+
+	rpcFlags = []cli.Flag{
+		flags.RPCEnabledFlag,
+		flags.RPCListenAddrFlag,
+		flags.RPCPortFlag,
+		flags.RPCCORSDomainFlag,
+		flags.RPCApiFlag,
+	}
+
 )
 
 func init() {
 	appFlags = cmd.WrapFlags(appFlags)
+	nodeFlags = cmd.WrapFlags(nodeFlags)
+	rpcFlags = cmd.WrapFlags(rpcFlags)
 }
 
 func main() {
@@ -42,7 +64,9 @@ func main() {
 	app.Commands = []*cli.Command {
 		dbcommand.Commands,
 	}
-	app.Flags = appFlags
+	app.Flags = append(app.Flags, appFlags...)
+	app.Flags = append(app.Flags, rpcFlags...)
+	app.Flags = append(app.Flags, nodeFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
@@ -51,9 +75,6 @@ func main() {
 		}
 
 		format := ctx.String(flags.LogFormat.Name)
-		if format == "" {
-			format = "text"
-		}
 		switch format {
 		case "text":
 			formatter := new(prefixed.TextFormatter)
@@ -104,9 +125,6 @@ func startNode(ctx *cli.Context) error {
 
 	// setting log level.
 	verbosity := ctx.String(flags.VerbosityFlag.Name)
-	if verbosity == "" {
-		verbosity = flags.VerbosityFlag.Value
-	}
 	level, err := logrus.ParseLevel(verbosity)
 	if err != nil {
 		return err

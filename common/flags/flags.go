@@ -101,7 +101,7 @@ var (
 		Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
 		Value: "",
 	}
-	RPCApiFlag = cli.StringFlag{
+	RPCApiFlag = &cli.StringFlag{
 		Name:  "rpcapi",
 		Usage: "API's offered over the HTTP-RPC interface",
 		Value: "",
