@@ -144,7 +144,7 @@ func registryNodeKey(nodeType types.RegisteredNodeType) []byte {
 }
 
 // ReadRegisterNode retrieves the register node with the corresponding nodeId.
-func ReadRegisterNode(db DatabaseReader, nodeId string, nodeType types.RegisteredNodeType) *types.RegisteredNodeInfo {
+func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, nodeId string) *types.RegisteredNodeInfo {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		return nil
