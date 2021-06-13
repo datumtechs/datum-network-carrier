@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/cmd"
+	dbcommand "github.com/RosettaFlow/Carrier-Go/cmd/carrier/db"
+	"github.com/RosettaFlow/Carrier-Go/common/logutil"
 	golog "github.com/ipfs/go-log/v2"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
@@ -10,6 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"os"
 	runtimeDebug "runtime/debug"
+	prefixed "github.com/x-cray/logrus-prefixed-formatter"
+	joonix "github.com/joonix/log"
 
 	"github.com/urfave/cli/v2"
 )
@@ -31,18 +35,49 @@ func init() {
 func main() {
 	app := cli.App{}
 	app.Name = "carrier"
-	app.Usage = "this is a carrier network implementation for RosettaNet"
+	app.Usage = "this is a carrier network implementation for Carrier Node"
 	// set action func.
 	app.Action = startNode
 	app.Version = common.Version()
 	app.Commands = []*cli.Command {
-
+		dbcommand.Commands,
 	}
-
 	app.Flags = appFlags
 
 	app.Before = func(ctx *cli.Context) error {
-		// todo:
+		// Load flags from config file, if specified.
+		if err := flags.LoadFlagsFromConfig(ctx, app.Flags); err != nil {
+			return err
+		}
+
+		format := ctx.String(flags.LogFormat.Name)
+		switch format {
+		case "text":
+			formatter := new(prefixed.TextFormatter)
+			formatter.TimestampFormat = "2006-01-02 15:04:05"
+			formatter.FullTimestamp = true
+			// If persistent log files are written - we disable the log messages coloring because
+			// the colors are ANSI codes and seen as gibberish in the log files.
+			formatter.DisableColors = ctx.String(flags.LogFileName.Name) != ""
+			logrus.SetFormatter(formatter)
+		case "fluentd":
+			f := joonix.NewFormatter()
+			if err := joonix.DisableTimestampFormat(f); err != nil {
+				panic(err)
+			}
+			logrus.SetFormatter(f)
+		case "json":
+			logrus.SetFormatter(&logrus.JSONFormatter{})
+		default:
+			return fmt.Errorf("unknown log format %s", format)
+		}
+
+		logFileName := ctx.String(flags.LogFileName.Name)
+		if logFileName != "" {
+			if err := logutil.ConfigurePersistentLogging(logFileName); err != nil {
+				log.WithError(err).Error("Failed to configuring logging to disk.")
+			}
+		}
 		return nil
 	}
 
