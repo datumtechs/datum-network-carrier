@@ -17,7 +17,7 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 	}
 	var entry libtypes.DataLookupEntry
 	if err := entry.Unmarshal(data); err != nil {
-		log.WithField("hash", hash).WithError(err).Error("Invalid lookup entry ProtoBuf")
+		log.WithField("hash", hash).WithError(err).Fatal("Invalid lookup entry ProtoBuf")
 		return common.Hash{}, 0, 0, "", ""
 	}
 	return common.BytesToHash(entry.BlockHash), entry.BlockIndex, entry.Index, entry.NodeId, entry.Type
@@ -69,10 +69,10 @@ func writeDataLookupEntries(db DatabaseWriter, hash common.Hash, number uint64,
 	}
 	data, err := entry.Marshal()
 	if err != nil {
-		log.WithField("type", typ).WithError(err).Error("Failed to encode lookup entry")
+		log.WithField("type", typ).WithError(err).Fatal("Failed to encode lookup entry")
 	}
 	if err := db.Put(dataLookupKey(common.HexToHash(dataId)), data); err != nil {
-		log.WithField("type", typ).WithError(err).Error("Failed to store lookup entry")
+		log.WithField("type", typ).WithError(err).Fatal("Failed to store lookup entry")
 	}
 }
 
@@ -94,7 +94,7 @@ func ReadMetadata(db DatabaseReader, dataId string) (*libtypes.MetaData, common.
 		log.WithField("number", blockNumber).
 			WithField("hash", blockHash).
 			WithField("index", index).
-			Error("Medata referenced missing")
+			Fatal("Medata referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
 	return body.Metadata[index], blockHash, blockNumber, index, nodeId, typ
@@ -112,7 +112,7 @@ func ReadResource(db DatabaseReader, dataId string) (*libtypes.ResourceData, com
 		log.WithField("number", blockNumber).
 			WithField("hash", blockHash).
 			WithField("index", index).
-			Error("Resource referenced missing")
+			Fatal("Resource referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
 	return body.Resourcedata[index], blockHash, blockNumber, index, nodeId, typ
@@ -130,7 +130,7 @@ func ReadIdentity(db DatabaseReader, dataId string) (*libtypes.IdentityData, com
 		log.WithField("number", blockNumber).
 			WithField("hash", blockHash).
 			WithField("index", index).
-			Error("Identity referenced missing")
+			Fatal("Identity referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
 	return body.Identitydata[index], blockHash, blockNumber, index, nodeId, typ
@@ -148,7 +148,7 @@ func ReadTask(db DatabaseReader, dataId string) (*libtypes.TaskData, common.Hash
 		log.WithField("number", blockNumber).
 			WithField("hash", blockHash).
 			WithField("index", index).
-			Error("Task referenced missing")
+			Fatal("Task referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
 	return body.Taskdata[index], blockHash, blockNumber, index, nodeId, typ

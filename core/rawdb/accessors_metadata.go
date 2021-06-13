@@ -51,14 +51,14 @@ func ReadMetadataHash(db DatabaseReader, number uint64, index uint64) common.Has
 // WriteMetadataHash stores the hash assigned to a canonical number and index.
 func WriteMetadataHash(db DatabaseWriter, number uint64, index uint64, hash common.Hash)  {
 	if err := db.Put(metadataHashKey(number, index), hash.Bytes()); err != nil {
-		log.WithError(err).Error("Failed to store number-index to hash mapping for metadata")
+		log.WithError(err).Fatal("Failed to store number-index to hash mapping for metadata")
 	}
 }
 
 // DeleteMetadataHash removes the number-index to hash canonical mapping.
 func DeleteMetadataHash(db DatabaseDeleter, number uint64, index uint64) {
 	if err := db.Delete(metadataHashKey(number, index)); err != nil {
-		log.WithError(err).Error("Failed to delete number-index to hash mapping for metadata")
+		log.WithError(err).Fatal("Failed to delete number-index to hash mapping for metadata")
 	}
 }
 
@@ -74,14 +74,14 @@ func ReadMetadataId(db DatabaseReader, nodeId string, hash common.Hash) []byte {
 // WriteMetadataId stores the dataId assigned to a canonical nodeId and hash.
 func WriteMetadataId(db DatabaseWriter, nodeId string, hash common.Hash, dataId string)  {
 	if err := db.Put(metadataIdKey(common.Hex2Bytes(nodeId), hash), common.Hex2Bytes(dataId)); err != nil {
-		log.WithError(err).Error("Failed to store nodeId-hash to dataId mapping for metadata")
+		log.WithError(err).Fatal("Failed to store nodeId-hash to dataId mapping for metadata")
 	}
 }
 
 // DeleteMetadataId removes the nodeId-hash to dataId canonical mapping.
 func DeleteMetadataId(db DatabaseDeleter, nodeId string, hash common.Hash,) {
 	if err := db.Delete(metadataIdKey(common.Hex2Bytes(nodeId), hash)); err != nil {
-		log.WithError(err).Error("Failed to delete number-index to hash mapping for metadata")
+		log.WithError(err).Fatal("Failed to delete number-index to hash mapping for metadata")
 	}
 }
 
@@ -97,14 +97,14 @@ func ReadMetadataTypeHash(db DatabaseReader, dataId string, typ string) common.H
 // WriteMetadataTypeHash stores the hash assigned to a canonical type and dataId.
 func WriteMetadataTypeHash(db DatabaseWriter, dataId string, typ string, hash common.Hash)  {
 	if err := db.Put(metadataTypeHashKey(common.Hex2Bytes(dataId), common.Hex2Bytes(typ)), hash.Bytes()); err != nil {
-		log.WithError(err).Error("Failed to store type-dataId to hash mapping for metadata")
+		log.WithError(err).Fatal("Failed to store type-dataId to hash mapping for metadata")
 	}
 }
 
 // DeleteMetadataTypeHash removes the type-dataId to hash canonical mapping.
 func DeleteMetadataTypeHash(db DatabaseDeleter, dataId string, typ string) {
 	if err := db.Delete(metadataTypeHashKey(common.Hex2Bytes(dataId), common.Hex2Bytes(typ))); err != nil {
-		log.WithError(err).Error("Failed to delete type-dataId to hash mapping for metadata")
+		log.WithError(err).Fatal("Failed to delete type-dataId to hash mapping for metadata")
 	}
 }
 

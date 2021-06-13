@@ -29,6 +29,12 @@ func TestSeedNode(t *testing.T) {
 	assert.Assert(t, len(seedNodes) == 1)
 
 	// delete
+	DeleteSeedNode(database, "id")
+
+	seedNodes = ReadAllSeedNodes(database)
+	assert.Assert(t, len(seedNodes) == 0)
+
+	// delete
 	DeleteSeedNodes(database)
 
 	seedNodes = ReadAllSeedNodes(database)
@@ -49,13 +55,19 @@ func TestRegisteredNode(t *testing.T) {
 	WriteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE, registered)
 
 	// get seed
-	r := ReadRegisterNode(database, "id", types.PREFIX_TYPE_JOBNODE)
+	r := ReadRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
 	t.Logf("registered info : %v", r)
 	assert.Assert(t, strings.EqualFold("id", r.Id))
 
 	// read all
 	registeredNodes := ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
 	assert.Assert(t, len(registeredNodes) == 1)
+
+	// delete
+	DeleteRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
+
+	registeredNodes = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	assert.Assert(t, len(registeredNodes) == 0)
 
 	// delete
 	DeleteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
