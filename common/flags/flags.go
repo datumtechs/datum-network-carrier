@@ -2,7 +2,7 @@ package flags
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
-	"github.com/RosettaFlow/Carrier-Go/node"
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/urfave/cli/v2"
 	"github.com/urfave/cli/v2/altsrc"
 	"path/filepath"
@@ -89,12 +89,12 @@ var (
 	RPCListenAddrFlag = &cli.StringFlag{
 		Name:  "rpcaddr",
 		Usage: "HTTP-RPC server listening interface",
-		Value: node.DefaultHTTPHost,
+		Value: params.DefaultHTTPHost,
 	}
 	RPCPortFlag = &cli.IntFlag{
 		Name:  "rpcport",
 		Usage: "HTTP-RPC server listening port",
-		Value: node.DefaultHTTPPort,
+		Value: params.DefaultHTTPPort,
 	}
 	RPCCORSDomainFlag = &cli.StringFlag{
 		Name:  "rpccorsdomain",
