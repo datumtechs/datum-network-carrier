@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/pkg/errors"
@@ -63,7 +62,6 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// start db
-	// todo: need to set config...
 	node.startDB(cliCtx, &cfg.Carrier)
 
 	// register P2P service
@@ -88,14 +86,14 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 
 
 func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) error {
-	// parse flags for datadir
-	baseDir := cliCtx.String(flags.DataDirFlag.Name)
-	dbPath := filepath.Join(baseDir, "datachain")
+	dbPath := filepath.Join(node.config.DataDir, "datachain")
 	log.WithField("database-path", dbPath).Info("Checking DB")
 	db, err := node.OpenDatabase(dbPath, config.DatabaseCache, config.DatabaseHandles)
 	if err != nil {
 		return err
 	}
+
+	// setting database
 	node.db = db
 	return nil
 }

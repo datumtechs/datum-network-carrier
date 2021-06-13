@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/cmd"
 	dbcommand "github.com/RosettaFlow/Carrier-Go/cmd/carrier/db"
-	"github.com/RosettaFlow/Carrier-Go/common/logutil"
-	golog "github.com/ipfs/go-log/v2"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/RosettaFlow/Carrier-Go/common/logutil"
 	"github.com/RosettaFlow/Carrier-Go/node"
+	golog "github.com/ipfs/go-log/v2"
+	joonix "github.com/joonix/log"
 	"github.com/sirupsen/logrus"
+	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 	"os"
 	runtimeDebug "runtime/debug"
-	prefixed "github.com/x-cray/logrus-prefixed-formatter"
-	joonix "github.com/joonix/log"
 
 	"github.com/urfave/cli/v2"
 )
@@ -26,10 +26,32 @@ var (
 		flags.GRPCGatewayPort,
 		// todo: more flags could be define here.
 	}
+
+	nodeFlags = []cli.Flag{
+		flags.DataDirFlag,
+		flags.ClearDB,
+		flags.VerbosityFlag,
+		flags.RestoreSourceFileFlag,
+		flags.RestoreTargetDirFlag,
+		flags.ConfigFileFlag,
+		flags.LogFormat,
+		flags.LogFileName,
+	}
+
+	rpcFlags = []cli.Flag{
+		flags.RPCEnabledFlag,
+		flags.RPCListenAddrFlag,
+		flags.RPCPortFlag,
+		flags.RPCCORSDomainFlag,
+		flags.RPCApiFlag,
+	}
+
 )
 
 func init() {
 	appFlags = cmd.WrapFlags(appFlags)
+	nodeFlags = cmd.WrapFlags(nodeFlags)
+	rpcFlags = cmd.WrapFlags(rpcFlags)
 }
 
 func main() {
@@ -42,7 +64,9 @@ func main() {
 	app.Commands = []*cli.Command {
 		dbcommand.Commands,
 	}
-	app.Flags = appFlags
+	app.Flags = append(app.Flags, appFlags...)
+	app.Flags = append(app.Flags, rpcFlags...)
+	app.Flags = append(app.Flags, nodeFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.

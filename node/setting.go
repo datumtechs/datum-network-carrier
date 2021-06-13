@@ -1,9 +1,9 @@
-package flags
+package node
 
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
-	"github.com/RosettaFlow/Carrier-Go/node"
+	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/ethereum/go-ethereum/common/fdlimit"
 	"github.com/urfave/cli/v2"
 	"path/filepath"
@@ -11,36 +11,36 @@ import (
 )
 
 // SetNodeConfig applies node-related command line flags to the config.
-func SetNodeConfig(ctx *cli.Context, cfg *node.Config) {
+func SetNodeConfig(ctx *cli.Context, cfg *Config) {
 	setHTTP(ctx, cfg)
 	switch {
-	case ctx.IsSet(DataDirFlag.Name):
-		cfg.DataDir = ctx.String(DataDirFlag.Name)
-	case ctx.IsSet(DeveloperFlag.Name):
+	case ctx.IsSet(flags.DataDirFlag.Name):
+		cfg.DataDir = ctx.String(flags.DataDirFlag.Name)
+	case ctx.IsSet(flags.DeveloperFlag.Name):
 		cfg.DataDir = "" // unless explicitly requested, use memory databases
-	case ctx.IsSet(TestnetFlag.Name):
-		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "testnet")
+	case ctx.IsSet(flags.TestnetFlag.Name):
+		cfg.DataDir = filepath.Join(DefaultDataDir(), "testnet")
 	}
 	// todo: more setting....
 }
 
 // setHTTP creates the HTTP RPC listener interface string from the set
 // command line flags, returning empty if the HTTP endpoint is disabled.
-func setHTTP(ctx *cli.Context, cfg *node.Config) {
-	if ctx.IsSet(RPCEnabledFlag.Name) && cfg.HTTPHost == "" {
+func setHTTP(ctx *cli.Context, cfg *Config) {
+	if ctx.IsSet(flags.RPCEnabledFlag.Name) && cfg.HTTPHost == "" {
 		cfg.HTTPHost = "127.0.0.1"
-		if ctx.IsSet(RPCListenAddrFlag.Name) {
-			cfg.HTTPHost = ctx.String(RPCListenAddrFlag.Name)
+		if ctx.IsSet(flags.RPCListenAddrFlag.Name) {
+			cfg.HTTPHost = ctx.String(flags.RPCListenAddrFlag.Name)
 		}
 	}
-	if ctx.IsSet(RPCPortFlag.Name) {
-		cfg.HTTPPort = ctx.Uint64(RPCPortFlag.Name)
+	if ctx.IsSet(flags.RPCPortFlag.Name) {
+		cfg.HTTPPort = ctx.Uint64(flags.RPCPortFlag.Name)
 	}
-	if ctx.IsSet(RPCCORSDomainFlag.Name) {
-		cfg.HTTPCors = splitAndTrim(ctx.String(RPCCORSDomainFlag.Name))
+	if ctx.IsSet(flags.RPCCORSDomainFlag.Name) {
+		cfg.HTTPCors = splitAndTrim(ctx.String(flags.RPCCORSDomainFlag.Name))
 	}
-	if ctx.IsSet(RPCApiFlag.Name) {
-		cfg.HTTPModules = splitAndTrim(ctx.String(RPCApiFlag.Name))
+	if ctx.IsSet(flags.RPCApiFlag.Name) {
+		cfg.HTTPModules = splitAndTrim(ctx.String(flags.RPCApiFlag.Name))
 	}
 }
 
@@ -92,7 +92,7 @@ func checkExclusive(ctx *cli.Context, args ...interface{}) {
 		}
 	}
 	if len(set) > 1 {
-		Fatalf("Flags %v can't be used at the same time", strings.Join(set, ", "))
+		flags.Fatalf("Flags %v can't be used at the same time", strings.Join(set, ", "))
 	}
 }
 
@@ -111,11 +111,11 @@ func splitAndTrim(input string) []string {
 func makeDatabaseHandles() int {
 	limit, err := fdlimit.Maximum()
 	if err != nil {
-		Fatalf("Failed to retrieve file descriptor allowance: %v", err)
+		flags.Fatalf("Failed to retrieve file descriptor allowance: %v", err)
 	}
 	raised, err := fdlimit.Raise(uint64(limit))
 	if err != nil {
-		Fatalf("Failed to raise file descriptor allowance: %v", err)
+		flags.Fatalf("Failed to raise file descriptor allowance: %v", err)
 	}
 	return int(raised / 2) // Leave half for networking and other stuff
 }
