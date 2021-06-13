@@ -1,9 +1,13 @@
 package main
 
 import (
+	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/cmd"
+	golog "github.com/ipfs/go-log/v2"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/node"
+	"github.com/sirupsen/logrus"
 	"os"
 	runtimeDebug "runtime/debug"
 
@@ -21,7 +25,7 @@ var (
 )
 
 func init() {
-	appFlags = WrapFlags(appFlags)
+	appFlags = cmd.WrapFlags(appFlags)
 }
 
 func main() {
@@ -32,7 +36,7 @@ func main() {
 	app.Action = startNode
 	app.Version = common.Version()
 	app.Commands = []*cli.Command {
-		// todo: some command cloud define here
+
 	}
 
 	app.Flags = appFlags
@@ -56,6 +60,24 @@ func main() {
 
 func startNode(ctx *cli.Context) error {
 	// todo: some logic could be added here
+	if args := ctx.Args(); args.Len() > 0 {
+		return fmt.Errorf("invalid command: %q", args.Get(0))
+	}
+
+	// setting log level.
+	verbosity := ctx.String(flags.VerbosityFlag.Name)
+	level, err := logrus.ParseLevel(verbosity)
+	if err != nil {
+		return err
+	}
+	logrus.SetLevel(level)
+
+	if level == logrus.TraceLevel {
+		// libp2p specific logging.（special）
+		golog.SetAllLoggers(golog.LevelDebug)
+	}
+
+	// initial no and start.
 	node, err := node.New(ctx)
 	if err != nil {
 		return err

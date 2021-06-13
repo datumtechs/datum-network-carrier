@@ -44,6 +44,24 @@ var (
 		Name:  "clear-db",
 		Usage: "Prompt for clearing any previously stored data at the data directory",
 	}
+	// VerbosityFlag defines the logrus configuration.
+	VerbosityFlag = &cli.StringFlag{
+		Name:  "verbosity",
+		Usage: "Logging verbosity (trace, debug, info=default, warn, error, fatal, panic)",
+		Value: "info",
+	}
+	// RestoreSourceFileFlag specifies the filepath to the backed-up database file
+	// which will be used to restore the database.
+	RestoreSourceFileFlag = &cli.StringFlag{
+		Name:  "restore-source-file",
+		Usage: "Filepath to the backed-up database file which will be used to restore the database",
+	}
+	// RestoreTargetDirFlag specifies the target directory of the restored database.
+	RestoreTargetDirFlag = &cli.StringFlag{
+		Name:  "restore-target-dir",
+		Usage: "Target directory of the restored database",
+		Value: DefaultDataDir(),
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
