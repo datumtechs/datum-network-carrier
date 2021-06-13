@@ -68,7 +68,7 @@ func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
 	var seedNodes dbtype.SeedNodeListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); err != nil {
-			log.WithError(err).Panic("Failed to decode old seed nodes")
+			log.WithError(err).Fatal("Failed to decode old seed nodes")
 		}
 
 	}
@@ -90,10 +90,10 @@ func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
 	}
 	data, err := seedNodes.Marshal()
 	if err != nil {
-		log.WithError(err).Panic("Failed to encode seed node")
+		log.WithError(err).Fatal("Failed to encode seed node")
 	}
 	if err := db.Put(seedNodeKey, data); err != nil {
-		log.WithError(err).Panic("Failed to write seed node")
+		log.WithError(err).Fatal("Failed to write seed node")
 	}
 }
 
@@ -106,7 +106,7 @@ func DeleteSeedNode(db KeyValueStore, id string) {
 	var seedNodes dbtype.SeedNodeListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); err != nil {
-			log.WithError(err).Panic("Failed to decode old seed nodes")
+			log.WithError(err).Fatal("Failed to decode old seed nodes")
 		}
 	}
 	// need to test.
@@ -118,17 +118,17 @@ func DeleteSeedNode(db KeyValueStore, id string) {
 	}
 	data, err := seedNodes.Marshal()
 	if err != nil {
-		log.WithError(err).Panic("Failed to encode seed nodes")
+		log.WithError(err).Fatal("Failed to encode seed nodes")
 	}
 	if err := db.Put(seedNodeKey, data); err != nil {
-		log.WithError(err).Panic("Failed to write seed nodes")
+		log.WithError(err).Fatal("Failed to write seed nodes")
 	}
 }
 
 // DeleteSeedNodes deletes all the seed nodes from the database
 func DeleteSeedNodes(db DatabaseDeleter) {
 	if err := db.Delete(seedNodeKey); err != nil {
-		log.WithError(err).Panic("Failed to delete seed node")
+		log.WithError(err).Fatal("Failed to delete seed node")
 	}
 }
 
@@ -203,7 +203,7 @@ func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, reg
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if len(blob) > 0 {
 		if err := registeredNodes.Unmarshal(blob); err != nil {
-			log.WithError(err).Panic("Failed to decode old registered nodes")
+			log.WithError(err).Fatal("Failed to decode old registered nodes")
 		}
 
 	}
