@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	golog "github.com/ipfs/go-log/v2"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/node"
@@ -69,6 +70,11 @@ func startNode(ctx *cli.Context) error {
 		return err
 	}
 	logrus.SetLevel(level)
+
+	if level == logrus.TraceLevel {
+		// libp2p specific logging.（special）
+		golog.SetAllLoggers(golog.LevelDebug)
+	}
 
 	// initial no and start.
 	node, err := node.New(ctx)
