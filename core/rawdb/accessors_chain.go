@@ -22,14 +22,14 @@ func ReadDataHash(db DatabaseReader, number uint64) common.Hash {
 // WriteDataHash stores the hash assigned to a canonical block number
 func WriteDataHash(db DatabaseWriter, hash common.Hash, number uint64)  {
 	if err := db.Put(headerHashKey(number), hash.Bytes()); err != nil {
-		log.WithError(err).Panic("Failed to store number to hash mapping")
+		log.WithError(err).Fatal("Failed to store number to hash mapping")
 	}
 }
 
 // DeleteDataHash removes the number to hash canonical mapping.
 func DeleteDataHash(db DatabaseDeleter, number uint64) {
 	if err := db.Delete(headerHashKey(number)); err != nil {
-		log.WithError(err).Panic("Failed to delete number to hash mapping")
+		log.WithError(err).Fatal("Failed to delete number to hash mapping")
 	}
 }
 
@@ -70,7 +70,7 @@ func ReadHeadHeaderHash(db DatabaseReader) common.Hash {
 // WriteHeadHeaderHash stores the hash of the current canonical head header.
 func WriteHeadHeaderHash(db DatabaseWriter, hash common.Hash) {
 	if err := db.Put(headHeaderKey, hash.Bytes()); err != nil {
-		log.WithError(err).Panic("Failed to store last header's hash")
+		log.WithError(err).Fatal("Failed to store last header's hash")
 	}
 }
 
@@ -86,7 +86,7 @@ func ReadHeadBlockHash(db DatabaseReader) common.Hash {
 // WriteHeadBlockHash stores the head block's hash.
 func WriteHeadBlockHash(db DatabaseWriter, hash common.Hash) {
 	if err := db.Put(headBlockKey, hash.Bytes()); err != nil {
-		log.WithError(err).Panic("Failed to store last block's hash")
+		log.WithError(err).Fatal("Failed to store last block's hash")
 	}
 }
 
@@ -113,7 +113,7 @@ func ReadHeader(db DatabaseReader, hash common.Hash, number uint64) *types.Heade
 	}
 	header := new(libTypes.HeaderPb)
 	if err := header.Unmarshal(data); err != nil {
-		log.WithField("hash", hash).WithError(err).Panic("Invalid block header ProtoBuf")
+		log.WithField("hash", hash).WithError(err).Fatal("Invalid block header ProtoBuf")
 		return nil
 	}
 	// todo: To be continued..
@@ -129,7 +129,7 @@ func WriteHeader(db DatabaseWriter, header *types.Header) {
 	)
 	key := headerNumberKey(hash)
 	if err := db.Put(key, encoded); err != nil {
-		log.WithError(err).Panic("Failed to store hash to number mapping")
+		log.WithError(err).Fatal("Failed to store hash to number mapping")
 	}
 	// todo: To be continued..
 	//data, err := header.Marshal()
@@ -145,10 +145,10 @@ func WriteHeader(db DatabaseWriter, header *types.Header) {
 // DeleteHeader remove all block header data associated with a hash.
 func DeleteHeader(db DatabaseDeleter, hash common.Hash, number uint64) {
 	if err := db.Delete(headerKey(number, hash)); err != nil {
-		log.WithError(err).Panic("Failed to delete header")
+		log.WithError(err).Fatal("Failed to delete header")
 	}
 	if err := db.Delete(headerNumberKey(hash)); err != nil {
-		log.WithError(err).Panic("Failed to delete hash to number mapping")
+		log.WithError(err).Fatal("Failed to delete hash to number mapping")
 	}
 }
 
@@ -161,7 +161,7 @@ func ReadBodyPB(db DatabaseReader, hash common.Hash, number uint64) []byte {
 // WriteBodyPB stores an Protobuf encoded block body into the database.
 func WriteBodyPB(db DatabaseWriter, hash common.Hash, number uint64, pb []byte) {
 	if err := db.Put(blockBodyKey(number, hash), pb); err != nil {
-		log.WithError(err).Panic("Failed to store block body")
+		log.WithError(err).Fatal("Failed to store block body")
 	}
 }
 
@@ -191,7 +191,7 @@ func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *libTypes.Body
 func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *libTypes.BodyData) {
 	data, err := body.Marshal()
 	if err != nil {
-		log.WithError(err).Panic("Failed to ProtoBuf encode body")
+		log.WithError(err).Fatal("Failed to ProtoBuf encode body")
 	}
 	WriteBodyPB(db, hash, number, data)
 	// todo: Data analysis is required when storing the body.
@@ -201,7 +201,7 @@ func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *libType
 // DeleteBody removes all block body data associated with a hash.
 func DeleteBody(db DatabaseDeleter, hash common.Hash, number uint64) {
 	if err := db.Delete(blockBodyKey(number, hash)); err != nil {
-		log.WithError(err).Panic("Failed to delete block body")
+		log.WithError(err).Fatal("Failed to delete block body")
 	}
 	// todo: remove metadata/resource/identity/task at the same time.
 }
