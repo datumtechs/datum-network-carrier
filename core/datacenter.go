@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
@@ -8,12 +9,14 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/sirupsen/logrus"
 	"sync"
 	"sync/atomic"
 )
 
 // DataCenter is mainly responsible for communicating with the data center service
 type DataCenter struct {
+	ctx       context.Context
 	config    *params.DataCenterConfig
 	client    *grpclient.GrpcClient
 	mu        sync.RWMutex // global mutex for locking data center operations.
@@ -57,8 +60,42 @@ func (dc *DataCenter) SetProcessor(processor Processor) {
 
 // InsertChain saves the data of block to the database.
 func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
-	// metadata/resource/task...
-	// todo: updateData()/revokeData()
+	if len(blocks) == 0 {
+		return 0, nil
+	}
+	// check.
+	for i := 0; i < len(blocks); i++ {
+		if blocks[i].NumberU64() != blocks[i-1].NumberU64()+1 || blocks[i].ParentHash() != blocks[i-1].Hash() {
+			log.WithFields(logrus.Fields{
+				"number": blocks[i].NumberU64(),
+				"hash":   blocks[i].Hash(),
+			}).Error("Non contiguous block insert")
+			return 0, fmt.Errorf("non contiguous insert: item %d is #%d", i-1, blocks[i-1].NumberU64())
+		}
+	}
+	// pre-checks passed, start the full block imports
+	dc.wg.Add(1)
+	defer dc.wg.Done()
+
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+
+	headers := make([]*types.Header, len(blocks))
+	seals := make([]bool, len(blocks))
+	for i, block := range blocks {
+		headers[i] = block.Header()
+		seals[i] = true
+	}
+	for _, block := range blocks {
+		if atomic.LoadInt32(&dc.procInterrupt) == 1 {
+			log.Debug("Premature abort during blocks processing")
+			break
+		}
+		err := dc.processor.Process(block, dc.config)
+		if err != nil {
+			// for err, how to deal with????
+		}
+	}
 	return 0, nil
 }
 
