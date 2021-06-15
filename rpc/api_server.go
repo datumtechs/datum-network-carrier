@@ -327,9 +327,11 @@ func (svr *metaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	return nil, nil
 }
 func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
+	// TODO SendMsg
 	return nil, nil
 }
 func (svr *metaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*pb.SimpleResponseCode, error) {
+	// TODO SendMsg
 	return nil, nil
 }
 
@@ -383,6 +385,7 @@ func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	}, nil
 }
 func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
+	// TODO  SendMsg
 	return nil, nil
 }
 
