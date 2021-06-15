@@ -27,6 +27,7 @@ type DataChain struct {
 	procmu    sync.RWMutex // data processor lock
 
 	currentBlock atomic.Value // Current head of the data chain
+	processor    Processor
 
 	blockCache  *lru.Cache
 	bodyCache   *lru.Cache
@@ -58,21 +59,6 @@ func (dc *DataChain) getProcInterrupt() bool {
 	return atomic.LoadInt32(&dc.procInterrupt) == 1
 }
 
-// loadLastState loads the last known data chain state from the database.
-func (dc *DataChain) loadLastState() error {
-	head := rawdb.ReadHeadBlockHash(dc.db)
-	if head == (common.Hash{}) {
-		log.Warn("Empty database, resetting chain")
-		return nil
-	}
-	return nil
-}
-
-func (dc *DataChain) CurrentBlock() *types.Block {
-	// convert type
-	return dc.currentBlock.Load().(*types.Block)
-}
-
 func (dc *DataChain) SetProcessor() {
 	dc.procmu.Lock()
 	defer dc.procmu.Unlock()
@@ -85,8 +71,41 @@ func (dc *DataChain) SetValidator() {
 	// do setting...
 }
 
-func (dc *DataChain) insert(block *types.Block) {
+// Processor returns the current processor.
+func (dc *DataChain) Processor() Processor {
+	dc.procmu.RLock()
+	defer dc.procmu.RUnlock()
+	return dc.processor
+}
 
+// HasBlock checks if a block is fully present in the database or not.
+func (dc *DataChain) HasBlock(hash common.Hash, number uint64) bool {
+	if dc.blockCache.Contains(hash) {
+		return true
+	}
+	return rawdb.HasBody(dc.db, hash, number)
+}
+
+func (dc *DataChain) CurrentBlock() *types.Block {
+	// convert type
+	return dc.currentBlock.Load().(*types.Block)
+}
+
+// GetBodyPb retrieves a block body in PB encoding from the database by hash, caching it if found
+func (dc *DataChain) GetBodyPb(hash common.Hash) []byte {
+	if cached, ok := dc.bodyPbCache.Get(hash); ok {
+		return cached.([]byte)
+	}
+	number := rawdb.ReadHeaderNumber(dc.db, hash)
+	if number == nil {
+		return nil
+	}
+	body := rawdb.ReadBodyPB(dc.db, hash, *number)
+	if len(body) == 0 {
+		return nil
+	}
+	dc.bodyPbCache.Add(hash, body)
+	return body
 }
 
 // GetBody retrieves a block body (metadata/resource/identity/task) from database by hash, caching it if found.
@@ -108,29 +127,94 @@ func (dc *DataChain) GetBody(hash common.Hash) *libTypes.BodyData {
 	return body
 }
 
-// GetBodyPb retrieves a block body in PB encoding from the database by hash, caching it if found
-func (dc *DataChain) GetBodyPb(hash common.Hash) []byte {
-	if cached, ok := dc.bodyPbCache.Get(hash); ok {
-		return cached.([]byte)
+// GetBlock retrieves a block from the database by hash and number,
+// caching it if found.
+func (dc *DataChain) GetBlock(hash common.Hash, number uint64) *types.Block {
+	// Short circuit if the block's already in the cache, retrieve otherwise
+	if block, ok := dc.blockCache.Get(hash); ok {
+		return block.(*types.Block)
 	}
+	block := rawdb.ReadBlock(dc.db, hash, number)
+	if block == nil {
+		return nil
+	}
+	// Cache the found block for next time and return
+	dc.blockCache.Add(block.Hash(), block)
+	return block
+}
+
+// GetBlockByHash retrieves a block from the database by hash, caching it if found.
+func (dc *DataChain) GetBlockByHash(hash common.Hash) *types.Block {
 	number := rawdb.ReadHeaderNumber(dc.db, hash)
 	if number == nil {
 		return nil
 	}
-	body := rawdb.ReadBodyPB(dc.db, hash, *number)
-	if len(body) == 0 {
-		return nil
-	}
-	dc.bodyPbCache.Add(hash, body)
-	return body
+	return dc.GetBlock(hash, *number)
 }
 
-// HasBlock checks if a block is fully present in the database or not.
-func (dc *DataChain) HasBlock(hash common.Hash, number uint64) bool {
-	if dc.blockCache.Contains(hash) {
-		return true
+// GetBlockByNumber retrieves a block from the database by number, caching it
+// (associated with its hash) if found.
+func (dc *DataChain) GetBlockByNumber(number uint64) *types.Block {
+	hash := rawdb.ReadDataHash(dc.db, number)
+	if hash == (common.Hash{}) {
+		return nil
 	}
-	return rawdb.HasBody(dc.db, hash, number)
+	return dc.GetBlock(hash, number)
+}
+
+// InsertChain saves the data of block to the database.
+func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
+	// metadata/resource/task...
+	// todo: updateData()/revokeData()
+	return 0, nil
+}
+
+func (dc *DataChain) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetResourceByHash(hash common.Hash) (*types.Resource, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetResourceByDataId(dataId string) (*types.Resource, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetIdentityByHash(hash common.Hash) (*types.Identity, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetIdentityByDataId(nodeId string) (*types.Identity, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetIdentityListByNodeId(nodeId string) (types.IdentityArray, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetTaskDataByHash(hash common.Hash) (*types.Task, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetTaskDataByTaskId(taskId string) (*types.Task, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
+	return nil, nil
 }
 
 func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
@@ -167,4 +251,17 @@ func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*
 
 func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
+}
+
+// Config retrieves the datachain's chain configuration.
+func (dc *DataChain) Config() *params.DataChainConfig { return dc.chainConfig }
+
+// Stop stops the DataChain service. If any imports are currently in progress
+// it will abort them using the procInterrupt.
+func (dc *DataChain) Stop() {
+	if !atomic.CompareAndSwapInt32(&dc.running, 0, 1) {
+		return
+	}
+	// todo: add logic...
+	log.Info("Datachain manager stopped")
 }
