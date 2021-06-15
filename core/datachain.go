@@ -85,44 +85,8 @@ func (dc *DataChain) SetValidator() {
 	// do setting...
 }
 
-func (dc *DataChain) insert(block *types.Block) {
-
-}
-
-// GetBody retrieves a block body (metadata/resource/identity/task) from database by hash, caching it if found.
-func (dc *DataChain) GetBody(hash common.Hash) *libTypes.BodyData {
-	if cached, ok := dc.bodyCache.Get(hash); ok {
-		body := cached.(*libTypes.BodyData)
-		return body
-	}
-	number := rawdb.ReadHeaderNumber(dc.db, hash)
-	if number == nil {
-		return nil
-	}
-	body := rawdb.ReadBody(dc.db, hash, *number)
-	if body == nil {
-		return nil
-	}
-	// Cache the found body for next time and return
-	dc.bodyCache.Add(hash, body)
-	return body
-}
-
-// GetBodyPb retrieves a block body in PB encoding from the database by hash, caching it if found
-func (dc *DataChain) GetBodyPb(hash common.Hash) []byte {
-	if cached, ok := dc.bodyPbCache.Get(hash); ok {
-		return cached.([]byte)
-	}
-	number := rawdb.ReadHeaderNumber(dc.db, hash)
-	if number == nil {
-		return nil
-	}
-	body := rawdb.ReadBodyPB(dc.db, hash, *number)
-	if len(body) == 0 {
-		return nil
-	}
-	dc.bodyPbCache.Add(hash, body)
-	return body
+func (dc *DataChain) InsertChain(blocks *types.Blocks) (int, error) {
+	return 0, nil
 }
 
 // HasBlock checks if a block is fully present in the database or not.
@@ -167,4 +131,40 @@ func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*
 
 func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
+}
+
+// GetBodyPb retrieves a block body in PB encoding from the database by hash, caching it if found
+func (dc *DataChain) GetBodyPb(hash common.Hash) []byte {
+	if cached, ok := dc.bodyPbCache.Get(hash); ok {
+		return cached.([]byte)
+	}
+	number := rawdb.ReadHeaderNumber(dc.db, hash)
+	if number == nil {
+		return nil
+	}
+	body := rawdb.ReadBodyPB(dc.db, hash, *number)
+	if len(body) == 0 {
+		return nil
+	}
+	dc.bodyPbCache.Add(hash, body)
+	return body
+}
+
+// GetBody retrieves a block body (metadata/resource/identity/task) from database by hash, caching it if found.
+func (dc *DataChain) GetBody(hash common.Hash) *libTypes.BodyData {
+	if cached, ok := dc.bodyCache.Get(hash); ok {
+		body := cached.(*libTypes.BodyData)
+		return body
+	}
+	number := rawdb.ReadHeaderNumber(dc.db, hash)
+	if number == nil {
+		return nil
+	}
+	body := rawdb.ReadBody(dc.db, hash, *number)
+	if body == nil {
+		return nil
+	}
+	// Cache the found body for next time and return
+	dc.bodyCache.Add(hash, body)
+	return body
 }
