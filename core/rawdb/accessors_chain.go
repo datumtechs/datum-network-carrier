@@ -206,7 +206,7 @@ func DeleteBody(db DatabaseDeleter, hash common.Hash, number uint64) {
 	// todo: remove metadata/resource/identity/task at the same time.
 }
 
-func ReadBlock(db DatabaseReader, hash common.Hash, number uint64) *libTypes.BlockData {
+func ReadBlock(db DatabaseReader, hash common.Hash, number uint64) *types.Block {
 	header := ReadHeader(db, hash , number)
 	if header == nil {
 		return nil
