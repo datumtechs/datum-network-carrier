@@ -54,7 +54,7 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 // ************************************** MetaData module *******************************************************
 
 // MetaDataSave saves new metadata to database.
-func (gc *GrpcClient) MetaDataSave(ctx context.Context, request *api.MetaDataSaveRequest) (*api.MetaDataSaveResponse, error) {
+func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSaveRequest) (*api.MetaDataSaveResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	return gc.metadataService.MetaDataSave(ctx, request)
@@ -114,7 +114,7 @@ func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.Revok
 
 // ************************************** Task module *******************************************************
 
-func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) (*emptypb.Empty, error) {
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) (*api.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	return gc.taskService.SaveTask(ctx, request)
