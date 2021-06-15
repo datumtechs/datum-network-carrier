@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 	"sync/atomic"
 )
@@ -48,47 +47,7 @@ func (dc *DataCenter) SetProcessor(processor Processor) {
 	dc.processor = processor
 }
 
-func (dc *DataCenter) Insert(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	return nil
-}
 
-func (dc *DataCenter) Update(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	return nil
-}
-
-func (dc *DataCenter) Delete(metas []*types.Metadata, resources []*types.Resource, identities []*types.Identity, tasks []*types.Task) error {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	return nil
-}
-
-func (dc *DataCenter) MetadataList(nodeId string) (types.MetadataArray, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	return nil, nil
-}
-
-func (dc *DataCenter) ResourceList(nodeId string) (types.ResourceArray, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	return nil, nil
-}
-
-func (dc *DataCenter) IdentityList(nodeId string) (types.IdentityArray, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	return nil, nil
-}
-
-func (dc *DataCenter) TaskDataList(nodeId string) (types.TaskDataArray, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	return nil, nil
-}
 
 func (dc *DataCenter) Stop() {
 	if !atomic.CompareAndSwapInt32(&dc.running, 0, 1) {
