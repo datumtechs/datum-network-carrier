@@ -345,3 +345,13 @@ type NodeAlias struct {
 	NodeId     string `json:"nodeId"`
 	IdentityId string `json:"identityId"`
 }
+
+
+type ResourceUsage struct {
+	TotalMem       string `json:"totalMem"`
+	UsedMem        string `json:"usedMem"`
+	TotalProcessor uint64 `json:"totalProcessor"`
+	UsedProcessor  uint64 `json:"usedProcessor"`
+	TotalBandwidth uint64 `json:"totalBandwidth"`
+	UsedBandwidth  uint64 `json:"usedBandwidth"`
+}
