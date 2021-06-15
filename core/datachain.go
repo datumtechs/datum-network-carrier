@@ -59,21 +59,6 @@ func (dc *DataChain) getProcInterrupt() bool {
 	return atomic.LoadInt32(&dc.procInterrupt) == 1
 }
 
-// loadLastState loads the last known data chain state from the database.
-func (dc *DataChain) loadLastState() error {
-	head := rawdb.ReadHeadBlockHash(dc.db)
-	if head == (common.Hash{}) {
-		log.Warn("Empty database, resetting chain")
-		return nil
-	}
-	return nil
-}
-
-func (dc *DataChain) CurrentBlock() *types.Block {
-	// convert type
-	return dc.currentBlock.Load().(*types.Block)
-}
-
 func (dc *DataChain) SetProcessor() {
 	dc.procmu.Lock()
 	defer dc.procmu.Unlock()
@@ -86,6 +71,13 @@ func (dc *DataChain) SetValidator() {
 	// do setting...
 }
 
+// Processor returns the current processor.
+func (dc *DataChain) Processor() Processor {
+	dc.procmu.RLock()
+	defer dc.procmu.RUnlock()
+	return dc.processor
+}
+
 // HasBlock checks if a block is fully present in the database or not.
 func (dc *DataChain) HasBlock(hash common.Hash, number uint64) bool {
 	if dc.blockCache.Contains(hash) {
@@ -94,40 +86,9 @@ func (dc *DataChain) HasBlock(hash common.Hash, number uint64) bool {
 	return rawdb.HasBody(dc.db, hash, number)
 }
 
-func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
-	return types.NONCONNECTED, nil
-}
-
-func (dc *DataChain) DeleteSeedNode(id string) error {
-	rawdb.DeleteSeedNode(dc.db, id)
-	return nil
-}
-
-func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
-	return rawdb.ReadSeedNode(dc.db, id), nil
-}
-
-func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
-	return rawdb.ReadAllSeedNodes(dc.db), nil
-}
-
-func (dc *DataChain) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
-	rawdb.WriteRegisterNodes(dc.db, typ, node)
-	// todo: need to establish conn to registered node. heartbeat detection
-	return types.NONCONNECTED, nil
-}
-
-func (dc *DataChain) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
-	rawdb.DeleteRegisterNode(dc.db, typ, id)
-	return nil
-}
-
-func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
-	return rawdb.ReadRegisterNode(dc.db, typ, id), nil
-}
-
-func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
+func (dc *DataChain) CurrentBlock() *types.Block {
+	// convert type
+	return dc.currentBlock.Load().(*types.Block)
 }
 
 // GetBodyPb retrieves a block body in PB encoding from the database by hash, caching it if found
@@ -166,13 +127,6 @@ func (dc *DataChain) GetBody(hash common.Hash) *libTypes.BodyData {
 	return body
 }
 
-// Processor returns the current processor.
-func (dc *DataChain) Processor() Processor {
-	dc.procmu.RLock()
-	defer dc.procmu.RUnlock()
-	return dc.processor
-}
-
 // GetBlock retrieves a block from the database by hash and number,
 // caching it if found.
 func (dc *DataChain) GetBlock(hash common.Hash, number uint64) *types.Block {
@@ -208,6 +162,100 @@ func (dc *DataChain) GetBlockByNumber(number uint64) *types.Block {
 	return dc.GetBlock(hash, number)
 }
 
+// InsertChain saves the data of block to the database.
+func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
+	// metadata/resource/task...
+	// todo: updateData()/revokeData()
+	return 0, nil
+}
+
+func (dc *DataChain) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetResourceByHash(hash common.Hash) (*types.Resource, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetResourceByDataId(dataId string) (*types.Resource, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetIdentityByHash(hash common.Hash) (*types.Identity, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetIdentityByDataId(nodeId string) (*types.Identity, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetIdentityListByNodeId(nodeId string) (types.IdentityArray, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetTaskDataByHash(hash common.Hash) (*types.Task, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetTaskDataByTaskId(taskId string) (*types.Task, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
+	return nil, nil
+}
+
+func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+	return types.NONCONNECTED, nil
+}
+
+func (dc *DataChain) DeleteSeedNode(id string) error {
+	rawdb.DeleteSeedNode(dc.db, id)
+	return nil
+}
+
+func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
+	return rawdb.ReadSeedNode(dc.db, id), nil
+}
+
+func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
+	return rawdb.ReadAllSeedNodes(dc.db), nil
+}
+
+func (dc *DataChain) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+	rawdb.WriteRegisterNodes(dc.db, typ, node)
+	// todo: need to establish conn to registered node. heartbeat detection
+	return types.NONCONNECTED, nil
+}
+
+func (dc *DataChain) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+	rawdb.DeleteRegisterNode(dc.db, typ, id)
+	return nil
+}
+
+func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
+	return rawdb.ReadRegisterNode(dc.db, typ, id), nil
+}
+
+func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
+}
+
+// Config retrieves the datachain's chain configuration.
+func (dc *DataChain) Config() *params.DataChainConfig { return dc.chainConfig }
+
 // Stop stops the DataChain service. If any imports are currently in progress
 // it will abort them using the procInterrupt.
 func (dc *DataChain) Stop() {
@@ -217,10 +265,3 @@ func (dc *DataChain) Stop() {
 	// todo: add logic...
 	log.Info("Datachain manager stopped")
 }
-
-func (dc *DataChain) InsertChain(chain types.Blocks) (int, error) {
-	return 0, nil
-}
-
-// Config retrieves the datachain's chain configuration.
-func (dc *DataChain) Config() *params.DataChainConfig { return dc.chainConfig }
