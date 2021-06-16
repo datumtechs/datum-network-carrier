@@ -15,6 +15,10 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 	return s.carrier.mempool.Add(msg)
 }
 
+// system (the yarn node self info)
+func (s *CarrierAPIBackend)GetNodeInfo() (*types.YarnNodeInfo, error) {return nil, nil}
+func (s *CarrierAPIBackend)GetRegisteredPeers() ([]*types.YarnRegisteredNodeDetail, error) {return nil, nil}
+
 func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
 	return s.carrier.datachain.SetSeedNode(seed)
 }
@@ -51,8 +55,6 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error  {
 	return s.carrier.resourceManager.SendTaskEvent(event)
 }
 
-
-
 // identity api
 func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {return nil}
 func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error  {return nil}
@@ -65,6 +67,7 @@ func (s *CarrierAPIBackend) GetPowerSingleSummaryByState(state string) ([]*types
 func (s *CarrierAPIBackend) GetPowerTotalSummaryByOwner(identityId string) (*types.OrgResourcePowerAndTaskCount, error) {return nil, nil}
 func (s *CarrierAPIBackend) GetPowerSingleSummaryByOwner(identityId string) ([]*types.NodeResourceUsagePowerRes, error) {return nil, nil}
 func (s *CarrierAPIBackend) GetPowerSingleDetail(identityId, powerId string) (*types.OrgPowerTaskDetail, error) {return nil, nil}
+
 // metadata api
 func (s *CarrierAPIBackend) GetMetaDataSummaryList() ([]*types.OrgMetaDataSummary, error) {return nil, nil}
 func (s *CarrierAPIBackend) GetMetaDataSummaryByState(state string) ([]*types.OrgMetaDataSummary, error) {return nil, nil}

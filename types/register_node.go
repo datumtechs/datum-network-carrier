@@ -42,6 +42,10 @@ type RegisteredNodeInfo struct {
 	ExternalPort string         `json:"externalPort"`
 	ConnState    NodeConnStatus `json:"connState"`
 }
+type RegisteredNodeDetail struct {
+	NodeType 			string 				`json:"nodeType"`
+	*RegisteredNodeInfo
+}
 func (seed *SeedNodeInfo) SeedNodeId() string {
 	if "" != seed.Id {
 		return seed.Id
