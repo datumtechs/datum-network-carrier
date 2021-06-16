@@ -1,7 +1,6 @@
 package types
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/stringutil"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
@@ -43,7 +42,7 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 			NodeId:               resource.data.GetNodeId(),
 			IdentityId:           resource.data.GetIdentity(),
 		},
-		JobNodeId:            "", // 废弃
+		//JobNodeId:            "", // 废弃
 		Information:          &api.PurePower{
 			Mem:                  resource.data.GetTotalMem(),
 			Processor:            resource.data.GetTotalProcessor(),
@@ -179,7 +178,7 @@ func NewResourceArrayFromResponse(response *api.PowerTotalSummaryListResponse) R
 			State:      v.GetPower().GetState(),
 			TotalMem:   v.GetPower().GetInformation().GetTotalMem(),
 			UsedMem:    v.GetPower().GetInformation().GetUsedMem(),
-			TotalProcessor: stringutil.StringToUInt64(v.GetPower().GetInformation().GetTotalProcessor()),
+			TotalProcessor: v.GetPower().GetInformation().GetTotalProcessor(),
 			TotalBandWidth:       v.GetPower().GetInformation().GetTotalBandwidth(),
 		})
 		resourceArray = append(resourceArray, resource)

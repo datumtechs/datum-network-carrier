@@ -6,11 +6,9 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 )
@@ -27,7 +25,7 @@ func main() {
 }
 
 func proto() {
-	pv := protobufVersion()
+	/*pv := protobufVersion()
 	repo := "https://github.com/gogo/protobuf.git"
 	path := filepath.Join("repos", "protobuf")
 
@@ -39,7 +37,7 @@ func proto() {
 	} else {
 		runPrintInDir(path, "git", "fetch")
 	}
-	runPrintInDir(path, "git", "checkout", pv)
+	runPrintInDir(path, "git", "checkout", pv)*/
 
 	runPrint(goCmd, "generate", "proto/generate.go")
 }

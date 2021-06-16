@@ -27,10 +27,10 @@ message MetaData {
 }
 
 message ColumnMeta {
-    uint64 cindex = 1;
+    uint32 cindex = 1;
     string cname  = 2;
     string ctype  = 3;
   // unit: byte
-    uint64 csize    = 4;
+    uint32 csize    = 4;
     string ccomment = 5;
 }
