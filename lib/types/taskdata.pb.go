@@ -46,7 +46,8 @@ type TaskData struct {
 	// 算力提供方组织
 	ResourceSupplier []*TaskResourceSupplierData `protobuf:"bytes,18,rep,name=resourceSupplier,proto3" json:"resourceSupplier,omitempty"`
 	// 结果接收方组织
-	Receivers            []*OrganizationData `protobuf:"bytes,19,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	Receivers []*OrganizationData `protobuf:"bytes,19,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	// 任务参与方
 	PartnerList          []*OrganizationData `protobuf:"bytes,20,rep,name=partnerList,proto3" json:"partnerList,omitempty"`
 	EventDataList        []*EventData        `protobuf:"bytes,21,rep,name=eventDataList,proto3" json:"eventDataList,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}            `json:"-"`

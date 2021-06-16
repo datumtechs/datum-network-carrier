@@ -1,6 +1,10 @@
 package types
 
-import "github.com/RosettaFlow/Carrier-Go/lib/center/api"
+import (
+	"github.com/RosettaFlow/Carrier-Go/common/stringutil"
+	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+)
 
 // NewMetaDataSaveRequest converts Metadata object to MetaDataSaveRequest object.
 func NewMetaDataSaveRequest(metadata *Metadata) *api.MetaDataSaveRequest {
@@ -89,7 +93,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 		},
 	}
 	for _, v := range task.data.GetMetadataSupplier() {
-		request.DataSupplier = append(request.DataSupplier, &api.TaskDataSupplier{
+		dataSupplier :=  &api.TaskDataSupplier{
 			MemberInfo:           &api.Organization{
 				Name:                 v.GetOrganization().GetNodeName(),
 				NodeId:               v.GetOrganization().GetNodeId(),
@@ -97,7 +101,18 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			},
 			MetaId:               v.GetMetaId(),
 			MetaName:             v.GetMetaName(),
-		})
+			ColumnMeta:			 make([]*api.MetaDataColumnDetail, len(v.GetColumnList())),
+		}
+		for _, column := range v.GetColumnList() {
+			dataSupplier.ColumnMeta = append(dataSupplier.ColumnMeta, &api.MetaDataColumnDetail{
+				Cindex:               column.GetCindex(),
+				Cname:                column.GetCname(),
+				Ctype:                column.GetCtype(),
+				Csize:                column.GetCsize(),
+				Ccomment:             column.GetCcomment(),
+			})
+		}
+		request.DataSupplier = append(request.DataSupplier, dataSupplier)
 	}
 	for _, v := range task.data.GetResourceSupplier() {
 		request.PowerSupplier = append(request.PowerSupplier, &api.TaskPowerSupplier{
@@ -127,14 +142,84 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 }
 
 func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) MetadataArray {
-	return nil
+	var metadataArray MetadataArray
+	for _, v := range response.GetMetadataSummaryList() {
+		metadata := NewMetadata(&libTypes.MetaData{
+			Identity:             v.GetOwner().GetIdentityId(),
+			NodeId:               v.GetOwner().GetNodeId(),
+			NodeName:  			  v.GetOwner().GetName(),
+			DataId:               v.GetInformation().GetMetaDataId(),
+			DataStatus:           "N",	// todo: 待定
+			OriginId:             v.GetInformation().GetOriginId(),
+			TableName:            v.GetInformation().GetTableName(),
+			FilePath:             v.GetInformation().GetFilePath(),
+			Desc:                 v.GetInformation().GetDesc(),
+			Rows:                 uint64(v.GetInformation().GetRows()),
+			Columns:              uint64(v.GetInformation().GetColumns()),
+			Size_:                v.GetInformation().GetSize_(),
+			FileType:             v.GetInformation().GetFileType(),
+			State:                v.GetInformation().GetState(),
+			HasTitleRow:          v.GetInformation().GetHasTitle(),
+			ColumnMetaList:       make([]*libTypes.ColumnMeta, 0),
+		})
+		metadataArray = append(metadataArray, metadata)
+	}
+	return metadataArray
 }
 
 func NewResourceArrayFromResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
-	return nil
+	resourceArray := make(ResourceArray, len(response.GetPowerList()))
+	for _, v := range response.GetPowerList() {
+		resource := NewResource(&libTypes.ResourceData{
+			Identity:   v.GetOwner().GetIdentityId(),
+			NodeId:     v.GetOwner().GetNodeId(),
+			NodeName:   v.GetOwner().GetName(),
+			DataId:     "", // todo: to be determined
+			DataStatus: "", // todo: to be determined
+			State:      v.GetPower().GetState(),
+			TotalMem:   v.GetPower().GetInformation().GetTotalMem(),
+			UsedMem:    v.GetPower().GetInformation().GetUsedMem(),
+			TotalProcessor: stringutil.StringToUInt64(v.GetPower().GetInformation().GetTotalProcessor()),
+			TotalBandWidth:       v.GetPower().GetInformation().GetTotalBandwidth(),
+		})
+		resourceArray = append(resourceArray, resource)
+	}
+	return resourceArray
 }
 
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
-	return nil
+	taskArray := make(TaskDataArray, len(response.GetTaskSummaryList()))
+	for _, v := range response.GetTaskSummaryList() {
+		task := NewTask(&libTypes.TaskData{
+			Identity:             v.GetOwner().GetIdentityId(),
+			NodeId:               v.GetOwner().GetNodeId(),
+			NodeName:             v.GetOwner().GetName(),
+			DataId:               "", // todo: to be determined
+			DataStatus:           "", // todo: to be determined
+			TaskId:               v.GetTaskId(),
+			TaskName:             v.GetTaskName(),
+			State:                v.GetState(),
+			CreateAt:             v.GetCreateAt(),
+			EndAt:                v.GetEndAt(),
+			Receivers:            make([]*libTypes.OrganizationData, len(v.GetReceivers())),
+			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetPartners())),
+		})
+		for _, receiver := range v.GetReceivers() {
+			task.data.Receivers = append(task.data.Receivers, &libTypes.OrganizationData{
+				Identity:             receiver.GetIdentityId(),
+				NodeId:               receiver.GetNodeId(),
+				NodeName:             receiver.GetName(),
+			})
+		}
+		for _, partner := range v.GetPartners() {
+			task.data.PartnerList = append(task.data.PartnerList, &libTypes.OrganizationData{
+				Identity:             partner.GetIdentityId(),
+				NodeId:               partner.GetNodeId(),
+				NodeName:             partner.GetName(),
+			})
+		}
+		taskArray = append(taskArray, task)
+	}
+	return taskArray
 }
 
