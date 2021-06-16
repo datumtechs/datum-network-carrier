@@ -13,9 +13,13 @@ const (
 	PREFIX_TASK_ID     = "task:"
 )
 const (
-	MSG_POWER    = "powerMsg"
-	MSG_METADATA = "metaDataMsg"
-	MSG_TASK     = "taskMsg"
+	MSG_IDENTITY        = "identityMsg"
+	MSG_IDENTITY_REVOKE = "identityRevokeMsg"
+	MSG_POWER           = "powerMsg"
+	MSG_POWER_REVOKE    = "powerRevokeMsg"
+	MSG_METADATA        = "metaDataMsg"
+	MSG_METADATA_REVOKE = "metaDataRevokeMsg"
+	MSG_TASK            = "taskMsg"
 )
 
 type MsgType string
@@ -46,6 +50,22 @@ type IdentityMsg struct {
 	*NodeAlias
 	CreateAt uint64 `json:"createAt"`
 }
+type IdentityRevokeMsg struct {
+	*NodeAlias
+	CreateAt uint64 `json:"createAt"`
+}
+
+type IdentityMsgs []*IdentityMsg
+type IdentityRevokeMsgs []*IdentityRevokeMsg
+
+func (msg *IdentityMsg) Marshal() ([]byte, error)       { return nil, nil }
+func (msg *IdentityMsg) Unmarshal(b []byte) error       { return nil }
+func (msg *IdentityMsg) String() string                 { return "" }
+func (msg *IdentityMsg) MsgType() string                { return MSG_IDENTITY }
+func (msg *IdentityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *IdentityRevokeMsg) Unmarshal(b []byte) error { return nil }
+func (msg *IdentityRevokeMsg) String() string           { return "" }
+func (msg *IdentityRevokeMsg) MsgType() string          { return MSG_IDENTITY_REVOKE }
 
 // ------------------- power -------------------
 
@@ -66,7 +86,13 @@ type powerData struct {
 	} `json:"information"`
 	CreateAt uint64 `json:"createAt"`
 }
+type PowerRevokeMsg struct {
+	*NodeAlias
+	PowerId  string `json:"powerId"`
+	CreateAt uint64 `json:"createAt"`
+}
 type PowerMsgs []*PowerMsg
+type PowerRevokeMsgs []*PowerRevokeMsg
 
 func (msg *PowerMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerMsg) Unmarshal(b []byte) error { return nil }
@@ -104,6 +130,11 @@ func (msg *PowerMsg) Hash() common.Hash {
 	return v
 }
 
+func (msg *PowerRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
+func (msg *PowerRevokeMsg) String() string           { return "" }
+func (msg *PowerRevokeMsg) MsgType() string          { return MSG_POWER_REVOKE }
+
 func rlpHash(x interface{}) (h common.Hash) {
 	hw := sha3.NewKeccak256()
 	rlp.Encode(hw, x)
@@ -116,6 +147,8 @@ func (s PowerMsgs) Len() int { return len(s) }
 
 // Swap swaps the i'th and the j'th element in s.
 func (s PowerMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+
+func (s PowerMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 // ------------------- metaData -------------------
 
@@ -152,7 +185,13 @@ type ColumnMeta struct {
 	Csize    uint64 `json:"csize,omitempty"`
 	Ccomment string `json:"ccomment,omitempty"`
 }
+type MetaDataRevokeMsg struct {
+	*NodeAlias
+	MetaDataId string `json:"metaDataId"`
+	CreateAt   uint64 `json:"createAt"`
+}
 type MetaDataMsgs []*MetaDataMsg
+type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
 func (msg *MetaDataMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetaDataMsg) Unmarshal(b []byte) error { return nil }
@@ -198,6 +237,10 @@ func (msg *MetaDataMsg) Hash() common.Hash {
 	msg.hash.Store(v)
 	return v
 }
+func (msg *MetaDataRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *MetaDataRevokeMsg) Unmarshal(b []byte) error { return nil }
+func (msg *MetaDataRevokeMsg) String() string           { return "" }
+func (msg *MetaDataRevokeMsg) MsgType() string          { return MSG_METADATA_REVOKE }
 
 // Len returns the length of s.
 func (s MetaDataMsgs) Len() int { return len(s) }
@@ -345,7 +388,6 @@ type NodeAlias struct {
 	NodeId     string `json:"nodeId"`
 	IdentityId string `json:"identityId"`
 }
-
 
 type ResourceUsage struct {
 	TotalMem       string `json:"totalMem"`
