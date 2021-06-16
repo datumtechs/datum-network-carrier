@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
@@ -86,7 +87,7 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 		headers[i] = block.Header()
 		seals[i] = true
 	}
-	for _, block := range blocks {
+	for i, block := range blocks {
 		if atomic.LoadInt32(&dc.procInterrupt) == 1 {
 			log.Debug("Premature abort during blocks processing")
 			break
@@ -94,9 +95,10 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 		err := dc.processor.Process(block, dc.config)
 		if err != nil {
 			// for err, how to deal with????
+			return i, err
 		}
 	}
-	return 0, nil
+	return len(blocks), nil
 }
 
 func (dc *DataCenter) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
@@ -111,6 +113,11 @@ func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArra
 	return nil, nil
 }
 
+func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
+	metaDataSummaryListResponse, err := dc.client.GetMetaDataSummaryList(dc.ctx)
+	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
+}
+
 func (dc *DataCenter) GetResourceByHash(hash common.Hash) (*types.Resource, error) {
 	return nil, nil
 }
@@ -120,6 +127,12 @@ func (dc *DataCenter) GetResourceByDataId(dataId string) (*types.Resource, error
 }
 
 func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
+	return nil, nil
+}
+
+func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
+	powerTotalSummaryListResponse, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
+	return types.NewResourceArrayFromResponse(powerTotalSummaryListResponse), err
 	return nil, nil
 }
 
@@ -139,8 +152,11 @@ func (dc *DataCenter) GetTaskDataByHash(hash common.Hash) (*types.Task, error) {
 	return nil, nil
 }
 
-func (dc *DataCenter) GetTaskDataByTaskId(taskId string) (*types.Task, error) {
-	return nil, nil
+func (dc *DataCenter) GetTaskDataByTaskId(taskId string) (types.TaskDataArray, error) {
+	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{
+		TaskId:               taskId,
+	})
+	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
 func (dc *DataCenter) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
