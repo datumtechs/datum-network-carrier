@@ -37,7 +37,7 @@ type yarnServiceServer struct {
 }
 
 func(svr *yarnServiceServer) GetNodeInfo (ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
-
+	
 	return nil, nil
 }
 func (svr *yarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
