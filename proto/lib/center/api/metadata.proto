@@ -24,7 +24,7 @@ message MetaDataSummary {
   // 源文件的列数
     uint32 columns = 7;
   // 源文件的大小
-    string size = 8;
+    uint64 size = 8;
   // 源文件的类型 (目前只有 csv)
     string file_type = 9;
   // 源文件是否包含标题
