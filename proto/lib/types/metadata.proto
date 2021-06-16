@@ -10,26 +10,27 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 message MetaData {
     string              identity       = 1;
     string              nodeId         = 2;
-    string              dataId         = 3;
-    string              dataStatus     = 4;
-    string              originId       = 5;
-    string              tableName      = 6;
-    string              filePath       = 7;
-    string              desc           = 8;
-    uint64              rows           = 9;
-    uint64              columns        = 10;
-    uint64              size           = 11;
-    string              fileType       = 12;
-    string              state          = 13;
-    bool                hasTitleRow    = 14;
-    repeated ColumnMeta columnMetaList = 15;
+    string              nodeName       = 3;
+    string              dataId         = 4;
+    string              dataStatus     = 5;
+    string              originId       = 6;
+    string              tableName      = 7;
+    string              filePath       = 8;
+    string              desc           = 9;
+    uint64              rows           = 10;
+    uint64              columns        = 11;
+    uint64              size           = 12;
+    string              fileType       = 13;
+    string              state          = 14;
+    bool                hasTitleRow    = 15;
+    repeated ColumnMeta columnMetaList = 16;
 }
 
 message ColumnMeta {
-    uint64 cindex = 1;
+    uint32 cindex = 1;
     string cname  = 2;
     string ctype  = 3;
   // unit: byte
-    uint64 csize    = 4;
+    uint32 csize    = 4;
     string ccomment = 5;
 }

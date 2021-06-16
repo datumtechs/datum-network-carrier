@@ -27,19 +27,20 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type MetaData struct {
 	Identity             string        `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
 	NodeId               string        `protobuf:"bytes,2,opt,name=nodeId,proto3" json:"nodeId,omitempty"`
-	DataId               string        `protobuf:"bytes,3,opt,name=dataId,proto3" json:"dataId,omitempty"`
-	DataStatus           string        `protobuf:"bytes,4,opt,name=dataStatus,proto3" json:"dataStatus,omitempty"`
-	OriginId             string        `protobuf:"bytes,5,opt,name=originId,proto3" json:"originId,omitempty"`
-	TableName            string        `protobuf:"bytes,6,opt,name=tableName,proto3" json:"tableName,omitempty"`
-	FilePath             string        `protobuf:"bytes,7,opt,name=filePath,proto3" json:"filePath,omitempty"`
-	Desc                 string        `protobuf:"bytes,8,opt,name=desc,proto3" json:"desc,omitempty"`
-	Rows                 uint64        `protobuf:"varint,9,opt,name=rows,proto3" json:"rows,omitempty"`
-	Columns              uint64        `protobuf:"varint,10,opt,name=columns,proto3" json:"columns,omitempty"`
-	Size_                uint64        `protobuf:"varint,11,opt,name=size,proto3" json:"size,omitempty"`
-	FileType             string        `protobuf:"bytes,12,opt,name=fileType,proto3" json:"fileType,omitempty"`
-	State                string        `protobuf:"bytes,13,opt,name=state,proto3" json:"state,omitempty"`
-	HasTitleRow          bool          `protobuf:"varint,14,opt,name=hasTitleRow,proto3" json:"hasTitleRow,omitempty"`
-	ColumnMetaList       []*ColumnMeta `protobuf:"bytes,15,rep,name=columnMetaList,proto3" json:"columnMetaList,omitempty"`
+	NodeName             string        `protobuf:"bytes,3,opt,name=nodeName,proto3" json:"nodeName,omitempty"`
+	DataId               string        `protobuf:"bytes,4,opt,name=dataId,proto3" json:"dataId,omitempty"`
+	DataStatus           string        `protobuf:"bytes,5,opt,name=dataStatus,proto3" json:"dataStatus,omitempty"`
+	OriginId             string        `protobuf:"bytes,6,opt,name=originId,proto3" json:"originId,omitempty"`
+	TableName            string        `protobuf:"bytes,7,opt,name=tableName,proto3" json:"tableName,omitempty"`
+	FilePath             string        `protobuf:"bytes,8,opt,name=filePath,proto3" json:"filePath,omitempty"`
+	Desc                 string        `protobuf:"bytes,9,opt,name=desc,proto3" json:"desc,omitempty"`
+	Rows                 uint64        `protobuf:"varint,10,opt,name=rows,proto3" json:"rows,omitempty"`
+	Columns              uint64        `protobuf:"varint,11,opt,name=columns,proto3" json:"columns,omitempty"`
+	Size_                uint64        `protobuf:"varint,12,opt,name=size,proto3" json:"size,omitempty"`
+	FileType             string        `protobuf:"bytes,13,opt,name=fileType,proto3" json:"fileType,omitempty"`
+	State                string        `protobuf:"bytes,14,opt,name=state,proto3" json:"state,omitempty"`
+	HasTitleRow          bool          `protobuf:"varint,15,opt,name=hasTitleRow,proto3" json:"hasTitleRow,omitempty"`
+	ColumnMetaList       []*ColumnMeta `protobuf:"bytes,16,rep,name=columnMetaList,proto3" json:"columnMetaList,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
 	XXX_sizecache        int32         `json:"-"`
@@ -88,6 +89,13 @@ func (m *MetaData) GetIdentity() string {
 func (m *MetaData) GetNodeId() string {
 	if m != nil {
 		return m.NodeId
+	}
+	return ""
+}
+
+func (m *MetaData) GetNodeName() string {
+	if m != nil {
+		return m.NodeName
 	}
 	return ""
 }
@@ -184,11 +192,11 @@ func (m *MetaData) GetColumnMetaList() []*ColumnMeta {
 }
 
 type ColumnMeta struct {
-	Cindex uint64 `protobuf:"varint,1,opt,name=cindex,proto3" json:"cindex,omitempty"`
+	Cindex uint32 `protobuf:"varint,1,opt,name=cindex,proto3" json:"cindex,omitempty"`
 	Cname  string `protobuf:"bytes,2,opt,name=cname,proto3" json:"cname,omitempty"`
 	Ctype  string `protobuf:"bytes,3,opt,name=ctype,proto3" json:"ctype,omitempty"`
 	// unit: byte
-	Csize                uint64   `protobuf:"varint,4,opt,name=csize,proto3" json:"csize,omitempty"`
+	Csize                uint32   `protobuf:"varint,4,opt,name=csize,proto3" json:"csize,omitempty"`
 	Ccomment             string   `protobuf:"bytes,5,opt,name=ccomment,proto3" json:"ccomment,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -228,7 +236,7 @@ func (m *ColumnMeta) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ColumnMeta proto.InternalMessageInfo
 
-func (m *ColumnMeta) GetCindex() uint64 {
+func (m *ColumnMeta) GetCindex() uint32 {
 	if m != nil {
 		return m.Cindex
 	}
@@ -249,7 +257,7 @@ func (m *ColumnMeta) GetCtype() string {
 	return ""
 }
 
-func (m *ColumnMeta) GetCsize() uint64 {
+func (m *ColumnMeta) GetCsize() uint32 {
 	if m != nil {
 		return m.Csize
 	}
@@ -271,34 +279,35 @@ func init() {
 func init() { proto.RegisterFile("lib/types/metadata.proto", fileDescriptor_33d0259ee189cec4) }
 
 var fileDescriptor_33d0259ee189cec4 = []byte{
-	// 424 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x92, 0xc1, 0x8a, 0x13, 0x41,
-	0x10, 0x86, 0x69, 0x33, 0xc9, 0x26, 0x1d, 0x5d, 0xb1, 0x11, 0x29, 0x16, 0x09, 0xc3, 0x7a, 0x09,
-	0x88, 0x19, 0xd0, 0xd3, 0x5e, 0x5d, 0x51, 0x02, 0x2a, 0x32, 0xee, 0xc9, 0x5b, 0xcf, 0x74, 0x6d,
-	0xd2, 0x30, 0x33, 0x1d, 0xa6, 0x6b, 0x88, 0xf1, 0xe8, 0x1b, 0xf9, 0x16, 0x1e, 0x7d, 0x04, 0xc9,
-	0x93, 0x48, 0x57, 0x67, 0x92, 0xe0, 0xad, 0xbe, 0xaf, 0x6a, 0xf2, 0xa7, 0xbb, 0x5a, 0x42, 0x65,
-	0x8b, 0x8c, 0x76, 0x1b, 0xf4, 0x59, 0x8d, 0xa4, 0x8d, 0x26, 0xbd, 0xd8, 0xb4, 0x8e, 0x9c, 0x1a,
-	0xb2, 0xbd, 0x7a, 0xd1, 0xe2, 0xc6, 0xf9, 0x8c, 0x5d, 0xd1, 0xdd, 0x67, 0x2b, 0xb7, 0x72, 0x0c,
-	0x5c, 0xc5, 0xd9, 0xeb, 0x5f, 0x03, 0x39, 0xfe, 0x84, 0xa4, 0xdf, 0x69, 0xd2, 0xea, 0x4a, 0x8e,
-	0xad, 0xc1, 0x86, 0x2c, 0xed, 0x40, 0xa4, 0x62, 0x3e, 0xc9, 0x8f, 0xac, 0x9e, 0xc9, 0x51, 0xe3,
-	0x0c, 0x2e, 0x0d, 0x3c, 0xe0, 0xce, 0x81, 0x82, 0x0f, 0xd1, 0x4b, 0x03, 0x83, 0xe8, 0x23, 0xa9,
-	0x99, 0x94, 0xa1, 0xfa, 0x4a, 0x9a, 0x3a, 0x0f, 0x09, 0xf7, 0xce, 0x4c, 0xc8, 0x72, 0xad, 0x5d,
-	0xd9, 0x66, 0x69, 0x60, 0x18, 0xb3, 0x7a, 0x56, 0xcf, 0xe5, 0x84, 0x74, 0x51, 0xe1, 0x67, 0x5d,
-	0x23, 0x8c, 0xb8, 0x79, 0x12, 0xe1, 0xcb, 0x7b, 0x5b, 0xe1, 0x17, 0x4d, 0x6b, 0xb8, 0x88, 0x5f,
-	0xf6, 0xac, 0x94, 0x4c, 0x0c, 0xfa, 0x12, 0xc6, 0xec, 0xb9, 0x0e, 0xae, 0x75, 0x5b, 0x0f, 0x93,
-	0x54, 0xcc, 0x93, 0x9c, 0x6b, 0x05, 0xf2, 0xa2, 0x74, 0x55, 0x57, 0x37, 0x1e, 0x24, 0xeb, 0x1e,
-	0xc3, 0xb4, 0xb7, 0x3f, 0x10, 0xa6, 0x71, 0x3a, 0xd4, 0x7d, 0xe2, 0xdd, 0x6e, 0x83, 0xf0, 0xf0,
-	0x94, 0x18, 0x58, 0x3d, 0x95, 0x43, 0x4f, 0x9a, 0x10, 0x1e, 0x71, 0x23, 0x82, 0x4a, 0xe5, 0x74,
-	0xad, 0xfd, 0x9d, 0xa5, 0x0a, 0x73, 0xb7, 0x85, 0xcb, 0x54, 0xcc, 0xc7, 0xf9, 0xb9, 0x52, 0x37,
-	0xf2, 0x32, 0x46, 0x86, 0xdb, 0xff, 0x68, 0x3d, 0xc1, 0xe3, 0x74, 0x30, 0x9f, 0xbe, 0x7e, 0xb2,
-	0xe0, 0xed, 0x2d, 0x6e, 0x8f, 0xcd, 0xfc, 0xbf, 0xc1, 0xeb, 0x9f, 0x42, 0xca, 0x53, 0x3b, 0x6c,
-	0xa0, 0xb4, 0x8d, 0xc1, 0xef, 0xbc, 0xb3, 0x24, 0x3f, 0x50, 0xf8, 0x67, 0x65, 0x13, 0x6e, 0x30,
-	0x2e, 0x2c, 0x02, 0xdb, 0x90, 0x70, 0x58, 0x57, 0x04, 0xb6, 0x7c, 0xec, 0x84, 0x7f, 0x22, 0x42,
-	0x38, 0x77, 0x59, 0xba, 0xba, 0xc6, 0x86, 0xfa, 0x1d, 0xf5, 0xfc, 0xf6, 0xe6, 0xf7, 0x7e, 0x26,
-	0xfe, 0xec, 0x67, 0xe2, 0xef, 0x7e, 0x26, 0xbe, 0xbd, 0x5c, 0x59, 0x5a, 0x77, 0xc5, 0xa2, 0x74,
-	0x75, 0x96, 0x3b, 0x8f, 0x44, 0xfa, 0x7d, 0xe5, 0xb6, 0xd9, 0xad, 0x6e, 0x5b, 0x8b, 0xed, 0xab,
-	0x0f, 0x2e, 0x3b, 0x3e, 0xd7, 0x62, 0xc4, 0x4f, 0xef, 0xcd, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0x10, 0xdb, 0x91, 0xa0, 0xc2, 0x02, 0x00, 0x00,
+	// 433 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x92, 0xcf, 0x8a, 0x13, 0x41,
+	0x10, 0xc6, 0x19, 0xf3, 0x67, 0x93, 0x8e, 0xbb, 0x6a, 0x23, 0x52, 0x2c, 0x12, 0x86, 0xf5, 0x12,
+	0x10, 0x33, 0xa0, 0xa7, 0xbd, 0xba, 0xa2, 0x04, 0x54, 0x64, 0xdc, 0x93, 0xb7, 0x9e, 0xe9, 0xda,
+	0xa4, 0x61, 0x66, 0x3a, 0x4c, 0x57, 0x88, 0xf1, 0xe8, 0xd3, 0x79, 0x11, 0x7c, 0x04, 0xc9, 0x93,
+	0x48, 0x55, 0x67, 0x92, 0xc5, 0x5b, 0xfd, 0xbe, 0xaa, 0xaf, 0x6b, 0x7a, 0xbe, 0x56, 0x50, 0xb9,
+	0x22, 0xa3, 0xdd, 0x1a, 0x43, 0x56, 0x23, 0x19, 0x6b, 0xc8, 0xcc, 0xd7, 0xad, 0x27, 0xaf, 0x07,
+	0xa2, 0x5e, 0xbe, 0x68, 0x71, 0xed, 0x43, 0x26, 0x5a, 0xb1, 0xb9, 0xcb, 0x96, 0x7e, 0xe9, 0x05,
+	0xa4, 0x8a, 0xb3, 0x57, 0xbf, 0x7b, 0x6a, 0xf4, 0x09, 0xc9, 0xbc, 0x33, 0x64, 0xf4, 0xa5, 0x1a,
+	0x39, 0x8b, 0x0d, 0x39, 0xda, 0x41, 0x92, 0x26, 0xb3, 0x71, 0x7e, 0x64, 0xfd, 0x4c, 0x0d, 0x1b,
+	0x6f, 0x71, 0x61, 0xe1, 0x81, 0x74, 0x0e, 0xc4, 0x1e, 0xae, 0x3e, 0x9b, 0x1a, 0xa1, 0x17, 0x3d,
+	0x1d, 0xb3, 0x87, 0x3f, 0x6b, 0x61, 0xa1, 0x1f, 0x3d, 0x91, 0xf4, 0x54, 0x29, 0xae, 0xbe, 0x92,
+	0xa1, 0x4d, 0x80, 0x81, 0xf4, 0xee, 0x29, 0x7c, 0xa6, 0x6f, 0xdd, 0xd2, 0x35, 0x0b, 0x0b, 0xc3,
+	0x78, 0x66, 0xc7, 0xfa, 0xb9, 0x1a, 0x93, 0x29, 0xaa, 0xb8, 0xf0, 0x4c, 0x9a, 0x27, 0x81, 0x9d,
+	0x77, 0xae, 0xc2, 0x2f, 0x86, 0x56, 0x30, 0x8a, 0xce, 0x8e, 0xb5, 0x56, 0x7d, 0x8b, 0xa1, 0x84,
+	0xb1, 0xe8, 0x52, 0xb3, 0xd6, 0xfa, 0x6d, 0x00, 0x95, 0x26, 0xb3, 0x7e, 0x2e, 0xb5, 0x06, 0x75,
+	0x56, 0xfa, 0x6a, 0x53, 0x37, 0x01, 0x26, 0x22, 0x77, 0xc8, 0xd3, 0xc1, 0xfd, 0x40, 0x78, 0x18,
+	0xa7, 0xb9, 0xee, 0x36, 0xde, 0xee, 0xd6, 0x08, 0xe7, 0xa7, 0x8d, 0xcc, 0xfa, 0xa9, 0x1a, 0x04,
+	0x32, 0x84, 0x70, 0x21, 0x8d, 0x08, 0x3a, 0x55, 0x93, 0x95, 0x09, 0xb7, 0x8e, 0x2a, 0xcc, 0xfd,
+	0x16, 0x1e, 0xa5, 0xc9, 0x6c, 0x94, 0xdf, 0x97, 0xf4, 0xb5, 0xba, 0x88, 0x2b, 0x39, 0x99, 0x8f,
+	0x2e, 0x10, 0x3c, 0x4e, 0x7b, 0xb3, 0xc9, 0xeb, 0x27, 0x73, 0x49, 0x76, 0x7e, 0x73, 0x6c, 0xe6,
+	0xff, 0x0d, 0x5e, 0xfd, 0x4c, 0x94, 0x3a, 0xb5, 0x39, 0x81, 0xd2, 0x35, 0x16, 0xbf, 0x4b, 0x9e,
+	0xe7, 0xf9, 0x81, 0xf8, 0xcb, 0xca, 0x86, 0xff, 0x60, 0x0c, 0x33, 0x82, 0xa8, 0xbc, 0xe1, 0x10,
+	0x64, 0x04, 0x51, 0xe5, 0xda, 0x7d, 0x39, 0x22, 0x02, 0xdf, 0xbb, 0x2c, 0x7d, 0x5d, 0x63, 0x43,
+	0x87, 0x04, 0x8f, 0xfc, 0xf6, 0xfa, 0xd7, 0x7e, 0x9a, 0xfc, 0xd9, 0x4f, 0x93, 0xbf, 0xfb, 0x69,
+	0xf2, 0xed, 0xe5, 0xd2, 0xd1, 0x6a, 0x53, 0xcc, 0x4b, 0x5f, 0x67, 0xb9, 0x0f, 0x48, 0x64, 0xde,
+	0x57, 0x7e, 0x9b, 0xdd, 0x98, 0xb6, 0x75, 0xd8, 0xbe, 0xfa, 0xe0, 0xb3, 0xe3, 0x53, 0x2e, 0x86,
+	0xf2, 0x2c, 0xdf, 0xfc, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x3e, 0xe9, 0x34, 0x89, 0xde, 0x02, 0x00,
+	0x00,
 }
 
 func (m *MetaData) Marshal() (dAtA []byte, err error) {
@@ -336,7 +345,9 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintMetadata(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x7a
+			dAtA[i] = 0x1
+			i--
+			dAtA[i] = 0x82
 		}
 	}
 	if m.HasTitleRow {
@@ -347,76 +358,83 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x70
+		dAtA[i] = 0x78
 	}
 	if len(m.State) > 0 {
 		i -= len(m.State)
 		copy(dAtA[i:], m.State)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.State)))
 		i--
-		dAtA[i] = 0x6a
+		dAtA[i] = 0x72
 	}
 	if len(m.FileType) > 0 {
 		i -= len(m.FileType)
 		copy(dAtA[i:], m.FileType)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.FileType)))
 		i--
-		dAtA[i] = 0x62
+		dAtA[i] = 0x6a
 	}
 	if m.Size_ != 0 {
 		i = encodeVarintMetadata(dAtA, i, uint64(m.Size_))
 		i--
-		dAtA[i] = 0x58
+		dAtA[i] = 0x60
 	}
 	if m.Columns != 0 {
 		i = encodeVarintMetadata(dAtA, i, uint64(m.Columns))
 		i--
-		dAtA[i] = 0x50
+		dAtA[i] = 0x58
 	}
 	if m.Rows != 0 {
 		i = encodeVarintMetadata(dAtA, i, uint64(m.Rows))
 		i--
-		dAtA[i] = 0x48
+		dAtA[i] = 0x50
 	}
 	if len(m.Desc) > 0 {
 		i -= len(m.Desc)
 		copy(dAtA[i:], m.Desc)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Desc)))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x4a
 	}
 	if len(m.FilePath) > 0 {
 		i -= len(m.FilePath)
 		copy(dAtA[i:], m.FilePath)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.FilePath)))
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x42
 	}
 	if len(m.TableName) > 0 {
 		i -= len(m.TableName)
 		copy(dAtA[i:], m.TableName)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.TableName)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x3a
 	}
 	if len(m.OriginId) > 0 {
 		i -= len(m.OriginId)
 		copy(dAtA[i:], m.OriginId)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.OriginId)))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x32
 	}
 	if len(m.DataStatus) > 0 {
 		i -= len(m.DataStatus)
 		copy(dAtA[i:], m.DataStatus)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.DataStatus)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	if len(m.DataId) > 0 {
 		i -= len(m.DataId)
 		copy(dAtA[i:], m.DataId)
 		i = encodeVarintMetadata(dAtA, i, uint64(len(m.DataId)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.NodeName) > 0 {
+		i -= len(m.NodeName)
+		copy(dAtA[i:], m.NodeName)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.NodeName)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -520,6 +538,10 @@ func (m *MetaData) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
+	l = len(m.NodeName)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
 	l = len(m.DataId)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
@@ -567,7 +589,7 @@ func (m *MetaData) Size() (n int) {
 	if len(m.ColumnMetaList) > 0 {
 		for _, e := range m.ColumnMetaList {
 			l = e.Size()
-			n += 1 + l + sovMetadata(uint64(l))
+			n += 2 + l + sovMetadata(uint64(l))
 		}
 	}
 	if m.XXX_unrecognized != nil {
@@ -707,6 +729,38 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NodeName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataId", wireType)
 			}
 			var stringLen uint64
@@ -737,7 +791,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.DataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataStatus", wireType)
 			}
@@ -769,7 +823,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.DataStatus = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OriginId", wireType)
 			}
@@ -801,7 +855,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.OriginId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TableName", wireType)
 			}
@@ -833,7 +887,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.TableName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FilePath", wireType)
 			}
@@ -865,7 +919,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.FilePath = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 8:
+		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
 			}
@@ -897,7 +951,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.Desc = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 9:
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Rows", wireType)
 			}
@@ -916,7 +970,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 10:
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
 			}
@@ -935,7 +989,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 11:
+		case 12:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
 			}
@@ -954,7 +1008,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 12:
+		case 13:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FileType", wireType)
 			}
@@ -986,7 +1040,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.FileType = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 13:
+		case 14:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
@@ -1018,7 +1072,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.State = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 14:
+		case 15:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field HasTitleRow", wireType)
 			}
@@ -1038,7 +1092,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.HasTitleRow = bool(v != 0)
-		case 15:
+		case 16:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ColumnMetaList", wireType)
 			}
@@ -1137,7 +1191,7 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Cindex |= uint64(b&0x7F) << shift
+				m.Cindex |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1220,7 +1274,7 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Csize |= uint64(b&0x7F) << shift
+				m.Csize |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

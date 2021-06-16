@@ -7,10 +7,10 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -30,17 +30,17 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // 系统本身资源抽象
 type ResourceUsed struct {
 	// 服务系统的总内存
-	TotalMem string `protobuf:"bytes,1,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
+	TotalMem uint64 `protobuf:"varint,1,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
 	// 服务系统的已用内存
-	UsedMem string `protobuf:"bytes,2,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
+	UsedMem uint64 `protobuf:"varint,2,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
 	// 服务的总内核数
-	TotalProcessor string `protobuf:"bytes,3,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
+	TotalProcessor uint32 `protobuf:"varint,3,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
 	// 服务的已用内核数
-	UsedProcessor string `protobuf:"bytes,4,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
+	UsedProcessor uint32 `protobuf:"varint,4,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
 	// 服务的总带宽数
-	TotalBandwidth string `protobuf:"bytes,5,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
+	TotalBandwidth uint64 `protobuf:"varint,5,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
 	// 服务的已用带宽数
-	UsedBandwidth        string   `protobuf:"bytes,6,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
+	UsedBandwidth        uint64   `protobuf:"varint,6,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -79,56 +79,56 @@ func (m *ResourceUsed) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ResourceUsed proto.InternalMessageInfo
 
-func (m *ResourceUsed) GetTotalMem() string {
+func (m *ResourceUsed) GetTotalMem() uint64 {
 	if m != nil {
 		return m.TotalMem
 	}
-	return ""
+	return 0
 }
 
-func (m *ResourceUsed) GetUsedMem() string {
+func (m *ResourceUsed) GetUsedMem() uint64 {
 	if m != nil {
 		return m.UsedMem
 	}
-	return ""
+	return 0
 }
 
-func (m *ResourceUsed) GetTotalProcessor() string {
+func (m *ResourceUsed) GetTotalProcessor() uint32 {
 	if m != nil {
 		return m.TotalProcessor
 	}
-	return ""
+	return 0
 }
 
-func (m *ResourceUsed) GetUsedProcessor() string {
+func (m *ResourceUsed) GetUsedProcessor() uint32 {
 	if m != nil {
 		return m.UsedProcessor
 	}
-	return ""
+	return 0
 }
 
-func (m *ResourceUsed) GetTotalBandwidth() string {
+func (m *ResourceUsed) GetTotalBandwidth() uint64 {
 	if m != nil {
 		return m.TotalBandwidth
 	}
-	return ""
+	return 0
 }
 
-func (m *ResourceUsed) GetUsedBandwidth() string {
+func (m *ResourceUsed) GetUsedBandwidth() uint64 {
 	if m != nil {
 		return m.UsedBandwidth
 	}
-	return ""
+	return 0
 }
 
 // 算力的基本仨元素
 type PurePower struct {
 	// 系统的总内存
-	Mem string `protobuf:"bytes,1,opt,name=mem,proto3" json:"mem,omitempty"`
+	Mem uint64 `protobuf:"varint,1,opt,name=mem,proto3" json:"mem,omitempty"`
 	// 系统的总内核数
-	Processor uint64 `protobuf:"varint,2,opt,name=processor,proto3" json:"processor,omitempty"`
+	Processor uint32 `protobuf:"varint,2,opt,name=processor,proto3" json:"processor,omitempty"`
 	// 系统的总带宽数
-	Bandwidth            string   `protobuf:"bytes,3,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
+	Bandwidth            uint64   `protobuf:"varint,3,opt,name=bandwidth,proto3" json:"bandwidth,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -167,34 +167,33 @@ func (m *PurePower) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PurePower proto.InternalMessageInfo
 
-func (m *PurePower) GetMem() string {
+func (m *PurePower) GetMem() uint64 {
 	if m != nil {
 		return m.Mem
 	}
-	return ""
+	return 0
 }
 
-func (m *PurePower) GetProcessor() uint64 {
+func (m *PurePower) GetProcessor() uint32 {
 	if m != nil {
 		return m.Processor
 	}
 	return 0
 }
 
-func (m *PurePower) GetBandwidth() string {
+func (m *PurePower) GetBandwidth() uint64 {
 	if m != nil {
 		return m.Bandwidth
 	}
-	return ""
+	return 0
 }
 
 // 发布算力请求参数
 type PublishPowerRequest struct {
 	// 算力的拥有者
 	Owner *Organization `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	// 计算服务id (节点内部的)
-	// todo: 移除该字段
-	JobNodeId string `protobuf:"bytes,2,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
+	// 算力ID
+	PowerId string `protobuf:"bytes,2,opt,name=power_id,json=powerId,proto3" json:"power_id,omitempty"`
 	// 发布的算力信息
 	Information          *PurePower `protobuf:"bytes,3,opt,name=information,proto3" json:"information,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
@@ -242,9 +241,9 @@ func (m *PublishPowerRequest) GetOwner() *Organization {
 	return nil
 }
 
-func (m *PublishPowerRequest) GetJobNodeId() string {
+func (m *PublishPowerRequest) GetPowerId() string {
 	if m != nil {
-		return m.JobNodeId
+		return m.PowerId
 	}
 	return ""
 }
@@ -563,49 +562,48 @@ func init() {
 func init() { proto.RegisterFile("lib/center/api/resource.proto", fileDescriptor_bed369cb36770f5f) }
 
 var fileDescriptor_bed369cb36770f5f = []byte{
-	// 658 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0xcd, 0x4e, 0xdb, 0x40,
-	0x10, 0x96, 0x09, 0x01, 0x32, 0x29, 0x01, 0x16, 0x44, 0x93, 0x50, 0x22, 0x64, 0xa9, 0x82, 0x43,
-	0x1b, 0xa3, 0x70, 0x2e, 0x07, 0x50, 0x41, 0x48, 0xfd, 0x89, 0x0c, 0xad, 0xfa, 0x23, 0x35, 0x5a,
-	0xc7, 0x43, 0x58, 0xb0, 0xbd, 0xee, 0xee, 0x9a, 0x88, 0x3e, 0x41, 0x8f, 0x7d, 0xac, 0x1e, 0xfb,
-	0x08, 0x15, 0x87, 0xde, 0xfb, 0x06, 0xd5, 0xae, 0x1d, 0x3b, 0x21, 0x54, 0xaa, 0x7a, 0xdb, 0x9d,
-	0xef, 0x9b, 0x6f, 0xe6, 0x9b, 0x1d, 0x2d, 0x6c, 0x06, 0xcc, 0x73, 0xfa, 0x18, 0x29, 0x14, 0x0e,
-	0x8d, 0x99, 0x23, 0x50, 0xf2, 0x44, 0xf4, 0xb1, 0x1d, 0x0b, 0xae, 0x38, 0x29, 0xd1, 0x98, 0x35,
-	0x1b, 0x77, 0x38, 0x1e, 0x95, 0x19, 0xde, 0xdc, 0x18, 0x70, 0x3e, 0x08, 0xd0, 0x31, 0x37, 0x2f,
-	0x39, 0x77, 0x30, 0x8c, 0xd5, 0x4d, 0x0a, 0xda, 0xbf, 0x2c, 0x78, 0xe0, 0x66, 0x7a, 0x6f, 0x24,
-	0xfa, 0x64, 0x03, 0x2a, 0x8a, 0x2b, 0x1a, 0xf4, 0x42, 0x0c, 0xeb, 0xd6, 0x96, 0xb5, 0x53, 0x71,
-	0x17, 0x4c, 0xe0, 0x25, 0x86, 0xa4, 0x01, 0x0b, 0x89, 0x44, 0xdf, 0x60, 0x33, 0x06, 0x9b, 0xd7,
-	0x77, 0x0d, 0x6d, 0xc3, 0x52, 0x9a, 0x17, 0x0b, 0xde, 0x47, 0x29, 0xb9, 0xa8, 0x97, 0x0c, 0xa3,
-	0x66, 0xc2, 0xdd, 0x51, 0x94, 0x3c, 0x86, 0x9a, 0xd1, 0x28, 0x78, 0xb3, 0x86, 0xb7, 0xa8, 0xa3,
-	0x05, 0x2d, 0xd7, 0xf3, 0x68, 0xe4, 0x0f, 0x99, 0xaf, 0x2e, 0xea, 0xe5, 0x31, 0xbd, 0x83, 0x51,
-	0x34, 0xd7, 0x2b, 0x78, 0x73, 0x85, 0x5e, 0x4e, 0xb3, 0xdf, 0x43, 0xa5, 0x9b, 0x08, 0xec, 0xf2,
-	0x21, 0x0a, 0xb2, 0x0c, 0xa5, 0xc2, 0x9e, 0x3e, 0x92, 0x47, 0x50, 0x29, 0x1a, 0xd2, 0xd6, 0x66,
-	0xdd, 0x22, 0xa0, 0xd1, 0x42, 0x3e, 0xb5, 0x55, 0x04, 0xec, 0x6f, 0x16, 0xac, 0x76, 0x13, 0x2f,
-	0x60, 0xf2, 0xc2, 0xc8, 0xbb, 0xf8, 0x39, 0x41, 0xa9, 0xc8, 0x36, 0x94, 0xf9, 0x30, 0x42, 0x61,
-	0xea, 0x54, 0x3b, 0x2b, 0x6d, 0x1a, 0xb3, 0xf6, 0x6b, 0x31, 0xa0, 0x11, 0xfb, 0x42, 0x15, 0xe3,
-	0x91, 0x9b, 0xe2, 0xa4, 0x05, 0xd5, 0x4b, 0xee, 0xf5, 0x22, 0xee, 0x63, 0x8f, 0xf9, 0xd9, 0x64,
-	0x2b, 0x97, 0xdc, 0x7b, 0xc5, 0x7d, 0x3c, 0xf1, 0xc9, 0x2e, 0x54, 0x59, 0x74, 0xce, 0x45, 0x68,
-	0xb2, 0x4c, 0x03, 0xd5, 0x4e, 0xcd, 0xc8, 0xe5, 0x9e, 0xdc, 0x71, 0x8a, 0xfd, 0x11, 0xd6, 0x26,
-	0x3b, 0x92, 0x31, 0x8f, 0x24, 0x92, 0x75, 0x98, 0x93, 0x8a, 0xaa, 0x44, 0x9a, 0x9e, 0xca, 0x6e,
-	0x76, 0x33, 0x03, 0x91, 0x83, 0xac, 0xb2, 0x3e, 0xea, 0xa7, 0x8e, 0x75, 0xaa, 0x6e, 0x28, 0x75,
-	0x3c, 0x6f, 0xee, 0x27, 0xbe, 0xfd, 0x0e, 0x88, 0x8b, 0xd7, 0xfc, 0x0a, 0xff, 0xcf, 0xed, 0xb8,
-	0xf2, 0xcc, 0xa4, 0xf2, 0x57, 0x0b, 0x56, 0x8c, 0xe8, 0x99, 0x7e, 0xe3, 0xd3, 0x24, 0x0c, 0xa9,
-	0xb8, 0x21, 0x7b, 0x93, 0xf6, 0xc7, 0xf5, 0xc7, 0x57, 0x77, 0x62, 0x02, 0x64, 0x07, 0x96, 0xd3,
-	0xfd, 0x51, 0x54, 0x5e, 0xf5, 0xfa, 0x3c, 0x89, 0x94, 0xa9, 0xb6, 0x98, 0x2d, 0xd0, 0x19, 0x95,
-	0x57, 0x87, 0x3a, 0x4a, 0xd6, 0xa0, 0xac, 0xa7, 0x80, 0x99, 0xcd, 0xf4, 0x62, 0x0b, 0x68, 0x4c,
-	0x75, 0x92, 0x8f, 0xf1, 0x9f, 0xbd, 0x3e, 0x81, 0xb2, 0xf1, 0x66, 0x4a, 0x57, 0x3b, 0xeb, 0xe9,
-	0x9b, 0x4d, 0xe9, 0xa6, 0x24, 0xfb, 0x13, 0x6c, 0x4e, 0x61, 0x2f, 0x98, 0x54, 0x79, 0xdd, 0x67,
-	0x00, 0xe9, 0xe8, 0x02, 0x26, 0x55, 0xdd, 0xda, 0x2a, 0xed, 0x54, 0x3b, 0xad, 0xbf, 0x68, 0x66,
-	0x39, 0x6e, 0xc5, 0x64, 0x68, 0x99, 0xce, 0x6f, 0x0b, 0x96, 0x46, 0x13, 0x3b, 0x45, 0x71, 0xcd,
-	0xfa, 0x48, 0x8e, 0x60, 0x29, 0xdb, 0x94, 0x11, 0x42, 0xea, 0xd9, 0x66, 0x4d, 0x6d, 0x74, 0xb3,
-	0x71, 0x0f, 0x92, 0xb5, 0xb6, 0x0f, 0xb5, 0x74, 0x29, 0x72, 0x99, 0x87, 0xd9, 0x0b, 0xdd, 0xdd,
-	0x94, 0xe6, 0xaa, 0x01, 0x4e, 0x59, 0x18, 0x07, 0x98, 0xe7, 0xbf, 0x85, 0xfa, 0x31, 0xaa, 0x7b,
-	0xed, 0x93, 0xf5, 0x76, 0xfa, 0x85, 0xb5, 0x47, 0x5f, 0x58, 0xfb, 0xb9, 0xfe, 0xc2, 0x9a, 0xf6,
-	0xfd, 0xd6, 0xc7, 0x47, 0x76, 0xb0, 0xff, 0xfd, 0xb6, 0x65, 0xfd, 0xb8, 0x6d, 0x59, 0x3f, 0x6f,
-	0x5b, 0xd6, 0x87, 0xdd, 0x01, 0x53, 0x17, 0x89, 0xd7, 0xee, 0xf3, 0xd0, 0x71, 0xb9, 0x44, 0xa5,
-	0xe8, 0x51, 0xc0, 0x87, 0xce, 0x21, 0x15, 0x82, 0xa1, 0x78, 0x7a, 0xcc, 0x9d, 0xc9, 0x8f, 0xd4,
-	0x9b, 0x33, 0x35, 0xf7, 0xfe, 0x04, 0x00, 0x00, 0xff, 0xff, 0x5d, 0xdd, 0xba, 0xde, 0x85, 0x05,
-	0x00, 0x00,
+	// 645 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcd, 0x4e, 0xdb, 0x40,
+	0x10, 0x96, 0x09, 0x01, 0x32, 0x29, 0x01, 0x16, 0x44, 0x93, 0x50, 0x22, 0x64, 0xa9, 0x22, 0x87,
+	0x36, 0x46, 0xe1, 0x5c, 0x0e, 0xa0, 0x82, 0x2a, 0xb5, 0x6a, 0x64, 0x68, 0xd5, 0x1f, 0xa9, 0x68,
+	0x9d, 0x0c, 0x61, 0x85, 0xed, 0x75, 0x77, 0xd7, 0x44, 0xf4, 0x09, 0x2a, 0xf5, 0xc5, 0x7a, 0xec,
+	0x23, 0x54, 0x1c, 0x7a, 0xef, 0x1b, 0x54, 0x1e, 0x3b, 0x76, 0x42, 0xa8, 0xd4, 0x43, 0x6f, 0xbb,
+	0xf3, 0x7d, 0xf3, 0xcd, 0x7c, 0xb3, 0xa3, 0x85, 0x6d, 0x5f, 0x78, 0x4e, 0x1f, 0x43, 0x83, 0xca,
+	0xe1, 0x91, 0x70, 0x14, 0x6a, 0x19, 0xab, 0x3e, 0x76, 0x22, 0x25, 0x8d, 0x64, 0x25, 0x1e, 0x89,
+	0x66, 0xe3, 0x0e, 0xc7, 0xe3, 0x3a, 0xc3, 0x9b, 0x5b, 0x43, 0x29, 0x87, 0x3e, 0x3a, 0x74, 0xf3,
+	0xe2, 0x0b, 0x07, 0x83, 0xc8, 0xdc, 0xa4, 0xa0, 0xfd, 0xcb, 0x82, 0x07, 0x6e, 0xa6, 0xf7, 0x46,
+	0xe3, 0x80, 0x6d, 0x41, 0xc5, 0x48, 0xc3, 0xfd, 0xf3, 0x00, 0x83, 0xba, 0xb5, 0x63, 0xb5, 0xe7,
+	0xdd, 0x25, 0x0a, 0xbc, 0xc2, 0x80, 0x35, 0x60, 0x29, 0xd6, 0x38, 0x20, 0x6c, 0x8e, 0xb0, 0xc5,
+	0xe4, 0x9e, 0x40, 0xbb, 0xb0, 0x92, 0xe6, 0x45, 0x4a, 0xf6, 0x51, 0x6b, 0xa9, 0xea, 0xa5, 0x1d,
+	0xab, 0xbd, 0xec, 0xd6, 0x28, 0xdc, 0x1b, 0x47, 0xd9, 0x63, 0xa8, 0x91, 0x46, 0xc1, 0x9b, 0x27,
+	0xde, 0x72, 0x12, 0x2d, 0x68, 0xb9, 0x9e, 0xc7, 0xc3, 0xc1, 0x48, 0x0c, 0xcc, 0x65, 0xbd, 0x4c,
+	0x15, 0x53, 0xbd, 0xc3, 0x71, 0x34, 0xd7, 0x2b, 0x78, 0x0b, 0xc4, 0x23, 0xbd, 0x9c, 0x66, 0xbf,
+	0x87, 0x4a, 0x2f, 0x56, 0xd8, 0x93, 0x23, 0x54, 0x6c, 0x15, 0x4a, 0x85, 0xbd, 0xe4, 0xc8, 0x1e,
+	0x41, 0xa5, 0x68, 0x68, 0x8e, 0x1a, 0x2a, 0x02, 0x09, 0x5a, 0xc8, 0x97, 0x28, 0xab, 0x08, 0xd8,
+	0xdf, 0x2c, 0x58, 0xef, 0xc5, 0x9e, 0x2f, 0xf4, 0x25, 0xc9, 0xbb, 0xf8, 0x39, 0x46, 0x6d, 0xd8,
+	0x2e, 0x94, 0xe5, 0x28, 0x44, 0x45, 0x75, 0xaa, 0xdd, 0xb5, 0x0e, 0x8f, 0x44, 0xe7, 0xb5, 0x1a,
+	0xf2, 0x50, 0x7c, 0xe1, 0x46, 0xc8, 0xd0, 0x4d, 0xf1, 0x64, 0xac, 0x51, 0x92, 0x78, 0x2e, 0x06,
+	0x54, 0xbb, 0xe2, 0x2e, 0xd2, 0xfd, 0xc5, 0x80, 0xed, 0x41, 0x55, 0x84, 0x17, 0x52, 0x05, 0x94,
+	0x40, 0xb5, 0xab, 0xdd, 0x1a, 0x29, 0xe5, 0x76, 0xdc, 0x49, 0x8a, 0xfd, 0x11, 0x36, 0xa6, 0x9b,
+	0xd1, 0x91, 0x0c, 0x35, 0xb2, 0x4d, 0x58, 0xd0, 0x86, 0x9b, 0x58, 0x53, 0x3b, 0x65, 0x37, 0xbb,
+	0xd1, 0x2c, 0xf4, 0x30, 0xab, 0x9b, 0x1c, 0xa7, 0xda, 0x29, 0x4d, 0xb5, 0x63, 0xbf, 0x03, 0xe6,
+	0xe2, 0xb5, 0xbc, 0xc2, 0xff, 0x6d, 0xd4, 0xfe, 0x6a, 0xc1, 0x1a, 0x89, 0x9e, 0x25, 0xcf, 0x7b,
+	0x1a, 0x07, 0x01, 0x57, 0x37, 0x6c, 0x7f, 0xda, 0xfe, 0xa4, 0xfe, 0xe4, 0xd6, 0x4e, 0x4d, 0x80,
+	0xb5, 0x61, 0x35, 0x5d, 0x1d, 0xc3, 0xf5, 0xd5, 0x79, 0x5f, 0xc6, 0xa1, 0xc9, 0x9e, 0x34, 0xdd,
+	0x9d, 0x33, 0xae, 0xaf, 0x8e, 0x92, 0x28, 0xdb, 0x80, 0x72, 0x32, 0x05, 0xcc, 0x6c, 0xa6, 0x17,
+	0x5b, 0x41, 0x63, 0xa6, 0x93, 0x7c, 0x8c, 0xff, 0xec, 0xf5, 0x09, 0x94, 0xc9, 0x1b, 0x95, 0xae,
+	0x76, 0x37, 0xd3, 0x37, 0x9b, 0xd1, 0x4d, 0x49, 0xf6, 0x27, 0xd8, 0x9e, 0xc1, 0x5e, 0x0a, 0x6d,
+	0xf2, 0xba, 0xcf, 0x00, 0xd2, 0xd1, 0xf9, 0x42, 0x9b, 0xba, 0xb5, 0x53, 0x6a, 0x57, 0xbb, 0xad,
+	0xbf, 0x68, 0x66, 0x39, 0x6e, 0x85, 0x32, 0x12, 0x99, 0xee, 0x6f, 0x0b, 0x56, 0xc6, 0x13, 0x3b,
+	0x45, 0x75, 0x2d, 0xfa, 0xc8, 0x8e, 0x61, 0x25, 0xdb, 0x94, 0x31, 0xc2, 0xea, 0xd9, 0x66, 0xcd,
+	0x2c, 0x73, 0xb3, 0x71, 0x0f, 0x92, 0xb5, 0x76, 0x00, 0xb5, 0x74, 0x29, 0x72, 0x99, 0x87, 0xd9,
+	0x0b, 0xdd, 0xdd, 0x94, 0xe6, 0x3a, 0x01, 0xa7, 0x22, 0x88, 0x7c, 0xcc, 0xf3, 0xdf, 0x42, 0xfd,
+	0x04, 0xcd, 0xbd, 0xf6, 0xd9, 0x66, 0x27, 0xfd, 0xbd, 0x3a, 0xe3, 0xdf, 0xab, 0xf3, 0x3c, 0xf9,
+	0xbd, 0x9a, 0xf6, 0xfd, 0xd6, 0x27, 0x47, 0x76, 0x78, 0xf0, 0xfd, 0xb6, 0x65, 0xfd, 0xb8, 0x6d,
+	0x59, 0x3f, 0x6f, 0x5b, 0xd6, 0x87, 0xbd, 0xa1, 0x30, 0x97, 0xb1, 0xd7, 0xe9, 0xcb, 0xc0, 0x71,
+	0xa5, 0x46, 0x63, 0xf8, 0xb1, 0x2f, 0x47, 0xce, 0x11, 0x57, 0x4a, 0xa0, 0x7a, 0x7a, 0x22, 0x9d,
+	0xe9, 0x3f, 0xd4, 0x5b, 0xa0, 0x9a, 0xfb, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0xb6, 0xde, 0xb1,
+	0x2a, 0x80, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -625,7 +623,7 @@ type ResourceServiceClient interface {
 	// 撤销资源
 	RevokeResource(ctx context.Context, in *RevokePowerRequest, opts ...grpc.CallOption) (*SimpleResponse, error)
 	// 查看各个节点的总算力摘要列表 (不包含 任务描述)
-	GetPowerTotalSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error)
+	GetPowerTotalSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error)
 }
 
 type resourceServiceClient struct {
@@ -654,7 +652,7 @@ func (c *resourceServiceClient) RevokeResource(ctx context.Context, in *RevokePo
 	return out, nil
 }
 
-func (c *resourceServiceClient) GetPowerTotalSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error) {
+func (c *resourceServiceClient) GetPowerTotalSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error) {
 	out := new(PowerTotalSummaryListResponse)
 	err := c.cc.Invoke(ctx, "/api.ResourceService/GetPowerTotalSummaryList", in, out, opts...)
 	if err != nil {
@@ -670,7 +668,7 @@ type ResourceServiceServer interface {
 	// 撤销资源
 	RevokeResource(context.Context, *RevokePowerRequest) (*SimpleResponse, error)
 	// 查看各个节点的总算力摘要列表 (不包含 任务描述)
-	GetPowerTotalSummaryList(context.Context, *empty.Empty) (*PowerTotalSummaryListResponse, error)
+	GetPowerTotalSummaryList(context.Context, *emptypb.Empty) (*PowerTotalSummaryListResponse, error)
 }
 
 // UnimplementedResourceServiceServer can be embedded to have forward compatible implementations.
@@ -683,7 +681,7 @@ func (*UnimplementedResourceServiceServer) PublishResource(ctx context.Context, 
 func (*UnimplementedResourceServiceServer) RevokeResource(ctx context.Context, req *RevokePowerRequest) (*SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeResource not implemented")
 }
-func (*UnimplementedResourceServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *empty.Empty) (*PowerTotalSummaryListResponse, error) {
+func (*UnimplementedResourceServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *emptypb.Empty) (*PowerTotalSummaryListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalSummaryList not implemented")
 }
 
@@ -728,7 +726,7 @@ func _ResourceService_RevokeResource_Handler(srv interface{}, ctx context.Contex
 }
 
 func _ResourceService_GetPowerTotalSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -740,7 +738,7 @@ func _ResourceService_GetPowerTotalSummaryList_Handler(srv interface{}, ctx cont
 		FullMethod: "/api.ResourceService/GetPowerTotalSummaryList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServiceServer).GetPowerTotalSummaryList(ctx, req.(*empty.Empty))
+		return srv.(ResourceServiceServer).GetPowerTotalSummaryList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -790,47 +788,35 @@ func (m *ResourceUsed) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.UsedBandwidth) > 0 {
-		i -= len(m.UsedBandwidth)
-		copy(dAtA[i:], m.UsedBandwidth)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.UsedBandwidth)))
+	if m.UsedBandwidth != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.UsedBandwidth))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x30
 	}
-	if len(m.TotalBandwidth) > 0 {
-		i -= len(m.TotalBandwidth)
-		copy(dAtA[i:], m.TotalBandwidth)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.TotalBandwidth)))
+	if m.TotalBandwidth != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.TotalBandwidth))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x28
 	}
-	if len(m.UsedProcessor) > 0 {
-		i -= len(m.UsedProcessor)
-		copy(dAtA[i:], m.UsedProcessor)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.UsedProcessor)))
+	if m.UsedProcessor != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.UsedProcessor))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x20
 	}
-	if len(m.TotalProcessor) > 0 {
-		i -= len(m.TotalProcessor)
-		copy(dAtA[i:], m.TotalProcessor)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.TotalProcessor)))
+	if m.TotalProcessor != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.TotalProcessor))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x18
 	}
-	if len(m.UsedMem) > 0 {
-		i -= len(m.UsedMem)
-		copy(dAtA[i:], m.UsedMem)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.UsedMem)))
+	if m.UsedMem != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.UsedMem))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x10
 	}
-	if len(m.TotalMem) > 0 {
-		i -= len(m.TotalMem)
-		copy(dAtA[i:], m.TotalMem)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.TotalMem)))
+	if m.TotalMem != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.TotalMem))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -859,24 +845,20 @@ func (m *PurePower) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Bandwidth) > 0 {
-		i -= len(m.Bandwidth)
-		copy(dAtA[i:], m.Bandwidth)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.Bandwidth)))
+	if m.Bandwidth != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.Bandwidth))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x18
 	}
 	if m.Processor != 0 {
 		i = encodeVarintResource(dAtA, i, uint64(m.Processor))
 		i--
 		dAtA[i] = 0x10
 	}
-	if len(m.Mem) > 0 {
-		i -= len(m.Mem)
-		copy(dAtA[i:], m.Mem)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.Mem)))
+	if m.Mem != 0 {
+		i = encodeVarintResource(dAtA, i, uint64(m.Mem))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -917,10 +899,10 @@ func (m *PublishPowerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.JobNodeId) > 0 {
-		i -= len(m.JobNodeId)
-		copy(dAtA[i:], m.JobNodeId)
-		i = encodeVarintResource(dAtA, i, uint64(len(m.JobNodeId)))
+	if len(m.PowerId) > 0 {
+		i -= len(m.PowerId)
+		copy(dAtA[i:], m.PowerId)
+		i = encodeVarintResource(dAtA, i, uint64(len(m.PowerId)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -1191,29 +1173,23 @@ func (m *ResourceUsed) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.TotalMem)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.TotalMem != 0 {
+		n += 1 + sovResource(uint64(m.TotalMem))
 	}
-	l = len(m.UsedMem)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.UsedMem != 0 {
+		n += 1 + sovResource(uint64(m.UsedMem))
 	}
-	l = len(m.TotalProcessor)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.TotalProcessor != 0 {
+		n += 1 + sovResource(uint64(m.TotalProcessor))
 	}
-	l = len(m.UsedProcessor)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.UsedProcessor != 0 {
+		n += 1 + sovResource(uint64(m.UsedProcessor))
 	}
-	l = len(m.TotalBandwidth)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.TotalBandwidth != 0 {
+		n += 1 + sovResource(uint64(m.TotalBandwidth))
 	}
-	l = len(m.UsedBandwidth)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.UsedBandwidth != 0 {
+		n += 1 + sovResource(uint64(m.UsedBandwidth))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1227,16 +1203,14 @@ func (m *PurePower) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Mem)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.Mem != 0 {
+		n += 1 + sovResource(uint64(m.Mem))
 	}
 	if m.Processor != 0 {
 		n += 1 + sovResource(uint64(m.Processor))
 	}
-	l = len(m.Bandwidth)
-	if l > 0 {
-		n += 1 + l + sovResource(uint64(l))
+	if m.Bandwidth != 0 {
+		n += 1 + sovResource(uint64(m.Bandwidth))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1254,7 +1228,7 @@ func (m *PublishPowerRequest) Size() (n int) {
 		l = m.Owner.Size()
 		n += 1 + l + sovResource(uint64(l))
 	}
-	l = len(m.JobNodeId)
+	l = len(m.PowerId)
 	if l > 0 {
 		n += 1 + l + sovResource(uint64(l))
 	}
@@ -1408,10 +1382,10 @@ func (m *ResourceUsed) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalMem", wireType)
 			}
-			var stringLen uint64
+			m.TotalMem = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1421,29 +1395,16 @@ func (m *ResourceUsed) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.TotalMem |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TotalMem = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedMem", wireType)
 			}
-			var stringLen uint64
+			m.UsedMem = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1453,29 +1414,16 @@ func (m *ResourceUsed) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.UsedMem |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.UsedMem = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 3:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalProcessor", wireType)
 			}
-			var stringLen uint64
+			m.TotalProcessor = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1485,29 +1433,16 @@ func (m *ResourceUsed) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.TotalProcessor |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TotalProcessor = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 4:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedProcessor", wireType)
 			}
-			var stringLen uint64
+			m.UsedProcessor = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1517,29 +1452,16 @@ func (m *ResourceUsed) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.UsedProcessor |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.UsedProcessor = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 5:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalBandwidth", wireType)
 			}
-			var stringLen uint64
+			m.TotalBandwidth = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1549,29 +1471,16 @@ func (m *ResourceUsed) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.TotalBandwidth |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TotalBandwidth = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 6:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedBandwidth", wireType)
 			}
-			var stringLen uint64
+			m.UsedBandwidth = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1581,24 +1490,11 @@ func (m *ResourceUsed) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.UsedBandwidth |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.UsedBandwidth = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipResource(dAtA[iNdEx:])
@@ -1651,10 +1547,10 @@ func (m *PurePower) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Mem", wireType)
 			}
-			var stringLen uint64
+			m.Mem = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1664,24 +1560,11 @@ func (m *PurePower) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.Mem |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Mem = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Processor", wireType)
@@ -1696,16 +1579,16 @@ func (m *PurePower) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Processor |= uint64(b&0x7F) << shift
+				m.Processor |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 3:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Bandwidth", wireType)
 			}
-			var stringLen uint64
+			m.Bandwidth = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResource
@@ -1715,24 +1598,11 @@ func (m *PurePower) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.Bandwidth |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResource
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResource
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Bandwidth = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipResource(dAtA[iNdEx:])
@@ -1822,7 +1692,7 @@ func (m *PublishPowerRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1850,7 +1720,7 @@ func (m *PublishPowerRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.JobNodeId = string(dAtA[iNdEx:postIndex])
+			m.PowerId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {

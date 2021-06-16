@@ -6,6 +6,7 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
 import "lib/center/api/base.proto";
 import "google/protobuf/empty.proto";
+import "lib/center/api/metadata.proto";
 
 // 任务摘要信息
 message TaskSummaryResponse {
@@ -74,7 +75,8 @@ message TaskDataSupplier {
   // 组织提供的元数据ID
     string meta_id = 2;
   // 组织提供的元数据名称
-    string meta_name = 3;
+    string                        meta_name   = 3;
+    repeated MetaDataColumnDetail column_meta = 4;
 }
 
 // 任务算力提供方基础信息
@@ -106,7 +108,7 @@ message TaskOperationCostDeclare {
   // 任务所需的内存 (单位: byte)
     uint64 cost_mem = 1;
   // 任务所需的核数 (单位: 个)
-    uint64 cost_processor = 2;
+    uint32 cost_processor = 2;
   // 任务所需的带宽 (单位: bps)
     uint64 cost_bandwidth = 3;
   // 任务所需的运行时长 (单位: ms)
