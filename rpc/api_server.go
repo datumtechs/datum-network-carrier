@@ -22,9 +22,13 @@ var (
 	ErrSetJobNodeInfoStr = "Failed to set job node info"
 	ErrDeleteJobNodeInfoStr = "Failed to delete job node info"
 	ErrSendPowerMsgStr = "Failed to send powerMsg"
+	ErrSendMetaDataMsgStr = "Failed to send metaDataMsg"
 	ErrSendTaskMsgStr = "Failed to send taskMsg"
 
 	ErrReportTaskEventStr = "Failed to report taskEvent"
+
+	ErrSendPowerRevokeMsgStr = "Failed to send powerRevokeMsg"
+	ErrSendMetaDataRevokeMsgStr = "Failed to send metaDataRevokeMsg"
 )
 
 type yarnServiceServer struct {
@@ -327,12 +331,61 @@ func (svr *metaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	return nil, nil
 }
 func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
-	// TODO SendMsg
-	return nil, nil
+	metaDataMsg := new(types.MetaDataMsg)
+	metaDataMsg.MetaDataId = req.Information.MetaSummary.MetaDataId
+	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
+	metaDataMsg.Data.Name = req.Owner.Name
+	metaDataMsg.Data.NodeId = req.Owner.NodeId
+	metaDataMsg.Data.IdentityId = req.Owner.IdentityId
+	metaDataMsg.Data.Information.MetaDataSummary.TableName = req.Information.MetaSummary.TableName
+	metaDataMsg.Data.Information.MetaDataSummary.FilePath = req.Information.MetaSummary.FilePath
+	metaDataMsg.Data.Information.MetaDataSummary.OriginId = req.Information.MetaSummary.OriginId
+	metaDataMsg.Data.Information.MetaDataSummary.Desc = req.Information.MetaSummary.Desc
+	metaDataMsg.Data.Information.MetaDataSummary.FileType = req.Information.MetaSummary.FileType
+	metaDataMsg.Data.Information.MetaDataSummary.Size = req.Information.MetaSummary.Size_
+	metaDataMsg.Data.Information.MetaDataSummary.HasTitle = req.Information.MetaSummary.HasTitle
+	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaSummary.State
+
+	ColumnMetas := make([]*types.ColumnMeta, len(req.Information.ColumnMeta))
+	for i, v := range req.Information.ColumnMeta {
+		ColumnMeta := &types.ColumnMeta{
+			Cindex:  v.Cindex,
+			Cname: v.Cname,
+			Ctype: v.Ctype,
+			Csize: v.Csize,
+			Ccomment: v.Ccomment,
+		}
+		ColumnMetas[i] = ColumnMeta
+	}
+	metaDataMsg.Data.Information.ColumnMetas = ColumnMetas
+	metaDataId := metaDataMsg.GetMetaDataId()
+
+	err := svr.b.SendMsg(metaDataMsg)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrSendMetaDataMsgStr)
+	}
+	return &pb.PublishMetaDataResponse{
+		Status: 0,
+		Msg: OK,
+		MetaDataId: metaDataId,
+	}, nil
 }
 func (svr *metaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*pb.SimpleResponseCode, error) {
-	// TODO SendMsg
-	return nil, nil
+	metaDataRevokeMsg := new(types.MetaDataRevokeMsg)
+	metaDataRevokeMsg.MetaDataId = req.MetaDataId
+	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	metaDataRevokeMsg.Name = req.Owner.Name
+	metaDataRevokeMsg.NodeId = req.Owner.NodeId
+	metaDataRevokeMsg.IdentityId = req.Owner.IdentityId
+
+	err := svr.b.SendMsg(metaDataRevokeMsg)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
+	}
+	return &pb.SimpleResponseCode{
+		Status: 0,
+		Msg: OK,
+	}, nil
 }
 
 
@@ -385,8 +438,22 @@ func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	}, nil
 }
 func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
-	// TODO  SendMsg
-	return nil, nil
+	powerRevokeMsg := new(types.PowerRevokeMsg)
+	powerRevokeMsg.Name = req.Owner.Name
+	powerRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	powerRevokeMsg.Name = req.Owner.Name
+	powerRevokeMsg.NodeId = req.Owner.NodeId
+	powerRevokeMsg.IdentityId = req.Owner.IdentityId
+	powerRevokeMsg.PowerId = req.PowerId
+
+	err := svr.b.SendMsg(powerRevokeMsg)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrSendPowerRevokeMsgStr)
+	}
+	return &pb.SimpleResponseCode{
+		Status: 0,
+		Msg: OK,
+	}, nil
 }
 
 
