@@ -90,6 +90,7 @@ func (m *Organization) GetIdentityId() string {
 }
 
 type SimpleResponse struct {
+	// 0 for ok, !0 error
 	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`

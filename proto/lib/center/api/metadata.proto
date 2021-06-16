@@ -36,13 +36,13 @@ message MetaDataSummary {
 // 源文件的列的描述详情
 message MetaDataColumnDetail {
   // 列的索引
-    uint64 cindex = 1;
+    uint32 cindex = 1;
   // 列名
     string cname = 2;
   // 列类型
     string ctype = 3;
   // 列大小(单位: byte)
-    uint64 csize = 4;
+    uint32 csize = 4;
   // 列描述
     string ccomment = 5;
 }
