@@ -12,15 +12,17 @@ message MetaData {
     string              nodeId         = 2;
     string              dataId         = 3;
     string              dataStatus     = 4;
-    string              filePath       = 5;
-    string              desc           = 6;
-    uint64              rows           = 7;
-    uint64              columns        = 8;
-    uint64              size           = 9;
-    string              fileType       = 10;
-    string              state          = 11;
-    bool                hasTitleRow    = 12;
-    repeated ColumnMeta columnMetaList = 13;
+    string              originId       = 5;
+    string              tableName      = 6;
+    string              filePath       = 7;
+    string              desc           = 8;
+    uint64              rows           = 9;
+    uint64              columns        = 10;
+    uint64              size           = 11;
+    string              fileType       = 12;
+    string              state          = 13;
+    bool                hasTitleRow    = 14;
+    repeated ColumnMeta columnMetaList = 15;
 }
 
 message ColumnMeta {
@@ -28,5 +30,6 @@ message ColumnMeta {
     string cname  = 2;
     string ctype  = 3;
   // unit: byte
-    uint64 csize = 4;
+    uint64 csize    = 4;
+    string ccomment = 5;
 }
