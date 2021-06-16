@@ -89,7 +89,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 		},
 	}
 	for _, v := range task.data.GetMetadataSupplier() {
-		request.DataSupplier = append(request.DataSupplier, &api.TaskDataSupplier{
+		dataSupplier :=  &api.TaskDataSupplier{
 			MemberInfo:           &api.Organization{
 				Name:                 v.GetOrganization().GetNodeName(),
 				NodeId:               v.GetOrganization().GetNodeId(),
@@ -97,7 +97,18 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			},
 			MetaId:               v.GetMetaId(),
 			MetaName:             v.GetMetaName(),
-		})
+			ColumnMeta:			 make([]*api.MetaDataColumnDetail, len(v.GetColumnList())),
+		}
+		for _, column := range v.GetColumnList() {
+			dataSupplier.ColumnMeta = append(dataSupplier.ColumnMeta, &api.MetaDataColumnDetail{
+				Cindex:               column.GetCindex(),
+				Cname:                column.GetCname(),
+				Ctype:                column.GetCtype(),
+				Csize:                column.GetCsize(),
+				Ccomment:             column.GetCcomment(),
+			})
+		}
+		request.DataSupplier = append(request.DataSupplier, dataSupplier)
 	}
 	for _, v := range task.data.GetResourceSupplier() {
 		request.PowerSupplier = append(request.PowerSupplier, &api.TaskPowerSupplier{
