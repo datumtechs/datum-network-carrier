@@ -28,7 +28,7 @@ message PurePower {
   // 系统的总内存
     string mem = 1;
   // 系统的总内核数
-    string processor = 2;
+    uint64 processor = 2;
   // 系统的总带宽数
     string bandwidth = 3;
 }
@@ -38,6 +38,7 @@ message PublishPowerRequest {
   // 算力的拥有者
     Organization owner = 1;
   // 计算服务id (节点内部的)
+    // todo: 移除该字段
     string job_node_id = 2;
   // 发布的算力信息
     PurePower information = 3;
