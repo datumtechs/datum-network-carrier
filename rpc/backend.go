@@ -12,7 +12,7 @@ type Backend interface {
 
 	// system (the yarn node self info)
 	GetNodeInfo() (*types.YarnNodeInfo, error)
-	GetRegisteredPeers() ([]*types.YarnRegisteredNodeDetail, error)
+	GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error)
 
 	// local node resource api
  	SetSeedNode (seed *types.SeedNodeInfo) (types.NodeConnStatus,error)
