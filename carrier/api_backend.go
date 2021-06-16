@@ -15,6 +15,10 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 	return s.carrier.mempool.Add(msg)
 }
 
+// system (the yarn node self info)
+func (s *CarrierAPIBackend)GetNodeInfo() (*types.YarnNodeInfo, error) {return nil, nil}
+func (s *CarrierAPIBackend)GetRegisteredPeers() ([]*types.YarnRegisteredNodeDetail, error) {return nil, nil}
+
 func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
 	return s.carrier.datachain.SetSeedNode(seed)
 }

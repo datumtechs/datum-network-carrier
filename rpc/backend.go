@@ -10,6 +10,10 @@ type Backend interface {
 
 	SendMsg (msg types.Msg) error
 
+	// system (the yarn node self info)
+	GetNodeInfo() (*types.YarnNodeInfo, error)
+	GetRegisteredPeers() ([]*types.YarnRegisteredNodeDetail, error)
+
 	// local node resource api
  	SetSeedNode (seed *types.SeedNodeInfo) (types.NodeConnStatus,error)
 	DeleteSeedNode(id string) error

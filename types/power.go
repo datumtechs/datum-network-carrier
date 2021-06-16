@@ -25,18 +25,18 @@ type OrgResourcePowerAndTaskCount struct {
 }
 
 type PowerTaskDetail struct {
-	TotalTaskCount   uint32       `json:"total_task_count,omitempty"`
-	CurrentTaskCount uint32       `json:"current_task_count,omitempty"`
-	Tasks            []*PowerTask `json:"tasks,omitempty"`
+	TotalTaskCount   uint32       `json:"totalTaskCount"`
+	CurrentTaskCount uint32       `json:"currentTaskCount"`
+	Tasks            []*PowerTask `json:"tasks"`
 }
 
 type PowerTask struct {
-	TaskId         string             `json:"task_id,omitempty"`
-	Owner          *NodeAlias         `json:"owner,omitempty"`
-	Patners        []*NodeAlias       `json:"patners,omitempty"`
-	Receivers      []*NodeAlias       `json:"receivers,omitempty"`
-	OperationCost  *TaskOperationCost `json:"operation_cost,omitempty"`
-	OperationSpend *TaskOperationCost `json:"operation_spend,omitempty"`
+	TaskId         string             `json:"taskId"`
+	Owner          *NodeAlias         `json:"owner"`
+	Patners        []*NodeAlias       `json:"patners"`
+	Receivers      []*NodeAlias       `json:"receivers"`
+	OperationCost  *TaskOperationCost `json:"operationCost"`
+	OperationSpend *TaskOperationCost `json:"operationSpend"`
 }
 
 type OrgPowerTaskDetail struct {
