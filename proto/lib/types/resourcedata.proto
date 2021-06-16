@@ -15,12 +15,12 @@ message ResourceData {
     string dataStatus = 5;
   // resource status, eg: create/release/revoke
     string state = 6;
-  // unit: MB
-    string totalMem = 7;
-  // unit: MB
-    string usedMem = 8;
+  // unit: byte
+    uint64 totalMem = 7;
+  // unit: byte
+    uint64 usedMem = 8;
   // number of cpu cores.
-    uint64 totalProcessor = 9;
-  // unit: MB
-    string totalBandWidth = 10;
+    uint32 totalProcessor = 9;
+  // unit: byte
+    uint64 totalBandWidth = 10;
 }

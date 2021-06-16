@@ -133,7 +133,6 @@ func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArra
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
 	powerTotalSummaryListResponse, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
 	return types.NewResourceArrayFromResponse(powerTotalSummaryListResponse), err
-	return nil, nil
 }
 
 func (dc *DataCenter) GetIdentityByHash(hash common.Hash) (*types.Identity, error) {

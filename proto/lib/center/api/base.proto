@@ -15,6 +15,7 @@ message Organization  {
 }
 
 message SimpleResponse {
+    // 0 for ok, !0 error
     int32  status = 1;
     string msg    = 2;
 }
