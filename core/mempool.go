@@ -56,21 +56,41 @@ func (pool *Mempool) SubscribeNewTaskMsgsEvent(ch chan<- event.TaskMsgEvent) eve
 func (pool *Mempool) Add(msg types.Msg) error {
 
 	switch msg.(type) {
+	case *types.IdentityMsg:
+
+	case *types.IdentityRevokeMsg:
+
+
 	case *types.PowerMsg:
 		power, _ := msg.(*types.PowerMsg)
 		pool.powerMsgQueue.Put(power)
 		// We've directly injected a replacement powerMsg, notify subsystems
 		go pool.msgFeed.Send(event.PowerMsgEvent{types.PowerMsgs{power}})
+
+	case *types.PowerRevokeMsg:
+		powerRevoke, _ := msg.(*types.PowerRevokeMsg)
+		pool.powerMsgQueue.Put(powerRevoke)
+		// We've directly injected a replacement powerMsg, notify subsystems
+		go pool.msgFeed.Send(event.PowerRevokeMsgEvent{types.PowerRevokeMsgs{powerRevoke}})
+
 	case *types.MetaDataMsg:
 		metaData, _ := msg.(*types.MetaDataMsg)
 		pool.mateDataMsgQueue.Put(metaData)
 		// We've directly injected a replacement metaDataMsg, notify subsystems
 		go pool.msgFeed.Send(event.MetaDataMsgEvent{types.MetaDataMsgs{metaData}})
+
+	case *types.MetaDataRevokeMsg:
+		metaDataRevoke, _ := msg.(*types.MetaDataRevokeMsg)
+		pool.mateDataMsgQueue.Put(metaDataRevoke)
+		// We've directly injected a replacement metaDataMsg, notify subsystems
+		go pool.msgFeed.Send(event.MetaDataRevokeMsgEvent{types.MetaDataRevokeMsgs{metaDataRevoke}})
+
 	case *types.TaskMsg:
 		task, _ := msg.(*types.TaskMsg)
 		pool.taskMsgQueue.Put(task)
 		// We've directly injected a replacement taskMsg, notify subsystems
 		go pool.msgFeed.Send(event.TaskMsgEvent{types.TaskMsgs{task}})
+
 	default:
 		log.Fatalf("Failed to add msg, can not match the msg type")
 	}

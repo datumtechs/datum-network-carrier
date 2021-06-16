@@ -3,6 +3,7 @@ package message
 import (
 	"container/heap"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"sort"
 )
 
 type  timeHeap  []uint64
@@ -23,27 +24,83 @@ func (h *timeHeap) Pop() interface{} {
 	return x
 }
 
-
 type PowerMsgList struct {
 	items 			map[uint64]*types.PowerMsg
 	prioty			*timeHeap
+	cache 			types.PowerMsgs            // Cache of the powerMsgs already sorted
 }
-
 func NewPowerMsgList() *PowerMsgList {
 	return &PowerMsgList{
 		items: 	make(map[uint64]*types.PowerMsg),
 		prioty:	new(timeHeap),
 	}
 }
-
 func (lis *PowerMsgList) Put (msg *types.PowerMsg) {
 	heap.Push(lis.prioty, msg.CreateAt())
-	lis.items[msg.CreateAt()] = msg
+	lis.items[msg.CreateAt()], lis.cache = msg, nil
 }
 
 func (lis *PowerMsgList) Get (createAt uint64) *types.PowerMsg {
 	return lis.items[createAt]
 }
+func (lis *PowerMsgList) Pop (createAt uint64) bool {
+	_, ok := lis.items[createAt]
+	if !ok {
+		return false
+	}
+
+	// Otherwise delete the msg and fix the heap prioty
+	for i := 0; i < lis.prioty.Len(); i++ {
+		if (*lis.prioty)[i] == createAt {
+			heap.Remove(lis.prioty, i)
+			break
+		}
+	}
+	delete(lis.items, createAt)
+	return true
+}
+func (lis *PowerMsgList) reheap() {
+	*lis.prioty = make([]uint64, 0, len(lis.items))
+	for time := range lis.items {
+		*lis.prioty = append(*lis.prioty, time)
+	}
+	heap.Init(lis.prioty)
+	lis.cache = nil
+}
+func (lis *PowerMsgList) flatten() types.PowerMsgs {
+	// If the sorting was not cached yet, create and cache it
+	if lis.cache == nil {
+		lis.cache = make(types.PowerMsgs, 0, len(lis.items))
+		for _, msg := range lis.items {
+			lis.cache = append(lis.cache, msg)
+		}
+		sort.Sort(lis.cache)
+	}
+	return lis.cache
+}
+// Flatten returns the PowerMsgs sequence sorted by timestamp size order
+func (lis *PowerMsgList) Flatten() types.PowerMsgs {
+	// Copy the cache to prevent accidental modifications
+	cache := lis.flatten()
+	txs := make(types.PowerMsgs, len(cache))
+	copy(txs, cache)
+	return txs
+}
+// LastElement returns the last element of the flat list
+func (lis *PowerMsgList) LastElement() *types.PowerMsg {
+	cache := lis.flatten()
+	return cache[len(cache)-1]
+}
+// FirstElement returns the first element of the flat list
+func  (lis *PowerMsgList) FirstElement() *types.PowerMsg {
+	cache := lis.flatten()
+	return cache[len(cache)-1]
+}
+
+func (lis *PowerMsgList) arrange () {
+
+}
+
 
 
 

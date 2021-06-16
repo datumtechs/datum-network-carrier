@@ -2,8 +2,12 @@ package event
 
 import "github.com/RosettaFlow/Carrier-Go/types"
 
+type IdentityMsgEvent struct {Msgs types.IdentityMsgs}
+type IdentityRevokeMsgEvent struct {Msgs types.IdentityRevokeMsgs}
 type MetaDataMsgEvent struct{ Msgs types.MetaDataMsgs }
+type MetaDataRevokeMsgEvent struct { Msgs types.MetaDataRevokeMsgs}
 type PowerMsgEvent struct{ Msgs types.PowerMsgs }
+type PowerRevokeMsgEvent struct{ Msgs types.PowerRevokeMsgs }
 type TaskMsgEvent struct{ Msgs types.TaskMsgs }
 
 type TaskEvent struct {
