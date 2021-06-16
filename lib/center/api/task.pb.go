@@ -7,10 +7,10 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -1024,7 +1024,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type TaskServiceClient interface {
 	// 存储任务
-	SaveTask(ctx context.Context, in *TaskDetail, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SaveTask(ctx context.Context, in *TaskDetail, opts ...grpc.CallOption) (*empty.Empty, error)
 	// 查询任务详情（任务ID、节点ID、参与方标识）
 	GetDetailTask(ctx context.Context, in *DetailTaskRequest, opts ...grpc.CallOption) (*TaskDetail, error)
 	// 查询任务列表
@@ -1041,8 +1041,8 @@ func NewTaskServiceClient(cc *grpc.ClientConn) TaskServiceClient {
 	return &taskServiceClient{cc}
 }
 
-func (c *taskServiceClient) SaveTask(ctx context.Context, in *TaskDetail, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *taskServiceClient) SaveTask(ctx context.Context, in *TaskDetail, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/api.TaskService/SaveTask", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1080,7 +1080,7 @@ func (c *taskServiceClient) ListTaskEvent(ctx context.Context, in *TaskEventRequ
 // TaskServiceServer is the server API for TaskService service.
 type TaskServiceServer interface {
 	// 存储任务
-	SaveTask(context.Context, *TaskDetail) (*emptypb.Empty, error)
+	SaveTask(context.Context, *TaskDetail) (*empty.Empty, error)
 	// 查询任务详情（任务ID、节点ID、参与方标识）
 	GetDetailTask(context.Context, *DetailTaskRequest) (*TaskDetail, error)
 	// 查询任务列表
@@ -1093,7 +1093,7 @@ type TaskServiceServer interface {
 type UnimplementedTaskServiceServer struct {
 }
 
-func (*UnimplementedTaskServiceServer) SaveTask(ctx context.Context, req *TaskDetail) (*emptypb.Empty, error) {
+func (*UnimplementedTaskServiceServer) SaveTask(ctx context.Context, req *TaskDetail) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SaveTask not implemented")
 }
 func (*UnimplementedTaskServiceServer) GetDetailTask(ctx context.Context, req *DetailTaskRequest) (*TaskDetail, error) {
