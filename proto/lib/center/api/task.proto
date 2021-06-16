@@ -144,7 +144,7 @@ message TaskEventResponse {
 service TaskService {
 
   // 存储任务
-  rpc SaveTask(TaskDetail) returns (google.protobuf.Empty);
+  rpc SaveTask(TaskDetail) returns (SimpleResponse);
 
   // 查询任务详情（任务ID、节点ID、参与方标识）
   rpc GetDetailTask(DetailTaskRequest) returns (TaskDetail);
