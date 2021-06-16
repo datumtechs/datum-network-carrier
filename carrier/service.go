@@ -3,6 +3,7 @@ package carrier
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/params"
@@ -17,7 +18,7 @@ type Service struct {
 	datachain       *core.DataChain
 	ctx             context.Context
 	cancel          context.CancelFunc
-	mempool         *core.Mempool
+	mempool         *message.Mempool
 
 	// DB interfaces
 	dataDb 			db.Database
@@ -43,7 +44,7 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 		cancel:          cancel,
 		config:          config,
 		proxy:           proxy,
-		mempool:         core.NewMempool(nil), // todo need  set mempool cfg
+		mempool:         message.NewMempool(nil), // todo need  set mempool cfg
 		resourceManager: resource.NewResourceManager(),
 	}
 	// todo: some logic could be added...

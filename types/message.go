@@ -144,10 +144,8 @@ func rlpHash(x interface{}) (h common.Hash) {
 
 // Len returns the length of s.
 func (s PowerMsgs) Len() int { return len(s) }
-
 // Swap swaps the i'th and the j'th element in s.
 func (s PowerMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
-
 func (s PowerMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 // ------------------- metaData -------------------
@@ -173,7 +171,7 @@ type MetaDataSummary struct {
 	FilePath  string `json:"filePath,omitempty"`
 	Rows      uint32 `json:"rows,omitempty"`
 	Columns   uint32 `json:"columns,omitempty"`
-	Size      string `json:"size,omitempty"`
+	Size      uint32 `json:"size,omitempty"`
 	FileType  string `json:"fileType,omitempty"`
 	HasTitle  bool   `json:"hasTitle,omitempty"`
 	State     string `json:"state,omitempty"`
@@ -182,7 +180,7 @@ type ColumnMeta struct {
 	Cindex   uint64 `json:"cindex,omitempty"`
 	Cname    string `json:"cname,omitempty"`
 	Ctype    string `json:"ctype,omitempty"`
-	Csize    uint64 `json:"csize,omitempty"`
+	Csize    uint32 `json:"csize,omitempty"`
 	Ccomment string `json:"ccomment,omitempty"`
 }
 type MetaDataRevokeMsg struct {
@@ -216,7 +214,7 @@ func (msg *MetaDataMsg) Desc() string               { return msg.Data.Informatio
 func (msg *MetaDataMsg) FilePath() string           { return msg.Data.Information.MetaDataSummary.FilePath }
 func (msg *MetaDataMsg) Rows() uint32               { return msg.Data.Information.MetaDataSummary.Rows }
 func (msg *MetaDataMsg) Columns() uint32            { return msg.Data.Information.MetaDataSummary.Columns }
-func (msg *MetaDataMsg) Size() string               { return msg.Data.Information.MetaDataSummary.Size }
+func (msg *MetaDataMsg) Size() uint32               { return msg.Data.Information.MetaDataSummary.Size }
 func (msg *MetaDataMsg) FileType() string           { return msg.Data.Information.MetaDataSummary.FileType }
 func (msg *MetaDataMsg) HasTitle() bool             { return msg.Data.Information.MetaDataSummary.HasTitle }
 func (msg *MetaDataMsg) State() string              { return msg.Data.Information.MetaDataSummary.State }
@@ -244,9 +242,9 @@ func (msg *MetaDataRevokeMsg) MsgType() string          { return MSG_METADATA_RE
 
 // Len returns the length of s.
 func (s MetaDataMsgs) Len() int { return len(s) }
-
 // Swap swaps the i'th and the j'th element in s.
 func (s MetaDataMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s MetaDataMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 // ------------------- task -------------------
 
@@ -331,9 +329,9 @@ func (msg *TaskMsg) Hash() common.Hash {
 
 // Len returns the length of s.
 func (s TaskMsgs) Len() int { return len(s) }
-
 // Swap swaps the i'th and the j'th element in s.
 func (s TaskMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 type TaskSupplier struct {
 	*NodeAlias
@@ -390,8 +388,8 @@ type NodeAlias struct {
 }
 
 type ResourceUsage struct {
-	TotalMem       string `json:"totalMem"`
-	UsedMem        string `json:"usedMem"`
+	TotalMem       uint64 `json:"totalMem"`
+	UsedMem        uint64 `json:"usedMem"`
 	TotalProcessor uint64 `json:"totalProcessor"`
 	UsedProcessor  uint64 `json:"usedProcessor"`
 	TotalBandwidth uint64 `json:"totalBandwidth"`
