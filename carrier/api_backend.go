@@ -16,8 +16,55 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 }
 
 // system (the yarn node self info)
-func (s *CarrierAPIBackend)GetNodeInfo() (*types.YarnNodeInfo, error) {return nil, nil}
-func (s *CarrierAPIBackend)GetRegisteredPeers() ([]*types.YarnRegisteredNodeDetail, error) {return nil, nil}
+func (s *CarrierAPIBackend)GetNodeInfo() (*types.YarnNodeInfo, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend)GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
+	// all dataNodes on yarnNode
+	dataNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	if nil != err {
+		return nil, err
+	}
+	// all jobNodes on yarnNode
+	jobNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	if nil != err {
+		return nil, err
+	}
+	jns := make([]*types.YarnRegisteredJobNode, len(jobNodes))
+	for i, v := range jobNodes {
+		n := &types.YarnRegisteredJobNode{
+			Id: v.Id,
+			InternalIp: v.InternalIp,
+			ExternalIp: v.ExternalIp,
+			InternalPort: v.InternalPort,
+			ExternalPort: v.ExternalPort,
+			//ResourceUsage:  &types.ResourceUsage{},
+			Duration: 0,// TODO 添加运行时长 ...
+		}
+		n.Task.Count = s.carrier.datachain.GetRunningTaskCountOnJobNode(v.Id)
+		n.Task.TaskIds = s.carrier.datachain.GetJobNodeRunningTaskIdList(v.Id)
+		jns[i] = n
+	}
+	dns := make([]*types.YarnRegisteredDataNode, len(jobNodes))
+	for i, v := range dataNodes {
+		n := &types.YarnRegisteredDataNode{
+			Id: v.Id,
+			InternalIp: v.InternalIp,
+			ExternalIp: v.ExternalIp,
+			InternalPort: v.InternalPort,
+			ExternalPort: v.ExternalPort,
+			//ResourceUsage:  &types.ResourceUsage{},
+			Duration: 0,// TODO 添加运行时长 ...
+		}
+		n.Delta.FileCount = 0
+		n.Delta.FileTotalSize = 0
+		dns[i] = n
+	}
+	return &types.YarnRegisteredNodeDetail{
+		JobNodes: jns,
+		DataNodes: dns,
+	}, nil
+}
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
 	return s.carrier.datachain.SetSeedNode(seed)

@@ -22,8 +22,8 @@ type YarnNodeInfo struct {
 }
 
 type YarnRegisteredNodeDetail struct {
-	JobNodes  *YarnRegisteredJobNode  `json:"jobNodes"`
-	DataNodes *YarnRegisteredDataNode `json:"DataNodes"`
+	JobNodes  []*YarnRegisteredJobNode  `json:"jobNodes"`
+	DataNodes []*YarnRegisteredDataNode `json:"DataNodes"`
 }
 
 type YarnRegisteredJobNode struct {

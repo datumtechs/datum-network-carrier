@@ -13,43 +13,102 @@ const (
 )
 
 var (
-	ErrSetSeedNodeInfoStr = "Failed to set seed node info"
+	ErrGetRegisteredPeersStr = "Failed to get all registeredNodes"
+
+	ErrSetSeedNodeInfoStr    = "Failed to set seed node info"
 	ErrDeleteSeedNodeInfoStr = "Failed to delete seed node info"
-	ErrGetSeedNodeListStr = "Failed to get seed nodes"
-	ErrSetDataNodeInfoStr = "Failed to set data node info"
+	ErrGetSeedNodeListStr    = "Failed to get seed nodes"
+	ErrSetDataNodeInfoStr    = "Failed to set data node info"
 	ErrDeleteDataNodeInfoStr = "Failed to delete data node info"
-	ErrGetDataNodeListStr = "Failed to get data nodes"
-	ErrSetJobNodeInfoStr = "Failed to set job node info"
-	ErrDeleteJobNodeInfoStr = "Failed to delete job node info"
-	ErrSendPowerMsgStr = "Failed to send powerMsg"
-	ErrSendMetaDataMsgStr = "Failed to send metaDataMsg"
-	ErrSendTaskMsgStr = "Failed to send taskMsg"
+	ErrGetDataNodeListStr    = "Failed to get data nodes"
+	ErrSetJobNodeInfoStr     = "Failed to set job node info"
+	ErrDeleteJobNodeInfoStr  = "Failed to delete job node info"
+	ErrSendPowerMsgStr       = "Failed to send powerMsg"
+	ErrSendMetaDataMsgStr    = "Failed to send metaDataMsg"
+	ErrSendTaskMsgStr        = "Failed to send taskMsg"
 
 	ErrReportTaskEventStr = "Failed to report taskEvent"
 
-	ErrSendPowerRevokeMsgStr = "Failed to send powerRevokeMsg"
+	ErrSendPowerRevokeMsgStr    = "Failed to send powerRevokeMsg"
 	ErrSendMetaDataRevokeMsgStr = "Failed to send metaDataRevokeMsg"
 )
 
 type yarnServiceServer struct {
 	pb.UnimplementedYarnServiceServer
-	b 			Backend
+	b Backend
 }
 
-func(svr *yarnServiceServer) GetNodeInfo (ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
-	
+func (svr *yarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
+
 	return nil, nil
 }
 func (svr *yarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
+	registerNodes, err := svr.b.GetRegisteredPeers()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetRegisteredPeersStr)
+	}
+	jobNodes := make([]*pb.YarnRegisteredJobNode, len(registerNodes.JobNodes))
+	for i, v := range registerNodes.JobNodes {
+		node := &pb.YarnRegisteredJobNode{
+			Id:           v.Id,
+			InternalIp:   v.InternalIp,
+			ExternalIp:   v.ExternalIp,
+			InternalPort: v.InternalPort,
+			ExternalPort: v.ExternalPort,
+			Information: &pb.ResourceUsedDetailShow{
+				TotalMem:       v.ResourceUsage.TotalMem,
+				UsedMem:        v.ResourceUsage.UsedMem,
+				TotalProcessor: v.ResourceUsage.TotalProcessor,
+				UsedProcessor:  v.ResourceUsage.UsedProcessor,
+				TotalBandwidth: v.ResourceUsage.TotalBandwidth,
+				UsedBandwidth:  v.ResourceUsage.UsedBandwidth,
+			},
+			Duration: v.Duration,
+			Task: &pb.YarnRegisteredJobNodeTaskIds{
+				Count:   v.Task.Count,
+				TaskIds: v.Task.TaskIds,
+			},
+		}
+		jobNodes[i] = node
+	}
 
-	return nil, nil
+	dataNodes := make([]*pb.YarnRegisteredDataNode, len(registerNodes.DataNodes))
+	for i, v := range registerNodes.DataNodes {
+		node := &pb.YarnRegisteredDataNode{
+			Id:           v.Id,
+			InternalIp:   v.InternalIp,
+			ExternalIp:   v.ExternalIp,
+			InternalPort: v.InternalPort,
+			ExternalPort: v.ExternalPort,
+			Information: &pb.ResourceUsedDetailShow{
+				TotalMem:       v.ResourceUsage.TotalMem,
+				UsedMem:        v.ResourceUsage.UsedMem,
+				TotalProcessor: v.ResourceUsage.TotalProcessor,
+				UsedProcessor:  v.ResourceUsage.UsedProcessor,
+				TotalBandwidth: v.ResourceUsage.TotalBandwidth,
+				UsedBandwidth:  v.ResourceUsage.UsedBandwidth,
+			},
+			Duration: v.Duration,
+			Delta: &pb.YarnRegisteredDataNodeDelta{
+				FileCount:     v.Delta.FileCount,
+				FileTotalSize: v.Delta.FileTotalSize,
+			},
+		}
+		dataNodes[i] = node
+	}
+	return &pb.GetRegisteredPeersResponse{
+		Status:    0,
+		Msg:       OK,
+		JobNodes:  jobNodes,
+		DataNodes: dataNodes,
+	}, nil
 }
 func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 
 	seedNode := &types.SeedNodeInfo{
-		InternalIp: req.InternalIp,
+		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ConnState: types.NONCONNECTED,
+		ConnState:    types.NONCONNECTED,
 	}
 	seedNode.SeedNodeId()
 	_, err := svr.b.SetSeedNode(seedNode)
@@ -58,22 +117,22 @@ func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 	}
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		SeedPeer: &pb.SeedPeer{
-			Id: seedNode.Id,
-			InternalIp:  seedNode.InternalIp,
+			Id:           seedNode.Id,
+			InternalIp:   seedNode.InternalIp,
 			InternalPort: seedNode.InternalPort,
-			ConnState: seedNode.ConnState.Int32(),
+			ConnState:    seedNode.ConnState.Int32(),
 		},
 	}, nil
 }
 func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 
 	seedNode := &types.SeedNodeInfo{
-		Id: req.Id,
-		InternalIp: req.InternalIp,
+		Id:           req.Id,
+		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ConnState: types.NONCONNECTED,
+		ConnState:    types.NONCONNECTED,
 	}
 	_, err := svr.b.SetSeedNode(seedNode)
 	if nil != err {
@@ -81,12 +140,12 @@ func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 	}
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		SeedPeer: &pb.SeedPeer{
-			Id: seedNode.Id,
-			InternalIp:  seedNode.InternalIp,
+			Id:           seedNode.Id,
+			InternalIp:   seedNode.InternalIp,
 			InternalPort: seedNode.InternalPort,
-			ConnState: seedNode.ConnState.Int32(),
+			ConnState:    seedNode.ConnState.Int32(),
 		},
 	}, nil
 
@@ -97,7 +156,7 @@ func (svr *yarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.Delete
 	if nil != err {
 		return nil, NewRpcBizErr(ErrDeleteSeedNodeInfoStr)
 	}
-	return &pb.SimpleResponseCode{Status: 0, Msg:  OK}, nil
+	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
 func (svr *yarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetSeedNodeListResponse, error) {
 	list, err := svr.b.GetSeedNodeList()
@@ -107,27 +166,27 @@ func (svr *yarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.Empty
 	seeds := make([]*pb.SeedPeer, len(list))
 	for i, v := range list {
 		s := &pb.SeedPeer{
-			Id: v.Id,
-			InternalIp:  v.InternalIp,
+			Id:           v.Id,
+			InternalIp:   v.InternalIp,
 			InternalPort: v.InternalPort,
-			ConnState: v.ConnState.Int32(),
+			ConnState:    v.ConnState.Int32(),
 		}
 		seeds[i] = s
 	}
 	return &pb.GetSeedNodeListResponse{
-		Status: 0, 
-		Msg: OK,
+		Status:    0,
+		Msg:       OK,
 		SeedPeers: seeds,
 	}, nil
 }
 func (svr *yarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) (*pb.SetDataNodeResponse, error) {
 
 	node := &types.RegisteredNodeInfo{
-		InternalIp: req.InternalIp,
+		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ExternalIp: req.ExternalIp,
+		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.InternalPort,
-		ConnState: types.NONCONNECTED,
+		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
 	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
@@ -136,25 +195,25 @@ func (svr *yarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 	}
 	return &pb.SetDataNodeResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		DataNode: &pb.YarnRegisteredPeerDetail{
-			Id: node.Id,
-			InternalIp: node.InternalIp,
+			Id:           node.Id,
+			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
-			ExternalIp: node.ExternalIp,
+			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState: node.ConnState.Int32(),
+			ConnState:    node.ConnState.Int32(),
 		},
 	}, nil
 }
 func (svr *yarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeRequest) (*pb.SetDataNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
-		Id: req.Id,
-		InternalIp: req.InternalIp,
+		Id:           req.Id,
+		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ExternalIp: req.ExternalIp,
+		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.InternalPort,
-		ConnState: types.NONCONNECTED,
+		ConnState:    types.NONCONNECTED,
 	}
 
 	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
@@ -163,14 +222,14 @@ func (svr *yarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 	}
 	return &pb.SetDataNodeResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		DataNode: &pb.YarnRegisteredPeerDetail{
-			Id: node.Id,
-			InternalIp: node.InternalIp,
+			Id:           node.Id,
+			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
-			ExternalIp: node.ExternalIp,
+			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState: node.ConnState.Int32(),
+			ConnState:    node.ConnState.Int32(),
 		},
 	}, nil
 }
@@ -179,7 +238,7 @@ func (svr *yarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.Delete
 	if err := svr.b.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
 		return nil, NewRpcBizErr(ErrDeleteDataNodeInfoStr)
 	}
-	return &pb.SimpleResponseCode{Status: 0, Msg:  OK}, nil
+	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
 func (svr *yarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 
@@ -192,29 +251,28 @@ func (svr *yarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 		d := &pb.YarnRegisteredPeer{
 			NodeType: types.PREFIX_TYPE_DATANODE.String(),
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
-				InternalIp: v.InternalIp,
+				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
-				ExternalIp: v.ExternalIp,
+				ExternalIp:   v.ExternalIp,
 				ExternalPort: v.InternalPort,
-				ConnState: v.ConnState.Int32(),
+				ConnState:    v.ConnState.Int32(),
 			},
-
 		}
 		datas[i] = d
 	}
 	return &pb.GetRegisteredNodeListResponse{
 		Status: 0,
-		Msg: OK,
-		Nodes: datas,
+		Msg:    OK,
+		Nodes:  datas,
 	}, nil
 }
 func (svr *yarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*pb.SetJobNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
-		InternalIp: req.InternalIp,
+		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ExternalIp: req.ExternalIp,
+		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.InternalPort,
-		ConnState: types.NONCONNECTED,
+		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
 	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
@@ -223,25 +281,25 @@ func (svr *yarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 	}
 	return &pb.SetJobNodeResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		JobNode: &pb.YarnRegisteredPeerDetail{
-			Id: node.Id,
-			InternalIp: node.InternalIp,
+			Id:           node.Id,
+			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
-			ExternalIp: node.ExternalIp,
+			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState: node.ConnState.Int32(),
+			ConnState:    node.ConnState.Int32(),
 		},
 	}, nil
 }
 func (svr *yarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeRequest) (*pb.SetJobNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
-		Id: req.Id,
-		InternalIp: req.InternalIp,
+		Id:           req.Id,
+		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ExternalIp: req.ExternalIp,
+		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.InternalPort,
-		ConnState: types.NONCONNECTED,
+		ConnState:    types.NONCONNECTED,
 	}
 	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
 	if nil != err {
@@ -249,14 +307,14 @@ func (svr *yarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 	}
 	return &pb.SetJobNodeResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		JobNode: &pb.YarnRegisteredPeerDetail{
-			Id: node.Id,
-			InternalIp: node.InternalIp,
+			Id:           node.Id,
+			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
-			ExternalIp: node.ExternalIp,
+			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState: node.ConnState.Int32(),
+			ConnState:    node.ConnState.Int32(),
 		},
 	}, nil
 }
@@ -264,7 +322,7 @@ func (svr *yarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteR
 	if err := svr.b.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, req.Id); nil != err {
 		return nil, NewRpcBizErr(ErrDeleteJobNodeInfoStr)
 	}
-	return &pb.SimpleResponseCode{Status: 0, Msg:  OK}, nil
+	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
 func (svr *yarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 	list, err := svr.b.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
@@ -276,20 +334,19 @@ func (svr *yarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 		d := &pb.YarnRegisteredPeer{
 			NodeType: types.PREFIX_TYPE_JOBNODE.String(),
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
-				InternalIp: v.InternalIp,
+				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
-				ExternalIp: v.ExternalIp,
+				ExternalIp:   v.ExternalIp,
 				ExternalPort: v.InternalPort,
-				ConnState: v.ConnState.Int32(),
+				ConnState:    v.ConnState.Int32(),
 			},
-
 		}
 		jobs[i] = d
 	}
 	return &pb.GetRegisteredNodeListResponse{
 		Status: 0,
-		Msg: OK,
-		Nodes: jobs,
+		Msg:    OK,
+		Nodes:  jobs,
 	}, nil
 }
 func (svr *yarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
@@ -306,16 +363,15 @@ func (svr *yarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.Repor
 	if nil != err {
 		return nil, NewRpcBizErr(ErrReportTaskEventStr)
 	}
-	return &pb.SimpleResponseCode{Status: 0, Msg:  OK}, nil
+	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
 func (svr *yarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
 	return nil, nil
 }
 
-
 type metaDataServiceServer struct {
 	pb.UnimplementedMetaDataServiceServer
-	b 			Backend
+	b Backend
 }
 
 func (svr *metaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataSummaryListResponse, error) {
@@ -349,10 +405,10 @@ func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	ColumnMetas := make([]*types.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
 		ColumnMeta := &types.ColumnMeta{
-			Cindex:  v.Cindex,
-			Cname: v.Cname,
-			Ctype: v.Ctype,
-			Csize: v.Csize,
+			Cindex:   v.Cindex,
+			Cname:    v.Cname,
+			Ctype:    v.Ctype,
+			Csize:    v.Csize,
 			Ccomment: v.Ccomment,
 		}
 		ColumnMetas[i] = ColumnMeta
@@ -365,8 +421,8 @@ func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 		return nil, NewRpcBizErr(ErrSendMetaDataMsgStr)
 	}
 	return &pb.PublishMetaDataResponse{
-		Status: 0,
-		Msg: OK,
+		Status:     0,
+		Msg:        OK,
 		MetaDataId: metaDataId,
 	}, nil
 }
@@ -384,15 +440,15 @@ func (svr *metaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	}
 	return &pb.SimpleResponseCode{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 	}, nil
 }
 
-
 type powerServiceServer struct {
 	pb.UnimplementedPowerServiceServer
-	b 			Backend
+	b Backend
 }
+
 func (svr *powerServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalSummaryListResponse, error) {
 	return nil, nil
 }
@@ -432,8 +488,8 @@ func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 		return nil, NewRpcBizErr(ErrSendPowerMsgStr)
 	}
 	return &pb.PublishPowerResponse{
-		Status: 0,
-		Msg: OK,
+		Status:  0,
+		Msg:     OK,
 		PowerId: powerId,
 	}, nil
 }
@@ -452,15 +508,15 @@ func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	}
 	return &pb.SimpleResponseCode{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 	}, nil
 }
 
-
 type authServiceServer struct {
 	pb.UnimplementedAuthServiceServer
-	b 			Backend
+	b Backend
 }
+
 func (svr *authServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
 	return nil, nil
 }
@@ -468,12 +524,11 @@ func (svr *authServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Re
 	return nil, nil
 }
 
-
-
 type taskServiceServer struct {
 	pb.UnimplementedTaskServiceServer
-	b 			Backend
+	b Backend
 }
+
 func (svr *taskServiceServer) GetTaskSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskSummaryListResponse, error) {
 	return nil, nil
 }
@@ -500,12 +555,12 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	for i, v := range req.Partners {
 		partner := &types.TaskSupplier{
 			NodeAlias: &types.NodeAlias{
-				Name: v.MemberInfo.Name,
-				NodeId: v.MemberInfo.NodeId,
+				Name:       v.MemberInfo.Name,
+				NodeId:     v.MemberInfo.NodeId,
 				IdentityId: v.MemberInfo.IdentityId,
 			},
 			MetaData: &types.SupplierMetaData{
-				MetaId: v.MetaDataInfo.MetaDataId,
+				MetaId:          v.MetaDataInfo.MetaDataId,
 				ColumnIndexList: v.MetaDataInfo.ColumnIndexList,
 			},
 		}
@@ -519,8 +574,8 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 		providers := make([]*types.NodeAlias, len(v.Providers))
 		for j, val := range v.Providers {
 			provider := &types.NodeAlias{
-				Name:  val.Name,
-				NodeId: val.NodeId,
+				Name:       val.Name,
+				NodeId:     val.NodeId,
 				IdentityId: val.IdentityId,
 			}
 			providers[j] = provider
@@ -528,8 +583,8 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 
 		receiver := &types.TaskResultReceiver{
 			NodeAlias: &types.NodeAlias{
-				Name: v.MemberInfo.Name,
-				NodeId: v.MemberInfo.NodeId,
+				Name:       v.MemberInfo.Name,
+				NodeId:     v.MemberInfo.NodeId,
 				IdentityId: v.MemberInfo.IdentityId,
 			},
 			Providers: providers,
@@ -543,9 +598,9 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	taskMsg.Data.DataSplitContractCode = req.DatasplitContractcode
 	taskMsg.Data.OperationCost = &types.TaskOperationCost{
 		Processor: req.OperationCost.CostProcessor,
-		Mem: req.OperationCost.CostMem,
+		Mem:       req.OperationCost.CostMem,
 		Bandwidth: req.OperationCost.CostBandwidth,
-		Duration: req.OperationCost.Duration,
+		Duration:  req.OperationCost.Duration,
 	}
 	taskId := taskMsg.GetTaskId()
 
@@ -555,7 +610,7 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	}
 	return &pb.PublishTaskDeclareResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		TaskId: taskId,
 	}, nil
 }

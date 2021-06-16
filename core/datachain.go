@@ -253,6 +253,46 @@ func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types
 	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
 }
 
+// TODO 存储当前组织正在参与运行的任务详情 (正在运行的, 管理台需要看 我的任务列表, 存储使用的 pb和数据中心一样, 最后需要两边都查回来本地合并列表展示)
+func (dc *DataChain) StoreRunningTask(task *types.Task) error {
+
+	return nil
+}
+// TODO 存储当前某个 计算服务正在执行的任务Id
+func (dc *DataChain) StoreJobNodeRunningTaskId(jobNodeId, taskId string) {
+
+}
+//// TODO 存储当前某个 数据服务正在执行的任务Id  (先不要这个)
+//func (dc *DataChain) StoreDataNodeRunningTaskId(dataNodeId, taskId string) {
+//
+//}
+// TODO 存储当前组织 正在运行的任务总数 (递增)
+func (dc *DataChain) IncreaseRunningTaskCountOnOrg() uint32 {
+
+	return 0
+}
+// TODO 存储当前计算服务 正在运行的任务总数 (递增)
+func (dc *DataChain) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
+
+	return 0
+}
+// TODO 查询当前组织 正在运行的任务总数
+func (dc *DataChain) GetRunningTaskCountOnOrg () uint32 {
+	return 0
+}
+// TODO 查询当前计算服务 正在运行的任务总数
+func (dc *DataChain) GetRunningTaskCountOnJobNode (jobNodeId string) uint32 {
+	return 0
+}
+// TODO 查询当前组织计算服务正在执行的任务Id列表 (正在运行的还未结束的任务)
+func (dc *DataChain) GetJobNodeRunningTaskIdList (jobNodeId string) []string {
+	return nil
+}
+//// TODO 查询当前组织数据服务正在执行的任务Id列表 (正在运行的还未结束的任务) (先不要这个)
+//func (dc *DataChain) GetDataNodeRunningTaskIdList (dataNodeId string) []string {
+//
+//}
+
 // Config retrieves the datachain's chain configuration.
 func (dc *DataChain) Config() *params.DataChainConfig { return dc.chainConfig }
 
