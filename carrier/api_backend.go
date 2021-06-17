@@ -63,7 +63,16 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 			registerNodes[jobsLen+i] = n
 		}
 	}
-
+	name, err := s.carrier.datachain.GetYarnName()
+	if nil != err {
+		log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
+		return nil, err
+	}
+	identity, err := s.carrier.datachain.GetIdentity()
+	if nil != err {
+		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
+		return nil, err
+	}
 	seedNodes, err := s.carrier.datachain.GetSeedNodeList()
 	return &types.YarnNodeInfo{
 		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
@@ -73,8 +82,8 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 		InternalPort: "", // TODO 读配置
 		ExternalPort: "", //TODO 读p2p
 		IdentityType: "", // TODO 读配置
-		IdentityId:   "", // TODO 读接口
-		Name:         "", // TODO 读接口
+		IdentityId:   identity, // TODO 读接口
+		Name:         name,
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
 		State:        "", // TODO 读系统状态
