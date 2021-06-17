@@ -41,6 +41,12 @@ func WriteRunningTaskCountForJobNode(db DatabaseWriter, jobNodeId string, count 
 	}
 }
 
+func DeleteRunningTaskCountForJobNode(db DatabaseDeleter, jobNodeId string) {
+	if err := db.Delete(runningTaskCountForJobNodeKey(jobNodeId)); err != nil {
+		log.WithError(err).Fatal("Failed to delete RunningTaskCountForJobNode")
+	}
+}
+
 func ReadRunningTaskCountForOrg(db DatabaseReader) uint32 {
 	var v dbtype.Uint32PB
 	enc, _ := db.Get(runningTaskCountForOrgKey)
