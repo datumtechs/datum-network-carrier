@@ -488,9 +488,6 @@ message ApplyIdentityJoinRequest {
   OrganizationIdentityInfo member = 1;           // 申请准入身份
 }
 
-message RevokeIdentityJoinRequest {
-  OrganizationIdentityInfo member = 1;           // 注销准入身份
-}
 
 
 service AuthService {
@@ -502,7 +499,7 @@ service AuthService {
   // 申请准入网络
   rpc ApplyIdentityJoin (ApplyIdentityJoinRequest) returns (SimpleResponseCode);
   // 注销准入网络
-  rpc RevokeIdentityJoin (RevokeIdentityJoinRequest) returns (SimpleResponseCode);
+  rpc RevokeIdentityJoin (EmptyGetParams) returns (SimpleResponseCode);
 }
 
 

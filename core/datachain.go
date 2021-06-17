@@ -173,9 +173,14 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 func (dc *DataChain) StoreYarnName(name string) error {
 	return nil
 }
-
+func (dc *DataChain) DelYarnName() error {
+	return nil
+}
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataChain) StoreIdentity(identity string) error {
+	return nil
+}
+func (dc *DataChain) DelIdentity() error {
 	return nil
 }
 func (dc *DataChain) GetYarnName() (string, error) {
