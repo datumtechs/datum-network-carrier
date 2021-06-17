@@ -79,16 +79,87 @@ message PowerTotalSummaryListResponse {
     repeated PowerTotalSummaryResponse power_list = 1;
 }
 
+message PowerSummaryByNodeIdRequest {
+  // 节点ID
+    string node_id = 1;
+}
+
+message PowerTotalSummaryByStateRequest {
+  // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+    string state = 1;
+}
+
+message PowerSingleSummaryByStateRequest {
+  // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+    string state   = 1;
+    string node_id = 2;
+}
+
+message PowerTotalSummaryByOwnerRequest {
+    string identity_id = 1;
+    string node_id     = 2;
+}
+
+message PowerSingleSummaryByOwnerRequest {
+    string identity_id = 1;
+    string node_id     = 2;
+}
+
+message PowerSingleDetailRequest {
+    string identity_id = 1;
+    string power_id    = 2;
+    string node_id     = 3;
+}
+
+// 单个算力摘要 (不包含 正在处理的任务信息)
+message PowerSingleSummary {
+  // 计算服务id (节点内部的)
+    string job_node_id = 1;
+  // 算力id
+    string power_id = 2;
+  // 算力实况
+    ResourceUsed information = 3;
+  // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+    string state = 4;
+}
+
+message PowerSingleSummaryResponse {
+  // 算力拥有者信息
+    Organization owner = 1;
+  // 算力单个摘要
+    PowerSingleSummary power = 2;
+}
+
+message PowerSingleSummaryListResponse {
+  // 单个节点的算力总摘要列表
+    repeated PowerSingleSummaryResponse power_list = 1;
+}
+
 // 资源（算力）接口定义
 service ResourceService {
 
   // 存储资源
-  rpc PublishResource (PublishPowerRequest) returns (PublishPowerResponse);
+  rpc PublishPower (PublishPowerRequest) returns (PublishPowerResponse);
 
   // 撤销资源
-  rpc RevokeResource (RevokePowerRequest) returns (SimpleResponse);
+  rpc RevokePower (RevokePowerRequest) returns (SimpleResponse);
+
+  // 查看指定节点的总算力摘要
+  rpc GetPowerSummaryByNodeId (PowerSummaryByNodeIdRequest) returns (PowerTotalSummaryResponse);
 
   // 查看各个节点的总算力摘要列表 (不包含 任务描述)
   rpc GetPowerTotalSummaryList (google.protobuf.Empty) returns (PowerTotalSummaryListResponse);
+
+  // 查看指定状态的总算力摘要列表  (不包含 任务描述)
+  rpc GetPowerTotalSummaryByState (PowerTotalSummaryByStateRequest) returns (PowerTotalSummaryListResponse);
+
+  // 查看指定状态的各个单个算力摘要列表  (不包含 任务描述)
+  rpc GetPowerSingleSummaryByState (PowerSingleSummaryByStateRequest) returns (PowerSingleSummaryResponse);
+
+  // 查看指定拥有者的总算力摘要  (不包含 任务描述)
+  rpc GetPowerTotalSummaryByOwner (PowerTotalSummaryByOwnerRequest) returns (PowerTotalSummaryResponse);
+
+  // 查看指定拥有者的单个算力摘要 (不包含 任务描述)
+  rpc GetPowerSingleSummaryByOwner (PowerSingleSummaryByOwnerRequest) returns (PowerSingleSummaryListResponse);
 
 }
