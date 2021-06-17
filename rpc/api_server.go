@@ -13,6 +13,7 @@ const (
 )
 
 var (
+	ErrGetNodeInfoStr        = "Failed to get yarn node information"
 	ErrGetRegisteredPeersStr = "Failed to get all registeredNodes"
 
 	ErrSetSeedNodeInfoStr    = "Failed to set seed node info"
@@ -39,8 +40,54 @@ type yarnServiceServer struct {
 }
 
 func (svr *yarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
+	node, err := svr.b.GetNodeInfo()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetNodeInfoStr)
+	}
+	peers := make([]*pb.YarnRegisteredPeer, len(node.Peers))
+	for i, v := range node.Peers {
+		n := &pb.YarnRegisteredPeer{
+			NodeType: v.NodeType,
+			NodeDetail: &pb.YarnRegisteredPeerDetail{
+				Id:           v.RegisteredNodeInfo.Id,
+				InternalIp:   v.InternalIp,
+				ExternalIp:   v.ExternalIp,
+				InternalPort: v.InternalPort,
+				ExternalPort: v.ExternalPort,
+				ConnState:    v.ConnState.Int32(),
+			},
+		}
+		peers[i] = n
+	}
+	seeds := make([]*pb.SeedPeer, len(node.SeedPeers))
+	for i, v := range node.SeedPeers {
+		n := &pb.SeedPeer{
+			Id:           v.Id,
+			InternalIp:   v.InternalIp,
+			InternalPort: v.InternalPort,
+			ConnState:    v.ConnState.Int32(),
+		}
+		seeds[i] = n
+	}
 
-	return nil, nil
+	return &pb.GetNodeInfoResponse{
+		Status: 0,
+		Msg:    OK,
+		Information: &pb.YarnNodeInfo{
+			NodeType:     node.NodeType,
+			NodeId:       node.NodeId,
+			InternalIp:   node.InternalIp,
+			ExternalIp:   node.ExternalIp,
+			InternalPort: node.InternalPort,
+			ExternalPort: node.ExternalPort,
+			IdentityType: node.IdentityType,
+			IdentityId:   node.IdentityId,
+			State:        node.State,
+			Name:         node.Name,
+			SeedPeers:    seeds,
+			Peers:        peers,
+		},
+	}, nil
 }
 func (svr *yarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
 	registerNodes, err := svr.b.GetRegisteredPeers()

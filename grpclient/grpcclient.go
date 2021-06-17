@@ -110,7 +110,7 @@ func (gc *GrpcClient) GetPowerTotalSummaryByState(ctx context.Context, request *
 	return gc.resourceService.GetPowerTotalSummaryByState(ctx, request)
 }
 
-func (gc *GrpcClient) GetPowerSingleSummaryByState(ctx context.Context, request *api.PowerSingleSummaryByStateRequest) (*api.PowerTotalSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerSingleSummaryByState(ctx context.Context, request *api.PowerSingleSummaryByStateRequest) (*api.PowerSingleSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	return gc.resourceService.GetPowerSingleSummaryByState(ctx, request)

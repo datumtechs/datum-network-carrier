@@ -16,8 +16,8 @@ type YarnNodeInfo struct {
 	UsedProcessor  uint64                `json:"usedProcessor"`
 	TotalBandwidth uint64                `json:"totalBandwidth"`
 	UsedBandwidth  uint64                `json:"usedBandwidth"`
-	Peers          *RegisteredNodeDetail `json:"peers"`
-	SeedPeers      *SeedNodeInfo         `json:"seedPeers"`
+	Peers          []*RegisteredNodeDetail `json:"peers"`
+	SeedPeers      []*SeedNodeInfo         `json:"seedPeers"`
 	State          string                `json:"state"`
 }
 
