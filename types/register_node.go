@@ -18,6 +18,7 @@ const (
 )
 
 const (
+	PREFIX_TYPE_YARNNODE RegisteredNodeType = "yarnNode"
 	PREFIX_TYPE_JOBNODE RegisteredNodeType = "jobNode"
 	PREFIX_TYPE_DATANODE RegisteredNodeType = "dataNode"
 

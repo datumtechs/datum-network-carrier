@@ -169,6 +169,24 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 	return 0, nil
 }
 
+// TODO 本地存储当前调度服务的 name
+func (dc *DataChain) StoreYarnName(name string) error {
+	return nil
+}
+
+// TODO 本地存储当前调度服务自身的  identity
+func (dc *DataChain) StoreIdentity(identity string) error {
+	return nil
+}
+func (dc *DataChain) GetYarnName() (string, error) {
+
+	return "", nil
+}
+func (dc *DataChain) GetIdentity() (string, error) {
+
+	return "", nil
+}
+
 func (dc *DataChain) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
 	return nil, nil
 }

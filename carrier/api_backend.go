@@ -16,10 +16,80 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 }
 
 // system (the yarn node self info)
-func (s *CarrierAPIBackend)GetNodeInfo() (*types.YarnNodeInfo, error) {
-	return nil, nil
+func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
+	jobNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	if nil != err {
+		log.Error("Failed to get all job nodes, on GetNodeInfo(), err:", err)
+		return nil, err
+	}
+	dataNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	if nil != err {
+		log.Error("Failed to get all data nodes, on GetNodeInfo(), err:", err)
+		return nil, err
+	}
+	jobsLen := len(jobNodes)
+	datasLen := len(dataNodes)
+	length := jobsLen + datasLen
+	registerNodes := make([]*types.RegisteredNodeDetail, length)
+	if len(jobNodes) != 0 {
+		for i, v := range jobNodes {
+			n := &types.RegisteredNodeDetail{
+				NodeType: types.PREFIX_TYPE_JOBNODE.String(),
+			}
+			n.RegisteredNodeInfo = &types.RegisteredNodeInfo{
+				Id:           v.Id,
+				InternalIp:   v.InternalIp,
+				InternalPort: v.InternalPort,
+				ExternalIp:   v.ExternalIp,
+				ExternalPort: v.ExternalPort,
+				ConnState:    v.ConnState,
+			}
+			registerNodes[i] = n
+		}
+	}
+	if len(dataNodes) != 0 {
+		for i, v := range dataNodes {
+			n := &types.RegisteredNodeDetail{
+				NodeType: types.PREFIX_TYPE_DATANODE.String(),
+			}
+			n.RegisteredNodeInfo = &types.RegisteredNodeInfo{
+				Id:           v.Id,
+				InternalIp:   v.InternalIp,
+				InternalPort: v.InternalPort,
+				ExternalIp:   v.ExternalIp,
+				ExternalPort: v.ExternalPort,
+				ConnState:    v.ConnState,
+			}
+			registerNodes[jobsLen+i] = n
+		}
+	}
+	name, err := s.carrier.datachain.GetYarnName()
+	if nil != err {
+		log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
+		return nil, err
+	}
+	identity, err := s.carrier.datachain.GetIdentity()
+	if nil != err {
+		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
+		return nil, err
+	}
+	seedNodes, err := s.carrier.datachain.GetSeedNodeList()
+	return &types.YarnNodeInfo{
+		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
+		NodeId:       "", //TODO 读配置
+		InternalIp:   "", // TODO 读配置
+		ExternalIp:   "", // TODO 读p2p
+		InternalPort: "", // TODO 读配置
+		ExternalPort: "", //TODO 读p2p
+		IdentityType: "", // TODO 读配置
+		IdentityId:   identity, // TODO 读接口
+		Name:         name,
+		Peers:        registerNodes,
+		SeedPeers:    seedNodes,
+		State:        "", // TODO 读系统状态
+	}, nil
 }
-func (s *CarrierAPIBackend)GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
+func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
 	// all dataNodes on yarnNode
 	dataNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
@@ -33,13 +103,13 @@ func (s *CarrierAPIBackend)GetRegisteredPeers() (*types.YarnRegisteredNodeDetail
 	jns := make([]*types.YarnRegisteredJobNode, len(jobNodes))
 	for i, v := range jobNodes {
 		n := &types.YarnRegisteredJobNode{
-			Id: v.Id,
-			InternalIp: v.InternalIp,
-			ExternalIp: v.ExternalIp,
+			Id:           v.Id,
+			InternalIp:   v.InternalIp,
+			ExternalIp:   v.ExternalIp,
 			InternalPort: v.InternalPort,
 			ExternalPort: v.ExternalPort,
 			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: 0,// TODO 添加运行时长 ...
+			Duration: 0, // TODO 添加运行时长 ...
 		}
 		n.Task.Count = s.carrier.datachain.GetRunningTaskCountOnJobNode(v.Id)
 		n.Task.TaskIds = s.carrier.datachain.GetJobNodeRunningTaskIdList(v.Id)
@@ -48,20 +118,20 @@ func (s *CarrierAPIBackend)GetRegisteredPeers() (*types.YarnRegisteredNodeDetail
 	dns := make([]*types.YarnRegisteredDataNode, len(jobNodes))
 	for i, v := range dataNodes {
 		n := &types.YarnRegisteredDataNode{
-			Id: v.Id,
-			InternalIp: v.InternalIp,
-			ExternalIp: v.ExternalIp,
+			Id:           v.Id,
+			InternalIp:   v.InternalIp,
+			ExternalIp:   v.ExternalIp,
 			InternalPort: v.InternalPort,
 			ExternalPort: v.ExternalPort,
 			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: 0,// TODO 添加运行时长 ...
+			Duration: 0, // TODO 添加运行时长 ...
 		}
 		n.Delta.FileCount = 0
 		n.Delta.FileTotalSize = 0
 		dns[i] = n
 	}
 	return &types.YarnRegisteredNodeDetail{
-		JobNodes: jns,
+		JobNodes:  jns,
 		DataNodes: dns,
 	}, nil
 }
@@ -98,7 +168,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 	return s.carrier.datachain.GetRegisterNodeList(typ)
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error  {
+func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
 	return s.carrier.resourceManager.SendTaskEvent(event)
 }
 
@@ -112,22 +182,46 @@ func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error  
 }
 
 // power api
-func (s *CarrierAPIBackend) GetPowerTotalSummaryList() ([]*types.OrgResourcePowerAndTaskCount, error)  {return nil, nil}
-func (s *CarrierAPIBackend) GetPowerSingleSummaryList() ([]*types.NodeResourceUsagePowerRes, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetPowerTotalSummaryByState(state string) ([]*types.OrgResourcePowerAndTaskCount, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetPowerSingleSummaryByState(state string) ([]*types.NodeResourceUsagePowerRes, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetPowerTotalSummaryByOwner(identityId string) (*types.OrgResourcePowerAndTaskCount, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetPowerSingleSummaryByOwner(identityId string) ([]*types.NodeResourceUsagePowerRes, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetPowerSingleDetail(identityId, powerId string) (*types.OrgPowerTaskDetail, error) {return nil, nil}
+func (s *CarrierAPIBackend) GetPowerTotalSummaryList() ([]*types.OrgResourcePowerAndTaskCount, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetPowerSingleSummaryList() ([]*types.NodeResourceUsagePowerRes, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetPowerTotalSummaryByState(state string) ([]*types.OrgResourcePowerAndTaskCount, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetPowerSingleSummaryByState(state string) ([]*types.NodeResourceUsagePowerRes, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetPowerTotalSummaryByOwner(identityId string) (*types.OrgResourcePowerAndTaskCount, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetPowerSingleSummaryByOwner(identityId string) ([]*types.NodeResourceUsagePowerRes, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetPowerSingleDetail(identityId, powerId string) (*types.OrgPowerTaskDetail, error) {
+	return nil, nil
+}
 
 // metadata api
-func (s *CarrierAPIBackend) GetMetaDataSummaryList() ([]*types.OrgMetaDataSummary, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetMetaDataSummaryByState(state string) ([]*types.OrgMetaDataSummary, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetMetaDataSummaryByOwner(identityId string) ([]*types.OrgMetaDataSummary, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) ([]types.OrgMetaDataInfo, error) {return nil, nil}
+func (s *CarrierAPIBackend) GetMetaDataSummaryList() ([]*types.OrgMetaDataSummary, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetMetaDataSummaryByState(state string) ([]*types.OrgMetaDataSummary, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetMetaDataSummaryByOwner(identityId string) ([]*types.OrgMetaDataSummary, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) ([]types.OrgMetaDataInfo, error) {
+	return nil, nil
+}
 
 // task api
-func (s *CarrierAPIBackend) GetTaskSummaryList() ([]*types.Task, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetTaskJoinSummaryList() ([]*types.Task, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetTaskDetail(taskId string) (*types.Task, error) {return nil, nil}
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pbtypes.EventData, error) {return nil, nil}
+func (s *CarrierAPIBackend) GetTaskSummaryList() ([]*types.Task, error)       { return nil, nil }
+func (s *CarrierAPIBackend) GetTaskJoinSummaryList() ([]*types.Task, error)   { return nil, nil }
+func (s *CarrierAPIBackend) GetTaskDetail(taskId string) (*types.Task, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pbtypes.EventData, error) {
+	return nil, nil
+}
