@@ -13,6 +13,9 @@ var (
 	// identityKey tracks the name of yarn
 	identityKey = []byte("Identity")
 
+	// runningTaskCountForOrgKey tracks the running count of task for org.
+	runningTaskCountForOrgKey = []byte("RunningTaskCountForOrg")
+
 	// databaseVersionKey tracks the current database version
 	databaseVersionKey = []byte("DatabaseVersion")
 

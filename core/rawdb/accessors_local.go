@@ -7,10 +7,39 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"sync/atomic"
 )
 
 const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
+
+func ReadRunningTaskCountForOrg(db DatabaseReader) uint32 {
+	var v dbtype.Uint32PB
+	enc, _ := db.Get(runningTaskCountForOrgKey)
+	v.Unmarshal(enc)
+	return v.GetV()
+}
+
+func IncreaseRunningTaskCountForOrg(db KeyValueStore) uint32 {
+	has, _ := db.Has(runningTaskCountForOrgKey)
+	if !has {
+		WriteRunningTaskCountForOrg(db, 1)
+	}
+	count := ReadRunningTaskCountForOrg(db)
+	newCount := atomic.AddUint32(&count, 1)
+	WriteRunningTaskCountForOrg(db, newCount)
+	return newCount
+}
+
+func WriteRunningTaskCountForOrg(db DatabaseWriter, count uint32) {
+	pb := dbtype.Uint32PB{
+		V:                    count,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(runningTaskCountForOrgKey, enc); err != nil {
+		log.WithError(err).Fatal("Failed to store RunningTaskCountForOrg")
+	}
+}
 
 // ReadIdentityStr retrieves the identity string.
 func ReadIdentityStr(db DatabaseReader) string {
