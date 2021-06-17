@@ -16,6 +16,9 @@ var (
 	// runningTaskCountForOrgKey tracks the running count of task for org.
 	runningTaskCountForOrgKey = []byte("RunningTaskCountForOrg")
 
+	runningTaskCountPrefix = []byte("JobRunningTaskCount")	// runningTaskCountPrefix + nodeId -> task count
+	runningTaskIDPrefix = []byte("JobRunningTaskID")	// runningTaskIDPrefix + nodeId -> the list of task id
+
 	// databaseVersionKey tracks the current database version
 	databaseVersionKey = []byte("DatabaseVersion")
 
@@ -67,6 +70,16 @@ var (
 	//identityLookupPrefix  		= []byte("i") 	// identityLookupPrefix + dataId -> identity lookup metadata
 	//taskLookupPrefix  			= []byte("t") 	// taskLookupPrefix + dataId -> task lookup metadata
 )
+
+// runningTaskCountForJobNodeKey = runningTaskCountPrefix + jobNodeId
+func runningTaskCountForJobNodeKey(jobNodeId string) []byte {
+	return append(runningTaskCountPrefix, common.Hex2Bytes(jobNodeId)...)
+}
+
+// runningTaskIDListKey = runningTaskIDPrefix + jobNodeId
+func runningTaskIDListKey(jobNodeId string) []byte {
+	return append(runningTaskIDPrefix, common.Hex2Bytes(jobNodeId)...)
+}
 
 // headerKeyPrefix = headerPrefix + num (uint64 big endian)
 func headerKeyPrefix(number uint64) []byte {
