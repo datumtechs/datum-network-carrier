@@ -171,20 +171,22 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 
 // TODO 本地存储当前调度服务的 name
 func (dc *DataChain) StoreYarnName(name string) error {
+	rawdb.WriteYarnName(dc.db, name)
 	return nil
 }
 
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataChain) StoreIdentity(identity string) error {
+	rawdb.WriteIdentityStr(dc.db, identity)
 	return nil
 }
+
 func (dc *DataChain) GetYarnName() (string, error) {
-
-	return "", nil
+	return rawdb.ReadYarnName(dc.db), nil
 }
-func (dc *DataChain) GetIdentity() (string, error) {
 
-	return "", nil
+func (dc *DataChain) GetIdentity() (string, error) {
+	return rawdb.ReadIdentityStr(dc.db), nil
 }
 
 func (dc *DataChain) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {

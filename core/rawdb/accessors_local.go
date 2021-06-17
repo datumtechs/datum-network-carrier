@@ -12,6 +12,44 @@ import (
 const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
+// ReadIdentityStr retrieves the identity string.
+func ReadIdentityStr(db DatabaseReader) string {
+	var yarnName dbtype.StringPB
+	enc, _ := db.Get(identityKey)
+	yarnName.Unmarshal(enc)
+	return yarnName.GetV()
+}
+
+// WriteIdentityStr stores the identity.
+func WriteIdentityStr(db DatabaseWriter, identity string) {
+	pb := dbtype.StringPB{
+		V:                    identity,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(identityKey, enc); err != nil {
+		log.WithError(err).Fatal("Failed to store identity")
+	}
+}
+
+// ReadYarnName retrieves the name of yarn.
+func ReadYarnName(db DatabaseReader) string {
+	var yarnName dbtype.StringPB
+	enc, _ := db.Get(yarnNameKey)
+	yarnName.Unmarshal(enc)
+	return yarnName.GetV()
+}
+
+// WriteYarnName stores the name of yarn.
+func WriteYarnName(db DatabaseWriter, yarnName string) {
+	pb := dbtype.StringPB{
+		V:                    yarnName,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(yarnNameKey, enc); err != nil {
+		log.WithError(err).Fatal("Failed to store yarn name")
+	}
+}
+
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
 func ReadSeedNode(db DatabaseReader, nodeId string) *types.SeedNodeInfo {
 	blob, err := db.Get(seedNodeKey)

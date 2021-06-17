@@ -7,6 +7,12 @@ import (
 
 // The fields below define the low level database schema prefixing.
 var (
+	// yarnNameKey tracks the name of yarn
+	yarnNameKey = []byte("YarnName")
+
+	// identityKey tracks the name of yarn
+	identityKey = []byte("Identity")
+
 	// databaseVersionKey tracks the current database version
 	databaseVersionKey = []byte("DatabaseVersion")
 

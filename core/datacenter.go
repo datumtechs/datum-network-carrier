@@ -57,6 +57,10 @@ func (dc *DataCenter) SetProcessor(processor Processor) {
 	dc.processor = processor
 }
 
+func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
+	return dc.client
+}
+
 // ************************************* public api (datachain) *******************************************
 
 // InsertChain saves the data of block to the database.

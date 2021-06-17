@@ -183,23 +183,30 @@ func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error  
 
 // power api
 func (s *CarrierAPIBackend) GetPowerTotalSummaryList() ([]*types.OrgResourcePowerAndTaskCount, error) {
+	// todo: to be determined.
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetPowerSingleSummaryList() ([]*types.NodeResourceUsagePowerRes, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetPowerTotalSummaryByState(state string) ([]*types.OrgResourcePowerAndTaskCount, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetPowerSingleSummaryByState(state string) ([]*types.NodeResourceUsagePowerRes, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetPowerTotalSummaryByOwner(identityId string) (*types.OrgResourcePowerAndTaskCount, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetPowerSingleSummaryByOwner(identityId string) ([]*types.NodeResourceUsagePowerRes, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetPowerSingleDetail(identityId, powerId string) (*types.OrgPowerTaskDetail, error) {
 	return nil, nil
 }
