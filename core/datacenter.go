@@ -153,7 +153,10 @@ func (dc *DataCenter) GetResourceByDataId(dataId string) (*types.Resource, error
 }
 
 func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
-	return nil, nil
+	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByNodeId(dc.ctx, &api.PowerSummaryByNodeIdRequest{
+		NodeId:               nodeId,
+	})
+	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
 }
 
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
@@ -171,6 +174,11 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 	if response.Status != 0 {
 		return fmt.Errorf("insert indentity error: %s", response.Msg)
 	}
+	return nil
+}
+
+// RevokeIdentity revokes the identity info to the center of data.
+func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
