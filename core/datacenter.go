@@ -101,6 +101,19 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 	return len(blocks), nil
 }
 
+// InsertMetadata saves new metadata info to the center of data.
+func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
+	response, err := dc.client.SaveMetaData(dc.ctx, types.NewMetaDataSaveRequest(metadata))
+	if err != nil {
+		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("InsertMetadata failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("insert metadata error: %s", response.Msg)
+	}
+	return nil
+}
+
 func (dc *DataCenter) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
 	return nil, nil
 }
@@ -116,6 +129,19 @@ func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArra
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	metaDataSummaryListResponse, err := dc.client.GetMetaDataSummaryList(dc.ctx)
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
+}
+
+// InsertResource saves new resource info to the center of data.
+func (dc *DataCenter) InsertResource(resource *types.Resource) error {
+	response, err := dc.client.SaveResource(dc.ctx, types.NewPublishPowerRequest(resource))
+	if err != nil {
+		log.WithError(err).WithField("hash", resource.Hash()).Errorf("InsertResource failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("insert resource error: %s", response.Msg)
+	}
+	return nil
 }
 
 func (dc *DataCenter) GetResourceByHash(hash common.Hash) (*types.Resource, error) {
@@ -135,6 +161,19 @@ func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
 	return types.NewResourceArrayFromResponse(powerTotalSummaryListResponse), err
 }
 
+// InsertIdentity saves new identity info to the center of data.
+func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
+	response, err := dc.client.SaveIdentity(dc.ctx, types.NewSaveIdentityRequest(identity))
+	if err != nil {
+		log.WithError(err).WithField("hash", identity.Hash()).Errorf("InsertIdentity failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("insert indentity error: %s", response.Msg)
+	}
+	return nil
+}
+
 func (dc *DataCenter) GetIdentityByHash(hash common.Hash) (*types.Identity, error) {
 	return nil, nil
 }
@@ -145,6 +184,19 @@ func (dc *DataCenter) GetIdentityByDataId(nodeId string) (*types.Identity, error
 
 func (dc *DataCenter) GetIdentityListByNodeId(nodeId string) (types.IdentityArray, error) {
 	return nil, nil
+}
+
+// InsertTask saves new task info to the center of data.
+func (dc *DataCenter) InsertTask(task *types.Task) error {
+	response, err := dc.client.SaveTask(dc.ctx, types.NewTaskDetail(task))
+	if err != nil {
+		log.WithError(err).WithField("hash", task.Hash()).Errorf("InsertTask failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("insert task error: %s", response.Msg)
+	}
+	return nil
 }
 
 func (dc *DataCenter) GetTaskDataByHash(hash common.Hash) (*types.Task, error) {
