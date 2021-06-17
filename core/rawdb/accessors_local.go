@@ -13,6 +13,34 @@ import (
 const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
+func ReadRunningTaskCountForJobNode(db DatabaseReader, jobNodeId string) uint32 {
+	var v dbtype.Uint32PB
+	enc, _ := db.Get(runningTaskCountForJobNodeKey(jobNodeId))
+	v.Unmarshal(enc)
+	return v.GetV()
+}
+
+func IncreaseRunningTaskCountForJobNode(db KeyValueStore, jobNodeId string) uint32 {
+	has, _ := db.Has(runningTaskCountForJobNodeKey(jobNodeId))
+	if !has {
+		WriteRunningTaskCountForJobNode(db, jobNodeId, 1)
+	}
+	count := ReadRunningTaskCountForJobNode(db, jobNodeId)
+	newCount := atomic.AddUint32(&count, 1)
+	WriteRunningTaskCountForJobNode(db, jobNodeId, newCount)
+	return newCount
+}
+
+func WriteRunningTaskCountForJobNode(db DatabaseWriter, jobNodeId string, count uint32) {
+	pb := dbtype.Uint32PB{
+		V:                    count,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(runningTaskCountForJobNodeKey(jobNodeId), enc); err != nil {
+		log.WithError(err).Fatal("Failed to store RunningTaskCountForJobNode")
+	}
+}
+
 func ReadRunningTaskCountForOrg(db DatabaseReader) uint32 {
 	var v dbtype.Uint32PB
 	enc, _ := db.Get(runningTaskCountForOrgKey)
