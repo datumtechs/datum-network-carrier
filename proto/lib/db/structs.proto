@@ -29,3 +29,15 @@ message RegisteredNodePB {
 message RegisteredNodeListPB {
     repeated RegisteredNodePB registered_node_list = 1;
 }
+
+message Uint32PB {
+    uint32 v   = 1;
+}
+
+message Uint64PB {
+    uint64 v   = 1;
+}
+
+message StringPB {
+    string v   = 1;
+}
