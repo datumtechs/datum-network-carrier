@@ -80,7 +80,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 		},
 		DataSupplier:         make([]*api.TaskDataSupplier, len(task.data.GetMetadataSupplier())),
 		PowerSupplier:        make([]*api.TaskPowerSupplier, len(task.data.GetResourceSupplier())),
-		Receivers:            make([]*api.TaskReceiver, len(task.data.GetReceivers())),
+		Receivers:            make([]*api.TaskResultReceiver, len(task.data.GetReceivers())),
 		CreateAt:             task.data.GetCreateAt(),
 		EndAt:                task.data.GetEndAt(),
 		State:                task.data.GetState(),
@@ -219,16 +219,17 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			State:                v.GetState(),
 			CreateAt:             v.GetCreateAt(),
 			EndAt:                v.GetEndAt(),
-			Receivers:            make([]*libTypes.OrganizationData, len(v.GetReceivers())),
+			Receivers:            make([]*libTypes.TaskResultReceiverData, len(v.GetReceivers())),
 			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetPartners())),
 		})
-		for _, receiver := range v.GetReceivers() {
-			task.data.Receivers = append(task.data.Receivers, &libTypes.OrganizationData{
+		// todo: to be update.
+		/*for _, receiver := range v.GetReceivers() {
+			task.data.Receivers = append(task.data.Receivers, &libTypes.TaskResultReceiverData{
 				Identity:             receiver.GetIdentityId(),
 				NodeId:               receiver.GetNodeId(),
 				NodeName:             receiver.GetName(),
 			})
-		}
+		}*/
 		for _, partner := range v.GetPartners() {
 			task.data.PartnerList = append(task.data.PartnerList, &libTypes.OrganizationData{
 				Identity:             partner.GetIdentityId(),
