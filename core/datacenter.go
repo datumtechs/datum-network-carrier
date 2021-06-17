@@ -153,7 +153,10 @@ func (dc *DataCenter) GetResourceByDataId(dataId string) (*types.Resource, error
 }
 
 func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
-	return nil, nil
+	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByNodeId(dc.ctx, &api.PowerSummaryByNodeIdRequest{
+		NodeId:               nodeId,
+	})
+	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
 }
 
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
