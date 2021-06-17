@@ -186,6 +186,24 @@ func NewResourceArrayFromResponse(response *api.PowerTotalSummaryListResponse) R
 	return resourceArray
 }
 
+func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceArray {
+	resourceArray := make(ResourceArray, 1)
+	resource := NewResource(&libTypes.ResourceData{
+		Identity:   response.GetOwner().GetIdentityId(),
+		NodeId:     response.GetOwner().GetNodeId(),
+		NodeName:   response.GetOwner().GetName(),
+		DataId:     "", // todo: to be determined
+		DataStatus: "", // todo: to be determined
+		State:      response.GetPower().GetState(),
+		TotalMem:   response.GetPower().GetInformation().GetTotalMem(),
+		UsedMem:    response.GetPower().GetInformation().GetUsedMem(),
+		TotalProcessor: response.GetPower().GetInformation().GetTotalProcessor(),
+		TotalBandWidth:       response.GetPower().GetInformation().GetTotalBandwidth(),
+	})
+	resourceArray = append(resourceArray, resource)
+	return resourceArray
+}
+
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 	taskArray := make(TaskDataArray, len(response.GetTaskSummaryList()))
 	for _, v := range response.GetTaskSummaryList() {

@@ -92,6 +92,12 @@ func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePow
 	return gc.resourceService.RevokeResource(ctx, request)
 }
 
+func (gc *GrpcClient) GetPowerSummaryByNodeId(ctx context.Context, request *api.PowerSummaryByNodeIdRequest) (*api.PowerTotalSummaryResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.resourceService.GetPowerSummaryByNodeId(ctx, request)
+}
+
 func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerTotalSummaryListResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
