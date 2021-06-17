@@ -30,7 +30,7 @@ message TaskData {
     // 算力提供方组织
     repeated TaskResourceSupplierData resourceSupplier = 18;
     // 结果接收方组织
-    repeated OrganizationData receivers = 19;
+    repeated TaskResultReceiverData receivers = 19;
     // 任务参与方
     repeated OrganizationData partnerList   = 20;
     repeated EventData        eventDataList = 21;
@@ -81,6 +81,12 @@ message TaskResourceData {
     uint64 cost_bandwidth = 3;
     // 任务所需的运行时长 (单位: ms)
     uint64 duration = 4;
+}
+
+message TaskResultReceiverData {
+    OrganizationData receiver = 1;
+    // 提供结果的节点信息
+    repeated OrganizationData provider = 2;
 }
 
 message OrganizationData {

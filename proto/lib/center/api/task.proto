@@ -57,7 +57,7 @@ message TaskDetail {
   // 算力提供方组织
     repeated TaskPowerSupplier power_supplier = 6;
   // 结果接收方组织
-    repeated TaskReceiver receivers = 7;
+    repeated TaskResultReceiver receivers = 7;
   // 任务开始时间
     uint64 create_at = 8;
   // 任务结束时间
@@ -68,7 +68,7 @@ message TaskDetail {
     TaskOperationCostDeclare operation_cost = 11;
 }
 
-message TaskReceiver {
+message TaskResultReceiver {
     // // 结果接收方身份信息
     Organization member_info = 1;
     // 被接收结果的生成方身份信息
