@@ -80,7 +80,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 		},
 		DataSupplier:         make([]*api.TaskDataSupplier, len(task.data.GetMetadataSupplier())),
 		PowerSupplier:        make([]*api.TaskPowerSupplier, len(task.data.GetResourceSupplier())),
-		Receivers:            make([]*api.Organization, len(task.data.GetReceivers())),
+		Receivers:            make([]*api.TaskResultReceiver, len(task.data.GetReceivers())),
 		CreateAt:             task.data.GetCreateAt(),
 		EndAt:                task.data.GetEndAt(),
 		State:                task.data.GetState(),
@@ -130,13 +130,14 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			},
 		})
 	}
-	for _, v := range task.data.GetReceivers() {
+	// todo: to be update.
+	/*for _, v := range task.data.GetReceivers() {
 		request.Receivers = append(request.Receivers, &api.Organization{
 			Name:                 v.GetNodeName(),
 			NodeId:               v.GetNodeId(),
 			IdentityId:           v.GetIdentity(),
 		})
-	}
+	}*/
 	return request
 }
 
@@ -186,6 +187,24 @@ func NewResourceArrayFromResponse(response *api.PowerTotalSummaryListResponse) R
 	return resourceArray
 }
 
+func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceArray {
+	resourceArray := make(ResourceArray, 1)
+	resource := NewResource(&libTypes.ResourceData{
+		Identity:   response.GetOwner().GetIdentityId(),
+		NodeId:     response.GetOwner().GetNodeId(),
+		NodeName:   response.GetOwner().GetName(),
+		DataId:     "", // todo: to be determined
+		DataStatus: "", // todo: to be determined
+		State:      response.GetPower().GetState(),
+		TotalMem:   response.GetPower().GetInformation().GetTotalMem(),
+		UsedMem:    response.GetPower().GetInformation().GetUsedMem(),
+		TotalProcessor: response.GetPower().GetInformation().GetTotalProcessor(),
+		TotalBandWidth:       response.GetPower().GetInformation().GetTotalBandwidth(),
+	})
+	resourceArray = append(resourceArray, resource)
+	return resourceArray
+}
+
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 	taskArray := make(TaskDataArray, len(response.GetTaskSummaryList()))
 	for _, v := range response.GetTaskSummaryList() {
@@ -200,16 +219,17 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			State:                v.GetState(),
 			CreateAt:             v.GetCreateAt(),
 			EndAt:                v.GetEndAt(),
-			Receivers:            make([]*libTypes.OrganizationData, len(v.GetReceivers())),
+			Receivers:            make([]*libTypes.TaskResultReceiverData, len(v.GetReceivers())),
 			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetPartners())),
 		})
-		for _, receiver := range v.GetReceivers() {
-			task.data.Receivers = append(task.data.Receivers, &libTypes.OrganizationData{
+		// todo: to be update.
+		/*for _, receiver := range v.GetReceivers() {
+			task.data.Receivers = append(task.data.Receivers, &libTypes.TaskResultReceiverData{
 				Identity:             receiver.GetIdentityId(),
 				NodeId:               receiver.GetNodeId(),
 				NodeName:             receiver.GetName(),
 			})
-		}
+		}*/
 		for _, partner := range v.GetPartners() {
 			task.data.PartnerList = append(task.data.PartnerList, &libTypes.OrganizationData{
 				Identity:             partner.GetIdentityId(),

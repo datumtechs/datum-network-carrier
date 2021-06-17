@@ -171,6 +171,7 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 
 // TODO 本地存储当前调度服务的 name
 func (dc *DataChain) StoreYarnName(name string) error {
+	rawdb.WriteYarnName(dc.db, name)
 	return nil
 }
 func (dc *DataChain) DelYarnName() error {
@@ -178,18 +179,19 @@ func (dc *DataChain) DelYarnName() error {
 }
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataChain) StoreIdentity(identity string) error {
+	rawdb.WriteIdentityStr(dc.db, identity)
 	return nil
 }
+
 func (dc *DataChain) DelIdentity() error {
 	return nil
 }
 func (dc *DataChain) GetYarnName() (string, error) {
-
-	return "", nil
+	return rawdb.ReadYarnName(dc.db), nil
 }
-func (dc *DataChain) GetIdentity() (string, error) {
 
-	return "", nil
+func (dc *DataChain) GetIdentity() (string, error) {
+	return rawdb.ReadIdentityStr(dc.db), nil
 }
 
 func (dc *DataChain) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
@@ -281,36 +283,43 @@ func (dc *DataChain) StoreRunningTask(task *types.Task) error {
 
 	return nil
 }
+
 // TODO 存储当前某个 计算服务正在执行的任务Id
 func (dc *DataChain) StoreJobNodeRunningTaskId(jobNodeId, taskId string) {
 
 }
+
 //// TODO 存储当前某个 数据服务正在执行的任务Id  (先不要这个)
 //func (dc *DataChain) StoreDataNodeRunningTaskId(dataNodeId, taskId string) {
 //
 //}
+
 // TODO 存储当前组织 正在运行的任务总数 (递增)
 func (dc *DataChain) IncreaseRunningTaskCountOnOrg() uint32 {
 
 	return 0
 }
+
 // TODO 存储当前计算服务 正在运行的任务总数 (递增)
 func (dc *DataChain) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
-
-	return 0
+	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
 }
+
 // TODO 查询当前组织 正在运行的任务总数
 func (dc *DataChain) GetRunningTaskCountOnOrg () uint32 {
-	return 0
+	return rawdb.ReadRunningTaskCountForOrg(dc.db)
 }
+
 // TODO 查询当前计算服务 正在运行的任务总数
 func (dc *DataChain) GetRunningTaskCountOnJobNode (jobNodeId string) uint32 {
 	return 0
 }
+
 // TODO 查询当前组织计算服务正在执行的任务Id列表 (正在运行的还未结束的任务)
 func (dc *DataChain) GetJobNodeRunningTaskIdList (jobNodeId string) []string {
 	return nil
 }
+
 //// TODO 查询当前组织数据服务正在执行的任务Id列表 (正在运行的还未结束的任务) (先不要这个)
 //func (dc *DataChain) GetDataNodeRunningTaskIdList (dataNodeId string) []string {
 //
