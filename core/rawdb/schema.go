@@ -36,6 +36,9 @@ var (
 
 	dataNodeKey = []byte("DataNodeKey")
 
+	// taskListKey tracks the running task list.
+	runningTaskKey = []byte("RunningTask")
+
 	// Data item prefixes
 	headerPrefix 		= []byte("h")	// headerPrefix + num (uint64 big endian) + hash -> header
 	headerHashSuffix 	= []byte("n")	// headerPrefix + num (uint64 big endian) + headerHashSuffix -> hash
