@@ -41,3 +41,7 @@ message Uint64PB {
 message StringPB {
     string v   = 1;
 }
+
+message StringArrayPB {
+    repeated string array = 1;
+}
