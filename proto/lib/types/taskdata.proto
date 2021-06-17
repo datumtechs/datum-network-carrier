@@ -30,7 +30,7 @@ message TaskData {
     // 算力提供方组织
     repeated TaskResourceSupplierData resourceSupplier = 18;
     // 结果接收方组织
-    repeated OrganizationData receivers = 19;
+    repeated TaskResultReceiverData receivers = 19;
     // 任务参与方
     repeated OrganizationData partnerList   = 20;
     repeated EventData        eventDataList = 21;
@@ -47,17 +47,17 @@ message TaskResourceSupplierData {
 // 系统本身资源使用信息
 message ResourceUsedOverview {
     // 服务系统的总内存
-    string total_mem = 2;
+    uint64 total_mem = 2;
     // 服务系统的已用内存
-    string used_mem = 3;
+    uint64 used_mem = 3;
     // 服务的总内核数
-    string total_processor = 4;
+    uint32 total_processor = 4;
     // 服务的已用内核数
-    string used_processor = 5;
+    uint32 used_processor = 5;
     // 服务的总带宽数
-    string total_bandwidth = 6;
+    uint64 total_bandwidth = 6;
     // 服务的已用带宽数
-    string used_bandwidth = 7;
+    uint64 used_bandwidth = 7;
 }
 
 // 任务数据提供方基本信息
@@ -81,6 +81,12 @@ message TaskResourceData {
     uint64 cost_bandwidth = 3;
     // 任务所需的运行时长 (单位: ms)
     uint64 duration = 4;
+}
+
+message TaskResultReceiverData {
+    OrganizationData receiver = 1;
+    // 提供结果的节点信息
+    repeated OrganizationData provider = 2;
 }
 
 message OrganizationData {

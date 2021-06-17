@@ -7,10 +7,178 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"sync/atomic"
 )
 
 const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
+
+// ReadSeedNode retrieves the seed node with the corresponding nodeId.
+func ReadRunningTaskIDList(db DatabaseReader, jobNodeId string) []string {
+	blob, _ := db.Get(runningTaskIDListKey(jobNodeId))
+	var array dbtype.StringArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old RunningTaskIdList")
+		}
+		return array.GetArray()
+	}
+	return nil
+}
+
+func WriteRunningTaskIDList(db KeyValueStore, jobNodeId, taskId string) {
+	blob, err := db.Get(runningTaskIDListKey(jobNodeId))
+	if err != nil {
+		log.WithError(err).Warn("Failed to load old RunningTaskIdList")
+	}
+	var array dbtype.StringArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old RunningTaskIdList")
+		}
+	}
+	for _, s := range array.GetArray() {
+		if strings.EqualFold(s, taskId) {
+			log.WithFields(logrus.Fields{ "id": s }).Info("Skip duplicated running task id")
+			return
+		}
+	}
+	array.Array = append(array.Array, taskId)
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode RunningTaskIdList")
+	}
+	if err := db.Put(runningTaskIDListKey(jobNodeId), data); err != nil {
+		log.WithError(err).Fatal("Failed to write RunningTaskIdList")
+	}
+}
+
+// DeleteRunningTaskIDList deletes the running taskID list of jobNode from the database with a special id
+func DeleteRunningTaskIDList(db KeyValueStore, jobNodeId, taskId string) {
+	blob, err := db.Get(runningTaskIDListKey(jobNodeId))
+	if err != nil {
+		log.WithError(err).Fatal("Failed to load old RunningTaskIdList")
+	}
+	var array dbtype.StringArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old RunningTaskIdList")
+		}
+	}
+	for idx, s := range array.GetArray() {
+		if strings.EqualFold(s, taskId) {
+			array.Array = append(array.Array[:idx], array.Array[idx+1:]...)
+			break
+		}
+	}
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode RunningTaskIdList")
+	}
+	if err := db.Put(runningTaskIDListKey(jobNodeId), data); err != nil {
+		log.WithError(err).Fatal("Failed to write RunningTaskIdList")
+	}
+}
+
+func ReadRunningTaskCountForJobNode(db DatabaseReader, jobNodeId string) uint32 {
+	var v dbtype.Uint32PB
+	enc, _ := db.Get(runningTaskCountForJobNodeKey(jobNodeId))
+	v.Unmarshal(enc)
+	return v.GetV()
+}
+
+func IncreaseRunningTaskCountForJobNode(db KeyValueStore, jobNodeId string) uint32 {
+	has, _ := db.Has(runningTaskCountForJobNodeKey(jobNodeId))
+	if !has {
+		WriteRunningTaskCountForJobNode(db, jobNodeId, 1)
+	}
+	count := ReadRunningTaskCountForJobNode(db, jobNodeId)
+	newCount := atomic.AddUint32(&count, 1)
+	WriteRunningTaskCountForJobNode(db, jobNodeId, newCount)
+	return newCount
+}
+
+func WriteRunningTaskCountForJobNode(db DatabaseWriter, jobNodeId string, count uint32) {
+	pb := dbtype.Uint32PB{
+		V:                    count,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(runningTaskCountForJobNodeKey(jobNodeId), enc); err != nil {
+		log.WithError(err).Fatal("Failed to store RunningTaskCountForJobNode")
+	}
+}
+
+func DeleteRunningTaskCountForJobNode(db DatabaseDeleter, jobNodeId string) {
+	if err := db.Delete(runningTaskCountForJobNodeKey(jobNodeId)); err != nil {
+		log.WithError(err).Fatal("Failed to delete RunningTaskCountForJobNode")
+	}
+}
+
+func ReadRunningTaskCountForOrg(db DatabaseReader) uint32 {
+	var v dbtype.Uint32PB
+	enc, _ := db.Get(runningTaskCountForOrgKey)
+	v.Unmarshal(enc)
+	return v.GetV()
+}
+
+func IncreaseRunningTaskCountForOrg(db KeyValueStore) uint32 {
+	has, _ := db.Has(runningTaskCountForOrgKey)
+	if !has {
+		WriteRunningTaskCountForOrg(db, 1)
+	}
+	count := ReadRunningTaskCountForOrg(db)
+	newCount := atomic.AddUint32(&count, 1)
+	WriteRunningTaskCountForOrg(db, newCount)
+	return newCount
+}
+
+func WriteRunningTaskCountForOrg(db DatabaseWriter, count uint32) {
+	pb := dbtype.Uint32PB{
+		V:                    count,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(runningTaskCountForOrgKey, enc); err != nil {
+		log.WithError(err).Fatal("Failed to store RunningTaskCountForOrg")
+	}
+}
+
+// ReadIdentityStr retrieves the identity string.
+func ReadIdentityStr(db DatabaseReader) string {
+	var yarnName dbtype.StringPB
+	enc, _ := db.Get(identityKey)
+	yarnName.Unmarshal(enc)
+	return yarnName.GetV()
+}
+
+// WriteIdentityStr stores the identity.
+func WriteIdentityStr(db DatabaseWriter, identity string) {
+	pb := dbtype.StringPB{
+		V:                    identity,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(identityKey, enc); err != nil {
+		log.WithError(err).Fatal("Failed to store identity")
+	}
+}
+
+// ReadYarnName retrieves the name of yarn.
+func ReadYarnName(db DatabaseReader) string {
+	var yarnName dbtype.StringPB
+	enc, _ := db.Get(yarnNameKey)
+	yarnName.Unmarshal(enc)
+	return yarnName.GetV()
+}
+
+// WriteYarnName stores the name of yarn.
+func WriteYarnName(db DatabaseWriter, yarnName string) {
+	pb := dbtype.StringPB{
+		V:                    yarnName,
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(yarnNameKey, enc); err != nil {
+		log.WithError(err).Fatal("Failed to store yarn name")
+	}
+}
 
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
 func ReadSeedNode(db DatabaseReader, nodeId string) *types.SeedNodeInfo {
