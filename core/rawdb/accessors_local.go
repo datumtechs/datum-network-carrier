@@ -13,6 +13,73 @@ import (
 const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
+// ReadSeedNode retrieves the seed node with the corresponding nodeId.
+func ReadRunningTaskIDList(db DatabaseReader, jobNodeId string) []string {
+	blob, _ := db.Get(runningTaskIDListKey(jobNodeId))
+	var array dbtype.StringArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old RunningTaskIdList")
+		}
+		return array.GetArray()
+	}
+	return nil
+}
+
+func WriteRunningTaskIDList(db KeyValueStore, jobNodeId, taskId string) {
+	blob, err := db.Get(runningTaskIDListKey(jobNodeId))
+	if err != nil {
+		log.WithError(err).Warn("Failed to load old RunningTaskIdList")
+	}
+	var array dbtype.StringArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old RunningTaskIdList")
+		}
+	}
+	for _, s := range array.GetArray() {
+		if strings.EqualFold(s, taskId) {
+			log.WithFields(logrus.Fields{ "id": s }).Info("Skip duplicated running task id")
+			return
+		}
+	}
+	array.Array = append(array.Array, taskId)
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode RunningTaskIdList")
+	}
+	if err := db.Put(runningTaskIDListKey(jobNodeId), data); err != nil {
+		log.WithError(err).Fatal("Failed to write RunningTaskIdList")
+	}
+}
+
+// DeleteRunningTaskIDList deletes the running taskID list of jobNode from the database with a special id
+func DeleteRunningTaskIDList(db KeyValueStore, jobNodeId, taskId string) {
+	blob, err := db.Get(runningTaskIDListKey(jobNodeId))
+	if err != nil {
+		log.WithError(err).Fatal("Failed to load old RunningTaskIdList")
+	}
+	var array dbtype.StringArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old RunningTaskIdList")
+		}
+	}
+	for idx, s := range array.GetArray() {
+		if strings.EqualFold(s, taskId) {
+			array.Array = append(array.Array[:idx], array.Array[idx+1:]...)
+			break
+		}
+	}
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode RunningTaskIdList")
+	}
+	if err := db.Put(runningTaskIDListKey(jobNodeId), data); err != nil {
+		log.WithError(err).Fatal("Failed to write RunningTaskIdList")
+	}
+}
+
 func ReadRunningTaskCountForJobNode(db DatabaseReader, jobNodeId string) uint32 {
 	var v dbtype.Uint32PB
 	enc, _ := db.Get(runningTaskCountForJobNodeKey(jobNodeId))
