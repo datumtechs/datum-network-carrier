@@ -174,6 +174,11 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 	return nil
 }
 
+// RevokeIdentity revokes the identity info to the center of data.
+func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
+	return nil
+}
+
 func (dc *DataCenter) GetIdentityByHash(hash common.Hash) (*types.Identity, error) {
 	return nil, nil
 }

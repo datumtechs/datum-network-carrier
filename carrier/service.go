@@ -11,14 +11,14 @@ import (
 )
 
 type Service struct {
-	isRunning       bool
-	processingLock  sync.RWMutex
-	config          *Config
-	proxy           *core.DataCenter
-	datachain       *core.DataChain
-	ctx             context.Context
-	cancel          context.CancelFunc
-	mempool         *message.Mempool
+	isRunning      bool
+	processingLock sync.RWMutex
+	config         *Config
+	dataCenter     *core.DataCenter
+	datachain      *core.DataChain
+	ctx            context.Context
+	cancel         context.CancelFunc
+	mempool        *message.Mempool
 
 	// DB interfaces
 	dataDb 			db.Database
@@ -43,7 +43,7 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 		ctx:             ctx,
 		cancel:          cancel,
 		config:          config,
-		proxy:           proxy,
+		dataCenter:      proxy,
 		mempool:         message.NewMempool(nil), // todo need  set mempool cfg
 		resourceManager: resource.NewResourceManager(),
 	}
