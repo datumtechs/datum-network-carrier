@@ -80,7 +80,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 		},
 		DataSupplier:         make([]*api.TaskDataSupplier, len(task.data.GetMetadataSupplier())),
 		PowerSupplier:        make([]*api.TaskPowerSupplier, len(task.data.GetResourceSupplier())),
-		Receivers:            make([]*api.Organization, len(task.data.GetReceivers())),
+		Receivers:            make([]*api.TaskReceiver, len(task.data.GetReceivers())),
 		CreateAt:             task.data.GetCreateAt(),
 		EndAt:                task.data.GetEndAt(),
 		State:                task.data.GetState(),
@@ -130,13 +130,14 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			},
 		})
 	}
-	for _, v := range task.data.GetReceivers() {
+	// todo: to be update.
+	/*for _, v := range task.data.GetReceivers() {
 		request.Receivers = append(request.Receivers, &api.Organization{
 			Name:                 v.GetNodeName(),
 			NodeId:               v.GetNodeId(),
 			IdentityId:           v.GetIdentity(),
 		})
-	}
+	}*/
 	return request
 }
 
