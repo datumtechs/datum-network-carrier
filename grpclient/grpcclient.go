@@ -83,13 +83,13 @@ func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMet
 func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*api.PublishPowerResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	return gc.resourceService.PublishResource(ctx, request)
+	return gc.resourceService.PublishPower(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*api.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	return gc.resourceService.RevokeResource(ctx, request)
+	return gc.resourceService.RevokePower(ctx, request)
 }
 
 func (gc *GrpcClient) GetPowerSummaryByNodeId(ctx context.Context, request *api.PowerSummaryByNodeIdRequest) (*api.PowerTotalSummaryResponse, error) {
@@ -102,6 +102,24 @@ func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerT
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	return gc.resourceService.GetPowerTotalSummaryList(ctx, &emptypb.Empty{})
+}
+
+func (gc *GrpcClient) GetPowerTotalSummaryByState(ctx context.Context, request *api.PowerTotalSummaryByStateRequest) (*api.PowerTotalSummaryListResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.resourceService.GetPowerTotalSummaryByState(ctx, request)
+}
+
+func (gc *GrpcClient) GetPowerSingleSummaryByState(ctx context.Context, request *api.PowerSingleSummaryByStateRequest) (*api.PowerTotalSummaryResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.resourceService.GetPowerSingleSummaryByState(ctx, request)
+}
+
+func (gc *GrpcClient) GetPowerTotalSummaryByOwner(ctx context.Context, request *api.PowerTotalSummaryByOwnerRequest) (*api.PowerTotalSummaryResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+	return gc.resourceService.GetPowerTotalSummaryByOwner(ctx, request)
 }
 
 // ************************************** Identity module *******************************************************
