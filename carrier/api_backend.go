@@ -103,8 +103,13 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error  {
 }
 
 // identity api
-func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {return nil}
-func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error  {return nil}
+func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {
+	return s.carrier.dataCenter.InsertIdentity(identity)
+}
+
+func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error  {
+	return s.carrier.dataCenter.RevokeIdentity(identity)
+}
 
 // power api
 func (s *CarrierAPIBackend) GetPowerTotalSummaryList() ([]*types.OrgResourcePowerAndTaskCount, error)  {return nil, nil}
