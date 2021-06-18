@@ -275,7 +275,6 @@ func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types
 
 // TODO 存储当前组织正在参与运行的任务详情 (正在运行的, 管理台需要看 我的任务列表, 存储使用的 pb和数据中心一样, 最后需要两边都查回来本地合并列表展示)
 func (dc *DataChain) StoreRunningTask(task *types.Task) error {
-
 	return nil
 }
 

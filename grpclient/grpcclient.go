@@ -66,12 +66,6 @@ func (gc *GrpcClient) GetMetaDataSummaryList(ctx context.Context) (*api.MetaData
 	return gc.metadataService.GetMetaDataSummaryList(ctx, &emptypb.Empty{})
 }
 
-func (gc *GrpcClient) GetMetaDataSummaryByState(ctx context.Context, request *api.MetaDataSummaryByStateRequest) (*api.MetaDataSummaryByStateResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-	return gc.metadataService.GetMetaDataSummaryByState(ctx, request)
-}
-
 func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMetaDataRequest) (*api.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
@@ -102,24 +96,6 @@ func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerT
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	return gc.resourceService.GetPowerTotalSummaryList(ctx, &emptypb.Empty{})
-}
-
-func (gc *GrpcClient) GetPowerTotalSummaryByState(ctx context.Context, request *api.PowerTotalSummaryByStateRequest) (*api.PowerTotalSummaryListResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-	return gc.resourceService.GetPowerTotalSummaryByState(ctx, request)
-}
-
-func (gc *GrpcClient) GetPowerSingleSummaryByState(ctx context.Context, request *api.PowerSingleSummaryByStateRequest) (*api.PowerSingleSummaryResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-	return gc.resourceService.GetPowerSingleSummaryByState(ctx, request)
-}
-
-func (gc *GrpcClient) GetPowerTotalSummaryByOwner(ctx context.Context, request *api.PowerTotalSummaryByOwnerRequest) (*api.PowerTotalSummaryResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
-	defer cancel()
-	return gc.resourceService.GetPowerTotalSummaryByOwner(ctx, request)
 }
 
 // ************************************** Identity module *******************************************************
