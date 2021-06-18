@@ -168,8 +168,9 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 	return s.carrier.datachain.GetRegisterNodeList(typ)
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
-	return s.carrier.resourceManager.SendTaskEvent(event)
+func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error  {
+	// return s.carrier.resourceManager.SendTaskEvent(event)
+	return s.carrier.taskManager.SendTaskEvent(event)
 }
 
 // identity api
