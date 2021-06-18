@@ -208,7 +208,6 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 }
 
 // task api
-
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) { return nil, nil }
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) { return nil, nil }
 
