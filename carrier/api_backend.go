@@ -174,10 +174,14 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
 
 // metadata api
 func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) {
-	return nil, nil
+	metadata, err := s.carrier.dataCenter.GetMetadataByDataId(metaDataId)
+	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
 }
 
-func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) {
+	metadataArray, err := s.carrier.dataCenter.GetMetadataList()
+	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
+}
 
 func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
 	return nil, nil
@@ -211,5 +215,12 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 }
 
 // task api
-func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) { return nil, nil }
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
+	taskArray, err := s.carrier.dataCenter.GetTaskList()
+	return types.NewTaskDetailShowArrayFromTaskDataArray(taskArray), err
+}
+
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
+	taskEvent, err := s.carrier.dataCenter.GetTaskEventListByTaskId(taskId)
+	return types.NewTaskEventFromAPIEvent(taskEvent), err
+}
