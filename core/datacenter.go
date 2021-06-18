@@ -153,6 +153,7 @@ func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error
 }
 
 func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
+	// todo: not need to coding, temporarily.
 	return nil, nil
 }
 
@@ -174,7 +175,8 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	return nil
 }
 
-func (dc *DataCenter) GetResourceByDataId(dataId string) (*types.Resource, error) {
+func (dc *DataCenter) GetResourceByDataId(powerId string) (*types.Resource, error) {
+	// todo: not need to coding, temporarily.
 	return nil, nil
 }
 
@@ -186,8 +188,8 @@ func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArra
 }
 
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
-	powerTotalSummaryListResponse, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
-	return types.NewResourceArrayFromResponse(powerTotalSummaryListResponse), err
+	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.PowerListRequest{})
+	return types.NewResourceArrayFromPowerListResponse(powerListRequest), err
 }
 
 // InsertIdentity saves new identity info to the center of data.
