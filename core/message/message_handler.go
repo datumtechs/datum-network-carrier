@@ -22,8 +22,8 @@ const (
 type DataHandler interface {
 	StoreYarnName(name string) error
 	DelYarnName() error
-	StoreIdentity(identity string) error
-	DelIdentity() error
+	StoreIdentityId(identity string) error
+	DelIdentityId() error
 }
 
 type DataCenter interface {
@@ -98,7 +98,7 @@ func (m *MessageHandler) loop() {
 			if err := m.dataHandler.DelYarnName(); nil != err {
 				log.Error("Failed to delete yarnNode name on MessageHandler, err:", err)
 			}
-			if err := m.dataHandler.DelIdentity(); nil != err {
+			if err := m.dataHandler.DelIdentityId(); nil != err {
 				log.Error("Failed to delete identity on MessageHandler, err:", err)
 			}
 		case event := <-m.powerMsgCh:
@@ -195,7 +195,7 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 		log.Error("Failed to store yarnNode name to local on MessageHandler, err:", err)
 		return err
 	}
-	if err := m.dataHandler.StoreIdentity(msg.IdentityId); nil != err {
+	if err := m.dataHandler.StoreIdentityId(msg.IdentityId); nil != err {
 		log.Error("Failed to store identity to local on MessageHandler, err:", err)
 		return err
 	}

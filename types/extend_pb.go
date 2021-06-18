@@ -242,3 +242,40 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 	return taskArray
 }
 
+func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
+	if response == nil {
+		return nil
+	}
+	metadataSummary := response.GetMetadata().GetMetaSummary()
+	if metadataSummary == nil {
+		return nil
+	}
+	metadata := &libTypes.MetaData{
+		Identity:             response.GetMetadata().GetOwner().GetIdentityId(),
+		NodeId:               response.GetMetadata().GetOwner().GetNodeId(),
+		NodeName:             response.GetMetadata().GetOwner().GetName(),
+		DataId:               metadataSummary.GetMetaDataId(),
+		DataStatus:           "Y",
+		OriginId:             metadataSummary.GetOriginId(),
+		TableName:            metadataSummary.GetTableName(),
+		FilePath:             metadataSummary.GetFilePath(),
+		Desc:                 metadataSummary.GetDesc(),
+		Rows:                 uint64(metadataSummary.GetRows()),
+		Columns:              uint64(metadataSummary.GetColumns()),
+		Size_:                metadataSummary.GetSize_(),
+		FileType:             metadataSummary.GetFileType(),
+		State:                metadataSummary.GetState(),
+		HasTitleRow:          metadataSummary.GetHasTitle(),
+		ColumnMetaList:       make([]*libTypes.ColumnMeta, len(response.GetMetadata().GetColumnMeta())),
+	}
+	for _, v := range response.GetMetadata().GetColumnMeta() {
+		metadata.ColumnMetaList = append(metadata.ColumnMetaList, &libTypes.ColumnMeta{
+			Cindex:               v.GetCindex(),
+			Cname:                v.GetCname(),
+			Ctype:                v.GetCtype(),
+			Csize:                v.GetCsize(),
+			Ccomment:             v.GetCcomment(),
+		})
+	}
+	return NewMetadata(metadata)
+}
