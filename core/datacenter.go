@@ -254,6 +254,7 @@ func (dc *DataCenter) GetTaskDataByTaskId(taskId string) (types.TaskDataArray, e
 }
 
 func (dc *DataCenter) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
+	// todo: not to coding, temporary.
 	return nil, nil
 }
 
@@ -265,6 +266,8 @@ func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent,
 }
 
 func (dc *DataCenter) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+	rawdb.WriteSeedNodes(dc.db, seed)
+	// todo: need to coding more logic...
 	return types.NONCONNECTED, nil
 }
 
