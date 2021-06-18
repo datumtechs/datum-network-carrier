@@ -246,10 +246,8 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	return nil
 }
 
-func (dc *DataCenter) GetTaskDataByTaskId(taskId string) (types.TaskDataArray, error) {
-	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{
-		TaskId:               taskId,
-	})
+func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
+	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 

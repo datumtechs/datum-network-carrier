@@ -25,12 +25,7 @@ message TaskSummaryResponse {
 }
 
 message TaskListRequest {
-  // 任务ID，可选参数，存在则作为条件
-    string task_id = 1;
-  // 组织节点ID，可选参数，存在则作为条件
-    string node_id = 2;
-  // 组织身份信息，可选参数，存在则作为条件
-    string identity_id = 3;
+    uint64 last_update_time = 1;
 }
 
 message TaskListResponse {
