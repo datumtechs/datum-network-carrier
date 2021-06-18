@@ -283,3 +283,7 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 	}
 	return NewMetadata(metadata)
 }
+
+func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse) IdentityArray {
+	return nil
+}
