@@ -86,7 +86,7 @@ func (s TaskDataArray) To() []*libTypes.TaskData {
 	return arr
 }
 
-type TaskSummary struct {
+type TaskDetailShow struct {
 	TaskId        string                   `json:"taskId"`
 	TaskName      string                   `json:"taskName"`
 	Owner         *NodeAlias               `json:"owner"`

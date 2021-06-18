@@ -32,6 +32,9 @@ var (
 
 	ErrSendPowerRevokeMsgStr    = "Failed to send powerRevokeMsg"
 	ErrSendMetaDataRevokeMsgStr = "Failed to send metaDataRevokeMsg"
+
+	ErrSendIdentityMsgStr    = "Failed to send identityMsg"
+	ErrSendIdentityRevokeMsgStr    = "Failed to send identityRevokeMsg"
 )
 
 type yarnServiceServer struct {
@@ -555,7 +558,6 @@ func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 }
 func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
 	powerRevokeMsg := new(types.PowerRevokeMsg)
-	powerRevokeMsg.Name = req.Owner.Name
 	powerRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 	powerRevokeMsg.Name = req.Owner.Name
 	powerRevokeMsg.NodeId = req.Owner.NodeId
@@ -578,13 +580,33 @@ type authServiceServer struct {
 }
 func (svr *authServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
 
-	//TODO SendMsg()
+	identityMsg := new(types.IdentityMsg)
+	identityMsg.Name = req.Member.Name
+	identityMsg.IdentityId = req.Member.IdentityId
+	identityMsg.NodeId = req.Member.NodeId
+	identityMsg.CreateAt = uint64(time.Now().UnixNano())
 
-	return nil, nil
+	err := svr.b.SendMsg(identityMsg)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrSendIdentityMsgStr)
+	}
+	return &pb.SimpleResponseCode{
+		Status: 0,
+		Msg:    OK,
+	}, nil
 }
 func (svr *authServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.EmptyGetParams) (*pb.SimpleResponseCode, error) {
-	//TODO SendMsg()
-	return nil, nil
+
+	identityRevokeMsg := new(types.IdentityRevokeMsg)
+	identityRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	err := svr.b.SendMsg(identityRevokeMsg)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrSendIdentityMsgStr)
+	}
+	return &pb.SimpleResponseCode{
+		Status: 0,
+		Msg:    OK,
+	}, nil
 }
 func (svr *authServiceServer) GetNodeIdentity(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeIdentityResponse, error) {
 	return nil, nil
