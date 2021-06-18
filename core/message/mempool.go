@@ -28,6 +28,8 @@ type Mempool struct {
 	taskMsgQueue     *TaskMsgList
 
 	all			*msgLookup
+
+	identityErrCh   chan error
 }
 
 func NewMempool(cfg *MempoolConfig) *Mempool {
@@ -75,6 +77,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 
 	case *types.IdentityRevokeMsg:
 		identityRevoke, _ := msg.(*types.IdentityRevokeMsg)
+
 		// We've directly injected a replacement identityMsg, notify subsystems
 		go pool.msgFeed.Send(event.IdentityRevokeMsgEvent{identityRevoke})
 

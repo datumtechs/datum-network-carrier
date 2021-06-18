@@ -51,7 +51,6 @@ type IdentityMsg struct {
 	CreateAt uint64 `json:"createAt"`
 }
 type IdentityRevokeMsg struct {
-	*NodeAlias
 	CreateAt uint64 `json:"createAt"`
 }
 

@@ -174,13 +174,18 @@ func (dc *DataChain) StoreYarnName(name string) error {
 	rawdb.WriteYarnName(dc.db, name)
 	return nil
 }
-
+func (dc *DataChain) DelYarnName() error {
+	return nil
+}
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataChain) StoreIdentity(identity string) error {
 	rawdb.WriteIdentityStr(dc.db, identity)
 	return nil
 }
 
+func (dc *DataChain) DelIdentity() error {
+	return nil
+}
 func (dc *DataChain) GetYarnName() (string, error) {
 	return rawdb.ReadYarnName(dc.db), nil
 }

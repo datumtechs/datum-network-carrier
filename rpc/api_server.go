@@ -565,9 +565,11 @@ type authServiceServer struct {
 }
 
 func (svr *authServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
+
+
 	return nil, nil
 }
-func (svr *authServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.RevokeIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
+func (svr *authServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.EmptyGetParams) (*pb.SimpleResponseCode, error) {
 	return nil, nil
 }
 
