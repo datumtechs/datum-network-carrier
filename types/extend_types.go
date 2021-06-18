@@ -13,3 +13,7 @@ func NewTaskEventFromAPIEvent(input []*api.TaskEvent) []*TaskEvent  {
 func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo  {
 	return nil
 }
+
+func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*OrgMetaDataInfo  {
+	return nil
+}

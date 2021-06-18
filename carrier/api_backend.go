@@ -178,7 +178,10 @@ func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*t
 	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
 }
 
-func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) {
+	metadataArray, err := s.carrier.dataCenter.GetMetadataList()
+	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
+}
 
 func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
 	return nil, nil
