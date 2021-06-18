@@ -176,7 +176,9 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
 func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) { return nil, nil }
+
 func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
 	return nil, nil
 }
@@ -185,6 +187,7 @@ func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*
 func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
 	return nil, nil
 }
@@ -211,6 +214,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 func (s *CarrierAPIBackend) GetTaskDetailList(taskId string) ([]*types.TaskSummary, error) {
 	return nil, nil
 }
+
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
 	return nil, nil
 }

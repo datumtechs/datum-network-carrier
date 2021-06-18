@@ -21,8 +21,8 @@ const (
 type DataHandler interface {
 	StoreYarnName(name string) error
 	DelYarnName() error
-	StoreIdentity(identity string) error
-	DelIdentity() error
+	StoreIdentityId(identity string) error
+	DelIdentityId() error
 }
 
 type MessageHandler struct {
@@ -87,14 +87,14 @@ func (m *MessageHandler) loop() {
 			if err := m.dataHandler.StoreYarnName(event.Msg.Name); nil != err {
 				log.Error("Failed to store yarnNode name on MessageHandler, err:", err)
 			}
-			if err := m.dataHandler.StoreIdentity(event.Msg.IdentityId); nil != err {
+			if err := m.dataHandler.StoreIdentityId(event.Msg.IdentityId); nil != err {
 				log.Error("Failed to store identity on MessageHandler, err:", err)
 			}
 		case <-m.identityRevokeMsgCh:
 			if err := m.dataHandler.DelYarnName(); nil != err {
 				log.Error("Failed to delete yarnNode name on MessageHandler, err:", err)
 			}
-			if err := m.dataHandler.DelIdentity(); nil != err {
+			if err := m.dataHandler.DelIdentityId(); nil != err {
 				log.Error("Failed to delete identity on MessageHandler, err:", err)
 			}
 		case event := <-m.powerMsgCh:

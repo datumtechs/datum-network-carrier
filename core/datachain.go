@@ -174,25 +174,25 @@ func (dc *DataChain) StoreYarnName(name string) error {
 	return nil
 }
 
+func (dc *DataChain) GetYarnName() (string, error) {
+	// todo: implements by datacenter
+	return "", nil
+}
+
 func (dc *DataChain) DelYarnName() error {
 	// todo: implements by datacenter
 	return nil
 }
 
 // TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentity(identity string) error {
+func (dc *DataChain) StoreIdentityId(identity string) error {
 	// todo: implements by datacenter
 	return nil
 }
 
-func (dc *DataChain) DelIdentity() error {
+func (dc *DataChain) DelIdentityId() error {
 	// todo: implements by datacenter
 	return nil
-}
-
-func (dc *DataChain) GetYarnName() (string, error) {
-	// todo: implements by datacenter
-	return "", nil
 }
 
 func (dc *DataChain) GetIdentityID() (string, error) {
