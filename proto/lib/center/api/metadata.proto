@@ -88,16 +88,41 @@ message MetaDataSummaryByStateResponse {
     repeated MetaDataSummaryOwner meta_list = 1;
 }
 
+message Metadata {
+    MetaDataSummary               meta_summary = 1;
+    repeated MetaDataColumnDetail column_meta  = 2;
+}
+
+message MetadataListRequest {
+    uint64 last_update_time = 1;
+}
+
+message MetadataListResponse {
+    repeated Metadata metadata_list    = 1;
+    uint64            last_update_time = 2;
+}
+
+message MetadataByIdRequest {
+    string metadata_id = 1;
+}
+
+message MetadataByIdResponse {
+    Metadata metadata = 1;
+}
+
 service MetaDataService {
 
   // 保存元数据
   rpc MetaDataSave (MetaDataSaveRequest) returns (MetaDataSaveResponse);
 
-  // 查看全部元数据摘要列表 (不包含 列字段描述)
+  // 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
   rpc GetMetaDataSummaryList (google.protobuf.Empty) returns (MetaDataSummaryListResponse);
 
-  // 查看指定状态的元数据摘要列表 (不包含 列字段描述)
-  rpc GetMetaDataSummaryByState (MetaDataSummaryByStateRequest) returns (MetaDataSummaryByStateResponse);
+  // 新增：元数据详细列表（用于将数据同步给管理台，考虑checkpoint同步点位）
+  rpc GetMetadataList(MetadataListRequest) returns (MetadataListResponse);
+
+  // 新增，根据元数据ID查询元数据详情
+  rpc GetMetadataById(MetadataByIdRequest) returns (MetadataByIdResponse);
 
   // 撤销元数据 (从底层网络撤销)
   rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponse);
