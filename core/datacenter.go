@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
@@ -118,8 +117,31 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-func (dc *DataCenter) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
-	return nil, nil
+func (dc *DataCenter) StoreYarnName(name string) error {
+	rawdb.WriteYarnName(dc.db, name)
+	return nil
+}
+
+func (dc *DataCenter) DelYarnName() error {
+	return nil
+}
+
+func (dc *DataCenter) StoreIdentity(identity string) error {
+	rawdb.WriteIdentityStr(dc.db, identity)
+	return nil
+}
+
+func (dc *DataCenter) DelIdentity() error {
+	 rawdb.DeleteIdentityStr(dc.db)
+	 return nil
+}
+
+func (dc *DataCenter) GetYarnName() (string, error) {
+	return rawdb.ReadYarnName(dc.db), nil
+}
+
+func (dc *DataCenter) GetIdentity() (string, error) {
+	return rawdb.ReadIdentityStr(dc.db), nil
 }
 
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
@@ -146,10 +168,6 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 		return fmt.Errorf("insert resource error: %s", response.Msg)
 	}
 	return nil
-}
-
-func (dc *DataCenter) GetResourceByHash(hash common.Hash) (*types.Resource, error) {
-	return nil, nil
 }
 
 func (dc *DataCenter) GetResourceByDataId(dataId string) (*types.Resource, error) {
@@ -186,14 +204,6 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
-func (dc *DataCenter) GetIdentityByHash(hash common.Hash) (*types.Identity, error) {
-	return nil, nil
-}
-
-func (dc *DataCenter) GetIdentityByDataId(nodeId string) (*types.Identity, error) {
-	return nil, nil
-}
-
 func (dc *DataCenter) GetIdentityListByNodeId(nodeId string) (types.IdentityArray, error) {
 	return nil, nil
 }
@@ -209,10 +219,6 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 		return fmt.Errorf("insert task error: %s", response.Msg)
 	}
 	return nil
-}
-
-func (dc *DataCenter) GetTaskDataByHash(hash common.Hash) (*types.Task, error) {
-	return nil, nil
 }
 
 func (dc *DataCenter) GetTaskDataByTaskId(taskId string) (types.TaskDataArray, error) {
@@ -260,6 +266,36 @@ func (dc *DataCenter) GetRegisterNode(typ types.RegisteredNodeType, id string) (
 
 func (dc *DataCenter) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
+}
+
+func (dc *DataCenter) StoreRunningTask(task *types.Task) error {
+	rawdb.WriteRunningTask(dc.db, task)
+	return nil
+}
+
+func (dc *DataCenter) StoreJobNodeRunningTaskId(jobNodeId, taskId string) error {
+	rawdb.WriteRunningTaskIDList(dc.db, jobNodeId, taskId)
+	return nil
+}
+
+func (dc *DataCenter) IncreaseRunningTaskCountOnOrg() uint32 {
+	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
+}
+
+func (dc *DataCenter) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
+	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
+}
+
+func (dc *DataCenter) GetRunningTaskCountOnOrg () uint32 {
+	return rawdb.ReadRunningTaskCountForOrg(dc.db)
+}
+
+func (dc *DataCenter) GetRunningTaskCountOnJobNode (jobNodeId string) uint32 {
+	return rawdb.ReadRunningTaskCountForJobNode(dc.db, jobNodeId)
+}
+
+func (dc *DataCenter) GetJobNodeRunningTaskIdList (jobNodeId string) []string {
+	return rawdb.ReadRunningTaskIDList(dc.db, jobNodeId)
 }
 
 // ****************************************************************************************************************
