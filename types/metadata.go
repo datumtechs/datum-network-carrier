@@ -82,4 +82,20 @@ func (s MetadataArray) To() []*libTypes.MetaData {
 	return arr
 }
 
+// ----------------------------------------- metaData -----------------------------------------
+
+//type OrgMetaDataSummary struct {
+//	Owner           *NodeAlias       `json:"owner"`
+//	MetaDataSummary *MetaDataSummary `json:"metaDataSummary"`
+//}
+
+type OrgMetaDataInfo struct {
+	Owner    *NodeAlias    `json:"owner"`
+	MetaData *MetaDataInfo `json:"metaData"`
+}
+
+type MetaDataInfo struct {
+	MetaDataSummary *MetaDataSummary `json:"metaDataSummary"`
+	ColumnMetas     []*ColumnMeta    `json:"columnMetas"`
+}
 

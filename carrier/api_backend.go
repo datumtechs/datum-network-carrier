@@ -2,7 +2,6 @@ package carrier
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/event"
-	pbtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -172,63 +171,26 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
 	return s.carrier.resourceManager.SendTaskEvent(event)
 }
 
+// metadata api
+func (s *CarrierAPIBackend)GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) { return nil, nil }
+func (s *CarrierAPIBackend)GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) { return nil, nil }
+func (s *CarrierAPIBackend)GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) { return nil, nil }
+
+// power api
+func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) { return nil, nil }
+
+
 // identity api
 func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {
 	return s.carrier.dataCenter.InsertIdentity(identity)
 }
-
 func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error  {
 	return s.carrier.dataCenter.RevokeIdentity(identity)
 }
-
-// power api
-func (s *CarrierAPIBackend) GetPowerTotalSummaryList() ([]*types.OrgResourcePowerAndTaskCount, error) {
-	// todo: to be determined.
-	return nil, nil
-}
-
-func (s *CarrierAPIBackend) GetPowerSingleSummaryList() ([]*types.NodeResourceUsagePowerRes, error) {
-	return nil, nil
-}
-
-func (s *CarrierAPIBackend) GetPowerTotalSummaryByState(state string) ([]*types.OrgResourcePowerAndTaskCount, error) {
-	return nil, nil
-}
-
-func (s *CarrierAPIBackend) GetPowerSingleSummaryByState(state string) ([]*types.NodeResourceUsagePowerRes, error) {
-	return nil, nil
-}
-
-func (s *CarrierAPIBackend) GetPowerTotalSummaryByOwner(identityId string) (*types.OrgResourcePowerAndTaskCount, error) {
-	return nil, nil
-}
-
-func (s *CarrierAPIBackend) GetPowerSingleSummaryByOwner(identityId string) ([]*types.NodeResourceUsagePowerRes, error) {
-	return nil, nil
-}
-
-func (s *CarrierAPIBackend) GetPowerSingleDetail(identityId, powerId string) (*types.OrgPowerTaskDetail, error) {
-	return nil, nil
-}
-
-// metadata api
-func (s *CarrierAPIBackend) GetMetaDataSummaryList() ([]*types.OrgMetaDataSummary, error) {
-	return nil, nil
-}
-func (s *CarrierAPIBackend) GetMetaDataSummaryByState(state string) ([]*types.OrgMetaDataSummary, error) {
-	return nil, nil
-}
-func (s *CarrierAPIBackend) GetMetaDataSummaryByOwner(identityId string) ([]*types.OrgMetaDataSummary, error) {
-	return nil, nil
-}
-func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) ([]types.OrgMetaDataInfo, error) {
-	return nil, nil
-}
+func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) { return nil, nil }
 
 // task api
-func (s *CarrierAPIBackend) GetTaskSummaryList() ([]*types.Task, error)       { return nil, nil }
-func (s *CarrierAPIBackend) GetTaskJoinSummaryList() ([]*types.Task, error)   { return nil, nil }
-func (s *CarrierAPIBackend) GetTaskDetail(taskId string) (*types.Task, error) { return nil, nil }
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pbtypes.EventData, error) {
-	return nil, nil
-}
+func (s *CarrierAPIBackend) GetTaskDetailList(taskId string) ([]*types.TaskSummary, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) { return nil, nil }
