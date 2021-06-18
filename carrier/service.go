@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/RosettaFlow/carrier-go/core/task"
 	"sync"
 )
 
@@ -25,6 +26,7 @@ type Service struct {
 	APIBackend 		*CarrierAPIBackend
 
 	resourceManager *resource.Manager
+	taskManager     *task.Manager
 	runError        error
 }
 
@@ -46,6 +48,7 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 		dataCenter:      proxy,
 		mempool:         message.NewMempool(nil), // todo need  set mempool cfg
 		resourceManager: resource.NewResourceManager(),
+		taskManager:     task.NewTaskManager(),
 	}
 	// todo: some logic could be added...
 
