@@ -140,7 +140,7 @@ func (dc *DataCenter) GetYarnName() (string, error) {
 	return rawdb.ReadYarnName(dc.db), nil
 }
 
-func (dc *DataCenter) GetIdentity() (string, error) {
+func (dc *DataCenter) GetIdentityID() (string, error) {
 	return rawdb.ReadIdentityStr(dc.db), nil
 }
 
@@ -204,7 +204,12 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
-func (dc *DataCenter) GetIdentityListByNodeId(nodeId string) (types.IdentityArray, error) {
+func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
+	return nil, nil
+}
+
+func (dc *DataCenter) GetIdentityByNodeId(nodeId string) (*types.Identity, error) {
+	// todo: 读取本地节点，然后进行远程查询。
 	return nil, nil
 }
 
