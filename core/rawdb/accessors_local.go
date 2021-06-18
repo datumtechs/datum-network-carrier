@@ -161,6 +161,13 @@ func WriteIdentityStr(db DatabaseWriter, identity string) {
 	}
 }
 
+// DeleteIdentityStr deletes the identity.
+func DeleteIdentityStr(db DatabaseDeleter) {
+	if err := db.Delete(identityKey); err != nil {
+		log.WithError(err).Fatal("Failed to delete identity")
+	}
+}
+
 // ReadYarnName retrieves the name of yarn.
 func ReadYarnName(db DatabaseReader) string {
 	var yarnName dbtype.StringPB

@@ -164,38 +164,40 @@ func (dc *DataChain) GetBlockByNumber(number uint64) *types.Block {
 
 // InsertChain saves the data of block to the database.
 func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
-	// metadata/resource/task...
-	// todo: updateData()/revokeData()
+	// todo: implements by datacenter
 	return 0, nil
 }
 
 // TODO 本地存储当前调度服务的 name
 func (dc *DataChain) StoreYarnName(name string) error {
-	rawdb.WriteYarnName(dc.db, name)
+	// todo: implements by datacenter
 	return nil
 }
+
 func (dc *DataChain) DelYarnName() error {
+	// todo: implements by datacenter
 	return nil
 }
+
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataChain) StoreIdentity(identity string) error {
-	rawdb.WriteIdentityStr(dc.db, identity)
+	// todo: implements by datacenter
 	return nil
 }
 
 func (dc *DataChain) DelIdentity() error {
+	// todo: implements by datacenter
 	return nil
 }
+
 func (dc *DataChain) GetYarnName() (string, error) {
-	return rawdb.ReadYarnName(dc.db), nil
+	// todo: implements by datacenter
+	return "", nil
 }
 
 func (dc *DataChain) GetIdentity() (string, error) {
-	return rawdb.ReadIdentityStr(dc.db), nil
-}
-
-func (dc *DataChain) GetMetadataByHash(hash common.Hash) (*types.Metadata, error) {
-	return nil, nil
+	// todo: implements by datacenter
+	return "", nil
 }
 
 func (dc *DataChain) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
@@ -203,10 +205,6 @@ func (dc *DataChain) GetMetadataByDataId(dataId string) (*types.Metadata, error)
 }
 
 func (dc *DataChain) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
-	return nil, nil
-}
-
-func (dc *DataChain) GetResourceByHash(hash common.Hash) (*types.Resource, error) {
 	return nil, nil
 }
 
@@ -218,19 +216,7 @@ func (dc *DataChain) GetResourceListByNodeId(nodeId string) (types.ResourceArray
 	return nil, nil
 }
 
-func (dc *DataChain) GetIdentityByHash(hash common.Hash) (*types.Identity, error) {
-	return nil, nil
-}
-
-func (dc *DataChain) GetIdentityByDataId(nodeId string) (*types.Identity, error) {
-	return nil, nil
-}
-
 func (dc *DataChain) GetIdentityListByNodeId(nodeId string) (types.IdentityArray, error) {
-	return nil, nil
-}
-
-func (dc *DataChain) GetTaskDataByHash(hash common.Hash) (*types.Task, error) {
 	return nil, nil
 }
 
@@ -280,12 +266,14 @@ func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types
 
 // TODO 存储当前组织正在参与运行的任务详情 (正在运行的, 管理台需要看 我的任务列表, 存储使用的 pb和数据中心一样, 最后需要两边都查回来本地合并列表展示)
 func (dc *DataChain) StoreRunningTask(task *types.Task) error {
+	// todo: implements by datacenter
 	return nil
 }
 
 // TODO 存储当前某个 计算服务正在执行的任务Id
-func (dc *DataChain) StoreJobNodeRunningTaskId(jobNodeId, taskId string) {
-
+func (dc *DataChain) StoreJobNodeRunningTaskId(jobNodeId, taskId string) error {
+	// todo: implements by datacenter
+	return nil
 }
 
 //// TODO 存储当前某个 数据服务正在执行的任务Id  (先不要这个)
@@ -295,27 +283,31 @@ func (dc *DataChain) StoreJobNodeRunningTaskId(jobNodeId, taskId string) {
 
 // TODO 存储当前组织 正在运行的任务总数 (递增)
 func (dc *DataChain) IncreaseRunningTaskCountOnOrg() uint32 {
-
+	// todo: implements by datacenter
 	return 0
 }
 
 // TODO 存储当前计算服务 正在运行的任务总数 (递增)
 func (dc *DataChain) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
+	// todo: implements by datacenter
 	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
 }
 
 // TODO 查询当前组织 正在运行的任务总数
 func (dc *DataChain) GetRunningTaskCountOnOrg () uint32 {
+	// todo: implements by datacenter
 	return rawdb.ReadRunningTaskCountForOrg(dc.db)
 }
 
 // TODO 查询当前计算服务 正在运行的任务总数
 func (dc *DataChain) GetRunningTaskCountOnJobNode (jobNodeId string) uint32 {
+	// todo: implements by datacenter
 	return 0
 }
 
 // TODO 查询当前组织计算服务正在执行的任务Id列表 (正在运行的还未结束的任务)
 func (dc *DataChain) GetJobNodeRunningTaskIdList (jobNodeId string) []string {
+	// todo: implements by datacenter
 	return nil
 }
 
