@@ -193,5 +193,5 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) { return 
 func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) { return nil, nil }
 
 // task api
-func (s *CarrierAPIBackend) GetTaskDetailList(taskId string) ([]*types.TaskSummary, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetTaskDetailList(taskId string) ([]*types.TaskDetailShow, error) { return nil, nil }
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) { return nil, nil }
