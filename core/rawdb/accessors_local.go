@@ -187,6 +187,13 @@ func WriteYarnName(db DatabaseWriter, yarnName string) {
 	}
 }
 
+// DeleteYarnName deletes the name of yarn.
+func DeleteYarnName(db DatabaseDeleter) {
+	if err := db.Delete(yarnNameKey); err != nil {
+		log.WithError(err).Fatal("Failed to delete yarn name")
+	}
+}
+
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
 func ReadSeedNode(db DatabaseReader, nodeId string) *types.SeedNodeInfo {
 	blob, err := db.Get(seedNodeKey)

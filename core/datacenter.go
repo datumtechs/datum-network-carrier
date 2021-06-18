@@ -122,22 +122,23 @@ func (dc *DataCenter) StoreYarnName(name string) error {
 	return nil
 }
 
+func (dc *DataCenter) GetYarnName() (string, error) {
+	return rawdb.ReadYarnName(dc.db), nil
+}
+
 func (dc *DataCenter) DelYarnName() error {
+	rawdb.DeleteYarnName(dc.db)
 	return nil
 }
 
-func (dc *DataCenter) StoreIdentity(identity string) error {
+func (dc *DataCenter) StoreIdentityId(identity string) error {
 	rawdb.WriteIdentityStr(dc.db, identity)
 	return nil
 }
 
-func (dc *DataCenter) DelIdentity() error {
+func (dc *DataCenter) DelIdentityId() error {
 	 rawdb.DeleteIdentityStr(dc.db)
 	 return nil
-}
-
-func (dc *DataCenter) GetYarnName() (string, error) {
-	return rawdb.ReadYarnName(dc.db), nil
 }
 
 func (dc *DataCenter) GetIdentityID() (string, error) {
@@ -145,7 +146,10 @@ func (dc *DataCenter) GetIdentityID() (string, error) {
 }
 
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
-	return nil, nil
+	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.MetadataByIdRequest{
+		MetadataId:           dataId,
+	})
+	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
 func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
@@ -235,6 +239,13 @@ func (dc *DataCenter) GetTaskDataByTaskId(taskId string) (types.TaskDataArray, e
 
 func (dc *DataCenter) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
 	return nil, nil
+}
+
+func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error) {
+	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
+		TaskId:               taskId,
+	})
+	return taskEventResponse.TaskEventList, err
 }
 
 func (dc *DataCenter) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
