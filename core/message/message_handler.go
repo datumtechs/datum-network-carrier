@@ -2,6 +2,7 @@ package message
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/event"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 	"time"
@@ -25,9 +26,14 @@ type DataHandler interface {
 	DelIdentityId() error
 }
 
+type DataCenter interface {
+	InsertIdentity(identity *types.Identity) error
+}
+
 type MessageHandler struct {
 	pool        *Mempool
 	dataHandler DataHandler
+	center 		DataCenter
 
 	identityMsgCh       chan event.IdentityMsgEvent
 	identityRevokeMsgCh chan event.IdentityRevokeMsgEvent
@@ -51,10 +57,11 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataHandler DataHandler) *MessageHandler {
+func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataHandler: dataHandler,
+		center:  dataCenter,
 	}
 	return m
 }
@@ -84,11 +91,8 @@ func (m *MessageHandler) loop() {
 	for {
 		select {
 		case event := <-m.identityMsgCh:
-			if err := m.dataHandler.StoreYarnName(event.Msg.Name); nil != err {
-				log.Error("Failed to store yarnNode name on MessageHandler, err:", err)
-			}
-			if err := m.dataHandler.StoreIdentityId(event.Msg.IdentityId); nil != err {
-				log.Error("Failed to store identity on MessageHandler, err:", err)
+			if err := m.BroadcastIdentityMsg(event.Msg); nil != err {
+				log.Error("Failed to broadcast org identityMsg  on MessageHandler, err:", err)
 			}
 		case <-m.identityRevokeMsgCh:
 			if err := m.dataHandler.DelYarnName(); nil != err {
@@ -184,6 +188,34 @@ func (m *MessageHandler) loop() {
 			return
 		}
 	}
+}
+
+func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
+	if err := m.dataHandler.StoreYarnName(msg.Name); nil != err {
+		log.Error("Failed to store yarnNode name to local on MessageHandler, err:", err)
+		return err
+	}
+	if err := m.dataHandler.StoreIdentityId(msg.IdentityId); nil != err {
+		log.Error("Failed to store identity to local on MessageHandler, err:", err)
+		return err
+	}
+
+	if err := m.center.InsertIdentity(
+		types.NewIdentity(&libTypes.IdentityData{
+			NodeName: msg.Name,
+			NodeId: msg.NodeId,
+			Identity: msg.IdentityId,
+		})); nil != err {
+		log.Error("Failed to broadcast org identity on MessageHandler, err:", err)
+		return err
+	}
+
+	return nil
+}
+
+func (m *MessageHandler) BroadcastIdentityRevokeMsg(msg *types.IdentityMsg) error {
+
+	return nil
 }
 
 func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
