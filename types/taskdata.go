@@ -85,3 +85,27 @@ func (s TaskDataArray) To() []*libTypes.TaskData {
 	}
 	return arr
 }
+
+type TaskSummary struct {
+	TaskId        string                   `json:"taskId"`
+	TaskName      string                   `json:"taskName"`
+	Owner         *NodeAlias               `json:"owner"`
+	AlgoSupplier  *NodeAlias               `json:"algoSupplier"`
+	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
+	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
+	Receivers     []*NodeAlias             `json:"receivers"`
+	CreateAt      string                   `json:"createat"`
+	EndAt         string                   `json:"endAt"`
+	State         string                   `json:"state"`
+	OperationCost *TaskOperationCost       `json:"operationCost"`
+}
+
+type TaskDataSupplierShow struct {
+	MemberInfo *NodeAlias `json:"memberInfo"`
+	MetaId     string     `json:"metaId"`
+	MetaName   string     `json:"metaName"`
+}
+type TaskPowerSupplierShow struct {
+	MemberInfo    *NodeAlias     `json:"memberInfo"`
+	ResourceUsage *ResourceUsage `json:"resourceUsage"`
+}

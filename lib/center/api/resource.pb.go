@@ -7,10 +7,10 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -1157,7 +1157,7 @@ type ResourceServiceClient interface {
 	// 查看指定节点的总算力摘要
 	GetPowerSummaryByNodeId(ctx context.Context, in *PowerSummaryByNodeIdRequest, opts ...grpc.CallOption) (*PowerTotalSummaryResponse, error)
 	// 查看各个节点的总算力摘要列表 (不包含 任务描述)
-	GetPowerTotalSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error)
+	GetPowerTotalSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error)
 	// 查看指定状态的总算力摘要列表  (不包含 任务描述)
 	GetPowerTotalSummaryByState(ctx context.Context, in *PowerTotalSummaryByStateRequest, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error)
 	// 查看指定状态的各个单个算力摘要列表  (不包含 任务描述)
@@ -1203,7 +1203,7 @@ func (c *resourceServiceClient) GetPowerSummaryByNodeId(ctx context.Context, in 
 	return out, nil
 }
 
-func (c *resourceServiceClient) GetPowerTotalSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error) {
+func (c *resourceServiceClient) GetPowerTotalSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error) {
 	out := new(PowerTotalSummaryListResponse)
 	err := c.cc.Invoke(ctx, "/api.ResourceService/GetPowerTotalSummaryList", in, out, opts...)
 	if err != nil {
@@ -1257,7 +1257,7 @@ type ResourceServiceServer interface {
 	// 查看指定节点的总算力摘要
 	GetPowerSummaryByNodeId(context.Context, *PowerSummaryByNodeIdRequest) (*PowerTotalSummaryResponse, error)
 	// 查看各个节点的总算力摘要列表 (不包含 任务描述)
-	GetPowerTotalSummaryList(context.Context, *emptypb.Empty) (*PowerTotalSummaryListResponse, error)
+	GetPowerTotalSummaryList(context.Context, *empty.Empty) (*PowerTotalSummaryListResponse, error)
 	// 查看指定状态的总算力摘要列表  (不包含 任务描述)
 	GetPowerTotalSummaryByState(context.Context, *PowerTotalSummaryByStateRequest) (*PowerTotalSummaryListResponse, error)
 	// 查看指定状态的各个单个算力摘要列表  (不包含 任务描述)
@@ -1281,7 +1281,7 @@ func (*UnimplementedResourceServiceServer) RevokePower(ctx context.Context, req 
 func (*UnimplementedResourceServiceServer) GetPowerSummaryByNodeId(ctx context.Context, req *PowerSummaryByNodeIdRequest) (*PowerTotalSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSummaryByNodeId not implemented")
 }
-func (*UnimplementedResourceServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *emptypb.Empty) (*PowerTotalSummaryListResponse, error) {
+func (*UnimplementedResourceServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *empty.Empty) (*PowerTotalSummaryListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalSummaryList not implemented")
 }
 func (*UnimplementedResourceServiceServer) GetPowerTotalSummaryByState(ctx context.Context, req *PowerTotalSummaryByStateRequest) (*PowerTotalSummaryListResponse, error) {
@@ -1356,7 +1356,7 @@ func _ResourceService_GetPowerSummaryByNodeId_Handler(srv interface{}, ctx conte
 }
 
 func _ResourceService_GetPowerTotalSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1368,7 +1368,7 @@ func _ResourceService_GetPowerTotalSummaryList_Handler(srv interface{}, ctx cont
 		FullMethod: "/api.ResourceService/GetPowerTotalSummaryList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServiceServer).GetPowerTotalSummaryList(ctx, req.(*emptypb.Empty))
+		return srv.(ResourceServiceServer).GetPowerTotalSummaryList(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
