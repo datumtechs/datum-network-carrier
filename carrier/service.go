@@ -7,7 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/RosettaFlow/carrier-go/core/task"
+	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"sync"
 )
 

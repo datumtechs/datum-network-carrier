@@ -195,7 +195,7 @@ func (dc *DataChain) GetYarnName() (string, error) {
 	return "", nil
 }
 
-func (dc *DataChain) GetIdentity() (string, error) {
+func (dc *DataChain) GetIdentityID() (string, error) {
 	// todo: implements by datacenter
 	return "", nil
 }
