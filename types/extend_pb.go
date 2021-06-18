@@ -167,7 +167,11 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 	return metadataArray
 }
 
-func NewResourceArrayFromResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
+func NewResourceArrayFromPowerListResponse(response *api.PowerListResponse) ResourceArray {
+	return nil
+}
+
+func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
 	resourceArray := make(ResourceArray, len(response.GetPowerList()))
 	for _, v := range response.GetPowerList() {
 		resource := NewResource(&libTypes.ResourceData{
