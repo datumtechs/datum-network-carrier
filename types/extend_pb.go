@@ -42,7 +42,7 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 			NodeId:               resource.data.GetNodeId(),
 			IdentityId:           resource.data.GetIdentity(),
 		},
-		//JobNodeId:            "", // 废弃
+		PowerId:          	  resource.data.DataId,
 		Information:          &api.PurePower{
 			Mem:                  resource.data.GetTotalMem(),
 			Processor:            resource.data.GetTotalProcessor(),
@@ -130,14 +130,26 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			},
 		})
 	}
-	// todo: to be update.
-	/*for _, v := range task.data.GetReceivers() {
-		request.Receivers = append(request.Receivers, &api.Organization{
-			Name:                 v.GetNodeName(),
-			NodeId:               v.GetNodeId(),
-			IdentityId:           v.GetIdentity(),
-		})
-	}*/
+	for _, v := range task.data.GetReceivers() {
+		receive := v.GetReceiver()
+		providers := v.GetProvider()
+		taskResultReceiver := &api.TaskResultReceiver{
+			MemberInfo:           &api.Organization{
+				Name:                 receive.GetNodeName(),
+				NodeId:               receive.GetNodeId(),
+				IdentityId:           receive.GetIdentity(),
+			},
+			Provider:             make([]*api.Organization, len(providers)),
+		}
+		for _, provider := range providers {
+			taskResultReceiver.Provider = append(taskResultReceiver.Provider, &api.Organization{
+				Name:                 provider.GetNodeName(),
+				NodeId:               provider.GetNodeId(),
+				IdentityId:           provider.GetIdentity(),
+			})
+		}
+		request.Receivers = append(request.Receivers, taskResultReceiver)
+	}
 	return request
 }
 
@@ -226,7 +238,6 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			Receivers:            make([]*libTypes.TaskResultReceiverData, len(v.GetReceivers())),
 			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetPartners())),
 		})
-		// todo: to be update.
 		/*for _, receiver := range v.GetReceivers() {
 			task.data.Receivers = append(task.data.Receivers, &libTypes.TaskResultReceiverData{
 				Identity:             receiver.GetIdentityId(),
