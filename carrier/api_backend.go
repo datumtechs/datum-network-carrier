@@ -67,7 +67,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 		log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
-	identity, err := s.carrier.datachain.GetIdentity()
+	identity, err := s.carrier.datachain.GetIdentityID()
 	if nil != err {
 		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
 		return nil, err
@@ -75,12 +75,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	seedNodes, err := s.carrier.datachain.GetSeedNodeList()
 	return &types.YarnNodeInfo{
 		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
-		NodeId:       "", //TODO 读配置
-		InternalIp:   "", // TODO 读配置
-		ExternalIp:   "", // TODO 读p2p
-		InternalPort: "", // TODO 读配置
-		ExternalPort: "", //TODO 读p2p
-		IdentityType: "", // TODO 读配置
+		NodeId:       "",       //TODO 读配置
+		InternalIp:   "",       // TODO 读配置
+		ExternalIp:   "",       // TODO 读p2p
+		InternalPort: "",       // TODO 读配置
+		ExternalPort: "",       //TODO 读p2p
+		IdentityType: "",       // TODO 读配置
 		IdentityId:   identity, // TODO 读接口
 		Name:         name,
 		Peers:        registerNodes,
@@ -167,31 +167,50 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 	return s.carrier.datachain.GetRegisterNodeList(typ)
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error  {
+func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
 	// return s.carrier.resourceManager.SendTaskEvent(event)
 	return s.carrier.taskManager.SendTaskEvent(event)
 }
 
 // metadata api
-func (s *CarrierAPIBackend)GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) { return nil, nil }
-func (s *CarrierAPIBackend)GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) { return nil, nil }
-func (s *CarrierAPIBackend)GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
+	return nil, nil
+}
 
 // power api
-func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) { return nil, nil }
-func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) { return nil, nil }
-
+func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
+	return nil, nil
+}
 
 // identity api
 func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {
 	return s.carrier.dataCenter.InsertIdentity(identity)
 }
-func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error  {
+
+func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
 	return s.carrier.dataCenter.RevokeIdentity(identity)
 }
-func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) { return nil, nil }
-func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) { return nil, nil }
+
+func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
+	// todo: to be determined nodeId.
+	return s.carrier.dataCenter.GetIdentityByNodeId("")
+}
+
+func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
+	return s.carrier.dataCenter.GetIdentityList()
+}
 
 // task api
-func (s *CarrierAPIBackend) GetTaskDetailList(taskId string) ([]*types.TaskSummary, error) { return nil, nil }
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) { return nil, nil }
+func (s *CarrierAPIBackend) GetTaskDetailList(taskId string) ([]*types.TaskSummary, error) {
+	return nil, nil
+}
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
+	return nil, nil
+}
