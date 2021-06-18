@@ -168,6 +168,12 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 	return 0, nil
 }
 
+// TODO 本地存储event事件
+func (dc *DataChain) StoreTaskEvent(event *event.TaskEvent) error {
+	// todo:
+	return nil
+}
+
 // TODO 本地存储当前调度服务的 name
 func (dc *DataChain) StoreYarnName(name string) error {
 	// todo: implements by datacenter
