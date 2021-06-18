@@ -207,11 +207,25 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 
 // RevokeIdentity revokes the identity info to the center of data.
 func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
-	return nil
+	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityJoinRequest{
+		Member:               &api.Organization{
+			Name:                 identity.Name(),
+			NodeId:               identity.NodeId(),
+			IdentityId:           identity.IdentityId(),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if response.GetStatus() != 0 {
+		return fmt.Errorf("revokeIdeneity err: %s", response.GetMsg())
+	}
+	 return nil
 }
 
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
-	return nil, nil
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{})
+	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
 func (dc *DataCenter) GetIdentityByNodeId(nodeId string) (*types.Identity, error) {

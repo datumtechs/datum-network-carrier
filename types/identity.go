@@ -47,6 +47,18 @@ func (m *Identity) Hash() common.Hash {
 	return v
 }
 
+func (m *Identity) Name() string {
+	return m.data.GetNodeName()
+}
+
+func (m *Identity) IdentityId() string {
+	return m.data.GetIdentity()
+}
+
+func (m *Identity) NodeId() string {
+	return m.data.GetNodeId()
+}
+
 // IdentityArray is a Transaction slice type for basic sorting.
 type IdentityArray []*Identity
 
