@@ -1,9 +1,11 @@
 package message
 
 import (
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"strings"
 	"sync"
 	"time"
 )
@@ -112,7 +114,9 @@ func (m *MessageHandler) loop() {
 			m.powerMsgCache = append(m.powerMsgCache, event.Msgs...)
 			m.lockPower.Unlock()
 			if len(m.powerMsgCache) >= defaultPowerMsgsCacheSize {
-				m.BroadcastPowerMsgs(m.powerMsgCache)
+				if err := m.BroadcastPowerMsgs(m.powerMsgCache); nil != err {
+					log.Error(fmt.Sprintf("%s", err))
+				}
 				m.powerMsgCache = make(types.PowerMsgs, 0)
 				powerTimer.Reset(defaultBroadcastPowerMsgInterval)
 			}
@@ -122,15 +126,22 @@ func (m *MessageHandler) loop() {
 				tmp[msg.PowerId] = struct{}{}
 			}
 
+			// Remove local cache powerMsgs
 			m.lockPower.Lock()
 			for i := 0; i < len(m.powerMsgCache); i++ {
 				msg := m.powerMsgCache[i]
 				if _, ok := tmp[msg.PowerId]; ok {
+					delete(tmp, msg.PowerId)
 					m.powerMsgCache = append(m.powerMsgCache[:i], m.powerMsgCache[i+1:]...)
 					i--
 				}
 			}
 			m.lockPower.Unlock()
+
+			// Revoke remote power
+			if len(tmp) != 0 {
+
+			}
 
 		case event := <-m.metaDataMsgCh:
 			m.lockMetaData.Lock()
@@ -241,28 +252,61 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 }
 
 func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
-
+	errs := make([]string, 0)
 	for _, power := range powerMsgs {
-		m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
-			//Identity: power.Data.IdentityId,
-			//NodeId: power.Data.NodeId,
-			//NodeName: power.Data.NodeId,
-			//DataId: power.PowerId,
-			//// the status of data, N means normal, D means deleted.
-			//DataStatus: "N",
-			//// resource status, eg: create/release/revoke
-			//State:
-			//// unit: byte
-			//TotalMem uint64 `protobuf:"varint,7,opt,name=totalMem,proto3" json:"totalMem,omitempty"`
-			//// unit: byte
-			//UsedMem uint64 `protobuf:"varint,8,opt,name=usedMem,proto3" json:"usedMem,omitempty"`
-			//// number of cpu cores.
-			//TotalProcessor uint32 `protobuf:"varint,9,opt,name=totalProcessor,proto3" json:"totalProcessor,omitempty"`
-			//// unit: byte
-			//TotalBandWidth       uint64   `protobuf:"varint,10,opt,name=totalBandWidth,proto3" json:"totalBandWidth,omitempty"`
+		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
+			Identity: power.OwnerIdentityId(),
+			NodeId: power.OwnerNodeId(),
+			NodeName: power.OwnerName(),
+			DataId: power.PowerId,
+			// the status of data, N means normal, D means deleted.
+			DataStatus: types.ResourceDataStatusN,
+			// resource status, eg: create/release/revoke
+			State: types.PowerStateRelease,
+			// unit: byte
+			TotalMem:  power.Memory(),
+			// unit: byte
+			UsedMem: 0,
+			// number of cpu cores.
+			TotalProcessor: uint32(power.Processor()),
+			// unit: byte
+			TotalBandWidth: power.Bandwidth(),
 		}))
+		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
 	}
+	if len(errs) != 0 {
+		return fmt.Errorf("broadcast powerMsgs err: %s", strings.Join(errs, "\n"))
+	}
+	return nil
+}
 
+
+func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerMsgs types.PowerMsgs) error {
+	errs := make([]string, 0)
+	for _, power := range powerMsgs {
+		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
+			Identity: power.OwnerIdentityId(),
+			NodeId: power.OwnerNodeId(),
+			NodeName: power.OwnerName(),
+			DataId: power.PowerId,
+			// the status of data, N means normal, D means deleted.
+			DataStatus: types.ResourceDataStatusN,
+			// resource status, eg: create/release/revoke
+			State: types.PowerStateRelease,
+			// unit: byte
+			TotalMem:  power.Memory(),
+			// unit: byte
+			UsedMem: 0,
+			// number of cpu cores.
+			TotalProcessor: uint32(power.Processor()),
+			// unit: byte
+			TotalBandWidth: power.Bandwidth(),
+		}))
+		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
+	}
+	if len(errs) != 0 {
+		return fmt.Errorf("broadcast powerMsgs err: %s", strings.Join(errs, "\n"))
+	}
 	return nil
 }
 
