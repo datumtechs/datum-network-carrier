@@ -30,7 +30,7 @@ message TaskListRequest {
 
 message TaskListResponse {
   // 任务摘要列表
-    repeated TaskSummaryResponse task_summary_list = 1;
+    repeated TaskDetail task_list = 1;
 }
 
 // 任务详情请求参数
