@@ -117,31 +117,30 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-func (dc *DataCenter) StoreYarnName(name string) error {
-	rawdb.WriteYarnName(dc.db, name)
-	return nil
-}
-
-func (dc *DataCenter) DelYarnName() error {
-	return nil
-}
-
-func (dc *DataCenter) StoreIdentity(identity string) error {
-	rawdb.WriteIdentityStr(dc.db, identity)
+// TODO 本地存储当前调度服务自身的  identity
+func (dc *DataCenter) StoreIdentity(identity *types.NodeAlias) error {
+	// todo: implements by datacenter
 	return nil
 }
 
 func (dc *DataCenter) DelIdentity() error {
-	 rawdb.DeleteIdentityStr(dc.db)
-	 return nil
+	// todo: implements by datacenter
+	return nil
 }
 
 func (dc *DataCenter) GetYarnName() (string, error) {
-	return rawdb.ReadYarnName(dc.db), nil
+	// todo: implements by datacenter
+	return "", nil
 }
 
 func (dc *DataCenter) GetIdentityID() (string, error) {
-	return rawdb.ReadIdentityStr(dc.db), nil
+	// todo: implements by datacenter
+	return "", nil
+}
+
+func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
+	// todo: implements by datacenter
+	return nil, nil
 }
 
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
