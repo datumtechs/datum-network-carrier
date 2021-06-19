@@ -32,7 +32,6 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 				Duration:  taskData.GetTaskResource().GetDuration(),
 			},
 		}
-
 		// DataSupplier
 		for _, metadataSupplier := range taskData.GetMetadataSupplier() {
 			dataSupplier := &TaskDataSupplierShow{
@@ -64,20 +63,76 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 				},
 			})
 		}
-
+		// Receivers
+		for _, receiver := range taskData.GetReceivers() {
+			detailShow.Receivers = append(detailShow.Receivers, &NodeAlias{
+				Name:       receiver.GetReceiver().GetNodeName(),
+				NodeId:     receiver.GetReceiver().GetNodeId(),
+				IdentityId: receiver.GetReceiver().GetIdentity(),
+			})
+		}
 		taskDetailShowArray = append(taskDetailShowArray, detailShow)
 	}
 	return taskDetailShowArray
 }
 
 func NewTaskEventFromAPIEvent(input []*api.TaskEvent) []*TaskEvent  {
-	return nil
+	result := make([]*TaskEvent, len(input))
+	for _, event := range input {
+		result = append(result, &TaskEvent{
+			TaskId:   event.GetTaskId(),
+			Type:     event.GetType(),
+			CreateAt: event.GetCreateAt(),
+			Content:  event.GetContent(),
+			Owner:    &NodeAlias{
+				Name:       event.GetOwner().GetName(),
+				NodeId:     event.GetOwner().GetNodeId(),
+				IdentityId: event.GetOwner().GetIdentityId(),
+			},
+		})
+	}
+	return result
 }
 
 func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo  {
-	return nil
+	orgMetaDataInfo := &OrgMetaDataInfo{
+		Owner:    &NodeAlias{
+			Name:       input.data.GetNodeName(),
+			NodeId:     input.data.GetNodeId(),
+			IdentityId: input.data.GetIdentity(),
+		},
+		MetaData: &MetaDataInfo{
+			MetaDataSummary: &MetaDataSummary{
+				OriginId:  input.data.GetOriginId(),
+				TableName: input.data.GetTableName(),
+				Desc:      input.data.GetDesc(),
+				FilePath:  input.data.GetFilePath(),
+				Rows:      uint32(input.data.GetRows()),
+				Columns:   uint32(input.data.GetColumns()),
+				Size:      uint32(input.data.GetSize_()),
+				FileType:  input.data.GetFileType(),
+				HasTitle:  input.data.GetHasTitleRow(),
+				State:     input.data.GetState(),
+			},
+			ColumnMetas:     make([]*ColumnMeta, len(input.data.GetColumnMetaList())),
+		},
+	}
+	for _, columnMeta := range input.data.GetColumnMetaList() {
+		orgMetaDataInfo.MetaData.ColumnMetas = append(orgMetaDataInfo.MetaData.ColumnMetas, &ColumnMeta{
+			Cindex:   uint64(columnMeta.GetCindex()),
+			Cname:    columnMeta.GetCname(),
+			Ctype:    columnMeta.GetCtype(),
+			Csize:    columnMeta.GetCsize(),
+			Ccomment: columnMeta.GetCcomment(),
+		})
+	}
+	return orgMetaDataInfo
 }
 
 func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*OrgMetaDataInfo  {
-	return nil
+	result := make([]*OrgMetaDataInfo, input.Len())
+	for _, metadata := range input {
+		result = append(result, NewOrgMetaDataInfoFromMetadata(metadata))
+	}
+	return result
 }
