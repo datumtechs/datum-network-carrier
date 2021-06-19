@@ -19,12 +19,14 @@ const (
 )
 
 type DataHandler interface {
+
 	// TODO 本地存储当前调度服务自身的  identity
 	StoreIdentity(identity *types.NodeAlias) error
 	DelIdentity() error
 	GetYarnName() (string, error)
-	GetIdentityID() (string, error)
+	GetIdentityId() (string, error)
 	GetIdentity() (*types.NodeAlias, error)
+
 }
 
 type DataCenter interface {
@@ -101,6 +103,7 @@ func (m *MessageHandler) loop() {
 				log.Error("Failed to broadcast org identityMsg  on MessageHandler, err:", err)
 			}
 		case <-m.identityRevokeMsgCh:
+
 			if err := m.BroadcastIdentityRevokeMsg(); nil != err {
 				log.Error("Failed to remove org identity on MessageHandler, err:", err)
 			}
@@ -194,8 +197,10 @@ func (m *MessageHandler) loop() {
 }
 
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
+
 	if err := m.dataHandler.StoreIdentity(msg.NodeAlias); nil != err {
 		log.Error("Failed to store local org identity on MessageHandler, err:", err)
+
 		return err
 	}
 

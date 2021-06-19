@@ -22,8 +22,8 @@ type Service struct {
 	mempool        *message.Mempool
 
 	// DB interfaces
-	dataDb 			db.Database
-	APIBackend 		*CarrierAPIBackend
+	dataDb     db.Database
+	APIBackend *CarrierAPIBackend
 
 	resourceManager *resource.Manager
 	taskManager     *task.Manager
@@ -48,14 +48,13 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 		dataCenter:      proxy,
 		mempool:         message.NewMempool(nil), // todo need  set mempool cfg
 		resourceManager: resource.NewResourceManager(),
-		taskManager:     task.NewTaskManager(),
+		taskManager:     task.NewTaskManager(nil), // todo need set dataChain
 	}
 	// todo: some logic could be added...
 
 	// todo: set datachain....
 	return s, nil
 }
-
 
 func (s *Service) Start() {
 
@@ -81,4 +80,3 @@ func (s *Service) Status() error {
 	}
 	return nil
 }
-

@@ -117,6 +117,7 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
+
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataCenter) StoreIdentity(identity *types.NodeAlias) error {
 	// todo: implements by datacenter
@@ -129,13 +130,12 @@ func (dc *DataCenter) DelIdentity() error {
 }
 
 func (dc *DataCenter) GetYarnName() (string, error) {
-	// todo: implements by datacenter
-	return "", nil
+	return rawdb.ReadYarnName(dc.db), nil
 }
 
-func (dc *DataCenter) GetIdentityID() (string, error) {
-	// todo: implements by datacenter
-	return "", nil
+func (dc *DataCenter) DelIdentityId() error {
+	 rawdb.DeleteIdentityStr(dc.db)
+	 return nil
 }
 
 func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
@@ -144,10 +144,14 @@ func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 }
 
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
-	return nil, nil
+	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.MetadataByIdRequest{
+		MetadataId:           dataId,
+	})
+	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
 func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
+	// todo: not need to coding, temporarily.
 	return nil, nil
 }
 
@@ -169,7 +173,8 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	return nil
 }
 
-func (dc *DataCenter) GetResourceByDataId(dataId string) (*types.Resource, error) {
+func (dc *DataCenter) GetResourceByDataId(powerId string) (*types.Resource, error) {
+	// todo: not need to coding, temporarily.
 	return nil, nil
 }
 
@@ -181,8 +186,8 @@ func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArra
 }
 
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
-	powerTotalSummaryListResponse, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
-	return types.NewResourceArrayFromResponse(powerTotalSummaryListResponse), err
+	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.PowerListRequest{})
+	return types.NewResourceArrayFromPowerListResponse(powerListRequest), err
 }
 
 // InsertIdentity saves new identity info to the center of data.
@@ -200,11 +205,25 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 
 // RevokeIdentity revokes the identity info to the center of data.
 func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
-	return nil
+	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityJoinRequest{
+		Member:               &api.Organization{
+			Name:                 identity.Name(),
+			NodeId:               identity.NodeId(),
+			IdentityId:           identity.IdentityId(),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if response.GetStatus() != 0 {
+		return fmt.Errorf("revokeIdeneity err: %s", response.GetMsg())
+	}
+	 return nil
 }
 
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
-	return nil, nil
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{})
+	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
 func (dc *DataCenter) GetIdentityByNodeId(nodeId string) (*types.Identity, error) {
@@ -225,18 +244,26 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	return nil
 }
 
-func (dc *DataCenter) GetTaskDataByTaskId(taskId string) (types.TaskDataArray, error) {
-	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{
-		TaskId:               taskId,
-	})
+func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
+	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
 func (dc *DataCenter) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
+	// todo: not to coding, temporary.
 	return nil, nil
 }
 
+func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error) {
+	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
+		TaskId:               taskId,
+	})
+	return taskEventResponse.TaskEventList, err
+}
+
 func (dc *DataCenter) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+	rawdb.WriteSeedNodes(dc.db, seed)
+	// todo: need to coding more logic...
 	return types.NONCONNECTED, nil
 }
 

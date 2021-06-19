@@ -94,8 +94,8 @@ type TaskDetailShow struct {
 	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
 	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
 	Receivers     []*NodeAlias             `json:"receivers"`
-	CreateAt      string                   `json:"createat"`
-	EndAt         string                   `json:"endAt"`
+	CreateAt      uint64                   `json:"createat"`
+	EndAt         uint64                   `json:"endAt"`
 	State         string                   `json:"state"`
 	OperationCost *TaskOperationCost       `json:"operationCost"`
 }
