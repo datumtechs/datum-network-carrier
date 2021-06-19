@@ -130,7 +130,7 @@ message TaskEvent {
   // 事件内容
     string content = 4;
   // 事件产生时间
-    string create_at = 5;
+    uint64 create_at = 5;
 }
 
 message TaskEventRequest {
