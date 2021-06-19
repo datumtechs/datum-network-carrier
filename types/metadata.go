@@ -96,6 +96,6 @@ type OrgMetaDataInfo struct {
 
 type MetaDataInfo struct {
 	MetaDataSummary *MetaDataSummary `json:"metaDataSummary"`
-	ColumnMetas     []*ColumnMeta    `json:"columnMetas"`
+	ColumnMetas     []*libTypes.ColumnMeta    `json:"columnMetas"`
 }
 
