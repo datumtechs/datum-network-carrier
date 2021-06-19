@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
@@ -459,9 +460,9 @@ func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	metaDataMsg.Data.Information.MetaDataSummary.HasTitle = req.Information.MetaSummary.HasTitle
 	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaSummary.State
 
-	ColumnMetas := make([]*types.ColumnMeta, len(req.Information.ColumnMeta))
+	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
-		ColumnMeta := &types.ColumnMeta{
+		ColumnMeta := &libtypes.ColumnMeta{
 			Cindex:   v.Cindex,
 			Cname:    v.Cname,
 			Ctype:    v.Ctype,
