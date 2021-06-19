@@ -2,7 +2,7 @@ package task
 
 import (
 	"errors"
-	"github.com/RosettaFlow/carrier-go/event"
+	"github.com/RosettaFlow/Carrier-Go/event"
 )
 
 type EventType struct {
