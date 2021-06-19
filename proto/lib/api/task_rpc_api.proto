@@ -33,7 +33,7 @@ message TaskDetailShow {
   repeated OrganizationIdentityInfo receivers = 7;                       // 任务结果方
   uint64                            create_at = 8;                       // 任务发起时间
   uint64                            start_at = 9;                        // 任务启动时间
-  uint64                            end_at = 10;                          // 任务结束时间
+  uint64                            end_at = 10;                         // 任务结束时间
   string                            state = 11;                          // 任务的状态 (pending: 等在中; running: 计算中; failed: 失败; success: 成功)
   TaskOperationCostDeclare          operation_cost = 12;                 // 任务所需资源声明
 }
