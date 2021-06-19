@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 	"sync"
