@@ -61,6 +61,8 @@ message TaskDetail {
     string state = 10;
   // 任务所需资源声明
     TaskOperationCostDeclare operation_cost = 11;
+    // 任务描述
+    string desc = 12;
 }
 
 message TaskResultReceiver {
