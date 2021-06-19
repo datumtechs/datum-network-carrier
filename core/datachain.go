@@ -174,36 +174,24 @@ func (dc *DataChain) StoreTaskEvent(event *event.TaskEvent) error {
 	return nil
 }
 
-// TODO 本地存储当前调度服务的 name
-func (dc *DataChain) StoreYarnName(name string) error {
-	// todo: implements by datacenter
-	return nil
-}
+// TODO 本地存储当前调度服务自身的  identity
+func (dc *DataChain) StoreIdentity(identity *types.NodeAlias) error {return nil}
+
 
 func (dc *DataChain) GetYarnName() (string, error) {
 	// todo: implements by datacenter
 	return "", nil
 }
 
-func (dc *DataChain) DelYarnName() error {
-	// todo: implements by datacenter
-	return nil
-}
 
-// TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentityId(identity string) error {
-	// todo: implements by datacenter
-	return nil
-}
-
-func (dc *DataChain) DelIdentityId() error {
-	// todo: implements by datacenter
-	return nil
-}
-
-func (dc *DataChain) GetIdentityID() (string, error) {
+func (dc *DataChain) GetIdentityId() (string, error) {
 	// todo: implements by datacenter
 	return "", nil
+}
+
+func (dc *DataChain) GetIdentity() (*types.NodeAlias, error) {
+	// todo: implements by datacenter
+	return nil, nil
 }
 
 func (dc *DataChain) GetMetadataByDataId(dataId string) (*types.Metadata, error) {

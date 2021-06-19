@@ -67,7 +67,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 		log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
-	identity, err := s.carrier.datachain.GetIdentityID()
+	identity, err := s.carrier.datachain.GetIdentityId()
 	if nil != err {
 		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
 		return nil, err
@@ -224,3 +224,4 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	taskEvent, err := s.carrier.dataCenter.GetTaskEventListByTaskId(taskId)
 	return types.NewTaskEventFromAPIEvent(taskEvent), err
 }
+
