@@ -1,17 +1,20 @@
 package task
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/event"
 )
 
 type Manager struct {
-	eventCh chan *event.TaskEvent
+	eventCh   chan *event.TaskEvent
+	dataChain *core.DataChain
 }
 
-func NewTaskManager() *Manager {
+func NewTaskManager(dataChain *core.DataChain) *Manager {
 
 	m := &Manager{
-		eventCh: make(chan *event.TaskEvent, 0),
+		eventCh:   make(chan *event.TaskEvent, 0),
+		dataChain: dataChain,
 	}
 	go m.loop()
 	return m
@@ -22,21 +25,27 @@ func (m *Manager) HandleSystemEvent(event *event.TaskEvent) error {
 }
 
 func (m *Manager) HandleDataServiceEvent(event *event.TaskEvent) error {
-	return nil
+	event, err := MakeDataServiceEventInfo(event)
+	if nil != err {
+		return err
+	}
+	return m.dataChain.StoreTaskEvent(event)
 }
 
 func (m *Manager) HandleComputerServiceEvent(event *event.TaskEvent) error {
-	return nil
+	event, err := MakeComputerServiceEventInfo(event)
+	if nil != err {
+		return err
+	}
+	return m.dataChain.StoreTaskEvent(event)
 }
 
 func (m *Manager) HandleSchedulerEvent(event *event.TaskEvent) error {
-	eventInfo, err := MakeScheduleEventInfo(event)
-	if  nil != err {
+	event, err := MakeScheduleEventInfo(event)
+	if nil != err {
 		return err
 	}
-	print(eventInfo)
-
-	return nil
+	return m.dataChain.StoreTaskEvent(event)
 }
 
 func (m *Manager) HandleEvent(event *event.TaskEvent) error {

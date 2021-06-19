@@ -168,24 +168,23 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 	return 0, nil
 }
 
+// TODO 本地存储event事件
+func (dc *DataChain) StoreTaskEvent(event *event.TaskEvent) error {
+	// todo:
+	return nil
+}
 
 // TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentity(identity *types.NodeAlias) error {
-	// todo: implements by datacenter
-	return nil
-}
+func (dc *DataChain) StoreIdentity(identity *types.NodeAlias) error {return nil}
 
-func (dc *DataChain) DelIdentity() error {
-	// todo: implements by datacenter
-	return nil
-}
 
 func (dc *DataChain) GetYarnName() (string, error) {
 	// todo: implements by datacenter
 	return "", nil
 }
 
-func (dc *DataChain) GetIdentityID() (string, error) {
+
+func (dc *DataChain) GetIdentityId() (string, error) {
 	// todo: implements by datacenter
 	return "", nil
 }

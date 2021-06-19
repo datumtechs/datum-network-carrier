@@ -42,7 +42,7 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 			NodeId:               resource.data.GetNodeId(),
 			IdentityId:           resource.data.GetIdentity(),
 		},
-		//JobNodeId:            "", // 废弃
+		PowerId:          	  resource.data.DataId,
 		Information:          &api.PurePower{
 			Mem:                  resource.data.GetTotalMem(),
 			Processor:            resource.data.GetTotalProcessor(),
@@ -130,14 +130,26 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			},
 		})
 	}
-	// todo: to be update.
-	/*for _, v := range task.data.GetReceivers() {
-		request.Receivers = append(request.Receivers, &api.Organization{
-			Name:                 v.GetNodeName(),
-			NodeId:               v.GetNodeId(),
-			IdentityId:           v.GetIdentity(),
-		})
-	}*/
+	for _, v := range task.data.GetReceivers() {
+		receive := v.GetReceiver()
+		providers := v.GetProvider()
+		taskResultReceiver := &api.TaskResultReceiver{
+			MemberInfo:           &api.Organization{
+				Name:                 receive.GetNodeName(),
+				NodeId:               receive.GetNodeId(),
+				IdentityId:           receive.GetIdentity(),
+			},
+			Provider:             make([]*api.Organization, len(providers)),
+		}
+		for _, provider := range providers {
+			taskResultReceiver.Provider = append(taskResultReceiver.Provider, &api.Organization{
+				Name:                 provider.GetNodeName(),
+				NodeId:               provider.GetNodeId(),
+				IdentityId:           provider.GetIdentity(),
+			})
+		}
+		request.Receivers = append(request.Receivers, taskResultReceiver)
+	}
 	return request
 }
 
@@ -167,7 +179,11 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 	return metadataArray
 }
 
-func NewResourceArrayFromResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
+func NewResourceArrayFromPowerListResponse(response *api.PowerListResponse) ResourceArray {
+	return nil
+}
+
+func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
 	resourceArray := make(ResourceArray, len(response.GetPowerList()))
 	for _, v := range response.GetPowerList() {
 		resource := NewResource(&libTypes.ResourceData{
@@ -206,39 +222,167 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 }
 
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
-	taskArray := make(TaskDataArray, len(response.GetTaskSummaryList()))
-	for _, v := range response.GetTaskSummaryList() {
+	taskArray := make(TaskDataArray, len(response.GetTaskList()))
+	for _, v := range response.GetTaskList() {
 		task := NewTask(&libTypes.TaskData{
 			Identity:             v.GetOwner().GetIdentityId(),
 			NodeId:               v.GetOwner().GetNodeId(),
 			NodeName:             v.GetOwner().GetName(),
-			DataId:               "", // todo: to be determined
-			DataStatus:           "", // todo: to be determined
+			DataId:               v.GetTaskId(), // todo: to be determined
+			DataStatus:           "Y",           // todo: to be determined
 			TaskId:               v.GetTaskId(),
 			TaskName:             v.GetTaskName(),
 			State:                v.GetState(),
+			Desc:                 v.GetDesc(),
 			CreateAt:             v.GetCreateAt(),
 			EndAt:                v.GetEndAt(),
+			AlgoSupplier:         &libTypes.OrganizationData{
+				Alias:                v.GetAlgoSupplier().GetName(),
+				Identity:             v.GetAlgoSupplier().GetIdentityId(),
+				NodeId:               v.GetAlgoSupplier().GetNodeId(),
+				NodeName:             v.GetAlgoSupplier().GetName(),
+			},
+			TaskResource:         &libTypes.TaskResourceData{
+				CostMem:              v.GetOperationCost().GetCostMem(),
+				CostProcessor:        v.GetOperationCost().GetCostProcessor(),
+				CostBandwidth:        v.GetOperationCost().GetCostBandwidth(),
+				Duration:             v.GetOperationCost().GetDuration(),
+			},
+			MetadataSupplier:     make([]*libTypes.TaskMetadataSupplierData, len(v.GetDataSupplier())),
+			ResourceSupplier:     make([]*libTypes.TaskResourceSupplierData, len(v.GetPowerSupplier())),
 			Receivers:            make([]*libTypes.TaskResultReceiverData, len(v.GetReceivers())),
-			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetPartners())),
+			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetDataSupplier())),
+			EventDataList:        nil,
 		})
-		// todo: to be update.
-		/*for _, receiver := range v.GetReceivers() {
-			task.data.Receivers = append(task.data.Receivers, &libTypes.TaskResultReceiverData{
-				Identity:             receiver.GetIdentityId(),
-				NodeId:               receiver.GetNodeId(),
-				NodeName:             receiver.GetName(),
-			})
-		}*/
-		for _, partner := range v.GetPartners() {
+
+		// MetadataSupplier filling
+		for _, supplier := range v.GetDataSupplier() {
+			// partner == dataSupplier
 			task.data.PartnerList = append(task.data.PartnerList, &libTypes.OrganizationData{
-				Identity:             partner.GetIdentityId(),
-				NodeId:               partner.GetNodeId(),
-				NodeName:             partner.GetName(),
+				Identity:             supplier.GetMemberInfo().GetIdentityId(),
+				NodeId:               supplier.GetMemberInfo().GetNodeId(),
+				NodeName:             supplier.GetMemberInfo().GetName(),
 			})
+			supplierData := &libTypes.TaskMetadataSupplierData{
+				Organization:         &libTypes.OrganizationData{
+					Alias:                supplier.GetMemberInfo().GetName(),
+					Identity:             supplier.GetMemberInfo().GetIdentityId(),
+					NodeId:               supplier.GetMemberInfo().GetNodeId(),
+					NodeName:             supplier.GetMemberInfo().GetName(),
+				},
+				MetaId:               supplier.GetMetaId(),
+				MetaName:             supplier.GetMetaName(),
+				ColumnList:           make([]*libTypes.ColumnMeta, len(supplier.GetColumnMeta())),
+			}
+			for _, columnMeta := range supplier.GetColumnMeta() {
+				supplierData.ColumnList = append(supplierData.ColumnList, &libTypes.ColumnMeta{
+					Cindex:               columnMeta.GetCindex(),
+					Cname:                columnMeta.GetCname(),
+					Ctype:                columnMeta.GetCtype(),
+					Csize:                columnMeta.GetCsize(),
+					Ccomment:             columnMeta.GetCcomment(),
+				})
+			}
+			task.data.MetadataSupplier = append(task.data.MetadataSupplier, supplierData)
+		}
+		// ResourceSupplier
+		for _, power := range v.GetPowerSupplier() {
+			supplierData := &libTypes.TaskResourceSupplierData{
+				Organization:         &libTypes.OrganizationData{
+					Alias:                power.GetMemberInfo().GetName(),
+					Identity:             power.GetMemberInfo().GetIdentityId(),
+					NodeId:               power.GetMemberInfo().GetNodeId(),
+					NodeName:             power.GetMemberInfo().GetName(),
+				},
+				ResourceUsedOverview: &libTypes.ResourceUsedOverview{
+					TotalMem:             power.GetPowerInfo().GetTotalMem(),
+					UsedMem:              power.GetPowerInfo().GetUsedMem(),
+					TotalProcessor:       power.GetPowerInfo().GetTotalProcessor(),
+					UsedProcessor:        power.GetPowerInfo().GetUsedProcessor(),
+					TotalBandwidth:       power.GetPowerInfo().GetTotalBandwidth(),
+					UsedBandwidth:        power.GetPowerInfo().GetUsedBandwidth(),
+				},
+			}
+			task.data.ResourceSupplier = append(task.data.ResourceSupplier, supplierData)
+		}
+		// Receivers filling.
+		for _, receiver := range v.GetReceivers() {
+			receiverData := &libTypes.TaskResultReceiverData{
+				Receiver:             &libTypes.OrganizationData{
+					Alias:                receiver.GetMemberInfo().GetName(),
+					Identity:             receiver.GetMemberInfo().GetIdentityId(),
+					NodeId:               receiver.GetMemberInfo().GetNodeId(),
+					NodeName:             receiver.GetMemberInfo().GetName(),
+				},
+				Provider:             make([]*libTypes.OrganizationData, len(receiver.GetProvider())),
+			}
+			for _, provider := range receiver.GetProvider() {
+				receiverData.Provider = append(receiverData.Provider, &libTypes.OrganizationData{
+					Alias:                provider.GetName(),
+					Identity:             provider.GetIdentityId(),
+					NodeId:               provider.GetNodeId(),
+					NodeName:             provider.GetName(),
+				})
+			}
+			task.data.Receivers = append(task.data.Receivers, receiverData)
 		}
 		taskArray = append(taskArray, task)
 	}
 	return taskArray
 }
 
+func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
+	if response == nil {
+		return nil
+	}
+	metadataSummary := response.GetMetadata().GetMetaSummary()
+	if metadataSummary == nil {
+		return nil
+	}
+	metadata := &libTypes.MetaData{
+		Identity:             response.GetMetadata().GetOwner().GetIdentityId(),
+		NodeId:               response.GetMetadata().GetOwner().GetNodeId(),
+		NodeName:             response.GetMetadata().GetOwner().GetName(),
+		DataId:               metadataSummary.GetMetaDataId(),
+		DataStatus:           "Y",
+		OriginId:             metadataSummary.GetOriginId(),
+		TableName:            metadataSummary.GetTableName(),
+		FilePath:             metadataSummary.GetFilePath(),
+		Desc:                 metadataSummary.GetDesc(),
+		Rows:                 uint64(metadataSummary.GetRows()),
+		Columns:              uint64(metadataSummary.GetColumns()),
+		Size_:                metadataSummary.GetSize_(),
+		FileType:             metadataSummary.GetFileType(),
+		State:                metadataSummary.GetState(),
+		HasTitleRow:          metadataSummary.GetHasTitle(),
+		ColumnMetaList:       make([]*libTypes.ColumnMeta, len(response.GetMetadata().GetColumnMeta())),
+	}
+	for _, v := range response.GetMetadata().GetColumnMeta() {
+		metadata.ColumnMetaList = append(metadata.ColumnMetaList, &libTypes.ColumnMeta{
+			Cindex:               v.GetCindex(),
+			Cname:                v.GetCname(),
+			Ctype:                v.GetCtype(),
+			Csize:                v.GetCsize(),
+			Ccomment:             v.GetCcomment(),
+		})
+	}
+	return NewMetadata(metadata)
+}
+
+func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse) IdentityArray {
+	if response == nil {
+		return nil
+	}
+	var result IdentityArray
+	for _, organization := range response.GetIdentityList() {
+		result = append(result, NewIdentity(&libTypes.IdentityData{
+			Identity:             organization.GetIdentityId(),
+			NodeId:               organization.GetNodeId(),
+			NodeName:             organization.GetName(),
+			DataId:               organization.GetIdentityId(),
+			DataStatus:           "Y",
+		}))
+	}
+	// todo: need more fields
+	return result
+}

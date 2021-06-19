@@ -25,17 +25,12 @@ message TaskSummaryResponse {
 }
 
 message TaskListRequest {
-  // 任务ID，可选参数，存在则作为条件
-    string task_id = 1;
-  // 组织节点ID，可选参数，存在则作为条件
-    string node_id = 2;
-  // 组织身份信息，可选参数，存在则作为条件
-    string identity_id = 3;
+    uint64 last_update_time = 1;
 }
 
 message TaskListResponse {
   // 任务摘要列表
-    repeated TaskSummaryResponse task_summary_list = 1;
+    repeated TaskDetail task_list = 1;
 }
 
 // 任务详情请求参数
@@ -66,6 +61,8 @@ message TaskDetail {
     string state = 10;
   // 任务所需资源声明
     TaskOperationCostDeclare operation_cost = 11;
+    // 任务描述
+    string desc = 12;
 }
 
 message TaskResultReceiver {
@@ -133,7 +130,7 @@ message TaskEvent {
   // 事件内容
     string content = 4;
   // 事件产生时间
-    string create_at = 5;
+    uint64 create_at = 5;
 }
 
 message TaskEventRequest {
