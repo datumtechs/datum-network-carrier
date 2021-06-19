@@ -370,6 +370,19 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 }
 
 func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse) IdentityArray {
-
-	return nil
+	if response == nil {
+		return nil
+	}
+	var result IdentityArray
+	for _, organization := range response.GetIdentityList() {
+		result = append(result, NewIdentity(&libTypes.IdentityData{
+			Identity:             organization.GetIdentityId(),
+			NodeId:               organization.GetNodeId(),
+			NodeName:             organization.GetName(),
+			DataId:               organization.GetIdentityId(),
+			DataStatus:           "Y",
+		}))
+	}
+	// todo: need more fields
+	return result
 }
