@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
+	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
 )
@@ -143,8 +144,9 @@ func rlpHash(x interface{}) (h common.Hash) {
 
 // Len returns the length of s.
 func (s PowerMsgs) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
-func (s PowerMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s PowerMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s PowerMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 // ------------------- metaData -------------------
@@ -158,8 +160,8 @@ type MetaDataMsg struct {
 type metadataData struct {
 	*NodeAlias
 	Information struct {
-		MetaDataSummary *MetaDataSummary `json:"metaDataSummary"`
-		ColumnMetas     []*ColumnMeta    `json:"columnMetas"`
+		MetaDataSummary *MetaDataSummary    `json:"metaDataSummary"`
+		ColumnMetas     []*types.ColumnMeta `json:"columnMetas"`
 	} `json:"information"`
 	CreateAt uint64 `json:"createAt"`
 }
@@ -175,13 +177,14 @@ type MetaDataSummary struct {
 	HasTitle  bool   `json:"hasTitle,omitempty"`
 	State     string `json:"state,omitempty"`
 }
-type ColumnMeta struct {
-	Cindex   uint64 `json:"cindex,omitempty"`
-	Cname    string `json:"cname,omitempty"`
-	Ctype    string `json:"ctype,omitempty"`
-	Csize    uint32 `json:"csize,omitempty"`
-	Ccomment string `json:"ccomment,omitempty"`
-}
+
+//type ColumnMeta struct {
+//	Cindex   uint64 `json:"cindex,omitempty"`
+//	Cname    string `json:"cname,omitempty"`
+//	Ctype    string `json:"ctype,omitempty"`
+//	Csize    uint32 `json:"csize,omitempty"`
+//	Ccomment string `json:"ccomment,omitempty"`
+//}
 type MetaDataRevokeMsg struct {
 	*NodeAlias
 	MetaDataId string `json:"metaDataId"`
@@ -207,18 +210,18 @@ func (msg *MetaDataMsg) OwnerIdentityId() string { return msg.Data.IdentityId }
 func (msg *MetaDataMsg) MetaDataSummary() *MetaDataSummary {
 	return msg.Data.Information.MetaDataSummary
 }
-func (msg *MetaDataMsg) OriginId() string           { return msg.Data.Information.MetaDataSummary.OriginId }
-func (msg *MetaDataMsg) TableName() string          { return msg.Data.Information.MetaDataSummary.TableName }
-func (msg *MetaDataMsg) Desc() string               { return msg.Data.Information.MetaDataSummary.Desc }
-func (msg *MetaDataMsg) FilePath() string           { return msg.Data.Information.MetaDataSummary.FilePath }
-func (msg *MetaDataMsg) Rows() uint32               { return msg.Data.Information.MetaDataSummary.Rows }
-func (msg *MetaDataMsg) Columns() uint32            { return msg.Data.Information.MetaDataSummary.Columns }
-func (msg *MetaDataMsg) Size() uint32               { return msg.Data.Information.MetaDataSummary.Size }
-func (msg *MetaDataMsg) FileType() string           { return msg.Data.Information.MetaDataSummary.FileType }
-func (msg *MetaDataMsg) HasTitle() bool             { return msg.Data.Information.MetaDataSummary.HasTitle }
-func (msg *MetaDataMsg) State() string              { return msg.Data.Information.MetaDataSummary.State }
-func (msg *MetaDataMsg) ColumnMetas() []*ColumnMeta { return msg.Data.Information.ColumnMetas }
-func (msg *MetaDataMsg) CreateAt() uint64           { return msg.Data.CreateAt }
+func (msg *MetaDataMsg) OriginId() string                 { return msg.Data.Information.MetaDataSummary.OriginId }
+func (msg *MetaDataMsg) TableName() string                { return msg.Data.Information.MetaDataSummary.TableName }
+func (msg *MetaDataMsg) Desc() string                     { return msg.Data.Information.MetaDataSummary.Desc }
+func (msg *MetaDataMsg) FilePath() string                 { return msg.Data.Information.MetaDataSummary.FilePath }
+func (msg *MetaDataMsg) Rows() uint32                     { return msg.Data.Information.MetaDataSummary.Rows }
+func (msg *MetaDataMsg) Columns() uint32                  { return msg.Data.Information.MetaDataSummary.Columns }
+func (msg *MetaDataMsg) Size() uint32                     { return msg.Data.Information.MetaDataSummary.Size }
+func (msg *MetaDataMsg) FileType() string                 { return msg.Data.Information.MetaDataSummary.FileType }
+func (msg *MetaDataMsg) HasTitle() bool                   { return msg.Data.Information.MetaDataSummary.HasTitle }
+func (msg *MetaDataMsg) State() string                    { return msg.Data.Information.MetaDataSummary.State }
+func (msg *MetaDataMsg) ColumnMetas() []*types.ColumnMeta { return msg.Data.Information.ColumnMetas }
+func (msg *MetaDataMsg) CreateAt() uint64                 { return msg.Data.CreateAt }
 func (msg *MetaDataMsg) GetMetaDataId() string {
 	if "" != msg.MetaDataId {
 		return msg.MetaDataId
@@ -241,8 +244,9 @@ func (msg *MetaDataRevokeMsg) MsgType() string          { return MSG_METADATA_RE
 
 // Len returns the length of s.
 func (s MetaDataMsgs) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
-func (s MetaDataMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s MetaDataMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s MetaDataMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 // ------------------- task -------------------
@@ -328,8 +332,9 @@ func (msg *TaskMsg) Hash() common.Hash {
 
 // Len returns the length of s.
 func (s TaskMsgs) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
-func (s TaskMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s TaskMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 type TaskSupplier struct {
