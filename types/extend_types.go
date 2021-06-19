@@ -1,6 +1,9 @@
 package types
 
-import "github.com/RosettaFlow/Carrier-Go/lib/center/api"
+import (
+	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+)
 
 func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailShow {
 	taskDetailShowArray := make([]*TaskDetailShow, input.Len())
@@ -114,12 +117,12 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo  {
 				HasTitle:  input.data.GetHasTitleRow(),
 				State:     input.data.GetState(),
 			},
-			ColumnMetas:     make([]*ColumnMeta, len(input.data.GetColumnMetaList())),
+			ColumnMetas:     make([]*libtypes.ColumnMeta, len(input.data.GetColumnMetaList())),
 		},
 	}
 	for _, columnMeta := range input.data.GetColumnMetaList() {
-		orgMetaDataInfo.MetaData.ColumnMetas = append(orgMetaDataInfo.MetaData.ColumnMetas, &ColumnMeta{
-			Cindex:   uint64(columnMeta.GetCindex()),
+		orgMetaDataInfo.MetaData.ColumnMetas = append(orgMetaDataInfo.MetaData.ColumnMetas, &libtypes.ColumnMeta{
+			Cindex:   columnMeta.GetCindex(),
 			Cname:    columnMeta.GetCname(),
 			Ctype:    columnMeta.GetCtype(),
 			Csize:    columnMeta.GetCsize(),
