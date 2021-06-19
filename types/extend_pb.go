@@ -222,8 +222,8 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 }
 
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
-	taskArray := make(TaskDataArray, len(response.GetTaskSummaryList()))
-	for _, v := range response.GetTaskSummaryList() {
+	taskArray := make(TaskDataArray, len(response.GetTaskList()))
+	for _, v := range response.GetTaskList() {
 		task := NewTask(&libTypes.TaskData{
 			Identity:             v.GetOwner().GetIdentityId(),
 			NodeId:               v.GetOwner().GetNodeId(),
@@ -236,8 +236,9 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			CreateAt:             v.GetCreateAt(),
 			EndAt:                v.GetEndAt(),
 			Receivers:            make([]*libTypes.TaskResultReceiverData, len(v.GetReceivers())),
-			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetPartners())),
+			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetDataSupplier())),
 		})
+		// todo: need to coding...
 		/*for _, receiver := range v.GetReceivers() {
 			task.data.Receivers = append(task.data.Receivers, &libTypes.TaskResultReceiverData{
 				Identity:             receiver.GetIdentityId(),
@@ -245,13 +246,13 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 				NodeName:             receiver.GetName(),
 			})
 		}*/
-		for _, partner := range v.GetPartners() {
+		/*for _, partner := range v.GetPartners() {
 			task.data.PartnerList = append(task.data.PartnerList, &libTypes.OrganizationData{
 				Identity:             partner.GetIdentityId(),
 				NodeId:               partner.GetNodeId(),
 				NodeName:             partner.GetName(),
 			})
-		}
+		}*/
 		taskArray = append(taskArray, task)
 	}
 	return taskArray
