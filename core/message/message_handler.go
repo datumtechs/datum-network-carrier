@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 	"sync"
@@ -38,6 +39,8 @@ type DataCenter interface {
 
 	// power
 	InsertResource(resource *types.Resource) error
+	// metaData
+	InsertMetadata(metadata *types.Metadata) error
 }
 
 type MessageHandler struct {
@@ -121,9 +124,9 @@ func (m *MessageHandler) loop() {
 				powerTimer.Reset(defaultBroadcastPowerMsgInterval)
 			}
 		case event := <-m.powerRevokeMsgCh:
-			tmp := make(map[string]struct{}, len(event.Msgs))
-			for _, msg := range event.Msgs {
-				tmp[msg.PowerId] = struct{}{}
+			tmp := make(map[string]int, len(event.Msgs))
+			for i, msg := range event.Msgs {
+				tmp[msg.PowerId] = i
 			}
 
 			// Remove local cache powerMsgs
@@ -140,7 +143,14 @@ func (m *MessageHandler) loop() {
 
 			// Revoke remote power
 			if len(tmp) != 0 {
-
+				msgs, index := make(types.PowerRevokeMsgs, len(tmp)), 0
+				for _, i := range tmp {
+					msgs[index] = event.Msgs[i]
+					index ++
+				}
+				if err := m.BroadcastPowerRevokeMsgs(msgs); nil != err {
+					log.Error(fmt.Sprintf("%s", err))
+				}
 			}
 
 		case event := <-m.metaDataMsgCh:
@@ -153,20 +163,34 @@ func (m *MessageHandler) loop() {
 				metaDataTimer.Reset(defaultBroadcastMetaDataMsgInterval)
 			}
 		case event := <-m.metaDataRevokeMsgCh:
-			tmp := make(map[string]struct{}, len(event.Msgs))
-			for _, msg := range event.Msgs {
-				tmp[msg.MetaDataId] = struct{}{}
+			tmp := make(map[string]int, len(event.Msgs))
+			for i, msg := range event.Msgs {
+				tmp[msg.MetaDataId] = i
 			}
 
+			// Remove local cache metaDataMsgs
 			m.lockMetaData.Lock()
 			for i := 0; i < len(m.metaDataMsgCache); i++ {
 				msg := m.metaDataMsgCache[i]
 				if _, ok := tmp[msg.MetaDataId]; ok {
+					delete(tmp, msg.MetaDataId)
 					m.metaDataMsgCache = append(m.metaDataMsgCache[:i], m.metaDataMsgCache[i+1:]...)
 					i--
 				}
 			}
 			m.lockMetaData.Unlock()
+
+			// Revoke remote metaData
+			if len(tmp) != 0 {
+				msgs, index := make(types.MetaDataRevokeMsgs, len(tmp)), 0
+				for _, i := range tmp {
+					msgs[index] = event.Msgs[i]
+					index ++
+				}
+				if err := m.BroadcastMetaDataRevokeMsgs(msgs); nil != err {
+					log.Error(fmt.Sprintf("%s", err))
+				}
+			}
 
 		case event := <-m.taskMsgCh:
 			m.taskMsgCache = append(m.taskMsgCache, event.Msgs...)
@@ -281,37 +305,84 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 }
 
 
-func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerMsgs types.PowerMsgs) error {
+func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRevokeMsgs) error {
 	errs := make([]string, 0)
-	for _, power := range powerMsgs {
+	for _, revoke := range powerRevokeMsgs {
 		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
-			Identity: power.OwnerIdentityId(),
-			NodeId: power.OwnerNodeId(),
-			NodeName: power.OwnerName(),
-			DataId: power.PowerId,
+			Identity: revoke.IdentityId,
+			NodeId: revoke.NodeId,
+			NodeName: revoke.Name,
+			DataId: revoke.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusN,
+			DataStatus: types.ResourceDataStatusD,
 			// resource status, eg: create/release/revoke
-			State: types.PowerStateRelease,
+			State: types.PowerStateRevoke,
 			// unit: byte
-			TotalMem:  power.Memory(),
+			TotalMem: 0,
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: uint32(power.Processor()),
+			TotalProcessor: 0,
 			// unit: byte
-			TotalBandWidth: power.Bandwidth(),
+			TotalBandWidth: 0,
 		}))
-		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
+		errs = append(errs, fmt.Sprintf("powerId: %s, %s", revoke.PowerId, err))
 	}
 	if len(errs) != 0 {
-		return fmt.Errorf("broadcast powerMsgs err: %s", strings.Join(errs, "\n"))
+		return fmt.Errorf("broadcast powerRevokeMsgs err: %s", strings.Join(errs, "\n"))
 	}
 	return nil
 }
 
 func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) error {
+	errs := make([]string, 0)
+	for _, metaData := range metaDataMsgs {
+		err := m.center.InsertMetadata(types.NewMetadata(&libTypes.MetaData{
+			Identity: metaData.OwnerIdentityId(),
+			NodeId: metaData.OwnerNodeId(),
+			NodeName: metaData.OwnerName(),
+			DataId: metaData.MetaDataId,
+			OriginId: metaData.OriginId(),
+			TableName: metaData.TableName(),
+			FilePath: metaData.FilePath(),
+			FileType: metaData.FileType(),
+			Desc: metaData.Desc(),
+			Rows: uint64(metaData.Rows()),
+			Columns: uint64(metaData.Columns()),
+			Size_: uint64(metaData.Size()),
+			HasTitleRow: metaData.HasTitle(),
+			ColumnMetaList: metaData.ColumnMetas(),
+			// the status of data, N means normal, D means deleted.
+			DataStatus: types.ResourceDataStatusN,
+			// metaData status, eg: create/release/revoke
+			State: types.MetaDataStateRelease,
+		}))
+		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", metaData.MetaDataId, err))
+	}
+	if len(errs) != 0 {
+		return fmt.Errorf("broadcast metaDataMsgs err: %s", strings.Join(errs, "\n"))
+	}
+	return nil
+}
 
+func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.MetaDataRevokeMsgs) error {
+	errs := make([]string, 0)
+	for _, revoke := range metaDataRevokeMsgs {
+		err := m.center.InsertMetadata(types.NewMetadata(&libTypes.MetaData{
+			Identity: revoke.IdentityId,
+			NodeId: revoke.NodeId,
+			NodeName: revoke.Name,
+			DataId: revoke.MetaDataId,
+			// the status of data, N means normal, D means deleted.
+			DataStatus: types.ResourceDataStatusD,
+			// metaData status, eg: create/release/revoke
+			State: types.MetaDataStateRevoke,
+		}))
+		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", revoke.MetaDataId, err))
+	}
+	if len(errs) != 0 {
+		return fmt.Errorf("broadcast metaDataRevokeMsgs err: %s", strings.Join(errs, "\n"))
+	}
 	return nil
 }
 

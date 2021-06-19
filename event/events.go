@@ -15,5 +15,5 @@ type TaskEvent struct {
 	Identity   string `json:"identity"`
 	TaskId     string `json:"taskId"`
 	Content    string `json:"content"`
-	CreateTime string `json:"createTime"`
+	CreateTime uint64 `json:"createTime"`
 }
