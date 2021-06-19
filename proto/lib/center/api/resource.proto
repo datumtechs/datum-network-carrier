@@ -113,7 +113,7 @@ message SyncPowerRequest {
 service ResourceService {
 
   // 存储资源
-  rpc PublishPower (PublishPowerRequest) returns (PublishPowerResponse);
+  rpc PublishPower (PublishPowerRequest) returns (SimpleResponse);
 
   // 新增，算力同步，实时通知算力的使用情况（组织下的具体的服务器）
   rpc SyncPower(SyncPowerRequest) returns(SimpleResponse);
