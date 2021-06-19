@@ -9,7 +9,6 @@ import (
 )
 
 const (
-
 	defaultPowerMsgsCacheSize    = 5
 	defaultMetaDataMsgsCacheSize = 5
 	defaultTaskMsgsCacheSize     = 5
@@ -20,20 +19,29 @@ const (
 )
 
 type DataHandler interface {
-	StoreYarnName(name string) error
-	DelYarnName() error
-	StoreIdentityId(identity string) error
-	DelIdentityId() error
+
+	// TODO 本地存储当前调度服务自身的  identity
+	StoreIdentity(identity *types.NodeAlias) error
+	DelIdentity() error
+	GetYarnName() (string, error)
+	GetIdentityId() (string, error)
+	GetIdentity() (*types.NodeAlias, error)
+
 }
 
 type DataCenter interface {
+	// identity
 	InsertIdentity(identity *types.Identity) error
+	RevokeIdentity(identity *types.Identity) error
+
+	// power
+	InsertResource(resource *types.Resource) error
 }
 
 type MessageHandler struct {
 	pool        *Mempool
 	dataHandler DataHandler
-	center 		DataCenter
+	center      DataCenter
 
 	identityMsgCh       chan event.IdentityMsgEvent
 	identityRevokeMsgCh chan event.IdentityRevokeMsgEvent
@@ -61,7 +69,7 @@ func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter) *
 	m := &MessageHandler{
 		pool:        pool,
 		dataHandler: dataHandler,
-		center:  dataCenter,
+		center:      dataCenter,
 	}
 	return m
 }
@@ -95,11 +103,9 @@ func (m *MessageHandler) loop() {
 				log.Error("Failed to broadcast org identityMsg  on MessageHandler, err:", err)
 			}
 		case <-m.identityRevokeMsgCh:
-			if err := m.dataHandler.DelYarnName(); nil != err {
-				log.Error("Failed to delete yarnNode name on MessageHandler, err:", err)
-			}
-			if err := m.dataHandler.DelIdentityId(); nil != err {
-				log.Error("Failed to delete identity on MessageHandler, err:", err)
+
+			if err := m.BroadcastIdentityRevokeMsg(); nil != err {
+				log.Error("Failed to remove org identity on MessageHandler, err:", err)
 			}
 		case event := <-m.powerMsgCh:
 			m.lockPower.Lock()
@@ -191,34 +197,71 @@ func (m *MessageHandler) loop() {
 }
 
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
-	if err := m.dataHandler.StoreYarnName(msg.Name); nil != err {
-		log.Error("Failed to store yarnNode name to local on MessageHandler, err:", err)
-		return err
-	}
-	if err := m.dataHandler.StoreIdentityId(msg.IdentityId); nil != err {
-		log.Error("Failed to store identity to local on MessageHandler, err:", err)
+
+	if err := m.dataHandler.StoreIdentity(msg.NodeAlias); nil != err {
+		log.Error("Failed to store local org identity on MessageHandler, err:", err)
+
 		return err
 	}
 
 	if err := m.center.InsertIdentity(
 		types.NewIdentity(&libTypes.IdentityData{
 			NodeName: msg.Name,
-			NodeId: msg.NodeId,
+			NodeId:   msg.NodeId,
 			Identity: msg.IdentityId,
 		})); nil != err {
-		log.Error("Failed to broadcast org identity on MessageHandler, err:", err)
+		log.Error("Failed to broadcast org org identity on MessageHandler, err:", err)
 		return err
 	}
 
 	return nil
 }
 
-func (m *MessageHandler) BroadcastIdentityRevokeMsg(msg *types.IdentityMsg) error {
+func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
+	identity, err := m.dataHandler.GetIdentity()
+	if nil != err {
+		log.Error("Failed to get local org identity on MessageHandler, err:", err)
+		return err
+	}
+	if err := m.dataHandler.DelIdentity(); nil != err {
+		log.Error("Failed to delete org identity to local on MessageHandler, err:", err)
+		return err
+	}
 
+	if err := m.center.RevokeIdentity(
+		types.NewIdentity(&libTypes.IdentityData{
+			NodeName: identity.Name,
+			NodeId:   identity.NodeId,
+			Identity: identity.IdentityId,
+		})); nil != err {
+		log.Error("Failed to remove org identity to remote on MessageHandler, err:", err)
+		return err
+	}
 	return nil
 }
 
 func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
+
+	for _, power := range powerMsgs {
+		m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
+			//Identity: power.Data.IdentityId,
+			//NodeId: power.Data.NodeId,
+			//NodeName: power.Data.NodeId,
+			//DataId: power.PowerId,
+			//// the status of data, N means normal, D means deleted.
+			//DataStatus: "N",
+			//// resource status, eg: create/release/revoke
+			//State:
+			//// unit: byte
+			//TotalMem uint64 `protobuf:"varint,7,opt,name=totalMem,proto3" json:"totalMem,omitempty"`
+			//// unit: byte
+			//UsedMem uint64 `protobuf:"varint,8,opt,name=usedMem,proto3" json:"usedMem,omitempty"`
+			//// number of cpu cores.
+			//TotalProcessor uint32 `protobuf:"varint,9,opt,name=totalProcessor,proto3" json:"totalProcessor,omitempty"`
+			//// unit: byte
+			//TotalBandWidth       uint64   `protobuf:"varint,10,opt,name=totalBandWidth,proto3" json:"totalBandWidth,omitempty"`
+		}))
+	}
 
 	return nil
 }

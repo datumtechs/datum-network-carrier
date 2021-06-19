@@ -17,8 +17,8 @@ import "lib/api/common_message.proto";
 //  OrganizationIdentityInfo          owner = 3;                           // 任务发起者
 //  repeated OrganizationIdentityInfo partners = 4;                        // 任务协作者
 //  repeated OrganizationIdentityInfo receivers = 5;                       // 任务结果方
-//  string                            create_at = 6;                       // 任务发起时间
-//  string                            end_at = 7;                          // 任务结束时间
+//  uint64                            create_at = 6;                       // 任务发起时间
+//  uint64                            end_at = 7;                          // 任务结束时间
 //  string                            state = 8;                           // 任务的状态
 //}
 
@@ -31,10 +31,11 @@ message TaskDetailShow {
     repeated TaskDataSupplierShow     data_supplier  = 5;                   // 数据提供方
     repeated TaskPowerSupplierShow    power_supplier = 6;                  // 算力提供方
     repeated OrganizationIdentityInfo receivers      = 7;                       // 任务结果方
-    string                            create_at      = 8;                       // 任务发起时间
-    string                            end_at         = 9;                          // 任务结束时间
-    string                            state          = 10;                          // 任务的状态
-    TaskOperationCostDeclare          operation_cost = 11;                 // 任务所需资源声明
+    uint64                            create_at      = 8;                       // 任务发起时间
+    uint64                            start_at       = 9;                        // 任务启动时间
+    uint64                            end_at         = 10;                          // 任务结束时间
+    string                            state          = 11;                          // 任务的状态
+    TaskOperationCostDeclare          operation_cost = 12;                 // 任务所需资源声明
 }
 // 任务数据提供方信息 (任务详情展示用)
 message TaskDataSupplierShow {
@@ -54,7 +55,7 @@ message TaskEventShow {
     string                   task_id   = 2;                     // 事件对应的任务id
     OrganizationIdentityInfo owner     = 3;                       // 产生事件的节点身份
     string                   content   = 4;                     // 事件内容
-    string                   create_at = 5;                   // 事件产生时间
+    uint64                   create_at = 5;                   // 事件产生时间
 }
 
 message TaskEventDeclare {
@@ -62,7 +63,7 @@ message TaskEventDeclare {
     string task_id     = 2;                     // 事件对应的任务id
     string identity_id = 3;                 // 产生事件的节点身份
     string content     = 4;                     // 事件内容
-    string create_at   = 5;                   // 事件产生时间
+    uint64 create_at   = 5;                   // 事件产生时间
 }
 
 
