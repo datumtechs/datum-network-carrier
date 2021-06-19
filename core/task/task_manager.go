@@ -1,8 +1,8 @@
 package task
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/event"
-	"github.com/RosettaFlow/carrier-go/core"
 )
 
 type Manager struct {
