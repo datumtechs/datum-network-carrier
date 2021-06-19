@@ -86,7 +86,7 @@ func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMet
 
 // ************************************** Resource module *******************************************************
 
-func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*api.PublishPowerResponse, error) {
+func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*api.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	return gc.resourceService.PublishPower(ctx, request)
