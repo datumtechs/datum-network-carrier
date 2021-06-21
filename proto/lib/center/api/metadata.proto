@@ -53,13 +53,6 @@ message MetaDataSaveRequest {
     repeated MetaDataColumnDetail column_meta  = 3;
 }
 
-message MetaDataSaveResponse {
-    int32  status = 1;
-    string msg    = 2;
-  // 元数据id
-    string meta_data_id = 3;
-}
-
 message RevokeMetaDataRequest {
   // 元数据拥有者
     Organization owner        = 1;
@@ -115,7 +108,7 @@ message MetadataByIdResponse {
 service MetaDataService {
 
   // 保存元数据
-  rpc MetaDataSave (MetaDataSaveRequest) returns (MetaDataSaveResponse);
+  rpc MetaDataSave (MetaDataSaveRequest) returns (SimpleResponse);
 
   // 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
   rpc GetMetaDataSummaryList (google.protobuf.Empty) returns (MetaDataSummaryListResponse);
