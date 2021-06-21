@@ -48,8 +48,9 @@ message MetaDataColumnDetail {
 }
 
 message MetaDataSaveRequest {
-    MetaDataSummary               meta_summary = 1;
-    repeated MetaDataColumnDetail column_meta  = 2;
+    Organization                  owner        = 1;
+    MetaDataSummary               meta_summary = 2;
+    repeated MetaDataColumnDetail column_meta  = 3;
 }
 
 message MetaDataSaveResponse {
