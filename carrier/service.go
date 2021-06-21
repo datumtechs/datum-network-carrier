@@ -48,7 +48,7 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 		dataCenter:      proxy,
 		mempool:         message.NewMempool(nil), // todo need  set mempool cfg
 		resourceManager: resource.NewResourceManager(),
-		taskManager:     task.NewTaskManager(nil), // todo need set dataChain
+		taskManager:     task.NewTaskManager(nil, nil), // todo need set dataChain
 	}
 	// todo: some logic could be added...
 

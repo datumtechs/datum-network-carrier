@@ -54,7 +54,7 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 // ************************************** MetaData module *******************************************************
 
 // MetaDataSave saves new metadata to database.
-func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSaveRequest) (*api.MetaDataSaveResponse, error) {
+func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSaveRequest) (*api.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
 	return gc.metadataService.MetaDataSave(ctx, request)
