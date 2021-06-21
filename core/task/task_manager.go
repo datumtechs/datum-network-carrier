@@ -3,18 +3,29 @@ package task
 import (
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/event"
+	"github.com/RosettaFlow/Carrier-Go/types"
 )
+
+type Scheduler interface {
+	OnSchedule() error
+	OnError () error
+	SchedulerName() string
+	PushTasks(tasks types.TaskMsgs) error
+}
 
 type Manager struct {
 	eventCh   chan *event.TaskEvent
 	dataChain *core.DataChain
+	taskCh    <- chan types.TaskMsgs
+	scheduler Scheduler
 }
 
-func NewTaskManager(dataChain *core.DataChain) *Manager {
+func NewTaskManager(dataChain *core.DataChain, taskCh chan types.TaskMsgs) *Manager {
 
 	m := &Manager{
 		eventCh:   make(chan *event.TaskEvent, 0),
 		dataChain: dataChain,
+		taskCh: taskCh,
 	}
 	go m.loop()
 	return m
@@ -75,8 +86,16 @@ func (m *Manager) loop() {
 
 	for {
 		select {
-		case event := <-m.eventCh:
+		case event := <- m.eventCh:
 			m.HandleEvent(event)
+		case taskMsgs := <- m.taskCh:
+			if len(taskMsgs) == 0 {
+				continue
+			}
+			if err := m.scheduler.PushTasks(taskMsgs); nil != err {
+				log.Error("Failed to push task msgs into Scheduler queue", "err", err)
+			}
+
 		default:
 		}
 	}
