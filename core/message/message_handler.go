@@ -47,6 +47,8 @@ type MessageHandler struct {
 	dataHandler DataHandler
 	center      DataCenter
 
+	taskCh       chan <- types.TaskMsgs
+
 	identityMsgCh       chan event.IdentityMsgEvent
 	identityRevokeMsgCh chan event.IdentityRevokeMsgEvent
 	powerMsgCh          chan event.PowerMsgEvent
@@ -386,6 +388,6 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.Me
 }
 
 func (m *MessageHandler) BroadcastTaskMsgs(taskMsgs types.TaskMsgs) error {
-
+	m.taskCh <- taskMsgs
 	return nil
 }
