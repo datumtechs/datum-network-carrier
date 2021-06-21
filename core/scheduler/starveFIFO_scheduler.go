@@ -6,7 +6,7 @@ type SchedulerStarveFIFO struct {
 
 }
 
-func (sche *SchedulerStarveFIFO) OnSchedule(task *types.TaskMsg) error {
+func (sche *SchedulerStarveFIFO) OnSchedule() error {
 	return nil
 }
 func (sche *SchedulerStarveFIFO) OnError () error {
@@ -14,4 +14,9 @@ func (sche *SchedulerStarveFIFO) OnError () error {
 }
 func (sche *SchedulerStarveFIFO) SchedulerName() string {
 	return ""
+}
+
+func (sche *SchedulerStarveFIFO) PushTasks(tasks types.TaskMsgs) error {
+
+	return nil
 }
