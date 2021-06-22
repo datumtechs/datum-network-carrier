@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
+	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -15,7 +16,7 @@ import (
 
 var (
 	// ErrPeerKnow is returned when there is an attempt to abtain data from a peer that is not know.
-	ErrPeerUnknow = errors.New("peer unknow")
+	ErrPeerUnknown = errors.New("peer unknow")
 )
 
 // PeerConnectionState is the state of the connection
@@ -56,8 +57,7 @@ type PeerData struct {
 	ProcessedBlocks      uint64
 	BlockProviderUpdated time.Time
 	// Gossip Scoring data.
-	// todo: protobuf need to generate...
-	//TopicScores map[string]*pbrpc.TopicScoreSnapshot
+	TopicScores map[string]*pbrpc.TopicScoreSnapshot
 	GossipScore      float64
 	BehaviourPenalty float64
 }
