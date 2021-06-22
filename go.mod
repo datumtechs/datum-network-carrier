@@ -14,6 +14,7 @@ require (
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/prysmaticlabs/ethereumapis v0.0.0-20210311175904-cf9f64632dd4 // indirect
 	github.com/prysmaticlabs/prysm v1.4.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
