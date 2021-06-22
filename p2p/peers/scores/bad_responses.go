@@ -89,7 +89,7 @@ func (s *BadResponsesScorer) count(pid peer.ID) (int, error) {
 	if peerData, ok := s.store.PeerData(pid); ok {
 		return peerData.BadResponses, nil
 	}
-	return -1, peerdata.ErrPeerUnknow
+	return -1, peerdata.ErrPeerUnknown
 }
 
 // Increment increments the number of bad responses we have received from the given remote peer.
