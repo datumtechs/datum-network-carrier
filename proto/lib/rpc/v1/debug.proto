@@ -2,9 +2,9 @@ syntax = "proto3";
 
 package carrier.rpc.v1;
 
-import "repos/ethereumapis/eth/v1alpha1/node.proto";
+import "eth/v1alpha1/node.proto";
 import "lib/p2p/v1/messages.proto";
-import "repos/ethereumapis/google/api/annotations.proto";
+import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 import "repos/protobuf/gogoproto/gogo.proto";
 
@@ -13,50 +13,50 @@ import "repos/protobuf/gogoproto/gogo.proto";
 // The debug service in Prysm provides API access to various utilities
 // for debugging the beacon node's functionality at runtime, such as being able
 // to retrieve the beacon state by block root or state root from the node directly.
-//service Debug {
-//  // Returns a beacon state by filter criteria from the beacon node.
-//  rpc GetBeaconState(BeaconStateRequest) returns (SSZResponse) {
-//    option (google.api.http) = {
-//      get: "/eth/v1alpha1/debug/state"
-//    };
-//  }
-//  // Returns a beacon state by filter criteria from the beacon node.
-//  rpc GetBlock(BlockRequest) returns (SSZResponse) {
-//    option (google.api.http) = {
-//      get: "/eth/v1alpha1/debug/block"
-//    };
-//  }
-//  // SetLoggingLevel sets the log-level of the beacon node programmatically.
-//  rpc SetLoggingLevel(LoggingLevelRequest) returns (google.protobuf.Empty) {
-//    option (google.api.http) = {
-//      post: "/eth/v1alpha1/debug/logging"
-//    };
-//  }
-//  // Returns a proto array fork choice object from the beacon node.
-//  rpc GetProtoArrayForkChoice(google.protobuf.Empty) returns (ProtoArrayForkChoiceResponse) {
-//    option (google.api.http) = {
-//      get: "/eth/v1alpha1/debug/forkchoice"
-//    };
-//  }
-//  // Returns all the related data for every peer tracked by the host node.
-//  rpc ListPeers(google.protobuf.Empty) returns (DebugPeerResponses){
-//    option (google.api.http) = {
-//      get: "/eth/v1alpha1/debug/peers"
-//    };
-//  }
-//  // Returns requested peer with specified peer id if it exists.
-//  rpc GetPeer(ethereum.eth.v1alpha1.PeerRequest) returns (DebugPeerResponse) {
-//    option (google.api.http) = {
-//      get: "/eth/v1alpha1/debug/peer"
-//    };
-//  }
-//  // Returns the inclusion slot of a given attester id and slot.
-//  rpc GetInclusionSlot(InclusionSlotRequest) returns (InclusionSlotResponse) {
-//    option (google.api.http) = {
-//      get: "/eth/v1alpha1/debug/inclusion"
-//    };
-//  }
-//}
+service Debug {
+  // Returns a beacon state by filter criteria from the beacon node.
+  rpc GetBeaconState(BeaconStateRequest) returns (SSZResponse) {
+    option (google.api.http) = {
+      get: "/eth/v1alpha1/debug/state"
+    };
+  }
+  // Returns a beacon state by filter criteria from the beacon node.
+  rpc GetBlock(BlockRequest) returns (SSZResponse) {
+    option (google.api.http) = {
+      get: "/eth/v1alpha1/debug/block"
+    };
+  }
+  // SetLoggingLevel sets the log-level of the beacon node programmatically.
+  rpc SetLoggingLevel(LoggingLevelRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/eth/v1alpha1/debug/logging"
+    };
+  }
+  // Returns a proto array fork choice object from the beacon node.
+  rpc GetProtoArrayForkChoice(google.protobuf.Empty) returns (ProtoArrayForkChoiceResponse) {
+    option (google.api.http) = {
+      get: "/eth/v1alpha1/debug/forkchoice"
+    };
+  }
+  // Returns all the related data for every peer tracked by the host node.
+  rpc ListPeers(google.protobuf.Empty) returns (DebugPeerResponses){
+    option (google.api.http) = {
+      get: "/eth/v1alpha1/debug/peers"
+    };
+  }
+  // Returns requested peer with specified peer id if it exists.
+  rpc GetPeer(ethereum.eth.v1alpha1.PeerRequest) returns (DebugPeerResponse) {
+    option (google.api.http) = {
+      get: "/eth/v1alpha1/debug/peer"
+    };
+  }
+  // Returns the inclusion slot of a given attester id and slot.
+  rpc GetInclusionSlot(InclusionSlotRequest) returns (InclusionSlotResponse) {
+    option (google.api.http) = {
+      get: "/eth/v1alpha1/debug/inclusion"
+    };
+  }
+}
 
 message InclusionSlotRequest {
     uint64 id   = 1;

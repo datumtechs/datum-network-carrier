@@ -34,40 +34,40 @@ type StoreConfig struct {
 // the mutex when accessing data.
 type Store struct {
 	sync.RWMutex
-	ctx context.Context
+	ctx    context.Context
 	config *StoreConfig
-	peers map[peer.ID]*PeerData
+	peers  map[peer.ID]*PeerData
 }
 
 // PeerData aggregates protocol and application level info about a single peer.
 type PeerData struct {
-	Address ma.Multiaddr
-	Direction network.Direction
-	ConnState PeerConnectionState
-	Enr *enr.Record
+	Address       ma.Multiaddr
+	Direction     network.Direction
+	ConnState     PeerConnectionState
+	Enr           *enr.Record
 	NextValidTime time.Time
 	// Chain related data
-	MetaData *pb.MetaData
-	ChainState *pb.Status
-	ChainStateLastUpdated time.Time
+	MetaData                  *pb.MetaData
+	ChainState                *pb.Status
+	ChainStateLastUpdated     time.Time
 	ChainStateValidationError error
 	// Scores internal data.
-	BadResponses int
-	ProcessedBlocks uint64
+	BadResponses         int
+	ProcessedBlocks      uint64
 	BlockProviderUpdated time.Time
 	// Gossip Scoring data.
 	// todo: protobuf need to generate...
 	//TopicScores map[string]*pbrpc.TopicScoreSnapshot
-	GossipScore float64
+	GossipScore      float64
 	BehaviourPenalty float64
 }
 
 // NewStore creates new peer data store.
 func NewStore(ctx context.Context, config *StoreConfig) *Store {
 	return &Store{
-		ctx:     ctx,
-		config:  config,
-		peers:   make(map[peer.ID]*PeerData),
+		ctx:    ctx,
+		config: config,
+		peers:  make(map[peer.ID]*PeerData),
 	}
 }
 
