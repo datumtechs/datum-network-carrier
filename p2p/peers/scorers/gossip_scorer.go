@@ -1,4 +1,4 @@
-package scores
+package scorers
 
 import (
 	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
