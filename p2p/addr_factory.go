@@ -3,7 +3,7 @@ package p2p
 import (
 	"strings"
 
-	"github.com/libp2p/go-libp2p/colog.gonfig"
+	"github.com/libp2p/go-libp2p/config"
 	ma "github.com/multiformats/go-multiaddr"
 )
 

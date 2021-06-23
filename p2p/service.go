@@ -3,6 +3,7 @@ package p2p
 import (
 	"context"
 	"crypto/ecdsa"
+	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/slotutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
@@ -16,7 +17,7 @@ import (
 	"time"
 )
 
-//var _ shared.Service = (*Service)(nil)
+var _ common.Service = (*Service)(nil)
 
 // In the event that we are at our peer limit, we stop looking for new peers
 // and instead poll for the current peer limit status
@@ -60,3 +61,16 @@ type Service struct {
 	genesisValidatorsRoot []byte
 	activeValidatorCount  uint64
 }
+
+func (s *Service) Start() {
+	panic("implement me")
+}
+
+func (s *Service) Stop() error {
+	panic("implement me")
+}
+
+func (s *Service) Status() error {
+	panic("implement me")
+}
+
