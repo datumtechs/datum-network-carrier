@@ -14,6 +14,8 @@ import (
 	gcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	ma "github.com/multiformats/go-multiaddr"
+	iaddr "github.com/ipfs/go-ipfs-addr"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/go-bitfield"
 	"github.com/sirupsen/logrus"
@@ -166,4 +168,19 @@ func verifyConnectivity(addr string, port uint, protocol string) {
 			log.WithError(err).Debug("Could not close connection")
 		}
 	}
+}
+
+func multiAddrFromString(address string) (ma.Multiaddr, error) {
+	addr, err := iaddr.ParseString(address)
+	if err != nil {
+		return nil, err
+	}
+	return addr.Multiaddr(), nil
+}
+
+func udpVersionFromIP(ipAddr net.IP) string {
+	if ipAddr.To4() != nil {
+		return "udp4"
+	}
+	return "udp6"
 }
