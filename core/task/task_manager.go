@@ -1,12 +1,14 @@
 package task
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/consensus"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type Scheduler interface {
+	SetTaskEngine(engine consensus.Consensus) error
 	OnSchedule() error
 	OnError () error
 	SchedulerName() string
@@ -17,15 +19,19 @@ type Manager struct {
 	eventCh   chan *event.TaskEvent
 	dataChain *core.DataChain
 	taskCh    <- chan types.TaskMsgs
+	// Consensuses
+	engines 		  map[string]consensus.Consensus
+	//sendScheTaskCh chan chan
 	scheduler Scheduler
 }
 
-func NewTaskManager(dataChain *core.DataChain, taskCh chan types.TaskMsgs) *Manager {
+func NewTaskManager(dataChain *core.DataChain, taskCh <- chan types.TaskMsgs, engines map[string]consensus.Consensus) *Manager {
 
 	m := &Manager{
 		eventCh:   make(chan *event.TaskEvent, 0),
 		dataChain: dataChain,
 		taskCh: taskCh,
+		engines: engines,
 	}
 	go m.loop()
 	return m

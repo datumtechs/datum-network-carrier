@@ -2,12 +2,14 @@ package carrier
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/consensus"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
 
@@ -21,11 +23,15 @@ type Service struct {
 	cancel         context.CancelFunc
 	mempool        *message.Mempool
 
+	// Consensuses
+	cons 		  map[string]consensus.Consensus
+
 	// DB interfaces
 	dataDb     db.Database
 	APIBackend *CarrierAPIBackend
 
 	resourceManager *resource.Manager
+	messageManager  *message.MessageHandler
 	taskManager     *task.Manager
 	runError        error
 }
@@ -41,14 +47,17 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 		cancel()
 		return nil, err
 	}
+	taskCh := make(chan types.TaskMsgs, 0)
+	pool := message.NewMempool(nil) // todo need  set mempool cfg
 	s := &Service{
 		ctx:             ctx,
 		cancel:          cancel,
 		config:          config,
 		dataCenter:      proxy,
-		mempool:         message.NewMempool(nil), // todo need  set mempool cfg
+		mempool:         pool,
 		resourceManager: resource.NewResourceManager(),
-		taskManager:     task.NewTaskManager(nil, nil), // todo need set dataChain
+		messageManager: message.NewHandler(pool, nil, proxy, taskCh, nil), // todo need set dataChain
+		taskManager:     task.NewTaskManager(nil, taskCh, nil), // todo need set dataChain
 	}
 	// todo: some logic could be added...
 
