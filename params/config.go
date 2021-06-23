@@ -16,6 +16,7 @@ type DataChainConfig struct {
 	ChainID *big.Int `json:"chainId"`
 
 	SlotsPerEpoch                    types.Slot  `yaml:"SLOTS_PER_EPOCH" spec:"true"`                     // SlotsPerEpoch is the number of slots in an epoch.
+	SecondsPerSlot                   uint64      `yaml:"SECONDS_PER_SLOT" spec:"true"`                    // SecondsPerSlot is how many seconds are in a single slot.
 }
 
 // String implements the fmt.Stringer interface.

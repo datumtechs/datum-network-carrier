@@ -6,7 +6,7 @@ import (
 	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
-	"github.com/RosettaFlow/Carrier-Go/p2p/peers/scores"
+	"github.com/RosettaFlow/Carrier-Go/p2p/peers/scorers"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
@@ -54,7 +54,7 @@ const (
 // Status is the structure holing the peer status information.
 type Status struct {
 	ctx       context.Context
-	scorers   *scores.Service
+	scorers   *scorers.Service
 	store     *peerdata.Store
 	ipTracker map[string]uint64
 	rand      *rand.Rand
@@ -64,7 +64,7 @@ type Status struct {
 type StatusConfig struct {
 	// PeerLimit specifies maximum amount of concurrent peers that are expected to be connect to the node.
 	PeerLimit   int
-	ScoreParams *scores.Config
+	ScoreParams *scorers.Config
 }
 
 func NewStatus(ctx context.Context, config *StatusConfig) *Status {
@@ -74,7 +74,7 @@ func NewStatus(ctx context.Context, config *StatusConfig) *Status {
 	return &Status{
 		ctx:       ctx,
 		store:     store,
-		scorers:   scores.NewService(ctx, store, config.ScoreParams),
+		scorers:   scorers.NewService(ctx, store, config.ScoreParams),
 		ipTracker: map[string]uint64{},
 		// Random generator used to calculate dial backoff period.
 		// It is ok to use deterministic generator, no need for true entropy.
@@ -83,7 +83,7 @@ func NewStatus(ctx context.Context, config *StatusConfig) *Status {
 }
 
 // Scorers exposes peer scoring management service.
-func (p *Status) Scorers() *scores.Service {
+func (p *Status) Scorers() *scorers.Service {
 	return p.scorers
 }
 
