@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
 	github.com/ipfs/go-log/v2 v2.1.3
 	github.com/joonix/log v0.0.0-20200409080653-9c1d2ceb5f1d
+	github.com/klauspost/cpuid/v2 v2.0.6 // indirect
 	github.com/kr/pretty v0.2.1 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-libp2p-core v0.7.0
