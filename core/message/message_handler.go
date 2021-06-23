@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/consensus"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -46,6 +47,8 @@ type MessageHandler struct {
 	pool        *Mempool
 	dataHandler DataHandler
 	center      DataCenter
+	// Consensuses
+	engines 		  map[string]consensus.Consensus
 
 	taskCh       chan <- types.TaskMsgs
 
@@ -71,11 +74,13 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter) *MessageHandler {
+func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan <- types.TaskMsgs, engines  map[string]consensus.Consensus) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataHandler: dataHandler,
 		center:      dataCenter,
+		taskCh: taskCh,
+		engines: engines,
 	}
 	return m
 }

@@ -359,6 +359,7 @@ type TaskOperationCost struct {
 	Duration  uint64 `json:"duration"`
 }
 
+
 // ------------------- data using authorize -------------------
 
 type DataAuthorizationApply struct {
@@ -389,6 +390,14 @@ type NodeAlias struct {
 	Name       string `json:"name"`
 	NodeId     string `json:"nodeId"`
 	IdentityId string `json:"identityId"`
+}
+
+type ScheduleNodeAlias struct {
+	Name       string `json:"name"`
+	NodeId     string `json:"nodeId"`
+	IdentityId string `json:"identityId"`
+	Ip  	   string `json:"ip"`
+	Port 	   string `json:"port"`
 }
 
 type ResourceUsage struct {
