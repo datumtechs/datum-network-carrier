@@ -8,14 +8,17 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/snappy v0.0.3
 	github.com/hashicorp/golang-lru v0.5.5-0.20210104140557-80c98217689d
+	github.com/ipfs/go-ipfs-addr v0.0.1
 	github.com/ipfs/go-log/v2 v2.1.3
 	github.com/joonix/log v0.0.0-20200409080653-9c1d2ceb5f1d
-	github.com/kevinms/leakybucket-go v0.0.0-20200115003610-082473db97ca // indirect
+	github.com/kevinms/leakybucket-go v0.0.0-20200115003610-082473db97ca
 	github.com/klauspost/cpuid/v2 v2.0.6 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/libp2p/go-libp2p v0.14.2
 	github.com/libp2p/go-libp2p-core v0.8.5
+	github.com/libp2p/go-libp2p-noise v0.2.0
 	github.com/libp2p/go-libp2p-pubsub v0.4.0
+	github.com/libp2p/go-tcp-transport v0.2.1
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
