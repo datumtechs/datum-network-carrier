@@ -1,4 +1,4 @@
-package scores
+package scorers
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
