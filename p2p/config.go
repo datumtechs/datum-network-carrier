@@ -1,5 +1,6 @@
 package p2p
 
+import statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 
 // Config for the p2p service. These parameters are set from application
 // level flags to initialize the p2p service.
@@ -23,6 +24,6 @@ type Config struct {
 	AllowListCIDR       string
 	DenyListCIDR        []string
 	//TODO: need to update..
-	//StateNotifier       statefeed.Notifier
+	StateNotifier       statefeed.Notifier
 	//DB                  db.ReadOnlyDatabase
 }
