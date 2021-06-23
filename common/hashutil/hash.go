@@ -3,6 +3,7 @@ package hashutil
 
 import (
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"hash"
 	"reflect"
 	"sync"
@@ -11,7 +12,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 	"github.com/minio/highwayhash"
 	"github.com/minio/sha256-simd"
-	"github.com/prysmaticlabs/prysm/shared/bytesutil"
 	"golang.org/x/crypto/sha3"
 )
 
