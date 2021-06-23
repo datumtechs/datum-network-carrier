@@ -13,11 +13,11 @@ type ScheduleTask struct {
 }
 
 type ScheduleTaskDataSupplier struct {
-	*ScheduleNodeAlias
+	*NodeAlias
 	MetaData *SupplierMetaData `json:"metaData"`
 }
 type ScheduleTaskPowerSupplier struct {
-	*ScheduleNodeAlias
+	*NodeAlias
 }
 
 type ScheduleSupplierMetaData struct {
@@ -26,8 +26,8 @@ type ScheduleSupplierMetaData struct {
 }
 
 type ScheduleTaskResultReceiver struct {
-	*ScheduleNodeAlias
-	Providers []*ScheduleNodeAlias `json:"providers"`
+	*NodeAlias
+	Providers []*NodeAlias `json:"providers"`
 }
 
 // Task consensus result
@@ -35,3 +35,11 @@ type ScheduleResult struct {
 	TaskId 		string 			`json:"taskId"`
 	Done 	    bool 			`json:"done"`
 }
+
+//type ScheduleNodeAlias struct {
+//	Name         string `json:"name"`
+//	NodeId       string `json:"nodeId"`
+//	IdentityId   string `json:"identityId"`
+//	PeerIp   string `json:"peerIp"`
+//	PeerPort string `json:"peerPort"`
+//}
