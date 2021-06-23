@@ -14,10 +14,10 @@ var resource = NewResource(&types.ResourceData{
 	DataId:               "dataId",
 	DataStatus:           "D",
 	State:                "1",
-	TotalMem:             "1",
-	UsedMem:              "2",
+	TotalMem:             1,
+	UsedMem:              2,
 	TotalProcessor:       0,
-	TotalBandWidth:       "1",
+	TotalBandWidth:       1,
 })
 
 func TestResourceEncode(t *testing.T) {
