@@ -113,6 +113,7 @@ func convertToUdpMultiAddr(node *enode.Node) ([]ma.Multiaddr, error) {
 	return nil, nil
 }
 //
+func (s *Service) filterPeer(node *enode.Node) bool { return false}
 
 func peersFromStringAddrs(addrs []string) ([]ma.Multiaddr, error) {
 	var allAddrs []ma.Multiaddr
@@ -138,3 +139,6 @@ func peersFromStringAddrs(addrs []string) ([]ma.Multiaddr, error) {
 	return allAddrs, nil
 }
 
+func convertToAddrInfo(node *enode.Node) (*peer.AddrInfo, ma.Multiaddr, error) {
+	return nil, nil, nil
+}
