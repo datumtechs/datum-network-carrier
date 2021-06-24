@@ -5,6 +5,16 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/event"
 )
 
+type EventSysCode string
+func (code EventSysCode) String() string {return string(code)}
+const (
+	SysCode_Common EventSysCode = "00"
+	SysCode_YarnNode EventSysCode = "01"
+	SysCode_DataNode EventSysCode = "02"
+	SysCode_PowerNode EventSysCode = "03"
+
+)
+
 type EventType struct {
 	Type string
 	Msg  string

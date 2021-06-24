@@ -290,9 +290,9 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			NodeName: power.OwnerName(),
 			DataId: power.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusN,
+			DataStatus: types.ResourceDataStatusN.String(),
 			// resource status, eg: create/release/revoke
-			State: types.PowerStateRelease,
+			State: types.PowerStateRelease.String(),
 			// unit: byte
 			TotalMem:  power.Memory(),
 			// unit: byte
@@ -320,9 +320,9 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 			NodeName: revoke.Name,
 			DataId: revoke.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusD,
+			DataStatus: types.ResourceDataStatusD.String(),
 			// resource status, eg: create/release/revoke
-			State: types.PowerStateRevoke,
+			State: types.PowerStateRevoke.String(),
 			// unit: byte
 			TotalMem: 0,
 			// unit: byte
@@ -359,9 +359,9 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 			HasTitleRow: metaData.HasTitle(),
 			ColumnMetaList: metaData.ColumnMetas(),
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusN,
+			DataStatus: types.ResourceDataStatusN.String(),
 			// metaData status, eg: create/release/revoke
-			State: types.MetaDataStateRelease,
+			State: types.MetaDataStateRelease.String(),
 		}))
 		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", metaData.MetaDataId, err))
 	}
@@ -380,9 +380,9 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.Me
 			NodeName: revoke.Name,
 			DataId: revoke.MetaDataId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusD,
+			DataStatus: types.ResourceDataStatusD.String(),
 			// metaData status, eg: create/release/revoke
-			State: types.MetaDataStateRevoke,
+			State: types.MetaDataStateRevoke.String(),
 		}))
 		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", revoke.MetaDataId, err))
 	}
