@@ -1,20 +1,19 @@
-package sync
+package network
 
 import (
-	"errors"
-	"strings"
-
+	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	"github.com/prysmaticlabs/prysm/beacon-chain/p2p"
+	"github.com/pkg/errors"
+	"strings"
 )
 
-var errNilPubsubMessage = errors.New("nil pubsub message")
+var errNilPubSubMessage = errors.New("nil pubsub message")
 var errInvalidTopic = errors.New("invalid topic format")
 
-func (s *Service) decodePubsubMessage(msg *pubsub.Message) (proto.Message, error) {
+func (s *Service) decodePubSubMessage(msg *pubsub.Message) (proto.Message, error) {
 	if msg == nil || msg.Topic == nil || *msg.Topic == "" {
-		return nil, errNilPubsubMessage
+		return nil, errNilPubSubMessage
 	}
 	topic := *msg.Topic
 	topic = strings.TrimSuffix(topic, s.cfg.P2P.Encoding().ProtocolSuffix())
@@ -33,7 +32,7 @@ func (s *Service) decodePubsubMessage(msg *pubsub.Message) (proto.Message, error
 	return m, nil
 }
 
-// Replaces our fork digest with the formatter.
+// Replace our fork digest with the formatter.
 func (s *Service) replaceForkDigest(topic string) (string, error) {
 	subStrings := strings.Split(topic, "/")
 	if len(subStrings) != 4 {
