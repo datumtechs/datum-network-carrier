@@ -2,6 +2,7 @@ package twopc
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	lru "github.com/hashicorp/golang-lru"
 )
 
@@ -9,7 +10,7 @@ import (
 type EngineManager struct {
 	engine             *twoPC
 	peers              *PeerSet
-	//sendQueue          chan *types.MsgPackage
+	sendQueue          chan *types.MsgPackage
 	//quitSend           chan struct{}
 	//sendQueueHook      func(*types.MsgPackage)
 	historyMessageHash *lru.ARCCache // Consensus message record that has been processed successfully.
@@ -25,6 +26,19 @@ func (e *EngineManager) handleMsg(p *peer) error {
 	}
 	
 	return nil
+}
+
+// Broadcast imports messages into the send queue and send it according to broadcast.
+//
+// Note: The broadcast of this method defaults to FULL mode.
+func (h *EngineManager) Broadcast(msg Message) {
+	msgPkg := types.NewMsgPackage("", msg, types.PartMode)
+	select {
+	case h.sendQueue <- msgPkg:
+		log.Trace("Broadcast message to sendQueue", "msgHash", msg.MsgHash(), "msg", msg.String())
+	default:
+		log.Error("Broadcast message failed, message queue blocking", "msgHash", msg.MsgHash())
+	}
 }
 
 

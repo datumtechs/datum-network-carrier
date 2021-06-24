@@ -1,8 +1,9 @@
-package twopc
+package types
 
 import (
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -19,7 +20,7 @@ func rlpHash(x interface{}) (h common.Hash) {
 }
 
 type taskOption struct {
-	Role          TaskRole                 `json:"role"`
+	Role          twopc.TaskRole           `json:"role"`
 	TaskId        string                   `json:"taskId"`
 	TaskName      string                   `json:"taskName"`
 	Owner         *types.NodeAlias         `json:"owner"`
@@ -62,17 +63,17 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 	if mhash := msg.messageHash.Load(); mhash != nil {
 		return mhash.(common.Hash)
 	}
-	v := utils.BuildHash(PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(), msg.TaskOption.Hash().Bytes()))
+	v := utils.BuildHash(twopc.PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(), msg.TaskOption.Hash().Bytes()))
 	msg.messageHash.Store(v)
 	return v
 }
 
 type PrepareVote struct {
-	ProposalID  common.Hash  `json:"proposalID"`
+	ProposalID  common.Hash      `json:"proposalID"`
 	VoteNodeID  p2p.NodeID       `json:"voteNodeID"`
-	VoteOption  VoteOption   `json:"voteOption"`
-	VoteSign    MsgSign      `json:"voteSign"`
-	messageHash atomic.Value `rlp:"-"`
+	VoteOption  twopc.VoteOption `json:"voteOption"`
+	VoteSign    twopc.MsgSign    `json:"voteSign"`
+	messageHash atomic.Value     `rlp:"-"`
 }
 
 func (msg *PrepareVote) String() string {
@@ -84,7 +85,7 @@ func (msg *PrepareVote) MsgHash() common.Hash {
 	if mhash := msg.messageHash.Load(); mhash != nil {
 		return mhash.(common.Hash)
 	}
-	v := utils.BuildHash(PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), msg.VoteNodeID.Bytes(),
+	v := utils.BuildHash(twopc.PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), msg.VoteNodeID.Bytes(),
 		[]byte{msg.VoteOption.Byte()}, msg.VoteSign.Bytes()))
 	msg.messageHash.Store(v)
 	return v
