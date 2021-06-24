@@ -1,26 +1,29 @@
 package p2p
 
 import (
+	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/ethereum/go-ethereum/p2p/enode"
+	"github.com/ethereum/go-ethereum/p2p/enr"
 	"time"
 )
 
 // ENR key used for eth2-related fork data.
 var eth2ENRKey = params.CarrierNetworkConfig().ETH2Key
 
-// ForkDigest returns the current fork digest of
-// the node.
+// forkDigest returns the current fork digest of the node.
 func (s *Service) forkDigest() ([4]byte, error) {
-	//if s.currentForkDigest != [4]byte{} {
-	//	return s.currentForkDigest, nil
-	//}
-	//fd, err := p2putils.CreateForkDigest(s.genesisTime, s.genesisValidatorsRoot)
-	//if err != nil {
-	//	s.currentForkDigest = fd
-	//}
-	//return fd, err
-	return [4]byte{0x1, 0x1, 0x0, 0x0}, nil
+	if s.currentForkDigest != [4]byte{} {
+		return s.currentForkDigest, nil
+	}
+	return [4]byte{0x1, 0x1, 0x1, 0x1,},nil
+}
+
+
+// Compares fork ENRs between an incoming peer's record and our node's
+// local record values for current and next fork version/epoch.
+func (s *Service) compareForkENR(record *enr.Record) error {
+	return nil
 }
 
 // Adds a fork entry as an ENR record under the eth2EnrKey for
@@ -33,36 +36,22 @@ func addForkEntry(
 	genesisTime time.Time,
 	genesisValidatorsRoot []byte,
 ) (*enode.LocalNode, error) {
-	//digest, err := p2putils.CreateForkDigest(genesisTime, genesisValidatorsRoot)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//currentSlot := helpers.SlotsSince(genesisTime)
-	//currentEpoch := helpers.SlotToEpoch(currentSlot)
-	//if timeutils.Now().Before(genesisTime) {
-	//	currentEpoch = 0
-	//}
-	//fork, err := p2putils.Fork(currentEpoch)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//
-	//nextForkEpoch := params.BeaconConfig().NextForkEpoch
-	//nextForkVersion := params.BeaconConfig().NextForkVersion
-	//// Set to the current fork version if our next fork is not planned.
-	//if nextForkEpoch == math.MaxUint64 {
-	//	nextForkVersion = fork.CurrentVersion
-	//}
-	//enrForkID := &pb.ENRForkID{
-	//	CurrentForkDigest: digest[:],
-	//	NextForkVersion:   nextForkVersion,
-	//	NextForkEpoch:     nextForkEpoch,
-	//}
-	//enc, err := enrForkID.MarshalSSZ()
-	//if err != nil {
-	//	return nil, err
-	//}
-	//forkEntry := enr.WithEntry(eth2ENRKey, enc)
-	//node.Set(forkEntry)
 	return node, nil
 }
+
+// Retrieves an enrForkID from an ENR record by key lookup under the eth2EnrKey.
+func forkEntry(record *enr.Record) (*pb.ENRForkID, error) {
+	/*sszEncodedForkEntry := make([]byte, 16)
+	entry := enr.WithEntry(eth2ENRKey, &sszEncodedForkEntry)
+	err := record.Load(entry)
+	if err != nil {
+		return nil, err
+	}
+	forkEntry := &pb.ENRForkID{}
+	if err := forkEntry.UnmarshalSSZ(sszEncodedForkEntry); err != nil {
+		return nil, err
+	}
+	return forkEntry, nil*/
+	return nil, nil
+}
+
