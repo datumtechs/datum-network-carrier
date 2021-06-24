@@ -1,16 +1,16 @@
-package sync
+package network
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"strings"
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/prysmaticlabs/prysm/shared/params"
 	"github.com/sirupsen/logrus"
 )
 
 var defaultReadDuration = ttfbTimeout
-var defaultWriteDuration = params.BeaconNetworkConfig().RespTimeout // RESP_TIMEOUT
+var defaultWriteDuration = params.CarrierNetworkConfig().RespTimeout // RESP_TIMEOUT
 
 // SetRPCStreamDeadlines sets read and write deadlines for libp2p-based connection streams.
 func SetRPCStreamDeadlines(stream network.Stream) {
