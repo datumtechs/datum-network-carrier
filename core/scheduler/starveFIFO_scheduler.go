@@ -6,15 +6,16 @@ import (
 )
 
 type SchedulerStarveFIFO struct {
+	queue  *types.TaskMsgs
 	engine consensus.Consensus
 }
 
-func (sche *SchedulerStarveFIFO) SetTaskEngine(engine consensus.Consensus) error {return nil}
+func (sche *SchedulerStarveFIFO) SetTaskEngine(engine consensus.Consensus) error { return nil }
 
 func (sche *SchedulerStarveFIFO) OnSchedule() error {
 	return nil
 }
-func (sche *SchedulerStarveFIFO) OnError () error {
+func (sche *SchedulerStarveFIFO) OnError() error {
 	return nil
 }
 func (sche *SchedulerStarveFIFO) SchedulerName() string {
