@@ -5,6 +5,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
+	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/connmgr"
@@ -78,11 +79,12 @@ type PeerManager interface {
 
 // Sender abstracts the sending functionality from libp2p.
 type Sender interface {
-	Send(ctx context.Context, message interface{}, string peer.ID) (network.Stream, error)
+	Send(context.Context, interface{}, string, peer.ID) (network.Stream, error)
 }
 
 //
 type PeersProvider interface {
+	Peers() *peers.Status
 }
 
 // MetadataProvider returns the metadata releated information for the local peer.
