@@ -29,7 +29,6 @@ require (
 	github.com/prysmaticlabs/eth2-types v0.0.0-20210303084904-c9735a06829d
 	github.com/prysmaticlabs/ethereumapis v0.0.0-20210311175904-cf9f64632dd4
 	github.com/prysmaticlabs/go-bitfield v0.0.0-20210515192923-def021850363
-	github.com/prysmaticlabs/prysm v1.4.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954
