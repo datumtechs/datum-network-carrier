@@ -1,5 +1,5 @@
-package sync
+package network
 
 import "github.com/sirupsen/logrus"
 
-var log = logrus.WithField("prefix", "sync")
+var log = logrus.WithField("prefix", "network")
