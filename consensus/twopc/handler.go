@@ -1,6 +1,9 @@
 package twopc
 
-import lru "github.com/hashicorp/golang-lru"
+import (
+	"github.com/RosettaFlow/Carrier-Go/common"
+	lru "github.com/hashicorp/golang-lru"
+)
 
 // EngineManager responsibles for processing the messages in the network.
 type EngineManager struct {
@@ -22,4 +25,12 @@ func (e *EngineManager) handleMsg(p *peer) error {
 	}
 	
 	return nil
+}
+
+
+// Message interface, all message structures must
+// implement this interface.
+type Message interface {
+	String() string
+	MsgHash() common.Hash
 }
