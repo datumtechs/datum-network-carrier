@@ -2,6 +2,7 @@ package twopc
 
 import (
 	"fmt"
+	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -29,6 +30,9 @@ func (t *twoPC) OnPrepare(task *types.ScheduleTask) error {
 	return nil
 }
 func (t *twoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleResult) error {
+
+
+
 	return nil
 }
 func (t *twoPC) OnError() error {
@@ -44,7 +48,7 @@ func (t *twoPC) OnError() error {
 	return fmt.Errorf("%s", strings.Join(errStrs, "\n"))
 }
 
-func (t *twoPC) OnPrepareMsg (proposal *PrepareMsg) error {
+func (t *twoPC) OnPrepareMsg (proposal *ctypes.PrepareMsg) error {
 
 	return nil
 }
