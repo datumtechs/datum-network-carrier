@@ -2,4 +2,5 @@ syntax = "proto3";
 
 package rpcapi;
 
-option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/consensus";
+
