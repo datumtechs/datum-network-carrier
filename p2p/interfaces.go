@@ -3,12 +3,10 @@ package p2p
 import (
 	"context"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
-	"github.com/libp2p/go-libp2p-core/connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -33,7 +31,7 @@ type P2P interface {
 // Broadcaster broadcasts messages to peers over the p2p pubsub protocol.
 type Broadcaster interface {
 	Broadcast(ctx context.Context, message proto.Message) error
-	BroadcastTask(ctx context.Context, task *libtypes.TaskData) error
+	//BroadcastTask(ctx context.Context, task *libtypes.TaskData) error
 }
 
 // SetStreamHandler configures p2p to handle streams of a certain topic ID.
@@ -43,7 +41,7 @@ type SetStreamHandler interface {
 
 // PubSubTopicUser providers way to join, use and leave PubSub topics.
 type PubSubTopicUser interface {
-	JoinTopic(topic string, opts ...pubsub.TopicOpt)
+	JoinTopic(topic string, opts ...pubsub.TopicOpt) (*pubsub.Topic, error)
 	LeaveTopic(topic string) error
 	PublishToTopic(ctx context.Context, topic string, data []byte, opts ...pubsub.PubOpt) error
 	SubscribeToTopic(topic string, opts ...pubsub.SubOpt) (*pubsub.Subscription, error)
@@ -52,7 +50,7 @@ type PubSubTopicUser interface {
 // ConnectionHandler configures p2p to handle connection with a peer.
 type ConnectionHandler interface {
 	AddConnectionHandler(f func(ctx context.Context, id peer.ID) error, j func(ctx context.Context, id peer.ID) error)
-	AddDisconnectionHandler(f func(ctx context.Context, id peer.ID) error) connmgr.ConnectionGater
+	AddDisconnectionHandler(f func(ctx context.Context, id peer.ID) error)
 }
 
 // EncodingProvider provides p2p network encoding.
