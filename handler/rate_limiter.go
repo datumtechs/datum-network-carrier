@@ -1,4 +1,4 @@
-package network
+package handler
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -44,9 +44,6 @@ func newRateLimiter(p2pProvider p2p.P2P) *limiter {
 
 	// Use a single collector for block requests
 	//blockCollector := leakybucket.NewCollector(allowedBlocksPerSecond, allowedBlocksBurst, false /* deleteEmptyBuckets */)
-
-	// BlocksByRoots requests
-	//topicMap[addEncoding(p2p.RPCBlocksByRootTopic)] = blockCollector
 
 	// BlockByRange requests
 	//topicMap[addEncoding(p2p.RPCBlocksByRangeTopic)] = blockCollector

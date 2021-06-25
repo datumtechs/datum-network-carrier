@@ -16,22 +16,20 @@ const (
 	RPCStatusTopic = "/rosetta/carrier_chain/req/status" + schemaVersionV1
 	// RPCGoodByeTopic defines the topic for the goodbye rpc method.
 	RPCGoodByeTopic = "/rosetta/carrier_chain/req/goodbye" + schemaVersionV1
-	// RPCBlocksByRangeTopic defines the topic for the blocks by range rpc method.
-	RPCBlocksByRangeTopic = "/rosetta/carrier_chain/req/carrier_blocks_by_range" + schemaVersionV1
-	// RPCBlocksByRootTopic defines the topic for the blocks by root rpc method.
-	RPCBlocksByRootTopic = "/rosetta/carrier_chain/req/carrier_blocks_by_root" + schemaVersionV1
 	// RPCPingTopic defines the topic for the ping rpc method.
 	RPCPingTopic = "/rosetta/carrier_chain/req/ping" + schemaVersionV1
 	// RPCMetaDataTopic defines the topic for the metadata rpc method.
 	RPCMetaDataTopic = "/rosetta/carrier_chain/req/metadata" + schemaVersionV1
+
+	// RPCBlocksByRangeTopic defines the topic for the blocks by range rpc method.
+	RPCBlocksByRangeTopic = "/rosetta/carrier_chain/req/carrier_blocks_by_range" + schemaVersionV1
 )
 
 // RPCTopicMappings map the base message type to the rpc request.
 var RPCTopicMappings = map[string]interface{}{
 	RPCStatusTopic:        new(pb.Status),
 	RPCGoodByeTopic:       new(types.SSZUint64),
-	RPCBlocksByRangeTopic: new(pb.BeaconBlocksByRangeRequest),
-	//RPCBlocksByRootTopic:  new(p2ptypes.BeaconBlockByRootsReq),
+	RPCBlocksByRangeTopic: new(pb.CarrierBlocksByRangeRequest),
 	RPCPingTopic:          new(types.SSZUint64),
 	RPCMetaDataTopic:      new(interface{}),
 }

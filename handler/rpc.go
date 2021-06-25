@@ -1,4 +1,4 @@
-package network
+package handler
 
 import (
 	"context"
@@ -28,30 +28,26 @@ type rpcHandler func(context.Context, interface{}, libp2pcore.Stream) error
 
 // registerRPCHandlers for p2p RPC.
 func (s *Service) registerRPCHandlers() {
-	//s.registerRPC(
-	//	p2p.RPCStatusTopic,
-	//	s.statusRPCHandler,
-	//)
-	//s.registerRPC(
-	//	p2p.RPCGoodByeTopic,
-	//	s.goodbyeRPCHandler,
-	//)
-	//s.registerRPC(
-	//	p2p.RPCBlocksByRangeTopic,
-	//	s.beaconBlocksByRangeRPCHandler,
-	//)
-	//s.registerRPC(
-	//	p2p.RPCBlocksByRootTopic,
-	//	s.beaconBlocksRootRPCHandler,
-	//)
-	//s.registerRPC(
-	//	p2p.RPCPingTopic,
-	//	s.pingHandler,
-	//)
-	//s.registerRPC(
-	//	p2p.RPCMetaDataTopic,
-	//	s.metaDataHandler,
-	//)
+	s.registerRPC(
+		p2p.RPCStatusTopic,
+		s.statusRPCHandler,
+	)
+	s.registerRPC(
+		p2p.RPCGoodByeTopic,
+		s.goodbyeRPCHandler,
+	)
+	s.registerRPC(
+		p2p.RPCBlocksByRangeTopic,
+		s.carrierBlocksByRangeRPCHandler,
+	)
+	s.registerRPC(
+		p2p.RPCPingTopic,
+		s.pingHandler,
+	)
+	s.registerRPC(
+		p2p.RPCMetaDataTopic,
+		s.metaDataHandler,
+	)
 }
 
 // registerRPC for a given topic with an expected protobuf message type.
