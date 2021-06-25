@@ -57,7 +57,7 @@ func (m *Manager) HandleComputerServiceEvent(event *event.TaskEvent) error {
 	return m.dataChain.StoreTaskEvent(event)
 }
 
-func (m *Manager) HandleSchedulerEvent(event *event.TaskEvent) error {
+func (m *Manager) HandleYarnServiceEvent(event *event.TaskEvent) error {
 	event, err := MakeScheduleEventInfo(event)
 	if nil != err {
 		return err
@@ -73,13 +73,13 @@ func (m *Manager) HandleEvent(event *event.TaskEvent) error {
 
 	sysCode := eventType[0:2]
 	switch sysCode {
-	case "00":
+	case SysCode_Common.String():
 		return m.HandleSystemEvent(event)
-	case "01":
-		return m.HandleSchedulerEvent(event)
-	case "02":
+	case SysCode_YarnNode.String():
+		return m.HandleYarnServiceEvent(event)
+	case SysCode_DataNode.String():
 		return m.HandleDataServiceEvent(event)
-	case "03":
+	case SysCode_PowerNode.String():
 		return m.HandleComputerServiceEvent(event)
 	default:
 		return IncEventType

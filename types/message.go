@@ -343,7 +343,7 @@ type TaskSupplier struct {
 }
 
 type SupplierMetaData struct {
-	MetaId          string   `json:"metaId"`
+	MetaDataId      string   `json:"metaDataId"`
 	ColumnIndexList []uint64 `json:"columnIndexList"`
 }
 
@@ -390,7 +390,6 @@ type NodeAlias struct {
 	NodeId     string `json:"nodeId"`
 	IdentityId string `json:"identityId"`
 }
-
 
 type ResourceUsage struct {
 	TotalMem       uint64 `json:"totalMem"`
