@@ -3,12 +3,12 @@ package handler
 import (
 	"context"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/messagehandler"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	"github.com/prysmaticlabs/prysm/shared/messagehandler"
 	"go.opencensus.io/trace"
 	"runtime/debug"
 	"strings"
@@ -22,7 +22,7 @@ type subHandler func(context.Context, proto.Message) error
 
 // noopValidator is a no-op that only decodes the message, but does not check its contents.
 func (s *Service) noopValidator(_ context.Context, _ peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
-	m, err := s.decodePubSubMessage(msg)
+	m, err := s.decodePubsubMessage(msg)
 	if err != nil {
 		log.WithError(err).Debug("Could not decode message")
 		return pubsub.ValidationReject
@@ -33,34 +33,11 @@ func (s *Service) noopValidator(_ context.Context, _ peer.ID, msg *pubsub.Messag
 
 // Register PubSub subscribers
 func (s *Service) registerSubscribers() {
-	//s.subscribe(
-	//	p2p.ExitSubnetTopicFormat,
-	//	s.validateVoluntaryExit,
-	//	s.voluntaryExitSubscriber,
-	//)
-	//s.subscribe(
-	//	p2p.ProposerSlashingSubnetTopicFormat,
-	//	s.validateProposerSlashing,
-	//	s.proposerSlashingSubscriber,
-	//)
-	//s.subscribe(
-	//	p2p.AttesterSlashingSubnetTopicFormat,
-	//	s.validateAttesterSlashing,
-	//	s.attesterSlashingSubscriber,
-	//)
-	//if flags.Get().SubscribeToAllSubnets {
-	//	s.subscribeStaticWithSubnets(
-	//		"/eth2/%x/beacon_attestation_%d",
-	//		s.validateCommitteeIndexBeaconAttestation,   /* validator */
-	//		s.committeeIndexBeaconAttestationSubscriber, /* message handler */
-	//	)
-	//} else {
-	//	s.subscribeDynamicWithSubnets(
-	//		"/eth2/%x/beacon_attestation_%d",
-	//		s.validateCommitteeIndexBeaconAttestation,   /* validator */
-	//		s.committeeIndexBeaconAttestationSubscriber, /* message handler */
-	//	)
-	//}
+	s.subscribe(
+		p2p.GossipTestDataTopicFormat,
+		s.validateGossipTestData,
+		s.gossipTestDataSubscriber)
+	//TODO: more subscribe to be register...
 }
 
 // subscribe to a given topic with a given validator and subscription handler.
@@ -100,7 +77,6 @@ func (s *Service) subscribeWithBase(topic string, validator pubsub.ValidatorEx, 
 
 		defer func() {
 			if r := recover(); r != nil {
-				//traceutil.AnnotateError(span, fmt.Errorf("panic occurred: %v", r))
 				log.WithField("error", r).Error("Panic occurred")
 				debug.PrintStack()
 			}
@@ -115,7 +91,6 @@ func (s *Service) subscribeWithBase(topic string, validator pubsub.ValidatorEx, 
 		}
 
 		if err := handle(ctx, msg.ValidatorData.(proto.Message)); err != nil {
-			//traceutil.AnnotateError(span, err)
 			log.WithError(err).Debug("Could not handle p2p pubsub")
 			messageFailedProcessingCounter.WithLabelValues(topic).Inc()
 			return
@@ -162,11 +137,6 @@ func (s *Service) wrapAndReportValidation(topic string, v pubsub.ValidatorEx) (s
 			messageFailedValidationCounter.WithLabelValues(topic).Inc()
 			return pubsub.ValidationReject
 		}
-		// Ignore any messages received before chainstart.
-		/*if s.chainStarted.IsNotSet() {
-			messageFailedValidationCounter.WithLabelValues(topic).Inc()
-			return pubsub.ValidationIgnore
-		}*/
 		b := v(ctx, pid, msg)
 		if b == pubsub.ValidationReject {
 			messageFailedValidationCounter.WithLabelValues(topic).Inc()
