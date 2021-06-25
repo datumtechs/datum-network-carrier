@@ -1,4 +1,4 @@
-package network
+package handler
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
