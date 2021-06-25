@@ -80,14 +80,13 @@ func (s *Service) registerRPC(baseTopic string, handle rpcHandler) {
 			}
 			return
 		}
-		//TODO: .....
 
-		// Validate request according to peer limits.
-		//if err := s.rateLimiter.validateRawRpcRequest(stream); err != nil {
-		//	log.Debugf("Could not validate rpc request from peer: %v", err)
-		//	return
-		//}
-		//s.rateLimiter.addRawStream(stream)
+		//Validate request according to peer limits.
+		if err := s.rateLimiter.validateRawRpcRequest(stream); err != nil {
+			log.Debugf("Could not validate rpc request from peer: %v", err)
+			return
+		}
+		s.rateLimiter.addRawStream(stream)
 
 		if err := stream.SetReadDeadline(timeutils.Now().Add(ttfbTimeout)); err != nil {
 			log.WithError(err).Debug("Could not set stream read deadline")

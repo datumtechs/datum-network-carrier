@@ -11,7 +11,7 @@ import (
 var errNilPubSubMessage = errors.New("nil pubsub message")
 var errInvalidTopic = errors.New("invalid topic format")
 
-func (s *Service) decodePubSubMessage(msg *pubsub.Message) (proto.Message, error) {
+func (s *Service) decodePubsubMessage(msg *pubsub.Message) (proto.Message, error) {
 	if msg == nil || msg.Topic == nil || *msg.Topic == "" {
 		return nil, errNilPubSubMessage
 	}
