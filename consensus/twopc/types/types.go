@@ -49,6 +49,12 @@ type receiverOption struct {
 	Providers []*types.NodeAlias `json:"providers"`
 }
 
+type taskPeerInfo struct {
+	// Used to connect when running task, internal network resuorce of org.
+	Ip   string `json:"ip"`
+	Port string `json:"port"`
+}
+
 type PrepareMsg struct {
 	ProposalID  common.Hash  `json:"proposalID"`
 	TaskOption  *taskOption  `json:"taskOption"`
@@ -73,6 +79,7 @@ type PrepareVote struct {
 	VoteNodeID  p2p.NodeID       `json:"voteNodeID"`
 	VoteOption  twopc.VoteOption `json:"voteOption"`
 	VoteSign    twopc.MsgSign    `json:"voteSign"`
+	PeerInfo    *taskPeerInfo    `json:"peerInfo"`
 	messageHash atomic.Value     `rlp:"-"`
 }
 
