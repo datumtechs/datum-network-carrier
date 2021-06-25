@@ -1,4 +1,4 @@
-package network
+package handler
 
 import "github.com/sirupsen/logrus"
 

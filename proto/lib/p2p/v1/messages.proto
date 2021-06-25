@@ -12,7 +12,7 @@ message Status {
     uint64 head_slot       = 5 [(gogoproto.casttype) = "github.com/prysmaticlabs/eth2-types.Slot"];
 }
 
-message BeaconBlocksByRangeRequest {
+message CarrierBlocksByRangeRequest {
     uint64 start_slot = 1 [(gogoproto.casttype) = "github.com/prysmaticlabs/eth2-types.Slot"];
     uint64 count      = 2;
     uint64 step       = 3;
