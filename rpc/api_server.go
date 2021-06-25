@@ -644,7 +644,7 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	taskMsg.Data.Owner.NodeId = req.Owner.MemberInfo.NodeId
 	taskMsg.Data.Owner.IdentityId = req.Owner.MemberInfo.IdentityId
 	taskMsg.Data.Owner.MetaData.ColumnIndexList = req.Owner.MetaDataInfo.ColumnIndexList
-	taskMsg.Data.Owner.MetaData.MetaId = req.Owner.MetaDataInfo.MetaDataId
+	taskMsg.Data.Owner.MetaData.MetaDataId = req.Owner.MetaDataInfo.MetaDataId
 
 	partners := make([]*types.TaskSupplier, len(req.Partners))
 	for i, v := range req.Partners {
@@ -655,7 +655,7 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 				IdentityId: v.MemberInfo.IdentityId,
 			},
 			MetaData: &types.SupplierMetaData{
-				MetaId:          v.MetaDataInfo.MetaDataId,
+				MetaDataId:          v.MetaDataInfo.MetaDataId,
 				ColumnIndexList: v.MetaDataInfo.ColumnIndexList,
 			},
 		}
