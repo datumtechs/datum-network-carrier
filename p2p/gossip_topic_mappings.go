@@ -1,12 +1,14 @@
 package p2p
 
 import (
+	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/gogo/protobuf/proto"
 	"reflect"
 )
 
 // GossipTopicMappings represent the protocol ID to protobuf message type map for easy lookup.
 var GossipTopicMappings = map[string]proto.Message{
+	GossipTestDataTopicFormat:              &librpcpb.SignedGossipTestData{},
 	//BlockSubnetTopicFormat:             &pb.SignedBeaconBlock{},
 	//AttestationSubnetTopicFormat:       &pb.Attestation{},
 	//ExitSubnetTopicFormat:              &pb.SignedVoluntaryExit{},
