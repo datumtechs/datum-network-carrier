@@ -5,6 +5,9 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/RosettaFlow/Carrier-Go/event"
+	"github.com/RosettaFlow/Carrier-Go/handler"
+	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -26,6 +29,7 @@ type CarrierNode struct {
 	services        *common.ServiceRegistry
 
 	db 				db.Database
+	stateFeed       *event.Feed
 
 	lock            sync.RWMutex
 	stop            chan struct{} // Channel to wait for termination notifications.
@@ -58,6 +62,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		config: 		 conf,
 		cancel:          cancel,
 		services:        registry,
+		stateFeed:       new(event.Feed),
 		stop:            make(chan struct{}),
 	}
 
@@ -73,7 +78,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		return nil, err
 	}
 
-	if err := node.registerSyncService(); err != nil {
+	if err := node.registerHandlerService(); err != nil {
 		return nil, err
 	}
 
@@ -167,10 +172,28 @@ func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) erro
 	return b.services.RegisterService(backendService)
 }
 
-func (b *CarrierNode) registerSyncService() error {
-	return nil
+func (b *CarrierNode) registerHandlerService() error {
+	// use ` b.services.FetchService` to check whether the dependent service is registered.
+	rs := handler.NewService(b.ctx, &handler.Config{
+		P2P:                 b.fetchP2P(),
+		StateNotifier:       b,
+	})
+	return b.services.RegisterService(rs)
 }
 
 func (b *CarrierNode) registerRPCService() error {
 	return nil
+}
+
+func (b *CarrierNode) fetchP2P() p2p.P2P {
+	var p *p2p.Service
+	if err := b.services.FetchService(&p); err != nil {
+		panic(err)
+	}
+	return p
+}
+
+// StateFeed implements statefeed.Notifier.
+func (b *CarrierNode) StateFeed() *event.Feed {
+	return b.stateFeed
 }
