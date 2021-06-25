@@ -2,9 +2,22 @@ package twopc
 
 // The proposalMsg signature and the voteMsg signature
 type MsgSign [MsgSignLength]byte
-func (s MsgSign)Bytes() []byte {return s[:]}
+
+func (s MsgSign) Bytes() []byte { return s[:] }
+
 type VoteOption uint8
-func (v VoteOption) Byte() byte {return byte(v)}
+
+func (v VoteOption) Byte() byte { return byte(v) }
+func (v VoteOption) String() string {
+	switch v {
+	case Yes:
+		return "Yes"
+	case No:
+		return "No"
+	default:
+		return "Abstention"
+	}
+}
 const (
 	MsgSignLength = 65
 )
@@ -27,6 +40,7 @@ func ParseVoteOption(option uint8) VoteOption {
 }
 
 type TaskRole uint8
+
 func (t TaskRole) String() string {
 	switch t {
 	case DataSupplier:
@@ -39,8 +53,23 @@ func (t TaskRole) String() string {
 		return "Unkwon"
 	}
 }
+
 const (
+	Unkwon         TaskRole = 0x00
 	DataSupplier   TaskRole = 0x01
 	PowerSupplier  TaskRole = 0x02
 	ResultSupplier TaskRole = 0x03
 )
+
+func ParseTaskRole(role string) TaskRole {
+	switch role {
+	case "DataSupplier":
+		return DataSupplier
+	case "PowerSupplier":
+		return PowerSupplier
+	case "ResultSupplier":
+		return ResultSupplier
+	default:
+		return Unkwon
+	}
+}
