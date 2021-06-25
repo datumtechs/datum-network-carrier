@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package carrier.rpc.v1;
+
+message GossipTestData {
+    string data  = 1 ;
+    uint64 count = 2;
+    uint64 step  = 3;
+}
+
+message SignedGossipTestData {
+    GossipTestData data      = 1;
+    bytes          signature = 2;
+}
