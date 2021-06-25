@@ -13,10 +13,10 @@ import (
 func (s *Service) metaDataHandler(_ context.Context, _ interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
 
-	//if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
-	//	return err
-	//}
-	//s.rateLimiter.add(stream, 1)
+	if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
+		return err
+	}
+	s.rateLimiter.add(stream, 1)
 
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
 		return err

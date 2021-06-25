@@ -9,18 +9,20 @@ import (
 	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	"sync"
 	"time"
 )
 
-//
 var _ common.Service = (*Service)(nil)
 
 const rangeLimit = 1024
 const seenBlockSize = 1000
 const seenAttSize = 10000
 const seenExitSize = 100
+const seenGossipTestDataSize = 100
 const seenProposerSlashingSize = 100
 const badBlockSize = 1000
 
@@ -30,71 +32,36 @@ var pendingBlockExpTime = time.Duration(params.CarrierChainConfig().SlotsPerEpoc
 
 // Config to set up the regular sync service.
 type Config struct {
-	P2P                 p2p.P2P
-	//DB                  db.NoHeadAccessDatabase
-	//AttPool             attestations.Pool
-	//ExitPool            voluntaryexits.PoolManager
-	//SlashingPool        slashings.PoolManager
-	Chain               blockchainService
-	InitialSync         Checker
-	StateNotifier       statefeed.Notifier
-	//BlockNotifier       blockfeed.Notifier
-	//AttestationNotifier operation.Notifier
-	//StateGen            *stategen.State
-}
-//
-// This defines the interface for interacting with block chain service
-type blockchainService interface {
-
+	P2P           p2p.P2P
+	Chain         blockchainService
+	InitialSync   Checker
+	StateNotifier statefeed.Notifier
 }
 
 // Service is responsible for handling all run time p2p related operations as the
 // main entry point for network messages.
 type Service struct {
-	cfg                       *Config
-	ctx                       context.Context
-	cancel                    context.CancelFunc
-	//slotToPendingBlocks       *gcache.Cache
-	//seenPendingBlocks         map[[32]byte]bool
-	//blkRootToPendingAtts      map[[32]byte][]*ethpb.SignedAggregateAttestationAndProof
-	//pendingAttsLock           sync.RWMutex
-	//pendingQueueLock          sync.RWMutex
-	//chainStarted              *abool.AtomicBool
-	//validateBlockLock         sync.RWMutex
-	rateLimiter               *limiter
-	//seenBlockLock             sync.RWMutex
-	//seenBlockCache            *lru.Cache
-	//seenAttestationLock       sync.RWMutex
-	//seenAttestationCache      *lru.Cache
-	//seenExitLock              sync.RWMutex
-	//seenExitCache             *lru.Cache
-	//seenProposerSlashingLock  sync.RWMutex
-	//seenProposerSlashingCache *lru.Cache
-	//seenAttesterSlashingLock  sync.RWMutex
-	//seenAttesterSlashingCache map[uint64]bool
-	//badBlockCache             *lru.Cache
-	//badBlockLock              sync.RWMutex
+	cfg                 *Config
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	rateLimiter         *limiter
+	seenGossipDataLock  sync.RWMutex
+	seenGossipDataCache *lru.Cache
+	badBlockCache       *lru.Cache
+	badBlockLock        sync.RWMutex
 }
 
 // NewService initializes new regular sync service.
 func NewService(ctx context.Context, cfg *Config) *Service {
-	//c := gcache.New(pendingBlockExpTime /* exp time */, 2*pendingBlockExpTime /* prune time */)
-
 	rLimiter := newRateLimiter(cfg.P2P)
 	ctx, cancel := context.WithCancel(ctx)
 	r := &Service{
-		cfg:                  cfg,
-		ctx:                  ctx,
-		cancel:               cancel,
-		//chainStarted:         abool.New(),
-		//slotToPendingBlocks:  c,
-		//seenPendingBlocks:    make(map[[32]byte]bool),
-		//blkRootToPendingAtts: make(map[[32]byte][]*ethpb.SignedAggregateAttestationAndProof),
-		rateLimiter:          rLimiter,
+		cfg:         cfg,
+		ctx:         ctx,
+		cancel:      cancel,
+		rateLimiter: rLimiter,
 	}
-
 	go r.registerHandlers()
-
 	return r
 }
 
@@ -103,20 +70,14 @@ func (s *Service) Start() {
 	if err := s.initCaches(); err != nil {
 		panic(err)
 	}
-
 	s.cfg.P2P.AddConnectionHandler(s.reValidatePeer, s.sendGoodbye)
 	s.cfg.P2P.AddDisconnectionHandler(func(_ context.Context, _ peer.ID) error {
 		// no-op
 		return nil
 	})
 	s.cfg.P2P.AddPingMethod(s.sendPingRequest)
-	//s.processPendingBlocksQueue()
-	//s.processPendingAttsQueue()
-	//s.maintainPeerStatuses()
-	//if !flags.Get().DisableSync {
-	//	s.resyncIfBehind()
-	//}
-
+	s.processPendingBlocksQueue()
+	s.maintainPeerStatuses()
 	// Update sync metrics.
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 }
@@ -150,33 +111,11 @@ func (s *Service) Status() error {
 // This initializes the caches to update seen beacon objects coming in from the wire
 // and prevent DoS.
 func (s *Service) initCaches() error {
-//	blkCache, err := lru.New(seenBlockSize)
-//	if err != nil {
-//		return err
-//	}
-//	attCache, err := lru.New(seenAttSize)
-//	if err != nil {
-//		return err
-//	}
-//	exitCache, err := lru.New(seenExitSize)
-//	if err != nil {
-//		return err
-//	}
-//	proposerSlashingCache, err := lru.New(seenProposerSlashingSize)
-//	if err != nil {
-//		return err
-//	}
-//	badBlockCache, err := lru.New(badBlockSize)
-//	if err != nil {
-//		return err
-//	}
-//	s.seenBlockCache = blkCache
-//	s.seenAttestationCache = attCache
-//	s.seenExitCache = exitCache
-//	s.seenAttesterSlashingCache = make(map[uint64]bool)
-//	s.seenProposerSlashingCache = proposerSlashingCache
-//	s.badBlockCache = badBlockCache
-//
+	gossipCache, err := lru.New(seenGossipTestDataSize)
+	if err != nil {
+		return err
+	}
+	s.seenGossipDataCache = gossipCache
 	return nil
 }
 
@@ -231,13 +170,4 @@ func (s *Service) registerHandlers() {
 // marks the chain as having started.
 func (s *Service) markForChainStart() {
 
-}
-
-// Checker defines a struct which can verify whether a node is currently
-// synchronizing a chain with the rest of peers in the network.
-type Checker interface {
-	Initialized() bool
-	Syncing() bool
-	Status() error
-	Resync() error
 }

@@ -2,7 +2,7 @@ package p2p
 
 const (
 	//TODO: to define more topics....
-
+	GossipTestDataTopicFormat = "/carrier/%x/gossip_test_data"
 	// AttestationSubnetTopicFormat is the topic format for the attestation subnet.
 	AttestationSubnetTopicFormat = "/carrier/%x/beacon_attestation_%d"
 	// BlockSubnetTopicFormat is the topic format for the block subnet.
