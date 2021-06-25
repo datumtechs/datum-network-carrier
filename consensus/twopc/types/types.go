@@ -3,10 +3,10 @@ package types
 import (
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
-	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
@@ -20,16 +20,18 @@ func rlpHash(x interface{}) (h common.Hash) {
 }
 
 type taskOption struct {
-	Role          twopc.TaskRole           `json:"role"`
-	TaskId        string                   `json:"taskId"`
-	TaskName      string                   `json:"taskName"`
-	Owner         *types.NodeAlias         `json:"owner"`
-	AlgoSupplier  *types.NodeAlias         `json:"algoSupplier"`
-	DataSupplier  []*dataSupplierOption    `json:"dataSupplier"`
-	PowerSupplier []*powerSupplierOption   `json:"powerSupplier"`
-	Receivers     []*receiverOption        `json:"receivers"`
-	CreateAt      uint64                   `json:"createat"`
-	OperationCost *types.TaskOperationCost `json:"operationCost"`
+	Role                  twopc.TaskRole           `json:"role"` // The role information of the current recipient of the task
+	TaskId                string                   `json:"taskId"`
+	TaskName              string                   `json:"taskName"`
+	Owner                 *types.NodeAlias         `json:"owner"`
+	AlgoSupplier          *types.NodeAlias         `json:"algoSupplier"`
+	DataSupplier          []*dataSupplierOption    `json:"dataSupplier"`
+	PowerSupplier         []*powerSupplierOption   `json:"powerSupplier"`
+	Receivers             []*receiverOption        `json:"receivers"`
+	OperationCost         *types.TaskOperationCost `json:"operationCost"`
+	CalculateContractCode string                   `json:"calculateContractCode"`
+	DataSplitContractCode string                   `json:"dataSplitContractCode"`
+	CreateAt              uint64                   `json:"createat"`
 }
 
 func (t *taskOption) Hash() common.Hash {
@@ -45,8 +47,8 @@ type powerSupplierOption struct {
 	MemberInfo *types.NodeAlias `json:"memberInfo"`
 }
 type receiverOption struct {
-	*types.NodeAlias
-	Providers []*types.NodeAlias `json:"providers"`
+	MemberInfo *types.NodeAlias   `json:"memberInfo"`
+	Providers  []*types.NodeAlias `json:"providers"`
 }
 
 type taskPeerInfo struct {
@@ -56,9 +58,11 @@ type taskPeerInfo struct {
 }
 
 type PrepareMsg struct {
-	ProposalID  common.Hash  `json:"proposalID"`
-	TaskOption  *taskOption  `json:"taskOption"`
-	messageHash atomic.Value `rlp:"-"`
+	ProposalID  common.Hash   `json:"proposalId"`
+	TaskOption  *taskOption   `json:"taskOption"`
+	CreateAt    uint64        `json:"createAt"`
+	Sign        twopc.MsgSign `json:"sign"`
+	messageHash atomic.Value  `rlp:"-"`
 }
 
 func (msg *PrepareMsg) String() string {
@@ -69,17 +73,20 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 	if mhash := msg.messageHash.Load(); mhash != nil {
 		return mhash.(common.Hash)
 	}
-	v := utils.BuildHash(twopc.PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(), msg.TaskOption.Hash().Bytes()))
+	v := utils.BuildHash(twopc.PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(),
+		msg.TaskOption.Hash().Bytes(), msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
 	msg.messageHash.Store(v)
 	return v
 }
 
 type PrepareVote struct {
-	ProposalID  common.Hash      `json:"proposalID"`
-	VoteNodeID  p2p.NodeID       `json:"voteNodeID"`
+	ProposalID  common.Hash      `json:"proposalId"`
+	Role        twopc.TaskRole   `json:"role"` // The role information of the current recipient of the task
+	Owner       *types.NodeAlias `json:"owner"`
 	VoteOption  twopc.VoteOption `json:"voteOption"`
-	VoteSign    twopc.MsgSign    `json:"voteSign"`
 	PeerInfo    *taskPeerInfo    `json:"peerInfo"`
+	CreateAt    uint64           `json:"createAt"`
+	Sign        twopc.MsgSign    `json:"sign"`
 	messageHash atomic.Value     `rlp:"-"`
 }
 
@@ -92,8 +99,8 @@ func (msg *PrepareVote) MsgHash() common.Hash {
 	if mhash := msg.messageHash.Load(); mhash != nil {
 		return mhash.(common.Hash)
 	}
-	v := utils.BuildHash(twopc.PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), msg.VoteNodeID.Bytes(),
-		[]byte{msg.VoteOption.Byte()}, msg.VoteSign.Bytes()))
+	v := utils.BuildHash(twopc.PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), /*msg.VoteNodeID.Bytes(), */ // TODO 编码 NodeAlias
+		[]byte{msg.VoteOption.Byte()}, msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
 	msg.messageHash.Store(v)
 	return v
 }
