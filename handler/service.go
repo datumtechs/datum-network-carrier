@@ -70,20 +70,14 @@ func (s *Service) Start() {
 	if err := s.initCaches(); err != nil {
 		panic(err)
 	}
-
 	s.cfg.P2P.AddConnectionHandler(s.reValidatePeer, s.sendGoodbye)
 	s.cfg.P2P.AddDisconnectionHandler(func(_ context.Context, _ peer.ID) error {
 		// no-op
 		return nil
 	})
 	s.cfg.P2P.AddPingMethod(s.sendPingRequest)
-	//s.processPendingBlocksQueue()
-	//s.processPendingAttsQueue()
-	//s.maintainPeerStatuses()
-	//if !flags.Get().DisableSync {
-	//	s.resyncIfBehind()
-	//}
-
+	s.processPendingBlocksQueue()
+	s.maintainPeerStatuses()
 	// Update sync metrics.
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 }
@@ -117,32 +111,10 @@ func (s *Service) Status() error {
 // This initializes the caches to update seen beacon objects coming in from the wire
 // and prevent DoS.
 func (s *Service) initCaches() error {
-	//	blkCache, err := lru.New(seenBlockSize)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	attCache, err := lru.New(seenAttSize)
-	//	if err != nil {
-	//		return err
-	//	}
 	gossipCache, err := lru.New(seenGossipTestDataSize)
 	if err != nil {
 		return err
 	}
-	//	proposerSlashingCache, err := lru.New(seenProposerSlashingSize)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	badBlockCache, err := lru.New(badBlockSize)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	s.seenBlockCache = blkCache
-	//	s.seenAttestationCache = attCache
-	//	s.seenExitCache = exitCache
-	//	s.seenAttesterSlashingCache = make(map[uint64]bool)
-	//	s.seenProposerSlashingCache = proposerSlashingCache
-	//	s.badBlockCache = badBlockCache
 	s.seenGossipDataCache = gossipCache
 	return nil
 }
