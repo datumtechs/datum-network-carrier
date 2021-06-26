@@ -24,7 +24,7 @@ type Service struct {
 	mempool        *message.Mempool
 
 	// Consensuses
-	cons 		  map[string]consensus.Consensus
+	cons 		  map[string]consensus.Engine
 
 	// DB interfaces
 	dataDb     db.Database

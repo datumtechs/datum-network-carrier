@@ -13,7 +13,7 @@ func (p *peer) RecvMsg() error {return nil}
 
 
 // PeerSet represents the collection of active peers currently participating
-// in the twoPC protocol.
+// in the TwoPC protocol.
 type PeerSet struct {
 	peers  map[string]*peer
 	lock   sync.RWMutex
