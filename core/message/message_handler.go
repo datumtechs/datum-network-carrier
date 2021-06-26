@@ -48,7 +48,7 @@ type MessageHandler struct {
 	dataHandler DataHandler
 	center      DataCenter
 	// Consensuses
-	engines 		  map[string]consensus.Consensus
+	engines 		  map[string]consensus.Engine
 
 	taskCh       chan <- types.TaskMsgs
 
@@ -74,7 +74,7 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan <- types.TaskMsgs, engines  map[string]consensus.Consensus) *MessageHandler {
+func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan <- types.TaskMsgs, engines  map[string]consensus.Engine) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataHandler: dataHandler,

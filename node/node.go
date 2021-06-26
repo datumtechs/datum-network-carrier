@@ -4,6 +4,9 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/consensus"
+	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
+	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/handler"
@@ -14,6 +17,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"reflect"
 	"sync"
 	"syscall"
 )
@@ -22,17 +26,18 @@ import (
 // It handles the lifecycle of the entire system and registers
 // services to a service registry.
 type CarrierNode struct {
-	cliCtx          *cli.Context
-	config 			*Config
-	ctx             context.Context
-	cancel          context.CancelFunc
-	services        *common.ServiceRegistry
+	cliCtx   *cli.Context
+	config   *Config
+	ctx      context.Context
+	cancel   context.CancelFunc
+	services *common.ServiceRegistry
+	Engines  map[reflect.Type]consensus.Engine
 
-	db 				db.Database
-	stateFeed       *event.Feed
+	db        db.Database
+	stateFeed *event.Feed
 
-	lock            sync.RWMutex
-	stop            chan struct{} // Channel to wait for termination notifications.
+	lock sync.RWMutex
+	stop chan struct{} // Channel to wait for termination notifications.
 }
 
 // New creates a new node instance, sets up configuration options, and registers
@@ -57,13 +62,18 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 
 	ctx, cancel := context.WithCancel(cliCtx.Context)
 	node := &CarrierNode{
-		cliCtx:          cliCtx,
-		ctx:             ctx,
-		config: 		 conf,
-		cancel:          cancel,
-		services:        registry,
-		stateFeed:       new(event.Feed),
-		stop:            make(chan struct{}),
+		cliCtx:    cliCtx,
+		ctx:       ctx,
+		config:    conf,
+		cancel:    cancel,
+		services:  registry,
+		stateFeed: new(event.Feed),
+		stop:      make(chan struct{}),
+	}
+
+	if err := node.registerConsensusEngine(); nil != err {
+		log.Error("Failed to registerConsensusEngine", "err", err)
+		return nil, err
 	}
 
 	// start db
@@ -88,7 +98,6 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	// todo: some logic to be added here...
 	return node, nil
 }
-
 
 func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) error {
 	dbPath := filepath.Join(node.config.DataDir, "datachain")
@@ -175,8 +184,9 @@ func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) erro
 func (b *CarrierNode) registerHandlerService() error {
 	// use ` b.services.FetchService` to check whether the dependent service is registered.
 	rs := handler.NewService(b.ctx, &handler.Config{
-		P2P:                 b.fetchP2P(),
-		StateNotifier:       b,
+		P2P:           b.fetchP2P(),
+		StateNotifier: b,
+		Engines:       b.Engines,
 	})
 	return b.services.RegisterService(rs)
 }
@@ -196,4 +206,13 @@ func (b *CarrierNode) fetchP2P() p2p.P2P {
 // StateFeed implements statefeed.Notifier.
 func (b *CarrierNode) StateFeed() *event.Feed {
 	return b.stateFeed
+}
+
+func (b *CarrierNode) registerConsensusEngine() error {
+
+	b.Engines = make(map[reflect.Type]consensus.Engine, 0)
+	b.Engines[consensus.TwoPcTyp] = twopc.New(&twopc.Config{})
+	b.Engines[consensus.ChainConsTyp] = chaincons.New()
+
+	return nil
 }
