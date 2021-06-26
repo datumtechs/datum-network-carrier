@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-//var _ Scorer = (*Service)(nil)
+var _ Scorer = (*Service)(nil)
 
 // ScoreRoundingFactor defines how many digits to keep in decimal part.
 // This parameter is used in math.Round(score*ScoreRoundingFactor) / ScoreRoundingFactor.
