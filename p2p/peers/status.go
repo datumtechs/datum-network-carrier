@@ -63,8 +63,8 @@ type Status struct {
 // StatusConfig represents peer status service params.
 type StatusConfig struct {
 	// PeerLimit specifies maximum amount of concurrent peers that are expected to be connect to the node.
-	PeerLimit   int
-	ScoreParams *scorers.Config
+	PeerLimit    int
+	ScorerParams *scorers.Config
 }
 
 func NewStatus(ctx context.Context, config *StatusConfig) *Status {
@@ -74,7 +74,7 @@ func NewStatus(ctx context.Context, config *StatusConfig) *Status {
 	return &Status{
 		ctx:       ctx,
 		store:     store,
-		scorers:   scorers.NewService(ctx, store, config.ScoreParams),
+		scorers:   scorers.NewService(ctx, store, config.ScorerParams),
 		ipTracker: map[string]uint64{},
 		// Random generator used to calculate dial backoff period.
 		// It is ok to use deterministic generator, no need for true entropy.
