@@ -70,8 +70,8 @@ func peerScoringParams() (*pubsub.PeerScoreParams, *pubsub.PeerScoreThresholds) 
 		IPColocationFactorWhitelist: nil,
 		BehaviourPenaltyWeight:      -15.92,
 		BehaviourPenaltyThreshold:   6,
-		BehaviourPenaltyDecay:       scoreDecay(10 * oneEpochDuration()),
-		DecayInterval:               1 * oneSlotDuration(),
+		BehaviourPenaltyDecay:       0.5 /* scoreDecay(10 * oneEpochDuration()) */,
+		DecayInterval:               pubsub.DefaultDecayInterval,
 		DecayToZero:                 decayToZero,
 		RetainScore:                 100 * oneEpochDuration(),
 	}
