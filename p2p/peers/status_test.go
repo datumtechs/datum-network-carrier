@@ -22,6 +22,112 @@ import (
 	"time"
 )
 
+func TestStatus(t *testing.T) {
+	maxBadResponses := 2
+	p := peers.NewStatus(context.Background(), &peers.StatusConfig{
+		PeerLimit: 30,
+		ScorerParams: &scorers.Config{
+			BadResponsesScorerConfig: &scorers.BadResponsesScorerConfig{
+				Threshold: maxBadResponses,
+			},
+		},
+	})
+	require.NotNil(t, p, "p not created")
+	assert.Equal(t, maxBadResponses, p.Scorers().BadResponsesScorer().Params().Threshold, "maxBadResponses incorrect value")
+}
+
+func TestPeerExplicitAdd(t *testing.T) {
+	maxBadResponses := 2
+	p := peers.NewStatus(context.Background(), &peers.StatusConfig{
+		PeerLimit: 30,
+		ScorerParams: &scorers.Config{
+			BadResponsesScorerConfig: &scorers.BadResponsesScorerConfig{
+				Threshold: maxBadResponses,
+			},
+		},
+	})
+
+	id, err := peer.Decode("16Uiu2HAkyWZ4Ni1TpvDS8dPxsozmHY85KaiFjodQuV6Tz5tkHVeR")
+	require.NoError(t, err, "Failed to create ID")
+	address, err := ma.NewMultiaddr("/ip4/213.202.254.180/tcp/13000")
+	require.NoError(t, err, "Failed to create address")
+	direction := network.DirInbound
+	p.Add(new(enr.Record), id, address, direction)
+
+	resAddress, err := p.Address(id)
+	require.NoError(t, err)
+	assert.Equal(t, address, resAddress, "Unexpected address")
+
+	resDirection, err := p.Direction(id)
+	require.NoError(t, err)
+	assert.Equal(t, direction, resDirection, "Unexpected direction")
+
+	// Update with another explicit add
+	address2, err := ma.NewMultiaddr("/ip4/52.23.23.253/tcp/30000/ipfs/QmfAgkmjiZNZhr2wFN9TwaRgHouMTBT6HELyzE5A3BT2wK/p2p-circuit")
+	require.NoError(t, err)
+	direction2 := network.DirOutbound
+	p.Add(new(enr.Record), id, address2, direction2)
+
+	resAddress2, err := p.Address(id)
+	require.NoError(t, err)
+	assert.Equal(t, address2, resAddress2, "Unexpected address")
+
+	resDirection2, err := p.Direction(id)
+	require.NoError(t, err)
+	assert.Equal(t, direction2, resDirection2, "Unexpected direction")
+}
+
+func TestPeerNoENR(t *testing.T) {
+	maxBadResponses := 2
+	p := peers.NewStatus(context.Background(), &peers.StatusConfig{
+		PeerLimit: 30,
+		ScorerParams: &scorers.Config{
+			BadResponsesScorerConfig: &scorers.BadResponsesScorerConfig{
+				Threshold: maxBadResponses,
+			},
+		},
+	})
+
+	id, err := peer.Decode("16Uiu2HAkyWZ4Ni1TpvDS8dPxsozmHY85KaiFjodQuV6Tz5tkHVeR")
+	require.NoError(t, err, "Failed to create ID")
+	address, err := ma.NewMultiaddr("/ip4/213.202.254.180/tcp/13000")
+	require.NoError(t, err, "Failed to create address")
+	direction := network.DirInbound
+	p.Add(nil, id, address, direction)
+
+	retrievedENR, err := p.ENR(id)
+	require.NoError(t, err, "Could not retrieve chainstate")
+	var nilENR *enr.Record
+	assert.Equal(t, nilENR, retrievedENR, "Wanted a nil enr to be saved")
+}
+
+func TestPeerNoOverwriteENR(t *testing.T) {
+	maxBadResponses := 2
+	p := peers.NewStatus(context.Background(), &peers.StatusConfig{
+		PeerLimit: 30,
+		ScorerParams: &scorers.Config{
+			BadResponsesScorerConfig: &scorers.BadResponsesScorerConfig{
+				Threshold: maxBadResponses,
+			},
+		},
+	})
+
+	id, err := peer.Decode("16Uiu2HAkyWZ4Ni1TpvDS8dPxsozmHY85KaiFjodQuV6Tz5tkHVeR")
+	require.NoError(t, err, "Failed to create ID")
+	address, err := ma.NewMultiaddr("/ip4/213.202.254.180/tcp/13000")
+	require.NoError(t, err, "Failed to create address")
+	direction := network.DirInbound
+	record := new(enr.Record)
+	record.Set(enr.WithEntry("test", []byte{'a'}))
+	p.Add(record, id, address, direction)
+	// try to overwrite
+	p.Add(nil, id, address, direction)
+
+	retrievedENR, err := p.ENR(id)
+	require.NoError(t, err, "Could not retrieve chainstate")
+	require.NotNil(t, retrievedENR, "Wanted a non-nil enr")
+}
+
 func TestErrUnknownPeer(t *testing.T) {
 	maxBadResponses := 2
 	p := peers.NewStatus(context.Background(), &peers.StatusConfig{
