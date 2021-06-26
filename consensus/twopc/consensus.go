@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-type twoPC struct {
+type TwoPC struct {
 	config *Config
 	Errs   []error
 	p2p    p2p.P2P
@@ -21,9 +21,9 @@ type twoPC struct {
 	runningProposals map[common.Hash]string
 }
 
-func New(conf *Config) *twoPC {
+func New(conf *Config) *TwoPC {
 
-	t := &twoPC{
+	t := &TwoPC{
 		config: conf,
 		Errs:   make([]error, 0),
 	}
@@ -31,14 +31,27 @@ func New(conf *Config) *twoPC {
 	return t
 }
 
-func (t *twoPC) OnPrepare(task *types.ScheduleTask) error {
+func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
 	return nil
 }
-func (t *twoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleResult) error {
+func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleResult) error {
 
 	return nil
 }
-func (t *twoPC) OnError() error {
+
+func (t *TwoPC) ValidateConsensusMsg(msg types.ConsensusMsg) error {
+
+
+	return nil
+}
+
+func (t *TwoPC) OnConsensusMsg(msg types.ConsensusMsg) error {
+
+
+	return nil
+}
+
+func (t *TwoPC) OnError() error {
 	if len(t.Errs) == 0 {
 		return nil
 	}
@@ -51,7 +64,7 @@ func (t *twoPC) OnError() error {
 	return fmt.Errorf("%s", strings.Join(errStrs, "\n"))
 }
 
-func (t *twoPC) OnPrepareMsg(proposal *ctypes.PrepareMsg) error {
+func (t *TwoPC) OnPrepareMsg(proposal *ctypes.PrepareMsg) error {
 
 	return nil
 }

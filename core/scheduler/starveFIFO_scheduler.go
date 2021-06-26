@@ -7,10 +7,10 @@ import (
 
 type SchedulerStarveFIFO struct {
 	queue  *types.TaskMsgs
-	engine consensus.Consensus
+	engine consensus.Engine
 }
 
-func (sche *SchedulerStarveFIFO) SetTaskEngine(engine consensus.Consensus) error { return nil }
+func (sche *SchedulerStarveFIFO) SetTaskEngine(engine consensus.Engine) error { return nil }
 
 func (sche *SchedulerStarveFIFO) OnSchedule() error {
 	return nil

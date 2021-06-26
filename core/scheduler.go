@@ -6,7 +6,7 @@ import (
 )
 
 type Scheduler interface {
-	SetTaskEngine(engine consensus.Consensus) error
+	SetTaskEngine(engine consensus.Engine) error
 	OnSchedule() error
 	OnError () error
 	SchedulerName() string

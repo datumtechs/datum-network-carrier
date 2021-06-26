@@ -7,11 +7,13 @@ import (
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
+	"github.com/RosettaFlow/Carrier-Go/consensus"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -36,6 +38,7 @@ type Config struct {
 	Chain         blockchainService
 	InitialSync   Checker
 	StateNotifier statefeed.Notifier
+	Engines 		  map[reflect.Type]consensus.Engine
 }
 
 // Service is responsible for handling all run time p2p related operations as the
