@@ -10,7 +10,7 @@ var _ Scorer = (*BadResponsesScorer)(nil)
 
 const (
 	// DefaultBadResponsesThreshold defines how many bad responses to tolerate before peer is deemed bad.
-	DefaultBasResponsesThreshold = 6
+	DefaultBadResponsesThreshold = 6
 
 	// DefaultBadResponsesDecayInterval defines how often to decay previous statistics.
 	// Every interval bad responses counter will be decrements by 1.
@@ -40,7 +40,7 @@ func newBadResponsesScorer(store *peerdata.Store, config *BadResponsesScorerConf
 		store: store,
 	}
 	if scorer.config.Threshold == 0 {
-		scorer.config.Threshold = DefaultBasResponsesThreshold
+		scorer.config.Threshold = DefaultBadResponsesThreshold
 	}
 	if scorer.config.DecayInterval == 0 {
 		scorer.config.DecayInterval = DefaultBadResponsesDecayInterval
