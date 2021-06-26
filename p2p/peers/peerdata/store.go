@@ -16,7 +16,7 @@ import (
 
 var (
 	// ErrPeerKnow is returned when there is an attempt to abtain data from a peer that is not know.
-	ErrPeerUnknown = errors.New("peer unknow")
+	ErrPeerUnknown = errors.New("peer unknown")
 )
 
 // PeerConnectionState is the state of the connection
