@@ -110,7 +110,8 @@ func (s *Service) SubscribeToTopic(topic string, opts ...pubsub.SubOpt) (*pubsub
 // peerInspector will scrape all the relevant scoring data
 // and add it to our peer handler.
 func (s *Service) peerInspector(peerMap map[peer.ID]pubsub.PeerScoreSnapshot) {
-	//
+	// Iterate through all the connected peers and through any of their
+	// relevant topics.
 	for pid, snap := range peerMap {
 		s.peers.Scorers().GossipScorer().SetGossipData(pid, snap.Score, snap.BehaviourPenalty,
 			convertTopicScores(snap.Topics))
