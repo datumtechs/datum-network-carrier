@@ -147,7 +147,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 
 	s.peers = peers.NewStatus(ctx, &peers.StatusConfig{
 		PeerLimit: int(s.cfg.MaxPeers),
-		ScoreParams: &scorers.Config{
+		ScorerParams: &scorers.Config{
 			BadResponsesScorerConfig: &scorers.BadResponsesScorerConfig{
 				Threshold:     maxBadResponses,
 				DecayInterval: time.Hour,
