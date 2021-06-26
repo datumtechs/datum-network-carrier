@@ -121,8 +121,8 @@ func attSubnets(record *enr.Record) ([]uint64, error) {
 	return committeeIdxs, nil
 }
 
-// Parse the attestation subnets ENR entry in a node and extracts its valud
-// as a bitvector for further mainpulation.
+// Parses the attestation subnets ENR entry in a node and extracts its value
+// as a bitvector for further manipulation.
 func bitvector(record *enr.Record) (bitfield.Bitvector64, error) {
 	bitV := bitfield.NewBitvector64()
 	entry := enr.WithEntry(attSubnetEnrKey, &bitV)
