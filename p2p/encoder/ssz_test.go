@@ -7,6 +7,7 @@ import (
 	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
 	"github.com/gogo/protobuf/proto"
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"io"
@@ -83,18 +84,23 @@ func TestSszNetworkEncoder_DecodeWithMaxLength(t *testing.T) {
 		Step:                 3,
 	}
 	e := &encoder.SszNetworkEncoder{}
+	//params.SetupTestConfigCleanup(t)
+	c := params.CarrierNetworkConfig()
 	maxChunkSize := uint64(5)
+	c.MaxChunkSize = maxChunkSize
+	params.OverrideCarrierNetworkConfig(c)
 	_, err := e.EncodeGossip(buf, msg)
 	require.NoError(t, err)
 	decoded := &librpcpb.GossipTestData{}
 	err = e.DecodeWithMaxLength(buf, decoded)
 	wanted := fmt.Sprintf("goes over the provided max limit of %d", maxChunkSize)
-	assert.ErrorContains(t, err, wanted,)
+	assert.ErrorContains(t, err, wanted)
 }
 
 func TestSszNetworkEncoder_DecodeWithMultipleFrames(t *testing.T) {
 
 }
+
 func TestSszNetworkEncoder_NegativeMaxLength(t *testing.T) {
 	e := &encoder.SszNetworkEncoder{}
 	length, err := e.MaxLength(0xfffffffffff)
