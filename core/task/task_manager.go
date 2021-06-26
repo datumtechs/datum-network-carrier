@@ -8,7 +8,7 @@ import (
 )
 
 type Scheduler interface {
-	SetTaskEngine(engine consensus.Consensus) error
+	SetTaskEngine(engine consensus.Engine) error
 	OnSchedule() error
 	OnError () error
 	SchedulerName() string
@@ -20,12 +20,12 @@ type Manager struct {
 	dataChain *core.DataChain
 	taskCh    <- chan types.TaskMsgs
 	// Consensuses
-	engines 		  map[string]consensus.Consensus
+	engines 		  map[string]consensus.Engine
 	//sendScheTaskCh chan chan
 	scheduler Scheduler
 }
 
-func NewTaskManager(dataChain *core.DataChain, taskCh <- chan types.TaskMsgs, engines map[string]consensus.Consensus) *Manager {
+func NewTaskManager(dataChain *core.DataChain, taskCh <- chan types.TaskMsgs, engines map[string]consensus.Engine) *Manager {
 
 	m := &Manager{
 		eventCh:   make(chan *event.TaskEvent, 0),
