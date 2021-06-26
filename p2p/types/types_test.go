@@ -22,7 +22,6 @@ func TestRoundTripSerialization(t *testing.T) {
 	roundTripTestErrorMessage(t)
 }
 
-
 func roundTripTestErrorMessage(t *testing.T) {
 	errMsg := []byte{'e', 'r', 'r', 'o', 'r'}
 	sszErr := make(ErrorMessage, len(errMsg))
