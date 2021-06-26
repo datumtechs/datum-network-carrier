@@ -127,8 +127,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		pubsub.WithMessageSignaturePolicy(pubsub.StrictNoSign),
 		pubsub.WithNoAuthor(),
 		pubsub.WithMessageIdFn(msgIDFunction),
-		//TODO: need coding...
-		//pubsub.WithSubscriptionFilter(s),
+		pubsub.WithSubscriptionFilter(s),
 		pubsub.WithPeerOutboundQueueSize(256),
 		pubsub.WithValidateQueueSize(256),
 		pubsub.WithPeerScore(peerScoringParams()),
@@ -169,7 +168,7 @@ func (s *Service) Start() {
 	if s.cfg.RelayNodeAddr != "" {
 		peersToWatch = append(peersToWatch, s.cfg.RelayNodeAddr)
 		if err := dialRelayNode(s.ctx, s.host, s.cfg.RelayNodeAddr); err != nil {
-			log.WithError(err).Error("Counld not dial relay node")
+			log.WithError(err).Error("Could not dial relay node")
 		}
 	}
 
@@ -211,8 +210,8 @@ func (s *Service) Start() {
 	runutil.RunEvery(s.ctx, 1*time.Minute, func() {
 		log.WithFields(logrus.Fields{
 			"inbound":     len(s.peers.InboundConnected()),
-			"outbound":    s.peers.OutboundConnected(),
-			"activePeers": s.peers.Active(),
+			"outbound":    len(s.peers.OutboundConnected()),
+			"activePeers": len(s.peers.Active()),
 		}).Info("Peer Summary Info")
 	})
 	//TODO: need to do more coding...

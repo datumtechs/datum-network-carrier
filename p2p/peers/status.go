@@ -104,7 +104,7 @@ func (p *Status) Add(record *enr.Record, pid peer.ID, address ma.Multiaddr, dire
 		if record != nil {
 			peerData.Enr = record
 		}
-		if sameIP(prevAddress, address) {
+		if !sameIP(prevAddress, address) {
 			p.addIpToTracker(pid)
 		}
 		return
@@ -122,7 +122,7 @@ func (p *Status) Add(record *enr.Record, pid peer.ID, address ma.Multiaddr, dire
 	p.addIpToTracker(pid)
 }
 
-// Address returns the mutiladdress of the given remote peer.
+// Address returns the multiaddress of the given remote peer.
 // This will error if the peer does not exist.
 func (p *Status) Address(pid peer.ID) (ma.Multiaddr, error) {
 	p.store.RLock()
