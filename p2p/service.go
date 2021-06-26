@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/slotutil"
@@ -359,6 +360,23 @@ func (s *Service) awaitStateInitialized() {
 		return
 	}
 	//TODO: need to do more thing...
+	stateChannel := make(chan *feed.Event, 1)
+	stateSub := s.stateNotifier.StateFeed().Subscribe(stateChannel)
+	cleanup := stateSub.Unsubscribe
+	defer cleanup()
+	for {
+		select {
+		case event := <-stateChannel:
+			if event.Type == statefeed.Initialized {
+				//TODO: need to do more...
+				log.Debug("Receive state....")
+				return
+			}
+		case <-s.ctx.Done():
+			log.Debug("Context closed, exiting goroutine")
+			return
+		}
+	}
 }
 
 func (s *Service) connectWithAllPeers(multiAddrs []multiaddr.Multiaddr) {
