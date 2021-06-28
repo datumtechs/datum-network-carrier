@@ -30,7 +30,7 @@ func (s *Service) validateGossipTestData(ctx context.Context, pid peer.ID, msg *
 	if gossip.Data == nil {
 		return pubsub.ValidationReject
 	}
-	if s.hasSeenGossipTestData(gossip.Data.GetData()) {
+	if s.hasSeenGossipTestData(string(gossip.Data.GetData())) {
 		return pubsub.ValidationIgnore
 	}
 
