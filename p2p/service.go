@@ -367,11 +367,20 @@ func (s *Service) awaitStateInitialized() {
 	for {
 		select {
 		case event := <-stateChannel:
-			if event.Type == statefeed.Initialized {
-				//TODO: need to do more...
-				log.Debug("Receive state....")
-				return
+			data, ok := event.Data.(*statefeed.InitializedData)
+			if !ok {
+				// log.Fatalf will prevent defer from being called
+				cleanup()
+				log.Fatalf("Received wrong data over state initialized feed: %v", data)
 			}
+			s.genesisTime = data.StartTime
+			s.genesisValidatorsRoot = data.GenesisValidatorsRoot
+			_, err := s.forkDigest() // initialize fork digest cache
+			if err != nil {
+				log.WithError(err).Error("Could not initialize fork digest")
+			}
+
+			return
 		case <-s.ctx.Done():
 			log.Debug("Context closed, exiting goroutine")
 			return
