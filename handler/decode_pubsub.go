@@ -32,7 +32,7 @@ func (s *Service) decodePubsubMessage(msg *pubsub.Message) (proto.Message, error
 	return m, nil
 }
 
-// Replace our fork digest with the formatter.
+// Replaces our fork digest with the formatter.
 func (s *Service) replaceForkDigest(topic string) (string, error) {
 	subStrings := strings.Split(topic, "/")
 	if len(subStrings) != 4 {
