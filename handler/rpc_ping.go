@@ -21,10 +21,10 @@ func (s *Service) pingHandler(_ context.Context, msg interface{}, stream libp2pc
 	if !ok {
 		return fmt.Errorf("wrong message type for ping, got %T, wanted *uint64", msg)
 	}
-	//if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
-	//	return err
-	//}
-	//s.rateLimiter.add(stream, 1)
+	if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
+		return err
+	}
+	s.rateLimiter.add(stream, 1)
 	valid, err := s.validateSequenceNum(*m, stream.Conn().RemotePeer())
 	if err != nil {
 		// Descore peer for giving us a bad sequence number.

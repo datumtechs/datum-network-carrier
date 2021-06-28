@@ -39,10 +39,10 @@ func (s *Service) goodbyeRPCHandler(_ context.Context, msg interface{}, stream l
 	if !ok {
 		return fmt.Errorf("wrong message type for goodbye, got %T, wanted *uint64", msg)
 	}
-	//if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
-	//	return err
-	//}
-	//s.rateLimiter.add(stream, 1)
+	if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
+		return err
+	}
+	s.rateLimiter.add(stream, 1)
 	log := log.WithField("Reason", goodbyeMessage(*m))
 	log.WithField("peer", stream.Conn().RemotePeer()).Debug("Peer has sent a goodbye message")
 	s.cfg.P2P.Peers().SetNextValidTime(stream.Conn().RemotePeer(), goodByeBackoff(*m))
