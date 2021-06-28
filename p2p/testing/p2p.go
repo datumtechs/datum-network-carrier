@@ -282,7 +282,7 @@ func (p *TestP2P) Send(ctx context.Context, msg interface{}, topic string, pid p
 		return nil, err
 	}
 
-	if topic != "/eth2/beacon_chain/req/metadata/1" {
+	if topic != "/rosetta/carrier_chain/req/metadata/1" {
 		if _, err := p.Encoding().EncodeWithMaxLength(stream, msg); err != nil {
 			_err := stream.Reset()
 			_ = _err
