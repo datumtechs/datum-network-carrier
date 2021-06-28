@@ -54,9 +54,10 @@ message ConfirmVote {
 }
 // 触发任务执行消息
 message CommitMsg {
-  bytes  proposal_id = 1;            // 2pc 提案Id
-  uint64 create_at = 4;              // CommitMsg 创建的时间
-  bytes  sign = 5;                   // CommitMsg 发起者签名
+  bytes                        proposal_id = 1;            // 2pc 提案Id
+  TaskOrganizationIdentityInfo owner = 2;                  // 提案人信息
+  uint64                       create_at = 3;              // CommitMsg 创建的时间
+  bytes                        sign = 4;                   // CommitMsg 发起者签名
 }
 
 message TaskOption {

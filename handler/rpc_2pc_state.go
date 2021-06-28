@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/consensus"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
@@ -29,7 +28,7 @@ func (s *Service) sendPrepareMsgRPCHandler(ctx context.Context, msg interface{},
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
-	//TODO: ....
+	//
 	closeStream(stream, log)
 	return nil
 }
@@ -40,5 +39,5 @@ func (s *Service) validatePrepareMsg(r *pb.PrepareMsg) error {
 
 	msg := &types.PrepareMsgWrap{PrepareMsg: r}
 
-	return s.cfg.Engines[consensus.TwoPcTyp].ValidateConsensusMsg(msg)
+	return s.cfg.Engines[types.TwopcTyp].ValidateConsensusMsg(msg)
 }

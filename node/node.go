@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/consensus"
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/db"
@@ -12,12 +11,12 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 	"os"
 	"os/signal"
 	"path/filepath"
-	"reflect"
 	"sync"
 	"syscall"
 )
@@ -31,7 +30,7 @@ type CarrierNode struct {
 	ctx      context.Context
 	cancel   context.CancelFunc
 	services *common.ServiceRegistry
-	Engines  map[reflect.Type]consensus.Engine
+	Engines  map[types.ConsensusEngineType]handler.Engine
 
 	db        db.Database
 	stateFeed *event.Feed
@@ -210,9 +209,9 @@ func (b *CarrierNode) StateFeed() *event.Feed {
 
 func (b *CarrierNode) registerConsensusEngine() error {
 
-	b.Engines = make(map[reflect.Type]consensus.Engine, 0)
-	b.Engines[consensus.TwoPcTyp] = twopc.New(&twopc.Config{})
-	b.Engines[consensus.ChainConsTyp] = chaincons.New()
+	b.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
+	b.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{})
+	b.Engines[types.ChainconsTyp] = chaincons.New()
 
 	return nil
 }
