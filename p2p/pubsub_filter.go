@@ -15,9 +15,10 @@ const pubsubSubscriptionRequestLimit = 100
 
 // CanSubscribe returns true if the topic is of interest and we could subscribe to it.
 func (s *Service) CanSubscribe(topic string) bool {
-	if !s.isInitialized() {
+	//TODO: need to add some coding to judgment...
+	/*if !s.isInitialized() {
 		return false
-	}
+	}*/
 	parts := strings.Split(topic, "/")
 	if len(parts) != 5 {
 		return false
@@ -26,7 +27,7 @@ func (s *Service) CanSubscribe(topic string) bool {
 	if parts[0] != "" {
 		return false
 	}
-	if parts[1] != "eth2" {
+	if parts[1] != "carrier" {
 		return false
 	}
 	fd, err := s.forkDigest()

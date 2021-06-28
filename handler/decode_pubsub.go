@@ -8,12 +8,12 @@ import (
 	"strings"
 )
 
-var errNilPubSubMessage = errors.New("nil pubsub message")
+var errNilPubsubMessage = errors.New("nil pubsub message")
 var errInvalidTopic = errors.New("invalid topic format")
 
 func (s *Service) decodePubsubMessage(msg *pubsub.Message) (proto.Message, error) {
 	if msg == nil || msg.Topic == nil || *msg.Topic == "" {
-		return nil, errNilPubSubMessage
+		return nil, errNilPubsubMessage
 	}
 	topic := *msg.Topic
 	topic = strings.TrimSuffix(topic, s.cfg.P2P.Encoding().ProtocolSuffix())
@@ -32,7 +32,7 @@ func (s *Service) decodePubsubMessage(msg *pubsub.Message) (proto.Message, error
 	return m, nil
 }
 
-// Replace our fork digest with the formatter.
+// Replaces our fork digest with the formatter.
 func (s *Service) replaceForkDigest(topic string) (string, error) {
 	subStrings := strings.Split(topic, "/")
 	if len(subStrings) != 4 {
