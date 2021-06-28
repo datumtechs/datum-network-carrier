@@ -48,6 +48,11 @@ func (s *Service) registerRPCHandlers() {
 		p2p.RPCMetaDataTopic,
 		s.metaDataHandler,
 	)
+
+	s.registerRPC(
+		p2p.RPCTwoPcPrePareMsgTopic,
+		s.sendPrepareMsgRPCHandler,
+	)
 }
 
 // registerRPC for a given topic with an expected protobuf message type.

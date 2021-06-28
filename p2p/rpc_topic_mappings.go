@@ -13,16 +13,20 @@ const schemaVersionV1 = "/1"
 
 const (
 	// RPCStatusTopic defines the topic for the status rpc method.
-	RPCStatusTopic = "/rosetta/carrier_chain/req/status" + schemaVersionV1
+	RPCStatusTopic = "/rosettanet/carrier_chain/req/status" + schemaVersionV1
 	// RPCGoodByeTopic defines the topic for the goodbye rpc method.
-	RPCGoodByeTopic = "/rosetta/carrier_chain/req/goodbye" + schemaVersionV1
+	RPCGoodByeTopic = "/rosettanet/carrier_chain/req/goodbye" + schemaVersionV1
 	// RPCPingTopic defines the topic for the ping rpc method.
-	RPCPingTopic = "/rosetta/carrier_chain/req/ping" + schemaVersionV1
+	RPCPingTopic = "/rosettanet/carrier_chain/req/ping" + schemaVersionV1
 	// RPCMetaDataTopic defines the topic for the metadata rpc method.
-	RPCMetaDataTopic = "/rosetta/carrier_chain/req/metadata" + schemaVersionV1
+	RPCMetaDataTopic = "/rosettanet/carrier_chain/req/metadata" + schemaVersionV1
 
 	// RPCBlocksByRangeTopic defines the topic for the blocks by range rpc method.
-	RPCBlocksByRangeTopic = "/rosetta/carrier_chain/req/carrier_blocks_by_range" + schemaVersionV1
+	RPCBlocksByRangeTopic = "/rosettanet/carrier_chain/req/carrier_blocks_by_range" + schemaVersionV1
+
+
+
+	RPCTwoPcPrePareMsgTopic = "/rosettanet/consensus/twopc/send_preparemsg" + schemaVersionV1
 )
 
 // RPCTopicMappings map the base message type to the rpc request.
