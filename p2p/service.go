@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/slotutil"
@@ -127,8 +128,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		pubsub.WithMessageSignaturePolicy(pubsub.StrictNoSign),
 		pubsub.WithNoAuthor(),
 		pubsub.WithMessageIdFn(msgIDFunction),
-		//TODO: need coding...
-		//pubsub.WithSubscriptionFilter(s),
+		pubsub.WithSubscriptionFilter(s),
 		pubsub.WithPeerOutboundQueueSize(256),
 		pubsub.WithValidateQueueSize(256),
 		pubsub.WithPeerScore(peerScoringParams()),
@@ -169,7 +169,7 @@ func (s *Service) Start() {
 	if s.cfg.RelayNodeAddr != "" {
 		peersToWatch = append(peersToWatch, s.cfg.RelayNodeAddr)
 		if err := dialRelayNode(s.ctx, s.host, s.cfg.RelayNodeAddr); err != nil {
-			log.WithError(err).Error("Counld not dial relay node")
+			log.WithError(err).Error("Could not dial relay node")
 		}
 	}
 
@@ -205,14 +205,14 @@ func (s *Service) Start() {
 	})
 	runutil.RunEvery(s.ctx, 30*time.Minute, s.Peers().Prune)
 	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().RespTimeout, s.updateMetrics)
-	runutil.RunEvery(s.ctx, refreshRate, func() {
+	runutil.RunEvery(s.ctx, 1 * time.Millisecond, func() {
 		s.RefreshENR()
 	})
 	runutil.RunEvery(s.ctx, 1*time.Minute, func() {
 		log.WithFields(logrus.Fields{
 			"inbound":     len(s.peers.InboundConnected()),
-			"outbound":    s.peers.OutboundConnected(),
-			"activePeers": s.peers.Active(),
+			"outbound":    len(s.peers.OutboundConnected()),
+			"activePeers": len(s.peers.Active()),
 		}).Info("Peer Summary Info")
 	})
 	//TODO: need to do more coding...
@@ -360,6 +360,32 @@ func (s *Service) awaitStateInitialized() {
 		return
 	}
 	//TODO: need to do more thing...
+	stateChannel := make(chan *feed.Event, 1)
+	stateSub := s.stateNotifier.StateFeed().Subscribe(stateChannel)
+	cleanup := stateSub.Unsubscribe
+	defer cleanup()
+	for {
+		select {
+		case event := <-stateChannel:
+			data, ok := event.Data.(*statefeed.InitializedData)
+			if !ok {
+				// log.Fatalf will prevent defer from being called
+				cleanup()
+				log.Fatalf("Received wrong data over state initialized feed: %v", data)
+			}
+			s.genesisTime = data.StartTime
+			s.genesisValidatorsRoot = data.GenesisValidatorsRoot
+			_, err := s.forkDigest() // initialize fork digest cache
+			if err != nil {
+				log.WithError(err).Error("Could not initialize fork digest")
+			}
+
+			return
+		case <-s.ctx.Done():
+			log.Debug("Context closed, exiting goroutine")
+			return
+		}
+	}
 }
 
 func (s *Service) connectWithAllPeers(multiAddrs []multiaddr.Multiaddr) {

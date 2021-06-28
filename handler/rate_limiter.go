@@ -43,10 +43,10 @@ func newRateLimiter(p2pProvider p2p.P2P) *limiter {
 	topicMap[addEncoding(p2p.RPCStatusTopic)] = leakybucket.NewCollector(1, defaultBurstLimit, false /* deleteEmptyBuckets */)
 
 	// Use a single collector for block requests
-	//blockCollector := leakybucket.NewCollector(allowedBlocksPerSecond, allowedBlocksBurst, false /* deleteEmptyBuckets */)
+	blockCollector := leakybucket.NewCollector(1, defaultBurstLimit * 20, false /* deleteEmptyBuckets */)
 
 	// BlockByRange requests
-	//topicMap[addEncoding(p2p.RPCBlocksByRangeTopic)] = blockCollector
+	topicMap[addEncoding(p2p.RPCBlocksByRangeTopic)] = blockCollector
 
 	// General topic for all rpc requests.
 	topicMap[rpcLimiterTopic] = leakybucket.NewCollector(5, defaultBurstLimit*2, false /* deleteEmptyBuckets */)
