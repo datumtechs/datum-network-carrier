@@ -205,7 +205,7 @@ func (s *Service) Start() {
 	})
 	runutil.RunEvery(s.ctx, 30*time.Minute, s.Peers().Prune)
 	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().RespTimeout, s.updateMetrics)
-	runutil.RunEvery(s.ctx, refreshRate, func() {
+	runutil.RunEvery(s.ctx, 1 * time.Millisecond, func() {
 		s.RefreshENR()
 	})
 	runutil.RunEvery(s.ctx, 1*time.Minute, func() {
