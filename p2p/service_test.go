@@ -318,3 +318,47 @@ func initializeStateWithForkDigest(ctx context.Context, t *testing.T, ef *event.
 	return fd
 }
 
+func TestService_connectWithPeer(t *testing.T) {
+	tests := []struct {
+		name    string
+		peers   *peers.Status
+		info    peer.AddrInfo
+		wantErr string
+	}{
+		{
+			name: "bad peer",
+			peers: func() *peers.Status {
+				ps := peers.NewStatus(context.Background(), &peers.StatusConfig{
+					ScorerParams: &scorers.Config{},
+				})
+				for i := 0; i < 10; i++ {
+					ps.Scorers().BadResponsesScorer().Increment("bad")
+				}
+				return ps
+			}(),
+			info:    peer.AddrInfo{ID: "bad"},
+			wantErr: "refused to connect to bad peer",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h, _, _ := createHost(t, 34567)
+			defer func() {
+				if err := h.Close(); err != nil {
+					t.Fatal(err)
+				}
+			}()
+			ctx := context.Background()
+			s := &Service{
+				host:  h,
+				peers: tt.peers,
+			}
+			err := s.connectWithPeer(ctx, tt.info)
+			if len(tt.wantErr) > 0 {
+				require.Contains(t, tt.wantErr, err.Error())
+			} else {
+				require.NoError(t, err)
+			}
+		})
+	}
+}
