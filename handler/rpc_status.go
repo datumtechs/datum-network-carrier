@@ -91,9 +91,9 @@ func (s *Service) sendRPCStatusRequest(ctx context.Context, id peer.ID) error {
 	//TODO: need to change....
 	resp := &pb.Status{
 		ForkDigest:     forkDigest[:],
-		FinalizedRoot:  []byte{},
+		FinalizedRoot:  make([]byte, 32),
 		FinalizedEpoch: 0,
-		HeadRoot:       []byte{},
+		HeadRoot:       make([]byte, 32),
 		HeadSlot:       0,
 	}
 	stream, err := s.cfg.P2P.Send(ctx, resp, p2p.RPCStatusTopic, id)
@@ -212,9 +212,9 @@ func (s *Service) respondWithStatus(ctx context.Context, stream network.Stream) 
 	}
 	resp := &pb.Status{
 		ForkDigest:     forkDigest[:],
-		FinalizedRoot:  []byte{},
+		FinalizedRoot:  make([]byte, 32),
 		FinalizedEpoch: 0,
-		HeadRoot:       []byte{},
+		HeadRoot:       make([]byte, 32),
 		HeadSlot:       0,
 	}
 
