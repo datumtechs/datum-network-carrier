@@ -1,4 +1,4 @@
-package twopc
+package types
 
 // The proposalMsg signature and the voteMsg signature
 type MsgSign [MsgSignLength]byte
