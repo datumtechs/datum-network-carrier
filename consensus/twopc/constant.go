@@ -40,7 +40,7 @@ func ParseVoteOption(option uint8) VoteOption {
 }
 
 type TaskRole uint8
-
+func (t TaskRole)Bytes() []byte {return []byte{byte(t)}}
 func (t TaskRole) String() string {
 	switch t {
 	case DataSupplier:
@@ -50,18 +50,18 @@ func (t TaskRole) String() string {
 	case ResultSupplier:
 		return "ResultSupplier"
 	default:
-		return "Unkwon"
+		return "Unknown"
 	}
 }
 
 const (
-	Unkwon         TaskRole = 0x00
+	Unknown        TaskRole = 0x00
 	DataSupplier   TaskRole = 0x01
 	PowerSupplier  TaskRole = 0x02
 	ResultSupplier TaskRole = 0x03
 )
 
-func ParseTaskRole(role string) TaskRole {
+func TaskRoleFromStr(role string) TaskRole {
 	switch role {
 	case "DataSupplier":
 		return DataSupplier
@@ -70,6 +70,21 @@ func ParseTaskRole(role string) TaskRole {
 	case "ResultSupplier":
 		return ResultSupplier
 	default:
-		return Unkwon
+		return Unknown
+	}
+}
+func TaskRoleFromBytes(role []byte) TaskRole {
+	if len(role) != 1 {
+		return Unknown
+	}
+	switch role[0] {
+	case 0x01:
+		return DataSupplier
+	case 0x02:
+		return PowerSupplier
+	case 0x03:
+		return ResultSupplier
+	default:
+		return Unknown
 	}
 }

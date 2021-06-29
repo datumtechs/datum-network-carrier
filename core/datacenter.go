@@ -133,11 +133,6 @@ func (dc *DataCenter) GetYarnName() (string, error) {
 	return rawdb.ReadYarnName(dc.db), nil
 }
 
-func (dc *DataCenter) DelIdentityId() error {
-	 rawdb.DeleteIdentityStr(dc.db)
-	 return nil
-}
-
 func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 	// todo: implements by datacenter
 	return nil, nil
@@ -158,6 +153,17 @@ func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArra
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	metaDataSummaryListResponse, err := dc.client.GetMetaDataSummaryList(dc.ctx)
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
+}
+
+func (dc *DataCenter) HasIdentityId (identityId string) (bool, error) {
+
+	// todo 判断是否存在单个 IdentityId
+	return false, nil
+}
+
+func (dc *DataCenter) HasIdentity(identity *types.NodeAlias) (bool, error) {
+	// todo 判断是否存在单个 Identity 信息
+	return false, nil
 }
 
 // InsertResource saves new resource info to the center of data.

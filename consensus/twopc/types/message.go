@@ -4,20 +4,13 @@ import (
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
+	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
-	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
 )
 
-func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewKeccak256()
-	rlp.Encode(hw, x)
-	hw.Sum(h[:0])
-	return h
-}
 
 type taskOption struct {
 	Role                  twopc.TaskRole           `json:"role"` // The role information of the current recipient of the task
@@ -35,7 +28,7 @@ type taskOption struct {
 }
 
 func (t *taskOption) Hash() common.Hash {
-	return rlpHash(t)
+	return rlputil.RlpHash(t)
 }
 
 type dataSupplierOption struct {

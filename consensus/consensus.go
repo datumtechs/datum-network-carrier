@@ -1,16 +1,13 @@
 package consensus
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"reflect"
 )
 
-var (
-	ChainConsTyp = reflect.TypeOf(chaincons.Chaincons{})
-	TwoPcTyp = reflect.TypeOf(twopc.TwoPC{})
-)
+//var (
+//	ChainConsTyp = reflect.TypeOf(chaincons.Chaincons{})
+//	TwoPcTyp = reflect.TypeOf(twopc.TwoPC{})
+//)
 
 
 type Engine interface {
