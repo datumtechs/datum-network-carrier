@@ -38,7 +38,7 @@ type Config struct {
 	Chain         blockchainService
 	InitialSync   Checker
 	StateNotifier statefeed.Notifier
-	Engines 		  map[types.ConsensusEngineType]Engine
+	Engines       map[types.ConsensusEngineType]Engine
 }
 
 // Service is responsible for handling all run time p2p related operations as the
