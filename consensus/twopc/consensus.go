@@ -75,6 +75,11 @@ func (t *TwoPC) OnConsensusMsg(msg types.ConsensusMsg) error {
 
 	switch msg.(type) {
 	case *types.PrepareMsgWrap:
+		//task, err := t.fetchTaskFromPrepareMsg(msg.(*types.PrepareMsgWrap))
+		//if nil != err {
+		//
+		//}
+
 
 	case *types.PrepareVoteWrap:
 
@@ -131,7 +136,7 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 		return ctypes.ErrProposalInTheFuture
 	}
 
-	if TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole) == Unknown {
+	if ctypes.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole) == ctypes.Unknown {
 		return ctypes.ErrPrososalTaskRoleIsUnknown
 	}
 	taskId := string(prepareMsg.TaskOption.TaskId)
@@ -143,7 +148,7 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	}
 
 	// Verify the signature
-	if len(prepareMsg.Signature()) < MsgSignLength {
+	if len(prepareMsg.Signature()) < ctypes.MsgSignLength {
 		return ctypes.ErrPrepareMsgSignInvalid
 	}
 
@@ -266,6 +271,12 @@ func (t *TwoPC) verifySelfSigned(m []byte, sig []byte) bool {
 	pubKey := t.config.Option.NodePriKey.PublicKey
 	pbytes := elliptic.Marshal(pubKey.Curve, pubKey.X, pubKey.Y)
 	return bytes.Equal(pbytes, recPubKey)
+}
+
+func (t *TwoPC) fetchTaskFromPrepareMsg (prepareMsg *types.PrepareMsgWrap) (*types.ScheduleTask, error) {
+
+
+	return nil, nil
 }
 
 //// VerifyHeader verify block's header.

@@ -5,7 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
+
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync/atomic"
@@ -13,7 +13,7 @@ import (
 
 
 type taskOption struct {
-	Role                  twopc.TaskRole           `json:"role"` // The role information of the current recipient of the task
+	Role                  TaskRole                 `json:"role"` // The role information of the current recipient of the task
 	TaskId                string                   `json:"taskId"`
 	TaskName              string                   `json:"taskName"`
 	Owner                 *types.NodeAlias         `json:"owner"`
@@ -51,11 +51,11 @@ type taskPeerInfo struct {
 }
 
 type PrepareMsg struct {
-	ProposalID  common.Hash   `json:"proposalId"`
-	TaskOption  *taskOption   `json:"taskOption"`
-	CreateAt    uint64        `json:"createAt"`
-	Sign        twopc.MsgSign `json:"sign"`
-	messageHash atomic.Value  `rlp:"-"`
+	ProposalID  common.Hash  `json:"proposalId"`
+	TaskOption  *taskOption  `json:"taskOption"`
+	CreateAt    uint64       `json:"createAt"`
+	Sign        MsgSign      `json:"sign"`
+	messageHash atomic.Value `rlp:"-"`
 }
 
 func (msg *PrepareMsg) String() string {
@@ -66,7 +66,7 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 	if mhash := msg.messageHash.Load(); mhash != nil {
 		return mhash.(common.Hash)
 	}
-	v := utils.BuildHash(twopc.PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(),
+	v := utils.BuildHash(PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(),
 		msg.TaskOption.Hash().Bytes(), msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
 	msg.messageHash.Store(v)
 	return v
@@ -74,12 +74,12 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 
 type PrepareVote struct {
 	ProposalID  common.Hash      `json:"proposalId"`
-	Role        twopc.TaskRole   `json:"role"` // The role information of the current recipient of the task
+	Role        TaskRole         `json:"role"` // The role information of the current recipient of the task
 	Owner       *types.NodeAlias `json:"owner"`
-	VoteOption  twopc.VoteOption `json:"voteOption"`
+	VoteOption  VoteOption       `json:"voteOption"`
 	PeerInfo    *taskPeerInfo    `json:"peerInfo"`
 	CreateAt    uint64           `json:"createAt"`
-	Sign        twopc.MsgSign    `json:"sign"`
+	Sign        MsgSign          `json:"sign"`
 	messageHash atomic.Value     `rlp:"-"`
 }
 
@@ -92,7 +92,7 @@ func (msg *PrepareVote) MsgHash() common.Hash {
 	if mhash := msg.messageHash.Load(); mhash != nil {
 		return mhash.(common.Hash)
 	}
-	v := utils.BuildHash(twopc.PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), /*msg.VoteNodeID.Bytes(), */ // TODO 编码 NodeAlias
+	v := utils.BuildHash(PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), /*msg.VoteNodeID.Bytes(), */ // TODO 编码 NodeAlias
 		[]byte{msg.VoteOption.Byte()}, msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
 	msg.messageHash.Store(v)
 	return v
