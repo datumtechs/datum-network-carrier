@@ -1,5 +1,10 @@
 package types
 
+
+const (
+	MsgSignLength = 65
+	MsgEpochMaxNumber = 2
+)
 // The proposalMsg signature and the voteMsg signature
 type MsgSign [MsgSignLength]byte
 
@@ -7,7 +12,7 @@ func (s MsgSign) Bytes() []byte { return s[:] }
 
 type VoteOption uint8
 
-func (v VoteOption) Byte() byte { return byte(v) }
+func (v VoteOption) Bytes() []byte { return []byte{byte(v)} }
 func (v VoteOption) String() string {
 	switch v {
 	case Yes:
@@ -18,16 +23,15 @@ func (v VoteOption) String() string {
 		return "Abstention"
 	}
 }
+
 const (
-	MsgSignLength = 65
-)
-const (
-	Yes        VoteOption = 0x01
-	No         VoteOption = 0x02
-	Abstention VoteOption = 0x03
+	VoteUnknown VoteOption = 0x00
+	Yes         VoteOption = 0x01
+	No          VoteOption = 0x02
+	Abstention  VoteOption = 0x03
 )
 
-func ParseVoteOption(option uint8) VoteOption {
+func VoteOptionFromUint8(option uint8) VoteOption {
 	switch option {
 	case 0x01:
 		return Yes
@@ -35,12 +39,35 @@ func ParseVoteOption(option uint8) VoteOption {
 		return No
 	case 0x03:
 		return Abstention
+	default:
+		return VoteUnknown
 	}
-	return Abstention
+}
+func VoteOptionFromStr(option string) VoteOption {
+	switch option {
+	case "Yes":
+		return Yes
+	case "No":
+		return No
+	case "Abstention":
+		return Abstention
+	default:
+		return VoteUnknown
+	}
+}
+func VoteOptionFromBytes(option []byte) VoteOption {
+	if len(option) != 1 {
+		return VoteUnknown
+	}
+	return VoteOptionFromUint8(uint8(option[0]))
 }
 
+
+
+
 type TaskRole uint8
-func (t TaskRole)Bytes() []byte {return []byte{byte(t)}}
+
+func (t TaskRole) Bytes() []byte { return []byte{byte(t)} }
 func (t TaskRole) String() string {
 	switch t {
 	case DataSupplier:
@@ -50,16 +77,29 @@ func (t TaskRole) String() string {
 	case ResultSupplier:
 		return "ResultSupplier"
 	default:
-		return "Unknown"
+		return "TaskRoleUnknown"
 	}
 }
 
 const (
-	Unknown        TaskRole = 0x00
-	DataSupplier   TaskRole = 0x01
-	PowerSupplier  TaskRole = 0x02
-	ResultSupplier TaskRole = 0x03
+	TaskRoleUnknown TaskRole = 0x00
+	DataSupplier    TaskRole = 0x01
+	PowerSupplier   TaskRole = 0x02
+	ResultSupplier  TaskRole = 0x03
 )
+
+func TaskRoleFromUint8(role uint8) TaskRole {
+	switch role {
+	case 0x01:
+		return DataSupplier
+	case 0x02:
+		return PowerSupplier
+	case 0x03:
+		return ResultSupplier
+	default:
+		return TaskRoleUnknown
+	}
+}
 
 func TaskRoleFromStr(role string) TaskRole {
 	switch role {
@@ -70,21 +110,12 @@ func TaskRoleFromStr(role string) TaskRole {
 	case "ResultSupplier":
 		return ResultSupplier
 	default:
-		return Unknown
+		return TaskRoleUnknown
 	}
 }
 func TaskRoleFromBytes(role []byte) TaskRole {
 	if len(role) != 1 {
-		return Unknown
+		return TaskRoleUnknown
 	}
-	switch role[0] {
-	case 0x01:
-		return DataSupplier
-	case 0x02:
-		return PowerSupplier
-	case 0x03:
-		return ResultSupplier
-	default:
-		return Unknown
-	}
+	return TaskRoleFromUint8(uint8(role[0]))
 }

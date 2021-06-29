@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
@@ -33,11 +34,10 @@ func (s *Service) sendPrepareMsgRPCHandler(ctx context.Context, msg interface{},
 	return nil
 }
 
-
-
 func (s *Service) validatePrepareMsg(r *pb.PrepareMsg) error {
-
-	msg := &types.PrepareMsgWrap{PrepareMsg: r}
-
-	return s.cfg.Engines[types.TwopcTyp].ValidateConsensusMsg(msg)
+	engine, ok := s.cfg.Engines[types.TwopcTyp]
+	if !ok {
+		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	}
+	return engine.ValidateConsensusMsg(&types.PrepareMsgWrap{PrepareMsg: r})
 }
