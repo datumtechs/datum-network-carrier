@@ -14,6 +14,11 @@ import (
 	"time"
 )
 
+type DataCenter interface {
+	// identity
+	HasIdentity(identity *types.NodeAlias) (bool, error)
+}
+
 type TwoPC struct {
 	config *Config
 	Errs   []error
@@ -24,6 +29,8 @@ type TwoPC struct {
 	recvTasks map[string]*types.ScheduleTask
 	// Proposal being processed
 	runningProposals map[common.Hash]string
+
+	dataCenter DataCenter
 }
 
 func New(conf *Config) *TwoPC {
@@ -81,7 +88,6 @@ func (t *TwoPC) OnConsensusMsg(msg types.ConsensusMsg) error {
 		return fmt.Errorf("Unknown the 2pc msg type")
 
 	}
-
 
 	return nil
 }
@@ -231,13 +237,23 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 
 func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationIdentityInfo) error {
 	if "" == string(identityInfo.Name) {
-		return ctypes.ErrOrganizationIdentityNameEmpty
+		return ctypes.ErrOrganizationIdentity
 	}
 	_, err := p2p.BytesID(identityInfo.NodeId)
 	if nil != err {
-		return ctypes.ErrOrganizationIdentityNodeIdInvalid
+		return ctypes.ErrOrganizationIdentity
 	}
-	// TODO ...
+	has, err := t.dataCenter.HasIdentity(&types.NodeAlias{
+		Name:       string(identityInfo.Name),
+		NodeId:     string(identityInfo.NodeId),
+		IdentityId: string(identityInfo.IdentityId),
+	})
+	if nil != err {
+		return fmt.Errorf("Failed to validate organization identity from all identity list")
+	}
+	if !has {
+		return ctypes.ErrOrganizationIdentity
+	}
 
 	return nil
 }

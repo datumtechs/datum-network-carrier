@@ -176,13 +176,12 @@ func (dc *DataChain) StoreTaskEvent(event *event.TaskEvent) error {
 
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataChain) StoreIdentity(identity *types.NodeAlias) error {return nil}
-
+func (dc *DataChain) DelIdentity() error {return nil}
 
 func (dc *DataChain) GetYarnName() (string, error) {
 	// todo: implements by datacenter
 	return "", nil
 }
-
 
 func (dc *DataChain) GetIdentityId() (string, error) {
 	// todo: implements by datacenter

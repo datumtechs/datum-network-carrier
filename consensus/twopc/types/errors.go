@@ -14,8 +14,9 @@ var (
 	ErrPrososalTaskIdBelongSendTask   = errors.New("The proposal's taskId is belonging to send task")
 	ErrPrososalTaskIdBelongRecvTask   = errors.New("The proposal's taskId is belonging to recv task")
 
-	ErrOrganizationIdentityNameEmpty          = errors.New("The organization identity name is empty")
-	ErrOrganizationIdentityNodeIdInvalid      = errors.New("The organization identity nodeId is invalid")
+	//ErrOrganizationIdentityNameEmpty          = errors.New("The organization identity name is empty")
+	//ErrOrganizationIdentityNodeIdInvalid      = errors.New("The organization identity nodeId is invalid")
+	ErrOrganizationIdentity = errors.New("The organization identity is invalid")
 	ErrProposalTaskOperationCostInvalid       = errors.New("The proposal task OperationCost is invalid")
 	ErrProposalTaskCalculateContractCodeEmpty = errors.New("The proposal task CalculateContractCode is empty")
 	ErrProposalParamsInvalid                  = errors.New("The proposal params is invalid")
