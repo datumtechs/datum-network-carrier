@@ -97,16 +97,32 @@ func (msg *PrepareVote) MsgHash() common.Hash {
 	return v
 }
 
+type ProposalStatePeriod uint32
+
+const (
+	PeriodUnknown ProposalStatePeriod = 0
+	PeriodPrepare ProposalStatePeriod = 1
+	PeriodConfirm ProposalStatePeriod = 2
+	PeriodCommit  ProposalStatePeriod = 3
+)
+
 type ProposalState struct {
 	ProposalId      common.Hash
-	PeriodNum       uint32
+	PeriodNum       ProposalStatePeriod
 	PeriodStartTime uint64 // the timestemp
-	PeriodEndTime 	uint64
+	PeriodEndTime   uint64
 
-	ConfirmEpoch    uint64
-
+	ConfirmEpoch uint64
 }
 
-func (pstate *ProposalState) GetProposalId() common.Hash {return pstate.ProposalId}
-func (pstate *ProposalState) CurrPeriodNum() uint32 {return pstate.PeriodNum}
-func (pstate *ProposalState) CurrPeriodDuration() uint64 {return pstate.PeriodStartTime - pstate.PeriodEndTime}
+func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.ProposalId }
+func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate.PeriodNum }
+func (pstate *ProposalState) CurrPeriodDuration() uint64 {
+	return pstate.PeriodStartTime - pstate.PeriodEndTime
+}
+func (pstate *ProposalState) IsPreparePeriod() bool    { return pstate.PeriodNum == PeriodPrepare }
+func (pstate *ProposalState) IsConfirmPeriod() bool    { return pstate.PeriodNum == PeriodConfirm }
+func (pstate *ProposalState) IsCommitPeriod() bool     { return pstate.PeriodNum == PeriodCommit }
+func (pstate *ProposalState) IsNotPreparePeriod() bool { return !pstate.IsPreparePeriod() }
+func (pstate *ProposalState) IsNotConfirmPeriod() bool { return !pstate.IsConfirmPeriod() }
+func (pstate *ProposalState) IsNotCommitPeriod() bool  { return !pstate.IsCommitPeriod() }
