@@ -4,15 +4,18 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/handler"
+	"github.com/RosettaFlow/Carrier-Go/node/registration"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
+	"github.com/prysmaticlabs/prysm/shared/sliceutil"
 	"github.com/urfave/cli/v2"
 	"os"
 	"os/signal"
@@ -169,7 +172,35 @@ func (b *CarrierNode) Close() {
 }
 
 func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
-	return nil
+	bootstrapNodeAddrs, dataDir, err := registration.P2PPreregistration(cliCtx)
+	if err != nil {
+		return err
+	}
+
+	svc, err := p2p.NewService(b.ctx, &p2p.Config{
+		NoDiscovery:       cliCtx.Bool(flags.NoDiscovery.Name),
+		StaticPeers:       sliceutil.SplitCommaSeparated(cliCtx.StringSlice(flags.StaticPeers.Name)),
+		BootstrapNodeAddr: bootstrapNodeAddrs,
+		RelayNodeAddr:     cliCtx.String(flags.RelayNode.Name),
+		DataDir:           dataDir,
+		LocalIP:           cliCtx.String(flags.P2PIP.Name),
+		HostAddress:       cliCtx.String(flags.P2PHost.Name),
+		HostDNS:           cliCtx.String(flags.P2PHostDNS.Name),
+		PrivateKey:        cliCtx.String(flags.P2PPrivKey.Name),
+		MetaDataDir:       cliCtx.String(flags.P2PMetadata.Name),
+		TCPPort:           cliCtx.Uint(flags.P2PTCPPort.Name),
+		UDPPort:           cliCtx.Uint(flags.P2PUDPPort.Name),
+		MaxPeers:          cliCtx.Uint(flags.P2PMaxPeers.Name),
+		AllowListCIDR:     cliCtx.String(flags.P2PAllowList.Name),
+		DenyListCIDR:      sliceutil.SplitCommaSeparated(cliCtx.StringSlice(flags.P2PDenyList.Name)),
+		EnableUPnP:        cliCtx.Bool(flags.EnableUPnPFlag.Name),
+		DisableDiscv5:     cliCtx.Bool(flags.DisableDiscv5.Name),
+		StateNotifier:     b,
+	})
+	if err != nil {
+		return err
+	}
+	return b.services.RegisterService(svc)
 }
 
 func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) error {
