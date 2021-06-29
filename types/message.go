@@ -61,6 +61,10 @@ func (msg *IdentityMsg) Marshal() ([]byte, error)       { return nil, nil }
 func (msg *IdentityMsg) Unmarshal(b []byte) error       { return nil }
 func (msg *IdentityMsg) String() string                 { return "" }
 func (msg *IdentityMsg) MsgType() string                { return MSG_IDENTITY }
+func (msg *IdentityMsg) OwnerName() string       { return msg.Name }
+func (msg *IdentityMsg) OwnerNodeId() string     { return msg.NodeId }
+func (msg *IdentityMsg) OwnerIdentityId() string { return msg.IdentityId }
+func (msg *IdentityMsg) MsgCreateAt() uint64        { return msg.CreateAt }
 func (msg *IdentityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *IdentityRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *IdentityRevokeMsg) String() string           { return "" }
