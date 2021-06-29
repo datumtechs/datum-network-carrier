@@ -106,3 +106,7 @@ type ProposalState struct {
 	ConfirmEpoch    uint64
 
 }
+
+func (pstate *ProposalState) GetProposalId() common.Hash {return pstate.ProposalId}
+func (pstate *ProposalState) CurrPeriodNum() uint32 {return pstate.PeriodNum}
+func (pstate *ProposalState) CurrPeriodDuration() uint64 {return pstate.PeriodStartTime - pstate.PeriodEndTime}
