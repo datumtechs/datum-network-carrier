@@ -27,8 +27,8 @@ type TwoPC struct {
 	sendTasks map[string]*types.ScheduleTask
 	// The task processing  that received someone else (taskId -> task)
 	recvTasks map[string]*types.ScheduleTask
-	// Proposal being processed
-	runningProposals map[common.Hash]string
+	// Proposal being processed (proposalId -> proposalState)
+	runningProposals map[common.Hash]*ctypes.ProposalState
 
 	dataCenter DataCenter
 }
@@ -240,6 +240,15 @@ func (t *TwoPC) validatePrepareVote(prepareVote *types.PrepareVoteWrap) error {
 	if !t.hasProposal(proposalId) {
 		return ctypes.ErrProposalNotFound
 	}
+
+	proposalState := t.runningProposals[proposalId]
+	if proposalState.IsNotPreparePeriod() {
+		return ctypes.ErrPrepareVoteIllegal
+	}
+
+	// TODO 校验下 createAt  和 proposal的发起时间
+
+
 	now := uint64(time.Now().UnixNano())
 	if prepareVote.CreateAt >= now {
 		return ctypes.ErrPrepareVoteInTheFuture
