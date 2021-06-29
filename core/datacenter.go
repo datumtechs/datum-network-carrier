@@ -33,6 +33,9 @@ type DataCenter struct {
 // NewDataCenter returns a fully initialised data center using information available in the database.
 func NewDataCenter(ctx context.Context, config *params.DataCenterConfig) (*DataCenter, error) {
 	// todo: When to call Close??
+	if config.GrpcUrl == "" || config.Port == 0 {
+		panic("Invalid Grpc Config.")
+	}
 	client, err := grpclient.Dial(fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
 	if err != nil {
 		log.WithError(err).Error("dial grpc server failed")
