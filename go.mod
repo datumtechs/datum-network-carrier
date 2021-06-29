@@ -3,6 +3,7 @@ module github.com/RosettaFlow/Carrier-Go
 go 1.16
 
 require (
+	github.com/d4l3k/messagediff v1.2.1 // indirect
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
 	github.com/gogo/protobuf v1.3.2

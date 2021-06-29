@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/abool"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
@@ -51,6 +52,7 @@ type Service struct {
 	seenGossipDataCache *lru.Cache
 	badBlockCache       *lru.Cache
 	badBlockLock        sync.RWMutex
+	chainStarted        *abool.AtomicBool
 }
 
 // NewService initializes new regular sync service.
@@ -58,10 +60,11 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 	rLimiter := newRateLimiter(cfg.P2P)
 	ctx, cancel := context.WithCancel(ctx)
 	r := &Service{
-		cfg:         cfg,
-		ctx:         ctx,
-		cancel:      cancel,
-		rateLimiter: rLimiter,
+		cfg:          cfg,
+		ctx:          ctx,
+		cancel:       cancel,
+		rateLimiter:  rLimiter,
+		chainStarted: abool.New(),
 	}
 	go r.registerHandlers()
 	return r
@@ -171,5 +174,5 @@ func (s *Service) registerHandlers() {
 
 // marks the chain as having started.
 func (s *Service) markForChainStart() {
-
+	s.chainStarted.Set()
 }
