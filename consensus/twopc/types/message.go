@@ -11,7 +11,6 @@ import (
 	"sync/atomic"
 )
 
-
 type taskOption struct {
 	Role                  TaskRole                 `json:"role"` // The role information of the current recipient of the task
 	TaskId                string                   `json:"taskId"`
@@ -93,7 +92,17 @@ func (msg *PrepareVote) MsgHash() common.Hash {
 		return mhash.(common.Hash)
 	}
 	v := utils.BuildHash(PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), /*msg.VoteNodeID.Bytes(), */ // TODO 编码 NodeAlias
-		[]byte{msg.VoteOption.Byte()}, msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
+		msg.VoteOption.Bytes(), msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
 	msg.messageHash.Store(v)
 	return v
+}
+
+type ProposalState struct {
+	ProposalId      common.Hash
+	PeriodNum       uint32
+	PeriodStartTime uint64 // the timestemp
+	PeriodEndTime 	uint64
+
+	ConfirmEpoch    uint64
+
 }

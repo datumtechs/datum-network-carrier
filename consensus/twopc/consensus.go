@@ -52,23 +52,23 @@ func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleR
 }
 
 func (t *TwoPC) ValidateConsensusMsg(msg types.ConsensusMsg) error {
+	if nil == msg {
+		return fmt.Errorf("Failed to validate 2pc consensus msg, the msg is nil")
+	}
 	switch msg.(type) {
 	case *types.PrepareMsgWrap:
 		return t.validatePrepareMsg(msg.(*types.PrepareMsgWrap))
 	case *types.PrepareVoteWrap:
-
+		return t.validatePrepareVote(msg.(*types.PrepareVoteWrap))
 	case *types.ConfirmMsgWrap:
-
+		return t.validateConfirmMsg(msg.(*types.ConfirmMsgWrap))
 	case *types.ConfirmVoteWrap:
-
+		return t.validateConfirmVote(msg.(*types.ConfirmVoteWrap))
 	case *types.CommitMsgWrap:
-
+		return t.validateCommitMsg(msg.(*types.CommitMsgWrap))
 	default:
-		return fmt.Errorf("Unknown the 2pc msg type")
-
+		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
 	}
-
-	return nil
 }
 
 func (t *TwoPC) OnConsensusMsg(msg types.ConsensusMsg) error {
@@ -90,7 +90,7 @@ func (t *TwoPC) OnConsensusMsg(msg types.ConsensusMsg) error {
 	case *types.CommitMsgWrap:
 
 	default:
-		return fmt.Errorf("Unknown the 2pc msg type")
+		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
 
 	}
 
@@ -115,17 +115,6 @@ func (t *TwoPC) OnPrepareMsg(proposal *ctypes.PrepareMsg) error {
 	return nil
 }
 
-func (t *TwoPC) hasProposal(proposalId common.Hash) bool {
-	if _, ok := t.runningProposals[proposalId]; ok {
-		return true
-	}
-	return false
-}
-
-func (t *TwoPC) hasNotProposal(proposalId common.Hash) bool {
-	return !t.hasProposal(proposalId)
-}
-
 func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	proposalId := common.BytesToHash(prepareMsg.ProposalId)
 	if t.hasProposal(proposalId) {
@@ -136,7 +125,8 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 		return ctypes.ErrProposalInTheFuture
 	}
 
-	if ctypes.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole) == ctypes.Unknown {
+	if len(prepareMsg.TaskOption.TaskRole) != 1 ||
+		ctypes.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole) == ctypes.TaskRoleUnknown {
 		return ctypes.ErrPrososalTaskRoleIsUnknown
 	}
 	taskId := string(prepareMsg.TaskOption.TaskId)
@@ -168,10 +158,14 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	if !bytes.Equal(pbytes, recPubKey) {
 		return ctypes.ErrProposalIllegal
 	}
+
+	// validate the owner
 	if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.Owner); nil != err {
 		log.Error("Failed to validate prepareMsg, the owner organization identity is invalid", "err", err)
 		return err
 	}
+
+	// validate the algo supplier
 	if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.AlgoSupplier); nil != err {
 		log.Error("Failed to validate prepareMsg, the algoSupplier organization identity is invalid", "err", err)
 		return err
@@ -240,6 +234,118 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	return nil
 }
 
+// TODO 需要和 proposal 的发出时间做对比
+func (t *TwoPC) validatePrepareVote(prepareVote *types.PrepareVoteWrap) error {
+	proposalId := common.BytesToHash(prepareVote.ProposalId)
+	if !t.hasProposal(proposalId) {
+		return ctypes.ErrProposalNotFound
+	}
+	now := uint64(time.Now().UnixNano())
+	if prepareVote.CreateAt >= now {
+		return ctypes.ErrPrepareVoteInTheFuture
+	}
+
+	if ctypes.TaskRoleFromBytes(prepareVote.TaskRole) == ctypes.TaskRoleUnknown {
+		return ctypes.ErrPrososalTaskRoleIsUnknown
+	}
+
+	// Verify the signature
+	if len(prepareVote.Signature()) < ctypes.MsgSignLength {
+		return ctypes.ErrPrepareVoteSignInvalid
+	}
+
+	recPubKey, err := crypto.Ecrecover(prepareVote.SealHash().Bytes(), prepareVote.Signature())
+	if err != nil {
+		return err
+	}
+	prepareVoteOwnerNodeId, err := p2p.BytesID(prepareVote.Owner.NodeId)
+	if nil != err {
+		return ctypes.ErrPrepareVoteOwnerNodeIdInvalid
+	}
+	ownerPubKey, err := prepareVoteOwnerNodeId.Pubkey()
+	if nil != err {
+		return ctypes.ErrRecoverPubkeyFromPrepareVoteOwner
+	}
+	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
+	if !bytes.Equal(pbytes, recPubKey) {
+		return ctypes.ErrPrepareVoteIllegal
+	}
+
+	// validate the owner
+	if err := t.validateOrganizationIdentity(prepareVote.Owner); nil != err {
+		log.Error("Failed to validate prepareVote, the owner organization identity is invalid", "err", err)
+		return err
+	}
+
+	// validate voteOption
+	if len(prepareVote.VoteOption) != 1 ||
+		ctypes.VoteOptionFromBytes(prepareVote.VoteOption) == ctypes.VoteUnknown {
+		return ctypes.ErrPrepareVoteOptionIsUnknown
+	}
+	if 0 == len(prepareVote.PeerInfo.Ip) || 0 == len(prepareVote.PeerInfo.Port) {
+		return ctypes.ErrPrepareVoteParamsInvalid
+	}
+
+	return nil
+}
+
+func (t *TwoPC) validateConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {
+
+	proposalId := common.BytesToHash(confirmMsg.ProposalId)
+	if !t.hasProposal(proposalId) {
+		return ctypes.ErrProposalNotFound
+	}
+	now := uint64(time.Now().UnixNano())
+	if confirmMsg.CreateAt >= now {
+		return ctypes.ErrConfirmMsgInTheFuture
+	}
+
+	// validate epoch number
+	if confirmMsg.Epoch == 0 || confirmMsg.Epoch > ctypes.MsgEpochMaxNumber {
+		return ctypes.ErrConfirmMsgEpochInvalid
+	}
+
+
+	// Verify the signature
+	if len(confirmMsg.Signature()) < ctypes.MsgSignLength {
+		return ctypes.ErrConfirmMsgSignInvalid
+	}
+
+	recPubKey, err := crypto.Ecrecover(confirmMsg.SealHash().Bytes(), confirmMsg.Signature())
+	if err != nil {
+		return err
+	}
+	confirmMsgOwnerNodeId, err := p2p.BytesID(confirmMsg.Owner.NodeId)
+	if nil != err {
+		return ctypes.ErrConfirmMsgOwnerNodeIdInvalid
+	}
+	ownerPubKey, err := confirmMsgOwnerNodeId.Pubkey()
+	if nil != err {
+		return ctypes.ErrRecoverPubkeyFromConfirmMsgOwner
+	}
+	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
+	if !bytes.Equal(pbytes, recPubKey) {
+		return ctypes.ErrConfirmMsgIllegal
+	}
+
+	// validate the owner
+	if err := t.validateOrganizationIdentity(confirmMsg.Owner); nil != err {
+		log.Error("Failed to validate confirmMsg, the owner organization identity is invalid", "err", err)
+		return err
+	}
+
+
+	return nil
+}
+
+func (t *TwoPC) validateConfirmVote(confirmVote *types.ConfirmVoteWrap) error {return nil}
+
+func (t *TwoPC) validateCommitMsg(commitMsg *types.CommitMsgWrap) error {return nil}
+
+
+
+
+
 func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationIdentityInfo) error {
 	if "" == string(identityInfo.Name) {
 		return ctypes.ErrOrganizationIdentity
@@ -277,6 +383,18 @@ func (t *TwoPC) fetchTaskFromPrepareMsg (prepareMsg *types.PrepareMsgWrap) (*typ
 
 
 	return nil, nil
+}
+
+
+func (t *TwoPC) hasProposal(proposalId common.Hash) bool {
+	if _, ok := t.runningProposals[proposalId]; ok {
+		return true
+	}
+	return false
+}
+
+func (t *TwoPC) hasNotProposal(proposalId common.Hash) bool {
+	return !t.hasProposal(proposalId)
 }
 
 //// VerifyHeader verify block's header.
