@@ -2,9 +2,8 @@ package types
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
+	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
 )
 
@@ -62,6 +61,10 @@ func (msg *IdentityMsg) Marshal() ([]byte, error)       { return nil, nil }
 func (msg *IdentityMsg) Unmarshal(b []byte) error       { return nil }
 func (msg *IdentityMsg) String() string                 { return "" }
 func (msg *IdentityMsg) MsgType() string                { return MSG_IDENTITY }
+func (msg *IdentityMsg) OwnerName() string       { return msg.Name }
+func (msg *IdentityMsg) OwnerNodeId() string     { return msg.NodeId }
+func (msg *IdentityMsg) OwnerIdentityId() string { return msg.IdentityId }
+func (msg *IdentityMsg) MsgCreateAt() uint64        { return msg.CreateAt }
 func (msg *IdentityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *IdentityRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *IdentityRevokeMsg) String() string           { return "" }
@@ -125,7 +128,7 @@ func (msg *PowerMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlpHash(msg.Data)
+	v := rlputil.RlpHash(msg.Data)
 	msg.hash.Store(v)
 	return v
 }
@@ -135,12 +138,7 @@ func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerRevokeMsg) String() string           { return "" }
 func (msg *PowerRevokeMsg) MsgType() string          { return MSG_POWER_REVOKE }
 
-func rlpHash(x interface{}) (h common.Hash) {
-	hw := sha3.NewKeccak256()
-	rlp.Encode(hw, x)
-	hw.Sum(h[:0])
-	return h
-}
+
 
 // Len returns the length of s.
 func (s PowerMsgs) Len() int { return len(s) }
@@ -233,7 +231,7 @@ func (msg *MetaDataMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlpHash(msg.Data)
+	v := rlputil.RlpHash(msg.Data)
 	msg.hash.Store(v)
 	return v
 }
@@ -325,7 +323,7 @@ func (msg *TaskMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlpHash(msg.Data)
+	v := rlputil.RlpHash(msg.Data)
 	msg.hash.Store(v)
 	return v
 }

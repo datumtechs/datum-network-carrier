@@ -1,5 +1,7 @@
 package handler
 
+import "github.com/RosettaFlow/Carrier-Go/types"
+
 // This defines the interface for interacting with block chain service
 type blockchainService interface {
 
@@ -12,4 +14,13 @@ type Checker interface {
 	Syncing() bool
 	Status() error
 	Resync() error
+}
+
+
+type Engine interface {
+	OnPrepare(task *types.ScheduleTask) error
+	OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleResult) error
+	ValidateConsensusMsg(msg types.ConsensusMsg) error
+	OnConsensusMsg(msg types.ConsensusMsg) error
+	OnError() error
 }

@@ -76,6 +76,27 @@ func MustHexID(in string) NodeID {
 	return id
 }
 
+// BytesID converts a byte slice to a NodeID
+func BytesID(b []byte) (NodeID, error) {
+	var id NodeID
+	if len(b) != len(id) {
+		return id, fmt.Errorf("wrong length, want %d bytes", len(id))
+	}
+	copy(id[:], b)
+	return id, nil
+}
+
+// MustBytesID converts a byte slice to a NodeID.
+// It panics if the byte slice is not a valid NodeID.
+func MustBytesID(b []byte) NodeID {
+	id, err := BytesID(b)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
+
 // PubkeyID returns a marshaled representation of the given public key.
 func PubkeyID(pub *ecdsa.PublicKey) NodeID {
 	var id NodeID
