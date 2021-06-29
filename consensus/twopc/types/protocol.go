@@ -1,4 +1,4 @@
-package twopc
+package types
 
 const (
 	TwoPCStatusMsg     = 0x00 // Protocol messages belonging to 2pc
