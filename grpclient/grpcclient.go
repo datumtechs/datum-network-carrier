@@ -25,7 +25,7 @@ func Dial(grpcurl string) (*GrpcClient, error) {
 }
 
 func DialContext(ctx context.Context, grpcurl string) (*GrpcClient, error) {
-	c, err := grpc.Dial(grpcurl, grpc.WithInsecure(), grpc.WithBlock())
+	c, err := grpc.Dial(grpcurl, grpc.WithInsecure(), grpc.WithReturnConnectionError(), grpc.WithTimeout(2*time.Second))
 	if err != nil {
 		return nil, err
 	}
