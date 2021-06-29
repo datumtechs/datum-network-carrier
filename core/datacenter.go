@@ -31,7 +31,7 @@ type DataCenter struct {
 }
 
 // NewDataCenter returns a fully initialised data center using information available in the database.
-func NewDataCenter(config *params.DataCenterConfig) (*DataCenter, error) {
+func NewDataCenter(ctx context.Context, config *params.DataCenterConfig) (*DataCenter, error) {
 	// todo: When to call Close??
 	client, err := grpclient.Dial(fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
 	if err != nil {
@@ -39,6 +39,7 @@ func NewDataCenter(config *params.DataCenterConfig) (*DataCenter, error) {
 		return nil, err
 	}
 	dc := &DataCenter{
+		ctx:    ctx,
 		config: config,
 		client: client,
 	}
@@ -117,7 +118,6 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-
 // TODO 本地存储当前调度服务自身的  identity
 func (dc *DataCenter) StoreIdentity(identity *types.NodeAlias) error {
 	// todo: implements by datacenter
@@ -140,7 +140,7 @@ func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
 	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.MetadataByIdRequest{
-		MetadataId:           dataId,
+		MetadataId: dataId,
 	})
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
@@ -155,7 +155,7 @@ func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
 }
 
-func (dc *DataCenter) HasIdentityId (identityId string) (bool, error) {
+func (dc *DataCenter) HasIdentityId(identityId string) (bool, error) {
 
 	// todo 判断是否存在单个 IdentityId
 	return false, nil
@@ -186,7 +186,7 @@ func (dc *DataCenter) GetResourceByDataId(powerId string) (*types.Resource, erro
 
 func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
 	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByNodeId(dc.ctx, &api.PowerSummaryByNodeIdRequest{
-		NodeId:               nodeId,
+		NodeId: nodeId,
 	})
 	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
 }
@@ -212,10 +212,10 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 // RevokeIdentity revokes the identity info to the center of data.
 func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityJoinRequest{
-		Member:               &api.Organization{
-			Name:                 identity.Name(),
-			NodeId:               identity.NodeId(),
-			IdentityId:           identity.IdentityId(),
+		Member: &api.Organization{
+			Name:       identity.Name(),
+			NodeId:     identity.NodeId(),
+			IdentityId: identity.IdentityId(),
 		},
 	})
 	if err != nil {
@@ -224,7 +224,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	if response.GetStatus() != 0 {
 		return fmt.Errorf("revokeIdeneity err: %s", response.GetMsg())
 	}
-	 return nil
+	return nil
 }
 
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
@@ -262,7 +262,7 @@ func (dc *DataCenter) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArra
 
 func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error) {
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
-		TaskId:               taskId,
+		TaskId: taskId,
 	})
 	return taskEventResponse.TaskEventList, err
 }
@@ -323,15 +323,15 @@ func (dc *DataCenter) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32
 	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
 }
 
-func (dc *DataCenter) GetRunningTaskCountOnOrg () uint32 {
+func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	return rawdb.ReadRunningTaskCountForOrg(dc.db)
 }
 
-func (dc *DataCenter) GetRunningTaskCountOnJobNode (jobNodeId string) uint32 {
+func (dc *DataCenter) GetRunningTaskCountOnJobNode(jobNodeId string) uint32 {
 	return rawdb.ReadRunningTaskCountForJobNode(dc.db, jobNodeId)
 }
 
-func (dc *DataCenter) GetJobNodeRunningTaskIdList (jobNodeId string) []string {
+func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) []string {
 	return rawdb.ReadRunningTaskIDList(dc.db, jobNodeId)
 }
 
