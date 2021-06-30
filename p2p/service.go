@@ -206,7 +206,8 @@ func (s *Service) Start() {
 	})
 	runutil.RunEvery(s.ctx, 30*time.Minute, s.Peers().Prune)
 	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().RespTimeout, s.updateMetrics)
-	runutil.RunEvery(s.ctx, 1 * time.Millisecond, func() {
+	runutil.RunEvery(s.ctx, 10 * time.Second, func() {
+		s.pingPeers()		//TODO: Temporarily added
 		s.RefreshENR()
 	})
 	runutil.RunEvery(s.ctx, 1*time.Minute, func() {
@@ -445,5 +446,6 @@ func (s *Service) connectToBootnodes() error {
 // Returns true if the service is aware of the genesis time and genesis validator root.
 // This is required for discovery and pubsub validation.
 func (s *Service) isInitialized() bool {
-	return !s.genesisTime.IsZero() && len(s.genesisValidatorsRoot) == 32
+	//return !s.genesisTime.IsZero() && len(s.genesisValidatorsRoot) == 32
+	return true
 }
