@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
@@ -30,7 +31,7 @@ import (
 	"time"
 )
 
-//var _ common.Service = (*Service)(nil)
+var _ common.Service = (*Service)(nil)
 
 // In the event that we are at our peer limit, we stop looking for new peers
 // and instead poll for the current peer limit status
