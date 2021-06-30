@@ -57,6 +57,10 @@ var (
 		flags.P2PPrivKey,
 		flags.P2PTCPPort,
 		flags.P2PUDPPort,
+		flags.NoDiscovery,
+		flags.BootstrapNode,
+		flags.EnableUPnPFlag,
+		flags.DisableDiscv5,
 	}
 
 )
