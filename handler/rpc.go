@@ -53,6 +53,11 @@ func (s *Service) registerRPCHandlers() {
 		p2p.RPCTwoPcPrePareMsgTopic,
 		s.sendPrepareMsgRPCHandler,
 	)
+	// for test.
+	s.registerRPC(
+		p2p.RPCGossipTestDataByRangeTopic,
+		s.gossipTestDataByRangeRPCHandler,
+	)
 }
 
 // registerRPC for a given topic with an expected protobuf message type.

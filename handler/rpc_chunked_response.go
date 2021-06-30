@@ -2,6 +2,7 @@ package handler
 
 import (
 	"errors"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
@@ -69,3 +70,26 @@ func readResponseChunk(stream libp2pcore.Stream, p2p p2p.P2P, to interface{}) er
 	return p2p.Encoding().DecodeWithMaxLength(stream, to)
 }
 
+func ReadChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P, isFirstChunk bool) (*libp2ppb.SignedGossipTestData, error) {
+	if isFirstChunk {
+		return readFirstChunkedGossipTestData(stream, p2p)
+	}
+	blk := &libp2ppb.SignedGossipTestData{}
+	if err := readResponseChunk(stream, p2p, blk); err != nil {
+		return nil, err
+	}
+	return blk, nil
+}
+
+func readFirstChunkedGossipTestData(stream libp2pcore.Stream, p2p p2p.P2P) (*libp2ppb.SignedGossipTestData, error) {
+	blk := &libp2ppb.SignedGossipTestData{}
+	code, errMsg, err := ReadStatusCode(stream, p2p.Encoding())
+	if err != nil {
+		return nil, err
+	}
+	if code != 0 {
+		return nil, errors.New(errMsg)
+	}
+	err = p2p.Encoding().DecodeWithMaxLength(stream, blk)
+	return blk, err
+}
