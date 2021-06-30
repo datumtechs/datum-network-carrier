@@ -46,12 +46,26 @@ var (
 		flags.RPCApiFlag,
 	}
 
+	p2pFlags = []cli.Flag{
+		flags.P2PIP,
+		flags.P2PHost,
+		flags.P2PAllowList,
+		flags.P2PHostDNS,
+		flags.P2PDenyList,
+		flags.P2PMaxPeers,
+		flags.P2PMetadata,
+		flags.P2PPrivKey,
+		flags.P2PTCPPort,
+		flags.P2PUDPPort,
+	}
+
 )
 
 func init() {
 	appFlags = cmd.WrapFlags(appFlags)
 	nodeFlags = cmd.WrapFlags(nodeFlags)
 	rpcFlags = cmd.WrapFlags(rpcFlags)
+	p2pFlags = cmd.WrapFlags(p2pFlags)
 }
 
 func main() {
@@ -67,6 +81,7 @@ func main() {
 	app.Flags = append(app.Flags, appFlags...)
 	app.Flags = append(app.Flags, rpcFlags...)
 	app.Flags = append(app.Flags, nodeFlags...)
+	app.Flags = append(app.Flags, p2pFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
