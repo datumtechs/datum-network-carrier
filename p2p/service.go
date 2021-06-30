@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
@@ -30,7 +31,7 @@ import (
 	"time"
 )
 
-//var _ common.Service = (*Service)(nil)
+var _ common.Service = (*Service)(nil)
 
 // In the event that we are at our peer limit, we stop looking for new peers
 // and instead poll for the current peer limit status
@@ -205,7 +206,8 @@ func (s *Service) Start() {
 	})
 	runutil.RunEvery(s.ctx, 30*time.Minute, s.Peers().Prune)
 	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().RespTimeout, s.updateMetrics)
-	runutil.RunEvery(s.ctx, 1 * time.Millisecond, func() {
+	runutil.RunEvery(s.ctx, 10 * time.Second, func() {
+		s.pingPeers()		//TODO: Temporarily added
 		s.RefreshENR()
 	})
 	runutil.RunEvery(s.ctx, 1*time.Minute, func() {
@@ -444,5 +446,6 @@ func (s *Service) connectToBootnodes() error {
 // Returns true if the service is aware of the genesis time and genesis validator root.
 // This is required for discovery and pubsub validation.
 func (s *Service) isInitialized() bool {
-	return !s.genesisTime.IsZero() && len(s.genesisValidatorsRoot) == 32
+	//return !s.genesisTime.IsZero() && len(s.genesisValidatorsRoot) == 32
+	return true
 }

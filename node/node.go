@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/feed"
+	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
@@ -22,6 +24,7 @@ import (
 	"path/filepath"
 	"sync"
 	"syscall"
+	"time"
 )
 
 // CarrierNode defines a struct that handles the services running a random rosetta net.
@@ -136,6 +139,16 @@ func (b *CarrierNode) Start() {
 
 	b.services.StartAll()
 
+	// -------------------------------------------------------------
+	//TODO: mock, Temporarily set the initial success of the system
+	b.stateFeed.Send(&feed.Event{
+		Type: statefeed.Initialized,
+		Data: &statefeed.InitializedData{
+			StartTime: time.Now(),
+		},
+	})
+	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 	stop := b.stop
 	b.lock.Unlock()
 
@@ -204,7 +217,10 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 }
 
 func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) error {
-	backendService, err := carrier.NewService(b.ctx, carrierConfig, &params.DataCenterConfig{})
+	backendService, err := carrier.NewService(b.ctx, carrierConfig, &params.DataCenterConfig{
+		GrpcUrl: "192.168.112.32",
+		Port: 9099,
+	})
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}

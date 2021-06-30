@@ -66,6 +66,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 		rateLimiter:  rLimiter,
 		chainStarted: abool.New(),
 	}
+	log.Info("Init handler service...")
 	go r.registerHandlers()
 	return r
 }
@@ -85,6 +86,7 @@ func (s *Service) Start() {
 	s.maintainPeerStatuses()
 	// Update sync metrics.
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
+	log.Info("Starting handler service")
 }
 
 // Stop the regular sync service.

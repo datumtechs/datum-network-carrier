@@ -42,7 +42,7 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
-	proxy, err := core.NewDataCenter(dataCenterConfig)
+	proxy, err := core.NewDataCenter(ctx, dataCenterConfig)
 	if err != nil {
 		cancel()
 		return nil, err
