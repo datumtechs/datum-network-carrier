@@ -66,7 +66,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 		rateLimiter:  rLimiter,
 		chainStarted: abool.New(),
 	}
-	log.Info("Handler Service Newed...")
+	log.Info("Init handler service...")
 	go r.registerHandlers()
 	return r
 }
