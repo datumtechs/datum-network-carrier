@@ -20,15 +20,16 @@ type DataCenter interface {
 }
 
 type TwoPC struct {
-	config *Config
-	Errs   []error
-	p2p    p2p.P2P
+	config  *Config
+	Errs    []error
+	p2p     p2p.P2P
+	peerSet *ctypes.PeerSet
+
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask
 	// The task processing  that received someone else (taskId -> task)
 	recvTasks map[string]*types.ScheduleTask
-	// Proposal being processed (proposalId -> proposalState)
-	runningProposals map[common.Hash]*ctypes.ProposalState
+	state    *state
 
 	dataCenter DataCenter
 }
@@ -38,6 +39,7 @@ func New(conf *Config) *TwoPC {
 	t := &TwoPC{
 		config: conf,
 		Errs:   make([]error, 0),
+		state: newState(),
 	}
 
 	return t
@@ -80,7 +82,6 @@ func (t *TwoPC) OnConsensusMsg(msg types.ConsensusMsg) error {
 		//
 		//}
 
-
 	case *types.PrepareVoteWrap:
 
 	case *types.ConfirmMsgWrap:
@@ -114,12 +115,14 @@ func (t *TwoPC) OnPrepareMsg(proposal *ctypes.PrepareMsg) error {
 
 	return nil
 }
-
+// With subscriber
 func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	proposalId := common.BytesToHash(prepareMsg.ProposalId)
-	if t.hasProposal(proposalId) {
+	if t.state.HasProposal(proposalId) {
 		return ctypes.ErrProposalAlreadyProcessed
 	}
+	// Now, we has not  proposalState (on subscriber)
+
 	now := uint64(time.Now().UnixNano())
 	if prepareMsg.CreateAt >= now {
 		return ctypes.ErrProposalInTheFuture
@@ -234,20 +237,24 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	return nil
 }
 
-// TODO 需要和 proposal 的发出时间做对比
+// With publisher
 func (t *TwoPC) validatePrepareVote(prepareVote *types.PrepareVoteWrap) error {
 	proposalId := common.BytesToHash(prepareVote.ProposalId)
-	if !t.hasProposal(proposalId) {
+	if t.state.HasNotProposal(proposalId) {
 		return ctypes.ErrProposalNotFound
 	}
-
-	proposalState := t.runningProposals[proposalId]
+	// (On publisher)
+	// Now, we has proposalState, current period is `preparePeriod`
+	// the PeriodStartTime is not zero, But the PeriodEndTime is zero
+	proposalState := t.state.ProposalStates(proposalId)
 	if proposalState.IsNotPreparePeriod() {
 		return ctypes.ErrPrepareVoteIllegal
 	}
 
-	// TODO 校验下 createAt  和 proposal的发起时间
-
+	// earlier vote is invalid vote
+	if proposalState.PeriodStartTime >= prepareVote.CreateAt {
+		return ctypes.ErrPrepareVoteIllegal
+	}
 
 	now := uint64(time.Now().UnixNano())
 	if prepareVote.CreateAt >= now {
@@ -297,12 +304,34 @@ func (t *TwoPC) validatePrepareVote(prepareVote *types.PrepareVoteWrap) error {
 
 	return nil
 }
-
+// With subscriber
 func (t *TwoPC) validateConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {
 
 	proposalId := common.BytesToHash(confirmMsg.ProposalId)
-	if !t.hasProposal(proposalId) {
+	if t.state.HasNotProposal(proposalId) {
 		return ctypes.ErrProposalNotFound
+	}
+
+	// (On subscriber)
+	// Now, current period should be `confirmPeriod`,
+	// If confirmMsg is first epoch, so still stay preparePeriod
+	// If confirmMsg is second epoch, so stay confirmPeriod
+	proposalState := t.state.ProposalStates(proposalId)
+	if proposalState.IsNotPreparePeriod() || proposalState.IsNotConfirmPeriod() {
+		return ctypes.ErrConfirmMsgSignInvalid
+	}
+	// When comfirm first epoch
+	if proposalState.IsPreparePeriod() && ctypes.ConfirmEpochFirst.Uint64() != confirmMsg.Epoch {
+		return ctypes.ErrConfirmMsgSignInvalid
+	}
+	// When comfirm second epoch
+	if proposalState.IsConfirmPeriod() && ctypes.ConfirmEpochSecond.Uint64() != confirmMsg.Epoch {
+		return ctypes.ErrConfirmMsgSignInvalid
+	}
+
+	// earlier confirmMsg is invalid msg
+	if proposalState.PeriodStartTime >= confirmMsg.CreateAt {
+		return ctypes.ErrConfirmMsgIllegal
 	}
 	now := uint64(time.Now().UnixNano())
 	if confirmMsg.CreateAt >= now {
@@ -313,7 +342,6 @@ func (t *TwoPC) validateConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {
 	if confirmMsg.Epoch == 0 || confirmMsg.Epoch > ctypes.MsgEpochMaxNumber {
 		return ctypes.ErrConfirmMsgEpochInvalid
 	}
-
 
 	// Verify the signature
 	if len(confirmMsg.Signature()) < ctypes.MsgSignLength {
@@ -343,17 +371,136 @@ func (t *TwoPC) validateConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {
 		return err
 	}
 
+	return nil
+}
+
+// With publisher
+func (t *TwoPC) validateConfirmVote(confirmVote *types.ConfirmVoteWrap) error {
+	proposalId := common.BytesToHash(confirmVote.ProposalId)
+	if t.state.HasNotProposal(proposalId) {
+		return ctypes.ErrProposalNotFound
+	}
+
+	// (On publisher)
+	// Now, current period should be `confirmPeriod`,
+	// No matter first epoch of confirmVote or second epoch of confirmVote
+	// it is always confirmPeriod.
+	proposalState := t.state.ProposalStates(proposalId)
+	if proposalState.IsNotConfirmPeriod() {
+		return ctypes.ErrConfirmVoteSignInvalid
+	}
+
+	// earlier confirmVote is invalid vote
+	if proposalState.PeriodStartTime >= confirmVote.CreateAt {
+		return ctypes.ErrConfirmVoteIllegal
+	}
+	now := uint64(time.Now().UnixNano())
+	if confirmVote.CreateAt >= now {
+		return ctypes.ErrConfirmVoteInTheFuture
+	}
+
+	// validate epoch number
+	if confirmVote.Epoch == 0 || confirmVote.Epoch > ctypes.MsgEpochMaxNumber {
+		return ctypes.ErrConfirmVoteEpochInvalid
+	}
+
+
+	if ctypes.TaskRoleFromBytes(confirmVote.TaskRole) == ctypes.TaskRoleUnknown {
+		return ctypes.ErrPrososalTaskRoleIsUnknown
+	}
+
+	// Verify the signature
+	if len(confirmVote.Signature()) < ctypes.MsgSignLength {
+		return ctypes.ErrConfirmVoteSignInvalid
+	}
+
+	recPubKey, err := crypto.Ecrecover(confirmVote.SealHash().Bytes(), confirmVote.Signature())
+	if err != nil {
+		return err
+	}
+	confirmVoteOwnerNodeId, err := p2p.BytesID(confirmVote.Owner.NodeId)
+	if nil != err {
+		return ctypes.ErrConfirmVoteOwnerNodeIdInvalid
+	}
+	ownerPubKey, err := confirmVoteOwnerNodeId.Pubkey()
+	if nil != err {
+		return ctypes.ErrRecoverPubkeyFromConfirmVoteOwner
+	}
+	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
+	if !bytes.Equal(pbytes, recPubKey) {
+		return ctypes.ErrConfirmVoteIllegal
+	}
+
+	// validate the owner
+	if err := t.validateOrganizationIdentity(confirmVote.Owner); nil != err {
+		log.Error("Failed to validate confirmVote, the owner organization identity is invalid", "err", err)
+		return err
+	}
+
+	// validate voteOption
+	if len(confirmVote.VoteOption) != 1 ||
+		ctypes.VoteOptionFromBytes(confirmVote.VoteOption) == ctypes.VoteUnknown {
+		return ctypes.ErrConfirmVoteOptionIsUnknown
+	}
 
 	return nil
 }
 
-func (t *TwoPC) validateConfirmVote(confirmVote *types.ConfirmVoteWrap) error {return nil}
+// With subscriber
+func (t *TwoPC) validateCommitMsg(commitMsg *types.CommitMsgWrap) error {
 
-func (t *TwoPC) validateCommitMsg(commitMsg *types.CommitMsgWrap) error {return nil}
+	proposalId := common.BytesToHash(commitMsg.ProposalId)
+	if t.state.HasNotProposal(proposalId) {
+		return ctypes.ErrProposalNotFound
+	}
 
+	// (On subscriber)
+	// Now, current period should be `commitPeroid`,
+	// But the subscriber still stay on `confirmPeriod`
+	proposalState := t.state.ProposalStates(proposalId)
+	if proposalState.IsNotConfirmPeriod() {
+		return ctypes.ErrCommitMsgSignInvalid
+	}
 
+	// earlier commitMsg is invalid msg
+	if proposalState.PeriodStartTime >= commitMsg.CreateAt {
+		return ctypes.ErrCommitMsgIllegal
+	}
+	now := uint64(time.Now().UnixNano())
+	if commitMsg.CreateAt >= now {
+		return ctypes.ErrCommitMsgInTheFuture
+	}
 
+	// Verify the signature
+	if len(commitMsg.Signature()) < ctypes.MsgSignLength {
+		return ctypes.ErrCommitMsgSignInvalid
+	}
 
+	recPubKey, err := crypto.Ecrecover(commitMsg.SealHash().Bytes(), commitMsg.Signature())
+	if err != nil {
+		return err
+	}
+	commitMsgOwnerNodeId, err := p2p.BytesID(commitMsg.Owner.NodeId)
+	if nil != err {
+		return ctypes.ErrCommitMsgOwnerNodeIdInvalid
+	}
+	ownerPubKey, err := commitMsgOwnerNodeId.Pubkey()
+	if nil != err {
+		return ctypes.ErrRecoverPubkeyFromCommitMsgOwner
+	}
+	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
+	if !bytes.Equal(pbytes, recPubKey) {
+		return ctypes.ErrCommitMsgIllegal
+	}
+
+	// validate the owner
+	if err := t.validateOrganizationIdentity(commitMsg.Owner); nil != err {
+		log.Error("Failed to validate commitMsg, the owner organization identity is invalid", "err", err)
+		return err
+	}
+
+	return nil
+}
 
 func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationIdentityInfo) error {
 	if "" == string(identityInfo.Name) {
@@ -388,23 +535,12 @@ func (t *TwoPC) verifySelfSigned(m []byte, sig []byte) bool {
 	return bytes.Equal(pbytes, recPubKey)
 }
 
-func (t *TwoPC) fetchTaskFromPrepareMsg (prepareMsg *types.PrepareMsgWrap) (*types.ScheduleTask, error) {
-
+func (t *TwoPC) fetchTaskFromPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ScheduleTask, error) {
 
 	return nil, nil
 }
 
 
-func (t *TwoPC) hasProposal(proposalId common.Hash) bool {
-	if _, ok := t.runningProposals[proposalId]; ok {
-		return true
-	}
-	return false
-}
-
-func (t *TwoPC) hasNotProposal(proposalId common.Hash) bool {
-	return !t.hasProposal(proposalId)
-}
 
 //// VerifyHeader verify block's header.
 //func (vp *ValidatorPool) VerifyHeader(header *types.Header) error {

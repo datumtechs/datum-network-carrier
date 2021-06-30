@@ -1,4 +1,4 @@
-package twopc
+package types
 
 
 type conn struct {
