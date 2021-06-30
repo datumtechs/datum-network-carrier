@@ -9,7 +9,7 @@ import (
 // EngineManager responsibles for processing the messages in the network.
 type EngineManager struct {
 	engine             *TwoPC
-	peers              *PeerSet
+	peers              *types.PeerSet
 	sendQueue          chan *types.MsgPackage
 	//quitSend           chan struct{}
 	//sendQueueHook      func(*types.MsgPackage)
@@ -17,7 +17,7 @@ type EngineManager struct {
 	blacklist          *lru.Cache    // Save node blacklist.
 }
 
-func (e *EngineManager) handleMsg(p *peer) error {
+func (e *EngineManager) handleMsg(p *types.peer) error {
 
 	switch {
 

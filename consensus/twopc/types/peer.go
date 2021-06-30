@@ -1,6 +1,8 @@
-package twopc
+package types
 
-import "sync"
+import (
+	"sync"
+)
 
 
 type peer struct {

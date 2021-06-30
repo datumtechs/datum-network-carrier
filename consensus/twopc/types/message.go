@@ -106,14 +106,22 @@ const (
 	PeriodCommit  ProposalStatePeriod = 3
 )
 
+type ConfirmEpoch uint64
+func (c ConfirmEpoch) Uint64() uint64 {return uint64(c)}
+const (
+	ConfirmEpochFirst ConfirmEpoch = 1
+	ConfirmEpochSecond ConfirmEpoch = 2
+)
+
 type ProposalState struct {
 	ProposalId      common.Hash
 	PeriodNum       ProposalStatePeriod
 	PeriodStartTime uint64 // the timestemp
 	PeriodEndTime   uint64
-
-	ConfirmEpoch uint64
+	ConfirmEpoch    ConfirmEpoch
 }
+
+var EmptyProposalState = new(ProposalState)
 
 func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.ProposalId }
 func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate.PeriodNum }
@@ -126,3 +134,4 @@ func (pstate *ProposalState) IsCommitPeriod() bool     { return pstate.PeriodNum
 func (pstate *ProposalState) IsNotPreparePeriod() bool { return !pstate.IsPreparePeriod() }
 func (pstate *ProposalState) IsNotConfirmPeriod() bool { return !pstate.IsConfirmPeriod() }
 func (pstate *ProposalState) IsNotCommitPeriod() bool  { return !pstate.IsCommitPeriod() }
+func (pstate *ProposalState) GetConfirmEpoch() ConfirmEpoch {return pstate.ConfirmEpoch }
