@@ -61,6 +61,7 @@ var (
 		flags.BootstrapNode,
 		flags.EnableUPnPFlag,
 		flags.DisableDiscv5,
+		flags.StaticPeers,
 	}
 
 )
