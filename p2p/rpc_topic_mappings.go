@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"reflect"
 
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
@@ -24,7 +25,8 @@ const (
 	// RPCBlocksByRangeTopic defines the topic for the blocks by range rpc method.
 	RPCBlocksByRangeTopic = "/rosettanet/carrier_chain/req/carrier_blocks_by_range" + schemaVersionV1
 
-
+	// for test communication.
+	RPCGossipTestDataByRangeTopic = "/rosettanet/carrier_chain/req/gossip_test_data_by_range" + schemaVersionV1
 
 	RPCTwoPcPrePareMsgTopic = "/rosettanet/consensus/twopc/send_preparemsg" + schemaVersionV1
 )
@@ -36,6 +38,7 @@ var RPCTopicMappings = map[string]interface{}{
 	RPCBlocksByRangeTopic: new(pb.CarrierBlocksByRangeRequest),
 	RPCPingTopic:          new(types.SSZUint64),
 	RPCMetaDataTopic:      new(interface{}),
+	RPCGossipTestDataByRangeTopic: new(libp2ppb.GossipTestData),
 }
 
 // VerifyTopicMapping verifies that the topic and its accompanying
