@@ -123,6 +123,14 @@ type ProposalState struct {
 
 var EmptyProposalState = new(ProposalState)
 
+
+func NewProposalState(proposalId common.Hash, startTime uint64)  *ProposalState {
+	return &ProposalState{
+		ProposalId: proposalId,
+		PeriodNum: PeriodPrepare,
+		PeriodStartTime: startTime,
+	}
+}
 func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.ProposalId }
 func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate.PeriodNum }
 func (pstate *ProposalState) CurrPeriodDuration() uint64 {

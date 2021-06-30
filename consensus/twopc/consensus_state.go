@@ -37,3 +37,6 @@ func (s *state) ProposalStates(proposalId common.Hash)  *ctypes.ProposalState {
 	}
 	return proposalState
 }
+func (s *state) SetProposalState(proposalState *ctypes.ProposalState) {
+	s.runningProposals[proposalState.ProposalId] = proposalState
+}

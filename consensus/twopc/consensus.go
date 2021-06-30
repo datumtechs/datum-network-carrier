@@ -24,6 +24,7 @@ type TwoPC struct {
 	Errs    []error
 	p2p     p2p.P2P
 	peerSet *ctypes.PeerSet
+	taskCh    <-chan *types.ScheduleTaskWrap
 
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask
@@ -35,14 +36,34 @@ type TwoPC struct {
 }
 
 func New(conf *Config) *TwoPC {
-
 	t := &TwoPC{
 		config: conf,
 		Errs:   make([]error, 0),
 		state: newState(),
 	}
-
+	go t.loop()
 	return t
+}
+
+func (t *TwoPC) loop() {
+	
+	for{
+		select {
+		case taskWrap := <- t.taskCh:
+			if err := t.OnPrepare(taskWrap.Task); nil != err {
+				taskWrap.ResultCh <- &types.ScheduleResult{
+					TaskId: taskWrap.Task.TaskId,
+					Status: types.TaskConsensusInterrupt,
+					Done: false,
+					Err: fmt.Errorf("Failed to OnPrepare 2pc, %s", err),
+				}
+				continue
+			}
+			if err := t.OnStart(taskWrap.Task, taskWrap.ResultCh); nil != err {
+				log.Error("Failed to OnStart 2pc", "err", err)
+			}
+		}
+	}
 }
 
 func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
@@ -502,6 +523,28 @@ func (t *TwoPC) validateCommitMsg(commitMsg *types.CommitMsgWrap) error {
 	return nil
 }
 
+
+func (t *TwoPC) onPrepareMsg (prepareMsg *types.PrepareMsgWrap) error {
+
+	proposal, err := t.fetchTaskFromPrepareMsg(prepareMsg)
+	if nil !=err {
+		return err
+	}
+	proposalState := ctypes.NewProposalState(proposal.ProposalId, proposal.CreateAt)
+	task := proposal.ScheduleTask
+	t.state.SetProposalState(proposalState)
+	_ = task // TODO 写到这里了 ...
+
+	return nil
+}
+
+
+
+
+
+
+
+
 func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationIdentityInfo) error {
 	if "" == string(identityInfo.Name) {
 		return ctypes.ErrOrganizationIdentity
@@ -535,7 +578,7 @@ func (t *TwoPC) verifySelfSigned(m []byte, sig []byte) bool {
 	return bytes.Equal(pbytes, recPubKey)
 }
 
-func (t *TwoPC) fetchTaskFromPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ScheduleTask, error) {
+func (t *TwoPC) fetchTaskFromPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, error) {
 
 	return nil, nil
 }
