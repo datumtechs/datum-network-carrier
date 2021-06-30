@@ -86,7 +86,7 @@ func (s *Service) Start() {
 	s.maintainPeerStatuses()
 	// Update sync metrics.
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
-	log.Info("Handler Service started")
+	log.Info("Starting handler service")
 }
 
 // Stop the regular sync service.
