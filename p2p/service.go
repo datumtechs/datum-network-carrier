@@ -192,7 +192,7 @@ func (s *Service) Start() {
 		go s.listenForNewNodes()
 
 		// print local node info.
-		serializedEnr, err := SerializeENR(s.ENR())
+		serializedEnr, err := SerializeENRByRawURLEncoding(s.ENR())
 		if err == nil {
 			enr := "enr:" + serializedEnr
 			log.Infof("P2P service startup done, local node info: %s", enr)
