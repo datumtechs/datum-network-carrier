@@ -3,9 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/cmd"
+	"github.com/onrik/logrus/filename"
 	dbcommand "github.com/RosettaFlow/Carrier-Go/cmd/carrier/db"
-	"github.com/RosettaFlow/Carrier-Go/cmd/carrier/debug"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
+	"github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/common/logutil"
 	"github.com/RosettaFlow/Carrier-Go/node"
@@ -67,6 +68,10 @@ var (
 		flags.StaticPeers,
 	}
 
+	debugFlags = []cli.Flag{
+		debug.DebugFlag,
+	}
+
 )
 
 func init() {
@@ -74,6 +79,7 @@ func init() {
 	nodeFlags = cmd.WrapFlags(nodeFlags)
 	rpcFlags = cmd.WrapFlags(rpcFlags)
 	p2pFlags = cmd.WrapFlags(p2pFlags)
+	debugFlags = cmd.WrapFlags(debugFlags)
 }
 
 func main() {
@@ -90,6 +96,7 @@ func main() {
 	app.Flags = append(app.Flags, rpcFlags...)
 	app.Flags = append(app.Flags, nodeFlags...)
 	app.Flags = append(app.Flags, p2pFlags...)
+	app.Flags = append(app.Flags, debugFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
@@ -124,6 +131,11 @@ func main() {
 			if err := logutil.ConfigurePersistentLogging(logFileName); err != nil {
 				log.WithError(err).Error("Failed to configuring logging to disk.")
 			}
+		}
+		if ctx.IsSet(debug.DebugFlag.Name) {
+			filenameHook := filename.NewHook()
+			filenameHook.Field = "zline"
+			logrus.AddHook(filenameHook)
 		}
 		if ctx.IsSet(flags.SetGCPercent.Name) {
 			runtimeDebug.SetGCPercent(ctx.Int(flags.SetGCPercent.Name))

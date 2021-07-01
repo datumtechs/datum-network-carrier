@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/cmd/carrier/debug"
+	"github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/urfave/cli/v2"
 	"io"
@@ -58,6 +58,7 @@ var appHelpFlagGroups = []flagGroup{
 			debug.TraceFlag,
 			debug.BlockProfileRateFlag,
 			debug.MutexProfileFractionFlag,
+			debug.DebugFlag,
 		},
 	},
 	{
