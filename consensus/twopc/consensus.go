@@ -53,6 +53,12 @@ func (t *TwoPC) addSendTask(task *types.ScheduleTask) {
 func (t *TwoPC) addRecvTask(task *types.ScheduleTask) {
 	t.recvTasks[task.TaskId] = task
 }
+func (t *TwoPC) delSendTask(taskId string) {
+	delete(t.sendTasks, taskId)
+}
+func (t *TwoPC) delRecvTask(taskId string) {
+	delete(t.recvTasks, taskId)
+}
 
 func (t *TwoPC) loop() {
 
@@ -74,6 +80,12 @@ func (t *TwoPC) loop() {
 		}
 	}
 }
+
+//func (t *TwoPC) handleMsg() error {
+//
+//
+//	return nil
+//}
 
 func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
 	return nil
@@ -97,6 +109,7 @@ func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleR
 		task.OperationCost,
 		task.CreateAt,
 	})
+
 	proposalState := ctypes.NewProposalState(proposalHash, now)
 	t.state.AddProposalState(proposalState)
 	t.addSendTask(task)
@@ -150,6 +163,10 @@ func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleR
 			Done:   false,
 			Err:    err,
 		}
+		// clean some invalid data
+		t.state.DelProposalState(proposalHash)
+		t.delSendTask(task.TaskId)
+
 		return err
 	}
 
@@ -232,31 +249,15 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 		return ctypes.ErrPrososalTaskRoleIsUnknown
 	}
 	taskId := string(prepareMsg.TaskOption.TaskId)
-	
+
 	if t.isProcessingTask(taskId) {
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
 
 	// Verify the signature
-	if len(prepareMsg.Signature()) < ctypes.MsgSignLength {
-		return ctypes.ErrPrepareMsgSignInvalid
-	}
-
-	recPubKey, err := crypto.Ecrecover(prepareMsg.SealHash().Bytes(), prepareMsg.Signature())
+	_, err := t.verifyMsgSigned(prepareMsg.TaskOption.Owner.NodeId, prepareMsg.SealHash().Bytes(), prepareMsg.Signature())
 	if err != nil {
 		return err
-	}
-	proposalOwnerNodeId, err := p2p.BytesID(prepareMsg.TaskOption.Owner.NodeId)
-	if nil != err {
-		return ctypes.ErrProposalOwnerNodeIdInvalid
-	}
-	ownerPubKey, err := proposalOwnerNodeId.Pubkey()
-	if nil != err {
-		return ctypes.ErrRecoverPubkeyFromProposalOwner
-	}
-	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
-	if !bytes.Equal(pbytes, recPubKey) {
-		return ctypes.ErrProposalIllegal
 	}
 
 	// validate the owner
@@ -363,25 +364,9 @@ func (t *TwoPC) validatePrepareVote(prepareVote *types.PrepareVoteWrap) error {
 	}
 
 	// Verify the signature
-	if len(prepareVote.Signature()) < ctypes.MsgSignLength {
-		return ctypes.ErrPrepareVoteSignInvalid
-	}
-
-	recPubKey, err := crypto.Ecrecover(prepareVote.SealHash().Bytes(), prepareVote.Signature())
+	_, err := t.verifyMsgSigned(prepareVote.Owner.NodeId, prepareVote.SealHash().Bytes(), prepareVote.Signature())
 	if err != nil {
 		return err
-	}
-	prepareVoteOwnerNodeId, err := p2p.BytesID(prepareVote.Owner.NodeId)
-	if nil != err {
-		return ctypes.ErrPrepareVoteOwnerNodeIdInvalid
-	}
-	ownerPubKey, err := prepareVoteOwnerNodeId.Pubkey()
-	if nil != err {
-		return ctypes.ErrRecoverPubkeyFromPrepareVoteOwner
-	}
-	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
-	if !bytes.Equal(pbytes, recPubKey) {
-		return ctypes.ErrPrepareVoteIllegal
 	}
 
 	// validate the owner
@@ -416,15 +401,15 @@ func (t *TwoPC) validateConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {
 	// If confirmMsg is second epoch, so stay confirmPeriod
 	proposalState := t.state.ProposalStates(proposalId)
 	if proposalState.IsNotPreparePeriod() || proposalState.IsNotConfirmPeriod() {
-		return ctypes.ErrConfirmMsgSignInvalid
+		return ctypes.ErrConfirmMsgIllegal
 	}
 	// When comfirm first epoch
 	if proposalState.IsPreparePeriod() && ctypes.ConfirmEpochFirst.Uint64() != confirmMsg.Epoch {
-		return ctypes.ErrConfirmMsgSignInvalid
+		return ctypes.ErrConfirmMsgIllegal
 	}
 	// When comfirm second epoch
 	if proposalState.IsConfirmPeriod() && ctypes.ConfirmEpochSecond.Uint64() != confirmMsg.Epoch {
-		return ctypes.ErrConfirmMsgSignInvalid
+		return ctypes.ErrConfirmMsgIllegal
 	}
 
 	// earlier confirmMsg is invalid msg
@@ -442,25 +427,9 @@ func (t *TwoPC) validateConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {
 	}
 
 	// Verify the signature
-	if len(confirmMsg.Signature()) < ctypes.MsgSignLength {
-		return ctypes.ErrConfirmMsgSignInvalid
-	}
-
-	recPubKey, err := crypto.Ecrecover(confirmMsg.SealHash().Bytes(), confirmMsg.Signature())
+	_, err := t.verifyMsgSigned(confirmMsg.Owner.NodeId, confirmMsg.SealHash().Bytes(), confirmMsg.Signature())
 	if err != nil {
 		return err
-	}
-	confirmMsgOwnerNodeId, err := p2p.BytesID(confirmMsg.Owner.NodeId)
-	if nil != err {
-		return ctypes.ErrConfirmMsgOwnerNodeIdInvalid
-	}
-	ownerPubKey, err := confirmMsgOwnerNodeId.Pubkey()
-	if nil != err {
-		return ctypes.ErrRecoverPubkeyFromConfirmMsgOwner
-	}
-	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
-	if !bytes.Equal(pbytes, recPubKey) {
-		return ctypes.ErrConfirmMsgIllegal
 	}
 
 	// validate the owner
@@ -485,7 +454,7 @@ func (t *TwoPC) validateConfirmVote(confirmVote *types.ConfirmVoteWrap) error {
 	// it is always confirmPeriod.
 	proposalState := t.state.ProposalStates(proposalId)
 	if proposalState.IsNotConfirmPeriod() {
-		return ctypes.ErrConfirmVoteSignInvalid
+		return ctypes.ErrConfirmVoteIllegal
 	}
 
 	// earlier confirmVote is invalid vote
@@ -507,25 +476,9 @@ func (t *TwoPC) validateConfirmVote(confirmVote *types.ConfirmVoteWrap) error {
 	}
 
 	// Verify the signature
-	if len(confirmVote.Signature()) < ctypes.MsgSignLength {
-		return ctypes.ErrConfirmVoteSignInvalid
-	}
-
-	recPubKey, err := crypto.Ecrecover(confirmVote.SealHash().Bytes(), confirmVote.Signature())
+	_, err := t.verifyMsgSigned(confirmVote.Owner.NodeId, confirmVote.SealHash().Bytes(), confirmVote.Signature())
 	if err != nil {
 		return err
-	}
-	confirmVoteOwnerNodeId, err := p2p.BytesID(confirmVote.Owner.NodeId)
-	if nil != err {
-		return ctypes.ErrConfirmVoteOwnerNodeIdInvalid
-	}
-	ownerPubKey, err := confirmVoteOwnerNodeId.Pubkey()
-	if nil != err {
-		return ctypes.ErrRecoverPubkeyFromConfirmVoteOwner
-	}
-	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
-	if !bytes.Equal(pbytes, recPubKey) {
-		return ctypes.ErrConfirmVoteIllegal
 	}
 
 	// validate the owner
@@ -556,7 +509,7 @@ func (t *TwoPC) validateCommitMsg(commitMsg *types.CommitMsgWrap) error {
 	// But the subscriber still stay on `confirmPeriod`
 	proposalState := t.state.ProposalStates(proposalId)
 	if proposalState.IsNotConfirmPeriod() {
-		return ctypes.ErrCommitMsgSignInvalid
+		return ctypes.ErrCommitMsgIllegal
 	}
 
 	// earlier commitMsg is invalid msg
@@ -569,25 +522,9 @@ func (t *TwoPC) validateCommitMsg(commitMsg *types.CommitMsgWrap) error {
 	}
 
 	// Verify the signature
-	if len(commitMsg.Signature()) < ctypes.MsgSignLength {
-		return ctypes.ErrCommitMsgSignInvalid
-	}
-
-	recPubKey, err := crypto.Ecrecover(commitMsg.SealHash().Bytes(), commitMsg.Signature())
+	_, err := t.verifyMsgSigned(commitMsg.Owner.NodeId, commitMsg.SealHash().Bytes(), commitMsg.Signature())
 	if err != nil {
 		return err
-	}
-	commitMsgOwnerNodeId, err := p2p.BytesID(commitMsg.Owner.NodeId)
-	if nil != err {
-		return ctypes.ErrCommitMsgOwnerNodeIdInvalid
-	}
-	ownerPubKey, err := commitMsgOwnerNodeId.Pubkey()
-	if nil != err {
-		return ctypes.ErrRecoverPubkeyFromCommitMsgOwner
-	}
-	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
-	if !bytes.Equal(pbytes, recPubKey) {
-		return ctypes.ErrCommitMsgIllegal
 	}
 
 	// validate the owner
@@ -639,6 +576,32 @@ func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationId
 	}
 
 	return nil
+}
+
+func (t *TwoPC) verifyMsgSigned(nodeId []byte, m []byte, sig []byte) (bool, error) {
+	// Verify the signature
+	if len(sig) < ctypes.MsgSignLength {
+		return false, ctypes.ErrMsgSignInvalid
+	}
+
+	recPubKey, err := crypto.Ecrecover(m, sig)
+	if err != nil {
+		return false, err
+	}
+
+	ownerNodeId, err := p2p.BytesID(nodeId)
+	if nil != err {
+		return false, ctypes.ErrMsgOwnerNodeIdInvalid
+	}
+	ownerPubKey, err := ownerNodeId.Pubkey()
+	if nil != err {
+		return false, ctypes.ErrMsgOwnerNodeIdInvalid
+	}
+	pbytes := elliptic.Marshal(ownerPubKey.Curve, ownerPubKey.X, ownerPubKey.Y)
+	if !bytes.Equal(pbytes, recPubKey) {
+		return false, ctypes.ErrMsgSignInvalid
+	}
+	return true, nil
 }
 
 func (t *TwoPC) verifySelfSigned(m []byte, sig []byte) bool {
