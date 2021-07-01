@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/cmd"
+	"github.com/onrik/logrus/filename"
 	dbcommand "github.com/RosettaFlow/Carrier-Go/cmd/carrier/db"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
+	"github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/common/logutil"
 	"github.com/RosettaFlow/Carrier-Go/node"
@@ -13,6 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 	"os"
+	"runtime"
 	runtimeDebug "runtime/debug"
 
 	"github.com/urfave/cli/v2"
@@ -24,6 +27,7 @@ var (
 		flags.RPCPort,
 		flags.GRPCGatewayHost,
 		flags.GRPCGatewayPort,
+		flags.SetGCPercent,
 		// todo: more flags could be define here.
 	}
 
@@ -64,6 +68,10 @@ var (
 		flags.StaticPeers,
 	}
 
+	debugFlags = []cli.Flag{
+		debug.DebugFlag,
+	}
+
 )
 
 func init() {
@@ -71,6 +79,7 @@ func init() {
 	nodeFlags = cmd.WrapFlags(nodeFlags)
 	rpcFlags = cmd.WrapFlags(rpcFlags)
 	p2pFlags = cmd.WrapFlags(p2pFlags)
+	debugFlags = cmd.WrapFlags(debugFlags)
 }
 
 func main() {
@@ -87,6 +96,7 @@ func main() {
 	app.Flags = append(app.Flags, rpcFlags...)
 	app.Flags = append(app.Flags, nodeFlags...)
 	app.Flags = append(app.Flags, p2pFlags...)
+	app.Flags = append(app.Flags, debugFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.
@@ -122,7 +132,16 @@ func main() {
 				log.WithError(err).Error("Failed to configuring logging to disk.")
 			}
 		}
-		return nil
+		if ctx.IsSet(debug.DebugFlag.Name) {
+			filenameHook := filename.NewHook()
+			filenameHook.Field = "zline"
+			logrus.AddHook(filenameHook)
+		}
+		if ctx.IsSet(flags.SetGCPercent.Name) {
+			runtimeDebug.SetGCPercent(ctx.Int(flags.SetGCPercent.Name))
+		}
+		runtime.GOMAXPROCS(runtime.NumCPU())
+		return debug.Setup(ctx)
 	}
 
 	defer func() {
