@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/cmd"
 	dbcommand "github.com/RosettaFlow/Carrier-Go/cmd/carrier/db"
+	"github.com/RosettaFlow/Carrier-Go/cmd/carrier/debug"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/common/logutil"
@@ -13,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 	"os"
+	"runtime"
 	runtimeDebug "runtime/debug"
 
 	"github.com/urfave/cli/v2"
@@ -24,6 +26,7 @@ var (
 		flags.RPCPort,
 		flags.GRPCGatewayHost,
 		flags.GRPCGatewayPort,
+		flags.SetGCPercent,
 		// todo: more flags could be define here.
 	}
 
@@ -122,7 +125,11 @@ func main() {
 				log.WithError(err).Error("Failed to configuring logging to disk.")
 			}
 		}
-		return nil
+		if ctx.IsSet(flags.SetGCPercent.Name) {
+			runtimeDebug.SetGCPercent(ctx.Int(flags.SetGCPercent.Name))
+		}
+		runtime.GOMAXPROCS(runtime.NumCPU())
+		return debug.Setup(ctx)
 	}
 
 	defer func() {
