@@ -212,7 +212,12 @@ var (
 		Name:  "disable-discv5",
 		Usage: "Does not run the discoveryV5 dht.",
 	}
-
+	// SetGCPercent is the percentage of current live allocations at which the garbage collector is to run.
+	SetGCPercent = &cli.IntFlag{
+		Name:  "gc-percent",
+		Usage: "The percentage of freshly allocated data to live data on which the gc will be run again.",
+		Value: 100,
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
