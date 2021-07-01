@@ -232,6 +232,13 @@ func (s *Service) Start() {
 	if p2pHostDNS != "" {
 		logExternalDNSAddr(s.host.ID(), p2pHostDNS, p2pTCPPort)
 	}
+
+	// print local node info.
+	serializedEnr, err := SerializeENR(s.ENR())
+	if err == nil {
+		enr := "enr:" + serializedEnr
+		log.Infof("P2P service startup done, local node info: %s", enr)
+	}
 }
 
 // Stop the p2p service and terminate all peer connections.
