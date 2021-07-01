@@ -37,6 +37,11 @@ func (s *state) ProposalStates(proposalId common.Hash)  *ctypes.ProposalState {
 	}
 	return proposalState
 }
-func (s *state) SetProposalState(proposalState *ctypes.ProposalState) {
+func (s *state) AddProposalState(proposalState *ctypes.ProposalState) {
 	s.runningProposals[proposalState.ProposalId] = proposalState
+}
+func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
+	if _, ok := s.runningProposals[proposalState.ProposalId]; ok {
+		s.runningProposals[proposalState.ProposalId] = proposalState
+	}
 }

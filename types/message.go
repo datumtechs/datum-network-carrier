@@ -388,6 +388,10 @@ type NodeAlias struct {
 	NodeId     string `json:"nodeId"`
 	IdentityId string `json:"identityId"`
 }
+func (n *NodeAlias) GetNodeName() string {return n.Name}
+func (n *NodeAlias) GetNodeIdStr() string {return n.NodeId}
+func (n *NodeAlias) GetNodeIdentityId() string {return n.IdentityId}
+
 
 type ResourceUsage struct {
 	TotalMem       uint64 `json:"totalMem"`

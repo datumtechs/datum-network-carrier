@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
+	"time"
 
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -107,28 +108,34 @@ const (
 )
 
 type ConfirmEpoch uint64
-func (c ConfirmEpoch) Uint64() uint64 {return uint64(c)}
+
+func (c ConfirmEpoch) Uint64() uint64 { return uint64(c) }
+
 const (
-	ConfirmEpochFirst ConfirmEpoch = 1
+	ConfirmEpochFirst  ConfirmEpoch = 1
 	ConfirmEpochSecond ConfirmEpoch = 2
+	DeadlineDuration                = 60 // during 60s, if the proposal haven't been done, kill it
 )
 
 type ProposalState struct {
-	ProposalId      common.Hash
-	PeriodNum       ProposalStatePeriod
-	PeriodStartTime uint64 // the timestemp
-	PeriodEndTime   uint64
-	ConfirmEpoch    ConfirmEpoch
+	ProposalId       common.Hash
+	PeriodNum        ProposalStatePeriod
+	PeriodStartTime  uint64 // the timestemp
+	PeriodEndTime    uint64
+	ConfirmEpoch     ConfirmEpoch
+	DeadlineDuration uint64
+	CreateAt         uint64
 }
 
 var EmptyProposalState = new(ProposalState)
 
-
-func NewProposalState(proposalId common.Hash, startTime uint64)  *ProposalState {
+func NewProposalState(proposalId common.Hash, startTime uint64) *ProposalState {
 	return &ProposalState{
-		ProposalId: proposalId,
-		PeriodNum: PeriodPrepare,
-		PeriodStartTime: startTime,
+		ProposalId:       proposalId,
+		PeriodNum:        PeriodPrepare,
+		PeriodStartTime:  startTime,
+		CreateAt:         uint64(time.Now().UnixNano()),
+		DeadlineDuration: DeadlineDuration,
 	}
 }
 func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.ProposalId }
@@ -136,10 +143,10 @@ func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate
 func (pstate *ProposalState) CurrPeriodDuration() uint64 {
 	return pstate.PeriodStartTime - pstate.PeriodEndTime
 }
-func (pstate *ProposalState) IsPreparePeriod() bool    { return pstate.PeriodNum == PeriodPrepare }
-func (pstate *ProposalState) IsConfirmPeriod() bool    { return pstate.PeriodNum == PeriodConfirm }
-func (pstate *ProposalState) IsCommitPeriod() bool     { return pstate.PeriodNum == PeriodCommit }
-func (pstate *ProposalState) IsNotPreparePeriod() bool { return !pstate.IsPreparePeriod() }
-func (pstate *ProposalState) IsNotConfirmPeriod() bool { return !pstate.IsConfirmPeriod() }
-func (pstate *ProposalState) IsNotCommitPeriod() bool  { return !pstate.IsCommitPeriod() }
-func (pstate *ProposalState) GetConfirmEpoch() ConfirmEpoch {return pstate.ConfirmEpoch }
+func (pstate *ProposalState) IsPreparePeriod() bool         { return pstate.PeriodNum == PeriodPrepare }
+func (pstate *ProposalState) IsConfirmPeriod() bool         { return pstate.PeriodNum == PeriodConfirm }
+func (pstate *ProposalState) IsCommitPeriod() bool          { return pstate.PeriodNum == PeriodCommit }
+func (pstate *ProposalState) IsNotPreparePeriod() bool      { return !pstate.IsPreparePeriod() }
+func (pstate *ProposalState) IsNotConfirmPeriod() bool      { return !pstate.IsConfirmPeriod() }
+func (pstate *ProposalState) IsNotCommitPeriod() bool       { return !pstate.IsCommitPeriod() }
+func (pstate *ProposalState) GetConfirmEpoch() ConfirmEpoch { return pstate.ConfirmEpoch }
