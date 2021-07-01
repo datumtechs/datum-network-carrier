@@ -11,7 +11,7 @@ import (
 	"math"
 )
 
-//var _ Scorer = (*PeerStatusScorer)(nil)
+var _ Scorer = (*PeerStatusScorer)(nil)
 
 // PeerStatusScorer represents scorer that evaluates peers based on their statuses.
 // Peer statuses are updated by regularly polling peers (see sync/rpc_status.go).
