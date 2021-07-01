@@ -190,6 +190,13 @@ func (s *Service) Start() {
 		}
 		s.dv5Listener = listener
 		go s.listenForNewNodes()
+
+		// print local node info.
+		serializedEnr, err := SerializeENR(s.ENR())
+		if err == nil {
+			enr := "enr:" + serializedEnr
+			log.Infof("P2P service startup done, local node info: %s", enr)
+		}
 	}
 	s.started = true
 	if len(s.cfg.StaticPeers) > 0 {
@@ -231,13 +238,6 @@ func (s *Service) Start() {
 	p2pHostDNS := s.cfg.HostDNS
 	if p2pHostDNS != "" {
 		logExternalDNSAddr(s.host.ID(), p2pHostDNS, p2pTCPPort)
-	}
-
-	// print local node info.
-	serializedEnr, err := SerializeENR(s.ENR())
-	if err == nil {
-		enr := "enr:" + serializedEnr
-		log.Infof("P2P service startup done, local node info: %s", enr)
 	}
 }
 
