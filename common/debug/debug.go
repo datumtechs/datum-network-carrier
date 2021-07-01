@@ -70,6 +70,10 @@ var (
 		Name:  "trace",
 		Usage: "Write execution trace to the given file",
 	}
+	DebugFlag = &cli.BoolFlag{
+		Name:  "debug",
+		Usage: "Prepends log messages with call-site location (file and line number)",
+	}
 )
 
 // HandlerT implements the debugging API.
