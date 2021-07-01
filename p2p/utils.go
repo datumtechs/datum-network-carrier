@@ -41,6 +41,16 @@ func SerializeENR(record *enr.Record) (string, error) {
 	return enrString, nil
 }
 
+// SerializeENR takes the enr record in its key-value form and serializes it, use base64.RawURLEncoding
+func SerializeENRByRawURLEncoding(record *enr.Record) (string, error) {
+	buf := bytes.NewBuffer([]byte{})
+	if err := record.EncodeRLP(buf); err != nil {
+		return "", errors.Wrap(err, "could not encode ENR record to bytes")
+	}
+	enrString := base64.RawURLEncoding.EncodeToString(buf.Bytes())
+	return enrString, nil
+}
+
 func convertFromInterfacePrivKey(privkey crypto.PrivKey) *ecdsa.PrivateKey {
 	typeAssertedKey := (*ecdsa.PrivateKey)(privkey.(*crypto.Secp256k1PrivateKey))
 	typeAssertedKey.Curve = gcrypto.S256() // Temporary hack, so libp2p Secp256k1 is recognized as geth Secp256k1 in disc v5.1.
