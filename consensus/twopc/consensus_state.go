@@ -45,3 +45,6 @@ func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
 		s.runningProposals[proposalState.ProposalId] = proposalState
 	}
 }
+func (s *state) DelProposalState(proposalHash common.Hash) {
+	delete(s.runningProposals, proposalHash)
+}
