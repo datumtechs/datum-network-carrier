@@ -13,8 +13,9 @@ var (
 	ErrProposalOwnerNodeIdInvalid     = errors.New("The proposal's owner nodeId is invalid")
 	ErrRecoverPubkeyFromProposalOwner = errors.New("Failed to recover pubkey from proposal owner")
 	ErrPrososalTaskRoleIsUnknown      = errors.New("The proposal's task role is unknown")
-	ErrPrososalTaskIdBelongSendTask   = errors.New("The proposal's taskId is belonging to send task")
-	ErrPrososalTaskIdBelongRecvTask   = errors.New("The proposal's taskId is belonging to recv task")
+	//ErrPrososalTaskIdBelongSendTask   = errors.New("The proposal's taskId is belonging to send task")
+	//ErrPrososalTaskIdBelongRecvTask   = errors.New("The proposal's taskId is belonging to recv task")
+	ErrPrososalTaskIsProcessed  = errors.New("The proposal's task have been processing")
 
 	// prepareVote
 	ErrPrepareVoteInTheFuture     = errors.New("The prepareVote is in the future")
