@@ -1,10 +1,12 @@
 package scheduler
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type SchedulerStarveFIFO struct {
+	resourceMng    *resource.Manager
 	queue          types.TaskMsgs
 	localTaskCh    chan types.TaskMsgs
 	scheduledQueue []*types.ScheduleTask
@@ -18,6 +20,7 @@ func (sche *SchedulerStarveFIFO) NewSchedulerStarveFIFO(
 	remoteTaskCh chan *types.ScheduleTaskWrap) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
+		resourceMng: resource.NewResourceManager(),
 		queue:          make(types.TaskMsgs, 0),
 		scheduledQueue: make([]*types.ScheduleTask, 0),
 		localTaskCh:    localTaskCh,
@@ -38,5 +41,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 			_ = task
 			// TODO 还没写完 Ch
 		}
+
+		// todo 这里还需要写上 定时调度 队列中的任务信息
 	}
 }
