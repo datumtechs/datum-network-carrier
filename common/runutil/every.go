@@ -19,7 +19,7 @@ func RunEvery(ctx context.Context, period time.Duration, f func()) {
 		for {
 			select {
 			case <-ticker.C:
-				log.WithField("function", funcName).Trace("running")
+				//log.WithField("function", funcName).Trace("running")
 				f()
 			case <-ctx.Done():
 				log.WithField("function", funcName).Debug("context is closed, exiting")
