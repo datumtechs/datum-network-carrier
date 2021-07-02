@@ -29,7 +29,7 @@ const (
 	gossipSubFanoutTTL = 60000000000
 
 	// heartbeat interval
-	gossipSubHeartbeatInterval = 700 * time.Microsecond // frequency of heartbeat, milliseconds
+	gossipSubHeartbeatInterval = 700 * time.Millisecond // frequency of heartbeat, milliseconds
 
 	// misc
 	randomSubD = 6 // random gossip target

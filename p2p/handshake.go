@@ -73,7 +73,7 @@ func (s *Service) AddConnectionHandler(reqFunc, goodByeFunc func(ctx context.Con
 				defer peerFinished(remotePeer)
 				// Handle the various pre-existing conditions that will result in us not handshaking.
 				peerConnectionState, err := s.peers.ConnectionState(remotePeer)
-				if err != nil && (peerConnectionState == peers.PeerConnected || peerConnectionState == peers.PeerConnecting) {
+				if err == nil && (peerConnectionState == peers.PeerConnected || peerConnectionState == peers.PeerConnecting) {
 					log.WithField("currentState", peerConnectionState).WithField("reason", "already active").Trace("Ignoring connection request")
 					return
 				}
@@ -106,7 +106,7 @@ func (s *Service) AddConnectionHandler(reqFunc, goodByeFunc func(ctx context.Con
 					if s.host.Network().Connectedness(remotePeer) != network.Connected {
 						return
 					}
-					// If peer hasn't send a status request, we disconnect with them.
+					// If peer hasn't sent a status request, we disconnect with them
 					if _, err := s.peers.ChainState(remotePeer); errors.Is(err, peerdata.ErrPeerUnknown) {
 						disconnectFromPeer()
 						return
@@ -117,7 +117,8 @@ func (s *Service) AddConnectionHandler(reqFunc, goodByeFunc func(ctx context.Con
 							disconnectFromPeer()
 							return
 						}
-						// exit if we don't receive any current status message from peer.
+						// exit if we don't receive any current status messages from 
+						// peer.
 						if updated.IsZero() || !updated.After(currentTime) {
 							disconnectFromPeer()
 							return
