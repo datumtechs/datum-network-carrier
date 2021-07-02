@@ -52,7 +52,7 @@ type PeerData struct {
 	ChainState                *pb.Status
 	ChainStateLastUpdated     time.Time
 	ChainStateValidationError error
-	// Scores internal data.
+	// Scorers internal data.
 	BadResponses         int
 	ProcessedBlocks      uint64
 	BlockProviderUpdated time.Time
@@ -90,7 +90,7 @@ func (s *Store) PeerDataGetOrCreate(pid peer.ID) *PeerData {
 }
 
 // SetPeerData updates data associated with a given peer.
-// Notes: it is assumed that score mutex is locked when calling this method.
+// Notes: it is assumed that store mutex is locked when calling this method.
 func (s *Store) SetPeerData(pid peer.ID, data *PeerData) {
 	s.peers[pid] = data
 }

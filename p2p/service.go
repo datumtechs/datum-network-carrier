@@ -81,7 +81,8 @@ type Service struct {
 func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 	var err error
 	ctx, cancel := context.WithCancel(ctx)
-	_ = cancel
+	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop().
+
 	s := &Service{
 		ctx:           ctx,
 		stateNotifier: cfg.StateNotifier,
@@ -151,7 +152,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		ScorerParams: &scorers.Config{
 			BadResponsesScorerConfig: &scorers.BadResponsesScorerConfig{
 				Threshold:     maxBadResponses,
-				DecayInterval: time.Hour,
+				DecayInterval: time.Minute,	//TODO: may be could use time.hour
 			},
 		},
 	})
@@ -376,20 +377,22 @@ func (s *Service) awaitStateInitialized() {
 	for {
 		select {
 		case event := <-stateChannel:
-			data, ok := event.Data.(*statefeed.InitializedData)
-			if !ok {
-				// log.Fatalf will prevent defer from being called
-				cleanup()
-				log.Fatalf("Received wrong data over state initialized feed: %v", data)
-			}
-			s.genesisTime = data.StartTime
-			s.genesisValidatorsRoot = data.GenesisValidatorsRoot
-			_, err := s.forkDigest() // initialize fork digest cache
-			if err != nil {
-				log.WithError(err).Error("Could not initialize fork digest")
-			}
+			if event.Type == statefeed.Initialized {
+				data, ok := event.Data.(*statefeed.InitializedData)
+				if !ok {
+					// log.Fatalf will prevent defer from being called
+					cleanup()
+					log.Fatalf("Received wrong data over state initialized feed: %v", data)
+				}
+				s.genesisTime = data.StartTime
+				s.genesisValidatorsRoot = data.GenesisValidatorsRoot
+				_, err := s.forkDigest() // initialize fork digest cache
+				if err != nil {
+					log.WithError(err).Error("Could not initialize fork digest")
+				}
 
-			return
+				return
+			}
 		case <-s.ctx.Done():
 			log.Debug("Context closed, exiting goroutine")
 			return
