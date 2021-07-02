@@ -51,7 +51,7 @@ const (
 	MaxBackOffDuration = 5000
 )
 
-// Status is the structure holing the peer status information.
+// Status is the structure holding the peer status information.
 type Status struct {
 	ctx       context.Context
 	scorers   *scorers.Service

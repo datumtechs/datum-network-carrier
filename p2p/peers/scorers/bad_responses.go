@@ -13,7 +13,7 @@ const (
 	DefaultBadResponsesThreshold = 10
 
 	// DefaultBadResponsesDecayInterval defines how often to decay previous statistics.
-	// Every interval bad responses counter will be decrements by 1.
+	// Every interval bad responses counter will be decremented by 1.
 	DefaultBadResponsesDecayInterval = time.Hour
 )
 
