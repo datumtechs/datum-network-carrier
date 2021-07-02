@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
+	"github.com/libp2p/go-libp2p-core/connmgr"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -51,6 +52,7 @@ type PubSubTopicUser interface {
 type ConnectionHandler interface {
 	AddConnectionHandler(f func(ctx context.Context, id peer.ID) error, j func(ctx context.Context, id peer.ID) error)
 	AddDisconnectionHandler(f func(ctx context.Context, id peer.ID) error)
+	connmgr.ConnectionGater
 }
 
 // EncodingProvider provides p2p network encoding.
@@ -65,7 +67,7 @@ type PubSubProvider interface {
 
 // PeerManager abstracts some peer management methods from libp2p
 type PeerManager interface {
-	Disconnect(id peer.ID) error
+	Disconnect(peer.ID) error
 	PeerID() peer.ID
 	Host() host.Host
 	ENR() *enr.Record
