@@ -58,14 +58,14 @@ func (s *Service) listenForNewNodes() {
 		node := iterator.Node()
 		peerInfo, _, err := convertToAddrInfo(node)
 		if err != nil {
-			log.WithError(err).Error("Cound not convert to peer info")
+			log.WithError(err).Error("Could not convert to peer info")
 			continue
 		}
-		// Make sure that peer is dialed too often, for each connection attempt there's a backoff period.
+		// Make sure that peer is not dialed too often, for each connection attempt there's a backoff period.
 		s.Peers().RandomizeBackOff(peerInfo.ID)
 		go func(info *peer.AddrInfo) {
 			if err := s.connectWithPeer(s.ctx, *info); err != nil {
-				log.WithError(err).Tracef("Cound not connect with peer %s", info.String())
+				log.WithError(err).Tracef("Could not connect with peer %s", info.String())
 			}
 		}(peerInfo)
 	}
@@ -83,7 +83,7 @@ func (s *Service) createListener(ipAddr net.IP, privKey *ecdsa.PrivateKey) (*dis
 	default:
 		return nil, errors.New("invalid ip provided")
 	}
-	// If local ip is specified when use that instead.
+	// If local ip is specified then use that instead.
 	if s.cfg.LocalIP != "" {
 		ipAddr = net.ParseIP(s.cfg.LocalIP)
 		if ipAddr == nil {
@@ -173,7 +173,7 @@ func (s *Service) startDiscoveryV5(addr net.IP, privKey *ecdsa.PrivateKey) (*dis
 	return listener, nil
 }
 
-// filterPeer validates each node that we retrieve from out dht.
+// filterPeer validates each node that we retrieve from our dht.
 // we try to ascertain that the peer can be a valid protocol peer.
 // Validity Conditions:
 // 1) The local node is still actively looking for peers to connect to.
@@ -189,7 +189,7 @@ func (s *Service) filterPeer(node *enode.Node) bool {
 	if node.IP() == nil {
 		return false
 	}
-	// do not dial nodes with their tpc ports not set
+	// do not dial nodes with their tcp ports not set
 	if err := node.Record().Load(enr.WithEntry("tcp", new(enr.TCP))); err != nil {
 		if !enr.IsNotFound(err) {
 			log.WithError(err).Debug("Could not retrieve tcp port")
