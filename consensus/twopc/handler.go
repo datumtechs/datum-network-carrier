@@ -10,14 +10,14 @@ import (
 type EngineManager struct {
 	engine             *TwoPC
 	peers              *types.PeerSet
-	sendQueue          chan *types.MsgPackage
+	//sendQueue          chan *types.MsgPackage
 	//quitSend           chan struct{}
 	//sendQueueHook      func(*types.MsgPackage)
 	historyMessageHash *lru.ARCCache // Consensus message record that has been processed successfully.
 	blacklist          *lru.Cache    // Save node blacklist.
 }
 
-func (e *EngineManager) handleMsg(p *types.peer) error {
+func (e *EngineManager) handleMsg() error {
 
 	switch {
 
@@ -32,13 +32,13 @@ func (e *EngineManager) handleMsg(p *types.peer) error {
 //
 // Note: The broadcast of this method defaults to FULL mode.
 func (h *EngineManager) Broadcast(msg Message) {
-	msgPkg := types.NewMsgPackage("", msg, types.PartMode)
-	select {
-	case h.sendQueue <- msgPkg:
-		log.Trace("Broadcast message to sendQueue", "msgHash", msg.MsgHash(), "msg", msg.String())
-	default:
-		log.Error("Broadcast message failed, message queue blocking", "msgHash", msg.MsgHash())
-	}
+	//msgPkg := types.NewMsgPackage("", msg, types.PartMode)
+	//select {
+	//case h.sendQueue <- msgPkg:
+	//	log.Trace("Broadcast message to sendQueue", "msgHash", msg.MsgHash(), "msg", msg.String())
+	//default:
+	//	log.Error("Broadcast message failed, message queue blocking", "msgHash", msg.MsgHash())
+	//}
 }
 
 

@@ -12,7 +12,7 @@ import (
 
 type Engine interface {
 	OnPrepare(task *types.ScheduleTask) error
-	OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleResult) error
+	OnStart(task *types.ScheduleTask, result chan<- *types.TaskConsResult) error
 	ValidateConsensusMsg(msg types.ConsensusMsg) error
 	OnConsensusMsg(msg types.ConsensusMsg) error
 	OnError() error

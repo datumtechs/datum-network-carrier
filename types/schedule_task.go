@@ -2,24 +2,21 @@ package types
 
 import "github.com/RosettaFlow/Carrier-Go/common"
 
-type TaskStatus uint16
-
-const (
-	TaskConsensusInterrupt TaskStatus = 0x0001
-
-	TaskRunningInterrupt TaskStatus = 0x0100
-)
-
 type ProposalTask struct {
 	ProposalId common.Hash
 	*ScheduleTask
 	CreateAt uint64
 }
 
+type ConsensusTaskWrap struct {
+	Task     *ScheduleTask
+	ResultCh chan<- *TaskConsResult
+}
 type ScheduleTaskWrap struct {
-	Task  *ScheduleTask
+	Task     *ScheduleTask
 	ResultCh chan<- *ScheduleResult
 }
+
 type ScheduleTask struct {
 	TaskId                string                        `json:"TaskId"`
 	TaskName              string                        `json:"taskName"`
@@ -51,11 +48,31 @@ type ScheduleTaskResultReceiver struct {
 	Providers []*NodeAlias `json:"providers"`
 }
 
+type TaskConsStatus uint16
+
+const (
+	TaskConsensusInterrupt TaskConsStatus = 0x0001
+	TaskRunningInterrupt   TaskConsStatus = 0x0100
+)
+
 // Task consensus result
+type TaskConsResult struct {
+	TaskId string
+	Status TaskConsStatus
+	Done   bool
+	Err    error
+}
+
+type TaskSchedStatus bool
+
+const (
+	TaskSchedOk     TaskSchedStatus = true
+	TaskSchedFailed TaskSchedStatus = false
+)
+
 type ScheduleResult struct {
 	TaskId string
-	Status TaskStatus
-	Done   bool
+	Status TaskSchedStatus
 	Err    error
 }
 
