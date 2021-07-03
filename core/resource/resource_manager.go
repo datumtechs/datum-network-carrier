@@ -2,13 +2,18 @@ package resource
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-type Manager struct {
-	eventCh    chan *event.TaskEvent
+const (
+//key :=
+)
 
+type Manager struct {
+	db         db.Database // Low level persistent database to store final content.
+	eventCh    chan *event.TaskEvent
 	slotUnit   *types.Slot
 	tables     map[string]*types.ResourceTable
 	tableQueue []*types.ResourceTable
