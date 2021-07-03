@@ -29,6 +29,10 @@ func (sche *SchedulerStarveFIFO) NewSchedulerStarveFIFO(
 	}
 }
 func (sche *SchedulerStarveFIFO) OnStart() error {
+	err := sche.resourceMng.Start()
+	if nil != err {
+		return err
+	}
 	go sche.loop()
 	return nil
 }

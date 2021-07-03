@@ -5,6 +5,20 @@ import (
 	"io"
 )
 
+var (
+	multipleNumber  = uint64(3)
+	DefaultSlotUnit = &Slot{
+		Mem:       1024,
+		Processor: 1,
+		Bandwidth: 1024,
+	}
+	DefaultResouece = &resource{
+		mem:       1024 * multipleNumber,
+		processor: 1 * multipleNumber,
+		bandwidth: 1024 * multipleNumber,
+	}
+)
+
 type ResourceTable struct {
 	nodeId       string    // node id
 	nodeResource *resource // The total resource on the node
@@ -25,11 +39,12 @@ type resourceTableRlp struct {
 func NewResourceTable(nodeId string, mem, processor, bandwidth uint64) *ResourceTable {
 	return &ResourceTable{
 		nodeId: nodeId,
-		nodeResource: &resource{
-			mem:       mem,
-			processor: processor,
-			bandwidth: bandwidth,
-		},
+		//nodeResource: &resource{
+		//	mem:       mem,
+		//	processor: processor,
+		//	bandwidth: bandwidth,
+		//},
+		nodeResource: DefaultResouece, // TODO for test
 		assign: false,
 	}
 }

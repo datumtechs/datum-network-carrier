@@ -5,6 +5,7 @@ import "github.com/RosettaFlow/Carrier-Go/common"
 var (
 	nodeResourceKeyPrefix = []byte("NodeResourceKey:")
 	nodeResourceIdListKey = []byte("nodeResourceIdListKey:")
+	nodeResourceSlotUnitKey = []byte("nodeResourceSlotKey")
 )
 
 
@@ -14,4 +15,7 @@ func GetNodeResourceKey(jobNodeId string) []byte {
 }
 func GetNodeResourceIdListKey() []byte {
 	return nodeResourceIdListKey
+}
+func GetNodeResourceSlotUnitKey() []byte {
+	return nodeResourceSlotUnitKey
 }
