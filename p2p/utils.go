@@ -1,6 +1,5 @@
 package p2p
 
-
 import (
 	"bytes"
 	"crypto/ecdsa"
@@ -85,6 +84,10 @@ func privKey(cfg *Config) (*ecdsa.PrivateKey, error) {
 			return nil, err
 		}
 		convertedKey := convertFromInterfacePrivKey(priv)
+		// save new key
+		if err := gcrypto.SaveECDSA(defaultKeyPath, convertedKey); err != nil {
+			log.WithError(err).Error("Failed to persist node key")
+		}
 		return convertedKey, nil
 	}
 	if defaultKeysExist && privateKeyPath == "" {
