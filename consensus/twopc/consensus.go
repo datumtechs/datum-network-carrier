@@ -23,11 +23,12 @@ type DataCenter interface {
 }
 
 type TwoPC struct {
-	config  *Config
-	Errs    []error
-	p2p     p2p.P2P
-	peerSet *ctypes.PeerSet
-	taskCh  <-chan *types.ScheduleTaskWrap
+	config       *Config
+	Errs         []error
+	p2p          p2p.P2P
+	peerSet      *ctypes.PeerSet
+	taskCh       <-chan *types.ConsensusTaskWrap
+	replayTaskCh chan<- *types.ScheduleTaskWrap
 
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask
@@ -66,7 +67,7 @@ func (t *TwoPC) loop() {
 		select {
 		case taskWrap := <-t.taskCh:
 			if err := t.OnPrepare(taskWrap.Task); nil != err {
-				taskWrap.ResultCh <- &types.ScheduleResult{
+				taskWrap.ResultCh <- &types.TaskConsResult{
 					TaskId: taskWrap.Task.TaskId,
 					Status: types.TaskConsensusInterrupt,
 					Done:   false,
@@ -90,7 +91,7 @@ func (t *TwoPC) loop() {
 func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
 	return nil
 }
-func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleResult) error {
+func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.TaskConsResult) error {
 
 	if t.isProcessingTask(task.TaskId) {
 		return ctypes.ErrPrososalTaskIsProcessed
@@ -157,7 +158,7 @@ func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.ScheduleR
 		err := fmt.Errorf(
 			`Failed to Send PrepareMsg for task:
 %s`, strings.Join(errStrs, "\n"))
-		result <- &types.ScheduleResult{
+		result <- &types.TaskConsResult{
 			TaskId: task.TaskId,
 			Status: types.TaskConsensusInterrupt,
 			Done:   false,
@@ -177,17 +178,17 @@ func (t *TwoPC) ValidateConsensusMsg(msg types.ConsensusMsg) error {
 	if nil == msg {
 		return fmt.Errorf("Failed to validate 2pc consensus msg, the msg is nil")
 	}
-	switch msg.(type) {
+	switch msg := msg.(type) {
 	case *types.PrepareMsgWrap:
-		return t.validatePrepareMsg(msg.(*types.PrepareMsgWrap))
+		return t.validatePrepareMsg(msg)
 	case *types.PrepareVoteWrap:
-		return t.validatePrepareVote(msg.(*types.PrepareVoteWrap))
+		return t.validatePrepareVote(msg)
 	case *types.ConfirmMsgWrap:
-		return t.validateConfirmMsg(msg.(*types.ConfirmMsgWrap))
+		return t.validateConfirmMsg(msg)
 	case *types.ConfirmVoteWrap:
-		return t.validateConfirmVote(msg.(*types.ConfirmVoteWrap))
+		return t.validateConfirmVote(msg)
 	case *types.CommitMsgWrap:
-		return t.validateCommitMsg(msg.(*types.CommitMsgWrap))
+		return t.validateCommitMsg(msg)
 	default:
 		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
 	}
@@ -195,17 +196,17 @@ func (t *TwoPC) ValidateConsensusMsg(msg types.ConsensusMsg) error {
 
 func (t *TwoPC) OnConsensusMsg(msg types.ConsensusMsg) error {
 
-	switch msg.(type) {
+	switch msg := msg.(type) {
 	case *types.PrepareMsgWrap:
-		return t.onPrepareMsg(msg.(*types.PrepareMsgWrap))
+		return t.onPrepareMsg(msg)
 	case *types.PrepareVoteWrap:
-		return t.onPrepareVote(msg.(*types.PrepareVoteWrap))
+		return t.onPrepareVote(msg)
 	case *types.ConfirmMsgWrap:
-		return t.onConfirmMsg(msg.(*types.ConfirmMsgWrap))
+		return t.onConfirmMsg(msg)
 	case *types.ConfirmVoteWrap:
-		return t.onConfirmVote(msg.(*types.ConfirmVoteWrap))
+		return t.onConfirmVote(msg)
 	case *types.CommitMsgWrap:
-		return t.onCommitMsg(msg.(*types.CommitMsgWrap))
+		return t.onCommitMsg(msg)
 
 	default:
 		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
@@ -224,11 +225,6 @@ func (t *TwoPC) OnError() error {
 	// reset Errs
 	t.Errs = make([]error, 0)
 	return fmt.Errorf("%s", strings.Join(errStrs, "\n"))
-}
-
-func (t *TwoPC) OnPrepareMsg(proposal *ctypes.PrepareMsg) error {
-
-	return nil
 }
 
 // With subscriber
@@ -536,24 +532,41 @@ func (t *TwoPC) validateCommitMsg(commitMsg *types.CommitMsgWrap) error {
 	return nil
 }
 
-// Handle the prepareMsg from the task pulisher peer
+// Handle the prepareMsg from the task pulisher peer (on subscriber)
 func (t *TwoPC) onPrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	proposal, err := t.fetchTaskFromPrepareMsg(prepareMsg)
 	if nil != err {
 		return err
 	}
+	if t.state.HasNotProposal(proposal.ProposalId) {
+		return ctypes.ErrProposalAlreadyProcessed
+	}
 	proposalState := ctypes.NewProposalState(proposal.ProposalId, proposal.CreateAt)
 	task := proposal.ScheduleTask
 	t.state.AddProposalState(proposalState)
-	_ = task // TODO 写到这里了 ...
+	t.addRecvTask(task)
+
+	if err := t.validateRecvTask(task); nil != err {
+		// clean some data
+		t.state.DelProposalState(proposal.ProposalId)
+		t.delRecvTask(task.TaskId)
+		return err
+	}
+
+	// todo 让自己的Scheduler 重演选举
+
+	// todo  检查自己的资源是否符合 预期
+
+	// todo 检查自己是否 意愿透出 yes 票
+
+	// todo 调用 handler 投出自己的一票
 
 	return nil
 }
-func (t *TwoPC) onPrepareVote(prepareVote *types.PrepareVoteWrap) error {return nil}
-func (t *TwoPC) onConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {return nil}
-func (t *TwoPC) onConfirmVote(confirmVote *types.ConfirmVoteWrap) error {return nil}
-func (t *TwoPC) onCommitMsg(cimmitMsg *types.CommitMsgWrap) error {return nil}
-
+func (t *TwoPC) onPrepareVote(prepareVote *types.PrepareVoteWrap) error { return nil }
+func (t *TwoPC) onConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error    { return nil }
+func (t *TwoPC) onConfirmVote(confirmVote *types.ConfirmVoteWrap) error { return nil }
+func (t *TwoPC) onCommitMsg(cimmitMsg *types.CommitMsgWrap) error       { return nil }
 
 func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationIdentityInfo) error {
 	if "" == string(identityInfo.Name) {
@@ -638,3 +651,8 @@ func (t *TwoPC) isProcessingTask(taskId string) bool {
 //	// todo: need confirmed.
 //	return vp.agency.VerifyHeader(header, nil)
 //}
+
+func (t *TwoPC) validateRecvTask(task *types.ScheduleTask) error {
+
+	return nil
+}
