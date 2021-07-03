@@ -51,3 +51,53 @@ func storeNodeResources(db rawdb.DatabaseWriter, resources []*types.ResourceTabl
 	}
 	return nil
 }
+
+func queryNodeResources (db rawdb.DatabaseReader) ([]*types.ResourceTable, error) {
+	has, err := db.Has(GetNodeResourceIdListKey())
+	if nil != err {
+		return nil, err
+	}
+	if !has {
+		return nil, ErrNotFound
+	}
+	b, err := db.Get(GetNodeResourceIdListKey())
+	if nil != err {
+		return nil, err
+	}
+	var arr []*types.ResourceTable
+	if err := rlp.DecodeBytes(b, &arr); nil != err {
+		return nil, err
+	}
+	return arr, nil
+}
+
+
+func storeNodeResourceSlotUnit(db rawdb.DatabaseWriter, slot *types.Slot) error {
+	val, err := rlp.EncodeToBytes(slot)
+	if nil != err {
+		return err
+	}
+	if err := db.Put(GetNodeResourceSlotUnitKey(), val); nil != err {
+		return err
+	}
+	return nil
+}
+
+func queryNodeResourceSlotUnit(db rawdb.DatabaseReader) (*types.Slot, error) {
+	has, err := db.Has(GetNodeResourceSlotUnitKey())
+	if nil != err {
+		return nil, err
+	}
+	if !has {
+		return nil, ErrNotFound
+	}
+	b, err := db.Get(GetNodeResourceSlotUnitKey())
+	if nil != err {
+		return nil, err
+	}
+	var slot *types.Slot
+	if err := rlp.DecodeBytes(b, &slot); nil != err {
+		return nil, err
+	}
+	return slot, nil
+}

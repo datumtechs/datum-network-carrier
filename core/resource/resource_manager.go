@@ -7,11 +7,11 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-const (
-//key :=
-)
+
 
 type Manager struct {
+	// TODO 这里需要一个 config <SlotUnit 的>
+
 	db         db.Database // Low level persistent database to store final content.
 	eventCh    chan *event.TaskEvent
 	slotUnit   *types.Slot
@@ -23,6 +23,7 @@ func NewResourceManager() *Manager {
 	m := &Manager{
 		eventCh: make(chan *event.TaskEvent, 0),
 		tables:  make(map[string]*types.ResourceTable),
+		slotUnit: types.DefaultSlotUnit, // TODO for test
 	}
 	go m.loop()
 	return m
@@ -39,12 +40,47 @@ func (m *Manager) loop() {
 	}
 }
 
-func (m *Manager) SetSlotUnit(mem, p, b uint64) {
-	m.slotUnit = &types.Slot{
-		Mem:       mem,
-		Processor: p,
-		Bandwidth: b,
+func (m *Manager) Start() error {
+	m.SetSlotUnit(0, 0, 0)
+	// load slotUnit
+	slotUnit, err := queryNodeResourceSlotUnit(m.db)
+	if nil != err {
+		return err
 	}
+	m.slotUnit = slotUnit
+	// load resource tables
+	resources, err := queryNodeResources(m.db)
+	if nil != err {
+		return err
+	}
+	tables := make(map[string]*types.ResourceTable, len(resources))
+	for _, resource := range resources {
+		tables[resource.GetNodeId()] = resource
+	}
+	m.tables = tables
+	m.tableQueue = resources
+	return nil
+}
+
+func (m *Manager) Stop() error {
+	// store slotUnit
+	if err := storeNodeResourceSlotUnit(m.db, m.slotUnit); nil != err {
+		return err
+	}
+	// store resource tables
+	if err := storeNodeResources(m.db, m.tableQueue); nil != err {
+		return err
+	}
+	return nil
+}
+
+func (m *Manager) SetSlotUnit(mem, p, b uint64) {
+	//m.slotUnit = &types.Slot{
+	//	Mem:       mem,
+	//	Processor: p,
+	//	Bandwidth: b,
+	//}
+	m.slotUnit = types.DefaultSlotUnit // TODO for test
 	if len(m.tables) != 0 {
 		for _, re := range m.tables {
 			re.SetSlotUnit(m.slotUnit)
