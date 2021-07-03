@@ -61,10 +61,10 @@ func (msg *IdentityMsg) Marshal() ([]byte, error)       { return nil, nil }
 func (msg *IdentityMsg) Unmarshal(b []byte) error       { return nil }
 func (msg *IdentityMsg) String() string                 { return "" }
 func (msg *IdentityMsg) MsgType() string                { return MSG_IDENTITY }
-func (msg *IdentityMsg) OwnerName() string       { return msg.Name }
-func (msg *IdentityMsg) OwnerNodeId() string     { return msg.NodeId }
-func (msg *IdentityMsg) OwnerIdentityId() string { return msg.IdentityId }
-func (msg *IdentityMsg) MsgCreateAt() uint64        { return msg.CreateAt }
+func (msg *IdentityMsg) OwnerName() string              { return msg.Name }
+func (msg *IdentityMsg) OwnerNodeId() string            { return msg.NodeId }
+func (msg *IdentityMsg) OwnerIdentityId() string        { return msg.IdentityId }
+func (msg *IdentityMsg) MsgCreateAt() uint64            { return msg.CreateAt }
 func (msg *IdentityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *IdentityRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *IdentityRevokeMsg) String() string           { return "" }
@@ -137,8 +137,6 @@ func (msg *PowerRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerRevokeMsg) String() string           { return "" }
 func (msg *PowerRevokeMsg) MsgType() string          { return MSG_POWER_REVOKE }
-
-
 
 // Len returns the length of s.
 func (s PowerMsgs) Len() int { return len(s) }
@@ -249,6 +247,21 @@ func (s MetaDataMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Dat
 
 // ------------------- task -------------------
 
+type TaskBullet struct {
+	*TaskMsg
+	Starve bool
+	Term   uint32
+}
+
+func NewTaskBullet(task *TaskMsg) *TaskBullet {
+	return &TaskBullet{
+		TaskMsg: task,
+		Starve:  false,
+		Term:    uint32(0),
+	}
+}
+
+type TaskBullets  []*TaskBullet
 type TaskMsg struct {
 	TaskId string `json:"taskId"`
 	Data   *taskdata
@@ -388,10 +401,10 @@ type NodeAlias struct {
 	NodeId     string `json:"nodeId"`
 	IdentityId string `json:"identityId"`
 }
-func (n *NodeAlias) GetNodeName() string {return n.Name}
-func (n *NodeAlias) GetNodeIdStr() string {return n.NodeId}
-func (n *NodeAlias) GetNodeIdentityId() string {return n.IdentityId}
 
+func (n *NodeAlias) GetNodeName() string       { return n.Name }
+func (n *NodeAlias) GetNodeIdStr() string      { return n.NodeId }
+func (n *NodeAlias) GetNodeIdentityId() string { return n.IdentityId }
 
 type ResourceUsage struct {
 	TotalMem       uint64 `json:"totalMem"`
