@@ -189,10 +189,13 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-
+	staticNodeAddrs, err := registration.P2PStaticNodeAddrs(cliCtx, dataDir)
+	if err != nil {
+		return err
+	}
 	svc, err := p2p.NewService(b.ctx, &p2p.Config{
 		NoDiscovery:       cliCtx.Bool(flags.NoDiscovery.Name),
-		StaticPeers:       sliceutil.SplitCommaSeparated(cliCtx.StringSlice(flags.StaticPeers.Name)),
+		StaticPeers:       staticNodeAddrs,
 		BootstrapNodeAddr: bootstrapNodeAddrs,
 		RelayNodeAddr:     cliCtx.String(flags.RelayNode.Name),
 		DataDir:           dataDir,
