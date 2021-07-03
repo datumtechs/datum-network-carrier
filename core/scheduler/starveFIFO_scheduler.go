@@ -8,8 +8,8 @@ import (
 type SchedulerStarveFIFO struct {
 	resourceMng    *resource.Manager
 	queue          types.TaskMsgs
-	localTaskCh    chan types.TaskMsgs
 	scheduledQueue []*types.ScheduleTask
+	localTaskCh    chan types.TaskMsgs
 	schedTaskCh    chan *types.ConsensusTaskWrap
 	remoteTaskCh   chan *types.ScheduleTaskWrap
 	err            error
@@ -20,7 +20,7 @@ func (sche *SchedulerStarveFIFO) NewSchedulerStarveFIFO(
 	remoteTaskCh chan *types.ScheduleTaskWrap) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
-		resourceMng: resource.NewResourceManager(),
+		resourceMng:    resource.NewResourceManager(),
 		queue:          make(types.TaskMsgs, 0),
 		scheduledQueue: make([]*types.ScheduleTask, 0),
 		localTaskCh:    localTaskCh,

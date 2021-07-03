@@ -3,10 +3,10 @@ module github.com/RosettaFlow/Carrier-Go
 go 1.16
 
 require (
-	github.com/d4l3k/messagediff v1.2.1 // indirect
+	github.com/d4l3k/messagediff v1.2.1
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
-	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5 // indirect
+	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.3
@@ -17,19 +17,18 @@ require (
 	github.com/kevinms/leakybucket-go v0.0.0-20200115003610-082473db97ca
 	github.com/klauspost/cpuid/v2 v2.0.6 // indirect
 	github.com/libp2p/go-libp2p v0.14.2
-	github.com/libp2p/go-libp2p-blankhost v0.2.0 // indirect
+	github.com/libp2p/go-libp2p-blankhost v0.2.0
 	github.com/libp2p/go-libp2p-core v0.8.5
 	github.com/libp2p/go-libp2p-noise v0.2.0
 	github.com/libp2p/go-libp2p-pubsub v0.4.0
-	github.com/libp2p/go-libp2p-swarm v0.5.0 // indirect
+	github.com/libp2p/go-libp2p-swarm v0.5.0
 	github.com/libp2p/go-tcp-transport v0.2.1
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/minio/highwayhash v1.0.2
 	github.com/minio/sha256-simd v1.0.0
-	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/onrik/logrus v0.9.0 // indirect
+	github.com/onrik/logrus v0.9.0
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.9.0
 	github.com/prysmaticlabs/eth2-types v0.0.0-20210303084904-c9735a06829d
@@ -39,6 +38,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210305035536-64b5b1c73954
+	github.com/tidwall/gjson v1.8.1 // indirect
 	github.com/trailofbits/go-mutexasserts v0.0.0-20200708152505-19999e7d3cef
 	github.com/urfave/cli/v2 v2.3.0
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
@@ -50,6 +50,6 @@ require (
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible
 )
