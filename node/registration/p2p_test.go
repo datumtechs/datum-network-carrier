@@ -66,3 +66,17 @@ func TestBootStrapNodeFile(t *testing.T) {
 	assert.Equal(t, sampleNode2[2:], nodeList[2], "Unexpected nodes")
 }
 
+func TestStaticNodeFile(t *testing.T) {
+	file, err := ioutil.TempFile(t.TempDir(), "staticFile")
+	require.NoError(t, err)
+
+	sampleNode := `[
+	"enr:-TESTNODE1",
+	"enr:-TESTNODE2"
+]`
+	err = ioutil.WriteFile(file.Name(), []byte(sampleNode), 0644)
+	require.NoError(t, err, "Error in WriteFile call")
+	nodeList, err := readStaticNodesFromJSON(file.Name())
+	require.NoError(t, err, "Error in staticNodes call")
+	t.Logf("%v", nodeList)
+}
