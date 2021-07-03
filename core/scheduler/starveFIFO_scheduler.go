@@ -58,6 +58,7 @@ func (sche *SchedulerStarveFIFO) OnStart() error {
 	go sche.loop()
 	return nil
 }
+func (sche *SchedulerStarveFIFO) OnStop() error  { return nil }
 func (sche *SchedulerStarveFIFO) OnError() error { return sche.err }
 func (sche *SchedulerStarveFIFO) Name() string   { return "SchedulerStarveFIFO" }
 func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
