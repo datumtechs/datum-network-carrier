@@ -20,7 +20,7 @@ import (
 // maintainPeerStatuses by infrequently polling peers for their latest status.
 func (s *Service) maintainPeerStatuses() {
 	//TODO: need to ensure the interval....
-	interval := 60 * time.Second
+	interval := 2 * time.Minute
 	runutil.RunEvery(s.ctx, interval, func() {
 		wg := new(sync.WaitGroup)
 		for _, pid := range s.cfg.P2P.Peers().Connected() {
