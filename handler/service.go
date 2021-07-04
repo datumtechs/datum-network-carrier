@@ -83,7 +83,7 @@ func (s *Service) Start() {
 	})
 	s.cfg.P2P.AddPingMethod(s.sendPingRequest)
 	s.processPendingBlocksQueue()
-	s.maintainPeerStatuses()
+	//s.maintainPeerStatuses()
 	// Update sync metrics.
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 
