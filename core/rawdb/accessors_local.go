@@ -3,7 +3,9 @@
 package rawdb
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/event"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
 	"strings"
@@ -12,6 +14,39 @@ import (
 
 const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
+
+// ReadLocalIdentity retrieves the identity of local.
+func ReadLocalIdentity(db DatabaseReader) *types.NodeAlias {
+	var blob libtypes.OrganizationData
+	enc, _ := db.Get(localIdentityKey)
+	blob.Unmarshal(enc)
+	return &types.NodeAlias{
+		Name:       blob.GetNodeName(),
+		NodeId:     blob.GetNodeId(),
+		IdentityId: blob.GetIdentity(),
+	}
+}
+
+// WriteLocalIdentity stores the local identity.
+func WriteLocalIdentity(db DatabaseWriter, localIdentity *types.NodeAlias) {
+	pb := &libtypes.OrganizationData{
+		Alias:                localIdentity.GetNodeName(),
+		Identity:             localIdentity.GetNodeIdentityId(),
+		NodeId:               localIdentity.GetNodeIdStr(),
+		NodeName:             localIdentity.GetNodeName(),
+	}
+	enc, _ := pb.Marshal()
+	if err := db.Put(localIdentityKey, enc); err != nil {
+		log.WithError(err).Fatal("Failed to store local identity")
+	}
+}
+
+// DeleteLocalIdentity deletes the local identity
+func DeleteLocalIdentity(db DatabaseDeleter) {
+	if err := db.Delete(localIdentityKey); err != nil {
+		log.WithError(err).Fatal("Failed to delete local identity")
+	}
+}
 
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
 func ReadRunningTaskIDList(db DatabaseReader, jobNodeId string) []string {
@@ -144,10 +179,10 @@ func WriteRunningTaskCountForOrg(db DatabaseWriter, count uint32) {
 
 // ReadIdentityStr retrieves the identity string.
 func ReadIdentityStr(db DatabaseReader) string {
-	var yarnName dbtype.StringPB
+	var str dbtype.StringPB
 	enc, _ := db.Get(identityKey)
-	yarnName.Unmarshal(enc)
-	return yarnName.GetV()
+	str.Unmarshal(enc)
+	return str.GetV()
 }
 
 // WriteIdentityStr stores the identity.
@@ -446,5 +481,116 @@ func DeleteRegisterNode(db KeyValueStore, nodeType types.RegisteredNodeType, id 
 func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) {
 	if err := db.Delete(registryNodeKey(nodeType)); err != nil {
 		log.WithError(err).Fatal("Failed to delete registered node")
+	}
+}
+
+// ReadTaskEvent retrieves the event of task with the corresponding taskId.
+func ReadTaskEvent(db DatabaseReader, taskId string) []*event.TaskEvent {
+	blob, err := db.Get(taskEventKey)
+	if err != nil {
+		return nil
+	}
+	var events dbtype.TaskEventArrayPB
+	if err := events.Unmarshal(blob); err != nil {
+		return nil
+	}
+	resEvent := make([]*event.TaskEvent, 0)
+	for _, e := range events.GetTaskEventList() {
+		if strings.EqualFold(e.GetTaskId(), taskId) {
+			resEvent = append(resEvent, &event.TaskEvent{
+				Type:       e.GetEventType(),
+				Identity:   e.GetIdentity(),
+				TaskId:     e.GetTaskId(),
+				Content:    e.GetEventContent(),
+				CreateTime: e.GetEventAt(),
+			})
+		}
+	}
+	return resEvent
+}
+
+// ReadAllTaskEvents retrieves all the task event in the database.
+// All returned task events are sorted in reverse.
+func ReadAllTaskEvents(db DatabaseReader) []*event.TaskEvent {
+	blob, err := db.Get(taskEventKey)
+	if err != nil {
+		return nil
+	}
+	var taskEvents dbtype.TaskEventArrayPB
+	if err := taskEvents.Unmarshal(blob); err != nil {
+		return nil
+	}
+	var events []*event.TaskEvent
+	for _, e := range taskEvents.GetTaskEventList() {
+		events = append(events, &event.TaskEvent{
+			Type:       e.GetEventType(),
+			Identity:   e.GetIdentity(),
+			TaskId:     e.GetTaskId(),
+			Content:    e.GetEventContent(),
+			CreateTime: e.GetEventAt(),
+		})
+	}
+	return events
+}
+
+// WriteTaskEvent serializes the task event into the database.
+func WriteTaskEvent(db KeyValueStore, taskEvent *event.TaskEvent) {
+	blob, err := db.Get(taskEventKey)
+	if err != nil {
+		log.Warn("Failed to load old task event", "error", err)
+	}
+	var array dbtype.TaskEventArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old task event")
+		}
+
+	}
+	for _, s := range array.GetTaskEventList() {
+		if strings.EqualFold(s.GetTaskId(), taskEvent.TaskId) && strings.EqualFold(s.GetIdentity(), taskEvent.Identity) {
+			log.WithFields(logrus.Fields{ "identity": s.Identity }).Info("Skip duplicated task event")
+			return
+		}
+	}
+	array.TaskEventList = append(array.TaskEventList, &libtypes.EventData{
+		TaskId:               taskEvent.TaskId,
+		EventType:            taskEvent.Type,
+		EventAt:              taskEvent.CreateTime,
+		EventContent:         taskEvent.Content,
+		Identity:             taskEvent.Identity,
+	})
+
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode task event")
+	}
+	if err := db.Put(taskEventKey, data); err != nil {
+		log.WithError(err).Fatal("Failed to write task event")
+	}
+}
+
+// DeleteTaskEvent deletes the task event from the database with a special taskId
+func DeleteTaskEvent(db KeyValueStore, taskId string) {
+	blob, err := db.Get(taskEventKey)
+	if err != nil {
+		log.Warn("Failed to load old task event", "error", err)
+	}
+	var array dbtype.TaskEventArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old task event")
+		}
+	}
+	for idx, s := range array.GetTaskEventList() {
+		if strings.EqualFold(s.TaskId, taskId) {
+			array.TaskEventList = append(array.TaskEventList[:idx], array.TaskEventList[idx+1:]...)
+		}
+	}
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode task events")
+	}
+	if err := db.Put(seedNodeKey, data); err != nil {
+		log.WithError(err).Fatal("Failed to write task events")
 	}
 }

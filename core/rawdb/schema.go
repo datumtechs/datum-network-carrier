@@ -10,8 +10,11 @@ var (
 	// yarnNameKey tracks the name of yarn
 	yarnNameKey = []byte("YarnName")
 
-	// identityKey tracks the name of yarn
+	// identityKey tracks the identity id
 	identityKey = []byte("Identity")
+
+	// localIdentityKey tracks the nodeInfo of localNode
+	localIdentityKey = []byte("LocalIdentity")
 
 	// runningTaskCountForOrgKey tracks the running count of task for org.
 	runningTaskCountForOrgKey = []byte("RunningTaskCountForOrg")
@@ -30,6 +33,9 @@ var (
 
 	// seedNodeKey tracks the seed node list.
 	seedNodeKey = []byte("SeedNodeKey")
+
+	// taskEventKey tracks the task event list.
+	taskEventKey = []byte("TaskEventKey")
 
 	// resourceNodeKey tracks the node for calc node.
 	calcNodeKey = []byte("CalcNodeKey")

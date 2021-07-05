@@ -8,7 +8,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
@@ -17,14 +16,13 @@ type Service struct {
 	isRunning      bool
 	processingLock sync.RWMutex
 	config         *Config
-	dataCenter     *core.DataCenter
-	datachain      *core.DataChain
+	carrierDB      core.CarrierDB
 	ctx            context.Context
 	cancel         context.CancelFunc
 	mempool        *message.Mempool
 
 	// Consensuses
-	cons 		  map[string]consensus.Engine
+	cons map[string]consensus.Engine
 
 	// DB interfaces
 	dataDb     db.Database
@@ -38,28 +36,24 @@ type Service struct {
 
 // NewService creates a new CarrierServer object (including the
 // initialisation of the common Carrier object)
-func NewService(ctx context.Context, config *Config, dataCenterConfig *params.DataCenterConfig) (*Service, error) {
+func NewService(ctx context.Context, config *Config) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
-	proxy, err := core.NewDataCenter(ctx, dataCenterConfig)
-	if err != nil {
-		cancel()
-		return nil, err
-	}
 	taskCh := make(chan types.TaskMsgs, 0)
 	pool := message.NewMempool(nil) // todo need  set mempool cfg
 	s := &Service{
 		ctx:             ctx,
 		cancel:          cancel,
 		config:          config,
-		dataCenter:      proxy,
+		carrierDB:       config.carrierDB,
 		mempool:         pool,
 		resourceManager: resource.NewResourceManager(),
-		messageManager: message.NewHandler(pool, nil, proxy, taskCh, nil), // todo need set dataChain
-		taskManager:     task.NewTaskManager(nil, taskCh, nil), // todo need set dataChain
+		messageManager:  message.NewHandler(pool, nil, config.carrierDB, taskCh, nil), // todo need set dataChain
+		taskManager:     task.NewTaskManager(nil, taskCh, nil),             // todo need set dataChain
 	}
 	// todo: some logic could be added...
+	s.APIBackend = &CarrierAPIBackend{carrier: s}
 
 	// todo: set datachain....
 	return s, nil
