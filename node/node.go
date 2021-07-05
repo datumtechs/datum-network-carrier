@@ -15,6 +15,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/node/registration"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/RosettaFlow/Carrier-Go/rpc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/shared/sliceutil"
@@ -89,7 +90,14 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		return nil, err
 	}
 	// register core backend service
-	if err := node.registerBackendService(&cfg.Carrier); err != nil {
+	backend, err := carrier.NewService(node.ctx, &cfg.Carrier, &params.DataCenterConfig{
+		GrpcUrl: "192.168.112.32",
+		Port: 9099,
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to nit carrier backend service")
+	}
+	if err := node.registerBackendService(backend); err != nil {
 		return nil, err
 	}
 
@@ -97,7 +105,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		return nil, err
 	}
 
-	if err := node.registerRPCService(); err != nil {
+	if err := node.registerRPCService(backend); err != nil {
 		return nil, err
 	}
 	// todo: some logic to be added here...
@@ -219,15 +227,8 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	return b.services.RegisterService(svc)
 }
 
-func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) error {
-	backendService, err := carrier.NewService(b.ctx, carrierConfig, &params.DataCenterConfig{
-		GrpcUrl: "192.168.112.32",
-		Port: 9099,
-	})
-	if err != nil {
-		return errors.Wrap(err, "could not register backend service")
-	}
-	return b.services.RegisterService(backendService)
+func (b *CarrierNode) registerBackendService(backend *carrier.Service) error {
+	return b.services.RegisterService(backend)
 }
 
 func (b *CarrierNode) registerHandlerService() error {
@@ -240,8 +241,9 @@ func (b *CarrierNode) registerHandlerService() error {
 	return b.services.RegisterService(rs)
 }
 
-func (b *CarrierNode) registerRPCService() error {
-	return nil
+func (b *CarrierNode) registerRPCService(backend *carrier.Service) error {
+	rpcService := rpc.New(nil, carrier.NewCarrierAPIBackend(backend))
+	return b.services.RegisterService(rpcService)
 }
 
 func (b *CarrierNode) fetchP2P() p2p.P2P {
