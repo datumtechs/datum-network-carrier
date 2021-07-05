@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -32,6 +33,15 @@ func (m *Metadata) EncodePb(w io.Writer) error {
 	}
 	return err
 }
+
+func MetaDataTojson(meta *Metadata) string {
+	result, err := json.Marshal(meta.data)
+	if err != nil {
+		panic("Convert To json fail")
+	}
+	return string(result)
+}
+
 
 func (m *Metadata) DecodePb(data []byte) error {
 	if m.data == nil {
