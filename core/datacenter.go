@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"fmt"
+	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
@@ -11,6 +12,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
+	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -145,13 +147,18 @@ func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 	return rawdb.ReadLocalIdentity(dc.db), nil
 }
 
-func (dc *DataCenter) HasIdentityId(identityId string) (bool, error) {
-	// todo 判断是否存在单个 IdentityId
-	return false, nil
-}
-
 func (dc *DataCenter) HasIdentity(identity *types.NodeAlias) (bool, error) {
-	// todo 判断是否存在单个 Identity 信息
+	responses, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{
+		LastUpdateTime:       uint64(timeutils.Now().Second()),
+	})
+	if err != nil {
+		return false, err
+	}
+	for _, organization := range responses.IdentityList {
+		if strings.EqualFold(organization.IdentityId, identity.IdentityId) {
+			return true, nil
+		}
+	}
 	return false, nil
 }
 
