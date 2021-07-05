@@ -61,7 +61,7 @@ func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSav
 }
 
 func (gc *GrpcClient) GetMetaDataSummaryList(ctx context.Context) (*api.MetaDataSummaryListResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
 	return gc.metadataService.GetMetaDataSummaryList(ctx, &emptypb.Empty{})
 }
@@ -137,9 +137,9 @@ func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.Revok
 }
 
 func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.IdentityListRequest) (*api.IdentityListResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	return gc.GetIdentityList(ctx, request)
+	return gc.identityService.GetIdentityList(ctx, request)
 }
 
 // ************************************** Task module *******************************************************
