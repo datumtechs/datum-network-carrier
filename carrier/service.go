@@ -2,12 +2,15 @@ package carrier
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/consensus"
+	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
+	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/core/scheduler"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
@@ -20,9 +23,8 @@ type Service struct {
 	ctx            context.Context
 	cancel         context.CancelFunc
 	mempool        *message.Mempool
+	Engines        map[types.ConsensusEngineType]handler.Engine
 
-	// Consensuses
-	cons map[string]consensus.Engine
 
 	// DB interfaces
 	dataDb     db.Database
@@ -31,6 +33,7 @@ type Service struct {
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
 	taskManager     *task.Manager
+	scheduler       core.Scheduler
 	runError        error
 }
 
@@ -42,6 +45,13 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 
 	taskCh := make(chan types.TaskMsgs, 0)
 	pool := message.NewMempool(nil) // todo need  set mempool cfg
+
+
+	localTaskCh, schedTaskCh, remoteTaskCh :=
+		make(chan types.TaskMsgs),
+		make(chan *types.ConsensusTaskWrap),
+		make( chan *types.ScheduleTaskWrap)
+
 	s := &Service{
 		ctx:             ctx,
 		cancel:          cancel,
@@ -51,10 +61,13 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		resourceManager: resource.NewResourceManager(),
 		messageManager:  message.NewHandler(pool, nil, config.carrierDB, taskCh, nil), // todo need set dataChain
 		taskManager:     task.NewTaskManager(nil, taskCh, nil),             // todo need set dataChain
+		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh),
 	}
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
-
+	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
+	s.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{}, s.carrierDB, s.config.p2p, schedTaskCh, remoteTaskCh) // todo the 2pc config will be setup
+	s.Engines[types.ChainconsTyp] = chaincons.New()
 	// todo: set datachain....
 	return s, nil
 }

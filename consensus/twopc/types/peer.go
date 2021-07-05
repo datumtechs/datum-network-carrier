@@ -28,6 +28,12 @@ type PeerSet struct {
 	closed bool
 }
 
+func  NewPeerSet(size int) *PeerSet {
+	return &PeerSet{
+		peers: make(map[p2p.NodeID]*Peer, size),
+	}
+}
+
 func (ps *PeerSet) GetPeer(nodeId p2p.NodeID) *Peer {
 	return ps.peers[nodeId]
 }
