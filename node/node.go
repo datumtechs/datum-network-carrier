@@ -62,7 +62,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		}
 		conf.DataDir = absdatadir
 	}
-
+	// init service register to accept some service.
 	registry := common.NewServiceRegistry()
 
 	ctx, cancel := context.WithCancel(cliCtx.Context)
