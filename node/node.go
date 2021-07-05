@@ -9,6 +9,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
+	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/handler"
@@ -31,18 +32,16 @@ import (
 // It handles the lifecycle of the entire system and registers
 // services to a service registry.
 type CarrierNode struct {
-	cliCtx   *cli.Context
-	config   *Config
-	ctx      context.Context
-	cancel   context.CancelFunc
-	services *common.ServiceRegistry
-	Engines  map[types.ConsensusEngineType]handler.Engine
-
-	db        db.Database
+	ctx       context.Context
+	cancel    context.CancelFunc
+	cliCtx    *cli.Context
+	config    *Config
+	services  *common.ServiceRegistry
+	Engines   map[types.ConsensusEngineType]handler.Engine
+	db        core.CarrierDB
 	stateFeed *event.Feed
-
-	lock sync.RWMutex
-	stop chan struct{} // Channel to wait for termination notifications.
+	lock      sync.RWMutex
+	stop      chan struct{} // Channel to wait for termination notifications.
 }
 
 // New creates a new node instance, sets up configuration options, and registers
@@ -82,8 +81,11 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// start db
-	node.startDB(cliCtx, &cfg.Carrier)
-
+	err := node.startDB(cliCtx, &cfg.Carrier)
+	if err != nil {
+		log.WithError(err).Error("Failed to start DB")
+		return nil, err
+	}
 	// register P2P service
 	if err := node.registerP2P(cliCtx); err != nil {
 		return nil, err
@@ -92,7 +94,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	if err := node.registerBackendService(&cfg.Carrier); err != nil {
 		return nil, err
 	}
-
+	//
 	if err := node.registerHandlerService(); err != nil {
 		return nil, err
 	}
@@ -113,7 +115,14 @@ func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) er
 	}
 
 	// setting database
-	node.db = db
+	carrierDB, err := core.NewDataCenter(node.ctx, db, &params.DataCenterConfig{
+		GrpcUrl: "192.168.112.32",
+		Port:    9099,
+	})
+	if err != nil {
+		return err
+	}
+	node.db = carrierDB
 	return nil
 }
 
@@ -220,10 +229,7 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 }
 
 func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) error {
-	backendService, err := carrier.NewService(b.ctx, carrierConfig, &params.DataCenterConfig{
-		GrpcUrl: "192.168.112.32",
-		Port: 9099,
-	})
+	backendService, err := carrier.NewService(b.ctx, carrierConfig)
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}

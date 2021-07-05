@@ -31,7 +31,7 @@ type DataCenter struct {
 }
 
 // NewDataCenter returns a fully initialised data center using information available in the database.
-func NewDataCenter(ctx context.Context, config *params.DataCenterConfig) (*DataCenter, error) {
+func NewDataCenter(ctx context.Context, db db.Database, config *params.DataCenterConfig) (*DataCenter, error) {
 	// todo: When to call Close??
 	if config.GrpcUrl == "" || config.Port == 0 {
 		panic("Invalid Grpc Config.")
@@ -45,6 +45,7 @@ func NewDataCenter(ctx context.Context, config *params.DataCenterConfig) (*DataC
 		ctx:    ctx,
 		config: config,
 		client: client,
+		db: db,
 	}
 	return dc, nil
 }
@@ -139,6 +140,11 @@ func (dc *DataCenter) GetYarnName() (string, error) {
 func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 	// todo: implements by datacenter
 	return nil, nil
+}
+
+func (dc *DataCenter) GetIdentityId() (string, error) {
+	// todo: implements by datacenter
+	return "", nil
 }
 
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {

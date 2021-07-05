@@ -16,12 +16,12 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 
 // system (the yarn node self info)
 func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
-	jobNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if nil != err {
 		log.Error("Failed to get all job nodes, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
-	dataNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
 		log.Error("Failed to get all data nodes, on GetNodeInfo(), err:", err)
 		return nil, err
@@ -62,17 +62,17 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 			registerNodes[jobsLen+i] = n
 		}
 	}
-	name, err := s.carrier.datachain.GetYarnName()
+	name, err := s.carrier.carrierDB.GetYarnName()
 	if nil != err {
 		log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
-	identity, err := s.carrier.datachain.GetIdentityId()
+	identity, err := s.carrier.carrierDB.GetIdentityId()
 	if nil != err {
 		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
-	seedNodes, err := s.carrier.datachain.GetSeedNodeList()
+	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
 	return &types.YarnNodeInfo{
 		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
 		NodeId:       "",       //TODO 读配置
@@ -90,12 +90,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 }
 func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
 	// all dataNodes on yarnNode
-	dataNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
 		return nil, err
 	}
 	// all jobNodes on yarnNode
-	jobNodes, err := s.carrier.datachain.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if nil != err {
 		return nil, err
 	}
@@ -110,8 +110,8 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 			//ResourceUsage:  &types.ResourceUsage{},
 			Duration: 0, // TODO 添加运行时长 ...
 		}
-		n.Task.Count = s.carrier.datachain.GetRunningTaskCountOnJobNode(v.Id)
-		n.Task.TaskIds = s.carrier.datachain.GetJobNodeRunningTaskIdList(v.Id)
+		n.Task.Count = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
+		n.Task.TaskIds = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
 		jns[i] = n
 	}
 	dns := make([]*types.YarnRegisteredDataNode, len(jobNodes))
@@ -136,35 +136,35 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 }
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
-	return s.carrier.datachain.SetSeedNode(seed)
+	return s.carrier.carrierDB.SetSeedNode(seed)
 }
 
 func (s *CarrierAPIBackend) DeleteSeedNode(id string) error {
-	return s.carrier.datachain.DeleteSeedNode(id)
+	return s.carrier.carrierDB.DeleteSeedNode(id)
 }
 
 func (s *CarrierAPIBackend) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
-	return s.carrier.datachain.GetSeedNode(id)
+	return s.carrier.carrierDB.GetSeedNode(id)
 }
 
 func (s *CarrierAPIBackend) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
-	return s.carrier.datachain.GetSeedNodeList()
+	return s.carrier.carrierDB.GetSeedNodeList()
 }
 
 func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
-	return s.carrier.datachain.SetRegisterNode(typ, node)
+	return s.carrier.carrierDB.SetRegisterNode(typ, node)
 }
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
-	return s.carrier.datachain.DeleteRegisterNode(typ, id)
+	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
 }
 
 func (s *CarrierAPIBackend) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
-	return s.carrier.datachain.GetRegisterNode(typ, id)
+	return s.carrier.carrierDB.GetRegisterNode(typ, id)
 }
 
 func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	return s.carrier.datachain.GetRegisterNodeList(typ)
+	return s.carrier.carrierDB.GetRegisterNodeList(typ)
 }
 
 func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
@@ -174,12 +174,12 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
 
 // metadata api
 func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) {
-	metadata, err := s.carrier.dataCenter.GetMetadataByDataId(metaDataId)
+	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
 	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
 }
 
 func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) {
-	metadataArray, err := s.carrier.dataCenter.GetMetadataList()
+	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
 	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
 }
 
@@ -198,30 +198,30 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 
 // identity api
 func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {
-	return s.carrier.dataCenter.InsertIdentity(identity)
+	return s.carrier.carrierDB.InsertIdentity(identity)
 }
 
 func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
-	return s.carrier.dataCenter.RevokeIdentity(identity)
+	return s.carrier.carrierDB.RevokeIdentity(identity)
 }
 
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	// todo: to be determined nodeId.
-	return s.carrier.dataCenter.GetIdentityByNodeId("")
+	return s.carrier.carrierDB.GetIdentityByNodeId("")
 }
 
 func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
-	return s.carrier.dataCenter.GetIdentityList()
+	return s.carrier.carrierDB.GetIdentityList()
 }
 
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
-	taskArray, err := s.carrier.dataCenter.GetTaskList()
+	taskArray, err := s.carrier.carrierDB.GetTaskList()
 	return types.NewTaskDetailShowArrayFromTaskDataArray(taskArray), err
 }
 
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
-	taskEvent, err := s.carrier.dataCenter.GetTaskEventListByTaskId(taskId)
+	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskId(taskId)
 	return types.NewTaskEventFromAPIEvent(taskEvent), err
 }
 
