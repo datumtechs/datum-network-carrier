@@ -65,8 +65,8 @@ func NewService(ctx context.Context, config *Config, dataCenterConfig *params.Da
 	return s, nil
 }
 
-func (s *Service) Start() {
-
+func (s *Service) Start() error {
+	return nil
 }
 
 func (s *Service) Stop() error {
