@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"sync/atomic"
 )
@@ -162,6 +163,7 @@ type metadataData struct {
 	CreateAt uint64 `json:"createAt"`
 }
 type MetaDataSummary struct {
+	MetaDataId string `json:"metaDataId,omitempty"`
 	OriginId  string `json:"originId,omitempty"`
 	TableName string `json:"tableName,omitempty"`
 	Desc      string `json:"desc,omitempty"`
@@ -369,6 +371,22 @@ type TaskOperationCost struct {
 	Bandwidth uint64 `json:"bandwidth"`
 	Duration  uint64 `json:"duration"`
 }
+func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *pb.TaskOperationCostDeclare {
+	return &pb.TaskOperationCostDeclare{
+		CostMem: cost.Mem,
+		CostProcessor: cost.Processor,
+		CostBandwidth: cost.Bandwidth,
+		Duration: cost.Duration,
+	}
+}
+func ConvertTaskOperationCostFromPB(cost *pb.TaskOperationCostDeclare) *TaskOperationCost {
+	return &TaskOperationCost{
+		Mem: cost.CostMem,
+		Processor: cost.CostProcessor,
+		Bandwidth: cost.CostBandwidth,
+		Duration: cost.Duration,
+	}
+}
 
 // ------------------- data using authorize -------------------
 
@@ -402,6 +420,39 @@ type NodeAlias struct {
 	IdentityId string `json:"identityId"`
 }
 
+func ConvertNodeAliasToPB(alias *NodeAlias) *pb.OrganizationIdentityInfo {
+	return &pb.OrganizationIdentityInfo{
+		Name: alias.Name,
+		NodeId: alias.NodeId,
+		IdentityId: alias.IdentityId,
+	}
+}
+func ConvertNodeAliasFromPB(org *pb.OrganizationIdentityInfo) *NodeAlias {
+	return &NodeAlias{
+		Name: org.Name,
+		NodeId: org.NodeId,
+		IdentityId: org.IdentityId,
+	}
+}
+
+func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*pb.OrganizationIdentityInfo {
+	orgs := make([]*pb.OrganizationIdentityInfo, len(aliases))
+	for i, a := range aliases {
+		org := ConvertNodeAliasToPB(a)
+		orgs[i] = org
+	}
+	return orgs
+}
+func ConvertNodeAliasArrFromPB(orgs []*pb.OrganizationIdentityInfo) []*NodeAlias {
+	aliases := make([]*NodeAlias, len(orgs))
+	for i, o := range orgs {
+		alias := ConvertNodeAliasFromPB(o)
+		aliases[i] = alias
+	}
+	return aliases
+}
+
+
 func (n *NodeAlias) GetNodeName() string       { return n.Name }
 func (n *NodeAlias) GetNodeIdStr() string      { return n.NodeId }
 func (n *NodeAlias) GetNodeIdentityId() string { return n.IdentityId }
@@ -413,4 +464,24 @@ type ResourceUsage struct {
 	UsedProcessor  uint64 `json:"usedProcessor"`
 	TotalBandwidth uint64 `json:"totalBandwidth"`
 	UsedBandwidth  uint64 `json:"usedBandwidth"`
+}
+func ConvertResourceUsageToPB (usage *ResourceUsage) *pb.ResourceUsedDetailShow {
+	return &pb.ResourceUsedDetailShow{
+		TotalMem: usage.TotalMem,
+		UsedMem: usage.UsedMem,
+		TotalProcessor: usage.TotalProcessor,
+		UsedProcessor: usage.UsedProcessor,
+		TotalBandwidth: usage.TotalBandwidth,
+		UsedBandwidth: usage.UsedBandwidth,
+	}
+}
+func ConvertResourceUsageFromPB (usage *pb.ResourceUsedDetailShow) *ResourceUsage {
+	return &ResourceUsage{
+		TotalMem: usage.TotalMem,
+		UsedMem: usage.UsedMem,
+		TotalProcessor: usage.TotalProcessor,
+		UsedProcessor: usage.UsedProcessor,
+		TotalBandwidth: usage.TotalBandwidth,
+		UsedBandwidth: usage.UsedBandwidth,
+	}
 }

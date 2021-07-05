@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
@@ -99,3 +100,62 @@ type MetaDataInfo struct {
 	ColumnMetas     []*libTypes.ColumnMeta    `json:"columnMetas"`
 }
 
+func ConvertMetaDataInfoToPB (metadata *MetaDataInfo) *pb.MetaDataDetailShow {
+	columns := make([]*pb.MetaDataColumnDetail, len(metadata.ColumnMetas))
+	for j, colv := range metadata.ColumnMetas {
+		column := &pb.MetaDataColumnDetail{
+			Cindex: colv.Cindex,
+			Cname: colv.Cname,
+			Ctype: colv.Ctype,
+			Csize: colv.Csize,
+			Ccomment: colv.Ccomment,
+		}
+		columns[j] = column
+	}
+	return &pb.MetaDataDetailShow{
+		MetaDataSummary: &pb.MetaDataSummary{
+			MetaDataId: metadata.MetaDataSummary.MetaDataId,
+			OriginId: metadata.MetaDataSummary.OriginId,
+			TableName: metadata.MetaDataSummary.TableName,
+			Desc: metadata.MetaDataSummary.Desc,
+			FilePath: metadata.MetaDataSummary.FilePath,
+			Rows:metadata.MetaDataSummary.Rows,
+			Columns: metadata.MetaDataSummary.Columns,
+			Size_: metadata.MetaDataSummary.Size,
+			FileType: metadata.MetaDataSummary.FileType,
+			HasTitle: metadata.MetaDataSummary.HasTitle,
+			State: metadata.MetaDataSummary.State,
+		},
+		ColumnMeta: columns,
+	}
+}
+
+func ConvertMetaDataInfoFromPB (metadata *pb.MetaDataDetailShow) *MetaDataInfo {
+	columns := make([]*libTypes.ColumnMeta, len(metadata.ColumnMeta))
+	for j, colv := range metadata.ColumnMeta {
+		column := &libTypes.ColumnMeta{
+			Cindex: colv.Cindex,
+			Cname: colv.Cname,
+			Ctype: colv.Ctype,
+			Csize: colv.Csize,
+			Ccomment: colv.Ccomment,
+		}
+		columns[j] = column
+	}
+	return &MetaDataInfo{
+		MetaDataSummary: &MetaDataSummary{
+			MetaDataId: metadata.MetaDataSummary.MetaDataId,
+			OriginId: metadata.MetaDataSummary.OriginId,
+			TableName: metadata.MetaDataSummary.TableName,
+			Desc: metadata.MetaDataSummary.Desc,
+			FilePath: metadata.MetaDataSummary.FilePath,
+			Rows:metadata.MetaDataSummary.Rows,
+			Columns: metadata.MetaDataSummary.Columns,
+			Size: metadata.MetaDataSummary.Size_,
+			FileType: metadata.MetaDataSummary.FileType,
+			HasTitle: metadata.MetaDataSummary.HasTitle,
+			State: metadata.MetaDataSummary.State,
+		},
+		ColumnMetas: columns,
+	}
+}

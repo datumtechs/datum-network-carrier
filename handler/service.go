@@ -72,7 +72,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 }
 
 // Start the regular sync service.
-func (s *Service) Start() {
+func (s *Service) Start() error {
 	if err := s.initCaches(); err != nil {
 		panic(err)
 	}
@@ -105,6 +105,7 @@ func (s *Service) Start() {
 	})*/
 
 	log.Info("Starting handler service")
+	return nil
 }
 
 // Stop the regular sync service.
