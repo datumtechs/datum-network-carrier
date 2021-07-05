@@ -50,3 +50,7 @@ message StringArrayPB {
 message TaskArrayPB {
     repeated types.TaskData task_list = 1;
 }
+
+message TaskEventArrayPB {
+    repeated types.EventData task_event_list = 1;
+}

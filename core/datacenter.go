@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/params"
@@ -45,7 +46,7 @@ func NewDataCenter(ctx context.Context, db db.Database, config *params.DataCente
 		ctx:    ctx,
 		config: config,
 		client: client,
-		db: db,
+		db:     db,
 	}
 	return dc, nil
 }
@@ -57,7 +58,6 @@ func (dc *DataCenter) getProcInterrupt() bool {
 func (dc *DataCenter) SetProcessor(processor Processor) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	// do setting...
 	dc.processor = processor
 }
 
@@ -122,29 +122,41 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-// TODO 本地存储当前调度服务自身的  identity
+func (dc *DataCenter) StoreTaskEvent(event *event.TaskEvent) error {
+	rawdb.WriteTaskEvent(dc.db, event)
+	return nil
+}
+
 func (dc *DataCenter) StoreIdentity(identity *types.NodeAlias) error {
-	// todo: implements by datacenter
+	rawdb.WriteLocalIdentity(dc.db, identity)
 	return nil
 }
 
 func (dc *DataCenter) DelIdentity() error {
-	// todo: implements by datacenter
+	rawdb.DeleteLocalIdentity(dc.db)
 	return nil
+}
+
+func (dc *DataCenter) GetIdentityId() (string, error) {
+	return rawdb.ReadLocalIdentity(dc.db).GetNodeIdentityId(), nil
+}
+
+func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
+	return rawdb.ReadLocalIdentity(dc.db), nil
+}
+
+func (dc *DataCenter) HasIdentityId(identityId string) (bool, error) {
+	// todo 判断是否存在单个 IdentityId
+	return false, nil
+}
+
+func (dc *DataCenter) HasIdentity(identity *types.NodeAlias) (bool, error) {
+	// todo 判断是否存在单个 Identity 信息
+	return false, nil
 }
 
 func (dc *DataCenter) GetYarnName() (string, error) {
 	return rawdb.ReadYarnName(dc.db), nil
-}
-
-func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
-	// todo: implements by datacenter
-	return nil, nil
-}
-
-func (dc *DataCenter) GetIdentityId() (string, error) {
-	// todo: implements by datacenter
-	return "", nil
 }
 
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
@@ -162,17 +174,6 @@ func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArra
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	metaDataSummaryListResponse, err := dc.client.GetMetaDataSummaryList(dc.ctx)
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
-}
-
-func (dc *DataCenter) HasIdentityId(identityId string) (bool, error) {
-
-	// todo 判断是否存在单个 IdentityId
-	return false, nil
-}
-
-func (dc *DataCenter) HasIdentity(identity *types.NodeAlias) (bool, error) {
-	// todo 判断是否存在单个 Identity 信息
-	return false, nil
 }
 
 // InsertResource saves new resource info to the center of data.

@@ -53,6 +53,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		taskManager:     task.NewTaskManager(nil, taskCh, nil),             // todo need set dataChain
 	}
 	// todo: some logic could be added...
+	s.APIBackend = &CarrierAPIBackend{carrier: s}
 
 	// todo: set datachain....
 	return s, nil
