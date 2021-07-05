@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
@@ -160,10 +161,10 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 }
 
 // Start the p2p service.
-func (s *Service) Start() {
+func (s *Service) Start() error {
 	if s.started {
 		log.Error("Attempted to start p2p service when is was already started")
-		return
+		return fmt.Errorf("Attempted to start p2p service when is was already started")
 	}
 	s.awaitStateInitialized()
 	s.isPreGenesis = false
@@ -181,13 +182,13 @@ func (s *Service) Start() {
 		if err != nil {
 			log.WithError(err).Fatal("Failed to start discovery")
 			s.startupErr = err
-			return
+			return err
 		}
 		err = s.connectToBootnodes()
 		if err != nil {
 			log.WithError(err).Error("Could not add bootnode to the exclusion list")
 			s.startupErr = err
-			return
+			return err
 		}
 		s.dv5Listener = listener
 		go s.listenForNewNodes()
@@ -240,6 +241,8 @@ func (s *Service) Start() {
 	if p2pHostDNS != "" {
 		logExternalDNSAddr(s.host.ID(), p2pHostDNS, p2pTCPPort)
 	}
+
+	return nil
 }
 
 // Stop the p2p service and terminate all peer connections.
