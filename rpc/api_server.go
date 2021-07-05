@@ -36,6 +36,19 @@ var (
 
 	ErrSendIdentityMsgStr    = "Failed to send identityMsg"
 	ErrSendIdentityRevokeMsgStr    = "Failed to send identityRevokeMsg"
+
+
+	ErrGetMetaDataDetailStr = "Failed to get metadata detail"
+	ErrGetMetaDataDetailListStr = "Failed to get metadata detail list"
+
+	ErrGetTotalPowerListStr = "Failed to get total power list"
+	ErrGetSinglePowerListStr = "Failed to get current node power list"
+
+	ErrGetNodeIdentityStr = "Failed to get node identityInfo"
+	ErrGetIdentityListStr = "Failed to get all identityInfo list"
+
+	ErrGetNodeTaskListStr = "Failed to get all task of current node"
+	ErrGetNodeTaskEventListStr = "Failed to get all event of current node's task"
 )
 
 type yarnServiceServer struct {
@@ -161,7 +174,7 @@ func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 		ConnState:    types.NONCONNECTED,
 	}
 	seedNode.SeedNodeId()
-	_, err := svr.b.SetSeedNode(seedNode)
+	_, err := svr.b.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
@@ -184,7 +197,7 @@ func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 		InternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-	_, err := svr.b.SetSeedNode(seedNode)
+	_, err := svr.b.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
@@ -239,7 +252,7 @@ func (svr *yarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
+	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
@@ -266,7 +279,7 @@ func (svr *yarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		ConnState:    types.NONCONNECTED,
 	}
 
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
+	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
@@ -325,7 +338,7 @@ func (svr *yarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
+	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
@@ -351,7 +364,7 @@ func (svr *yarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		ExternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
+	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
@@ -436,29 +449,85 @@ type metaDataServiceServer struct {
 //	return nil, nil
 //}
 func (svr *metaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
-	return nil, nil
+
+	metaDataDetail, err := svr.b.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetMetaDataDetailStr)
+	}
+
+	columns := make([]*pb.MetaDataColumnDetail, len(metaDataDetail.MetaData.ColumnMetas))
+	for i, colv := range metaDataDetail.MetaData.ColumnMetas {
+		column := &pb.MetaDataColumnDetail{
+			Cindex: colv.Cindex,
+			Cname: colv.Cname,
+			Ctype: colv.Ctype,
+			Csize: colv.Csize,
+			Ccomment: colv.Ccomment,
+		}
+		columns[i] = column
+	}
+
+	return &pb.GetMetaDataDetailResponse{
+		Owner: types.ConvertNodeAliasToPB(metaDataDetail.Owner),
+		Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
+	}, nil
 }
 func (svr *metaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataDetailListResponse, error) {
-	return nil, nil
+
+	metaDataList, err := svr.b.GetMetaDataDetailList()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetMetaDataDetailListStr)
+	}
+	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
+	for i, metaDataDetail := range metaDataList {
+		resp := &pb.GetMetaDataDetailResponse{
+			Owner: types.ConvertNodeAliasToPB(metaDataDetail.Owner),
+			Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
+		}
+		respList[i] = resp
+	}
+
+	return &pb.GetMetaDataDetailListResponse{
+		Status: 0,
+		Msg: OK,
+		MetaDataList: respList,
+	}, nil
 }
 func (svr *metaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
-	return nil, nil
+	metaDataList, err := svr.b.GetMetaDataDetailListByOwner(req.IdentityId)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetMetaDataDetailListStr)
+	}
+	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
+	for i, metaDataDetail := range metaDataList {
+		resp := &pb.GetMetaDataDetailResponse{
+			Owner: types.ConvertNodeAliasToPB(metaDataDetail.Owner),
+			Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
+		}
+		respList[i] = resp
+	}
+
+	return &pb.GetMetaDataDetailListResponse{
+		Status: 0,
+		Msg: OK,
+		MetaDataList: respList,
+	}, nil
 }
 func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
 	metaDataMsg := new(types.MetaDataMsg)
-	metaDataMsg.MetaDataId = req.Information.MetaSummary.MetaDataId
+	metaDataMsg.MetaDataId = req.Information.MetaDataSummary.MetaDataId
 	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 	metaDataMsg.Data.Name = req.Owner.Name
 	metaDataMsg.Data.NodeId = req.Owner.NodeId
 	metaDataMsg.Data.IdentityId = req.Owner.IdentityId
-	metaDataMsg.Data.Information.MetaDataSummary.TableName = req.Information.MetaSummary.TableName
-	metaDataMsg.Data.Information.MetaDataSummary.FilePath = req.Information.MetaSummary.FilePath
-	metaDataMsg.Data.Information.MetaDataSummary.OriginId = req.Information.MetaSummary.OriginId
-	metaDataMsg.Data.Information.MetaDataSummary.Desc = req.Information.MetaSummary.Desc
-	metaDataMsg.Data.Information.MetaDataSummary.FileType = req.Information.MetaSummary.FileType
-	metaDataMsg.Data.Information.MetaDataSummary.Size = req.Information.MetaSummary.Size_
-	metaDataMsg.Data.Information.MetaDataSummary.HasTitle = req.Information.MetaSummary.HasTitle
-	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaSummary.State
+	metaDataMsg.Data.Information.MetaDataSummary.TableName = req.Information.MetaDataSummary.TableName
+	metaDataMsg.Data.Information.MetaDataSummary.FilePath = req.Information.MetaDataSummary.FilePath
+	metaDataMsg.Data.Information.MetaDataSummary.OriginId = req.Information.MetaDataSummary.OriginId
+	metaDataMsg.Data.Information.MetaDataSummary.Desc = req.Information.MetaDataSummary.Desc
+	metaDataMsg.Data.Information.MetaDataSummary.FileType = req.Information.MetaDataSummary.FileType
+	metaDataMsg.Data.Information.MetaDataSummary.Size = req.Information.MetaDataSummary.Size_
+	metaDataMsg.Data.Information.MetaDataSummary.HasTitle = req.Information.MetaDataSummary.HasTitle
+	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaDataSummary.State
 
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
@@ -529,10 +598,58 @@ type powerServiceServer struct {
 //	return nil, nil
 //}
 func (svr *powerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
-	return nil, nil
+
+	powerList, err := svr.b.GetPowerTotalDetailList()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetTotalPowerListStr)
+	}
+	respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
+
+	for i, power := range powerList {
+
+		resp := &pb.GetPowerTotalDetailResponse{
+			Owner: types.ConvertNodeAliasToPB(power.Owner),
+			Power: &pb.PowerTotalDetail{
+				Information: types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
+				TotalTaskCount:power.PowerDetail.TotalTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
+				CurrentTaskCount: power.PowerDetail.CurrentTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
+				Tasks: types.ConvertPowerTaskArrToPB(power.PowerDetail.Tasks), // TODO 管理台查询 全网算力， 暂不显示 任务实况
+				State: power.PowerDetail.State,
+			},
+		}
+		respList[i] = resp
+	}
+	return &pb.GetPowerTotalDetailListResponse{
+		PowerList: respList,
+	}, nil
 }
 func (svr *powerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
-	return nil, nil
+
+	powerList, err := svr.b.GetPowerSingleDetailList()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetSinglePowerListStr)
+	}
+	respList := make([]*pb.GetPowerSingleDetailResponse, len(powerList))
+
+	for i, power := range powerList {
+
+		resp := &pb.GetPowerSingleDetailResponse{
+			Owner:  types.ConvertNodeAliasToPB(power.Owner),
+			Power: &pb.PowerSingleDetail{
+				JobNodeId: power.PowerDetail.JobNodeId,
+				PowerId: power.PowerDetail.PowerId,
+				Information:types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
+				TotalTaskCount:power.PowerDetail.TotalTaskCount,
+				CurrentTaskCount: power.PowerDetail.CurrentTaskCount,
+				Tasks: types.ConvertPowerTaskArrToPB(power.PowerDetail.Tasks),
+				State: power.PowerDetail.State,
+			},
+		}
+		respList[i] = resp
+	}
+	return &pb.GetPowerSingleDetailListResponse{
+		PowerList: respList,
+	}, nil
 }
 func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
 
@@ -610,10 +727,40 @@ func (svr *authServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 	}, nil
 }
 func (svr *authServiceServer) GetNodeIdentity(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeIdentityResponse, error) {
-	return nil, nil
+
+	identity, err := svr.b.GetNodeIdentity()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetNodeIdentityStr)
+	}
+	return &pb.GetNodeIdentityResponse{
+		Status: 0,
+		Msg: OK,
+		Owner: &pb.OrganizationIdentityInfo{
+			Name: identity.Name(),
+			NodeId:  identity.NodeId(),
+			IdentityId:  identity.IdentityId(),
+		},
+	}, nil
 }
 func (svr *authServiceServer) GetIdentityList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetIdentityListResponse, error) {
-	return nil, nil
+	identitys, err := svr.b.GetIdentityList()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetIdentityListStr)
+	}
+	arr := make([]*pb.OrganizationIdentityInfo, len(identitys))
+	for i, identity := range identitys {
+		iden := &pb.OrganizationIdentityInfo{
+			Name: identity.Name(),
+			NodeId:  identity.NodeId(),
+			IdentityId:  identity.IdentityId(),
+		}
+		arr[i] = iden
+	}
+	return &pb.GetIdentityListResponse{
+		Status: 0,
+		Msg: OK,
+		MemberList: arr,
+	}, nil
 }
 
 
@@ -631,10 +778,35 @@ type taskServiceServer struct {
 //	return nil, nil
 //}
 func (svr *taskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskDetailListResponse, error) {
-	return nil, nil
+	tasks, err := svr.b.GetTaskDetailList()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetNodeTaskListStr)
+	}
+	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
+	for i, task := range tasks {
+		t := &pb.GetTaskDetailResponse{
+			Information: types.ConvertTaskDetailShowToPB(task),
+		}
+		arr[i] = t
+	}
+	return &pb.GetTaskDetailListResponse{
+		Status: 0,
+		Msg: OK,
+		TaskList: arr,
+	}, nil
 }
 func (svr *taskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventListRequest) (*pb.GetTaskEventListResponse, error) {
-	return nil, nil
+
+	events, err := svr.b.GetTaskEventList(req.TaskId)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetNodeTaskEventListStr)
+	}
+
+	return &pb.GetTaskEventListResponse{
+		Status: 0,
+		Msg: OK,
+		TaskEventList: types.ConvertTaskEventArrToPB(events),
+	}, nil
 }
 func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
 	taskMsg := new(types.TaskMsg)

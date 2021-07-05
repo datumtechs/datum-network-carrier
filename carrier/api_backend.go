@@ -194,7 +194,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 }
 
 func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
-	return nil, nil
+	return nil, nil // TODO 未完成,  需要查自己参与过的任务信息
 }
 
 // identity api
