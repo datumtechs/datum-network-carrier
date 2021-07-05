@@ -1,7 +1,6 @@
 package rpc
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"google.golang.org/grpc"
 	"log"
@@ -9,13 +8,13 @@ import (
 )
 
 type RpcApiServer struct {
-	Cfg 				*common.RpcConfig
+	Cfg 				*RpcConfig
 	GrpcSvr 			*grpc.Server
 	b             		Backend
 }
 
 
-func New(cfg *common.RpcConfig, b Backend) *RpcApiServer {
+func New(cfg *RpcConfig, b Backend) *RpcApiServer {
 	return &RpcApiServer{Cfg: cfg, b: b}
 }
 func (svr *RpcApiServer) Start() error {

@@ -91,15 +91,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	if err := node.registerP2P(cliCtx); err != nil {
 		return nil, err
 	}
-	// register core backend service
-	backend, err := carrier.NewService(node.ctx, &cfg.Carrier, &params.DataCenterConfig{
-		GrpcUrl: "192.168.112.32",
-		Port: 9099,
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to nit carrier backend service")
-	}
-	if err := node.registerBackendService(backend); err != nil {
+	if err := node.registerBackendService(&cfg.Carrier); err != nil {
 		return nil, err
 	}
 	//
@@ -107,7 +99,11 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		return nil, err
 	}
 
-	if err := node.registerRPCService(backend); err != nil {
+	//TODO: need to config rpc
+	if err := node.registerRPCService(&rpc.RpcConfig{
+		Ip:       "0.0.0.0",
+		Port:     "8888",
+	}); err != nil {
 		return nil, err
 	}
 	// todo: some logic to be added here...
@@ -254,9 +250,17 @@ func (b *CarrierNode) registerHandlerService() error {
 	return b.services.RegisterService(rs)
 }
 
-func (b *CarrierNode) registerRPCService(backend *carrier.Service) error {
-	rpcService := rpc.New(nil, carrier.NewCarrierAPIBackend(backend))
+func (b *CarrierNode) registerRPCService(config *rpc.RpcConfig) error {
+	rpcService := rpc.New(config, b.fetchBackend())
 	return b.services.RegisterService(rpcService)
+}
+
+func (b *CarrierNode) fetchBackend() rpc.Backend {
+	var s *carrier.Service
+	if err := b.services.FetchService(&s); err != nil {
+		panic(err)
+	}
+	return s.APIBackend
 }
 
 func (b *CarrierNode) fetchP2P() p2p.P2P {
