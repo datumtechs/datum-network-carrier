@@ -7,8 +7,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
-	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
@@ -17,7 +15,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/rpc"
-	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/shared/sliceutil"
 	"github.com/urfave/cli/v2"
@@ -38,7 +35,7 @@ type CarrierNode struct {
 	cliCtx    *cli.Context
 	config    *Config
 	services  *common.ServiceRegistry
-	Engines   map[types.ConsensusEngineType]handler.Engine
+
 	db        core.CarrierDB
 	stateFeed *event.Feed
 	lock      sync.RWMutex
@@ -76,10 +73,6 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		stop:      make(chan struct{}),
 	}
 
-	if err := node.registerConsensusEngine(); nil != err {
-		log.Error("Failed to registerConsensusEngine", "err", err)
-		return nil, err
-	}
 
 	// start db
 	err := node.startDB(cliCtx, &cfg.Carrier)
@@ -245,22 +238,29 @@ func (b *CarrierNode) registerHandlerService() error {
 	rs := handler.NewService(b.ctx, &handler.Config{
 		P2P:           b.fetchP2P(),
 		StateNotifier: b,
-		Engines:       b.Engines,
+		Engines:       b.fetchBackend().Engines,
 	})
 	return b.services.RegisterService(rs)
 }
 
 func (b *CarrierNode) registerRPCService(config *rpc.RpcConfig) error {
-	rpcService := rpc.New(config, b.fetchBackend())
+	rpcService := rpc.New(config, b.fetchRPCBackend())
 	return b.services.RegisterService(rpcService)
 }
 
-func (b *CarrierNode) fetchBackend() rpc.Backend {
+func (b *CarrierNode) fetchRPCBackend() rpc.Backend {
 	var s *carrier.Service
 	if err := b.services.FetchService(&s); err != nil {
 		panic(err)
 	}
 	return s.APIBackend
+}
+func (b *CarrierNode) fetchBackend() *carrier.Service {
+	var s *carrier.Service
+	if err := b.services.FetchService(&s); err != nil {
+		panic(err)
+	}
+	return s
 }
 
 func (b *CarrierNode) fetchP2P() p2p.P2P {
@@ -276,11 +276,3 @@ func (b *CarrierNode) StateFeed() *event.Feed {
 	return b.stateFeed
 }
 
-func (b *CarrierNode) registerConsensusEngine() error {
-
-	b.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
-	b.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{}, )
-	b.Engines[types.ChainconsTyp] = chaincons.New()
-
-	return nil
-}

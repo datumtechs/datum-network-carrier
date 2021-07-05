@@ -11,16 +11,22 @@ const (
 
 type SchedulerStarveFIFO struct {
 	resourceMng    *resource.Manager
+	// the local task into this queue, first
 	queue          types.TaskBullets
+	// the very very starve local task by priority
 	starveQueue    types.TaskBullets
+	// the cache with scheduled local task, will be send to `Consensus`
 	scheduledQueue []*types.ScheduleTask
+	// fetch local task from taskManager`
 	localTaskCh    chan types.TaskMsgs
+	// send local task scheduled to `Consensus`
 	schedTaskCh    chan *types.ConsensusTaskWrap
+	// receive remote task to replay from `Consensus`
 	remoteTaskCh   chan *types.ScheduleTaskWrap
 	err            error
 }
 
-func (sche *SchedulerStarveFIFO) NewSchedulerStarveFIFO(
+func  NewSchedulerStarveFIFO(
 	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
 	remoteTaskCh chan *types.ScheduleTaskWrap) *SchedulerStarveFIFO {
 
