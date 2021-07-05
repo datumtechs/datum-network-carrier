@@ -21,7 +21,12 @@ func NewMetaDataSaveRequest(metadata *Metadata) *api.MetaDataSaveRequest {
 			HasTitle:             metadata.data.HasTitleRow,
 			State:                metadata.data.State,
 		},
-		ColumnMeta:         make([]*api.MetaDataColumnDetail, len(metadata.data.ColumnMetaList)),
+		ColumnMeta:         make([]*api.MetaDataColumnDetail, 0),
+		Owner: &api.Organization{
+			Name:       metadata.data.GetNodeName(),
+			NodeId:     metadata.data.GetNodeId(),
+			IdentityId: metadata.data.GetIdentity(),
+		},
 	}
 	for _, column := range metadata.data.ColumnMetaList {
 		request.ColumnMeta = append(request.ColumnMeta, &api.MetaDataColumnDetail{
@@ -78,9 +83,9 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			NodeId:               task.data.AlgoSupplier.GetNodeId(),
 			IdentityId:           task.data.AlgoSupplier.GetIdentity(),
 		},
-		DataSupplier:         make([]*api.TaskDataSupplier, len(task.data.GetMetadataSupplier())),
-		PowerSupplier:        make([]*api.TaskPowerSupplier, len(task.data.GetResourceSupplier())),
-		Receivers:            make([]*api.TaskResultReceiver, len(task.data.GetReceivers())),
+		DataSupplier:         make([]*api.TaskDataSupplier, 0),
+		PowerSupplier:        make([]*api.TaskPowerSupplier, 0),
+		Receivers:            make([]*api.TaskResultReceiver, 0),
 		CreateAt:             task.data.GetCreateAt(),
 		EndAt:                task.data.GetEndAt(),
 		State:                task.data.GetState(),
@@ -100,7 +105,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 			},
 			MetaId:               v.GetMetaId(),
 			MetaName:             v.GetMetaName(),
-			ColumnMeta:			 make([]*api.MetaDataColumnDetail, len(v.GetColumnList())),
+			ColumnMeta:			 make([]*api.MetaDataColumnDetail, 0),
 		}
 		for _, column := range v.GetColumnList() {
 			dataSupplier.ColumnMeta = append(dataSupplier.ColumnMeta, &api.MetaDataColumnDetail{
@@ -139,7 +144,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 				NodeId:               receive.GetNodeId(),
 				IdentityId:           receive.GetIdentity(),
 			},
-			Provider:             make([]*api.Organization, len(providers)),
+			Provider:             make([]*api.Organization, 0),
 		}
 		for _, provider := range providers {
 			taskResultReceiver.Provider = append(taskResultReceiver.Provider, &api.Organization{
@@ -204,7 +209,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 }
 
 func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceArray {
-	resourceArray := make(ResourceArray, 1)
+	resourceArray := make(ResourceArray, 0)
 	resource := NewResource(&libTypes.ResourceData{
 		Identity:   response.GetOwner().GetIdentityId(),
 		NodeId:     response.GetOwner().GetNodeId(),
