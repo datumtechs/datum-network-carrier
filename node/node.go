@@ -262,7 +262,7 @@ func (b *CarrierNode) StateFeed() *event.Feed {
 func (b *CarrierNode) registerConsensusEngine() error {
 
 	b.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
-	b.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{})
+	b.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{}, )
 	b.Engines[types.ChainconsTyp] = chaincons.New()
 
 	return nil

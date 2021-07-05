@@ -24,26 +24,33 @@ type DataCenter interface {
 
 type TwoPC struct {
 	config       *Config
-	Errs         []error
 	p2p          p2p.P2P
 	peerSet      *ctypes.PeerSet
+	state        *state
 	taskCh       <-chan *types.ConsensusTaskWrap
 	replayTaskCh chan<- *types.ScheduleTaskWrap
-
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask
 	// The task processing  that received someone else (taskId -> task)
 	recvTasks map[string]*types.ScheduleTask
-	state     *state
 
 	dataCenter DataCenter
+
+	Errs []error
 }
 
-func New(conf *Config) *TwoPC {
+func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ScheduleTaskWrap) *TwoPC {
 	t := &TwoPC{
-		config: conf,
-		Errs:   make([]error, 0),
-		state:  newState(),
+		config:       conf,
+		p2p:          p2p,
+		peerSet:      ctypes.NewPeerSet(10), // TODO 暂时写死的
+		state:        newState(),
+		taskCh:       taskCh,
+		replayTaskCh: replayTaskCh,
+		sendTasks:    make(map[string]*types.ScheduleTask),
+		recvTasks:    make(map[string]*types.ScheduleTask),
+		dataCenter:   dataCenter,
+		Errs:         make([]error, 0),
 	}
 	go t.loop()
 	return t
@@ -82,11 +89,6 @@ func (t *TwoPC) loop() {
 	}
 }
 
-//func (t *TwoPC) handleMsg() error {
-//
-//
-//	return nil
-//}
 
 func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
 	return nil
