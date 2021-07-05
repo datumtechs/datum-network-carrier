@@ -10,7 +10,7 @@ var log = logrus.WithField("prefix", "registry")
 
 // Service is a struct that con be registered into a ServiceRegistry
 type Service interface {
-	Start()
+	Start() error
 	Stop() error
 	Status() error
 }

@@ -18,7 +18,7 @@ type RpcApiServer struct {
 func New(cfg *common.RpcConfig, b Backend) *RpcApiServer {
 	return &RpcApiServer{Cfg: cfg, b: b}
 }
-func (svr *RpcApiServer) Start() {
+func (svr *RpcApiServer) Start() error {
 
 	lis, err := net.Listen(svr.Cfg.Protocol, svr.Cfg.Ip+":"+svr.Cfg.Port)
 	if err != nil {
@@ -39,11 +39,18 @@ func (svr *RpcApiServer) Start() {
 		log.Fatalf("Failed to start rpc server, serve failed: %v", err)
 	}
 	svr.GrpcSvr = s
+	return nil
 }
 
-func (svr *RpcApiServer) Stop () {
+func (svr *RpcApiServer) Stop () error {
 	svr.GrpcSvr.Stop()
 	log.Println("Stop grpc server ...")
+	return nil
+}
+
+func (svr *RpcApiServer) Status () error {
+
+	return nil
 }
 
 func (svr *RpcApiServer) GracefulStop () {

@@ -16,7 +16,8 @@ type secondMockService struct {
 	status error
 }
 
-func (m *mockService) Start() {
+func (m *mockService) Start() error {
+	return nil
 }
 
 func (m *mockService) Stop() error {
@@ -27,7 +28,8 @@ func (m *mockService) Status() error {
 	return m.status
 }
 
-func (s *secondMockService) Start() {
+func (s *secondMockService) Start() error {
+	return nil
 }
 
 func (s *secondMockService) Stop() error {

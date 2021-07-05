@@ -39,9 +39,9 @@ message TaskDetailShow {
 }
 // 任务数据提供方信息 (任务详情展示用)
 message TaskDataSupplierShow {
-    OrganizationIdentityInfo member_info = 1;                         // 身份信息
-    string                   meta_id     = 2;                             // 元数据Id
-    string                   meta_name   = 3;                           // 元数据名称
+    OrganizationIdentityInfo member_info    = 1;                         // 身份信息
+    string                   meta_data_id   = 2;                             // 元数据Id
+    string                   meta_data_name = 3;                           // 元数据名称
 }
 // 任务算力提供方信息 (任务详情展示用)
 message TaskPowerSupplierShow {

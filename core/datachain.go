@@ -221,7 +221,7 @@ func (dc *DataChain) GetTaskDataByTaskId(taskId string) (*types.Task, error) {
 func (dc *DataChain) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
 	return nil, nil
 }
-
+// TODO 未完成 ...
 func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
 	return types.NONCONNECTED, nil
 }
@@ -238,7 +238,7 @@ func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
 func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
 	return rawdb.ReadAllSeedNodes(dc.db), nil
 }
-
+// TODO 未完成 ...
 func (dc *DataChain) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
 	// todo: need to establish conn to registered node. heartbeat detection
