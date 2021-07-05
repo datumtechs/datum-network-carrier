@@ -27,7 +27,9 @@ type TwoPC struct {
 	p2p          p2p.P2P
 	peerSet      *ctypes.PeerSet
 	state        *state
+	// fetch tasks scheduled from `Scheduler`
 	taskCh       <-chan *types.ConsensusTaskWrap
+	// send remote task to `Scheduler` to replay
 	replayTaskCh chan<- *types.ScheduleTaskWrap
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask

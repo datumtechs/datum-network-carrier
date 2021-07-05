@@ -3,6 +3,7 @@ package carrier
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"time"
 )
 
@@ -29,6 +30,7 @@ var DefaultConfig = Config{
 
 type Config struct {
 	carrierDB core.CarrierDB
+	p2p p2p.P2P
 	NoPruning bool
 
 	// Database options
