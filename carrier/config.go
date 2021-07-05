@@ -2,6 +2,7 @@ package carrier
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
+	"github.com/RosettaFlow/Carrier-Go/core"
 	"time"
 )
 
@@ -10,11 +11,11 @@ var DefaultConfig = Config{
 	DatabaseCache: 768,
 	TrieCache:     32,
 	TrieTimeout:   60 * time.Minute,
-	DBDisabledGC:      false,
-	DBGCInterval:      86400,
-	DBGCTimeout:       time.Minute,
-	DBGCMpt:           true,
-	DBGCBlock:         10,
+	DBDisabledGC:  false,
+	DBGCInterval:  86400,
+	DBGCTimeout:   time.Minute,
+	DBGCMpt:       true,
+	DBGCBlock:     10,
 
 	BodyCacheLimit:    256,
 	BlockCacheLimit:   256,
@@ -27,6 +28,7 @@ var DefaultConfig = Config{
 //go:generate gencodec -type Config -field-override configMarshaling -formats toml -out gen_config.go
 
 type Config struct {
+	carrierDB core.CarrierDB
 	NoPruning bool
 
 	// Database options

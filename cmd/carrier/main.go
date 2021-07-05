@@ -3,15 +3,16 @@ package main
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/cmd"
-	"github.com/onrik/logrus/filename"
 	dbcommand "github.com/RosettaFlow/Carrier-Go/cmd/carrier/db"
 	"github.com/RosettaFlow/Carrier-Go/cmd/common"
 	"github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/common/logutil"
 	"github.com/RosettaFlow/Carrier-Go/node"
+	gethlog "github.com/ethereum/go-ethereum/log"
 	golog "github.com/ipfs/go-log/v2"
 	joonix "github.com/joonix/log"
+	"github.com/onrik/logrus/filename"
 	"github.com/sirupsen/logrus"
 	prefixed "github.com/x-cray/logrus-prefixed-formatter"
 	"os"
@@ -108,7 +109,7 @@ func main() {
 		switch format {
 		case "text":
 			formatter := new(prefixed.TextFormatter)
-			formatter.TimestampFormat = "2006-01-02 15:04:05"
+			formatter.TimestampFormat = "2006-01-02 15:04:05.000"
 			formatter.FullTimestamp = true
 			// If persistent log files are written - we disable the log messages coloring because
 			// the colors are ANSI codes and seen as gibberish in the log files.
@@ -173,6 +174,10 @@ func startNode(ctx *cli.Context) error {
 	if level == logrus.TraceLevel {
 		// libp2p specific logging.（special）
 		golog.SetAllLoggers(golog.LevelDebug)
+		// Geth specific logging.
+		glogger := gethlog.NewGlogHandler(gethlog.StreamHandler(os.Stderr, gethlog.TerminalFormat(true)))
+		glogger.Verbosity(gethlog.LvlTrace)
+		gethlog.Root().SetHandler(glogger)
 	}
 
 	// initial no and start.
