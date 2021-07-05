@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
@@ -40,7 +41,7 @@ type DataChain struct {
 }
 
 // NewDataChain returns a fully initialised data chain using information available in the database.
-func NewDataChain(db db.Database, chainConfig *params.DataChainConfig) (*DataChain, error) {
+func NewDataChain(ctx context.Context, db db.Database, chainConfig *params.DataChainConfig) (*DataChain, error) {
 	blockCache, _ := lru.New(blockCacheLimit)
 	bodyCache, _ := lru.New(blockCacheLimit)
 	bodyPbCache, _ := lru.New(blockCacheLimit)
