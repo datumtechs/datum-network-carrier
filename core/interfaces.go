@@ -14,12 +14,11 @@ type CarrierDB interface {
 	GetYarnName() (string, error)
 	GetIdentity() (*types.NodeAlias, error)
 	GetMetadataByDataId(dataId string) (*types.Metadata, error)
-	GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error)
+	//GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error)
 	GetMetadataList() (types.MetadataArray, error)
-	HasIdentityId(identityId string) (bool, error)
 	HasIdentity(identity *types.NodeAlias) (bool, error)
 	InsertResource(resource *types.Resource) error
-	GetResourceByDataId(powerId string) (*types.Resource, error)
+	//GetResourceByDataId(powerId string) (*types.Resource, error)
 	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
 	GetResourceList() (types.ResourceArray, error)
 	// InsertIdentity saves new identity info to the center of data.
@@ -27,10 +26,8 @@ type CarrierDB interface {
 	// RevokeIdentity revokes the identity info to the center of data.
 	RevokeIdentity(identity *types.Identity) error
 	GetIdentityList() (types.IdentityArray, error)
-	GetIdentityByNodeId(nodeId string) (*types.Identity, error)
 	InsertTask(task *types.Task) error
 	GetTaskList() (types.TaskDataArray, error)
-	GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error)
 	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
 	SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error)
 	DeleteSeedNode(id string) error

@@ -43,8 +43,8 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 					NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
 					IdentityId: metadataSupplier.GetOrganization().GetIdentity(),
 				},
-				MetaId:     metadataSupplier.GetMetaId(),
-				MetaName:   metadataSupplier.GetMetaName(),
+				MetaDataId:     metadataSupplier.GetMetaId(),
+				MetaDataName:   metadataSupplier.GetMetaName(),
 			}
 			detailShow.DataSupplier = append(detailShow.DataSupplier, dataSupplier)
 		}

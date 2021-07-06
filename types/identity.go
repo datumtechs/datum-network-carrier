@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
@@ -27,6 +28,15 @@ func (m *Identity) EncodePb(w io.Writer) error {
 	}
 	return err
 }
+
+func IdentityDataTojson(identity *Identity) string {
+	result, err := json.Marshal(identity.data)
+	if err != nil {
+		panic("Convert To json fail")
+	}
+	return string(result)
+}
+
 
 func (m *Identity) DecodePb(data []byte) error {
 	if m.data == nil {
