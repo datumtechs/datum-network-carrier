@@ -61,7 +61,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		resourceManager: resource.NewResourceManager(),
 		messageManager:  message.NewHandler(pool, nil, config.carrierDB, taskCh, nil), // todo need set dataChain
 		taskManager:     task.NewTaskManager(nil, taskCh, nil),             // todo need set dataChain
-		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh),
+		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.carrierDB),
 	}
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
@@ -73,6 +73,11 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 }
 
 func (s *Service) Start() error {
+	for typ, engine := range s.Engines {
+		if err := engine.Start(); nil != err {
+			log.WithError(err).Errorf("Cound not start the consensus engine: %s, err: %v", typ.String(), err)
+		}
+	}
 	return nil
 }
 

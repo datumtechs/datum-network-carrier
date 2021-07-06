@@ -264,6 +264,35 @@ func NewTaskBullet(task *TaskMsg) *TaskBullet {
 }
 
 type TaskBullets  []*TaskBullet
+func (h TaskBullets) Len() int           { return len(h) }
+func (h TaskBullets) Less(i, j int) bool { return h[i].Term > h[j].Term } // term:  a.3 > c.2 > b.1,  So order is: a c b
+func (h TaskBullets) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
+
+func (h *TaskBullets) Push(x interface{}) {
+	*h = append(*h, x.(*TaskBullet))
+}
+
+func (h *TaskBullets) Pop() interface{} {
+	old := *h
+	n := len(old)
+	x := old[n-1]
+	*h = old[0 : n-1]
+	return x
+}
+func (h *TaskBullets) IncreaseTerm () {
+	for i := range *h {
+		(*h)[i].Term++
+	}
+}
+func (h *TaskBullets) DecreaseTerm () {
+	for i := range *h {
+		if (*h)[i].Term != 0 {
+			(*h)[i].Term--
+		}
+	}
+}
+
+
 type TaskMsg struct {
 	TaskId string `json:"taskId"`
 	Data   *taskdata

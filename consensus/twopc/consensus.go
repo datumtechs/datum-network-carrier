@@ -23,14 +23,16 @@ type DataCenter interface {
 }
 
 type TwoPC struct {
-	config       *Config
-	p2p          p2p.P2P
-	peerSet      *ctypes.PeerSet
-	state        *state
+	config  *Config
+	p2p     p2p.P2P
+	peerSet *ctypes.PeerSet
+	state   *state
 	// fetch tasks scheduled from `Scheduler`
-	taskCh       <-chan *types.ConsensusTaskWrap
+	taskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
 	replayTaskCh chan<- *types.ScheduleTaskWrap
+	asyncCallCh  chan func()
+	quit         chan struct{}
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask
 	// The task processing  that received someone else (taskId -> task)
@@ -42,34 +44,26 @@ type TwoPC struct {
 }
 
 func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ScheduleTaskWrap) *TwoPC {
-	t := &TwoPC{
+	return &TwoPC{
 		config:       conf,
 		p2p:          p2p,
 		peerSet:      ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:        newState(),
 		taskCh:       taskCh,
 		replayTaskCh: replayTaskCh,
+		asyncCallCh:  make(chan func(), conf.PeerMsgQueueSize),
 		sendTasks:    make(map[string]*types.ScheduleTask),
 		recvTasks:    make(map[string]*types.ScheduleTask),
 		dataCenter:   dataCenter,
 		Errs:         make([]error, 0),
 	}
-	go t.loop()
-	return t
-}
-func (t *TwoPC) addSendTask(task *types.ScheduleTask) {
-	t.sendTasks[task.TaskId] = task
-}
-func (t *TwoPC) addRecvTask(task *types.ScheduleTask) {
-	t.recvTasks[task.TaskId] = task
-}
-func (t *TwoPC) delSendTask(taskId string) {
-	delete(t.sendTasks, taskId)
-}
-func (t *TwoPC) delRecvTask(taskId string) {
-	delete(t.recvTasks, taskId)
 }
 
+func (t *TwoPC) Start() error {
+	go t.loop()
+	return nil
+}
+func (t *TwoPC) Close() error {return nil}
 func (t *TwoPC) loop() {
 
 	for {
@@ -84,18 +78,19 @@ func (t *TwoPC) loop() {
 				}
 				continue
 			}
-			if err := t.OnStart(taskWrap.Task, taskWrap.ResultCh); nil != err {
+			if err := t.OnHandle(taskWrap.Task, taskWrap.ResultCh); nil != err {
 				log.Error("Failed to OnStart 2pc", "err", err)
 			}
+		case fn := <-t.asyncCallCh:
+			fn()
 		}
 	}
 }
 
-
 func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
 	return nil
 }
-func (t *TwoPC) OnStart(task *types.ScheduleTask, result chan<- *types.TaskConsResult) error {
+func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.TaskConsResult) error {
 
 	if t.isProcessingTask(task.TaskId) {
 		return ctypes.ErrPrososalTaskIsProcessed
@@ -557,7 +552,13 @@ func (t *TwoPC) onPrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 		return err
 	}
 
-	// todo 让自己的Scheduler 重演选举
+	resultCh := make(chan *types.ScheduleResult)
+	syncFnCh
+	t.replayTaskCh <- &types.ScheduleTaskWrap{
+		Task:     task,
+		ResultCh: resultCh,
+	}
+	result := <-resultCh
 
 	// todo  检查自己的资源是否符合 预期
 
@@ -659,4 +660,16 @@ func (t *TwoPC) isProcessingTask(taskId string) bool {
 func (t *TwoPC) validateRecvTask(task *types.ScheduleTask) error {
 
 	return nil
+}
+func (t *TwoPC) addSendTask(task *types.ScheduleTask) {
+	t.sendTasks[task.TaskId] = task
+}
+func (t *TwoPC) addRecvTask(task *types.ScheduleTask) {
+	t.recvTasks[task.TaskId] = task
+}
+func (t *TwoPC) delSendTask(taskId string) {
+	delete(t.sendTasks, taskId)
+}
+func (t *TwoPC) delRecvTask(taskId string) {
+	delete(t.recvTasks, taskId)
 }

@@ -18,8 +18,10 @@ type Checker interface {
 
 
 type Engine interface {
+	Start() error
+	Close() error
 	OnPrepare(task *types.ScheduleTask) error
-	OnStart(task *types.ScheduleTask, result chan<- *types.TaskConsResult) error
+	OnHandle(task *types.ScheduleTask, result chan<- *types.TaskConsResult) error
 	ValidateConsensusMsg(msg types.ConsensusMsg) error
 	OnConsensusMsg(msg types.ConsensusMsg) error
 	OnError() error
