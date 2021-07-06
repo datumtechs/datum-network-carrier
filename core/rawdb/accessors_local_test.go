@@ -112,3 +112,25 @@ func TestTaskEvent(t *testing.T) {
 	taskEvents = ReadAllTaskEvents(database)
 	assert.Assert(t, len(taskEvents) == 0)
 }
+
+func TestLocalIdentity(t *testing.T) {
+	database := db.NewMemoryDatabase()
+	nodeAlias := &types.NodeAlias{
+		Name:       "node-name",
+		NodeId:     "node-nodeId",
+		IdentityId: "node-identityId",
+	}
+	WriteLocalIdentity(database, nodeAlias)
+	WriteLocalIdentity(database, nodeAlias)
+
+	rnode := ReadLocalIdentity(database)
+	assert.Equal(t, rnode.IdentityId, nodeAlias.IdentityId)
+	assert.Equal(t, rnode.NodeId, nodeAlias.NodeId)
+	assert.Equal(t, rnode.Name, nodeAlias.Name)
+
+	DeleteLocalIdentity(database)
+	rnode = ReadLocalIdentity(database)
+	assert.Equal(t, rnode.IdentityId, "")
+	assert.Equal(t, rnode.NodeId, "")
+	assert.Equal(t, rnode.Name, "")
+}
