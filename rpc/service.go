@@ -8,6 +8,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/rpc/debug"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/sirupsen/logrus"
@@ -46,7 +47,7 @@ type Config struct {
 	PeerManager             p2p.PeerManager
 	MetadataProvider        p2p.MetadataProvider
 	StateNotifier           statefeed.Notifier
-	BackendAPI              Backend
+	BackendAPI              backend.Backend
 	MaxMsgSize              int
 }
 
@@ -106,11 +107,11 @@ func (s *Service) Start() error {
 	s.grpcServer = grpc.NewServer(opts...)
 
 	// init server instance and register server.
-	pb.RegisterYarnServiceServer(s.grpcServer, &yarnServiceServer{b: s.cfg.BackendAPI})
-	pb.RegisterMetaDataServiceServer(s.grpcServer, &metaDataServiceServer{b: s.cfg.BackendAPI})
-	pb.RegisterPowerServiceServer(s.grpcServer, &powerServiceServer{b: s.cfg.BackendAPI})
-	pb.RegisterAuthServiceServer(s.grpcServer, &authServiceServer{b: s.cfg.BackendAPI})
-	pb.RegisterTaskServiceServer(s.grpcServer, &taskServiceServer{b: s.cfg.BackendAPI})
+	pb.RegisterYarnServiceServer(s.grpcServer, &backend.YarnServiceServer{B: s.cfg.BackendAPI})
+	pb.RegisterMetaDataServiceServer(s.grpcServer, &backend.MetaDataServiceServer{B: s.cfg.BackendAPI})
+	pb.RegisterPowerServiceServer(s.grpcServer, &backend.PowerServiceServer{B: s.cfg.BackendAPI})
+	pb.RegisterAuthServiceServer(s.grpcServer, &backend.AuthServiceServer{B: s.cfg.BackendAPI})
+	pb.RegisterTaskServiceServer(s.grpcServer, &backend.TaskServiceServer{B: s.cfg.BackendAPI})
 
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")

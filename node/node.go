@@ -15,6 +15,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/rpc"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/shared/cmd"
 	"github.com/prysmaticlabs/prysm/shared/sliceutil"
@@ -273,7 +274,7 @@ func (b *CarrierNode) registerRPCService() error {
 	return b.services.RegisterService(rpcService)
 }
 
-func (b *CarrierNode) fetchRPCBackend() rpc.Backend {
+func (b *CarrierNode) fetchRPCBackend() backend.Backend {
 	var s *carrier.Service
 	if err := b.services.FetchService(&s); err != nil {
 		panic(err)
