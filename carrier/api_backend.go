@@ -2,6 +2,7 @@ package carrier
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/event"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -207,8 +208,12 @@ func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
 }
 
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
-	// todo: to be determined nodeId.
-	return s.carrier.carrierDB.GetIdentityByNodeId("")
+	nodeAlias, err := s.carrier.carrierDB.GetIdentity()
+	return types.NewIdentity(&libTypes.IdentityData{
+		Identity:             nodeAlias.IdentityId,
+		NodeId:               nodeAlias.NodeId,
+		NodeName:             nodeAlias.Name,
+	}), err
 }
 
 func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
