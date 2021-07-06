@@ -2,6 +2,7 @@ package carrier
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/event"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -10,7 +11,10 @@ type CarrierAPIBackend struct {
 	carrier *Service
 }
 
-func NewCarrierAPIBackend(carrier *Service) *CarrierAPIBackend { return &CarrierAPIBackend{carrier: carrier}}
+func NewCarrierAPIBackend(carrier *Service) *CarrierAPIBackend {
+	return &CarrierAPIBackend{carrier: carrier}
+}
+
 func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 	return s.carrier.mempool.Add(msg)
 }
@@ -89,6 +93,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 		State:        "", // TODO 读系统状态
 	}, nil
 }
+
 func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
 	// all dataNodes on yarnNode
 	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
@@ -207,8 +212,12 @@ func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
 }
 
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
-	// todo: to be determined nodeId.
-	return s.carrier.carrierDB.GetIdentityByNodeId("")
+	nodeAlias, err := s.carrier.carrierDB.GetIdentity()
+	return types.NewIdentity(&libTypes.IdentityData{
+		Identity:             nodeAlias.IdentityId,
+		NodeId:               nodeAlias.NodeId,
+		NodeName:             nodeAlias.Name,
+	}), err
 }
 
 func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {

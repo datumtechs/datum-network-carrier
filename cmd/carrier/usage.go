@@ -45,6 +45,9 @@ var appHelpFlagGroups = []flagGroup{
 			flags.RPCPort,
 			flags.GRPCGatewayHost,
 			flags.GRPCGatewayPort,
+			flags.CertFlag,
+			flags.KeyFlag,
+			flags.GrpcMaxCallRecvMsgSizeFlag,
 		},
 	},
 	{
@@ -59,6 +62,7 @@ var appHelpFlagGroups = []flagGroup{
 			debug.BlockProfileRateFlag,
 			debug.MutexProfileFractionFlag,
 			debug.DebugFlag,
+			flags.EnableDebugRPCEndpoints,
 		},
 	},
 	{

@@ -1,4 +1,4 @@
-package rpc
+package backend
 
 import (
 	"context"
@@ -51,12 +51,12 @@ var (
 	ErrGetNodeTaskEventListStr = "Failed to get all event of current node's task"
 )
 
-type yarnServiceServer struct {
+type YarnServiceServer struct {
 	pb.UnimplementedYarnServiceServer
-	b Backend
+	B Backend
 }
-func (svr *yarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
-	node, err := svr.b.GetNodeInfo()
+func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
+	node, err := svr.B.GetNodeInfo()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetNodeInfoStr)
 	}
@@ -105,8 +105,8 @@ func (svr *yarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetP
 		},
 	}, nil
 }
-func (svr *yarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
-	registerNodes, err := svr.b.GetRegisteredPeers()
+func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
+	registerNodes, err := svr.B.GetRegisteredPeers()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetRegisteredPeersStr)
 	}
@@ -166,7 +166,7 @@ func (svr *yarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Em
 		DataNodes: dataNodes,
 	}, nil
 }
-func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
+func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 
 	seedNode := &types.SeedNodeInfo{
 		InternalIp:   req.InternalIp,
@@ -174,7 +174,7 @@ func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 		ConnState:    types.NONCONNECTED,
 	}
 	seedNode.SeedNodeId()
-	_, err := svr.b.SetSeedNode(seedNode) // TODO 未完成 ...
+	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
@@ -189,7 +189,7 @@ func (svr *yarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 		},
 	}, nil
 }
-func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
+func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 
 	seedNode := &types.SeedNodeInfo{
 		Id:           req.Id,
@@ -197,7 +197,7 @@ func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 		InternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-	_, err := svr.b.SetSeedNode(seedNode) // TODO 未完成 ...
+	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
@@ -214,15 +214,15 @@ func (svr *yarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 
 	return nil, nil
 }
-func (svr *yarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
-	err := svr.b.DeleteSeedNode(req.Id)
+func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
+	err := svr.B.DeleteSeedNode(req.Id)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrDeleteSeedNodeInfoStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
-func (svr *yarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetSeedNodeListResponse, error) {
-	list, err := svr.b.GetSeedNodeList()
+func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetSeedNodeListResponse, error) {
+	list, err := svr.B.GetSeedNodeList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetSeedNodeListStr)
 	}
@@ -242,7 +242,7 @@ func (svr *yarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.Empty
 		SeedPeers: seeds,
 	}, nil
 }
-func (svr *yarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) (*pb.SetDataNodeResponse, error) {
+func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) (*pb.SetDataNodeResponse, error) {
 
 	node := &types.RegisteredNodeInfo{
 		InternalIp:   req.InternalIp,
@@ -252,7 +252,7 @@ func (svr *yarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
@@ -269,7 +269,7 @@ func (svr *yarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		},
 	}, nil
 }
-func (svr *yarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeRequest) (*pb.SetDataNodeResponse, error) {
+func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeRequest) (*pb.SetDataNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
 		Id:           req.Id,
 		InternalIp:   req.InternalIp,
@@ -279,7 +279,7 @@ func (svr *yarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		ConnState:    types.NONCONNECTED,
 	}
 
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
@@ -296,16 +296,16 @@ func (svr *yarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		},
 	}, nil
 }
-func (svr *yarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
+func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 
-	if err := svr.b.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
+	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
 		return nil, NewRpcBizErr(ErrDeleteDataNodeInfoStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
-func (svr *yarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
+func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 
-	list, err := svr.b.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetDataNodeListStr)
 	}
@@ -329,7 +329,7 @@ func (svr *yarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 		Nodes:  datas,
 	}, nil
 }
-func (svr *yarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*pb.SetJobNodeResponse, error) {
+func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*pb.SetJobNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
@@ -338,7 +338,7 @@ func (svr *yarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
@@ -355,7 +355,7 @@ func (svr *yarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		},
 	}, nil
 }
-func (svr *yarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeRequest) (*pb.SetJobNodeResponse, error) {
+func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeRequest) (*pb.SetJobNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
 		Id:           req.Id,
 		InternalIp:   req.InternalIp,
@@ -364,7 +364,7 @@ func (svr *yarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		ExternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-	_, err := svr.b.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
@@ -381,14 +381,14 @@ func (svr *yarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		},
 	}, nil
 }
-func (svr *yarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
-	if err := svr.b.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, req.Id); nil != err {
+func (svr *YarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
+	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, req.Id); nil != err {
 		return nil, NewRpcBizErr(ErrDeleteJobNodeInfoStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
-func (svr *yarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
-	list, err := svr.b.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
+	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetDataNodeListStr)
 	}
@@ -412,10 +412,10 @@ func (svr *yarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 		Nodes:  jobs,
 	}, nil
 }
-func (svr *yarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
+func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
 	var err error
 	go func() {
-		err = svr.b.SendTaskEvent(&event.TaskEvent{
+		err = svr.B.SendTaskEvent(&event.TaskEvent{
 			Type:       req.TaskEvent.Type,
 			Identity:   req.TaskEvent.IdentityId,
 			TaskId:     req.TaskEvent.TaskId,
@@ -428,29 +428,29 @@ func (svr *yarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.Repor
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
-func (svr *yarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
+func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
 	return nil, nil
 }
 
-type metaDataServiceServer struct {
+type MetaDataServiceServer struct {
 	pb.UnimplementedMetaDataServiceServer
-	b Backend
+	B Backend
 }
-//func (svr *metaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataSummaryListResponse, error) {
+//func (svr *MetaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *metaDataServiceServer) GetMetaDataSummaryByState(ctx context.Context, req *pb.GetMetaDataSummaryByStateRequest) (*pb.GetMetaDataSummaryListResponse, error) {
+//func (svr *MetaDataServiceServer) GetMetaDataSummaryByState(ctx context.Context, req *pb.GetMetaDataSummaryByStateRequest) (*pb.GetMetaDataSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *metaDataServiceServer) GetMetaDataSummaryByOwner(ctx context.Context, req *pb.GetMetaDataSummaryByOwnerRequest) (*pb.GetMetaDataSummaryListResponse, error) {
+//func (svr *MetaDataServiceServer) GetMetaDataSummaryByOwner(ctx context.Context, req *pb.GetMetaDataSummaryByOwnerRequest) (*pb.GetMetaDataSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *metaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
+//func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
 //	return nil, nil
 //}
-func (svr *metaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
+func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
 
-	metaDataDetail, err := svr.b.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
+	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetMetaDataDetailStr)
 	}
@@ -472,9 +472,9 @@ func (svr *metaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 		Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
 	}, nil
 }
-func (svr *metaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataDetailListResponse, error) {
+func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataDetailListResponse, error) {
 
-	metaDataList, err := svr.b.GetMetaDataDetailList()
+	metaDataList, err := svr.B.GetMetaDataDetailList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetMetaDataDetailListStr)
 	}
@@ -493,8 +493,8 @@ func (svr *metaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 		MetaDataList: respList,
 	}, nil
 }
-func (svr *metaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
-	metaDataList, err := svr.b.GetMetaDataDetailListByOwner(req.IdentityId)
+func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
+	metaDataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetMetaDataDetailListStr)
 	}
@@ -513,7 +513,7 @@ func (svr *metaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Conte
 		MetaDataList: respList,
 	}, nil
 }
-func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
+func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
 	metaDataMsg := new(types.MetaDataMsg)
 	metaDataMsg.MetaDataId = req.Information.MetaDataSummary.MetaDataId
 	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
@@ -543,7 +543,7 @@ func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	metaDataMsg.Data.Information.ColumnMetas = ColumnMetas
 	metaDataId := metaDataMsg.GetMetaDataId()
 
-	err := svr.b.SendMsg(metaDataMsg)
+	err := svr.B.SendMsg(metaDataMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendMetaDataMsgStr)
 	}
@@ -553,7 +553,7 @@ func (svr *metaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 		MetaDataId: metaDataId,
 	}, nil
 }
-func (svr *metaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*pb.SimpleResponseCode, error) {
+func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*pb.SimpleResponseCode, error) {
 	metaDataRevokeMsg := new(types.MetaDataRevokeMsg)
 	metaDataRevokeMsg.MetaDataId = req.MetaDataId
 	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
@@ -561,7 +561,7 @@ func (svr *metaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	metaDataRevokeMsg.NodeId = req.Owner.NodeId
 	metaDataRevokeMsg.IdentityId = req.Owner.IdentityId
 
-	err := svr.b.SendMsg(metaDataRevokeMsg)
+	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
 	}
@@ -571,35 +571,35 @@ func (svr *metaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	}, nil
 }
 
-type powerServiceServer struct {
+type PowerServiceServer struct {
 	pb.UnimplementedPowerServiceServer
-	b Backend
+	B Backend
 }
 //
-//func (svr *powerServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalSummaryListResponse, error) {
+//func (svr *PowerServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *powerServiceServer) GetPowerSingleSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleSummaryListResponse, error) {
+//func (svr *PowerServiceServer) GetPowerSingleSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *powerServiceServer) GetPowerTotalSummaryByState(ctx context.Context, req *pb.GetPowerTotalSummaryByStateRequest) (*pb.GetPowerTotalSummaryListResponse, error) {
+//func (svr *PowerServiceServer) GetPowerTotalSummaryByState(ctx context.Context, req *pb.GetPowerTotalSummaryByStateRequest) (*pb.GetPowerTotalSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *powerServiceServer) GetPowerSingleSummaryByState(ctx context.Context, req *pb.GetPowerSingleSummaryByStateRequest) (*pb.GetPowerSingleSummaryListResponse, error) {
+//func (svr *PowerServiceServer) GetPowerSingleSummaryByState(ctx context.Context, req *pb.GetPowerSingleSummaryByStateRequest) (*pb.GetPowerSingleSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *powerServiceServer) GetPowerTotalSummaryByOwner(ctx context.Context, req *pb.GetPowerTotalSummaryByOwnerRequest) (*pb.GetPowerTotalSummaryResponse, error) {
+//func (svr *PowerServiceServer) GetPowerTotalSummaryByOwner(ctx context.Context, req *pb.GetPowerTotalSummaryByOwnerRequest) (*pb.GetPowerTotalSummaryResponse, error) {
 //	return nil, nil
 //}
-//func (svr *powerServiceServer) GetPowerSingleSummaryByOwner(ctx context.Context, req *pb.GetPowerSingleSummaryByOwnerRequest) (*pb.GetPowerSingleSummaryListResponse, error) {
+//func (svr *PowerServiceServer) GetPowerSingleSummaryByOwner(ctx context.Context, req *pb.GetPowerSingleSummaryByOwnerRequest) (*pb.GetPowerSingleSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *powerServiceServer) GetPowerSingleDetail(ctx context.Context, req *pb.GetPowerSingleDetailRequest) (*pb.GetPowerSingleDetailResponse, error) {
+//func (svr *PowerServiceServer) GetPowerSingleDetail(ctx context.Context, req *pb.GetPowerSingleDetailRequest) (*pb.GetPowerSingleDetailResponse, error) {
 //	return nil, nil
 //}
-func (svr *powerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
+func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
 
-	powerList, err := svr.b.GetPowerTotalDetailList()
+	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetTotalPowerListStr)
 	}
@@ -623,9 +623,9 @@ func (svr *powerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 		PowerList: respList,
 	}, nil
 }
-func (svr *powerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
+func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
 
-	powerList, err := svr.b.GetPowerSingleDetailList()
+	powerList, err := svr.B.GetPowerSingleDetailList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetSinglePowerListStr)
 	}
@@ -651,7 +651,7 @@ func (svr *powerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 		PowerList: respList,
 	}, nil
 }
-func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
+func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
 
 	powerMsg := new(types.PowerMsg)
 	powerMsg.Data.JobNodeId = req.JobNodeId
@@ -664,7 +664,7 @@ func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	powerMsg.Data.Information.Bandwidth = req.Information.Bandwidth
 	powerId := powerMsg.GetPowerId()
 
-	err := svr.b.SendMsg(powerMsg)
+	err := svr.B.SendMsg(powerMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendPowerMsgStr)
 	}
@@ -674,7 +674,7 @@ func (svr *powerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 		PowerId: powerId,
 	}, nil
 }
-func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
+func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
 	powerRevokeMsg := new(types.PowerRevokeMsg)
 	powerRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 	powerRevokeMsg.Name = req.Owner.Name
@@ -682,7 +682,7 @@ func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	powerRevokeMsg.IdentityId = req.Owner.IdentityId
 	powerRevokeMsg.PowerId = req.PowerId
 
-	err := svr.b.SendMsg(powerRevokeMsg)
+	err := svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendPowerRevokeMsgStr)
 	}
@@ -692,11 +692,11 @@ func (svr *powerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	}, nil
 }
 
-type authServiceServer struct {
+type AuthServiceServer struct {
 	pb.UnimplementedAuthServiceServer
-	b Backend
+	B Backend
 }
-func (svr *authServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
+func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
 
 	identityMsg := new(types.IdentityMsg)
 	identityMsg.Name = req.Member.Name
@@ -704,7 +704,7 @@ func (svr *authServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 	identityMsg.NodeId = req.Member.NodeId
 	identityMsg.CreateAt = uint64(time.Now().UnixNano())
 
-	err := svr.b.SendMsg(identityMsg)
+	err := svr.B.SendMsg(identityMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendIdentityMsgStr)
 	}
@@ -713,11 +713,11 @@ func (svr *authServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 		Msg:    OK,
 	}, nil
 }
-func (svr *authServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.EmptyGetParams) (*pb.SimpleResponseCode, error) {
+func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.EmptyGetParams) (*pb.SimpleResponseCode, error) {
 
 	identityRevokeMsg := new(types.IdentityRevokeMsg)
 	identityRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
-	err := svr.b.SendMsg(identityRevokeMsg)
+	err := svr.B.SendMsg(identityRevokeMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendIdentityMsgStr)
 	}
@@ -726,9 +726,9 @@ func (svr *authServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 		Msg:    OK,
 	}, nil
 }
-func (svr *authServiceServer) GetNodeIdentity(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeIdentityResponse, error) {
+func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeIdentityResponse, error) {
 
-	identity, err := svr.b.GetNodeIdentity()
+	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetNodeIdentityStr)
 	}
@@ -742,8 +742,8 @@ func (svr *authServiceServer) GetNodeIdentity(ctx context.Context, req *pb.Empty
 		},
 	}, nil
 }
-func (svr *authServiceServer) GetIdentityList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetIdentityListResponse, error) {
-	identitys, err := svr.b.GetIdentityList()
+func (svr *AuthServiceServer) GetIdentityList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetIdentityListResponse, error) {
+	identitys, err := svr.B.GetIdentityList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetIdentityListStr)
 	}
@@ -764,21 +764,21 @@ func (svr *authServiceServer) GetIdentityList(ctx context.Context, req *pb.Empty
 }
 
 
-type taskServiceServer struct {
+type TaskServiceServer struct {
 	pb.UnimplementedTaskServiceServer
-	b Backend
+	B Backend
 }
-//func (svr *taskServiceServer) GetTaskSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskSummaryListResponse, error) {
+//func (svr *TaskServiceServer) GetTaskSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *taskServiceServer) GetTaskJoinSummaryList(ctx context.Context, req *pb.GetTaskJoinSummaryListRequest) (*pb.GetTaskJoinSummaryListResponse, error) {
+//func (svr *TaskServiceServer) GetTaskJoinSummaryList(ctx context.Context, req *pb.GetTaskJoinSummaryListRequest) (*pb.GetTaskJoinSummaryListResponse, error) {
 //	return nil, nil
 //}
-//func (svr *taskServiceServer) GetTaskDetail(ctx context.Context, req *pb.GetTaskDetailRequest) (*pb.GetTaskDetailResponse, error) {
+//func (svr *TaskServiceServer) GetTaskDetail(ctx context.Context, req *pb.GetTaskDetailRequest) (*pb.GetTaskDetailResponse, error) {
 //	return nil, nil
 //}
-func (svr *taskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskDetailListResponse, error) {
-	tasks, err := svr.b.GetTaskDetailList()
+func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskDetailListResponse, error) {
+	tasks, err := svr.B.GetTaskDetailList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetNodeTaskListStr)
 	}
@@ -795,9 +795,9 @@ func (svr *taskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.Emp
 		TaskList: arr,
 	}, nil
 }
-func (svr *taskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventListRequest) (*pb.GetTaskEventListResponse, error) {
+func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventListRequest) (*pb.GetTaskEventListResponse, error) {
 
-	events, err := svr.b.GetTaskEventList(req.TaskId)
+	events, err := svr.B.GetTaskEventList(req.TaskId)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetNodeTaskEventListStr)
 	}
@@ -808,7 +808,7 @@ func (svr *taskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 		TaskEventList: types.ConvertTaskEventArrToPB(events),
 	}, nil
 }
-func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
+func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
 	taskMsg := new(types.TaskMsg)
 	taskMsg.Data.TaskName = req.TaskName
 	taskMsg.Data.CreateAt = uint64(time.Now().UnixNano())
@@ -871,7 +871,7 @@ func (svr *taskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	}
 	taskId := taskMsg.GetTaskId()
 
-	err := svr.b.SendMsg(taskMsg)
+	err := svr.B.SendMsg(taskMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendTaskMsgStr)
 	}
