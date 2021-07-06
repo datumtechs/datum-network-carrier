@@ -4,6 +4,8 @@ package carrier.p2p.v1;
 
 import "repos/protobuf/gogoproto/gogo.proto";
 
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1";
+
 message Status {
     bytes  fork_digest     = 1 [(gogoproto.moretags) = "ssz-size:\"4\""];
     bytes  finalized_root  = 2 [(gogoproto.moretags) = "ssz-size:\"32\""];

@@ -3,7 +3,6 @@ package rpc
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 )
 
