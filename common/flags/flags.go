@@ -112,32 +112,6 @@ var (
 		Name:  "log-file",
 		Usage: "Specify log file name, relative or absolute",
 	}
-
-	// RPC settings
-	RPCEnabledFlag = &cli.BoolFlag{
-		Name:  "rpc",
-		Usage: "Enable the HTTP-RPC server",
-	}
-	RPCListenAddrFlag = &cli.StringFlag{
-		Name:  "rpcaddr",
-		Usage: "HTTP-RPC server listening interface",
-		Value: params.DefaultHTTPHost,
-	}
-	RPCPortFlag = &cli.IntFlag{
-		Name:  "rpcport",
-		Usage: "HTTP-RPC server listening port",
-		Value: params.DefaultHTTPPort,
-	}
-	RPCCORSDomainFlag = &cli.StringFlag{
-		Name:  "rpccorsdomain",
-		Usage: "Comma separated list of domains from which to accept cross origin requests (browser enforced)",
-		Value: "",
-	}
-	RPCApiFlag = &cli.StringFlag{
-		Name:  "rpcapi",
-		Usage: "API's offered over the HTTP-RPC interface",
-		Value: "",
-	}
 	DeveloperFlag = &cli.BoolFlag{
 		Name:  "dev",
 		Usage: "Ephemeral proof-of-authority network with a pre-funded developer account, mining enabled",
