@@ -10,6 +10,28 @@ import (
 )
 
 var (
+	// CertFlag defines a flag for the node's TLS certificate.
+	CertFlag = &cli.StringFlag{
+		Name:  "tls-cert",
+		Usage: "Certificate for secure gRPC. Pass this and the tls-key flag in order to use gRPC securely.",
+	}
+	// KeyFlag defines a flag for the node's TLS key.
+	KeyFlag = &cli.StringFlag{
+		Name:  "tls-key",
+		Usage: "Key for secure gRPC. Pass this and the tls-cert flag in order to use gRPC securely.",
+	}
+	// DisableGRPCGateway for JSON-HTTP requests to the beacon node.
+	DisableGRPCGateway = &cli.BoolFlag{
+		Name:  "disable-grpc-gateway",
+		Usage: "Disable the gRPC gateway for JSON-HTTP requests",
+	}
+	// GPRCGatewayCorsDomain serves preflight requests when serving gRPC JSON gateway.
+	GPRCGatewayCorsDomain = &cli.StringFlag{
+		Name: "grpc-gateway-corsdomain",
+		Usage: "Comma separated list of domains from which to accept cross origin requests " +
+			"(browser enforced). This flag has no effect if not used with --grpc-gateway-port.",
+		Value: "http://localhost:4200,http://localhost:7500,http://127.0.0.1:4200,http://127.0.0.1:7500,http://0.0.0.0:4200,http://0.0.0.0:7500",
+	}
 	// RPCHost defines the host on which the RPC server should listen.
 	RPCHost = &cli.StringFlag{
 		Name:  "rpc-host",
@@ -19,7 +41,7 @@ var (
 	// RPCPort defines a beacon node RPC port to open.
 	RPCPort = &cli.IntFlag{
 		Name:  "rpc-port",
-		Usage: "RPC port exposed by a beacon node",
+		Usage: "RPC port exposed by a carrier node",
 		Value: 4000,
 	}
 	// GRPCGatewayHost specifies a gRPC gateway host for Carrier.
@@ -34,7 +56,17 @@ var (
 		Usage: "Enable gRPC gateway for JSON requests",
 		Value: 3500,
 	}
-
+	// GrpcMaxCallRecvMsgSizeFlag defines the max call message size for GRPC
+	GrpcMaxCallRecvMsgSizeFlag = &cli.IntFlag{
+		Name:  "grpc-max-msg-size",
+		Usage: "Integer to define max recieve message call size (default: 4194304 (for 4MB))",
+		Value: 1 << 22,
+	}
+	// EnableDebugRPCEndpoints
+	EnableDebugRPCEndpoints = &cli.BoolFlag{
+		Name:  "enable-debug-rpc-endpoints",
+		Usage: "Enables the debug rpc service",
+	}
 	// DataDirFlag defines a path on disk.
 	DataDirFlag = &cli.StringFlag{
 		Name:  "datadir",
