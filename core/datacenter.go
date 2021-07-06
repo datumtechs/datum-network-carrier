@@ -174,11 +174,6 @@ func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
-func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
-	// todo: not need to coding, temporarily.
-	return nil, nil
-}
-
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	metaDataSummaryListResponse, err := dc.client.GetMetaDataSummaryList(dc.ctx)
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
@@ -195,11 +190,6 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 		return fmt.Errorf("insert resource error: %s", response.Msg)
 	}
 	return nil
-}
-
-func (dc *DataCenter) GetResourceByDataId(powerId string) (*types.Resource, error) {
-	// todo: not need to coding, temporarily.
-	return nil, nil
 }
 
 func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
@@ -328,7 +318,7 @@ func (dc *DataCenter) IncreaseRunningTaskCountOnOrg() uint32 {
 }
 
 func (dc *DataCenter) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
-	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
+	return rawdb.IncreaseRunningTaskCountForJobNode(dc.db, jobNodeId)
 }
 
 func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
