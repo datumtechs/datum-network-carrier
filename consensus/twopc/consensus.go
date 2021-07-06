@@ -553,13 +553,12 @@ func (t *TwoPC) onPrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	}
 
 	resultCh := make(chan *types.ScheduleResult)
-	syncFnCh
 	t.replayTaskCh <- &types.ScheduleTaskWrap{
 		Task:     task,
 		ResultCh: resultCh,
 	}
 	result := <-resultCh
-
+	_ = result
 	// todo  检查自己的资源是否符合 预期
 
 	// todo 检查自己是否 意愿透出 yes 票
