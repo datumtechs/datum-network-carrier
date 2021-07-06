@@ -24,10 +24,6 @@ import (
 
 var (
 	appFlags = []cli.Flag{
-		flags.RPCHost,
-		flags.RPCPort,
-		flags.GRPCGatewayHost,
-		flags.GRPCGatewayPort,
 		flags.SetGCPercent,
 		// todo: more flags could be define here.
 	}
@@ -44,11 +40,18 @@ var (
 	}
 
 	rpcFlags = []cli.Flag{
+		flags.RPCHost,
+		flags.RPCPort,
+		flags.CertFlag,
+		flags.KeyFlag,
+		flags.GRPCGatewayHost,
+		flags.GRPCGatewayPort,
 		flags.RPCEnabledFlag,
 		flags.RPCListenAddrFlag,
 		flags.RPCPortFlag,
 		flags.RPCCORSDomainFlag,
 		flags.RPCApiFlag,
+		flags.GrpcMaxCallRecvMsgSizeFlag,
 	}
 
 	p2pFlags = []cli.Flag{
@@ -71,6 +74,7 @@ var (
 
 	debugFlags = []cli.Flag{
 		debug.DebugFlag,
+		flags.EnableDebugRPCEndpoints,
 	}
 
 )
