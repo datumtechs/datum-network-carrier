@@ -16,6 +16,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/rpc"
 	"github.com/pkg/errors"
+	"github.com/prysmaticlabs/prysm/shared/cmd"
 	"github.com/prysmaticlabs/prysm/shared/sliceutil"
 	"github.com/urfave/cli/v2"
 	"os"
@@ -95,11 +96,8 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		return nil, err
 	}
 
-	//TODO: need to config rpc
-	if err := node.registerRPCService(&rpc.RpcConfig{
-		Ip:       "0.0.0.0",
-		Port:     "8888",
-	}); err != nil {
+	// register rpc service.
+	if err := node.registerRPCService(); err != nil {
 		return nil, err
 	}
 
@@ -247,8 +245,31 @@ func (b *CarrierNode) registerHandlerService() error {
 	return b.services.RegisterService(rs)
 }
 
-func (b *CarrierNode) registerRPCService(config *rpc.RpcConfig) error {
-	rpcService := rpc.New(config, b.fetchRPCBackend())
+func (b *CarrierNode) registerRPCService() error {
+	backend := b.fetchRPCBackend()
+	host := b.cliCtx.String(flags.RPCHost.Name)
+	port := b.cliCtx.String(flags.RPCPort.Name)
+	cert := b.cliCtx.String(flags.CertFlag.Name)
+	key := b.cliCtx.String(flags.KeyFlag.Name)
+	enableDebugRPCEndpoints := b.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
+	maxMsgSize := b.cliCtx.Int(cmd.GrpcMaxCallRecvMsgSizeFlag.Name)
+
+	p2pService := b.fetchP2P()
+
+	rpcService := rpc.NewService(b.ctx, &rpc.Config{
+		Host:                    host,
+		Port:                    port,
+		CertFlag:                cert,
+		KeyFlag:                 key,
+		EnableDebugRPCEndpoints: enableDebugRPCEndpoints,
+		Broadcaster:             p2pService,
+		PeersFetcher:            p2pService,
+		PeerManager:             p2pService,
+		MetadataProvider:        p2pService,
+		StateNotifier:           b,
+		BackendAPI:              backend,
+		MaxMsgSize:              maxMsgSize,
+	})
 	return b.services.RegisterService(rpcService)
 }
 

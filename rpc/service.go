@@ -3,7 +3,9 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/rpc/debug"
@@ -17,6 +19,8 @@ import (
 	"net"
 	"sync"
 )
+
+var _ common.Service = (*Service)(nil)
 
 // Service defining an RPC server for a carrier server.
 type Service struct {
@@ -42,6 +46,7 @@ type Config struct {
 	PeerManager             p2p.PeerManager
 	MetadataProvider        p2p.MetadataProvider
 	StateNotifier           statefeed.Notifier
+	BackendAPI              Backend
 	MaxMsgSize              int
 }
 
@@ -58,7 +63,7 @@ func NewService(ctx context.Context, cfg *Config) *Service {
 }
 
 // Start the gRPC server.
-func (s *Service) Start() {
+func (s *Service) Start() error {
 	address := fmt.Sprintf("%s:%s", s.cfg.Host, s.cfg.Port)
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
@@ -101,12 +106,17 @@ func (s *Service) Start() {
 	s.grpcServer = grpc.NewServer(opts...)
 
 	// init server instance and register server.
+	pb.RegisterYarnServiceServer(s.grpcServer, &yarnServiceServer{b: s.cfg.BackendAPI})
+	pb.RegisterMetaDataServiceServer(s.grpcServer, &metaDataServiceServer{b: s.cfg.BackendAPI})
+	pb.RegisterPowerServiceServer(s.grpcServer, &powerServiceServer{b: s.cfg.BackendAPI})
+	pb.RegisterAuthServiceServer(s.grpcServer, &authServiceServer{b: s.cfg.BackendAPI})
+	pb.RegisterTaskServiceServer(s.grpcServer, &taskServiceServer{b: s.cfg.BackendAPI})
 
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")
 		debugServer := &debug.Server{
-			PeerManager:        s.cfg.PeerManager,
-			PeersFetcher:       s.cfg.PeersFetcher,
+			PeerManager:  s.cfg.PeerManager,
+			PeersFetcher: s.cfg.PeersFetcher,
 		}
 		pbrpc.RegisterDebugServer(s.grpcServer, debugServer)
 	}
@@ -120,6 +130,7 @@ func (s *Service) Start() {
 			}
 		}
 	}()
+	return nil
 }
 
 // Stop the service.
@@ -179,4 +190,3 @@ func (s *Service) logNewClientConnection(ctx context.Context) {
 		}
 	}
 }
-
