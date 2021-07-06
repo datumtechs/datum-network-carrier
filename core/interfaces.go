@@ -44,4 +44,12 @@ type CarrierDB interface {
 	GetRunningTaskCountOnOrg() uint32
 	GetRunningTaskCountOnJobNode(jobNodeId string) uint32
 	GetJobNodeRunningTaskIdList(jobNodeId string) []string
+
+	// For ResourceManager
+	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
+	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
+	StoreOrgResourceTables(resources []*types.RemoteResourceTable) error
+	QueryOrgResourceTables() ([]*types.RemoteResourceTable, error)
+	StoreNodeResourceSlotUnit(slot *types.Slot) error
+	QueryNodeResourceSlotUnit() (*types.Slot, error)
 }

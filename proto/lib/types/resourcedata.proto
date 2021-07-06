@@ -20,7 +20,9 @@ message ResourceData {
   // unit: byte
     uint64 usedMem = 8;
   // number of cpu cores.
-    uint32 totalProcessor = 9;
+    uint64 totalProcessor = 9;
+    uint64 usedProcessor  = 10;
   // unit: byte
-    uint64 totalBandWidth = 10;
+    uint64 totalBandWidth = 11;
+    uint64 usedBandWidth  = 12;
 }

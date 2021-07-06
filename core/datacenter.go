@@ -333,6 +333,27 @@ func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) []string {
 	return rawdb.ReadRunningTaskIDList(dc.db, jobNodeId)
 }
 
+
+// For ResourceManager
+func (dc *DataCenter) StoreLocalResourceTables(resources []*types.LocalResourceTable) error {
+	return rawdb.StoreNodeResources(dc.db, resources)
+}
+func (dc *DataCenter) QueryLocalResourceTables() ([]*types.LocalResourceTable, error) {
+	return rawdb.QueryNodeResources(dc.db)
+}
+func (dc *DataCenter) StoreOrgResourceTables(resources []*types.RemoteResourceTable) error {
+	return rawdb.StoreOrgResources(dc.db, resources)
+}
+func (dc *DataCenter) QueryOrgResourceTables() ([]*types.RemoteResourceTable, error) {
+	return rawdb.QueryOrgResources(dc.db)
+}
+func (dc *DataCenter) StoreNodeResourceSlotUnit(slot *types.Slot) error {
+	return rawdb.StoreNodeResourceSlotUnit(dc.db, slot)
+}
+func (dc *DataCenter) QueryNodeResourceSlotUnit() (*types.Slot, error) {
+	return rawdb.QueryNodeResourceSlotUnit(dc.db)
+}
+
 // ****************************************************************************************************************
 
 func (dc *DataCenter) Stop() {

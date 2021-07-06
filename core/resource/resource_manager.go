@@ -2,28 +2,61 @@ package resource
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"sync"
+	"time"
 )
 
-//type DataCenter interface {
-//	GetResourceList() (types.ResourceArray, error)
-//}
+const (
+	defaultRefreshOrgResourceInterval = 60 * time.Millisecond
+)
+
+
+type CarrierDB interface {
+
+	InsertResource(resource *types.Resource) error
+	//GetResourceByDataId(powerId string) (*types.Resource, error)
+	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
+	GetResourceList() (types.ResourceArray, error)
+
+	SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
+	DeleteRegisterNode(typ types.RegisteredNodeType, id string) error
+	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
+	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
+	//StoreRunningTask(task *types.Task) error
+	//StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
+	//IncreaseRunningTaskCountOnOrg() uint32
+	//IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32
+	//GetRunningTaskCountOnOrg() uint32
+	//GetRunningTaskCountOnJobNode(jobNodeId string) uint32
+	//GetJobNodeRunningTaskIdList(jobNodeId string) []string
+
+	// For ResourceManager
+	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
+	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
+	StoreOrgResourceTables(resources []*types.RemoteResourceTable) error
+	QueryOrgResourceTables() ([]*types.RemoteResourceTable, error)
+	StoreNodeResourceSlotUnit(slot *types.Slot) error
+	QueryNodeResourceSlotUnit() (*types.Slot, error)
+}
 
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
-
-	db              db.Database // Low level persistent database to store final content.
+	db              CarrierDB // Low level persistent database to store final content.
 	eventCh         chan *event.TaskEvent
 	slotUnit        *types.Slot
 	localTables     map[string]*types.LocalResourceTable
 	localTableQueue []*types.LocalResourceTable
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue []*types.RemoteResourceTable
+
+	localLock     sync.RWMutex
+	remoteLock    sync.RWMutex
+
 }
 
-func NewResourceManager(db db.Database) *Manager {
+func NewResourceManager(db CarrierDB) *Manager {
 	m := &Manager{
 		db:               db,
 		eventCh:          make(chan *event.TaskEvent, 0),
@@ -37,11 +70,13 @@ func NewResourceManager(db db.Database) *Manager {
 }
 
 func (m *Manager) loop() {
-
+	refreshTimer := time.NewTimer(defaultRefreshOrgResourceInterval)
 	for {
 		select {
 		case event := <-m.eventCh:
 			_ = event // TODO add some logic about eventEngine
+		case <- refreshTimer.C:
+
 		default:
 		}
 	}
@@ -50,13 +85,13 @@ func (m *Manager) loop() {
 func (m *Manager) Start() error {
 	m.SetSlotUnit(0, 0, 0)
 	// load slotUnit
-	slotUnit, err := queryNodeResourceSlotUnit(m.db)
+	slotUnit, err := m.db.QueryNodeResourceSlotUnit()
 	if nil != err {
 		return err
 	}
 	m.slotUnit = slotUnit
 	// load resource localTables
-	resources, err := queryNodeResources(m.db)
+	resources, err :=  m.db.QueryLocalResourceTables()
 	if nil != err {
 		return err
 	}
@@ -74,11 +109,11 @@ func (m *Manager) Start() error {
 
 func (m *Manager) Stop() error {
 	// store slotUnit
-	if err := storeNodeResourceSlotUnit(m.db, m.slotUnit); nil != err {
+	if err := m.db.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
 	}
 	// store resource localTables
-	if err := storeNodeResources(m.db, m.localTableQueue); nil != err {
+	if err := m.db.StoreLocalResourceTables(m.localTableQueue); nil != err {
 		return err
 	}
 	return nil
@@ -137,17 +172,17 @@ func (m *Manager) DelResource(nodeId string) {
 		}
 	}
 }
-func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable)  {
+func (m *Manager) addRemoteResourceTable(table *types.RemoteResourceTable)  {
 	m.remoteTableQueue = append(m.remoteTableQueue, table)
 }
-func (m *Manager) UpdateRemoteResouceTable(table *types.RemoteResourceTable) {
+func (m *Manager) updateRemoteResouceTable(table *types.RemoteResourceTable) {
 	for i := 0; i < len(m.remoteTableQueue); i++ {
 		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
 			m.remoteTableQueue[i] = table
 		}
 	}
 }
-func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable) {
+func (m *Manager) addOrUpdateRemoteResouceTable(table *types.RemoteResourceTable) {
 	var has bool
 	for i := 0; i < len(m.remoteTableQueue); i++ {
 		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
@@ -160,7 +195,7 @@ func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable
 	}
 	m.remoteTableQueue = append(m.remoteTableQueue, table)
 }
-func (m *Manager) DelRemoteResourceTable(identityId string)  {
+func (m *Manager) delRemoteResourceTable(identityId string)  {
 	for i := 0; i < len(m.remoteTableQueue); i++ {
 		if m.remoteTableQueue[i].GetIdentityId() == identityId {
 			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
@@ -168,7 +203,34 @@ func (m *Manager) DelRemoteResourceTable(identityId string)  {
 		}
 	}
 }
-
+func (m *Manager) CleanRemoteResourceTable() {
+	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
+}
+func (m *Manager) refreshOrgResourceTable() error {
+	resources, err := m.db.GetResourceList()
+	if nil != err {
+		return err
+	}
+	tmp := make(map[string]*types.Resource, len(resources))
+	for _, r := range resources {
+		tmp[r.GetIdentityId()] = r
+	}
+	for i, resource := range m.remoteTableQueue {
+		// If has, update
+		if r, ok := tmp[resource.GetIdentityId()]; ok {
+			m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)
+			delete(tmp, resource.GetIdentityId())
+		} else {
+		// If no has, delete
+			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
+			i--
+		}
+	}
+	for _, r := range tmp {
+		m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
+	}
+	return nil
+}
 func (m *Manager) SendTaskEvent(event *event.TaskEvent) error {
 	m.eventCh <- event
 	return nil
