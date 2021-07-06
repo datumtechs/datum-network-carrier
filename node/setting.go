@@ -12,7 +12,6 @@ import (
 
 // SetNodeConfig applies node-related command line flags to the config.
 func SetNodeConfig(ctx *cli.Context, cfg *Config) {
-	setHTTP(ctx, cfg)
 	switch {
 	case ctx.IsSet(flags.DataDirFlag.Name):
 		cfg.DataDir = ctx.String(flags.DataDirFlag.Name)
@@ -22,26 +21,6 @@ func SetNodeConfig(ctx *cli.Context, cfg *Config) {
 		cfg.DataDir = filepath.Join(DefaultDataDir(), "testnet")
 	}
 	// todo: more setting....
-}
-
-// setHTTP creates the HTTP RPC listener interface string from the set
-// command line flags, returning empty if the HTTP endpoint is disabled.
-func setHTTP(ctx *cli.Context, cfg *Config) {
-	if ctx.IsSet(flags.RPCEnabledFlag.Name) && cfg.HTTPHost == "" {
-		cfg.HTTPHost = "127.0.0.1"
-		if ctx.IsSet(flags.RPCListenAddrFlag.Name) {
-			cfg.HTTPHost = ctx.String(flags.RPCListenAddrFlag.Name)
-		}
-	}
-	if ctx.IsSet(flags.RPCPortFlag.Name) {
-		cfg.HTTPPort = ctx.Uint64(flags.RPCPortFlag.Name)
-	}
-	if ctx.IsSet(flags.RPCCORSDomainFlag.Name) {
-		cfg.HTTPCors = splitAndTrim(ctx.String(flags.RPCCORSDomainFlag.Name))
-	}
-	if ctx.IsSet(flags.RPCApiFlag.Name) {
-		cfg.HTTPModules = splitAndTrim(ctx.String(flags.RPCApiFlag.Name))
-	}
 }
 
 // SetCarrierConfig applies eth-related command line flags to the config.
