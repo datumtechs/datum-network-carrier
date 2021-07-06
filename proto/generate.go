@@ -33,6 +33,7 @@ func main() {
 		args := []string{
 			"-I", "..",
 			"-I", ".",
+			"-I", "../repos/grpc-gateway/third_party/googleapis",
 			//"--plugin=protoc-gen-gorosetta=scripts/protoc-gen-gorosetta",
 			//"--gorosetta_out=paths=source_relative:..",
 			"--gogofast_out=plugins=grpc,paths=source_relative:..",

@@ -4,11 +4,17 @@
 package carrier_rpc_v1
 
 import (
+	context "context"
 	encoding_binary "encoding/binary"
 	fmt "fmt"
+	v1 "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
-	_ "google.golang.org/protobuf/types/known/emptypb"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
+	grpc "google.golang.org/grpc"
+	codes "google.golang.org/grpc/codes"
+	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -24,6 +30,554 @@ var _ = math.Inf
 // A compilation error at this line likely means your copy of the
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
+
+// PeerDirection states the direction of the connection to a peer.
+type PeerDirection int32
+
+const (
+	PeerDirection_UNKNOWN  PeerDirection = 0
+	PeerDirection_INBOUND  PeerDirection = 1
+	PeerDirection_OUTBOUND PeerDirection = 2
+)
+
+var PeerDirection_name = map[int32]string{
+	0: "UNKNOWN",
+	1: "INBOUND",
+	2: "OUTBOUND",
+}
+
+var PeerDirection_value = map[string]int32{
+	"UNKNOWN":  0,
+	"INBOUND":  1,
+	"OUTBOUND": 2,
+}
+
+func (x PeerDirection) String() string {
+	return proto.EnumName(PeerDirection_name, int32(x))
+}
+
+func (PeerDirection) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{0}
+}
+
+// ConnectionState states the current status of the peer.
+type ConnectionState int32
+
+const (
+	ConnectionState_DISCONNECTED  ConnectionState = 0
+	ConnectionState_DISCONNECTING ConnectionState = 1
+	ConnectionState_CONNECTED     ConnectionState = 2
+	ConnectionState_CONNECTING    ConnectionState = 3
+)
+
+var ConnectionState_name = map[int32]string{
+	0: "DISCONNECTED",
+	1: "DISCONNECTING",
+	2: "CONNECTED",
+	3: "CONNECTING",
+}
+
+var ConnectionState_value = map[string]int32{
+	"DISCONNECTED":  0,
+	"DISCONNECTING": 1,
+	"CONNECTED":     2,
+	"CONNECTING":    3,
+}
+
+func (x ConnectionState) String() string {
+	return proto.EnumName(ConnectionState_name, int32(x))
+}
+
+func (ConnectionState) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{1}
+}
+
+type LoggingLevelRequest_Level int32
+
+const (
+	LoggingLevelRequest_INFO  LoggingLevelRequest_Level = 0
+	LoggingLevelRequest_DEBUG LoggingLevelRequest_Level = 1
+	LoggingLevelRequest_TRACE LoggingLevelRequest_Level = 2
+)
+
+var LoggingLevelRequest_Level_name = map[int32]string{
+	0: "INFO",
+	1: "DEBUG",
+	2: "TRACE",
+}
+
+var LoggingLevelRequest_Level_value = map[string]int32{
+	"INFO":  0,
+	"DEBUG": 1,
+	"TRACE": 2,
+}
+
+func (x LoggingLevelRequest_Level) String() string {
+	return proto.EnumName(LoggingLevelRequest_Level_name, int32(x))
+}
+
+func (LoggingLevelRequest_Level) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{1, 0}
+}
+
+type PeerRequest struct {
+	PeerId               string   `protobuf:"bytes,1,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PeerRequest) Reset()         { *m = PeerRequest{} }
+func (m *PeerRequest) String() string { return proto.CompactTextString(m) }
+func (*PeerRequest) ProtoMessage()    {}
+func (*PeerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{0}
+}
+func (m *PeerRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PeerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PeerRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PeerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PeerRequest.Merge(m, src)
+}
+func (m *PeerRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *PeerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PeerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PeerRequest proto.InternalMessageInfo
+
+func (m *PeerRequest) GetPeerId() string {
+	if m != nil {
+		return m.PeerId
+	}
+	return ""
+}
+
+type LoggingLevelRequest struct {
+	Level                LoggingLevelRequest_Level `protobuf:"varint,1,opt,name=level,proto3,enum=carrier.rpc.v1.LoggingLevelRequest_Level" json:"level,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
+	XXX_unrecognized     []byte                    `json:"-"`
+	XXX_sizecache        int32                     `json:"-"`
+}
+
+func (m *LoggingLevelRequest) Reset()         { *m = LoggingLevelRequest{} }
+func (m *LoggingLevelRequest) String() string { return proto.CompactTextString(m) }
+func (*LoggingLevelRequest) ProtoMessage()    {}
+func (*LoggingLevelRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{1}
+}
+func (m *LoggingLevelRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *LoggingLevelRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_LoggingLevelRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *LoggingLevelRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LoggingLevelRequest.Merge(m, src)
+}
+func (m *LoggingLevelRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *LoggingLevelRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_LoggingLevelRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LoggingLevelRequest proto.InternalMessageInfo
+
+func (m *LoggingLevelRequest) GetLevel() LoggingLevelRequest_Level {
+	if m != nil {
+		return m.Level
+	}
+	return LoggingLevelRequest_INFO
+}
+
+type DebugPeerResponses struct {
+	Responses            []*DebugPeerResponse `protobuf:"bytes,1,rep,name=responses,proto3" json:"responses,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *DebugPeerResponses) Reset()         { *m = DebugPeerResponses{} }
+func (m *DebugPeerResponses) String() string { return proto.CompactTextString(m) }
+func (*DebugPeerResponses) ProtoMessage()    {}
+func (*DebugPeerResponses) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{2}
+}
+func (m *DebugPeerResponses) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DebugPeerResponses) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DebugPeerResponses.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DebugPeerResponses) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DebugPeerResponses.Merge(m, src)
+}
+func (m *DebugPeerResponses) XXX_Size() int {
+	return m.Size()
+}
+func (m *DebugPeerResponses) XXX_DiscardUnknown() {
+	xxx_messageInfo_DebugPeerResponses.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DebugPeerResponses proto.InternalMessageInfo
+
+func (m *DebugPeerResponses) GetResponses() []*DebugPeerResponse {
+	if m != nil {
+		return m.Responses
+	}
+	return nil
+}
+
+type DebugPeerResponse struct {
+	// Listening addresses know of the peer.
+	ListeningAddresses []string `protobuf:"bytes,1,rep,name=listening_addresses,json=listeningAddresses,proto3" json:"listening_addresses,omitempty"`
+	// Direction of current connection.
+	Direction PeerDirection `protobuf:"varint,2,opt,name=direction,proto3,enum=carrier.rpc.v1.PeerDirection" json:"direction,omitempty"`
+	// Current connection between host and peer.
+	ConnectionState ConnectionState `protobuf:"varint,3,opt,name=connection_state,json=connectionState,proto3,enum=carrier.rpc.v1.ConnectionState" json:"connection_state,omitempty"`
+	// Peer ID of peer.
+	PeerId string `protobuf:"bytes,4,opt,name=peer_id,json=peerId,proto3" json:"peer_id,omitempty"`
+	// ENR of peer at the current moment.
+	Enr string `protobuf:"bytes,5,opt,name=enr,proto3" json:"enr,omitempty"`
+	// Peer Info of the peer containing all relevant metadata.
+	PeerInfo *DebugPeerResponse_PeerInfo `protobuf:"bytes,6,opt,name=peer_info,json=peerInfo,proto3" json:"peer_info,omitempty"`
+	// Peer Status of the peer.
+	PeerStatus *v1.Status `protobuf:"bytes,7,opt,name=peer_status,json=peerStatus,proto3" json:"peer_status,omitempty"`
+	// Last know update time for peer status.
+	LastUpdated uint64 `protobuf:"varint,8,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
+	// Score Info of the peer.
+	ScoreInfo            *ScoreInfo `protobuf:"bytes,9,opt,name=score_info,json=scoreInfo,proto3" json:"score_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *DebugPeerResponse) Reset()         { *m = DebugPeerResponse{} }
+func (m *DebugPeerResponse) String() string { return proto.CompactTextString(m) }
+func (*DebugPeerResponse) ProtoMessage()    {}
+func (*DebugPeerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{3}
+}
+func (m *DebugPeerResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DebugPeerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DebugPeerResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DebugPeerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DebugPeerResponse.Merge(m, src)
+}
+func (m *DebugPeerResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *DebugPeerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_DebugPeerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DebugPeerResponse proto.InternalMessageInfo
+
+func (m *DebugPeerResponse) GetListeningAddresses() []string {
+	if m != nil {
+		return m.ListeningAddresses
+	}
+	return nil
+}
+
+func (m *DebugPeerResponse) GetDirection() PeerDirection {
+	if m != nil {
+		return m.Direction
+	}
+	return PeerDirection_UNKNOWN
+}
+
+func (m *DebugPeerResponse) GetConnectionState() ConnectionState {
+	if m != nil {
+		return m.ConnectionState
+	}
+	return ConnectionState_DISCONNECTED
+}
+
+func (m *DebugPeerResponse) GetPeerId() string {
+	if m != nil {
+		return m.PeerId
+	}
+	return ""
+}
+
+func (m *DebugPeerResponse) GetEnr() string {
+	if m != nil {
+		return m.Enr
+	}
+	return ""
+}
+
+func (m *DebugPeerResponse) GetPeerInfo() *DebugPeerResponse_PeerInfo {
+	if m != nil {
+		return m.PeerInfo
+	}
+	return nil
+}
+
+func (m *DebugPeerResponse) GetPeerStatus() *v1.Status {
+	if m != nil {
+		return m.PeerStatus
+	}
+	return nil
+}
+
+func (m *DebugPeerResponse) GetLastUpdated() uint64 {
+	if m != nil {
+		return m.LastUpdated
+	}
+	return 0
+}
+
+func (m *DebugPeerResponse) GetScoreInfo() *ScoreInfo {
+	if m != nil {
+		return m.ScoreInfo
+	}
+	return nil
+}
+
+// Peer related metadata that is useful for debugging.
+type DebugPeerResponse_PeerInfo struct {
+	// Metadata of the peer, containing their bitfield
+	// and sequence number.
+	Metadata *v1.MetaData `protobuf:"bytes,1,opt,name=metadata,proto3" json:"metadata,omitempty"`
+	// List of protocols the peer supports.
+	Protocols []string `protobuf:"bytes,2,rep,name=protocols,proto3" json:"protocols,omitempty"`
+	// Number of times peer has been penalised.
+	FaultCount uint64 `protobuf:"varint,3,opt,name=fault_count,json=faultCount,proto3" json:"fault_count,omitempty"`
+	// Protocol Version peer is running.
+	ProtocolVersion string `protobuf:"bytes,4,opt,name=protocol_version,json=protocolVersion,proto3" json:"protocol_version,omitempty"`
+	// Agent Version peer is running.
+	AgentVersion string `protobuf:"bytes,5,opt,name=agent_version,json=agentVersion,proto3" json:"agent_version,omitempty"`
+	// Latency of responses from peer(in ms).
+	PeerLatency          uint64   `protobuf:"varint,6,opt,name=peer_latency,json=peerLatency,proto3" json:"peer_latency,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DebugPeerResponse_PeerInfo) Reset()         { *m = DebugPeerResponse_PeerInfo{} }
+func (m *DebugPeerResponse_PeerInfo) String() string { return proto.CompactTextString(m) }
+func (*DebugPeerResponse_PeerInfo) ProtoMessage()    {}
+func (*DebugPeerResponse_PeerInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{3, 0}
+}
+func (m *DebugPeerResponse_PeerInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DebugPeerResponse_PeerInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DebugPeerResponse_PeerInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DebugPeerResponse_PeerInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DebugPeerResponse_PeerInfo.Merge(m, src)
+}
+func (m *DebugPeerResponse_PeerInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *DebugPeerResponse_PeerInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_DebugPeerResponse_PeerInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DebugPeerResponse_PeerInfo proto.InternalMessageInfo
+
+func (m *DebugPeerResponse_PeerInfo) GetMetadata() *v1.MetaData {
+	if m != nil {
+		return m.Metadata
+	}
+	return nil
+}
+
+func (m *DebugPeerResponse_PeerInfo) GetProtocols() []string {
+	if m != nil {
+		return m.Protocols
+	}
+	return nil
+}
+
+func (m *DebugPeerResponse_PeerInfo) GetFaultCount() uint64 {
+	if m != nil {
+		return m.FaultCount
+	}
+	return 0
+}
+
+func (m *DebugPeerResponse_PeerInfo) GetProtocolVersion() string {
+	if m != nil {
+		return m.ProtocolVersion
+	}
+	return ""
+}
+
+func (m *DebugPeerResponse_PeerInfo) GetAgentVersion() string {
+	if m != nil {
+		return m.AgentVersion
+	}
+	return ""
+}
+
+func (m *DebugPeerResponse_PeerInfo) GetPeerLatency() uint64 {
+	if m != nil {
+		return m.PeerLatency
+	}
+	return 0
+}
+
+// The Scoring related information of the particular peer.
+type ScoreInfo struct {
+	OverallScore float32 `protobuf:"fixed32,1,opt,name=overall_score,json=overallScore,proto3" json:"overall_score,omitempty"`
+	// Amount of processed blocks provided by
+	// the peer.
+	ProcessedBlocks uint64 `protobuf:"varint,2,opt,name=processed_blocks,json=processedBlocks,proto3" json:"processed_blocks,omitempty"`
+	// Related block provider score.
+	BlockProviderScore float32 `protobuf:"fixed32,3,opt,name=block_provider_score,json=blockProviderScore,proto3" json:"block_provider_score,omitempty"`
+	// Relevant scores by particular topic.
+	TopicScores map[string]*TopicScoreSnapshot `protobuf:"bytes,4,rep,name=topic_scores,json=topicScores,proto3" json:"topic_scores,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	// Gossip Score for peer.
+	GossipScore float32 `protobuf:"fixed32,5,opt,name=gossip_score,json=gossipScore,proto3" json:"gossip_score,omitempty"`
+	// Behaviour penalty of peer.
+	BehaviourPenalty float32 `protobuf:"fixed32,6,opt,name=behaviour_penalty,json=behaviourPenalty,proto3" json:"behaviour_penalty,omitempty"`
+	// Returns the current validation error(if it exists).
+	ValidationError      string   `protobuf:"bytes,7,opt,name=validation_error,json=validationError,proto3" json:"validation_error,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ScoreInfo) Reset()         { *m = ScoreInfo{} }
+func (m *ScoreInfo) String() string { return proto.CompactTextString(m) }
+func (*ScoreInfo) ProtoMessage()    {}
+func (*ScoreInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1762ecd67aaca6b0, []int{4}
+}
+func (m *ScoreInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ScoreInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ScoreInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ScoreInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ScoreInfo.Merge(m, src)
+}
+func (m *ScoreInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *ScoreInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_ScoreInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ScoreInfo proto.InternalMessageInfo
+
+func (m *ScoreInfo) GetOverallScore() float32 {
+	if m != nil {
+		return m.OverallScore
+	}
+	return 0
+}
+
+func (m *ScoreInfo) GetProcessedBlocks() uint64 {
+	if m != nil {
+		return m.ProcessedBlocks
+	}
+	return 0
+}
+
+func (m *ScoreInfo) GetBlockProviderScore() float32 {
+	if m != nil {
+		return m.BlockProviderScore
+	}
+	return 0
+}
+
+func (m *ScoreInfo) GetTopicScores() map[string]*TopicScoreSnapshot {
+	if m != nil {
+		return m.TopicScores
+	}
+	return nil
+}
+
+func (m *ScoreInfo) GetGossipScore() float32 {
+	if m != nil {
+		return m.GossipScore
+	}
+	return 0
+}
+
+func (m *ScoreInfo) GetBehaviourPenalty() float32 {
+	if m != nil {
+		return m.BehaviourPenalty
+	}
+	return 0
+}
+
+func (m *ScoreInfo) GetValidationError() string {
+	if m != nil {
+		return m.ValidationError
+	}
+	return ""
+}
 
 type TopicScoreSnapshot struct {
 	// Time a peer has spent in the gossip mesh.
@@ -45,7 +599,7 @@ func (m *TopicScoreSnapshot) Reset()         { *m = TopicScoreSnapshot{} }
 func (m *TopicScoreSnapshot) String() string { return proto.CompactTextString(m) }
 func (*TopicScoreSnapshot) ProtoMessage()    {}
 func (*TopicScoreSnapshot) Descriptor() ([]byte, []int) {
-	return fileDescriptor_1762ecd67aaca6b0, []int{0}
+	return fileDescriptor_1762ecd67aaca6b0, []int{5}
 }
 func (m *TopicScoreSnapshot) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -103,29 +657,620 @@ func (m *TopicScoreSnapshot) GetInvalidMessageDeliveries() float32 {
 }
 
 func init() {
+	proto.RegisterEnum("carrier.rpc.v1.PeerDirection", PeerDirection_name, PeerDirection_value)
+	proto.RegisterEnum("carrier.rpc.v1.ConnectionState", ConnectionState_name, ConnectionState_value)
+	proto.RegisterEnum("carrier.rpc.v1.LoggingLevelRequest_Level", LoggingLevelRequest_Level_name, LoggingLevelRequest_Level_value)
+	proto.RegisterType((*PeerRequest)(nil), "carrier.rpc.v1.PeerRequest")
+	proto.RegisterType((*LoggingLevelRequest)(nil), "carrier.rpc.v1.LoggingLevelRequest")
+	proto.RegisterType((*DebugPeerResponses)(nil), "carrier.rpc.v1.DebugPeerResponses")
+	proto.RegisterType((*DebugPeerResponse)(nil), "carrier.rpc.v1.DebugPeerResponse")
+	proto.RegisterType((*DebugPeerResponse_PeerInfo)(nil), "carrier.rpc.v1.DebugPeerResponse.PeerInfo")
+	proto.RegisterType((*ScoreInfo)(nil), "carrier.rpc.v1.ScoreInfo")
+	proto.RegisterMapType((map[string]*TopicScoreSnapshot)(nil), "carrier.rpc.v1.ScoreInfo.TopicScoresEntry")
 	proto.RegisterType((*TopicScoreSnapshot)(nil), "carrier.rpc.v1.TopicScoreSnapshot")
 }
 
 func init() { proto.RegisterFile("lib/rpc/v1/debug.proto", fileDescriptor_1762ecd67aaca6b0) }
 
 var fileDescriptor_1762ecd67aaca6b0 = []byte{
-	// 252 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x8f, 0x31, 0x4b, 0xc3, 0x40,
-	0x14, 0x80, 0xb9, 0x5a, 0x1c, 0x8e, 0xe2, 0x10, 0xb0, 0x86, 0x08, 0x21, 0xe8, 0xd2, 0x29, 0xa1,
-	0x08, 0xe2, 0xe0, 0x24, 0x2e, 0x0e, 0x5d, 0x5a, 0xf7, 0x90, 0x5c, 0x5e, 0x2f, 0x0f, 0x92, 0xbc,
-	0xe3, 0xdd, 0x35, 0xe0, 0x3f, 0x74, 0xf4, 0x27, 0x48, 0x06, 0x7f, 0x87, 0xe4, 0x22, 0x76, 0x68,
-	0xb7, 0xbb, 0xf7, 0x7d, 0xdf, 0x83, 0x27, 0x97, 0x0d, 0x96, 0x19, 0x1b, 0x95, 0xf5, 0xeb, 0xac,
-	0x82, 0xf2, 0xa0, 0x53, 0xc3, 0xe4, 0x28, 0xb8, 0x52, 0x05, 0x33, 0x02, 0xa7, 0x6c, 0x54, 0xda,
-	0xaf, 0xa3, 0x5b, 0x4d, 0xa4, 0x1b, 0xc8, 0x3c, 0x2d, 0x0f, 0xfb, 0x0c, 0x5a, 0xe3, 0x3e, 0x26,
-	0x39, 0xba, 0x67, 0x30, 0x64, 0x8f, 0x4c, 0x93, 0x26, 0xff, 0xf1, 0xaf, 0x49, 0xba, 0xfb, 0x11,
-	0x32, 0x78, 0x27, 0x83, 0x6a, 0xa7, 0x88, 0x61, 0xd7, 0x15, 0xc6, 0xd6, 0xe4, 0x82, 0x44, 0x2e,
-	0x1c, 0xb6, 0x90, 0x63, 0x97, 0xb7, 0x60, 0xeb, 0x50, 0x24, 0x62, 0x35, 0xdf, 0xca, 0x71, 0xf6,
-	0xd6, 0x6d, 0xc0, 0xd6, 0xc1, 0x93, 0x0c, 0xf7, 0xc8, 0xd6, 0x8d, 0xdc, 0x16, 0x1a, 0xf2, 0x0a,
-	0x1a, 0xec, 0x81, 0x11, 0x6c, 0x38, 0x4b, 0xc4, 0x6a, 0xb6, 0x5d, 0x7a, 0xbe, 0x99, 0xf0, 0xeb,
-	0x3f, 0x0d, 0x1e, 0xe5, 0xcd, 0xb8, 0xf3, 0x5c, 0x78, 0xe1, 0xc3, 0xeb, 0x11, 0x9f, 0x76, 0xcf,
-	0x32, 0xc2, 0xae, 0x2f, 0x1a, 0xac, 0xce, 0xa5, 0x73, 0x9f, 0x86, 0x7f, 0xc6, 0x49, 0xfd, 0xb2,
-	0xf8, 0x1c, 0x62, 0xf1, 0x35, 0xc4, 0xe2, 0x7b, 0x88, 0x45, 0x79, 0xe9, 0xaf, 0x7f, 0xf8, 0x0d,
-	0x00, 0x00, 0xff, 0xff, 0xc4, 0x2b, 0x64, 0x31, 0x69, 0x01, 0x00, 0x00,
+	// 1106 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x56, 0x51, 0x6e, 0xdb, 0x46,
+	0x13, 0x0e, 0x65, 0x29, 0x16, 0x47, 0x72, 0xcc, 0x6c, 0xfe, 0xdf, 0xa1, 0x95, 0xd4, 0xb1, 0x19,
+	0xa0, 0x75, 0x5c, 0x40, 0x6a, 0xd4, 0xa2, 0x31, 0xda, 0x02, 0x41, 0x6c, 0xa9, 0x81, 0x5a, 0x5b,
+	0x0e, 0x28, 0xab, 0x7d, 0x24, 0x56, 0xe4, 0x9a, 0x26, 0x42, 0x73, 0x99, 0xdd, 0x95, 0x00, 0x3f,
+	0x15, 0xe8, 0x15, 0x7a, 0x9c, 0x5e, 0xa0, 0x0f, 0x05, 0x5a, 0xa0, 0x17, 0x28, 0x82, 0xa2, 0x07,
+	0xe8, 0x09, 0x8a, 0x9d, 0x15, 0x25, 0x47, 0x72, 0xe0, 0xbe, 0xed, 0x7c, 0xf3, 0xcd, 0x37, 0xb3,
+	0x33, 0xcb, 0x5d, 0xc2, 0x46, 0x9a, 0x8c, 0x5a, 0x22, 0x0f, 0x5b, 0x93, 0xa7, 0xad, 0x88, 0x8d,
+	0xc6, 0x71, 0x33, 0x17, 0x5c, 0x71, 0x72, 0x27, 0xa4, 0x42, 0x24, 0x4c, 0x34, 0x45, 0x1e, 0x36,
+	0x27, 0x4f, 0x1b, 0x0f, 0x63, 0xce, 0xe3, 0x94, 0xb5, 0x68, 0x9e, 0xb4, 0x68, 0x96, 0x71, 0x45,
+	0x55, 0xc2, 0x33, 0x69, 0xd8, 0x8d, 0x07, 0x53, 0x2f, 0x5a, 0xa3, 0xf1, 0x59, 0x8b, 0x5d, 0xe4,
+	0xea, 0x72, 0xea, 0xdc, 0xd4, 0x29, 0xf2, 0x76, 0xae, 0x53, 0x5c, 0x30, 0x29, 0x69, 0xcc, 0x8a,
+	0xb8, 0xc7, 0x82, 0xe5, 0x5c, 0xce, 0xc3, 0x62, 0x1e, 0x73, 0x34, 0x70, 0x65, 0x48, 0xde, 0x87,
+	0x50, 0x7b, 0xc5, 0x98, 0xf0, 0xd9, 0x9b, 0x31, 0x93, 0x8a, 0xdc, 0x87, 0xd5, 0x9c, 0x31, 0x11,
+	0x24, 0x91, 0x6b, 0x6d, 0x5b, 0xbb, 0xb6, 0x7f, 0x5b, 0x9b, 0xbd, 0xc8, 0xfb, 0x01, 0xee, 0x1d,
+	0xf1, 0x38, 0x4e, 0xb2, 0xf8, 0x88, 0x4d, 0x58, 0x5a, 0xf0, 0x9f, 0x43, 0x25, 0xd5, 0x36, 0xb2,
+	0xef, 0xb4, 0x9f, 0x34, 0xdf, 0xdd, 0x59, 0xf3, 0x9a, 0x98, 0xa6, 0x31, 0x4c, 0x9c, 0xf7, 0x11,
+	0x54, 0xd0, 0x26, 0x55, 0x28, 0xf7, 0xfa, 0x5f, 0x9f, 0x38, 0xb7, 0x88, 0x0d, 0x95, 0x4e, 0xf7,
+	0x60, 0xf8, 0xd2, 0xb1, 0xf4, 0xf2, 0xd4, 0x7f, 0x71, 0xd8, 0x75, 0x4a, 0xde, 0x10, 0x48, 0x47,
+	0xb7, 0xd0, 0x54, 0x2b, 0x73, 0x9e, 0x49, 0x26, 0xc9, 0x73, 0xb0, 0x45, 0x61, 0xb8, 0xd6, 0xf6,
+	0xca, 0x6e, 0xad, 0xbd, 0xb3, 0x58, 0xc3, 0x52, 0x98, 0x3f, 0x8f, 0xf1, 0x7e, 0xad, 0xc0, 0xdd,
+	0x25, 0x02, 0x69, 0xc1, 0xbd, 0x34, 0x91, 0x8a, 0x65, 0x49, 0x16, 0x07, 0x34, 0x8a, 0x04, 0x93,
+	0x45, 0x02, 0xdb, 0x27, 0x33, 0xd7, 0x8b, 0xc2, 0x43, 0xbe, 0x04, 0x3b, 0x4a, 0x04, 0x0b, 0xf5,
+	0xdc, 0xdc, 0x12, 0xf6, 0xe2, 0x83, 0xc5, 0x3a, 0x74, 0x86, 0x4e, 0x41, 0xf2, 0xe7, 0x7c, 0xf2,
+	0x0d, 0x38, 0x21, 0xcf, 0x32, 0x63, 0x05, 0x52, 0x51, 0xc5, 0xdc, 0x15, 0xd4, 0x78, 0xb4, 0xa8,
+	0x71, 0x38, 0xe3, 0x0d, 0x34, 0xcd, 0x5f, 0x0f, 0xdf, 0x05, 0xae, 0x0e, 0xb0, 0x7c, 0x75, 0x80,
+	0xc4, 0x81, 0x15, 0x96, 0x09, 0xb7, 0x82, 0xa0, 0x5e, 0x92, 0x97, 0x60, 0x1b, 0x6a, 0x76, 0xc6,
+	0xdd, 0xdb, 0xdb, 0xd6, 0x6e, 0xad, 0xbd, 0x77, 0x63, 0xef, 0x70, 0x17, 0xbd, 0xec, 0x8c, 0xfb,
+	0xd5, 0x7c, 0xba, 0x22, 0xcf, 0xa0, 0x86, 0x42, 0xba, 0xf2, 0xb1, 0x74, 0x57, 0x51, 0x6a, 0x63,
+	0x26, 0x95, 0xb7, 0x73, 0x2d, 0x35, 0x40, 0xaf, 0x0f, 0x9a, 0x6a, 0xd6, 0x64, 0x07, 0xea, 0x29,
+	0x95, 0x2a, 0x18, 0xe7, 0x11, 0x55, 0x2c, 0x72, 0xab, 0xdb, 0xd6, 0x6e, 0xd9, 0xaf, 0x69, 0x6c,
+	0x68, 0x20, 0xb2, 0x0f, 0x20, 0x43, 0x2e, 0x98, 0xa9, 0xd2, 0x46, 0xe9, 0xcd, 0xc5, 0x2a, 0x07,
+	0x9a, 0x81, 0x45, 0xd9, 0xb2, 0x58, 0x36, 0xfe, 0xb1, 0xa0, 0x5a, 0x14, 0x4b, 0x3e, 0x83, 0xea,
+	0x05, 0x53, 0x34, 0xa2, 0x8a, 0xe2, 0x51, 0xad, 0xb5, 0xdd, 0xc5, 0xfa, 0x8e, 0x99, 0xa2, 0x1d,
+	0xaa, 0xa8, 0x3f, 0x63, 0x92, 0x87, 0x60, 0xe3, 0x57, 0x12, 0xf2, 0x54, 0xba, 0x25, 0x1c, 0xfe,
+	0x1c, 0x20, 0x8f, 0xa0, 0x76, 0x46, 0xc7, 0xa9, 0x0a, 0x42, 0x3e, 0xce, 0x14, 0x4e, 0xac, 0xec,
+	0x03, 0x42, 0x87, 0x1a, 0x21, 0x4f, 0xc0, 0x29, 0xd8, 0xc1, 0x84, 0x09, 0xa9, 0xcf, 0x86, 0x19,
+	0xca, 0x7a, 0x81, 0x7f, 0x67, 0x60, 0xf2, 0x18, 0xd6, 0x68, 0xcc, 0x32, 0x35, 0xe3, 0x99, 0x39,
+	0xd5, 0x11, 0x2c, 0x48, 0x3b, 0x50, 0xc7, 0x3e, 0xa7, 0x54, 0xb1, 0x2c, 0xbc, 0xc4, 0x99, 0x95,
+	0x7d, 0xec, 0xfd, 0x91, 0x81, 0xbc, 0x9f, 0x57, 0xc0, 0x9e, 0x75, 0x43, 0xab, 0xf2, 0x09, 0x13,
+	0x34, 0x4d, 0x03, 0xec, 0x0b, 0x6e, 0xbd, 0xe4, 0xd7, 0xa7, 0x20, 0x12, 0xa7, 0x55, 0x86, 0xfa,
+	0x1c, 0x47, 0xc1, 0x28, 0xe5, 0xe1, 0x6b, 0x89, 0x27, 0xb8, 0x8c, 0x55, 0x1a, 0xfc, 0x00, 0x61,
+	0xf2, 0x09, 0xfc, 0x0f, 0x09, 0x41, 0x2e, 0xf8, 0x24, 0x89, 0xf4, 0xc8, 0x51, 0x76, 0x05, 0x65,
+	0x09, 0xfa, 0x5e, 0x4d, 0x5d, 0x46, 0xfc, 0x18, 0xea, 0x8a, 0xe7, 0x49, 0x68, 0x88, 0xd2, 0x2d,
+	0xe3, 0x27, 0xba, 0xf7, 0xde, 0x01, 0x36, 0x4f, 0x35, 0x1b, 0x4d, 0xd9, 0xcd, 0x94, 0xb8, 0xf4,
+	0x6b, 0x6a, 0x8e, 0xe8, 0x0e, 0xc4, 0x5c, 0xca, 0x24, 0x9f, 0x26, 0xae, 0x60, 0xe2, 0x9a, 0xc1,
+	0x4c, 0xc6, 0x8f, 0xe1, 0xee, 0x88, 0x9d, 0xd3, 0x49, 0xc2, 0xc7, 0x22, 0xc8, 0x59, 0x46, 0x53,
+	0x65, 0x3a, 0x55, 0xf2, 0x9d, 0x99, 0xe3, 0x95, 0xc1, 0xf5, 0xde, 0x27, 0x34, 0x4d, 0x22, 0xbc,
+	0x6f, 0x03, 0x26, 0x04, 0x17, 0x78, 0x7c, 0x6d, 0x7f, 0x7d, 0x8e, 0x77, 0x35, 0xdc, 0x18, 0x81,
+	0xb3, 0x58, 0x9b, 0xfe, 0xa6, 0x5e, 0xb3, 0xcb, 0xe9, 0x4d, 0xa9, 0x97, 0x64, 0x1f, 0x2a, 0x13,
+	0x9a, 0x8e, 0x19, 0x76, 0xb0, 0xd6, 0xf6, 0x16, 0x37, 0x3a, 0x97, 0x18, 0x64, 0x34, 0x97, 0xe7,
+	0x5c, 0xf9, 0x26, 0xe0, 0x8b, 0xd2, 0xbe, 0xe5, 0xfd, 0x6d, 0x01, 0x59, 0x66, 0x90, 0x6d, 0xa8,
+	0xab, 0xe4, 0x42, 0x7f, 0x02, 0xc1, 0x05, 0x93, 0xe7, 0x98, 0xaf, 0xec, 0x83, 0xc6, 0x7a, 0xd9,
+	0x31, 0x93, 0xe7, 0x64, 0x1f, 0xdc, 0xb3, 0x44, 0x48, 0x15, 0x4c, 0x9f, 0x80, 0x20, 0x62, 0x69,
+	0x32, 0x61, 0x22, 0x61, 0x66, 0x96, 0x25, 0x7f, 0x03, 0xfd, 0xc7, 0xc6, 0xdd, 0x99, 0x79, 0xc9,
+	0xe7, 0x70, 0x5f, 0x6b, 0x5e, 0x17, 0x68, 0xa6, 0xfa, 0x7f, 0xed, 0x5e, 0x8e, 0xfb, 0x0a, 0x1a,
+	0x49, 0x86, 0x3d, 0xba, 0x2e, 0xb4, 0x8c, 0xa1, 0xee, 0x94, 0xb1, 0x14, 0xbd, 0xf7, 0x0c, 0xd6,
+	0xde, 0xb9, 0x0d, 0x49, 0x0d, 0x56, 0x87, 0xfd, 0x6f, 0xfb, 0x27, 0xdf, 0xf7, 0x9d, 0x5b, 0xda,
+	0xe8, 0xf5, 0x0f, 0x4e, 0x86, 0xfd, 0x8e, 0x63, 0x91, 0x3a, 0x54, 0x4f, 0x86, 0xa7, 0xc6, 0x2a,
+	0xed, 0x0d, 0x61, 0x7d, 0xe1, 0x0a, 0x24, 0x0e, 0xd4, 0x3b, 0xbd, 0xc1, 0xe1, 0x49, 0xbf, 0xdf,
+	0x3d, 0x3c, 0xed, 0x76, 0x9c, 0x5b, 0xe4, 0x2e, 0xac, 0xcd, 0x91, 0x5e, 0x5f, 0x3f, 0x24, 0x6b,
+	0x60, 0xcf, 0x19, 0x25, 0x72, 0x07, 0xe0, 0x8a, 0x7b, 0xa5, 0xfd, 0x5b, 0x09, 0x2a, 0x78, 0xd5,
+	0x91, 0x37, 0xb0, 0x3e, 0x60, 0xea, 0xea, 0xb3, 0x45, 0x1e, 0xff, 0x87, 0x47, 0xad, 0xb1, 0xd1,
+	0x34, 0xaf, 0x74, 0xb3, 0x78, 0x6e, 0x9b, 0x5d, 0xfd, 0x4a, 0x7b, 0x3b, 0x3f, 0xfe, 0xf1, 0xd7,
+	0x4f, 0xa5, 0x07, 0xde, 0x66, 0x6b, 0x2a, 0x32, 0xfb, 0x17, 0x68, 0xa5, 0x46, 0x86, 0x9c, 0x83,
+	0x7d, 0x94, 0x48, 0xa5, 0x1b, 0x22, 0xc9, 0x7b, 0x74, 0x1a, 0xde, 0x8d, 0x37, 0xb3, 0xf4, 0x1e,
+	0x61, 0xae, 0x4d, 0x72, 0x7f, 0x39, 0x57, 0x8e, 0xe2, 0x09, 0xac, 0xbe, 0x64, 0x98, 0x88, 0x3c,
+	0xb8, 0xee, 0x75, 0x2a, 0x36, 0x73, 0xf3, 0x13, 0xea, 0x6d, 0x61, 0x2e, 0x97, 0x6c, 0x5c, 0x9f,
+	0xeb, 0xa0, 0xfe, 0xcb, 0xdb, 0x2d, 0xeb, 0xf7, 0xb7, 0x5b, 0xd6, 0x9f, 0x6f, 0xb7, 0xac, 0xd1,
+	0x6d, 0xdc, 0xcd, 0xa7, 0xff, 0x06, 0x00, 0x00, 0xff, 0xff, 0x92, 0xa3, 0x7c, 0x63, 0x11, 0x09,
+	0x00, 0x00,
+}
+
+// Reference imports to suppress errors if they are not otherwise used.
+var _ context.Context
+var _ grpc.ClientConn
+
+// This is a compile-time assertion to ensure that this generated file
+// is compatible with the grpc package it is being compiled against.
+const _ = grpc.SupportPackageIsVersion4
+
+// DebugClient is the client API for Debug service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type DebugClient interface {
+	// SetLoggingLevel sets the log-level of the beacon node programmatically.
+	SetLoggingLevel(ctx context.Context, in *LoggingLevelRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	// Returns all the related data for every peer tracked by the host node.
+	ListPeers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DebugPeerResponses, error)
+	// Returns requested peer with specified peer id if it exists.
+	GetPeer(ctx context.Context, in *PeerRequest, opts ...grpc.CallOption) (*DebugPeerResponse, error)
+}
+
+type debugClient struct {
+	cc *grpc.ClientConn
+}
+
+func NewDebugClient(cc *grpc.ClientConn) DebugClient {
+	return &debugClient{cc}
+}
+
+func (c *debugClient) SetLoggingLevel(ctx context.Context, in *LoggingLevelRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/carrier.rpc.v1.Debug/SetLoggingLevel", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *debugClient) ListPeers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DebugPeerResponses, error) {
+	out := new(DebugPeerResponses)
+	err := c.cc.Invoke(ctx, "/carrier.rpc.v1.Debug/ListPeers", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *debugClient) GetPeer(ctx context.Context, in *PeerRequest, opts ...grpc.CallOption) (*DebugPeerResponse, error) {
+	out := new(DebugPeerResponse)
+	err := c.cc.Invoke(ctx, "/carrier.rpc.v1.Debug/GetPeer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// DebugServer is the server API for Debug service.
+type DebugServer interface {
+	// SetLoggingLevel sets the log-level of the beacon node programmatically.
+	SetLoggingLevel(context.Context, *LoggingLevelRequest) (*emptypb.Empty, error)
+	// Returns all the related data for every peer tracked by the host node.
+	ListPeers(context.Context, *emptypb.Empty) (*DebugPeerResponses, error)
+	// Returns requested peer with specified peer id if it exists.
+	GetPeer(context.Context, *PeerRequest) (*DebugPeerResponse, error)
+}
+
+// UnimplementedDebugServer can be embedded to have forward compatible implementations.
+type UnimplementedDebugServer struct {
+}
+
+func (*UnimplementedDebugServer) SetLoggingLevel(ctx context.Context, req *LoggingLevelRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetLoggingLevel not implemented")
+}
+func (*UnimplementedDebugServer) ListPeers(ctx context.Context, req *emptypb.Empty) (*DebugPeerResponses, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPeers not implemented")
+}
+func (*UnimplementedDebugServer) GetPeer(ctx context.Context, req *PeerRequest) (*DebugPeerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPeer not implemented")
+}
+
+func RegisterDebugServer(s *grpc.Server, srv DebugServer) {
+	s.RegisterService(&_Debug_serviceDesc, srv)
+}
+
+func _Debug_SetLoggingLevel_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(LoggingLevelRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DebugServer).SetLoggingLevel(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.rpc.v1.Debug/SetLoggingLevel",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DebugServer).SetLoggingLevel(ctx, req.(*LoggingLevelRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Debug_ListPeers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DebugServer).ListPeers(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.rpc.v1.Debug/ListPeers",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DebugServer).ListPeers(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Debug_GetPeer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PeerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DebugServer).GetPeer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/carrier.rpc.v1.Debug/GetPeer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DebugServer).GetPeer(ctx, req.(*PeerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _Debug_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "carrier.rpc.v1.Debug",
+	HandlerType: (*DebugServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "SetLoggingLevel",
+			Handler:    _Debug_SetLoggingLevel_Handler,
+		},
+		{
+			MethodName: "ListPeers",
+			Handler:    _Debug_ListPeers_Handler,
+		},
+		{
+			MethodName: "GetPeer",
+			Handler:    _Debug_GetPeer_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "lib/rpc/v1/debug.proto",
+}
+
+func (m *PeerRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PeerRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PeerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.PeerId) > 0 {
+		i -= len(m.PeerId)
+		copy(dAtA[i:], m.PeerId)
+		i = encodeVarintDebug(dAtA, i, uint64(len(m.PeerId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *LoggingLevelRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LoggingLevelRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *LoggingLevelRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Level != 0 {
+		i = encodeVarintDebug(dAtA, i, uint64(m.Level))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DebugPeerResponses) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DebugPeerResponses) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DebugPeerResponses) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Responses) > 0 {
+		for iNdEx := len(m.Responses) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Responses[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintDebug(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DebugPeerResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DebugPeerResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DebugPeerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.ScoreInfo != nil {
+		{
+			size, err := m.ScoreInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDebug(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x4a
+	}
+	if m.LastUpdated != 0 {
+		i = encodeVarintDebug(dAtA, i, uint64(m.LastUpdated))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.PeerStatus != nil {
+		{
+			size, err := m.PeerStatus.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDebug(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.PeerInfo != nil {
+		{
+			size, err := m.PeerInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDebug(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Enr) > 0 {
+		i -= len(m.Enr)
+		copy(dAtA[i:], m.Enr)
+		i = encodeVarintDebug(dAtA, i, uint64(len(m.Enr)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.PeerId) > 0 {
+		i -= len(m.PeerId)
+		copy(dAtA[i:], m.PeerId)
+		i = encodeVarintDebug(dAtA, i, uint64(len(m.PeerId)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.ConnectionState != 0 {
+		i = encodeVarintDebug(dAtA, i, uint64(m.ConnectionState))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Direction != 0 {
+		i = encodeVarintDebug(dAtA, i, uint64(m.Direction))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.ListeningAddresses) > 0 {
+		for iNdEx := len(m.ListeningAddresses) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ListeningAddresses[iNdEx])
+			copy(dAtA[i:], m.ListeningAddresses[iNdEx])
+			i = encodeVarintDebug(dAtA, i, uint64(len(m.ListeningAddresses[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DebugPeerResponse_PeerInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DebugPeerResponse_PeerInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DebugPeerResponse_PeerInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.PeerLatency != 0 {
+		i = encodeVarintDebug(dAtA, i, uint64(m.PeerLatency))
+		i--
+		dAtA[i] = 0x30
+	}
+	if len(m.AgentVersion) > 0 {
+		i -= len(m.AgentVersion)
+		copy(dAtA[i:], m.AgentVersion)
+		i = encodeVarintDebug(dAtA, i, uint64(len(m.AgentVersion)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ProtocolVersion) > 0 {
+		i -= len(m.ProtocolVersion)
+		copy(dAtA[i:], m.ProtocolVersion)
+		i = encodeVarintDebug(dAtA, i, uint64(len(m.ProtocolVersion)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.FaultCount != 0 {
+		i = encodeVarintDebug(dAtA, i, uint64(m.FaultCount))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.Protocols) > 0 {
+		for iNdEx := len(m.Protocols) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Protocols[iNdEx])
+			copy(dAtA[i:], m.Protocols[iNdEx])
+			i = encodeVarintDebug(dAtA, i, uint64(len(m.Protocols[iNdEx])))
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Metadata != nil {
+		{
+			size, err := m.Metadata.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintDebug(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ScoreInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ScoreInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ScoreInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.ValidationError) > 0 {
+		i -= len(m.ValidationError)
+		copy(dAtA[i:], m.ValidationError)
+		i = encodeVarintDebug(dAtA, i, uint64(len(m.ValidationError)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.BehaviourPenalty != 0 {
+		i -= 4
+		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.BehaviourPenalty))))
+		i--
+		dAtA[i] = 0x35
+	}
+	if m.GossipScore != 0 {
+		i -= 4
+		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.GossipScore))))
+		i--
+		dAtA[i] = 0x2d
+	}
+	if len(m.TopicScores) > 0 {
+		for k := range m.TopicScores {
+			v := m.TopicScores[k]
+			baseI := i
+			if v != nil {
+				{
+					size, err := v.MarshalToSizedBuffer(dAtA[:i])
+					if err != nil {
+						return 0, err
+					}
+					i -= size
+					i = encodeVarintDebug(dAtA, i, uint64(size))
+				}
+				i--
+				dAtA[i] = 0x12
+			}
+			i -= len(k)
+			copy(dAtA[i:], k)
+			i = encodeVarintDebug(dAtA, i, uint64(len(k)))
+			i--
+			dAtA[i] = 0xa
+			i = encodeVarintDebug(dAtA, i, uint64(baseI-i))
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.BlockProviderScore != 0 {
+		i -= 4
+		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.BlockProviderScore))))
+		i--
+		dAtA[i] = 0x1d
+	}
+	if m.ProcessedBlocks != 0 {
+		i = encodeVarintDebug(dAtA, i, uint64(m.ProcessedBlocks))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.OverallScore != 0 {
+		i -= 4
+		encoding_binary.LittleEndian.PutUint32(dAtA[i:], uint32(math.Float32bits(float32(m.OverallScore))))
+		i--
+		dAtA[i] = 0xd
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *TopicScoreSnapshot) Marshal() (dAtA []byte, err error) {
@@ -189,6 +1334,182 @@ func encodeVarintDebug(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *PeerRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PeerId)
+	if l > 0 {
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *LoggingLevelRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Level != 0 {
+		n += 1 + sovDebug(uint64(m.Level))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *DebugPeerResponses) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Responses) > 0 {
+		for _, e := range m.Responses {
+			l = e.Size()
+			n += 1 + l + sovDebug(uint64(l))
+		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *DebugPeerResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.ListeningAddresses) > 0 {
+		for _, s := range m.ListeningAddresses {
+			l = len(s)
+			n += 1 + l + sovDebug(uint64(l))
+		}
+	}
+	if m.Direction != 0 {
+		n += 1 + sovDebug(uint64(m.Direction))
+	}
+	if m.ConnectionState != 0 {
+		n += 1 + sovDebug(uint64(m.ConnectionState))
+	}
+	l = len(m.PeerId)
+	if l > 0 {
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	l = len(m.Enr)
+	if l > 0 {
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if m.PeerInfo != nil {
+		l = m.PeerInfo.Size()
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if m.PeerStatus != nil {
+		l = m.PeerStatus.Size()
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if m.LastUpdated != 0 {
+		n += 1 + sovDebug(uint64(m.LastUpdated))
+	}
+	if m.ScoreInfo != nil {
+		l = m.ScoreInfo.Size()
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *DebugPeerResponse_PeerInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Metadata != nil {
+		l = m.Metadata.Size()
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if len(m.Protocols) > 0 {
+		for _, s := range m.Protocols {
+			l = len(s)
+			n += 1 + l + sovDebug(uint64(l))
+		}
+	}
+	if m.FaultCount != 0 {
+		n += 1 + sovDebug(uint64(m.FaultCount))
+	}
+	l = len(m.ProtocolVersion)
+	if l > 0 {
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	l = len(m.AgentVersion)
+	if l > 0 {
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if m.PeerLatency != 0 {
+		n += 1 + sovDebug(uint64(m.PeerLatency))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *ScoreInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.OverallScore != 0 {
+		n += 5
+	}
+	if m.ProcessedBlocks != 0 {
+		n += 1 + sovDebug(uint64(m.ProcessedBlocks))
+	}
+	if m.BlockProviderScore != 0 {
+		n += 5
+	}
+	if len(m.TopicScores) > 0 {
+		for k, v := range m.TopicScores {
+			_ = k
+			_ = v
+			l = 0
+			if v != nil {
+				l = v.Size()
+				l += 1 + sovDebug(uint64(l))
+			}
+			mapEntrySize := 1 + len(k) + sovDebug(uint64(len(k))) + l
+			n += mapEntrySize + 1 + sovDebug(uint64(mapEntrySize))
+		}
+	}
+	if m.GossipScore != 0 {
+		n += 5
+	}
+	if m.BehaviourPenalty != 0 {
+		n += 5
+	}
+	l = len(m.ValidationError)
+	if l > 0 {
+		n += 1 + l + sovDebug(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *TopicScoreSnapshot) Size() (n int) {
 	if m == nil {
 		return 0
@@ -218,6 +1539,1052 @@ func sovDebug(x uint64) (n int) {
 }
 func sozDebug(x uint64) (n int) {
 	return sovDebug(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *PeerRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDebug
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PeerRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PeerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PeerId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PeerId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDebug(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LoggingLevelRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDebug
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LoggingLevelRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LoggingLevelRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Level", wireType)
+			}
+			m.Level = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Level |= LoggingLevelRequest_Level(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDebug(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DebugPeerResponses) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDebug
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DebugPeerResponses: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DebugPeerResponses: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Responses", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Responses = append(m.Responses, &DebugPeerResponse{})
+			if err := m.Responses[len(m.Responses)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDebug(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DebugPeerResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDebug
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DebugPeerResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DebugPeerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ListeningAddresses", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ListeningAddresses = append(m.ListeningAddresses, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Direction", wireType)
+			}
+			m.Direction = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Direction |= PeerDirection(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ConnectionState", wireType)
+			}
+			m.ConnectionState = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ConnectionState |= ConnectionState(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PeerId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PeerId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Enr", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Enr = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PeerInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PeerInfo == nil {
+				m.PeerInfo = &DebugPeerResponse_PeerInfo{}
+			}
+			if err := m.PeerInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PeerStatus", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PeerStatus == nil {
+				m.PeerStatus = &v1.Status{}
+			}
+			if err := m.PeerStatus.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdated", wireType)
+			}
+			m.LastUpdated = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LastUpdated |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ScoreInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ScoreInfo == nil {
+				m.ScoreInfo = &ScoreInfo{}
+			}
+			if err := m.ScoreInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDebug(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DebugPeerResponse_PeerInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDebug
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PeerInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PeerInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Metadata", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Metadata == nil {
+				m.Metadata = &v1.MetaData{}
+			}
+			if err := m.Metadata.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Protocols", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Protocols = append(m.Protocols, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FaultCount", wireType)
+			}
+			m.FaultCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FaultCount |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProtocolVersion", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ProtocolVersion = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AgentVersion", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.AgentVersion = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PeerLatency", wireType)
+			}
+			m.PeerLatency = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PeerLatency |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDebug(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ScoreInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowDebug
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ScoreInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ScoreInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OverallScore", wireType)
+			}
+			var v uint32
+			if (iNdEx + 4) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
+			iNdEx += 4
+			m.OverallScore = float32(math.Float32frombits(v))
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ProcessedBlocks", wireType)
+			}
+			m.ProcessedBlocks = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.ProcessedBlocks |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BlockProviderScore", wireType)
+			}
+			var v uint32
+			if (iNdEx + 4) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
+			iNdEx += 4
+			m.BlockProviderScore = float32(math.Float32frombits(v))
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TopicScores", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TopicScores == nil {
+				m.TopicScores = make(map[string]*TopicScoreSnapshot)
+			}
+			var mapkey string
+			var mapvalue *TopicScoreSnapshot
+			for iNdEx < postIndex {
+				entryPreIndex := iNdEx
+				var wire uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowDebug
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					wire |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				fieldNum := int32(wire >> 3)
+				if fieldNum == 1 {
+					var stringLenmapkey uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowDebug
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						stringLenmapkey |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					intStringLenmapkey := int(stringLenmapkey)
+					if intStringLenmapkey < 0 {
+						return ErrInvalidLengthDebug
+					}
+					postStringIndexmapkey := iNdEx + intStringLenmapkey
+					if postStringIndexmapkey < 0 {
+						return ErrInvalidLengthDebug
+					}
+					if postStringIndexmapkey > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
+					iNdEx = postStringIndexmapkey
+				} else if fieldNum == 2 {
+					var mapmsglen int
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowDebug
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						mapmsglen |= int(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					if mapmsglen < 0 {
+						return ErrInvalidLengthDebug
+					}
+					postmsgIndex := iNdEx + mapmsglen
+					if postmsgIndex < 0 {
+						return ErrInvalidLengthDebug
+					}
+					if postmsgIndex > l {
+						return io.ErrUnexpectedEOF
+					}
+					mapvalue = &TopicScoreSnapshot{}
+					if err := mapvalue.Unmarshal(dAtA[iNdEx:postmsgIndex]); err != nil {
+						return err
+					}
+					iNdEx = postmsgIndex
+				} else {
+					iNdEx = entryPreIndex
+					skippy, err := skipDebug(dAtA[iNdEx:])
+					if err != nil {
+						return err
+					}
+					if (skippy < 0) || (iNdEx+skippy) < 0 {
+						return ErrInvalidLengthDebug
+					}
+					if (iNdEx + skippy) > postIndex {
+						return io.ErrUnexpectedEOF
+					}
+					iNdEx += skippy
+				}
+			}
+			m.TopicScores[mapkey] = mapvalue
+			iNdEx = postIndex
+		case 5:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GossipScore", wireType)
+			}
+			var v uint32
+			if (iNdEx + 4) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
+			iNdEx += 4
+			m.GossipScore = float32(math.Float32frombits(v))
+		case 6:
+			if wireType != 5 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BehaviourPenalty", wireType)
+			}
+			var v uint32
+			if (iNdEx + 4) > l {
+				return io.ErrUnexpectedEOF
+			}
+			v = uint32(encoding_binary.LittleEndian.Uint32(dAtA[iNdEx:]))
+			iNdEx += 4
+			m.BehaviourPenalty = float32(math.Float32frombits(v))
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ValidationError", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowDebug
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthDebug
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ValidationError = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipDebug(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthDebug
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *TopicScoreSnapshot) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
