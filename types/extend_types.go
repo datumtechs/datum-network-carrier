@@ -6,7 +6,7 @@ import (
 )
 
 func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailShow {
-	taskDetailShowArray := make([]*TaskDetailShow, input.Len())
+	taskDetailShowArray := make([]*TaskDetailShow, 0, input.Len())
 	for _, task := range input {
 		taskData := task.TaskData()
 		detailShow := &TaskDetailShow{
@@ -22,9 +22,9 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 				NodeId:     taskData.GetNodeId(),
 				IdentityId: taskData.GetIdentity(),
 			},
-			DataSupplier:  make([]*TaskDataSupplierShow, len(taskData.GetMetadataSupplier())),
-			PowerSupplier: make([]*TaskPowerSupplierShow, len(taskData.GetResourceSupplier())),
-			Receivers:     make([]*NodeAlias, len(taskData.GetReceivers())),
+			DataSupplier:  make([]*TaskDataSupplierShow, 0, len(taskData.GetMetadataSupplier())),
+			PowerSupplier: make([]*TaskPowerSupplierShow, 0, len(taskData.GetResourceSupplier())),
+			Receivers:     make([]*NodeAlias, 0, len(taskData.GetReceivers())),
 			CreateAt:      taskData.GetCreateAt(),
 			EndAt:         taskData.GetEndAt(),
 			State:         taskData.GetState(),
@@ -80,7 +80,7 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 }
 
 func NewTaskEventFromAPIEvent(input []*api.TaskEvent) []*TaskEvent  {
-	result := make([]*TaskEvent, len(input))
+	result := make([]*TaskEvent, 0, len(input))
 	for _, event := range input {
 		result = append(result, &TaskEvent{
 			TaskId:   event.GetTaskId(),
@@ -117,7 +117,7 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo  {
 				HasTitle:  input.data.GetHasTitleRow(),
 				State:     input.data.GetState(),
 			},
-			ColumnMetas:     make([]*libtypes.ColumnMeta, len(input.data.GetColumnMetaList())),
+			ColumnMetas:     make([]*libtypes.ColumnMeta, 0, len(input.data.GetColumnMetaList())),
 		},
 	}
 	for _, columnMeta := range input.data.GetColumnMetaList() {
@@ -133,7 +133,7 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo  {
 }
 
 func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*OrgMetaDataInfo  {
-	result := make([]*OrgMetaDataInfo, input.Len())
+	result := make([]*OrgMetaDataInfo, 0, input.Len())
 	for _, metadata := range input {
 		result = append(result, NewOrgMetaDataInfoFromMetadata(metadata))
 	}

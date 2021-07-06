@@ -189,7 +189,7 @@ func NewResourceArrayFromPowerListResponse(response *api.PowerListResponse) Reso
 }
 
 func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
-	resourceArray := make(ResourceArray, len(response.GetPowerList()))
+	resourceArray := make(ResourceArray, 0, len(response.GetPowerList()))
 	for _, v := range response.GetPowerList() {
 		resource := NewResource(&libTypes.ResourceData{
 			Identity:   v.GetOwner().GetIdentityId(),
@@ -227,7 +227,7 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 }
 
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
-	taskArray := make(TaskDataArray, len(response.GetTaskList()))
+	taskArray := make(TaskDataArray, 0, len(response.GetTaskList()))
 	for _, v := range response.GetTaskList() {
 		task := NewTask(&libTypes.TaskData{
 			Identity:             v.GetOwner().GetIdentityId(),
@@ -253,10 +253,10 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 				CostBandwidth:        v.GetOperationCost().GetCostBandwidth(),
 				Duration:             v.GetOperationCost().GetDuration(),
 			},
-			MetadataSupplier:     make([]*libTypes.TaskMetadataSupplierData, len(v.GetDataSupplier())),
-			ResourceSupplier:     make([]*libTypes.TaskResourceSupplierData, len(v.GetPowerSupplier())),
-			Receivers:            make([]*libTypes.TaskResultReceiverData, len(v.GetReceivers())),
-			PartnerList:          make([]*libTypes.OrganizationData, len(v.GetDataSupplier())),
+			MetadataSupplier:     make([]*libTypes.TaskMetadataSupplierData, 0, len(v.GetDataSupplier())),
+			ResourceSupplier:     make([]*libTypes.TaskResourceSupplierData, 0, len(v.GetPowerSupplier())),
+			Receivers:            make([]*libTypes.TaskResultReceiverData, 0, len(v.GetReceivers())),
+			PartnerList:          make([]*libTypes.OrganizationData, 0, len(v.GetDataSupplier())),
 			EventDataList:        nil,
 		})
 
@@ -277,7 +277,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 				},
 				MetaId:               supplier.GetMetaId(),
 				MetaName:             supplier.GetMetaName(),
-				ColumnList:           make([]*libTypes.ColumnMeta, len(supplier.GetColumnMeta())),
+				ColumnList:           make([]*libTypes.ColumnMeta, 0, len(supplier.GetColumnMeta())),
 			}
 			for _, columnMeta := range supplier.GetColumnMeta() {
 				supplierData.ColumnList = append(supplierData.ColumnList, &libTypes.ColumnMeta{
@@ -319,7 +319,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 					NodeId:               receiver.GetMemberInfo().GetNodeId(),
 					NodeName:             receiver.GetMemberInfo().GetName(),
 				},
-				Provider:             make([]*libTypes.OrganizationData, len(receiver.GetProvider())),
+				Provider:             make([]*libTypes.OrganizationData, 0, len(receiver.GetProvider())),
 			}
 			for _, provider := range receiver.GetProvider() {
 				receiverData.Provider = append(receiverData.Provider, &libTypes.OrganizationData{
@@ -360,7 +360,7 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 		FileType:             metadataSummary.GetFileType(),
 		State:                metadataSummary.GetState(),
 		HasTitleRow:          metadataSummary.GetHasTitle(),
-		ColumnMetaList:       make([]*libTypes.ColumnMeta, len(response.GetMetadata().GetColumnMeta())),
+		ColumnMetaList:       make([]*libTypes.ColumnMeta, 0, len(response.GetMetadata().GetColumnMeta())),
 	}
 	for _, v := range response.GetMetadata().GetColumnMeta() {
 		metadata.ColumnMetaList = append(metadata.ColumnMetaList, &libTypes.ColumnMeta{
