@@ -174,11 +174,6 @@ func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
-func (dc *DataCenter) GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error) {
-	// todo: not need to coding, temporarily.
-	return nil, nil
-}
-
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	metaDataSummaryListResponse, err := dc.client.GetMetaDataSummaryList(dc.ctx)
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
@@ -195,11 +190,6 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 		return fmt.Errorf("insert resource error: %s", response.Msg)
 	}
 	return nil
-}
-
-func (dc *DataCenter) GetResourceByDataId(powerId string) (*types.Resource, error) {
-	// todo: not need to coding, temporarily.
-	return nil, nil
 }
 
 func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
@@ -250,11 +240,6 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
-func (dc *DataCenter) GetIdentityByNodeId(nodeId string) (*types.Identity, error) {
-	// todo: 读取本地节点，然后进行远程查询。
-	return nil, nil
-}
-
 // InsertTask saves new task info to the center of data.
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	response, err := dc.client.SaveTask(dc.ctx, types.NewTaskDetail(task))
@@ -271,11 +256,6 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
 	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdateTime:uint64(time.Now().Unix())})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
-}
-
-func (dc *DataCenter) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
-	// todo: not to coding, temporary.
-	return nil, nil
 }
 
 func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error) {
@@ -338,7 +318,7 @@ func (dc *DataCenter) IncreaseRunningTaskCountOnOrg() uint32 {
 }
 
 func (dc *DataCenter) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
-	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
+	return rawdb.IncreaseRunningTaskCountForJobNode(dc.db, jobNodeId)
 }
 
 func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
