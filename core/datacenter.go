@@ -15,6 +15,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 // DataCenter is mainly responsible for communicating with the data center service
@@ -245,7 +246,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 }
 
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx,&api.IdentityListRequest{LastUpdateTime:uint64(time.Now().Unix())})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
@@ -263,7 +264,7 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 }
 
 func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
-	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{})
+	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdateTime:uint64(time.Now().Unix())})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
