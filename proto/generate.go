@@ -23,6 +23,11 @@ import (
 // This is only done because go:generate does not support wildcards in paths.
 //go:generate go run generate.go lib/db lib/types lib/api lib/center/api lib/p2p/v1 lib/rpc/v1 lib/consensus/twopc
 
+// final, generate grpc gateway stub.
+//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/rpc/v1/debug.proto
+//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/rpc/v1/debug.proto
+
+
 func main() {
 	for _, path := range os.Args[1:] {
 		matches, err := filepath.Glob(filepath.Join(path, "*proto"))
