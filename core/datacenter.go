@@ -199,6 +199,10 @@ func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArra
 	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
 }
 
+func (dc *DataCenter) GetLocalResourceList() (types.ResourceArray, error) {
+	return nil, nil
+}
+
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
 	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.PowerListRequest{})
 	return types.NewResourceArrayFromPowerListResponse(powerListRequest), err
