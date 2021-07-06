@@ -298,9 +298,11 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: uint32(power.Processor()),
+			TotalProcessor: power.Processor(),
+			UsedProcessor: 0,
 			// unit: byte
 			TotalBandWidth: power.Bandwidth(),
+			UsedBandWidth: 0,
 		}))
 		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
 	}

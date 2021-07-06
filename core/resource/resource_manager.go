@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	log "github.com/sirupsen/logrus"
 	"sync"
 	"time"
 )
@@ -65,7 +66,7 @@ func NewResourceManager(db CarrierDB) *Manager {
 		remoteTableQueue: make([]*types.RemoteResourceTable, 0),
 		slotUnit:         types.DefaultSlotUnit, // TODO for test
 	}
-	go m.loop()
+
 	return m
 }
 
@@ -76,13 +77,16 @@ func (m *Manager) loop() {
 		case event := <-m.eventCh:
 			_ = event // TODO add some logic about eventEngine
 		case <- refreshTimer.C:
-
+			if err := m.refreshOrgResourceTable(); nil != err {
+				log.Errorf("Failed to refresh org resourceTables, err: %s", err)
+			}
 		default:
 		}
 	}
 }
 
 func (m *Manager) Start() error {
+
 	m.SetSlotUnit(0, 0, 0)
 	// load slotUnit
 	slotUnit, err := m.db.QueryNodeResourceSlotUnit()
@@ -90,20 +94,25 @@ func (m *Manager) Start() error {
 		return err
 	}
 	m.slotUnit = slotUnit
-	// load resource localTables
-	resources, err :=  m.db.QueryLocalResourceTables()
+	// load local resource Tables
+	localResources, err :=  m.db.QueryLocalResourceTables()
 	if nil != err {
 		return err
 	}
-	tables := make(map[string]*types.LocalResourceTable, len(resources))
-	for _, resource := range resources {
+	tables := make(map[string]*types.LocalResourceTable, len(localResources))
+	for _, resource := range localResources {
 		tables[resource.GetNodeId()] = resource
 	}
 	m.localTables = tables
-	m.localTableQueue = resources
+	m.localTableQueue = localResources
 
-	// load resource remoteTables
-
+	// load remote org resource Tables
+	remoteResources, err :=  m.db.QueryOrgResourceTables()
+	if nil != err {
+		return err
+	}
+	m.remoteTableQueue = remoteResources
+	go m.loop()
 	return nil
 }
 
@@ -112,8 +121,12 @@ func (m *Manager) Stop() error {
 	if err := m.db.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
 	}
-	// store resource localTables
+	// store local resource Tables
 	if err := m.db.StoreLocalResourceTables(m.localTableQueue); nil != err {
+		return err
+	}
+	// store remote org resource Tables
+	if err := m.db.StoreOrgResourceTables(m.remoteTableQueue); nil != err {
 		return err
 	}
 	return nil
@@ -172,6 +185,11 @@ func (m *Manager) DelResource(nodeId string) {
 		}
 	}
 }
+func (m *Manager) refreshLocalResourceTable() error {
+
+	return nil
+}
+
 func (m *Manager) addRemoteResourceTable(table *types.RemoteResourceTable)  {
 	m.remoteTableQueue = append(m.remoteTableQueue, table)
 }
@@ -203,9 +221,10 @@ func (m *Manager) delRemoteResourceTable(identityId string)  {
 		}
 	}
 }
-func (m *Manager) CleanRemoteResourceTable() {
+func (m *Manager) CleanRemoteResourceTables() {
 	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
 }
+func (m *Manager) GetRemoteResouceTables() []*types.RemoteResourceTable { return m.remoteTableQueue }
 func (m *Manager) refreshOrgResourceTable() error {
 	resources, err := m.db.GetResourceList()
 	if nil != err {

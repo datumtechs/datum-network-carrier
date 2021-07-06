@@ -191,8 +191,21 @@ func (r *RemoteResourceTable) DecodeRLP(s *rlp.Stream) error {
 	}
 	return err
 }
-func (r *RemoteResourceTable) remain() (uint64, uint64, uint64) {
+func (r *RemoteResourceTable) Remain() (uint64, uint64, uint64) {
 	return r.total.mem - r.used.mem, r.total.processor - r.used.processor, r.total.bandwidth - r.used.bandwidth
+}
+func (r *RemoteResourceTable) IsEnough(slot *Slot) bool {
+	mem, processor, bandwidth := r.Remain()
+	if mem < slot.Mem {
+		return false
+	}
+	if processor < slot.Processor {
+		return false
+	}
+	if bandwidth <= slot.Bandwidth {
+		return false
+	}
+	return true
 }
 func (r *RemoteResourceTable) GetIdentityId() string     { return r.identityId }
 func (r *RemoteResourceTable) GetTotalMem() uint64       { return r.total.mem }
