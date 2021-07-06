@@ -1,7 +1,6 @@
 package node
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -11,7 +10,6 @@ import (
 // DefaultConfig contains reasonable default settings.
 var DefaultConfig = Config{
 	DataDir:          DefaultDataDir(),
-	HTTPPort:         params.DefaultHTTPPort,
 }
 
 // DefaultDataDir is the default data directory to use for the databases and other
