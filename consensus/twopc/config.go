@@ -11,5 +11,6 @@ type OptionConfig struct {
 }
 
 type Config struct {
-	Option *OptionConfig `json:"option"`
+	Option           *OptionConfig `json:"option"`
+	PeerMsgQueueSize uint64        `json:"peerMsgQueueSize"`
 }
