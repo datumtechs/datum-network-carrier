@@ -298,7 +298,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: uint32(power.Processor()),
+			TotalProcessor: power.Processor(),
 			// unit: byte
 			TotalBandWidth: power.Bandwidth(),
 		}))
