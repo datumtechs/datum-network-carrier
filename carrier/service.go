@@ -48,9 +48,9 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 
 
 	localTaskCh, schedTaskCh, remoteTaskCh :=
-		make(chan types.TaskMsgs),
-		make(chan *types.ConsensusTaskWrap),
-		make( chan *types.ScheduleTaskWrap)
+		make(chan types.TaskMsgs, 27),
+		make(chan *types.ConsensusTaskWrap, 100),
+		make( chan *types.ScheduleTaskWrap, 100)
 	resourceMng :=  resource.NewResourceManager(config.carrierDB)
 	s := &Service{
 		ctx:             ctx,
