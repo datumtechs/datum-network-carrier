@@ -34,6 +34,34 @@ type Gateway struct {
 	maxCallRecvMsgSize      uint64
 }
 
+// New returns a new gateway server which translates HTTP into gRPC.
+// Accepts a context and optional http.ServeMux.
+func New(
+	ctx context.Context,
+	remoteAddress,
+	remoteCert,
+	gatewayAddress string,
+	mux *http.ServeMux,
+	allowedOrigins []string,
+	enableDebugRPCEndpoints bool,
+	maxCallRecvMsgSize uint64,
+) *Gateway {
+	if mux == nil {
+		mux = http.NewServeMux()
+	}
+
+	return &Gateway{
+		remoteAddr:              remoteAddress,
+		remoteCert:              remoteCert,
+		gatewayAddr:             gatewayAddress,
+		ctx:                     ctx,
+		mux:                     mux,
+		allowedOrigins:          allowedOrigins,
+		enableDebugRPCEndpoints: enableDebugRPCEndpoints,
+		maxCallRecvMsgSize:      maxCallRecvMsgSize,
+	}
+}
+
 // Start the gateway service. This serves the HTTP JSON traffic on the specified port.
 func (g *Gateway) Start() error {
 	ctx, cancel := context.WithCancel(g.ctx)
@@ -115,34 +143,6 @@ func (g *Gateway) Stop() error {
 	}
 
 	return nil
-}
-
-// New returns a new gateway server which translates HTTP into gRPC.
-// Accepts a context and optional http.ServeMux.
-func New(
-	ctx context.Context,
-	remoteAddress,
-	remoteCert,
-	gatewayAddress string,
-	mux *http.ServeMux,
-	allowedOrigins []string,
-	enableDebugRPCEndpoints bool,
-	maxCallRecvMsgSize uint64,
-) *Gateway {
-	if mux == nil {
-		mux = http.NewServeMux()
-	}
-
-	return &Gateway{
-		remoteAddr:              remoteAddress,
-		remoteCert:              remoteCert,
-		gatewayAddr:             gatewayAddress,
-		ctx:                     ctx,
-		mux:                     mux,
-		allowedOrigins:          allowedOrigins,
-		enableDebugRPCEndpoints: enableDebugRPCEndpoints,
-		maxCallRecvMsgSize:      maxCallRecvMsgSize,
-	}
 }
 
 // dial the gRPC server.
