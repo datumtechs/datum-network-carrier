@@ -2,10 +2,12 @@ package rawdb
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"gotest.tools/assert"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSeedNode(t *testing.T) {
@@ -74,4 +76,39 @@ func TestRegisteredNode(t *testing.T) {
 
 	registeredNodes = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
 	assert.Assert(t, len(registeredNodes) == 0)
+}
+
+func TestTaskEvent(t *testing.T) {
+	database := db.NewMemoryDatabase()
+	taskEvent := &event.TaskEvent{
+		Type:       "taskEventType",
+		Identity:   "taskEventIdentity",
+		TaskId:     "taskEventTaskId",
+		Content:    "taskEventContent",
+		CreateTime: uint64(time.Now().Second()),
+	}
+	WriteTaskEvent(database, taskEvent)
+
+	taskEvent2 := &event.TaskEvent{
+		Type:       "taskEventType-02",
+		Identity:   "taskEventIdentity",
+		TaskId:     "taskEventTaskId",
+		Content:    "taskEventContent-02",
+		CreateTime: uint64(time.Now().Second()),
+	}
+	WriteTaskEvent(database, taskEvent2)
+
+	revent := ReadTaskEvent(database, "taskEventTaskId")
+	t.Logf("task event info : %v", len(revent))
+	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].Identity))
+
+	// read all
+	taskEvents := ReadAllTaskEvents(database)
+	assert.Assert(t, len(taskEvents) == 2)
+
+	// delete
+	DeleteTaskEvent(database, "taskEventTaskId")
+
+	taskEvents = ReadAllTaskEvents(database)
+	assert.Assert(t, len(taskEvents) == 0)
 }

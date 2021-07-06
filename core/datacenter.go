@@ -249,11 +249,6 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
-func (dc *DataCenter) GetIdentityByNodeId(nodeId string) (*types.Identity, error) {
-	// todo: 读取本地节点，然后进行远程查询。
-	return nil, nil
-}
-
 // InsertTask saves new task info to the center of data.
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	response, err := dc.client.SaveTask(dc.ctx, types.NewTaskDetail(task))
@@ -270,11 +265,6 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
 	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
-}
-
-func (dc *DataCenter) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray, error) {
-	// todo: not to coding, temporary.
-	return nil, nil
 }
 
 func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error) {

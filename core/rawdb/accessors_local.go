@@ -537,17 +537,18 @@ func ReadAllTaskEvents(db DatabaseReader) []*event.TaskEvent {
 func WriteTaskEvent(db KeyValueStore, taskEvent *event.TaskEvent) {
 	blob, err := db.Get(taskEventKey)
 	if err != nil {
-		log.Warn("Failed to load old task event", "error", err)
+		log.WithError(err).Warn("Failed to load old task event")
 	}
 	var array dbtype.TaskEventArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
 			log.WithError(err).Fatal("Failed to decode old task event")
 		}
-
 	}
 	for _, s := range array.GetTaskEventList() {
-		if strings.EqualFold(s.GetTaskId(), taskEvent.TaskId) && strings.EqualFold(s.GetIdentity(), taskEvent.Identity) {
+		if strings.EqualFold(s.GetTaskId(), taskEvent.TaskId) &&
+			strings.EqualFold(s.GetIdentity(), taskEvent.Identity) &&
+			strings.EqualFold(s.GetEventContent(), taskEvent.Content){
 			log.WithFields(logrus.Fields{ "identity": s.Identity }).Info("Skip duplicated task event")
 			return
 		}
@@ -581,16 +582,17 @@ func DeleteTaskEvent(db KeyValueStore, taskId string) {
 			log.WithError(err).Fatal("Failed to decode old task event")
 		}
 	}
-	for idx, s := range array.GetTaskEventList() {
-		if strings.EqualFold(s.TaskId, taskId) {
-			array.TaskEventList = append(array.TaskEventList[:idx], array.TaskEventList[idx+1:]...)
+	finalArray := new(dbtype.TaskEventArrayPB)
+	for _, s := range array.GetTaskEventList() {
+		if !strings.EqualFold(s.TaskId, taskId) {
+			finalArray.TaskEventList = append(finalArray.TaskEventList, s)
 		}
 	}
-	data, err := array.Marshal()
+	data, err := finalArray.Marshal()
 	if err != nil {
 		log.WithError(err).Fatal("Failed to encode task events")
 	}
-	if err := db.Put(seedNodeKey, data); err != nil {
+	if err := db.Put(taskEventKey, data); err != nil {
 		log.WithError(err).Fatal("Failed to write task events")
 	}
 }
