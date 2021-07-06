@@ -1,4 +1,4 @@
-package resource
+package rawdb
 
 import "github.com/RosettaFlow/Carrier-Go/common"
 

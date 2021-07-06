@@ -50,7 +50,7 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 		PowerId:          	  resource.data.DataId,
 		Information:          &api.PurePower{
 			Mem:                  resource.data.GetTotalMem(),
-			Processor:            resource.data.GetTotalProcessor(),
+			Processor:            uint32(resource.data.GetTotalProcessor()),
 			Bandwidth:            resource.data.GetTotalBandWidth(),
 		},
 	}
@@ -200,7 +200,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 			State:      v.GetPower().GetState(),
 			TotalMem:   v.GetPower().GetInformation().GetTotalMem(),
 			UsedMem:    v.GetPower().GetInformation().GetUsedMem(),
-			TotalProcessor: v.GetPower().GetInformation().GetTotalProcessor(),
+			TotalProcessor: uint64(v.GetPower().GetInformation().GetTotalProcessor()),
 			TotalBandWidth:       v.GetPower().GetInformation().GetTotalBandwidth(),
 		})
 		resourceArray = append(resourceArray, resource)
@@ -219,7 +219,7 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 		State:      response.GetPower().GetState(),
 		TotalMem:   response.GetPower().GetInformation().GetTotalMem(),
 		UsedMem:    response.GetPower().GetInformation().GetUsedMem(),
-		TotalProcessor: response.GetPower().GetInformation().GetTotalProcessor(),
+		TotalProcessor: uint64(response.GetPower().GetInformation().GetTotalProcessor()),
 		TotalBandWidth:       response.GetPower().GetInformation().GetTotalBandwidth(),
 	})
 	resourceArray = append(resourceArray, resource)

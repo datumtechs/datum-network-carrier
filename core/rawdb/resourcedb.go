@@ -1,8 +1,7 @@
-package resource
+package rawdb
 
 import (
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -40,7 +39,7 @@ var (
 //	return &resource, nil
 //}
 
-func storeNodeResources(db rawdb.DatabaseWriter, resources []*types.LocalResourceTable) error {
+func StoreNodeResources(db DatabaseWriter, resources []*types.LocalResourceTable) error {
 	val, err := rlp.EncodeToBytes(resources)
 	if nil != err {
 		return err
@@ -51,7 +50,7 @@ func storeNodeResources(db rawdb.DatabaseWriter, resources []*types.LocalResourc
 	return nil
 }
 
-func queryNodeResources (db rawdb.DatabaseReader) ([]*types.LocalResourceTable, error) {
+func QueryNodeResources (db DatabaseReader) ([]*types.LocalResourceTable, error) {
 	has, err := db.Has(GetNodeResourceIdListKey())
 	if nil != err {
 		return nil, err
@@ -70,7 +69,7 @@ func queryNodeResources (db rawdb.DatabaseReader) ([]*types.LocalResourceTable, 
 	return arr, nil
 }
 
-func storeOrgResources(db rawdb.DatabaseWriter, resources []*types.RemoteResourceTable) error {
+func StoreOrgResources(db DatabaseWriter, resources []*types.RemoteResourceTable) error {
 	val, err := rlp.EncodeToBytes(resources)
 	if nil != err {
 		return err
@@ -81,7 +80,7 @@ func storeOrgResources(db rawdb.DatabaseWriter, resources []*types.RemoteResourc
 	return nil
 }
 
-func queryOrgResources (db rawdb.DatabaseReader) ([]*types.RemoteResourceTable, error) {
+func QueryOrgResources (db DatabaseReader) ([]*types.RemoteResourceTable, error) {
 	has, err := db.Has(GetOrgResourceIdListKey())
 	if nil != err {
 		return nil, err
@@ -100,7 +99,7 @@ func queryOrgResources (db rawdb.DatabaseReader) ([]*types.RemoteResourceTable, 
 	return arr, nil
 }
 
-func storeNodeResourceSlotUnit(db rawdb.DatabaseWriter, slot *types.Slot) error {
+func StoreNodeResourceSlotUnit(db DatabaseWriter, slot *types.Slot) error {
 	val, err := rlp.EncodeToBytes(slot)
 	if nil != err {
 		return err
@@ -111,7 +110,7 @@ func storeNodeResourceSlotUnit(db rawdb.DatabaseWriter, slot *types.Slot) error 
 	return nil
 }
 
-func queryNodeResourceSlotUnit(db rawdb.DatabaseReader) (*types.Slot, error) {
+func QueryNodeResourceSlotUnit(db DatabaseReader) (*types.Slot, error) {
 	has, err := db.Has(GetNodeResourceSlotUnitKey())
 	if nil != err {
 		return nil, err

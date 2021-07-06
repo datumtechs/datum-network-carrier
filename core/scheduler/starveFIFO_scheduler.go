@@ -3,7 +3,6 @@ package scheduler
 import (
 	"container/heap"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
@@ -38,10 +37,11 @@ type SchedulerStarveFIFO struct {
 
 func NewSchedulerStarveFIFO(
 	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
-	remoteTaskCh chan *types.ScheduleTaskWrap, db db.Database, dataCenter DataCenter) *SchedulerStarveFIFO {
+	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter DataCenter,
+	mng *resource.Manager) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
-		resourceMng:    resource.NewResourceManager(db),
+		resourceMng:   mng,
 		queue:          new(types.TaskBullets),
 		starveQueue:    new(types.TaskBullets),
 		scheduledQueue: make([]*types.ScheduleTask, 0),
@@ -52,7 +52,7 @@ func NewSchedulerStarveFIFO(
 	}
 }
 func (sche *SchedulerStarveFIFO) loop() {
-	taskTimer := time.NewTimer(defaultScheduleTaskInterval)
+	//taskTimer := time.NewTimer(defaultScheduleTaskInterval)
 	for {
 		select {
 		case tasks := <-sche.localTaskCh:
@@ -63,7 +63,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 				sche.trySchedule()
 			}
 
-		case task := <-sche.remoteTaskCh:
+		//case task := <-sche.remoteTaskCh:
 			// todo 让自己的Scheduler 重演选举
 
 
@@ -92,6 +92,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 	if sche.starveQueue.Len() != 0 {
 		x := heap.Pop(sche.starveQueue)
 		task := x.(*types.TaskBullet).TaskMsg
+		// TODO
+		_ = task
 
 	}
 
@@ -100,10 +102,14 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 func (sche *SchedulerStarveFIFO) replaySchedule() error {
 
+
+	return nil
 }
 
 func (sche *SchedulerStarveFIFO) election(calculateNum int, cost *types.TaskOperationCost) []*types.NodeAlias {
-	slot := sche.resourceMng.GetSlotUnit()
+	//slot := sche.resourceMng.GetSlotUnit()
+	//
+	//slotCount
 
-	slotCount
+	return nil
 }

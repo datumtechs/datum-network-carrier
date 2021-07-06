@@ -51,17 +51,17 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		make(chan types.TaskMsgs),
 		make(chan *types.ConsensusTaskWrap),
 		make( chan *types.ScheduleTaskWrap)
-
+	resourceMng :=  resource.NewResourceManager(config.carrierDB)
 	s := &Service{
 		ctx:             ctx,
 		cancel:          cancel,
 		config:          config,
 		carrierDB:       config.carrierDB,
 		mempool:         pool,
-		resourceManager: resource.NewResourceManager(),
+		resourceManager: resourceMng,
 		messageManager:  message.NewHandler(pool, nil, config.carrierDB, taskCh, nil), // todo need set dataChain
 		taskManager:     task.NewTaskManager(nil, taskCh, nil),             // todo need set dataChain
-		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.carrierDB),
+		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.carrierDB, resourceMng),
 	}
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}

@@ -19,7 +19,7 @@ type Resource struct {
 func NewResource(data *libTypes.ResourceData) *Resource {
 	return &Resource{data: data}
 }
-
+func (m *Resource) GetIdentityId() string { return m.data.Identity }
 func (m *Resource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()
 	if err == nil {
