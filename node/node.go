@@ -73,21 +73,24 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 		stop:      make(chan struct{}),
 	}
 
-
 	// start db
 	err := node.startDB(cliCtx, &cfg.Carrier)
 	if err != nil {
 		log.WithError(err).Error("Failed to start DB")
 		return nil, err
 	}
-	// register P2P service
+
+	// register P2P service.
 	if err := node.registerP2P(cliCtx); err != nil {
 		return nil, err
 	}
+
+	// register backend service.
 	if err := node.registerBackendService(&cfg.Carrier); err != nil {
 		return nil, err
 	}
-	//
+
+	// register network handler service.
 	if err := node.registerHandlerService(); err != nil {
 		return nil, err
 	}
@@ -99,6 +102,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}); err != nil {
 		return nil, err
 	}
+
 	// todo: some logic to be added here...
 	return node, nil
 }

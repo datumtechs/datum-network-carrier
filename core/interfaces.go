@@ -14,11 +14,11 @@ type CarrierDB interface {
 	GetYarnName() (string, error)
 	GetIdentity() (*types.NodeAlias, error)
 	GetMetadataByDataId(dataId string) (*types.Metadata, error)
-	GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error)
+	//GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error)
 	GetMetadataList() (types.MetadataArray, error)
 	HasIdentity(identity *types.NodeAlias) (bool, error)
 	InsertResource(resource *types.Resource) error
-	GetResourceByDataId(powerId string) (*types.Resource, error)
+	//GetResourceByDataId(powerId string) (*types.Resource, error)
 	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
 	GetResourceList() (types.ResourceArray, error)
 	// InsertIdentity saves new identity info to the center of data.
