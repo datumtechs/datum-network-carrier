@@ -46,11 +46,6 @@ var (
 		flags.KeyFlag,
 		flags.GRPCGatewayHost,
 		flags.GRPCGatewayPort,
-		flags.RPCEnabledFlag,
-		flags.RPCListenAddrFlag,
-		flags.RPCPortFlag,
-		flags.RPCCORSDomainFlag,
-		flags.RPCApiFlag,
 		flags.GrpcMaxCallRecvMsgSizeFlag,
 	}
 

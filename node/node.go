@@ -2,14 +2,17 @@ package node
 
 import (
 	"context"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/RosettaFlow/Carrier-Go/common/sliceutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
+	"github.com/RosettaFlow/Carrier-Go/gateway"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/node/registration"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -17,12 +20,11 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/rpc"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/pkg/errors"
-	"github.com/prysmaticlabs/prysm/shared/cmd"
-	"github.com/prysmaticlabs/prysm/shared/sliceutil"
 	"github.com/urfave/cli/v2"
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -99,6 +101,11 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 
 	// register rpc service.
 	if err := node.registerRPCService(); err != nil {
+		return nil, err
+	}
+
+	// register grpc gateway service.
+	if err := node.registerGRPCGateway(); err != nil {
 		return nil, err
 	}
 
@@ -253,7 +260,7 @@ func (b *CarrierNode) registerRPCService() error {
 	cert := b.cliCtx.String(flags.CertFlag.Name)
 	key := b.cliCtx.String(flags.KeyFlag.Name)
 	enableDebugRPCEndpoints := b.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
-	maxMsgSize := b.cliCtx.Int(cmd.GrpcMaxCallRecvMsgSizeFlag.Name)
+	maxMsgSize := b.cliCtx.Int(flags.GrpcMaxCallRecvMsgSizeFlag.Name)
 
 	p2pService := b.fetchP2P()
 
@@ -272,6 +279,33 @@ func (b *CarrierNode) registerRPCService() error {
 		MaxMsgSize:              maxMsgSize,
 	})
 	return b.services.RegisterService(rpcService)
+}
+
+func (b *CarrierNode) registerGRPCGateway() error {
+	if b.cliCtx.Bool(flags.DisableGRPCGateway.Name) {
+		return nil
+	}
+	gatewayPort := b.cliCtx.Int(flags.GRPCGatewayPort.Name)
+	gatewayHost := b.cliCtx.String(flags.GRPCGatewayHost.Name)
+	rpcHost := b.cliCtx.String(flags.RPCHost.Name)
+	selfAddress := fmt.Sprintf("%s:%d", rpcHost, b.cliCtx.Int(flags.RPCPort.Name))
+	gatewayAddress := fmt.Sprintf("%s:%d", gatewayHost, gatewayPort)
+	allowedOrigins := strings.Split(b.cliCtx.String(flags.GPRCGatewayCorsDomain.Name), ",")
+	enableDebugRPCEndpoints := b.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
+	selfCert := b.cliCtx.String(flags.CertFlag.Name)
+
+	return b.services.RegisterService(
+		gateway.New(
+			b.ctx,
+			selfAddress,
+			selfCert,
+			gatewayAddress,
+			nil, /*optional mux*/
+			allowedOrigins,
+			enableDebugRPCEndpoints,
+			b.cliCtx.Uint64(flags.GrpcMaxCallRecvMsgSizeFlag.Name),
+		),
+	)
 }
 
 func (b *CarrierNode) fetchRPCBackend() backend.Backend {

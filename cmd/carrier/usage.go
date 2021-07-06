@@ -68,11 +68,6 @@ var appHelpFlagGroups = []flagGroup{
 	{
 		Name: "carrier",
 		Flags: []cli.Flag{
-			flags.RPCEnabledFlag,
-			flags.RPCListenAddrFlag,
-			flags.RPCPortFlag,
-			flags.RPCCORSDomainFlag,
-			flags.RPCApiFlag,
 			flags.DataDirFlag,
 			flags.ClearDB,
 			flags.VerbosityFlag,
