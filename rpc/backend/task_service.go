@@ -60,13 +60,13 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 		return nil, errors.New("required memberInfo of owner")
 	}
 	if req.OperationCost == nil {
-		return nil, errors.New("require operationCost")
+		return nil, errors.New("required operationCost")
 	}
 	if req.Receivers == nil {
-		return nil, errors.New("require receivers")
+		return nil, errors.New("required receivers")
 	}
 	if req.Partners == nil {
-		return nil, errors.New("require partners")
+		return nil, errors.New("required partners")
 	}
 	taskMsg := types.NewTaskMessageFromRequest(req)
 	/*taskMsg.Data.TaskName = req.TaskName
