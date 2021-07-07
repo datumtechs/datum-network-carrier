@@ -30,7 +30,7 @@ type TwoPC struct {
 	// fetch tasks scheduled from `Scheduler`
 	taskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
-	replayTaskCh chan<- *types.ScheduleTaskWrap
+	replayTaskCh chan<- *types.ConsensusScheduleTaskWrap
 	asyncCallCh  chan func()
 	quit         chan struct{}
 	// The task being processed by myself  (taskId -> task)
@@ -43,7 +43,7 @@ type TwoPC struct {
 	Errs []error
 }
 
-func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ScheduleTaskWrap) *TwoPC {
+func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ConsensusScheduleTaskWrap) *TwoPC {
 	return &TwoPC{
 		config:       conf,
 		p2p:          p2p,
@@ -553,8 +553,8 @@ func (t *TwoPC) onPrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	}
 
 	resultCh := make(chan *types.ScheduleResult)
-	t.replayTaskCh <- &types.ScheduleTaskWrap{
-		Task:     task,
+	t.replayTaskCh <- &types.ConsensusScheduleTaskWrap{
+		//Task:     task, // TODO 写到这里啦 ........
 		ResultCh: resultCh,
 	}
 	result := <-resultCh

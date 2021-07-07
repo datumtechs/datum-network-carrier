@@ -9,14 +9,26 @@ type ProposalTask struct {
 }
 
 type ConsensusTaskWrap struct {
-	Task     *ScheduleTask
-	ResultCh chan<- *TaskConsResult
+	Task         *ScheduleTask
+	SelfResource *PrepareVoteResource
+	ResultCh     chan<- *TaskConsResult
 }
-type ScheduleTaskWrap struct {
-	Task     *ScheduleTask
+//type ScheduleTaskWrap struct {
+//	Task     *ScheduleTask
+//	ResultCh chan<- *ScheduleResult
+//}
+
+type ConsensusScheduleTaskWrap struct {
+	Task     *ConsensusScheduleTask
 	ResultCh chan<- *ScheduleResult
 }
-
+type ConsensusScheduleTask struct {
+	SchedTask              *ScheduleTask
+	OwnerResource          *PrepareVoteResource
+	PartnersResource       []*PrepareVoteResource
+	PowerSuppliersResource []*PrepareVoteResource
+	ReceiversResource      []*PrepareVoteResource
+}
 type ScheduleTask struct {
 	TaskId                string                        `json:"TaskId"`
 	TaskName              string                        `json:"taskName"`

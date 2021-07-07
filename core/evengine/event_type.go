@@ -6,15 +6,16 @@ import (
 )
 
 type EventSysCode string
-func (code EventSysCode) String() string {return string(code)}
+
+func (code EventSysCode) String() string { return string(code) }
+
 const (
 	SysCode_Common    EventSysCode = "00"
 	SysCode_YarnNode  EventSysCode = "01"
 	SysCode_DataNode  EventSysCode = "02"
 	SysCode_PowerNode EventSysCode = "03"
 
-	EventTypeCharLen  = 7
-
+	EventTypeCharLen = 7
 )
 
 type EventType struct {
@@ -34,41 +35,25 @@ var IncEventType = errors.New("incorrect evengine type")
 
 // 调度服务事件
 var (
-	OriginatingTask            = NewEventType("0100000", "Originating Task.")
-	SuspendedTaskAgain         = NewEventType("0100001", "The task is suspended again.")
-	DiscardedTask              = NewEventType("0100002", "The task was discarded.")
-	FailTask                   = NewEventType("0100003", "The task was failed.")
-	SucceedTask                = NewEventType("0100004", "The task was succeed.")
-	UpdateComputeRes           = NewEventType("0100005", "Update computing resources.")
-	StartTaskConsensus         = NewEventType("0101001", "Start of task consensus.")
-	ConsensusTimeOutPhaseOne   = NewEventType("0101002", "Task Consensus 2PC Phase 1 timed out.")
-	ConsensusNotMetPhaseOne    = NewEventType("0101003", "Mission Consensus 2PC Phase 1 votes are not met.")
-	ConsensusCompletedPhaseOne = NewEventType("0101004", "Mission Consensus 2PC Phase 1 completed.")
-	ConsensusPreLockedFail     = NewEventType("0101005", "Task consensus 2pc pre-locked resource failed.")
-	ConsensusPreLockedSucceed  = NewEventType("0101006", "Task consensus 2pc pre-locked resources successfully.")
-	ConsensusTimeOutPhaseTwo   = NewEventType("0101007", "Task Consensus 2PC Phase 2 timed out.")
-	ConsensusNotMetPhaseTwo    = NewEventType("0101008", "Mission Consensus 2PC Phase 2 votes are not met.")
-	ConsensusCompletedPhaseTwo = NewEventType("0101009", "Mission Consensus 2PC Phase 2 completed.")
-	ConsensusPreLockedRelease  = NewEventType("0101010", "Task Consensus 2PC pre-locked resources are released.")
+	TaskCreate                 = NewEventType("0100000", "Create Task")
+	TaskNeedRescheduled        = NewEventType("0100001", "The task need rescheduled")
+	TaskDiscarded              = NewEventType("0100002", "The task was discarded")
+	TaskStarted                = NewEventType("0100003", "The task was started")
+	TaskFailed                 = NewEventType("0100004", "The task was failed")
+	TaskSucceed                = NewEventType("0100005", "The task was succeed")
+	TaskResourceElectionFailed = NewEventType("0100006", "The resource of task was failed on election")
+	TaskStartConsensus         = NewEventType("0101001", "The task was started to consensus")
+	TaskFailedConsensus        = NewEventType("0101002", "The task was failed to consensus")
 )
 
 var ScheduleEvent = map[string]string{
-	OriginatingTask.Type:            OriginatingTask.Msg,
-	SuspendedTaskAgain.Type:         SuspendedTaskAgain.Msg,
-	DiscardedTask.Type:              DiscardedTask.Msg,
-	FailTask.Type:                   FailTask.Msg,
-	SucceedTask.Type:                SucceedTask.Msg,
-	UpdateComputeRes.Type:           UpdateComputeRes.Msg,
-	StartTaskConsensus.Type:         StartTaskConsensus.Msg,
-	ConsensusTimeOutPhaseOne.Type:   ConsensusTimeOutPhaseOne.Msg,
-	ConsensusNotMetPhaseOne.Type:    ConsensusNotMetPhaseOne.Msg,
-	ConsensusCompletedPhaseOne.Type: ConsensusCompletedPhaseOne.Msg,
-	ConsensusPreLockedFail.Type:     ConsensusPreLockedFail.Msg,
-	ConsensusPreLockedSucceed.Type:  ConsensusPreLockedSucceed.Msg,
-	ConsensusTimeOutPhaseTwo.Type:   ConsensusTimeOutPhaseTwo.Msg,
-	ConsensusNotMetPhaseTwo.Type:    ConsensusNotMetPhaseTwo.Msg,
-	ConsensusCompletedPhaseTwo.Type: ConsensusCompletedPhaseTwo.Msg,
-	ConsensusPreLockedRelease.Type:  ConsensusPreLockedRelease.Msg,
+	TaskCreate.Type:          TaskCreate.Msg,
+	TaskNeedRescheduled.Type: TaskNeedRescheduled.Msg,
+	TaskDiscarded.Type:       TaskDiscarded.Msg,
+	TaskFailed.Type:          TaskFailed.Msg,
+	TaskSucceed.Type:         TaskSucceed.Msg,
+	TaskStartConsensus.Type:  TaskStartConsensus.Msg,
+	TaskFailedConsensus.Type: TaskFailedConsensus.Msg,
 }
 
 func MakeScheduleEventInfo(event *types.TaskEventInfo) (*types.TaskEventInfo, error) {
@@ -103,15 +88,6 @@ var DataServiceEvent = map[string]string{
 	StartDataShard.Type:        StartDataShard.Msg,
 	GetDataFileSucceed.Type:    GetDataFileSucceed.Msg,
 	GetDataFileFailed.Type:     GetDataFileFailed.Msg,
-}
-
-func MakeDataServiceEventInfo(event *types.TaskEventInfo) (*types.TaskEventInfo, error) {
-	if _, ok := DataServiceEvent[event.Type]; ok {
-		event.Content = DataServiceEvent[event.Type]
-		return event, nil
-	}
-
-	return event, IncEventType
 }
 
 // 计算服务事件
@@ -151,13 +127,4 @@ var ComputerServiceEvent = map[string]string{
 	ExecuteComputeFailed.Type:  ExecuteComputeFailed.Msg,
 	ReportComputeResult.Type:   ReportComputeResult.Msg,
 	ReportTaskUsage.Type:       ReportTaskUsage.Msg,
-}
-
-func MakeComputerServiceEventInfo(event *types.TaskEventInfo) (*types.TaskEventInfo, error) {
-	if _, ok := ComputerServiceEvent[event.Type]; ok {
-		event.Content = ComputerServiceEvent[event.Type]
-		return event, nil
-	}
-
-	return nil, IncEventType
 }

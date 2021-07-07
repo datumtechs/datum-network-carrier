@@ -253,13 +253,25 @@ type TaskBullet struct {
 	*TaskMsg
 	Starve bool
 	Term   uint32
+	Resched uint32
 }
 
 func NewTaskBullet(task *TaskMsg) *TaskBullet {
 	return &TaskBullet{
 		TaskMsg: task,
-		Starve:  false,
-		Term:    uint32(0),
+	}
+}
+
+func (b *TaskBullet) IncreaseResched(){ b.Resched++ }
+func (b *TaskBullet) DecreaseResched(){
+	if b.Resched > 0 {
+		b.Resched--
+	}
+}
+func (b *TaskBullet) IncreaseTerm(){ b.Term++ }
+func (b *TaskBullet) DecreaseTerm(){
+	if b.Term > 0 {
+		b.Term--
 	}
 }
 
@@ -281,14 +293,12 @@ func (h *TaskBullets) Pop() interface{} {
 }
 func (h *TaskBullets) IncreaseTerm () {
 	for i := range *h {
-		(*h)[i].Term++
+		(*h)[i].IncreaseTerm()
 	}
 }
 func (h *TaskBullets) DecreaseTerm () {
 	for i := range *h {
-		if (*h)[i].Term != 0 {
-			(*h)[i].Term--
-		}
+		(*h)[i].DecreaseTerm()
 	}
 }
 
