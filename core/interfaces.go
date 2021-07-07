@@ -20,6 +20,7 @@ type CarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	//GetResourceByDataId(powerId string) (*types.Resource, error)
 	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
+	GetLocalResourceList() (types.ResourceArray, error)
 	GetResourceList() (types.ResourceArray, error)
 	// InsertIdentity saves new identity info to the center of data.
 	InsertIdentity(identity *types.Identity) error

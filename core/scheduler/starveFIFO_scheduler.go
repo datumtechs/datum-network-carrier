@@ -115,7 +115,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 				Task: scheduleTask,
 				ResultCh: resCh,
 			}
-			res := <- resCh
+			//res := <- resCh
 			// TODO 处理 共识的 任务信息
 		}()
 	}

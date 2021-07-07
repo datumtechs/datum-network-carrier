@@ -29,7 +29,6 @@ type DataHandler interface {
 	GetYarnName() (string, error)
 	GetIdentityId() (string, error)
 	GetIdentity() (*types.NodeAlias, error)
-
 }
 
 type DataCenter interface {
@@ -48,9 +47,9 @@ type MessageHandler struct {
 	dataHandler DataHandler
 	center      DataCenter
 	// Consensuses
-	engines 		  map[string]consensus.Engine
+	engines map[string]consensus.Engine
 
-	taskCh       chan <- types.TaskMsgs
+	taskCh chan<- types.TaskMsgs
 
 	identityMsgCh       chan event.IdentityMsgEvent
 	identityRevokeMsgCh chan event.IdentityRevokeMsgEvent
@@ -74,13 +73,13 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan <- types.TaskMsgs, engines  map[string]consensus.Engine) *MessageHandler {
+func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan<- types.TaskMsgs, engines map[string]consensus.Engine) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataHandler: dataHandler,
 		center:      dataCenter,
-		taskCh: taskCh,
-		engines: engines,
+		taskCh:      taskCh,
+		engines:     engines,
 	}
 	return m
 }
@@ -152,7 +151,7 @@ func (m *MessageHandler) loop() {
 				msgs, index := make(types.PowerRevokeMsgs, len(tmp)), 0
 				for _, i := range tmp {
 					msgs[index] = event.Msgs[i]
-					index ++
+					index++
 				}
 				if err := m.BroadcastPowerRevokeMsgs(msgs); nil != err {
 					log.Error(fmt.Sprintf("%s", err))
@@ -191,7 +190,7 @@ func (m *MessageHandler) loop() {
 				msgs, index := make(types.MetaDataRevokeMsgs, len(tmp)), 0
 				for _, i := range tmp {
 					msgs[index] = event.Msgs[i]
-					index ++
+					index++
 				}
 				if err := m.BroadcastMetaDataRevokeMsgs(msgs); nil != err {
 					log.Error(fmt.Sprintf("%s", err))
@@ -286,23 +285,25 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 	for _, power := range powerMsgs {
 		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
 			Identity: power.OwnerIdentityId(),
-			NodeId: power.OwnerNodeId(),
+			NodeId:   power.OwnerNodeId(),
 			NodeName: power.OwnerName(),
-			DataId: power.PowerId,
+			DataId:   power.PowerId,
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.ResourceDataStatusN.String(),
 			// resource status, eg: create/release/revoke
 			State: types.PowerStateRelease.String(),
 			// unit: byte
-			TotalMem:  power.Memory(),
+			TotalMem: power.Memory(),
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
 			TotalProcessor: power.Processor(),
+
 			UsedProcessor: 0,
+
 			// unit: byte
 			TotalBandWidth: power.Bandwidth(),
-			UsedBandWidth: 0,
+			UsedBandWidth:  0,
 		}))
 		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
 	}
@@ -312,15 +313,14 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 	return nil
 }
 
-
 func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRevokeMsgs) error {
 	errs := make([]string, 0)
 	for _, revoke := range powerRevokeMsgs {
 		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
 			Identity: revoke.IdentityId,
-			NodeId: revoke.NodeId,
+			NodeId:   revoke.NodeId,
 			NodeName: revoke.Name,
-			DataId: revoke.PowerId,
+			DataId:   revoke.PowerId,
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.ResourceDataStatusD.String(),
 			// resource status, eg: create/release/revoke
@@ -346,19 +346,19 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 	errs := make([]string, 0)
 	for _, metaData := range metaDataMsgs {
 		err := m.center.InsertMetadata(types.NewMetadata(&libTypes.MetaData{
-			Identity: metaData.OwnerIdentityId(),
-			NodeId: metaData.OwnerNodeId(),
-			NodeName: metaData.OwnerName(),
-			DataId: metaData.MetaDataId,
-			OriginId: metaData.OriginId(),
-			TableName: metaData.TableName(),
-			FilePath: metaData.FilePath(),
-			FileType: metaData.FileType(),
-			Desc: metaData.Desc(),
-			Rows: uint64(metaData.Rows()),
-			Columns: uint64(metaData.Columns()),
-			Size_: uint64(metaData.Size()),
-			HasTitleRow: metaData.HasTitle(),
+			Identity:       metaData.OwnerIdentityId(),
+			NodeId:         metaData.OwnerNodeId(),
+			NodeName:       metaData.OwnerName(),
+			DataId:         metaData.MetaDataId,
+			OriginId:       metaData.OriginId(),
+			TableName:      metaData.TableName(),
+			FilePath:       metaData.FilePath(),
+			FileType:       metaData.FileType(),
+			Desc:           metaData.Desc(),
+			Rows:           uint64(metaData.Rows()),
+			Columns:        uint64(metaData.Columns()),
+			Size_:          uint64(metaData.Size()),
+			HasTitleRow:    metaData.HasTitle(),
 			ColumnMetaList: metaData.ColumnMetas(),
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.ResourceDataStatusN.String(),
@@ -378,9 +378,9 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.Me
 	for _, revoke := range metaDataRevokeMsgs {
 		err := m.center.InsertMetadata(types.NewMetadata(&libTypes.MetaData{
 			Identity: revoke.IdentityId,
-			NodeId: revoke.NodeId,
+			NodeId:   revoke.NodeId,
 			NodeName: revoke.Name,
-			DataId: revoke.MetaDataId,
+			DataId:   revoke.MetaDataId,
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.ResourceDataStatusD.String(),
 			// metaData status, eg: create/release/revoke
