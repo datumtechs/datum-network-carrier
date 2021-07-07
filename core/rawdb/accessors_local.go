@@ -414,7 +414,7 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) 
 func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, registeredNode *types.RegisteredNodeInfo) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
-		log.Warn("Failed to load old seed nodes", "error", err)
+		log.Warn("Failed to load old registered nodes", "error", err)
 	}
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if len(blob) > 0 {
