@@ -29,6 +29,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiApplyIdentityJoinRequest"
+            }
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -52,6 +62,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -75,6 +95,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -98,6 +128,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -116,6 +156,17 @@
           "format": "byte"
         }
       }
+    },
+    "rpcapiApplyIdentityJoinRequest": {
+      "type": "object",
+      "properties": {
+        "member": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        }
+      }
+    },
+    "rpcapiEmptyGetParams": {
+      "type": "object"
     },
     "rpcapiGetIdentityListResponse": {
       "type": "object",

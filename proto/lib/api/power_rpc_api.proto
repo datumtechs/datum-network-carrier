@@ -168,12 +168,14 @@ service PowerService {
   rpc GetPowerTotalDetailList (EmptyGetParams) returns (GetPowerTotalDetailListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/power/totalList"
+          body: "*"
       };
   }
   // 查看某个节点各个单算力详情列表
   rpc GetPowerSingleDetailList (EmptyGetParams) returns (GetPowerSingleDetailListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/power/singleList"
+          body: "*"
       };
   }
 
@@ -181,12 +183,14 @@ service PowerService {
   rpc PublishPower (PublishPowerRequest) returns (PublishPowerResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/power/publish"
+          body: "*"
       };
   }
   // 停用算力 (撤销算力)
   rpc RevokePower (RevokePowerRequest) returns (SimpleResponseCode) {
       option (google.api.http) = {
           post: "/carrier/v1/power/revoke"
+          body: "*"
       };
   }
 }
