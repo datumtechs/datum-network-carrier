@@ -10,6 +10,12 @@ import (
 func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
 
 	identityMsg := new(types.IdentityMsg)
+	if req.Member == nil {
+		return &pb.SimpleResponseCode{
+			Status: 0,
+			Msg:    "Invalid Params",
+		}, nil
+	}
 	identityMsg.Name = req.Member.Name
 	identityMsg.IdentityId = req.Member.IdentityId
 	identityMsg.NodeId = req.Member.NodeId
