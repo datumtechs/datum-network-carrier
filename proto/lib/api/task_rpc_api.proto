@@ -5,6 +5,7 @@ package rpcapi;
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
 import "lib/api/common_message.proto";
+import "google/api/annotations.proto";
 
 
 
@@ -171,12 +172,24 @@ service TaskService {
   //  rpc GetTaskDetail (GetTaskDetailRequest) returns (GetTaskDetailResponse);
 
   // 查看全部任务详情列表
-  rpc GetTaskDetailList (EmptyGetParams) returns (GetTaskDetailListResponse);
+  rpc GetTaskDetailList (EmptyGetParams) returns (GetTaskDetailListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/task/list"
+      };
+  }
 
   // 查看某个任务的全部事件列表
-  rpc GetTaskEventList (GetTaskEventListRequest) returns (GetTaskEventListResponse);
+  rpc GetTaskEventList (GetTaskEventListRequest) returns (GetTaskEventListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/task/eventList"
+      };
+  }
   // 发布任务
-  rpc PublishTaskDeclare (PublishTaskDeclareRequest) returns (PublishTaskDeclareResponse);
+  rpc PublishTaskDeclare (PublishTaskDeclareRequest) returns (PublishTaskDeclareResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/task/publish"
+      };
+  }
 
 }
 

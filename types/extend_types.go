@@ -85,13 +85,13 @@ func NewTaskEventFromAPIEvent(input []*api.TaskEvent) []*TaskEventInfo {
 		result = append(result, &TaskEventInfo{
 			TaskId:   event.GetTaskId(),
 			Type:     event.GetType(),
-			CreateAt: event.GetCreateAt(),
+			CreateTime: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner:    &NodeAlias{
+			/*Owner:    &NodeAlias{
 				Name:       event.GetOwner().GetName(),
 				NodeId:     event.GetOwner().GetNodeId(),
 				IdentityId: event.GetOwner().GetIdentityId(),
-			},
+			},*/
 		})
 	}
 	return result
