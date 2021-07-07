@@ -30,7 +30,7 @@ type TwoPC struct {
 	// fetch tasks scheduled from `Scheduler`
 	taskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
-	replayTaskCh chan<- *types.ConsensusScheduleTaskWrap
+	replayTaskCh chan<- *types.ScheduleTaskWrap
 	asyncCallCh  chan func()
 	quit         chan struct{}
 	// The task being processed by myself  (taskId -> task)
@@ -43,7 +43,7 @@ type TwoPC struct {
 	Errs []error
 }
 
-func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ConsensusScheduleTaskWrap) *TwoPC {
+func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ScheduleTaskWrap) *TwoPC {
 	return &TwoPC{
 		config:       conf,
 		p2p:          p2p,
@@ -70,11 +70,13 @@ func (t *TwoPC) loop() {
 		select {
 		case taskWrap := <-t.taskCh:
 			if err := t.OnPrepare(taskWrap.Task); nil != err {
-				taskWrap.ResultCh <- &types.TaskConsResult{
-					TaskId: taskWrap.Task.TaskId,
-					Status: types.TaskConsensusInterrupt,
-					Done:   false,
-					Err:    fmt.Errorf("Failed to OnPrepare 2pc, %s", err),
+				taskWrap.ResultCh <- &types.ConsensuResult{
+					TaskConsResult: &types.TaskConsResult{
+						TaskId: taskWrap.Task.TaskId,
+						Status: types.TaskConsensusInterrupt,
+						Done:   false,
+						Err:    fmt.Errorf("failed to OnPrepare 2pc, %s", err),
+					},
 				}
 				continue
 			}
@@ -90,7 +92,7 @@ func (t *TwoPC) loop() {
 func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
 	return nil
 }
-func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.TaskConsResult) error {
+func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.ConsensuResult) error {
 
 	if t.isProcessingTask(task.TaskId) {
 		return ctypes.ErrPrososalTaskIsProcessed
@@ -115,7 +117,7 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.TaskCons
 	t.addSendTask(task)
 	prepareMsg := assemblingPrepareMsgForPB()
 
-	sendTaskFn := func(taskRole ctypes.TaskRole, nodeId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
+	sendTaskFn := func(taskRole types.TaskRole, nodeId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
 		nid, err := p2p.HexID(nodeId)
 		if nil != err {
 			errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
@@ -133,18 +135,18 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.TaskCons
 
 	go func() {
 		for _, partner := range task.Partners {
-			go sendTaskFn(ctypes.DataSupplier, partner.NodeId, prepareMsg, errCh)
+			go sendTaskFn(types.DataSupplier, partner.NodeId, prepareMsg, errCh)
 		}
 	}()
 	go func() {
 		for _, powerSupplier := range task.PowerSuppliers {
-			go sendTaskFn(ctypes.PowerSupplier, powerSupplier.NodeId, prepareMsg, errCh)
+			go sendTaskFn(types.PowerSupplier, powerSupplier.NodeId, prepareMsg, errCh)
 		}
 	}()
 
 	go func() {
 		for _, receiver := range task.Receivers {
-			go sendTaskFn(ctypes.ResultSupplier, receiver.NodeId, prepareMsg, errCh)
+			go sendTaskFn(types.ResultSupplier, receiver.NodeId, prepareMsg, errCh)
 		}
 	}()
 	errStrs := make([]string, 0)
@@ -155,13 +157,15 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.TaskCons
 	}
 	if len(errStrs) != 0 {
 		err := fmt.Errorf(
-			`Failed to Send PrepareMsg for task:
+			`failed to Send PrepareMsg for task:
 %s`, strings.Join(errStrs, "\n"))
-		result <- &types.TaskConsResult{
-			TaskId: task.TaskId,
-			Status: types.TaskConsensusInterrupt,
-			Done:   false,
-			Err:    err,
+		result <- &types.ConsensuResult{
+			TaskConsResult:  &types.TaskConsResult{
+				TaskId: task.TaskId,
+				Status: types.TaskConsensusInterrupt,
+				Done:   false,
+				Err:    err,
+			},
 		}
 		// clean some invalid data
 		t.state.DelProposalState(proposalHash)
@@ -240,7 +244,7 @@ func (t *TwoPC) validatePrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	}
 
 	if len(prepareMsg.TaskOption.TaskRole) != 1 ||
-		ctypes.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole) == ctypes.TaskRoleUnknown {
+		types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole) == types.TaskRoleUnknown {
 		return ctypes.ErrPrososalTaskRoleIsUnknown
 	}
 	taskId := string(prepareMsg.TaskOption.TaskId)
@@ -354,7 +358,7 @@ func (t *TwoPC) validatePrepareVote(prepareVote *types.PrepareVoteWrap) error {
 		return ctypes.ErrPrepareVoteInTheFuture
 	}
 
-	if ctypes.TaskRoleFromBytes(prepareVote.TaskRole) == ctypes.TaskRoleUnknown {
+	if types.TaskRoleFromBytes(prepareVote.TaskRole) == types.TaskRoleUnknown {
 		return ctypes.ErrPrososalTaskRoleIsUnknown
 	}
 
@@ -372,7 +376,7 @@ func (t *TwoPC) validatePrepareVote(prepareVote *types.PrepareVoteWrap) error {
 
 	// validate voteOption
 	if len(prepareVote.VoteOption) != 1 ||
-		ctypes.VoteOptionFromBytes(prepareVote.VoteOption) == ctypes.VoteUnknown {
+		types.VoteOptionFromBytes(prepareVote.VoteOption) == types.VoteUnknown {
 		return ctypes.ErrPrepareVoteOptionIsUnknown
 	}
 	if 0 == len(prepareVote.PeerInfo.Ip) || 0 == len(prepareVote.PeerInfo.Port) {
@@ -417,7 +421,7 @@ func (t *TwoPC) validateConfirmMsg(confirmMsg *types.ConfirmMsgWrap) error {
 	}
 
 	// validate epoch number
-	if confirmMsg.Epoch == 0 || confirmMsg.Epoch > ctypes.MsgEpochMaxNumber {
+	if confirmMsg.Epoch == 0 || confirmMsg.Epoch > types.MsgEpochMaxNumber {
 		return ctypes.ErrConfirmMsgEpochInvalid
 	}
 
@@ -462,11 +466,11 @@ func (t *TwoPC) validateConfirmVote(confirmVote *types.ConfirmVoteWrap) error {
 	}
 
 	// validate epoch number
-	if confirmVote.Epoch == 0 || confirmVote.Epoch > ctypes.MsgEpochMaxNumber {
+	if confirmVote.Epoch == 0 || confirmVote.Epoch > types.MsgEpochMaxNumber {
 		return ctypes.ErrConfirmVoteEpochInvalid
 	}
 
-	if ctypes.TaskRoleFromBytes(confirmVote.TaskRole) == ctypes.TaskRoleUnknown {
+	if types.TaskRoleFromBytes(confirmVote.TaskRole) == types.TaskRoleUnknown {
 		return ctypes.ErrPrososalTaskRoleIsUnknown
 	}
 
@@ -484,7 +488,7 @@ func (t *TwoPC) validateConfirmVote(confirmVote *types.ConfirmVoteWrap) error {
 
 	// validate voteOption
 	if len(confirmVote.VoteOption) != 1 ||
-		ctypes.VoteOptionFromBytes(confirmVote.VoteOption) == ctypes.VoteUnknown {
+		types.VoteOptionFromBytes(confirmVote.VoteOption) == types.VoteUnknown {
 		return ctypes.ErrConfirmVoteOptionIsUnknown
 	}
 
@@ -553,8 +557,8 @@ func (t *TwoPC) onPrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 	}
 
 	resultCh := make(chan *types.ScheduleResult)
-	t.replayTaskCh <- &types.ConsensusScheduleTaskWrap{
-		//Task:     task, // TODO 写到这里啦 ........
+	t.replayTaskCh <- &types.ScheduleTaskWrap{
+		Task:     task, // TODO 写到这里啦 ........
 		ResultCh: resultCh,
 	}
 	result := <-resultCh
@@ -597,7 +601,7 @@ func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationId
 
 func (t *TwoPC) verifyMsgSigned(nodeId []byte, m []byte, sig []byte) (bool, error) {
 	// Verify the signature
-	if len(sig) < ctypes.MsgSignLength {
+	if len(sig) < types.MsgSignLength {
 		return false, ctypes.ErrMsgSignInvalid
 	}
 

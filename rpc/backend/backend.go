@@ -23,6 +23,11 @@ type Backend interface {
 
 	SendTaskEvent(event *types.TaskEventInfo) error
 
+	// TODO 需要实现的
+	//ReportUpFileSummary(context.Context, *ReportUpFileSummaryRequest) (*SimpleResponseCode, error)
+	//QueryAvailableDataNode(context.Context, *QueryAvailableDataNodeRequest) (*QueryAvailableDataNodeResponse, error)
+	//QueryFilePosition(context.Context, *QueryFilePositionRequest) (*QueryFilePositionResponse, error)
+
 	// metadata api
 	GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error)
 	GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error)

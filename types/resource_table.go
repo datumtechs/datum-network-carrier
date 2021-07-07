@@ -75,6 +75,13 @@ func (r *LocalResourceTable) UseSlot(count uint32) {
 	r.slotLocked -= count
 
 }
+func (r *LocalResourceTable) FreeSlot(count uint32) {
+	if r.slotUsed < count {
+		r.slotUsed = 0
+	} else {
+		r.slotUsed = r.slotUsed - count
+	}
+}
 func (r *LocalResourceTable) LockSlot(count uint32) {
 	if count > r.RemianSlot() {
 		r.slotLocked = r.slotTotal - r.slotUsed

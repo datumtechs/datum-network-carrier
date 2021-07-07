@@ -402,3 +402,22 @@ func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.Repor
 func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
 	return nil, nil
 }
+
+func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
+
+	//TODO 需要实现 的 rpc 接口
+	return nil, nil
+}
+
+
+func (svr *YarnServiceServer)  QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
+
+	//TODO 需要实现 的 rpc 接口
+	return nil, nil
+}
+func (svr *YarnServiceServer)  QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error){
+
+	//TODO 需要实现 的 rpc 接口
+	return nil, nil
+}
+

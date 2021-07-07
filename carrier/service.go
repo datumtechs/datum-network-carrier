@@ -49,12 +49,13 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
+	// TODO 这些 Ch 的大小目前都是写死的 ...
 	localTaskCh, schedTaskCh, remoteTaskCh, sendTaskCh, recvSchedTaskCh :=
 		make(chan types.TaskMsgs, 27),
 		make(chan *types.ConsensusTaskWrap, 100),
-		make( chan *types.ConsensusScheduleTaskWrap, 100),
+		make( chan *types.ScheduleTaskWrap, 100),
 		make(chan types.TaskMsgs, 10),
-		make(chan *types.ScheduleTask, 2)
+		make(chan *types.ConsensusScheduleTask, 10)
 	resourceMng :=  resource.NewResourceManager(config.CarrierDB)
 
 	s := &Service{
@@ -65,8 +66,9 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		mempool:         pool,
 		resourceManager: resourceMng,
 		messageManager:  message.NewHandler(pool, nil, config.CarrierDB, taskCh), // todo need set dataChain
-		taskManager:     task.NewTaskManager(nil, eventEngine, taskCh, sendTaskCh, recvSchedTaskCh),             // todo need set dataChain
-		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
+		taskManager:     task.NewTaskManager(nil, eventEngine, resourceMng, taskCh, sendTaskCh, recvSchedTaskCh),             // todo need set dataChain
+		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh,
+			config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
 	}
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
