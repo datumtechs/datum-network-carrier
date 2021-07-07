@@ -14,6 +14,7 @@ type ConsensusTaskWrap struct {
 	ResultCh     chan<- *ConsensuResult
 }
 type ScheduleTaskWrap struct {
+	Role     TaskRole
 	Task     *ScheduleTask
 	ResultCh chan<- *ScheduleResult
 }
@@ -29,6 +30,7 @@ type ConsensusScheduleTask struct {
 	PowerSuppliersResource []*PrepareVoteResource
 	ReceiversResource      []*PrepareVoteResource
 }
+
 type ScheduleTask struct {
 	TaskId                string                        `json:"TaskId"`
 	TaskName              string                        `json:"taskName"`
@@ -83,9 +85,10 @@ const (
 )
 
 type ScheduleResult struct {
-	TaskId string
-	Status TaskSchedStatus
-	Err    error
+	TaskId   string
+	Status   TaskSchedStatus
+	Err      error
+	Resource *PrepareVoteResource
 }
 
 type ConsensuResult struct {
