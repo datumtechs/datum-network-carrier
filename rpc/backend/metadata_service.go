@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -21,7 +22,12 @@ import (
 //	return nil, nil
 //}
 func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
-
+	if req.IdentityId == "" {
+		return nil, errors.New("required identity")
+	}
+	if req.MetaDataId == "" {
+		return nil, errors.New("required metadataId")
+	}
 	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetMetaDataDetailStr)
@@ -89,19 +95,20 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Conte
 }
 
 func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
-	metaDataMsg := types.NewMetaDataMsg(req)
-	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
-
-	// check param for request.
-	if req.Owner == nil {
-		return &pb.PublishMetaDataResponse{Status: -1, Msg: "required owner"}, nil
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	if req.Information == nil {
+		return nil, errors.New("required information")
 	}
 	if req.Information.MetaDataSummary == nil {
-		return &pb.PublishMetaDataResponse{Status: -1, Msg: "required MetaDataSummary"}, nil
+		return nil, errors.New("required metadata summary")
 	}
 	if req.Information.ColumnMeta == nil {
-		return &pb.PublishMetaDataResponse{Status: -1, Msg: "required ColumnMeta"}, nil
+		return nil, errors.New("required columnMeta of information")
 	}
+	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
+	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 
 	/*metaDataMsg.Data.Name = req.Owner.Name
 	metaDataMsg.Data.NodeId = req.Owner.NodeId
@@ -141,12 +148,15 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 }
 
 func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*pb.SimpleResponseCode, error) {
-	metaDataRevokeMsg := new(types.MetaDataRevokeMsg)
-	metaDataRevokeMsg.MetaDataId = req.MetaDataId
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	/*metaDataRevokeMsg.MetaDataId = req.MetaDataId
 	metaDataRevokeMsg.Name = req.Owner.Name
 	metaDataRevokeMsg.NodeId = req.Owner.NodeId
-	metaDataRevokeMsg.IdentityId = req.Owner.IdentityId
+	metaDataRevokeMsg.IdentityId = req.Owner.IdentityId*/
 
 	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {

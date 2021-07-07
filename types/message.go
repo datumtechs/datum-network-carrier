@@ -190,7 +190,7 @@ type MetaDataMsg struct {
 	hash atomic.Value
 }
 
-func NewMetaDataMsg(req *pb.PublishMetaDataRequest) *MetaDataMsg {
+func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg {
 	return &MetaDataMsg{
 		Data: &metadataData{
 			NodeAlias: &NodeAlias{
@@ -256,6 +256,18 @@ type MetaDataRevokeMsg struct {
 	MetaDataId string `json:"metaDataId"`
 	CreateAt   uint64 `json:"createAt"`
 }
+
+func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDataRevokeMsg {
+	return &MetaDataRevokeMsg{
+		NodeAlias:  &NodeAlias{
+			Name:       req.Owner.Name,
+			NodeId:     req.Owner.NodeId,
+			IdentityId: req.Owner.IdentityId,
+		},
+		MetaDataId: req.MetaDataId,
+	}
+}
+
 type MetaDataMsgs []*MetaDataMsg
 type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
@@ -367,6 +379,36 @@ type TaskMsg struct {
 	// caches
 	hash atomic.Value
 }
+
+func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
+	return &TaskMsg{
+		Data:   &taskdata{
+			TaskName:              req.TaskName,
+			Owner:                 &TaskSupplier{
+				NodeAlias: &NodeAlias{
+					Name:       req.Owner.MemberInfo.Name,
+					NodeId:     req.Owner.MemberInfo.NodeId,
+					IdentityId: req.Owner.MemberInfo.IdentityId,
+				},
+				MetaData:  &SupplierMetaData{
+					MetaDataId:      req.Owner.MetaDataInfo.MetaDataId,
+					ColumnIndexList: make([]uint64, 0),
+				},
+			},
+			Partners:              make([]*TaskSupplier, 0),
+			Receivers:             make([]*TaskResultReceiver, 0),
+			CalculateContractCode: req.CalculateContractcode,
+			DataSplitContractCode: req.DatasplitContractcode,
+			OperationCost:         &TaskOperationCost{
+				Processor: req.OperationCost.CostProcessor,
+				Mem:       req.OperationCost.CostMem,
+				Bandwidth: req.OperationCost.CostBandwidth,
+				Duration:  req.OperationCost.Duration,
+			},
+		},
+	}
+}
+
 type taskdata struct {
 	TaskName              string                `json:"taskName"`
 	Owner                 *TaskSupplier         `json:"owner"`
