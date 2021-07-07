@@ -209,12 +209,14 @@ service YarnService {
   rpc GetNodeInfo (EmptyGetParams) returns (GetNodeInfoResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/nodeInfo"
+          body: "*"
       };
   }
   // 查看自身调度服务的 peer注册信息
   rpc GetRegisteredPeers (EmptyGetParams) returns (GetRegisteredPeersResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/registeredPeers"
+          body: "*"
       };
   }
 
@@ -223,24 +225,28 @@ service YarnService {
   rpc SetSeedNode (SetSeedNodeRequest) returns (SetSeedNodeResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/setSeed"
+          body: "*"
       };
   }
   // 修改种子节点信息
   rpc UpdateSeedNode (UpdateSeedNodeRequest) returns (SetSeedNodeResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/updateSeed"
+          body: "*"
       };
   }
   // 删除种子节点信息
   rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/deleteSeed"
+          body: "*"
       };
   }
   // 查询种子节点列表
   rpc GetSeedNodeList (EmptyGetParams) returns (GetSeedNodeListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/seedList"
+          body: "*"
       };
   }
 
