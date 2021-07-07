@@ -92,11 +92,11 @@ func newBlock() *Block {
 					},
 					EventDataList:        []*types.EventData{
 						{
-							TaskId:               "1-event-taskId",
-							EventType:            "1-event-eventType",
+							TaskId:               "1-evengine-taskId",
+							EventType:            "1-evengine-eventType",
 							EventAt:              0,
-							EventContent:         "1-event-eventContent",
-							Identity:             "1-event-identity",
+							EventContent:         "1-evengine-eventContent",
+							Identity:             "1-evengine-identity",
 						},
 					},
 				},

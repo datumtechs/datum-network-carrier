@@ -53,4 +53,9 @@ type CarrierDB interface {
 	QueryOrgResourceTables() ([]*types.RemoteResourceTable, error)
 	StoreNodeResourceSlotUnit(slot *types.Slot) error
 	QueryNodeResourceSlotUnit() (*types.Slot, error)
+
+	// For EventEngine
+	StoreTaskEvent(event *types.TaskEventInfo) error
+	GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error)
+	CleanTaskEventList(taskId string) error
 }

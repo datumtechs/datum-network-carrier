@@ -222,9 +222,9 @@ func InsertTask() {
 		EventDataList: []*libTypes.EventData{
 			{
 				TaskId:       "123456",
-				EventType:    "1-event-eventType",
+				EventType:    "1-evengine-eventType",
 				EventAt:      0,
-				EventContent: "1-event-eventContent",
+				EventContent: "1-evengine-eventContent",
 				Identity:     Identity,
 			},
 		},

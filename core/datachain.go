@@ -170,7 +170,7 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // TODO 本地存储event事件
-func (dc *DataChain) StoreTaskEvent(event *event.TaskEvent) error {
+func (dc *DataChain) StoreTaskEvent(event *types.TaskEventInfo) error {
 	// todo:
 	return nil
 }
