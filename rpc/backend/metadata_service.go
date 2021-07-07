@@ -44,6 +44,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 		Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
 	}, nil
 }
+
 func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataDetailListResponse, error) {
 
 	metaDataList, err := svr.B.GetMetaDataDetailList()
@@ -65,6 +66,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 		MetaDataList: respList,
 	}, nil
 }
+
 func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
 	metaDataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
 	if nil != err {

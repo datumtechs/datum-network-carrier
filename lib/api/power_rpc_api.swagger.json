@@ -29,6 +29,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishPowerRequest"
+            }
+          }
+        ],
         "tags": [
           "PowerService"
         ]
@@ -52,6 +62,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiRevokePowerRequest"
+            }
+          }
+        ],
         "tags": [
           "PowerService"
         ]
@@ -75,6 +95,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "PowerService"
         ]
@@ -98,6 +128,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "PowerService"
         ]
@@ -116,6 +156,9 @@
           "format": "byte"
         }
       }
+    },
+    "rpcapiEmptyGetParams": {
+      "type": "object"
     },
     "rpcapiGetPowerSingleDetailListResponse": {
       "type": "object",
@@ -264,6 +307,20 @@
       },
       "title": "总算力详情"
     },
+    "rpcapiPublishPowerRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "job_node_id": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiPurePower"
+        }
+      }
+    },
     "rpcapiPublishPowerResponse": {
       "type": "object",
       "properties": {
@@ -326,6 +383,17 @@
         }
       },
       "title": "系统本身资源抽象"
+    },
+    "rpcapiRevokePowerRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      }
     },
     "rpcapiSimpleResponseCode": {
       "type": "object",

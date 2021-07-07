@@ -36,6 +36,7 @@ service AuthService {
   rpc ApplyIdentityJoin (ApplyIdentityJoinRequest) returns (SimpleResponseCode) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/apply"
+      body: "*"
     };
   }
 
@@ -43,12 +44,14 @@ service AuthService {
   rpc RevokeIdentityJoin (EmptyGetParams) returns (SimpleResponseCode) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/revoke"
+      body: "*"
     };
   }
   // 查询自己组织的identity信息
   rpc GetNodeIdentity (EmptyGetParams)returns (GetNodeIdentityResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/get"
+      body: "*"
     };
   }
 
@@ -56,6 +59,7 @@ service AuthService {
   rpc GetIdentityList (EmptyGetParams) returns (GetIdentityListResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/list"
+      body: "*"
     };
   }
 }
