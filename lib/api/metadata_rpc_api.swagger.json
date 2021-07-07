@@ -29,6 +29,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetaDataDetailRequest"
+            }
+          }
+        ],
         "tags": [
           "MetaDataService"
         ]
@@ -51,6 +61,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "MetaDataService"
         ]
@@ -73,6 +93,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetaDataDetailListByOwnerRequest"
+            }
+          }
+        ],
         "tags": [
           "MetaDataService"
         ]
@@ -96,6 +126,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishMetaDataRequest"
+            }
+          }
+        ],
         "tags": [
           "MetaDataService"
         ]
@@ -119,6 +159,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiRevokeMetaDataRequest"
+            }
+          }
+        ],
         "tags": [
           "MetaDataService"
         ]
@@ -138,6 +188,17 @@
         }
       }
     },
+    "rpcapiEmptyGetParams": {
+      "type": "object"
+    },
+    "rpcapiGetMetaDataDetailListByOwnerRequest": {
+      "type": "object",
+      "properties": {
+        "identity_id": {
+          "type": "string"
+        }
+      }
+    },
     "rpcapiGetMetaDataDetailListResponse": {
       "type": "object",
       "properties": {
@@ -153,6 +214,17 @@
           "items": {
             "$ref": "#/definitions/rpcapiGetMetaDataDetailResponse"
           }
+        }
+      }
+    },
+    "rpcapiGetMetaDataDetailRequest": {
+      "type": "object",
+      "properties": {
+        "identity_id": {
+          "type": "string"
+        },
+        "meta_data_id": {
+          "type": "string"
         }
       }
     },
@@ -262,6 +334,17 @@
       },
       "title": "组织(节点)唯一标识抽象"
     },
+    "rpcapiPublishMetaDataRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiMetaDataDetailShow"
+        }
+      }
+    },
     "rpcapiPublishMetaDataResponse": {
       "type": "object",
       "properties": {
@@ -271,6 +354,17 @@
         },
         "msg": {
           "type": "string"
+        },
+        "meta_data_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiRevokeMetaDataRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
         },
         "meta_data_id": {
           "type": "string"

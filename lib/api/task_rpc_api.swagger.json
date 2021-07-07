@@ -29,6 +29,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskEventListRequest"
+            }
+          }
+        ],
         "tags": [
           "TaskService"
         ]
@@ -52,6 +62,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "TaskService"
         ]
@@ -75,6 +95,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishTaskDeclareRequest"
+            }
+          }
+        ],
         "tags": [
           "TaskService"
         ]
@@ -93,6 +123,9 @@
           "format": "byte"
         }
       }
+    },
+    "rpcapiEmptyGetParams": {
+      "type": "object"
     },
     "rpcapiGetTaskDetailListResponse": {
       "type": "object",
@@ -117,6 +150,14 @@
       "properties": {
         "information": {
           "$ref": "#/definitions/rpcapiTaskDetailShow"
+        }
+      }
+    },
+    "rpcapiGetTaskEventListRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
         }
       }
     },
@@ -152,6 +193,38 @@
         }
       },
       "title": "组织(节点)唯一标识抽象"
+    },
+    "rpcapiPublishTaskDeclareRequest": {
+      "type": "object",
+      "properties": {
+        "task_name": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/definitions/rpcapiTaskDataSupplierDeclare"
+        },
+        "partners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiTaskDataSupplierDeclare"
+          }
+        },
+        "receivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiTaskResultReceiverDeclare"
+          }
+        },
+        "operation_cost": {
+          "$ref": "#/definitions/rpcapiTaskOperationCostDeclare"
+        },
+        "calculate_contractcode": {
+          "type": "string"
+        },
+        "datasplit_contractcode": {
+          "type": "string"
+        }
+      }
     },
     "rpcapiPublishTaskDeclareResponse": {
       "type": "object",

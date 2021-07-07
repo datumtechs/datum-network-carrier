@@ -175,6 +175,7 @@ service TaskService {
   rpc GetTaskDetailList (EmptyGetParams) returns (GetTaskDetailListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/task/list"
+          body: "*"
       };
   }
 
@@ -182,12 +183,14 @@ service TaskService {
   rpc GetTaskEventList (GetTaskEventListRequest) returns (GetTaskEventListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/task/eventList"
+          body: "*"
       };
   }
   // 发布任务
   rpc PublishTaskDeclare (PublishTaskDeclareRequest) returns (PublishTaskDeclareResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/task/publish"
+          body: "*"
       };
   }
 
