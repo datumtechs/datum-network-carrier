@@ -55,6 +55,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 		PowerList: respList,
 	}, nil
 }
+
 func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
 
 	powerList, err := svr.B.GetPowerSingleDetailList()
@@ -83,6 +84,7 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 		PowerList: respList,
 	}, nil
 }
+
 func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
 
 	powerMsg := new(types.PowerMsg)

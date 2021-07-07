@@ -24,6 +24,7 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 		Msg:    OK,
 	}, nil
 }
+
 func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.EmptyGetParams) (*pb.SimpleResponseCode, error) {
 
 	identityRevokeMsg := new(types.IdentityRevokeMsg)
@@ -37,6 +38,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 		Msg:    OK,
 	}, nil
 }
+
 func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeIdentityResponse, error) {
 
 	identity, err := svr.B.GetNodeIdentity()
@@ -45,14 +47,15 @@ func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *pb.Empty
 	}
 	return &pb.GetNodeIdentityResponse{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 		Owner: &pb.OrganizationIdentityInfo{
-			Name: identity.Name(),
-			NodeId:  identity.NodeId(),
-			IdentityId:  identity.IdentityId(),
+			Name:       identity.Name(),
+			NodeId:     identity.NodeId(),
+			IdentityId: identity.IdentityId(),
 		},
 	}, nil
 }
+
 func (svr *AuthServiceServer) GetIdentityList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetIdentityListResponse, error) {
 	identitys, err := svr.B.GetIdentityList()
 	if nil != err {
@@ -61,15 +64,15 @@ func (svr *AuthServiceServer) GetIdentityList(ctx context.Context, req *pb.Empty
 	arr := make([]*pb.OrganizationIdentityInfo, len(identitys))
 	for i, identity := range identitys {
 		iden := &pb.OrganizationIdentityInfo{
-			Name: identity.Name(),
-			NodeId:  identity.NodeId(),
-			IdentityId:  identity.IdentityId(),
+			Name:       identity.Name(),
+			NodeId:     identity.NodeId(),
+			IdentityId: identity.IdentityId(),
 		}
 		arr[i] = iden
 	}
 	return &pb.GetIdentityListResponse{
-		Status: 0,
-		Msg: OK,
+		Status:     0,
+		Msg:        OK,
 		MemberList: arr,
 	}, nil
 }
