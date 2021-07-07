@@ -18,3 +18,10 @@ type ConsensusMsg interface {
 	Signature() []byte
 
 }
+
+
+type PrepareVoteResource struct {
+	Id   string
+	Ip   string
+	Port string
+}

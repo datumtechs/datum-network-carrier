@@ -20,7 +20,7 @@ var (
 )
 
 type LocalResourceTable struct {
-	nodeId       string    // node id
+	nodeId       string    // Resource node id
 	nodeResource *resource // The total resource on the node
 	assign       bool      // Whether to assign the slot tag
 	slotTotal    uint32    // The total number of slots are allocated on the resource of this node
@@ -76,15 +76,28 @@ func (r *LocalResourceTable) UseSlot(count uint32) {
 
 }
 func (r *LocalResourceTable) LockSlot(count uint32) {
-	if count > r.slotTotal-r.slotUsed-r.slotLocked {
+	if count > r.RemianSlot() {
 		r.slotLocked = r.slotTotal - r.slotUsed
 	} else {
 		r.slotLocked += count
 	}
 }
+func (r *LocalResourceTable) UnLockSlot(count uint32) {
+	if r.slotLocked <= count {
+		r.slotLocked = 0
+	} else {
+		r.slotLocked = r.slotLocked - count
+	}
+}
 func (r *LocalResourceTable) GetTotalSlot() uint32  { return r.slotTotal }
 func (r *LocalResourceTable) GetUsedSlot() uint32   { return r.slotUsed }
 func (r *LocalResourceTable) GetLockedSlot() uint32 { return r.slotLocked }
+func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
+	if r.RemianSlot() < slotCount {
+		return false
+	}
+	return true
+}
 
 // EncodeRLP implements rlp.Encoder.
 func (r *LocalResourceTable) EncodeRLP(w io.Writer) error {
@@ -194,15 +207,15 @@ func (r *RemoteResourceTable) DecodeRLP(s *rlp.Stream) error {
 func (r *RemoteResourceTable) Remain() (uint64, uint64, uint64) {
 	return r.total.mem - r.used.mem, r.total.processor - r.used.processor, r.total.bandwidth - r.used.bandwidth
 }
-func (r *RemoteResourceTable) IsEnough(slot *Slot) bool {
-	mem, processor, bandwidth := r.Remain()
-	if mem < slot.Mem {
+func (r *RemoteResourceTable) IsEnough(mem, processor, bandwidth uint64) bool {
+	rMem, rProcessor, rBandwidth := r.Remain()
+	if rMem < mem {
 		return false
 	}
-	if processor < slot.Processor {
+	if rProcessor < processor {
 		return false
 	}
-	if bandwidth <= slot.Bandwidth {
+	if rBandwidth < bandwidth {
 		return false
 	}
 	return true

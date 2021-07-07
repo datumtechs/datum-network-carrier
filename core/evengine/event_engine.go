@@ -1,6 +1,7 @@
 package evengine
 
 import (
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
@@ -22,12 +23,12 @@ func NewEventEngine(dataCenter DataCenter) *EventEngine {
 	}
 }
 
-func (e *EventEngine) GenerateEvent(typ, taskId, identityId string) *types.TaskEventInfo {
+func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *types.TaskEventInfo {
 	return &types.TaskEventInfo{
 		Type: typ,
 		TaskId: taskId,
 		Identity: identityId,
-		Content: ScheduleEvent[typ],
+		Content: fmt.Sprintf("%s, reason: %s", ScheduleEvent[typ], extra),
 		CreateTime: uint64(time.Now().UnixNano()),
 	}
 }
