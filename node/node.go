@@ -236,6 +236,7 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 }
 
 func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) error {
+	carrierConfig.CarrierDB = b.db
 	backendService, err := carrier.NewService(b.ctx, carrierConfig)
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")

@@ -6,6 +6,7 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
 import "lib/api/common_message.proto";
 import "lib/api/task_rpc_api.proto";
+import "google/api/annotations.proto";
 
 //  ------------------------  power  ------------------------
 
@@ -164,12 +165,28 @@ service PowerService {
   //  rpc GetPowerSingleDetail (GetPowerSingleDetailRequest) returns (GetPowerSingleDetailResponse);
 
   // 查看各个节点的总算力详情列表
-  rpc GetPowerTotalDetailList (EmptyGetParams) returns (GetPowerTotalDetailListResponse);
+  rpc GetPowerTotalDetailList (EmptyGetParams) returns (GetPowerTotalDetailListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/power/totalList"
+      };
+  }
   // 查看某个节点各个单算力详情列表
-  rpc GetPowerSingleDetailList (EmptyGetParams) returns (GetPowerSingleDetailListResponse);
+  rpc GetPowerSingleDetailList (EmptyGetParams) returns (GetPowerSingleDetailListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/power/singleList"
+      };
+  }
 
   // 启用算力 (发布算力)
-  rpc PublishPower (PublishPowerRequest) returns (PublishPowerResponse);
+  rpc PublishPower (PublishPowerRequest) returns (PublishPowerResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/power/publish"
+      };
+  }
   // 停用算力 (撤销算力)
-  rpc RevokePower (RevokePowerRequest) returns (SimpleResponseCode);
+  rpc RevokePower (RevokePowerRequest) returns (SimpleResponseCode) {
+      option (google.api.http) = {
+          post: "/carrier/v1/power/revoke"
+      };
+  }
 }
