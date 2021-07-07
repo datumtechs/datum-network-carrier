@@ -274,6 +274,7 @@ func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 		d := &pb.YarnRegisteredPeer{
 			NodeType: types.PREFIX_TYPE_DATANODE.String(),
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
+				Id:           v.Id,
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,
@@ -361,6 +362,7 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 		d := &pb.YarnRegisteredPeer{
 			NodeType: types.PREFIX_TYPE_JOBNODE.String(),
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
+				Id:           v.Id,
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,
