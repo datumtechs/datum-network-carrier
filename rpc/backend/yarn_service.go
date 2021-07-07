@@ -151,6 +151,7 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 		InternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
+	svr.B.DeleteSeedNode(seedNode.Id)
 	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
@@ -236,7 +237,8 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		ExternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-
+	// delete and insert.
+	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, node.Id)
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetDataNodeInfoStr)
@@ -274,6 +276,7 @@ func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 		d := &pb.YarnRegisteredPeer{
 			NodeType: types.PREFIX_TYPE_DATANODE.String(),
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
+				Id:           v.Id,
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,
@@ -326,6 +329,7 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		ExternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
+	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
@@ -361,6 +365,7 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 		d := &pb.YarnRegisteredPeer{
 			NodeType: types.PREFIX_TYPE_JOBNODE.String(),
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
+				Id:           v.Id,
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,

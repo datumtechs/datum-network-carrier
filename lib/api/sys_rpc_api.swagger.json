@@ -128,6 +128,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiDeleteRegisteredNodeRequest"
+            }
+          }
+        ],
         "tags": [
           "YarnService"
         ]
@@ -184,6 +194,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "YarnService"
         ]
@@ -207,6 +227,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "YarnService"
         ]
@@ -296,6 +326,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
         "tags": [
           "YarnService"
         ]
@@ -385,6 +425,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetSeedNodeRequest"
+            }
+          }
+        ],
         "tags": [
           "YarnService"
         ]
@@ -474,6 +524,16 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiUpdateSeedNodeRequest"
+            }
+          }
+        ],
         "tags": [
           "YarnService"
         ]
@@ -703,6 +763,17 @@
         }
       }
     },
+    "rpcapiSetSeedNodeRequest": {
+      "type": "object",
+      "properties": {
+        "internal_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        }
+      }
+    },
     "rpcapiSetSeedNodeResponse": {
       "type": "object",
       "properties": {
@@ -787,6 +858,20 @@
           "type": "string"
         },
         "external_port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiUpdateSeedNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "internal_port": {
           "type": "string"
         }
       }
