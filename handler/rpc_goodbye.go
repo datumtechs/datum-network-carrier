@@ -63,7 +63,7 @@ func (s *Service) disconnectBadPeer(ctx context.Context, id peer.ID) {
 }
 
 // A custom goodbye method that is used by our connection handler, in the
-// event we receive bad peers.
+// evengine we receive bad peers.
 func (s *Service) sendGoodbye(ctx context.Context, id peer.ID) error {
 	return s.sendGoodByeAndDisconnect(ctx, p2ptypes.GoodbyeCodeGenericError, id)
 }
@@ -72,7 +72,7 @@ func (s *Service) sendGoodByeAndDisconnect(ctx context.Context, code p2ptypes.RP
 	lock := mputil.NewMultilock(id.String())
 	lock.Lock()
 	defer lock.Unlock()
-	// In the event we are already disconnected, exit early from the
+	// In the evengine we are already disconnected, exit early from the
 	// goodbye method to prevent redundant streams from being created.
 	if s.cfg.P2P.Host().Network().Connectedness(id) == network.NotConnected {
 		return nil

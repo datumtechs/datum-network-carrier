@@ -79,19 +79,19 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 	return taskDetailShowArray
 }
 
-func NewTaskEventFromAPIEvent(input []*api.TaskEvent) []*TaskEvent  {
-	result := make([]*TaskEvent, 0, len(input))
+func NewTaskEventFromAPIEvent(input []*api.TaskEvent) []*TaskEventInfo {
+	result := make([]*TaskEventInfo, 0, len(input))
 	for _, event := range input {
-		result = append(result, &TaskEvent{
+		result = append(result, &TaskEventInfo{
 			TaskId:   event.GetTaskId(),
 			Type:     event.GetType(),
-			CreateAt: event.GetCreateAt(),
+			CreateTime: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner:    &NodeAlias{
+			/*Owner:    &NodeAlias{
 				Name:       event.GetOwner().GetName(),
 				NodeId:     event.GetOwner().GetNodeId(),
 				IdentityId: event.GetOwner().GetIdentityId(),
-			},
+			},*/
 		})
 	}
 	return result

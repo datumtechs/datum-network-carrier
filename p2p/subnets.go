@@ -16,7 +16,7 @@ var attSubnetEnrKey = params.CarrierNetworkConfig().AttSubnetKey
 
 // FindPeersWithSubnet performs a network search for peers subscribed to a particular subnet.
 // Then we try to connect with those peers. This method will block until the required amount of
-// peers are found, the method only exists in the event of context timeouts.
+// peers are found, the method only exists in the evengine of context timeouts.
 func (s *Service) FindPeersWithSubnet(ctx context.Context, topic string, index, threshold uint64) (bool, error) {
 	if s.dv5Listener == nil {
 		// return if discovery isn't set
@@ -77,7 +77,7 @@ func (s *Service) filterPeerForSubnet(index uint64) func(node *enode.Node) bool 
 }
 
 // lower threshold to broadcast object compared to searching
-// for a subnet. So that even in the event of poor peer
+// for a subnet. So that even in the evengine of poor peer
 // connectivity, we can still broadcast an attestation.
 func (s *Service) hasPeerWithSubnet(topic string) bool {
 	return len(s.pubsub.ListPeers(topic+s.Encoding().ProtocolSuffix())) >= 1

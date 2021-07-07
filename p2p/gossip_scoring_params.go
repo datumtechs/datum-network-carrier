@@ -421,7 +421,7 @@ func inMeshCap() float64 {
 }
 
 func logGossipParameters(topic string, params *pubsub.TopicScoreParams) {
-	// Exit early in the event the parameter struct is nil.
+	// Exit early in the evengine the parameter struct is nil.
 	if params == nil {
 		return
 	}

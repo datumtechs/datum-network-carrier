@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
 	"sync"
@@ -45,7 +44,7 @@ type CarrierDB interface {
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
 	db              CarrierDB // Low level persistent database to store final content.
-	eventCh         chan *event.TaskEvent
+	eventCh         chan *types.TaskEventInfo
 	slotUnit        *types.Slot
 	localTables     map[string]*types.LocalResourceTable
 	localTableQueue []*types.LocalResourceTable
@@ -60,7 +59,7 @@ type Manager struct {
 func NewResourceManager(db CarrierDB) *Manager {
 	m := &Manager{
 		db:               db,
-		eventCh:          make(chan *event.TaskEvent, 0),
+		eventCh:          make(chan *types.TaskEventInfo, 0),
 		localTables:      make(map[string]*types.LocalResourceTable),
 		localTableQueue:  make([]*types.LocalResourceTable, 0),
 		remoteTableQueue: make([]*types.RemoteResourceTable, 0),
@@ -250,7 +249,7 @@ func (m *Manager) refreshOrgResourceTable() error {
 	}
 	return nil
 }
-func (m *Manager) SendTaskEvent(event *event.TaskEvent) error {
+func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 	m.eventCh <- event
 	return nil
 }

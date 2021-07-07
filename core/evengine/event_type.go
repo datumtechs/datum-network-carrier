@@ -1,17 +1,19 @@
-package task
+package evengine
 
 import (
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/event"
+	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type EventSysCode string
 func (code EventSysCode) String() string {return string(code)}
 const (
-	SysCode_Common EventSysCode = "00"
-	SysCode_YarnNode EventSysCode = "01"
-	SysCode_DataNode EventSysCode = "02"
+	SysCode_Common    EventSysCode = "00"
+	SysCode_YarnNode  EventSysCode = "01"
+	SysCode_DataNode  EventSysCode = "02"
 	SysCode_PowerNode EventSysCode = "03"
+
+	EventTypeCharLen  = 7
 
 )
 
@@ -28,7 +30,7 @@ func NewEventType(Type string, text string) *EventType {
 	return &EventType{Type: Type, Msg: text}
 }
 
-var IncEventType = errors.New("incorrect event type")
+var IncEventType = errors.New("incorrect evengine type")
 
 // 调度服务事件
 var (
@@ -69,7 +71,7 @@ var ScheduleEvent = map[string]string{
 	ConsensusPreLockedRelease.Type:  ConsensusPreLockedRelease.Msg,
 }
 
-func MakeScheduleEventInfo(event *event.TaskEvent) (*event.TaskEvent, error) {
+func MakeScheduleEventInfo(event *types.TaskEventInfo) (*types.TaskEventInfo, error) {
 	if _, ok := ScheduleEvent[event.Type]; ok {
 		event.Content = ScheduleEvent[event.Type]
 		return event, nil
@@ -103,7 +105,7 @@ var DataServiceEvent = map[string]string{
 	GetDataFileFailed.Type:     GetDataFileFailed.Msg,
 }
 
-func MakeDataServiceEventInfo(event *event.TaskEvent) (*event.TaskEvent, error) {
+func MakeDataServiceEventInfo(event *types.TaskEventInfo) (*types.TaskEventInfo, error) {
 	if _, ok := DataServiceEvent[event.Type]; ok {
 		event.Content = DataServiceEvent[event.Type]
 		return event, nil
@@ -151,7 +153,7 @@ var ComputerServiceEvent = map[string]string{
 	ReportTaskUsage.Type:       ReportTaskUsage.Msg,
 }
 
-func MakeComputerServiceEventInfo(event *event.TaskEvent) (*event.TaskEvent, error) {
+func MakeComputerServiceEventInfo(event *types.TaskEventInfo) (*types.TaskEventInfo, error) {
 	if _, ok := ComputerServiceEvent[event.Type]; ok {
 		event.Content = ComputerServiceEvent[event.Type]
 		return event, nil

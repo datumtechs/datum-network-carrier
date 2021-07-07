@@ -2,7 +2,6 @@ package message
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/consensus"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -46,18 +45,18 @@ type MessageHandler struct {
 	pool        *Mempool
 	dataHandler DataHandler
 	center      DataCenter
-	// Consensuses
-	engines map[string]consensus.Engine
+	//// Consensuses
+	//engines map[string]consensus.Engine
 
 	taskCh chan<- types.TaskMsgs
 
-	identityMsgCh       chan event.IdentityMsgEvent
-	identityRevokeMsgCh chan event.IdentityRevokeMsgEvent
-	powerMsgCh          chan event.PowerMsgEvent
-	powerRevokeMsgCh    chan event.PowerRevokeMsgEvent
-	metaDataMsgCh       chan event.MetaDataMsgEvent
-	metaDataRevokeMsgCh chan event.MetaDataRevokeMsgEvent
-	taskMsgCh           chan event.TaskMsgEvent
+	identityMsgCh       chan types.IdentityMsgEvent
+	identityRevokeMsgCh chan types.IdentityRevokeMsgEvent
+	powerMsgCh          chan types.PowerMsgEvent
+	powerRevokeMsgCh    chan types.PowerRevokeMsgEvent
+	metaDataMsgCh       chan types.MetaDataMsgEvent
+	metaDataRevokeMsgCh chan types.MetaDataRevokeMsgEvent
+	taskMsgCh           chan types.TaskMsgEvent
 
 	identityMsgSub       event.Subscription
 	identityRevokeMsgSub event.Subscription
@@ -73,13 +72,12 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan<- types.TaskMsgs, engines map[string]consensus.Engine) *MessageHandler {
+func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan<- types.TaskMsgs) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataHandler: dataHandler,
 		center:      dataCenter,
 		taskCh:      taskCh,
-		engines:     engines,
 	}
 	return m
 }

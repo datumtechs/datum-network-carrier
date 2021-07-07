@@ -2,7 +2,6 @@ package rawdb
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/db"
-	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"gotest.tools/assert"
 	"strings"
@@ -80,7 +79,7 @@ func TestRegisteredNode(t *testing.T) {
 
 func TestTaskEvent(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	taskEvent := &event.TaskEvent{
+	taskEvent := &types.TaskEventInfo{
 		Type:       "taskEventType",
 		Identity:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
@@ -89,7 +88,7 @@ func TestTaskEvent(t *testing.T) {
 	}
 	WriteTaskEvent(database, taskEvent)
 
-	taskEvent2 := &event.TaskEvent{
+	taskEvent2 := &types.TaskEventInfo{
 		Type:       "taskEventType-02",
 		Identity:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
@@ -99,7 +98,7 @@ func TestTaskEvent(t *testing.T) {
 	WriteTaskEvent(database, taskEvent2)
 
 	revent := ReadTaskEvent(database, "taskEventTaskId")
-	t.Logf("task event info : %v", len(revent))
+	t.Logf("task evengine info : %v", len(revent))
 	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].Identity))
 
 	// read all

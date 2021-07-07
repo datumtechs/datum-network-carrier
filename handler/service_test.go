@@ -46,7 +46,7 @@ func TestSyncHandlers_WaitToSync(t *testing.T) {
 	})
 	// wait for chainstart to be sent
 	time.Sleep(400 * time.Millisecond)
-	require.Equal(t, true, true, "Did not receive chain start event.")
+	require.Equal(t, true, true, "Did not receive chain start evengine.")
 }
 
 func TestSyncHandlers_WaitForChainStart(t *testing.T) {
@@ -77,7 +77,7 @@ func TestSyncHandlers_WaitForChainStart(t *testing.T) {
 
 	// wait for chainstart to be sent
 	time.Sleep(3 * time.Second)
-	require.Equal(t, true, r.chainStarted.IsSet(), "Did not receive chain start event.")
+	require.Equal(t, true, r.chainStarted.IsSet(), "Did not receive chain start evengine.")
 }
 
 func TestSyncService_StopCleanly(t *testing.T) {
@@ -113,7 +113,7 @@ func TestSyncService_StopCleanly(t *testing.T) {
 
 	// wait for chainstart to be sent
 	time.Sleep(2 * time.Second)
-	require.Equal(t, true, r.chainStarted.IsSet(), "Did not receive chain start event.")
+	require.Equal(t, true, r.chainStarted.IsSet(), "Did not receive chain start evengine.")
 
 	i = r.cfg.StateNotifier.StateFeed().Send(&feed.Event{
 		Type: statefeed.Synced,
@@ -122,7 +122,7 @@ func TestSyncService_StopCleanly(t *testing.T) {
 		},
 	})
 	if i == 0 {
-		t.Fatal("didn't send genesis time to sync event subscribers")
+		t.Fatal("didn't send genesis time to sync evengine subscribers")
 	}
 
 	time.Sleep(1 * time.Second)
