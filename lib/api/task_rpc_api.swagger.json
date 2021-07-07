@@ -1,0 +1,389 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "lib/api/task_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/task/eventList": {
+      "post": {
+        "summary": "查看某个任务的全部事件列表",
+        "operationId": "TaskService_GetTaskEventList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskEventListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/list": {
+      "post": {
+        "summary": "查看全部任务详情列表",
+        "operationId": "TaskService_GetTaskDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/publish": {
+      "post": {
+        "summary": "发布任务",
+        "operationId": "TaskService_PublishTaskDeclare",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishTaskDeclareResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "TaskService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcapiGetTaskDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetTaskDetailResponse"
+          }
+        }
+      }
+    },
+    "rpcapiGetTaskDetailResponse": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/rpcapiTaskDetailShow"
+        }
+      }
+    },
+    "rpcapiGetTaskEventListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_event_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiTaskEventShow"
+          }
+        }
+      }
+    },
+    "rpcapiOrganizationIdentityInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        }
+      },
+      "title": "组织(节点)唯一标识抽象"
+    },
+    "rpcapiPublishTaskDeclareResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiResourceUsedDetailShow": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "系统本身资源抽象"
+    },
+    "rpcapiTaskDataSupplierDeclare": {
+      "type": "object",
+      "properties": {
+        "member_info": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "meta_data_info": {
+          "$ref": "#/definitions/rpcapiTaskMetaDataDeclare"
+        }
+      },
+      "title": "任务数据供应者信息 (任务详情定义用)"
+    },
+    "rpcapiTaskDataSupplierShow": {
+      "type": "object",
+      "properties": {
+        "member_info": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "meta_data_id": {
+          "type": "string"
+        },
+        "meta_data_name": {
+          "type": "string"
+        }
+      },
+      "title": "任务数据提供方信息 (任务详情展示用)"
+    },
+    "rpcapiTaskDetailShow": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "task_name": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "algo_supplier": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "data_supplier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiTaskDataSupplierShow"
+          }
+        },
+        "power_supplier": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiTaskPowerSupplierShow"
+          }
+        },
+        "receivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          }
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "start_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "end_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "state": {
+          "type": "string"
+        },
+        "operation_cost": {
+          "$ref": "#/definitions/rpcapiTaskOperationCostDeclare"
+        }
+      },
+      "title": "任务详情 (供展示用)"
+    },
+    "rpcapiTaskEventShow": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "content": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "任务事件定义"
+    },
+    "rpcapiTaskMetaDataDeclare": {
+      "type": "object",
+      "properties": {
+        "meta_data_id": {
+          "type": "string"
+        },
+        "column_index_list": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
+          }
+        }
+      }
+    },
+    "rpcapiTaskOperationCostDeclare": {
+      "type": "object",
+      "properties": {
+        "cost_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "cost_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "cost_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "任务的所需操作成本 (定义任务的大小)"
+    },
+    "rpcapiTaskPowerSupplierShow": {
+      "type": "object",
+      "properties": {
+        "member_info": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "power_info": {
+          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+        }
+      },
+      "title": "任务算力提供方信息 (任务详情展示用)"
+    },
+    "rpcapiTaskResultReceiverDeclare": {
+      "type": "object",
+      "properties": {
+        "member_info": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "providers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          }
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
