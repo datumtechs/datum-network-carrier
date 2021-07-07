@@ -109,18 +109,21 @@ service MetaDataService {
   rpc GetMetaDataDetail (GetMetaDataDetailRequest) returns (GetMetaDataDetailResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/metadata/detail"
+          body: "*"
       };
   }
 
   rpc GetMetaDataDetailList (EmptyGetParams) returns (GetMetaDataDetailListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/metadata/list"
+          body: "*"
       };
   }
 
   rpc GetMetaDataDetailListByOwner (GetMetaDataDetailListByOwnerRequest) returns (GetMetaDataDetailListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/metadata/listByOwner"
+          body: "*"
       };
   }
 
@@ -128,12 +131,14 @@ service MetaDataService {
   rpc PublishMetaData (PublishMetaDataRequest) returns (PublishMetaDataResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/metadata/publish"
+          body: "*"
       };
   }
   // 撤销元数据 (从底层网络撤销)
   rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponseCode) {
       option (google.api.http) = {
           post: "/carrier/v1/metadata/revoke"
+          body: "*"
       };
   }
 

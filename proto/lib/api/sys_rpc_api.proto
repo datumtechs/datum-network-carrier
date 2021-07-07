@@ -249,24 +249,28 @@ service YarnService {
   rpc SetDataNode (SetDataNodeRequest) returns (SetDataNodeResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/setDataNode"
+          body: "*"
       };
   }
   // 修改数据服务信息
   rpc UpdateDataNode (UpdateDataNodeRequest) returns (SetDataNodeResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/updateDataNode"
+          body: "*"
       };
   }
   // 删除数据服务信息
   rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/deleteDataNode"
+          body: "*"
       };
   }
   // 查询数据服务列表
   rpc GetDataNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/dataNodeList"
+          body: "*"
       };
   }
 
@@ -275,24 +279,28 @@ service YarnService {
   rpc SetJobNode (SetJobNodeRequest) returns (SetJobNodeResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/setJobNode"
+          body: "*"
       };
   }
   // 修改计算服务信息
   rpc UpdateJobNode (UpdateJobNodeRequest) returns (SetJobNodeResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/updateJobNode"
+          body: "*"
       };
   }
   // 删除计算服务信息
   rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/deleteJobNode"
+          body: "*"
       };
   }
   // 查询计算服务列表
   rpc GetJobNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/jobNodeList"
+          body: "*"
       };
   }
 
@@ -301,12 +309,14 @@ service YarnService {
   rpc ReportTaskEvent (ReportTaskEventRequest) returns (SimpleResponseCode) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/reportTaskEvent"
+          body: "*"
       };
   }
   // 上报资源使用实况
   rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (SimpleResponseCode) {
       option (google.api.http) = {
           post: "/carrier/v1/yarn/reportTaskResourceExpense"
+          body: "*"
       };
   }
 
