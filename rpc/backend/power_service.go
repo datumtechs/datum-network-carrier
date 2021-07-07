@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
@@ -87,15 +88,22 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 
 func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
 
-	powerMsg := new(types.PowerMsg)
-	powerMsg.Data.JobNodeId = req.JobNodeId
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	if req.Information == nil {
+		return nil, errors.New("required information")
+	}
+	
+	powerMsg := types.NewPowerMessageFromRequest(req)
+	/*powerMsg.Data.JobNodeId = req.JobNodeId
 	powerMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 	powerMsg.Data.Name = req.Owner.Name
 	powerMsg.Data.NodeId = req.Owner.NodeId
 	powerMsg.Data.IdentityId = req.Owner.IdentityId
 	powerMsg.Data.Information.Processor = req.Information.Processor
 	powerMsg.Data.Information.Mem = req.Information.Mem
-	powerMsg.Data.Information.Bandwidth = req.Information.Bandwidth
+	powerMsg.Data.Information.Bandwidth = req.Information.Bandwidth*/
 	powerId := powerMsg.GetPowerId()
 
 	err := svr.B.SendMsg(powerMsg)
@@ -110,12 +118,19 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 }
 
 func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
-	powerRevokeMsg := new(types.PowerRevokeMsg)
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	if req.PowerId == "" {
+		return nil, errors.New("required powerId")
+	}
+	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 	powerRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
-	powerRevokeMsg.Name = req.Owner.Name
+
+	/*powerRevokeMsg.Name = req.Owner.Name
 	powerRevokeMsg.NodeId = req.Owner.NodeId
 	powerRevokeMsg.IdentityId = req.Owner.IdentityId
-	powerRevokeMsg.PowerId = req.PowerId
+	powerRevokeMsg.PowerId = req.PowerId*/
 
 	err := svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
