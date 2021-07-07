@@ -161,9 +161,9 @@ func (s *Service) registerHandlers() {
 					return
 				}
 				startTime := data.StartTime
-				log.WithField("starttime", startTime).Debug("Received state initialized event")
+				log.WithField("starttime", startTime).Debug("Received state initialized evengine")
 
-				// Register respective rpc handlers at state initialized event.
+				// Register respective rpc handlers at state initialized evengine.
 				s.registerRPCHandlers()
 				// Wait for chainstart in separate routine.
 				go func() {
@@ -179,7 +179,7 @@ func (s *Service) registerHandlers() {
 					log.Error("Event feed data is not type *statefeed.SyncedData")
 					return
 				}
-				// Register respective pubsub handlers at state synced event.
+				// Register respective pubsub handlers at state synced evengine.
 				s.registerSubscribers()
 				return
 			}

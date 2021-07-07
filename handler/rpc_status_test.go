@@ -278,7 +278,7 @@ func TestHandshakeHandlers_Roundtrip(t *testing.T) {
 	require.NoError(t, p2.Disconnect(p1.PeerID()))
 	p1.Peers().SetConnectionState(p2.PeerID(), peers.PeerDisconnected)
 
-	// Wait for disconnect event to trigger.
+	// Wait for disconnect evengine to trigger.
 	time.Sleep(200 * time.Millisecond)
 
 	numInactive3 := len(p1.Peers().Inactive())

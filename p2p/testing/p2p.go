@@ -183,7 +183,7 @@ func (p *TestP2P) SubscribeToTopic(topic string, opts ...pubsub.SubOpt) (*pubsub
 }
 
 // LeaveTopic closes topic and removes corresponding handler from list of joined topics.
-// This method will return error if there are outstanding event handlers or subscriptions.
+// This method will return error if there are outstanding evengine handlers or subscriptions.
 func (p *TestP2P) LeaveTopic(topic string) error {
 	if t, ok := p.joinedTopics[topic]; ok {
 		if err := t.Close(); err != nil {

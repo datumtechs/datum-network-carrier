@@ -34,7 +34,7 @@ var (
 	// seedNodeKey tracks the seed node list.
 	seedNodeKey = []byte("SeedNodeKey")
 
-	// taskEventKey tracks the task event list.
+	// taskEventKey tracks the task evengine list.
 	taskEventKey = []byte("TaskEventKey")
 
 	// resourceNodeKey tracks the node for calc node.

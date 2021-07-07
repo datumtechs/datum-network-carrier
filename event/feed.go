@@ -22,7 +22,7 @@ import (
 	"sync"
 )
 
-var errBadChannel = errors.New("event: Subscribe argument does not have sendable channel type")
+var errBadChannel = errors.New("evengine: Subscribe argument does not have sendable channel type")
 
 // Feed implements one-to-many subscriptions where the carrier of events is a channel.
 // Values sent to a Feed are delivered to all subscribed channels simultaneously.
@@ -55,7 +55,7 @@ type feedTypeError struct {
 }
 
 func (e feedTypeError) Error() string {
-	return "event: wrong type in " + e.op + " got " + e.got.String() + ", want " + e.want.String()
+	return "evengine: wrong type in " + e.op + " got " + e.got.String() + ", want " + e.want.String()
 }
 
 func (f *Feed) init() {

@@ -3,6 +3,7 @@ package scheduler
 import (
 	"container/heap"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
@@ -40,24 +41,31 @@ type SchedulerStarveFIFO struct {
 	schedTaskCh chan *types.ConsensusTaskWrap
 	// receive remote task to replay from `Consensus`
 	remoteTaskCh chan *types.ScheduleTaskWrap
-	dataCenter   DataCenter
-	err          error
+	// todo  发送经过调度好的 task 交给 taskManager 去分发给自己的 Fighter-Py
+	sendSchedTaskCh chan<- *types.ScheduleTask
+
+	eventEngine *evengine.EventEngine
+	dataCenter  DataCenter
+	err         error
 }
 
 func NewSchedulerStarveFIFO(
 	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
 	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter DataCenter,
-	mng *resource.Manager) *SchedulerStarveFIFO {
+	sendSchedTaskCh chan<- *types.ScheduleTask, mng *resource.Manager,
+	eventEngine *evengine.EventEngine) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
-		resourceMng:    mng,
-		queue:          new(types.TaskBullets),
-		starveQueue:    new(types.TaskBullets),
-		scheduledQueue: make([]*types.ScheduleTask, 0),
-		localTaskCh:    localTaskCh,
-		schedTaskCh:    schedTaskCh,
-		remoteTaskCh:   remoteTaskCh,
-		dataCenter:     dataCenter,
+		resourceMng:     mng,
+		queue:           new(types.TaskBullets),
+		starveQueue:     new(types.TaskBullets),
+		scheduledQueue:  make([]*types.ScheduleTask, 0),
+		localTaskCh:     localTaskCh,
+		schedTaskCh:     schedTaskCh,
+		remoteTaskCh:    remoteTaskCh,
+		sendSchedTaskCh: sendSchedTaskCh,
+		dataCenter:      dataCenter,
+		eventEngine:     eventEngine,
 	}
 }
 func (sche *SchedulerStarveFIFO) loop() {
@@ -102,8 +110,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		task := x.(*types.TaskBullet).TaskMsg
 
 		powers, err := sche.electionConputeOrg(taskComputeOrgCount, &types.TaskOperationCost{Mem:
-			task.OperationCost().Mem, Processor: task.OperationCost().Processor,
-			Bandwidth:  task.OperationCost().Bandwidth})
+		task.OperationCost().Mem, Processor: task.OperationCost().Processor,
+			Bandwidth: task.OperationCost().Bandwidth})
 		if nil != err {
 			log.Errorf("Failed to election power org, err: %s", err)
 			return err
@@ -112,11 +120,15 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		go func() {
 			resCh := make(chan *types.TaskConsResult, 0)
 			sche.schedTaskCh <- &types.ConsensusTaskWrap{
-				Task: scheduleTask,
+				Task:     scheduleTask,
 				ResultCh: resCh,
 			}
-			//res := <- resCh
-			// TODO 处理 共识的 任务信息
+			res := <-resCh
+			// Consensus failed, task needs to be suspended and rescheduled
+			if res.Status == types.TaskConsensusInterrupt {
+				// 生成任务的事件
+
+			}
 		}()
 	}
 
@@ -144,12 +156,12 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(calculateCount int, cost *ty
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
 	// Election
-	index := electionCondition%len(identityIds)
+	index := electionCondition % len(identityIds)
 	identityIdTmp := make(map[string]struct{}, 0)
 	for i := calculateCount; i > 0; i-- {
 
 		identityIdTmp[identityIds[index]] = struct{}{}
-		index ++
+		index++
 
 	}
 
@@ -160,8 +172,8 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(calculateCount int, cost *ty
 	for _, iden := range identityArr {
 		if _, ok := identityIdTmp[iden.IdentityId()]; ok {
 			orgs = append(orgs, &types.NodeAlias{
-				Name: iden.Name(),
-				NodeId: iden.NodeId(),
+				Name:       iden.Name(),
+				NodeId:     iden.NodeId(),
 				IdentityId: iden.IdentityId(),
 			})
 		}
@@ -169,17 +181,17 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(calculateCount int, cost *ty
 	return orgs, nil
 }
 
-func buildScheduleTask (task *types.TaskMsg, powers []*types.NodeAlias) *types.ScheduleTask {
+func buildScheduleTask(task *types.TaskMsg, powers []*types.NodeAlias) *types.ScheduleTask {
 
 	partners := make([]*types.ScheduleTaskDataSupplier, len(task.PartnerTaskSuppliers()))
 	for i, p := range task.PartnerTaskSuppliers() {
 		partner := &types.ScheduleTaskDataSupplier{
 			NodeAlias: &types.NodeAlias{
-				Name: p.Name,
-				NodeId: p.NodeId,
+				Name:       p.Name,
+				NodeId:     p.NodeId,
 				IdentityId: p.IdentityId,
 			},
-			MetaData:  p.MetaData,
+			MetaData: p.MetaData,
 		}
 		partners[i] = partner
 	}
@@ -201,18 +213,18 @@ func buildScheduleTask (task *types.TaskMsg, powers []*types.NodeAlias) *types.S
 		receivers[i] = receiver
 	}
 	return &types.ScheduleTask{
-		TaskId: task.TaskId,
+		TaskId:   task.TaskId,
 		TaskName: task.TaskName(),
-		Owner:   &types.ScheduleTaskDataSupplier{
+		Owner: &types.ScheduleTaskDataSupplier{
 			NodeAlias: task.Onwer(),
 			MetaData:  task.OwnerTaskSupplier().MetaData,
 		},
-		Partners: partners,
-		PowerSuppliers: powerArr,
-		Receivers: receivers,
+		Partners:              partners,
+		PowerSuppliers:        powerArr,
+		Receivers:             receivers,
 		CalculateContractCode: task.CalculateContractCode(),
 		DataSplitContractCode: task.DataSplitContractCode(),
-		OperationCost: task.OperationCost(),
-		CreateAt: task.CreateAt(),
+		OperationCost:         task.OperationCost(),
+		CreateAt:              task.CreateAt(),
 	}
 }
