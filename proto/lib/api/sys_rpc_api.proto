@@ -201,129 +201,178 @@ message ReportTaskResourceExpenseRequest {
 
 }
 
+message ReportUpFileSummaryRequest {
+    string origin_id = 1;    // 被成功上传的原始文件的 Id
+    string file_path = 2;    // 被成功上传的原始文件的相对 path
+}
+
+
+message QueryAvailableDataNodeRequest {
+    uint64 file_size = 1;       // 要被上传的目标文件 大小 (单位: byte)
+    string file_type = 2;       // 要被上传的目标文件  类型 (默认: "csv")
+}
+message QueryAvailableDataNodeResponse {
+    string ip   = 1;                 // 可以被用来上传文件的 数据服务内网 ip
+    string port = 2;               // 可以被用来上传文件的 数据服务内网 port
+}
+
+message QueryFilePositionRequest {
+    string origin_id = 1;              // 需要被下载的目标原始文件的 id
+}
+message QueryFilePositionResponse {
+    string ip        = 1;                     // 需要被下载的目标原始文件所在的 数据服务内网ip
+    string port      = 2;                   // 需要被下载的目标原始文件所在的 数据服务内网port
+    string file_path = 3;              // 需要被下载的目标原始文件的完整相对路径名
+}
+
+
 // ## 调度服务 - 系统状态 接口
 service YarnService {
 
   // Getter YarnNode ...
   // 查看自身调度服务信息
   rpc GetNodeInfo (EmptyGetParams) returns (GetNodeInfoResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/nodeInfo"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/nodeInfo"
+      body: "*"
+    };
   }
   // 查看自身调度服务的 peer注册信息
   rpc GetRegisteredPeers (EmptyGetParams) returns (GetRegisteredPeersResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/registeredPeers"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/registeredPeers"
+      body: "*"
+    };
   }
 
   // about seed
   // 新增种子节点信息
   rpc SetSeedNode (SetSeedNodeRequest) returns (SetSeedNodeResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/setSeed"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/setSeed"
+      body: "*"
+    };
   }
   // 修改种子节点信息
   rpc UpdateSeedNode (UpdateSeedNodeRequest) returns (SetSeedNodeResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/updateSeed"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/updateSeed"
+      body: "*"
+    };
   }
   // 删除种子节点信息
   rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/deleteSeed"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/deleteSeed"
+      body: "*"
+    };
   }
   // 查询种子节点列表
   rpc GetSeedNodeList (EmptyGetParams) returns (GetSeedNodeListResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/seedList"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/seedList"
+      body: "*"
+    };
   }
 
   // about dataNode
   // 新增数据服务信息
   rpc SetDataNode (SetDataNodeRequest) returns (SetDataNodeResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/setDataNode"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/setDataNode"
+      body: "*"
+    };
   }
   // 修改数据服务信息
   rpc UpdateDataNode (UpdateDataNodeRequest) returns (SetDataNodeResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/updateDataNode"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/updateDataNode"
+      body: "*"
+    };
   }
   // 删除数据服务信息
   rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/deleteDataNode"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/deleteDataNode"
+      body: "*"
+    };
   }
   // 查询数据服务列表
   rpc GetDataNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/dataNodeList"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/dataNodeList"
+      body: "*"
+    };
   }
 
   // about jobNode
   // 新增计算服务信息
   rpc SetJobNode (SetJobNodeRequest) returns (SetJobNodeResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/setJobNode"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/setJobNode"
+      body: "*"
+    };
   }
   // 修改计算服务信息
   rpc UpdateJobNode (UpdateJobNodeRequest) returns (SetJobNodeResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/updateJobNode"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/updateJobNode"
+      body: "*"
+    };
   }
   // 删除计算服务信息
   rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/deleteJobNode"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/deleteJobNode"
+      body: "*"
+    };
   }
   // 查询计算服务列表
   rpc GetJobNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/jobNodeList"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/jobNodeList"
+      body: "*"
+    };
   }
 
   // about report
   // 上报任务事件
   rpc ReportTaskEvent (ReportTaskEventRequest) returns (SimpleResponseCode) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/reportTaskEvent"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/reportTaskEvent"
+      body: "*"
+    };
   }
   // 上报资源使用实况
   rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (SimpleResponseCode) {
-      option (google.api.http) = {
-          post: "/carrier/v1/yarn/reportTaskResourceExpense"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/reportTaskResourceExpense"
+      body: "*"
+    };
+  }
+
+  // 上报 成功上传的原始文件Id
+  rpc  ReportUpFileSummary (ReportUpFileSummaryRequest) returns (SimpleResponseCode) {
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/reportUpFileSummary"
+      body: "*"
+    };
+  }
+
+  // 查询可用数据服务资源目标 ip:port 信息
+  rpc QueryAvailableDataNode (QueryAvailableDataNodeRequest) returns (QueryAvailableDataNodeResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/queryAvailableDataNode"
+      body: "*"
+    };
+  }
+
+  // 查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径
+  rpc QueryFilePosition (QueryFilePositionRequest) returns (QueryFilePositionResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/yarn/queryFilePosition"
+      body: "*"
+    };
   }
 
 }

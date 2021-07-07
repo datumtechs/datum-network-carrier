@@ -13,7 +13,7 @@ import (
 )
 
 type taskOption struct {
-	Role                  TaskRole                 `json:"role"` // The role information of the current recipient of the task
+	Role                  types.TaskRole           `json:"role"` // The role information of the current recipient of the task
 	TaskId                string                   `json:"taskId"`
 	TaskName              string                   `json:"taskName"`
 	Owner                 *types.NodeAlias         `json:"owner"`
@@ -51,11 +51,11 @@ type taskPeerInfo struct {
 }
 
 type PrepareMsg struct {
-	ProposalID  common.Hash  `json:"proposalId"`
-	TaskOption  *taskOption  `json:"taskOption"`
-	CreateAt    uint64       `json:"createAt"`
-	Sign        MsgSign      `json:"sign"`
-	messageHash atomic.Value `rlp:"-"`
+	ProposalID  common.Hash   `json:"proposalId"`
+	TaskOption  *taskOption   `json:"taskOption"`
+	CreateAt    uint64        `json:"createAt"`
+	Sign        types.MsgSign `json:"sign"`
+	messageHash atomic.Value  `rlp:"-"`
 }
 
 func (msg *PrepareMsg) String() string {
@@ -74,12 +74,12 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 
 type PrepareVote struct {
 	ProposalID  common.Hash      `json:"proposalId"`
-	Role        TaskRole         `json:"role"` // The role information of the current recipient of the task
+	Role        types.TaskRole   `json:"role"` // The role information of the current recipient of the task
 	Owner       *types.NodeAlias `json:"owner"`
-	VoteOption  VoteOption       `json:"voteOption"`
+	VoteOption  types.VoteOption `json:"voteOption"`
 	PeerInfo    *taskPeerInfo    `json:"peerInfo"`
 	CreateAt    uint64           `json:"createAt"`
-	Sign        MsgSign          `json:"sign"`
+	Sign        types.MsgSign    `json:"sign"`
 	messageHash atomic.Value     `rlp:"-"`
 }
 

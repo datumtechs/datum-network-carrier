@@ -44,9 +44,9 @@ type SchedulerStarveFIFO struct {
 	// send local task scheduled to `Consensus`
 	schedTaskCh chan *types.ConsensusTaskWrap
 	// receive remote task to replay from `Consensus`
-	remoteTaskCh chan *types.ConsensusScheduleTaskWrap
+	remoteTaskCh chan *types.ScheduleTaskWrap
 	// todo  发送经过调度好的 task 交给 taskManager 去分发给自己的 Fighter-Py
-	sendSchedTaskCh chan<- *types.ScheduleTask
+	sendSchedTaskCh chan<- *types.ConsensusScheduleTask
 
 	eventEngine *evengine.EventEngine
 	dataCenter  DataCenter
@@ -55,8 +55,8 @@ type SchedulerStarveFIFO struct {
 
 func NewSchedulerStarveFIFO(
 	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
-	remoteTaskCh chan *types.ConsensusScheduleTaskWrap, dataCenter DataCenter,
-	sendSchedTaskCh chan<- *types.ScheduleTask, mng *resource.Manager,
+	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter DataCenter,
+	sendSchedTaskCh chan<- *types.ConsensusScheduleTask, mng *resource.Manager,
 	eventEngine *evengine.EventEngine) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
@@ -89,7 +89,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 		case task := <-sche.remoteTaskCh:
 			// todo 让自己的Scheduler 重演选举
 			_ = task
-			//sche.replaySchedule()
+			sche.replaySchedule(task)
 
 			// todo 这里还需要写上 定时调度 队列中的任务信息
 		case <-taskTimer.C:
@@ -148,9 +148,18 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		cost := &types.TaskOperationCost{Mem: task.OperationCost().Mem, Processor: task.OperationCost().Processor,
 			Bandwidth: task.OperationCost().Bandwidth}
 
-		selfResourceInfo, err := sche.electionConputeNode(cost)
+		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 
-		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(task.OperationCost().Mem, task.OperationCost().Processor, task.OperationCost().Bandwidth)
+		selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
+		if nil != err {
+			log.Errorf("Failed to election internal power resource, err: %s", err)
+			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+				task.TaskId, task.Onwer().IdentityId, err.Error()))
+			repushFn(bullet)
+			return
+		}
+		// Lock local resource (jobNode)
+		sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
 
 		powers, err := sche.electionConputeOrg(taskComputeOrgCount, cost)
 		if nil != err {
@@ -162,27 +171,186 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			return
 		}
 		scheduleTask := buildScheduleTask(task, powers)
-		resCh := make(chan *types.TaskConsResult, 0)
+		resCh := make(chan *types.ConsensuResult, 0)
 		sche.schedTaskCh <- &types.ConsensusTaskWrap{
 			Task:         scheduleTask,
 			SelfResource: selfResourceInfo,
 			ResultCh:     resCh,
 		}
-		res := <-resCh
+		consensusRes := <-resCh
 		// Consensus failed, task needs to be suspended and rescheduled
-		if res.Status == types.TaskConsensusInterrupt {
+		if consensusRes.Status == types.TaskConsensusInterrupt {
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				task.TaskId, task.Onwer().IdentityId, res.Err.Error()))
+				task.TaskId, task.Onwer().IdentityId, consensusRes.Err.Error()))
 			sche.resourceMng.UnLockSlot(selfResourceInfo.Id, uint32(needSlotCount))
 			repushFn(bullet)
 			return
+		}
+
+		sche.resourceMng.UnLockSlot(selfResourceInfo.Id, uint32(needSlotCount))
+
+		// TODO 还需要写 dataCenter 关于自己的 资源使用状况
+
+		// the task has consensus succeed, need send `Fighter-Py` node
+		// (On taskManager)
+		sche.sendSchedTaskCh <- &types.ConsensusScheduleTask{
+			SchedTask:              scheduleTask,
+			OwnerResource:          consensusRes.OwnerResource,
+			PartnersResource:       consensusRes.PartnersResource,
+			PowerSuppliersResource: consensusRes.PowerSuppliersResource,
+			ReceiversResource:      consensusRes.ReceiversResource,
 		}
 	}()
 
 	return nil
 }
+func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWrap) error {
 
-func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTask) error {
+
+	go func() {
+
+
+		cost := &types.TaskOperationCost{Mem: schedTask.Task.OperationCost.Mem, Processor: schedTask.Task.OperationCost.Processor,
+			Bandwidth: schedTask.Task.OperationCost.Bandwidth}
+
+		self, err := sche.dataCenter.GetIdentity()
+		if nil != err {
+			log.Errorf("Failed to query self identityInfo, err: %s", err)
+			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+			return
+		}
+
+
+		// TODO 任务的 重演者 不应该是 任务的发起者
+		if self.IdentityId == schedTask.Task.Owner.IdentityId {
+			err := fmt.Errorf("failed to validate task, self cannot be task owner")
+			log.Errorf(err.Error())
+			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+			return
+		}
+
+		// TODO 如果当前 org 是 数据提供方, 则需要 重演 算力选举
+		for _, dataSupplier := range schedTask.Task.Partners {
+			if self.IdentityId == dataSupplier.IdentityId {
+
+				// mock election power orgs
+				powers, err := sche.electionConputeOrg(taskComputeOrgCount, cost)
+				if nil != err {
+					log.Errorf("Failed to election power org, err: %s", err)
+					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+						schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+					return
+				}
+
+				// compare powerSuppliers of task And powerSuppliers of election
+				if len(powers) != len(schedTask.Task.PowerSuppliers) {
+					err := fmt.Errorf("election powerSuppliers and task powerSuppliers is not match")
+					log.Error(err)
+					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+						schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+					return
+				}
+
+				tmp := make(map[string]struct{}, len(powers))
+
+				for _, power := range powers {
+					tmp[power.IdentityId] = struct{}{}
+				}
+				for _, supplier := range schedTask.Task.PowerSuppliers {
+					if _, ok := tmp[supplier.IdentityId]; !ok {
+						err := fmt.Errorf("election powerSuppliers and task powerSuppliers is not match")
+						log.Error(err)
+						sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+							schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+						return
+					}
+				}
+
+				// TODO  如果都匹配,  投出一票  (DataSupplier 身份)
+			}
+		}
+
+		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
+
+		// TODO 如果当前 org 是 算力提供方, 则判断自身资源是否充沛， 并选出内部资源(锁定), 并投出 一票 <External -- Ip:Port>
+		for _, powerSupplier := range schedTask.Task.PowerSuppliers {
+			if self.IdentityId == powerSupplier.IdentityId {
+				selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
+				if nil != err {
+					log.Errorf("Failed to election internal power resource, err: %s", err)
+					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+						schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+					return
+				}
+				// Lock local resource (jobNode)
+				sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
+
+
+				// TODO  投出一票 (PowerSupplier 身份)
+			}
+		}
+
+		// TODO 如果是 结果接收方 (目前默认接收, 理论上应该算出 有空间的 数据服务 并投一票 <External -- Ip:Port>)
+		for _, receiver := range schedTask.Task.Receivers {
+			if self.IdentityId == receiver.IdentityId {
+				selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
+				if nil != err {
+					log.Errorf("Failed to election internal power resource, err: %s", err)
+					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+						schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+					return
+				}
+				// Lock local resource (jobNode)
+				sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
+
+
+				// TODO  投出一票 (Receiver 身份)
+			}
+		}
+
+
+
+
+
+/*
+		powers, err := sche.electionConputeOrg(taskComputeOrgCount, cost)
+		if nil != err {
+			log.Errorf("Failed to election power org, err: %s", err)
+			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+				task.TaskId, task.Onwer().IdentityId, err.Error()))
+			sche.resourceMng.UnLockSlot(selfResourceInfo.Id, uint32(needSlotCount))
+			repushFn(bullet)
+			return
+		}
+		scheduleTask := buildScheduleTask(task, powers)
+		resCh := make(chan *types.ConsensuResult, 0)
+		sche.schedTaskCh <- &types.ConsensusTaskWrap{
+			Task:         scheduleTask,
+			SelfResource: selfResourceInfo,
+			ResultCh:     resCh,
+		}
+		consensusRes := <-resCh
+		// Consensus failed, task needs to be suspended and rescheduled
+		if consensusRes.Status == types.TaskConsensusInterrupt {
+			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+				task.TaskId, task.Onwer().IdentityId, consensusRes.Err.Error()))
+			sche.resourceMng.UnLockSlot(selfResourceInfo.Id, uint32(needSlotCount))
+			repushFn(bullet)
+			return
+		}
+
+		// the task has consensus succeed, need send `Fighter-Py` node
+		// (On taskManager)
+		sche.sendSchedTaskCh <- &types.ConsensusScheduleTask{
+			SchedTask:              scheduleTask,
+			OwnerResource:          consensusRes.OwnerResource,
+			PartnersResource:       consensusRes.PartnersResource,
+			PowerSuppliersResource: consensusRes.PowerSuppliersResource,
+			ReceiversResource:      consensusRes.ReceiversResource,
+		}*/
+	}()
 
 	return nil
 }
@@ -212,9 +380,7 @@ func (sche *SchedulerStarveFIFO) inceaseTaskTerm() {
 		i++
 	}
 }
-func (sche *SchedulerStarveFIFO) electionConputeNode(cost *types.TaskOperationCost) (*types.PrepareVoteResource, error) {
-
-	needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
+func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*types.PrepareVoteResource, error) {
 
 	resourceNodeIdArr := make([]string, 0)
 
@@ -227,14 +393,11 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(cost *types.TaskOperationCo
 		return nil, ErrEnoughInternalResourceCount
 	}
 
-	resourceId := resourceNodeIdArr[len(resourceNodeIdArr) % electionLocalSeed]
+	resourceId := resourceNodeIdArr[len(resourceNodeIdArr)%electionLocalSeed]
 	internalNodeInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_JOBNODE, resourceId)
 	if nil != err {
 		return nil, err
 	}
-
-	// Lock local resource (jobNode)
-	sche.resourceMng.LockSlot(resourceId, uint32(needSlotCount))
 
 	return &types.PrepareVoteResource{
 		Id:   resourceId,

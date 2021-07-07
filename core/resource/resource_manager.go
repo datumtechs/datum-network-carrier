@@ -156,6 +156,14 @@ func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
 	table.UseSlot(slotCount)
 	return nil
 }
+func (m *Manager) FreeSlot(nodeId string, slotCount uint32) error {
+	table, ok := m.localTables[nodeId]
+	if !ok {
+		return fmt.Errorf("No found the resource table of node: %s", nodeId)
+	}
+	table.FreeSlot(slotCount)
+	return nil
+}
 func (m *Manager) LockSlot(nodeId string, slotCount uint32) error {
 	table, ok := m.localTables[nodeId]
 	if !ok {

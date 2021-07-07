@@ -209,6 +209,72 @@
         ]
       }
     },
+    "/carrier/v1/yarn/queryAvailableDataNode": {
+      "post": {
+        "summary": "查询可用数据服务资源目标 ip:port 信息",
+        "operationId": "YarnService_QueryAvailableDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryAvailableDataNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryAvailableDataNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/queryFilePosition": {
+      "post": {
+        "summary": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径",
+        "operationId": "YarnService_QueryFilePosition",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryFilePositionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryFilePositionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
     "/carrier/v1/yarn/registeredPeers": {
       "post": {
         "summary": "查看自身调度服务的 peer注册信息",
@@ -300,6 +366,39 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/rpcapiReportTaskResourceExpenseRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportUpFileSummary": {
+      "post": {
+        "summary": "上报 成功上传的原始文件Id",
+        "operationId": "YarnService_ReportUpFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiReportUpFileSummaryRequest"
             }
           }
         ],
@@ -639,6 +738,51 @@
         }
       }
     },
+    "rpcapiQueryAvailableDataNodeRequest": {
+      "type": "object",
+      "properties": {
+        "file_size": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "file_type": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiQueryAvailableDataNodeResponse": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiQueryFilePositionRequest": {
+      "type": "object",
+      "properties": {
+        "origin_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiQueryFilePositionResponse": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        }
+      }
+    },
     "rpcapiReportTaskEventRequest": {
       "type": "object",
       "properties": {
@@ -650,6 +794,17 @@
     "rpcapiReportTaskResourceExpenseRequest": {
       "type": "object",
       "title": "未定义"
+    },
+    "rpcapiReportUpFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "origin_id": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        }
+      }
     },
     "rpcapiResourceUsedDetailShow": {
       "type": "object",

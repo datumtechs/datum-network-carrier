@@ -3,6 +3,7 @@ package task
 import (
 	"github.com/RosettaFlow/Carrier-Go/core"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -17,12 +18,13 @@ type Manager struct {
 	eventCh   chan *types.TaskEventInfo
 	dataChain *core.DataChain
 	eventEngine *ev.EventEngine
+	resourceMng *resource.Manager
 	// recv the taskMsgs from messageHandler
 	taskCh <-chan types.TaskMsgs
 	// send the validated taskMsgs to scheduler
 	sendTaskCh chan<- types.TaskMsgs
 	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
-	recvSchedTaskCh <-chan *types.ScheduleTask
+	recvSchedTaskCh <-chan *types.ConsensusScheduleTask
 
 	// TODO 持有 己方的所有 Fighter-Py 的 grpc client
 
@@ -32,13 +34,15 @@ type Manager struct {
 }
 
 func NewTaskManager(dataChain *core.DataChain, eventEngine *ev.EventEngine,
+	resourceMng *resource.Manager,
 	taskCh <-chan types.TaskMsgs, sendTaskCh chan<- types.TaskMsgs,
-	recvSchedTaskCh <-chan *types.ScheduleTask) *Manager {
+	recvSchedTaskCh <-chan *types.ConsensusScheduleTask) *Manager {
 
 	m := &Manager{
 		eventCh:   make(chan *types.TaskEventInfo, 10),
 		dataChain: dataChain,
 		eventEngine: eventEngine,
+		resourceMng: resourceMng,
 		taskCh:    taskCh,
 		sendTaskCh: sendTaskCh,
 		recvSchedTaskCh: recvSchedTaskCh,

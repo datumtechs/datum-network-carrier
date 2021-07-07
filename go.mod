@@ -8,6 +8,7 @@ require (
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
 	github.com/gogo/protobuf v1.3.2
+	github.com/golang/glog v0.0.0-20210429001901-424d2337a529 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.3
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -50,9 +51,9 @@ require (
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
 	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139 // indirect
-	google.golang.org/genproto v0.0.0-20210607140030-00d4fb20b1ae
+	google.golang.org/genproto v0.0.0-20210701191553-46259e63a0a9
 	google.golang.org/grpc v1.38.0
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c
 	gopkg.in/yaml.v2 v2.4.0
 	gotest.tools v2.2.0+incompatible

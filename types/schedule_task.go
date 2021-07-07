@@ -11,17 +11,17 @@ type ProposalTask struct {
 type ConsensusTaskWrap struct {
 	Task         *ScheduleTask
 	SelfResource *PrepareVoteResource
-	ResultCh     chan<- *TaskConsResult
+	ResultCh     chan<- *ConsensuResult
 }
-//type ScheduleTaskWrap struct {
-//	Task     *ScheduleTask
-//	ResultCh chan<- *ScheduleResult
-//}
-
-type ConsensusScheduleTaskWrap struct {
-	Task     *ConsensusScheduleTask
+type ScheduleTaskWrap struct {
+	Task     *ScheduleTask
 	ResultCh chan<- *ScheduleResult
 }
+
+//type ConsensusScheduleTaskWrap struct {
+//	Task     *ConsensusScheduleTask
+//	//ResultCh chan<- *ScheduleResult
+//}
 type ConsensusScheduleTask struct {
 	SchedTask              *ScheduleTask
 	OwnerResource          *PrepareVoteResource
@@ -86,6 +86,14 @@ type ScheduleResult struct {
 	TaskId string
 	Status TaskSchedStatus
 	Err    error
+}
+
+type ConsensuResult struct {
+	*TaskConsResult
+	OwnerResource          *PrepareVoteResource
+	PartnersResource       []*PrepareVoteResource
+	PowerSuppliersResource []*PrepareVoteResource
+	ReceiversResource      []*PrepareVoteResource
 }
 
 //type ScheduleNodeAlias struct {

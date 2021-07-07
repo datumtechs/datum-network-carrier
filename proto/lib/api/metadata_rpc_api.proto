@@ -107,39 +107,39 @@ service MetaDataService {
 
   // 查看单个元数据详情 (包含 列字段描述)
   rpc GetMetaDataDetail (GetMetaDataDetailRequest) returns (GetMetaDataDetailResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/metadata/detail"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/detail"
+      body: "*"
+    };
   }
 
   rpc GetMetaDataDetailList (EmptyGetParams) returns (GetMetaDataDetailListResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/metadata/list"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/list"
+      body: "*"
+    };
   }
 
   rpc GetMetaDataDetailListByOwner (GetMetaDataDetailListByOwnerRequest) returns (GetMetaDataDetailListResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/metadata/listByOwner"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/listByOwner"
+      body: "*"
+    };
   }
 
   // 发布元数据  (新增和编辑 都是发布新的元数据) <底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId>
   rpc PublishMetaData (PublishMetaDataRequest) returns (PublishMetaDataResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/metadata/publish"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/publish"
+      body: "*"
+    };
   }
   // 撤销元数据 (从底层网络撤销)
   rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponseCode) {
-      option (google.api.http) = {
-          post: "/carrier/v1/metadata/revoke"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/revoke"
+      body: "*"
+    };
   }
 
   // 分页拉取摘要列表
