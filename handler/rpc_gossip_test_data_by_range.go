@@ -64,7 +64,7 @@ func (s *Service) writeGossipTestDataRangeToStream(ctx context.Context, stream l
 		}
 
 	}
-	// Return error in the event we have an invalid parent.
+	// Return error in the evengine we have an invalid parent.
 	return err
 }
 

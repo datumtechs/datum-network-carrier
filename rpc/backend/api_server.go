@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/event"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -48,7 +47,7 @@ var (
 	ErrGetIdentityListStr = "Failed to get all identityInfo list"
 
 	ErrGetNodeTaskListStr = "Failed to get all task of current node"
-	ErrGetNodeTaskEventListStr = "Failed to get all event of current node's task"
+	ErrGetNodeTaskEventListStr = "Failed to get all evengine of current node's task"
 )
 
 type YarnServiceServer struct {
@@ -415,7 +414,7 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
 	var err error
 	go func() {
-		err = svr.B.SendTaskEvent(&event.TaskEvent{
+		err = svr.B.SendTaskEvent(&types.TaskEventInfo{
 			Type:       req.TaskEvent.Type,
 			Identity:   req.TaskEvent.IdentityId,
 			TaskId:     req.TaskEvent.TaskId,

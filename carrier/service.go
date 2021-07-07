@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/scheduler"
@@ -46,11 +47,14 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	taskCh := make(chan types.TaskMsgs, 0)
 	pool := message.NewMempool(nil) // todo need  set mempool cfg
 
+	eventEngine := evengine.NewEventEngine(config.carrierDB)
 
-	localTaskCh, schedTaskCh, remoteTaskCh :=
+	localTaskCh, schedTaskCh, remoteTaskCh, sendTaskCh, recvSchedTaskCh :=
 		make(chan types.TaskMsgs, 27),
 		make(chan *types.ConsensusTaskWrap, 100),
-		make( chan *types.ScheduleTaskWrap, 100)
+		make( chan *types.ScheduleTaskWrap, 100),
+		make(chan types.TaskMsgs, 10),
+		make(chan *types.ScheduleTask, 2)
 	resourceMng :=  resource.NewResourceManager(config.carrierDB)
 	s := &Service{
 		ctx:             ctx,
@@ -59,9 +63,9 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		carrierDB:       config.carrierDB,
 		mempool:         pool,
 		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, nil, config.carrierDB, taskCh, nil), // todo need set dataChain
-		taskManager:     task.NewTaskManager(nil, taskCh, nil),             // todo need set dataChain
-		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.carrierDB, resourceMng),
+		messageManager:  message.NewHandler(pool, nil, config.carrierDB, taskCh), // todo need set dataChain
+		taskManager:     task.NewTaskManager(nil, eventEngine, taskCh, sendTaskCh, recvSchedTaskCh),             // todo need set dataChain
+		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.carrierDB, recvSchedTaskCh, resourceMng, eventEngine),
 	}
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}

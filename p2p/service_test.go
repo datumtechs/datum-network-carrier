@@ -285,7 +285,7 @@ func TestService_JoinLeaveTopic(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Try leaving topic that has subscriptions.
-	want := "cannot close topic: outstanding event handlers or subscriptions"
+	want := "cannot close topic: outstanding evengine handlers or subscriptions"
 	assert.Contains(t, s.LeaveTopic(topic).Error(), want)
 
 	// After subscription is cancelled, leaving topic should not result in error.
@@ -293,8 +293,8 @@ func TestService_JoinLeaveTopic(t *testing.T) {
 	assert.NoError(t, s.LeaveTopic(topic))
 }
 
-// initializeStateWithForkDigest sets up the state feed initialized event and returns the fork
-// digest associated with that genesis event.
+// initializeStateWithForkDigest sets up the state feed initialized evengine and returns the fork
+// digest associated with that genesis evengine.
 func initializeStateWithForkDigest(ctx context.Context, t *testing.T, ef *event.Feed) [4]byte {
 	gt := timeutils.Now()
 	gvr := bytesutil.PadTo([]byte("genesis validator root"), 32)

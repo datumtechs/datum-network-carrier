@@ -1,113 +1,87 @@
 package task
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/consensus"
 	"github.com/RosettaFlow/Carrier-Go/core"
-	"github.com/RosettaFlow/Carrier-Go/event"
+	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-type Scheduler interface {
-	SetTaskEngine(engine consensus.Engine) error
-	OnSchedule() error
-	OnError () error
-	SchedulerName() string
-	PushTasks(tasks types.TaskMsgs) error
-}
+//type Scheduler interface {
+//	OnStart() error
+//	OnStop() error
+//	OnError () error
+//	Name() string
+//}
 
 type Manager struct {
-	eventCh   chan *event.TaskEvent
+	eventCh   chan *types.TaskEventInfo
 	dataChain *core.DataChain
-	taskCh    <- chan types.TaskMsgs
-	// Consensuses
-	engines 		  map[string]consensus.Engine
-	//sendScheTaskCh chan chan
-	scheduler Scheduler
+	eventEngine *ev.EventEngine
+	// recv the taskMsgs from messageHandler
+	taskCh <-chan types.TaskMsgs
+	// send the validated taskMsgs to scheduler
+	sendTaskCh chan<- types.TaskMsgs
+	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
+	recvSchedTaskCh <-chan *types.ScheduleTask
+
+	// TODO 持有 己方的所有 Fighter-Py 的 grpc client
+
+	// TODO 用于接收 己方已连接 或 断开连接的 Fighter-Py 的 grpc client
+
+
 }
 
-func NewTaskManager(dataChain *core.DataChain, taskCh <- chan types.TaskMsgs, engines map[string]consensus.Engine) *Manager {
+func NewTaskManager(dataChain *core.DataChain, eventEngine *ev.EventEngine,
+	taskCh <-chan types.TaskMsgs, sendTaskCh chan<- types.TaskMsgs,
+	recvSchedTaskCh <-chan *types.ScheduleTask) *Manager {
 
 	m := &Manager{
-		eventCh:   make(chan *event.TaskEvent, 0),
+		eventCh:   make(chan *types.TaskEventInfo, 10),
 		dataChain: dataChain,
-		taskCh: taskCh,
-		engines: engines,
+		eventEngine: eventEngine,
+		taskCh:    taskCh,
+		sendTaskCh: sendTaskCh,
+		recvSchedTaskCh: recvSchedTaskCh,
+
 	}
 	go m.loop()
 	return m
 }
 
-func (m *Manager) HandleSystemEvent(event *event.TaskEvent) error {
-	return nil
-}
-
-func (m *Manager) HandleDataServiceEvent(event *event.TaskEvent) error {
-	event, err := MakeDataServiceEventInfo(event)
-	if nil != err {
-		return err
-	}
-	return m.dataChain.StoreTaskEvent(event)
-}
-
-func (m *Manager) HandleComputerServiceEvent(event *event.TaskEvent) error {
-	event, err := MakeComputerServiceEventInfo(event)
-	if nil != err {
-		return err
-	}
-	return m.dataChain.StoreTaskEvent(event)
-}
-
-func (m *Manager) HandleYarnServiceEvent(event *event.TaskEvent) error {
-	event, err := MakeScheduleEventInfo(event)
-	if nil != err {
-		return err
-	}
-	return m.dataChain.StoreTaskEvent(event)
-}
-
-func (m *Manager) HandleEvent(event *event.TaskEvent) error {
+func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 	eventType := event.Type
-	if len(eventType) != 7 {
-		return IncEventType
+	if len(eventType) != ev.EventTypeCharLen {
+		return ev.IncEventType
 	}
+	// TODO need to validate the task that have been processing ? Maybe~
 
-	sysCode := eventType[0:2]
-	switch sysCode {
-	case SysCode_Common.String():
-		return m.HandleSystemEvent(event)
-	case SysCode_YarnNode.String():
-		return m.HandleYarnServiceEvent(event)
-	case SysCode_DataNode.String():
-		return m.HandleDataServiceEvent(event)
-	case SysCode_PowerNode.String():
-		return m.HandleComputerServiceEvent(event)
-	default:
-		return IncEventType
-	}
-
-	return nil
+	return m.eventEngine.StoreEvent(event)
 }
 
 func (m *Manager) loop() {
 
 	for {
 		select {
-		case event := <- m.eventCh:
-			m.HandleEvent(event)
-		case taskMsgs := <- m.taskCh:
+		case event := <-m.eventCh:
+			m.handleEvent(event)
+		case taskMsgs := <-m.taskCh:
 			if len(taskMsgs) == 0 {
 				continue
 			}
-			if err := m.scheduler.PushTasks(taskMsgs); nil != err {
-				log.Error("Failed to push task msgs into Scheduler queue", "err", err)
-			}
+			// TODO 先对 task 做校验 和解析
+
+			// TODO 再 转发给 Scheduler 处理
+
+			case task := <- m.recvSchedTaskCh:
+				// TODO 对接收到 经 Scheduler  调度好的 task  转发给自己的 Fighter-Py
+			_=task
 
 		default:
 		}
 	}
 }
 
-func (m *Manager) SendTaskEvent(event *event.TaskEvent) error {
+func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 	m.eventCh <- event
 	return nil
 }

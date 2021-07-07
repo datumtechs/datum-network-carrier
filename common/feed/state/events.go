@@ -14,7 +14,7 @@ const (
 	Initialized
 	// Synced is sent when the beacon node has completed syncing and is ready to participate in the network.
 	Synced
-	// Reorg is an event sent when the new head state's slot after a block
+	// Reorg is an evengine sent when the new head state's slot after a block
 	// transition is lower than its previous head state slot value.
 	Reorg
 )
@@ -51,7 +51,7 @@ type InitializedData struct {
 	GenesisValidatorsRoot []byte
 }
 
-// ReorgData is the data alongside a reorg event.
+// ReorgData is the data alongside a reorg evengine.
 type ReorgData struct {
 	// NewSlot is the slot of new state after the reorg.
 	NewSlot types.Slot

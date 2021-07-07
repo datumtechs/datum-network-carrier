@@ -1,7 +1,6 @@
 package carrier
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -173,8 +172,8 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 	return s.carrier.carrierDB.GetRegisterNodeList(typ)
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *event.TaskEvent) error {
-	// return s.carrier.resourceManager.SendTaskEvent(event)
+func (s *CarrierAPIBackend) SendTaskEvent(event *types.TaskEventInfo) error {
+	// return s.carrier.resourceManager.SendTaskEvent(evengine)
 	return s.carrier.taskManager.SendTaskEvent(event)
 }
 
@@ -230,7 +229,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	return types.NewTaskDetailShowArrayFromTaskDataArray(taskArray), err
 }
 
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
 	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskId(taskId)
 	return types.NewTaskEventFromAPIEvent(taskEvent), err
 }

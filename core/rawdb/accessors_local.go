@@ -3,7 +3,6 @@
 package rawdb
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/event"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -484,8 +483,8 @@ func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) 
 	}
 }
 
-// ReadTaskEvent retrieves the event of task with the corresponding taskId.
-func ReadTaskEvent(db DatabaseReader, taskId string) []*event.TaskEvent {
+// ReadTaskEvent retrieves the evengine of task with the corresponding taskId.
+func ReadTaskEvent(db DatabaseReader, taskId string) []*types.TaskEventInfo {
 	blob, err := db.Get(taskEventKey)
 	if err != nil {
 		return nil
@@ -494,10 +493,10 @@ func ReadTaskEvent(db DatabaseReader, taskId string) []*event.TaskEvent {
 	if err := events.Unmarshal(blob); err != nil {
 		return nil
 	}
-	resEvent := make([]*event.TaskEvent, 0)
+	resEvent := make([]*types.TaskEventInfo, 0)
 	for _, e := range events.GetTaskEventList() {
 		if strings.EqualFold(e.GetTaskId(), taskId) {
-			resEvent = append(resEvent, &event.TaskEvent{
+			resEvent = append(resEvent, &types.TaskEventInfo{
 				Type:       e.GetEventType(),
 				Identity:   e.GetIdentity(),
 				TaskId:     e.GetTaskId(),
@@ -509,9 +508,9 @@ func ReadTaskEvent(db DatabaseReader, taskId string) []*event.TaskEvent {
 	return resEvent
 }
 
-// ReadAllTaskEvents retrieves all the task event in the database.
+// ReadAllTaskEvents retrieves all the task evengine in the database.
 // All returned task events are sorted in reverse.
-func ReadAllTaskEvents(db DatabaseReader) []*event.TaskEvent {
+func ReadAllTaskEvents(db DatabaseReader) []*types.TaskEventInfo {
 	blob, err := db.Get(taskEventKey)
 	if err != nil {
 		return nil
@@ -520,9 +519,9 @@ func ReadAllTaskEvents(db DatabaseReader) []*event.TaskEvent {
 	if err := taskEvents.Unmarshal(blob); err != nil {
 		return nil
 	}
-	var events []*event.TaskEvent
+	var events []*types.TaskEventInfo
 	for _, e := range taskEvents.GetTaskEventList() {
-		events = append(events, &event.TaskEvent{
+		events = append(events, &types.TaskEventInfo{
 			Type:       e.GetEventType(),
 			Identity:   e.GetIdentity(),
 			TaskId:     e.GetTaskId(),
@@ -533,23 +532,23 @@ func ReadAllTaskEvents(db DatabaseReader) []*event.TaskEvent {
 	return events
 }
 
-// WriteTaskEvent serializes the task event into the database.
-func WriteTaskEvent(db KeyValueStore, taskEvent *event.TaskEvent) {
+// WriteTaskEvent serializes the task evengine into the database.
+func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 	blob, err := db.Get(taskEventKey)
 	if err != nil {
-		log.WithError(err).Warn("Failed to load old task event")
+		log.WithError(err).Warn("Failed to load old task evengine")
 	}
 	var array dbtype.TaskEventArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
-			log.WithError(err).Fatal("Failed to decode old task event")
+			log.WithError(err).Fatal("Failed to decode old task evengine")
 		}
 	}
 	for _, s := range array.GetTaskEventList() {
 		if strings.EqualFold(s.GetTaskId(), taskEvent.TaskId) &&
 			strings.EqualFold(s.GetIdentity(), taskEvent.Identity) &&
 			strings.EqualFold(s.GetEventContent(), taskEvent.Content){
-			log.WithFields(logrus.Fields{ "identity": s.Identity }).Info("Skip duplicated task event")
+			log.WithFields(logrus.Fields{ "identity": s.Identity }).Info("Skip duplicated task evengine")
 			return
 		}
 	}
@@ -563,23 +562,23 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *event.TaskEvent) {
 
 	data, err := array.Marshal()
 	if err != nil {
-		log.WithError(err).Fatal("Failed to encode task event")
+		log.WithError(err).Fatal("Failed to encode task evengine")
 	}
 	if err := db.Put(taskEventKey, data); err != nil {
-		log.WithError(err).Fatal("Failed to write task event")
+		log.WithError(err).Fatal("Failed to write task evengine")
 	}
 }
 
-// DeleteTaskEvent deletes the task event from the database with a special taskId
+// DeleteTaskEvent deletes the task evengine from the database with a special taskId
 func DeleteTaskEvent(db KeyValueStore, taskId string) {
 	blob, err := db.Get(taskEventKey)
 	if err != nil {
-		log.Warn("Failed to load old task event", "error", err)
+		log.Warn("Failed to load old task evengine", "error", err)
 	}
 	var array dbtype.TaskEventArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
-			log.WithError(err).Fatal("Failed to decode old task event")
+			log.WithError(err).Fatal("Failed to decode old task evengine")
 		}
 	}
 	finalArray := new(dbtype.TaskEventArrayPB)

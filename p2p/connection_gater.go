@@ -43,7 +43,7 @@ func (s *Service) InterceptAddrDial(pid peer.ID, m multiaddr.Multiaddr) (allow b
 // InterceptAccept checks whether the incidental inbound connection is allowed.
 func (s *Service) InterceptAccept(n network.ConnMultiaddrs) (allow bool) {
 	if !s.validateDial(n.RemoteMultiaddr()) {
-		// Allow other go-routines to run in the event
+		// Allow other go-routines to run in the evengine
 		// we receive a large amount of junk connections.
 		runtime.Gosched()
 		log.WithFields(logrus.Fields{"peer": n.RemoteMultiaddr(),

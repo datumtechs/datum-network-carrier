@@ -6,7 +6,6 @@ import (
 	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/params"
@@ -125,8 +124,17 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-func (dc *DataCenter) StoreTaskEvent(event *event.TaskEvent) error {
+func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	rawdb.WriteTaskEvent(dc.db, event)
+	return nil
+}
+func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
+
+	//TODO 根据 taskId  查询所有 evengine 列表
+	return nil, nil
+}
+func (dc *DataCenter) CleanTaskEventList(taskId string) error {
+	// TODO 清空 taskId 下的所有 evengine 列表
 	return nil
 }
 

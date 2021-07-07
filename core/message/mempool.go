@@ -44,26 +44,26 @@ func NewMempool(cfg *MempoolConfig) *Mempool {
 }
 
 // SubscribeNewTxsEvent registers a subscription of NewTxsEvent and
-// starts sending event to the given channel.
-func (pool *Mempool) SubscribeNewIdentityMsgsEvent(ch chan<- event.IdentityMsgEvent) event.Subscription {
+// starts sending evengine to the given channel.
+func (pool *Mempool) SubscribeNewIdentityMsgsEvent(ch chan<- types.IdentityMsgEvent) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewIdentityRevokeMsgsEvent(ch chan<- event.IdentityRevokeMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewIdentityRevokeMsgsEvent(ch chan<- types.IdentityRevokeMsgEvent) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewMetaDataMsgsEvent(ch chan<- event.MetaDataMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewMetaDataMsgsEvent(ch chan<- types.MetaDataMsgEvent) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewMetaDataRevokeMsgsEvent(ch chan<- event.MetaDataRevokeMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewMetaDataRevokeMsgsEvent(ch chan<- types.MetaDataRevokeMsgEvent) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewPowerMsgsEvent(ch chan<- event.PowerMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewPowerMsgsEvent(ch chan<- types.PowerMsgEvent) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewPowerRevokeMsgsEvent(ch chan<- event.PowerRevokeMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewPowerRevokeMsgsEvent(ch chan<- types.PowerRevokeMsgEvent) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewTaskMsgsEvent(ch chan<- event.TaskMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewTaskMsgsEvent(ch chan<- types.TaskMsgEvent) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
 
@@ -73,19 +73,19 @@ func (pool *Mempool) Add(msg types.Msg) error {
 	case *types.IdentityMsg:
 		identity, _ := msg.(*types.IdentityMsg)
 		// We've directly injected a replacement identityMsg, notify subsystems
-		go pool.msgFeed.Send(event.IdentityMsgEvent{identity})
+		go pool.msgFeed.Send(types.IdentityMsgEvent{identity})
 
 	case *types.IdentityRevokeMsg:
 		identityRevoke, _ := msg.(*types.IdentityRevokeMsg)
 
 		// We've directly injected a replacement identityMsg, notify subsystems
-		go pool.msgFeed.Send(event.IdentityRevokeMsgEvent{identityRevoke})
+		go pool.msgFeed.Send(types.IdentityRevokeMsgEvent{identityRevoke})
 
 	case *types.PowerMsg:
 		power, _ := msg.(*types.PowerMsg)
 		pool.powerMsgQueue.put(power)
 		// We've directly injected a replacement identityRevokeMsg, notify subsystems
-		go pool.msgFeed.Send(event.PowerMsgEvent{types.PowerMsgs{power}})
+		go pool.msgFeed.Send(types.PowerMsgEvent{types.PowerMsgs{power}})
 
 	case *types.PowerRevokeMsg:
 		powerRevoke, _ := msg.(*types.PowerRevokeMsg)
@@ -95,13 +95,13 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		}
 		pool.powerMsgQueue.popBy(power.CreateAt())
 		// We've directly injected a replacement powerRevokeMsg, notify subsystems
-		go pool.msgFeed.Send(event.PowerRevokeMsgEvent{types.PowerRevokeMsgs{powerRevoke}})
+		go pool.msgFeed.Send(types.PowerRevokeMsgEvent{types.PowerRevokeMsgs{powerRevoke}})
 
 	case *types.MetaDataMsg:
 		metaData, _ := msg.(*types.MetaDataMsg)
 		pool.metaDataMsgQueue.put(metaData)
 		// We've directly injected a replacement metaDataMsg, notify subsystems
-		go pool.msgFeed.Send(event.MetaDataMsgEvent{types.MetaDataMsgs{metaData}})
+		go pool.msgFeed.Send(types.MetaDataMsgEvent{types.MetaDataMsgs{metaData}})
 
 	case *types.MetaDataRevokeMsg:
 		metaDataRevoke, _ := msg.(*types.MetaDataRevokeMsg)
@@ -111,13 +111,13 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		}
 		pool.metaDataMsgQueue.popBy(metaData.CreateAt())
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
-		go pool.msgFeed.Send(event.MetaDataRevokeMsgEvent{types.MetaDataRevokeMsgs{metaDataRevoke}})
+		go pool.msgFeed.Send(types.MetaDataRevokeMsgEvent{types.MetaDataRevokeMsgs{metaDataRevoke}})
 
 	case *types.TaskMsg:
 		task, _ := msg.(*types.TaskMsg)
 		pool.taskMsgQueue.put(task)
 		// We've directly injected a replacement taskMsg, notify subsystems
-		go pool.msgFeed.Send(event.TaskMsgEvent{types.TaskMsgs{task}})
+		go pool.msgFeed.Send(types.TaskMsgEvent{types.TaskMsgs{task}})
 
 	default:
 		log.Fatalf("Failed to add msg, can not match the msg type")

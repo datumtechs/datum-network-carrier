@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -22,7 +21,7 @@ type Backend interface {
 	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
 	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
 
-	SendTaskEvent(event *event.TaskEvent) error
+	SendTaskEvent(event *types.TaskEventInfo) error
 
 	// metadata api
 	GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error)
@@ -41,5 +40,5 @@ type Backend interface {
 
 	// task api
 	GetTaskDetailList() ([]*types.TaskDetailShow, error)
-	GetTaskEventList(taskId string) ([]*types.TaskEvent, error)
+	GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error)
 }

@@ -300,7 +300,7 @@ func (p *Status) IsBad(pid peer.ID) bool {
 }
 
 // NextValidTime gets the earliest possible time it is to contact/dial
-// a peer again. This is used to back-off from peers in the event
+// a peer again. This is used to back-off from peers in the evengine
 // they are 'full' or have banned us.
 func (p *Status) NextValidTime(pid peer.ID) (time.Time, error) {
 	p.store.RLock()
