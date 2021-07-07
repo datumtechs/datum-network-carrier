@@ -16,6 +16,7 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 			Msg:    "Invalid Params",
 		}, nil
 	}
+	identityMsg.NodeAlias = &types.NodeAlias{}
 	identityMsg.Name = req.Member.Name
 	identityMsg.IdentityId = req.Member.IdentityId
 	identityMsg.NodeId = req.Member.NodeId
