@@ -28,7 +28,7 @@ type TwoPC struct {
 	peerSet *ctypes.PeerSet
 	state   *state
 	// fetch tasks scheduled from `Scheduler`
-	taskCh <-chan *types.ConsensusTaskWrap
+	schedTaskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
 	replayTaskCh chan<- *types.ScheduleTaskWrap
 	asyncCallCh  chan func()
@@ -49,7 +49,7 @@ func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.
 		p2p:          p2p,
 		peerSet:      ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:        newState(),
-		taskCh:       taskCh,
+		schedTaskCh:  taskCh,
 		replayTaskCh: replayTaskCh,
 		asyncCallCh:  make(chan func(), conf.PeerMsgQueueSize),
 		sendTasks:    make(map[string]*types.ScheduleTask),
@@ -68,7 +68,7 @@ func (t *TwoPC) loop() {
 
 	for {
 		select {
-		case taskWrap := <-t.taskCh:
+		case taskWrap := <-t.schedTaskCh:
 			if err := t.OnPrepare(taskWrap.Task); nil != err {
 				taskWrap.ResultCh <- &types.ConsensuResult{
 					TaskConsResult: &types.TaskConsResult{
@@ -558,7 +558,8 @@ func (t *TwoPC) onPrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 
 	resultCh := make(chan *types.ScheduleResult)
 	t.replayTaskCh <- &types.ScheduleTaskWrap{
-		Task:     task, // TODO 写到这里啦 ........
+		Role:     types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
+		Task:     task,
 		ResultCh: resultCh,
 	}
 	result := <-resultCh
