@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -21,7 +22,12 @@ import (
 //	return nil, nil
 //}
 func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
-
+	if req.IdentityId == "" {
+		return nil, errors.New("required identity")
+	}
+	if req.MetaDataId == "" {
+		return nil, errors.New("required metadataId")
+	}
 	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetMetaDataDetailStr)
@@ -89,10 +95,22 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Conte
 }
 
 func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
-	metaDataMsg := new(types.MetaDataMsg)
-	metaDataMsg.MetaDataId = req.Information.MetaDataSummary.MetaDataId
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	if req.Information == nil {
+		return nil, errors.New("required information")
+	}
+	if req.Information.MetaDataSummary == nil {
+		return nil, errors.New("required metadata summary")
+	}
+	if req.Information.ColumnMeta == nil {
+		return nil, errors.New("required columnMeta of information")
+	}
+	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
 	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
-	metaDataMsg.Data.Name = req.Owner.Name
+
+	/*metaDataMsg.Data.Name = req.Owner.Name
 	metaDataMsg.Data.NodeId = req.Owner.NodeId
 	metaDataMsg.Data.IdentityId = req.Owner.IdentityId
 	metaDataMsg.Data.Information.MetaDataSummary.TableName = req.Information.MetaDataSummary.TableName
@@ -102,7 +120,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	metaDataMsg.Data.Information.MetaDataSummary.FileType = req.Information.MetaDataSummary.FileType
 	metaDataMsg.Data.Information.MetaDataSummary.Size = req.Information.MetaDataSummary.Size_
 	metaDataMsg.Data.Information.MetaDataSummary.HasTitle = req.Information.MetaDataSummary.HasTitle
-	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaDataSummary.State
+	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaDataSummary.State*/
 
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
@@ -130,12 +148,15 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 }
 
 func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*pb.SimpleResponseCode, error) {
-	metaDataRevokeMsg := new(types.MetaDataRevokeMsg)
-	metaDataRevokeMsg.MetaDataId = req.MetaDataId
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	/*metaDataRevokeMsg.MetaDataId = req.MetaDataId
 	metaDataRevokeMsg.Name = req.Owner.Name
 	metaDataRevokeMsg.NodeId = req.Owner.NodeId
-	metaDataRevokeMsg.IdentityId = req.Owner.IdentityId
+	metaDataRevokeMsg.IdentityId = req.Owner.IdentityId*/
 
 	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
