@@ -80,6 +80,29 @@ type PowerMsg struct {
 	// caches
 	hash atomic.Value
 }
+
+func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
+	return &PowerMsg{
+		Data:    &powerData{
+			NodeAlias: &NodeAlias{
+				Name:       req.Owner.Name,
+				NodeId:     req.Owner.NodeId,
+				IdentityId: req.Owner.IdentityId,
+			},
+			JobNodeId: req.JobNodeId,
+			Information: struct {
+				Mem       uint64 `json:"mem,omitempty"`
+				Processor uint64 `json:"processor,omitempty"`
+				Bandwidth uint64 `json:"bandwidth,omitempty"`
+			}{
+				Mem:       req.Information.Mem,
+				Processor: req.Information.Processor,
+				Bandwidth: req.Information.Bandwidth,
+			},
+		},
+	}
+}
+
 type powerData struct {
 	*NodeAlias
 	JobNodeId   string `json:"jobNodeId"`
@@ -95,6 +118,18 @@ type PowerRevokeMsg struct {
 	PowerId  string `json:"powerId"`
 	CreateAt uint64 `json:"createAt"`
 }
+
+func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMsg {
+	return &PowerRevokeMsg{
+		NodeAlias: &NodeAlias{
+			Name:       req.Owner.Name,
+			NodeId:     req.Owner.NodeId,
+			IdentityId: req.Owner.IdentityId,
+		},
+		PowerId:   req.PowerId,
+	}
+}
+
 type PowerMsgs []*PowerMsg
 type PowerRevokeMsgs []*PowerRevokeMsg
 
