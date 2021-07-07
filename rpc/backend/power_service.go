@@ -118,6 +118,12 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 }
 
 func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	if req.PowerId == "" {
+		return nil, errors.New("required powerId")
+	}
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 	powerRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 
