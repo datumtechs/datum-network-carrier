@@ -5,7 +5,7 @@ package rpcapi;
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
 import "lib/api/common_message.proto";
-
+import "google/api/annotations.proto";
 
 //  ------------------------  metadata  ------------------------
 
@@ -106,17 +106,36 @@ service MetaDataService {
   //  rpc GetMetaDataSummaryByOwner (GetMetaDataSummaryByOwnerRequest) returns (GetMetaDataSummaryListResponse);
 
   // 查看单个元数据详情 (包含 列字段描述)
-  rpc GetMetaDataDetail (GetMetaDataDetailRequest) returns (GetMetaDataDetailResponse);
+  rpc GetMetaDataDetail (GetMetaDataDetailRequest) returns (GetMetaDataDetailResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/metadata/detail"
+      };
+  }
 
+  rpc GetMetaDataDetailList (EmptyGetParams) returns (GetMetaDataDetailListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/metadata/list"
+      };
+  }
 
-  rpc GetMetaDataDetailList (EmptyGetParams) returns (GetMetaDataDetailListResponse);
-
-  rpc GetMetaDataDetailListByOwner (GetMetaDataDetailListByOwnerRequest) returns (GetMetaDataDetailListResponse);
+  rpc GetMetaDataDetailListByOwner (GetMetaDataDetailListByOwnerRequest) returns (GetMetaDataDetailListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/metadata/listByOwner"
+      };
+  }
 
   // 发布元数据  (新增和编辑 都是发布新的元数据) <底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId>
-  rpc PublishMetaData (PublishMetaDataRequest) returns (PublishMetaDataResponse);
+  rpc PublishMetaData (PublishMetaDataRequest) returns (PublishMetaDataResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/metadata/publish"
+      };
+  }
   // 撤销元数据 (从底层网络撤销)
-  rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponseCode);
+  rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponseCode) {
+      option (google.api.http) = {
+          post: "/carrier/v1/metadata/revoke"
+      };
+  }
 
   // 分页拉取摘要列表
   // 分页拉取详情列表
