@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	rpcapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	gwruntime "github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -84,7 +85,12 @@ func (g *Gateway) Start() error {
 			&gwruntime.JSONPb{OrigName: false, EmitDefaults: true},
 		),
 	)
-	handlers := []func(context.Context, *gwruntime.ServeMux, *grpc.ClientConn) error{
+	handlers := []func(context.Context, *gwruntime.ServeMux, *grpc.ClientConn) error {
+		rpcapipb.RegisterAuthServiceHandler,
+		rpcapipb.RegisterMetaDataServiceHandler,
+		rpcapipb.RegisterPowerServiceHandler,
+		rpcapipb.RegisterYarnServiceHandler,
+		rpcapipb.RegisterTaskServiceHandler,
 	}
 	if g.enableDebugRPCEndpoints {
 		handlers = append(handlers, rpcpb.RegisterDebugHandler)

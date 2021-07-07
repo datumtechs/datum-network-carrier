@@ -47,7 +47,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	taskCh := make(chan types.TaskMsgs, 0)
 	pool := message.NewMempool(nil) // todo need  set mempool cfg
 
-	eventEngine := evengine.NewEventEngine(config.carrierDB)
+	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	localTaskCh, schedTaskCh, remoteTaskCh, sendTaskCh, recvSchedTaskCh :=
 		make(chan types.TaskMsgs, 27),
@@ -55,17 +55,18 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		make( chan *types.ScheduleTaskWrap, 100),
 		make(chan types.TaskMsgs, 10),
 		make(chan *types.ScheduleTask, 2)
-	resourceMng :=  resource.NewResourceManager(config.carrierDB)
+	resourceMng :=  resource.NewResourceManager(config.CarrierDB)
+
 	s := &Service{
 		ctx:             ctx,
 		cancel:          cancel,
 		config:          config,
-		carrierDB:       config.carrierDB,
+		carrierDB:       config.CarrierDB,
 		mempool:         pool,
 		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, nil, config.carrierDB, taskCh), // todo need set dataChain
+		messageManager:  message.NewHandler(pool, nil, config.CarrierDB, taskCh), // todo need set dataChain
 		taskManager:     task.NewTaskManager(nil, eventEngine, taskCh, sendTaskCh, recvSchedTaskCh),             // todo need set dataChain
-		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.carrierDB, recvSchedTaskCh, resourceMng, eventEngine),
+		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh, config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
 	}
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}

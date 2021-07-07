@@ -6,7 +6,7 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
 import "lib/api/common_message.proto";
 import "lib/api/task_rpc_api.proto";
-
+import "google/api/annotations.proto";
 
 //  ------------------------  yarn  ------------------------
 
@@ -206,46 +206,108 @@ service YarnService {
 
   // Getter YarnNode ...
   // 查看自身调度服务信息
-  rpc GetNodeInfo (EmptyGetParams) returns (GetNodeInfoResponse);
+  rpc GetNodeInfo (EmptyGetParams) returns (GetNodeInfoResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/nodeInfo"
+      };
+  }
   // 查看自身调度服务的 peer注册信息
-  rpc GetRegisteredPeers (EmptyGetParams) returns (GetRegisteredPeersResponse);
-
-
+  rpc GetRegisteredPeers (EmptyGetParams) returns (GetRegisteredPeersResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/registeredPeers"
+      };
+  }
 
   // about seed
   // 新增种子节点信息
-  rpc SetSeedNode (SetSeedNodeRequest) returns (SetSeedNodeResponse);
+  rpc SetSeedNode (SetSeedNodeRequest) returns (SetSeedNodeResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/setSeed"
+      };
+  }
   // 修改种子节点信息
-  rpc UpdateSeedNode (UpdateSeedNodeRequest) returns (SetSeedNodeResponse);
+  rpc UpdateSeedNode (UpdateSeedNodeRequest) returns (SetSeedNodeResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/updateSeed"
+      };
+  }
   // 删除种子节点信息
-  rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/deleteSeed"
+      };
+  }
   // 查询种子节点列表
-  rpc GetSeedNodeList (EmptyGetParams) returns (GetSeedNodeListResponse);
+  rpc GetSeedNodeList (EmptyGetParams) returns (GetSeedNodeListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/seedList"
+      };
+  }
 
   // about dataNode
   // 新增数据服务信息
-  rpc SetDataNode (SetDataNodeRequest) returns (SetDataNodeResponse);
+  rpc SetDataNode (SetDataNodeRequest) returns (SetDataNodeResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/setDataNode"
+      };
+  }
   // 修改数据服务信息
-  rpc UpdateDataNode (UpdateDataNodeRequest) returns (SetDataNodeResponse);
+  rpc UpdateDataNode (UpdateDataNodeRequest) returns (SetDataNodeResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/updateDataNode"
+      };
+  }
   // 删除数据服务信息
-  rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/deleteDataNode"
+      };
+  }
   // 查询数据服务列表
-  rpc GetDataNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse);
+  rpc GetDataNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/dataNodeList"
+      };
+  }
 
   // about jobNode
   // 新增计算服务信息
-  rpc SetJobNode (SetJobNodeRequest) returns (SetJobNodeResponse);
+  rpc SetJobNode (SetJobNodeRequest) returns (SetJobNodeResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/setJobNode"
+      };
+  }
   // 修改计算服务信息
-  rpc UpdateJobNode (UpdateJobNodeRequest) returns (SetJobNodeResponse);
+  rpc UpdateJobNode (UpdateJobNodeRequest) returns (SetJobNodeResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/updateJobNode"
+      };
+  }
   // 删除计算服务信息
-  rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode);
+  rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/deleteJobNode"
+      };
+  }
   // 查询计算服务列表
-  rpc GetJobNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse);
+  rpc GetJobNodeList (EmptyGetParams) returns (GetRegisteredNodeListResponse) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/jobNodeList"
+      };
+  }
 
   // about report
   // 上报任务事件
-  rpc ReportTaskEvent (ReportTaskEventRequest) returns (SimpleResponseCode);
+  rpc ReportTaskEvent (ReportTaskEventRequest) returns (SimpleResponseCode) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/reportTaskEvent"
+      };
+  }
   // 上报资源使用实况
-  rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (SimpleResponseCode);
+  rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (SimpleResponseCode) {
+      option (google.api.http) = {
+          post: "/carrier/v1/yarn/reportTaskResourceExpense"
+      };
+  }
 
 }

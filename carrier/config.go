@@ -29,8 +29,8 @@ var DefaultConfig = Config{
 //go:generate gencodec -type Config -field-override configMarshaling -formats toml -out gen_config.go
 
 type Config struct {
-	carrierDB core.CarrierDB
-	p2p p2p.P2P
+	CarrierDB core.CarrierDB
+	p2p       p2p.P2P
 	NoPruning bool
 
 	// Database options

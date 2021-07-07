@@ -5,7 +5,7 @@ package rpcapi;
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
 import "lib/api/common_message.proto";
-
+import "google/api/annotations.proto";
 
 //  ------------------------  auth  ------------------------
 
@@ -33,11 +33,29 @@ service AuthService {
   // 数据授权投票
 
   // 申请准入网络
-  rpc ApplyIdentityJoin (ApplyIdentityJoinRequest) returns (SimpleResponseCode);
+  rpc ApplyIdentityJoin (ApplyIdentityJoinRequest) returns (SimpleResponseCode) {
+    option (google.api.http) = {
+      post: "/carrier/v1/auth/apply"
+    };
+  }
+
   // 注销准入网络
-  rpc RevokeIdentityJoin (EmptyGetParams) returns (SimpleResponseCode);
+  rpc RevokeIdentityJoin (EmptyGetParams) returns (SimpleResponseCode) {
+    option (google.api.http) = {
+      post: "/carrier/v1/auth/revoke"
+    };
+  }
   // 查询自己组织的identity信息
-  rpc GetNodeIdentity (EmptyGetParams)returns (GetNodeIdentityResponse);
+  rpc GetNodeIdentity (EmptyGetParams)returns (GetNodeIdentityResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/auth/get"
+    };
+  }
+
   // 查询全网全部已发布的 身份信息
-  rpc GetIdentityList (EmptyGetParams) returns (GetIdentityListResponse);
+  rpc GetIdentityList (EmptyGetParams) returns (GetIdentityListResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/auth/list"
+    };
+  }
 }
