@@ -154,6 +154,38 @@ type MetaDataMsg struct {
 	// caches
 	hash atomic.Value
 }
+
+func NewMetaDataMsg(req *pb.PublishMetaDataRequest) *MetaDataMsg {
+	return &MetaDataMsg{
+		Data: &metadataData{
+			NodeAlias: &NodeAlias{
+				Name:       req.Owner.Name,
+				NodeId:     req.Owner.NodeId,
+				IdentityId: req.Owner.IdentityId,
+			},
+			Information: struct {
+				MetaDataSummary *MetaDataSummary    `json:"metaDataSummary"`
+				ColumnMetas     []*types.ColumnMeta `json:"columnMetas"`
+			}{
+				MetaDataSummary: &MetaDataSummary{
+					MetaDataId: req.Information.MetaDataSummary.MetaDataId,
+					OriginId:   req.Information.MetaDataSummary.OriginId,
+					TableName:  req.Information.MetaDataSummary.TableName,
+					Desc:       req.Information.MetaDataSummary.Desc,
+					FilePath:   req.Information.MetaDataSummary.FilePath,
+					Rows:       req.Information.MetaDataSummary.Rows,
+					Columns:    req.Information.MetaDataSummary.Columns,
+					Size:       req.Information.MetaDataSummary.Size_,
+					FileType:   req.Information.MetaDataSummary.FileType,
+					HasTitle:   req.Information.MetaDataSummary.HasTitle,
+					State:      req.Information.MetaDataSummary.State,
+				},
+				ColumnMetas:     make([]*types.ColumnMeta, 0),
+			},
+		},
+	}
+}
+
 type metadataData struct {
 	*NodeAlias
 	Information struct {
@@ -162,6 +194,7 @@ type metadataData struct {
 	} `json:"information"`
 	CreateAt uint64 `json:"createAt"`
 }
+
 type MetaDataSummary struct {
 	MetaDataId string `json:"metaDataId,omitempty"`
 	OriginId  string `json:"originId,omitempty"`

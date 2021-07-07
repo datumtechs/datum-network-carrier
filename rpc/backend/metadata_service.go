@@ -89,10 +89,21 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Conte
 }
 
 func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
-	metaDataMsg := new(types.MetaDataMsg)
-	metaDataMsg.MetaDataId = req.Information.MetaDataSummary.MetaDataId
+	metaDataMsg := types.NewMetaDataMsg(req)
 	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
-	metaDataMsg.Data.Name = req.Owner.Name
+
+	// check param for request.
+	if req.Owner == nil {
+		return &pb.PublishMetaDataResponse{Status: -1, Msg: "required owner"}, nil
+	}
+	if req.Information.MetaDataSummary == nil {
+		return &pb.PublishMetaDataResponse{Status: -1, Msg: "required MetaDataSummary"}, nil
+	}
+	if req.Information.ColumnMeta == nil {
+		return &pb.PublishMetaDataResponse{Status: -1, Msg: "required ColumnMeta"}, nil
+	}
+
+	/*metaDataMsg.Data.Name = req.Owner.Name
 	metaDataMsg.Data.NodeId = req.Owner.NodeId
 	metaDataMsg.Data.IdentityId = req.Owner.IdentityId
 	metaDataMsg.Data.Information.MetaDataSummary.TableName = req.Information.MetaDataSummary.TableName
@@ -102,7 +113,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	metaDataMsg.Data.Information.MetaDataSummary.FileType = req.Information.MetaDataSummary.FileType
 	metaDataMsg.Data.Information.MetaDataSummary.Size = req.Information.MetaDataSummary.Size_
 	metaDataMsg.Data.Information.MetaDataSummary.HasTitle = req.Information.MetaDataSummary.HasTitle
-	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaDataSummary.State
+	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaDataSummary.State*/
 
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
