@@ -56,6 +56,7 @@ func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetP
 		},
 	}, nil
 }
+
 func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
 	registerNodes, err := svr.B.GetRegisteredPeers()
 	if nil != err {
@@ -117,6 +118,7 @@ func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Em
 		DataNodes: dataNodes,
 	}, nil
 }
+
 func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 
 	seedNode := &types.SeedNodeInfo{
@@ -140,6 +142,7 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 		},
 	}, nil
 }
+
 func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 
 	seedNode := &types.SeedNodeInfo{
@@ -165,6 +168,7 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 
 	return nil, nil
 }
+
 func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	err := svr.B.DeleteSeedNode(req.Id)
 	if nil != err {
@@ -172,6 +176,7 @@ func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.Delete
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
+
 func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetSeedNodeListResponse, error) {
 	list, err := svr.B.GetSeedNodeList()
 	if nil != err {
@@ -193,6 +198,7 @@ func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.Empty
 		SeedPeers: seeds,
 	}, nil
 }
+
 func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) (*pb.SetDataNodeResponse, error) {
 
 	node := &types.RegisteredNodeInfo{
@@ -220,6 +226,7 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		},
 	}, nil
 }
+
 func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeRequest) (*pb.SetDataNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
 		Id:           req.Id,
@@ -247,6 +254,7 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		},
 	}, nil
 }
+
 func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
@@ -254,6 +262,7 @@ func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.Delete
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
+
 func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
@@ -280,6 +289,7 @@ func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 		Nodes:  datas,
 	}, nil
 }
+
 func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*pb.SetJobNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
 		InternalIp:   req.InternalIp,
@@ -306,6 +316,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		},
 	}, nil
 }
+
 func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeRequest) (*pb.SetJobNodeResponse, error) {
 	node := &types.RegisteredNodeInfo{
 		Id:           req.Id,
@@ -332,12 +343,14 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		},
 	}, nil
 }
+
 func (svr *YarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, req.Id); nil != err {
 		return nil, NewRpcBizErr(ErrDeleteJobNodeInfoStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
 }
+
 func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if nil != err {
