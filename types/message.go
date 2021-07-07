@@ -80,6 +80,29 @@ type PowerMsg struct {
 	// caches
 	hash atomic.Value
 }
+
+func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
+	return &PowerMsg{
+		Data:    &powerData{
+			NodeAlias: &NodeAlias{
+				Name:       req.Owner.Name,
+				NodeId:     req.Owner.NodeId,
+				IdentityId: req.Owner.IdentityId,
+			},
+			JobNodeId: req.JobNodeId,
+			Information: struct {
+				Mem       uint64 `json:"mem,omitempty"`
+				Processor uint64 `json:"processor,omitempty"`
+				Bandwidth uint64 `json:"bandwidth,omitempty"`
+			}{
+				Mem:       req.Information.Mem,
+				Processor: req.Information.Processor,
+				Bandwidth: req.Information.Bandwidth,
+			},
+		},
+	}
+}
+
 type powerData struct {
 	*NodeAlias
 	JobNodeId   string `json:"jobNodeId"`
@@ -95,6 +118,18 @@ type PowerRevokeMsg struct {
 	PowerId  string `json:"powerId"`
 	CreateAt uint64 `json:"createAt"`
 }
+
+func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMsg {
+	return &PowerRevokeMsg{
+		NodeAlias: &NodeAlias{
+			Name:       req.Owner.Name,
+			NodeId:     req.Owner.NodeId,
+			IdentityId: req.Owner.IdentityId,
+		},
+		PowerId:   req.PowerId,
+	}
+}
+
 type PowerMsgs []*PowerMsg
 type PowerRevokeMsgs []*PowerRevokeMsg
 
@@ -154,6 +189,38 @@ type MetaDataMsg struct {
 	// caches
 	hash atomic.Value
 }
+
+func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg {
+	return &MetaDataMsg{
+		Data: &metadataData{
+			NodeAlias: &NodeAlias{
+				Name:       req.Owner.Name,
+				NodeId:     req.Owner.NodeId,
+				IdentityId: req.Owner.IdentityId,
+			},
+			Information: struct {
+				MetaDataSummary *MetaDataSummary    `json:"metaDataSummary"`
+				ColumnMetas     []*types.ColumnMeta `json:"columnMetas"`
+			}{
+				MetaDataSummary: &MetaDataSummary{
+					MetaDataId: req.Information.MetaDataSummary.MetaDataId,
+					OriginId:   req.Information.MetaDataSummary.OriginId,
+					TableName:  req.Information.MetaDataSummary.TableName,
+					Desc:       req.Information.MetaDataSummary.Desc,
+					FilePath:   req.Information.MetaDataSummary.FilePath,
+					Rows:       req.Information.MetaDataSummary.Rows,
+					Columns:    req.Information.MetaDataSummary.Columns,
+					Size:       req.Information.MetaDataSummary.Size_,
+					FileType:   req.Information.MetaDataSummary.FileType,
+					HasTitle:   req.Information.MetaDataSummary.HasTitle,
+					State:      req.Information.MetaDataSummary.State,
+				},
+				ColumnMetas:     make([]*types.ColumnMeta, 0),
+			},
+		},
+	}
+}
+
 type metadataData struct {
 	*NodeAlias
 	Information struct {
@@ -162,6 +229,7 @@ type metadataData struct {
 	} `json:"information"`
 	CreateAt uint64 `json:"createAt"`
 }
+
 type MetaDataSummary struct {
 	MetaDataId string `json:"metaDataId,omitempty"`
 	OriginId  string `json:"originId,omitempty"`
@@ -188,6 +256,18 @@ type MetaDataRevokeMsg struct {
 	MetaDataId string `json:"metaDataId"`
 	CreateAt   uint64 `json:"createAt"`
 }
+
+func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDataRevokeMsg {
+	return &MetaDataRevokeMsg{
+		NodeAlias:  &NodeAlias{
+			Name:       req.Owner.Name,
+			NodeId:     req.Owner.NodeId,
+			IdentityId: req.Owner.IdentityId,
+		},
+		MetaDataId: req.MetaDataId,
+	}
+}
+
 type MetaDataMsgs []*MetaDataMsg
 type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
@@ -309,6 +389,36 @@ type TaskMsg struct {
 	// caches
 	hash atomic.Value
 }
+
+func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
+	return &TaskMsg{
+		Data:   &taskdata{
+			TaskName:              req.TaskName,
+			Owner:                 &TaskSupplier{
+				NodeAlias: &NodeAlias{
+					Name:       req.Owner.MemberInfo.Name,
+					NodeId:     req.Owner.MemberInfo.NodeId,
+					IdentityId: req.Owner.MemberInfo.IdentityId,
+				},
+				MetaData:  &SupplierMetaData{
+					MetaDataId:      req.Owner.MetaDataInfo.MetaDataId,
+					ColumnIndexList: make([]uint64, 0),
+				},
+			},
+			Partners:              make([]*TaskSupplier, 0),
+			Receivers:             make([]*TaskResultReceiver, 0),
+			CalculateContractCode: req.CalculateContractcode,
+			DataSplitContractCode: req.DatasplitContractcode,
+			OperationCost:         &TaskOperationCost{
+				Processor: req.OperationCost.CostProcessor,
+				Mem:       req.OperationCost.CostMem,
+				Bandwidth: req.OperationCost.CostBandwidth,
+				Duration:  req.OperationCost.Duration,
+			},
+		},
+	}
+}
+
 type taskdata struct {
 	TaskName              string                `json:"taskName"`
 	Owner                 *TaskSupplier         `json:"owner"`

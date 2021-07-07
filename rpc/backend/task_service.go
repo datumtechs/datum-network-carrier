@@ -2,9 +2,9 @@ package backend
 
 import (
 	"context"
+	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"time"
 )
 
 //func (svr *TaskServiceServer) GetTaskSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskSummaryListResponse, error) {
@@ -50,14 +50,32 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 }
 
 func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
-	taskMsg := new(types.TaskMsg)
-	taskMsg.Data.TaskName = req.TaskName
+	if req == nil || req.Owner == nil {
+		return nil, errors.New("required owner")
+	}
+	if req.Owner.MetaDataInfo == nil {
+		return nil, errors.New("required metadataInfo")
+	}
+	if req.Owner.MemberInfo == nil {
+		return nil, errors.New("required memberInfo of owner")
+	}
+	if req.OperationCost == nil {
+		return nil, errors.New("require operationCost")
+	}
+	if req.Receivers == nil {
+		return nil, errors.New("require receivers")
+	}
+	if req.Partners == nil {
+		return nil, errors.New("require partners")
+	}
+	taskMsg := types.NewTaskMessageFromRequest(req)
+	/*taskMsg.Data.TaskName = req.TaskName
 	taskMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 	taskMsg.Data.Owner.Name = req.Owner.MemberInfo.Name
 	taskMsg.Data.Owner.NodeId = req.Owner.MemberInfo.NodeId
 	taskMsg.Data.Owner.IdentityId = req.Owner.MemberInfo.IdentityId
 	taskMsg.Data.Owner.MetaData.ColumnIndexList = req.Owner.MetaDataInfo.ColumnIndexList
-	taskMsg.Data.Owner.MetaData.MetaDataId = req.Owner.MetaDataInfo.MetaDataId
+	taskMsg.Data.Owner.MetaData.MetaDataId = req.Owner.MetaDataInfo.MetaDataId*/
 
 	partners := make([]*types.TaskSupplier, len(req.Partners))
 	for i, v := range req.Partners {
@@ -102,14 +120,14 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	}
 	taskMsg.Data.Receivers = receivers
 
-	taskMsg.Data.CalculateContractCode = req.CalculateContractcode
+	/*taskMsg.Data.CalculateContractCode = req.CalculateContractcode
 	taskMsg.Data.DataSplitContractCode = req.DatasplitContractcode
 	taskMsg.Data.OperationCost = &types.TaskOperationCost{
 		Processor: req.OperationCost.CostProcessor,
 		Mem:       req.OperationCost.CostMem,
 		Bandwidth: req.OperationCost.CostBandwidth,
 		Duration:  req.OperationCost.Duration,
-	}
+	}*/
 	taskId := taskMsg.GetTaskId()
 
 	err := svr.B.SendMsg(taskMsg)
