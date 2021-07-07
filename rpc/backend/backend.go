@@ -40,5 +40,5 @@ type Backend interface {
 
 	// task api
 	GetTaskDetailList() ([]*types.TaskDetailShow, error)
-	GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error)
+	GetTaskEventList(taskId string) ([]*types.TaskEvent, error)
 }

@@ -81,7 +81,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 			}
 
 			//case task := <-sche.remoteTaskCh:
-			// todo 让自己的Scheduler 重演选举
+			// todo 让自己的Scheduler 重演选举c
 
 		}
 

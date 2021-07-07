@@ -229,7 +229,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	return types.NewTaskDetailShowArrayFromTaskDataArray(taskArray), err
 }
 
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
 	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskId(taskId)
 	return types.NewTaskEventFromAPIEvent(taskEvent), err
 }

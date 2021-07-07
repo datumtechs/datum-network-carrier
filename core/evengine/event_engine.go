@@ -8,7 +8,7 @@ import (
 type DataCenter interface {
 	StoreTaskEvent(event *types.TaskEventInfo) error
 	GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error)
-	CleanTaskEventList(taskId string) (error)
+	CleanTaskEventList(taskId string) error
 }
 
 type EventEngine struct {
