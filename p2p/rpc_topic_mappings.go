@@ -28,7 +28,8 @@ const (
 	// for test communication.
 	RPCGossipTestDataByRangeTopic = "/rosettanet/carrier_chain/req/gossip_test_data_by_range" + schemaVersionV1
 
-	RPCTwoPcPrePareMsgTopic = "/rosettanet/consensus/twopc/send_preparemsg" + schemaVersionV1
+	RPCTwoPcPrepareMsgTopic = "/rosettanet/consensus/twopc/send_preparemsg" + schemaVersionV1
+	RPCTwoPcPrepareVoteTopic = "/rosettanet/consensus/twopc/send_preparevote" + schemaVersionV1
 )
 
 // RPCTopicMappings map the base message type to the rpc request.
