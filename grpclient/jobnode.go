@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 )
 
 type JobNodeClient struct {
@@ -32,13 +33,37 @@ func NewJobNodeClient(ctx context.Context, addr string, peerId string) (*JobNode
 	}, nil
 }
 
-func (gc *JobNodeClient) Close() {
-	if gc.cancel != nil {
-		gc.cancel()
+func (c *JobNodeClient) Close() {
+	if c.cancel != nil {
+		c.cancel()
 	}
-	gc.conn.Close()
+	c.conn.Close()
 }
 
-func (gc *JobNodeClient) GetClientConn() *grpc.ClientConn {
-	return gc.conn
+func (c *JobNodeClient) GetClientConn() *grpc.ClientConn {
+	return c.conn
+}
+
+func (c *JobNodeClient) ConnStatus() connectivity.State {
+	return c.conn.GetState()
+}
+
+func (c *JobNodeClient) IsConnected() bool {
+	switch c.ConnStatus() {
+	case connectivity.Ready, connectivity.Idle:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *JobNodeClient) Reconnect() error {
+	if !c.IsConnected() {
+		conn, err := dialContext(c.ctx, c.addr)
+		if err != nil {
+			return err
+		}
+		c.conn = conn
+	}
+	return nil
 }
