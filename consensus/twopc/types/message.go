@@ -114,11 +114,21 @@ func (c ConfirmEpoch) Uint64() uint64 { return uint64(c) }
 const (
 	ConfirmEpochFirst  ConfirmEpoch = 1
 	ConfirmEpochSecond ConfirmEpoch = 2
-	DeadlineDuration                = 60 // during 60s, if the proposal haven't been done, kill it
+
+	SendTaskDir ProposalTaskDir = 0x00
+	RecvTaskDir ProposalTaskDir = 0x01
 )
 
+var (
+	// during 60s, if the proposal haven't been done, kill it
+	ProposalDeadlineDuration = uint64(60 * (time.Second.Nanoseconds()))
+)
+
+type ProposalTaskDir uint8
 type ProposalState struct {
 	ProposalId       common.Hash
+	TaskDir          ProposalTaskDir
+	TaskId           string
 	PeriodNum        ProposalStatePeriod
 	PeriodStartTime  uint64 // the timestemp
 	PeriodEndTime    uint64
@@ -129,13 +139,15 @@ type ProposalState struct {
 
 var EmptyProposalState = new(ProposalState)
 
-func NewProposalState(proposalId common.Hash, startTime uint64) *ProposalState {
+func NewProposalState(proposalId common.Hash, taskId string, TaskDir ProposalTaskDir, startTime uint64) *ProposalState {
 	return &ProposalState{
 		ProposalId:       proposalId,
+		TaskId:           taskId,
+		TaskDir:          TaskDir,
 		PeriodNum:        PeriodPrepare,
 		PeriodStartTime:  startTime,
 		CreateAt:         uint64(time.Now().UnixNano()),
-		DeadlineDuration: DeadlineDuration,
+		DeadlineDuration: ProposalDeadlineDuration,
 	}
 }
 func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.ProposalId }

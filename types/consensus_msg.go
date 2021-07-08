@@ -25,3 +25,4 @@ type PrepareVoteResource struct {
 	Ip   string
 	Port string
 }
+

@@ -1,6 +1,9 @@
 package handler
 
-import "github.com/RosettaFlow/Carrier-Go/types"
+import (
+	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/libp2p/go-libp2p-core/peer"
+)
 
 // This defines the interface for interacting with block chain service
 type blockchainService interface {
@@ -22,7 +25,7 @@ type Engine interface {
 	Close() error
 	OnPrepare(task *types.ScheduleTask) error
 	OnHandle(task *types.ScheduleTask, result chan<- *types.ConsensuResult) error
-	ValidateConsensusMsg(msg types.ConsensusMsg) error
-	OnConsensusMsg(msg types.ConsensusMsg) error
+	ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
+	OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnError() error
 }
