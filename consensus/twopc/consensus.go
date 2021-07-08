@@ -43,13 +43,13 @@ type TwoPC struct {
 	Errs []error
 }
 
-func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, taskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ScheduleTaskWrap) *TwoPC {
+func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, schedTaskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ScheduleTaskWrap) *TwoPC {
 	return &TwoPC{
 		config:       conf,
 		p2p:          p2p,
 		peerSet:      ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:        newState(),
-		schedTaskCh:  taskCh,
+		schedTaskCh:  schedTaskCh,
 		replayTaskCh: replayTaskCh,
 		asyncCallCh:  make(chan func(), conf.PeerMsgQueueSize),
 		sendTasks:    make(map[string]*types.ScheduleTask),
@@ -63,33 +63,44 @@ func (t *TwoPC) Start() error {
 	go t.loop()
 	return nil
 }
-func (t *TwoPC) Close() error {return nil}
+func (t *TwoPC) Close() error {
+	close(t.quit)
+	return nil
+}
 func (t *TwoPC) loop() {
 
 	for {
 		select {
 		case taskWrap := <-t.schedTaskCh:
-			if err := t.OnPrepare(taskWrap.Task); nil != err {
-				taskWrap.ResultCh <- &types.ConsensuResult{
-					TaskConsResult: &types.TaskConsResult{
-						TaskId: taskWrap.Task.TaskId,
-						Status: types.TaskConsensusInterrupt,
-						Done:   false,
-						Err:    fmt.Errorf("failed to OnPrepare 2pc, %s", err),
-					},
+			// Start a goroutine to process a new schedTask
+			go func() {
+				if err := t.OnPrepare(taskWrap.Task); nil != err {
+					taskWrap.ResultCh <- &types.ConsensuResult{
+						TaskConsResult: &types.TaskConsResult{
+							TaskId: taskWrap.Task.TaskId,
+							Status: types.TaskConsensusInterrupt,
+							Done:   false,
+							Err:    fmt.Errorf("failed to OnPrepare 2pc, %s", err),
+						},
+					}
+					return
 				}
-				continue
-			}
-			if err := t.OnHandle(taskWrap.Task, taskWrap.ResultCh); nil != err {
-				log.Error("Failed to OnStart 2pc", "err", err)
-			}
+				if err := t.OnHandle(taskWrap.Task, taskWrap.ResultCh); nil != err {
+					log.Error("Failed to OnStart 2pc", "err", err)
+				}
+			}()
 		case fn := <-t.asyncCallCh:
 			fn()
+
+		case <- t.quit:
+			log.Info("Stop 2pc consensus engine ...")
+			return
 		}
 	}
 }
 
 func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
+
 	return nil
 }
 func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.ConsensuResult) error {
@@ -118,13 +129,13 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.Consensu
 	prepareMsg := assemblingPrepareMsgForPB()
 
 	sendTaskFn := func(taskRole types.TaskRole, nodeId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
-		nid, err := p2p.HexID(nodeId)
+		pid, err := p2p.HexPeerID(nodeId)
 		if nil != err {
 			errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
 			return
 		}
-		peer := t.peerSet.GetPeer(nid)
-		if err = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, peer.GetPid(), prepareMsg); nil != err {
+
+		if err = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg); nil != err {
 			errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
 			return
 		}
@@ -563,12 +574,22 @@ func (t *TwoPC) onPrepareMsg(prepareMsg *types.PrepareMsgWrap) error {
 		ResultCh: resultCh,
 	}
 	result := <-resultCh
-	_ = result
+
+	if result.Status == types.TaskSchedFailed {
+
+	}
+
 	// todo  检查自己的资源是否符合 预期
 
 	// todo 检查自己是否 意愿透出 yes 票
 
 	// todo 调用 handler 投出自己的一票
+
+
+	//if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, peer.GetPid(), prepareMsg); nil != err {
+	//	errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
+	//	return
+	//}
 
 	return nil
 }

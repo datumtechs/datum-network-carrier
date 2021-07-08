@@ -23,6 +23,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/ethereum/go-ethereum/crypto"
+	libcrypto "github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"math/big"
 	"math/rand"
 	"strings"
@@ -127,6 +129,29 @@ func (id NodeID) mustPubkey() ecdsa.PublicKey {
 		panic(err)
 	}
 	return *pk
+}
+func HexPeerID(in string) (peer.ID, error) {
+	var id NodeID
+	b, err := hex.DecodeString(strings.TrimPrefix(in, "0x"))
+	if err != nil {
+		return "", err
+	} else if len(b) != len(id) {
+		return "", fmt.Errorf("wrong length, want %d hex chars", len(id)*2)
+	}
+	copy(id[:], b)
+	return id.PeerId()
+}
+func (id NodeID) PeerId() (peer.ID, error) {
+	pubKey, err := id.Pubkey()
+	if nil != err {
+		return "", err
+	}
+	assertedKey := libcrypto.PubKey((*libcrypto.Secp256k1PublicKey)(pubKey))
+	pid, err := peer.IDFromPublicKey(assertedKey)
+	if nil != err {
+		return "", err
+	}
+	return pid, nil
 }
 
 // recoverNodeID computes the public key used to sign the
