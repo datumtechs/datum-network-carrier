@@ -4,15 +4,18 @@ import "errors"
 
 var (
 
+	// Task
+	ErrProposalTaskNotFound = errors.New("The task of proposal not found")
+
 	// Prepare
 	ErrProposalIllegal                = errors.New("The proposal is illegal")
 	ErrProposalAlreadyProcessed       = errors.New("The proposalId have been processing")
-	ErrProposalNotFound               = errors.New("The proposal is not found")
+	ErrProposalNotFound               = errors.New("The proposal not found")
 	ErrProposalInTheFuture            = errors.New("The proposal is in the future")
 	ErrPrososalTaskRoleIsUnknown      = errors.New("The proposal's task role is unknown")
 	//ErrPrososalTaskIdBelongSendTask   = errors.New("The proposal's taskId is belonging to send task")
 	//ErrPrososalTaskIdBelongRecvTask   = errors.New("The proposal's taskId is belonging to recv task")
-	ErrPrososalTaskIsProcessed  = errors.New("The proposal's task have been processing")
+	ErrPrososalTaskIsProcessed  = errors.New("The task of proposal have been processing")
 
 	// prepareVote
 	ErrPrepareVoteInTheFuture     = errors.New("The prepareVote is in the future")
@@ -50,4 +53,15 @@ var (
 
 	ErrMsgSignInvalid          = errors.New("The msg signature is invalid")
 	ErrMsgOwnerNodeIdInvalid     = errors.New("The msg's owner nodeId is invalid")
+
+	ErrProposalWithoutPreparePeriod = errors.New("The proposal without prepare period")
+	ErrProposalWithoutConfirmPeriod = errors.New("The proposal without confirm period")
+	ErrProposalWithoutCommitPeriod = errors.New("The proposal without commit period")
+	ErrProposalConfirmEpochInvalid = errors.New("The confirm epoch of proposal is invalid")
+
+	ErrProposalPrepareVoteTimeout = errors.New("The prepareVote of proposal has timeout")
+	ErrProposalConfirmVoteTimeout = errors.New("The confirmVote of proposal has timeout")
+
+	ErrProposalPrepareVoteOwnerInvalid = errors.New("The owner of proposal's prepareVote is invalid")
+	ErrProposalConfirmVoteVoteOwnerInvalid = errors.New("The owner of proposal's confirmVote is invalid")
 )

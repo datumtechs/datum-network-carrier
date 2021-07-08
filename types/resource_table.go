@@ -6,6 +6,7 @@ import (
 )
 
 var (
+	// TODO 写死的 资源固定消耗 ...
 	multipleNumber  = uint64(3)
 	DefaultSlotUnit = &Slot{
 		Mem:       1024,
@@ -22,6 +23,37 @@ var (
 type TaskLocalResourceUsed struct {
 	slotCount uint32
 	nodeId    string
+}
+type taskLocalResourceUsedRlp struct {
+	SlotCount uint32
+	NodeId    string
+}
+
+func NewTaskLocalResourceUsed(nodeId string, usedSlot uint32) *TaskLocalResourceUsed {
+	return &TaskLocalResourceUsed{
+		nodeId:    nodeId,
+		slotCount: usedSlot,
+	}
+}
+func (tru *TaskLocalResourceUsed) GetNodeId() string    { return tru.nodeId }
+func (tru *TaskLocalResourceUsed) GetSlotCount() uint32 { return tru.slotCount }
+
+// EncodeRLP implements rlp.Encoder.
+func (tru *TaskLocalResourceUsed) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, taskLocalResourceUsedRlp{
+		NodeId:    tru.nodeId,
+		SlotCount: tru.slotCount,
+	})
+}
+
+// DecodeRLP implements rlp.Decoder.
+func (tru *TaskLocalResourceUsed) DecodeRLP(s *rlp.Stream) error {
+	var dec taskLocalResourceUsedRlp
+	err := s.Decode(&dec)
+	if err == nil {
+		tru.nodeId, tru.slotCount = dec.NodeId, dec.SlotCount
+	}
+	return err
 }
 
 type LocalResourceTable struct {
