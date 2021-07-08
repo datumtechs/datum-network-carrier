@@ -25,7 +25,7 @@ func serverObj() *core.DataCenter {
 
 	server := params.DataCenterConfig{"192.168.112.32", 9099}
 	ctx := context.Background()
-	dc, err := core.NewDataCenter(ctx,nil, &server)
+	dc, err := core.NewDataCenter(ctx, nil, &server)
 	if err != nil {
 		panic("init data center fail," + err.Error())
 	} else {
@@ -299,7 +299,24 @@ func GetData() {
 	fmt.Printf("%+v\n", ResourceByNodeId)
 	// endregion
 
-	GetTaskList, _ := dc.GetTaskList()
-	fmt.Printf("GetTaskList result is:")
-	fmt.Print(GetTaskList, "\n")
+	// region GetTaskList
+	GetTaskList, err := dc.GetTaskList()
+	if nil != err {
+		fmt.Println("err", err)
+	}
+	fmt.Println("GetTaskList result is:")
+	fmt.Println(GetTaskList)
+	// endregion
+
+	// region HasIdentity
+	result, err := dc.HasIdentity(&types.NodeAlias{
+		Name:       NodeName,
+		NodeId:     NodeId,
+		IdentityId: Identity})
+	if nil != err {
+		fmt.Println("err", err)
+	}
+	fmt.Println("HasIdentity result is:", result)
+	fmt.Println(result)
+	// endregion
 }
