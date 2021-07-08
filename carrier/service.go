@@ -73,6 +73,8 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		taskManager:     task.NewTaskManager(nil, eventEngine, resourceMng, taskCh, sendTaskCh, recvSchedTaskCh), // todo need set dataChain
 		scheduler: scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh,
 			config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
+		jobNodes:  make(map[string]*grpclient.JobNodeClient),
+		dataNodes: make(map[string]*grpclient.DataNodeClient),
 	}
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
