@@ -304,6 +304,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 	node.DataNodeId()
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
+		log.WithError(err).Error("SetRegisterNode failed.")
 		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
 	return &pb.SetJobNodeResponse{

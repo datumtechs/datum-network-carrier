@@ -39,7 +39,7 @@ func NewDataCenter(ctx context.Context, db db.Database, config *params.DataCente
 	if config.GrpcUrl == "" || config.Port == 0 {
 		panic("Invalid Grpc Config.")
 	}
-	client, err := grpclient.Dial(fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
+	client, err := grpclient.NewGrpcClient(ctx, fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
 	if err != nil {
 		log.WithError(err).Error("dial grpc server failed")
 		return nil, err
