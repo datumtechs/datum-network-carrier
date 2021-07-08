@@ -82,4 +82,5 @@ func TestPublicKeyFromID_ID(t *testing.T) {
 	p := (*ecdsa.PublicKey)(publicKey)
 	pubkeyHex := hex.EncodeToString(crypto.FromECDSAPub(p)[1:])
 	t.Logf("pubKey: %s", pubkeyHex)
+	assert.Equal(t, pubkeyHex, "887e6ed21139cf609995f6b6964cedefdc458de515991d2dc0b2667889148dfd5dfd011ebcf258303d5d1e0113ba093a06682146d4c5e3be5078dc5ff6e62714")
 }
