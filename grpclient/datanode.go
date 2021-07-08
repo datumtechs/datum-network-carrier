@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 )
 
 type DataNodeClient struct {
@@ -32,13 +33,38 @@ func NewDataNodeClient(ctx context.Context, addr string, peerId string) (*DataNo
 	}, nil
 }
 
-func (gc *DataNodeClient) Close() {
-	if gc.cancel != nil {
-		gc.cancel()
+func (c *DataNodeClient) Close() {
+	if c.cancel != nil {
+		c.cancel()
 	}
-	gc.conn.Close()
+	c.conn.Close()
 }
 
-func (gc *DataNodeClient) GetClientConn() *grpc.ClientConn {
-	return gc.conn
+func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
+	return c.conn
+}
+
+
+func (c *DataNodeClient) ConnStatus() connectivity.State {
+	return c.conn.GetState()
+}
+
+func (c *DataNodeClient) IsConnected() bool {
+	switch c.ConnStatus() {
+	case connectivity.Ready, connectivity.Idle:
+		return true
+	default:
+		return false
+	}
+}
+
+func (c *DataNodeClient) Reconnect() error {
+	if !c.IsConnected() {
+		conn, err := dialContext(c.ctx, c.addr)
+		if err != nil {
+			return err
+		}
+		c.conn = conn
+	}
+	return nil
 }

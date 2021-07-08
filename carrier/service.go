@@ -76,6 +76,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		jobNodes:  make(map[string]*grpclient.JobNodeClient),
 		dataNodes: make(map[string]*grpclient.DataNodeClient),
 	}
+
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
