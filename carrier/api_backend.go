@@ -1,6 +1,9 @@
 package carrier
 
 import (
+	"errors"
+	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -141,6 +144,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 }
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+	// current node need to connect with seed node.
 	return s.carrier.carrierDB.SetSeedNode(seed)
 }
 
@@ -157,10 +161,47 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
 }
 
 func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
-	return s.carrier.carrierDB.SetRegisterNode(typ, node)
+	switch typ {
+	case types.PREFIX_TYPE_DATANODE:
+	case types.PREFIX_TYPE_JOBNODE:
+	default:
+		return types.NONCONNECTED, errors.New("invalid nodeType")
+	}
+	if typ == types.PREFIX_TYPE_JOBNODE {
+		client, err := grpclient.NewJobNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.ExternalIp, node.ExternalPort), node.Id)
+		if err != nil {
+			return types.NONCONNECTED, err
+		}
+		s.carrier.jobNodes[node.Id] = client
+	}
+	if typ == types.PREFIX_TYPE_DATANODE {
+		client, err := grpclient.NewDataNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		if err != nil {
+			return types.NONCONNECTED, err
+		}
+		s.carrier.dataNodes[node.Id] = client
+	}
+	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
+	if err != nil {
+		return types.NONCONNECTED, err
+	}
+	node.ConnState = types.CONNECTED
+	return types.CONNECTED, nil
 }
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+	if typ == types.PREFIX_TYPE_JOBNODE {
+		if client, ok := s.carrier.jobNodes[id]; ok {
+			client.Close()
+			delete(s.carrier.jobNodes, id)
+		}
+	}
+	if typ == types.PREFIX_TYPE_DATANODE {
+		if client, ok := s.carrier.dataNodes[id]; ok {
+			client.Close()
+			delete(s.carrier.dataNodes, id)
+		}
+	}
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
 }
 
