@@ -65,6 +65,7 @@ type ScheduleTaskResultReceiver struct {
 type TaskConsStatus uint16
 
 const (
+	TaskSucceed            TaskConsStatus = 0x0000
 	TaskConsensusInterrupt TaskConsStatus = 0x0001
 	TaskRunningInterrupt   TaskConsStatus = 0x0100
 )

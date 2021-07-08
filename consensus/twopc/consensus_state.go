@@ -8,6 +8,7 @@ import (
 )
 
 type state struct {
+
 	// About the voting state of prepareMsg for proposal
 	prepareVotes map[common.Hash]*prepareVoteState
 	// About the voting state of confirmMsg for proposal
@@ -70,12 +71,36 @@ func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
 		s.runningProposals[proposalState.ProposalId] = proposalState
 	}
 }
-func (s *state) DelProposalState(proposalHash common.Hash) {
-	delete(s.runningProposals, proposalHash)
+func (s *state) DelProposalState(proposalId common.Hash) { delete(s.runningProposals, proposalId) }
+
+func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return
+	}
+	proposalState.ChangeToConfirm(startTime)
+}
+func (s *state) ChangeToConfirmSecondEpoch(proposalId common.Hash, startTime uint64) {
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return
+	}
+	proposalState.ChangeToConfirmSecondEpoch(startTime)
+}
+func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return
+	}
+	proposalState.ChangeToCommit(startTime)
 }
 
+
+
+
+
 // ---------------- PrepareVote ----------------
-func (s *state) AddPrepareVote(vote *types.PrepareVote) {
+func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 	state, ok := s.prepareVotes[vote.ProposalId]
 	if !ok {
 		state = newPrepareVoteState()
@@ -86,30 +111,51 @@ func (s *state) AddPrepareVote(vote *types.PrepareVote) {
 func (s *state) CleanPrepareVoteState(proposalId common.Hash) {
 	delete(s.prepareVotes, proposalId)
 }
-func (s *state) GetTaskDataSupplierPrepareVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	state, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
 	return state.voteYesCount(types.DataSupplier)
 }
-func (s *state) GetTaskPowerSupplierPrepareVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	state, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
 	return state.voteYesCount(types.PowerSupplier)
 }
-func (s *state) GetTaskResulterPrepareVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskResulterPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	state, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
 	return state.voteYesCount(types.ResultSupplier)
 }
+func (s *state) GetTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+	state, ok := s.prepareVotes[proposalId]
+	if !ok {
+		return 0
+	}
+	return state.voteTotalCount(types.DataSupplier)
+}
+func (s *state) GetTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+	state, ok := s.prepareVotes[proposalId]
+	if !ok {
+		return 0
+	}
+	return state.voteTotalCount(types.PowerSupplier)
+}
+func (s *state) GetTaskResulterPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+	state, ok := s.prepareVotes[proposalId]
+	if !ok {
+		return 0
+	}
+	return state.voteTotalCount(types.ResultSupplier)
+}
 
 // ---------------- ConfirmVote ----------------
-func (s *state) AddConfirmVote(vote *types.ConfirmVote) {
+func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	state, ok := s.confirmVotes[vote.ProposalId]
 	if !ok {
 		state = newConfirmVoteState()
@@ -120,38 +166,61 @@ func (s *state) AddConfirmVote(vote *types.ConfirmVote) {
 func (s *state) CleanConfirmVoteState(proposalId common.Hash) {
 	delete(s.confirmVotes, proposalId)
 }
-func (s *state) GetTaskDataSupplierConfirmVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	state, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
 	return state.voteYesCount(types.DataSupplier)
 }
-func (s *state) GetTaskPowerSupplierConfirmVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	state, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
 	return state.voteYesCount(types.PowerSupplier)
 }
-func (s *state) GetTaskResulterConfirmVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskResulterConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	state, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
 	return state.voteYesCount(types.ResultSupplier)
 }
+func (s *state) GetTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+	state, ok := s.confirmVotes[proposalId]
+	if !ok {
+		return 0
+	}
+	return state.voteTotalCount(types.DataSupplier)
+}
+func (s *state) GetTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+	state, ok := s.confirmVotes[proposalId]
+	if !ok {
+		return 0
+	}
+	return state.voteTotalCount(types.PowerSupplier)
+}
+func (s *state) GetTaskResulterConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+	state, ok := s.confirmVotes[proposalId]
+	if !ok {
+		return 0
+	}
+	return state.voteTotalCount(types.ResultSupplier)
+}
 
 // about prepareVote
 type prepareVoteState struct {
-	votes    []*types.PrepareVote
-	yesVotes map[types.TaskRole]uint32
+	votes      []*types.PrepareVote
+	yesVotes   map[types.TaskRole]uint32
+	voteStatus map[types.TaskRole]uint32
 }
 
 func newPrepareVoteState() *prepareVoteState {
 	return &prepareVoteState{
-		votes:    make([]*types.PrepareVote, 0),
-		yesVotes: make(map[types.TaskRole]uint32, 0),
+		votes:      make([]*types.PrepareVote, 0),
+		yesVotes:   make(map[types.TaskRole]uint32, 0),
+		voteStatus: make(map[types.TaskRole]uint32, 0),
 	}
 }
 
@@ -166,6 +235,19 @@ func (st *prepareVoteState) addVote(vote *types.PrepareVote) {
 			st.yesVotes[vote.TaskRole] = 1
 		}
 	}
+
+	if count, ok := st.voteStatus[vote.TaskRole]; ok {
+		st.voteStatus[vote.TaskRole] = count + 1
+	} else {
+		st.voteStatus[vote.TaskRole] = 1
+	}
+}
+func (st *prepareVoteState) voteTotalCount(role types.TaskRole) uint32 {
+	if count, ok := st.voteStatus[role]; ok {
+		return count
+	} else {
+		return 0
+	}
 }
 func (st *prepareVoteState) voteYesCount(role types.TaskRole) uint32 {
 	if count, ok := st.yesVotes[role]; ok {
@@ -177,14 +259,16 @@ func (st *prepareVoteState) voteYesCount(role types.TaskRole) uint32 {
 
 // about confirmVote
 type confirmVoteState struct {
-	votes    []*types.ConfirmVote
-	yesVotes map[types.TaskRole]uint32
+	votes      []*types.ConfirmVote
+	yesVotes   map[types.TaskRole]uint32
+	voteStatus map[types.TaskRole]uint32
 }
 
 func newConfirmVoteState() *confirmVoteState {
 	return &confirmVoteState{
-		votes:    make([]*types.ConfirmVote, 0),
-		yesVotes: make(map[types.TaskRole]uint32, 0),
+		votes:      make([]*types.ConfirmVote, 0),
+		yesVotes:   make(map[types.TaskRole]uint32, 0),
+		voteStatus: make(map[types.TaskRole]uint32, 0),
 	}
 }
 
@@ -199,9 +283,22 @@ func (st *confirmVoteState) addVote(vote *types.ConfirmVote) {
 			st.yesVotes[vote.TaskRole] = 1
 		}
 	}
+
+	if count, ok := st.voteStatus[vote.TaskRole]; ok {
+		st.voteStatus[vote.TaskRole] = count + 1
+	} else {
+		st.voteStatus[vote.TaskRole] = 1
+	}
 }
 func (st *confirmVoteState) voteYesCount(role types.TaskRole) uint32 {
 	if count, ok := st.yesVotes[role]; ok {
+		return count
+	} else {
+		return 0
+	}
+}
+func (st *confirmVoteState) voteTotalCount(role types.TaskRole) uint32 {
+	if count, ok := st.voteStatus[role]; ok {
 		return count
 	} else {
 		return 0
