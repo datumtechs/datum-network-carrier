@@ -11,6 +11,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/scheduler"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/db"
+	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
@@ -26,7 +27,6 @@ type Service struct {
 	mempool        *message.Mempool
 	Engines        map[types.ConsensusEngineType]handler.Engine
 
-
 	// DB interfaces
 	dataDb     db.Database
 	APIBackend *CarrierAPIBackend
@@ -36,6 +36,10 @@ type Service struct {
 	taskManager     *task.Manager
 	scheduler       core.Scheduler
 	runError        error
+
+	// GRPC Client
+	jobNodes  map[string]*grpclient.JobNodeClient
+	dataNodes map[string]*grpclient.DataNodeClient
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -53,10 +57,10 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	localTaskCh, schedTaskCh, remoteTaskCh, sendTaskCh, recvSchedTaskCh :=
 		make(chan types.TaskMsgs, 27),
 		make(chan *types.ConsensusTaskWrap, 100),
-		make( chan *types.ScheduleTaskWrap, 100),
+		make(chan *types.ScheduleTaskWrap, 100),
 		make(chan types.TaskMsgs, 10),
 		make(chan *types.ConsensusScheduleTask, 10)
-	resourceMng :=  resource.NewResourceManager(config.CarrierDB)
+	resourceMng := resource.NewResourceManager(config.CarrierDB)
 
 	s := &Service{
 		ctx:             ctx,
@@ -65,9 +69,9 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		carrierDB:       config.CarrierDB,
 		mempool:         pool,
 		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, nil, config.CarrierDB, taskCh), // todo need set dataChain
-		taskManager:     task.NewTaskManager(nil, eventEngine, resourceMng, taskCh, sendTaskCh, recvSchedTaskCh),             // todo need set dataChain
-		scheduler: 		 scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh,
+		messageManager:  message.NewHandler(pool, nil, config.CarrierDB, taskCh),                                 // todo need set dataChain
+		taskManager:     task.NewTaskManager(nil, eventEngine, resourceMng, taskCh, sendTaskCh, recvSchedTaskCh), // todo need set dataChain
+		scheduler: scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh,
 			config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
 	}
 	// todo: some logic could be added...
