@@ -12,9 +12,7 @@ const (
 	defaultRefreshOrgResourceInterval = 60 * time.Millisecond
 )
 
-
 type CarrierDB interface {
-
 	InsertResource(resource *types.Resource) error
 	//GetResourceByDataId(powerId string) (*types.Resource, error)
 	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
@@ -43,23 +41,25 @@ type CarrierDB interface {
 
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
-	db              CarrierDB // Low level persistent database to store final content.
-	eventCh         chan *types.TaskEventInfo
-	slotUnit        *types.Slot
-	localTables     map[string]*types.LocalResourceTable
-	localTableQueue []*types.LocalResourceTable
+	db                     CarrierDB // Low level persistent database to store final content.
+	//eventCh                chan *types.TaskEventInfo
+	slotUnit               *types.Slot
+	// (taskId -> local resource used)
+	taskLocalResourceUseds map[string]*types.TaskLocalResourceUsed
+	// (resourceNodeId -> resource)
+	localTables            map[string]*types.LocalResourceTable
+	localTableQueue        []*types.LocalResourceTable
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue []*types.RemoteResourceTable
 
-	localLock     sync.RWMutex
-	remoteLock    sync.RWMutex
-
+	localLock  sync.RWMutex
+	remoteLock sync.RWMutex
 }
 
 func NewResourceManager(db CarrierDB) *Manager {
 	m := &Manager{
 		db:               db,
-		eventCh:          make(chan *types.TaskEventInfo, 0),
+		//eventCh:          make(chan *types.TaskEventInfo, 0),
 		localTables:      make(map[string]*types.LocalResourceTable),
 		localTableQueue:  make([]*types.LocalResourceTable, 0),
 		remoteTableQueue: make([]*types.RemoteResourceTable, 0),
@@ -73,9 +73,9 @@ func (m *Manager) loop() {
 	refreshTimer := time.NewTimer(defaultRefreshOrgResourceInterval)
 	for {
 		select {
-		case event := <-m.eventCh:
-			_ = event // TODO add some logic about eventEngine
-		case <- refreshTimer.C:
+		//case event := <-m.eventCh:
+		//	_ = event // TODO add some logic about eventEngine
+		case <-refreshTimer.C:
 			if err := m.refreshOrgResourceTable(); nil != err {
 				log.Errorf("Failed to refresh org resourceTables, err: %s", err)
 			}
@@ -94,7 +94,7 @@ func (m *Manager) Start() error {
 	}
 	m.slotUnit = slotUnit
 	// load local resource Tables
-	localResources, err :=  m.db.QueryLocalResourceTables()
+	localResources, err := m.db.QueryLocalResourceTables()
 	if nil != err {
 		return err
 	}
@@ -106,7 +106,7 @@ func (m *Manager) Start() error {
 	m.localTableQueue = localResources
 
 	// load remote org resource Tables
-	remoteResources, err :=  m.db.QueryOrgResourceTables()
+	remoteResources, err := m.db.QueryOrgResourceTables()
 	if nil != err {
 		return err
 	}
@@ -188,7 +188,9 @@ func (m *Manager) SetLocalResourceTable(table *types.LocalResourceTable) {
 	m.localTables[table.GetNodeId()] = table
 	m.localTableQueue = append(m.localTableQueue, table)
 }
-func (m *Manager) GetLocalResourceTable(nodeId string) *types.LocalResourceTable { return m.localTables[nodeId] }
+func (m *Manager) GetLocalResourceTable(nodeId string) *types.LocalResourceTable {
+	return m.localTables[nodeId]
+}
 func (m *Manager) GetLocalResourceTables() []*types.LocalResourceTable { return m.localTableQueue }
 func (m *Manager) DelLocalResourceTable(nodeId string) {
 	for i := 0; i < len(m.localTableQueue); i++ {
@@ -209,7 +211,7 @@ func (m *Manager) refreshLocalResourceTable() error {
 	return nil
 }
 
-func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable)  {
+func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
 	m.remoteTableQueue = append(m.remoteTableQueue, table)
 }
 func (m *Manager) UpdateRemoteResouceTable(table *types.RemoteResourceTable) {
@@ -232,7 +234,7 @@ func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable
 	}
 	m.remoteTableQueue = append(m.remoteTableQueue, table)
 }
-func (m *Manager) DelRemoteResourceTable(identityId string)  {
+func (m *Manager) DelRemoteResourceTable(identityId string) {
 	for i := 0; i < len(m.remoteTableQueue); i++ {
 		if m.remoteTableQueue[i].GetIdentityId() == identityId {
 			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
@@ -259,7 +261,7 @@ func (m *Manager) refreshOrgResourceTable() error {
 			m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)
 			delete(tmp, resource.GetIdentityId())
 		} else {
-		// If no has, delete
+			// If no has, delete
 			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
 			i--
 		}
@@ -269,7 +271,7 @@ func (m *Manager) refreshOrgResourceTable() error {
 	}
 	return nil
 }
-func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
-	m.eventCh <- event
-	return nil
-}
+//func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
+//	m.eventCh <- event
+//	return nil
+//}

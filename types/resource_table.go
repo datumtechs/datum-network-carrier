@@ -19,6 +19,11 @@ var (
 	}
 )
 
+type TaskLocalResourceUsed struct {
+	slotCount uint32
+	nodeId    string
+}
+
 type LocalResourceTable struct {
 	nodeId       string    // Resource node id
 	nodeResource *resource // The total resource on the node
