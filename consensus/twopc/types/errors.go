@@ -64,4 +64,7 @@ var (
 
 	ErrProposalPrepareVoteOwnerInvalid = errors.New("The owner of proposal's prepareVote is invalid")
 	ErrProposalConfirmVoteVoteOwnerInvalid = errors.New("The owner of proposal's confirmVote is invalid")
+
+
+	ErrVoteCountOverflow = errors.New("The vote count has overflow")
 )

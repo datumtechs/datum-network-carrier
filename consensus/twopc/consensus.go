@@ -31,6 +31,10 @@ type TwoPC struct {
 	p2p     p2p.P2P
 	peerSet *ctypes.PeerSet
 	state   *state
+
+	// TODO 需要有一个地方 监听整个 共识结果 ...
+
+
 	// fetch tasks scheduled from `Scheduler`
 	schedTaskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
@@ -133,52 +137,11 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.Consensu
 	t.state.AddProposalState(proposalState)
 	t.addSendTask(task)
 
-	prepareMsg := makePrepareMsg()
+	// Start handle task ...
+	err := t.sendPrepareMsg(task)
+	if nil != err {
 
-	sendTaskFn := func(taskRole types.TaskRole, nodeId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
-		pid, err := p2p.HexPeerID(nodeId)
-		if nil != err {
-			errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
-			return
-		}
-
-		if err = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg); nil != err {
-			errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
-			return
-		}
-		errCh <- nil
-	}
-
-	//
-
-	errCh := make(chan error, len(task.Partners)+len(task.PowerSuppliers)+len(task.Receivers))
-
-	go func() {
-		for _, partner := range task.Partners {
-			go sendTaskFn(types.DataSupplier, partner.NodeId, prepareMsg, errCh)
-		}
-	}()
-	go func() {
-		for _, powerSupplier := range task.PowerSuppliers {
-			go sendTaskFn(types.PowerSupplier, powerSupplier.NodeId, prepareMsg, errCh)
-		}
-	}()
-
-	go func() {
-		for _, receiver := range task.Receivers {
-			go sendTaskFn(types.ResultSupplier, receiver.NodeId, prepareMsg, errCh)
-		}
-	}()
-	errStrs := make([]string, 0)
-	for err := range errCh {
-		if nil != err {
-			errStrs = append(errStrs, err.Error())
-		}
-	}
-	if len(errStrs) != 0 {
-		err := fmt.Errorf(
-			`failed to Send PrepareMsg for task:
-%s`, strings.Join(errStrs, "\n"))
+		// Send consensus result
 		result <- &types.ConsensuResult{
 			TaskConsResult:  &types.TaskConsResult{
 				TaskId: task.TaskId,
@@ -190,11 +153,40 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.Consensu
 		// clean some invalid data
 		t.state.DelProposalState(proposalHash)
 		t.delSendTask(task.TaskId)
-
 		return err
 	}
 
-	return nil
+	// TODO 监听整个共识 流程的结果
+	for {
+
+	}
+
+
+
+
+
+	else {
+
+		result <- &types.ConsensuResult{
+			TaskConsResult:  &types.TaskConsResult{
+				TaskId: task.TaskId,
+				Status: types.TaskSucceed,
+				Done:   true,
+			},
+
+			// TODO 返回 共识完成后的 资源列表信息 ...
+			//OwnerResource:
+			//PartnersResource
+			//PowerSuppliersResource
+			//ReceiversResource
+
+		}
+
+		// clean the proposalState and task, when task has succeed consensus
+		t.state.DelProposalState(proposalHash)
+		t.delSendTask(task.TaskId)
+		return nil
+	}
 }
 
 func (t *TwoPC) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
@@ -251,6 +243,57 @@ func (t *TwoPC) OnError() error {
 }
 
 
+func (t *TwoPC) sendPrepareMsg (task *types.ScheduleTask) error {
+
+	prepareMsg := makePrepareMsg()
+
+	sendTaskFn := func(taskRole types.TaskRole, nodeId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
+		pid, err := p2p.HexPeerID(nodeId)
+		if nil != err {
+			errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
+			return
+		}
+
+		if err = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg); nil != err {
+			errCh <- fmt.Errorf("taskRole: %s, nodeId: %s, err: %s", taskRole.String(), nodeId, err)
+			return
+		}
+		errCh <- nil
+	}
+
+
+	errCh := make(chan error, len(task.Partners)+len(task.PowerSuppliers)+len(task.Receivers))
+
+	go func() {
+		for _, partner := range task.Partners {
+			go sendTaskFn(types.DataSupplier, partner.NodeId, prepareMsg, errCh)
+		}
+	}()
+	go func() {
+		for _, powerSupplier := range task.PowerSuppliers {
+			go sendTaskFn(types.PowerSupplier, powerSupplier.NodeId, prepareMsg, errCh)
+		}
+	}()
+
+	go func() {
+		for _, receiver := range task.Receivers {
+			go sendTaskFn(types.ResultSupplier, receiver.NodeId, prepareMsg, errCh)
+		}
+	}()
+	errStrs := make([]string, 0)
+	for err := range errCh {
+		if nil != err {
+			errStrs = append(errStrs, err.Error())
+		}
+	}
+	if len(errStrs) != 0 {
+		return fmt.Errorf(
+			`failed to Send PrepareMsg for task:
+%s`, strings.Join(errStrs, "\n"))
+	}
+
+	return nil
+}
 
 // Handle the prepareMsg from the task pulisher peer (on subscriber)
 func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
@@ -346,36 +389,77 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		return ctypes.ErrProposalTaskNotFound
 	}
 
+	dataSupplierCount := uint32(len(task.Partners))
+	powerSupplierCount := uint32(len(task.PowerSuppliers))
+	resulterCount := uint32(len(task.Receivers))
+
+	taskMemCount := dataSupplierCount + powerSupplierCount + resulterCount
+
 	var identityValid bool
 	switch voteMsg.TaskRole {
 	case types.DataSupplier:
+		if dataSupplierCount == t.state.GetTaskDataSupplierPrepareTotalVoteCount(voteMsg.ProposalId) {
+			return ctypes.ErrVoteCountOverflow
+		}
 		for _, dataSupplier := range task.Partners {
 			if dataSupplier.IdentityId == voteMsg.Owner.IdentityId {
+
+				// TODO validate vote sign
+
 				identityValid = true
 				break
 			}
 		}
 	case types.PowerSupplier:
+		if powerSupplierCount == t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) {
+			return ctypes.ErrVoteCountOverflow
+		}
 		for _, powerSupplier := range task.PowerSuppliers {
 			if powerSupplier.IdentityId == voteMsg.Owner.IdentityId {
+
+				// TODO validate vote sign
+
 				identityValid = true
 				break
 			}
 		}
 	case types.ResultSupplier:
+		if resulterCount == t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId) {
+			return ctypes.ErrVoteCountOverflow
+		}
 		for _, resulter := range task.Receivers {
 			if resulter.IdentityId == voteMsg.Owner.IdentityId {
+
+				// TODO validate vote sign
+
 				identityValid = true
 				break
 			}
 		}
 	default:
-
+		return ctypes.ErrMsgOwnerNodeIdInvalid
 	}
 	if !identityValid {
 		return ctypes.ErrProposalPrepareVoteOwnerInvalid
 	}
 
+	// Store vote
+	t.state.StorePrepareVote(voteMsg)
+
+	voteCount := t.state.GetTaskDataSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId)
+
+	now := uint64(time.Now().UnixNano())
+
+	// Change the propoState to `confirmPeriod`
+	if taskMemCount == voteCount {
+		t.state.ChangeToConfirm(voteMsg.ProposalId, now)
+
+		// TODO Send the ConfirmMsg
+
+
+	}
 
 
 
