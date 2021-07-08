@@ -3,6 +3,7 @@ package twopc
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	"time"
 )
 
 type state struct {
@@ -17,6 +18,25 @@ func newState() *state {
 		runningProposals: make(map[common.Hash]*ctypes.ProposalState, 0),
 		empty: ctypes.EmptyProposalState,
 	}
+}
+
+func (s *state) CleanExpireProposal() ([]string, []string) {
+	now := uint64(time.Now().UnixNano())
+	sendTaskIds := make([]string, 0)
+	recvTaskIds := make([]string, 0)
+	for id, proposal := range s.runningProposals {
+		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
+			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId", proposal.TaskId)
+			delete(s.runningProposals, id)
+			if proposal.TaskDir == ctypes.SendTaskDir {
+				sendTaskIds = append(sendTaskIds, proposal.TaskId)
+			} else {
+				recvTaskIds = append(recvTaskIds, proposal.TaskId)
+			}
+
+		}
+	}
+	return sendTaskIds, recvTaskIds
 }
 
 func (s *state) HasProposal(proposalId common.Hash) bool {
