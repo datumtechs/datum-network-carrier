@@ -128,13 +128,13 @@ func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	rawdb.WriteTaskEvent(dc.db, event)
 	return nil
 }
-func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
 
-	//TODO 根据 taskId  查询所有 evengine 列表
-	return nil, nil
+func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
+	return rawdb.ReadTaskEvent(dc.db, taskId), nil
 }
+
 func (dc *DataCenter) CleanTaskEventList(taskId string) error {
-	// TODO 清空 taskId 下的所有 evengine 列表
+	rawdb.DeleteTaskEvent(dc.db, taskId)
 	return nil
 }
 
