@@ -208,6 +208,8 @@ func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArra
 }
 
 func (dc *DataCenter) GetLocalResourceList() (types.ResourceArray, error) {
+
+	// todo 需要实现, 查询本地资源信息
 	return nil, nil
 }
 
@@ -263,6 +265,28 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 		return fmt.Errorf("insert task error: %s", response.Msg)
 	}
 	return nil
+}
+
+// todo 添加本地正在参与的任务信息
+func (dc *DataCenter) StoreLocalTask(task *types.Task) error {
+
+	return nil
+}
+// todo 根据任务Id 删除调本地任务信息
+func (dc *DataCenter) DelLocalTask(taskId string) error {
+
+	return nil
+}
+// todo  更新本地任务状态字段
+func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
+
+	return nil
+}
+
+// TODO 查询所有当前组织正在参与的任务 (因为正在参与的任务, 都只是在本地保存的)
+func (dc *DataCenter) GetLocalTaskList() (types.TaskDataArray, error) {
+
+	return nil, nil
 }
 
 func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
