@@ -28,6 +28,10 @@ type CarrierDB interface {
 	RevokeIdentity(identity *types.Identity) error
 	GetIdentityList() (types.IdentityArray, error)
 	InsertTask(task *types.Task) error
+	StoreLocalTask(task *types.Task) error
+	DelLocalTask(taskId string) error
+	UpdateLocalTaskState(taskId, state string) error
+	GetLocalTaskList() (types.TaskDataArray, error)
 	GetTaskList() (types.TaskDataArray, error)
 	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
 	SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error)

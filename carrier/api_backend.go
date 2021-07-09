@@ -266,6 +266,11 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
+
+
+	// TODO 任务列表, 需要自己处理下 当前组织参与的任务信息 (然后做合并)
+	//localTaskArray, err := s.carrier.carrierDB.GetLocalResourceList()
+
 	taskArray, err := s.carrier.carrierDB.GetTaskList()
 	return types.NewTaskDetailShowArrayFromTaskDataArray(taskArray), err
 }
