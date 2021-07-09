@@ -168,14 +168,14 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 		return types.NONCONNECTED, errors.New("invalid nodeType")
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
-		client, err := grpclient.NewJobNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.ExternalIp, node.ExternalPort), node.Id)
+		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.ExternalIp, node.ExternalPort), node.Id)
 		if err != nil {
 			return types.NONCONNECTED, err
 		}
 		s.carrier.jobNodes[node.Id] = client
 	}
 	if typ == types.PREFIX_TYPE_DATANODE {
-		client, err := grpclient.NewDataNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
 			return types.NONCONNECTED, err
 		}
