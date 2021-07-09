@@ -42,9 +42,9 @@ type SchedulerStarveFIFO struct {
 	// fetch local task from taskManager`
 	localTaskCh chan types.TaskMsgs
 	// send local task scheduled to `Consensus`
-	schedTaskCh chan *types.ConsensusTaskWrap
+	schedTaskCh chan<- *types.ConsensusTaskWrap
 	// receive remote task to replay from `Consensus`
-	remoteTaskCh chan *types.ScheduleTaskWrap
+	remoteTaskCh <-chan *types.ScheduleTaskWrap
 	// todo  发送经过调度好的 task 交给 taskManager 去分发给自己的 Fighter-Py
 	sendSchedTaskCh chan<- *types.ConsensusScheduleTask
 
@@ -54,8 +54,8 @@ type SchedulerStarveFIFO struct {
 }
 
 func NewSchedulerStarveFIFO(
-	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
-	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter DataCenter,
+	localTaskCh chan types.TaskMsgs, schedTaskCh chan<- *types.ConsensusTaskWrap,
+	remoteTaskCh <-chan *types.ScheduleTaskWrap, dataCenter DataCenter,
 	sendSchedTaskCh chan<- *types.ConsensusScheduleTask, mng *resource.Manager,
 	eventEngine *evengine.EventEngine) *SchedulerStarveFIFO {
 
@@ -169,14 +169,17 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			repushFn(bullet)
 			return
 		}
+
+		// Send task to consensus Engine to consensus.
 		scheduleTask := buildScheduleTask(task, powers)
-		resCh := make(chan *types.ConsensuResult, 0)
-		sche.schedTaskCh <- &types.ConsensusTaskWrap{
+		toConsensusTask := &types.ConsensusTaskWrap{
 			Task:         scheduleTask,
 			SelfResource: selfResourceInfo,
-			ResultCh:     resCh,
+			ResultCh:     make(chan *types.ConsensuResult, 0),
 		}
-		consensusRes := <-resCh
+		sche.SendTaskWihtConsensus(toConsensusTask)
+		consensusRes := toConsensusTask.RecvResult()
+
 		// Consensus failed, task needs to be suspended and rescheduled
 		if consensusRes.Status == types.TaskConsensusInterrupt {
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
@@ -228,9 +231,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
 
-			schedTask.ResultCh <- &types.ScheduleResult{
+			schedTask.SendResult(&types.ScheduleResult{
 				// TODO 投票
-			}
+			})
+
 
 			return
 		}
@@ -252,9 +256,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 					schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
 
-				schedTask.ResultCh <- &types.ScheduleResult{
+				schedTask.SendResult(&types.ScheduleResult{
 					// TODO 投票
-				}
+				})
+
 				return
 			}
 
@@ -270,9 +275,9 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 						schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
 
-					schedTask.ResultCh <- &types.ScheduleResult{
+					schedTask.SendResult( &types.ScheduleResult{
 						// TODO 投票
-					}
+					})
 					return
 				}
 			}
@@ -280,9 +285,9 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 
 			// TODO  如果都匹配,  投出一票  (DataSupplier 身份)
 
-			schedTask.ResultCh <- &types.ScheduleResult{
+			schedTask.SendResult(&types.ScheduleResult{
 				// TODO 投票
-			}
+			})
 		}
 
 
@@ -294,9 +299,9 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 					schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
 
-				schedTask.ResultCh <- &types.ScheduleResult{
+				schedTask.SendResult(&types.ScheduleResult{
 					// TODO 投票
-				}
+				})
 				return
 			}
 			// Lock local resource (jobNode)
@@ -305,9 +310,9 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 
 			// TODO  投出一票 (PowerSupplier 身份)
 
-			schedTask.ResultCh <- &types.ScheduleResult{
+			schedTask.SendResult(&types.ScheduleResult{
 				// TODO 投票
-			}
+			})
 		}
 
 
@@ -324,13 +329,13 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 					schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
 
-				schedTask.ResultCh <- &types.ScheduleResult{
+				schedTask.SendResult(&types.ScheduleResult{
 					// TODO 投票
-				}
+				})
 				return
 			}
 
-			schedTask.ResultCh <- &types.ScheduleResult{
+			schedTask.SendResult(&types.ScheduleResult{
 				TaskId: schedTask.Task.TaskId,
 				Status: types.TaskSchedOk,
 				Resource: &types.PrepareVoteResource{
@@ -338,7 +343,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 					Ip: resourceInfo.ExternalIp,
 					Port: resourceInfo.ExternalPort,
 				},
-			}
+			})
 		}
 
 	}()
@@ -436,6 +441,11 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(calculateCount int, cost *ty
 	return orgs, nil
 }
 
+func (sche *SchedulerStarveFIFO) SendTaskWihtConsensus(task *types.ConsensusTaskWrap) {
+	sche.schedTaskCh <- task
+}
+
+
 func buildScheduleTask(task *types.TaskMsg, powers []*types.NodeAlias) *types.ScheduleTask {
 
 	partners := make([]*types.ScheduleTaskDataSupplier, len(task.PartnerTaskSuppliers()))
@@ -483,3 +493,4 @@ func buildScheduleTask(task *types.TaskMsg, powers []*types.NodeAlias) *types.Sc
 		CreateAt:              task.CreateAt(),
 	}
 }
+
