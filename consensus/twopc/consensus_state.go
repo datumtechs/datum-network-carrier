@@ -37,7 +37,8 @@ func (s *state) CleanExpireProposal() ([]string, []string) {
 	recvTaskIds := make([]string, 0)
 	for id, proposal := range s.runningProposals {
 		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
-			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId", proposal.TaskId)
+			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId",
+				proposal.TaskId, "taskDir", proposal.TaskDir.String())
 			s.CleanProposalState(id)
 			if proposal.TaskDir == ctypes.SendTaskDir {
 				sendTaskIds = append(sendTaskIds, proposal.TaskId)

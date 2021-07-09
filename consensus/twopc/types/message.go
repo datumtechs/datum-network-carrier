@@ -129,6 +129,13 @@ var (
 )
 
 type ProposalTaskDir uint8
+func (dir ProposalTaskDir) String() string {
+	if dir == SendTaskDir {
+		return "sendTask"
+	} else {
+		return "recvTask"
+	}
+}
 type ProposalState struct {
 	ProposalId         common.Hash
 	TaskDir            ProposalTaskDir
