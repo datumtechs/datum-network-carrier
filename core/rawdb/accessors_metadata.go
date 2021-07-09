@@ -12,7 +12,7 @@ func ReadAllMetadataHashes(db db.Iteratee) []common.Hash {
 	prefix := metadataIdPrefix
 
 	hashes := make([]common.Hash, 0, 1)
-	it := db.NewIterator(prefix, nil)
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
 
 	for it.Next() {
@@ -28,7 +28,7 @@ func ReadAllMetadataHashes(db db.Iteratee) []common.Hash {
 func ReadAllMetadataHashesByNodeId(db db.Iteratee, nodeId string) []common.Hash {
 	prefix := metadataIdKeyPrefix(nodeId)
 	hashes := make([]common.Hash, 0, 1)
-	it := db.NewIterator(prefix, nil)
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
 
 	for it.Next() {

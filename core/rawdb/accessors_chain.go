@@ -37,7 +37,7 @@ func DeleteDataHash(db DatabaseDeleter, number uint64) {
 func ReadAllHashes(db db.Iteratee, number uint64) []common.Hash {
 	prefix := headerKeyPrefix(number)
 	hashes := make([]common.Hash, 0, 1)
-	it := db.NewIterator(prefix, nil)
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
 
 	for it.Next() {
