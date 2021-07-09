@@ -11,12 +11,28 @@ type ProposalTask struct {
 type ConsensusTaskWrap struct {
 	Task         *ScheduleTask
 	SelfResource *PrepareVoteResource
-	ResultCh     chan<- *ConsensuResult
+	ResultCh     chan *ConsensuResult
 }
+func (wrap *ConsensusTaskWrap) SendResult(result *ConsensuResult) {
+	wrap.ResultCh <- result
+	close(wrap.ResultCh)
+}
+func (wrap *ConsensusTaskWrap) RecvResult() *ConsensuResult {
+	return <- wrap.ResultCh
+}
+
+
 type ScheduleTaskWrap struct {
 	Role     TaskRole
 	Task     *ScheduleTask
-	ResultCh chan<- *ScheduleResult
+	ResultCh chan *ScheduleResult
+}
+func (wrap *ScheduleTaskWrap) SendResult(result *ScheduleResult){
+	wrap.ResultCh <- result
+	close(wrap.ResultCh)
+}
+func (wrap *ScheduleTaskWrap) RecvResult() *ScheduleResult {
+	return <- wrap.ResultCh
 }
 
 //type ConsensusScheduleTaskWrap struct {

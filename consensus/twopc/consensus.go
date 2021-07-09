@@ -11,6 +11,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -29,7 +30,7 @@ type TwoPC struct {
 	p2p     p2p.P2P
 	peerSet *ctypes.PeerSet
 	state   *state
-
+	dataCenter DataCenter
 	// TODO 需要有一个地方 监听整个 共识结果 ...
 
 	// fetch tasks scheduled from `Scheduler`
@@ -43,7 +44,10 @@ type TwoPC struct {
 	// The task processing  that received someone else (taskId -> task)
 	recvTasks map[string]*types.ScheduleTask
 
-	dataCenter DataCenter
+	taskResultCh   chan *types.ConsensuResult
+	taskResultChs  map[string]chan<- *types.ConsensuResult
+	taskResultLock sync.Mutex
+
 
 	Errs []error
 }
@@ -54,14 +58,19 @@ func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, schedTaskCh <-chan *t
 		p2p:          p2p,
 		peerSet:      ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:        newState(),
+		dataCenter:   dataCenter,
 		schedTaskCh:  schedTaskCh,
 		replayTaskCh: replayTaskCh,
 		asyncCallCh:  make(chan func(), conf.PeerMsgQueueSize),
+		quit:         make(chan struct{}),
 		sendTasks:    make(map[string]*types.ScheduleTask),
 		recvTasks:    make(map[string]*types.ScheduleTask),
-		dataCenter:   dataCenter,
+
+		taskResultCh:  make(chan *types.ConsensuResult, 100),
+		taskResultChs: make(map[string]chan<- *types.ConsensuResult, 100),
+
 		Errs:         make([]error, 0),
-		quit:         make(chan struct{}),
+
 	}
 }
 
@@ -89,6 +98,7 @@ func (t *TwoPC) loop() {
 							Err:    fmt.Errorf("failed to OnPrepare 2pc, %s", err),
 						},
 					}
+					close(taskWrap.ResultCh)
 					return
 				}
 				if err := t.OnHandle(taskWrap.Task, taskWrap.ResultCh); nil != err {
@@ -97,6 +107,12 @@ func (t *TwoPC) loop() {
 			}()
 		case fn := <-t.asyncCallCh:
 			fn()
+
+		case res := <- t.taskResultCh:
+			if nil == res {
+				return
+			}
+			t.sendTaskResult(res)
 
 		case <-cleanExpireProposalTimer.C:
 			t.cleanExpireProposal()
@@ -132,59 +148,31 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.Consensu
 	})
 
 	proposalState := ctypes.NewProposalState(proposalHash, task.TaskId, ctypes.SendTaskDir, now)
-	t.state.AddProposalState(proposalState)
+	// add proposal
+	t.addProposalState(proposalState)
+	// add task
 	t.addSendTask(task)
+	// add ResultCh
+	t.addTaskResultCh(task.TaskId, result)
 
 	// Start handle task ...
-	err := t.sendPrepareMsg(task)
-	if nil != err {
+	if err := t.sendPrepareMsg(task); nil != err {
 
 		// Send consensus result
-		result <- &types.ConsensuResult{
+		t.collectTaskResult(&types.ConsensuResult{
 			TaskConsResult: &types.TaskConsResult{
 				TaskId: task.TaskId,
 				Status: types.TaskConsensusInterrupt,
 				Done:   false,
 				Err:    err,
 			},
-		}
+		})
 		// clean some invalid data
-		t.state.DelProposalState(proposalHash)
+		t.delProposalState(proposalHash)
 		t.delSendTask(task.TaskId)
 		return err
 	}
 
-	//// TODO 监听整个共识 流程的结果
-	//for {
-	//
-	//}
-
-
-
-
-
-	//else {
-	//
-	//	result <- &types.ConsensuResult{
-	//		TaskConsResult: &types.TaskConsResult{
-	//			TaskId: task.TaskId,
-	//			Status: types.TaskSucceed,
-	//			Done:   true,
-	//		},
-	//
-	//		// TODO 返回 共识完成后的 资源列表信息 ...
-	//		//OwnerResource:
-	//		//PartnersResource
-	//		//PowerSuppliersResource
-	//		//ReceiversResource
-	//
-	//	}
-
-	//	// clean the proposalState and task, when task has succeed consensus
-	//	t.state.DelProposalState(proposalHash)
-	//	t.delSendTask(task.TaskId)
-	//	return nil
-	//}
 	return nil
 }
 
@@ -294,6 +282,8 @@ func (t *TwoPC) sendPrepareMsg(task *types.ScheduleTask) error {
 
 // Handle the prepareMsg from the task pulisher peer (on subscriber)
 func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
+
+
 	proposal, err := t.fetchPrepareMsg(prepareMsg)
 	if nil != err {
 		return err
@@ -302,27 +292,33 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrProposalAlreadyProcessed
 	}
 
+	// If you have already voted then you will not vote again
+	if t.state.HasPrepareVoteState(proposal.ProposalId) {
+		return ctypes.ErrPrepareVotehadVoted
+	}
+
 	// Create the proposal state from recv.Proposal
 	proposalState := ctypes.NewProposalState(proposal.ProposalId,
 		proposal.TaskId, ctypes.RecvTaskDir, proposal.CreateAt)
 	task := proposal.ScheduleTask
-	t.state.AddProposalState(proposalState)
+	t.addProposalState(proposalState)
 	t.addRecvTask(task)
 
 	if err := t.validateRecvTask(task); nil != err {
 		// clean some data
-		t.state.DelProposalState(proposal.ProposalId)
+		t.delProposalState(proposal.ProposalId)
 		t.delRecvTask(task.TaskId)
 		return err
 	}
 
-	resultCh := make(chan *types.ScheduleResult)
-	t.replayTaskCh <- &types.ScheduleTaskWrap{
+	// Send task to Scheduler to replay sched.
+	replaySchedTask := &types.ScheduleTaskWrap{
 		Role:     types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
 		Task:     task,
-		ResultCh: resultCh,
+		ResultCh: make(chan *types.ScheduleResult),
 	}
-	result := <-resultCh
+	t.sendReplaySchedTask(replaySchedTask)
+	result := replaySchedTask.RecvResult()
 
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
