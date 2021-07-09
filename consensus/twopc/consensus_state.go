@@ -9,6 +9,8 @@ import (
 
 type state struct {
 
+	//Proposal Vote State for self Org
+	selfVoteState *ctypes.VoteState
 	// About the voting state of prepareMsg for proposal
 	prepareVotes map[common.Hash]*prepareVoteState
 	// About the voting state of confirmMsg for proposal
@@ -21,6 +23,9 @@ type state struct {
 
 func newState() *state {
 	return &state{
+		selfVoteState:    ctypes.NewVoteState(),
+		prepareVotes:     make(map[common.Hash]*prepareVoteState, 0),
+		confirmVotes:     make(map[common.Hash]*confirmVoteState, 0),
 		runningProposals: make(map[common.Hash]*ctypes.ProposalState, 0),
 		empty:            ctypes.EmptyProposalState,
 	}
@@ -95,8 +100,26 @@ func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
 	proposalState.ChangeToCommit(startTime)
 }
 
+func  (s *state) StorePrepareVoteState(vote *types.PrepareVote) {
+	s.selfVoteState.StorePrepareVote(vote)
+}
+func  (s *state) StoreConfirmVoteState(vote *types.ConfirmVote) {
+	s.selfVoteState.StoreConfirmVote(vote)
+}
 
+func  (s *state) HasPrepareVoteState(proposalId common.Hash) bool {
+	return s.selfVoteState.HasPrepareVote(proposalId)
+}
+func  (s *state) HasConfirmVoteState(proposalId common.Hash) bool {
+	return s.selfVoteState.HasConfirmVote(proposalId)
+}
 
+func  (s *state) RemovePrepareVoteState(proposalId common.Hash) {
+	s.selfVoteState.RemovePrepareVote(proposalId)
+}
+func  (s *state) RemoveConfirmVoteState(proposalId common.Hash) {
+	s.selfVoteState.RemoveConfirmVote(proposalId)
+}
 
 
 // ---------------- PrepareVote ----------------
