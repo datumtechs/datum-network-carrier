@@ -32,3 +32,7 @@ func (t *table) Delete(key []byte) error {
 func (t *table) Close() {
 	//
 }
+
+func (t *table) NewIteratorWithPrefixAndStart(prefix []byte, start []byte) Iterator {
+	return nil
+}

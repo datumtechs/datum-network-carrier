@@ -2,6 +2,8 @@
 
 package rawdb
 
+import "github.com/RosettaFlow/Carrier-Go/db"
+
 type DatabaseReader interface {
 	Has(key []byte) (bool, error)
 	Get(key []byte) ([]byte, error)
@@ -15,8 +17,13 @@ type DatabaseDeleter interface {
 	Delete(key []byte) error
 }
 
+type DatabaseIteratee interface {
+	NewIteratorWithPrefixAndStart(prefix []byte, start []byte) db.Iterator
+}
+
 type KeyValueStore interface {
 	DatabaseReader
 	DatabaseWriter
 	DatabaseDeleter
+	DatabaseIteratee
 }

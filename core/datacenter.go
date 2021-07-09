@@ -187,27 +187,23 @@ func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
 }
 
-// TODO 保存本地 资源信息
 func (dc *DataCenter) InsertLocalResource(resource *types.LocalResource) error {
-
+	rawdb.WriteLocalResource(dc.db, resource)
 	return nil
 }
-// TODO 删除本地资源信息 (根据 jobNodeId)
+
 func (dc *DataCenter) DelLocalResource(jobNodeId string) error {
-
+	rawdb.DeleteLocalResource(dc.db, jobNodeId)
 	return nil
 }
-// TODO 查询单个本地资源信息 (根据 jobNodeId)
+
 func (dc *DataCenter) GetLocalResource(jobNodeId string) (*types.LocalResource, error) {
-
-	return nil, nil
+	return rawdb.ReadLocalResource(dc.db, jobNodeId), nil
 }
+
 func (dc *DataCenter) GetLocalResourceList() (types.LocalResourceArray, error) {
-
-	// todo 需要实现, 查询本地资源信息
-	return nil, nil
+	return rawdb.ReadAllLocalResource(dc.db), nil
 }
-
 
 // InsertResource saves new resource info to the center of data.
 func (dc *DataCenter) InsertResource(resource *types.Resource) error {
