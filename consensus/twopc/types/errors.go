@@ -25,6 +25,7 @@ var (
 	ErrPrepareVoteOptionIsUnknown = errors.New("The prepareVote's option is unknown")
 	ErrPrepareVoteParamsInvalid   = errors.New("The prepareVote's params is invalid")
 	ErrPrepareVotehadVoted	 = errors.New("The prepareMsg we had voted")
+	ErrPrepareVoteRepeatedly = errors.New("The voter had voted prepareVote repeatedly")
 
 	// confirm
 	ErrConfirmMsgInTheFuture     = errors.New("The confirmMsg is in the future")
