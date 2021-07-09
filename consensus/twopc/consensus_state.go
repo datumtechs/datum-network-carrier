@@ -38,7 +38,7 @@ func (s *state) CleanExpireProposal() ([]string, []string) {
 	for id, proposal := range s.runningProposals {
 		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
 			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId", proposal.TaskId)
-			delete(s.runningProposals, id)
+			s.CleanProposalState(id)
 			if proposal.TaskDir == ctypes.SendTaskDir {
 				sendTaskIds = append(sendTaskIds, proposal.TaskId)
 			} else {
@@ -143,7 +143,13 @@ func  (s *state) RemovePrepareVoteState(proposalId common.Hash) {
 func  (s *state) RemoveConfirmVoteState(proposalId common.Hash) {
 	s.selfVoteState.RemoveConfirmVote(proposalId)
 }
-
+func (s *state) CleanProposalState(proposalId common.Hash) {
+	s.DelProposalState(proposalId)
+	s.RemovePrepareVoteState(proposalId)
+	s.RemoveConfirmVoteState(proposalId)
+	s.CleanPrepareVoteState(proposalId)
+	s.CleanConfirmVoteState(proposalId)
+}
 
 // ---------------- PrepareVote ----------------
 func (s *state) HasPrepareVoting(identityId string, proposalId common.Hash) bool {
