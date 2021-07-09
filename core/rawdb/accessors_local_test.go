@@ -2,7 +2,9 @@ package rawdb
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/db"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"strings"
 	"testing"
@@ -132,4 +134,53 @@ func TestLocalIdentity(t *testing.T) {
 	assert.Equal(t, rnode.IdentityId, "")
 	assert.Equal(t, rnode.NodeId, "")
 	assert.Equal(t, rnode.Name, "")
+}
+
+func TestLocalResource(t *testing.T) {
+	database := db.NewMemoryDatabase()
+	localResource01 := &libtypes.LocalResourceData{
+		Identity:             "01-identity",
+		NodeId:               "01-nodeId",
+		NodeName:             "01-nodename",
+		JobNodeId:            "01",
+		DataId:               "01-dataId",
+		DataStatus:           "y",
+		State:                "SUCCESS",
+		TotalMem:             111,
+		UsedMem:              222,
+		TotalProcessor:       11,
+		UsedProcessor:        33,
+		TotalBandWidth:       33,
+		UsedBandWidth:        44,
+	}
+	b, _ := localResource01.Marshal()
+	_ = b
+	WriteLocalResource(database, types.NewLocalResource(localResource01))
+
+	localResource02 := &libtypes.LocalResourceData{
+		Identity:             "01-identity",
+		NodeId:               "01-nodeId",
+		NodeName:             "01-nodename",
+		JobNodeId:            "02",
+		DataId:               "01-dataId",
+		DataStatus:           "y",
+		State:                "SUCCESS",
+		TotalMem:             111,
+		UsedMem:              222,
+		TotalProcessor:       11,
+		UsedProcessor:        33,
+		TotalBandWidth:       33,
+		UsedBandWidth:        44,
+	}
+	WriteLocalResource(database, types.NewLocalResource(localResource02))
+
+	r1 := ReadLocalResource(database, localResource01.JobNodeId)
+	assert.Equal(t, types.NewLocalResource(localResource01).Hash(), r1.Hash())
+
+	array := ReadAllLocalResource(database)
+	require.True(t, array.Len() == 2)
+
+	DeleteLocalResource(database, localResource01.JobNodeId)
+	array = ReadAllLocalResource(database)
+	require.True(t, array.Len() == 1)
 }
