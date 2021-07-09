@@ -149,6 +149,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 
+
+		// TODO 如果自己不是 power 角色, 那么就不会与这一步
 		selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
 		if nil != err {
 			log.Errorf("Failed to election internal power resource, err: %s", err)
