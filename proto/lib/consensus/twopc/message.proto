@@ -33,10 +33,11 @@ message PrepareVote {
 message ConfirmMsg {
 
     bytes                        proposal_id = 1;            // 2pc 提案Id
-    uint64                       epoch       = 2;                  // confirm 阶段的第几轮 Msg
-    TaskOrganizationIdentityInfo owner       = 3;                  // 提案人信息
-    uint64                       create_at   = 4;              // ConfirmMsg 创建的时间
-    bytes                        sign        = 5;                   // ConfirmMsg 发起者签名
+    bytes                        task_role   = 2;
+    uint64                       epoch       = 3;                  // confirm 阶段的第几轮 Msg
+    TaskOrganizationIdentityInfo owner       = 4;                  // 提案人信息
+    uint64                       create_at   = 5;              // ConfirmMsg 创建的时间
+    bytes                        sign        = 6;                   // ConfirmMsg 发起者签名
 
 }
 
@@ -55,9 +56,10 @@ message ConfirmVote {
 // 触发任务执行消息
 message CommitMsg {
     bytes                        proposal_id = 1;            // 2pc 提案Id
-    TaskOrganizationIdentityInfo owner       = 2;                  // 提案人信息
-    uint64                       create_at   = 3;              // CommitMsg 创建的时间
-    bytes                        sign        = 4;                   // CommitMsg 发起者签名
+    bytes                        task_role   = 2;
+    TaskOrganizationIdentityInfo owner       = 3;                  // 提案人信息
+    uint64                       create_at   = 4;              // CommitMsg 创建的时间
+    bytes                        sign        = 5;                   // CommitMsg 发起者签名
 }
 
 message TaskOption {

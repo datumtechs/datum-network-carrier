@@ -61,6 +61,29 @@ func (s *state) HasNotProposal(proposalId common.Hash) bool {
 	return !s.HasProposal(proposalId)
 }
 
+
+func (s *state) IsRecvTaskOnProposalState(proposalId common.Hash) bool {
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return false
+	}
+	if proposalState.TaskDir == ctypes.RecvTaskDir {
+		return true
+	}
+	return false
+}
+
+func (s *state) IsSendTaskOnProposalState(proposalId common.Hash) bool {
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return false
+	}
+	if proposalState.TaskDir == ctypes.SendTaskDir {
+		return true
+	}
+	return false
+}
+
 func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
@@ -110,8 +133,8 @@ func  (s *state) StoreConfirmVoteState(vote *types.ConfirmVote) {
 func  (s *state) HasPrepareVoteState(proposalId common.Hash) bool {
 	return s.selfVoteState.HasPrepareVote(proposalId)
 }
-func  (s *state) HasConfirmVoteState(proposalId common.Hash) bool {
-	return s.selfVoteState.HasConfirmVote(proposalId)
+func  (s *state) HasConfirmVoteState(proposalId common.Hash, epoch uint64) bool {
+	return s.selfVoteState.HasConfirmVote(proposalId, epoch)
 }
 
 func  (s *state) RemovePrepareVoteState(proposalId common.Hash) {
