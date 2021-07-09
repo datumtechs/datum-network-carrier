@@ -113,7 +113,7 @@ func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
 	heap.Push(sche.queue, bullet) //
 }
 func (sche *SchedulerStarveFIFO) trySchedule() error {
-	sche.inceaseTaskTerm()
+	sche.increaseTaskTerm()
 
 	var bullet *types.TaskBullet
 
@@ -353,7 +353,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 	return nil
 }
 
-func (sche *SchedulerStarveFIFO) inceaseTaskTerm() {
+func (sche *SchedulerStarveFIFO) increaseTaskTerm() {
 	// handle starve queue
 	sche.starveQueue.IncreaseTerm()
 
