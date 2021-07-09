@@ -1,6 +1,9 @@
 package types
 
-import "github.com/RosettaFlow/Carrier-Go/common"
+import (
+	"github.com/RosettaFlow/Carrier-Go/common"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+)
 
 type ConsensusEngineType string
 
@@ -25,6 +28,19 @@ type PrepareVoteResource struct {
 	Port string
 }
 
+func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
+	return &pb.TaskPeerInfo{
+		Ip:   []byte(peerInfo.Ip),
+		Port: []byte(peerInfo.Port),
+	}
+}
+func FetchTaskPeerInfo(peerInfo *pb.TaskPeerInfo) *PrepareVoteResource {
+	return &PrepareVoteResource{
+		Ip: string(peerInfo.Ip),
+		Port: string(peerInfo.Port),
+	}
+}
+
 type PrepareVote struct {
 	ProposalId common.Hash
 	TaskRole   TaskRole
@@ -33,6 +49,37 @@ type PrepareVote struct {
 	PeerInfo   *PrepareVoteResource
 	CreateAt   uint64
 	Sign       []byte
+}
+
+func ConvertPrepareVote(vote *PrepareVote) *pb.PrepareVote {
+	return &pb.PrepareVote{
+		ProposalId: vote.ProposalId.Bytes(),
+		TaskRole:   vote.TaskRole.Bytes(),
+		Owner: &pb.TaskOrganizationIdentityInfo{
+			Name:       []byte(vote.Owner.Name),
+			NodeId:     []byte(vote.Owner.NodeId),
+			IdentityId: []byte(vote.Owner.IdentityId),
+		},
+		VoteOption: vote.VoteOption.Bytes(),
+		PeerInfo:   ConvertTaskPeerInfo(vote.PeerInfo),
+		CreateAt:   vote.CreateAt,
+		Sign:       vote.Sign,
+	}
+}
+func FetchPrepareVote(vote *pb.PrepareVote) *PrepareVote {
+	return &PrepareVote{
+		ProposalId: common.BytesToHash(vote.ProposalId),
+		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
+		Owner: &NodeAlias{
+			Name:       string(vote.Owner.Name),
+			NodeId:     string(vote.Owner.NodeId),
+			IdentityId: string(vote.Owner.IdentityId),
+		},
+		VoteOption: VoteOptionFromBytes(vote.VoteOption),
+		PeerInfo: FetchTaskPeerInfo(vote.PeerInfo),
+		CreateAt:   vote.CreateAt,
+		Sign:       vote.Sign,
+	}
 }
 
 type ConfirmVote struct {
