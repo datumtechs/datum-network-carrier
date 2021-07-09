@@ -4,7 +4,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
-	"github.com/syndtr/goleveldb/leveldb/iterator"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/util"
 	"sync"
@@ -78,12 +77,17 @@ func (db *LDBDatabase) Delete(key []byte) error {
 	return db.db.Delete(key, nil)
 }
 
-func (db *LDBDatabase) NewIterator() iterator.Iterator {
+func (db *LDBDatabase) NewIterator() Iterator {
 	return db.db.NewIterator(nil, nil)
 }
 
 // NewIteratorWithPrefix returns a iterator to iterate over subset of database content with a particular prefix.
-func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) iterator.Iterator {
+func (db *LDBDatabase) NewIteratorWithPrefix(prefix []byte) Iterator {
+	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
+}
+
+// NewIteratorWithPrefix returns a iterator to iterate over subset of database content with a particular prefix.
+func (db *LDBDatabase) NewIteratorWithPrefixAndStart(prefix []byte, start []byte) Iterator {
 	return db.db.NewIterator(util.BytesPrefix(prefix), nil)
 }
 

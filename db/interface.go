@@ -19,6 +19,7 @@ type Database interface {
 	Has(key []byte) (bool, error)
 	Close()
 	NewBatch() Batch
+	Iteratee
 }
 
 // Batch cannot be used concurrently.
