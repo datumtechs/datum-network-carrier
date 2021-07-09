@@ -2,9 +2,12 @@ package grpclient
 
 import (
 	"context"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"sync"
+	"time"
 )
 
 type DataNodeClient struct {
@@ -12,24 +15,41 @@ type DataNodeClient struct {
 	cancel context.CancelFunc
 	conn   *grpc.ClientConn
 	addr   string
-	peerId peer.ID
+	nodeId string
+	connMu sync.RWMutex
 
 	//TODO: define some client...
+	dataProviderClient datasvc.DataProviderClient
 }
 
-func NewDataNodeClient(ctx context.Context, addr string, peerId string) (*DataNodeClient, error) {
+func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	client := &DataNodeClient{
+		ctx:    ctx,
+		cancel: cancel,
+		addr:   addr,
+		nodeId: nodeId,
+	}
+	// try to connect grpc server.
+	runutil.RunEvery(client.ctx, 2*time.Second, func() {
+		client.connecting()
+	})
+	return client, nil
+}
+
+func NewDataNodeClientWithConn(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	conn, err := dialContext(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
-	pid, _ := peer.Decode(peerId)
 	return &DataNodeClient{
-		ctx:    ctx,
-		cancel: cancel,
-		conn:   conn,
-		addr:   addr,
-		peerId: pid,
+		ctx:                ctx,
+		cancel:             cancel,
+		conn:               conn,
+		addr:               addr,
+		nodeId:             nodeId,
+		dataProviderClient: datasvc.NewDataProviderClient(conn),
 	}, nil
 }
 
@@ -40,10 +60,23 @@ func (c *DataNodeClient) Close() {
 	c.conn.Close()
 }
 
+func (c *DataNodeClient) connecting() {
+	if c.IsConnected() {
+		return
+	}
+	c.connMu.Lock()
+	conn, err := dialContext(c.ctx, c.addr)
+	c.connMu.Unlock()
+	c.dataProviderClient = datasvc.NewDataProviderClient(conn)
+	if err != nil {
+		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
+	}
+	c.conn = conn
+}
+
 func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
 	return c.conn
 }
-
 
 func (c *DataNodeClient) ConnStatus() connectivity.State {
 	return c.conn.GetState()
@@ -67,4 +100,32 @@ func (c *DataNodeClient) Reconnect() error {
 		c.conn = conn
 	}
 	return nil
+}
+
+func (c *DataNodeClient) GetStatus(ctx context.Context) (*datasvc.GetStatusReply, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) ListData(ctx context.Context) (*datasvc.ListDataReply, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) UploadData(ctx context.Context) (datasvc.DataProvider_UploadDataClient, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) BatchUpload(ctx context.Context) (datasvc.DataProvider_BatchUploadClient, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) DownloadData(ctx context.Context, in *datasvc.DownloadRequest) (datasvc.DataProvider_DownloadDataClient, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) DeleteData(ctx context.Context, in *datasvc.DownloadRequest) (*datasvc.UploadReply, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) SendSharesData(ctx context.Context, in *datasvc.SendSharesDataRequest) (*datasvc.SendSharesDataReply, error) {
+	return nil, nil
 }
