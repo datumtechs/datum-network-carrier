@@ -187,6 +187,28 @@ func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
 }
 
+// TODO 保存本地 资源信息
+func (dc *DataCenter) InsertLocalResource(resource *types.LocalResource) error {
+
+	return nil
+}
+// TODO 删除本地资源信息 (根据 jobNodeId)
+func (dc *DataCenter) DelLocalResource(jobNodeId string) error {
+
+	return nil
+}
+// TODO 查询单个本地资源信息 (根据 jobNodeId)
+func (dc *DataCenter) GetLocalResource(jobNodeId string) (*types.LocalResource, error) {
+
+	return nil, nil
+}
+func (dc *DataCenter) GetLocalResourceList() (types.LocalResourceArray, error) {
+
+	// todo 需要实现, 查询本地资源信息
+	return nil, nil
+}
+
+
 // InsertResource saves new resource info to the center of data.
 func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	response, err := dc.client.SaveResource(dc.ctx, types.NewPublishPowerRequest(resource))
@@ -199,18 +221,12 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	}
 	return nil
 }
-
+// todo nodeId 是 owner 里面的 nodeId ? 是否可以换成 IdentityId ?
 func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
 	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByNodeId(dc.ctx, &api.PowerSummaryByNodeIdRequest{
 		NodeId: nodeId,
 	})
 	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
-}
-
-func (dc *DataCenter) GetLocalResourceList() (types.ResourceArray, error) {
-
-	// todo 需要实现, 查询本地资源信息
-	return nil, nil
 }
 
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {

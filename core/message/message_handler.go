@@ -281,6 +281,9 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 	errs := make([]string, 0)
 	for _, power := range powerMsgs {
+		// TODO 还需要存储本地的 资源信息
+
+		// 发布到全网
 		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
 			Identity: power.OwnerIdentityId(),
 			NodeId:   power.OwnerNodeId(),
