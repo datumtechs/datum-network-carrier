@@ -3,7 +3,7 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"sync"
@@ -19,7 +19,7 @@ type DataNodeClient struct {
 	connMu sync.RWMutex
 
 	//TODO: define some client...
-	dataProviderClient fighter.DataProviderClient
+	dataProviderClient datasvc.DataProviderClient
 }
 
 func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
@@ -49,7 +49,7 @@ func NewDataNodeClientWithConn(ctx context.Context, addr string, nodeId string) 
 		conn:               conn,
 		addr:               addr,
 		nodeId:             nodeId,
-		dataProviderClient: fighter.NewDataProviderClient(conn),
+		dataProviderClient: datasvc.NewDataProviderClient(conn),
 	}, nil
 }
 
@@ -67,7 +67,7 @@ func (c *DataNodeClient) connecting() {
 	c.connMu.Lock()
 	conn, err := dialContext(c.ctx, c.addr)
 	c.connMu.Unlock()
-	c.dataProviderClient = fighter.NewDataProviderClient(conn)
+	c.dataProviderClient = datasvc.NewDataProviderClient(conn)
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
 	}
@@ -102,30 +102,30 @@ func (c *DataNodeClient) Reconnect() error {
 	return nil
 }
 
-func (c *DataNodeClient) GetStatus(ctx context.Context) (*fighter.GetStatusReply, error) {
+func (c *DataNodeClient) GetStatus(ctx context.Context) (*datasvc.GetStatusReply, error) {
 	return nil, nil
 }
 
-func (c *DataNodeClient) ListData(ctx context.Context) (*fighter.ListDataReply, error) {
+func (c *DataNodeClient) ListData(ctx context.Context) (*datasvc.ListDataReply, error) {
 	return nil, nil
 }
 
-func (c *DataNodeClient) UploadData(ctx context.Context) (fighter.DataProvider_UploadDataClient, error) {
+func (c *DataNodeClient) UploadData(ctx context.Context) (datasvc.DataProvider_UploadDataClient, error) {
 	return nil, nil
 }
 
-func (c *DataNodeClient) BatchUpload(ctx context.Context) (fighter.DataProvider_BatchUploadClient, error) {
+func (c *DataNodeClient) BatchUpload(ctx context.Context) (datasvc.DataProvider_BatchUploadClient, error) {
 	return nil, nil
 }
 
-func (c *DataNodeClient) DownloadData(ctx context.Context, in *fighter.DownloadRequest) (fighter.DataProvider_DownloadDataClient, error) {
+func (c *DataNodeClient) DownloadData(ctx context.Context, in *datasvc.DownloadRequest) (datasvc.DataProvider_DownloadDataClient, error) {
 	return nil, nil
 }
 
-func (c *DataNodeClient) DeleteData(ctx context.Context, in *fighter.DownloadRequest) (*fighter.UploadReply, error) {
+func (c *DataNodeClient) DeleteData(ctx context.Context, in *datasvc.DownloadRequest) (*datasvc.UploadReply, error) {
 	return nil, nil
 }
 
-func (c *DataNodeClient) SendSharesData(ctx context.Context, in *fighter.SendSharesDataRequest) (*fighter.SendSharesDataReply, error) {
+func (c *DataNodeClient) SendSharesData(ctx context.Context, in *datasvc.SendSharesDataRequest) (*datasvc.SendSharesDataReply, error) {
 	return nil, nil
 }
