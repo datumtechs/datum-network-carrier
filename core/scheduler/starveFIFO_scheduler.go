@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	ReschedMaxCount             = 6
-	StarveTerm                  = 6
+	ReschedMaxCount             = 8
+	StarveTerm                  = 3
 	defaultScheduleTaskInterval = 20 * time.Millisecond
 	electionOrgCondition        = 10000
 	electionLocalSeed           = 2
