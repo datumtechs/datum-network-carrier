@@ -2,9 +2,11 @@ package grpclient
 
 import (
 	"context"
-	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"sync"
+	"time"
 )
 
 type DataNodeClient struct {
@@ -12,24 +14,39 @@ type DataNodeClient struct {
 	cancel context.CancelFunc
 	conn   *grpc.ClientConn
 	addr   string
-	peerId peer.ID
+	nodeId string
+	connMu sync.RWMutex
 
 	//TODO: define some client...
 }
 
-func NewDataNodeClient(ctx context.Context, addr string, peerId string) (*DataNodeClient, error) {
+func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	client := &DataNodeClient{
+		ctx:    ctx,
+		cancel: cancel,
+		addr:   addr,
+		nodeId: nodeId,
+	}
+	// try to connect grpc server.
+	runutil.RunEvery(client.ctx, 2 * time.Second, func() {
+		client.connecting()
+	})
+	return client, nil
+}
+
+func NewDataNodeClientWithConn(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	conn, err := dialContext(ctx, addr)
 	if err != nil {
 		return nil, err
 	}
-	pid, _ := peer.Decode(peerId)
 	return &DataNodeClient{
 		ctx:    ctx,
 		cancel: cancel,
 		conn:   conn,
 		addr:   addr,
-		peerId: pid,
+		nodeId: nodeId,
 	}, nil
 }
 
@@ -38,6 +55,19 @@ func (c *DataNodeClient) Close() {
 		c.cancel()
 	}
 	c.conn.Close()
+}
+
+func (c *DataNodeClient) connecting() {
+	if c.IsConnected() {
+		return
+	}
+	c.connMu.Lock()
+	conn, err := dialContext(c.ctx, c.addr)
+	c.connMu.Unlock()
+	if err != nil {
+		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
+	}
+	c.conn = conn
 }
 
 func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
