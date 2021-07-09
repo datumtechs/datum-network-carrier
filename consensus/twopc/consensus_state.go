@@ -123,6 +123,13 @@ func  (s *state) RemoveConfirmVoteState(proposalId common.Hash) {
 
 
 // ---------------- PrepareVote ----------------
+func (s *state) HasPrepareVoting(identityId string, proposalId common.Hash) bool {
+	state, ok := s.prepareVotes[proposalId]
+	if !ok {
+		return false
+	}
+	return state.hasPrepareVoting(identityId)
+}
 func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 	state, ok := s.prepareVotes[vote.ProposalId]
 	if !ok {
@@ -178,6 +185,13 @@ func (s *state) GetTaskResulterPrepareTotalVoteCount(proposalId common.Hash) uin
 }
 
 // ---------------- ConfirmVote ----------------
+func (s *state) HasConfirmVoting(identityId string, proposalId common.Hash) bool {
+	state, ok := s.confirmVotes[proposalId]
+	if !ok {
+		return false
+	}
+	return state.hasConfirmVoting(identityId)
+}
 func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	state, ok := s.confirmVotes[vote.ProposalId]
 	if !ok {
@@ -279,6 +293,14 @@ func (st *prepareVoteState) voteYesCount(role types.TaskRole) uint32 {
 		return 0
 	}
 }
+func (st *prepareVoteState) hasPrepareVoting(identityId string) bool {
+	for _, vote := range st.votes {
+		if vote.Owner.IdentityId == identityId {
+			return true
+		}
+	}
+	return false
+}
 
 // about confirmVote
 type confirmVoteState struct {
@@ -326,4 +348,12 @@ func (st *confirmVoteState) voteTotalCount(role types.TaskRole) uint32 {
 	} else {
 		return 0
 	}
+}
+func (st *confirmVoteState) hasConfirmVoting(identityId string) bool {
+	for _, vote := range st.votes {
+		if vote.Owner.IdentityId == identityId {
+			return true
+		}
+	}
+	return false
 }
