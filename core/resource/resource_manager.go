@@ -13,6 +13,10 @@ const (
 )
 
 type CarrierDB interface {
+	InsertLocalResource(resource *types.LocalResource) error
+	DelLocalResource(jobNodeId string) error
+	GetLocalResource(jobNodeId string) (*types.LocalResource, error)
+	GetLocalResourceList() (types.LocalResourceArray, error)
 	InsertResource(resource *types.Resource) error
 	//GetResourceByDataId(powerId string) (*types.Resource, error)
 	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
