@@ -3,6 +3,7 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"sync"
@@ -18,6 +19,7 @@ type DataNodeClient struct {
 	connMu sync.RWMutex
 
 	//TODO: define some client...
+	dataProviderClient fighter.DataProviderClient
 }
 
 func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
@@ -29,7 +31,7 @@ func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNo
 		nodeId: nodeId,
 	}
 	// try to connect grpc server.
-	runutil.RunEvery(client.ctx, 2 * time.Second, func() {
+	runutil.RunEvery(client.ctx, 2*time.Second, func() {
 		client.connecting()
 	})
 	return client, nil
@@ -42,11 +44,12 @@ func NewDataNodeClientWithConn(ctx context.Context, addr string, nodeId string) 
 		return nil, err
 	}
 	return &DataNodeClient{
-		ctx:    ctx,
-		cancel: cancel,
-		conn:   conn,
-		addr:   addr,
-		nodeId: nodeId,
+		ctx:                ctx,
+		cancel:             cancel,
+		conn:               conn,
+		addr:               addr,
+		nodeId:             nodeId,
+		dataProviderClient: fighter.NewDataProviderClient(conn),
 	}, nil
 }
 
@@ -64,6 +67,7 @@ func (c *DataNodeClient) connecting() {
 	c.connMu.Lock()
 	conn, err := dialContext(c.ctx, c.addr)
 	c.connMu.Unlock()
+	c.dataProviderClient = fighter.NewDataProviderClient(conn)
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
 	}
@@ -73,7 +77,6 @@ func (c *DataNodeClient) connecting() {
 func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
 	return c.conn
 }
-
 
 func (c *DataNodeClient) ConnStatus() connectivity.State {
 	return c.conn.GetState()
@@ -97,4 +100,32 @@ func (c *DataNodeClient) Reconnect() error {
 		c.conn = conn
 	}
 	return nil
+}
+
+func (c *DataNodeClient) GetStatus(ctx context.Context) (*fighter.GetStatusReply, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) ListData(ctx context.Context) (*fighter.ListDataReply, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) UploadData(ctx context.Context) (fighter.DataProvider_UploadDataClient, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) BatchUpload(ctx context.Context) (fighter.DataProvider_BatchUploadClient, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) DownloadData(ctx context.Context, in *fighter.DownloadRequest) (fighter.DataProvider_DownloadDataClient, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) DeleteData(ctx context.Context, in *fighter.DownloadRequest) (*fighter.UploadReply, error) {
+	return nil, nil
+}
+
+func (c *DataNodeClient) SendSharesData(ctx context.Context, in *fighter.SendSharesDataRequest) (*fighter.SendSharesDataReply, error) {
+	return nil, nil
 }

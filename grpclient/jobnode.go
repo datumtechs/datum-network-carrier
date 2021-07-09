@@ -3,6 +3,7 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"sync"
@@ -18,6 +19,7 @@ type JobNodeClient struct {
 	connMu sync.RWMutex
 
 	//TODO: define some client...
+	computeProviderClient fighter.ComputeProviderClient
 }
 
 func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
@@ -29,7 +31,7 @@ func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNode
 		nodeId: nodeId,
 	}
 	// try to connect grpc server.
-	runutil.RunEvery(client.ctx, 2 * time.Second, func() {
+	runutil.RunEvery(client.ctx, 2*time.Second, func() {
 		client.connecting()
 	})
 	return client, nil
@@ -42,11 +44,12 @@ func NewJobNodeClientWithConn(ctx context.Context, addr string, nodeId string) (
 		return nil, err
 	}
 	return &JobNodeClient{
-		ctx:    ctx,
-		cancel: cancel,
-		conn:   conn,
-		addr:   addr,
-		nodeId: nodeId,
+		ctx:                   ctx,
+		cancel:                cancel,
+		conn:                  conn,
+		addr:                  addr,
+		nodeId:                nodeId,
+		computeProviderClient: fighter.NewComputeProviderClient(conn),
 	}, nil
 }
 
@@ -64,6 +67,8 @@ func (c *JobNodeClient) connecting() {
 	c.connMu.Lock()
 	conn, err := dialContext(c.ctx, c.addr)
 	c.connMu.Unlock()
+	// set client with conn for computeProviderClient
+	c.computeProviderClient = fighter.NewComputeProviderClient(conn)
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
 	}
@@ -96,4 +101,20 @@ func (c *JobNodeClient) Reconnect() error {
 		c.conn = conn
 	}
 	return nil
+}
+
+func (c *JobNodeClient) GetStatus(ctx context.Context) (*fighter.GetStatusReply, error) {
+	return nil, nil
+}
+
+func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*fighter.GetTaskDetailsReply, error) {
+	return nil, nil
+}
+
+func (c *JobNodeClient) UploadShard(ctx context.Context) (fighter.ComputeProvider_UploadShardClient, error){
+	return nil, nil
+}
+
+func (c *JobNodeClient) HandleTaskReadyGo(ctx context.Context, in *fighter.TaskReadyGoReq) (*fighter.UploadShardReply, error) {
+	return nil, nil
 }
