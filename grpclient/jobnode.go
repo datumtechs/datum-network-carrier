@@ -3,7 +3,7 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"sync"
@@ -19,7 +19,7 @@ type JobNodeClient struct {
 	connMu sync.RWMutex
 
 	//TODO: define some client...
-	computeProviderClient fighter.ComputeProviderClient
+	computeProviderClient computesvc.ComputeProviderClient
 }
 
 func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
@@ -49,7 +49,7 @@ func NewJobNodeClientWithConn(ctx context.Context, addr string, nodeId string) (
 		conn:                  conn,
 		addr:                  addr,
 		nodeId:                nodeId,
-		computeProviderClient: fighter.NewComputeProviderClient(conn),
+		computeProviderClient: computesvc.NewComputeProviderClient(conn),
 	}, nil
 }
 
@@ -68,7 +68,7 @@ func (c *JobNodeClient) connecting() {
 	conn, err := dialContext(c.ctx, c.addr)
 	c.connMu.Unlock()
 	// set client with conn for computeProviderClient
-	c.computeProviderClient = fighter.NewComputeProviderClient(conn)
+	c.computeProviderClient = computesvc.NewComputeProviderClient(conn)
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
 	}
@@ -103,18 +103,18 @@ func (c *JobNodeClient) Reconnect() error {
 	return nil
 }
 
-func (c *JobNodeClient) GetStatus(ctx context.Context) (*fighter.GetStatusReply, error) {
+func (c *JobNodeClient) GetStatus(ctx context.Context) (*computesvc.GetStatusReply, error) {
 	return nil, nil
 }
 
-func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*fighter.GetTaskDetailsReply, error) {
+func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*computesvc.GetTaskDetailsReply, error) {
 	return nil, nil
 }
 
-func (c *JobNodeClient) UploadShard(ctx context.Context) (fighter.ComputeProvider_UploadShardClient, error){
+func (c *JobNodeClient) UploadShard(ctx context.Context) (computesvc.ComputeProvider_UploadShardClient, error){
 	return nil, nil
 }
 
-func (c *JobNodeClient) HandleTaskReadyGo(ctx context.Context, in *fighter.TaskReadyGoReq) (*fighter.UploadShardReply, error) {
+func (c *JobNodeClient) HandleTaskReadyGo(ctx context.Context, in *computesvc.TaskReadyGoReq) (*computesvc.UploadShardReply, error) {
 	return nil, nil
 }
