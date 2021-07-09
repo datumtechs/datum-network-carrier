@@ -3,6 +3,7 @@
 package rawdb
 
 import (
+	"bytes"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -485,7 +486,7 @@ func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) 
 
 // ReadTaskEvent retrieves the evengine of task with the corresponding taskId.
 func ReadTaskEvent(db DatabaseReader, taskId string) []*types.TaskEventInfo {
-	blob, err := db.Get(taskEventKey)
+	blob, err := db.Get(taskEventKey(taskId))
 	if err != nil {
 		return nil
 	}
@@ -508,33 +509,40 @@ func ReadTaskEvent(db DatabaseReader, taskId string) []*types.TaskEventInfo {
 	return resEvent
 }
 
-// ReadAllTaskEvents retrieves all the task evengine in the database.
-// All returned task events are sorted in reverse.
-func ReadAllTaskEvents(db DatabaseReader) []*types.TaskEventInfo {
-	blob, err := db.Get(taskEventKey)
-	if err != nil {
-		return nil
+// ReadAllTaskEvent retrieves the task event with all.
+func ReadAllTaskEvents(db KeyValueStore) []*types.TaskEventInfo {
+	prefix := taskEventPrefix
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+	result := make([]*types.TaskEventInfo, 0)
+
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			blob, err := db.Get(key)
+			if err != nil {
+				continue
+			}
+			var events dbtype.TaskEventArrayPB
+			if err := events.Unmarshal(blob); err != nil {
+				continue
+			}
+			for _, e := range events.GetTaskEventList() {
+				result = append(result, &types.TaskEventInfo{
+					Type:       e.GetEventType(),
+					Identity:   e.GetIdentity(),
+					TaskId:     e.GetTaskId(),
+					Content:    e.GetEventContent(),
+					CreateTime: e.GetEventAt(),
+				})
+			}
+		}
 	}
-	var taskEvents dbtype.TaskEventArrayPB
-	if err := taskEvents.Unmarshal(blob); err != nil {
-		return nil
-	}
-	var events []*types.TaskEventInfo
-	for _, e := range taskEvents.GetTaskEventList() {
-		events = append(events, &types.TaskEventInfo{
-			Type:       e.GetEventType(),
-			Identity:   e.GetIdentity(),
-			TaskId:     e.GetTaskId(),
-			Content:    e.GetEventContent(),
-			CreateTime: e.GetEventAt(),
-		})
-	}
-	return events
+	return result
 }
 
 // WriteTaskEvent serializes the task evengine into the database.
 func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
-	blob, err := db.Get(taskEventKey)
+	blob, err := db.Get(taskEventKey(taskEvent.TaskId))
 	if err != nil {
 		log.WithError(err).Warn("Failed to load old task evengine")
 	}
@@ -564,14 +572,14 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 	if err != nil {
 		log.WithError(err).Fatal("Failed to encode task evengine")
 	}
-	if err := db.Put(taskEventKey, data); err != nil {
+	if err := db.Put(taskEventKey(taskEvent.TaskId), data); err != nil {
 		log.WithError(err).Fatal("Failed to write task evengine")
 	}
 }
 
 // DeleteTaskEvent deletes the task evengine from the database with a special taskId
 func DeleteTaskEvent(db KeyValueStore, taskId string) {
-	blob, err := db.Get(taskEventKey)
+	blob, err := db.Get(taskEventKey(taskId))
 	if err != nil {
 		log.Warn("Failed to load old task evengine", "error", err)
 	}
@@ -591,7 +599,63 @@ func DeleteTaskEvent(db KeyValueStore, taskId string) {
 	if err != nil {
 		log.WithError(err).Fatal("Failed to encode task events")
 	}
-	if err := db.Put(taskEventKey, data); err != nil {
+	if err := db.Put(taskEventKey(taskId), data); err != nil {
 		log.WithError(err).Fatal("Failed to write task events")
+	}
+}
+
+// ReadLocalResource retrieves the resource of local with the corresponding jobNodeId.
+func ReadLocalResource(db DatabaseReader, jobNodeId string) *types.LocalResource {
+	blob, err := db.Get(localResourceKey(jobNodeId))
+	if err != nil {
+		log.WithError(err).Fatal("Failed to read local resource")
+		return nil
+	}
+	localResource := new(libtypes.LocalResourceData)
+	if err := localResource.Unmarshal(blob); err != nil {
+		log.WithError(err).Fatal("Failed to unmarshal local resource")
+		return nil
+	}
+	return types.NewLocalResource(localResource)
+}
+
+// ReadAllLocalResource retrieves the local resource with all.
+func ReadAllLocalResource(db KeyValueStore) types.LocalResourceArray {
+	prefix := localResourcePrefix
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+	array := make(types.LocalResourceArray, 0)
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			blob, err := db.Get(key)
+			if err != nil {
+				continue
+			}
+			localResource := new(libtypes.LocalResourceData)
+			if err := localResource.Unmarshal(blob); err != nil {
+				continue
+			}
+			array = append(array, types.NewLocalResource(localResource))
+		}
+	}
+	return array
+}
+
+// WriteLocalResource serializes the local resource into the database.
+func WriteLocalResource(db KeyValueStore, localResource *types.LocalResource) {
+	buffer := new(bytes.Buffer)
+	err := localResource.EncodePb(buffer)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode local resource")
+	}
+	if err := db.Put(localResourceKey(localResource.GetJobNodeId()), buffer.Bytes()); err != nil {
+		log.WithError(err).Fatal("Failed to write task evengine")
+	}
+}
+
+// DeleteLocalResource deletes the local resource from the database with a special jobNodeId
+func DeleteLocalResource(db KeyValueStore, jobNodeId string) {
+	if err := db.Delete(localResourceKey(jobNodeId)); err != nil {
+		log.WithError(err).Fatal("Failed to delete local resource")
 	}
 }

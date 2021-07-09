@@ -91,6 +91,7 @@ func NewLocalResource(data *libTypes.LocalResourceData) *LocalResource {
 	return &LocalResource{data: data}
 }
 func (m *LocalResource) GetIdentityId() string { return m.data.Identity }
+func (m *LocalResource) GetJobNodeId() string { return m.data.JobNodeId }
 func (m *LocalResource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()
 	if err == nil {
