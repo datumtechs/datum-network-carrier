@@ -36,7 +36,7 @@ func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
 }
 func FetchTaskPeerInfo(peerInfo *pb.TaskPeerInfo) *PrepareVoteResource {
 	return &PrepareVoteResource{
-		Ip: string(peerInfo.Ip),
+		Ip:   string(peerInfo.Ip),
 		Port: string(peerInfo.Port),
 	}
 }
@@ -76,10 +76,19 @@ func FetchPrepareVote(vote *pb.PrepareVote) *PrepareVote {
 			IdentityId: string(vote.Owner.IdentityId),
 		},
 		VoteOption: VoteOptionFromBytes(vote.VoteOption),
-		PeerInfo: FetchTaskPeerInfo(vote.PeerInfo),
+		PeerInfo:   FetchTaskPeerInfo(vote.PeerInfo),
 		CreateAt:   vote.CreateAt,
 		Sign:       vote.Sign,
 	}
+}
+
+type ConfirmMsg struct {
+	ProposalId common.Hash
+	TaskRole   TaskRole
+	Epoch      uint64
+	Owner      *NodeAlias
+	CreateAt   uint64
+	Sign       []byte
 }
 
 type ConfirmVote struct {
@@ -90,4 +99,35 @@ type ConfirmVote struct {
 	VoteOption VoteOption
 	CreateAt   uint64
 	Sign       []byte
+}
+
+func ConvertConfirmVote(vote *ConfirmVote) *pb.ConfirmVote {
+	return &pb.ConfirmVote{
+		ProposalId: vote.ProposalId.Bytes(),
+		Epoch:      vote.Epoch,
+		TaskRole:   vote.TaskRole.Bytes(),
+		Owner: &pb.TaskOrganizationIdentityInfo{
+			Name:       []byte(vote.Owner.Name),
+			NodeId:     []byte(vote.Owner.NodeId),
+			IdentityId: []byte(vote.Owner.IdentityId),
+		},
+		VoteOption: vote.VoteOption.Bytes(),
+		CreateAt:   vote.CreateAt,
+		Sign:       vote.Sign,
+	}
+}
+func FetchConfirmVote(vote *pb.ConfirmVote) *ConfirmVote {
+	return &ConfirmVote{
+		ProposalId: common.BytesToHash(vote.ProposalId),
+		Epoch:      vote.Epoch,
+		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
+		Owner: &NodeAlias{
+			Name:       string(vote.Owner.Name),
+			NodeId:     string(vote.Owner.NodeId),
+			IdentityId: string(vote.Owner.IdentityId),
+		},
+		VoteOption: VoteOptionFromBytes(vote.VoteOption),
+		CreateAt:   vote.CreateAt,
+		Sign:       vote.Sign,
+	}
 }
