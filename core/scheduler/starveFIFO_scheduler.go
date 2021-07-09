@@ -131,6 +131,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 			bullet.IncreaseResched()
 			if bullet.Resched > ReschedMaxCount {
+				// TODO 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
 				log.Error("The number of times the task has been rescheduled exceeds the expected threshold", "taskId", bullet.TaskId)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type,
 					task.TaskId, task.Onwer().IdentityId, fmt.Sprintf(
