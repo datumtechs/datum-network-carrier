@@ -129,6 +129,13 @@ var (
 )
 
 type ProposalTaskDir uint8
+func (dir ProposalTaskDir) String() string {
+	if dir == SendTaskDir {
+		return "sendTask"
+	} else {
+		return "recvTask"
+	}
+}
 type ProposalState struct {
 	ProposalId         common.Hash
 	TaskDir            ProposalTaskDir
@@ -190,8 +197,14 @@ func (pstate *ProposalState) IsEmpty() bool {
 }
 func (pstate *ProposalState) GetConfirmEpoch() ConfirmEpoch { return pstate.ConfirmEpoch }
 func (pstate *ProposalState) IsPrepareTimeout() bool {
+
+	if !pstate.IsPreparePeriod() {
+		return true
+	}
+
 	now := uint64(time.Now().UnixNano())
 	duration := uint64(PrepareMsgVotingTimeout.Nanoseconds())
+
 	// Due to the time boundary problem, the value `==`
 	if pstate.PeriodNum == PeriodPrepare && (pstate.PeriodStartTime-now) >= duration {
 		return true
@@ -199,6 +212,18 @@ func (pstate *ProposalState) IsPrepareTimeout() bool {
 	return false
 }
 func (pstate *ProposalState) IsFirstConfirmEpochTimeout() bool {
+
+	if pstate.IsPreparePeriod() {
+		return false
+	}
+
+	if pstate.IsSecondConfirmEpoch() {
+		return true
+	}
+
+	if pstate.IsCommitPeriod() {
+		return true
+	}
 
 	now := uint64(time.Now().UnixNano())
 	duration := uint64(ConfirmMsgVotingTimeout.Nanoseconds())
@@ -209,6 +234,18 @@ func (pstate *ProposalState) IsFirstConfirmEpochTimeout() bool {
 	return false
 }
 func (pstate *ProposalState) IsSecondConfirmEpochTimeout() bool {
+
+	if pstate.IsPreparePeriod() {
+		return false
+	}
+
+	if pstate.IsFirstConfirmEpoch() {
+		return false
+	}
+
+	if pstate.IsCommitPeriod() {
+		return true
+	}
 
 	now := uint64(time.Now().UnixNano())
 	duration := uint64(ConfirmMsgVotingTimeout.Nanoseconds())
