@@ -11,6 +11,44 @@ import (
 	"time"
 )
 
+func TestLocalTask(t *testing.T) {
+	database := db.NewMemoryDatabase()
+	data01 := &libtypes.TaskData{
+		Identity:             "identity",
+		NodeId:               "nodeid",
+		NodeName:             "nodename",
+		DataId:               "taskId",
+		DataStatus:           "Y",
+		TaskId:               "taskID",
+		TaskName:             "taskName",
+		State:                "SUCCESS",
+		Reason:               "reason",
+		EventCount:           4,
+		Desc:                 "desc",
+		CreateAt:             uint64(time.Now().Second()),
+		EndAt:                uint64(time.Now().Second()),
+	}
+	WriteLocalTask(database, types.NewTask(data01))
+
+	res := ReadLocalTask(database, data01.TaskId)
+	assert.Assert(t, strings.EqualFold(data01.TaskId, res.TaskId()))
+
+	taskList := ReadAllLocalTasks(database)
+	assert.Assert(t, len(taskList) == 1)
+
+	// delete
+	DeleteLocalTask(database, data01.TaskId)
+
+	taskList = ReadAllLocalTasks(database)
+	assert.Assert(t, len(taskList) == 0)
+
+	// delete
+	DeleteSeedNodes(database)
+
+	taskList = ReadAllLocalTasks(database)
+	assert.Assert(t, len(taskList) == 0)
+}
+
 func TestSeedNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
