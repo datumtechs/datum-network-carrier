@@ -4,6 +4,7 @@ import "errors"
 
 var (
 
+	ErrConsensusMsgInvalid = errors.New("The consensus msg is invalid")
 	ErrMsgTaskDirInvalid = errors.New("The task dir of msg is wrong")
 
 	// Task
@@ -60,8 +61,18 @@ var (
 	ErrProposalWithoutCommitPeriod  = errors.New("The proposal without commit period")
 	ErrProposalConfirmEpochInvalid  = errors.New("The confirm epoch of proposal is invalid")
 
-	ErrProposalPrepareVoteTimeout = errors.New("The prepareVote of proposal has timeout")
-	ErrProposalConfirmVoteTimeout = errors.New("The confirmVote of proposal has timeout")
+	//ErrProposalPrepareMsgTimeout = errors.New("Receiving prepareMsg of proposal timeout")
+	ErrProposalPrepareVoteTimeout = errors.New("Receiving prepareVote of proposal timeout")
+	ErrProposalConfirmMsgTimeout = errors.New("Receiving confirmMsg of proposal timeout")
+	ErrProposalConfirmVoteTimeout = errors.New("Receiving confirmVote of proposal timeout")
+	ErrProposalCommitMsgTimeout = errors.New("Receiving commitMsg of proposal timeout")
+
+
+	ErrProposalPrepareVoteFuture = errors.New("Receiving prepareVote of proposal is future msg")
+	ErrProposalConfirmMsgFuture = errors.New("Receiving confirmMsg of proposal is future msg")
+	ErrProposalConfirmVoteFuture = errors.New("Receiving confirmVote of proposal is future msg")
+	ErrProposalCommitMsgFuture = errors.New("Receiving commitMsg of proposal is future msg")
+
 
 	ErrProposalPrepareVoteOwnerInvalid     = errors.New("The owner of proposal's prepareVote is invalid")
 	ErrProposalConfirmVoteVoteOwnerInvalid = errors.New("The owner of proposal's confirmVote is invalid")

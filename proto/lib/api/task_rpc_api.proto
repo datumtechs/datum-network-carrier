@@ -173,25 +173,25 @@ service TaskService {
 
   // 查看全部任务详情列表
   rpc GetTaskDetailList (EmptyGetParams) returns (GetTaskDetailListResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/task/list"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/task/list"
+      body: "*"
+    };
   }
 
   // 查看某个任务的全部事件列表
   rpc GetTaskEventList (GetTaskEventListRequest) returns (GetTaskEventListResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/task/eventList"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/task/eventList"
+      body: "*"
+    };
   }
   // 发布任务
   rpc PublishTaskDeclare (PublishTaskDeclareRequest) returns (PublishTaskDeclareResponse) {
-      option (google.api.http) = {
-          post: "/carrier/v1/task/publish"
-          body: "*"
-      };
+    option (google.api.http) = {
+      post: "/carrier/v1/task/publish"
+      body: "*"
+    };
   }
 
 }
