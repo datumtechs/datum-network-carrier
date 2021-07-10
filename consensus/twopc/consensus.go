@@ -38,8 +38,10 @@ type TwoPC struct {
 	schedTaskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
 	replayTaskCh chan<- *types.ScheduleTaskWrap
-	asyncCallCh  chan func()
-	quit         chan struct{}
+	// send has consensused remote tasks to taskManager
+	recvSchedTaskCh chan<- *types.ConsensusScheduleTask
+	asyncCallCh     chan func()
+	quit            chan struct{}
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask
 	// The task processing  that received someone else (taskId -> task)
@@ -52,7 +54,11 @@ type TwoPC struct {
 	Errs []error
 }
 
-func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, schedTaskCh <-chan *types.ConsensusTaskWrap, replayTaskCh chan<- *types.ScheduleTaskWrap) *TwoPC {
+func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P,
+	schedTaskCh chan *types.ConsensusTaskWrap,
+	replayTaskCh chan *types.ScheduleTaskWrap,
+	recvSchedTaskCh chan*types.ConsensusScheduleTask,
+	) *TwoPC {
 	return &TwoPC{
 		config:       conf,
 		p2p:          p2p,
@@ -61,6 +67,7 @@ func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P, schedTaskCh <-chan *t
 		dataCenter:   dataCenter,
 		schedTaskCh:  schedTaskCh,
 		replayTaskCh: replayTaskCh,
+		recvSchedTaskCh: recvSchedTaskCh,
 		asyncCallCh:  make(chan func(), conf.PeerMsgQueueSize),
 		quit:         make(chan struct{}),
 		sendTasks:    make(map[string]*types.ScheduleTask),
@@ -464,7 +471,8 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	proposalState := t.state.GetProposalState(msg.ProposalId)
 
 	// 判断是第几轮 confirmMsg
-	// 只有 当前 state 是 prepare 和 confirm 状态才可以处理 prepare 阶段的 vote
+	// 只有 当前 state 是 prepare <定时任务还未更新 proposalState>
+	//和 confirm <定时任务还更新 proposalState> or <现在是第二epoch> 状态才可以处理 confirm 阶段的 Msg
 	// 收到第一epoch confirmMsg 时, 我应该是 prepare 阶段或者confirm 阶段,
 	// 收到第二epoch confirmMsg 时, 我应该是 confirm 阶段
 	if proposalState.IsCommitPeriod() {
@@ -657,7 +665,65 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	}
 	return nil
 }
-func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error { return nil }
+func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
+
+	msg, err := fetchCommitMsg(cimmitMsg)
+	if nil != err {
+		return err
+	}
+
+	if t.state.HasNotProposal(msg.ProposalId) {
+		return ctypes.ErrProposalNotFound
+	}
+
+	proposalState := t.state.GetProposalState(msg.ProposalId)
+
+	// 判断是第几轮 confirmMsg
+	// 只有 当前 state 是 confirm <定时任务还未更新 proposalState>
+	// 或 commit <定时任务更新了 proposalState> 状态才可以处理 commit 阶段的 Msg
+	if proposalState.IsPreparePeriod() {
+		return ctypes.ErrProposalCommitMsgFuture
+	}
+	if proposalState.IsFinishedPeriod() {
+		return ctypes.ErrProposalCommitMsgTimeout
+	}
+
+	// 判断任务方向
+	if t.state.IsSendTaskOnProposalState(msg.ProposalId) {
+		return ctypes.ErrMsgTaskDirInvalid
+	}
+	// find the task of proposal on recvTasks
+	task, ok := t.recvTasks[proposalState.TaskId]
+	if !ok {
+		return ctypes.ErrProposalTaskNotFound
+	}
+
+	self, err := t.dataCenter.GetIdentity()
+	if nil != err {
+		return err
+	}
+
+	now := uint64(time.Now().UnixNano())
+
+	// todo 下发自己缓存的任务
+
+	return nil
+}
+
+func (t *TwoPC) driveTask(taskDir ctypes.ProposalTaskDir, taskId string) error {
+
+	var task *types.ScheduleTask
+	if taskDir == ctypes.SendTaskDir {
+		task = t.sendTasks[taskId]
+	} else {
+		task = t.sendTasks[taskId]
+	}
+	if nil == task {
+		return ctypes.ErrProposalTaskNotFound
+	}
+
+	return nil
+}
 
 func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error { return nil }
 

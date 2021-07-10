@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"sync/atomic"
 )
 
@@ -58,6 +59,13 @@ type IdentityRevokeMsg struct {
 type IdentityMsgs []*IdentityMsg
 type IdentityRevokeMsgs []*IdentityRevokeMsg
 
+func (msg *IdentityMsg) ToDataCenter() *Identity {
+	return NewIdentity(&libTypes.IdentityData{
+		NodeName: msg.Name,
+		NodeId:   msg.NodeId,
+		Identity: msg.IdentityId,
+	})
+}
 func (msg *IdentityMsg) Marshal() ([]byte, error)       { return nil, nil }
 func (msg *IdentityMsg) Unmarshal(b []byte) error       { return nil }
 func (msg *IdentityMsg) String() string                 { return "" }
@@ -83,7 +91,7 @@ type PowerMsg struct {
 
 func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
 	return &PowerMsg{
-		Data:    &powerData{
+		Data: &powerData{
 			NodeAlias: &NodeAlias{
 				Name:       req.Owner.Name,
 				NodeId:     req.Owner.NodeId,
@@ -126,13 +134,35 @@ func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMs
 			NodeId:     req.Owner.NodeId,
 			IdentityId: req.Owner.IdentityId,
 		},
-		PowerId:   req.PowerId,
+		PowerId: req.PowerId,
 	}
 }
 
 type PowerMsgs []*PowerMsg
 type PowerRevokeMsgs []*PowerRevokeMsg
 
+func (msg *PowerMsg) ToDataCenter() *Resource {
+	return NewResource(&libTypes.ResourceData{
+		Identity: msg.OwnerIdentityId(),
+		NodeId:   msg.OwnerNodeId(),
+		NodeName: msg.OwnerName(),
+		DataId:   msg.PowerId,
+		// the status of data, N means normal, D means deleted.
+		DataStatus: ResourceDataStatusN.String(),
+		// resource status, eg: create/release/revoke
+		State: PowerStateRelease.String(),
+		// unit: byte
+		TotalMem: msg.Memory(),
+		// unit: byte
+		UsedMem: 0,
+		// number of cpu cores.
+		TotalProcessor: msg.Processor(),
+		UsedProcessor:  0,
+		// unit: byte
+		TotalBandWidth: msg.Bandwidth(),
+		UsedBandWidth:  0,
+	})
+}
 func (msg *PowerMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerMsg) String() string           { return "" }
@@ -169,6 +199,28 @@ func (msg *PowerMsg) Hash() common.Hash {
 	return v
 }
 
+func (msg *PowerRevokeMsg) ToDataCenter() *Resource {
+	return NewResource(&libTypes.ResourceData{
+		Identity: msg.IdentityId,
+		NodeId:   msg.NodeId,
+		NodeName: msg.Name,
+		DataId:   msg.PowerId,
+		// the status of data, N means normal, D means deleted.
+		DataStatus: ResourceDataStatusD.String(),
+		// resource status, eg: create/release/revoke
+		State: PowerStateRevoke.String(),
+		// unit: byte
+		TotalMem: 0,
+		// unit: byte
+		UsedMem: 0,
+		// number of cpu cores.
+		TotalProcessor: 0,
+		UsedProcessor:  0,
+		// unit: byte
+		TotalBandWidth: 0,
+		UsedBandWidth:  0,
+	})
+}
 func (msg *PowerRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerRevokeMsg) String() string           { return "" }
@@ -215,7 +267,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 					HasTitle:   req.Information.MetaDataSummary.HasTitle,
 					State:      req.Information.MetaDataSummary.State,
 				},
-				ColumnMetas:     make([]*types.ColumnMeta, 0),
+				ColumnMetas: make([]*types.ColumnMeta, 0),
 			},
 		},
 	}
@@ -232,16 +284,16 @@ type metadataData struct {
 
 type MetaDataSummary struct {
 	MetaDataId string `json:"metaDataId,omitempty"`
-	OriginId  string `json:"originId,omitempty"`
-	TableName string `json:"tableName,omitempty"`
-	Desc      string `json:"desc,omitempty"`
-	FilePath  string `json:"filePath,omitempty"`
-	Rows      uint32 `json:"rows,omitempty"`
-	Columns   uint32 `json:"columns,omitempty"`
-	Size      uint32 `json:"size,omitempty"`
-	FileType  string `json:"fileType,omitempty"`
-	HasTitle  bool   `json:"hasTitle,omitempty"`
-	State     string `json:"state,omitempty"`
+	OriginId   string `json:"originId,omitempty"`
+	TableName  string `json:"tableName,omitempty"`
+	Desc       string `json:"desc,omitempty"`
+	FilePath   string `json:"filePath,omitempty"`
+	Rows       uint32 `json:"rows,omitempty"`
+	Columns    uint32 `json:"columns,omitempty"`
+	Size       uint32 `json:"size,omitempty"`
+	FileType   string `json:"fileType,omitempty"`
+	HasTitle   bool   `json:"hasTitle,omitempty"`
+	State      string `json:"state,omitempty"`
 }
 
 //type ColumnMeta struct {
@@ -259,7 +311,7 @@ type MetaDataRevokeMsg struct {
 
 func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDataRevokeMsg {
 	return &MetaDataRevokeMsg{
-		NodeAlias:  &NodeAlias{
+		NodeAlias: &NodeAlias{
 			Name:       req.Owner.Name,
 			NodeId:     req.Owner.NodeId,
 			IdentityId: req.Owner.IdentityId,
@@ -271,6 +323,29 @@ func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDat
 type MetaDataMsgs []*MetaDataMsg
 type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
+
+func (msg *MetaDataMsg) ToDataCenter() *Metadata {
+	return NewMetadata(&libTypes.MetaData{
+		Identity:       msg.OwnerIdentityId(),
+		NodeId:         msg.OwnerNodeId(),
+		NodeName:       msg.OwnerName(),
+		DataId:         msg.MetaDataId,
+		OriginId:       msg.OriginId(),
+		TableName:      msg.TableName(),
+		FilePath:       msg.FilePath(),
+		FileType:       msg.FileType(),
+		Desc:           msg.Desc(),
+		Rows:           uint64(msg.Rows()),
+		Columns:        uint64(msg.Columns()),
+		Size_:          uint64(msg.Size()),
+		HasTitleRow:    msg.HasTitle(),
+		ColumnMetaList: msg.ColumnMetas(),
+		// the status of data, N means normal, D means deleted.
+		DataStatus: ResourceDataStatusN.String(),
+		// metaData status, eg: create/release/revoke
+		State: MetaDataStateRelease.String(),
+	})
+}
 func (msg *MetaDataMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetaDataMsg) Unmarshal(b []byte) error { return nil }
 func (msg *MetaDataMsg) String() string           { return "" }
@@ -315,6 +390,19 @@ func (msg *MetaDataMsg) Hash() common.Hash {
 	msg.hash.Store(v)
 	return v
 }
+
+func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
+	return NewMetadata(&libTypes.MetaData{
+		Identity: msg.IdentityId,
+		NodeId:   msg.NodeId,
+		NodeName: msg.Name,
+		DataId:   msg.MetaDataId,
+		// the status of data, N means normal, D means deleted.
+		DataStatus: ResourceDataStatusD.String(),
+		// metaData status, eg: create/release/revoke
+		State: MetaDataStateRevoke.String(),
+	})
+}
 func (msg *MetaDataRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetaDataRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *MetaDataRevokeMsg) String() string           { return "" }
@@ -331,8 +419,8 @@ func (s MetaDataMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Dat
 
 type TaskBullet struct {
 	*TaskMsg
-	Starve bool
-	Term   uint32
+	Starve  bool
+	Term    uint32
 	Resched uint32
 }
 
@@ -342,20 +430,21 @@ func NewTaskBullet(task *TaskMsg) *TaskBullet {
 	}
 }
 
-func (b *TaskBullet) IncreaseResched(){ b.Resched++ }
-func (b *TaskBullet) DecreaseResched(){
+func (b *TaskBullet) IncreaseResched() { b.Resched++ }
+func (b *TaskBullet) DecreaseResched() {
 	if b.Resched > 0 {
 		b.Resched--
 	}
 }
-func (b *TaskBullet) IncreaseTerm(){ b.Term++ }
-func (b *TaskBullet) DecreaseTerm(){
+func (b *TaskBullet) IncreaseTerm() { b.Term++ }
+func (b *TaskBullet) DecreaseTerm() {
 	if b.Term > 0 {
 		b.Term--
 	}
 }
 
-type TaskBullets  []*TaskBullet
+type TaskBullets []*TaskBullet
+
 func (h TaskBullets) Len() int           { return len(h) }
 func (h TaskBullets) Less(i, j int) bool { return h[i].Term > h[j].Term } // term:  a.3 > c.2 > b.1,  So order is: a c b
 func (h TaskBullets) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
@@ -371,17 +460,16 @@ func (h *TaskBullets) Pop() interface{} {
 	*h = old[0 : n-1]
 	return x
 }
-func (h *TaskBullets) IncreaseTerm () {
+func (h *TaskBullets) IncreaseTerm() {
 	for i := range *h {
 		(*h)[i].IncreaseTerm()
 	}
 }
-func (h *TaskBullets) DecreaseTerm () {
+func (h *TaskBullets) DecreaseTerm() {
 	for i := range *h {
 		(*h)[i].DecreaseTerm()
 	}
 }
-
 
 type TaskMsg struct {
 	TaskId string `json:"taskId"`
@@ -392,15 +480,15 @@ type TaskMsg struct {
 
 func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 	return &TaskMsg{
-		Data:   &taskdata{
-			TaskName:              req.TaskName,
-			Owner:                 &TaskSupplier{
+		Data: &taskdata{
+			TaskName: req.TaskName,
+			Owner: &TaskSupplier{
 				NodeAlias: &NodeAlias{
 					Name:       req.Owner.MemberInfo.Name,
 					NodeId:     req.Owner.MemberInfo.NodeId,
 					IdentityId: req.Owner.MemberInfo.IdentityId,
 				},
-				MetaData:  &SupplierMetaData{
+				MetaData: &SupplierMetaData{
 					MetaDataId:      req.Owner.MetaDataInfo.MetaDataId,
 					ColumnIndexList: make([]uint64, 0),
 				},
@@ -409,7 +497,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			Receivers:             make([]*TaskResultReceiver, 0),
 			CalculateContractCode: req.CalculateContractcode,
 			DataSplitContractCode: req.DatasplitContractcode,
-			OperationCost:         &TaskOperationCost{
+			OperationCost: &TaskOperationCost{
 				Processor: req.OperationCost.CostProcessor,
 				Mem:       req.OperationCost.CostMem,
 				Bandwidth: req.OperationCost.CostBandwidth,
@@ -520,20 +608,21 @@ type TaskOperationCost struct {
 	Bandwidth uint64 `json:"bandwidth"`
 	Duration  uint64 `json:"duration"`
 }
+
 func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *pb.TaskOperationCostDeclare {
 	return &pb.TaskOperationCostDeclare{
-		CostMem: cost.Mem,
+		CostMem:       cost.Mem,
 		CostProcessor: cost.Processor,
 		CostBandwidth: cost.Bandwidth,
-		Duration: cost.Duration,
+		Duration:      cost.Duration,
 	}
 }
 func ConvertTaskOperationCostFromPB(cost *pb.TaskOperationCostDeclare) *TaskOperationCost {
 	return &TaskOperationCost{
-		Mem: cost.CostMem,
+		Mem:       cost.CostMem,
 		Processor: cost.CostProcessor,
 		Bandwidth: cost.CostBandwidth,
-		Duration: cost.Duration,
+		Duration:  cost.Duration,
 	}
 }
 
@@ -571,15 +660,15 @@ type NodeAlias struct {
 
 func ConvertNodeAliasToPB(alias *NodeAlias) *pb.OrganizationIdentityInfo {
 	return &pb.OrganizationIdentityInfo{
-		Name: alias.Name,
-		NodeId: alias.NodeId,
+		Name:       alias.Name,
+		NodeId:     alias.NodeId,
 		IdentityId: alias.IdentityId,
 	}
 }
 func ConvertNodeAliasFromPB(org *pb.OrganizationIdentityInfo) *NodeAlias {
 	return &NodeAlias{
-		Name: org.Name,
-		NodeId: org.NodeId,
+		Name:       org.Name,
+		NodeId:     org.NodeId,
 		IdentityId: org.IdentityId,
 	}
 }
@@ -601,7 +690,6 @@ func ConvertNodeAliasArrFromPB(orgs []*pb.OrganizationIdentityInfo) []*NodeAlias
 	return aliases
 }
 
-
 func (n *NodeAlias) GetNodeName() string       { return n.Name }
 func (n *NodeAlias) GetNodeIdStr() string      { return n.NodeId }
 func (n *NodeAlias) GetNodeIdentityId() string { return n.IdentityId }
@@ -614,23 +702,24 @@ type ResourceUsage struct {
 	TotalBandwidth uint64 `json:"totalBandwidth"`
 	UsedBandwidth  uint64 `json:"usedBandwidth"`
 }
-func ConvertResourceUsageToPB (usage *ResourceUsage) *pb.ResourceUsedDetailShow {
+
+func ConvertResourceUsageToPB(usage *ResourceUsage) *pb.ResourceUsedDetailShow {
 	return &pb.ResourceUsedDetailShow{
-		TotalMem: usage.TotalMem,
-		UsedMem: usage.UsedMem,
+		TotalMem:       usage.TotalMem,
+		UsedMem:        usage.UsedMem,
 		TotalProcessor: usage.TotalProcessor,
-		UsedProcessor: usage.UsedProcessor,
+		UsedProcessor:  usage.UsedProcessor,
 		TotalBandwidth: usage.TotalBandwidth,
-		UsedBandwidth: usage.UsedBandwidth,
+		UsedBandwidth:  usage.UsedBandwidth,
 	}
 }
-func ConvertResourceUsageFromPB (usage *pb.ResourceUsedDetailShow) *ResourceUsage {
+func ConvertResourceUsageFromPB(usage *pb.ResourceUsedDetailShow) *ResourceUsage {
 	return &ResourceUsage{
-		TotalMem: usage.TotalMem,
-		UsedMem: usage.UsedMem,
+		TotalMem:       usage.TotalMem,
+		UsedMem:        usage.UsedMem,
 		TotalProcessor: usage.TotalProcessor,
-		UsedProcessor: usage.UsedProcessor,
+		UsedProcessor:  usage.UsedProcessor,
 		TotalBandwidth: usage.TotalBandwidth,
-		UsedBandwidth: usage.UsedBandwidth,
+		UsedBandwidth:  usage.UsedBandwidth,
 	}
 }

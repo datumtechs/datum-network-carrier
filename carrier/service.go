@@ -70,7 +70,8 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		mempool:         pool,
 		resourceManager: resourceMng,
 		messageManager:  message.NewHandler(pool, nil, config.CarrierDB, taskCh),                                 // todo need set dataChain
-		taskManager:     task.NewTaskManager(nil, eventEngine, resourceMng, taskCh, sendTaskCh, recvSchedTaskCh), // todo need set dataChain
+		taskManager:     task.NewTaskManager(nil, eventEngine, resourceMng,
+			taskCh, sendTaskCh, recvSchedTaskCh),
 		scheduler: scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh,
 			config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
 		jobNodes:  make(map[string]*grpclient.JobNodeClient),
@@ -80,7 +81,8 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
-	s.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{}, s.carrierDB, s.config.p2p, schedTaskCh, remoteTaskCh) // todo the 2pc config will be setup
+	s.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{}, s.carrierDB,
+	s.config.p2p, schedTaskCh, remoteTaskCh, recvSchedTaskCh) // todo the 2pc config will be setup
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 	// todo: set datachain....
 	return s, nil
