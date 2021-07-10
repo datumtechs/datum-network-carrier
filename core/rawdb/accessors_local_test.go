@@ -33,6 +33,14 @@ func TestLocalTask(t *testing.T) {
 	res := ReadLocalTask(database, data01.TaskId)
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.TaskId()))
 
+	// test update state
+	res.TaskData().State = "failed"
+	DeleteLocalTask(database, data01.TaskId)
+	WriteLocalTask(database, res)
+
+	res = ReadLocalTask(database, data01.TaskId)
+	assert.Equal(t, "failed", res.TaskData().State)
+
 	taskList := ReadAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 1)
 
