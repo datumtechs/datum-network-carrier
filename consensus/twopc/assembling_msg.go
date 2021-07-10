@@ -6,7 +6,7 @@ import (
 )
 
 
-func makePrepareMsg() *pb.PrepareMsg {
+func makePrepareMsg(startTime uint64) *pb.PrepareMsg {
 
 	// TODO 需要将 ScheduleTask 转换成  PrepareMsg
 	return nil
@@ -30,7 +30,7 @@ func makeConfirmVote() *pb.ConfirmVote {
 	return nil
 }
 
-func makeCommitMsg() *pb.CommitMsg {
+func makeCommitMsg( startTime uint64) *pb.CommitMsg {
 
 	// TODO 组装  CommitMsg
 	return nil
@@ -49,6 +49,12 @@ func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, e
 
 func fetchConfirmMsg (confirmMsg *types.ConfirmMsgWrap) (*types.ConfirmMsg, error) {
 
+
+	// TODO 需要实现
+	return nil, nil
+}
+
+func fetchConfirmVote (confirmVote *types.ConfirmVoteWrap) (*types.ConfirmVote, error) {
 
 	// TODO 需要实现
 	return nil, nil

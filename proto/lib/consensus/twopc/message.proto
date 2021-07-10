@@ -9,108 +9,128 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc";
 // 2pc prepare 阶段信息
 message PrepareMsg {
 
-    bytes      proposal_id = 1;            // 2pc 提案Id
-    TaskOption task_option = 2;            // 任务msg
-    uint64     create_at   = 3;              // proposal 创建的时间
-    bytes      sign        = 4;                   // 任务发起者签名
+  bytes      proposal_id = 1;            // 2pc 提案Id
+  TaskOption task_option = 2;            // 任务msg
+  uint64     create_at = 3;              // proposal 创建的时间
+  bytes      sign = 4;                   // 任务发起者签名
 
 }
 
 // 2pc prepareVote
 message PrepareVote {
 
-    bytes                        proposal_id = 1;            // 2pc 提案Id
-    bytes                        task_role   = 2;              // The role information of the current recipient of the task
-    TaskOrganizationIdentityInfo owner       = 3;                  // 投票人信息
-    bytes                        vote_option = 4;            // 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
-    TaskPeerInfo                 peer_info   = 5;              // 投票yes时, 对任务提供的自身资源 ip:port
-    uint64                       create_at   = 6;              // vote 创建的时间
-    bytes                        sign        = 7;                   // 投票发起者签名
+  bytes                        proposal_id = 1;            // 2pc 提案Id
+  bytes                        task_role = 2;              // The role information of the current recipient of the task
+  TaskOrganizationIdentityInfo owner = 3;                  // 投票人信息
+  bytes                        vote_option = 4;            // 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
+  TaskPeerInfo                 peer_info = 5;              // 投票yes时, 对任务提供的自身资源 ip:port
+  uint64                       create_at = 6;              // vote 创建的时间
+  bytes                        sign = 7;                   // 投票发起者签名
 
 }
 
 // 2pc confirm 阶段信息
 message ConfirmMsg {
 
-    bytes                        proposal_id = 1;            // 2pc 提案Id
-    bytes                        task_role   = 2;
-    uint64                       epoch       = 3;                  // confirm 阶段的第几轮 Msg
-    TaskOrganizationIdentityInfo owner       = 4;                  // 提案人信息
-    uint64                       create_at   = 5;              // ConfirmMsg 创建的时间
-    bytes                        sign        = 6;                   // ConfirmMsg 发起者签名
+  bytes                        proposal_id = 1;            // 2pc 提案Id
+  bytes                        task_role = 2;
+  uint64                       epoch = 3;                  // confirm 阶段的第几轮 Msg
+  TaskOrganizationIdentityInfo owner = 4;                  // 提案人信息
+  uint64                       create_at = 5;              // ConfirmMsg 创建的时间
+  bytes                        sign = 6;                   // ConfirmMsg 发起者签名
 
 }
 
 // 2pc confirmVote
 message ConfirmVote {
 
-    bytes                        proposal_id = 1;            // 2pc 提案Id
-    uint64                       epoch       = 2;                  // confirm 阶段的第几轮 Msg
-    bytes                        task_role   = 3;              // The role information of the current recipient of the task
-    TaskOrganizationIdentityInfo owner       = 4;                  // 投票人信息
-    bytes                        vote_option = 5;            // 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
-    uint64                       create_at   = 6;              // vote 创建的时间
-    bytes                        sign        = 7;                   // 投票发起者签名
+  bytes                        proposal_id = 1;            // 2pc 提案Id
+  uint64                       epoch = 2;                  // confirm 阶段的第几轮 Msg
+  bytes                        task_role = 3;              // The role information of the current recipient of the task
+  TaskOrganizationIdentityInfo owner = 4;                  // 投票人信息
+  bytes                        vote_option = 5;            // 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
+  uint64                       create_at = 6;              // vote 创建的时间
+  bytes                        sign = 7;                   // 投票发起者签名
 
 }
 // 触发任务执行消息
 message CommitMsg {
-    bytes                        proposal_id = 1;            // 2pc 提案Id
-    bytes                        task_role   = 2;
-    TaskOrganizationIdentityInfo owner       = 3;                  // 提案人信息
-    uint64                       create_at   = 4;              // CommitMsg 创建的时间
-    bytes                        sign        = 5;                   // CommitMsg 发起者签名
+  bytes                        proposal_id = 1;            // 2pc 提案Id
+  bytes                        task_role = 2;
+  TaskOrganizationIdentityInfo owner = 3;                  // 提案人信息
+  uint64                       create_at = 4;              // CommitMsg 创建的时间
+  bytes                        sign = 5;                   // CommitMsg 发起者签名
+}
+
+// 参与方反馈 各自对某个task的执行结果 (发给发起方)
+message TaskResultMsg {
+  bytes              proposal_id = 1;                // 2pc 提案Id
+  bytes              task_role = 2;                  // The role information of the current recipient of the task
+  bytes              task_id = 3;                    // 提案中对应的任务Id
+  repeated TaskEvent task_event_list = 4;            // 任务在该参与方上产生的event
+  uint64             create_at = 5;                  // TaskResultMsg 创建的时间
+  bytes              sign = 6;                       // TaskResultMsg 发起者签名
+
 }
 
 message TaskOption {
 
-    bytes                        task_role               = 1;      // The role information of the current recipient of the task
-    bytes                        task_id                 = 2;
-    bytes                        task_name               = 3;
-    TaskOrganizationIdentityInfo owner                   = 4;
-    TaskOrganizationIdentityInfo algo_supplier           = 5;
-    repeated DataSupplierOption  data_supplier           = 6;
-    repeated PowerSupplierOption power_supplier          = 7;
-    repeated ReceiverOption      receivers               = 8;
-    TaskOperationCost            operation_cost          = 9;
-    bytes                        calculate_contract_code = 10;
-    bytes                        datasplit_contract_code = 11;
-    uint64                       create_at               = 12;
+  bytes                        task_role = 1;      // The role information of the current recipient of the task
+  bytes                        task_id = 2;
+  bytes                        task_name = 3;
+  TaskOrganizationIdentityInfo owner = 4;
+  TaskOrganizationIdentityInfo algo_supplier = 5;
+  repeated DataSupplierOption  data_supplier = 6;
+  repeated PowerSupplierOption power_supplier = 7;
+  repeated ReceiverOption      receivers = 8;
+  TaskOperationCost            operation_cost = 9;
+  bytes                        calculate_contract_code = 10;
+  bytes                        datasplit_contract_code = 11;
+  uint64                       create_at = 12;
 
 }
 
 message DataSupplierOption {
-    TaskOrganizationIdentityInfo member_info       = 1;
-    bytes                        meta_data_id      = 2;
-    repeated uint64              column_index_list = 3;
+  TaskOrganizationIdentityInfo member_info = 1;
+  bytes                        meta_data_id = 2;
+  repeated uint64              column_index_list = 3;
 }
 
 message PowerSupplierOption {
-    TaskOrganizationIdentityInfo member_info = 1;
+  TaskOrganizationIdentityInfo member_info = 1;
 }
 
 message ReceiverOption {
-    TaskOrganizationIdentityInfo          member_info = 1;
-    repeated TaskOrganizationIdentityInfo providers   = 2;
+  TaskOrganizationIdentityInfo          member_info = 1;
+  repeated TaskOrganizationIdentityInfo providers = 2;
 }
 
 
 // 任务的所需操作成本 (定义任务的大小)
 message TaskOperationCost {
-    uint64 cost_mem       = 1;               // 任务所需的内存 (单位: byte)
-    uint64 cost_processor = 2;         // 任务所需的核数 (单位: 个)
-    uint64 cost_bandwidth = 3;         // 任务所需的带宽 (单位: bps)
-    uint64 duration       = 4;               // 任务所需的运行时长 (单位: ms)
+  uint64 cost_mem = 1;               // 任务所需的内存 (单位: byte)
+  uint64 cost_processor = 2;         // 任务所需的核数 (单位: 个)
+  uint64 cost_bandwidth = 3;         // 任务所需的带宽 (单位: bps)
+  uint64 duration = 4;               // 任务所需的运行时长 (单位: ms)
 }
 
 message TaskPeerInfo {
-    bytes ip   = 1;
-    bytes port = 2;
+  bytes ip = 1;
+  bytes port = 2;
 }
 
 // 组织(节点)唯一标识抽象
 message TaskOrganizationIdentityInfo  {
-    bytes name        = 1;                           // 组织名称
-    bytes node_id     = 2;                        // 组织中调度服务的 nodeId
-    bytes identity_id = 3;                    // 组织的身份标识Id
+  bytes name = 1;                           // 组织名称
+  bytes node_id = 2;                        // 组织中调度服务的 nodeId
+  bytes identity_id = 3;                    // 组织的身份标识Id
+}
+
+
+message TaskEvent {
+  bytes  type = 1;                        // 事件类型码
+  bytes  task_id = 2;                     // 事件对应的任务id
+  bytes  identity_id = 3;                 // 产生事件的节点身份
+  bytes  content = 4;                     // 事件内容
+  uint64 create_at = 5;                   // 事件产生时间
 }

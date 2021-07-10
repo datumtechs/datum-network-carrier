@@ -74,6 +74,11 @@ func (s *Service) registerRPCHandlers() {
 		s.sendCommitMsgRPCHandler,
 	)
 
+	s.registerRPC(
+		p2p.RPCTwoPcTaskResultMsgTopic,
+		s.sendTaskResultMsgRPCHandler,
+	)
+
 	// for test.
 	s.registerRPC(
 		p2p.RPCGossipTestDataByRangeTopic,
