@@ -192,6 +192,8 @@ func (t *TwoPC) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error 
 		return t.validateConfirmVote(pid, msg)
 	case *types.CommitMsgWrap:
 		return t.validateCommitMsg(pid, msg)
+	case *types.TaskResultMsgWrap:
+		return t.validateTaskResultMsg(pid, msg)
 	default:
 		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
 	}
@@ -210,7 +212,8 @@ func (t *TwoPC) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 		return t.onConfirmVote(pid, msg)
 	case *types.CommitMsgWrap:
 		return t.onCommitMsg(pid, msg)
-
+	case *types.TaskResultMsgWrap:
+		return t.onTaskResultMsg(pid, msg)
 	default:
 		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
 
@@ -281,10 +284,10 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	vote := &types.PrepareVote{
 		ProposalId: proposal.ProposalId,
-		TaskRole:  types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
+		TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
 		Owner: &types.NodeAlias{
-			Name: self.Name,
-			NodeId: self.NodeId,
+			Name:       self.Name,
+			NodeId:     self.NodeId,
 			IdentityId: self.IdentityId,
 		},
 		CreateAt: uint64(time.Now().UnixNano()),
@@ -403,7 +406,6 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
 		t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId)
 
-
 	// Change the propoState to `confirmPeriod`
 	if taskMemCount == voteCount {
 
@@ -463,6 +465,8 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 
 	// 判断是第几轮 confirmMsg
 	// 只有 当前 state 是 prepare 和 confirm 状态才可以处理 prepare 阶段的 vote
+	// 收到第一epoch confirmMsg 时, 我应该是 prepare 阶段或者confirm 阶段,
+	// 收到第二epoch confirmMsg 时, 我应该是 confirm 阶段
 	if proposalState.IsCommitPeriod() {
 		return ctypes.ErrProposalConfirmMsgTimeout
 	}
@@ -488,7 +492,6 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	if !ok {
 		return ctypes.ErrProposalTaskNotFound
 	}
-
 
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
@@ -528,7 +531,6 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 }
 func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 
-
 	voteMsg, err := fetchConfirmVote(confirmVote)
 	if nil != err {
 		return err
@@ -539,7 +541,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	proposalState := t.state.GetProposalState(voteMsg.ProposalId)
 	// 只有 当前 state 是 confirm 状态才可以处理 confirm 阶段的 vote
 	if proposalState.IsPreparePeriod() {
-		return ctypes.ErrConsensusMsgInvalid
+		return ctypes.ErrProposalConfirmVoteFuture
 	}
 	if proposalState.IsCommitPeriod() {
 		return ctypes.ErrProposalPrepareVoteTimeout
@@ -617,17 +619,15 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		return ctypes.ErrMsgOwnerNodeIdInvalid
 	}
 	if !identityValid {
-		return ctypes.ErrProposalPrepareVoteOwnerInvalid
+		return ctypes.ErrProposalConfirmVoteVoteOwnerInvalid
 	}
 
 	// Store vote
 	t.state.StoreConfirmVote(voteMsg)
 
-	voteCount := t.state.GetTaskDataSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId)
-
-
+	voteCount := t.state.GetTaskDataSupplierConfirmTotalVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskPowerSupplierConfirmTotalVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskResulterConfirmTotalVoteCount(voteMsg.ProposalId)
 
 	// Change the propoState to `confirmPeriod`
 	if taskMemCount == voteCount {
@@ -657,7 +657,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	}
 	return nil
 }
-func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error       { return nil }
+func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error { return nil }
+
+func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error { return nil }
 
 func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
 

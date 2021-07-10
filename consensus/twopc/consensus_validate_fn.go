@@ -321,7 +321,10 @@ func (t *TwoPC) validateCommitMsg(pid peer.ID, commitMsg *types.CommitMsgWrap) e
 	return nil
 }
 
-
+// With publisher
+func (t *TwoPC) validateTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error {
+	return nil
+}
 
 
 func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationIdentityInfo) error {

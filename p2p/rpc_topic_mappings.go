@@ -34,6 +34,7 @@ const (
 	RPCTwoPcConfirmMsgTopic = "/rosettanet/consensus/twopc/send_confirmmsg" + schemaVersionV1
 	RPCTwoPcConfirmVoteTopic = "/rosettanet/consensus/twopc/send_confirmvote" + schemaVersionV1
 	RPCTwoPcCommitMsgTopic = "/rosettanet/consensus/twopc/send_commitmsg" + schemaVersionV1
+	RPCTwoPcTaskResultMsgTopic = "/rosettanet/consensus/twopc/send_taskresultmsg" + schemaVersionV1
 )
 
 // RPCTopicMappings map the base message type to the rpc request.

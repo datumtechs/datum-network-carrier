@@ -211,3 +211,43 @@ func (msg *CommitMsgWrap) Hash() common.Hash {
 	return v
 }
 func (msg *CommitMsgWrap) Signature() []byte {return msg.Sign}
+
+
+// ------------------------------- About TaskResultMsg -------------------------------
+type TaskResultMsgWrap struct {
+	*pb.TaskResultMsg
+	// caches
+	sealHash atomic.Value `json:"-" rlp:"-"`
+	hash     atomic.Value `json:"-" rlp:"-"`
+}
+func (msg *TaskResultMsgWrap) String() string {return ""}
+func (msg *TaskResultMsgWrap) SealHash() common.Hash {
+	if sealHash := msg.sealHash.Load(); sealHash != nil {
+		return sealHash.(common.Hash)
+	}
+	v := msg._sealHash()
+	msg.sealHash.Store(v)
+	return v
+}
+func (msg *TaskResultMsgWrap) _sealHash() (hash common.Hash) {
+	hasher := sha3.NewKeccak256()
+	rlp.Encode(hasher, []interface{}{
+		msg.ProposalId,
+		msg.TaskRole,
+		msg.TaskId,
+		msg.TaskEventList,
+		msg.CreateAt,
+	})
+
+	hasher.Sum(hash[:0])
+	return hash
+}
+func (msg *TaskResultMsgWrap) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	v := rlputil.RlpHash(msg)
+	msg.hash.Store(v)
+	return v
+}
+func (msg *TaskResultMsgWrap) Signature() []byte {return msg.Sign}
