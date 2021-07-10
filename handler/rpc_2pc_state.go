@@ -159,6 +159,34 @@ func (s *Service) sendCommitMsgRPCHandler(ctx context.Context, msg interface{}, 
 	return nil
 }
 
+func (s *Service) sendTaskResultMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
+	ctx, cancel := context.WithTimeout(ctx, respTimeout)
+	defer cancel()
+	SetRPCStreamDeadlines(stream)
+
+	// Ticker to stagger out large requests.
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	m, ok := msg.(*pb.TaskResultMsg)
+	if !ok {
+		return errors.New("message is not type *pb.TaskResultMsg")
+	}
+	// validate CommitMsg
+	if err := s.validateTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
+		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+		return err
+	}
+	// hanlde CommitMsg
+	if err := s.onTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
+		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+		return err
+	}
+	closeStream(stream, log)
+	return nil
+}
 
 
 // ------------------------------------  some validate Fn  ------------------------------------
@@ -203,6 +231,14 @@ func (s *Service) validateCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 	return engine.ValidateConsensusMsg(pid, &types.CommitMsgWrap{CommitMsg: r})
 }
 
+func (s *Service) validateTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
+	engine, ok := s.cfg.Engines[types.TwopcTyp]
+	if !ok {
+		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	}
+	return engine.ValidateConsensusMsg(pid, &types.TaskResultMsgWrap{TaskResultMsg: r})
+}
+
 
 // ------------------------------------  some handle Fn  ------------------------------------
 
@@ -244,4 +280,12 @@ func (s *Service) onCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
 	}
 	return engine.OnConsensusMsg(pid, &types.CommitMsgWrap{CommitMsg: r})
+}
+
+func (s *Service) onTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
+	engine, ok := s.cfg.Engines[types.TwopcTyp]
+	if !ok {
+		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	}
+	return engine.OnConsensusMsg(pid, &types.TaskResultMsgWrap{TaskResultMsg: r})
 }
