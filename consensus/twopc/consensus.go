@@ -409,16 +409,19 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	// Store vote
 	t.state.StorePrepareVote(voteMsg)
 
-	voteCount := t.state.GetTaskDataSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId)
+	yesVoteCount := t.state.GetTaskDataSupplierPrepareYesVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskPowerSupplierPrepareYesVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskResulterPrepareYesVoteCount(voteMsg.ProposalId)
 
 	// Change the propoState to `confirmPeriod`
-	if taskMemCount == voteCount {
+	if taskMemCount == yesVoteCount {
 
 		now := uint64(time.Now().UnixNano())
 
 		t.state.ChangeToConfirm(voteMsg.ProposalId, now)
+
+
+
 
 		// TODO ++++++++++++++++++++++++++++++++
 		// TODO ++++++++++++++++++++++++++++++++
@@ -527,6 +530,8 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		t.state.ChangeToConfirmSecondEpoch(msg.ProposalId, msg.CreateAt)
 	}
 
+	// store the proposal about all partner peerInfo of task to local cache
+	t.state.StoreConfirmTaskPeerInfo(msg.ProposalId, confirmMsg.PeerDesc)
 	// store self vote state And Send vote to Other peer
 	t.state.StoreConfirmVoteState(vote)
 	if err = handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, types.ConvertConfirmVote(vote)); nil != err {
@@ -633,12 +638,12 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	// Store vote
 	t.state.StoreConfirmVote(voteMsg)
 
-	voteCount := t.state.GetTaskDataSupplierConfirmTotalVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskPowerSupplierConfirmTotalVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskResulterConfirmTotalVoteCount(voteMsg.ProposalId)
+	yesVoteCount := t.state.GetTaskDataSupplierConfirmYesVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskPowerSupplierConfirmYesVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskResulterConfirmYesVoteCount(voteMsg.ProposalId)
 
-	// Change the propoState to `confirmPeriod`
-	if taskMemCount == voteCount {
+	// Change the propoState to `commitPeriod`
+	if taskMemCount == yesVoteCount {
 
 		now := uint64(time.Now().UnixNano())
 
@@ -662,9 +667,18 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			return err
 		}
 
+		// If sending `CommitMsg` is successful, we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
+		if err := t.driveTask(ctypes.SendTaskDir, voteMsg.ProposalId, task.TaskId); nil != err {
+			log.Error("Failed to drive the local schedTask to taskManager to execute", "proposald", voteMsg.ProposalId, "taskId", task.TaskId)
+			// TODO 发送失败的的异常 先不处理了, 正常这里应该是 直接将任务结束 发给数据中心的 ...
+		}
 	}
+
+	// TODO 不是 yes 票, 且满足任务结束, 需要直接结束任务
+
 	return nil
 }
+
 func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 
 	msg, err := fetchCommitMsg(cimmitMsg)
@@ -698,19 +712,21 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 		return ctypes.ErrProposalTaskNotFound
 	}
 
-	self, err := t.dataCenter.GetIdentity()
-	if nil != err {
-		return err
+	// If sending `CommitMsg` is successful, we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
+	if err := t.driveTask(ctypes.RecvTaskDir, msg.ProposalId, task.TaskId); nil != err {
+		log.Error("Failed to drive the remote schedTask to taskManager to execute", "proposald", msg.ProposalId, "taskId", task.TaskId)
+		// TODO 发送失败的的异常 先不处理了, 正常这里应该是 直接将任务结束 发给数据中心的 ...
 	}
-
-	now := uint64(time.Now().UnixNano())
-
-	// todo 下发自己缓存的任务
 
 	return nil
 }
 
-func (t *TwoPC) driveTask(taskDir ctypes.ProposalTaskDir, taskId string) error {
+
+func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error { return nil }
+
+
+
+func (t *TwoPC) driveTask(taskDir ctypes.ProposalTaskDir, proposalId common.Hash, taskId string) error {
 
 	var task *types.ScheduleTask
 	if taskDir == ctypes.SendTaskDir {
@@ -722,10 +738,32 @@ func (t *TwoPC) driveTask(taskDir ctypes.ProposalTaskDir, taskId string) error {
 		return ctypes.ErrProposalTaskNotFound
 	}
 
+	dataSuppliers, powerSuppliers, receivers :=
+		make([]*types.PrepareVoteResource, 0), make([]*types.PrepareVoteResource, 0), make([]*types.PrepareVoteResource, 0)
+
+	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
+		if vote.TaskRole == types.DataSupplier && nil != vote.PeerInfo {
+			dataSuppliers = append(dataSuppliers, vote.PeerInfo)
+		}
+		if vote.TaskRole == types.PowerSupplier && nil != vote.PeerInfo {
+			powerSuppliers = append(powerSuppliers, vote.PeerInfo)
+		}
+		if vote.TaskRole == types.ResultSupplier && nil != vote.PeerInfo {
+			receivers = append(receivers, vote.PeerInfo)
+		}
+	}
+	//
+	t.sendTaskForStart(&types.ConsensusScheduleTask{
+		SchedTask: task,
+		OwnerResource: t.state.GetSelfPeerInfo(proposalId),
+		PartnersResource: dataSuppliers,
+		PowerSuppliersResource: powerSuppliers,
+		ReceiversResource: receivers,
+	})
+
 	return nil
 }
 
-func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error { return nil }
 
 func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
 
@@ -784,6 +822,10 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask,
 func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.ScheduleTask, epoch uint64, startTime uint64) error {
 
 	confirmMsg := makeConfirmMsg(epoch, startTime)
+	confirmMsg.PeerDesc = t.makeConfirmTaskPeerDesc(proposalId)
+
+	// store the proposal about all partner peerInfo of task to local cache
+	t.state.StoreConfirmTaskPeerInfo(proposalId, confirmMsg.PeerDesc)
 
 	sendConfirmMsgFn := func(proposalId common.Hash, taskRole types.TaskRole, identityId, nodeId, taskId string, confirmMsg *pb.ConfirmMsg, errCh chan<- error) {
 		pid, err := p2p.HexPeerID(nodeId)
@@ -894,3 +936,4 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.ScheduleTask, 
 
 	return nil
 }
+
