@@ -21,8 +21,6 @@ const (
 )
 
 type DataHandler interface {
-
-	// TODO 本地存储当前调度服务自身的  identity
 	StoreIdentity(identity *types.NodeAlias) error
 	DelIdentity() error
 	GetYarnName() (string, error)
