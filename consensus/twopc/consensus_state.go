@@ -108,6 +108,10 @@ func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
 }
 func (s *state) DelProposalState(proposalId common.Hash) { delete(s.runningProposals, proposalId) }
 
+func (s *state) GetProposalStates () map[common.Hash]*ctypes.ProposalState {
+	return s.runningProposals
+}
+
 func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
