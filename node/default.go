@@ -9,7 +9,8 @@ import (
 
 // DefaultConfig contains reasonable default settings.
 var DefaultConfig = Config{
-	DataDir:          DefaultDataDir(),
+	DataDir: DefaultDataDir(),
+	Name:    "carrier",
 }
 
 // DefaultDataDir is the default data directory to use for the databases and other
@@ -39,4 +40,3 @@ func homeDir() string {
 	}
 	return ""
 }
-

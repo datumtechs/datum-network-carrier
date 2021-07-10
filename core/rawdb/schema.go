@@ -38,6 +38,9 @@ var (
 	// seedNodeKey tracks the seed node list.
 	seedNodeKey = []byte("SeedNodeKey")
 
+	// localTaskKey tracks the local task list.
+	localTaskKey = []byte("LocalTaskKey")
+
 	// resourceNodeKey tracks the node for calc node.
 	calcNodeKey = []byte("CalcNodeKey")
 

@@ -659,3 +659,102 @@ func DeleteLocalResource(db KeyValueStore, jobNodeId string) {
 		log.WithError(err).Fatal("Failed to delete local resource")
 	}
 }
+
+// ReadSeedNode retrieves the local task with the corresponding taskId.
+func ReadLocalTask(db DatabaseReader, taskId string) *types.Task {
+	blob, err := db.Get(localTaskKey)
+	if err != nil {
+		return nil
+	}
+	var taskList dbtype.TaskArrayPB
+	if err := taskList.Unmarshal(blob); err != nil {
+		return nil
+	}
+	for _, task := range taskList.GetTaskList() {
+		if strings.EqualFold(task.TaskId, taskId) {
+			return types.NewTask(task)
+		}
+	}
+	return nil
+}
+
+// ReadAllLocalTasks retrieves all the local task in the database.
+func ReadAllLocalTasks(db DatabaseReader) types.TaskDataArray {
+	blob, err := db.Get(localTaskKey)
+	if err != nil {
+		return nil
+	}
+	var array dbtype.TaskArrayPB
+	if err := array.Unmarshal(blob); err != nil {
+		return nil
+	}
+	result := make(types.TaskDataArray, 0)
+	for _, task := range array.GetTaskList() {
+		result = append(result, types.NewTask(task))
+	}
+	return result
+}
+
+// WriteLocalTask serializes the local task into the database.
+func WriteLocalTask(db KeyValueStore, task *types.Task) {
+	blob, err := db.Get(localTaskKey)
+	if err != nil {
+		log.Warn("Failed to load old local task", "error", err)
+	}
+	var array dbtype.TaskArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old local task")
+		}
+	}
+	// Check whether there is duplicate data.
+	for _, s := range array.GetTaskList() {
+		if strings.EqualFold(s.TaskId, task.TaskId()) {
+			log.WithFields(logrus.Fields{ "taskId": s.TaskId }).Info("Skip duplicated local task")
+			return
+		}
+	}
+	array.TaskList = append(array.TaskList, task.TaskData())
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode local task")
+	}
+	if err := db.Put(localTaskKey, data); err != nil {
+		log.WithError(err).Fatal("Failed to write local task")
+	}
+}
+
+// DeleteLocalTask deletes the local task from the database with a special taskId
+func DeleteLocalTask(db KeyValueStore, taskId string) {
+	blob, err := db.Get(localTaskKey)
+	if err != nil {
+		log.Warn("Failed to load old local task", "error", err)
+	}
+	var array dbtype.TaskArrayPB
+	if len(blob) > 0 {
+		if err := array.Unmarshal(blob); err != nil {
+			log.WithError(err).Fatal("Failed to decode old local task")
+		}
+	}
+	// need to test.
+	for idx, s := range array.TaskList {
+		if strings.EqualFold(s.TaskId, taskId) {
+			array.TaskList = append(array.TaskList[:idx], array.TaskList[idx+1:]...)
+			break
+		}
+	}
+	data, err := array.Marshal()
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode local task")
+	}
+	if err := db.Put(localTaskKey, data); err != nil {
+		log.WithError(err).Fatal("Failed to write local task")
+	}
+}
+
+// DeleteLocalTask deletes all the local task from the database.
+func DeleteLocalTasks(db DatabaseDeleter) {
+	if err := db.Delete(localTaskKey); err != nil {
+		log.WithError(err).Fatal("Failed to delete local task with all")
+	}
+}
