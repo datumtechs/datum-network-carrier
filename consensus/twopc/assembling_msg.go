@@ -30,12 +30,17 @@ func makeConfirmVote() *pb.ConfirmVote {
 	return nil
 }
 
-func makeCommitMsg( startTime uint64) *pb.CommitMsg {
+func makeCommitMsg(startTime uint64) *pb.CommitMsg {
 
 	// TODO 组装  CommitMsg
 	return nil
 }
 
+func makeTaskResultMsg(startTime uint64) *pb.TaskResultMsg {
+
+	// TODO 组装  TaskResultMsg
+	return nil
+}
 
 func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, error) {
 	// TODO 需要实现
@@ -55,6 +60,20 @@ func fetchConfirmMsg (confirmMsg *types.ConfirmMsgWrap) (*types.ConfirmMsg, erro
 }
 
 func fetchConfirmVote (confirmVote *types.ConfirmVoteWrap) (*types.ConfirmVote, error) {
+
+	// TODO 需要实现
+	return nil, nil
+}
+
+func fetchCommitMsg (commitMsg *types.CommitMsgWrap) (*types.CommitMsg, error) {
+
+
+	// TODO 需要实现
+	return nil, nil
+}
+
+func fetchTaskResultMsg (commitMsg *types.TaskResultMsgWrap) (*types.TaskResultMsg, error) {
+
 
 	// TODO 需要实现
 	return nil, nil

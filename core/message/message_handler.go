@@ -240,12 +240,7 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 		return err
 	}
 
-	if err := m.center.InsertIdentity(
-		types.NewIdentity(&libTypes.IdentityData{
-			NodeName: msg.Name,
-			NodeId:   msg.NodeId,
-			Identity: msg.IdentityId,
-		})); nil != err {
+	if err := m.center.InsertIdentity(msg.ToDataCenter()); nil != err {
 		log.Error("Failed to broadcast org org identity on MessageHandler, err:", err)
 		return err
 	}
@@ -282,28 +277,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 		// TODO 还需要存储本地的 资源信息
 
 		// 发布到全网
-		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
-			Identity: power.OwnerIdentityId(),
-			NodeId:   power.OwnerNodeId(),
-			NodeName: power.OwnerName(),
-			DataId:   power.PowerId,
-			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusN.String(),
-			// resource status, eg: create/release/revoke
-			State: types.PowerStateRelease.String(),
-			// unit: byte
-			TotalMem: power.Memory(),
-			// unit: byte
-			UsedMem: 0,
-			// number of cpu cores.
-			TotalProcessor: power.Processor(),
-
-			UsedProcessor: 0,
-
-			// unit: byte
-			TotalBandWidth: power.Bandwidth(),
-			UsedBandWidth:  0,
-		}))
+		err := m.center.InsertResource(power.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
 	}
 	if len(errs) != 0 {
@@ -315,24 +289,10 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRevokeMsgs) error {
 	errs := make([]string, 0)
 	for _, revoke := range powerRevokeMsgs {
-		err := m.center.InsertResource(types.NewResource(&libTypes.ResourceData{
-			Identity: revoke.IdentityId,
-			NodeId:   revoke.NodeId,
-			NodeName: revoke.Name,
-			DataId:   revoke.PowerId,
-			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusD.String(),
-			// resource status, eg: create/release/revoke
-			State: types.PowerStateRevoke.String(),
-			// unit: byte
-			TotalMem: 0,
-			// unit: byte
-			UsedMem: 0,
-			// number of cpu cores.
-			TotalProcessor: 0,
-			// unit: byte
-			TotalBandWidth: 0,
-		}))
+
+		// TODO 处理本地资源
+
+		err := m.center.InsertResource(revoke.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("powerId: %s, %s", revoke.PowerId, err))
 	}
 	if len(errs) != 0 {
@@ -344,26 +304,10 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) error {
 	errs := make([]string, 0)
 	for _, metaData := range metaDataMsgs {
-		err := m.center.InsertMetadata(types.NewMetadata(&libTypes.MetaData{
-			Identity:       metaData.OwnerIdentityId(),
-			NodeId:         metaData.OwnerNodeId(),
-			NodeName:       metaData.OwnerName(),
-			DataId:         metaData.MetaDataId,
-			OriginId:       metaData.OriginId(),
-			TableName:      metaData.TableName(),
-			FilePath:       metaData.FilePath(),
-			FileType:       metaData.FileType(),
-			Desc:           metaData.Desc(),
-			Rows:           uint64(metaData.Rows()),
-			Columns:        uint64(metaData.Columns()),
-			Size_:          uint64(metaData.Size()),
-			HasTitleRow:    metaData.HasTitle(),
-			ColumnMetaList: metaData.ColumnMetas(),
-			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusN.String(),
-			// metaData status, eg: create/release/revoke
-			State: types.MetaDataStateRelease.String(),
-		}))
+
+		// TODO 维护本地 数据服务的 orginId  和 metaDataId 关系
+
+		err := m.center.InsertMetadata(metaData.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", metaData.MetaDataId, err))
 	}
 	if len(errs) != 0 {
@@ -375,16 +319,10 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.MetaDataRevokeMsgs) error {
 	errs := make([]string, 0)
 	for _, revoke := range metaDataRevokeMsgs {
-		err := m.center.InsertMetadata(types.NewMetadata(&libTypes.MetaData{
-			Identity: revoke.IdentityId,
-			NodeId:   revoke.NodeId,
-			NodeName: revoke.Name,
-			DataId:   revoke.MetaDataId,
-			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusD.String(),
-			// metaData status, eg: create/release/revoke
-			State: types.MetaDataStateRevoke.String(),
-		}))
+
+		// TODO 维护本地 数据服务的 orginId  和 metaDataId 关系
+
+		err := m.center.InsertMetadata(revoke.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", revoke.MetaDataId, err))
 	}
 	if len(errs) != 0 {
