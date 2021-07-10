@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	ReschedMaxCount             = 6
-	StarveTerm                  = 6
+	ReschedMaxCount             = 8
+	StarveTerm                  = 3
 	defaultScheduleTaskInterval = 20 * time.Millisecond
 	electionOrgCondition        = 10000
 	electionLocalSeed           = 2
@@ -113,7 +113,7 @@ func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
 	heap.Push(sche.queue, bullet) //
 }
 func (sche *SchedulerStarveFIFO) trySchedule() error {
-	sche.inceaseTaskTerm()
+	sche.increaseTaskTerm()
 
 	var bullet *types.TaskBullet
 
@@ -131,6 +131,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 			bullet.IncreaseResched()
 			if bullet.Resched > ReschedMaxCount {
+				// TODO 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
 				log.Error("The number of times the task has been rescheduled exceeds the expected threshold", "taskId", bullet.TaskId)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type,
 					task.TaskId, task.Onwer().IdentityId, fmt.Sprintf(
@@ -149,6 +150,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 
+
+		// TODO 如果自己不是 power 角色, 那么就不会与这一步
 		selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
 		if nil != err {
 			log.Errorf("Failed to election internal power resource, err: %s", err)
@@ -351,7 +354,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 	return nil
 }
 
-func (sche *SchedulerStarveFIFO) inceaseTaskTerm() {
+func (sche *SchedulerStarveFIFO) increaseTaskTerm() {
 	// handle starve queue
 	sche.starveQueue.IncreaseTerm()
 

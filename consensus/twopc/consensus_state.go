@@ -37,8 +37,9 @@ func (s *state) CleanExpireProposal() ([]string, []string) {
 	recvTaskIds := make([]string, 0)
 	for id, proposal := range s.runningProposals {
 		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
-			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId", proposal.TaskId)
-			delete(s.runningProposals, id)
+			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId",
+				proposal.TaskId, "taskDir", proposal.TaskDir.String())
+			s.CleanProposalState(id)
 			if proposal.TaskDir == ctypes.SendTaskDir {
 				sendTaskIds = append(sendTaskIds, proposal.TaskId)
 			} else {
@@ -59,6 +60,29 @@ func (s *state) HasProposal(proposalId common.Hash) bool {
 
 func (s *state) HasNotProposal(proposalId common.Hash) bool {
 	return !s.HasProposal(proposalId)
+}
+
+
+func (s *state) IsRecvTaskOnProposalState(proposalId common.Hash) bool {
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return false
+	}
+	if proposalState.TaskDir == ctypes.RecvTaskDir {
+		return true
+	}
+	return false
+}
+
+func (s *state) IsSendTaskOnProposalState(proposalId common.Hash) bool {
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return false
+	}
+	if proposalState.TaskDir == ctypes.SendTaskDir {
+		return true
+	}
+	return false
 }
 
 func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
@@ -110,8 +134,8 @@ func  (s *state) StoreConfirmVoteState(vote *types.ConfirmVote) {
 func  (s *state) HasPrepareVoteState(proposalId common.Hash) bool {
 	return s.selfVoteState.HasPrepareVote(proposalId)
 }
-func  (s *state) HasConfirmVoteState(proposalId common.Hash) bool {
-	return s.selfVoteState.HasConfirmVote(proposalId)
+func  (s *state) HasConfirmVoteState(proposalId common.Hash, epoch uint64) bool {
+	return s.selfVoteState.HasConfirmVote(proposalId, epoch)
 }
 
 func  (s *state) RemovePrepareVoteState(proposalId common.Hash) {
@@ -120,7 +144,13 @@ func  (s *state) RemovePrepareVoteState(proposalId common.Hash) {
 func  (s *state) RemoveConfirmVoteState(proposalId common.Hash) {
 	s.selfVoteState.RemoveConfirmVote(proposalId)
 }
-
+func (s *state) CleanProposalState(proposalId common.Hash) {
+	s.DelProposalState(proposalId)
+	s.RemovePrepareVoteState(proposalId)
+	s.RemoveConfirmVoteState(proposalId)
+	s.CleanPrepareVoteState(proposalId)
+	s.CleanConfirmVoteState(proposalId)
+}
 
 // ---------------- PrepareVote ----------------
 func (s *state) HasPrepareVoting(identityId string, proposalId common.Hash) bool {

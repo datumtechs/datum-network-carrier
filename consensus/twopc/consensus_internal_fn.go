@@ -71,9 +71,5 @@ func (t *TwoPC) addProposalState(proposalState *ctypes.ProposalState) {
 	t.state.AddProposalState(proposalState)
 }
 func (t *TwoPC) delProposalState(proposalId common.Hash) {
-	t.state.DelProposalState(proposalId)
-	t.state.RemovePrepareVoteState(proposalId)
-	t.state.RemoveConfirmVoteState(proposalId)
-	t.state.CleanPrepareVoteState(proposalId)
-	t.state.CleanConfirmVoteState(proposalId)
+	t.state.CleanProposalState(proposalId)
 }

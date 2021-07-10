@@ -18,7 +18,7 @@ func makePrepareVote() *pb.PrepareVote {
 	return nil
 }
 
-func makeConfirmMsg(epoch uint64) *pb.ConfirmMsg {
+func makeConfirmMsg(epoch, startTime uint64) *pb.ConfirmMsg {
 
 	// TODO 组装  ConfirmMsg
 	return nil
@@ -37,11 +37,18 @@ func makeCommitMsg() *pb.CommitMsg {
 }
 
 
-func (t *TwoPC) fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, error) {
+func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, error) {
 	// TODO 需要实现
 	return nil, nil
 }
-func (t *TwoPC) fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, error) {
+func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, error) {
+
+	// TODO 需要实现
+	return nil, nil
+}
+
+func fetchConfirmMsg (confirmMsg *types.ConfirmMsgWrap) (*types.ConfirmMsg, error) {
+
 
 	// TODO 需要实现
 	return nil, nil
