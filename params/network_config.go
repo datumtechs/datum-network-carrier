@@ -38,6 +38,10 @@ func CarrierNetworkConfig() *NetworkConfig {
 	return networkConfig
 }
 
+func TestnetNetworkConfig() *NetworkConfig {
+	return testnetNetworkConfig
+}
+
 // OverrideCarrierNetworkConfig will override the network
 // config with the added argument.
 func OverrideCarrierNetworkConfig(cfg *NetworkConfig) {
