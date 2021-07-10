@@ -54,9 +54,9 @@ type SchedulerStarveFIFO struct {
 }
 
 func NewSchedulerStarveFIFO(
-	localTaskCh chan types.TaskMsgs, schedTaskCh chan<- *types.ConsensusTaskWrap,
-	remoteTaskCh <-chan *types.ScheduleTaskWrap, dataCenter DataCenter,
-	sendSchedTaskCh chan<- *types.ConsensusScheduleTask, mng *resource.Manager,
+	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
+	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter DataCenter,
+	sendSchedTaskCh chan *types.ConsensusScheduleTask, mng *resource.Manager,
 	eventEngine *evengine.EventEngine) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
@@ -150,7 +150,6 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 
-
 		// TODO 如果自己不是 power 角色, 那么就不会与这一步
 		selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
 		if nil != err {
@@ -211,7 +210,6 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 }
 func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWrap) error {
 
-
 	go func() {
 
 		role := schedTask.Role
@@ -237,7 +235,6 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 			schedTask.SendResult(&types.ScheduleResult{
 				// TODO 投票
 			})
-
 
 			return
 		}
@@ -278,13 +275,12 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 						schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
 
-					schedTask.SendResult( &types.ScheduleResult{
+					schedTask.SendResult(&types.ScheduleResult{
 						// TODO 投票
 					})
 					return
 				}
 			}
-
 
 			// TODO  如果都匹配,  投出一票  (DataSupplier 身份)
 
@@ -292,7 +288,6 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				// TODO 投票
 			})
 		}
-
 
 		if role == types.PowerSupplier {
 			needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
@@ -310,14 +305,12 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 			// Lock local resource (jobNode)
 			sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
 
-
 			// TODO  投出一票 (PowerSupplier 身份)
 
 			schedTask.SendResult(&types.ScheduleResult{
 				// TODO 投票
 			})
 		}
-
 
 		if role == types.ResultSupplier {
 			// TODO  投出一票 (Receiver 身份)
@@ -342,8 +335,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				TaskId: schedTask.Task.TaskId,
 				Status: types.TaskSchedOk,
 				Resource: &types.PrepareVoteResource{
-					Id: resourceInfo.Id,
-					Ip: resourceInfo.ExternalIp,
+					Id:   resourceInfo.Id,
+					Ip:   resourceInfo.ExternalIp,
 					Port: resourceInfo.ExternalPort,
 				},
 			})
@@ -448,7 +441,6 @@ func (sche *SchedulerStarveFIFO) SendTaskWihtConsensus(task *types.ConsensusTask
 	sche.schedTaskCh <- task
 }
 
-
 func buildScheduleTask(task *types.TaskMsg, powers []*types.NodeAlias) *types.ScheduleTask {
 
 	partners := make([]*types.ScheduleTaskDataSupplier, len(task.PartnerTaskSuppliers()))
@@ -496,4 +488,3 @@ func buildScheduleTask(task *types.TaskMsg, powers []*types.NodeAlias) *types.Sc
 		CreateAt:              task.CreateAt(),
 	}
 }
-
