@@ -56,8 +56,8 @@ func SendTwoPcConfirmVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID
 }
 
 
-// SendTwoPcCmmitMsg sends 2pc CommitMsg to other peer.
-func SendTwoPcCmmitMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.CommitMsg) error {
+// SendTwoPcCommitMsg sends 2pc CommitMsg to other peer.
+func SendTwoPcCommitMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.CommitMsg) error {
 	// send request on the special topic.
 	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTwoPcCommitMsgTopic, pid)
 	if err != nil {
