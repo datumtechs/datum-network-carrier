@@ -62,6 +62,17 @@ message CommitMsg {
     bytes                        sign        = 5;                   // CommitMsg 发起者签名
 }
 
+// 参与方反馈 各自对某个task的执行结果 (发给发起方)
+message TaskResultMsg {
+    bytes     proposal_id = 1;                // 2pc 提案Id
+    bytes     task_role   = 2;                  // The role information of the current recipient of the task
+    bytes     task_id     = 3;                    // 提案中对应的任务Id
+    TaskEvent task_event  = 4;                 // 任务在该参与方上产生的event
+    uint64    create_at   = 5;                  // TaskResultMsg 创建的时间
+    bytes     sign        = 6;                       // TaskResultMsg 发起者签名
+
+}
+
 message TaskOption {
 
     bytes                        task_role               = 1;      // The role information of the current recipient of the task
@@ -113,4 +124,13 @@ message TaskOrganizationIdentityInfo  {
     bytes name        = 1;                           // 组织名称
     bytes node_id     = 2;                        // 组织中调度服务的 nodeId
     bytes identity_id = 3;                    // 组织的身份标识Id
+}
+
+
+message TaskEvent {
+    bytes  type        = 1;                        // 事件类型码
+    bytes  task_id     = 2;                     // 事件对应的任务id
+    bytes  identity_id = 3;                 // 产生事件的节点身份
+    bytes  content     = 4;                     // 事件内容
+    uint64 create_at   = 5;                   // 事件产生时间
 }

@@ -157,7 +157,7 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.Consensu
 	t.addTaskResultCh(task.TaskId, result)
 
 	// Start handle task ...
-	if err := t.sendPrepareMsg(proposalHash, task); nil != err {
+	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
 
 		// Send consensus result
 		t.collectTaskResult(&types.ConsensuResult{
@@ -279,32 +279,32 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return err
 	}
 
-	vote := &pb.PrepareVote{
-		ProposalId: proposal.ProposalId.Bytes(),
-		TaskRole:   prepareMsg.TaskOption.TaskRole,
-		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(self.Name),
-			NodeId:     []byte(self.NodeId),
-			IdentityId: []byte(self.IdentityId),
+	vote := &types.PrepareVote{
+		ProposalId: proposal.ProposalId,
+		TaskRole:  types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
+		Owner: &types.NodeAlias{
+			Name: self.Name,
+			NodeId: self.NodeId,
+			IdentityId: self.IdentityId,
 		},
 		CreateAt: uint64(time.Now().UnixNano()),
 	}
 
 	if result.Status == types.TaskSchedFailed {
-		vote.VoteOption = types.No.Bytes()
+		vote.VoteOption = types.No
 		log.Error("Failed to replay schedule task", "taskId", result.TaskId, "err", result.Err.Error())
 	} else {
-		vote.VoteOption = types.Yes.Bytes()
-		vote.PeerInfo = &pb.TaskPeerInfo{
-			Ip:   []byte(result.Resource.Ip),
-			Port: []byte(result.Resource.Port),
+		vote.VoteOption = types.Yes
+		vote.PeerInfo = &types.PrepareVoteResource{
+			Ip:   result.Resource.Ip,
+			Port: result.Resource.Port,
 		}
 		log.Info("Succeed to replay schedule task, will vote `YES`", "taskId", result.TaskId)
 	}
 
 	// store self vote state And Send vote to Other peer
-	t.state.StorePrepareVoteState(types.FetchPrepareVote(vote))
-	if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, vote); nil != err {
+	t.state.StorePrepareVoteState(vote)
+	if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
 		err := fmt.Errorf("failed to `SendTwoPcPrepareVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
 			proposal.TaskId, prepareMsg.TaskOption.TaskRole, self.NodeId, err)
 		log.Error(err)
@@ -323,8 +323,8 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		return ctypes.ErrProposalNotFound
 	}
 	proposalState := t.state.GetProposalState(voteMsg.ProposalId)
-	// 只有 当前 state 不是 confirm 和 commit 状态才可以处理 prepare 阶段的 vote
-	if proposalState.IsConfirmPeriod() || proposalState.IsCommitPeriod() {
+	// 只有 当前 state 是 prepare 状态才可以处理 prepare 阶段的 vote
+	if !proposalState.IsPreparePeriod() {
 		return ctypes.ErrProposalPrepareVoteTimeout
 	}
 
@@ -403,10 +403,12 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
 		t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId)
 
-	now := uint64(time.Now().UnixNano())
 
 	// Change the propoState to `confirmPeriod`
 	if taskMemCount == voteCount {
+
+		now := uint64(time.Now().UnixNano())
+
 		t.state.ChangeToConfirm(voteMsg.ProposalId, now)
 
 		// TODO ++++++++++++++++++++++++++++++++
@@ -459,6 +461,24 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 
 	proposalState := t.state.GetProposalState(msg.ProposalId)
 
+	// 判断是第几轮 confirmMsg
+	// 只有 当前 state 是 prepare 和 confirm 状态才可以处理 prepare 阶段的 vote
+	if proposalState.IsCommitPeriod() {
+		return ctypes.ErrProposalConfirmMsgTimeout
+	}
+
+	// 第一轮投票
+	if msg.Epoch == ctypes.ConfirmEpochFirst.Uint64() && proposalState.IsFirstConfirmEpochTimeout() {
+		log.Error("Failed to handle comfirmMsg, first confirm epoch timeout", "confirmMsg", confirmMsg.String())
+		return ctypes.ErrProposalConfirmMsgTimeout
+	}
+
+	// 第二轮投票
+	if msg.Epoch == ctypes.ConfirmEpochSecond.Uint64() && proposalState.IsSecondConfirmEpochTimeout() {
+		log.Error("Failed to handle comfirmMsg, second confirm epoch timeout", "confirmMsg", confirmMsg.String())
+		return ctypes.ErrProposalConfirmMsgTimeout
+	}
+
 	// 判断任务方向
 	if t.state.IsSendTaskOnProposalState(msg.ProposalId) {
 		return ctypes.ErrMsgTaskDirInvalid
@@ -469,23 +489,6 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		return ctypes.ErrProposalTaskNotFound
 	}
 
-	// 判断是第几轮 confirmMsg
-	// 只有 当前 state 是 prepare 和 confirm 状态才可以处理 prepare 阶段的 vote
-	if proposalState.IsCommitPeriod() {
-		return ctypes.ErrProposalConfirmVoteTimeout
-	}
-
-	// 第一轮投票
-	if msg.Epoch == ctypes.ConfirmEpochFirst.Uint64() && proposalState.IsFirstConfirmEpochTimeout() {
-		log.Error("Failed to handle comfirmMsg, first confirm epoch timeout", "confirmMsg", confirmMsg.String())
-		return ctypes.ErrProposalConfirmVoteTimeout
-	}
-
-	// 第二轮投票
-	if msg.Epoch == ctypes.ConfirmEpochSecond.Uint64() && proposalState.IsSecondConfirmEpochTimeout() {
-		log.Error("Failed to handle comfirmMsg, second confirm epoch timeout", "confirmMsg", confirmMsg.String())
-		return ctypes.ErrProposalConfirmVoteTimeout
-	}
 
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
@@ -523,12 +526,142 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	}
 	return nil
 }
-func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error { return nil }
+func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
+
+
+	voteMsg, err := fetchConfirmVote(confirmVote)
+	if nil != err {
+		return err
+	}
+	if t.state.HasNotProposal(voteMsg.ProposalId) {
+		return ctypes.ErrProposalNotFound
+	}
+	proposalState := t.state.GetProposalState(voteMsg.ProposalId)
+	// 只有 当前 state 是 confirm 状态才可以处理 confirm 阶段的 vote
+	if proposalState.IsPreparePeriod() {
+		return ctypes.ErrConsensusMsgInvalid
+	}
+	if proposalState.IsCommitPeriod() {
+		return ctypes.ErrProposalPrepareVoteTimeout
+	}
+
+	// validate the vote epoch with proposalState
+	if proposalState.IsFirstConfirmEpoch() && voteMsg.Epoch != ctypes.ConfirmEpochFirst.Uint64() {
+		return ctypes.ErrProposalConfirmVoteTimeout
+	}
+	if proposalState.IsSecondConfirmEpoch() && voteMsg.Epoch != ctypes.ConfirmEpochSecond.Uint64() {
+		return ctypes.ErrProposalConfirmVoteTimeout
+	}
+
+	if t.state.IsRecvTaskOnProposalState(voteMsg.ProposalId) {
+		return ctypes.ErrMsgTaskDirInvalid
+	}
+	// find the task of proposal on sendTasks
+	task, ok := t.sendTasks[proposalState.TaskId]
+	if !ok {
+		return ctypes.ErrProposalTaskNotFound
+	}
+
+	// Voter voted repeatedly
+	if t.state.HasConfirmVoting(voteMsg.Owner.IdentityId, voteMsg.ProposalId) {
+		return ctypes.ErrPrepareVoteRepeatedly
+	}
+
+	dataSupplierCount := uint32(len(task.Partners))
+	powerSupplierCount := uint32(len(task.PowerSuppliers))
+	resulterCount := uint32(len(task.Receivers))
+	taskMemCount := dataSupplierCount + powerSupplierCount + resulterCount
+
+	var identityValid bool
+	switch voteMsg.TaskRole {
+	case types.DataSupplier:
+		if dataSupplierCount == t.state.GetTaskDataSupplierConfirmTotalVoteCount(voteMsg.ProposalId) {
+			return ctypes.ErrVoteCountOverflow
+		}
+		for _, dataSupplier := range task.Partners {
+			if dataSupplier.IdentityId == voteMsg.Owner.IdentityId {
+
+				// TODO validate vote sign
+
+				identityValid = true
+				break
+			}
+		}
+	case types.PowerSupplier:
+		if powerSupplierCount == t.state.GetTaskPowerSupplierConfirmTotalVoteCount(voteMsg.ProposalId) {
+			return ctypes.ErrVoteCountOverflow
+		}
+		for _, powerSupplier := range task.PowerSuppliers {
+			if powerSupplier.IdentityId == voteMsg.Owner.IdentityId {
+
+				// TODO validate vote sign
+
+				identityValid = true
+				break
+			}
+		}
+	case types.ResultSupplier:
+		if resulterCount == t.state.GetTaskResulterConfirmTotalVoteCount(voteMsg.ProposalId) {
+			return ctypes.ErrVoteCountOverflow
+		}
+		for _, resulter := range task.Receivers {
+			if resulter.IdentityId == voteMsg.Owner.IdentityId {
+
+				// TODO validate vote sign
+
+				identityValid = true
+				break
+			}
+		}
+	default:
+		return ctypes.ErrMsgOwnerNodeIdInvalid
+	}
+	if !identityValid {
+		return ctypes.ErrProposalPrepareVoteOwnerInvalid
+	}
+
+	// Store vote
+	t.state.StoreConfirmVote(voteMsg)
+
+	voteCount := t.state.GetTaskDataSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) +
+		t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId)
+
+
+
+	// Change the propoState to `confirmPeriod`
+	if taskMemCount == voteCount {
+
+		now := uint64(time.Now().UnixNano())
+
+		t.state.ChangeToCommit(voteMsg.ProposalId, now)
+
+		if err := t.sendCommitMsg(voteMsg.ProposalId, task, now); nil != err {
+			// Send consensus result
+			t.collectTaskResult(&types.ConsensuResult{
+				TaskConsResult: &types.TaskConsResult{
+					TaskId: task.TaskId,
+					Status: types.TaskConsensusInterrupt,
+					Done:   false,
+					Err:    err,
+				},
+			})
+
+			// todo 这里先考虑下是否直接清除掉 proposalState ????
+			// clean some invalid data
+			t.delProposalState(voteMsg.ProposalId)
+			t.delSendTask(task.TaskId)
+			return err
+		}
+
+	}
+	return nil
+}
 func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error       { return nil }
 
-func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask) error {
+func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
 
-	prepareMsg := makePrepareMsg()
+	prepareMsg := makePrepareMsg(startTime)
 
 	sendTaskFn := func(proposalId common.Hash, taskRole types.TaskRole, identityId, nodeId, taskId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
 		pid, err := p2p.HexPeerID(nodeId)
@@ -595,7 +728,7 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.ScheduleTask,
 		confirmMsg.TaskRole = taskRole.Bytes()
 		// Send the ConfirmMsg to other peer
 		if err := handler.SendTwoPcConfirmMsg(context.TODO(), t.p2p, pid, confirmMsg); nil != err {
-			errCh <- fmt.Errorf("failed to call`SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, taskRole: %s, identityId: %s, nodeId: %s, err: %s",
+			errCh <- fmt.Errorf("failed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s, taskRole: %s, identityId: %s, nodeId: %s, err: %s",
 				proposalId.String(), taskId, taskRole.String(), identityId, nodeId, err)
 			errCh <- err
 			return
@@ -631,6 +764,63 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.ScheduleTask,
 	if len(errStrs) != 0 {
 		return fmt.Errorf(
 			`failed to Send ConfirmMsg for task:
+%s`, strings.Join(errStrs, "\n"))
+	}
+
+	return nil
+}
+
+func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
+
+	commitMsg := makeCommitMsg(startTime)
+
+	sendCommitMsgFn := func(proposalId common.Hash, taskRole types.TaskRole, identityId, nodeId, taskId string, commitMsg *pb.CommitMsg, errCh chan<- error) {
+		pid, err := p2p.HexPeerID(nodeId)
+		if nil != err {
+			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, taskRole: %s, identityId: %s, nodeId: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), identityId, nodeId, err)
+			return
+		}
+
+		commitMsg.TaskRole = taskRole.Bytes()
+		// Send the ConfirmMsg to other peer
+		if err := handler.SendTwoPcCommitMsg(context.TODO(), t.p2p, pid, commitMsg); nil != err {
+			errCh <- fmt.Errorf("failed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s, taskRole: %s, identityId: %s, nodeId: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), identityId, nodeId, err)
+			errCh <- err
+			return
+		}
+
+		errCh <- nil
+	}
+
+	errCh := make(chan error, len(task.Partners)+len(task.PowerSuppliers)+len(task.Receivers))
+
+	go func() {
+		for _, partner := range task.Partners {
+			go sendCommitMsgFn(proposalId, types.DataSupplier, partner.IdentityId, partner.NodeId, task.TaskId, commitMsg, errCh)
+		}
+	}()
+	go func() {
+		for _, powerSupplier := range task.PowerSuppliers {
+			go sendCommitMsgFn(proposalId, types.PowerSupplier, powerSupplier.IdentityId, powerSupplier.NodeId, task.TaskId, commitMsg, errCh)
+		}
+	}()
+
+	go func() {
+		for _, receiver := range task.Receivers {
+			go sendCommitMsgFn(proposalId, types.ResultSupplier, receiver.IdentityId, receiver.NodeId, task.TaskId, commitMsg, errCh)
+		}
+	}()
+	errStrs := make([]string, 0)
+	for err := range errCh {
+		if nil != err {
+			errStrs = append(errStrs, err.Error())
+		}
+	}
+	if len(errStrs) != 0 {
+		return fmt.Errorf(
+			`failed to Send CommitMsg for task:
 %s`, strings.Join(errStrs, "\n"))
 	}
 
