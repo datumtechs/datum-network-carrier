@@ -94,13 +94,7 @@ func (c *JobNodeClient) IsConnected() bool {
 }
 
 func (c *JobNodeClient) Reconnect() error {
-	if !c.IsConnected() {
-		conn, err := dialContext(c.ctx, c.addr)
-		if err != nil {
-			return err
-		}
-		c.conn = conn
-	}
+	c.connecting()
 	return nil
 }
 
