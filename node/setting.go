@@ -27,7 +27,6 @@ func SetNodeConfig(ctx *cli.Context, cfg *Config) {
 // SetCarrierConfig applies eth-related command line flags to the config.
 func SetCarrierConfig(ctx *cli.Context, cfg *carrier.Config) {
 	// Avoid conflicting network flags
-	// todo:
 	//checkExclusive(ctx, DeveloperFlag, TestnetFlag)
 	cfg.DatabaseHandles = makeDatabaseHandles()
 
