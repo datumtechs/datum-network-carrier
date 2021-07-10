@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
+	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
 	"sync"
@@ -103,18 +104,20 @@ func (c *JobNodeClient) Reconnect() error {
 	return nil
 }
 
-func (c *JobNodeClient) GetStatus(ctx context.Context) (*computesvc.GetStatusReply, error) {
-	return nil, nil
+func (c *JobNodeClient) GetStatus() (*computesvc.GetStatusReply, error) {
+	return nil, errors.New("method GetStatus not implemented")
 }
 
 func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*computesvc.GetTaskDetailsReply, error) {
-	return nil, nil
+	return nil, errors.New("method GetTaskDetails not implemented")
 }
 
 func (c *JobNodeClient) UploadShard(ctx context.Context) (computesvc.ComputeProvider_UploadShardClient, error){
-	return nil, nil
+	return nil, errors.New("method UploadShard not implemented")
 }
 
-func (c *JobNodeClient) HandleTaskReadyGo(ctx context.Context, in *computesvc.TaskReadyGoReq) (*computesvc.UploadShardReply, error) {
-	return nil, nil
+func (c *JobNodeClient) HandleTaskReadyGo(req *computesvc.TaskReadyGoReq) (*computesvc.UploadShardReply, error) {
+	ctx, cancel := context.WithTimeout(c.ctx, defaultRequestTime)
+	defer cancel()
+	return c.computeProviderClient.HandleTaskReadyGo(ctx, req)
 }
