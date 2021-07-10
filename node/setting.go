@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/ethereum/go-ethereum/common/fdlimit"
 	"github.com/urfave/cli/v2"
 	"path/filepath"
@@ -29,6 +30,13 @@ func SetCarrierConfig(ctx *cli.Context, cfg *carrier.Config) {
 	// todo:
 	//checkExclusive(ctx, DeveloperFlag, TestnetFlag)
 	cfg.DatabaseHandles = makeDatabaseHandles()
+
+	// override any default configs.
+	switch {
+	case ctx.IsSet(flags.TestnetFlag.Name):
+		params.OverrideCarrierConfig(params.TestnetConfig())
+		params.OverrideCarrierNetworkConfig(params.TestnetNetworkConfig())
+	}
 
 	// Override any default configs for hard coded networks.
 	// todo: more setting...
