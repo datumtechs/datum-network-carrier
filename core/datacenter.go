@@ -284,11 +284,13 @@ func (dc *DataCenter) StoreLocalTask(task *types.Task) error {
 
 	return nil
 }
+
 // todo 根据任务Id 删除调本地任务信息
 func (dc *DataCenter) DelLocalTask(taskId string) error {
 
 	return nil
 }
+
 // todo  更新本地任务状态字段
 func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
 

@@ -157,7 +157,6 @@ func main() {
 }
 
 func startNode(ctx *cli.Context) error {
-	// todo: some logic could be added here
 	if args := ctx.Args(); args.Len() > 0 {
 		return fmt.Errorf("invalid command: %q", args.Get(0))
 	}
