@@ -3,6 +3,7 @@ package twopc
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -73,3 +74,60 @@ func (t *TwoPC) addProposalState(proposalState *ctypes.ProposalState) {
 func (t *TwoPC) delProposalState(proposalId common.Hash) {
 	t.state.CleanProposalState(proposalId)
 }
+
+func (t *TwoPC) sendTaskForStart (task *types.ConsensusScheduleTask) {
+	t.recvSchedTaskCh <- task
+}
+
+func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+
+	dataSuppliers, powerSuppliers, receivers := make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0)
+
+	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
+		if vote.TaskRole == types.DataSupplier && nil != vote.PeerInfo {
+			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+		}
+		if vote.TaskRole == types.PowerSupplier && nil != vote.PeerInfo {
+			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+		}
+		if vote.TaskRole == types.ResultSupplier && nil != vote.PeerInfo {
+			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+		}
+	}
+	owner := t.state.GetSelfPeerInfo(proposalId)
+	if nil == owner {
+		return nil
+	}
+	return &pb.ConfirmTaskPeerInfo{
+		OwnerPeerInfo: types.ConvertTaskPeerInfo(owner),
+		DataSupplierPeerInfoList: dataSuppliers,
+		PowerSupplierPeerInfoList: powerSuppliers,
+		ResultReceiverPeerInfoList: receivers,
+	}
+}
+//func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+//
+//	dataSuppliers, powerSuppliers, receivers := make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0)
+//
+//	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
+//		if vote.TaskRole == types.DataSupplier && nil != vote.PeerInfo {
+//			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+//		}
+//		if vote.TaskRole == types.PowerSupplier && nil != vote.PeerInfo {
+//			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+//		}
+//		if vote.TaskRole == types.ResultSupplier && nil != vote.PeerInfo {
+//			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+//		}
+//	}
+//	owner := t.state.GetSelfPeerInfo(proposalId)
+//	if nil == owner {
+//		return nil
+//	}
+//	return &pb.ConfirmTaskPeerInfo{
+//		OwnerPeerInfo: types.ConvertTaskPeerInfo(owner),
+//		DataSupplierPeerInfoList: dataSuppliers,
+//		PowerSupplierPeerInfoList: powerSuppliers,
+//		ResultReceiverPeerInfoList: receivers,
+//	}
+//}

@@ -41,6 +41,7 @@ func FetchTaskPeerInfo(peerInfo *pb.TaskPeerInfo) *PrepareVoteResource {
 	}
 }
 
+
 type PrepareVote struct {
 	ProposalId common.Hash
 	TaskRole   TaskRole
