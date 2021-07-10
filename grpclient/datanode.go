@@ -110,8 +110,42 @@ func (c *DataNodeClient) ListData(ctx context.Context) (*datasvc.ListDataReply, 
 	return nil, nil
 }
 
-func (c *DataNodeClient) UploadData(ctx context.Context) (datasvc.DataProvider_UploadDataClient, error) {
-	return nil, nil
+func (c *DataNodeClient) UploadData(ctx context.Context, content []byte, metadata *datasvc.FileInfo) (*datasvc.UploadReply, error) {
+	stream, err := c.dataProviderClient.UploadData(ctx)
+	if err != nil {
+		log.WithError(err).Error("Invoke UploadData failed")
+		return nil, err
+	}
+
+	// send content
+	err = stream.Send(&datasvc.UploadRequest{
+		Data: &datasvc.UploadRequest_Content{
+			Content: content,
+		},
+	})
+	if err != nil {
+		log.WithError(err).Error("stream request(content) for uploadData failed")
+		return nil, err
+	}
+
+	// send metadata
+	err = stream.Send(&datasvc.UploadRequest{
+		Data: &datasvc.UploadRequest_Meta{
+			Meta: metadata,
+		},
+	})
+	if err != nil {
+		log.WithError(err).Error("stream request(metadata) for uploadData failed")
+		return nil, err
+	}
+	
+	// receive response
+	res, err := stream.CloseAndRecv()
+	if err != nil {
+		log.WithError(err).Error("UploadData get response failed")
+		return nil, err
+	}
+	return res, nil
 }
 
 func (c *DataNodeClient) BatchUpload(ctx context.Context) (datasvc.DataProvider_BatchUploadClient, error) {
