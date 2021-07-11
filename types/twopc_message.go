@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
@@ -17,7 +18,13 @@ type PrepareMsgWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
-func (msg *PrepareMsgWrap) String() string {return ""}
+func (msg *PrepareMsgWrap) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *PrepareMsgWrap) SealHash() common.Hash {
 	if sealHash := msg.sealHash.Load(); sealHash != nil {
 		return sealHash.(common.Hash)
@@ -55,7 +62,13 @@ type PrepareVoteWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
-func (msg *PrepareVoteWrap) String() string {return ""}
+func (msg *PrepareVoteWrap) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *PrepareVoteWrap) SealHash() common.Hash {
 	if sealHash := msg.sealHash.Load(); sealHash != nil {
 		return sealHash.(common.Hash)
@@ -97,7 +110,13 @@ type ConfirmMsgWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
-func (msg *ConfirmMsgWrap) String() string {return ""}
+func (msg *ConfirmMsgWrap) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *ConfirmMsgWrap) SealHash() common.Hash {
 	if sealHash := msg.sealHash.Load(); sealHash != nil {
 		return sealHash.(common.Hash)
@@ -138,7 +157,13 @@ type ConfirmVoteWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
-func (msg *ConfirmVoteWrap) String() string {return ""}
+func (msg *ConfirmVoteWrap) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *ConfirmVoteWrap) SealHash() common.Hash {
 	if sealHash := msg.sealHash.Load(); sealHash != nil {
 		return sealHash.(common.Hash)
@@ -182,7 +207,13 @@ type CommitMsgWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
-func (msg *CommitMsgWrap) String() string {return ""}
+func (msg *CommitMsgWrap) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *CommitMsgWrap) SealHash() common.Hash {
 	if sealHash := msg.sealHash.Load(); sealHash != nil {
 		return sealHash.(common.Hash)
@@ -220,7 +251,13 @@ type TaskResultMsgWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
-func (msg *TaskResultMsgWrap) String() string {return ""}
+func (msg *TaskResultMsgWrap) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *TaskResultMsgWrap) SealHash() common.Hash {
 	if sealHash := msg.sealHash.Load(); sealHash != nil {
 		return sealHash.(common.Hash)

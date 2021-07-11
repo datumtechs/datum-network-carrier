@@ -1,6 +1,9 @@
 package types
 
-import "github.com/RosettaFlow/Carrier-Go/common"
+import (
+	"encoding/json"
+	"github.com/RosettaFlow/Carrier-Go/common"
+)
 
 type ProposalTask struct {
 	ProposalId common.Hash
@@ -20,7 +23,13 @@ func (wrap *ConsensusTaskWrap) SendResult(result *ConsensuResult) {
 func (wrap *ConsensusTaskWrap) RecvResult() *ConsensuResult {
 	return <- wrap.ResultCh
 }
-
+func (wrap *ConsensusTaskWrap) String() string  {
+	result, err := json.Marshal(wrap)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 
 type ScheduleTaskWrap struct {
 	Role     TaskRole
@@ -33,6 +42,13 @@ func (wrap *ScheduleTaskWrap) SendResult(result *ScheduleResult){
 }
 func (wrap *ScheduleTaskWrap) RecvResult() *ScheduleResult {
 	return <- wrap.ResultCh
+}
+func (wrap *ScheduleTaskWrap) String() string  {
+	result, err := json.Marshal(wrap)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
 }
 
 //type ConsensusScheduleTaskWrap struct {
