@@ -18,7 +18,7 @@ func makePrepareVote() *pb.PrepareVote {
 	return nil
 }
 
-func makeConfirmMsg(epoch, startTime uint64) *pb.ConfirmMsg {
+func makeConfirmMsg(startTime uint64) *pb.ConfirmMsg {
 
 	// TODO 组装  ConfirmMsg
 	return nil
