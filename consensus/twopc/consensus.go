@@ -181,8 +181,7 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, result chan<- *types.Consensu
 			},
 		})
 		// clean some invalid data
-		t.delProposalState(proposalHash)
-		t.delSendTask(task.TaskId)
+		t.delProposalStateAndTask(proposalHash)
 		return err
 	}
 
@@ -275,8 +274,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	t.addRecvTask(task)
 	if err := t.validateRecvTask(task); nil != err {
 		// clean some data
-		t.delProposalState(proposal.ProposalId)
-		t.delRecvTask(task.TaskId)
+		t.delProposalStateAndTask(proposal.ProposalId)
 		return err
 	}
 
@@ -438,7 +436,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		// TODO ++++++++++++++++++++++++++++++++
 		// TODO ++++++++++++++++++++++++++++++++
 
-		if err := t.sendConfirmMsg(voteMsg.ProposalId, task, ctypes.ConfirmEpochFirst.Uint64(), now); nil != err {
+		if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
 			// Send consensus result
 			t.collectTaskResult(&types.ConsensuResult{
 				TaskConsResult: &types.TaskConsResult{
@@ -451,8 +449,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 
 			// todo 这里先考虑下是否直接清除掉 proposalState ????
 			// clean some invalid data
-			t.delProposalState(voteMsg.ProposalId)
-			t.delSendTask(task.TaskId)
+			t.delProposalStateAndTask(voteMsg.ProposalId)
 			return err
 		}
 
@@ -487,18 +484,6 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		return ctypes.ErrProposalConfirmMsgTimeout
 	}
 
-	// 第一轮投票
-	if msg.Epoch == ctypes.ConfirmEpochFirst.Uint64() && proposalState.IsFirstConfirmEpochTimeout() {
-		log.Error("Failed to handle comfirmMsg, first confirm epoch timeout", "confirmMsg", confirmMsg.String())
-		return ctypes.ErrProposalConfirmMsgTimeout
-	}
-
-	// 第二轮投票
-	if msg.Epoch == ctypes.ConfirmEpochSecond.Uint64() && proposalState.IsSecondConfirmEpochTimeout() {
-		log.Error("Failed to handle comfirmMsg, second confirm epoch timeout", "confirmMsg", confirmMsg.String())
-		return ctypes.ErrProposalConfirmMsgTimeout
-	}
-
 	// 判断任务方向
 	if t.state.IsSendTaskOnProposalState(msg.ProposalId) {
 		return ctypes.ErrMsgTaskDirInvalid
@@ -527,14 +512,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	}
 
 	// 修改状态
-	if msg.Epoch == ctypes.ConfirmEpochFirst.Uint64() {
-		t.state.ChangeToConfirm(msg.ProposalId, msg.CreateAt)
-	}
-
-	if msg.Epoch == ctypes.ConfirmEpochSecond.Uint64() {
-		t.state.ChangeToConfirmSecondEpoch(msg.ProposalId, msg.CreateAt)
-	}
-
+	t.state.ChangeToConfirm(msg.ProposalId, msg.CreateAt)
 	// store the proposal about all partner peerInfo of task to local cache
 	t.state.StoreConfirmTaskPeerInfo(msg.ProposalId, confirmMsg.PeerDesc)
 	// store self vote state And Send vote to Other peer
@@ -563,14 +541,6 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	}
 	if proposalState.IsCommitPeriod() {
 		return ctypes.ErrProposalPrepareVoteTimeout
-	}
-
-	// validate the vote epoch with proposalState
-	if proposalState.IsFirstConfirmEpoch() && voteMsg.Epoch != ctypes.ConfirmEpochFirst.Uint64() {
-		return ctypes.ErrProposalConfirmVoteTimeout
-	}
-	if proposalState.IsSecondConfirmEpoch() && voteMsg.Epoch != ctypes.ConfirmEpochSecond.Uint64() {
-		return ctypes.ErrProposalConfirmVoteTimeout
 	}
 
 	if t.state.IsRecvTaskOnProposalState(voteMsg.ProposalId) {
@@ -667,8 +637,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 			// todo 这里先考虑下是否直接清除掉 proposalState ????
 			// clean some invalid data
-			t.delProposalState(voteMsg.ProposalId)
-			t.delSendTask(task.TaskId)
+			t.delProposalStateAndTask(voteMsg.ProposalId)
 			return err
 		}
 

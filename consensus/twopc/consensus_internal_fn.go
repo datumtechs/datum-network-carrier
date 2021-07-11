@@ -41,6 +41,11 @@ func (t *TwoPC) addSendTask(task *types.ScheduleTask) {
 func (t *TwoPC) addRecvTask(task *types.ScheduleTask) {
 	t.recvTasks[task.TaskId] = task
 }
+func (t *TwoPC) delTask(taskId string)  {
+	t.delSendTask(taskId)
+	t.delRecvTask(taskId)
+	// TODO 处理 清除 task 相关的 所有本地占用 cache
+}
 func (t *TwoPC) delSendTask(taskId string) {
 	delete(t.sendTasks, taskId)
 }
@@ -80,6 +85,12 @@ func (t *TwoPC) addProposalState(proposalState *ctypes.ProposalState) {
 func (t *TwoPC) delProposalState(proposalId common.Hash) {
 	t.state.CleanProposalState(proposalId)
 }
+func (t *TwoPC) delProposalStateAndTask(proposalId common.Hash) {
+	if state := t.state.GetProposalState(proposalId); t.state.EmptyInfo() != state {
+		t.state.CleanProposalState(proposalId)
+		t.delTask(state.TaskId)
+	}
+}
 
 func (t *TwoPC) sendTaskForStart (task *types.ConsensusScheduleTask) {
 	t.recvSchedTaskCh <- task
@@ -112,11 +123,36 @@ func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskP
 	}
 }
 
-// TODO 写到这里
 func (t *TwoPC) refreshProposalState() {
-	//for _, proposalState := range t.state.GetProposalStates() {
-	//
-	//}
+	for id, proposalState := range t.state.GetProposalStates() {
+
+		switch proposalState.GetPeriod() {
+		case ctypes.PeriodPrepare:
+			if proposalState.IsPrepareTimeout() {
+				proposalState.ChangeToConfirm(proposalState.PeriodStartTime+uint64(ctypes.PrepareMsgVotingTimeout.Nanoseconds()))
+				t.state.UpdateProposalState(proposalState)
+			}
+		case ctypes.PeriodConfirm:
+			if proposalState.IsConfirmTimeout() {
+				proposalState.ChangeToCommit(proposalState.PeriodStartTime+uint64(ctypes.ConfirmMsgVotingTimeout.Nanoseconds()))
+				t.state.UpdateProposalState(proposalState)
+			}
+		case ctypes.PeriodCommit:
+			if proposalState.IsCommitTimeout() {
+				proposalState.ChangeToFinished(proposalState.PeriodStartTime+uint64(ctypes.CommitMsgEndingTimeout.Nanoseconds()))
+				t.state.UpdateProposalState(proposalState)
+			}
+		case ctypes.PeriodFinished:
+			//
+			if proposalState.IsDeadline() {
+				t.delProposalStateAndTask(proposalState.ProposalId)
+			}
+
+		default:
+			log.Error("Unknown the proposalState period", "proposalId", id.String())
+			t.delProposalStateAndTask(proposalState.ProposalId)
+		}
+	}
 }
 
 func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*types.TaskEventInfo) error {
@@ -220,9 +256,9 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask,
 	return nil
 }
 
-func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.ScheduleTask, epoch uint64, startTime uint64) error {
+func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
 
-	confirmMsg := makeConfirmMsg(epoch, startTime)
+	confirmMsg := makeConfirmMsg(startTime)
 	confirmMsg.PeerDesc = t.makeConfirmTaskPeerDesc(proposalId)
 
 	// store the proposal about all partner peerInfo of task to local cache
@@ -339,30 +375,3 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.ScheduleTask, 
 }
 
 
-
-//func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
-//
-//	dataSuppliers, powerSuppliers, receivers := make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0)
-//
-//	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
-//		if vote.TaskRole == types.DataSupplier && nil != vote.PeerInfo {
-//			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
-//		}
-//		if vote.TaskRole == types.PowerSupplier && nil != vote.PeerInfo {
-//			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
-//		}
-//		if vote.TaskRole == types.ResultSupplier && nil != vote.PeerInfo {
-//			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.PeerInfo))
-//		}
-//	}
-//	owner := t.state.GetSelfPeerInfo(proposalId)
-//	if nil == owner {
-//		return nil
-//	}
-//	return &pb.ConfirmTaskPeerInfo{
-//		OwnerPeerInfo: types.ConvertTaskPeerInfo(owner),
-//		DataSupplierPeerInfoList: dataSuppliers,
-//		PowerSupplierPeerInfoList: powerSuppliers,
-//		ResultReceiverPeerInfoList: receivers,
-//	}
-//}
