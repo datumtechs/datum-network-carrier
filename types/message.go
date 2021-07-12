@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
@@ -68,7 +69,13 @@ func (msg *IdentityMsg) ToDataCenter() *Identity {
 }
 func (msg *IdentityMsg) Marshal() ([]byte, error)       { return nil, nil }
 func (msg *IdentityMsg) Unmarshal(b []byte) error       { return nil }
-func (msg *IdentityMsg) String() string                 { return "" }
+func (msg *IdentityMsg) String() string                 {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *IdentityMsg) MsgType() string                { return MSG_IDENTITY }
 func (msg *IdentityMsg) OwnerName() string              { return msg.Name }
 func (msg *IdentityMsg) OwnerNodeId() string            { return msg.NodeId }
@@ -76,7 +83,13 @@ func (msg *IdentityMsg) OwnerIdentityId() string        { return msg.IdentityId 
 func (msg *IdentityMsg) MsgCreateAt() uint64            { return msg.CreateAt }
 func (msg *IdentityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *IdentityRevokeMsg) Unmarshal(b []byte) error { return nil }
-func (msg *IdentityRevokeMsg) String() string           { return "" }
+func (msg *IdentityRevokeMsg) String() string           {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *IdentityRevokeMsg) MsgType() string          { return MSG_IDENTITY_REVOKE }
 
 // ------------------- power -------------------
@@ -165,7 +178,13 @@ func (msg *PowerMsg) ToDataCenter() *Resource {
 }
 func (msg *PowerMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerMsg) Unmarshal(b []byte) error { return nil }
-func (msg *PowerMsg) String() string           { return "" }
+func (msg *PowerMsg) String() string           {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *PowerMsg) MsgType() string          { return MSG_POWER }
 func (msg *PowerMsg) Onwer() *NodeAlias {
 	return &NodeAlias{
@@ -223,7 +242,13 @@ func (msg *PowerRevokeMsg) ToDataCenter() *Resource {
 }
 func (msg *PowerRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
-func (msg *PowerRevokeMsg) String() string           { return "" }
+func (msg *PowerRevokeMsg) String() string           {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *PowerRevokeMsg) MsgType() string          { return MSG_POWER_REVOKE }
 
 // Len returns the length of s.
@@ -348,7 +373,13 @@ func (msg *MetaDataMsg) ToDataCenter() *Metadata {
 }
 func (msg *MetaDataMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetaDataMsg) Unmarshal(b []byte) error { return nil }
-func (msg *MetaDataMsg) String() string           { return "" }
+func (msg *MetaDataMsg) String() string           {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *MetaDataMsg) MsgType() string          { return MSG_METADATA }
 func (msg *MetaDataMsg) Onwer() *NodeAlias {
 	return &NodeAlias{
@@ -405,7 +436,13 @@ func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
 }
 func (msg *MetaDataRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetaDataRevokeMsg) Unmarshal(b []byte) error { return nil }
-func (msg *MetaDataRevokeMsg) String() string           { return "" }
+func (msg *MetaDataRevokeMsg) String() string           {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *MetaDataRevokeMsg) MsgType() string          { return MSG_METADATA_REVOKE }
 
 // Len returns the length of s.
@@ -522,7 +559,13 @@ type TaskMsgs []*TaskMsg
 
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
-func (msg *TaskMsg) String() string           { return "" }
+func (msg *TaskMsg) String() string           {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
 func (msg *TaskMsg) MsgType() string          { return MSG_TASK }
 func (msg *TaskMsg) Onwer() *NodeAlias {
 	return &NodeAlias{

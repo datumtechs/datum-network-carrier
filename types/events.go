@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
@@ -19,6 +20,63 @@ type TaskEventInfo struct {
 	TaskId     string `json:"taskId"`
 	Content    string `json:"content"`
 	CreateTime uint64 `json:"createTime"`
+}
+
+func (msg *IdentityMsgEvent) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *IdentityRevokeMsgEvent) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *MetaDataMsgEvent) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *MetaDataRevokeMsgEvent) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *PowerMsgEvent) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return ""
+	}
+	return string(result)
+}
+func (msg *PowerRevokeMsgEvent) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *TaskMsgEvent) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
+}
+func (msg *TaskEventInfo) String() string {
+	result, err := json.Marshal(msg)
+	if err != nil{
+		return "Failed to generate string"
+	}
+	return string(result)
 }
 
 func ConvertTaskEvent(event *TaskEventInfo) *pb.TaskEvent {
