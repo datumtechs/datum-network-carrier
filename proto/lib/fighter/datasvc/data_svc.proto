@@ -4,6 +4,8 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc";
 
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
+import "lib/fighter/common/common.proto";
+
 service DataProvider {
   rpc GetStatus(google.protobuf.Empty) returns (GetStatusReply) {
     option(google.api.http) = {
@@ -36,6 +38,13 @@ service DataProvider {
   rpc DeleteData(DownloadRequest) returns (UploadReply) {}
 
   rpc SendSharesData(SendSharesDataRequest) returns (SendSharesDataReply) {}
+
+  rpc HandleTaskReadyGo(common.TaskReadyGoReq) returns (common.TaskReadyGoReply) {
+    option(google.api.http) = {
+        post: "/data/handleTaskReadyGo"
+        body: "*"
+    };
+  }
 }
 
 message DownloadRequest {

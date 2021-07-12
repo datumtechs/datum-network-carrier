@@ -282,19 +282,19 @@ func (pcache *LocalTaskPowerUsed) GetTaskId() string    { return pcache.taskId }
 func (pcache *LocalTaskPowerUsed) GetNodeId() string    { return pcache.nodeId }
 func (pcache *LocalTaskPowerUsed) GetSlotCount() uint64 { return pcache.slotCount }
 
-type DataRereouceTable struct {
+type DataResourceTable struct {
 	nodeId    string
 	totalDisk uint64
 	usedDisk  uint64
 }
-type dataRereouceTableRlp struct {
+type dataResourceTableRlp struct {
 	NodeId    string
 	TotalDisk uint64
 	UsedDisk  uint64
 }
 
-func NewDataRereouceTable(nodeId string, totalDisk, usedDisk uint64) *DataRereouceTable {
-	return &DataRereouceTable{
+func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResourceTable {
+	return &DataResourceTable{
 		nodeId:    nodeId,
 		//totalDisk: totalDisk,
 		//usedDisk:  usedDisk,
@@ -304,8 +304,8 @@ func NewDataRereouceTable(nodeId string, totalDisk, usedDisk uint64) *DataRereou
 }
 
 // EncodeRLP implements rlp.Encoder.
-func (drt *DataRereouceTable) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, dataRereouceTableRlp{
+func (drt *DataResourceTable) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, dataResourceTableRlp{
 		NodeId:    drt.nodeId,
 		TotalDisk: drt.totalDisk,
 		UsedDisk:  drt.usedDisk,
@@ -313,17 +313,18 @@ func (drt *DataRereouceTable) EncodeRLP(w io.Writer) error {
 }
 
 // DecodeRLP implements rlp.Decoder.
-func (drt *DataRereouceTable) DecodeRLP(s *rlp.Stream) error {
-	var dec dataRereouceTableRlp
+func (drt *DataResourceTable) DecodeRLP(s *rlp.Stream) error {
+	var dec dataResourceTableRlp
 	err := s.Decode(&dec)
 	if err == nil {
 		drt.nodeId, drt.totalDisk, drt.usedDisk = dec.NodeId, dec.TotalDisk, dec.UsedDisk
 	}
 	return err
 }
-func (drt *DataRereouceTable) GetNodeId() string    { return drt.nodeId }
-func (drt *DataRereouceTable) GetTotalDisk() uint64 { return drt.totalDisk }
-func (drt *DataRereouceTable) GetUsedDisk() uint64  { return drt.usedDisk }
+func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
+func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
+func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
+func (drt *DataResourceTable) RemainDisk() uint64 { return drt.totalDisk - drt.usedDisk }
 
 type DataResourceDataUsed struct {
 	originId   string   // db key

@@ -2,8 +2,10 @@ syntax = "proto3";
 package computesvc;
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc";
 
+
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
+import "lib/fighter/common/common.proto";
 
 service ComputeProvider {
    rpc GetStatus(google.protobuf.Empty) returns (GetStatusReply) {
@@ -19,13 +21,13 @@ service ComputeProvider {
   }
 
   rpc UploadShard(stream UploadShardReq) returns (UploadShardReply) {}
-  rpc HandleTaskReadyGo(TaskReadyGoReq) returns (UploadShardReply) {
-    option(google.api.http) = {
-            post: "/compute/handleTaskReadyGo"
-            body: "*"
-        };
-  }
 
+  rpc HandleTaskReadyGo(common.TaskReadyGoReq) returns (common.TaskReadyGoReply) {
+    option(google.api.http) = {
+        post: "/compute/handleTaskReadyGo"
+        body: "*"
+    };
+  }
 }
 
 message UploadShardReq {
@@ -42,26 +44,6 @@ message UploadShardReq {
 message UploadShardReply {
     bool   ok  = 1;
     string msg = 2;
-}
-
-message TaskReadyGoReq {
-    string task_id     = 1;
-    string contract_id = 2;
-    string data_id     = 3;
-    string party_id    = 4;        // 当前参与方id
-    string env_id      = 5;
-  message Peer {              // 各参与方信息
-    string ip    = 1;
-    int32  port  = 2;
-    string party = 3;         // 达成共识后为每方分配的唯一标识
-    string name  = 4;          // 为了可读性
-  }
-    repeated Peer       peers             = 6;
-    map<string, string> user_cfg          = 7;       // 具体算法要求的配置
-    repeated string     data_party        = 8;         // 各数据方的party_id
-    repeated string     computation_party = 9;  // 各计算方的party_id
-    repeated string     result_party      = 10;      // 各结果方的party_id
-
 }
 
 message GetStatusReply {

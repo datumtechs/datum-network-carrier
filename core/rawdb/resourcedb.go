@@ -649,10 +649,10 @@ func QueryLocalTaskPowerUseds (db DatabaseReader) ([]*types.LocalTaskPowerUsed, 
 
 
 // 操作 本地 数据服务 资源信息
-func StoreDataRereouceTable(db KeyValueStore, dataRereouceTable *types.DataRereouceTable) error {
+func StoreDataResourceTable(db KeyValueStore, dataResourceTable *types.DataResourceTable) error {
 
-	key := GetDataRereouceTableKey(dataRereouceTable.GetNodeId())
-	val, err := rlp.EncodeToBytes(dataRereouceTable)
+	key := GetDataResourceTableKey(dataResourceTable.GetNodeId())
+	val, err := rlp.EncodeToBytes(dataResourceTable)
 	if nil != err {
 		return err
 	}
@@ -661,16 +661,16 @@ func StoreDataRereouceTable(db KeyValueStore, dataRereouceTable *types.DataRereo
 		return err
 	}
 
-	has, err := db.Has(GetDataRereouceTableIdListKey())
+	has, err := db.Has(GetDataResourceTableIdListKey())
 	if nil != err {
 		return err
 	}
 
 	var nodeIds []string
 	if !has {
-		nodeIds = []string{dataRereouceTable.GetNodeId()}
+		nodeIds = []string{dataResourceTable.GetNodeId()}
 	} else {
-		idsByte, err := db.Get(GetDataRereouceTableIdListKey())
+		idsByte, err := db.Get(GetDataResourceTableIdListKey())
 		if nil != err {
 			return err
 		}
@@ -681,13 +681,13 @@ func StoreDataRereouceTable(db KeyValueStore, dataRereouceTable *types.DataRereo
 		var include bool
 
 		for _, id := range nodeIds {
-			if id == dataRereouceTable.GetNodeId() {
+			if id == dataResourceTable.GetNodeId() {
 				include = true
 				break
 			}
 		}
 		if !include {
-			nodeIds = append(nodeIds, dataRereouceTable.GetNodeId())
+			nodeIds = append(nodeIds, dataResourceTable.GetNodeId())
 		}
 	}
 
@@ -696,21 +696,21 @@ func StoreDataRereouceTable(db KeyValueStore, dataRereouceTable *types.DataRereo
 		return err
 	}
 
-	return db.Put(GetDataRereouceTableIdListKey(), index)
+	return db.Put(GetDataResourceTableIdListKey(), index)
 }
 
-func StoreDataRereouceTables(db KeyValueStore, dataRereouceTables []*types.DataRereouceTable) error {
+func StoreDataResourceTables(db KeyValueStore, dataResourceTables []*types.DataResourceTable) error {
 
-	has, err := db.Has(GetDataRereouceTableIdListKey())
+	has, err := db.Has(GetDataResourceTableIdListKey())
 	if nil != err {
 		return err
 	}
 
-	inputIds := make([]string, len(dataRereouceTables))
-	for i, dataRereouceTable := range dataRereouceTables {
-		inputIds[i] =  dataRereouceTable.GetNodeId()
-		key := GetDataRereouceTableKey(dataRereouceTable.GetNodeId())
-		val, err := rlp.EncodeToBytes(dataRereouceTable)
+	inputIds := make([]string, len(dataResourceTables))
+	for i, dataResourceTable := range dataResourceTables {
+		inputIds[i] =  dataResourceTable.GetNodeId()
+		key := GetDataResourceTableKey(dataResourceTable.GetNodeId())
+		val, err := rlp.EncodeToBytes(dataResourceTable)
 		if nil != err {
 			return err
 		}
@@ -724,7 +724,7 @@ func StoreDataRereouceTables(db KeyValueStore, dataRereouceTables []*types.DataR
 	if !has {
 		nodeIds = inputIds
 	} else {
-		idsByte, err := db.Get(GetDataRereouceTableIdListKey())
+		idsByte, err := db.Get(GetDataResourceTableIdListKey())
 		if nil != err {
 			return err
 		}
@@ -750,11 +750,11 @@ func StoreDataRereouceTables(db KeyValueStore, dataRereouceTables []*types.DataR
 		return err
 	}
 
-	return db.Put(GetDataRereouceTableIdListKey(), index)
+	return db.Put(GetDataResourceTableIdListKey(), index)
 }
 
-func RemoveDataRereouceTable(db KeyValueStore, nodeId string) error {
-	has, err := db.Has(GetDataRereouceTableIdListKey())
+func RemoveDataResourceTable(db KeyValueStore, nodeId string) error {
+	has, err := db.Has(GetDataResourceTableIdListKey())
 	if nil != err {
 		return err
 	}
@@ -763,7 +763,7 @@ func RemoveDataRereouceTable(db KeyValueStore, nodeId string) error {
 	if !has {
 		return nil
 	} else {
-		idsByte, err := db.Get(GetDataRereouceTableIdListKey())
+		idsByte, err := db.Get(GetDataResourceTableIdListKey())
 		if nil != err {
 			return err
 		}
@@ -775,7 +775,7 @@ func RemoveDataRereouceTable(db KeyValueStore, nodeId string) error {
 		for i := 0; i <= len(nodeIds); i++ {
 			id := nodeIds[i]
 			if id == nodeId {
-				key := GetDataRereouceTableKey(nodeId)
+				key := GetDataResourceTableKey(nodeId)
 				if err := db.Delete(key); nil != err {
 					return err
 				}
@@ -791,33 +791,33 @@ func RemoveDataRereouceTable(db KeyValueStore, nodeId string) error {
 		return err
 	}
 
-	return db.Put(GetDataRereouceTableIdListKey(), index)
+	return db.Put(GetDataResourceTableIdListKey(), index)
 }
 
-func QueryDataRereouceTable (db DatabaseReader, nodeId string) (*types.DataRereouceTable, error) {
-	key := GetDataRereouceTableKey(nodeId)
+func QueryDataResourceTable (db DatabaseReader, nodeId string) (*types.DataResourceTable, error) {
+	key := GetDataResourceTableKey(nodeId)
 	vb, err := db.Get(key)
 	if nil != err {
 		return nil, err
 	}
 
-	var dataRereouceTable types.DataRereouceTable
+	var dataResourceTable types.DataResourceTable
 
-	if err := rlp.DecodeBytes(vb, &dataRereouceTable); nil != err {
+	if err := rlp.DecodeBytes(vb, &dataResourceTable); nil != err {
 		return nil, err
 	}
-	return &dataRereouceTable, nil
+	return &dataResourceTable, nil
 }
 
-func QueryDataRereouceTables (db DatabaseReader) ([]*types.DataRereouceTable, error) {
-	has, err := db.Has(GetDataRereouceTableIdListKey())
+func QueryDataResourceTables (db DatabaseReader) ([]*types.DataResourceTable, error) {
+	has, err := db.Has(GetDataResourceTableIdListKey())
 	if nil != err {
 		return nil, err
 	}
 	if !has {
 		return nil, ErrNotFound
 	}
-	b, err := db.Get(GetDataRereouceTableIdListKey())
+	b, err := db.Get(GetDataResourceTableIdListKey())
 	if nil != err {
 		return nil, err
 	}
@@ -826,21 +826,21 @@ func QueryDataRereouceTables (db DatabaseReader) ([]*types.DataRereouceTable, er
 		return nil, err
 	}
 
-	arr := make([]*types.DataRereouceTable, len(nodeIds))
+	arr := make([]*types.DataResourceTable, len(nodeIds))
 	for i, nodeId := range nodeIds {
 
-		key := GetDataRereouceTableKey(nodeId)
+		key := GetDataResourceTableKey(nodeId)
 		vb, err := db.Get(key)
 		if nil != err {
 			return nil, err
 		}
 
-		var dataRereouceTable types.DataRereouceTable
+		var dataResourceTable types.DataResourceTable
 
-		if err := rlp.DecodeBytes(vb, &dataRereouceTable); nil != err {
+		if err := rlp.DecodeBytes(vb, &dataResourceTable); nil != err {
 			return nil, err
 		}
-		arr[i] = &dataRereouceTable
+		arr[i] = &dataResourceTable
 	}
 
 	return arr, nil
