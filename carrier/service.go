@@ -2,6 +2,7 @@ package carrier
 
 import (
 	"context"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
@@ -88,6 +89,26 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		s.config.p2p, schedTaskCh, remoteTaskCh, recvSchedTaskCh) // todo the 2pc config will be setup
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 	// todo: set datachain....
+
+	// load stored jobNode and dataNode
+	jobNodeList, err := s.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	if err == nil {
+		for _, node := range jobNodeList {
+			client, err := grpclient.NewJobNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+			if err == nil {
+				s.resourceClientSet.StoreJobNodeClient(node.Id, client)
+			}
+		}
+	}
+	dataNodeList, err := s.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	if err == nil {
+		for _, node := range dataNodeList {
+			client, err := grpclient.NewDataNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+			if err == nil {
+				s.resourceClientSet.StoreDataNodeClient(node.Id, client)
+			}
+		}
+	}
 	return s, nil
 }
 

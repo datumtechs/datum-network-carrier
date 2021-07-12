@@ -474,8 +474,10 @@ func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
 func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	//return rawdb.ReadRunningTaskCountForOrg(dc.db)
-	// TODO 从 datacenter 查询该组织的所有参与 task 数量
+	taskList := rawdb.ReadAllLocalTasks(dc.db)
+	if taskList != nil {
+		return uint32(taskList.Len())
+	}
 	return 0
 }
 
@@ -680,6 +682,10 @@ func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteTaskEvent(dc.db, taskId)
+	return nil
+}
+
+func (dc *DataCenter) CleanTaskEventList(taskId string) error  {
 	return nil
 }
 
