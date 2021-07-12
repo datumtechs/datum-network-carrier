@@ -56,6 +56,7 @@ func (wrap *ScheduleTaskWrap) String() string  {
 //	//ResultCh chan<- *ScheduleResult
 //}
 type ConsensusScheduleTask struct {
+	TaskState 			   TaskState
 	SchedTask              *ScheduleTask
 	OwnerResource          *PrepareVoteResource
 	PartnersResource       []*PrepareVoteResource
