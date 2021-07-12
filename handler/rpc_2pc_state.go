@@ -8,22 +8,18 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"time"
 )
 
-func (s *Service) sendPrepareMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-	ctx, cancel := context.WithTimeout(ctx, respTimeout)
-	defer cancel()
+func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
-
-	// Ticker to stagger out large requests.
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	m, ok := msg.(*pb.PrepareMsg)
 	if !ok {
 		return errors.New("message is not type *pb.PrepareMsg")
 	}
+
+	//TODO: validate request by rateLimiter.
+
 	// validate prepareMsg
 	if err := s.validatePrepareMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
@@ -31,159 +27,180 @@ func (s *Service) sendPrepareMsgRPCHandler(ctx context.Context, msg interface{},
 		return err
 	}
 
-	// hanlde prepareMsg
+	// handle prepareMsg
 	if err := s.onPrepareMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+		return err
+	}
+
+	// response code
+	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		log.WithError(err).Error("Could not write to stream for response")
 		return err
 	}
 	closeStream(stream, log)
 	return nil
 }
 
-func (s *Service) sendPrepareVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-	ctx, cancel := context.WithTimeout(ctx, respTimeout)
-	defer cancel()
+func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
-
-	// Ticker to stagger out large requests.
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	m, ok := msg.(*pb.PrepareVote)
 	if !ok {
 		return errors.New("message is not type *pb.PrepareVote")
 	}
+
 	// validate prepareVote
 	if err := s.validatePrepareVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
-	// hanlde prepareVote
+
+	// handle prepareVote
 	if err := s.onPrepareVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
+
+	// response code
+	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		log.WithError(err).Error("Could not write to stream for response")
+		return err
+	}
+
 	closeStream(stream, log)
 	return nil
 }
 
 
-func (s *Service) sendConfirmMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-	ctx, cancel := context.WithTimeout(ctx, respTimeout)
-	defer cancel()
+func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
-
-	// Ticker to stagger out large requests.
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	m, ok := msg.(*pb.ConfirmMsg)
 	if !ok {
 		return errors.New("message is not type *pb.ConfirmMsg")
 	}
+
 	// validate ConfirmMsg
 	if err := s.validateConfirmMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
-	// hanlde ConfirmMsg
+
+	// handle ConfirmMsg
 	if err := s.onConfirmMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
+
+	// response code
+	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		log.WithError(err).Error("Could not write to stream for response")
+		return err
+	}
+
 	closeStream(stream, log)
 	return nil
 }
 
 
-func (s *Service) sendConfirmVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-	ctx, cancel := context.WithTimeout(ctx, respTimeout)
-	defer cancel()
+func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
-
-	// Ticker to stagger out large requests.
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	m, ok := msg.(*pb.ConfirmVote)
 	if !ok {
 		return errors.New("message is not type *pb.ConfirmVote")
 	}
+
 	// validate ConfirmVote
 	if err := s.validateConfirmVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
-	// hanlde ConfirmVote
+
+	// handle ConfirmVote
 	if err := s.onConfirmVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
+
+	// response code
+	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		log.WithError(err).Error("Could not write to stream for response")
+		return err
+	}
+
 	closeStream(stream, log)
 	return nil
 }
 
-func (s *Service) sendCommitMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-	ctx, cancel := context.WithTimeout(ctx, respTimeout)
-	defer cancel()
+func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
-
-	// Ticker to stagger out large requests.
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	m, ok := msg.(*pb.CommitMsg)
 	if !ok {
 		return errors.New("message is not type *pb.CommitMsg")
 	}
+
 	// validate CommitMsg
 	if err := s.validateCommitMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
-	// hanlde CommitMsg
+
+	// handle CommitMsg
 	if err := s.onCommitMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
+
+	// response code
+	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		log.WithError(err).Error("Could not write to stream for response")
+		return err
+	}
+
 	closeStream(stream, log)
 	return nil
 }
 
-func (s *Service) sendTaskResultMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-	ctx, cancel := context.WithTimeout(ctx, respTimeout)
-	defer cancel()
+func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 	SetRPCStreamDeadlines(stream)
-
-	// Ticker to stagger out large requests.
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
 
 	m, ok := msg.(*pb.TaskResultMsg)
 	if !ok {
 		return errors.New("message is not type *pb.TaskResultMsg")
 	}
+
 	// validate CommitMsg
 	if err := s.validateTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
-	// hanlde CommitMsg
+
+	// handle CommitMsg
 	if err := s.onTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
 		return err
 	}
+
+	// response code
+	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		log.WithError(err).Error("Could not write to stream for response")
+		return err
+	}
+
 	closeStream(stream, log)
 	return nil
 }
