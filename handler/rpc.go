@@ -51,32 +51,32 @@ func (s *Service) registerRPCHandlers() {
 
 	s.registerRPC(
 		p2p.RPCTwoPcPrepareMsgTopic,
-		s.sendPrepareMsgRPCHandler,
+		s.prepareMsgRPCHandler,
 	)
 
 	s.registerRPC(
 		p2p.RPCTwoPcPrepareVoteTopic,
-		s.sendPrepareVoteRPCHandler,
+		s.prepareVoteRPCHandler,
 	)
 
 	s.registerRPC(
 		p2p.RPCTwoPcConfirmMsgTopic,
-		s.sendConfirmMsgRPCHandler,
+		s.confirmMsgRPCHandler,
 	)
 
 	s.registerRPC(
 		p2p.RPCTwoPcConfirmVoteTopic,
-		s.sendConfirmVoteRPCHandler,
+		s.confirmVoteRPCHandler,
 	)
 
 	s.registerRPC(
 		p2p.RPCTwoPcCommitMsgTopic,
-		s.sendCommitMsgRPCHandler,
+		s.commitMsgRPCHandler,
 	)
 
 	s.registerRPC(
 		p2p.RPCTwoPcTaskResultMsgTopic,
-		s.sendTaskResultMsgRPCHandler,
+		s.taskResultMsgRPCHandler,
 	)
 
 	// for test.
