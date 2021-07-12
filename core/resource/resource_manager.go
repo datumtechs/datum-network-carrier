@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
 	"sync"
@@ -12,40 +13,9 @@ const (
 	defaultRefreshOrgResourceInterval = 60 * time.Millisecond
 )
 
-type CarrierDB interface {
-	InsertLocalResource(resource *types.LocalResource) error
-	DelLocalResource(jobNodeId string) error
-	GetLocalResource(jobNodeId string) (*types.LocalResource, error)
-	GetLocalResourceList() (types.LocalResourceArray, error)
-	InsertResource(resource *types.Resource) error
-	//GetResourceByDataId(powerId string) (*types.Resource, error)
-	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
-	GetResourceList() (types.ResourceArray, error)
-
-	SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
-	DeleteRegisterNode(typ types.RegisteredNodeType, id string) error
-	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
-	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
-	//StoreRunningTask(task *types.Task) error
-	//StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
-	//IncreaseRunningTaskCountOnOrg() uint32
-	//IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32
-	//GetRunningTaskCountOnOrg() uint32
-	//GetRunningTaskCountOnJobNode(jobNodeId string) uint32
-	//GetJobNodeRunningTaskIdList(jobNodeId string) []string
-
-	// For ResourceManager
-	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
-	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
-	StoreOrgResourceTables(resources []*types.RemoteResourceTable) error
-	QueryOrgResourceTables() ([]*types.RemoteResourceTable, error)
-	StoreNodeResourceSlotUnit(slot *types.Slot) error
-	QueryNodeResourceSlotUnit() (*types.Slot, error)
-}
-
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
-	db                     CarrierDB // Low level persistent database to store final content.
+	db                     iface.ForResourceDB // Low level persistent database to store final content.
 	//eventCh                chan *types.TaskEventInfo
 	slotUnit               *types.Slot
 	// (taskId -> local resource used) todo 任务结束 或者 任务被清理时, 记得释放对应 taskId 占有的 local resource item
@@ -60,7 +30,7 @@ type Manager struct {
 	remoteLock sync.RWMutex
 }
 
-func NewResourceManager(db CarrierDB) *Manager {
+func NewResourceManager(db iface.ForResourceDB) *Manager {
 	m := &Manager{
 		db:               db,
 		//eventCh:          make(chan *types.TaskEventInfo, 0),
