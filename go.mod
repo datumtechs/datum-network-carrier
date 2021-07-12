@@ -6,7 +6,9 @@ require (
 	github.com/d4l3k/messagediff v1.2.1
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
+	github.com/fjl/gencodec v0.0.0-20191126094850-e283372f291f // indirect
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
+	github.com/garslo/gogen v0.0.0-20170307003452-d6ebae628c7c // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.3
@@ -48,7 +50,7 @@ require (
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
-	golang.org/x/sys v0.0.0-20210608053332-aa57babbf139 // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 	google.golang.org/genproto v0.0.0-20210701191553-46259e63a0a9
 	google.golang.org/grpc v1.38.0
 	google.golang.org/protobuf v1.27.1

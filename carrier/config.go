@@ -1,7 +1,6 @@
 package carrier
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"time"
@@ -26,7 +25,7 @@ var DefaultConfig = Config{
 	BlockChainVersion: 3,
 }
 
-//go:generate gencodec -type Config -field-override configMarshaling -formats toml -out gen_config.go
+//go:generate gencodec -type Config -formats toml -out gen_config.go
 
 type Config struct {
 	CarrierDB core.CarrierDB
@@ -46,10 +45,6 @@ type Config struct {
 	DBGCMpt            bool
 	DBGCBlock          int
 
-	// VM options
-	VMWasmType        string
-	VmTimeoutDuration uint64
-
 	// block config
 	BodyCacheLimit           int
 	BlockCacheLimit          int
@@ -61,8 +56,4 @@ type Config struct {
 	DefaultBroadcastInterval time.Duration
 
 	Debug bool
-}
-
-type configMarshaling struct {
-	MinerExtraData hexutil.Bytes
 }

@@ -317,6 +317,7 @@ func (b *CarrierNode) fetchRPCBackend() backend.Backend {
 	}
 	return s.APIBackend
 }
+
 func (b *CarrierNode) fetchBackend() *carrier.Service {
 	var s *carrier.Service
 	if err := b.services.FetchService(&s); err != nil {
