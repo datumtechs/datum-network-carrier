@@ -103,25 +103,25 @@ type TaskCarrierDB interface {
 	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
 }
 
-type ConsensusDB interface {
+type ForConsensusDB interface {
 	IdentityCarrierDB
 	TaskCarrierDB
 }
 
-type HandleDB interface {
+type ForHandleDB interface {
 	LocalStoreCarrierDB
 	IdentityCarrierDB
 	ResourceCarrierDB
 	MetadataCarrierDB
 }
 
-type ResourceDB interface {
+type ForResourceDB interface {
 	LocalStoreCarrierDB
 	IdentityCarrierDB
 	ResourceCarrierDB
 }
 
-type ScheduleDB interface {
+type ForScheduleDB interface {
 	IdentityCarrierDB
 	LocalStoreCarrierDB
 }

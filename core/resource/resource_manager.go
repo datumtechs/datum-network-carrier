@@ -15,7 +15,7 @@ const (
 
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
-	db                     iface.ResourceDB // Low level persistent database to store final content.
+	db                     iface.ForResourceDB // Low level persistent database to store final content.
 	//eventCh                chan *types.TaskEventInfo
 	slotUnit               *types.Slot
 	// (taskId -> local resource used) todo 任务结束 或者 任务被清理时, 记得释放对应 taskId 占有的 local resource item
@@ -30,7 +30,7 @@ type Manager struct {
 	remoteLock sync.RWMutex
 }
 
-func NewResourceManager(db iface.ResourceDB) *Manager {
+func NewResourceManager(db iface.ForResourceDB) *Manager {
 	m := &Manager{
 		db:               db,
 		//eventCh:          make(chan *types.TaskEventInfo, 0),
