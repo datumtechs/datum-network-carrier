@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -19,19 +20,12 @@ const (
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
 )
 
-type DataCenter interface {
-	// identity
-	HasIdentity(identity *types.NodeAlias) (bool, error)
-	GetIdentity() (*types.NodeAlias, error)
-	StoreTaskEvent(event *types.TaskEventInfo) error
-}
-
 type TwoPC struct {
 	config     *Config
 	p2p        p2p.P2P
 	peerSet    *ctypes.PeerSet
 	state      *state
-	dataCenter DataCenter
+	dataCenter iface.ForConsensusDB
 	// TODO 需要有一个地方 监听整个 共识结果 ...
 
 	// fetch tasks scheduled from `Scheduler`
@@ -54,7 +48,7 @@ type TwoPC struct {
 	Errs []error
 }
 
-func New(conf *Config, dataCenter DataCenter, p2p p2p.P2P,
+func New(conf *Config, dataCenter iface.ForConsensusDB, p2p p2p.P2P,
 	schedTaskCh chan *types.ConsensusTaskWrap,
 	replayTaskCh chan *types.ScheduleTaskWrap,
 	recvSchedTaskCh chan*types.ConsensusScheduleTask,

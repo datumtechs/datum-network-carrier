@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -21,46 +22,10 @@ const (
 	defaultBroadcastTaskMsgInterval     = 10 * time.Millisecond
 )
 
-type DataCenter interface {
-	// local identity
-	StoreIdentity(identity *types.NodeAlias) error
-	RemoveIdentity() error
-	GetIdentityId() (string, error)
-	GetIdentity() (*types.NodeAlias, error)
-	// dataCenter identity
-	InsertIdentity(identity *types.Identity) error
-	RevokeIdentity(identity *types.Identity) error
-
-	// local power
-	InsertLocalResource(resource *types.LocalResource) error
-	RemoveLocalResource(jobNodeId string) error
-	GetLocalResource(jobNodeId string) (*types.LocalResource, error)
-	GetLocalResourceList() (types.LocalResourceArray, error)
-	StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error
-	RemoveLocalResourceIdByPowerId(powerId string) error
-	QueryLocalResourceIdByPowerId(powerId string) (string, error)
-
-	StoreLocalResourceTable(resource *types.LocalResourceTable) error
-	RemoveLocalResourceTable(resourceId string) error
-	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
-	QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error)
-	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
-
-	// dataCenter
-	InsertResource(resource *types.Resource) error
-	// metaData
-	InsertMetadata(metadata *types.Metadata) error
-
-	StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error
-	StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error
-	RemoveDataResourceDataUsed(originId string) error
-	QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error)
-	QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error)
-}
 
 type MessageHandler struct {
 	pool       *Mempool
-	dataCenter DataCenter
+	dataCenter iface.ForHandleDB
 
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
@@ -87,7 +52,7 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataCenter DataCenter, taskManager *task.Manager) *MessageHandler {
+func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.Manager) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataCenter:  dataCenter,
