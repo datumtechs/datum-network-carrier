@@ -406,6 +406,29 @@ func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req
 
 func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
 
+	//peerIp := ctx.
+	//
+	//list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	//if nil != err {
+	//	return nil, NewRpcBizErr(ErrGetDataNodeListStr)
+	//}
+	//jobs := make([]*pb.YarnRegisteredPeer, len(list))
+	//for i, v := range list {
+	//	d := &pb.YarnRegisteredPeer{
+	//		NodeType: types.PREFIX_TYPE_JOBNODE.String(),
+	//		NodeDetail: &pb.YarnRegisteredPeerDetail{
+	//			Id:           v.Id,
+	//			InternalIp:   v.InternalIp,
+	//			InternalPort: v.InternalPort,
+	//			ExternalIp:   v.ExternalIp,
+	//			ExternalPort: v.InternalPort,
+	//			ConnState:    v.ConnState.Int32(),
+	//		},
+	//	}
+	//	jobs[i] = d
+	//}
+
+	//types.NewDataResourceDataUsed()
 	//TODO 需要实现 的 rpc 接口
 	return nil, nil
 }

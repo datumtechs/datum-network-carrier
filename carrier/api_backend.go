@@ -118,8 +118,8 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 			//ResourceUsage:  &types.ResourceUsage{},
 			Duration: 0, // TODO 添加运行时长 ...
 		}
-		n.Task.Count = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
-		n.Task.TaskIds = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
+		n.Task.Count, _ = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
+		n.Task.TaskIds, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
 		jns[i] = n
 	}
 	dns := make([]*types.YarnRegisteredDataNode, len(jobNodes))
