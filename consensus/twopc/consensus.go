@@ -25,7 +25,7 @@ type TwoPC struct {
 	p2p        p2p.P2P
 	peerSet    *ctypes.PeerSet
 	state      *state
-	dataCenter iface.ConsensusDB
+	dataCenter iface.ForConsensusDB
 	// TODO 需要有一个地方 监听整个 共识结果 ...
 
 	// fetch tasks scheduled from `Scheduler`
@@ -48,7 +48,7 @@ type TwoPC struct {
 	Errs []error
 }
 
-func New(conf *Config, dataCenter iface.ConsensusDB, p2p p2p.P2P,
+func New(conf *Config, dataCenter iface.ForConsensusDB, p2p p2p.P2P,
 	schedTaskCh chan *types.ConsensusTaskWrap,
 	replayTaskCh chan *types.ScheduleTaskWrap,
 	recvSchedTaskCh chan*types.ConsensusScheduleTask,

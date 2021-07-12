@@ -25,7 +25,7 @@ const (
 
 type MessageHandler struct {
 	pool       *Mempool
-	dataCenter iface.HandleDB
+	dataCenter iface.ForHandleDB
 
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
@@ -52,7 +52,7 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataCenter iface.HandleDB, taskManager *task.Manager) *MessageHandler {
+func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.Manager) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataCenter:  dataCenter,

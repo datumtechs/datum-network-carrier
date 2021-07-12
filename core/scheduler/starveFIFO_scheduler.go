@@ -44,13 +44,13 @@ type SchedulerStarveFIFO struct {
 	sendSchedTaskCh chan<- *types.ConsensusScheduleTask
 
 	eventEngine *evengine.EventEngine
-	dataCenter  iface.ScheduleDB
+	dataCenter  iface.ForScheduleDB
 	err         error
 }
 
 func NewSchedulerStarveFIFO(
 	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
-	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter iface.ScheduleDB,
+	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter iface.ForScheduleDB,
 	sendSchedTaskCh chan *types.ConsensusScheduleTask, mng *resource.Manager,
 	eventEngine *evengine.EventEngine) *SchedulerStarveFIFO {
 
