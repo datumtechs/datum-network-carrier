@@ -1044,3 +1044,85 @@ func QueryDataResourceDataUseds (db DatabaseReader) ([]*types.DataResourceDataUs
 
 	return arr, nil
 }
+
+func StoreResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
+	key := GetResourceTaskIdsKeyPrefix(resourceId)
+	has, err := db.Has(key)
+	if nil != err {
+		return err
+	}
+	var taskIds []string
+	if !has {
+		taskIds = []string{taskId}
+	} else {
+
+		idsByte, err := db.Get(key)
+		if nil != err {
+			return err
+		}
+		if err := rlp.DecodeBytes(idsByte, &taskIds); nil != err {
+			return err
+		}
+		taskIds = append(taskIds, taskId)
+	}
+	index, err := rlp.EncodeToBytes(taskIds)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, index)
+}
+
+func RemoveResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
+	key := GetResourceTaskIdsKeyPrefix(resourceId)
+	has, err := db.Has(key)
+	if nil != err {
+		return err
+	}
+	var taskIds []string
+	if !has {
+		return nil
+	} else {
+
+		idsByte, err := db.Get(key)
+		if nil != err {
+			return err
+		}
+		if err := rlp.DecodeBytes(idsByte, &taskIds); nil != err {
+			return err
+		}
+		for i := 0; i <= len(taskIds); i++ {
+			id := taskIds[i]
+			if id == taskId {
+				taskIds = append(taskIds[:i], taskIds[i+1:]...)
+				i--
+				break
+			}
+		}
+	}
+	index, err := rlp.EncodeToBytes(taskIds)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, index)
+}
+
+func QueryResourceTaskIds(db KeyValueStore, resourceId string) ([]string, error) {
+	key := GetResourceTaskIdsKeyPrefix(resourceId)
+	has, err := db.Has(key)
+	if nil != err {
+		return nil, err
+	}
+	var taskIds []string
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		idsByte, err := db.Get(key)
+		if nil != err {
+			return nil, err
+		}
+		if err := rlp.DecodeBytes(idsByte, &taskIds); nil != err {
+			return nil, err
+		}
+	}
+	return taskIds, nil
+}

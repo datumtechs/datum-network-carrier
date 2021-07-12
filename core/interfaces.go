@@ -56,20 +56,20 @@ type CarrierDB interface {
 	GetLocalTask(taskId string) (*types.Task, error)
 	GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
 	GetLocalTaskList() (types.TaskDataArray, error)
-	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error  // TODO
-	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error // TODO
-	GetRunningTaskCountOnJobNode(jobNodeId string) uint32      // TODO
-	GetJobNodeRunningTaskIdList(jobNodeId string) []string     // todo
+	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
+	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
+	GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
+	GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
 	// about task on datacenter
 	InsertTask(task *types.Task) error
 	GetTaskList() (types.TaskDataArray, error)
-	GetRunningTaskCountOnOrg() uint32 // // TODO 从 datacenter 查询该组织的所有参与 task 数量
+	GetRunningTaskCountOnOrg() uint32 // TODO 从 datacenter 查询该组织的所有参与 task 数量
 	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
 
 	// For ResourceManager
 	// about jobRerource
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
-	RemoveLocalResourceTable(resourceId string) error                  // TODO
+	RemoveLocalResourceTable(resourceId string) error                 
 	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
 	QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error)
 	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)

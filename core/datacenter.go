@@ -380,22 +380,26 @@ func (dc *DataCenter) GetLocalTaskList() (types.TaskDataArray, error) {
 func (dc *DataCenter) StoreJobNodeRunningTaskId(jobNodeId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-
-	return nil
+	return rawdb.StoreResourceTaskId(dc.db, jobNodeId, taskId)
 }
-func (dc *DataCenter) RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error {return nil}
-func (dc *DataCenter) GetRunningTaskCountOnJobNode(jobNodeId string) uint32 {
+func (dc *DataCenter) RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveResourceTaskId(dc.db, jobNodeId, taskId)
+}
+func (dc *DataCenter) GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	//return rawdb.ReadRunningTaskCountForJobNode(dc.db, jobNodeId)
-
-	return 0
+	taskIds, err := rawdb.QueryResourceTaskIds(dc.db, jobNodeId)
+	if nil != err {
+		return 0, err
+	}
+	return uint32(len(taskIds)), nil
 }
-func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) []string {
+func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	//return rawdb.ReadRunningTaskIDList(dc.db, jobNodeId)
-	return nil
+	return rawdb.QueryResourceTaskIds(dc.db, jobNodeId)
 }
 // about task on datacenter
 func (dc *DataCenter) InsertTask(task *types.Task) error {
