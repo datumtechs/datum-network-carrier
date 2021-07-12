@@ -7,10 +7,7 @@ const (
 	PREFIX_CA = "ca:"
 )
 
-type Identity interface {
-	Apply(name string) (string, error)
-	Revoke(identity string) error
-}
+
 
 type IdentityByDID struct {
 	Name  string

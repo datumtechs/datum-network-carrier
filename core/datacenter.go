@@ -685,6 +685,10 @@ func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
 	return nil
 }
 
+func (dc *DataCenter) CleanTaskEventList(taskId string) error  {
+	return nil
+}
+
 // ****************************************************************************************************************
 
 func (dc *DataCenter) Stop() {

@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
@@ -24,13 +25,7 @@ var (
 	ErrEnoughInternalResourceCount              = fmt.Errorf("has not enough internal resource count")
 )
 
-type DataCenter interface {
-	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
-	GetIdentityList() (types.IdentityArray, error)
-	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
-	GetIdentity() (*types.NodeAlias, error)
-	GetResourceList() (types.ResourceArray, error)
-}
+
 type SchedulerStarveFIFO struct {
 	resourceMng *resource.Manager
 	// the local task into this queue, first
@@ -49,13 +44,13 @@ type SchedulerStarveFIFO struct {
 	sendSchedTaskCh chan<- *types.ConsensusScheduleTask
 
 	eventEngine *evengine.EventEngine
-	dataCenter  DataCenter
+	dataCenter  iface.ScheduleDB
 	err         error
 }
 
 func NewSchedulerStarveFIFO(
 	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
-	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter DataCenter,
+	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter iface.ScheduleDB,
 	sendSchedTaskCh chan *types.ConsensusScheduleTask, mng *resource.Manager,
 	eventEngine *evengine.EventEngine) *SchedulerStarveFIFO {
 

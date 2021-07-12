@@ -2,22 +2,18 @@ package evengine
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
 
-type DataCenter interface {
-	StoreTaskEvent(event *types.TaskEventInfo) error
-	GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error)
-	CleanTaskEventList(taskId string) error
-}
 
 type EventEngine struct {
-	dataCenter   DataCenter
+	dataCenter   iface.TaskCarrierDB
 }
 
 
-func NewEventEngine(dataCenter DataCenter) *EventEngine {
+func NewEventEngine(dataCenter iface.TaskCarrierDB) *EventEngine {
 	return &EventEngine{
 		dataCenter: dataCenter,
 	}
