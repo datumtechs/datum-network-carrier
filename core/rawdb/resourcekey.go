@@ -14,6 +14,8 @@ var (
 	dataRereouceTableIdListKey = []byte("dataRereouceTableIdListKey")
 	dataResourceDataUsedKeyPrefix = []byte("dataResourceDataUsedKey:")
 	dataResourceDataUsedIdListKey = []byte("dataResourceDataUsedIdListKey")
+
+	resourceTaskIdsKeyPrefix = []byte("resourceTaskIdsKeyPrefix:")
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -49,10 +51,13 @@ func GetDataRereouceTableIdListKey() []byte {
 }
 
 
-
 func GetDataResourceDataUsedKey(originId string) []byte {
 	return append(dataResourceDataUsedKeyPrefix, []byte(originId)...)
 }
 func GetDataResourceDataUsedIdListKey() []byte {
 	return dataResourceDataUsedIdListKey
+}
+
+func GetResourceTaskIdsKeyPrefix(originId string) []byte {
+	return append(resourceTaskIdsKeyPrefix, []byte(originId)...)
 }
