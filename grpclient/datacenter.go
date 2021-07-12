@@ -95,10 +95,10 @@ func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePow
 	return gc.resourceService.RevokePower(ctx, request)
 }
 
-func (gc *GrpcClient) GetPowerSummaryByNodeId(ctx context.Context, request *api.PowerSummaryByNodeIdRequest) (*api.PowerTotalSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *api.PowerSummaryByIdentityRequest) (*api.PowerTotalSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, time.Second)
 	defer cancel()
-	return gc.resourceService.GetPowerSummaryByNodeId(ctx, request)
+	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request)
 }
 
 func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerTotalSummaryListResponse, error) {
