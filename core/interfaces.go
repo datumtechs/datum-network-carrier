@@ -69,7 +69,7 @@ type CarrierDB interface {
 	// For ResourceManager
 	// about jobRerource
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
-	RemoveLocalResourceTable(resourceId string) error                 
+	RemoveLocalResourceTable(resourceId string) error
 	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
 	QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error)
 	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
