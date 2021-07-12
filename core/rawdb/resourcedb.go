@@ -1046,7 +1046,7 @@ func QueryDataResourceDataUseds (db DatabaseReader) ([]*types.DataResourceDataUs
 }
 
 func StoreResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
-	key := GetResourceTaskIdsKeyPrefix(resourceId)
+	key := GetResourceTaskIdsKey(resourceId)
 	has, err := db.Has(key)
 	if nil != err {
 		return err
@@ -1073,7 +1073,7 @@ func StoreResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
 }
 
 func RemoveResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
-	key := GetResourceTaskIdsKeyPrefix(resourceId)
+	key := GetResourceTaskIdsKey(resourceId)
 	has, err := db.Has(key)
 	if nil != err {
 		return err
@@ -1107,7 +1107,7 @@ func RemoveResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
 }
 
 func QueryResourceTaskIds(db KeyValueStore, resourceId string) ([]string, error) {
-	key := GetResourceTaskIdsKeyPrefix(resourceId)
+	key := GetResourceTaskIdsKey(resourceId)
 	has, err := db.Has(key)
 	if nil != err {
 		return nil, err
@@ -1125,4 +1125,40 @@ func QueryResourceTaskIds(db KeyValueStore, resourceId string) ([]string, error)
 		}
 	}
 	return taskIds, nil
+}
+
+
+func StoreLocalResourceIdByPowerId(db DatabaseWriter, powerId, resourceId string) error {
+	key := GetResourcePowerIdMapingKey(powerId)
+	index, err := rlp.EncodeToBytes(resourceId)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, index)
+}
+
+func RemoveLocalResourceIdByPowerId(db DatabaseDeleter, powerId string) error {
+	key := GetResourcePowerIdMapingKey(powerId)
+	return db.Delete(key)
+}
+
+func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, error) {
+	key := GetResourcePowerIdMapingKey(powerId)
+	has, err := db.Has(key)
+	if nil != err {
+		return "", err
+	}
+
+	if !has {
+		return "", ErrNotFound
+	}
+	idsByte, err := db.Get(key)
+	if nil != err {
+		return "", err
+	}
+	var resourceId string
+	if err := rlp.DecodeBytes(idsByte, &resourceId); nil != err {
+		return "", err
+	}
+	return resourceId, nil
 }

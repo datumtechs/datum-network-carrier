@@ -154,6 +154,29 @@ func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMs
 type PowerMsgs []*PowerMsg
 type PowerRevokeMsgs []*PowerRevokeMsg
 
+func (msg *PowerMsg) ToLocal() *LocalResource {
+	return NewLocalResource(&libTypes.LocalResourceData{
+		Identity: msg.OwnerIdentityId(),
+		NodeId:   msg.OwnerNodeId(),
+		NodeName: msg.OwnerName(),
+		JobNodeId: msg.JobNodeId(),
+		DataId:   msg.PowerId,
+		// the status of data, N means normal, D means deleted.
+		DataStatus: ResourceDataStatusN.String(),
+		// resource status, eg: create/release/revoke
+		State: PowerStateRelease.String(),
+		// unit: byte
+		TotalMem: msg.Memory(),
+		// unit: byte
+		UsedMem: 0,
+		// number of cpu cores.
+		TotalProcessor: msg.Processor(),
+		UsedProcessor:  0,
+		// unit: byte
+		TotalBandWidth: msg.Bandwidth(),
+		UsedBandWidth:  0,
+	})
+}
 func (msg *PowerMsg) ToDataCenter() *Resource {
 	return NewResource(&libTypes.ResourceData{
 		Identity: msg.OwnerIdentityId(),
