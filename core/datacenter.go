@@ -127,6 +127,8 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
+
+
 func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -360,10 +362,40 @@ func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
 	return nil
 }
 
+func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
+	if taskId == "" {
+		return nil, errors.New("invalid params taskId for GetLocalTask")
+	}
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	task := rawdb.ReadLocalTask(dc.db, taskId)
+	return task, nil
+}
+
+func (dc *DataCenter) GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.ReadLocalTaskByIds(dc.db, taskIds), nil
+}
+
 func (dc *DataCenter) GetLocalTaskList() (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllLocalTasks(dc.db), nil
+}
+
+
+func (dc *DataCenter) LockLocalTaskResource(taskId, resourceId string) error {
+
+	return nil
+}
+func (dc *DataCenter) QueryLocalTaskResource(taskId string) error {
+
+	return nil
+}
+func (dc *DataCenter) ReleaseLocalTaskResource(taskId string) error {
+
+	return nil
 }
 
 func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
@@ -480,7 +512,7 @@ func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) []string {
 
 
 // For ResourceManager
-func (dc *DataCenter) StoreLocalResourceTables(resources []*types.LocalResourceTable) error {
+func (dc *DataCenter) StoreLocalResourceTable(resources []*types.LocalResourceTable) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreNodeResources(dc.db, resources)

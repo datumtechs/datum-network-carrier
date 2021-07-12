@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -25,14 +26,15 @@ type Manager struct {
 	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
 	recvSchedTaskCh <-chan *types.ConsensusScheduleTask
 
-	// TODO 持有 己方的所有 Fighter-Py 的 grpc client
+	// internal resource node set (Fighter node grpc client set)
+	resourceClientSet *grpclient.InternalResourceClientSet
 
 	// TODO 用于接收 己方已连接 或 断开连接的 Fighter-Py 的 grpc client
 
 }
 
 func NewTaskManager(dataCenter core.CarrierDB, eventEngine *ev.EventEngine,
-	resourceMng *resource.Manager,
+	resourceMng *resource.Manager, resourceClientSet *grpclient.InternalResourceClientSet,
 	taskCh chan types.TaskMsgs, sendTaskCh chan types.TaskMsgs,
 	recvSchedTaskCh chan *types.ConsensusScheduleTask) *Manager {
 
@@ -41,6 +43,7 @@ func NewTaskManager(dataCenter core.CarrierDB, eventEngine *ev.EventEngine,
 		dataCenter:       dataCenter,
 		eventEngine:     eventEngine,
 		resourceMng:     resourceMng,
+		resourceClientSet: resourceClientSet,
 		parser: newTaskParser(),
 		validator: newTaskValidator(),
 		taskCh:          taskCh,
@@ -67,42 +70,7 @@ func (m *Manager) loop() {
 		select {
 		case event := <-m.eventCh:
 			m.handleEvent(event)
-		case taskMsgs := <-m.taskCh:
-			if len(taskMsgs) == 0 {
-				continue
-			}
-			// 先对 task 解析 和 校验
-			if errTasks, err := m.parser.ParseTask(taskMsgs); nil != err {
-				for _, errtask := range errTasks {
 
-					events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
-					events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-						errtask.TaskId, errtask.Onwer().IdentityId, fmt.Sprintf("failed to parse taskMsg")))
-
-					if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to parse taskMsg"); nil != e {
-						log.Error("Failed to store the err taskMsg", "taskId", errtask)
-					}
-				}
-				continue
-			}
-
-			if errTasks, err := m.validator.validateTaskMsg(taskMsgs); nil != err {
-				for _, errtask := range errTasks {
-					events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
-					events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-						errtask.TaskId, errtask.Onwer().IdentityId, fmt.Sprintf("failed to validate taskMsg")))
-
-					if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to validate taskMsg"); nil != e {
-						log.Error("Failed to store the err taskMsg", "taskId", errtask)
-					}
-				}
-				continue
-			}
-
-			// 再 转发给 Scheduler 处理
-			go func() {
-				m.sendTaskCh <- taskMsgs
-			}()
 		case task := <-m.recvSchedTaskCh:
 			// TODO 对接收到 经 Scheduler  调度好的 task  转发给自己的 Fighter-Py
 			_ = task
@@ -112,10 +80,53 @@ func (m *Manager) loop() {
 	}
 }
 
+
+func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
+	if len(msgs) == 0 {
+		return fmt.Errorf("Receive some empty task msgs")
+	}
+
+	if errTasks, err := m.parser.ParseTask(msgs); nil != err {
+		for _, errtask := range errTasks {
+
+			events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
+			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+				errtask.TaskId, errtask.Onwer().IdentityId, fmt.Sprintf("failed to parse taskMsg")))
+
+			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to parse taskMsg"); nil != e {
+				log.Error("Failed to store the err taskMsg", "taskId", errtask)
+			}
+		}
+		return err
+	}
+
+	if errTasks, err := m.validator.validateTaskMsg(msgs); nil != err {
+		for _, errtask := range errTasks {
+			events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
+			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+				errtask.TaskId, errtask.Onwer().IdentityId, fmt.Sprintf("failed to validate taskMsg")))
+
+			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to validate taskMsg"); nil != e {
+				log.Error("Failed to store the err taskMsg", "taskId", errtask)
+			}
+		}
+		return err
+	}
+	// transfer `taskMsgs` to Scheduler
+	go func() {
+		m.sendTaskCh <- msgs
+	}()
+	return nil
+}
+
 func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 	m.eventCh <- event
 	return nil
 }
+
+//func (m *Manager) driveTask(task *types.ConsensusScheduleTask) error {
+//
+//}
 
 func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventData, reason string) error {
 

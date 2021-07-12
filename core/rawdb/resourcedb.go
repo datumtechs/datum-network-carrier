@@ -39,15 +39,110 @@ var (
 //	return &resource, nil
 //}
 
-func StoreNodeResources(db DatabaseWriter, resources []*types.LocalResourceTable) error {
-	val, err := rlp.EncodeToBytes(resources)
+func StoreNodeResource(db KeyValueStore, resource *types.LocalResourceTable) error {
+
+
+
+	key := GetNodeResourceKey(resource.GetNodeId())
+	val, err := rlp.EncodeToBytes(resource)
 	if nil != err {
 		return err
 	}
-	if err := db.Put(GetNodeResourceIdListKey(), val); nil != err {
+
+	if err := db.Put(key, val); nil != err {
 		return err
 	}
-	return nil
+
+	has, err := db.Has(GetNodeResourceIdListKey())
+	if nil != err {
+		return err
+	}
+
+	var resourceIds []string
+	if !has {
+		resourceIds = []string{resource.GetNodeId()}
+	} else {
+		idsByte, err := db.Get(GetNodeResourceIdListKey())
+		if nil != err {
+			return err
+		}
+		if err := rlp.DecodeBytes(idsByte, &resourceIds); nil != err {
+			return err
+		}
+
+		var include bool
+
+		for _, id := range resourceIds {
+			if id == resource.GetNodeId() {
+				include = true
+				break
+			}
+		}
+		if !include {
+			resourceIds = append(resourceIds, resource.GetNodeId())
+		}
+	}
+
+	index, err := rlp.EncodeToBytes(resourceIds)
+	if nil != err {
+		return err
+	}
+
+	return db.Put(GetNodeResourceIdListKey(), index)
+}
+
+func StoreNodeResources(db KeyValueStore, resources []*types.LocalResourceTable) error {
+
+	has, err := db.Has(GetNodeResourceIdListKey())
+	if nil != err {
+		return err
+	}
+
+	inputIds := make([]string, len(resources))
+	for i, re := range resources {
+		inputIds[i] =  re.GetNodeId()
+		key := GetNodeResourceKey(re.GetNodeId())
+		val, err := rlp.EncodeToBytes(re)
+		if nil != err {
+			return err
+		}
+
+		if err := db.Put(key, val); nil != err {
+			return err
+		}
+	}
+
+	var resourceIds []string
+	if !has {
+		resourceIds = inputIds
+	} else {
+		idsByte, err := db.Get(GetNodeResourceIdListKey())
+		if nil != err {
+			return err
+		}
+		if err := rlp.DecodeBytes(idsByte, &resourceIds); nil != err {
+			return err
+		}
+
+		tmp := make(map[string]struct{})
+
+		for _, id := range resourceIds {
+			tmp[id] = struct{}{}
+		}
+		for _, id := range inputIds {
+			if _, ok := tmp[id]; !ok {
+				resourceIds = append(resourceIds, id)
+			}
+		}
+
+	}
+
+	index, err := rlp.EncodeToBytes(resourceIds)
+	if nil != err {
+		return err
+	}
+
+	return db.Put(GetNodeResourceIdListKey(), index)
 }
 
 func QueryNodeResources (db DatabaseReader) ([]*types.LocalResourceTable, error) {
@@ -62,12 +157,28 @@ func QueryNodeResources (db DatabaseReader) ([]*types.LocalResourceTable, error)
 	if nil != err {
 		return nil, err
 	}
-	var arr []*types.LocalResourceTable
-	if err := rlp.DecodeBytes(b, &arr); nil != err {
+	var ids []string
+	if err := rlp.DecodeBytes(b, &ids); nil != err {
 		return nil, err
 	}
+
+	arr := make([]*types.LocalResourceTable, len(ids))
+	for i, id := range ids {
+
+
+		var resource types.LocalResourceTable
+
+		key := GetNodeResourceKey(id)
+		if err := rlp.DecodeBytes(key, &resource); nil != err {
+			return nil, err
+		}
+		arr[i] = &resource
+	}
+
 	return arr, nil
 }
+
+// TODO 写到这里了 ...
 
 func StoreOrgResources(db DatabaseWriter, resources []*types.RemoteResourceTable) error {
 	val, err := rlp.EncodeToBytes(resources)
