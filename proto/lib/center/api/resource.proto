@@ -79,9 +79,9 @@ message PowerTotalSummaryListResponse {
     repeated PowerTotalSummaryResponse power_list = 1;
 }
 
-message PowerSummaryByNodeIdRequest {
-  // 节点ID
-    string node_id = 1;
+message PowerSummaryByIdentityRequest {
+  // 身份ID
+    string identity_id = 1;
 }
 
 // 算力
@@ -125,7 +125,7 @@ service ResourceService {
   rpc GetPowerList(PowerListRequest) returns (PowerListResponse);
 
   // 查看指定节点的总算力摘要
-  rpc GetPowerSummaryByNodeId (PowerSummaryByNodeIdRequest) returns (PowerTotalSummaryResponse);
+  rpc GetPowerSummaryByIdentityId (PowerSummaryByIdentityRequest) returns (PowerTotalSummaryResponse);
 
   // 查看各个节点的总算力摘要列表 (不包含 任务描述)
   rpc GetPowerTotalSummaryList (google.protobuf.Empty) returns (PowerTotalSummaryListResponse);

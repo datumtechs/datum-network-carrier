@@ -2,12 +2,11 @@ package handler
 
 import (
 	"context"
+	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
-
-
 
 // SendTwoPcPrepareMsg sends 2pc prepareMsg to other peer.
 func SendTwoPcPrepareMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.PrepareMsg) error {
@@ -17,6 +16,13 @@ func SendTwoPcPrepareMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, 
 		return err
 	}
 	defer closeStream(stream, log)
+	code, errMsg, err := ReadStatusCode(stream, p2pProvider.Encoding())
+	if err != nil {
+		return err
+	}
+	if code != 0 {
+		return errors.New(errMsg)
+	}
 	return nil
 }
 
@@ -28,9 +34,15 @@ func SendTwoPcPrepareVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID
 		return err
 	}
 	defer closeStream(stream, log)
+	code, errMsg, err := ReadStatusCode(stream, p2pProvider.Encoding())
+	if err != nil {
+		return err
+	}
+	if code != 0 {
+		return errors.New(errMsg)
+	}
 	return nil
 }
-
 
 // SendTwoPcConfirmMsg sends 2pc ConfirmMsg to other peer.
 func SendTwoPcConfirmMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.ConfirmMsg) error {
@@ -40,9 +52,15 @@ func SendTwoPcConfirmMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID,
 		return err
 	}
 	defer closeStream(stream, log)
+	code, errMsg, err := ReadStatusCode(stream, p2pProvider.Encoding())
+	if err != nil {
+		return err
+	}
+	if code != 0 {
+		return errors.New(errMsg)
+	}
 	return nil
 }
-
 
 // SendTwoPcConfirmVote sends 2pc ConfirmVote to other peer.
 func SendTwoPcConfirmVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.ConfirmVote) error {
@@ -52,9 +70,15 @@ func SendTwoPcConfirmVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID
 		return err
 	}
 	defer closeStream(stream, log)
+	code, errMsg, err := ReadStatusCode(stream, p2pProvider.Encoding())
+	if err != nil {
+		return err
+	}
+	if code != 0 {
+		return errors.New(errMsg)
+	}
 	return nil
 }
-
 
 // SendTwoPcCommitMsg sends 2pc CommitMsg to other peer.
 func SendTwoPcCommitMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.CommitMsg) error {
@@ -64,5 +88,12 @@ func SendTwoPcCommitMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, 
 		return err
 	}
 	defer closeStream(stream, log)
+	code, errMsg, err := ReadStatusCode(stream, p2pProvider.Encoding())
+	if err != nil {
+		return err
+	}
+	if code != 0 {
+		return errors.New(errMsg)
+	}
 	return nil
 }

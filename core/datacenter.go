@@ -75,6 +75,7 @@ func (dc *DataCenter) GetYarnName() (string, error) {
 	defer dc.mu.RUnlock()
 	return rawdb.ReadYarnName(dc.db), nil
 }
+
 // InsertChain saves the data of block to the database.
 func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 	if len(blocks) == 0 {
@@ -117,7 +118,6 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 	return len(blocks), nil
 }
 
-
 // on yarn node api
 func (dc *DataCenter) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
 	dc.mu.Lock()
@@ -125,39 +125,46 @@ func (dc *DataCenter) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatu
 	rawdb.WriteSeedNodes(dc.db, seed)
 	return types.NONCONNECTED, nil
 }
+
 func (dc *DataCenter) DeleteSeedNode(id string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteSeedNode(dc.db, id)
 	return nil
 }
+
 func (dc *DataCenter) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadSeedNode(dc.db, id), nil
 }
+
 func (dc *DataCenter) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllSeedNodes(dc.db), nil
 }
+
 func (dc *DataCenter) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
 	return types.NONCONNECTED, nil
 }
+
 func (dc *DataCenter) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteRegisterNode(dc.db, typ, id)
 	return nil
 }
+
 func (dc *DataCenter) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadRegisterNode(dc.db, typ, id), nil
 }
+
 func (dc *DataCenter) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -179,6 +186,7 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	}
 	return nil
 }
+
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -187,6 +195,7 @@ func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error
 	})
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
+
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -201,37 +210,44 @@ func (dc *DataCenter) InsertLocalResource(resource *types.LocalResource) error {
 	rawdb.WriteLocalResource(dc.db, resource)
 	return nil
 }
+
 func (dc *DataCenter) RemoveLocalResource(jobNodeId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteLocalResource(dc.db, jobNodeId)
 	return nil
 }
+
 func (dc *DataCenter) GetLocalResource(jobNodeId string) (*types.LocalResource, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadLocalResource(dc.db, jobNodeId), nil
 }
+
 func (dc *DataCenter) GetLocalResourceList() (types.LocalResourceArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllLocalResource(dc.db), nil
 }
+
 func (dc *DataCenter) StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.StoreLocalResourceIdByPowerId(dc.db, powerId, jobNodeId)
 }
+
 func (dc *DataCenter) RemoveLocalResourceIdByPowerId(powerId string) error  {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.RemoveLocalResourceIdByPowerId(dc.db, powerId)
 }
+
 func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, error)  {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryLocalResourceIdByPowerId(dc.db, powerId)
 }
+
 // about power on datacenter
 func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	dc.serviceMu.Lock()
@@ -246,22 +262,22 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	}
 	return nil
 }
-func (dc *DataCenter) GetResourceListByNodeId(nodeId string) (types.ResourceArray, error) {
-	// todo nodeId 是 owner 里面的 nodeId ? 是否可以换成 IdentityId ?
+
+func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByNodeId(dc.ctx, &api.PowerSummaryByNodeIdRequest{
-		NodeId: nodeId,
+	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByIdentityId(dc.ctx, &api.PowerSummaryByIdentityRequest{
+		IdentityId: identityId,
 	})
 	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
 }
+
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.PowerListRequest{})
 	return types.NewResourceArrayFromPowerListResponse(powerListRequest), err
 }
-
 
 // about identity on local
 func (dc *DataCenter) StoreIdentity(identity *types.NodeAlias) error {
@@ -270,28 +286,32 @@ func (dc *DataCenter) StoreIdentity(identity *types.NodeAlias) error {
 	rawdb.WriteLocalIdentity(dc.db, identity)
 	return nil
 }
+
 func (dc *DataCenter) RemoveIdentity() error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteLocalIdentity(dc.db)
 	return nil
 }
+
 func (dc *DataCenter) GetIdentityId() (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadLocalIdentity(dc.db).GetNodeIdentityId(), nil
 }
+
 func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.ReadLocalIdentity(dc.db), nil
 }
+
 // about identity on datacenter
 func (dc *DataCenter) HasIdentity(identity *types.NodeAlias) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	responses, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{
-		LastUpdateTime:       uint64(timeutils.Now().Second()),
+		LastUpdateTime: uint64(timeutils.Now().Second()),
 	})
 	if err != nil {
 		return false, err
@@ -303,6 +323,7 @@ func (dc *DataCenter) HasIdentity(identity *types.NodeAlias) (bool, error) {
 	}
 	return false, nil
 }
+
 func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -316,6 +337,7 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 	}
 	return nil
 }
+
 func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -334,10 +356,11 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	}
 	return nil
 }
+
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.mu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx,&api.IdentityListRequest{LastUpdateTime:uint64(time.Now().Unix())})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{LastUpdateTime: uint64(time.Now().Unix())})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
@@ -352,6 +375,7 @@ func (dc *DataCenter) StoreLocalTask(task *types.Task) error {
 	rawdb.WriteLocalTask(dc.db, task)
 	return nil
 }
+
 func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 	if taskId == "" {
 		return errors.New("invalid params for taskId to DelLocalTask")
@@ -361,6 +385,7 @@ func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 	rawdb.DeleteLocalTask(dc.db, taskId)
 	return nil
 }
+
 func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
 	if taskId == "" || state == "" {
 		return errors.New("invalid params taskId or state for UpdateLocalTaskState")
@@ -373,6 +398,7 @@ func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
 	rawdb.WriteLocalTask(dc.db, task)
 	return nil
 }
+
 func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
 	if taskId == "" {
 		return nil, errors.New("invalid params taskId for GetLocalTask")
@@ -382,26 +408,31 @@ func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
 	task := rawdb.ReadLocalTask(dc.db, taskId)
 	return task, nil
 }
+
 func (dc *DataCenter) GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadLocalTaskByIds(dc.db, taskIds), nil
 }
+
 func (dc *DataCenter) GetLocalTaskList() (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllLocalTasks(dc.db), nil
 }
+
 func (dc *DataCenter) StoreJobNodeRunningTaskId(jobNodeId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreResourceTaskId(dc.db, jobNodeId, taskId)
 }
+
 func (dc *DataCenter) RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveResourceTaskId(dc.db, jobNodeId, taskId)
 }
+
 func (dc *DataCenter) GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -411,11 +442,13 @@ func (dc *DataCenter) GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, er
 	}
 	return uint32(len(taskIds)), nil
 }
+
 func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryResourceTaskIds(dc.db, jobNodeId)
 }
+
 // about task on datacenter
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	dc.serviceMu.Lock()
@@ -430,12 +463,14 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	}
 	return nil
 }
+
 func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdateTime:uint64(time.Now().Unix())})
+	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdateTime: uint64(time.Now().Unix())})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
+
 func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -443,6 +478,7 @@ func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	// TODO 从 datacenter 查询该组织的所有参与 task 数量
 	return 0
 }
+
 func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -459,21 +495,25 @@ func (dc *DataCenter) StoreLocalResourceTable(resource *types.LocalResourceTable
 	defer dc.mu.Unlock()
 	return rawdb.StoreNodeResource(dc.db, resource)
 }
+
 func (dc *DataCenter) StoreLocalResourceTables(resources []*types.LocalResourceTable) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreNodeResources(dc.db, resources)
 }
+
 func (dc *DataCenter) RemoveLocalResourceTable(resourceId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveNodeResource(dc.db, resourceId)
 }
+
 func (dc *DataCenter) QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryNodeResource(dc.db, resourceId)
 }
+
 func (dc *DataCenter) QueryLocalResourceTables() ([]*types.LocalResourceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -486,21 +526,25 @@ func (dc *DataCenter) StoreOrgResourceTable(resource *types.RemoteResourceTable)
 	defer dc.mu.Unlock()
 	return rawdb.StoreOrgResource(dc.db, resource)
 }
+
 func (dc *DataCenter) StoreOrgResourceTables(resources []*types.RemoteResourceTable) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreOrgResources(dc.db, resources)
 }
+
 func (dc *DataCenter) RemoveOrgResourceTable(resourceId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveOrgResource(dc.db, resourceId)
 }
+
 func (dc *DataCenter) QueryOrgResourceTable(resourceId string) (*types.RemoteResourceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryOrgResource(dc.db, resourceId)
 }
+
 func (dc *DataCenter) QueryOrgResourceTables() ([]*types.RemoteResourceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -513,11 +557,13 @@ func (dc *DataCenter) StoreNodeResourceSlotUnit(slot *types.Slot) error {
 	defer dc.mu.Unlock()
 	return rawdb.StoreNodeResourceSlotUnit(dc.db, slot)
 }
+
 func (dc *DataCenter) RemoveNodeResourceSlotUnit() error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveNodeResourceSlotUnit(dc.db)
 }
+
 func (dc *DataCenter) QueryNodeResourceSlotUnit() (*types.Slot, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -530,21 +576,25 @@ func (dc *DataCenter) StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowe
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalTaskPowerUsed(dc.db, taskPowerUsed)
 }
+
 func (dc *DataCenter) StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalTaskPowerUseds(dc.db, taskPowerUseds)
 }
+
 func (dc *DataCenter) RemoveLocalTaskPowerUsed(taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveLocalTaskPowerUsed(dc.db, taskId)
 }
+
 func (dc *DataCenter) QueryLocalTaskPowerUsed(taskId string) (*types.LocalTaskPowerUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryLocalTaskPowerUsed(dc.db, taskId)
 }
+
 func (dc *DataCenter) QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
@@ -557,27 +607,30 @@ func (dc *DataCenter) StoreDataRereouceTable(dataRereouceTable *types.DataRereou
 	defer dc.mu.Unlock()
 	return rawdb.StoreDataRereouceTable(dc.db, dataRereouceTable)
 }
+
 func (dc *DataCenter) StoreDataRereouceTables(dataRereouceTables []*types.DataRereouceTable) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreDataRereouceTables(dc.db, dataRereouceTables)
 }
+
 func (dc *DataCenter) RemoveDataRereouceTable(nodeId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveDataRereouceTable(dc.db, nodeId)
 }
+
 func (dc *DataCenter) QueryDataRereouceTable(nodeId string) (*types.DataRereouceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryDataRereouceTable(dc.db, nodeId)
 }
+
 func (dc *DataCenter) QueryDataRereouceTables() ([]*types.DataRereouceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryDataRereouceTables(dc.db)
 }
-
 
 // about DataResourceDataUsed
 func (dc *DataCenter) StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error {
@@ -585,27 +638,30 @@ func (dc *DataCenter) StoreDataResourceDataUsed(dataResourceDataUsed *types.Data
 	defer dc.mu.Unlock()
 	return rawdb.StoreDataResourceDataUsed(dc.db, dataResourceDataUsed)
 }
+
 func (dc *DataCenter) StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreDataResourceDataUseds(dc.db, dataResourceDataUseds)
 }
+
 func (dc *DataCenter) RemoveDataResourceDataUsed(originId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveDataResourceDataUsed(dc.db, originId)
 }
+
 func (dc *DataCenter) QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryDataResourceDataUsed(dc.db, originId)
 }
+
 func (dc *DataCenter) QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryDataResourceDataUseds(dc.db)
 }
-
 
 func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	dc.mu.Lock()
@@ -613,17 +669,20 @@ func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	rawdb.WriteTaskEvent(dc.db, event)
 	return nil
 }
+
 func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadTaskEvent(dc.db, taskId), nil
 }
+
 func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteTaskEvent(dc.db, taskId)
 	return nil
 }
+
 // ****************************************************************************************************************
 
 func (dc *DataCenter) Stop() {
@@ -635,6 +694,7 @@ func (dc *DataCenter) Stop() {
 	dc.client.Close()
 	log.Info("Datacenter manager stopped")
 }
+
 //func (dc *DataCenter) StoreRunningTask(task *types.Task) error {
 //	dc.mu.Lock()
 //	defer dc.mu.Unlock()
