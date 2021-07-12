@@ -54,3 +54,39 @@ message TaskArrayPB {
 message TaskEventArrayPB {
     repeated types.EventData task_event_list = 1;
 }
+
+//// 存本地某个任务消耗的算力资源信息
+//message LocalTaskResourcePB {
+//    string task_id     = 1;  // db key
+//    string resource_id = 2; // 对应 jobNodeId
+//    uint64 mem         = 3; // 被锁定的资源信息
+//    uint64 processor   = 4; // 被锁定的资源信息
+//    uint64 bandwidth   = 5; // 被锁定的资源信息
+//}
+//
+//// 存本地某个资源正在占用的任务Id  (jobNodeId => []taskId)
+//message JobReousrceTaskIdsPB {
+//    repeated string task_ids = 1;
+//}
+//
+//// 某个资源目前总共被锁定的 信息
+//message JobResourceUsedPB {
+//    string resoure_id = 1; // 对应 jobNodeId
+//    uint64 slot_count = 2; // 被锁定的资源信息
+//}
+//
+//// 本地数据服务的 磁盘资源
+//message DataResourcePB {
+//    string resoure_id = 1; // 对应 dataNodeId  (db key)
+//    string total_disk = 2; // 总磁盘大小
+//    string used_disk  = 3;  // 剩余磁盘大小
+//}
+//
+//// 原始数据 存储摘要
+//message DataSummaryPB {
+//    string origin_id    = 1;
+//    string meta_data_id = 2;
+//    string resoure_id   = 3;
+//    string file_path    = 4;
+//
+//}

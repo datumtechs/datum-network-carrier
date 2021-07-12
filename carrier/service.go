@@ -38,7 +38,7 @@ type Service struct {
 	runError        error
 
 	// internal resource node set (Fighter node grpc client set)
-	resourceNodeSet *grpclient.InternalResourceNodeSet
+	resourceClientSet *grpclient.InternalResourceClientSet
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -60,12 +60,12 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		make(chan types.TaskMsgs, 10),
 		make(chan *types.ConsensusScheduleTask, 10)
 
-	resourceNodeSet := grpclient.NewInternalResourceNodeSet()
+	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 
 	resourceMng := resource.NewResourceManager(config.CarrierDB)
 
 	taskManager := task.NewTaskManager(nil, eventEngine, resourceMng,
-		taskCh, sendTaskCh, recvSchedTaskCh)
+		resourceClientSet, taskCh, sendTaskCh, recvSchedTaskCh)
 
 	s := &Service{
 		ctx:             ctx,
@@ -78,7 +78,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		taskManager:     taskManager,
 		scheduler: scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh,
 			config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
-		resourceNodeSet: resourceNodeSet,
+		resourceClientSet: resourceClientSet,
 	}
 
 	// todo: some logic could be added...

@@ -20,41 +20,6 @@ var (
 	}
 )
 
-type TaskLocalResourceUsed struct {
-	slotCount uint32
-	nodeId    string
-}
-type taskLocalResourceUsedRlp struct {
-	SlotCount uint32
-	NodeId    string
-}
-
-func NewTaskLocalResourceUsed(nodeId string, usedSlot uint32) *TaskLocalResourceUsed {
-	return &TaskLocalResourceUsed{
-		nodeId:    nodeId,
-		slotCount: usedSlot,
-	}
-}
-func (tru *TaskLocalResourceUsed) GetNodeId() string    { return tru.nodeId }
-func (tru *TaskLocalResourceUsed) GetSlotCount() uint32 { return tru.slotCount }
-
-// EncodeRLP implements rlp.Encoder.
-func (tru *TaskLocalResourceUsed) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, taskLocalResourceUsedRlp{
-		NodeId:    tru.nodeId,
-		SlotCount: tru.slotCount,
-	})
-}
-
-// DecodeRLP implements rlp.Decoder.
-func (tru *TaskLocalResourceUsed) DecodeRLP(s *rlp.Stream) error {
-	var dec taskLocalResourceUsedRlp
-	err := s.Decode(&dec)
-	if err == nil {
-		tru.nodeId, tru.slotCount = dec.NodeId, dec.SlotCount
-	}
-	return err
-}
 
 type LocalResourceTable struct {
 	nodeId       string    // Resource node id
@@ -271,3 +236,114 @@ func (r *RemoteResourceTable) GetTotalBandwidth() uint64 { return r.total.bandwi
 func (r *RemoteResourceTable) GetUsedMem() uint64        { return r.used.mem }
 func (r *RemoteResourceTable) GetUsedProcessor() uint64  { return r.used.processor }
 func (r *RemoteResourceTable) GetUsedBandwidth() uint64  { return r.used.bandwidth }
+
+// 给本地 缓存用的
+
+// 本地任务所占用的 资源缓存
+type LocalTaskPowerUsed struct {
+	taskId    string
+	nodeId    string
+	slotCount uint64
+}
+type localTaskPowerUsedRlp struct {
+	TaskId    string
+	NodeId    string
+	SlotCount uint64
+}
+
+// EncodeRLP implements rlp.Encoder.
+func (pcache *LocalTaskPowerUsed) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, localTaskPowerUsedRlp{
+		TaskId:    pcache.taskId,
+		NodeId:    pcache.nodeId,
+		SlotCount: pcache.slotCount,
+	})
+}
+
+// DecodeRLP implements rlp.Decoder.
+func (pcache *LocalTaskPowerUsed) DecodeRLP(s *rlp.Stream) error {
+	var dec localTaskPowerUsedRlp
+	err := s.Decode(&dec)
+	if err == nil {
+		pcache.taskId, pcache.nodeId, pcache.slotCount = dec.TaskId, dec.NodeId, dec.SlotCount
+	}
+	return err
+}
+func (pcache *LocalTaskPowerUsed) GetTaskId() string    { return pcache.taskId }
+func (pcache *LocalTaskPowerUsed) GetNodeId() string    { return pcache.nodeId }
+func (pcache *LocalTaskPowerUsed) GetSlotCount() uint64 { return pcache.slotCount }
+
+
+
+
+
+
+type DataRereouceTable struct {
+	nodeId    string
+	totalDisk uint64
+	usedDisk  uint64
+}
+type dataRereouceTableRlp struct {
+	NodeId    string
+	TotalDisk uint64
+	UsedDisk  uint64
+}
+// EncodeRLP implements rlp.Encoder.
+func (drt *DataRereouceTable) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, dataRereouceTableRlp{
+		NodeId   : drt.nodeId,
+		TotalDisk: drt.totalDisk,
+		UsedDisk : drt.usedDisk,
+	})
+}
+
+// DecodeRLP implements rlp.Decoder.
+func (drt *DataRereouceTable) DecodeRLP(s *rlp.Stream) error {
+	var dec dataRereouceTableRlp
+	err := s.Decode(&dec)
+	if err == nil {
+		drt.nodeId, drt.totalDisk, drt.usedDisk = dec.NodeId, dec.TotalDisk, dec.UsedDisk
+	}
+	return err
+}
+func (drt *DataRereouceTable) GetNodeId() string { return drt.nodeId }
+func (drt *DataRereouceTable) GetTotalDisk() uint64 { return drt.totalDisk }
+func (drt *DataRereouceTable) GetUsedDisk() uint64 { return drt.usedDisk }
+
+
+type DataResourceDataUsed struct {
+	nodeId     string
+	originId   string
+	metaDataId string
+	filePath   string
+}
+
+type dDataResourceDataUsedRlp struct {
+	NodeId     string
+	OriginId   string
+	MetaDataId string
+	FilePath   string
+}
+// EncodeRLP implements rlp.Encoder.
+func (drt *DataResourceDataUsed) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, dDataResourceDataUsedRlp{
+		NodeId   : drt.nodeId,
+		OriginId: drt.originId,
+		MetaDataId : drt.metaDataId,
+		FilePath: drt.filePath,
+	})
+}
+
+// DecodeRLP implements rlp.Decoder.
+func (drt *DataResourceDataUsed) DecodeRLP(s *rlp.Stream) error {
+	var dec dDataResourceDataUsedRlp
+	err := s.Decode(&dec)
+	if err == nil {
+		drt.nodeId, drt.originId, drt.metaDataId, drt.filePath = dec.NodeId, dec.OriginId, dec.MetaDataId, dec.FilePath
+	}
+	return err
+}
+func (drt *DataResourceDataUsed) GetNodeId() string     { return drt.nodeId }
+func (drt *DataResourceDataUsed) GetOriginId() string   { return drt.originId }
+func (drt *DataResourceDataUsed) GetMetaDataId() string { return drt.metaDataId }
+func (drt *DataResourceDataUsed) GetFilePath() string   { return drt.filePath }

@@ -49,7 +49,7 @@ type Manager struct {
 	//eventCh                chan *types.TaskEventInfo
 	slotUnit               *types.Slot
 	// (taskId -> local resource used) todo 任务结束 或者 任务被清理时, 记得释放对应 taskId 占有的 local resource item
-	taskLocalResourceUseds map[string]*types.TaskLocalResourceUsed
+	//taskLocalResourceUseds map[string]*types.TaskLocalResourceUsed
 	// (resourceNodeId -> resource)  todo 任务结束 或者 任务被清理时, 记得释放对应 taskId 占有的 local resource item
 	localTables            map[string]*types.LocalResourceTable
 	localTableQueue        []*types.LocalResourceTable
