@@ -82,6 +82,9 @@ func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
 }
 
 func (c *DataNodeClient) ConnStatus() connectivity.State {
+	if c.conn == nil {
+		return connectivity.Shutdown
+	}
 	return c.conn.GetState()
 }
 
