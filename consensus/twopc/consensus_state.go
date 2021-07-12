@@ -3,12 +3,14 @@ package twopc
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
 
 type state struct {
 
+	selfPeerInfoCache  map[common.Hash]*types.PrepareVoteResource
 	//Proposal Vote State for self Org
 	selfVoteState *ctypes.VoteState
 	// About the voting state of prepareMsg for proposal
@@ -17,16 +19,20 @@ type state struct {
 	confirmVotes map[common.Hash]*confirmVoteState
 	// Proposal being processed (proposalId -> proposalState)
 	runningProposals map[common.Hash]*ctypes.ProposalState
+	// cache
+	proposalPeerInfoCache map[common.Hash]*pb.ConfirmTaskPeerInfo
 	// the global empty proposalState
 	empty *ctypes.ProposalState
 }
 
 func newState() *state {
 	return &state{
+		selfPeerInfoCache: make(map[common.Hash]*types.PrepareVoteResource, 0),
 		selfVoteState:    ctypes.NewVoteState(),
 		prepareVotes:     make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:     make(map[common.Hash]*confirmVoteState, 0),
 		runningProposals: make(map[common.Hash]*ctypes.ProposalState, 0),
+		proposalPeerInfoCache: make(map[common.Hash]*pb.ConfirmTaskPeerInfo, 0),
 		empty:            ctypes.EmptyProposalState,
 	}
 }
@@ -102,6 +108,10 @@ func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
 }
 func (s *state) DelProposalState(proposalId common.Hash) { delete(s.runningProposals, proposalId) }
 
+func (s *state) GetProposalStates () map[common.Hash]*ctypes.ProposalState {
+	return s.runningProposals
+}
+
 func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
@@ -122,6 +132,29 @@ func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
 		return
 	}
 	proposalState.ChangeToCommit(startTime)
+}
+
+// 作为发起方时, 自己给当前 proposal 提供的资源信息 ...
+func (s *state) StoreSelfPeerInfo(proposalId common.Hash, peerInfo *types.PrepareVoteResource) {
+	s.selfPeerInfoCache[proposalId] = peerInfo
+}
+func (s *state) GetSelfPeerInfo(proposalId common.Hash)  *types.PrepareVoteResource{
+	return s.selfPeerInfoCache[proposalId]
+}
+
+func (s *state) RemoveSelfPeerInfo(proposalId common.Hash) {
+	delete(s.selfPeerInfoCache, proposalId)
+}
+
+func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *pb.ConfirmTaskPeerInfo) {
+	s.proposalPeerInfoCache[proposalId] = peerDesc
+}
+func (s *state) GetConfirmTaskPeerInfo(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+	return s.proposalPeerInfoCache[proposalId]
+}
+
+func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
+	delete(s.proposalPeerInfoCache, proposalId)
 }
 
 func  (s *state) StorePrepareVoteState(vote *types.PrepareVote) {
@@ -150,130 +183,141 @@ func (s *state) CleanProposalState(proposalId common.Hash) {
 	s.RemoveConfirmVoteState(proposalId)
 	s.CleanPrepareVoteState(proposalId)
 	s.CleanConfirmVoteState(proposalId)
+	s.RemoveSelfPeerInfo(proposalId)
+	s.RemoveConfirmTaskPeerInfo(proposalId)
 }
 
 // ---------------- PrepareVote ----------------
 func (s *state) HasPrepareVoting(identityId string, proposalId common.Hash) bool {
-	state, ok := s.prepareVotes[proposalId]
+	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return false
 	}
-	return state.hasPrepareVoting(identityId)
+	return pvs.hasPrepareVoting(identityId)
 }
 func (s *state) StorePrepareVote(vote *types.PrepareVote) {
-	state, ok := s.prepareVotes[vote.ProposalId]
+	pvs, ok := s.prepareVotes[vote.ProposalId]
 	if !ok {
-		state = newPrepareVoteState()
+		pvs = newPrepareVoteState()
 	}
-	state.addVote(vote)
-	s.prepareVotes[vote.ProposalId] = state
+	pvs.addVote(vote)
+	s.prepareVotes[vote.ProposalId] = pvs
 }
+
+func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
+	pvs, ok := s.prepareVotes[proposalId]
+	if !ok {
+		return nil
+	}
+	return  pvs.getVotes()
+}
+
 func (s *state) CleanPrepareVoteState(proposalId common.Hash) {
 	delete(s.prepareVotes, proposalId)
 }
 func (s *state) GetTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.prepareVotes[proposalId]
+	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteYesCount(types.DataSupplier)
+	return pvs.voteYesCount(types.DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.prepareVotes[proposalId]
+	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteYesCount(types.PowerSupplier)
+	return pvs.voteYesCount(types.PowerSupplier)
 }
 func (s *state) GetTaskResulterPrepareYesVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.prepareVotes[proposalId]
+	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteYesCount(types.ResultSupplier)
+	return pvs.voteYesCount(types.ResultSupplier)
 }
 func (s *state) GetTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.prepareVotes[proposalId]
+	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteTotalCount(types.DataSupplier)
+	return pvs.voteTotalCount(types.DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.prepareVotes[proposalId]
+	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteTotalCount(types.PowerSupplier)
+	return pvs.voteTotalCount(types.PowerSupplier)
 }
 func (s *state) GetTaskResulterPrepareTotalVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.prepareVotes[proposalId]
+	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteTotalCount(types.ResultSupplier)
+	return pvs.voteTotalCount(types.ResultSupplier)
 }
 
 // ---------------- ConfirmVote ----------------
 func (s *state) HasConfirmVoting(identityId string, proposalId common.Hash) bool {
-	state, ok := s.confirmVotes[proposalId]
+	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return false
 	}
-	return state.hasConfirmVoting(identityId)
+	return cvs.hasConfirmVoting(identityId)
 }
 func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
-	state, ok := s.confirmVotes[vote.ProposalId]
+	cvs, ok := s.confirmVotes[vote.ProposalId]
 	if !ok {
-		state = newConfirmVoteState()
+		cvs = newConfirmVoteState()
 	}
-	state.addVote(vote)
-	s.confirmVotes[vote.ProposalId] = state
+	cvs.addVote(vote)
+	s.confirmVotes[vote.ProposalId] = cvs
 }
 func (s *state) CleanConfirmVoteState(proposalId common.Hash) {
 	delete(s.confirmVotes, proposalId)
 }
 func (s *state) GetTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.confirmVotes[proposalId]
+	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteYesCount(types.DataSupplier)
+	return cvs.voteYesCount(types.DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.confirmVotes[proposalId]
+	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteYesCount(types.PowerSupplier)
+	return cvs.voteYesCount(types.PowerSupplier)
 }
 func (s *state) GetTaskResulterConfirmYesVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.confirmVotes[proposalId]
+	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteYesCount(types.ResultSupplier)
+	return cvs.voteYesCount(types.ResultSupplier)
 }
 func (s *state) GetTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.confirmVotes[proposalId]
+	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteTotalCount(types.DataSupplier)
+	return cvs.voteTotalCount(types.DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.confirmVotes[proposalId]
+	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteTotalCount(types.PowerSupplier)
+	return cvs.voteTotalCount(types.PowerSupplier)
 }
 func (s *state) GetTaskResulterConfirmTotalVoteCount(proposalId common.Hash) uint32 {
-	state, ok := s.confirmVotes[proposalId]
+	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
 		return 0
 	}
-	return state.voteTotalCount(types.ResultSupplier)
+	return cvs.voteTotalCount(types.ResultSupplier)
 }
 
 // about prepareVote
@@ -309,6 +353,7 @@ func (st *prepareVoteState) addVote(vote *types.PrepareVote) {
 		st.voteStatus[vote.TaskRole] = 1
 	}
 }
+func (st *prepareVoteState) getVotes () []*types.PrepareVote { return st.votes }
 func (st *prepareVoteState) voteTotalCount(role types.TaskRole) uint32 {
 	if count, ok := st.voteStatus[role]; ok {
 		return count
