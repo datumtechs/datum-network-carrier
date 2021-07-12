@@ -603,35 +603,35 @@ func (dc *DataCenter) QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, e
 	return rawdb.QueryLocalTaskPowerUseds(dc.db)
 }
 
-// about DataRereouceTable
-func (dc *DataCenter) StoreDataRereouceTable(dataRereouceTable *types.DataRereouceTable) error {
+// about DataResourceTable
+func (dc *DataCenter) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreDataRereouceTable(dc.db, dataRereouceTable)
+	return rawdb.StoreDataResourceTable(dc.db, dataResourceTable)
 }
 
-func (dc *DataCenter) StoreDataRereouceTables(dataRereouceTables []*types.DataRereouceTable) error {
+func (dc *DataCenter) StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreDataRereouceTables(dc.db, dataRereouceTables)
+	return rawdb.StoreDataResourceTables(dc.db, dataResourceTables)
 }
 
-func (dc *DataCenter) RemoveDataRereouceTable(nodeId string) error {
+func (dc *DataCenter) RemoveDataResourceTable(nodeId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveDataRereouceTable(dc.db, nodeId)
+	return rawdb.RemoveDataResourceTable(dc.db, nodeId)
 }
 
-func (dc *DataCenter) QueryDataRereouceTable(nodeId string) (*types.DataRereouceTable, error) {
+func (dc *DataCenter) QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryDataRereouceTable(dc.db, nodeId)
+	return rawdb.QueryDataResourceTable(dc.db, nodeId)
 }
 
-func (dc *DataCenter) QueryDataRereouceTables() ([]*types.DataRereouceTable, error) {
+func (dc *DataCenter) QueryDataResourceTables() ([]*types.DataResourceTable, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryDataRereouceTables(dc.db)
+	return rawdb.QueryDataResourceTables(dc.db)
 }
 
 // about DataResourceDataUsed
