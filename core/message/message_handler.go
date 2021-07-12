@@ -22,17 +22,40 @@ const (
 )
 
 type DataCenter interface {
-	// identity
-	DelIdentity() error
-	GetIdentity() (*types.NodeAlias, error)
+	// local identity
 	StoreIdentity(identity *types.NodeAlias) error
+	RemoveIdentity() error
+	GetIdentityId() (string, error)
+	GetIdentity() (*types.NodeAlias, error)
+	// dataCenter identity
 	InsertIdentity(identity *types.Identity) error
 	RevokeIdentity(identity *types.Identity) error
 
-	// power
+	// local power
+	InsertLocalResource(resource *types.LocalResource) error
+	RemoveLocalResource(jobNodeId string) error
+	GetLocalResource(jobNodeId string) (*types.LocalResource, error)
+	GetLocalResourceList() (types.LocalResourceArray, error)
+	StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error
+	RemoveLocalResourceIdByPowerId(powerId string) error
+	QueryLocalResourceIdByPowerId(powerId string) (string, error)
+
+	StoreLocalResourceTable(resource *types.LocalResourceTable) error
+	RemoveLocalResourceTable(resourceId string) error
+	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
+	QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error)
+	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
+
+	// dataCenter
 	InsertResource(resource *types.Resource) error
 	// metaData
 	InsertMetadata(metadata *types.Metadata) error
+
+	StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error
+	StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error
+	RemoveDataResourceDataUsed(originId string) error
+	QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error)
+	QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error)
 }
 
 type MessageHandler struct {
@@ -250,7 +273,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 		log.Error("Failed to get local org identity on MessageHandler, err:", err)
 		return err
 	}
-	if err := m.dataCenter.DelIdentity(); nil != err {
+	if err := m.dataCenter.RemoveIdentity(); nil != err {
 		log.Error("Failed to delete org identity to local on MessageHandler, err:", err)
 		return err
 	}
@@ -271,11 +294,32 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 	errs := make([]string, 0)
 	for _, power := range powerMsgs {
-		// TODO 还需要存储本地的 资源信息
+		// 存储本地的 资源信息
+		if err := m.dataCenter.StoreLocalResourceTable(types.NewLocalResourceTable(power.JobNodeId(),
+			power.Memory(), power.Processor(), power.Bandwidth())); nil != err {
+			log.Error("Failed to StoreLocalResourceTable on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
+			continue
+		}
+
+		if err := m.dataCenter.StoreLocalResourceIdByPowerId(power.PowerId, power.JobNodeId()); nil != err {
+			log.Error("Failed to store powerId and jobNodeId mapping to local on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
+			continue
+		}
+		if err := m.dataCenter.InsertLocalResource(power.ToLocal()); nil != err {
+			log.Error("Failed to store power to local on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
+			continue
+		}
 
 		// 发布到全网
-		err := m.dataCenter.InsertResource(power.ToDataCenter())
-		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
+		if err := m.dataCenter.InsertResource(power.ToDataCenter()); nil != err {
+			log.Error("Failed to store power to dataCenter on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
+			continue
+		}
+
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast powerMsgs err: %s", strings.Join(errs, "\n"))
@@ -287,10 +331,35 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 	errs := make([]string, 0)
 	for _, revoke := range powerRevokeMsgs {
 
-		// TODO 处理本地资源
+		jobNodeId, err := m.dataCenter.QueryLocalResourceIdByPowerId(revoke.PowerId)
+		if nil != err {
+			log.Error("Failed to query jobNodeId on local on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, %s", revoke.PowerId, err))
+			continue
+		}
 
-		err := m.dataCenter.InsertResource(revoke.ToDataCenter())
-		errs = append(errs, fmt.Sprintf("powerId: %s, %s", revoke.PowerId, err))
+		if err := m.dataCenter.RemoveLocalResourceTable(jobNodeId); nil != err {
+			log.Error("Failed to RemoveLocalResourceTable on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, jobNodeId: %s, %s", revoke.PowerId, jobNodeId, err))
+			continue
+		}
+
+		if err := m.dataCenter.RemoveLocalResource(jobNodeId); nil != err {
+			log.Error("Failed to remove powerId and jobNodeId mapping to local on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, jobNodeId: %s, %s", revoke.PowerId, jobNodeId, err))
+			continue
+		}
+		if err := m.dataCenter.RemoveLocalResource(jobNodeId); nil != err {
+			log.Error("Failed to remove local resource on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, jobNodeId: %s, %s", revoke.PowerId, jobNodeId, err))
+			continue
+		}
+
+		if err := m.dataCenter.InsertResource(revoke.ToDataCenter()); nil != err {
+			log.Error("Failed to remove dataCenter resource on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, jobNodeId: %s, %s", revoke.PowerId, jobNodeId, err))
+			continue
+		}
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast powerRevokeMsgs err: %s", strings.Join(errs, "\n"))
@@ -302,10 +371,24 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 	errs := make([]string, 0)
 	for _, metaData := range metaDataMsgs {
 
-		// TODO 维护本地 数据服务的 orginId  和 metaDataId 关系
-
-		err := m.dataCenter.InsertMetadata(metaData.ToDataCenter())
-		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", metaData.MetaDataId, err))
+		// 维护本地 数据服务的 orginId  和 metaDataId 关系
+		dataResourceDataUsed, err := m.dataCenter.QueryDataResourceDataUsed(metaData.OriginId())
+		if nil != err {
+			log.Error("Failed to QueryDataResourceDataUsed on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("originId: %s, %s", metaData.OriginId(), err))
+			continue
+		}
+		dataResourceDataUsed.SetMetaDataId(metaData.MetaDataId)
+		if err := m.dataCenter.StoreDataResourceDataUsed(dataResourceDataUsed); nil != err {
+			log.Error("Failed to StoreDataResourceDataUsed on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("originId: %s, %s", metaData.OriginId(), err))
+			continue
+		}
+		if err := m.dataCenter.InsertMetadata(metaData.ToDataCenter()); nil != err {
+			log.Error("Failed to store metaData to dataCenter on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("originId: %s, %s", metaData.OriginId(), err))
+			continue
+		}
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast metaDataMsgs err: %s", strings.Join(errs, "\n"))
@@ -316,11 +399,12 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.MetaDataRevokeMsgs) error {
 	errs := make([]string, 0)
 	for _, revoke := range metaDataRevokeMsgs {
-
-		// TODO 维护本地 数据服务的 orginId  和 metaDataId 关系
-
-		err := m.dataCenter.InsertMetadata(revoke.ToDataCenter())
-		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", revoke.MetaDataId, err))
+		// 不需要维护本地信息 ...
+		if err := m.dataCenter.InsertMetadata(revoke.ToDataCenter()); nil != err {
+			log.Error("Failed to store metaData to dataCenter on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", revoke.MetaDataId, err))
+			continue
+		}
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast metaDataRevokeMsgs err: %s", strings.Join(errs, "\n"))

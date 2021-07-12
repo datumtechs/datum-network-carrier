@@ -230,6 +230,24 @@ func (dc *DataCenter) GetLocalResourceList() (types.LocalResourceArray, error) {
 	return rawdb.ReadAllLocalResource(dc.db), nil
 }
 
+func (dc *DataCenter) StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.StoreLocalResourceIdByPowerId(dc.db, powerId, jobNodeId)
+}
+
+func (dc *DataCenter) RemoveLocalResourceIdByPowerId(powerId string) error  {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.RemoveLocalResourceIdByPowerId(dc.db, powerId)
+}
+
+func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, error)  {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryLocalResourceIdByPowerId(dc.db, powerId)
+}
+
 // about power on datacenter
 func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	dc.serviceMu.Lock()
