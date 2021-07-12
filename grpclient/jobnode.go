@@ -81,6 +81,9 @@ func (c *JobNodeClient) GetClientConn() *grpc.ClientConn {
 }
 
 func (c *JobNodeClient) ConnStatus() connectivity.State {
+	if c.conn == nil {
+		return connectivity.Shutdown
+	}
 	return c.conn.GetState()
 }
 
