@@ -4,10 +4,18 @@ import "github.com/RosettaFlow/Carrier-Go/common"
 
 var (
 	nodeResourceKeyPrefix   = []byte("NodeResourceKey:")
-	nodeResourceIdListKey   = []byte("nodeResourceIdListKey:")
+	nodeResourceIdListKey   = []byte("nodeResourceIdListKey")
 	orgResourceKeyPrefix    = []byte("OrgResourceKey:")
-	orgResourceIdListKey    = []byte("OrgResourceIdListKey:")
+	orgResourceIdListKey    = []byte("OrgResourceIdListKey")
 	nodeResourceSlotUnitKey = []byte("nodeResourceSlotKey")
+	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKey:")
+	localTaskPowerUsedIdListKey = []byte("localTaskPowerUsedIdListKey")
+	dataRereouceTableKeyPrefix = []byte("dataRereouceTableKey:")
+	dataRereouceTableIdListKey = []byte("dataRereouceTableIdListKey")
+	dataResourceDataUsedKeyPrefix = []byte("dataResourceDataUsedKey:")
+	dataResourceDataUsedIdListKey = []byte("dataResourceDataUsedIdListKey")
+
+	resourceTaskIdsKeyPrefix = []byte("resourceTaskIdsKeyPrefix:")
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -25,4 +33,31 @@ func GetOrgResourceIdListKey() []byte {
 }
 func GetNodeResourceSlotUnitKey() []byte {
 	return nodeResourceSlotUnitKey
+}
+
+func GetLocalTaskPowerUsedKey(taskId string) []byte {
+	return append(localTaskPowerUsedKeyPrefix, []byte(taskId)...)
+}
+func GetLocalTaskPowerUsedIdListKey() []byte {
+	return localTaskPowerUsedIdListKey
+}
+
+
+func GetDataRereouceTableKey(nodeId string) []byte {
+	return append(dataRereouceTableKeyPrefix, []byte(nodeId)...)
+}
+func GetDataRereouceTableIdListKey() []byte {
+	return dataRereouceTableIdListKey
+}
+
+
+func GetDataResourceDataUsedKey(originId string) []byte {
+	return append(dataResourceDataUsedKeyPrefix, []byte(originId)...)
+}
+func GetDataResourceDataUsedIdListKey() []byte {
+	return dataResourceDataUsedIdListKey
+}
+
+func GetResourceTaskIdsKeyPrefix(originId string) []byte {
+	return append(resourceTaskIdsKeyPrefix, []byte(originId)...)
 }
