@@ -40,6 +40,8 @@ var (
 
 	ErrGetNodeTaskListStr = "Failed to get all task of current node"
 	ErrGetNodeTaskEventListStr = "Failed to get all event of current node's task"
+
+	ErrFetchRpcMetadataCtxStr = "Failed to fetch rpc metadata ctx"
 )
 
 type YarnServiceServer struct {
