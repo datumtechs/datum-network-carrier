@@ -72,8 +72,19 @@ func (m *Manager) loop() {
 			m.handleEvent(event)
 
 		case task := <-m.recvSchedTaskCh:
-			// TODO 对接收到 经 Scheduler  调度好的 task  转发给自己的 Fighter-Py
-			_ = task
+			// 对接收到 经 Scheduler  调度好的 task  转发给自己的 Fighter-Py
+			switch task.TaskState {
+			case types.TaskStateFailed:
+				eventList, err := m.dataCenter.GetTaskEventList(task.SchedTask.TaskId)
+				if nil != err {
+					log.Error("Failed to Query all task event list for sending datacenter", "taskId", task.SchedTask.TaskId)
+					return
+				}
+				if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(task.SchedTask, eventList)); nil != err {
+					log.Error("Failed to save task to datacenter", "taskId", task.SchedTask.TaskId)
+					return
+				}
+			}
 
 		default:
 		}
@@ -218,4 +229,54 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 		EventDataList: events,
 	})
 	return m.dataCenter.InsertTask(task)
+}
+
+// TODO 转换
+func (m *Manager) convertScheduleTaskToTask(task *types.ScheduleTask, eventList []*types.TaskEventInfo)  *types.Task {
+
+	//
+	//types.NewTask(&libTypes.TaskData{
+	//
+	//})
+	//
+	//partners := make([]*libTypes.TaskMetadataSupplierData, len(task.Partners))
+	//for i, p := range task.Partners {
+	//	partner := &libTypes.TaskMetadataSupplierData {
+	//
+	//	}
+	//	partners[i] = partner
+	//}
+	//
+	//powerArr := make([]*types.ScheduleTaskPowerSupplier, len(powers))
+	//for i, p := range powers {
+	//	power := &types.ScheduleTaskPowerSupplier{
+	//		NodeAlias: p,
+	//	}
+	//	powerArr[i] = power
+	//}
+	//
+	//receivers := make([]*types.ScheduleTaskResultReceiver, len(task.ReceiverDetails()))
+	//for i, r := range task.ReceiverDetails() {
+	//	receiver := &types.ScheduleTaskResultReceiver{
+	//		NodeAlias: r.NodeAlias,
+	//		Providers: r.Providers,
+	//	}
+	//	receivers[i] = receiver
+	//}
+	//return &types.ScheduleTask{
+	//	TaskId:   task.TaskId,
+	//	TaskName: task.TaskName(),
+	//	Owner: &types.ScheduleTaskDataSupplier{
+	//		NodeAlias: task.Onwer(),
+	//		MetaData:  task.OwnerTaskSupplier().MetaData,
+	//	},
+	//	Partners:              partners,
+	//	PowerSuppliers:        powerArr,
+	//	Receivers:             receivers,
+	//	CalculateContractCode: task.CalculateContractCode(),
+	//	DataSplitContractCode: task.DataSplitContractCode(),
+	//	OperationCost:         task.OperationCost(),
+	//	CreateAt:              task.CreateAt(),
+	//}
+	return nil
 }

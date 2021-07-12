@@ -566,7 +566,53 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 		},
 	}
 }
+func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*NodeAlias) *ScheduleTask {
 
+	partners := make([]*ScheduleTaskDataSupplier, len(task.PartnerTaskSuppliers()))
+	for i, p := range task.PartnerTaskSuppliers() {
+		partner := &ScheduleTaskDataSupplier{
+			NodeAlias: &NodeAlias{
+				Name:       p.Name,
+				NodeId:     p.NodeId,
+				IdentityId: p.IdentityId,
+			},
+			MetaData: p.MetaData,
+		}
+		partners[i] = partner
+	}
+
+	powerArr := make([]*ScheduleTaskPowerSupplier, len(powers))
+	for i, p := range powers {
+		power := &ScheduleTaskPowerSupplier{
+			NodeAlias: p,
+		}
+		powerArr[i] = power
+	}
+
+	receivers := make([]*ScheduleTaskResultReceiver, len(task.ReceiverDetails()))
+	for i, r := range task.ReceiverDetails() {
+		receiver := &ScheduleTaskResultReceiver{
+			NodeAlias: r.NodeAlias,
+			Providers: r.Providers,
+		}
+		receivers[i] = receiver
+	}
+	return &ScheduleTask{
+		TaskId:   task.TaskId,
+		TaskName: task.TaskName(),
+		Owner: &ScheduleTaskDataSupplier{
+			NodeAlias: task.Onwer(),
+			MetaData:  task.OwnerTaskSupplier().MetaData,
+		},
+		Partners:              partners,
+		PowerSuppliers:        powerArr,
+		Receivers:             receivers,
+		CalculateContractCode: task.CalculateContractCode(),
+		DataSplitContractCode: task.DataSplitContractCode(),
+		OperationCost:         task.OperationCost(),
+		CreateAt:              task.CreateAt(),
+	}
+}
 type taskdata struct {
 	TaskName              string                `json:"taskName"`
 	Owner                 *TaskSupplier         `json:"owner"`
@@ -674,6 +720,7 @@ type TaskOperationCost struct {
 	Bandwidth uint64 `json:"bandwidth"`
 	Duration  uint64 `json:"duration"`
 }
+
 
 func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *pb.TaskOperationCostDeclare {
 	return &pb.TaskOperationCostDeclare{
