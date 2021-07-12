@@ -2,6 +2,8 @@ package node
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/carrier"
+	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/urfave/cli/v2"
 )
 
@@ -15,19 +17,18 @@ type carrierConfig struct {
 	// more config modules
 }
 
-func makeConfig(ctx *cli.Context) carrierConfig {
+func makeConfig(cliCtx *cli.Context) carrierConfig {
 	// Load defaults.
 	cfg := carrierConfig{
 		Carrier:   carrier.DefaultConfig,
 		Node:      defaultNodeConfig(),
 	}
 
-	// Load config file.
 	// todo: file conf load for config.
 
 	// Apply flags.
-	SetNodeConfig(ctx, &cfg.Node)
-	SetCarrierConfig(ctx, &cfg.Carrier)
+	SetNodeConfig(cliCtx, &cfg.Node)
+	SetCarrierConfig(cliCtx, &cfg.Carrier)
 
 	return cfg
 }
@@ -35,4 +36,12 @@ func makeConfig(ctx *cli.Context) carrierConfig {
 func defaultNodeConfig() Config {
 	cfg := DefaultConfig
 	return cfg
+}
+
+func configureNetwork(cliCtx *cli.Context) {
+	if cliCtx.IsSet(flags.BootstrapNode.Name) {
+		c := params.CarrierNetworkConfig()
+		c.BootstrapNodes = cliCtx.StringSlice(flags.BootstrapNode.Name)
+		params.OverrideCarrierNetworkConfig(c)
+	}
 }
