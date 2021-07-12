@@ -6,17 +6,16 @@ import (
 )
 
 type CarrierDB interface {
-	GetIdentityId() (string, error)
+
 	InsertData(blocks types.Blocks) (int, error)
 	InsertMetadata(metadata *types.Metadata) error
-	StoreIdentity(identity *types.NodeAlias) error
-	DelIdentity() error
-	GetYarnName() (string, error)
-	GetIdentity() (*types.NodeAlias, error)
+
+
 	GetMetadataByDataId(dataId string) (*types.Metadata, error)
 	//GetMetadataListByNodeId(nodeId string) (types.MetadataArray, error)
 	GetMetadataList() (types.MetadataArray, error)
-	HasIdentity(identity *types.NodeAlias) (bool, error)
+
+
 	InsertLocalResource(resource *types.LocalResource) error
 	DelLocalResource(jobNodeId string) error
 	GetLocalResource(jobNodeId string) (*types.LocalResource, error)
@@ -25,15 +24,25 @@ type CarrierDB interface {
 	//GetResourceByDataId(powerId string) (*types.Resource, error)
 	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
 	GetResourceList() (types.ResourceArray, error)
-	// InsertIdentity saves new identity info to the center of data.
+
+	// about identity to local
+	GetIdentityId() (string, error)
+	StoreIdentity(identity *types.NodeAlias) error
+	DelIdentity() error
+	GetYarnName() (string, error)
+	GetIdentity() (*types.NodeAlias, error)
+	// about all identity (coverd remote)
+	HasIdentity(identity *types.NodeAlias) (bool, error)
 	InsertIdentity(identity *types.Identity) error
-	// RevokeIdentity revokes the identity info to the center of data.
 	RevokeIdentity(identity *types.Identity) error
 	GetIdentityList() (types.IdentityArray, error)
+
+
 	InsertTask(task *types.Task) error
 	StoreLocalTask(task *types.Task) error
 	DelLocalTask(taskId string) error
 	UpdateLocalTaskState(taskId, state string) error
+	GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
 	GetLocalTaskList() (types.TaskDataArray, error)
 	GetTaskList() (types.TaskDataArray, error)
 	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)

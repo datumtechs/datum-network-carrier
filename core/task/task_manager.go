@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -25,14 +26,15 @@ type Manager struct {
 	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
 	recvSchedTaskCh <-chan *types.ConsensusScheduleTask
 
-	// TODO 持有 己方的所有 Fighter-Py 的 grpc client
+	// internal resource node set (Fighter node grpc client set)
+	resourceClientSet *grpclient.InternalResourceClientSet
 
 	// TODO 用于接收 己方已连接 或 断开连接的 Fighter-Py 的 grpc client
 
 }
 
 func NewTaskManager(dataCenter core.CarrierDB, eventEngine *ev.EventEngine,
-	resourceMng *resource.Manager,
+	resourceMng *resource.Manager, resourceClientSet *grpclient.InternalResourceClientSet,
 	taskCh chan types.TaskMsgs, sendTaskCh chan types.TaskMsgs,
 	recvSchedTaskCh chan *types.ConsensusScheduleTask) *Manager {
 
@@ -41,6 +43,7 @@ func NewTaskManager(dataCenter core.CarrierDB, eventEngine *ev.EventEngine,
 		dataCenter:       dataCenter,
 		eventEngine:     eventEngine,
 		resourceMng:     resourceMng,
+		resourceClientSet: resourceClientSet,
 		parser: newTaskParser(),
 		validator: newTaskValidator(),
 		taskCh:          taskCh,
@@ -120,6 +123,10 @@ func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 	m.eventCh <- event
 	return nil
 }
+
+//func (m *Manager) driveTask(task *types.ConsensusScheduleTask) error {
+//
+//}
 
 func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventData, reason string) error {
 

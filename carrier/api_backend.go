@@ -172,14 +172,14 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 		if err != nil {
 			return types.NONCONNECTED, err
 		}
-		s.carrier.resourceNodeSet.StoreJobNodeClient(node.Id, client)
+		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 	}
 	if typ == types.PREFIX_TYPE_DATANODE {
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
 			return types.NONCONNECTED, err
 		}
-		s.carrier.resourceNodeSet.StoreDataNodeClient(node.Id, client)
+		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 	}
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
@@ -191,15 +191,15 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
 	if typ == types.PREFIX_TYPE_JOBNODE {
-		if client, ok := s.carrier.resourceNodeSet.QueryJobNodeClient(id); ok {
+		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
 			client.Close()
-			s.carrier.resourceNodeSet.RemoveJobNodeClient(id)
+			s.carrier.resourceClientSet.RemoveJobNodeClient(id)
 		}
 	}
 	if typ == types.PREFIX_TYPE_DATANODE {
-		if client, ok := s.carrier.resourceNodeSet.QueryDataNodeClient(id); ok {
+		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
 			client.Close()
-			s.carrier.resourceNodeSet.RemoveDataNodeClient(id)
+			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
 		}
 	}
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
