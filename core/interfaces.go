@@ -31,11 +31,14 @@ type CarrierDB interface {
 	RemoveLocalResource(jobNodeId string) error
 	GetLocalResource(jobNodeId string) (*types.LocalResource, error)
 	GetLocalResourceList() (types.LocalResourceArray, error)
+	StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error
+	RemoveLocalResourceIdByPowerId(powerId string) error
+	QueryLocalResourceIdByPowerId(powerId string) (string, error)
 	// about power on datacenter
 	InsertResource(resource *types.Resource) error
-	//GetResourceByDataId(powerId string) (*types.Resource, error)
 	GetResourceListByNodeId(nodeId string) (types.ResourceArray, error)
 	GetResourceList() (types.ResourceArray, error)
+	//GetResourceByPowerId(powerId string) (*types.Resource, error)
 
 	// about identity on local
 	StoreIdentity(identity *types.NodeAlias) error
