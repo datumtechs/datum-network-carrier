@@ -21,8 +21,8 @@ message PrepareVote {
 
   bytes                        proposal_id = 1;            // 2pc 提案Id
   bytes                        task_role = 2;              // The role information of the current recipient of the task
-  TaskOrganizationIdentityInfo owner = 3;                  // 投票人信息
-  bytes                        vote_option = 4;            // 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
+  TaskOrganizationIdentityInfo owner = 3;                  // PrepareVote 投票人信息
+  bytes                        vote_option = 4;            // PrepareVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
   TaskPeerInfo                 peer_info = 5;              // 投票yes时, 对任务提供的自身资源 ip:port
   uint64                       create_at = 6;              // vote 创建的时间
   bytes                        sign = 7;                   // 投票发起者签名
@@ -35,10 +35,19 @@ message ConfirmMsg {
   bytes                        proposal_id = 1;            // 2pc 提案Id
   bytes                        task_role = 2;
   uint64                       epoch = 3;                  // confirm 阶段的第几轮 Msg
-  TaskOrganizationIdentityInfo owner = 4;                  // 提案人信息
-  uint64                       create_at = 5;              // ConfirmMsg 创建的时间
-  bytes                        sign = 6;                   // ConfirmMsg 发起者签名
+  TaskOrganizationIdentityInfo owner = 4;                  // ConfirmMsg 发起者信息 <其实也就是 任务发起方的信息, 提案发起者的信息>
+  ConfirmTaskPeerInfo          peer_desc = 5;              // task 各个参与方的 内部资源信息 (对外的ip:port, 做任务用的)
+  uint64                       create_at = 6;              // ConfirmMsg 创建的时间
+  bytes                        sign = 7;                   // ConfirmMsg 发起者签名
 
+}
+
+// On ConfirmMsg, the task partners peerInfo
+message ConfirmTaskPeerInfo {
+  TaskPeerInfo          owner_peer_info = 1;                          // task 发起方的 资源信息
+  repeated TaskPeerInfo data_supplier_peer_info_list = 2;             // 数据参与方的 资源信息
+  repeated TaskPeerInfo power_supplier_peer_info_list = 3;            // 算力参与方的 资源信息
+  repeated TaskPeerInfo result_receiver_peer_info_list = 4;           // 结果接收方的 资源信息
 }
 
 // 2pc confirmVote
@@ -47,8 +56,8 @@ message ConfirmVote {
   bytes                        proposal_id = 1;            // 2pc 提案Id
   uint64                       epoch = 2;                  // confirm 阶段的第几轮 Msg
   bytes                        task_role = 3;              // The role information of the current recipient of the task
-  TaskOrganizationIdentityInfo owner = 4;                  // 投票人信息
-  bytes                        vote_option = 5;            // 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
+  TaskOrganizationIdentityInfo owner = 4;                  // ConfirmVote 投票人信息
+  bytes                        vote_option = 5;            // ConfirmVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
   uint64                       create_at = 6;              // vote 创建的时间
   bytes                        sign = 7;                   // 投票发起者签名
 
