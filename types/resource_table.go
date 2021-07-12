@@ -18,6 +18,8 @@ var (
 		processor: 1 * multipleNumber,
 		bandwidth: 1024 * multipleNumber,
 	}
+
+	DefaultDisk = uint64(10*1024*1024*1024*1024*1024)  //10pb
 )
 
 type LocalResourceTable struct {
@@ -294,8 +296,10 @@ type dataRereouceTableRlp struct {
 func NewDataRereouceTable(nodeId string, totalDisk, usedDisk uint64) *DataRereouceTable {
 	return &DataRereouceTable{
 		nodeId:    nodeId,
-		totalDisk: totalDisk,
-		usedDisk:  usedDisk,
+		//totalDisk: totalDisk,
+		//usedDisk:  usedDisk,
+		totalDisk: DefaultDisk,
+		usedDisk:  0,
 	}
 }
 
@@ -365,5 +369,6 @@ func (drt *DataResourceDataUsed) DecodeRLP(s *rlp.Stream) error {
 }
 func (drt *DataResourceDataUsed) GetNodeId() string     { return drt.nodeId }
 func (drt *DataResourceDataUsed) GetOriginId() string   { return drt.originId }
+func (drt *DataResourceDataUsed) SetMetaDataId(metaDataId string) { drt.metaDataId = metaDataId }
 func (drt *DataResourceDataUsed) GetMetaDataId() string { return drt.metaDataId }
 func (drt *DataResourceDataUsed) GetFilePath() string   { return drt.filePath }
