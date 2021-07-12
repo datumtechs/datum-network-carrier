@@ -20,7 +20,6 @@ var (
 	}
 )
 
-
 type LocalResourceTable struct {
 	nodeId       string    // Resource node id
 	nodeResource *resource // The total resource on the node
@@ -251,6 +250,14 @@ type localTaskPowerUsedRlp struct {
 	SlotCount uint64
 }
 
+func NewLocalTaskPowerUsed(taskId, nodeId string, slotCount uint64) *LocalTaskPowerUsed {
+	return &LocalTaskPowerUsed{
+		taskId:    taskId,
+		nodeId:    nodeId,
+		slotCount: slotCount,
+	}
+}
+
 // EncodeRLP implements rlp.Encoder.
 func (pcache *LocalTaskPowerUsed) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, localTaskPowerUsedRlp{
@@ -273,11 +280,6 @@ func (pcache *LocalTaskPowerUsed) GetTaskId() string    { return pcache.taskId }
 func (pcache *LocalTaskPowerUsed) GetNodeId() string    { return pcache.nodeId }
 func (pcache *LocalTaskPowerUsed) GetSlotCount() uint64 { return pcache.slotCount }
 
-
-
-
-
-
 type DataRereouceTable struct {
 	nodeId    string
 	totalDisk uint64
@@ -288,12 +290,21 @@ type dataRereouceTableRlp struct {
 	TotalDisk uint64
 	UsedDisk  uint64
 }
+
+func NewDataRereouceTable(nodeId string, totalDisk, usedDisk uint64) *DataRereouceTable {
+	return &DataRereouceTable{
+		nodeId:    nodeId,
+		totalDisk: totalDisk,
+		usedDisk:  usedDisk,
+	}
+}
+
 // EncodeRLP implements rlp.Encoder.
 func (drt *DataRereouceTable) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, dataRereouceTableRlp{
-		NodeId   : drt.nodeId,
+		NodeId:    drt.nodeId,
 		TotalDisk: drt.totalDisk,
-		UsedDisk : drt.usedDisk,
+		UsedDisk:  drt.usedDisk,
 	})
 }
 
@@ -306,14 +317,13 @@ func (drt *DataRereouceTable) DecodeRLP(s *rlp.Stream) error {
 	}
 	return err
 }
-func (drt *DataRereouceTable) GetNodeId() string { return drt.nodeId }
+func (drt *DataRereouceTable) GetNodeId() string    { return drt.nodeId }
 func (drt *DataRereouceTable) GetTotalDisk() uint64 { return drt.totalDisk }
-func (drt *DataRereouceTable) GetUsedDisk() uint64 { return drt.usedDisk }
-
+func (drt *DataRereouceTable) GetUsedDisk() uint64  { return drt.usedDisk }
 
 type DataResourceDataUsed struct {
+	originId   string   // db key
 	nodeId     string
-	originId   string
 	metaDataId string
 	filePath   string
 }
@@ -324,13 +334,23 @@ type dDataResourceDataUsedRlp struct {
 	MetaDataId string
 	FilePath   string
 }
+
+func NewDataResourceDataUsed(nodeId, originId, metaDataId, filePath string) *DataResourceDataUsed {
+	return &DataResourceDataUsed{
+		nodeId:     nodeId,
+		originId:   originId,
+		metaDataId: metaDataId,
+		filePath:   filePath,
+	}
+}
+
 // EncodeRLP implements rlp.Encoder.
 func (drt *DataResourceDataUsed) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, dDataResourceDataUsedRlp{
-		NodeId   : drt.nodeId,
-		OriginId: drt.originId,
-		MetaDataId : drt.metaDataId,
-		FilePath: drt.filePath,
+		NodeId:     drt.nodeId,
+		OriginId:   drt.originId,
+		MetaDataId: drt.metaDataId,
+		FilePath:   drt.filePath,
 	})
 }
 
