@@ -7,11 +7,11 @@ import (
 	context "context"
 	fmt "fmt"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -1003,8 +1003,8 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DataProviderClient interface {
-	GetStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetStatusReply, error)
-	ListData(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ListDataReply, error)
+	GetStatus(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetStatusReply, error)
+	ListData(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListDataReply, error)
 	UploadData(ctx context.Context, opts ...grpc.CallOption) (DataProvider_UploadDataClient, error)
 	BatchUpload(ctx context.Context, opts ...grpc.CallOption) (DataProvider_BatchUploadClient, error)
 	DownloadData(ctx context.Context, in *DownloadRequest, opts ...grpc.CallOption) (DataProvider_DownloadDataClient, error)
@@ -1020,7 +1020,7 @@ func NewDataProviderClient(cc *grpc.ClientConn) DataProviderClient {
 	return &dataProviderClient{cc}
 }
 
-func (c *dataProviderClient) GetStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetStatusReply, error) {
+func (c *dataProviderClient) GetStatus(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetStatusReply, error) {
 	out := new(GetStatusReply)
 	err := c.cc.Invoke(ctx, "/datasvc.DataProvider/GetStatus", in, out, opts...)
 	if err != nil {
@@ -1029,7 +1029,7 @@ func (c *dataProviderClient) GetStatus(ctx context.Context, in *empty.Empty, opt
 	return out, nil
 }
 
-func (c *dataProviderClient) ListData(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*ListDataReply, error) {
+func (c *dataProviderClient) ListData(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ListDataReply, error) {
 	out := new(ListDataReply)
 	err := c.cc.Invoke(ctx, "/datasvc.DataProvider/ListData", in, out, opts...)
 	if err != nil {
@@ -1155,8 +1155,8 @@ func (c *dataProviderClient) SendSharesData(ctx context.Context, in *SendSharesD
 
 // DataProviderServer is the server API for DataProvider service.
 type DataProviderServer interface {
-	GetStatus(context.Context, *empty.Empty) (*GetStatusReply, error)
-	ListData(context.Context, *empty.Empty) (*ListDataReply, error)
+	GetStatus(context.Context, *emptypb.Empty) (*GetStatusReply, error)
+	ListData(context.Context, *emptypb.Empty) (*ListDataReply, error)
 	UploadData(DataProvider_UploadDataServer) error
 	BatchUpload(DataProvider_BatchUploadServer) error
 	DownloadData(*DownloadRequest, DataProvider_DownloadDataServer) error
@@ -1168,10 +1168,10 @@ type DataProviderServer interface {
 type UnimplementedDataProviderServer struct {
 }
 
-func (*UnimplementedDataProviderServer) GetStatus(ctx context.Context, req *empty.Empty) (*GetStatusReply, error) {
+func (*UnimplementedDataProviderServer) GetStatus(ctx context.Context, req *emptypb.Empty) (*GetStatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")
 }
-func (*UnimplementedDataProviderServer) ListData(ctx context.Context, req *empty.Empty) (*ListDataReply, error) {
+func (*UnimplementedDataProviderServer) ListData(ctx context.Context, req *emptypb.Empty) (*ListDataReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListData not implemented")
 }
 func (*UnimplementedDataProviderServer) UploadData(srv DataProvider_UploadDataServer) error {
@@ -1195,7 +1195,7 @@ func RegisterDataProviderServer(s *grpc.Server, srv DataProviderServer) {
 }
 
 func _DataProvider_GetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1207,13 +1207,13 @@ func _DataProvider_GetStatus_Handler(srv interface{}, ctx context.Context, dec f
 		FullMethod: "/datasvc.DataProvider/GetStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataProviderServer).GetStatus(ctx, req.(*empty.Empty))
+		return srv.(DataProviderServer).GetStatus(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _DataProvider_ListData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1225,7 +1225,7 @@ func _DataProvider_ListData_Handler(srv interface{}, ctx context.Context, dec fu
 		FullMethod: "/datasvc.DataProvider/ListData",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataProviderServer).ListData(ctx, req.(*empty.Empty))
+		return srv.(DataProviderServer).ListData(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
