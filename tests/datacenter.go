@@ -291,7 +291,7 @@ func GetData() {
 	// endregion
 
 	// region GetResourceListByNodeId
-	ResourceByNodeId, err := dc.GetResourceListByNodeId(Identity)
+	ResourceByNodeId, err := dc.GetResourceListByIdentityId(Identity)
 	if nil != err {
 		fmt.Println("err", err)
 	}
