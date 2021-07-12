@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -20,16 +21,11 @@ const (
 	defaultBroadcastTaskMsgInterval     = 10 * time.Millisecond
 )
 
-type DataHandler interface {
-	StoreIdentity(identity *types.NodeAlias) error
-	DelIdentity() error
-	GetYarnName() (string, error)
-	GetIdentityId() (string, error)
-	GetIdentity() (*types.NodeAlias, error)
-}
-
 type DataCenter interface {
 	// identity
+	DelIdentity() error
+	GetIdentity() (*types.NodeAlias, error)
+	StoreIdentity(identity *types.NodeAlias) error
 	InsertIdentity(identity *types.Identity) error
 	RevokeIdentity(identity *types.Identity) error
 
@@ -40,13 +36,11 @@ type DataCenter interface {
 }
 
 type MessageHandler struct {
-	pool        *Mempool
-	dataHandler DataHandler
-	center      DataCenter
-	//// Consensuses
-	//engines map[string]consensus.Engine
+	pool       *Mempool
+	dataCenter DataCenter
 
-	taskCh chan<- types.TaskMsgs
+	// Send taskMsg to taskManager
+	taskManager *task.Manager
 
 	identityMsgCh       chan types.IdentityMsgEvent
 	identityRevokeMsgCh chan types.IdentityRevokeMsgEvent
@@ -70,12 +64,11 @@ type MessageHandler struct {
 	lockMetaData sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataHandler DataHandler, dataCenter DataCenter, taskCh chan<- types.TaskMsgs) *MessageHandler {
+func NewHandler(pool *Mempool, dataCenter DataCenter, taskManager *task.Manager) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
-		dataHandler: dataHandler,
-		center:      dataCenter,
-		taskCh:      taskCh,
+		dataCenter:  dataCenter,
+		taskManager: taskManager,
 	}
 	return m
 }
@@ -234,13 +227,14 @@ func (m *MessageHandler) loop() {
 
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 
-	if err := m.dataHandler.StoreIdentity(msg.NodeAlias); nil != err {
+	// add identity to local db
+	if err := m.dataCenter.StoreIdentity(msg.NodeAlias); nil != err {
 		log.Error("Failed to store local org identity on MessageHandler, err:", err)
-
 		return err
 	}
 
-	if err := m.center.InsertIdentity(msg.ToDataCenter()); nil != err {
+	// send identity to datacenter
+	if err := m.dataCenter.InsertIdentity(msg.ToDataCenter()); nil != err {
 		log.Error("Failed to broadcast org org identity on MessageHandler, err:", err)
 		return err
 	}
@@ -249,17 +243,20 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 }
 
 func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
-	identity, err := m.dataHandler.GetIdentity()
+
+	// remove identity from local db
+	identity, err := m.dataCenter.GetIdentity()
 	if nil != err {
 		log.Error("Failed to get local org identity on MessageHandler, err:", err)
 		return err
 	}
-	if err := m.dataHandler.DelIdentity(); nil != err {
+	if err := m.dataCenter.DelIdentity(); nil != err {
 		log.Error("Failed to delete org identity to local on MessageHandler, err:", err)
 		return err
 	}
 
-	if err := m.center.RevokeIdentity(
+	// remove identity from dataCenter
+	if err := m.dataCenter.RevokeIdentity(
 		types.NewIdentity(&libTypes.IdentityData{
 			NodeName: identity.Name,
 			NodeId:   identity.NodeId,
@@ -277,7 +274,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 		// TODO 还需要存储本地的 资源信息
 
 		// 发布到全网
-		err := m.center.InsertResource(power.ToDataCenter())
+		err := m.dataCenter.InsertResource(power.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("powerId: %s, %s", power.PowerId, err))
 	}
 	if len(errs) != 0 {
@@ -292,7 +289,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 
 		// TODO 处理本地资源
 
-		err := m.center.InsertResource(revoke.ToDataCenter())
+		err := m.dataCenter.InsertResource(revoke.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("powerId: %s, %s", revoke.PowerId, err))
 	}
 	if len(errs) != 0 {
@@ -307,7 +304,7 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 
 		// TODO 维护本地 数据服务的 orginId  和 metaDataId 关系
 
-		err := m.center.InsertMetadata(metaData.ToDataCenter())
+		err := m.dataCenter.InsertMetadata(metaData.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", metaData.MetaDataId, err))
 	}
 	if len(errs) != 0 {
@@ -322,7 +319,7 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.Me
 
 		// TODO 维护本地 数据服务的 orginId  和 metaDataId 关系
 
-		err := m.center.InsertMetadata(revoke.ToDataCenter())
+		err := m.dataCenter.InsertMetadata(revoke.ToDataCenter())
 		errs = append(errs, fmt.Sprintf("metaDataId: %s, %s", revoke.MetaDataId, err))
 	}
 	if len(errs) != 0 {
@@ -332,6 +329,5 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.Me
 }
 
 func (m *MessageHandler) BroadcastTaskMsgs(taskMsgs types.TaskMsgs) error {
-	m.taskCh <- taskMsgs
-	return nil
+	return m.taskManager.SendTaskMsgs(taskMsgs)
 }

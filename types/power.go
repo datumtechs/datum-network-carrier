@@ -52,6 +52,7 @@ type PowerTask struct {
 	OperationCost  *TaskOperationCost `json:"operationCost"`
 	OperationSpend *TaskOperationCost `json:"operationSpend"`
 }
+
 func ConvertPowerTaskToPB(task *PowerTask) *pb.PowerTask {
 	return &pb.PowerTask{
 		TaskId:         task.TaskId,
@@ -111,8 +112,7 @@ type OrgPowerDetail struct {
 }
 
 type NodePowerDetail struct {
-	Owner       *NodeAlias       	`json:"owner"`
+	Owner       *NodeAlias         `json:"owner"`
 	PowerDetail *PowerSingleDetail `json:"powerDetail"`
 }
-
 

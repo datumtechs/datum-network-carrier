@@ -660,7 +660,7 @@ func DeleteLocalResource(db KeyValueStore, jobNodeId string) {
 	}
 }
 
-// ReadSeedNode retrieves the local task with the corresponding taskId.
+// ReadLocalTask retrieves the local task with the corresponding taskId.
 func ReadLocalTask(db DatabaseReader, taskId string) *types.Task {
 	blob, err := db.Get(localTaskKey)
 	if err != nil {
@@ -676,6 +676,29 @@ func ReadLocalTask(db DatabaseReader, taskId string) *types.Task {
 		}
 	}
 	return nil
+}
+
+// ReadLocalTaskByIds retrieves the local tasks with the corresponding taskIds.
+func ReadLocalTaskByIds(db DatabaseReader, taskIds []string) types.TaskDataArray {
+	blob, err := db.Get(localTaskKey)
+	if err != nil {
+		return nil
+	}
+	var taskList dbtype.TaskArrayPB
+	if err := taskList.Unmarshal(blob); err != nil {
+		return nil
+	}
+	tmp := make(map[string]struct{}, 0)
+	taskArr := make(types.TaskDataArray, 0)
+	for _, taskId := range taskIds {
+		tmp[taskId] = struct{}{}
+	}
+	for _, task := range taskList.GetTaskList() {
+		if _, ok := tmp[task.TaskId]; ok {
+			taskArr = append(taskArr, types.NewTask(task))
+		}
+	}
+	return taskArr
 }
 
 // ReadAllLocalTasks retrieves all the local task in the database.

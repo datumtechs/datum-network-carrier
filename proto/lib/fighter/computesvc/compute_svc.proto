@@ -48,16 +48,20 @@ message TaskReadyGoReq {
     string task_id     = 1;
     string contract_id = 2;
     string data_id     = 3;
-    int32  node_id     = 4;
+    string party_id    = 4;        // 当前参与方id
     string env_id      = 5;
-  message Peer {
+  message Peer {              // 各参与方信息
     string ip    = 1;
     int32  port  = 2;
-    int32  party = 3;
-    string name  = 4;
+    string party = 3;         // 达成共识后为每方分配的唯一标识
+    string name  = 4;          // 为了可读性
   }
-    repeated Peer       peers    = 6;
-    map<string, string> user_cfg = 7;
+    repeated Peer       peers             = 6;
+    map<string, string> user_cfg          = 7;       // 具体算法要求的配置
+    repeated string     data_party        = 8;         // 各数据方的party_id
+    repeated string     computation_party = 9;  // 各计算方的party_id
+    repeated string     result_party      = 10;      // 各结果方的party_id
+
 }
 
 message GetStatusReply {

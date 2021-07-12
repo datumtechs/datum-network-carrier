@@ -5,6 +5,7 @@ import (
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"sync"
 	"time"
 )
 
@@ -23,6 +24,8 @@ type state struct {
 	proposalPeerInfoCache map[common.Hash]*pb.ConfirmTaskPeerInfo
 	// the global empty proposalState
 	empty *ctypes.ProposalState
+
+	proposalsLock   sync.RWMutex
 }
 
 func newState() *state {
@@ -37,10 +40,15 @@ func newState() *state {
 	}
 }
 
+func (s *state) EmptyInfo () *ctypes.ProposalState { return s.empty }
+
 func (s *state) CleanExpireProposal() ([]string, []string) {
 	now := uint64(time.Now().UnixNano())
 	sendTaskIds := make([]string, 0)
 	recvTaskIds := make([]string, 0)
+
+	// This function does not need to be locked,
+	// and the small function inside handles the lock by itself
 	for id, proposal := range s.runningProposals {
 		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
 			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId",
@@ -54,10 +62,14 @@ func (s *state) CleanExpireProposal() ([]string, []string) {
 
 		}
 	}
+
 	return sendTaskIds, recvTaskIds
 }
 
 func (s *state) HasProposal(proposalId common.Hash) bool {
+	s.proposalsLock.RLock()
+	defer s.proposalsLock.RUnlock()
+
 	if _, ok := s.runningProposals[proposalId]; ok {
 		return true
 	}
@@ -70,6 +82,9 @@ func (s *state) HasNotProposal(proposalId common.Hash) bool {
 
 
 func (s *state) IsRecvTaskOnProposalState(proposalId common.Hash) bool {
+	s.proposalsLock.RLock()
+	defer s.proposalsLock.RUnlock()
+
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
 		return false
@@ -81,6 +96,9 @@ func (s *state) IsRecvTaskOnProposalState(proposalId common.Hash) bool {
 }
 
 func (s *state) IsSendTaskOnProposalState(proposalId common.Hash) bool {
+	s.proposalsLock.RLock()
+	defer s.proposalsLock.RUnlock()
+
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
 		return false
@@ -92,6 +110,9 @@ func (s *state) IsSendTaskOnProposalState(proposalId common.Hash) bool {
 }
 
 func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
+	s.proposalsLock.RLock()
+	defer s.proposalsLock.RUnlock()
+
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
 		return s.empty
@@ -99,39 +120,67 @@ func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
 	return proposalState
 }
 func (s *state) AddProposalState(proposalState *ctypes.ProposalState) {
+	s.proposalsLock.Lock()
 	s.runningProposals[proposalState.ProposalId] = proposalState
+	s.proposalsLock.Unlock()
 }
 func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
+	s.proposalsLock.Lock()
 	if _, ok := s.runningProposals[proposalState.ProposalId]; ok {
 		s.runningProposals[proposalState.ProposalId] = proposalState
 	}
+	s.proposalsLock.Unlock()
 }
-func (s *state) DelProposalState(proposalId common.Hash) { delete(s.runningProposals, proposalId) }
+func (s *state) DelProposalState(proposalId common.Hash) {
+	s.proposalsLock.Lock()
+	delete(s.runningProposals, proposalId)
+	s.proposalsLock.Unlock()
+}
 
 func (s *state) GetProposalStates () map[common.Hash]*ctypes.ProposalState {
 	return s.runningProposals
 }
 
 func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
+	s.proposalsLock.Lock()
+	defer s.proposalsLock.Unlock()
+
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
 		return
 	}
 	proposalState.ChangeToConfirm(startTime)
+	s.runningProposals[proposalId] = proposalState
 }
-func (s *state) ChangeToConfirmSecondEpoch(proposalId common.Hash, startTime uint64) {
-	proposalState, ok := s.runningProposals[proposalId]
-	if !ok {
-		return
-	}
-	proposalState.ChangeToConfirmSecondEpoch(startTime)
-}
+//func (s *state) ChangeToConfirmSecondEpoch(proposalId common.Hash, startTime uint64) {
+//	proposalState, ok := s.runningProposals[proposalId]
+//	if !ok {
+//		return
+//	}
+//	proposalState.ChangeToConfirmSecondEpoch(startTime)
+//}
 func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
+	s.proposalsLock.Lock()
+	defer s.proposalsLock.Unlock()
+
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
 		return
 	}
 	proposalState.ChangeToCommit(startTime)
+	s.runningProposals[proposalId] = proposalState
+}
+
+func (s *state) ChangeToFinised(proposalId common.Hash, startTime uint64) {
+	s.proposalsLock.Lock()
+	defer s.proposalsLock.Unlock()
+
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return
+	}
+	proposalState.ChangeToFinished(startTime)
+	s.runningProposals[proposalId] = proposalState
 }
 
 // 作为发起方时, 自己给当前 proposal 提供的资源信息 ...
