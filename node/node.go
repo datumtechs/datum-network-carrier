@@ -50,11 +50,12 @@ type CarrierNode struct {
 // every required service to the node.
 func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	// todo: to init config
-	cfg := makeConfig(cliCtx)
+	config := makeConfig(cliCtx)
+	configureNetwork(cliCtx)
 
 	// Copy config and resolve the datadir so future changes to the current
 	// working directory don't affect the node.
-	confCopy := cfg.Node
+	confCopy := config.Node
 	conf := &confCopy
 	if conf.DataDir != "" {
 		absdatadir, err := filepath.Abs(conf.DataDir)
@@ -78,7 +79,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// start db
-	err := node.startDB(cliCtx, &cfg.Carrier)
+	err := node.startDB(cliCtx, &config.Carrier)
 	if err != nil {
 		log.WithError(err).Error("Failed to start DB")
 		return nil, err
@@ -90,7 +91,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// register backend service.
-	if err := node.registerBackendService(&cfg.Carrier); err != nil {
+	if err := node.registerBackendService(&config.Carrier); err != nil {
 		return nil, err
 	}
 
@@ -316,6 +317,7 @@ func (b *CarrierNode) fetchRPCBackend() backend.Backend {
 	}
 	return s.APIBackend
 }
+
 func (b *CarrierNode) fetchBackend() *carrier.Service {
 	var s *carrier.Service
 	if err := b.services.FetchService(&s); err != nil {

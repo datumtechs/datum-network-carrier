@@ -3,8 +3,8 @@ package registration
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/RosettaFlow/Carrier-Go/common/sliceutil"
 	"github.com/RosettaFlow/Carrier-Go/params"
-	"github.com/prysmaticlabs/prysm/shared/sliceutil"
 	"github.com/urfave/cli/v2"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
