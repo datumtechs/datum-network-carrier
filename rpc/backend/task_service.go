@@ -69,13 +69,6 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 		return nil, errors.New("required partners")
 	}
 	taskMsg := types.NewTaskMessageFromRequest(req)
-	/*taskMsg.Data.TaskName = req.TaskName
-	taskMsg.Data.CreateAt = uint64(time.Now().UnixNano())
-	taskMsg.Data.Owner.Name = req.Owner.MemberInfo.Name
-	taskMsg.Data.Owner.NodeId = req.Owner.MemberInfo.NodeId
-	taskMsg.Data.Owner.IdentityId = req.Owner.MemberInfo.IdentityId
-	taskMsg.Data.Owner.MetaData.ColumnIndexList = req.Owner.MetaDataInfo.ColumnIndexList
-	taskMsg.Data.Owner.MetaData.MetaDataId = req.Owner.MetaDataInfo.MetaDataId*/
 
 	partners := make([]*types.TaskSupplier, len(req.Partners))
 	for i, v := range req.Partners {
@@ -119,15 +112,6 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 		receivers[i] = receiver
 	}
 	taskMsg.Data.Receivers = receivers
-
-	/*taskMsg.Data.CalculateContractCode = req.CalculateContractcode
-	taskMsg.Data.DataSplitContractCode = req.DatasplitContractcode
-	taskMsg.Data.OperationCost = &types.TaskOperationCost{
-		Processor: req.OperationCost.CostProcessor,
-		Mem:       req.OperationCost.CostMem,
-		Bandwidth: req.OperationCost.CostBandwidth,
-		Duration:  req.OperationCost.Duration,
-	}*/
 	taskId := taskMsg.GetTaskId()
 
 	err := svr.B.SendMsg(taskMsg)

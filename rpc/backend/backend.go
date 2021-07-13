@@ -23,18 +23,14 @@ type Backend interface {
 
 	SendTaskEvent(event *types.TaskEventInfo) error
 
-
-
 	// metadata api
 	GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error)
 	GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error)
 	GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error)
 
-
 	// power api
 	GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error)
 	GetPowerSingleDetailList() ([]*types.NodePowerDetail, error)
-
 
 	// identity api
 	GetNodeIdentity() (*types.Identity, error)
