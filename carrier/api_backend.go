@@ -254,9 +254,9 @@ func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	nodeAlias, err := s.carrier.carrierDB.GetIdentity()
 	return types.NewIdentity(&libTypes.IdentityData{
-		Identity:             nodeAlias.IdentityId,
-		NodeId:               nodeAlias.NodeId,
-		NodeName:             nodeAlias.Name,
+		Identity: nodeAlias.IdentityId,
+		NodeId:   nodeAlias.NodeId,
+		NodeName: nodeAlias.Name,
 	}), err
 }
 
@@ -266,7 +266,6 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
-
 
 	// TODO 任务列表, 需要自己处理下 当前组织参与的任务信息 (然后做合并)
 	//localTaskArray, err := s.carrier.carrierDB.GetLocalResourceList()
@@ -280,3 +279,44 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	return types.NewTaskEventFromAPIEvent(taskEvent), err
 }
 
+// about DataResourceTable
+func (s *CarrierAPIBackend) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) RemoveDataResourceTable(nodeId string) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error) {
+	return nil, nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceTables() ([]*types.DataResourceTable, error) {
+	return nil, nil
+}
+
+// about DataResourceDataUsed
+func (s *CarrierAPIBackend) StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) RemoveDataResourceDataUsed(originId string) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error) {
+	return nil, nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error) {
+	return nil, nil
+}
