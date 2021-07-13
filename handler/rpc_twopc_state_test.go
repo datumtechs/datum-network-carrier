@@ -182,3 +182,62 @@ func TestPrepareVoteRPCHandler_SendsPrepareVoteMsg(t *testing.T) {
 		t.Error("Peer is disconnected despite receiving a valid ping")
 	}
 }
+
+func TestConfirmMsgRPCHandler_SendsConfirmMsg(t *testing.T) {
+	p1 := p2ptest.NewTestP2P(t)
+	p2 := p2ptest.NewTestP2P(t)
+	p1.Connect(p2)
+	assert.Equal(t, 1, len(p1.BHost.Network().Peers()), "Expected peers to be connected")
+
+	// Set up a head state in the database with data we expect.
+	r := &Service{
+		cfg: &Config{
+			P2P: p1,
+		},
+		rateLimiter: newRateLimiter(p1),
+	}
+
+	r2 := &Service{
+		cfg: &Config{
+			P2P: p2,
+		},
+		rateLimiter: newRateLimiter(p2),
+	}
+
+	// Setup streams
+	pcl := protocol.ID(p2p.RPCTwoPcConfirmMsgTopic + r.cfg.P2P.Encoding().ProtocolSuffix())
+	topic := string(pcl)
+	r.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
+	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
+
+	confirmMsg := &twopcpb.ConfirmMsg{
+		ProposalId:           []byte("proposalId"),
+		CreateAt:             uint64(timeutils.Now().Unix()),
+		Sign:                 make([]byte, 64),
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	p2.BHost.SetStreamHandler(pcl, func(stream network.Stream) {
+		defer wg.Done()
+		out := new(twopcpb.ConfirmMsg)
+		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
+		require.Equal(t, out.ProposalId, confirmMsg.ProposalId)
+		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+			log.WithError(err).Error("Could not write to stream for response")
+		}
+		require.NoError(t, stream.Close())
+	})
+
+	err := SendTwoPcConfirmMsg(context.Background(), r.cfg.P2P, p2.BHost.ID(), confirmMsg)
+	require.NoError(t, err)
+
+	if WaitTimeout(&wg, 1*time.Second) {
+		t.Fatal("Did not receive stream within 1 sec")
+	}
+
+	conns := p1.BHost.Network().ConnsToPeer(p2.BHost.ID())
+	if len(conns) == 0 {
+		t.Error("Peer is disconnected despite receiving a valid ping")
+	}
+}
