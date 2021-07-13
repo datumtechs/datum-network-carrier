@@ -6,12 +6,13 @@ package computesvc
 import (
 	context "context"
 	fmt "fmt"
+	common "github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	proto "github.com/gogo/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -226,196 +227,6 @@ func (m *UploadShardReply) GetMsg() string {
 	return ""
 }
 
-type TaskReadyGoReq struct {
-	TaskId               string                 `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	ContractId           string                 `protobuf:"bytes,2,opt,name=contract_id,json=contractId,proto3" json:"contract_id,omitempty"`
-	DataId               string                 `protobuf:"bytes,3,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	PartyId              string                 `protobuf:"bytes,4,opt,name=party_id,json=partyId,proto3" json:"party_id,omitempty"`
-	EnvId                string                 `protobuf:"bytes,5,opt,name=env_id,json=envId,proto3" json:"env_id,omitempty"`
-	Peers                []*TaskReadyGoReq_Peer `protobuf:"bytes,6,rep,name=peers,proto3" json:"peers,omitempty"`
-	UserCfg              map[string]string      `protobuf:"bytes,7,rep,name=user_cfg,json=userCfg,proto3" json:"user_cfg,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	DataParty            []string               `protobuf:"bytes,8,rep,name=data_party,json=dataParty,proto3" json:"data_party,omitempty"`
-	ComputationParty     []string               `protobuf:"bytes,9,rep,name=computation_party,json=computationParty,proto3" json:"computation_party,omitempty"`
-	ResultParty          []string               `protobuf:"bytes,10,rep,name=result_party,json=resultParty,proto3" json:"result_party,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
-}
-
-func (m *TaskReadyGoReq) Reset()         { *m = TaskReadyGoReq{} }
-func (m *TaskReadyGoReq) String() string { return proto.CompactTextString(m) }
-func (*TaskReadyGoReq) ProtoMessage()    {}
-func (*TaskReadyGoReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a6b6bf31653e6c0e, []int{2}
-}
-func (m *TaskReadyGoReq) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *TaskReadyGoReq) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_TaskReadyGoReq.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *TaskReadyGoReq) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TaskReadyGoReq.Merge(m, src)
-}
-func (m *TaskReadyGoReq) XXX_Size() int {
-	return m.Size()
-}
-func (m *TaskReadyGoReq) XXX_DiscardUnknown() {
-	xxx_messageInfo_TaskReadyGoReq.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_TaskReadyGoReq proto.InternalMessageInfo
-
-func (m *TaskReadyGoReq) GetTaskId() string {
-	if m != nil {
-		return m.TaskId
-	}
-	return ""
-}
-
-func (m *TaskReadyGoReq) GetContractId() string {
-	if m != nil {
-		return m.ContractId
-	}
-	return ""
-}
-
-func (m *TaskReadyGoReq) GetDataId() string {
-	if m != nil {
-		return m.DataId
-	}
-	return ""
-}
-
-func (m *TaskReadyGoReq) GetPartyId() string {
-	if m != nil {
-		return m.PartyId
-	}
-	return ""
-}
-
-func (m *TaskReadyGoReq) GetEnvId() string {
-	if m != nil {
-		return m.EnvId
-	}
-	return ""
-}
-
-func (m *TaskReadyGoReq) GetPeers() []*TaskReadyGoReq_Peer {
-	if m != nil {
-		return m.Peers
-	}
-	return nil
-}
-
-func (m *TaskReadyGoReq) GetUserCfg() map[string]string {
-	if m != nil {
-		return m.UserCfg
-	}
-	return nil
-}
-
-func (m *TaskReadyGoReq) GetDataParty() []string {
-	if m != nil {
-		return m.DataParty
-	}
-	return nil
-}
-
-func (m *TaskReadyGoReq) GetComputationParty() []string {
-	if m != nil {
-		return m.ComputationParty
-	}
-	return nil
-}
-
-func (m *TaskReadyGoReq) GetResultParty() []string {
-	if m != nil {
-		return m.ResultParty
-	}
-	return nil
-}
-
-type TaskReadyGoReq_Peer struct {
-	Ip                   string   `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
-	Port                 int32    `protobuf:"varint,2,opt,name=port,proto3" json:"port,omitempty"`
-	Party                string   `protobuf:"bytes,3,opt,name=party,proto3" json:"party,omitempty"`
-	Name                 string   `protobuf:"bytes,4,opt,name=name,proto3" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *TaskReadyGoReq_Peer) Reset()         { *m = TaskReadyGoReq_Peer{} }
-func (m *TaskReadyGoReq_Peer) String() string { return proto.CompactTextString(m) }
-func (*TaskReadyGoReq_Peer) ProtoMessage()    {}
-func (*TaskReadyGoReq_Peer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a6b6bf31653e6c0e, []int{2, 0}
-}
-func (m *TaskReadyGoReq_Peer) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *TaskReadyGoReq_Peer) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_TaskReadyGoReq_Peer.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *TaskReadyGoReq_Peer) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TaskReadyGoReq_Peer.Merge(m, src)
-}
-func (m *TaskReadyGoReq_Peer) XXX_Size() int {
-	return m.Size()
-}
-func (m *TaskReadyGoReq_Peer) XXX_DiscardUnknown() {
-	xxx_messageInfo_TaskReadyGoReq_Peer.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_TaskReadyGoReq_Peer proto.InternalMessageInfo
-
-func (m *TaskReadyGoReq_Peer) GetIp() string {
-	if m != nil {
-		return m.Ip
-	}
-	return ""
-}
-
-func (m *TaskReadyGoReq_Peer) GetPort() int32 {
-	if m != nil {
-		return m.Port
-	}
-	return 0
-}
-
-func (m *TaskReadyGoReq_Peer) GetParty() string {
-	if m != nil {
-		return m.Party
-	}
-	return ""
-}
-
-func (m *TaskReadyGoReq_Peer) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
 type GetStatusReply struct {
 	Cpu                  string   `protobuf:"bytes,1,opt,name=cpu,proto3" json:"cpu,omitempty"`
 	Mem                  string   `protobuf:"bytes,2,opt,name=mem,proto3" json:"mem,omitempty"`
@@ -429,7 +240,7 @@ func (m *GetStatusReply) Reset()         { *m = GetStatusReply{} }
 func (m *GetStatusReply) String() string { return proto.CompactTextString(m) }
 func (*GetStatusReply) ProtoMessage()    {}
 func (*GetStatusReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a6b6bf31653e6c0e, []int{3}
+	return fileDescriptor_a6b6bf31653e6c0e, []int{2}
 }
 func (m *GetStatusReply) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -490,7 +301,7 @@ func (m *GetTaskDetailsReq) Reset()         { *m = GetTaskDetailsReq{} }
 func (m *GetTaskDetailsReq) String() string { return proto.CompactTextString(m) }
 func (*GetTaskDetailsReq) ProtoMessage()    {}
 func (*GetTaskDetailsReq) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a6b6bf31653e6c0e, []int{4}
+	return fileDescriptor_a6b6bf31653e6c0e, []int{3}
 }
 func (m *GetTaskDetailsReq) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -537,7 +348,7 @@ func (m *GetTaskDetailsReply) Reset()         { *m = GetTaskDetailsReply{} }
 func (m *GetTaskDetailsReply) String() string { return proto.CompactTextString(m) }
 func (*GetTaskDetailsReply) ProtoMessage()    {}
 func (*GetTaskDetailsReply) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a6b6bf31653e6c0e, []int{5}
+	return fileDescriptor_a6b6bf31653e6c0e, []int{4}
 }
 func (m *GetTaskDetailsReply) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -590,7 +401,7 @@ func (m *GetTaskDetailsReply_Detail) Reset()         { *m = GetTaskDetailsReply_
 func (m *GetTaskDetailsReply_Detail) String() string { return proto.CompactTextString(m) }
 func (*GetTaskDetailsReply_Detail) ProtoMessage()    {}
 func (*GetTaskDetailsReply_Detail) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a6b6bf31653e6c0e, []int{5, 0}
+	return fileDescriptor_a6b6bf31653e6c0e, []int{4, 0}
 }
 func (m *GetTaskDetailsReply_Detail) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -672,9 +483,6 @@ func init() {
 	proto.RegisterType((*UploadShardReq)(nil), "computesvc.UploadShardReq")
 	proto.RegisterType((*UploadShardReq_Info)(nil), "computesvc.UploadShardReq.Info")
 	proto.RegisterType((*UploadShardReply)(nil), "computesvc.UploadShardReply")
-	proto.RegisterType((*TaskReadyGoReq)(nil), "computesvc.TaskReadyGoReq")
-	proto.RegisterMapType((map[string]string)(nil), "computesvc.TaskReadyGoReq.UserCfgEntry")
-	proto.RegisterType((*TaskReadyGoReq_Peer)(nil), "computesvc.TaskReadyGoReq.Peer")
 	proto.RegisterType((*GetStatusReply)(nil), "computesvc.GetStatusReply")
 	proto.RegisterType((*GetTaskDetailsReq)(nil), "computesvc.GetTaskDetailsReq")
 	proto.RegisterType((*GetTaskDetailsReply)(nil), "computesvc.GetTaskDetailsReply")
@@ -686,62 +494,50 @@ func init() {
 }
 
 var fileDescriptor_a6b6bf31653e6c0e = []byte{
-	// 868 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x55, 0xcd, 0x6e, 0xdb, 0x46,
-	0x10, 0x36, 0xf5, 0xaf, 0x91, 0xe0, 0xda, 0xdb, 0xb4, 0x51, 0x18, 0xc7, 0x76, 0x08, 0xb4, 0x15,
-	0x52, 0x94, 0x04, 0xdc, 0x06, 0x30, 0x7c, 0xb4, 0x9b, 0xd8, 0x42, 0x81, 0xc2, 0x60, 0x9c, 0x4b,
-	0x7b, 0x30, 0x56, 0xe4, 0x88, 0x22, 0x44, 0x72, 0x99, 0xdd, 0xa5, 0x02, 0x5d, 0xfb, 0x06, 0x45,
-	0x9f, 0xa1, 0xe8, 0x2b, 0xf4, 0x11, 0x7a, 0x2c, 0x50, 0xf4, 0x5e, 0x18, 0x7d, 0x90, 0x62, 0x77,
-	0x29, 0x8b, 0x52, 0xa3, 0xe4, 0xb6, 0x33, 0xdf, 0x37, 0xb3, 0xb3, 0x33, 0x1f, 0x87, 0x30, 0x4c,
-	0xe2, 0xb1, 0x37, 0x89, 0xa3, 0xa9, 0x44, 0xee, 0x05, 0x2c, 0xcd, 0x0b, 0x89, 0x62, 0x1e, 0x2c,
-	0x8f, 0xb7, 0x62, 0x1e, 0xb8, 0x39, 0x67, 0x92, 0x11, 0x58, 0xa1, 0xf6, 0xe3, 0x88, 0xb1, 0x28,
-	0x41, 0x4f, 0x23, 0xe3, 0x62, 0xe2, 0x61, 0x9a, 0xcb, 0x85, 0x21, 0xda, 0x07, 0x25, 0x48, 0xf3,
-	0xd8, 0xa3, 0x59, 0xc6, 0x24, 0x95, 0x31, 0xcb, 0x84, 0x41, 0x9d, 0x5f, 0x2d, 0xd8, 0x7d, 0x9d,
-	0x27, 0x8c, 0x86, 0xaf, 0xa6, 0x94, 0x87, 0x3e, 0xbe, 0x21, 0xcf, 0xa1, 0x91, 0xa2, 0xa4, 0x03,
-	0xeb, 0xd8, 0x1a, 0xf6, 0x4e, 0x8e, 0xdc, 0xd5, 0x45, 0xee, 0x3a, 0xd3, 0x1d, 0x65, 0x13, 0x76,
-	0xb5, 0xe3, 0x6b, 0x3a, 0xb1, 0xa1, 0x1d, 0xb0, 0x4c, 0x62, 0x26, 0x07, 0xb5, 0x63, 0x6b, 0xd8,
-	0xbf, 0xda, 0xf1, 0x97, 0x0e, 0xfb, 0x14, 0x1a, 0x8a, 0x4b, 0x1e, 0x42, 0x5b, 0x52, 0x31, 0xbb,
-	0x8d, 0x43, 0x9d, 0xbd, 0xeb, 0xb7, 0x94, 0x39, 0x0a, 0x15, 0x10, 0x52, 0x49, 0x15, 0x50, 0x33,
-	0x80, 0x32, 0x47, 0xe1, 0x79, 0x0b, 0x1a, 0xea, 0xe4, 0x7c, 0x03, 0x7b, 0x6b, 0x97, 0xe7, 0xc9,
-	0x82, 0xec, 0x42, 0x8d, 0xcd, 0x74, 0xa2, 0x8e, 0x5f, 0x63, 0x33, 0xb2, 0x07, 0xf5, 0x54, 0x44,
-	0x65, 0x02, 0x75, 0x74, 0x7e, 0x6e, 0xc0, 0xee, 0x0d, 0x15, 0x33, 0x1f, 0x69, 0xb8, 0xb8, 0x64,
-	0xea, 0x75, 0x5b, 0x4b, 0x38, 0x82, 0x9e, 0x2a, 0x97, 0xd3, 0x40, 0xae, 0xca, 0x80, 0xa5, 0x6b,
-	0xbd, 0xc6, 0x7a, 0xb5, 0x46, 0xf2, 0x08, 0x3a, 0x39, 0xe5, 0x72, 0xa1, 0x90, 0x86, 0x46, 0xda,
-	0xda, 0x1e, 0x85, 0xe4, 0x13, 0x68, 0x61, 0x36, 0x57, 0x40, 0x53, 0x03, 0x4d, 0xcc, 0xe6, 0xa3,
-	0x90, 0x3c, 0x87, 0x66, 0x8e, 0xc8, 0xc5, 0xa0, 0x75, 0x5c, 0xdf, 0xec, 0xf1, 0x7a, 0xbd, 0xee,
-	0x35, 0x22, 0xf7, 0x0d, 0x9b, 0x9c, 0x43, 0xa7, 0x10, 0xc8, 0x6f, 0x83, 0x49, 0x34, 0x68, 0xeb,
-	0xc8, 0x2f, 0xde, 0x13, 0xf9, 0x5a, 0x20, 0xbf, 0x98, 0x44, 0x2f, 0x32, 0xc9, 0x17, 0x7e, 0xbb,
-	0x30, 0x16, 0x79, 0x02, 0xa0, 0x5f, 0xa1, 0x2b, 0x1c, 0x74, 0x8e, 0xeb, 0xc3, 0xae, 0xdf, 0x55,
-	0x9e, 0x6b, 0xe5, 0x20, 0x5f, 0xc2, 0xbe, 0xc9, 0xa8, 0x55, 0x52, 0xb2, 0xba, 0x9a, 0xb5, 0x57,
-	0x01, 0x0c, 0xf9, 0x29, 0xf4, 0x39, 0x8a, 0x22, 0x91, 0x25, 0x0f, 0x34, 0xaf, 0x67, 0x7c, 0x9a,
-	0x62, 0xdf, 0x40, 0x43, 0xbd, 0x40, 0xcd, 0x2a, 0xce, 0xcb, 0x8e, 0xd7, 0xe2, 0x9c, 0x10, 0x68,
-	0xe4, 0x8c, 0x1b, 0xa9, 0x34, 0x7d, 0x7d, 0x26, 0x0f, 0xa0, 0x69, 0xf2, 0x98, 0xf6, 0x1a, 0x43,
-	0x31, 0x33, 0x9a, 0x62, 0xd9, 0x59, 0x7d, 0xb6, 0xcf, 0xa0, 0x5f, 0x7d, 0x9d, 0x9a, 0xfc, 0x0c,
-	0x17, 0x65, 0x7a, 0x75, 0x54, 0xb9, 0xe6, 0x34, 0x29, 0xb0, 0x9c, 0xa3, 0x31, 0xce, 0x6a, 0xa7,
-	0x96, 0xe3, 0xc3, 0xee, 0x25, 0xca, 0x57, 0x92, 0xca, 0x42, 0x18, 0x1d, 0xed, 0x41, 0x3d, 0xc8,
-	0x8b, 0x65, 0x74, 0x90, 0x17, 0x5a, 0x49, 0x98, 0xde, 0x2b, 0x09, 0x53, 0x72, 0x00, 0xdd, 0x31,
-	0xcd, 0xc2, 0xb7, 0x71, 0x28, 0xa7, 0x65, 0x7d, 0x2b, 0x87, 0xe3, 0xc2, 0xfe, 0x25, 0x4a, 0xd5,
-	0xff, 0x6f, 0x51, 0xd2, 0x38, 0x11, 0x4a, 0x69, 0x8f, 0xa0, 0x53, 0x2a, 0x4d, 0x0c, 0x2c, 0xdd,
-	0x99, 0xb6, 0x91, 0x9a, 0x70, 0x7e, 0xaf, 0xc1, 0xc7, 0x9b, 0x01, 0xaa, 0x92, 0x11, 0xf4, 0x75,
-	0x48, 0x68, 0x9c, 0x3a, 0xac, 0x77, 0xf2, 0x79, 0x75, 0xc8, 0xef, 0x08, 0x73, 0x8d, 0xe1, 0xf7,
-	0xe4, 0x0a, 0xb0, 0xff, 0xb6, 0xa0, 0x65, 0xce, 0xdb, 0x25, 0xff, 0x18, 0xba, 0x1a, 0xd0, 0xfd,
-	0x35, 0x8f, 0xd5, 0x25, 0x7f, 0x4f, 0x53, 0xdc, 0xfc, 0x1e, 0xea, 0xff, 0xfb, 0x1e, 0x9e, 0x42,
-	0x1f, 0x13, 0x9a, 0x0b, 0x0c, 0x6f, 0x65, 0x5c, 0x0e, 0xa8, 0xee, 0xf7, 0x4a, 0xdf, 0x4d, 0x6c,
-	0x72, 0x70, 0x4c, 0x69, 0x9c, 0x19, 0x46, 0x53, 0x33, 0xc0, 0xb8, 0x34, 0xc1, 0x86, 0x4e, 0xce,
-	0x59, 0xc4, 0x51, 0xa8, 0x6f, 0x41, 0x17, 0xb0, 0xb4, 0xb5, 0x1c, 0xa6, 0x54, 0xe0, 0xa0, 0x5d,
-	0xca, 0x41, 0x19, 0x27, 0xbf, 0xd5, 0xe1, 0xa3, 0x0b, 0xd3, 0x8e, 0x6b, 0xce, 0xe6, 0x71, 0x88,
-	0x9c, 0xfc, 0x08, 0xdd, 0xfb, 0x91, 0x92, 0x4f, 0x5d, 0xb3, 0xf0, 0xdc, 0xe5, 0x36, 0x74, 0x5f,
-	0xa8, 0x6d, 0x68, 0xdb, 0x1b, 0x5d, 0xac, 0x28, 0xc0, 0xb1, 0x7f, 0xfa, 0xeb, 0xdf, 0x5f, 0x6a,
-	0x0f, 0x08, 0x59, 0x2e, 0x5a, 0x2f, 0xba, 0xcf, 0x27, 0xb5, 0x5e, 0x2a, 0x3d, 0x27, 0x4f, 0xde,
-	0x37, 0x8f, 0x37, 0xf6, 0xd1, 0x07, 0xc6, 0xe5, 0x38, 0xfa, 0xb6, 0x03, 0xe7, 0x61, 0xf5, 0xb6,
-	0x0a, 0xeb, 0xcc, 0x7a, 0x46, 0xbe, 0x83, 0x5e, 0x65, 0xdf, 0x11, 0x7b, 0xfb, 0x16, 0xb6, 0x0f,
-	0xb6, 0x62, 0xea, 0xb2, 0x9d, 0xa1, 0x45, 0x24, 0xec, 0x5f, 0xd1, 0x2c, 0x4c, 0xb0, 0xb2, 0x21,
-	0xd6, 0x53, 0xae, 0xaf, 0x8e, 0x0f, 0xa4, 0xfc, 0x4c, 0xd7, 0x7f, 0xe4, 0xd8, 0xf7, 0xf5, 0x4f,
-	0x37, 0xb3, 0x9f, 0x59, 0xcf, 0xce, 0x5f, 0xfe, 0x71, 0x77, 0x68, 0xfd, 0x79, 0x77, 0x68, 0xfd,
-	0x73, 0x77, 0x68, 0xfd, 0x70, 0x1a, 0xc5, 0x72, 0x5a, 0x8c, 0x55, 0x62, 0xcf, 0x67, 0x02, 0xa5,
-	0xa4, 0x2f, 0x13, 0xf6, 0xd6, 0xbb, 0xa0, 0x9c, 0xc7, 0xc8, 0xbf, 0xba, 0x64, 0xde, 0xbb, 0xff,
-	0x7d, 0xe3, 0x96, 0x1e, 0xe4, 0xd7, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0xf6, 0x36, 0x13, 0x48,
-	0x1c, 0x07, 0x00, 0x00,
+	// 675 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x54, 0xc1, 0x4e, 0xdb, 0x4c,
+	0x10, 0xc6, 0x49, 0x48, 0xc8, 0x04, 0xf1, 0xc3, 0xfe, 0x08, 0x5c, 0x93, 0x92, 0xd4, 0x52, 0xab,
+	0x08, 0xa9, 0xb6, 0x44, 0x5b, 0x09, 0x71, 0x84, 0x96, 0x10, 0x55, 0xaa, 0x2a, 0x43, 0x2f, 0xed,
+	0x01, 0x6d, 0xb2, 0x8b, 0xb3, 0x8a, 0xed, 0x35, 0xde, 0x0d, 0x88, 0x6b, 0x5f, 0xa1, 0x0f, 0xd0,
+	0x53, 0xdf, 0xa1, 0x8f, 0xd0, 0x63, 0xa5, 0xaa, 0xf7, 0x0a, 0xf5, 0x41, 0xaa, 0xdd, 0x75, 0x12,
+	0x13, 0x41, 0x7b, 0xf2, 0xce, 0x7c, 0xdf, 0x7c, 0x33, 0x3b, 0xb3, 0x63, 0xe8, 0x44, 0xac, 0xef,
+	0x9f, 0xb3, 0x70, 0x28, 0x69, 0xe6, 0x0f, 0x78, 0x9c, 0x8e, 0x25, 0x15, 0x97, 0x83, 0xc9, 0xf1,
+	0x4c, 0x5c, 0x0e, 0xbc, 0x34, 0xe3, 0x92, 0x23, 0x98, 0xa1, 0xce, 0x56, 0xc8, 0x79, 0x18, 0x51,
+	0x5f, 0x23, 0xfd, 0xf1, 0xb9, 0x4f, 0xe3, 0x54, 0x5e, 0x1b, 0xa2, 0xd3, 0xcc, 0x41, 0x9c, 0x32,
+	0x1f, 0x27, 0x09, 0x97, 0x58, 0x32, 0x9e, 0x88, 0x1c, 0x6d, 0xcd, 0x25, 0x8c, 0x79, 0x92, 0x7f,
+	0x0c, 0xc1, 0xfd, 0x62, 0xc1, 0xca, 0xbb, 0x34, 0xe2, 0x98, 0x9c, 0x0c, 0x71, 0x46, 0x02, 0x7a,
+	0x81, 0x5e, 0x40, 0x25, 0xa6, 0x12, 0xdb, 0x56, 0xdb, 0xea, 0x34, 0x76, 0x5b, 0xde, 0xac, 0x12,
+	0xef, 0x36, 0xd3, 0xeb, 0x25, 0xe7, 0xfc, 0x78, 0x21, 0xd0, 0x74, 0xe4, 0x40, 0x6d, 0xc0, 0x13,
+	0x49, 0x13, 0x69, 0x97, 0xda, 0x56, 0x67, 0xf9, 0x78, 0x21, 0x98, 0x38, 0x9c, 0x3d, 0xa8, 0x28,
+	0x2e, 0xda, 0x84, 0x9a, 0xc4, 0x62, 0x74, 0xc6, 0x88, 0x56, 0xaf, 0x07, 0x55, 0x65, 0xf6, 0x88,
+	0x02, 0x08, 0x96, 0x58, 0x01, 0x25, 0x03, 0x28, 0xb3, 0x47, 0x0e, 0xaa, 0x50, 0x51, 0x27, 0xf7,
+	0x39, 0xac, 0xde, 0x4a, 0x9e, 0x46, 0xd7, 0x68, 0x05, 0x4a, 0x7c, 0xa4, 0x85, 0x96, 0x82, 0x12,
+	0x1f, 0xa1, 0x55, 0x28, 0xc7, 0x22, 0xcc, 0x05, 0xd4, 0xd1, 0x0d, 0x60, 0xa5, 0x4b, 0xe5, 0x89,
+	0xc4, 0x72, 0x2c, 0x4c, 0xcc, 0x2a, 0x94, 0x07, 0xe9, 0x38, 0xcf, 0xae, 0x8e, 0x3a, 0x8a, 0xc6,
+	0xd3, 0x28, 0x1a, 0xa3, 0x26, 0xd4, 0xfb, 0x38, 0x21, 0x57, 0x8c, 0xc8, 0xa1, 0x5d, 0xd6, 0xfe,
+	0x99, 0xc3, 0xf5, 0x60, 0xad, 0x4b, 0xe5, 0x29, 0x16, 0xa3, 0x97, 0x54, 0x62, 0x16, 0x09, 0xd5,
+	0xb3, 0x07, 0xb0, 0x94, 0x5f, 0x4c, 0xd8, 0x56, 0xbb, 0xdc, 0xa9, 0x07, 0x35, 0x73, 0x33, 0xe1,
+	0x7e, 0x2d, 0xc1, 0xff, 0xf3, 0x01, 0xaa, 0x92, 0x1e, 0x2c, 0xeb, 0x10, 0x62, 0x9c, 0x3a, 0xac,
+	0xb1, 0xfb, 0xa4, 0xd8, 0xee, 0x3b, 0xc2, 0x3c, 0x63, 0x04, 0x0d, 0x39, 0x03, 0x9c, 0x9f, 0x16,
+	0x54, 0xcd, 0xf9, 0xfe, 0x0e, 0x6f, 0x41, 0x5d, 0x03, 0x09, 0x8e, 0x69, 0x7e, 0x59, 0x5d, 0xf2,
+	0x1b, 0x1c, 0x53, 0xd4, 0x82, 0x86, 0x1a, 0x55, 0x86, 0x07, 0x52, 0x45, 0x9a, 0x3b, 0xc3, 0xc4,
+	0xd5, 0x23, 0xe8, 0x11, 0x2c, 0xd3, 0x08, 0xa7, 0x82, 0x92, 0x33, 0xc9, 0x62, 0x6a, 0x57, 0xda,
+	0x56, 0xa7, 0x1c, 0x34, 0x72, 0xdf, 0x29, 0x33, 0x1a, 0x19, 0x8d, 0x31, 0x4b, 0x0c, 0x63, 0x51,
+	0x33, 0xc0, 0xb8, 0x34, 0xc1, 0x81, 0xa5, 0x34, 0xe3, 0x61, 0x46, 0x85, 0xb0, 0xab, 0xa6, 0x80,
+	0x89, 0x8d, 0xd6, 0x61, 0x31, 0x1d, 0x62, 0x41, 0xed, 0x9a, 0x06, 0x8c, 0xb1, 0xfb, 0xb9, 0x0c,
+	0xff, 0x1d, 0x9a, 0x76, 0xbc, 0xcd, 0xf8, 0x25, 0x23, 0x34, 0x43, 0x1f, 0xa0, 0x3e, 0x1d, 0x29,
+	0xda, 0xf0, 0xcc, 0xeb, 0xf7, 0x26, 0xab, 0xe1, 0xbd, 0x52, 0xab, 0xe1, 0x38, 0x73, 0x5d, 0x2c,
+	0xbc, 0x00, 0xd7, 0xf9, 0xf8, 0xe3, 0xf7, 0xa7, 0xd2, 0x3a, 0x42, 0x93, 0xad, 0xf3, 0xc3, 0xa9,
+	0x9e, 0xd4, 0xef, 0xa5, 0xd0, 0x73, 0xf4, 0xf0, 0x6f, 0xf3, 0xb8, 0x70, 0x5a, 0xff, 0x18, 0x97,
+	0xeb, 0xea, 0x6c, 0x4d, 0x77, 0xb3, 0x98, 0xad, 0xc0, 0xda, 0xb7, 0x76, 0xd0, 0x6b, 0x68, 0x14,
+	0xde, 0x36, 0x72, 0xee, 0xdf, 0x38, 0xa7, 0x79, 0x2f, 0xa6, 0x92, 0x2d, 0x74, 0x2c, 0x14, 0xc1,
+	0xda, 0x31, 0x4e, 0x48, 0x44, 0x55, 0x92, 0x80, 0x62, 0x72, 0xdd, 0xe5, 0x68, 0xc3, 0xcb, 0x97,
+	0xbe, 0xe0, 0x54, 0x72, 0xf6, 0x9d, 0x7e, 0x25, 0xf5, 0x58, 0xd7, 0xdd, 0x72, 0x9d, 0x69, 0xdd,
+	0xc3, 0x79, 0xd5, 0x7d, 0x6b, 0xe7, 0xe0, 0xe8, 0xdb, 0xcd, 0xb6, 0xf5, 0xfd, 0x66, 0xdb, 0xfa,
+	0x75, 0xb3, 0x6d, 0xbd, 0xdf, 0x0b, 0x99, 0x1c, 0x8e, 0xfb, 0x4a, 0xd4, 0x0f, 0xb8, 0xa0, 0x52,
+	0xe2, 0xa3, 0x88, 0x5f, 0xf9, 0x87, 0x38, 0xcb, 0x18, 0xcd, 0x9e, 0x76, 0xb9, 0x7f, 0xf7, 0x0f,
+	0xb0, 0x5f, 0xd5, 0x03, 0x7c, 0xf6, 0x27, 0x00, 0x00, 0xff, 0xff, 0x7b, 0xc7, 0x54, 0x12, 0x21,
+	0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -756,10 +552,10 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ComputeProviderClient interface {
-	GetStatus(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetStatusReply, error)
+	GetStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetStatusReply, error)
 	GetTaskDetails(ctx context.Context, in *GetTaskDetailsReq, opts ...grpc.CallOption) (*GetTaskDetailsReply, error)
 	UploadShard(ctx context.Context, opts ...grpc.CallOption) (ComputeProvider_UploadShardClient, error)
-	HandleTaskReadyGo(ctx context.Context, in *TaskReadyGoReq, opts ...grpc.CallOption) (*UploadShardReply, error)
+	HandleTaskReadyGo(ctx context.Context, in *common.TaskReadyGoReq, opts ...grpc.CallOption) (*common.TaskReadyGoReply, error)
 }
 
 type computeProviderClient struct {
@@ -770,7 +566,7 @@ func NewComputeProviderClient(cc *grpc.ClientConn) ComputeProviderClient {
 	return &computeProviderClient{cc}
 }
 
-func (c *computeProviderClient) GetStatus(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetStatusReply, error) {
+func (c *computeProviderClient) GetStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetStatusReply, error) {
 	out := new(GetStatusReply)
 	err := c.cc.Invoke(ctx, "/computesvc.ComputeProvider/GetStatus", in, out, opts...)
 	if err != nil {
@@ -822,8 +618,8 @@ func (x *computeProviderUploadShardClient) CloseAndRecv() (*UploadShardReply, er
 	return m, nil
 }
 
-func (c *computeProviderClient) HandleTaskReadyGo(ctx context.Context, in *TaskReadyGoReq, opts ...grpc.CallOption) (*UploadShardReply, error) {
-	out := new(UploadShardReply)
+func (c *computeProviderClient) HandleTaskReadyGo(ctx context.Context, in *common.TaskReadyGoReq, opts ...grpc.CallOption) (*common.TaskReadyGoReply, error) {
+	out := new(common.TaskReadyGoReply)
 	err := c.cc.Invoke(ctx, "/computesvc.ComputeProvider/HandleTaskReadyGo", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -833,17 +629,17 @@ func (c *computeProviderClient) HandleTaskReadyGo(ctx context.Context, in *TaskR
 
 // ComputeProviderServer is the server API for ComputeProvider service.
 type ComputeProviderServer interface {
-	GetStatus(context.Context, *emptypb.Empty) (*GetStatusReply, error)
+	GetStatus(context.Context, *empty.Empty) (*GetStatusReply, error)
 	GetTaskDetails(context.Context, *GetTaskDetailsReq) (*GetTaskDetailsReply, error)
 	UploadShard(ComputeProvider_UploadShardServer) error
-	HandleTaskReadyGo(context.Context, *TaskReadyGoReq) (*UploadShardReply, error)
+	HandleTaskReadyGo(context.Context, *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error)
 }
 
 // UnimplementedComputeProviderServer can be embedded to have forward compatible implementations.
 type UnimplementedComputeProviderServer struct {
 }
 
-func (*UnimplementedComputeProviderServer) GetStatus(ctx context.Context, req *emptypb.Empty) (*GetStatusReply, error) {
+func (*UnimplementedComputeProviderServer) GetStatus(ctx context.Context, req *empty.Empty) (*GetStatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")
 }
 func (*UnimplementedComputeProviderServer) GetTaskDetails(ctx context.Context, req *GetTaskDetailsReq) (*GetTaskDetailsReply, error) {
@@ -852,7 +648,7 @@ func (*UnimplementedComputeProviderServer) GetTaskDetails(ctx context.Context, r
 func (*UnimplementedComputeProviderServer) UploadShard(srv ComputeProvider_UploadShardServer) error {
 	return status.Errorf(codes.Unimplemented, "method UploadShard not implemented")
 }
-func (*UnimplementedComputeProviderServer) HandleTaskReadyGo(ctx context.Context, req *TaskReadyGoReq) (*UploadShardReply, error) {
+func (*UnimplementedComputeProviderServer) HandleTaskReadyGo(ctx context.Context, req *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleTaskReadyGo not implemented")
 }
 
@@ -861,7 +657,7 @@ func RegisterComputeProviderServer(s *grpc.Server, srv ComputeProviderServer) {
 }
 
 func _ComputeProvider_GetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -873,7 +669,7 @@ func _ComputeProvider_GetStatus_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: "/computesvc.ComputeProvider/GetStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ComputeProviderServer).GetStatus(ctx, req.(*emptypb.Empty))
+		return srv.(ComputeProviderServer).GetStatus(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -923,7 +719,7 @@ func (x *computeProviderUploadShardServer) Recv() (*UploadShardReq, error) {
 }
 
 func _ComputeProvider_HandleTaskReadyGo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(TaskReadyGoReq)
+	in := new(common.TaskReadyGoReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -935,7 +731,7 @@ func _ComputeProvider_HandleTaskReadyGo_Handler(srv interface{}, ctx context.Con
 		FullMethod: "/computesvc.ComputeProvider/HandleTaskReadyGo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ComputeProviderServer).HandleTaskReadyGo(ctx, req.(*TaskReadyGoReq))
+		return srv.(ComputeProviderServer).HandleTaskReadyGo(ctx, req.(*common.TaskReadyGoReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1121,181 +917,6 @@ func (m *UploadShardReply) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i--
 		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *TaskReadyGoReq) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *TaskReadyGoReq) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *TaskReadyGoReq) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.ResultParty) > 0 {
-		for iNdEx := len(m.ResultParty) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.ResultParty[iNdEx])
-			copy(dAtA[i:], m.ResultParty[iNdEx])
-			i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.ResultParty[iNdEx])))
-			i--
-			dAtA[i] = 0x52
-		}
-	}
-	if len(m.ComputationParty) > 0 {
-		for iNdEx := len(m.ComputationParty) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.ComputationParty[iNdEx])
-			copy(dAtA[i:], m.ComputationParty[iNdEx])
-			i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.ComputationParty[iNdEx])))
-			i--
-			dAtA[i] = 0x4a
-		}
-	}
-	if len(m.DataParty) > 0 {
-		for iNdEx := len(m.DataParty) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.DataParty[iNdEx])
-			copy(dAtA[i:], m.DataParty[iNdEx])
-			i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.DataParty[iNdEx])))
-			i--
-			dAtA[i] = 0x42
-		}
-	}
-	if len(m.UserCfg) > 0 {
-		for k := range m.UserCfg {
-			v := m.UserCfg[k]
-			baseI := i
-			i -= len(v)
-			copy(dAtA[i:], v)
-			i = encodeVarintComputeSvc(dAtA, i, uint64(len(v)))
-			i--
-			dAtA[i] = 0x12
-			i -= len(k)
-			copy(dAtA[i:], k)
-			i = encodeVarintComputeSvc(dAtA, i, uint64(len(k)))
-			i--
-			dAtA[i] = 0xa
-			i = encodeVarintComputeSvc(dAtA, i, uint64(baseI-i))
-			i--
-			dAtA[i] = 0x3a
-		}
-	}
-	if len(m.Peers) > 0 {
-		for iNdEx := len(m.Peers) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Peers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintComputeSvc(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if len(m.EnvId) > 0 {
-		i -= len(m.EnvId)
-		copy(dAtA[i:], m.EnvId)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.EnvId)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.PartyId) > 0 {
-		i -= len(m.PartyId)
-		copy(dAtA[i:], m.PartyId)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.PartyId)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.DataId) > 0 {
-		i -= len(m.DataId)
-		copy(dAtA[i:], m.DataId)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.DataId)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.ContractId) > 0 {
-		i -= len(m.ContractId)
-		copy(dAtA[i:], m.ContractId)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.ContractId)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.TaskId) > 0 {
-		i -= len(m.TaskId)
-		copy(dAtA[i:], m.TaskId)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.TaskId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *TaskReadyGoReq_Peer) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *TaskReadyGoReq_Peer) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *TaskReadyGoReq_Peer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.Name) > 0 {
-		i -= len(m.Name)
-		copy(dAtA[i:], m.Name)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.Name)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.Party) > 0 {
-		i -= len(m.Party)
-		copy(dAtA[i:], m.Party)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.Party)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if m.Port != 0 {
-		i = encodeVarintComputeSvc(dAtA, i, uint64(m.Port))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.Ip) > 0 {
-		i -= len(m.Ip)
-		copy(dAtA[i:], m.Ip)
-		i = encodeVarintComputeSvc(dAtA, i, uint64(len(m.Ip)))
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1577,97 +1198,6 @@ func (m *UploadShardReply) Size() (n int) {
 		n += 2
 	}
 	l = len(m.Msg)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *TaskReadyGoReq) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.TaskId)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	l = len(m.ContractId)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	l = len(m.DataId)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	l = len(m.PartyId)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	l = len(m.EnvId)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	if len(m.Peers) > 0 {
-		for _, e := range m.Peers {
-			l = e.Size()
-			n += 1 + l + sovComputeSvc(uint64(l))
-		}
-	}
-	if len(m.UserCfg) > 0 {
-		for k, v := range m.UserCfg {
-			_ = k
-			_ = v
-			mapEntrySize := 1 + len(k) + sovComputeSvc(uint64(len(k))) + 1 + len(v) + sovComputeSvc(uint64(len(v)))
-			n += mapEntrySize + 1 + sovComputeSvc(uint64(mapEntrySize))
-		}
-	}
-	if len(m.DataParty) > 0 {
-		for _, s := range m.DataParty {
-			l = len(s)
-			n += 1 + l + sovComputeSvc(uint64(l))
-		}
-	}
-	if len(m.ComputationParty) > 0 {
-		for _, s := range m.ComputationParty {
-			l = len(s)
-			n += 1 + l + sovComputeSvc(uint64(l))
-		}
-	}
-	if len(m.ResultParty) > 0 {
-		for _, s := range m.ResultParty {
-			l = len(s)
-			n += 1 + l + sovComputeSvc(uint64(l))
-		}
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *TaskReadyGoReq_Peer) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Ip)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	if m.Port != 0 {
-		n += 1 + sovComputeSvc(uint64(m.Port))
-	}
-	l = len(m.Party)
-	if l > 0 {
-		n += 1 + l + sovComputeSvc(uint64(l))
-	}
-	l = len(m.Name)
 	if l > 0 {
 		n += 1 + l + sovComputeSvc(uint64(l))
 	}
@@ -2095,640 +1625,6 @@ func (m *UploadShardReply) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.Msg = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipComputeSvc(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *TaskReadyGoReq) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowComputeSvc
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: TaskReadyGoReq: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TaskReadyGoReq: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TaskId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TaskId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ContractId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ContractId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DataId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DataId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartyId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartyId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field EnvId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.EnvId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Peers", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Peers = append(m.Peers, &TaskReadyGoReq_Peer{})
-			if err := m.Peers[len(m.Peers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserCfg", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.UserCfg == nil {
-				m.UserCfg = make(map[string]string)
-			}
-			var mapkey string
-			var mapvalue string
-			for iNdEx < postIndex {
-				entryPreIndex := iNdEx
-				var wire uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return ErrIntOverflowComputeSvc
-					}
-					if iNdEx >= l {
-						return io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					wire |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				fieldNum := int32(wire >> 3)
-				if fieldNum == 1 {
-					var stringLenmapkey uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowComputeSvc
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapkey |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapkey := int(stringLenmapkey)
-					if intStringLenmapkey < 0 {
-						return ErrInvalidLengthComputeSvc
-					}
-					postStringIndexmapkey := iNdEx + intStringLenmapkey
-					if postStringIndexmapkey < 0 {
-						return ErrInvalidLengthComputeSvc
-					}
-					if postStringIndexmapkey > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapkey = string(dAtA[iNdEx:postStringIndexmapkey])
-					iNdEx = postStringIndexmapkey
-				} else if fieldNum == 2 {
-					var stringLenmapvalue uint64
-					for shift := uint(0); ; shift += 7 {
-						if shift >= 64 {
-							return ErrIntOverflowComputeSvc
-						}
-						if iNdEx >= l {
-							return io.ErrUnexpectedEOF
-						}
-						b := dAtA[iNdEx]
-						iNdEx++
-						stringLenmapvalue |= uint64(b&0x7F) << shift
-						if b < 0x80 {
-							break
-						}
-					}
-					intStringLenmapvalue := int(stringLenmapvalue)
-					if intStringLenmapvalue < 0 {
-						return ErrInvalidLengthComputeSvc
-					}
-					postStringIndexmapvalue := iNdEx + intStringLenmapvalue
-					if postStringIndexmapvalue < 0 {
-						return ErrInvalidLengthComputeSvc
-					}
-					if postStringIndexmapvalue > l {
-						return io.ErrUnexpectedEOF
-					}
-					mapvalue = string(dAtA[iNdEx:postStringIndexmapvalue])
-					iNdEx = postStringIndexmapvalue
-				} else {
-					iNdEx = entryPreIndex
-					skippy, err := skipComputeSvc(dAtA[iNdEx:])
-					if err != nil {
-						return err
-					}
-					if (skippy < 0) || (iNdEx+skippy) < 0 {
-						return ErrInvalidLengthComputeSvc
-					}
-					if (iNdEx + skippy) > postIndex {
-						return io.ErrUnexpectedEOF
-					}
-					iNdEx += skippy
-				}
-			}
-			m.UserCfg[mapkey] = mapvalue
-			iNdEx = postIndex
-		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DataParty", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DataParty = append(m.DataParty, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ComputationParty", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ComputationParty = append(m.ComputationParty, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		case 10:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ResultParty", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ResultParty = append(m.ResultParty, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipComputeSvc(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *TaskReadyGoReq_Peer) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowComputeSvc
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Peer: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Peer: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ip", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Ip = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Port", wireType)
-			}
-			m.Port = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Port |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Party", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Party = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowComputeSvc
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthComputeSvc
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Name = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

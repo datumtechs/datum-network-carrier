@@ -46,12 +46,12 @@ type LocalStoreCarrierDB interface {
 	RemoveLocalTaskPowerUsed(taskId string) error
 	QueryLocalTaskPowerUsed(taskId string) (*types.LocalTaskPowerUsed, error)
 	QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error)
-	// about DataRereouceTable
-	StoreDataRereouceTable(dataRereouceTable *types.DataRereouceTable) error
-	StoreDataRereouceTables(dataRereouceTables []*types.DataRereouceTable) error
-	RemoveDataRereouceTable(nodeId string) error
-	QueryDataRereouceTable(nodeId string) (*types.DataRereouceTable, error)
-	QueryDataRereouceTables() ([]*types.DataRereouceTable, error)
+	// about DataResourceTable
+	StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
+	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
+	RemoveDataResourceTable(nodeId string) error
+	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
+	QueryDataResourceTables() ([]*types.DataResourceTable, error)
 	// about DataResourceDataUsed
 	StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error
 	StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error

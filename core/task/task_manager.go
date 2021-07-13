@@ -24,7 +24,8 @@ type Manager struct {
 	// send the validated taskMsgs to scheduler
 	sendTaskCh chan<- types.TaskMsgs
 	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
-	recvSchedTaskCh <-chan *types.ConsensusScheduleTask
+	recvSchedTaskCh  chan *types.ConsensusScheduleTask
+	runningTaskCache map[string]*types.ConsensusScheduleTask
 
 	// internal resource node set (Fighter node grpc client set)
 	resourceClientSet *grpclient.InternalResourceClientSet
@@ -39,16 +40,17 @@ func NewTaskManager(dataCenter core.CarrierDB, eventEngine *ev.EventEngine,
 	recvSchedTaskCh chan *types.ConsensusScheduleTask) *Manager {
 
 	m := &Manager{
-		eventCh:         make(chan *types.TaskEventInfo, 10),
-		dataCenter:       dataCenter,
-		eventEngine:     eventEngine,
-		resourceMng:     resourceMng,
+		eventCh:           make(chan *types.TaskEventInfo, 10),
+		dataCenter:        dataCenter,
+		eventEngine:       eventEngine,
+		resourceMng:       resourceMng,
 		resourceClientSet: resourceClientSet,
-		parser: newTaskParser(),
-		validator: newTaskValidator(),
-		taskCh:          taskCh,
-		sendTaskCh:      sendTaskCh,
-		recvSchedTaskCh: recvSchedTaskCh,
+		parser:            newTaskParser(),
+		validator:         newTaskValidator(),
+		taskCh:            taskCh,
+		sendTaskCh:        sendTaskCh,
+		recvSchedTaskCh:   recvSchedTaskCh,
+		runningTaskCache:  make(map[string]*types.ConsensusScheduleTask, 0),
 	}
 	go m.loop()
 	return m
@@ -60,8 +62,13 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 		return ev.IncEventType
 	}
 	// TODO need to validate the task that have been processing ? Maybe~
-
-	return m.eventEngine.StoreEvent(event)
+	if event.Type == ev.ExecuteComputeSucceed.Type || event.Type == ev.ExecuteComputeFailed.Type {
+		m.eventEngine.StoreEvent(event)
+////// 
+		return nil
+	} else {
+		return m.eventEngine.StoreEvent(event)
+	}
 }
 
 func (m *Manager) loop() {
@@ -69,12 +76,31 @@ func (m *Manager) loop() {
 	for {
 		select {
 		case event := <-m.eventCh:
-			m.handleEvent(event)
-
+			if err := m.handleEvent(event); nil != err {
+				log.Error("Failed to store task event on local", "taskId", event.TaskId, "event", event.String())
+			}
 		case task := <-m.recvSchedTaskCh:
-			// TODO 对接收到 经 Scheduler  调度好的 task  转发给自己的 Fighter-Py
-			_ = task
+			// 对接收到 经 Scheduler  调度好的 task  转发给自己的 Fighter-Py
+			switch task.TaskState {
+			case types.TaskStateFailed, types.TaskStateSuccess:
+				eventList, err := m.dataCenter.GetTaskEventList(task.SchedTask.TaskId)
+				if nil != err {
+					log.Error("Failed to Query all task event list for sending datacenter", "taskId", task.SchedTask.TaskId)
+					continue
+				}
+				if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(task.SchedTask, eventList)); nil != err {
+					log.Error("Failed to save task to datacenter", "taskId", task.SchedTask.TaskId)
+					continue
+				}
+				// clean local task cache
+				delete(m.runningTaskCache, task.SchedTask.TaskId)
+			case types.TaskStateRunning:
+				m.runningTaskCache[task.SchedTask.TaskId] = task
+				// TODO 发给 Fighter-py
 
+			default:
+				log.Error("Failed to handle unknown task", "taskId", task.SchedTask.TaskId)
+			}
 		default:
 		}
 	}
@@ -218,4 +244,54 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 		EventDataList: events,
 	})
 	return m.dataCenter.InsertTask(task)
+}
+
+// TODO 转换
+func (m *Manager) convertScheduleTaskToTask(task *types.ScheduleTask, eventList []*types.TaskEventInfo)  *types.Task {
+
+	//
+	//types.NewTask(&libTypes.TaskData{
+	//
+	//})
+	//
+	//partners := make([]*libTypes.TaskMetadataSupplierData, len(task.Partners))
+	//for i, p := range task.Partners {
+	//	partner := &libTypes.TaskMetadataSupplierData {
+	//
+	//	}
+	//	partners[i] = partner
+	//}
+	//
+	//powerArr := make([]*types.ScheduleTaskPowerSupplier, len(powers))
+	//for i, p := range powers {
+	//	power := &types.ScheduleTaskPowerSupplier{
+	//		NodeAlias: p,
+	//	}
+	//	powerArr[i] = power
+	//}
+	//
+	//receivers := make([]*types.ScheduleTaskResultReceiver, len(task.ReceiverDetails()))
+	//for i, r := range task.ReceiverDetails() {
+	//	receiver := &types.ScheduleTaskResultReceiver{
+	//		NodeAlias: r.NodeAlias,
+	//		Providers: r.Providers,
+	//	}
+	//	receivers[i] = receiver
+	//}
+	//return &types.ScheduleTask{
+	//	TaskId:   task.TaskId,
+	//	TaskName: task.TaskName(),
+	//	Owner: &types.ScheduleTaskDataSupplier{
+	//		NodeAlias: task.Onwer(),
+	//		MetaData:  task.OwnerTaskSupplier().MetaData,
+	//	},
+	//	Partners:              partners,
+	//	PowerSuppliers:        powerArr,
+	//	Receivers:             receivers,
+	//	CalculateContractCode: task.CalculateContractCode(),
+	//	DataSplitContractCode: task.DataSplitContractCode(),
+	//	OperationCost:         task.OperationCost(),
+	//	CreateAt:              task.CreateAt(),
+	//}
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"strings"
 )
 
 func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
@@ -406,42 +407,69 @@ func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req
 
 func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
 
-	//peerIp := ctx.
-	//
-	//list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	//if nil != err {
-	//	return nil, NewRpcBizErr(ErrGetDataNodeListStr)
-	//}
-	//jobs := make([]*pb.YarnRegisteredPeer, len(list))
-	//for i, v := range list {
-	//	d := &pb.YarnRegisteredPeer{
-	//		NodeType: types.PREFIX_TYPE_JOBNODE.String(),
-	//		NodeDetail: &pb.YarnRegisteredPeerDetail{
-	//			Id:           v.Id,
-	//			InternalIp:   v.InternalIp,
-	//			InternalPort: v.InternalPort,
-	//			ExternalIp:   v.ExternalIp,
-	//			ExternalPort: v.InternalPort,
-	//			ConnState:    v.ConnState.Int32(),
-	//		},
-	//	}
-	//	jobs[i] = d
-	//}
-
-	//types.NewDataResourceDataUsed()
-	//TODO 需要实现 的 rpc 接口
-	return nil, nil
+	jobNodeList, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetJobNodeListStr)
+	}
+	var resourceId string
+	for _, jobNode := range jobNodeList {
+		if req.Ip == jobNode.InternalIp && req.Port == jobNode.InternalPort {
+			resourceId = jobNode.Id
+			break
+		}
+	}
+	if "" == strings.Trim(resourceId, "") {
+		return nil, NewRpcBizErr(ErrGetJobNodeListStr)
+	}
+	err = svr.B.StoreDataResourceDataUsed(types.NewDataResourceDataUsed(resourceId, req.OriginId, "", req.FilePath))
+	if nil != err {
+		return nil, NewRpcBizErr(ErrReportUpFileSummaryStr)
+	}
+	return &pb.SimpleResponseCode{
+		Status: 0,
+		Msg: OK,
+	}, nil
 }
 
 
 func (svr *YarnServiceServer)  QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
+	dataResourceTables, err := svr.B.QueryDataResourceTables()
+	if nil != err {
+		return nil, NewRpcBizErr(ErrQueryDataResourceTableListStr)
+	}
 
-	//TODO 需要实现 的 rpc 接口
-	return nil, nil
+	var nodeId string
+	for _, resource := range dataResourceTables {
+		if req.FileSize < resource.RemainDisk() {
+			nodeId = resource.GetNodeId()
+			break
+		}
+	}
+	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, nodeId)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetDataNodeInfoStr)
+	}
+
+	return &pb.QueryAvailableDataNodeResponse{
+			Ip: dataNode.InternalIp,
+			Port: dataNode.InternalPort,
+	}, nil
 }
 func (svr *YarnServiceServer)  QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error){
 
-	//TODO 需要实现 的 rpc 接口
-	return nil, nil
+	dataResourceDataUsed, err := svr.B.QueryDataResourceDataUsed(req.OriginId)
+	if nil != err {
+		return nil, NewRpcBizErr(ErrQueryDataResourceDataUsedStr)
+	}
+	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceDataUsed.GetNodeId())
+	if nil != err {
+		return nil, NewRpcBizErr(ErrGetDataNodeInfoStr)
+	}
+
+	return &pb.QueryFilePositionResponse{
+		Ip: dataNode.InternalIp,
+		Port: dataNode.InternalPort,
+		FilePath: dataResourceDataUsed.GetFilePath(),
+	}, nil
 }
 
