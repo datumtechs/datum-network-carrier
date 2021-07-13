@@ -58,7 +58,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		make(chan types.TaskMsgs, 27),
 		make(chan *types.ConsensusTaskWrap, 100),
 		make(chan *types.ScheduleTaskWrap, 100),
-		make(chan *types.ConsensusScheduleTask, 10)
+		make(chan *types.ConsensusScheduleTaskWrap, 10)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 

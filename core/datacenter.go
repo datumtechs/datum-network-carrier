@@ -248,6 +248,22 @@ func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, err
 	return rawdb.QueryLocalResourceIdByPowerId(dc.db, powerId)
 }
 
+func (dc *DataCenter)  StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.StoreLocalResourceIdByMetaDataId(dc.db, metaDataId, dataNodeId)
+}
+func (dc *DataCenter)  RemoveLocalResourceIdByMetaDataId(metaDataId string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.RemoveLocalResourceIdByMetaDataId(dc.db, metaDataId)
+}
+func (dc *DataCenter)  QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryLocalResourceIdByMetaDataId(dc.db, metaDataId)
+}
+
 // about power on datacenter
 func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	dc.serviceMu.Lock()
