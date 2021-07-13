@@ -311,27 +311,28 @@ func (pstate *ProposalState) IsCommitTimeout() bool {
 }
 
 
-
 func (pstate *ProposalState) ChangeToConfirm(startTime uint64) {
-	pstate.PrePeriodStartTime = pstate.PeriodStartTime
-	pstate.PeriodStartTime = startTime
-	pstate.PeriodNum = PeriodConfirm
+	if pstate.PeriodNum == PeriodPrepare {
+		pstate.PrePeriodStartTime = pstate.PeriodStartTime
+		pstate.PeriodStartTime = startTime
+		pstate.PeriodNum = PeriodConfirm
+	}
 	//pstate.ConfirmEpoch = ConfirmEpochFirst
 }
-//func (pstate *ProposalState) ChangeToConfirmSecondEpoch(startTime uint64) {
-//	pstate.PrePeriodStartTime = pstate.PeriodStartTime
-//	pstate.PeriodStartTime = startTime
-//	pstate.ConfirmEpoch = ConfirmEpochSecond
-//}
+
 func (pstate *ProposalState) ChangeToCommit(startTime uint64) {
-	pstate.PrePeriodStartTime = pstate.PeriodStartTime
-	pstate.PeriodStartTime = startTime
-	pstate.PeriodNum = PeriodCommit
+	if pstate.PeriodNum == PeriodConfirm {
+		pstate.PrePeriodStartTime = pstate.PeriodStartTime
+		pstate.PeriodStartTime = startTime
+		pstate.PeriodNum = PeriodCommit
+	}
 	//pstate.ConfirmEpoch = ConfirmEpochUnknown
 }
 func  (pstate *ProposalState) ChangeToFinished(startTime uint64) {
-	pstate.PrePeriodStartTime = pstate.PeriodStartTime
-	pstate.PeriodStartTime = startTime
-	pstate.PeriodNum = PeriodFinished
+	if pstate.PeriodNum == PeriodCommit{
+		pstate.PrePeriodStartTime = pstate.PeriodStartTime
+		pstate.PeriodStartTime = startTime
+		pstate.PeriodNum = PeriodFinished
+	}
 	//pstate.ConfirmEpoch = ConfirmEpochUnknown
 }

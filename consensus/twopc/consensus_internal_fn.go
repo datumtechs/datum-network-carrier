@@ -23,7 +23,6 @@ func (t *TwoPC) isProcessingTask(taskId string) bool {
 	return false
 }
 
-
 func (t *TwoPC) cleanExpireProposal() {
 	expireProposalSendTaskIds, expireProposalRecvTaskIds := t.state.CleanExpireProposal()
 	for _, sendTaskId := range expireProposalSendTaskIds {
@@ -34,14 +33,13 @@ func (t *TwoPC) cleanExpireProposal() {
 	}
 }
 
-
 func (t *TwoPC) addSendTask(task *types.ScheduleTask) {
 	t.sendTasks[task.TaskId] = task
 }
 func (t *TwoPC) addRecvTask(task *types.ScheduleTask) {
 	t.recvTasks[task.TaskId] = task
 }
-func (t *TwoPC) delTask(taskId string)  {
+func (t *TwoPC) delTask(taskId string) {
 	t.delSendTask(taskId)
 	t.delRecvTask(taskId)
 	// TODO 处理 清除 task 相关的 所有本地占用 cache
@@ -52,20 +50,20 @@ func (t *TwoPC) delSendTask(taskId string) {
 func (t *TwoPC) delRecvTask(taskId string) {
 	delete(t.recvTasks, taskId)
 }
-func (t *TwoPC) addTaskResultCh (taskId string, resultCh chan<- *types.ConsensuResult) {
+func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.ConsensuResult) {
 	t.taskResultLock.Lock()
 	t.taskResultChs[taskId] = resultCh
 	t.taskResultLock.Unlock()
 }
-func (t *TwoPC) removeTaskResultCh (taskId string) {
+func (t *TwoPC) removeTaskResultCh(taskId string) {
 	t.taskResultLock.Lock()
 	delete(t.taskResultChs, taskId)
 	t.taskResultLock.Unlock()
 }
-func (t *TwoPC) collectTaskResult (result *types.ConsensuResult) {
+func (t *TwoPC) collectTaskResult(result *types.ConsensuResult) {
 	t.taskResultCh <- result
 }
-func (t *TwoPC) sendTaskResult (result *types.ConsensuResult) {
+func (t *TwoPC) sendTaskResult(result *types.ConsensuResult) {
 	t.taskResultLock.Lock()
 	if ch, ok := t.taskResultChs[result.TaskId]; ok {
 		ch <- result
@@ -75,7 +73,7 @@ func (t *TwoPC) sendTaskResult (result *types.ConsensuResult) {
 	t.taskResultLock.Unlock()
 }
 
-func (t *TwoPC) sendReplaySchedTask (replaySchedTask *types.ScheduleTaskWrap) {
+func (t *TwoPC) sendReplaySchedTask(replaySchedTask *types.ScheduleTaskWrap) {
 	t.replayTaskCh <- replaySchedTask
 }
 
@@ -92,7 +90,7 @@ func (t *TwoPC) delProposalStateAndTask(proposalId common.Hash) {
 	}
 }
 
-func (t *TwoPC) sendTaskForStart (task *types.ConsensusScheduleTask) {
+func (t *TwoPC) sendTaskForStart(task *types.ConsensusScheduleTaskWrap) {
 	t.recvSchedTaskCh <- task
 }
 
@@ -116,9 +114,9 @@ func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskP
 		return nil
 	}
 	return &pb.ConfirmTaskPeerInfo{
-		OwnerPeerInfo: types.ConvertTaskPeerInfo(owner),
-		DataSupplierPeerInfoList: dataSuppliers,
-		PowerSupplierPeerInfoList: powerSuppliers,
+		OwnerPeerInfo:              types.ConvertTaskPeerInfo(owner),
+		DataSupplierPeerInfoList:   dataSuppliers,
+		PowerSupplierPeerInfoList:  powerSuppliers,
 		ResultReceiverPeerInfoList: receivers,
 	}
 }
@@ -129,17 +127,17 @@ func (t *TwoPC) refreshProposalState() {
 		switch proposalState.GetPeriod() {
 		case ctypes.PeriodPrepare:
 			if proposalState.IsPrepareTimeout() {
-				proposalState.ChangeToConfirm(proposalState.PeriodStartTime+uint64(ctypes.PrepareMsgVotingTimeout.Nanoseconds()))
+				proposalState.ChangeToConfirm(proposalState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Nanoseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodConfirm:
 			if proposalState.IsConfirmTimeout() {
-				proposalState.ChangeToCommit(proposalState.PeriodStartTime+uint64(ctypes.ConfirmMsgVotingTimeout.Nanoseconds()))
+				proposalState.ChangeToCommit(proposalState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Nanoseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodCommit:
 			if proposalState.IsCommitTimeout() {
-				proposalState.ChangeToFinished(proposalState.PeriodStartTime+uint64(ctypes.CommitMsgEndingTimeout.Nanoseconds()))
+				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Nanoseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodFinished:
@@ -164,42 +162,39 @@ func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*types.TaskE
 	return nil
 }
 
-func (t *TwoPC) driveTask(taskDir ctypes.ProposalTaskDir, proposalId common.Hash, taskId string) error {
+func (t *TwoPC) driveTask(pid peer.ID, proposalId common.Hash, taskDir ctypes.ProposalTaskDir, taskState types.TaskState, task *types.ScheduleTask) {
 
-	var task *types.ScheduleTask
-	if taskDir == ctypes.SendTaskDir {
-		task = t.sendTasks[taskId]
-	} else {
-		task = t.sendTasks[taskId]
-	}
-	if nil == task {
-		return ctypes.ErrProposalTaskNotFound
+
+	var recvTaskResultCh chan *types.TaskResultMsgWrap
+	if taskDir == ctypes.RecvTaskDir {
+		recvTaskResultCh = make(chan *types.TaskResultMsgWrap, 0)
 	}
 
-	dataSuppliers, powerSuppliers, receivers :=
-		make([]*types.PrepareVoteResource, 0), make([]*types.PrepareVoteResource, 0), make([]*types.PrepareVoteResource, 0)
-
-	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
-		if vote.TaskRole == types.DataSupplier && nil != vote.PeerInfo {
-			dataSuppliers = append(dataSuppliers, vote.PeerInfo)
-		}
-		if vote.TaskRole == types.PowerSupplier && nil != vote.PeerInfo {
-			powerSuppliers = append(powerSuppliers, vote.PeerInfo)
-		}
-		if vote.TaskRole == types.ResultSupplier && nil != vote.PeerInfo {
-			receivers = append(receivers, vote.PeerInfo)
-		}
+	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
+	if nil == confirmTaskPeerInfo {
+		log.Error("Failed to find local cache about all peer resource {externalIP:externalPORT}")
+		return
 	}
-	//
-	t.sendTaskForStart(&types.ConsensusScheduleTask{
-		SchedTask: task,
-		OwnerResource: t.state.GetSelfPeerInfo(proposalId),
-		PartnersResource: dataSuppliers,
-		PowerSuppliersResource: powerSuppliers,
-		ReceiversResource: receivers,
-	})
-
-	return nil
+	// Send task to TaskManager to execute
+	taskWrap := &types.ConsensusScheduleTaskWrap{
+		Task: &types.ConsensusScheduleTask{
+			TaskDir:   taskDir,
+			TaskState: taskState,
+			SchedTask: task,
+			Resources: confirmTaskPeerInfo,
+		},
+		ResultCh: recvTaskResultCh,
+	}
+	t.sendTaskForStart(taskWrap)
+	go func() {
+		if taskDir == ctypes.RecvTaskDir {
+			if taskResultWrap, ok := <-taskWrap.ResultCh; ok {
+				if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
+					log.Error(err)
+				}
+			}
+		}
+	}()
 }
 
 func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
@@ -373,5 +368,3 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.ScheduleTask, 
 
 	return nil
 }
-
-

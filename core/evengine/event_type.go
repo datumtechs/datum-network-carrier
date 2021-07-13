@@ -33,6 +33,11 @@ func NewEventType(Type string, text string) *EventType {
 
 var IncEventType = errors.New("incorrect evengine type")
 
+// 系统码
+var (
+	TaskExecuteEOF                 = NewEventType("0008000", "Task execute EOF")
+)
+
 // 调度服务事件
 var (
 	TaskCreate                 = NewEventType("0100000", "Create Task")

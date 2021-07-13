@@ -183,7 +183,7 @@ func (s *state) ChangeToFinised(proposalId common.Hash, startTime uint64) {
 	s.runningProposals[proposalId] = proposalState
 }
 
-// 作为发起方时, 自己给当前 proposal 提供的资源信息 ...
+// 作为发起方时, 自己给当前 proposal 提供的资源信息 ... [根据 metaDataId 锁定的 dataNode资源]
 func (s *state) StoreSelfPeerInfo(proposalId common.Hash, peerInfo *types.PrepareVoteResource) {
 	s.selfPeerInfoCache[proposalId] = peerInfo
 }
@@ -326,6 +326,11 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 func (s *state) CleanConfirmVoteState(proposalId common.Hash) {
 	delete(s.confirmVotes, proposalId)
 }
+func (s *state) GetTaskConfirmYesVoteCount(proposalId common.Hash) uint32 {
+	return s.GetTaskDataSupplierConfirmYesVoteCount(proposalId) +
+		s.GetTaskPowerSupplierConfirmYesVoteCount(proposalId) +
+		s.GetTaskResulterConfirmYesVoteCount(proposalId)
+}
 func (s *state) GetTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
@@ -346,6 +351,11 @@ func (s *state) GetTaskResulterConfirmYesVoteCount(proposalId common.Hash) uint3
 		return 0
 	}
 	return cvs.voteYesCount(types.ResultSupplier)
+}
+func (s *state) GetTaskConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+	return s.GetTaskDataSupplierConfirmTotalVoteCount(proposalId) +
+		s.GetTaskPowerSupplierConfirmTotalVoteCount(proposalId) +
+		s.GetTaskResulterConfirmTotalVoteCount(proposalId)
 }
 func (s *state) GetTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	cvs, ok := s.confirmVotes[proposalId]

@@ -302,7 +302,11 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 			errs = append(errs, fmt.Sprintf("powerId: %s, %s", revoke.PowerId, err))
 			continue
 		}
-
+		if err := m.dataCenter.RemoveLocalResourceIdByPowerId(revoke.PowerId); nil != err {
+			log.Error("Failed to RemoveLocalResourceIdByPowerId on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("powerId: %s, jobNodeId: %s, %s", revoke.PowerId, jobNodeId, err))
+			continue
+		}
 		if err := m.dataCenter.RemoveLocalResourceTable(jobNodeId); nil != err {
 			log.Error("Failed to RemoveLocalResourceTable on MessageHandler, err:", err)
 			errs = append(errs, fmt.Sprintf("powerId: %s, jobNodeId: %s, %s", revoke.PowerId, jobNodeId, err))
@@ -349,6 +353,26 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 			errs = append(errs, fmt.Sprintf("originId: %s, %s", metaData.OriginId(), err))
 			continue
 		}
+		// 记录原始数据占用资源大小
+		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceDataUsed.GetNodeId())
+		if nil != err {
+			log.Error("Failed to QueryDataResourceTable on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("originId: %s, nodeId: %s, %s", metaData.OriginId(), dataResourceDataUsed.GetNodeId(), err))
+			continue
+		}
+		dataResourceTable.UseDisk(uint64(metaData.Size()))
+		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
+			log.Error("Failed to StoreDataResourceTable on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("originId: %s, nodeId: %s, %s", metaData.OriginId(), dataResourceDataUsed.GetNodeId(), err))
+			continue
+		}
+		// 存储 metaDataId -> dataNodeId
+		if err := m.dataCenter.StoreLocalResourceIdByMetaDataId(metaData.MetaDataId, dataResourceDataUsed.GetNodeId()); nil != err {
+			log.Error("Failed to StoreLocalResourceIdByMetaDataId on MessageHandler, err:", err)
+			errs = append(errs, fmt.Sprintf("metaDataId: %s, nodeId: %s, %s", metaData.MetaDataId, dataResourceDataUsed.GetNodeId(), err))
+			continue
+		}
+
 		if err := m.dataCenter.InsertMetadata(metaData.ToDataCenter()); nil != err {
 			log.Error("Failed to store metaData to dataCenter on MessageHandler, err:", err)
 			errs = append(errs, fmt.Sprintf("originId: %s, %s", metaData.OriginId(), err))

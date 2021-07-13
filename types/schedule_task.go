@@ -3,6 +3,8 @@ package types
 import (
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 )
 
 type ProposalTask struct {
@@ -51,17 +53,19 @@ func (wrap *ScheduleTaskWrap) String() string  {
 	return string(result)
 }
 
-//type ConsensusScheduleTaskWrap struct {
-//	Task     *ConsensusScheduleTask
-//	//ResultCh chan<- *ScheduleResult
-//}
+type ConsensusScheduleTaskWrap struct {
+	Task     *ConsensusScheduleTask
+	ResultCh  chan *TaskResultMsgWrap
+}
 type ConsensusScheduleTask struct {
+	TaskDir                types.ProposalTaskDir
 	TaskState 			   TaskState
 	SchedTask              *ScheduleTask
-	OwnerResource          *PrepareVoteResource
-	PartnersResource       []*PrepareVoteResource
-	PowerSuppliersResource []*PrepareVoteResource
-	ReceiversResource      []*PrepareVoteResource
+	Resources               *pb.ConfirmTaskPeerInfo
+	//OwnerResource          *PrepareVoteResource
+	//PartnersResource       []*PrepareVoteResource
+	//PowerSuppliersResource []*PrepareVoteResource
+	//ReceiversResource      []*PrepareVoteResource
 }
 
 type ScheduleTask struct {
@@ -127,10 +131,11 @@ type ScheduleResult struct {
 
 type ConsensuResult struct {
 	*TaskConsResult
-	OwnerResource          *PrepareVoteResource
-	PartnersResource       []*PrepareVoteResource
-	PowerSuppliersResource []*PrepareVoteResource
-	ReceiversResource      []*PrepareVoteResource
+	//Resources *pb.ConfirmTaskPeerInfo
+	//OwnerResource          *PrepareVoteResource
+	//PartnersResource       []*PrepareVoteResource
+	//PowerSuppliersResource []*PrepareVoteResource
+	//ReceiversResource      []*PrepareVoteResource
 }
 
 //type ScheduleNodeAlias struct {
