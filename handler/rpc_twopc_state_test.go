@@ -341,14 +341,15 @@ func TestCommitMsgRPCHandler_SendsCommitMsg(t *testing.T) {
 		out := new(twopcpb.CommitMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
 		require.Equal(t, out.ProposalId, commitMsg.ProposalId)
-		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		r2.writeErrorResponseToStream(responseCodeInvalidRequest, "test error", stream)
+		/*if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
 			log.WithError(err).Error("Could not write to stream for response")
-		}
+		}*/
 		require.NoError(t, stream.Close())
 	})
 
 	err := SendTwoPcCommitMsg(context.Background(), r.cfg.P2P, p2.BHost.ID(), commitMsg)
-	require.NoError(t, err)
+	require.Contains(t, err.Error(), "test error")
 
 	if WaitTimeout(&wg, 1*time.Second) {
 		t.Fatal("Did not receive stream within 1 sec")
