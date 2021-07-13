@@ -3,6 +3,7 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
@@ -113,7 +114,7 @@ func (c *JobNodeClient) UploadShard(ctx context.Context) (computesvc.ComputeProv
 	return nil, errors.New("method UploadShard not implemented")
 }
 
-func (c *JobNodeClient) HandleTaskReadyGo(req *computesvc.TaskReadyGoReq) (*computesvc.UploadShardReply, error) {
+func (c *JobNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, defaultRequestTime)
 	defer cancel()
 	return c.computeProviderClient.HandleTaskReadyGo(ctx, req)
