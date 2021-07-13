@@ -18,11 +18,9 @@ type Manager struct {
 	db                     iface.ForResourceDB // Low level persistent database to store final content.
 	//eventCh                chan *types.TaskEventInfo
 	slotUnit               *types.Slot
-	// (taskId -> local resource used) todo 任务结束 或者 任务被清理时, 记得释放对应 taskId 占有的 local resource item
-	//taskLocalResourceUseds map[string]*types.TaskLocalResourceUsed
 	// (resourceNodeId -> resource)  todo 任务结束 或者 任务被清理时, 记得释放对应 taskId 占有的 local resource item
-	localTables            map[string]*types.LocalResourceTable
-	localTableQueue        []*types.LocalResourceTable
+	//localTables            map[string]*types.LocalResourceTable
+	//localTableQueue        []*types.LocalResourceTable
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue []*types.RemoteResourceTable
 
@@ -34,8 +32,8 @@ func NewResourceManager(db iface.ForResourceDB) *Manager {
 	m := &Manager{
 		db:               db,
 		//eventCh:          make(chan *types.TaskEventInfo, 0),
-		localTables:      make(map[string]*types.LocalResourceTable),
-		localTableQueue:  make([]*types.LocalResourceTable, 0),
+		//localTables:      make(map[string]*types.LocalResourceTable),
+		//localTableQueue:  make([]*types.LocalResourceTable, 0),
 		remoteTableQueue: make([]*types.RemoteResourceTable, 0),
 		slotUnit:         types.DefaultSlotUnit, // TODO for test
 	}
@@ -76,8 +74,8 @@ func (m *Manager) Start() error {
 	for _, resource := range localResources {
 		tables[resource.GetNodeId()] = resource
 	}
-	m.localTables = tables
-	m.localTableQueue = localResources
+	//m.localTables = tables
+	//m.localTableQueue = localResources
 
 	// load remote org resource Tables
 	remoteResources, err := m.db.QueryOrgResourceTables()
@@ -95,9 +93,9 @@ func (m *Manager) Stop() error {
 		return err
 	}
 	// store local resource Tables
-	if err := m.db.StoreLocalResourceTables(m.localTableQueue); nil != err {
-		return err
-	}
+	//if err := m.db.StoreLocalResourceTables(m.localTableQueue); nil != err {
+	//	return err
+	//}
 	// store remote org resource Tables
 	if err := m.db.StoreOrgResourceTables(m.remoteTableQueue); nil != err {
 		return err
@@ -112,78 +110,81 @@ func (m *Manager) SetSlotUnit(mem, p, b uint64) {
 	//	Bandwidth: b,
 	//}
 	m.slotUnit = types.DefaultSlotUnit // TODO for test
-	if len(m.localTables) != 0 {
-		for _, re := range m.localTables {
-			re.SetSlotUnit(m.slotUnit)
-		}
-	}
+	//if len(m.localTables) != 0 {
+	//	for _, re := range m.localTables {
+	//		re.SetSlotUnit(m.slotUnit)
+	//	}
+	//}
 }
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
 func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
-	table, ok := m.localTables[nodeId]
-	if !ok {
-		return fmt.Errorf("No found the resource table of node: %s", nodeId)
+
+	table, err := m.db.QueryLocalResourceTable(nodeId)
+	if  nil != err {
+		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	if table.GetLockedSlot() < slotCount {
 		return fmt.Errorf("Insufficient locked number of slots of node: %s", nodeId)
 	}
 	table.UseSlot(slotCount)
-	return nil
+	return m.db.StoreLocalResourceTable(table)
 }
 func (m *Manager) FreeSlot(nodeId string, slotCount uint32) error {
-	table, ok := m.localTables[nodeId]
-	if !ok {
-		return fmt.Errorf("No found the resource table of node: %s", nodeId)
+	table, err := m.db.QueryLocalResourceTable(nodeId)
+	if  nil != err {
+		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	table.FreeSlot(slotCount)
-	return nil
+	return m.db.StoreLocalResourceTable(table)
 }
 func (m *Manager) LockSlot(nodeId string, slotCount uint32) error {
-	table, ok := m.localTables[nodeId]
-	if !ok {
-		return fmt.Errorf("No found the resource table of node: %s", nodeId)
+	table, err := m.db.QueryLocalResourceTable(nodeId)
+	if  nil != err {
+		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	if table.RemianSlot() < slotCount {
 		return fmt.Errorf("Insufficient remaining number of slots of node: %s", nodeId)
 	}
 	table.LockSlot(slotCount)
-	return nil
+	return m.db.StoreLocalResourceTable(table)
 }
 func (m *Manager) UnLockSlot(nodeId string, slotCount uint32) error {
-	table, ok := m.localTables[nodeId]
-	if !ok {
-		return fmt.Errorf("No found the resource table of node: %s", nodeId)
+	table, err := m.db.QueryLocalResourceTable(nodeId)
+	if  nil != err {
+		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	table.UnLockSlot(slotCount)
-	return nil
+	return m.db.StoreLocalResourceTable(table)
 }
 
-func (m *Manager) SetLocalResourceTable(table *types.LocalResourceTable) {
-	m.localTables[table.GetNodeId()] = table
-	m.localTableQueue = append(m.localTableQueue, table)
+func (m *Manager) SetLocalResourceTable(table *types.LocalResourceTable) error {
+	return m.db.StoreLocalResourceTable(table)
 }
-func (m *Manager) GetLocalResourceTable(nodeId string) *types.LocalResourceTable {
-	return m.localTables[nodeId]
+func (m *Manager) GetLocalResourceTable(nodeId string) (*types.LocalResourceTable, error) {
+	return m.db.QueryLocalResourceTable(nodeId)
 }
-func (m *Manager) GetLocalResourceTables() []*types.LocalResourceTable { return m.localTableQueue }
-func (m *Manager) DelLocalResourceTable(nodeId string) {
-	for i := 0; i < len(m.localTableQueue); i++ {
-		table := m.localTableQueue[i]
-		if table.GetNodeId() == nodeId {
-			delete(m.localTables, nodeId)
-			m.localTableQueue = append(m.localTableQueue[:i], m.localTableQueue[i+1:]...)
-			i--
+func (m *Manager) GetLocalResourceTables() ([]*types.LocalResourceTable, error) {
+	return m.db.QueryLocalResourceTables()
+}
+func (m *Manager) DelLocalResourceTable(nodeId string) error {
+	return m.db.RemoveLocalResourceTable(nodeId)
+}
+func (m *Manager) CleanLocalResourceTables() error {
+	localResourceTableArr, err := m.db.QueryLocalResourceTables()
+	if nil != err {
+		return err
+	}
+	for _, table := range localResourceTableArr {
+		if err := m.db.RemoveLocalResourceTable(table.GetNodeId()); nil != err {
+			return err
 		}
 	}
-}
-func (m *Manager) CleanLocalResourceTables() {
-	m.localTableQueue = make([]*types.LocalResourceTable, 0)
-	m.localTables = make(map[string]*types.LocalResourceTable, 0)
-}
-func (m *Manager) refreshLocalResourceTable() error {
-
 	return nil
 }
+//func (m *Manager) refreshLocalResourceTable() error {
+//
+//	return nil
+//}
 
 func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
 	m.remoteTableQueue = append(m.remoteTableQueue, table)

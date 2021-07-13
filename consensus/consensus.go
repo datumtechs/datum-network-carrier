@@ -15,7 +15,7 @@ type Engine interface {
 	Start() error
 	Close() error
 	OnPrepare(task *types.ScheduleTask) error
-	OnHandle(task *types.ScheduleTask, result chan<- *types.ConsensuResult) error
+	OnHandle(task *types.ScheduleTask, selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensuResult) error
 	ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnError() error

@@ -1162,3 +1162,39 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 	}
 	return resourceId, nil
 }
+
+
+func StoreLocalResourceIdByMetaDataId(db DatabaseWriter, metaDataId, resourceId string) error {
+	key := GetResourceMetaDataIdMapingKey(metaDataId)
+	index, err := rlp.EncodeToBytes(resourceId)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, index)
+}
+
+func RemoveLocalResourceIdByMetaDataId(db DatabaseDeleter, metaDataId string) error {
+	key := GetResourceMetaDataIdMapingKey(metaDataId)
+	return db.Delete(key)
+}
+
+func QueryLocalResourceIdByMetaDataId(db DatabaseReader, metaDataId string) (string, error) {
+	key := GetResourceMetaDataIdMapingKey(metaDataId)
+	has, err := db.Has(key)
+	if nil != err {
+		return "", err
+	}
+
+	if !has {
+		return "", ErrNotFound
+	}
+	idsByte, err := db.Get(key)
+	if nil != err {
+		return "", err
+	}
+	var resourceId string
+	if err := rlp.DecodeBytes(idsByte, &resourceId); nil != err {
+		return "", err
+	}
+	return resourceId, nil
+}
