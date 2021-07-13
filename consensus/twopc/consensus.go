@@ -3,7 +3,6 @@ package twopc
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
@@ -49,7 +48,10 @@ type TwoPC struct {
 	Errs []error
 }
 
-func New(conf *Config, dataCenter iface.ForConsensusDB, p2p p2p.P2P,
+func New(
+	conf *Config,
+	dataCenter iface.ForConsensusDB,
+	p2p p2p.P2P,
 	schedTaskCh chan *types.ConsensusTaskWrap,
 	replayTaskCh chan *types.ScheduleTaskWrap,
 	recvSchedTaskCh chan*types.ConsensusScheduleTaskWrap,
@@ -114,7 +116,7 @@ func (t *TwoPC) loop() {
 			if nil == res {
 				return
 			}
-			t.sendTaskResult(res)
+			t.sendConsensusTaskResultToSched(res)
 
 		// TODO case : 需要做一次 confirmMsg 的超时 vote 重发机制, epoch 这时需要等于 2
 
@@ -634,11 +636,11 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 			// If sending `CommitMsg` is successful,
 			// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-			t.driveTask("", voteMsg.ProposalId, ctypes.SendTaskDir, types.TaskStateRunning, task)
+			t.driveTask("", voteMsg.ProposalId, ctypes.SendTaskDir, types.TaskStateRunning, types.TaskOnwer, task)
 		} else {
 			// If the vote is not reached, we will clear the local `proposalState` related cache
 			// and end the task as a failure, and publish the task information to the datacenter.
-			t.driveTask("", voteMsg.ProposalId, ctypes.SendTaskDir, types.TaskStateFailed, task)
+			t.driveTask("", voteMsg.ProposalId, ctypes.SendTaskDir, types.TaskStateFailed, types.TaskOnwer, task)
 			// clean some invalid data
 			t.delProposalStateAndTask(voteMsg.ProposalId)
 		}
@@ -684,7 +686,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	t.state.ChangeToCommit(msg.ProposalId, msg.CreateAt)
 	// If sending `CommitMsg` is successful,
 	// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-	t.driveTask(pid, msg.ProposalId, ctypes.RecvTaskDir, types.TaskStateRunning, task)
+	t.driveTask(pid, msg.ProposalId, ctypes.RecvTaskDir, types.TaskStateRunning, msg.TaskRole, task)
 	return nil
 }
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方
@@ -694,8 +696,6 @@ func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) err
 			msg.TaskResultMsg.TaskId, msg.TaskRole, msg.TaskResultMsg.Owner.NodeId, pid, err)
 		return err
 	}
-	// clean local proposalState and task cache
-	t.delProposalStateAndTask(common.BytesToHash(msg.ProposalId))
 	return nil
 }
 // (on Publisher)

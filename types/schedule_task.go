@@ -54,6 +54,9 @@ func (wrap *ScheduleTaskWrap) String() string  {
 }
 
 type ConsensusScheduleTaskWrap struct {
+	ProposalId    common.Hash
+	SelfTaskRole  TaskRole
+	SelfPeerInfo  *pb.TaskPeerInfo
 	Task     *ConsensusScheduleTask
 	ResultCh  chan *TaskResultMsgWrap
 }
