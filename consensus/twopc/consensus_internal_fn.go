@@ -63,7 +63,7 @@ func (t *TwoPC) removeTaskResultCh(taskId string) {
 func (t *TwoPC) collectTaskResult(result *types.ConsensuResult) {
 	t.taskResultCh <- result
 }
-func (t *TwoPC) sendTaskResult(result *types.ConsensuResult) {
+func (t *TwoPC) sendConsensusTaskResultToSched (result *types.ConsensuResult) {
 	t.taskResultLock.Lock()
 	if ch, ok := t.taskResultChs[result.TaskId]; ok {
 		ch <- result
@@ -90,7 +90,7 @@ func (t *TwoPC) delProposalStateAndTask(proposalId common.Hash) {
 	}
 }
 
-func (t *TwoPC) sendTaskForStart(task *types.ConsensusScheduleTaskWrap) {
+func (t *TwoPC) sendTaskToTaskManagerForExecute(task *types.ConsensusScheduleTaskWrap) {
 	t.recvSchedTaskCh <- task
 }
 
@@ -162,13 +162,19 @@ func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*types.TaskE
 	return nil
 }
 
-func (t *TwoPC) driveTask(pid peer.ID, proposalId common.Hash, taskDir ctypes.ProposalTaskDir, taskState types.TaskState, task *types.ScheduleTask) {
+func (t *TwoPC) driveTask(
+	pid peer.ID,
+	proposalId common.Hash,
+	taskDir ctypes.ProposalTaskDir,
+	taskState types.TaskState,
+	taskRole  types.TaskRole,
+	task *types.ScheduleTask,
+	) {
 
 
-	var recvTaskResultCh chan *types.TaskResultMsgWrap
-	if taskDir == ctypes.RecvTaskDir {
-		recvTaskResultCh = make(chan *types.TaskResultMsgWrap, 0)
-	}
+	//var recvTaskResultCh chan *types.TaskResultMsgWrap
+
+	recvTaskResultCh := make(chan *types.TaskResultMsgWrap, 0)
 
 	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
 	if nil == confirmTaskPeerInfo {
@@ -177,6 +183,9 @@ func (t *TwoPC) driveTask(pid peer.ID, proposalId common.Hash, taskDir ctypes.Pr
 	}
 	// Send task to TaskManager to execute
 	taskWrap := &types.ConsensusScheduleTaskWrap{
+		ProposalId: proposalId,
+		SelfTaskRole: taskRole,
+		// SelfPeerInfo: // TODO
 		Task: &types.ConsensusScheduleTask{
 			TaskDir:   taskDir,
 			TaskState: taskState,
@@ -185,14 +194,20 @@ func (t *TwoPC) driveTask(pid peer.ID, proposalId common.Hash, taskDir ctypes.Pr
 		},
 		ResultCh: recvTaskResultCh,
 	}
-	t.sendTaskForStart(taskWrap)
+	t.sendTaskToTaskManagerForExecute(taskWrap)
 	go func() {
 		if taskDir == ctypes.RecvTaskDir {
 			if taskResultWrap, ok := <-taskWrap.ResultCh; ok {
 				if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
 					log.Error(err)
 				}
+				// clean local proposalState and task cache
+				t.delProposalStateAndTask(proposalId)
 			}
+		} else {
+			<-taskWrap.ResultCh  // publish taskInfo to dataCenter done ..
+			// clean local proposalState and task cache
+			t.delProposalStateAndTask(proposalId)
 		}
 	}()
 }

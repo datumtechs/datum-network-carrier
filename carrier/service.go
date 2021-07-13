@@ -64,8 +64,15 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 
 	resourceMng := resource.NewResourceManager(config.CarrierDB)
 
-	taskManager := task.NewTaskManager(nil, eventEngine, resourceMng,
-		resourceClientSet, taskCh, localTaskCh, recvSchedTaskCh)
+	taskManager := task.NewTaskManager(
+		nil,
+		eventEngine,
+		resourceMng,
+		resourceClientSet,
+		taskCh,
+		localTaskCh,
+		recvSchedTaskCh,
+	)
 
 	s := &Service{
 		ctx:             ctx,
@@ -76,16 +83,29 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		resourceManager: resourceMng,
 		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
 		taskManager:     taskManager,
-		scheduler: scheduler.NewSchedulerStarveFIFO(localTaskCh, schedTaskCh, remoteTaskCh,
-			config.CarrierDB, recvSchedTaskCh, resourceMng, eventEngine),
+		scheduler: scheduler.NewSchedulerStarveFIFO(
+			eventEngine,
+			resourceMng,
+			config.CarrierDB,
+			localTaskCh,
+			schedTaskCh,
+			remoteTaskCh,
+			recvSchedTaskCh,
+		),
 		resourceClientSet: resourceClientSet,
 	}
 
 	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
-	s.Engines[types.TwopcTyp] = twopc.New(&twopc.Config{}, s.carrierDB,
-		s.config.p2p, schedTaskCh, remoteTaskCh, recvSchedTaskCh) // todo the 2pc config will be setup
+	s.Engines[types.TwopcTyp] = twopc.New( // todo the 2pc config will be setup
+		&twopc.Config{},
+		s.carrierDB,
+		s.config.p2p,
+		schedTaskCh,
+		remoteTaskCh,
+		recvSchedTaskCh,
+	)
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 	// todo: set datachain....
 

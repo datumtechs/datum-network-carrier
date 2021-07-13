@@ -3,6 +3,7 @@ package scheduler
 import (
 	"container/heap"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
@@ -49,10 +50,14 @@ type SchedulerStarveFIFO struct {
 }
 
 func NewSchedulerStarveFIFO(
-	localTaskCh chan types.TaskMsgs, schedTaskCh chan *types.ConsensusTaskWrap,
-	remoteTaskCh chan *types.ScheduleTaskWrap, dataCenter iface.ForResourceDB,
-	sendSchedTaskCh chan*types.ConsensusScheduleTaskWrap, mng *resource.Manager,
-	eventEngine *evengine.EventEngine) *SchedulerStarveFIFO {
+	eventEngine *evengine.EventEngine,
+	mng *resource.Manager,
+	dataCenter iface.ForResourceDB,
+	localTaskCh chan types.TaskMsgs,
+	schedTaskCh chan *types.ConsensusTaskWrap,
+	remoteTaskCh chan *types.ScheduleTaskWrap,
+	sendSchedTaskCh chan *types.ConsensusScheduleTaskWrap,
+) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
 		resourceMng:     mng,
@@ -108,6 +113,7 @@ func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
 	heap.Push(sche.queue, bullet) //
 }
 func (sche *SchedulerStarveFIFO) trySchedule() error {
+
 	sche.increaseTaskTerm()
 
 	var bullet *types.TaskBullet
@@ -133,12 +139,15 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 						"The number of times the task has been rescheduled exceeds the expected threshold")))
 
 				sendTask := &types.ConsensusScheduleTaskWrap{
+					ProposalId: common.Hash{},
+					SelfTaskRole: types.TaskOnwer,
+					// SelfPeerInfo: // TODO
 					Task: &types.ConsensusScheduleTask{
 						TaskDir:   ctypes.SendTaskDir,
 						TaskState: types.TaskStateFailed,
 						SchedTask: types.ConvertTaskMsgToScheduleTask(task, nil),
 					},
-					ResultCh: nil,
+					ResultCh: make(chan *types.TaskResultMsgWrap, 0),
 				}
 				sche.SendTaskToTaskManager(sendTask)
 			} else {
@@ -195,13 +204,13 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		// Send task to consensus Engine to consensus.
 		scheduleTask := types.ConvertTaskMsgToScheduleTask(task, powers)
 		toConsensusTask := &types.ConsensusTaskWrap{
-			Task:         scheduleTask,
+			Task: scheduleTask,
 			SelfResource: &types.PrepareVoteResource{
-				Id: dataNodeId,
-				Ip: dataNodeResource.ExternalIp,
+				Id:   dataNodeId,
+				Ip:   dataNodeResource.ExternalIp,
 				Port: dataNodeResource.ExternalPort,
 			},
-			ResultCh:     make(chan *types.ConsensuResult, 0),
+			ResultCh: make(chan *types.ConsensuResult, 0),
 		}
 		sche.SendTaskToConsensus(toConsensusTask)
 		consensusRes := toConsensusTask.RecvResult()
@@ -213,19 +222,19 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			repushFn(bullet)
 			return
 		}
-/*
-		// the task has consensus succeed, need send `Fighter-Py` node
-		// (On taskManager)
-		sendTask := &types.ConsensusScheduleTaskWrap{
-			Task: &types.ConsensusScheduleTask{
-				TaskDir:                ctypes.SendTaskDir,
-				TaskState:              types.TaskStateRunning,
-				SchedTask:              scheduleTask,
-				//Resources:      		consensusRes.Resources,
-			},
-			ResultCh: nil,
-		}
-		sche.SendTaskToTaskManager(sendTask)*/
+		/*
+			// the task has consensus succeed, need send `Fighter-Py` node
+			// (On taskManager)
+			sendTask := &types.ConsensusScheduleTaskWrap{
+				Task: &types.ConsensusScheduleTask{
+					TaskDir:                ctypes.SendTaskDir,
+					TaskState:              types.TaskStateRunning,
+					SchedTask:              scheduleTask,
+					//Resources:      		consensusRes.Resources,
+				},
+				ResultCh: nil,
+			}
+			sche.SendTaskToTaskManager(sendTask)*/
 	}()
 
 	return nil
@@ -257,7 +266,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 			schedTask.SendResult(&types.ScheduleResult{
 				TaskId: schedTask.Task.TaskId,
 				Status: types.TaskSchedFailed,
-				Err: fmt.Errorf("task ower can not replay schedule task"),
+				Err:    fmt.Errorf("task ower can not replay schedule task"),
 				//Resource:
 			})
 
@@ -284,7 +293,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				schedTask.SendResult(&types.ScheduleResult{
 					TaskId: schedTask.Task.TaskId,
 					Status: types.TaskSchedFailed,
-					Err: fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
+					Err:    fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
 					//Resource:
 				})
 
@@ -306,7 +315,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 					schedTask.SendResult(&types.ScheduleResult{
 						TaskId: schedTask.Task.TaskId,
 						Status: types.TaskSchedFailed,
-						Err: fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
+						Err:    fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
 					})
 					return
 				}
@@ -330,7 +339,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				schedTask.SendResult(&types.ScheduleResult{
 					TaskId: schedTask.Task.TaskId,
 					Status: types.TaskSchedFailed,
-					Err: fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
+					Err:    fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
 				})
 				return
 			}
@@ -344,7 +353,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				schedTask.SendResult(&types.ScheduleResult{
 					TaskId: schedTask.Task.TaskId,
 					Status: types.TaskSchedFailed,
-					Err: fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
+					Err:    fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
 				})
 				return
 			}
@@ -353,8 +362,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				TaskId: schedTask.Task.TaskId,
 				Status: types.TaskSchedOk,
 				Resource: &types.PrepareVoteResource{
-					Id:dataNode.Id,
-					Ip: dataNode.ExternalIp,
+					Id:   dataNode.Id,
+					Ip:   dataNode.ExternalIp,
 					Port: dataNode.ExternalPort,
 				},
 			})
@@ -372,7 +381,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				schedTask.SendResult(&types.ScheduleResult{
 					TaskId: schedTask.Task.TaskId,
 					Status: types.TaskSchedFailed,
-					Err: fmt.Errorf("failed to replay sched myself local power on replay schedule task"),
+					Err:    fmt.Errorf("failed to replay sched myself local power on replay schedule task"),
 				})
 				return
 			}
@@ -382,8 +391,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				TaskId: schedTask.Task.TaskId,
 				Status: types.TaskSchedOk,
 				Resource: &types.PrepareVoteResource{
-					Id:selfResourceInfo.Id,
-					Ip: selfResourceInfo.Ip,
+					Id:   selfResourceInfo.Id,
+					Ip:   selfResourceInfo.Ip,
 					Port: selfResourceInfo.Port,
 				},
 			})
@@ -401,11 +410,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				schedTask.SendResult(&types.ScheduleResult{
 					TaskId: schedTask.Task.TaskId,
 					Status: types.TaskSchedFailed,
-					Err: fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
+					Err:    fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
 				})
 				return
 			}
-
 
 			resource := localResourceTables[len(localResourceTables)-1]
 			resourceInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, resource.GetNodeId())
@@ -417,7 +425,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				schedTask.SendResult(&types.ScheduleResult{
 					TaskId: schedTask.Task.TaskId,
 					Status: types.TaskSchedFailed,
-					Err: fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
+					Err:    fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
 				})
 				return
 			}
@@ -471,7 +479,7 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	if nil != err {
 		return nil, err
 	}
-	for _, r := range  tables {
+	for _, r := range tables {
 		if r.IsEnough(needSlotCount) {
 			resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
 		}
