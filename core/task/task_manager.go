@@ -68,12 +68,14 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 			defer func() {
 				delete( m.runningTaskCache, event.TaskId)
 			}()
-			if task.TaskDir == ctypes.RecvTaskDir {  // 需要 读出自己本地的 event 发给 task 的发起者
+			if task.TaskDir == ctypes.RecvTaskDir {  // todo 需要 读出自己本地的 event 发给 task 的发起者
 				/*eventList, err := m.dataCenter.GetTaskEventList(event.TaskId);
 				if nil != err {
 					log.Error("Failed to query all recv task event on myself", "taskId", event.TaskId, "err", err)
 					return  err
 				}*/
+
+			} else {  // todo 如果是 自己的task, 认为任务终止 ... 发送到 dataCenter
 
 			}
 		}
@@ -98,7 +100,7 @@ func (m *Manager) loop() {
 			case types.TaskStateFailed, types.TaskStateSuccess:
 				// 判断是否 taskDir 决定是否直接 往 dataCenter 发送数据
 				m.pulishFinishedTask(task.Task.SchedTask)
-			case types.TaskStateRunning:
+			case types.TaskStateRunning:  //TODO 写到啦, 这个啦！
 
 			default:
 				log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
@@ -148,6 +150,12 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 }
 
 func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
+	identityId, err := m.dataCenter.GetIdentityId()
+	if nil != err {
+		log.Errorf("Failed to query self identityId on SendTaskEvent, %s", err)
+		return err
+	}
+	event.Identity = identityId
 	m.eventCh <- event
 	return nil
 }
@@ -205,6 +213,7 @@ func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.ConsensusSched
 		}
 	}
 	//  TODO 下发任务
+	
 
 	return nil
 }
