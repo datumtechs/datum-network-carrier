@@ -144,7 +144,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 }
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
-	// current node need to connect with seed node.
+	//TODO: current node need to connect with seed node.(delay processing)
 	return s.carrier.carrierDB.SetSeedNode(seed)
 }
 
@@ -224,26 +224,69 @@ func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*t
 	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
 }
 
+// GetMetaDataDetailList returns a list of all metadata details in the network.
 func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
 	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
 }
 
 func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
-	return nil, nil
+	log.WithField("identityId", identityId).Debug("Invoke: GetMetaDataDetailListByOwner executing...")
+	metadataList, err := s.GetMetaDataDetailList()
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*types.OrgMetaDataInfo, 0)
+	for _, metadata := range metadataList {
+		if metadata.Owner.IdentityId == identityId {
+			result = append(result, metadata)
+		}
+	}
+	return result, nil
 }
 
 // power api
 func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) {
-	return nil, nil
+	log.Debug("Invoke: GetPowerTotalDetailList executing...")
+	resourceList, err := s.carrier.carrierDB.GetResourceList()
+	if err != nil {
+		return nil, err
+	}
+	powerList := make([]*types.OrgPowerDetail, 0, resourceList.Len())
+	for _, resource := range resourceList.To() {
+		powerList = append(powerList, &types.OrgPowerDetail{
+			Owner:       &types.NodeAlias{
+				Name:       resource.GetNodeName(),
+				NodeId:     resource.GetNodeId(),
+				IdentityId: resource.GetIdentity(),
+			},
+			PowerDetail: &types.PowerTotalDetail{
+				TotalTaskCount:   0,
+				CurrentTaskCount: 0,
+				Tasks:            make([]*types.PowerTask, 0),
+				ResourceUsage:    &types.ResourceUsage{
+					TotalMem:       resource.GetTotalMem(),
+					UsedMem:        resource.GetUsedMem(),
+					TotalProcessor: resource.GetTotalProcessor(),
+					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalBandwidth: resource.GetTotalBandWidth(),
+					UsedBandwidth:  resource.GetUsedBandWidth(),
+				},
+				State:            resource.GetState(),
+			},
+		})
+	}
+	return powerList, nil
 }
 
 func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
+	// 本机存储的所有计算节点的信息
 	return nil, nil // TODO 未完成,  需要查自己参与过的任务信息
 }
 
 // identity api
 func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {
+	//TODO: 申请身份标识时，相关数据需要进行本地存储，然后进行网络发布
 	return s.carrier.carrierDB.InsertIdentity(identity)
 }
 
@@ -254,9 +297,9 @@ func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	nodeAlias, err := s.carrier.carrierDB.GetIdentity()
 	return types.NewIdentity(&libTypes.IdentityData{
-		Identity:             nodeAlias.IdentityId,
-		NodeId:               nodeAlias.NodeId,
-		NodeName:             nodeAlias.Name,
+		Identity: nodeAlias.IdentityId,
+		NodeId:   nodeAlias.NodeId,
+		NodeName: nodeAlias.Name,
 	}), err
 }
 
@@ -266,13 +309,26 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
-
-
-	// TODO 任务列表, 需要自己处理下 当前组织参与的任务信息 (然后做合并)
-	//localTaskArray, err := s.carrier.carrierDB.GetLocalResourceList()
-
-	taskArray, err := s.carrier.carrierDB.GetTaskList()
-	return types.NewTaskDetailShowArrayFromTaskDataArray(taskArray), err
+	// the task is executing.
+	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
+	if err != nil {
+		return nil, err
+	}
+	localIdentityId, err := s.carrier.carrierDB.GetIdentityId()
+	if err != nil {
+		return nil, err
+	}
+	result := make(types.TaskDataArray, 0)
+	result = append(result, localTaskArray...)
+	// the task has been executed.
+	networkTaskList, err := s.carrier.carrierDB.GetTaskList()
+	for _, networkTask := range networkTaskList {
+		if networkTask.TaskData().GetIdentity() != localIdentityId {
+			continue
+		}
+		result = append(result, networkTask)
+	}
+	return types.NewTaskDetailShowArrayFromTaskDataArray(result), err
 }
 
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
@@ -280,3 +336,44 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	return types.NewTaskEventFromAPIEvent(taskEvent), err
 }
 
+// about DataResourceTable
+func (s *CarrierAPIBackend) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) RemoveDataResourceTable(nodeId string) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error) {
+	return nil, nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceTables() ([]*types.DataResourceTable, error) {
+	return nil, nil
+}
+
+// about DataResourceDataUsed
+func (s *CarrierAPIBackend) StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) RemoveDataResourceDataUsed(originId string) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error) {
+	return nil, nil
+}
+
+func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error) {
+	return nil, nil
+}

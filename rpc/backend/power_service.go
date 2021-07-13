@@ -31,7 +31,6 @@ import (
 //	return nil, nil
 //}
 func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
-
 	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetTotalPowerListStr)
@@ -39,7 +38,6 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 	respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
 
 	for i, power := range powerList {
-
 		resp := &pb.GetPowerTotalDetailResponse{
 			Owner: types.ConvertNodeAliasToPB(power.Owner),
 			Power: &pb.PowerTotalDetail{
@@ -58,7 +56,6 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 }
 
 func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
-
 	powerList, err := svr.B.GetPowerSingleDetailList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetSinglePowerListStr)
@@ -87,7 +84,6 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 }
 
 func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
-
 	if req == nil || req.Owner == nil {
 		return nil, errors.New("required owner")
 	}
@@ -96,14 +92,6 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	}
 	
 	powerMsg := types.NewPowerMessageFromRequest(req)
-	/*powerMsg.Data.JobNodeId = req.JobNodeId
-	powerMsg.Data.CreateAt = uint64(time.Now().UnixNano())
-	powerMsg.Data.Name = req.Owner.Name
-	powerMsg.Data.NodeId = req.Owner.NodeId
-	powerMsg.Data.IdentityId = req.Owner.IdentityId
-	powerMsg.Data.Information.Processor = req.Information.Processor
-	powerMsg.Data.Information.Mem = req.Information.Mem
-	powerMsg.Data.Information.Bandwidth = req.Information.Bandwidth*/
 	powerId := powerMsg.GetPowerId()
 
 	err := svr.B.SendMsg(powerMsg)
@@ -126,11 +114,6 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	}
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 	powerRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
-
-	/*powerRevokeMsg.Name = req.Owner.Name
-	powerRevokeMsg.NodeId = req.Owner.NodeId
-	powerRevokeMsg.IdentityId = req.Owner.IdentityId
-	powerRevokeMsg.PowerId = req.PowerId*/
 
 	err := svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
