@@ -144,7 +144,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 }
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
-	// current node need to connect with seed node.
+	//TODO: current node need to connect with seed node.(delay processing)
 	return s.carrier.carrierDB.SetSeedNode(seed)
 }
 
@@ -224,17 +224,25 @@ func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*t
 	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
 }
 
+// GetMetaDataDetailList returns a list of all metadata details in the network.
 func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
 	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
 }
 
+//TODO: 调度服务是否需要提供该接口，管理台自身维护的数据应该能支持该条件的检索。
 func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
 	return nil, nil
 }
 
 // power api
 func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) {
+	//TODO: 该接口应该是用于提供给管理台调用，用于进行算力数据同步的
+	/*resourceList, err := s.carrier.carrierDB.GetResourceList()
+	if err != nil {
+		return nil, err
+	}*/
+
 	return nil, nil
 }
 
@@ -244,6 +252,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 
 // identity api
 func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {
+	//TODO: 申请身份标识时，相关数据需要进行本地存储，然后进行网络发布
 	return s.carrier.carrierDB.InsertIdentity(identity)
 }
 
@@ -266,12 +275,26 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
-
-	// TODO 任务列表, 需要自己处理下 当前组织参与的任务信息 (然后做合并)
-	//localTaskArray, err := s.carrier.carrierDB.GetLocalResourceList()
-
-	taskArray, err := s.carrier.carrierDB.GetTaskList()
-	return types.NewTaskDetailShowArrayFromTaskDataArray(taskArray), err
+	// the task is executing.
+	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
+	if err != nil {
+		return nil, err
+	}
+	localIdentityId, err := s.carrier.carrierDB.GetIdentityId()
+	if err != nil {
+		return nil, err
+	}
+	result := make(types.TaskDataArray, 0)
+	result = append(result, localTaskArray...)
+	// the task has been executed.
+	networkTaskList, err := s.carrier.carrierDB.GetTaskList()
+	for _, networkTask := range networkTaskList {
+		if networkTask.TaskData().GetIdentity() != localIdentityId {
+			continue
+		}
+		result = append(result, networkTask)
+	}
+	return types.NewTaskDetailShowArrayFromTaskDataArray(result), err
 }
 
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {

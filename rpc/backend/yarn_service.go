@@ -121,7 +121,6 @@ func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Em
 }
 
 func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
-
 	seedNode := &types.SeedNodeInfo{
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
@@ -145,7 +144,6 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 }
 
 func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
-
 	seedNode := &types.SeedNodeInfo{
 		Id:           req.Id,
 		InternalIp:   req.InternalIp,
@@ -202,7 +200,6 @@ func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.Empty
 }
 
 func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) (*pb.SetDataNodeResponse, error) {
-
 	node := &types.RegisteredNodeInfo{
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
@@ -259,7 +256,6 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 }
 
 func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
-
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
 		return nil, NewRpcBizErr(ErrDeleteDataNodeInfoStr)
 	}
@@ -406,7 +402,6 @@ func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req
 }
 
 func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
-
 	jobNodeList, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetJobNodeListStr)
@@ -427,12 +422,11 @@ func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.R
 	}
 	return &pb.SimpleResponseCode{
 		Status: 0,
-		Msg: OK,
+		Msg:    OK,
 	}, nil
 }
 
-
-func (svr *YarnServiceServer)  QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
+func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrQueryDataResourceTableListStr)
@@ -451,12 +445,11 @@ func (svr *YarnServiceServer)  QueryAvailableDataNode(ctx context.Context, req *
 	}
 
 	return &pb.QueryAvailableDataNodeResponse{
-			Ip: dataNode.InternalIp,
-			Port: dataNode.InternalPort,
+		Ip:   dataNode.InternalIp,
+		Port: dataNode.InternalPort,
 	}, nil
 }
-func (svr *YarnServiceServer)  QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error){
-
+func (svr *YarnServiceServer) QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error) {
 	dataResourceDataUsed, err := svr.B.QueryDataResourceDataUsed(req.OriginId)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrQueryDataResourceDataUsedStr)
@@ -467,9 +460,8 @@ func (svr *YarnServiceServer)  QueryFilePosition(ctx context.Context, req *pb.Qu
 	}
 
 	return &pb.QueryFilePositionResponse{
-		Ip: dataNode.InternalIp,
-		Port: dataNode.InternalPort,
+		Ip:       dataNode.InternalIp,
+		Port:     dataNode.InternalPort,
 		FilePath: dataResourceDataUsed.GetFilePath(),
 	}, nil
 }
-

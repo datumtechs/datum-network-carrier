@@ -189,6 +189,7 @@ func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap
 		return ctypes.ErrConfirmMsgIllegal
 	}
 	// When comfirm first epoch
+	//TODO: ConfirmEpochFirst and ConfirmEpochSecond is missing.
 	/*if proposalState.IsPreparePeriod() && ctypes.ConfirmEpochFirst.Uint64() != confirmMsg.Epoch {
 		return ctypes.ErrConfirmMsgIllegal
 	}
