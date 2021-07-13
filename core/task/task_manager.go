@@ -2,6 +2,7 @@ package task
 
 import (
 	"fmt"
+	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -24,20 +25,19 @@ type Manager struct {
 	// send the validated taskMsgs to scheduler
 	sendTaskCh chan<- types.TaskMsgs
 	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
-	recvSchedTaskCh  chan *types.ConsensusScheduleTask
+	recvSchedTaskCh  chan *types.ConsensusScheduleTaskWrap
 	runningTaskCache map[string]*types.ConsensusScheduleTask
 
 	// internal resource node set (Fighter node grpc client set)
 	resourceClientSet *grpclient.InternalResourceClientSet
 
-	// TODO 用于接收 己方已连接 或 断开连接的 Fighter-Py 的 grpc client
 
 }
 
 func NewTaskManager(dataCenter core.CarrierDB, eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager, resourceClientSet *grpclient.InternalResourceClientSet,
 	taskCh chan types.TaskMsgs, sendTaskCh chan types.TaskMsgs,
-	recvSchedTaskCh chan *types.ConsensusScheduleTask) *Manager {
+	recvSchedTaskCh chan *types.ConsensusScheduleTaskWrap) *Manager {
 
 	m := &Manager{
 		eventCh:           make(chan *types.TaskEventInfo, 10),
@@ -62,9 +62,22 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 		return ev.IncEventType
 	}
 	// TODO need to validate the task that have been processing ? Maybe~
-	if event.Type == ev.ExecuteComputeSucceed.Type || event.Type == ev.ExecuteComputeFailed.Type {
-		m.eventEngine.StoreEvent(event)
-////// 
+	if event.Type == ev.TaskExecuteEOF.Type {
+
+		if task, ok := m.runningTaskCache[event.TaskId]; ok {
+			defer func() {
+				delete( m.runningTaskCache, event.TaskId)
+			}()
+			if task.TaskDir == ctypes.RecvTaskDir {  // 需要 读出自己本地的 event 发给 task 的发起者
+				/*eventList, err := m.dataCenter.GetTaskEventList(event.TaskId);
+				if nil != err {
+					log.Error("Failed to query all recv task event on myself", "taskId", event.TaskId, "err", err)
+					return  err
+				}*/
+
+			}
+		}
+
 		return nil
 	} else {
 		return m.eventEngine.StoreEvent(event)
@@ -75,31 +88,20 @@ func (m *Manager) loop() {
 
 	for {
 		select {
+		// 自己组织的 Fighter 上报过来的 event
 		case event := <-m.eventCh:
 			if err := m.handleEvent(event); nil != err {
 				log.Error("Failed to store task event on local", "taskId", event.TaskId, "event", event.String())
 			}
 		case task := <-m.recvSchedTaskCh:
-			// 对接收到 经 Scheduler  调度好的 task  转发给自己的 Fighter-Py
-			switch task.TaskState {
+			switch task.Task.TaskState {
 			case types.TaskStateFailed, types.TaskStateSuccess:
-				eventList, err := m.dataCenter.GetTaskEventList(task.SchedTask.TaskId)
-				if nil != err {
-					log.Error("Failed to Query all task event list for sending datacenter", "taskId", task.SchedTask.TaskId)
-					continue
-				}
-				if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(task.SchedTask, eventList)); nil != err {
-					log.Error("Failed to save task to datacenter", "taskId", task.SchedTask.TaskId)
-					continue
-				}
-				// clean local task cache
-				delete(m.runningTaskCache, task.SchedTask.TaskId)
+				// 判断是否 taskDir 决定是否直接 往 dataCenter 发送数据
+				m.pulishFinishedTask(task.Task.SchedTask)
 			case types.TaskStateRunning:
-				m.runningTaskCache[task.SchedTask.TaskId] = task
-				// TODO 发给 Fighter-py
 
 			default:
-				log.Error("Failed to handle unknown task", "taskId", task.SchedTask.TaskId)
+				log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
 			}
 		default:
 		}
@@ -150,9 +152,77 @@ func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 	return nil
 }
 
-//func (m *Manager) driveTask(task *types.ConsensusScheduleTask) error {
-//
-//}
+func (m *Manager) driveTask(taskRole types.TaskRole , task *types.ConsensusScheduleTask) error {
+	m.runningTaskCache[task.SchedTask.TaskId] = task
+
+	//switch taskRole {
+	//case types.TaskOnwer:
+	//	// 找到自己 metaDataId 所在的那台主机
+	//	m.executeTaskOnDataNode()
+	//case types.DataSupplier:
+	//	// 找到自己 metaDataId 所在的那台主机
+	//
+	//case types.PowerSupplier:
+	//	// 找到自己 power 所在的那台主机
+	//
+	//case types.ResultSupplier:
+	//	// 找到自己 用来存放 结果的 所在的那台主机
+	//}
+	//resource, err := m.dataCenter.QueryLocalTaskPowerUsed(task.SchedTask.TaskId)
+	//if nil != err {
+	//	log.Error("Failed to QueryLocalTaskPowerUsed on datacenter", "taskId", task.SchedTask.TaskId)
+	//	m.eventEngine.GenerateEvent()  // 生成一个 失败 event
+	//	// 判断是否 taskDir 决定是否直接 往 dataCenter 发送数据
+	//	m.pulishFinishedTask(task.SchedTask)
+	//}
+	//// TODO 发给 Fighter-py
+	return nil
+}
+
+func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.ConsensusScheduleTask) error {
+
+	// clinet *grpclient.DataNodeClient,
+	client, isconn := m.resourceClientSet.QueryDataNodeClient(nodeId)
+	if !isconn {
+		if err := client.Reconnect(); nil != err {
+			log.Error("Failed to connect internal data node", "nodeId", nodeId, "err", err)
+			return err
+		}
+	}
+	//  TODO 下发任务
+
+	return nil
+}
+
+func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.ConsensusScheduleTask) error {
+
+	//clinet *grpclient.JobNodeClient,
+	client, isconn := m.resourceClientSet.QueryJobNodeClient(nodeId)
+	if !isconn {
+		if err := client.Reconnect(); nil != err {
+			log.Error("Failed to connect internal job node", "nodeId", nodeId, "err", err)
+			return err
+		}
+	}
+	//  TODO 下发任务
+
+	return nil
+}
+
+
+func (m *Manager) pulishFinishedTask(schedTask *types.ScheduleTask) {
+	eventList, err := m.dataCenter.GetTaskEventList(schedTask.TaskId)
+	if nil != err {
+		log.Error("Failed to Query all task event list for sending datacenter", "taskId", schedTask.TaskId)
+		return
+	}
+	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(schedTask, eventList)); nil != err {
+		log.Error("Failed to save task to datacenter", "taskId", schedTask.TaskId)
+		return
+	}
+	// clean local task cache
+	delete(m.runningTaskCache, schedTask.TaskId)
+}
 
 func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventData, reason string) error {
 
