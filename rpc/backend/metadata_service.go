@@ -52,7 +52,6 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 }
 
 func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataDetailListResponse, error) {
-
 	metaDataList, err := svr.B.GetMetaDataDetailList()
 	if nil != err {
 		return nil, NewRpcBizErr(ErrGetMetaDataDetailListStr)
@@ -110,18 +109,6 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
 	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 
-	/*metaDataMsg.Data.Name = req.Owner.Name
-	metaDataMsg.Data.NodeId = req.Owner.NodeId
-	metaDataMsg.Data.IdentityId = req.Owner.IdentityId
-	metaDataMsg.Data.Information.MetaDataSummary.TableName = req.Information.MetaDataSummary.TableName
-	metaDataMsg.Data.Information.MetaDataSummary.FilePath = req.Information.MetaDataSummary.FilePath
-	metaDataMsg.Data.Information.MetaDataSummary.OriginId = req.Information.MetaDataSummary.OriginId
-	metaDataMsg.Data.Information.MetaDataSummary.Desc = req.Information.MetaDataSummary.Desc
-	metaDataMsg.Data.Information.MetaDataSummary.FileType = req.Information.MetaDataSummary.FileType
-	metaDataMsg.Data.Information.MetaDataSummary.Size = req.Information.MetaDataSummary.Size_
-	metaDataMsg.Data.Information.MetaDataSummary.HasTitle = req.Information.MetaDataSummary.HasTitle
-	metaDataMsg.Data.Information.MetaDataSummary.State = req.Information.MetaDataSummary.State*/
-
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
 		ColumnMeta := &libtypes.ColumnMeta{
@@ -153,11 +140,6 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	}
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
-	/*metaDataRevokeMsg.MetaDataId = req.MetaDataId
-	metaDataRevokeMsg.Name = req.Owner.Name
-	metaDataRevokeMsg.NodeId = req.Owner.NodeId
-	metaDataRevokeMsg.IdentityId = req.Owner.IdentityId*/
-
 	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
 		return nil, NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
