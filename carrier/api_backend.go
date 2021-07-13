@@ -230,23 +230,57 @@ func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, e
 	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
 }
 
-//TODO: 调度服务是否需要提供该接口，管理台自身维护的数据应该能支持该条件的检索。
 func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
-	return nil, nil
+	log.WithField("identityId", identityId).Debug("Invoke: GetMetaDataDetailListByOwner executing...")
+	metadataList, err := s.GetMetaDataDetailList()
+	if err != nil {
+		return nil, err
+	}
+	result := make([]*types.OrgMetaDataInfo, 0)
+	for _, metadata := range metadataList {
+		if metadata.Owner.IdentityId == identityId {
+			result = append(result, metadata)
+		}
+	}
+	return result, nil
 }
 
 // power api
 func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) {
-	//TODO: 该接口应该是用于提供给管理台调用，用于进行算力数据同步的
-	/*resourceList, err := s.carrier.carrierDB.GetResourceList()
+	log.Debug("Invoke: GetPowerTotalDetailList executing...")
+	resourceList, err := s.carrier.carrierDB.GetResourceList()
 	if err != nil {
 		return nil, err
-	}*/
-
-	return nil, nil
+	}
+	powerList := make([]*types.OrgPowerDetail, 0, resourceList.Len())
+	for _, resource := range resourceList.To() {
+		powerList = append(powerList, &types.OrgPowerDetail{
+			Owner:       &types.NodeAlias{
+				Name:       resource.GetNodeName(),
+				NodeId:     resource.GetNodeId(),
+				IdentityId: resource.GetIdentity(),
+			},
+			PowerDetail: &types.PowerTotalDetail{
+				TotalTaskCount:   0,
+				CurrentTaskCount: 0,
+				Tasks:            make([]*types.PowerTask, 0),
+				ResourceUsage:    &types.ResourceUsage{
+					TotalMem:       resource.GetTotalMem(),
+					UsedMem:        resource.GetUsedMem(),
+					TotalProcessor: resource.GetTotalProcessor(),
+					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalBandwidth: resource.GetTotalBandWidth(),
+					UsedBandwidth:  resource.GetUsedBandWidth(),
+				},
+				State:            resource.GetState(),
+			},
+		})
+	}
+	return powerList, nil
 }
 
 func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
+	// 本机存储的所有计算节点的信息
 	return nil, nil // TODO 未完成,  需要查自己参与过的任务信息
 }
 
