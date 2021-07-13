@@ -3,15 +3,15 @@ package rawdb
 import "github.com/RosettaFlow/Carrier-Go/common"
 
 var (
-	nodeResourceKeyPrefix   = []byte("NodeResourceKey:")
-	nodeResourceIdListKey   = []byte("nodeResourceIdListKey")
-	orgResourceKeyPrefix    = []byte("OrgResourceKey:")
-	orgResourceIdListKey    = []byte("OrgResourceIdListKey")
-	nodeResourceSlotUnitKey = []byte("nodeResourceSlotKey")
-	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKey:")
-	localTaskPowerUsedIdListKey = []byte("localTaskPowerUsedIdListKey")
-	dataRereouceTableKeyPrefix = []byte("dataRereouceTableKey:")
-	dataRereouceTableIdListKey = []byte("dataRereouceTableIdListKey")
+	nodeResourceKeyPrefix         = []byte("NodeResourceKey:")
+	nodeResourceIdListKey         = []byte("nodeResourceIdListKey")
+	orgResourceKeyPrefix          = []byte("OrgResourceKey:")
+	orgResourceIdListKey          = []byte("OrgResourceIdListKey")
+	nodeResourceSlotUnitKey       = []byte("nodeResourceSlotKey")
+	localTaskPowerUsedKeyPrefix   = []byte("localTaskPowerUsedKey:")
+	localTaskPowerUsedIdListKey   = []byte("localTaskPowerUsedIdListKey")
+	dataResourceTableKeyPrefix    = []byte("dataResourceTableKey:")
+	dataResourceTableIdListKey    = []byte("dataResourceTableIdListKey")
 	dataResourceDataUsedKeyPrefix = []byte("dataResourceDataUsedKey:")
 	dataResourceDataUsedIdListKey = []byte("dataResourceDataUsedIdListKey")
 
@@ -45,11 +45,11 @@ func GetLocalTaskPowerUsedIdListKey() []byte {
 }
 
 
-func GetDataRereouceTableKey(nodeId string) []byte {
-	return append(dataRereouceTableKeyPrefix, []byte(nodeId)...)
+func GetDataResourceTableKey(nodeId string) []byte {
+	return append(dataResourceTableKeyPrefix, []byte(nodeId)...)
 }
-func GetDataRereouceTableIdListKey() []byte {
-	return dataRereouceTableIdListKey
+func GetDataResourceTableIdListKey() []byte {
+	return dataResourceTableIdListKey
 }
 
 

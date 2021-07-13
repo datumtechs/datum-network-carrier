@@ -14,7 +14,9 @@ var (
 	ErrSetDataNodeInfoStr    = "Failed to set data node info"
 	ErrDeleteDataNodeInfoStr = "Failed to delete data node info"
 	ErrGetDataNodeListStr    = "Failed to get data nodes"
+	ErrGetDataNodeInfoStr    = "Failed to get data node info"
 	ErrSetJobNodeInfoStr     = "Failed to set job node info"
+	ErrGetJobNodeListStr    = "Failed to get data nodes"
 	ErrDeleteJobNodeInfoStr  = "Failed to delete job node info"
 	ErrSendPowerMsgStr       = "Failed to send powerMsg"
 	ErrSendMetaDataMsgStr    = "Failed to send metaDataMsg"
@@ -40,6 +42,11 @@ var (
 
 	ErrGetNodeTaskListStr = "Failed to get all task of current node"
 	ErrGetNodeTaskEventListStr = "Failed to get all event of current node's task"
+
+	ErrFetchRpcMetadataCtxStr = "Failed to fetch rpc metadata ctx"
+	ErrReportUpFileSummaryStr = "Failed to ReportUpFileSummary"
+	ErrQueryDataResourceTableListStr = "Failed to query dataResourceTableList"
+	ErrQueryDataResourceDataUsedStr = "Failed to query dataResourceDataUsed"
 )
 
 type YarnServiceServer struct {

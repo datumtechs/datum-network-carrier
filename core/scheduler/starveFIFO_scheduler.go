@@ -128,9 +128,14 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			if bullet.Resched > ReschedMaxCount {
 				// TODO 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
 				log.Error("The number of times the task has been rescheduled exceeds the expected threshold", "taskId", bullet.TaskId)
+
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type,
 					task.TaskId, task.Onwer().IdentityId, fmt.Sprintf(
 						"The number of times the task has been rescheduled exceeds the expected threshold")))
+				sche.SendTaskToTaskManager(&types.ConsensusScheduleTask{
+					TaskState:              types.TaskStateFailed,
+					SchedTask:              types.ConvertTaskMsgToScheduleTask(task, nil),
+				})
 			} else {
 				if bullet.Starve {
 					heap.Push(sche.starveQueue, bullet)
@@ -168,13 +173,13 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		}
 
 		// Send task to consensus Engine to consensus.
-		scheduleTask := buildScheduleTask(task, powers)
+		scheduleTask := types.ConvertTaskMsgToScheduleTask(task, powers)
 		toConsensusTask := &types.ConsensusTaskWrap{
 			Task:         scheduleTask,
 			SelfResource: selfResourceInfo,
 			ResultCh:     make(chan *types.ConsensuResult, 0),
 		}
-		sche.SendTaskWihtConsensus(toConsensusTask)
+		sche.SendTaskToConsensus(toConsensusTask)
 		consensusRes := toConsensusTask.RecvResult()
 
 		// Consensus failed, task needs to be suspended and rescheduled
@@ -192,13 +197,14 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 		// the task has consensus succeed, need send `Fighter-Py` node
 		// (On taskManager)
-		sche.sendSchedTaskCh <- &types.ConsensusScheduleTask{
+		sche.SendTaskToTaskManager(&types.ConsensusScheduleTask{
+			TaskState:              types.TaskStateRunning,
 			SchedTask:              scheduleTask,
 			OwnerResource:          consensusRes.OwnerResource,
 			PartnersResource:       consensusRes.PartnersResource,
 			PowerSuppliersResource: consensusRes.PowerSuppliersResource,
 			ReceiversResource:      consensusRes.ReceiversResource,
-		}
+		})
 	}()
 
 	return nil
@@ -241,6 +247,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 				log.Errorf("Failed to election power org, err: %s", err)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 					schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+
+
 				return
 			}
 
@@ -432,54 +440,11 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(calculateCount int, cost *ty
 	return orgs, nil
 }
 
-func (sche *SchedulerStarveFIFO) SendTaskWihtConsensus(task *types.ConsensusTaskWrap) {
+func (sche *SchedulerStarveFIFO) SendTaskToConsensus(task *types.ConsensusTaskWrap) {
 	sche.schedTaskCh <- task
 }
-
-func buildScheduleTask(task *types.TaskMsg, powers []*types.NodeAlias) *types.ScheduleTask {
-
-	partners := make([]*types.ScheduleTaskDataSupplier, len(task.PartnerTaskSuppliers()))
-	for i, p := range task.PartnerTaskSuppliers() {
-		partner := &types.ScheduleTaskDataSupplier{
-			NodeAlias: &types.NodeAlias{
-				Name:       p.Name,
-				NodeId:     p.NodeId,
-				IdentityId: p.IdentityId,
-			},
-			MetaData: p.MetaData,
-		}
-		partners[i] = partner
-	}
-
-	powerArr := make([]*types.ScheduleTaskPowerSupplier, len(powers))
-	for i, p := range powers {
-		power := &types.ScheduleTaskPowerSupplier{
-			NodeAlias: p,
-		}
-		powerArr[i] = power
-	}
-
-	receivers := make([]*types.ScheduleTaskResultReceiver, len(task.ReceiverDetails()))
-	for i, r := range task.ReceiverDetails() {
-		receiver := &types.ScheduleTaskResultReceiver{
-			NodeAlias: r.NodeAlias,
-			Providers: r.Providers,
-		}
-		receivers[i] = receiver
-	}
-	return &types.ScheduleTask{
-		TaskId:   task.TaskId,
-		TaskName: task.TaskName(),
-		Owner: &types.ScheduleTaskDataSupplier{
-			NodeAlias: task.Onwer(),
-			MetaData:  task.OwnerTaskSupplier().MetaData,
-		},
-		Partners:              partners,
-		PowerSuppliers:        powerArr,
-		Receivers:             receivers,
-		CalculateContractCode: task.CalculateContractCode(),
-		DataSplitContractCode: task.DataSplitContractCode(),
-		OperationCost:         task.OperationCost(),
-		CreateAt:              task.CreateAt(),
-	}
+func (sche *SchedulerStarveFIFO) SendTaskToTaskManager(task *types.ConsensusScheduleTask) {
+	sche.sendSchedTaskCh <- task
 }
+
+

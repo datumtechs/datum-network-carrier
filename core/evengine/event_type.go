@@ -104,8 +104,8 @@ var (
 	BuildTaskEnvSucceed   = NewEventType("0309008", "Build computational task environment successfully.")
 	StartComputeTask      = NewEventType("0309009", "Starts the computation task.")
 	CancelComputeTask     = NewEventType("0309010", "Cancel the execution of a computation task.")
-	ExecuteComputeSucceed = NewEventType("0309011", "The computation task executed successfully.")
-	ExecuteComputeFailed  = NewEventType("0309012", "The computation task failed to execute.")
+	ExecuteComputeSucceed = NewEventType("0309011", "The computation task executed successfully.") // 计算成功
+	ExecuteComputeFailed  = NewEventType("0309012", "The computation task failed to execute.") // 计算失败
 	ReportComputeResult   = NewEventType("0309013", "Report of calculation results.")
 	ReportTaskUsage       = NewEventType("0309014", "Resource usage for reporting tasks.")
 )

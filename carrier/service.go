@@ -54,11 +54,10 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
-	localTaskCh, schedTaskCh, remoteTaskCh, sendTaskCh, recvSchedTaskCh :=
+	localTaskCh, schedTaskCh, remoteTaskCh, recvSchedTaskCh :=
 		make(chan types.TaskMsgs, 27),
 		make(chan *types.ConsensusTaskWrap, 100),
 		make(chan *types.ScheduleTaskWrap, 100),
-		make(chan types.TaskMsgs, 10),
 		make(chan *types.ConsensusScheduleTask, 10)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
@@ -66,7 +65,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	resourceMng := resource.NewResourceManager(config.CarrierDB)
 
 	taskManager := task.NewTaskManager(nil, eventEngine, resourceMng,
-		resourceClientSet, taskCh, sendTaskCh, recvSchedTaskCh)
+		resourceClientSet, taskCh, localTaskCh, recvSchedTaskCh)
 
 	s := &Service{
 		ctx:             ctx,

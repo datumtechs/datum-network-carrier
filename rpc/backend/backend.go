@@ -23,10 +23,7 @@ type Backend interface {
 
 	SendTaskEvent(event *types.TaskEventInfo) error
 
-	// TODO 需要实现的
-	//ReportUpFileSummary(context.Context, *ReportUpFileSummaryRequest) (*SimpleResponseCode, error)
-	//QueryAvailableDataNode(context.Context, *QueryAvailableDataNodeRequest) (*QueryAvailableDataNodeResponse, error)
-	//QueryFilePosition(context.Context, *QueryFilePositionRequest) (*QueryFilePositionResponse, error)
+
 
 	// metadata api
 	GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error)
@@ -46,4 +43,18 @@ type Backend interface {
 	// task api
 	GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	GetTaskEventList(taskId string) ([]*types.TaskEvent, error)
+
+	// about DataResourceTable
+	StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
+	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
+	RemoveDataResourceTable(nodeId string) error
+	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
+	QueryDataResourceTables() ([]*types.DataResourceTable, error)
+
+	// about DataResourceDataUsed
+	StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error
+	StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error
+	RemoveDataResourceDataUsed(originId string) error
+	QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error)
+	QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error)
 }
