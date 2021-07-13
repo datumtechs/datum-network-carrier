@@ -702,6 +702,9 @@ func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
 }
 
 func (dc *DataCenter) CleanTaskEventList(taskId string) error  {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	rawdb.DeleteTaskEvent(dc.db, taskId)
 	return nil
 }
 

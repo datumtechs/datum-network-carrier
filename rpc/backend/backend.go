@@ -23,18 +23,14 @@ type Backend interface {
 
 	SendTaskEvent(event *types.TaskEventInfo) error
 
-
-
 	// metadata api
 	GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error)
 	GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error)
 	GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error)
 
-
 	// power api
 	GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error)
 	GetPowerSingleDetailList() ([]*types.NodePowerDetail, error)
-
 
 	// identity api
 	GetNodeIdentity() (*types.Identity, error)
@@ -45,16 +41,16 @@ type Backend interface {
 	GetTaskEventList(taskId string) ([]*types.TaskEvent, error)
 
 	// about DataResourceTable
-	StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
-	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
-	RemoveDataResourceTable(nodeId string) error
-	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
+	//StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
+	//StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
+	//RemoveDataResourceTable(nodeId string) error
+	//QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
 
 	// about DataResourceDataUsed
 	StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error
 	StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error
-	RemoveDataResourceDataUsed(originId string) error
+	//RemoveDataResourceDataUsed(originId string) error
 	QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error)
-	QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error)
+	//QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error)
 }
