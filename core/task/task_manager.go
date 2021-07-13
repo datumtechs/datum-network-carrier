@@ -69,11 +69,11 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 				delete( m.runningTaskCache, event.TaskId)
 			}()
 			if task.TaskDir == ctypes.RecvTaskDir {  // 需要 读出自己本地的 event 发给 task 的发起者
-				eventList, err := m.dataCenter.GetTaskEventList(event.TaskId);
+				/*eventList, err := m.dataCenter.GetTaskEventList(event.TaskId);
 				if nil != err {
 					log.Error("Failed to query all recv task event on myself", "taskId", event.TaskId, "err", err)
 					return  err
-				}
+				}*/
 
 			}
 		}
@@ -101,7 +101,7 @@ func (m *Manager) loop() {
 			case types.TaskStateRunning:
 
 			default:
-				log.Error("Failed to handle unknown task", "taskId", task.SchedTask.TaskId)
+				log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
 			}
 		default:
 		}
