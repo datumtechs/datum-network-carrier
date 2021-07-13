@@ -7,6 +7,8 @@ import (
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -197,8 +199,16 @@ func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.ConsensusSche
 			return err
 		}
 	}
-	//  TODO 下发任务
-
+	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.SchedTask, task.Resources))
+	if nil != err {
+		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, err)
+		return err
+	}
+	if !resp.Ok {
+		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, resp.Msg)
+		return nil
+	}
+	log.Infof("Success to publish schedTask to `data-Fighter` node to executing, taskId: %s", task.SchedTask.TaskId)
 	return nil
 }
 
@@ -212,9 +222,17 @@ func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.ConsensusSched
 			return err
 		}
 	}
-	//  TODO 下发任务
-	
 
+	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.SchedTask, task.Resources))
+	if nil != err {
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, err)
+		return err
+	}
+	if !resp.Ok {
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, resp.Msg)
+		return nil
+	}
+	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: %s", task.SchedTask.TaskId)
 	return nil
 }
 
@@ -373,4 +391,11 @@ func (m *Manager) convertScheduleTaskToTask(task *types.ScheduleTask, eventList 
 	//	CreateAt:              task.CreateAt(),
 	//}
 	return nil
+}
+// TODO 转换
+func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.ScheduleTask, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
+
+	return &common.TaskReadyGoReq{
+
+	}
 }
