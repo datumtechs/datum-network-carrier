@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
@@ -128,4 +129,10 @@ func (c *DataNodeClient) DeleteData(in *datasvc.DownloadRequest) (*datasvc.Uploa
 
 func (c *DataNodeClient) SendSharesData(in *datasvc.SendSharesDataRequest) (*datasvc.SendSharesDataReply, error) {
 	return nil, errors.New("method SendSharesData not implemented")
+}
+
+func (c *DataNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error) {
+	ctx, cancel := context.WithTimeout(c.ctx, defaultRequestTime)
+	defer cancel()
+	return c.dataProviderClient.HandleTaskReadyGo(ctx, req)
 }
