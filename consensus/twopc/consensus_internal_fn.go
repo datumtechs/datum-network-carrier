@@ -85,13 +85,14 @@ func (t *TwoPC) delProposalState(proposalId common.Hash) {
 }
 func (t *TwoPC) delProposalStateAndTask(proposalId common.Hash) {
 	if state := t.state.GetProposalState(proposalId); t.state.EmptyInfo() != state {
+		log.Infof("Start remove proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.TaskId)
 		t.state.CleanProposalState(proposalId)
 		t.delTask(state.TaskId)
 	}
 }
 
 func (t *TwoPC) sendTaskToTaskManagerForExecute(task *types.DoneScheduleTaskChWrap) {
-	t.recvSchedTaskCh <- task
+	t.doneScheduleTaskCh <- task
 }
 
 func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
@@ -196,6 +197,7 @@ func (t *TwoPC) driveTask(
 		},
 		ResultCh: recvTaskResultCh,
 	}
+	// 发给 taskManager 去执行 task
 	t.sendTaskToTaskManagerForExecute(taskWrap)
 	go func() {
 		if taskDir == types.RecvTaskDir {

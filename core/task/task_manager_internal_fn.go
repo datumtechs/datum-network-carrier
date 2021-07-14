@@ -175,6 +175,8 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId string) {
 	close(taskWrap.ResultCh)
 	// clean local task cache
 	m.removeRunningTaskCache(taskId)
+	// 解锁 本地 资源缓存
+	m.resourceMng.UnLockLocalResourceWithTask(taskId)
 }
 
 
@@ -199,6 +201,8 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 	close(taskWrap.ResultCh)
 	// clean local task cache
 	m.removeRunningTaskCache(taskWrap.Task.SchedTask.TaskId)
+	// 解锁 本地 资源缓存
+	m.resourceMng.UnLockLocalResourceWithTask(taskId)
 }
 
 func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventData, reason string) error {
@@ -407,7 +411,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 
-			// 发起方直接 往 dataCenter 发送数据
+			// 发起方直接 往 dataCenter 发送数据 (里面有解锁 本地资源 ...)
 			m.pulishFinishedTaskToDataCenter(taskId)
 
 		case types.TaskStateRunning:
@@ -416,10 +420,9 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 				log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 					task.Task.SchedTask.TaskId, task.Task.SchedTask.Owner.IdentityId, fmt.Sprintf("failed to execute task"))
-				// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter
+				// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter  (里面有解锁 本地资源 ...)
 				m.dataCenter.StoreTaskEvent(event)
-				m.pulishFinishedTaskToDataCenter(taskId)
-
+				m.pulishFinishedTaskToDataCenter(taskId)  //
 			}
 			// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
 		default:
@@ -431,7 +434,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 	default:
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
-			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
+			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..  (里面有解锁 本地资源 ...)
 			m.sendTaskResultMsgToConsensus(taskId)
 		case types.TaskStateRunning:
 
@@ -441,7 +444,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 					task.Task.SchedTask.TaskId, identityId, fmt.Sprintf("failed to execute task"))
 
-				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
+				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者.. (里面有解锁 本地资源 ...)
 				m.dataCenter.StoreTaskEvent(event)
 				m.sendTaskResultMsgToConsensus(taskId)
 			}

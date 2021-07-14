@@ -98,6 +98,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	s.Engines[types.TwopcTyp] = twopc.New( // todo the 2pc config will be setup
 		&twopc.Config{},
 		s.carrierDB,
+		resourceMng,
 		s.config.p2p,
 		needConsensusTaskCh,
 		replayScheduleTaskCh,
