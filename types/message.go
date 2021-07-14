@@ -67,11 +67,11 @@ func (msg *IdentityMsg) ToDataCenter() *Identity {
 		Identity: msg.IdentityId,
 	})
 }
-func (msg *IdentityMsg) Marshal() ([]byte, error)       { return nil, nil }
-func (msg *IdentityMsg) Unmarshal(b []byte) error       { return nil }
-func (msg *IdentityMsg) String() string                 {
+func (msg *IdentityMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *IdentityMsg) Unmarshal(b []byte) error { return nil }
+func (msg *IdentityMsg) String() string {
 	result, err := json.Marshal(msg)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
@@ -83,14 +83,14 @@ func (msg *IdentityMsg) OwnerIdentityId() string        { return msg.IdentityId 
 func (msg *IdentityMsg) MsgCreateAt() uint64            { return msg.CreateAt }
 func (msg *IdentityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *IdentityRevokeMsg) Unmarshal(b []byte) error { return nil }
-func (msg *IdentityRevokeMsg) String() string           {
+func (msg *IdentityRevokeMsg) String() string {
 	result, err := json.Marshal(msg)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *IdentityRevokeMsg) MsgType() string          { return MSG_IDENTITY_REVOKE }
+func (msg *IdentityRevokeMsg) MsgType() string { return MSG_IDENTITY_REVOKE }
 
 // ------------------- power -------------------
 
@@ -156,11 +156,11 @@ type PowerRevokeMsgs []*PowerRevokeMsg
 
 func (msg *PowerMsg) ToLocal() *LocalResource {
 	return NewLocalResource(&libTypes.LocalResourceData{
-		Identity: msg.OwnerIdentityId(),
-		NodeId:   msg.OwnerNodeId(),
-		NodeName: msg.OwnerName(),
+		Identity:  msg.OwnerIdentityId(),
+		NodeId:    msg.OwnerNodeId(),
+		NodeName:  msg.OwnerName(),
 		JobNodeId: msg.JobNodeId(),
-		DataId:   msg.PowerId,
+		DataId:    msg.PowerId,
 		// the status of data, N means normal, D means deleted.
 		DataStatus: ResourceDataStatusN.String(),
 		// resource status, eg: create/release/revoke
@@ -201,14 +201,14 @@ func (msg *PowerMsg) ToDataCenter() *Resource {
 }
 func (msg *PowerMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerMsg) Unmarshal(b []byte) error { return nil }
-func (msg *PowerMsg) String() string           {
+func (msg *PowerMsg) String() string {
 	result, err := json.Marshal(msg)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *PowerMsg) MsgType() string          { return MSG_POWER }
+func (msg *PowerMsg) MsgType() string { return MSG_POWER }
 func (msg *PowerMsg) Onwer() *NodeAlias {
 	return &NodeAlias{
 		Name:       msg.Data.Name,
@@ -265,14 +265,14 @@ func (msg *PowerRevokeMsg) ToDataCenter() *Resource {
 }
 func (msg *PowerRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
-func (msg *PowerRevokeMsg) String() string           {
+func (msg *PowerRevokeMsg) String() string {
 	result, err := json.Marshal(msg)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *PowerRevokeMsg) MsgType() string          { return MSG_POWER_REVOKE }
+func (msg *PowerRevokeMsg) MsgType() string { return MSG_POWER_REVOKE }
 
 // Len returns the length of s.
 func (s PowerMsgs) Len() int { return len(s) }
@@ -371,7 +371,6 @@ func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDat
 type MetaDataMsgs []*MetaDataMsg
 type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
-
 func (msg *MetaDataMsg) ToDataCenter() *Metadata {
 	return NewMetadata(&libTypes.MetaData{
 		Identity:       msg.OwnerIdentityId(),
@@ -396,14 +395,14 @@ func (msg *MetaDataMsg) ToDataCenter() *Metadata {
 }
 func (msg *MetaDataMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetaDataMsg) Unmarshal(b []byte) error { return nil }
-func (msg *MetaDataMsg) String() string           {
+func (msg *MetaDataMsg) String() string {
 	result, err := json.Marshal(msg)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *MetaDataMsg) MsgType() string          { return MSG_METADATA }
+func (msg *MetaDataMsg) MsgType() string { return MSG_METADATA }
 func (msg *MetaDataMsg) Onwer() *NodeAlias {
 	return &NodeAlias{
 		Name:       msg.Data.Name,
@@ -459,14 +458,14 @@ func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
 }
 func (msg *MetaDataRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetaDataRevokeMsg) Unmarshal(b []byte) error { return nil }
-func (msg *MetaDataRevokeMsg) String() string           {
+func (msg *MetaDataRevokeMsg) String() string {
 	result, err := json.Marshal(msg)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *MetaDataRevokeMsg) MsgType() string          { return MSG_METADATA_REVOKE }
+func (msg *MetaDataRevokeMsg) MsgType() string { return MSG_METADATA_REVOKE }
 
 // Len returns the length of s.
 func (s MetaDataMsgs) Len() int { return len(s) }
@@ -543,7 +542,8 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 		Data: &taskdata{
 			TaskName: req.TaskName,
 			Owner: &TaskSupplier{
-				NodeAlias: &NodeAlias{
+				TaskNodeAlias: &TaskNodeAlias{
+					PartyId:    req.Owner.MemberInfo.PartyId,
 					Name:       req.Owner.MemberInfo.Name,
 					NodeId:     req.Owner.MemberInfo.NodeId,
 					IdentityId: req.Owner.MemberInfo.IdentityId,
@@ -554,9 +554,11 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 				},
 			},
 			Partners:              make([]*TaskSupplier, 0),
+			PowerPartyIds:         req.PowerPartyIds,
 			Receivers:             make([]*TaskResultReceiver, 0),
 			CalculateContractCode: req.CalculateContractcode,
 			DataSplitContractCode: req.DatasplitContractcode,
+			ContractExtraParams:   req.ContractExtraParams,
 			OperationCost: &TaskOperationCost{
 				Processor: req.OperationCost.CostProcessor,
 				Mem:       req.OperationCost.CostMem,
@@ -566,12 +568,12 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 		},
 	}
 }
-func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*NodeAlias) *ScheduleTask {
-
+func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*TaskNodeAlias) *ScheduleTask {
 	partners := make([]*ScheduleTaskDataSupplier, len(task.PartnerTaskSuppliers()))
 	for i, p := range task.PartnerTaskSuppliers() {
 		partner := &ScheduleTaskDataSupplier{
-			NodeAlias: &NodeAlias{
+			TaskNodeAlias: &TaskNodeAlias{
+				PartyId:    p.PartyId,
 				Name:       p.Name,
 				NodeId:     p.NodeId,
 				IdentityId: p.IdentityId,
@@ -584,7 +586,7 @@ func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*NodeAlias) *ScheduleT
 	powerArr := make([]*ScheduleTaskPowerSupplier, len(powers))
 	for i, p := range powers {
 		power := &ScheduleTaskPowerSupplier{
-			NodeAlias: p,
+			TaskNodeAlias: p,
 		}
 		powerArr[i] = power
 	}
@@ -592,8 +594,8 @@ func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*NodeAlias) *ScheduleT
 	receivers := make([]*ScheduleTaskResultReceiver, len(task.ReceiverDetails()))
 	for i, r := range task.ReceiverDetails() {
 		receiver := &ScheduleTaskResultReceiver{
-			NodeAlias: r.NodeAlias,
-			Providers: r.Providers,
+			TaskNodeAlias: r.TaskNodeAlias,
+			Providers:     r.Providers,
 		}
 		receivers[i] = receiver
 	}
@@ -601,8 +603,8 @@ func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*NodeAlias) *ScheduleT
 		TaskId:   task.TaskId,
 		TaskName: task.TaskName(),
 		Owner: &ScheduleTaskDataSupplier{
-			NodeAlias: task.Onwer(),
-			MetaData:  task.OwnerTaskSupplier().MetaData,
+			TaskNodeAlias: task.Onwer(),
+			MetaData:      task.OwnerTaskSupplier().MetaData,
 		},
 		Partners:              partners,
 		PowerSuppliers:        powerArr,
@@ -613,13 +615,16 @@ func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*NodeAlias) *ScheduleT
 		CreateAt:              task.CreateAt(),
 	}
 }
+
 type taskdata struct {
 	TaskName              string                `json:"taskName"`
 	Owner                 *TaskSupplier         `json:"owner"`
 	Partners              []*TaskSupplier       `json:"partners"`
+	PowerPartyIds         []string              `json:"powerPartyIds"`
 	Receivers             []*TaskResultReceiver `json:"receivers"`
 	CalculateContractCode string                `json:"calculateContractCode"`
 	DataSplitContractCode string                `json:"dataSplitContractCode"`
+	ContractExtraParams   string                `json:"contractExtraParams"`
 	OperationCost         *TaskOperationCost    `json:"spend"`
 	CreateAt              uint64                `json:"createAt"`
 }
@@ -628,16 +633,17 @@ type TaskMsgs []*TaskMsg
 
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
-func (msg *TaskMsg) String() string           {
+func (msg *TaskMsg) String() string {
 	result, err := json.Marshal(msg)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *TaskMsg) MsgType() string          { return MSG_TASK }
-func (msg *TaskMsg) Onwer() *NodeAlias {
-	return &NodeAlias{
+func (msg *TaskMsg) MsgType() string { return MSG_TASK }
+func (msg *TaskMsg) Onwer() *TaskNodeAlias {
+	return &TaskNodeAlias{
+		PartyId:    msg.Data.Owner.PartyId,
 		Name:       msg.Data.Owner.Name,
 		NodeId:     msg.Data.Owner.NodeId,
 		IdentityId: msg.Data.Owner.IdentityId,
@@ -660,6 +666,7 @@ func (msg *TaskMsg) Partners() []*NodeAlias {
 	return partners
 }
 func (msg *TaskMsg) PartnerTaskSuppliers() []*TaskSupplier { return msg.Data.Partners }
+func (msg *TaskMsg) PowerPartyIds() []string               { return msg.Data.PowerPartyIds }
 func (msg *TaskMsg) Receivers() []*NodeAlias {
 	receivers := make([]*NodeAlias, len(msg.Data.Receivers))
 	for i, v := range msg.Data.Receivers {
@@ -674,6 +681,7 @@ func (msg *TaskMsg) Receivers() []*NodeAlias {
 func (msg *TaskMsg) ReceiverDetails() []*TaskResultReceiver { return msg.Data.Receivers }
 func (msg *TaskMsg) CalculateContractCode() string          { return msg.Data.CalculateContractCode }
 func (msg *TaskMsg) DataSplitContractCode() string          { return msg.Data.DataSplitContractCode }
+func (msg *TaskMsg) ContractExtraParams() string            { return msg.Data.ContractExtraParams }
 func (msg *TaskMsg) OperationCost() *TaskOperationCost      { return msg.Data.OperationCost }
 func (msg *TaskMsg) CreateAt() uint64                       { return msg.Data.CreateAt }
 func (msg *TaskMsg) GetTaskId() string {
@@ -700,7 +708,7 @@ func (s TaskMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
 
 type TaskSupplier struct {
-	*NodeAlias
+	*TaskNodeAlias
 	MetaData *SupplierMetaData `json:"metaData"`
 }
 
@@ -710,8 +718,8 @@ type SupplierMetaData struct {
 }
 
 type TaskResultReceiver struct {
-	*NodeAlias
-	Providers []*NodeAlias `json:"providers"`
+	*TaskNodeAlias
+	Providers []*TaskNodeAlias `json:"providers"`
 }
 
 type TaskOperationCost struct {
@@ -720,7 +728,6 @@ type TaskOperationCost struct {
 	Bandwidth uint64 `json:"bandwidth"`
 	Duration  uint64 `json:"duration"`
 }
-
 
 func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *pb.TaskOperationCostDeclare {
 	return &pb.TaskOperationCostDeclare{
@@ -766,6 +773,13 @@ type DataAuthorizationConfirm struct {
 // ------------------- common -------------------
 
 type NodeAlias struct {
+	Name       string `json:"name"`
+	NodeId     string `json:"nodeId"`
+	IdentityId string `json:"identityId"`
+}
+
+type TaskNodeAlias struct {
+	PartyId    string `json:"partyId"`
 	Name       string `json:"name"`
 	NodeId     string `json:"nodeId"`
 	IdentityId string `json:"identityId"`

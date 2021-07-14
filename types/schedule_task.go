@@ -65,10 +65,6 @@ type ConsensusScheduleTask struct {
 	TaskState 			   TaskState
 	SchedTask              *ScheduleTask
 	Resources               *pb.ConfirmTaskPeerInfo
-	//OwnerResource          *PrepareVoteResource
-	//PartnersResource       []*PrepareVoteResource
-	//PowerSuppliersResource []*PrepareVoteResource
-	//ReceiversResource      []*PrepareVoteResource
 }
 
 type ScheduleTask struct {
@@ -85,11 +81,11 @@ type ScheduleTask struct {
 }
 
 type ScheduleTaskDataSupplier struct {
-	*NodeAlias
+	*TaskNodeAlias
 	MetaData *SupplierMetaData `json:"metaData"`
 }
 type ScheduleTaskPowerSupplier struct {
-	*NodeAlias
+	*TaskNodeAlias
 }
 
 type ScheduleSupplierMetaData struct {
@@ -98,8 +94,8 @@ type ScheduleSupplierMetaData struct {
 }
 
 type ScheduleTaskResultReceiver struct {
-	*NodeAlias
-	Providers []*NodeAlias `json:"providers"`
+	*TaskNodeAlias
+	Providers []*TaskNodeAlias `json:"providers"`
 }
 
 type TaskConsStatus uint16

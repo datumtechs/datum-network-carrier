@@ -73,7 +73,8 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	partners := make([]*types.TaskSupplier, len(req.Partners))
 	for i, v := range req.Partners {
 		partner := &types.TaskSupplier{
-			NodeAlias: &types.NodeAlias{
+			TaskNodeAlias: &types.TaskNodeAlias{
+				PartyId:    v.MemberInfo.PartyId,
 				Name:       v.MemberInfo.Name,
 				NodeId:     v.MemberInfo.NodeId,
 				IdentityId: v.MemberInfo.IdentityId,
@@ -90,9 +91,10 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	receivers := make([]*types.TaskResultReceiver, len(req.Receivers))
 	for i, v := range req.Receivers {
 
-		providers := make([]*types.NodeAlias, len(v.Providers))
+		providers := make([]*types.TaskNodeAlias, len(v.Providers))
 		for j, val := range v.Providers {
-			provider := &types.NodeAlias{
+			provider := &types.TaskNodeAlias{
+				PartyId:    val.PartyId,
 				Name:       val.Name,
 				NodeId:     val.NodeId,
 				IdentityId: val.IdentityId,
@@ -101,7 +103,8 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 		}
 
 		receiver := &types.TaskResultReceiver{
-			NodeAlias: &types.NodeAlias{
+			TaskNodeAlias: &types.TaskNodeAlias{
+				PartyId:    v.MemberInfo.PartyId,
 				Name:       v.MemberInfo.Name,
 				NodeId:     v.MemberInfo.NodeId,
 				IdentityId: v.MemberInfo.IdentityId,

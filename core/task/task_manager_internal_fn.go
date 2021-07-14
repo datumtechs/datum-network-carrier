@@ -324,7 +324,16 @@ func (m *Manager) convertScheduleTaskToTask(task *types.ScheduleTask, eventList 
 func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.ScheduleTask, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
 
 	return &common.TaskReadyGoReq{
-
+		//TaskId
+		//ContractId
+		//DataId
+		//PartyId
+		//EnvId
+		//Peers
+		//ContractCfg
+		//DataParty
+		//ComputationParty
+		//ResultParty
 	}
 }
 
