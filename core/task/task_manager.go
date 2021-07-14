@@ -68,7 +68,7 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 				m.sendTaskResultMsgToConsensus(event.TaskId)
 
 			} else {
-				//  如果是 自己的task, 认为任务终止 ... 发送到 dataCenter
+				//  如果是 自己的task, 认为任务终止 ... 发送到 dataCenter (里面有解锁本地资源 ...)
 				m.pulishFinishedTaskToDataCenter(event.TaskId)
 			}
 		}
