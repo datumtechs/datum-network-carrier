@@ -10,20 +10,20 @@ type TaskEvent struct {
 }
 func ConvertTaskEventToPB (event *TaskEvent) *pb.TaskEventShow {
 	return &pb.TaskEventShow{
-		Type: event.Type,
-		TaskId: event.TaskId,
-		Owner: ConvertNodeAliasToPB(event.Owner),
-		Content: event.Content,
+		Type:     event.Type,
+		TaskId:   event.TaskId,
+		Owner:    ConvertNodeAliasToPB(event.Owner),
+		Content:  event.Content,
 		CreateAt: event.CreateAt,
 	}
 }
 
 func ConvertTaskEventFromPB (event *pb.TaskEventShow) *TaskEvent {
 	return &TaskEvent{
-		Type: event.Type,
-		TaskId: event.TaskId,
-		Owner: ConvertNodeAliasFromPB(event.Owner),
-		Content: event.Content,
+		Type:     event.Type,
+		TaskId:   event.TaskId,
+		Owner:    ConvertNodeAliasFromPB(event.Owner),
+		Content:  event.Content,
 		CreateAt: event.CreateAt,
 	}
 }
@@ -34,10 +34,10 @@ func ConvertTaskEventArrToPB (events []*TaskEvent) []*pb.TaskEventShow {
 	arr := make([]*pb.TaskEventShow, len(events))
 	for i, event := range events {
 		e := &pb.TaskEventShow{
-			Type: event.Type,
-			TaskId: event.TaskId,
-			Owner: ConvertNodeAliasToPB(event.Owner),
-			Content: event.Content,
+			Type:     event.Type,
+			TaskId:   event.TaskId,
+			Owner:    ConvertNodeAliasToPB(event.Owner),
+			Content:  event.Content,
 			CreateAt: event.CreateAt,
 		}
 		arr[i] = e
@@ -50,10 +50,10 @@ func ConvertTaskEventArrFromPB (events []*pb.TaskEventShow) []*TaskEvent {
 	arr := make([]*TaskEvent, len(events))
 	for i, event := range events {
 		e := &TaskEvent{
-			Type: event.Type,
-			TaskId: event.TaskId,
-			Owner: ConvertNodeAliasFromPB(event.Owner),
-			Content: event.Content,
+			Type:     event.Type,
+			TaskId:   event.TaskId,
+			Owner:    ConvertNodeAliasFromPB(event.Owner),
+			Content:  event.Content,
 			CreateAt: event.CreateAt,
 		}
 		arr[i] = e
