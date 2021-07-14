@@ -9,11 +9,8 @@ import (
 
 
 type MempoolConfig struct {
+	NodeId    string
 }
-
-
-
-
 
 
 
@@ -72,6 +69,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 	switch msg.(type) {
 	case *types.IdentityMsg:
 		identity, _ := msg.(*types.IdentityMsg)
+		identity.NodeId = pool.cfg.NodeId
 		// We've directly injected a replacement identityMsg, notify subsystems
 		go pool.msgFeed.Send(types.IdentityMsgEvent{identity})
 
