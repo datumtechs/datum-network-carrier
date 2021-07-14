@@ -10,8 +10,8 @@ import "lib/center/api/metadata.proto";
 
 // 任务摘要信息
 message TaskSummaryResponse {
-    string                task_id   = 1;
-    string                task_name = 2;
+    string                    task_id   = 1;
+    string                    task_name = 2;
     TaskOrganization          owner     = 3;
     repeated TaskOrganization partners  = 4;
   // 任务结果方（有多个）
@@ -44,7 +44,7 @@ message TaskDetail {
     string task_id   = 1;
     string task_name = 2;
   // 任务发起方组织
-    TaskTaskOrganization owner = 3;
+    TaskOrganization owner = 3;
   // 算法提供方组织
     TaskOrganization algo_supplier = 4;
   // 数据提供方组信息
