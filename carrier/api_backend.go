@@ -280,8 +280,123 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 }
 
 func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
-	// 本机存储的所有计算节点的信息
-	return nil, nil // TODO 未完成,  需要查自己参与过的任务信息
+	log.Debug("Invoke:GetPowerSingleDetailList executing...")
+	// query local resource list from db.
+	machineList, err := s.carrier.carrierDB.GetLocalResourceList()
+	if err != nil {
+		return nil, err
+	}
+	// query used of power for local task.
+	localTaskPowerUsedList, err := s.carrier.carrierDB.QueryLocalTaskPowerUseds()
+	if err != nil {
+		return nil, err
+	}
+	slotUint, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
+	if err != nil {
+		return nil, err
+	}
+	validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
+	for _, jobNode := range machineList {
+		validLocalTaskPowerUsedList := make([]*types.LocalTaskPowerUsed, 0)
+		for _, taskPowerUsed := range localTaskPowerUsedList {
+			// condition: jobNode
+			if jobNode.GetJobNodeId() == taskPowerUsed.GetNodeId() {
+				validLocalTaskPowerUsedList = append(validLocalTaskPowerUsedList, taskPowerUsed)
+			}
+		}
+		validLocalTaskPowerUsedMap[jobNode.GetJobNodeId()] = validLocalTaskPowerUsedList
+	}
+	readElement := func(jobNodeId string, taskId string) (uint64){
+		if arr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
+			for _, powerUsed := range arr {
+				if jobNodeId == powerUsed.GetNodeId() && powerUsed.GetTaskId() == taskId {
+					return powerUsed.GetSlotCount()
+				}
+			}
+		}
+		return 0
+	}
+
+	buildPowerTaskList := func(jobNodeId string) []*types.PowerTask {
+		powerTaskList := make([]*types.PowerTask, 0)
+		if arr, ok := validLocalTaskPowerUsedMap[jobNodeId]; !ok {
+			for _, powerUsed := range arr {
+				taskId := powerUsed.GetTaskId()
+				task, err := s.carrier.carrierDB.GetLocalTask(taskId)
+				if err != nil {
+					continue
+				}
+				powerTask := &types.PowerTask{
+					TaskId:         taskId,
+					Owner:          &types.NodeAlias{
+						Name:       task.TaskData().GetNodeName(),
+						NodeId:     task.TaskData().GetNodeId(),
+						IdentityId: task.TaskData().GetIdentity(),
+					},
+					Patners:        make([]*types.NodeAlias, 0),
+					Receivers:      nil,
+					OperationCost:  &types.TaskOperationCost{
+						Processor: uint64(task.TaskData().GetTaskResource().GetCostProcessor()),
+						Mem:       uint64(task.TaskData().GetTaskResource().GetCostMem()),
+						Bandwidth: uint64(task.TaskData().GetTaskResource().GetCostBandwidth()),
+						Duration:  uint64(task.TaskData().GetTaskResource().GetDuration()),
+					},
+					OperationSpend: nil,
+				}
+				for _, partner := range task.TaskData().GetPartnerList() {
+					powerTask.Patners = append(powerTask.Patners, &types.NodeAlias{
+						Name:       partner.GetNodeName(),
+						NodeId:     partner.GetNodeId(),
+						IdentityId: partner.GetIdentity(),
+					})
+				}
+				slotCount := readElement(jobNodeId, powerTask.TaskId)
+				powerTask.OperationSpend = &types.TaskOperationCost{
+					Processor: slotUint.Processor * slotCount,
+					Mem:       slotUint.Mem * slotCount,
+					Bandwidth: slotUint.Bandwidth * slotCount,
+					Duration:  task.TaskData().GetTaskResource().GetDuration(),
+				}
+				powerTaskList = append(powerTaskList, powerTask)
+			}
+		}
+		return powerTaskList
+	}
+
+	taskCount := func(jobNodeId string) int {
+		return len(validLocalTaskPowerUsedMap[jobNodeId])
+	}
+	//
+	result := make([]*types.NodePowerDetail, 0)
+	for _, jobNode := range machineList.To() {
+		nodePowerDetail := &types.NodePowerDetail{
+			Owner:       &types.NodeAlias{
+				Name:       jobNode.GetNodeName(),
+				NodeId:     jobNode.GetNodeId(),
+				IdentityId: jobNode.GetIdentity(),
+			},
+			PowerDetail: &types.PowerSingleDetail{
+				JobNodeId:        jobNode.GetJobNodeId(),
+				PowerId:          "",
+				TotalTaskCount:   uint32(taskCount(jobNode.GetJobNodeId())),
+				CurrentTaskCount: uint32(taskCount(jobNode.GetJobNodeId())),
+				Tasks:            make([]*types.PowerTask, 0),
+				ResourceUsage:    &types.ResourceUsage{
+					TotalMem:       jobNode.GetTotalMem(),
+					UsedMem:        jobNode.GetUsedMem(),
+					TotalProcessor: jobNode.GetTotalProcessor(),
+					UsedProcessor:  jobNode.GetUsedProcessor(),
+					TotalBandwidth: jobNode.GetTotalBandWidth(),
+					UsedBandwidth:  jobNode.GetUsedBandWidth(),
+				},
+				State:            jobNode.GetState(),
+			},
+		}
+		powerTaskArray := buildPowerTaskList(jobNode.JobNodeId)
+		nodePowerDetail.PowerDetail.Tasks = powerTaskArray
+		result = append(result, nodePowerDetail)
+	}
+	return result, nil
 }
 
 // identity api
