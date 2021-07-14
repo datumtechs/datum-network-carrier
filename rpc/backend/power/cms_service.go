@@ -1,9 +1,10 @@
-package backend
+package power
 
 import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
@@ -33,13 +34,13 @@ import (
 func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetTotalPowerListStr)
+		return nil, backend.NewRpcBizErr(ErrGetTotalPowerListStr)
 	}
 	respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
 
 	for i, power := range powerList {
 		resp := &pb.GetPowerTotalDetailResponse{
-			Owner: types.ConvertTaskNodeAliasToPB(power.Owner),
+			Owner: types.ConvertNodeAliasToPB(power.Owner),
 			Power: &pb.PowerTotalDetail{
 				Information: types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
 				TotalTaskCount:power.PowerDetail.TotalTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
@@ -58,14 +59,14 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerSingleDetailList()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetSinglePowerListStr)
+		return nil, backend.NewRpcBizErr(ErrGetSinglePowerListStr)
 	}
 	respList := make([]*pb.GetPowerSingleDetailResponse, len(powerList))
 
 	for i, power := range powerList {
 
 		resp := &pb.GetPowerSingleDetailResponse{
-			Owner:  types.ConvertTaskNodeAliasToPB(power.Owner),
+			Owner:  types.ConvertNodeAliasToPB(power.Owner),
 			Power: &pb.PowerSingleDetail{
 				JobNodeId: power.PowerDetail.JobNodeId,
 				PowerId: power.PowerDetail.PowerId,
@@ -96,11 +97,11 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 
 	err := svr.B.SendMsg(powerMsg)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSendPowerMsgStr)
+		return nil, backend.NewRpcBizErr(ErrSendPowerMsgStr)
 	}
 	return &pb.PublishPowerResponse{
 		Status:  0,
-		Msg:     OK,
+		Msg:     backend.OK,
 		PowerId: powerId,
 	}, nil
 }
@@ -117,10 +118,10 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 
 	err := svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSendPowerRevokeMsgStr)
+		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgStr)
 	}
 	return &pb.SimpleResponseCode{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 	}, nil
 }
