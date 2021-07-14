@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 )
 
@@ -61,7 +60,7 @@ type ConsensusScheduleTaskWrap struct {
 	ResultCh  chan *TaskResultMsgWrap
 }
 type ConsensusScheduleTask struct {
-	TaskDir                types.ProposalTaskDir
+	TaskDir                ProposalTaskDir
 	TaskState 			   TaskState
 	SchedTask              *ScheduleTask
 	Resources               *pb.ConfirmTaskPeerInfo

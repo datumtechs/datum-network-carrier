@@ -30,7 +30,7 @@ func ReadLocalIdentity(db DatabaseReader) *types.NodeAlias {
 // WriteLocalIdentity stores the local identity.
 func WriteLocalIdentity(db DatabaseWriter, localIdentity *types.NodeAlias) {
 	pb := &libtypes.OrganizationData{
-		Alias:                localIdentity.GetNodeName(),
+		PartyId:              "",
 		Identity:             localIdentity.GetNodeIdentityId(),
 		NodeId:               localIdentity.GetNodeIdStr(),
 		NodeName:             localIdentity.GetNodeName(),

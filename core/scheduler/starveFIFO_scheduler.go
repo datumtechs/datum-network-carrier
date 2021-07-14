@@ -4,7 +4,6 @@ import (
 	"container/heap"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -143,7 +142,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 					SelfTaskRole: types.TaskOnwer,
 					// SelfPeerInfo: // TODO
 					Task: &types.ConsensusScheduleTask{
-						TaskDir:   ctypes.SendTaskDir,
+						TaskDir:   types.SendTaskDir,
 						TaskState: types.TaskStateFailed,
 						SchedTask: types.ConvertTaskMsgToScheduleTask(task, nil),
 					},
