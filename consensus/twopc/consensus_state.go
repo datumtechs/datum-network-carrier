@@ -264,6 +264,11 @@ func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
 func (s *state) CleanPrepareVoteState(proposalId common.Hash) {
 	delete(s.prepareVotes, proposalId)
 }
+func (s *state) GetTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
+	return s.GetTaskDataSupplierPrepareYesVoteCount(proposalId) +
+		s.GetTaskPowerSupplierPrepareYesVoteCount(proposalId) +
+		s.GetTaskResulterPrepareYesVoteCount(proposalId)
+}
 func (s *state) GetTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
@@ -284,6 +289,12 @@ func (s *state) GetTaskResulterPrepareYesVoteCount(proposalId common.Hash) uint3
 		return 0
 	}
 	return pvs.voteYesCount(types.ResultSupplier)
+}
+
+func (s *state) GetTaskPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+	return s.GetTaskDataSupplierPrepareTotalVoteCount(proposalId) +
+		s.GetTaskPowerSupplierPrepareTotalVoteCount(proposalId) +
+		s.GetTaskResulterPrepareTotalVoteCount(proposalId)
 }
 func (s *state) GetTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	pvs, ok := s.prepareVotes[proposalId]

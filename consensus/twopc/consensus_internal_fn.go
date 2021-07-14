@@ -122,6 +122,8 @@ func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskP
 }
 
 func (t *TwoPC) refreshProposalState() {
+
+	// TODO 这里需要管理 被锁定的 资源 ... (针对 任务参与方来说的 ...)  resourceManager 那边之前在 做 replay  schedule tsak 时 锁定的 ...
 	for id, proposalState := range t.state.GetProposalStates() {
 
 		switch proposalState.GetPeriod() {
