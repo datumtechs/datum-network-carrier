@@ -1,9 +1,10 @@
-package backend
+package task
 
 import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -19,7 +20,7 @@ import (
 func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskDetailListResponse, error) {
 	tasks, err := svr.B.GetTaskDetailList()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetNodeTaskListStr)
+		return nil, backend.NewRpcBizErr(ErrGetNodeTaskListStr)
 	}
 	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
 	for i, task := range tasks {
@@ -30,7 +31,7 @@ func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.Emp
 	}
 	return &pb.GetTaskDetailListResponse{
 		Status:   0,
-		Msg:      OK,
+		Msg:      backend.OK,
 		TaskList: arr,
 	}, nil
 }
@@ -39,12 +40,12 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 
 	events, err := svr.B.GetTaskEventList(req.TaskId)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetNodeTaskEventListStr)
+		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventListStr)
 	}
 
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
-		Msg:           OK,
+		Msg:           backend.OK,
 		TaskEventList: types.ConvertTaskEventArrToPB(events),
 	}, nil
 }
@@ -119,11 +120,11 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 
 	err := svr.B.SendMsg(taskMsg)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSendTaskMsgStr)
+		return nil, backend.NewRpcBizErr(ErrSendTaskMsgStr)
 	}
 	return &pb.PublishTaskDeclareResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		TaskId: taskId,
 	}, nil
 }

@@ -9,6 +9,11 @@ import (
 	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend/auth"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend/metadata"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend/power"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend/task"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend/yarn"
 	"github.com/RosettaFlow/Carrier-Go/rpc/debug"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/sirupsen/logrus"
@@ -107,11 +112,11 @@ func (s *Service) Start() error {
 	s.grpcServer = grpc.NewServer(opts...)
 
 	// init server instance and register server.
-	pb.RegisterYarnServiceServer(s.grpcServer, &backend.YarnServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterMetaDataServiceServer(s.grpcServer, &backend.MetaDataServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterPowerServiceServer(s.grpcServer, &backend.PowerServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterAuthServiceServer(s.grpcServer, &backend.AuthServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterTaskServiceServer(s.grpcServer, &backend.TaskServiceServer{ B: s.cfg.BackendAPI })
+	pb.RegisterYarnServiceServer(s.grpcServer, &yarn.YarnServiceServer{ B: s.cfg.BackendAPI })
+	pb.RegisterMetaDataServiceServer(s.grpcServer, &metadata.MetaDataServiceServer{ B: s.cfg.BackendAPI })
+	pb.RegisterPowerServiceServer(s.grpcServer, &power.PowerServiceServer{ B: s.cfg.BackendAPI })
+	pb.RegisterAuthServiceServer(s.grpcServer, &auth.AuthServiceServer{ B: s.cfg.BackendAPI })
+	pb.RegisterTaskServiceServer(s.grpcServer, &task.TaskServiceServer{ B: s.cfg.BackendAPI })
 
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")
