@@ -94,15 +94,14 @@ func (t *TwoPC) loop() {
 			// Start a goroutine to process a new schedTask
 			go func() {
 				if err := t.OnPrepare(taskWrap.Task); nil != err {
-					taskWrap.ResultCh <- &types.ConsensuResult{
+					taskWrap.SendResult(&types.ConsensuResult{
 						TaskConsResult: &types.TaskConsResult{
 							TaskId: taskWrap.Task.TaskId,
 							Status: types.TaskConsensusInterrupt,
 							Done:   false,
 							Err:    fmt.Errorf("failed to OnPrepare 2pc, %s", err),
 						},
-					}
-					close(taskWrap.ResultCh)
+					})
 					return
 				}
 				if err := t.OnHandle(taskWrap.Task, taskWrap.SelfResource, taskWrap.ResultCh); nil != err {

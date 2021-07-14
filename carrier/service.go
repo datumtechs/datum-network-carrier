@@ -48,9 +48,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
-	taskCh := make(chan types.TaskMsgs, 0)
-	pool := message.NewMempool(nil) // todo need  set mempool cfg
-
+	pool := message.NewMempool(&message.MempoolConfig{NodeId: " TODO 这里需要填写 读外部配置文件咯, nodeId"}) // todo need  set mempool cfg
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
@@ -69,7 +67,6 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		eventEngine,
 		resourceMng,
 		resourceClientSet,
-		taskCh,
 		localTaskCh,
 		recvSchedTaskCh,
 	)
