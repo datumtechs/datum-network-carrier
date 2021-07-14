@@ -1,15 +1,18 @@
 package task
 
 import (
+	"fmt"
+	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"time"
 )
 
 
 
-func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.ConsensusScheduleTask) error {
+func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.DoneScheduleTaskChWrap) error {
 
 	switch taskRole {
 	case types.TaskOnwer:
@@ -18,8 +21,8 @@ func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.Con
 		if nil != err {
 			return err
 		}
-		ip := string(task.Resources.OwnerPeerInfo.Ip)
-		port := string(task.Resources.OwnerPeerInfo.Port)
+		ip := string(task.Task.Resources.OwnerPeerInfo.Ip)
+		port := string(task.Task.Resources.OwnerPeerInfo.Port)
 
 		var dataNodeId string
 		for _, dataNode := range dataNodeList {
@@ -36,8 +39,8 @@ func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.Con
 			return err
 		}
 
-		tmp := make(map[string]struct{}, len(task.Resources.DataSupplierPeerInfoList))
-		for _, dataNode := range task.Resources.DataSupplierPeerInfoList {
+		tmp := make(map[string]struct{}, len(task.Task.Resources.DataSupplierPeerInfoList))
+		for _, dataNode := range task.Task.Resources.DataSupplierPeerInfoList {
 			tmp[string(dataNode.Ip) + "_" + string(dataNode.Port)] = struct{}{}
 		}
 
@@ -58,8 +61,8 @@ func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.Con
 			return err
 		}
 
-		tmp := make(map[string]struct{}, len(task.Resources.PowerSupplierPeerInfoList))
-		for _, jobNode := range task.Resources.PowerSupplierPeerInfoList {
+		tmp := make(map[string]struct{}, len(task.Task.Resources.PowerSupplierPeerInfoList))
+		for _, jobNode := range task.Task.Resources.PowerSupplierPeerInfoList {
 			tmp[string(jobNode.Ip) + "_" + string(jobNode.Port)] = struct{}{}
 		}
 
@@ -80,8 +83,8 @@ func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.Con
 			return err
 		}
 
-		tmp := make(map[string]struct{}, len(task.Resources.ResultReceiverPeerInfoList))
-		for _, receiveNode := range task.Resources.ResultReceiverPeerInfoList {
+		tmp := make(map[string]struct{}, len(task.Task.Resources.ResultReceiverPeerInfoList))
+		for _, receiveNode := range task.Task.Resources.ResultReceiverPeerInfoList {
 			tmp[string(receiveNode.Ip) + "_" + string(receiveNode.Port)] = struct{}{}
 		}
 
@@ -99,7 +102,7 @@ func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.Con
 	return nil
 }
 
-func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.ConsensusScheduleTask) error {
+func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.DoneScheduleTaskChWrap) error {
 
 	// clinet *grpclient.DataNodeClient,
 	client, isconn := m.resourceClientSet.QueryDataNodeClient(nodeId)
@@ -109,20 +112,24 @@ func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.ConsensusSche
 			return err
 		}
 	}
-	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.SchedTask, task.Resources))
+	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.Task.SchedTask, task.Task.Resources))
 	if nil != err {
-		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, err)
+		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 		return err
 	}
 	if !resp.Ok {
-		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, resp.Msg)
+		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: %s, %s", task.Task.SchedTask.TaskId, resp.Msg)
 		return nil
 	}
-	log.Infof("Success to publish schedTask to `data-Fighter` node to executing, taskId: %s", task.SchedTask.TaskId)
+
+	task.Task.SchedTask.StartAt = uint64(time.Now().UnixNano())
+	m.addRunningTaskCache(task)
+
+	log.Infof("Success to publish schedTask to `data-Fighter` node to executing, taskId: %s", task.Task.SchedTask.TaskId)
 	return nil
 }
 
-func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.ConsensusScheduleTask) error {
+func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.DoneScheduleTaskChWrap) error {
 
 	//clinet *grpclient.JobNodeClient,
 	client, isconn := m.resourceClientSet.QueryJobNodeClient(nodeId)
@@ -133,49 +140,65 @@ func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.ConsensusSched
 		}
 	}
 
-	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.SchedTask, task.Resources))
+	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.Task.SchedTask, task.Task.Resources))
 	if nil != err {
-		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, err)
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 		return err
 	}
 	if !resp.Ok {
-		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: %s, %s", task.SchedTask.TaskId, resp.Msg)
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: %s, %s", task.Task.SchedTask.TaskId, resp.Msg)
 		return nil
 	}
-	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: %s", task.SchedTask.TaskId)
+
+	task.Task.SchedTask.StartAt = uint64(time.Now().UnixNano())
+	m.addRunningTaskCache(task)
+	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: %s", task.Task.SchedTask.TaskId)
 	return nil
 }
 
 
-func (m *Manager) pulishFinishedTaskToDataCenter(task *types.ConsensusScheduleTaskWrap) {
-	eventList, err := m.dataCenter.GetTaskEventList(task.Task.SchedTask.TaskId)
+func (m *Manager) pulishFinishedTaskToDataCenter(taskId string) {
+	taskWrap, ok := m.queryRunningTaskCacheOk(taskId)
+	if !ok {
+		return
+	}
+
+	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId)
 	if nil != err {
-		log.Error("Failed to Query all task event list for sending datacenter", "taskId", task.Task.SchedTask.TaskId)
+		log.Error("Failed to Query all task event list for sending datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
 		return
 	}
-	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(task.Task.SchedTask, eventList)); nil != err {
-		log.Error("Failed to save task to datacenter", "taskId", task.Task.SchedTask.TaskId)
+	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList)); nil != err {
+		log.Error("Failed to save task to datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
 		return
 	}
-	close(task.ResultCh)
+	close(taskWrap.ResultCh)
 	// clean local task cache
-	m.removeRunningTaskCache(task.Task.SchedTask.TaskId)
+	m.removeRunningTaskCache(taskId)
 }
 
 
 func (m *Manager) sendTaskMsgsToScheduler(msgs types.TaskMsgs) {
-	m.sendTaskCh <- msgs
+	m.localTaskMsgCh <- msgs
 }
 func (m *Manager) sendTaskEvent(event *types.TaskEventInfo){
 	m.eventCh <- event
 }
 
-func (m *Manager) sendTaskResultMsgToConsensus(task *types.ConsensusScheduleTaskWrap) {
-	taskResultMsg := m.makeTaskResult(task)
-	task.ResultCh <- taskResultMsg
-	close(task.ResultCh)
+func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
+	taskWrap, ok := m.queryRunningTaskCacheOk(taskId)
+	if !ok {
+		log.Errorf( "Not found taskwrap, taskId: %s", taskId)
+		return
+	}
+	taskResultMsg := m.makeTaskResult(taskWrap)
+	if nil != taskResultMsg {
+		taskWrap.ResultCh <- taskResultMsg
+	}
+
+	close(taskWrap.ResultCh)
 	// clean local task cache
-	m.removeRunningTaskCache(task.Task.SchedTask.TaskId)
+	m.removeRunningTaskCache(taskWrap.Task.SchedTask.TaskId)
 }
 
 func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventData, reason string) error {
@@ -247,7 +270,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 		EventCount: uint32(len(events)),
 		// Desc
 		CreateAt: msg.CreateAt(),
-		// EndAt
+		EndAt: uint64(time.Now().UnixNano()),
 		// 少了 StartAt
 		AlgoSupplier: &libTypes.OrganizationData{
 			Alias: "",
@@ -318,6 +341,8 @@ func (m *Manager) convertScheduleTaskToTask(task *types.ScheduleTask, eventList 
 	//	OperationCost:         task.OperationCost(),
 	//	CreateAt:              task.CreateAt(),
 	//}
+
+	//EndAt:  time.Now().UnixNano()
 	return nil
 }
 // TODO 需要实现
@@ -337,9 +362,9 @@ func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.ScheduleTask, 
 	}
 }
 
-func (m *Manager) addRunningTaskCache(task *types.ConsensusScheduleTask) {
+func (m *Manager) addRunningTaskCache(task *types.DoneScheduleTaskChWrap) {
 	m.runningTaskCacheLock.Lock()
-	m.runningTaskCache[task.SchedTask.TaskId] = task
+	m.runningTaskCache[task.Task.SchedTask.TaskId] = task
 	m.runningTaskCacheLock.Unlock()
 }
 
@@ -349,21 +374,79 @@ func (m *Manager) removeRunningTaskCache(taskId string) {
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) queryRunningTaskCacheOk(taskId string) (*types.ConsensusScheduleTask, bool) {
+func (m *Manager) queryRunningTaskCacheOk(taskId string) (*types.DoneScheduleTaskChWrap, bool) {
 	task, ok := m.runningTaskCache[taskId]
 	return task, ok
 }
 
-func (m *Manager) queryRunningTaskCache(taskId string) *types.ConsensusScheduleTask {
+func (m *Manager) queryRunningTaskCache(taskId string) *types.DoneScheduleTaskChWrap {
 	task, _ := m.queryRunningTaskCacheOk(taskId)
 	return task
 }
 // TODO 需要实现
-func (m *Manager) makeTaskResult (task *types.ConsensusScheduleTaskWrap) *types.TaskResultMsgWrap {
+func (m *Manager) makeTaskResult (taskWrap *types.DoneScheduleTaskChWrap) *types.TaskResultMsgWrap {
+
 
 	// TODO 需要查出自己存在本地的所有 task 信息 和event 信息, 并删除本地 task  和 event 内容
 
 	return &types.TaskResultMsgWrap{
 
+	}
+}
+
+
+func (m *Manager) handleDoneScheduleTask(taskId string) {
+
+	task, ok := m.queryRunningTaskCacheOk(taskId)
+	if !ok {
+		return
+	}
+
+	switch task.SelfTaskRole {
+	case types.TaskOnwer:
+		switch task.Task.TaskState {
+		case types.TaskStateFailed, types.TaskStateSuccess:
+
+			// 发起方直接 往 dataCenter 发送数据
+			m.pulishFinishedTaskToDataCenter(taskId)
+
+		case types.TaskStateRunning:
+
+			if err := m.driveTaskForExecute(task.SelfTaskRole, task); nil != err {
+				log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
+				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+					task.Task.SchedTask.TaskId, task.Task.SchedTask.Owner.IdentityId, fmt.Sprintf("failed to execute task"))
+				// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter
+				m.dataCenter.StoreTaskEvent(event)
+				m.pulishFinishedTaskToDataCenter(taskId)
+
+			}
+			// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
+		default:
+			log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
+		}
+	//case types.DataSupplier:
+	//case types.PowerSupplier:
+	//case types.ResultSupplier:
+	default:
+		switch task.Task.TaskState {
+		case types.TaskStateFailed, types.TaskStateSuccess:
+			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
+			m.sendTaskResultMsgToConsensus(taskId)
+		case types.TaskStateRunning:
+
+			if err := m.driveTaskForExecute(task.SelfTaskRole, task); nil != err {
+				log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
+				identityId, _ := m.dataCenter.GetIdentityId()
+				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+					task.Task.SchedTask.TaskId, identityId, fmt.Sprintf("failed to execute task"))
+
+				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
+				m.dataCenter.StoreTaskEvent(event)
+				m.sendTaskResultMsgToConsensus(taskId)
+			}
+		default:
+			log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
+		}
 	}
 }

@@ -31,9 +31,9 @@ type TwoPC struct {
 	// fetch tasks scheduled from `Scheduler`
 	schedTaskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
-	replayTaskCh chan<- *types.ScheduleTaskWrap
+	replayTaskCh chan<- *types.ReplayScheduleTaskWrap
 	// send has consensused remote tasks to taskManager
-	recvSchedTaskCh chan<- *types.ConsensusScheduleTaskWrap
+	recvSchedTaskCh chan<- *types.DoneScheduleTaskChWrap
 	asyncCallCh     chan func()
 	quit            chan struct{}
 	// The task being processed by myself  (taskId -> task)
@@ -53,8 +53,8 @@ func New(
 	dataCenter iface.ForConsensusDB,
 	p2p p2p.P2P,
 	schedTaskCh chan *types.ConsensusTaskWrap,
-	replayTaskCh chan *types.ScheduleTaskWrap,
-	recvSchedTaskCh chan*types.ConsensusScheduleTaskWrap,
+	replayTaskCh chan *types.ReplayScheduleTaskWrap,
+	recvSchedTaskCh chan*types.DoneScheduleTaskChWrap,
 	) *TwoPC {
 	return &TwoPC{
 		config:       conf,
@@ -104,7 +104,7 @@ func (t *TwoPC) loop() {
 					})
 					return
 				}
-				if err := t.OnHandle(taskWrap.Task, taskWrap.SelfResource, taskWrap.ResultCh); nil != err {
+				if err := t.OnHandle(taskWrap.Task, taskWrap.OwnerDataResource, taskWrap.ResultCh); nil != err {
 					log.Error("Failed to OnStart 2pc", "err", err)
 				}
 			}()
@@ -279,7 +279,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	}
 
 	// Send task to Scheduler to replay sched.
-	replaySchedTask := &types.ScheduleTaskWrap{
+	replaySchedTask := &types.ReplayScheduleTaskWrap{
 		Role:     types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
 		Task:     task,
 		ResultCh: make(chan *types.ScheduleResult),

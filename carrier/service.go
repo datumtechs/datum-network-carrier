@@ -52,23 +52,23 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
-	localTaskCh, schedTaskCh, remoteTaskCh, recvSchedTaskCh :=
+	localTaskMsgCh, needConsensusTaskCh, replayScheduleTaskCh, doneScheduleTaskCh :=
 		make(chan types.TaskMsgs, 27),
 		make(chan *types.ConsensusTaskWrap, 100),
-		make(chan *types.ScheduleTaskWrap, 100),
-		make(chan *types.ConsensusScheduleTaskWrap, 10)
+		make(chan *types.ReplayScheduleTaskWrap, 100),
+		make(chan *types.DoneScheduleTaskChWrap, 10)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 
 	resourceMng := resource.NewResourceManager(config.CarrierDB)
 
 	taskManager := task.NewTaskManager(
-		nil,
+		config.CarrierDB,
 		eventEngine,
 		resourceMng,
 		resourceClientSet,
-		localTaskCh,
-		recvSchedTaskCh,
+		localTaskMsgCh,
+		doneScheduleTaskCh,
 	)
 
 	s := &Service{
@@ -84,10 +84,10 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 			eventEngine,
 			resourceMng,
 			config.CarrierDB,
-			localTaskCh,
-			schedTaskCh,
-			remoteTaskCh,
-			recvSchedTaskCh,
+			localTaskMsgCh,
+			needConsensusTaskCh,
+			replayScheduleTaskCh,
+			doneScheduleTaskCh,
 		),
 		resourceClientSet: resourceClientSet,
 	}
@@ -99,9 +99,9 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		&twopc.Config{},
 		s.carrierDB,
 		s.config.p2p,
-		schedTaskCh,
-		remoteTaskCh,
-		recvSchedTaskCh,
+		needConsensusTaskCh,
+		replayScheduleTaskCh,
+		doneScheduleTaskCh,
 	)
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 	// todo: set datachain....

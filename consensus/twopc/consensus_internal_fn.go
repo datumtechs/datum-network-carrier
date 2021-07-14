@@ -73,7 +73,7 @@ func (t *TwoPC) sendConsensusTaskResultToSched (result *types.ConsensuResult) {
 	t.taskResultLock.Unlock()
 }
 
-func (t *TwoPC) sendReplaySchedTask(replaySchedTask *types.ScheduleTaskWrap) {
+func (t *TwoPC) sendReplaySchedTask(replaySchedTask *types.ReplayScheduleTaskWrap) {
 	t.replayTaskCh <- replaySchedTask
 }
 
@@ -90,7 +90,7 @@ func (t *TwoPC) delProposalStateAndTask(proposalId common.Hash) {
 	}
 }
 
-func (t *TwoPC) sendTaskToTaskManagerForExecute(task *types.ConsensusScheduleTaskWrap) {
+func (t *TwoPC) sendTaskToTaskManagerForExecute(task *types.DoneScheduleTaskChWrap) {
 	t.recvSchedTaskCh <- task
 }
 
@@ -182,7 +182,7 @@ func (t *TwoPC) driveTask(
 		return
 	}
 	// Send task to TaskManager to execute
-	taskWrap := &types.ConsensusScheduleTaskWrap{
+	taskWrap := &types.DoneScheduleTaskChWrap{
 		ProposalId: proposalId,
 		SelfTaskRole: taskRole,
 		// SelfPeerInfo: // TODO

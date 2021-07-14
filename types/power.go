@@ -56,7 +56,7 @@ type PowerTask struct {
 func ConvertPowerTaskToPB(task *PowerTask) *pb.PowerTask {
 	return &pb.PowerTask{
 		TaskId:         task.TaskId,
-		Owner:          ConvertNodeAliasToPB(task.Owner),
+		Owner:          ConvertTaskNodeAliasToPB(task.Owner),
 		Patners:        ConvertNodeAliasArrToPB(task.Patners),
 		Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 		OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
@@ -66,7 +66,7 @@ func ConvertPowerTaskToPB(task *PowerTask) *pb.PowerTask {
 func ConvertPowerTaskFromPB(task *pb.PowerTask) *PowerTask {
 	return &PowerTask{
 		TaskId:         task.TaskId,
-		Owner:          ConvertNodeAliasFromPB(task.Owner),
+		Owner:          ConvertTaskNodeAliasFromPB(task.Owner),
 		Patners:        ConvertNodeAliasArrFromPB(task.Patners),
 		Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 		OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
@@ -80,7 +80,7 @@ func ConvertPowerTaskArrToPB(tasks []*PowerTask) []*pb.PowerTask {
 	for i, task := range tasks {
 		t := &pb.PowerTask{
 			TaskId:         task.TaskId,
-			Owner:          ConvertNodeAliasToPB(task.Owner),
+			Owner:          ConvertTaskNodeAliasToPB(task.Owner),
 			Patners:        ConvertNodeAliasArrToPB(task.Patners),
 			Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 			OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
@@ -95,7 +95,7 @@ func ConvertPowerTaskArrFromPB(tasks []*pb.PowerTask) []*PowerTask {
 	for i, task := range tasks {
 		t := &PowerTask{
 			TaskId:         task.TaskId,
-			Owner:          ConvertNodeAliasFromPB(task.Owner),
+			Owner:          ConvertTaskNodeAliasFromPB(task.Owner),
 			Patners:        ConvertNodeAliasArrFromPB(task.Patners),
 			Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 			OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
