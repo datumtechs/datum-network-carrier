@@ -163,6 +163,13 @@ func (m *Manager) pulishFinishedTaskToDataCenter(task *types.ConsensusScheduleTa
 }
 
 
+func (m *Manager) sendTaskMsgsToScheduler(msgs types.TaskMsgs) {
+	m.sendTaskCh <- msgs
+}
+func (m *Manager) sendTaskEvent(event *types.TaskEventInfo){
+	m.eventCh <- event
+}
+
 func (m *Manager) sendTaskResultMsgToConsensus(task *types.ConsensusScheduleTaskWrap) {
 	taskResultMsg := m.makeTaskResult(task)
 	task.ResultCh <- taskResultMsg

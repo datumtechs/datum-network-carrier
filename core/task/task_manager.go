@@ -12,23 +12,21 @@ import (
 )
 
 type Manager struct {
-	eventCh     chan *types.TaskEventInfo
 	dataCenter  core.CarrierDB
 	eventEngine *ev.EventEngine
 	resourceMng *resource.Manager
 	parser      *TaskParser
 	validator   *TaskValidator
-	// recv the taskMsgs from messageHandler
-	taskCh <-chan types.TaskMsgs
+	// internal resource node set (Fighter node grpc client set)
+	resourceClientSet *grpclient.InternalResourceClientSet
+
+	eventCh chan *types.TaskEventInfo
 	// send the validated taskMsgs to scheduler
 	sendTaskCh chan<- types.TaskMsgs
 	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
 	recvSchedTaskCh      chan *types.ConsensusScheduleTaskWrap
 	runningTaskCache     map[string]*types.ConsensusScheduleTask
 	runningTaskCacheLock sync.RWMutex
-
-	// internal resource node set (Fighter node grpc client set)
-	resourceClientSet *grpclient.InternalResourceClientSet
 }
 
 func NewTaskManager(
@@ -36,20 +34,18 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	resourceClientSet *grpclient.InternalResourceClientSet,
-	taskCh chan types.TaskMsgs,
 	sendTaskCh chan types.TaskMsgs,
 	recvSchedTaskCh chan *types.ConsensusScheduleTaskWrap,
 ) *Manager {
 
 	m := &Manager{
-		eventCh:           make(chan *types.TaskEventInfo, 10),
 		dataCenter:        dataCenter,
 		eventEngine:       eventEngine,
 		resourceMng:       resourceMng,
 		resourceClientSet: resourceClientSet,
 		parser:            newTaskParser(),
 		validator:         newTaskValidator(),
-		taskCh:            taskCh,
+		eventCh:           make(chan *types.TaskEventInfo, 10),
 		sendTaskCh:        sendTaskCh,
 		recvSchedTaskCh:   recvSchedTaskCh,
 		runningTaskCache:  make(map[string]*types.ConsensusScheduleTask, 0),
@@ -112,7 +108,7 @@ func (m *Manager) loop() {
 				case types.TaskStateRunning:
 
 					if err := m.driveTaskForExecute(task.SelfTaskRole, task.Task); nil != err {
-						log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s",task.Task.SchedTask.TaskId, err )
+						log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 						event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 							task.Task.SchedTask.TaskId, task.Task.SchedTask.Owner.IdentityId, fmt.Sprintf("failed to execute task"))
 						// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter
@@ -135,7 +131,7 @@ func (m *Manager) loop() {
 				case types.TaskStateRunning:
 
 					if err := m.driveTaskForExecute(task.SelfTaskRole, task.Task); nil != err {
-						log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s",task.Task.SchedTask.TaskId, err )
+						log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 						identityId, _ := m.dataCenter.GetIdentityId()
 						event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 							task.Task.SchedTask.TaskId, identityId, fmt.Sprintf("failed to execute task"))
@@ -188,7 +184,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 	}
 	// transfer `taskMsgs` to Scheduler
 	go func() {
-		m.sendTaskCh <- msgs
+		m.sendTaskMsgsToScheduler(msgs)
 	}()
 	return nil
 }
@@ -200,6 +196,6 @@ func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 		return err
 	}
 	event.Identity = identityId
-	m.eventCh <- event
+	m.sendTaskEvent(event)
 	return nil
 }
