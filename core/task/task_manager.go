@@ -61,12 +61,9 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 	// TODO need to validate the task that have been processing ? Maybe~
 	if event.Type == ev.TaskExecuteEOF.Type {
 		if task, ok := m.queryRunningTaskCacheOk(event.TaskId); ok {
-			defer func() {
-				m.removeRunningTaskCache(event.TaskId)
-			}()
 
 			if task.Task.TaskDir == types.RecvTaskDir {
-				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
+				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..  (里面有解锁本地资源 ...)
 				m.dataCenter.StoreTaskEvent(event)
 				m.sendTaskResultMsgToConsensus(event.TaskId)
 

@@ -225,12 +225,18 @@ func (m *Manager) refreshOrgResourceTable() error {
 	return nil
 }
 
+
+// TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
 func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint64, task *types.Task) error {
+
+	log.Infof("Start lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.TaskId(), jobNodeId, needSlotCount)
+
 	// Lock local resource (jobNode)
 	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {
 		log.Errorf("Failed to lock internal power resource, err: %s", err)
 		return fmt.Errorf("failed to lock internal power resource, err: %s", err)
 	}
+
 	//
 	if err := m.dataCenter.StoreLocalTask(task); nil != err {
 
@@ -256,9 +262,13 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 		log.Errorf("Failed to store local taskId use jobNode slot, err: %s", err)
 		return fmt.Errorf("failed to store local taskId use jobNode slot, err: %s", err)
 	}
+
+	log.Infof("Finished lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.TaskId(), jobNodeId, needSlotCount)
 	return nil
 }
-func  (m *Manager) UnLockLocalResourceWithTask(jobNodeId, taskId string) error {
+
+// TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
+func  (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 
 	localTaskPowerUsed, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId)
 	if nil != err {
@@ -266,8 +276,10 @@ func  (m *Manager) UnLockLocalResourceWithTask(jobNodeId, taskId string) error {
 		return fmt.Errorf("failed to query local taskId and jobNodeId index, err: %s", err)
 	}
 
+	log.Infof("Start unlock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", taskId, localTaskPowerUsed.GetNodeId(), localTaskPowerUsed.GetSlotCount())
+
 	// Lock local resource (jobNode)
-	if err := m.FreeSlot(jobNodeId, uint32(localTaskPowerUsed.GetSlotCount())); nil != err {
+	if err := m.FreeSlot(localTaskPowerUsed.GetNodeId(), uint32(localTaskPowerUsed.GetSlotCount())); nil != err {
 		log.Errorf("Failed to unlock internal power resource, err: %s", err)
 		return fmt.Errorf("failed to unlock internal power resource, err: %s", err)
 	}
@@ -276,7 +288,7 @@ func  (m *Manager) UnLockLocalResourceWithTask(jobNodeId, taskId string) error {
 		log.Errorf("Failed to remove local task, err: %s", err)
 		return fmt.Errorf("failed to remove local task, err: %s", err)
 	}
-	if err := m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, taskId); nil != err {
+	if err := m.dataCenter.RemoveJobNodeRunningTaskId(localTaskPowerUsed.GetNodeId(), taskId); nil != err {
 		log.Errorf("Failed to remove local taskId and jobNodeId index, err: %s", err)
 		return fmt.Errorf("failed to remove local taskId and jobNodeId index, err: %s", err)
 	}
@@ -285,6 +297,7 @@ func  (m *Manager) UnLockLocalResourceWithTask(jobNodeId, taskId string) error {
 		log.Errorf("Failed to remove local taskId use jobNode slot, err: %s", err)
 		return fmt.Errorf("failed to remove local taskId use jobNode slot, err: %s", err)
 	}
+	log.Infof("Finished unlock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", taskId, localTaskPowerUsed.GetNodeId(), localTaskPowerUsed.GetSlotCount())
 	return nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -16,26 +17,26 @@ import (
 )
 
 const (
-	defaultCleanExpireProposalInterval = 30 * time.Millisecond
+	defaultCleanExpireProposalInterval  = 30 * time.Millisecond
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
 )
 
 type TwoPC struct {
-	config     *Config
-	p2p        p2p.P2P
-	peerSet    *ctypes.PeerSet
-	state      *state
-	dataCenter iface.ForConsensusDB
-	// TODO 需要有一个地方 监听整个 共识结果 ...
+	config      *Config
+	p2p         p2p.P2P
+	peerSet     *ctypes.PeerSet
+	state       *state
+	dataCenter  iface.ForConsensusDB
+	resourceMng *resource.Manager
 
 	// fetch tasks scheduled from `Scheduler`
 	schedTaskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
 	replayTaskCh chan<- *types.ReplayScheduleTaskWrap
 	// send has consensused remote tasks to taskManager
-	recvSchedTaskCh chan<- *types.DoneScheduleTaskChWrap
-	asyncCallCh     chan func()
-	quit            chan struct{}
+	doneScheduleTaskCh chan<- *types.DoneScheduleTaskChWrap
+	asyncCallCh        chan func()
+	quit               chan struct{}
 	// The task being processed by myself  (taskId -> task)
 	sendTasks map[string]*types.ScheduleTask
 	// The task processing  that received someone else (taskId -> task)
@@ -51,24 +52,26 @@ type TwoPC struct {
 func New(
 	conf *Config,
 	dataCenter iface.ForConsensusDB,
+	resourceMng *resource.Manager,
 	p2p p2p.P2P,
 	schedTaskCh chan *types.ConsensusTaskWrap,
 	replayTaskCh chan *types.ReplayScheduleTaskWrap,
-	recvSchedTaskCh chan*types.DoneScheduleTaskChWrap,
-	) *TwoPC {
+	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
+) *TwoPC {
 	return &TwoPC{
-		config:       conf,
-		p2p:          p2p,
-		peerSet:      ctypes.NewPeerSet(10), // TODO 暂时写死的
-		state:        newState(),
-		dataCenter:   dataCenter,
-		schedTaskCh:  schedTaskCh,
-		replayTaskCh: replayTaskCh,
-		recvSchedTaskCh: recvSchedTaskCh,
-		asyncCallCh:  make(chan func(), conf.PeerMsgQueueSize),
-		quit:         make(chan struct{}),
-		sendTasks:    make(map[string]*types.ScheduleTask),
-		recvTasks:    make(map[string]*types.ScheduleTask),
+		config:     conf,
+		p2p:        p2p,
+		peerSet:    ctypes.NewPeerSet(10), // TODO 暂时写死的
+		state:      newState(),
+		dataCenter: dataCenter,
+		resourceMng: resourceMng,
+		schedTaskCh:        schedTaskCh,
+		replayTaskCh:       replayTaskCh,
+		doneScheduleTaskCh: doneScheduleTaskCh,
+		asyncCallCh:        make(chan func(), conf.PeerMsgQueueSize),
+		quit:               make(chan struct{}),
+		sendTasks:          make(map[string]*types.ScheduleTask),
+		recvTasks:          make(map[string]*types.ScheduleTask),
 
 		taskResultCh:  make(chan *types.ConsensuResult, 100),
 		taskResultChs: make(map[string]chan<- *types.ConsensuResult, 100),
@@ -116,8 +119,6 @@ func (t *TwoPC) loop() {
 				return
 			}
 			t.sendConsensusTaskResultToSched(res)
-
-		// TODO case : 需要做一次 confirmMsg 的超时 vote 重发机制, epoch 这时需要等于 2
 
 		case <-cleanExpireProposalTimer.C:
 			t.cleanExpireProposal()
@@ -328,6 +329,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	return nil
 }
+
 // (on Publisher)
 func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
 
@@ -444,11 +446,14 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 				return err
 			}
 		} else {
+
+			// TODO 需要支持  confirmMsg 的取消 消息类型 (演示版本, 先不处理了 ...)
 			t.delProposalStateAndTask(voteMsg.ProposalId)
 		}
 	}
 	return nil
 }
+
 // (on Subscriber)
 func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
 
@@ -518,6 +523,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	}
 	return nil
 }
+
 // (on Publisher)
 func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 
@@ -690,6 +696,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole, task)
 	return nil
 }
+
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方
 func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) error {
 	if err := handler.SendTwoPcTaskResultMsg(context.TODO(), t.p2p, pid, msg.TaskResultMsg); nil != err {
@@ -699,6 +706,7 @@ func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) err
 	}
 	return nil
 }
+
 // (on Publisher)
 func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error {
 	msg, err := fetchTaskResultMsg(taskResultMsg)

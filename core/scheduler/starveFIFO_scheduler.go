@@ -176,8 +176,12 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		//// Lock local resource (jobNode)
 		//sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
 
+		dataIdentityIdCache := map[string]struct{}{task.OwnerIdentityId(): struct {}{}}
+		for _, dataSupplier := range task.PartnerTaskSuppliers() {
+			dataIdentityIdCache[dataSupplier.IdentityId] = struct{}{}
+		}
 		// 【选出 其他组织的算力】
-		powers, err := sche.electionConputeOrg(task.PowerPartyIds(), task.OwnerIdentityId(), cost)
+		powers, err := sche.electionConputeOrg(task.PowerPartyIds(), dataIdentityIdCache, cost)
 		if nil != err {
 			log.Errorf("Failed to election power org, err: %s", err)
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
@@ -268,8 +272,13 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 		for i, power := range schedTask.Task.PowerSuppliers {
 			powerPartyIds[i] = power.PartyId
 		}
+
+		dataIdentityIdCache := map[string]struct{}{schedTask.Task.Owner.IdentityId: struct {}{}}
+		for _, dataSupplier := range schedTask.Task.Partners {
+			dataIdentityIdCache[dataSupplier.IdentityId] = struct{}{}
+		}
 		// mock election power orgs
-		powers, err := sche.electionConputeOrg(powerPartyIds, schedTask.Task.Owner.IdentityId, cost)
+		powers, err := sche.electionConputeOrg(powerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
 			log.Errorf("Failed to election power org, err: %s", err)
 			schedTask.SendFailedResult(schedTask.Task.TaskId, fmt.Errorf("failed to election power org, err: %s", err))
@@ -448,15 +457,17 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 		Port: internalNodeInfo.ExternalPort,
 	}, nil
 }
-func (sche *SchedulerStarveFIFO) electionConputeOrg(powerPartyIds []string, ownerIdentity string, cost *types.TaskOperationCost) ([]*types.TaskNodeAlias, error) {
+func (sche *SchedulerStarveFIFO) electionConputeOrg(powerPartyIds []string, dataIdentityIdCache map[string]struct{}, cost *types.TaskOperationCost) ([]*types.TaskNodeAlias, error) {
 	calculateCount := len(powerPartyIds)
 	orgs := make([]*types.TaskNodeAlias, calculateCount)
 	identityIds := make([]string, 0)
 
 	for _, r := range sche.resourceMng.GetRemoteResouceTables() {
-		if r.GetIdentityId() == ownerIdentity {
+		// 计算方不可以是任务发起方 和 数据参与方
+		if _, ok := dataIdentityIdCache[r.GetIdentityId()]; ok {
 			continue
 		}
+		// 还需要有足够的 资源
 		if r.IsEnough(cost.Mem, cost.Processor, cost.Bandwidth) {
 			identityIds = append(identityIds, r.GetIdentityId())
 		}
