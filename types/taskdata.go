@@ -92,11 +92,11 @@ func (s TaskDataArray) To() []*libTypes.TaskData {
 type TaskDetailShow struct {
 	TaskId        string                   `json:"taskId"`
 	TaskName      string                   `json:"taskName"`
-	Owner         *NodeAlias               `json:"owner"`
-	AlgoSupplier  *NodeAlias               `json:"algoSupplier"`
+	Owner         *TaskNodeAlias               `json:"owner"`
+	AlgoSupplier  *TaskNodeAlias               `json:"algoSupplier"`
 	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
 	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
-	Receivers     []*NodeAlias             `json:"receivers"`
+	Receivers     []*TaskNodeAlias             `json:"receivers"`
 	CreateAt      uint64                   `json:"createat"`
 	StartAt       uint64                   `json:"startAt"`
 	EndAt         uint64                   `json:"endAt"`
@@ -108,11 +108,11 @@ func ConvertTaskDetailShowToPB(task *TaskDetailShow) *pb.TaskDetailShow {
 	return &pb.TaskDetailShow{
 		TaskId:        task.TaskId,
 		TaskName:      task.TaskName,
-		Owner:         ConvertNodeAliasToPB(task.Owner),
-		AlgoSupplier:  ConvertNodeAliasToPB(task.AlgoSupplier),
+		Owner:         ConvertTaskNodeAliasToPB(task.Owner),
+		AlgoSupplier:  ConvertTaskNodeAliasToPB(task.AlgoSupplier),
 		DataSupplier:  ConvertTaskDataSupplierShowArrToPB(task.DataSupplier),
 		PowerSupplier: ConvertTaskPowerSupplierShowArrToPB(task.PowerSupplier),
-		Receivers:     ConvertNodeAliasArrToPB(task.Receivers),
+		Receivers:     ConvertTaskNodeAliasArrToPB(task.Receivers),
 		CreateAt:      task.CreateAt,
 		StartAt:       task.StartAt,
 		EndAt:         task.EndAt,
@@ -124,11 +124,11 @@ func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
 	return &TaskDetailShow{
 		TaskId:        task.TaskId,
 		TaskName:      task.TaskName,
-		Owner:         ConvertNodeAliasFromPB(task.Owner),
-		AlgoSupplier:  ConvertNodeAliasFromPB(task.AlgoSupplier),
+		Owner:         ConvertTaskNodeAliasFromPB(task.Owner),
+		AlgoSupplier:  ConvertTaskNodeAliasFromPB(task.AlgoSupplier),
 		DataSupplier:  ConvertTaskDataSupplierShowArrFromPB(task.DataSupplier),
 		PowerSupplier: ConvertTaskPowerSupplierShowArrFromPB(task.PowerSupplier),
-		Receivers:     ConvertNodeAliasArrFromPB(task.Receivers),
+		Receivers:     ConvertTaskNodeAliasArrFromPB(task.Receivers),
 		CreateAt:      task.CreateAt,
 		StartAt:       task.StartAt,
 		EndAt:         task.EndAt,
@@ -138,21 +138,21 @@ func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
 }
 
 type TaskDataSupplierShow struct {
-	MemberInfo   *NodeAlias `json:"memberInfo"`
+	MemberInfo   *TaskNodeAlias `json:"memberInfo"`
 	MetaDataId   string     `json:"metaId"`
 	MetaDataName string     `json:"metaName"`
 }
 
 func ConvertTaskDataSupplierShowToPB(dataSupplier *TaskDataSupplierShow) *pb.TaskDataSupplierShow {
 	return &pb.TaskDataSupplierShow{
-		MemberInfo:   ConvertNodeAliasToPB(dataSupplier.MemberInfo),
+		MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
 		MetaDataId:   dataSupplier.MetaDataId,
 		MetaDataName: dataSupplier.MetaDataName,
 	}
 }
 func ConvertTaskDataSupplierShowFromPB(dataSupplier *pb.TaskDataSupplierShow) *TaskDataSupplierShow {
 	return &TaskDataSupplierShow{
-		MemberInfo:   ConvertNodeAliasFromPB(dataSupplier.MemberInfo),
+		MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
 		MetaDataId:   dataSupplier.MetaDataId,
 		MetaDataName: dataSupplier.MetaDataName,
 	}
@@ -162,7 +162,7 @@ func ConvertTaskDataSupplierShowArrToPB(dataSuppliers []*TaskDataSupplierShow) [
 	for i, dataSupplier := range dataSuppliers {
 
 		supplier := &pb.TaskDataSupplierShow{
-			MemberInfo:   ConvertNodeAliasToPB(dataSupplier.MemberInfo),
+			MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
 			MetaDataId:   dataSupplier.MetaDataId,
 			MetaDataName: dataSupplier.MetaDataName,
 		}
@@ -176,7 +176,7 @@ func ConvertTaskDataSupplierShowArrFromPB(dataSuppliers []*pb.TaskDataSupplierSh
 	for i, dataSupplier := range dataSuppliers {
 
 		supplier := &TaskDataSupplierShow{
-			MemberInfo:   ConvertNodeAliasFromPB(dataSupplier.MemberInfo),
+			MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
 			MetaDataId:   dataSupplier.MetaDataId,
 			MetaDataName: dataSupplier.MetaDataName,
 		}
@@ -187,19 +187,19 @@ func ConvertTaskDataSupplierShowArrFromPB(dataSuppliers []*pb.TaskDataSupplierSh
 }
 
 type TaskPowerSupplierShow struct {
-	MemberInfo    *NodeAlias     `json:"memberInfo"`
+	MemberInfo    *TaskNodeAlias     `json:"memberInfo"`
 	ResourceUsage *ResourceUsage `json:"resourceUsage"`
 }
 
 func ConvertTaskPowerSupplierShowShowToPB(powerSupplier *TaskPowerSupplierShow) *pb.TaskPowerSupplierShow {
 	return &pb.TaskPowerSupplierShow{
-		MemberInfo: ConvertNodeAliasToPB(powerSupplier.MemberInfo),
+		MemberInfo: ConvertTaskNodeAliasToPB(powerSupplier.MemberInfo),
 		PowerInfo:  ConvertResourceUsageToPB(powerSupplier.ResourceUsage),
 	}
 }
 func ConvertTaskPowerSupplierShowFromPB(powerSupplier *pb.TaskPowerSupplierShow) *TaskPowerSupplierShow {
 	return &TaskPowerSupplierShow{
-		MemberInfo:    ConvertNodeAliasFromPB(powerSupplier.MemberInfo),
+		MemberInfo:    ConvertTaskNodeAliasFromPB(powerSupplier.MemberInfo),
 		ResourceUsage: ConvertResourceUsageFromPB(powerSupplier.PowerInfo),
 	}
 }
@@ -208,7 +208,7 @@ func ConvertTaskPowerSupplierShowArrToPB(powerSuppliers []*TaskPowerSupplierShow
 	for i, powerSupplier := range powerSuppliers {
 
 		supplier := &pb.TaskPowerSupplierShow{
-			MemberInfo: ConvertNodeAliasToPB(powerSupplier.MemberInfo),
+			MemberInfo: ConvertTaskNodeAliasToPB(powerSupplier.MemberInfo),
 			PowerInfo:  ConvertResourceUsageToPB(powerSupplier.ResourceUsage),
 		}
 		arr[i] = supplier
@@ -221,7 +221,7 @@ func ConvertTaskPowerSupplierShowArrFromPB(powerSuppliers []*pb.TaskPowerSupplie
 	for i, powerSupplier := range powerSuppliers {
 
 		supplier := &TaskPowerSupplierShow{
-			MemberInfo:    ConvertNodeAliasFromPB(powerSupplier.MemberInfo),
+			MemberInfo:    ConvertTaskNodeAliasFromPB(powerSupplier.MemberInfo),
 			ResourceUsage: ConvertResourceUsageFromPB(powerSupplier.PowerInfo),
 		}
 		arr[i] = supplier
