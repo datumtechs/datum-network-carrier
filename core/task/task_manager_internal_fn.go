@@ -228,7 +228,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 
 		metadataSupplierArr[i] = &libTypes.TaskMetadataSupplierData{
 			Organization: &libTypes.OrganizationData{
-				Alias: "",
+				PartyId: dataSupplier.PartyId,
 				Identity: dataSupplier.IdentityId,
 				NodeId: dataSupplier.NodeId,
 				NodeName: dataSupplier.Name,
@@ -246,7 +246,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 	for i, recv := range msg.ReceiverDetails() {
 		receiverArr[i] = &libTypes.TaskResultReceiverData{
 			Receiver: &libTypes.OrganizationData{
-				Alias: "",
+				PartyId: recv.PartyId,
 				Identity: recv.IdentityId,
 				NodeId: recv.NodeId,
 				NodeName: recv.Name,
@@ -273,9 +273,9 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 		EndAt: uint64(time.Now().UnixNano()),
 		// 少了 StartAt
 		AlgoSupplier: &libTypes.OrganizationData{
-			Alias: "",
+			PartyId:  msg.OwnerPartyId(),
 			Identity: msg.OwnerIdentityId(),
-			NodeId: msg.OwnerNodeId(),
+			NodeId:   msg.OwnerNodeId(),
 			NodeName: msg.OwnerName(),
 		},
 		TaskResource: &libTypes.TaskResourceData{

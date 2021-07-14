@@ -73,12 +73,14 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 	request := &api.TaskDetail{
 		TaskId:               task.data.GetTaskId(),
 		TaskName:             task.data.GetTaskName(),
-		Owner:                &api.Organization{
+		Owner:                &api.TaskOrganization{
+			PartyId:              task.data.PartyId,
 			Name:                 task.data.GetNodeName(),
 			NodeId:               task.data.GetNodeId(),
 			IdentityId:           task.data.GetIdentity(),
 		},
-		AlgoSupplier:         &api.Organization{
+		AlgoSupplier:         &api.TaskOrganization{
+			PartyId:     		  task.data.AlgoSupplier.GetPartyId(),
 			Name:                 task.data.AlgoSupplier.GetNodeName(),
 			NodeId:               task.data.AlgoSupplier.GetNodeId(),
 			IdentityId:           task.data.AlgoSupplier.GetIdentity(),
@@ -98,7 +100,8 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 	}
 	for _, v := range task.data.GetMetadataSupplier() {
 		dataSupplier :=  &api.TaskDataSupplier{
-			MemberInfo:           &api.Organization{
+			MemberInfo:           &api.TaskOrganization{
+				PartyId:              v.GetOrganization().GetPartyId(),
 				Name:                 v.GetOrganization().GetNodeName(),
 				NodeId:               v.GetOrganization().GetNodeId(),
 				IdentityId:           v.GetOrganization().GetIdentity(),
@@ -120,7 +123,8 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 	}
 	for _, v := range task.data.GetResourceSupplier() {
 		request.PowerSupplier = append(request.PowerSupplier, &api.TaskPowerSupplier{
-			MemberInfo:           &api.Organization{
+			MemberInfo:           &api.TaskOrganization{
+				PartyId:              v.GetOrganization().GetPartyId(),
 				Name:                 v.GetOrganization().GetNodeName(),
 				NodeId:               v.GetOrganization().GetNodeId(),
 				IdentityId:           v.GetOrganization().GetIdentity(),
@@ -139,15 +143,17 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 		receive := v.GetReceiver()
 		providers := v.GetProvider()
 		taskResultReceiver := &api.TaskResultReceiver{
-			MemberInfo:           &api.Organization{
+			MemberInfo:           &api.TaskOrganization{
+				PartyId:              receive.GetPartyId(),
 				Name:                 receive.GetNodeName(),
 				NodeId:               receive.GetNodeId(),
 				IdentityId:           receive.GetIdentity(),
 			},
-			Provider:             make([]*api.Organization, 0),
+			Provider:             make([]*api.TaskOrganization, 0),
 		}
 		for _, provider := range providers {
-			taskResultReceiver.Provider = append(taskResultReceiver.Provider, &api.Organization{
+			taskResultReceiver.Provider = append(taskResultReceiver.Provider, &api.TaskOrganization{
+				PartyId:              provider.GetPartyId(),
 				Name:                 provider.GetNodeName(),
 				NodeId:               provider.GetNodeId(),
 				IdentityId:           provider.GetIdentity(),
@@ -240,9 +246,10 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			State:                v.GetState(),
 			Desc:                 v.GetDesc(),
 			CreateAt:             v.GetCreateAt(),
+			StartAt:              v.GetStartAt(),
 			EndAt:                v.GetEndAt(),
 			AlgoSupplier:         &libTypes.OrganizationData{
-				Alias:                v.GetAlgoSupplier().GetName(),
+				PartyId:              v.GetAlgoSupplier().GetPartyId(),
 				Identity:             v.GetAlgoSupplier().GetIdentityId(),
 				NodeId:               v.GetAlgoSupplier().GetNodeId(),
 				NodeName:             v.GetAlgoSupplier().GetName(),
@@ -270,7 +277,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			})
 			supplierData := &libTypes.TaskMetadataSupplierData{
 				Organization:         &libTypes.OrganizationData{
-					Alias:                supplier.GetMemberInfo().GetName(),
+					PartyId:              supplier.GetMemberInfo().GetPartyId(),
 					Identity:             supplier.GetMemberInfo().GetIdentityId(),
 					NodeId:               supplier.GetMemberInfo().GetNodeId(),
 					NodeName:             supplier.GetMemberInfo().GetName(),
@@ -294,7 +301,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 		for _, power := range v.GetPowerSupplier() {
 			supplierData := &libTypes.TaskResourceSupplierData{
 				Organization:         &libTypes.OrganizationData{
-					Alias:                power.GetMemberInfo().GetName(),
+					PartyId:              power.GetMemberInfo().GetPartyId(),
 					Identity:             power.GetMemberInfo().GetIdentityId(),
 					NodeId:               power.GetMemberInfo().GetNodeId(),
 					NodeName:             power.GetMemberInfo().GetName(),
@@ -314,7 +321,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 		for _, receiver := range v.GetReceivers() {
 			receiverData := &libTypes.TaskResultReceiverData{
 				Receiver:             &libTypes.OrganizationData{
-					Alias:                receiver.GetMemberInfo().GetName(),
+					PartyId:              receiver.GetMemberInfo().GetPartyId(),
 					Identity:             receiver.GetMemberInfo().GetIdentityId(),
 					NodeId:               receiver.GetMemberInfo().GetNodeId(),
 					NodeName:             receiver.GetMemberInfo().GetName(),
@@ -323,7 +330,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			}
 			for _, provider := range receiver.GetProvider() {
 				receiverData.Provider = append(receiverData.Provider, &libTypes.OrganizationData{
-					Alias:                provider.GetName(),
+					PartyId:              provider.GetPartyId(),
 					Identity:             provider.GetIdentityId(),
 					NodeId:               provider.GetNodeId(),
 					NodeName:             provider.GetName(),
