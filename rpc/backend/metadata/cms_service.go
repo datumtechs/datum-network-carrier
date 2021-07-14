@@ -47,7 +47,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	}
 
 	return &pb.GetMetaDataDetailResponse{
-		Owner:       types.ConvertTaskNodeAliasToPB(metaDataDetail.Owner),
+		Owner:       types.ConvertNodeAliasToPB(metaDataDetail.Owner),
 		Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
 	}, nil
 }
@@ -60,28 +60,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
 	for i, metaDataDetail := range metaDataList {
 		resp := &pb.GetMetaDataDetailResponse{
-			Owner:       types.ConvertTaskNodeAliasToPB(metaDataDetail.Owner),
-			Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
-		}
-		respList[i] = resp
-	}
-
-	return &pb.GetMetaDataDetailListResponse{
-		Status:       0,
-		Msg:          backend.OK,
-		MetaDataList: respList,
-	}, nil
-}
-
-func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
-	metaDataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
-	if nil != err {
-		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailListStr)
-	}
-	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
-	for i, metaDataDetail := range metaDataList {
-		resp := &pb.GetMetaDataDetailResponse{
-			Owner:       types.ConvertTaskNodeAliasToPB(metaDataDetail.Owner),
+			Owner:       types.ConvertNodeAliasToPB(metaDataDetail.Owner),
 			Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
 		}
 		respList[i] = resp
