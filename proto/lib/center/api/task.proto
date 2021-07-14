@@ -126,7 +126,7 @@ message TaskEvent {
   // 事件对应的任务id
     string task_id = 2;
   // 产生事件的节点身份
-    TaskOrganization owner = 3;
+    Organization owner = 3;
   // 事件内容
     string content = 4;
   // 事件产生时间

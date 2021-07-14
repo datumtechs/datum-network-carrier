@@ -12,19 +12,21 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 		detailShow := &TaskDetailShow{
 			TaskId:        taskData.GetTaskId(),
 			TaskName:      taskData.GetTaskName(),
-			Owner:         &NodeAlias{
+			Owner:         &TaskNodeAlias{
+				PartyId:    taskData.GetPartyId(),
 				Name:       taskData.GetNodeName(),
 				NodeId:     taskData.GetNodeId(),
 				IdentityId: taskData.GetIdentity(),
 			},
-			AlgoSupplier:  &NodeAlias{
+			AlgoSupplier:  &TaskNodeAlias{
+				PartyId: 	taskData.GetPartyId(),
 				Name:       taskData.GetNodeName(),
 				NodeId:     taskData.GetNodeId(),
 				IdentityId: taskData.GetIdentity(),
 			},
 			DataSupplier:  make([]*TaskDataSupplierShow, 0, len(taskData.GetMetadataSupplier())),
 			PowerSupplier: make([]*TaskPowerSupplierShow, 0, len(taskData.GetResourceSupplier())),
-			Receivers:     make([]*NodeAlias, 0, len(taskData.GetReceivers())),
+			Receivers:     make([]*TaskNodeAlias, 0, len(taskData.GetReceivers())),
 			CreateAt:      taskData.GetCreateAt(),
 			EndAt:         taskData.GetEndAt(),
 			State:         taskData.GetState(),
@@ -38,7 +40,8 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 		// DataSupplier
 		for _, metadataSupplier := range taskData.GetMetadataSupplier() {
 			dataSupplier := &TaskDataSupplierShow{
-				MemberInfo: &NodeAlias{
+				MemberInfo: &TaskNodeAlias{
+					PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
 					Name:       metadataSupplier.GetOrganization().GetNodeName(),
 					NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
 					IdentityId: metadataSupplier.GetOrganization().GetIdentity(),
@@ -51,7 +54,8 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 		// powerSupplier
 		for _, data := range taskData.GetResourceSupplier() {
 			detailShow.PowerSupplier = append(detailShow.PowerSupplier, &TaskPowerSupplierShow{
-				MemberInfo:    &NodeAlias{
+				MemberInfo:    &TaskNodeAlias{
+					PartyId:    data.GetOrganization().GetPartyId(),
 					Name:       data.GetOrganization().GetNodeName(),
 					NodeId:     data.GetOrganization().GetNodeId(),
 					IdentityId: data.GetOrganization().GetIdentity(),
@@ -68,7 +72,8 @@ func NewTaskDetailShowArrayFromTaskDataArray(input TaskDataArray) []*TaskDetailS
 		}
 		// Receivers
 		for _, receiver := range taskData.GetReceivers() {
-			detailShow.Receivers = append(detailShow.Receivers, &NodeAlias{
+			detailShow.Receivers = append(detailShow.Receivers, &TaskNodeAlias{
+				PartyId:    receiver.GetReceiver().GetPartyId(),
 				Name:       receiver.GetReceiver().GetNodeName(),
 				NodeId:     receiver.GetReceiver().GetNodeId(),
 				IdentityId: receiver.GetReceiver().GetIdentity(),
