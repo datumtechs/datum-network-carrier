@@ -3,7 +3,6 @@ package types
 import (
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 )
 
@@ -18,6 +17,8 @@ type ConsensusTaskWrap struct {
 	OwnerDataResource *PrepareVoteResource
 	ResultCh          chan *ConsensuResult
 }
+
+
 
 func (wrap *ConsensusTaskWrap) SendResult(result *ConsensuResult) {
 	wrap.ResultCh <- result
@@ -39,15 +40,13 @@ type ReplayScheduleTaskWrap struct {
 	Task     *ScheduleTask
 	ResultCh chan *ScheduleResult
 }
-
 func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
 	wrap.SendResult(&ScheduleResult{
-		TaskId: taskId,
+		TaskId:taskId,
 		Status: TaskSchedFailed,
-		Err:    err,
+		Err: err,
 	})
 }
-
 func (wrap *ReplayScheduleTaskWrap) SendResult(result *ScheduleResult) {
 	wrap.ResultCh <- result
 	close(wrap.ResultCh)
@@ -66,12 +65,12 @@ func (wrap *ReplayScheduleTaskWrap) String() string {
 type DoneScheduleTaskChWrap struct {
 	ProposalId   common.Hash
 	SelfTaskRole TaskRole
-	//SelfPeerInfo  *pb.TaskPeerInfo
-	Task     *ConsensusScheduleTask
-	ResultCh chan *TaskResultMsgWrap
+	SelfPeerInfo *pb.TaskPeerInfo
+	Task         *ConsensusScheduleTask
+	ResultCh     chan *TaskResultMsgWrap
 }
 type ConsensusScheduleTask struct {
-	TaskDir   types.ProposalTaskDir
+	TaskDir   ProposalTaskDir
 	TaskState TaskState
 	SchedTask *ScheduleTask
 	Resources *pb.ConfirmTaskPeerInfo

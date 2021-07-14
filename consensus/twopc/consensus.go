@@ -156,7 +156,7 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, selfPeerResource *types.Prepa
 		task.CreateAt,
 	})
 
-	proposalState := ctypes.NewProposalState(proposalHash, task.TaskId, ctypes.SendTaskDir, now)
+	proposalState := ctypes.NewProposalState(proposalHash, task.TaskId, types.SendTaskDir, now)
 	// add proposal
 	t.addProposalState(proposalState)
 	// add task
@@ -266,7 +266,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	// Create the proposal state from recv.Proposal
 	proposalState := ctypes.NewProposalState(proposal.ProposalId,
-		proposal.TaskId, ctypes.RecvTaskDir, proposal.CreateAt)
+		proposal.TaskId, types.RecvTaskDir, proposal.CreateAt)
 
 	task := proposal.ScheduleTask
 
@@ -635,11 +635,11 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 			// If sending `CommitMsg` is successful,
 			// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-			t.driveTask("", voteMsg.ProposalId, ctypes.SendTaskDir, types.TaskStateRunning, types.TaskOnwer, task)
+			t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOnwer, task)
 		} else {
 			// If the vote is not reached, we will clear the local `proposalState` related cache
 			// and end the task as a failure, and publish the task information to the datacenter.
-			t.driveTask("", voteMsg.ProposalId, ctypes.SendTaskDir, types.TaskStateFailed, types.TaskOnwer, task)
+			t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateFailed, types.TaskOnwer, task)
 			// clean some invalid data
 			t.delProposalStateAndTask(voteMsg.ProposalId)
 		}
@@ -685,7 +685,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	t.state.ChangeToCommit(msg.ProposalId, msg.CreateAt)
 	// If sending `CommitMsg` is successful,
 	// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-	t.driveTask(pid, msg.ProposalId, ctypes.RecvTaskDir, types.TaskStateRunning, msg.TaskRole, task)
+	t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole, task)
 	return nil
 }
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方

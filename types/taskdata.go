@@ -92,11 +92,11 @@ func (s TaskDataArray) To() []*libTypes.TaskData {
 type TaskDetailShow struct {
 	TaskId        string                   `json:"taskId"`
 	TaskName      string                   `json:"taskName"`
-	Owner         *NodeAlias               `json:"owner"`
-	AlgoSupplier  *NodeAlias               `json:"algoSupplier"`
+	Owner         *TaskNodeAlias               `json:"owner"`
+	AlgoSupplier  *TaskNodeAlias               `json:"algoSupplier"`
 	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
 	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
-	Receivers     []*NodeAlias             `json:"receivers"`
+	Receivers     []*TaskNodeAlias             `json:"receivers"`
 	CreateAt      uint64                   `json:"createat"`
 	StartAt       uint64                   `json:"startAt"`
 	EndAt         uint64                   `json:"endAt"`
@@ -112,7 +112,7 @@ func ConvertTaskDetailShowToPB(task *TaskDetailShow) *pb.TaskDetailShow {
 		AlgoSupplier:  ConvertTaskNodeAliasToPB(task.AlgoSupplier),
 		DataSupplier:  ConvertTaskDataSupplierShowArrToPB(task.DataSupplier),
 		PowerSupplier: ConvertTaskPowerSupplierShowArrToPB(task.PowerSupplier),
-		Receivers:     ConvertNodeAliasArrToPB(task.Receivers),
+		Receivers:     ConvertTaskNodeAliasArrToPB(task.Receivers),
 		CreateAt:      task.CreateAt,
 		StartAt:       task.StartAt,
 		EndAt:         task.EndAt,
@@ -128,7 +128,7 @@ func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
 		AlgoSupplier:  ConvertTaskNodeAliasFromPB(task.AlgoSupplier),
 		DataSupplier:  ConvertTaskDataSupplierShowArrFromPB(task.DataSupplier),
 		PowerSupplier: ConvertTaskPowerSupplierShowArrFromPB(task.PowerSupplier),
-		Receivers:     ConvertNodeAliasArrFromPB(task.Receivers),
+		Receivers:     ConvertTaskNodeAliasArrFromPB(task.Receivers),
 		CreateAt:      task.CreateAt,
 		StartAt:       task.StartAt,
 		EndAt:         task.EndAt,
@@ -138,7 +138,7 @@ func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
 }
 
 type TaskDataSupplierShow struct {
-	MemberInfo   *NodeAlias `json:"memberInfo"`
+	MemberInfo   *TaskNodeAlias `json:"memberInfo"`
 	MetaDataId   string     `json:"metaId"`
 	MetaDataName string     `json:"metaName"`
 }
@@ -187,7 +187,7 @@ func ConvertTaskDataSupplierShowArrFromPB(dataSuppliers []*pb.TaskDataSupplierSh
 }
 
 type TaskPowerSupplierShow struct {
-	MemberInfo    *NodeAlias     `json:"memberInfo"`
+	MemberInfo    *TaskNodeAlias     `json:"memberInfo"`
 	ResourceUsage *ResourceUsage `json:"resourceUsage"`
 }
 

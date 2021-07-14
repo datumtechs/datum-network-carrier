@@ -2,7 +2,6 @@ package task
 
 import (
 	"fmt"
-	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -66,7 +65,7 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 				m.removeRunningTaskCache(event.TaskId)
 			}()
 
-			if task.Task.TaskDir == ctypes.RecvTaskDir {
+			if task.Task.TaskDir == types.RecvTaskDir {
 				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
 				m.dataCenter.StoreTaskEvent(event)
 				m.sendTaskResultMsgToConsensus(event.TaskId)

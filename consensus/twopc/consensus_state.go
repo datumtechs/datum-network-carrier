@@ -54,7 +54,7 @@ func (s *state) CleanExpireProposal() ([]string, []string) {
 			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId",
 				proposal.TaskId, "taskDir", proposal.TaskDir.String())
 			s.CleanProposalState(id)
-			if proposal.TaskDir == ctypes.SendTaskDir {
+			if proposal.TaskDir == types.SendTaskDir {
 				sendTaskIds = append(sendTaskIds, proposal.TaskId)
 			} else {
 				recvTaskIds = append(recvTaskIds, proposal.TaskId)
@@ -89,7 +89,7 @@ func (s *state) IsRecvTaskOnProposalState(proposalId common.Hash) bool {
 	if !ok {
 		return false
 	}
-	if proposalState.TaskDir == ctypes.RecvTaskDir {
+	if proposalState.TaskDir == types.RecvTaskDir {
 		return true
 	}
 	return false
@@ -103,7 +103,7 @@ func (s *state) IsSendTaskOnProposalState(proposalId common.Hash) bool {
 	if !ok {
 		return false
 	}
-	if proposalState.TaskDir == ctypes.SendTaskDir {
+	if proposalState.TaskDir == types.SendTaskDir {
 		return true
 	}
 	return false
