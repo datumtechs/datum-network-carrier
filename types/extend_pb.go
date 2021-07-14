@@ -246,6 +246,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			State:                v.GetState(),
 			Desc:                 v.GetDesc(),
 			CreateAt:             v.GetCreateAt(),
+			StartAt:              v.GetStartAt(),
 			EndAt:                v.GetEndAt(),
 			AlgoSupplier:         &libTypes.OrganizationData{
 				PartyId:              v.GetAlgoSupplier().GetPartyId(),
