@@ -5,7 +5,6 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"strings"
 )
 
 func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
@@ -378,52 +377,6 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 		Status: 0,
 		Msg:    backend.OK,
 		Nodes:  jobs,
-	}, nil
-}
-
-func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
-	var err error
-	go func() {
-		err = svr.B.SendTaskEvent(&types.TaskEventInfo{
-			Type:       req.TaskEvent.Type,
-			Identity:   req.TaskEvent.IdentityId,
-			TaskId:     req.TaskEvent.TaskId,
-			Content:    req.TaskEvent.Content,
-			CreateTime: req.TaskEvent.CreateAt,
-		})
-	}()
-	if nil != err {
-		return nil, backend.NewRpcBizErr(ErrReportTaskEventStr)
-	}
-	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
-}
-
-func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
-	return nil, nil
-}
-
-func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
-	jobNodeList, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	if nil != err {
-		return nil, backend.NewRpcBizErr(ErrGetJobNodeListStr)
-	}
-	var resourceId string
-	for _, jobNode := range jobNodeList {
-		if req.Ip == jobNode.InternalIp && req.Port == jobNode.InternalPort {
-			resourceId = jobNode.Id
-			break
-		}
-	}
-	if "" == strings.Trim(resourceId, "") {
-		return nil, backend.NewRpcBizErr(ErrGetJobNodeListStr)
-	}
-	err = svr.B.StoreDataResourceDataUsed(types.NewDataResourceDataUsed(resourceId, req.OriginId, "", req.FilePath))
-	if nil != err {
-		return nil, backend.NewRpcBizErr(ErrReportUpFileSummaryStr)
-	}
-	return &pb.SimpleResponseCode{
-		Status: 0,
-		Msg:    backend.OK,
 	}, nil
 }
 
