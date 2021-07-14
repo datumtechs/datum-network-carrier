@@ -90,6 +90,12 @@ type ScheduleTask struct {
 	StartAt               uint64                        `json:"startAt"`
 }
 
+// TODO 未实现 转换
+func ConvertScheduleTaskToTask(task *ScheduleTask) *Task {
+
+	return &Task{}
+}
+
 type ScheduleTaskDataSupplier struct {
 	*TaskNodeAlias
 	MetaData *SupplierMetaData `json:"metaData"`

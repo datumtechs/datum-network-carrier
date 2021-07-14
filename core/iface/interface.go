@@ -124,6 +124,7 @@ type ForResourceDB interface {
 	LocalStoreCarrierDB
 	IdentityCarrierDB
 	ResourceCarrierDB
+	TaskCarrierDB
 }
 
 type ForScheduleDB interface {
