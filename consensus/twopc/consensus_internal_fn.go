@@ -214,7 +214,7 @@ func (t *TwoPC) driveTask(
 
 func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
 
-	prepareMsg := makePrepareMsg(startTime)
+	prepareMsg := makePrepareMsg(proposalId, task, startTime)
 
 	sendTaskFn := func(proposalId common.Hash, taskRole types.TaskRole, identityId, nodeId, taskId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
 		var pid, err = p2p.HexPeerID(nodeId)
@@ -268,7 +268,7 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.ScheduleTask,
 
 func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
 
-	confirmMsg := makeConfirmMsg(startTime)
+	confirmMsg := makeConfirmMsg(proposalId, task, startTime)
 	confirmMsg.PeerDesc = t.makeConfirmTaskPeerDesc(proposalId)
 
 	// store the proposal about all partner peerInfo of task to local cache
@@ -329,7 +329,7 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.ScheduleTask,
 
 func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.ScheduleTask, startTime uint64) error {
 
-	commitMsg := makeCommitMsg(startTime)
+	commitMsg := makeCommitMsg(proposalId, task, startTime)
 
 	sendCommitMsgFn := func(proposalId common.Hash, taskRole types.TaskRole, identityId, nodeId, taskId string, commitMsg *pb.CommitMsg, errCh chan<- error) {
 		pid, err := p2p.HexPeerID(nodeId)
