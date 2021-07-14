@@ -2,7 +2,6 @@ package task
 
 import (
 	"fmt"
-	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -65,7 +64,7 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 			defer func() {
 				m.removeRunningTaskCache(event.TaskId)
 			}()
-			if task.TaskDir == ctypes.RecvTaskDir { //  需要 读出自己本地的 event 发给 task 的发起者
+			if task.TaskDir == types.RecvTaskDir { //  需要 读出自己本地的 event 发给 task 的发起者
 				eventList, err := m.dataCenter.GetTaskEventList(event.TaskId)
 				if nil != err {
 					log.Error("Failed to query all recv task event on myself", "taskId", event.TaskId, "err", err)

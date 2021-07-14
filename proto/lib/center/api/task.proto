@@ -10,12 +10,12 @@ import "lib/center/api/metadata.proto";
 
 // 任务摘要信息
 message TaskSummaryResponse {
-    string                task_id   = 1;
-    string                task_name = 2;
-    Organization          owner     = 3;
-    repeated Organization partners  = 4;
+    string                    task_id   = 1;
+    string                    task_name = 2;
+    TaskOrganization          owner     = 3;
+    repeated TaskOrganization partners  = 4;
   // 任务结果方（有多个）
-    repeated Organization receivers = 5;
+    repeated TaskOrganization receivers = 5;
   // 任务开始时间，单位：秒级时间戳
     uint64 create_at = 6;
   // 任务结束时间，单位：秒级时间戳
@@ -44,9 +44,9 @@ message TaskDetail {
     string task_id   = 1;
     string task_name = 2;
   // 任务发起方组织
-    Organization owner = 3;
+    TaskOrganization owner = 3;
   // 算法提供方组织
-    Organization algo_supplier = 4;
+    TaskOrganization algo_supplier = 4;
   // 数据提供方组信息
     repeated TaskDataSupplier data_supplier = 5;
   // 算力提供方组织
@@ -56,26 +56,27 @@ message TaskDetail {
   // 任务开始时间
     uint64 create_at = 8;
   // 任务结束时间
-    uint64 end_at = 9;
+    uint64 end_at  = 9;
+    uint64 startAt = 10;
   // 任务状态
-    string state = 10;
+    string state = 11;
   // 任务所需资源声明
-    TaskOperationCostDeclare operation_cost = 11;
+    TaskOperationCostDeclare operation_cost = 20;
     // 任务描述
-    string desc = 12;
+    string desc = 21;
 }
 
 message TaskResultReceiver {
     // // 结果接收方身份信息
-    Organization member_info = 1;
+    TaskOrganization member_info = 1;
     // 被接收结果的生成方身份信息
-    repeated Organization provider = 2;
+    repeated TaskOrganization provider = 2;
 }
 
 // 任务数据提供方基本信息
 message TaskDataSupplier {
   // 组织身份信息
-    Organization member_info = 1;
+    TaskOrganization member_info = 1;
   // 组织提供的元数据ID
     string meta_id = 2;
   // 组织提供的元数据名称
@@ -86,7 +87,7 @@ message TaskDataSupplier {
 // 任务算力提供方基础信息
 message TaskPowerSupplier {
   // 身份信息
-    Organization member_info = 1;
+    TaskOrganization member_info = 1;
   // 算力使用情况
     ResourceUsedDetail power_info = 2;
 }

@@ -22,18 +22,20 @@ message TaskData {
     string desc       = 11;
     uint64 createAt   = 12;
     uint64 endAt      = 13;
+    uint64 startAt    = 14;
+    string party_id   = 15;
     // 算法提供者信息
-    OrganizationData algoSupplier = 15;
-    TaskResourceData taskResource = 16;
+    OrganizationData algoSupplier = 20;
+    TaskResourceData taskResource = 21;
     // 数据提供方组信息
-    repeated TaskMetadataSupplierData metadataSupplier = 17;
+    repeated TaskMetadataSupplierData metadataSupplier = 22;
     // 算力提供方组织
-    repeated TaskResourceSupplierData resourceSupplier = 18;
+    repeated TaskResourceSupplierData resourceSupplier = 23;
     // 结果接收方组织
-    repeated TaskResultReceiverData receivers = 19;
+    repeated TaskResultReceiverData receivers = 24;
     // 任务参与方
-    repeated OrganizationData partnerList   = 20;
-    repeated EventData        eventDataList = 21;
+    repeated OrganizationData partnerList   = 25;
+    repeated EventData        eventDataList = 26;
 }
 
 // 任务算力提供方基础信息
@@ -90,7 +92,7 @@ message TaskResultReceiverData {
 }
 
 message OrganizationData {
-    string alias    = 1;
+    string party_id = 1;
     string identity = 2;
     string nodeId   = 3;
     string nodeName = 4;

@@ -10,6 +10,20 @@ import (
 	"sync/atomic"
 )
 
+const (
+	SendTaskDir ProposalTaskDir = 0x00
+	RecvTaskDir ProposalTaskDir = 0x01
+)
+
+type ProposalTaskDir uint8
+
+func (dir ProposalTaskDir) String() string {
+	if dir == SendTaskDir {
+		return "sendTask"
+	} else {
+		return "recvTask"
+	}
+}
 
 // ------------------------------- About PrepareMsg -------------------------------
 type PrepareMsgWrap struct {
