@@ -21,10 +21,10 @@ type Manager struct {
 
 	eventCh chan *types.TaskEventInfo
 	// send the validated taskMsgs to scheduler
-	sendTaskCh chan<- types.TaskMsgs
+	localTaskMsgCh chan<- types.TaskMsgs
 	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
-	recvSchedTaskCh      chan *types.ConsensusScheduleTaskWrap
-	runningTaskCache     map[string]*types.ConsensusScheduleTask
+	doneScheduleTaskCh   chan *types.DoneScheduleTaskChWrap
+	runningTaskCache     map[string]*types.DoneScheduleTaskChWrap
 	runningTaskCacheLock sync.RWMutex
 }
 
@@ -33,21 +33,21 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	resourceClientSet *grpclient.InternalResourceClientSet,
-	sendTaskCh chan types.TaskMsgs,
-	recvSchedTaskCh chan *types.ConsensusScheduleTaskWrap,
+	localTaskMsgCh chan types.TaskMsgs,
+	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
 ) *Manager {
 
 	m := &Manager{
-		dataCenter:        dataCenter,
-		eventEngine:       eventEngine,
-		resourceMng:       resourceMng,
-		resourceClientSet: resourceClientSet,
-		parser:            newTaskParser(),
-		validator:         newTaskValidator(),
-		eventCh:           make(chan *types.TaskEventInfo, 10),
-		sendTaskCh:        sendTaskCh,
-		recvSchedTaskCh:   recvSchedTaskCh,
-		runningTaskCache:  make(map[string]*types.ConsensusScheduleTask, 0),
+		dataCenter:         dataCenter,
+		eventEngine:        eventEngine,
+		resourceMng:        resourceMng,
+		resourceClientSet:  resourceClientSet,
+		parser:             newTaskParser(),
+		validator:          newTaskValidator(),
+		eventCh:            make(chan *types.TaskEventInfo, 10),
+		localTaskMsgCh:     localTaskMsgCh,
+		doneScheduleTaskCh: doneScheduleTaskCh,
+		runningTaskCache:   make(map[string]*types.DoneScheduleTaskChWrap, 0),
 	}
 	go m.loop()
 	return m
@@ -64,19 +64,17 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 			defer func() {
 				m.removeRunningTaskCache(event.TaskId)
 			}()
-			if task.TaskDir == types.RecvTaskDir { //  需要 读出自己本地的 event 发给 task 的发起者
-				eventList, err := m.dataCenter.GetTaskEventList(event.TaskId)
-				if nil != err {
-					log.Error("Failed to query all recv task event on myself", "taskId", event.TaskId, "err", err)
-					return err
-				}
-				eventList = append(eventList, event)
 
-			} else { //  如果是 自己的task, 认为任务终止 ... 发送到 dataCenter
+			if task.Task.TaskDir == types.RecvTaskDir {
+				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
+				m.dataCenter.StoreTaskEvent(event)
+				m.sendTaskResultMsgToConsensus(event.TaskId)
 
+			} else {
+				//  如果是 自己的task, 认为任务终止 ... 发送到 dataCenter
+				m.pulishFinishedTaskToDataCenter(event.TaskId)
 			}
 		}
-
 		return nil
 	} else {
 		return m.eventEngine.StoreEvent(event)
@@ -92,58 +90,13 @@ func (m *Manager) loop() {
 			if err := m.handleEvent(event); nil != err {
 				log.Error("Failed to store task event on local", "taskId", event.TaskId, "event", event.String())
 			}
-		case task := <-m.recvSchedTaskCh:
 
-			m.addRunningTaskCache(task.Task)
+		// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者直接存到 dataCenter
+		case task := <-m.doneScheduleTaskCh:
 
-			switch task.SelfTaskRole {
-			case types.TaskOnwer:
-				switch task.Task.TaskState {
-				case types.TaskStateFailed, types.TaskStateSuccess:
-
-					// 判断是否 taskDir 决定是否直接 往 dataCenter 发送数据
-					m.pulishFinishedTaskToDataCenter(task)
-
-				case types.TaskStateRunning:
-
-					if err := m.driveTaskForExecute(task.SelfTaskRole, task.Task); nil != err {
-						log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
-						event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-							task.Task.SchedTask.TaskId, task.Task.SchedTask.Owner.IdentityId, fmt.Sprintf("failed to execute task"))
-						// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter
-						m.dataCenter.StoreTaskEvent(event)
-						m.pulishFinishedTaskToDataCenter(task)
-
-					}
-					// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
-				default:
-					log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
-				}
-			//case types.DataSupplier:
-			//case types.PowerSupplier:
-			//case types.ResultSupplier:
-			default:
-				switch task.Task.TaskState {
-				case types.TaskStateFailed, types.TaskStateSuccess:
-					// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
-					m.sendTaskResultMsgToConsensus(task)
-				case types.TaskStateRunning:
-
-					if err := m.driveTaskForExecute(task.SelfTaskRole, task.Task); nil != err {
-						log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
-						identityId, _ := m.dataCenter.GetIdentityId()
-						event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-							task.Task.SchedTask.TaskId, identityId, fmt.Sprintf("failed to execute task"))
-
-						// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..
-						m.dataCenter.StoreTaskEvent(event)
-						m.sendTaskResultMsgToConsensus(task)
-					}
-				default:
-					log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
-				}
-
-			}
+			// 添加本地缓存
+			m.addRunningTaskCache(task)
+			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId)
 
 		default:
 		}

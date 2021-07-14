@@ -13,57 +13,67 @@ type ProposalTask struct {
 }
 
 type ConsensusTaskWrap struct {
-	Task         *ScheduleTask
-	SelfResource *PrepareVoteResource
-	ResultCh     chan *ConsensuResult
+	Task              *ScheduleTask
+	OwnerDataResource *PrepareVoteResource
+	ResultCh          chan *ConsensuResult
 }
+
+
+
 func (wrap *ConsensusTaskWrap) SendResult(result *ConsensuResult) {
 	wrap.ResultCh <- result
 	close(wrap.ResultCh)
 }
 func (wrap *ConsensusTaskWrap) RecvResult() *ConsensuResult {
-	return <- wrap.ResultCh
+	return <-wrap.ResultCh
 }
-func (wrap *ConsensusTaskWrap) String() string  {
+func (wrap *ConsensusTaskWrap) String() string {
 	result, err := json.Marshal(wrap)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
 
-type ScheduleTaskWrap struct {
+type ReplayScheduleTaskWrap struct {
 	Role     TaskRole
 	Task     *ScheduleTask
 	ResultCh chan *ScheduleResult
 }
-func (wrap *ScheduleTaskWrap) SendResult(result *ScheduleResult){
+func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
+	wrap.SendResult(&ScheduleResult{
+		TaskId:taskId,
+		Status: TaskSchedFailed,
+		Err: err,
+	})
+}
+func (wrap *ReplayScheduleTaskWrap) SendResult(result *ScheduleResult) {
 	wrap.ResultCh <- result
 	close(wrap.ResultCh)
 }
-func (wrap *ScheduleTaskWrap) RecvResult() *ScheduleResult {
-	return <- wrap.ResultCh
+func (wrap *ReplayScheduleTaskWrap) RecvResult() *ScheduleResult {
+	return <-wrap.ResultCh
 }
-func (wrap *ScheduleTaskWrap) String() string  {
+func (wrap *ReplayScheduleTaskWrap) String() string {
 	result, err := json.Marshal(wrap)
-	if err != nil{
+	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
 
-type ConsensusScheduleTaskWrap struct {
-	ProposalId    common.Hash
-	SelfTaskRole  TaskRole
-	SelfPeerInfo  *pb.TaskPeerInfo
-	Task     *ConsensusScheduleTask
-	ResultCh  chan *TaskResultMsgWrap
+type DoneScheduleTaskChWrap struct {
+	ProposalId   common.Hash
+	SelfTaskRole TaskRole
+	SelfPeerInfo *pb.TaskPeerInfo
+	Task         *ConsensusScheduleTask
+	ResultCh     chan *TaskResultMsgWrap
 }
 type ConsensusScheduleTask struct {
-	TaskDir                ProposalTaskDir
-	TaskState 			   TaskState
-	SchedTask              *ScheduleTask
-	Resources               *pb.ConfirmTaskPeerInfo
+	TaskDir   ProposalTaskDir
+	TaskState TaskState
+	SchedTask *ScheduleTask
+	Resources *pb.ConfirmTaskPeerInfo
 }
 
 type ScheduleTask struct {
@@ -77,6 +87,7 @@ type ScheduleTask struct {
 	DataSplitContractCode string                        `json:"dataSplitContractCode"`
 	OperationCost         *TaskOperationCost            `json:"spend"`
 	CreateAt              uint64                        `json:"createAt"`
+	StartAt               uint64                        `json:"startAt"`
 }
 
 type ScheduleTaskDataSupplier struct {

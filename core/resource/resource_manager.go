@@ -5,7 +5,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
-	"sync"
 	"time"
 )
 
@@ -18,14 +17,9 @@ type Manager struct {
 	db                     iface.ForResourceDB // Low level persistent database to store final content.
 	//eventCh                chan *types.TaskEventInfo
 	slotUnit               *types.Slot
-	// (resourceNodeId -> resource)  todo 任务结束 或者 任务被清理时, 记得释放对应 taskId 占有的 local resource item
-	//localTables            map[string]*types.LocalResourceTable
-	//localTableQueue        []*types.LocalResourceTable
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue []*types.RemoteResourceTable
 
-	localLock  sync.RWMutex
-	remoteLock sync.RWMutex
 }
 
 func NewResourceManager(db iface.ForResourceDB) *Manager {
@@ -45,8 +39,6 @@ func (m *Manager) loop() {
 	refreshTimer := time.NewTimer(defaultRefreshOrgResourceInterval)
 	for {
 		select {
-		//case event := <-m.eventCh:
-		//	_ = event // TODO add some logic about eventEngine
 		case <-refreshTimer.C:
 			if err := m.refreshOrgResourceTable(); nil != err {
 				log.Errorf("Failed to refresh org resourceTables, err: %s", err)
@@ -59,24 +51,10 @@ func (m *Manager) loop() {
 func (m *Manager) Start() error {
 
 	m.SetSlotUnit(0, 0, 0)
-	// load slotUnit
-	slotUnit, err := m.db.QueryNodeResourceSlotUnit()
-	if nil != err {
+	// store slotUnit
+	if err := m.db.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
 	}
-	m.slotUnit = slotUnit
-	// load local resource Tables
-	localResources, err := m.db.QueryLocalResourceTables()
-	if nil != err {
-		return err
-	}
-	tables := make(map[string]*types.LocalResourceTable, len(localResources))
-	for _, resource := range localResources {
-		tables[resource.GetNodeId()] = resource
-	}
-	//m.localTables = tables
-	//m.localTableQueue = localResources
-
 	// load remote org resource Tables
 	remoteResources, err := m.db.QueryOrgResourceTables()
 	if nil != err {
@@ -119,7 +97,7 @@ func (m *Manager) SetSlotUnit(mem, p, b uint64) {
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
 func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
 
-	table, err := m.db.QueryLocalResourceTable(nodeId)
+	table, err := m.GetLocalResourceTable(nodeId)
 	if  nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
@@ -127,18 +105,18 @@ func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
 		return fmt.Errorf("Insufficient locked number of slots of node: %s", nodeId)
 	}
 	table.UseSlot(slotCount)
-	return m.db.StoreLocalResourceTable(table)
+	return m.SetLocalResourceTable(table)
 }
 func (m *Manager) FreeSlot(nodeId string, slotCount uint32) error {
-	table, err := m.db.QueryLocalResourceTable(nodeId)
+	table, err := m.GetLocalResourceTable(nodeId)
 	if  nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	table.FreeSlot(slotCount)
-	return m.db.StoreLocalResourceTable(table)
+	return m.SetLocalResourceTable(table)
 }
 func (m *Manager) LockSlot(nodeId string, slotCount uint32) error {
-	table, err := m.db.QueryLocalResourceTable(nodeId)
+	table, err := m.GetLocalResourceTable(nodeId)
 	if  nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
@@ -146,15 +124,15 @@ func (m *Manager) LockSlot(nodeId string, slotCount uint32) error {
 		return fmt.Errorf("Insufficient remaining number of slots of node: %s", nodeId)
 	}
 	table.LockSlot(slotCount)
-	return m.db.StoreLocalResourceTable(table)
+	return m.SetLocalResourceTable(table)
 }
 func (m *Manager) UnLockSlot(nodeId string, slotCount uint32) error {
-	table, err := m.db.QueryLocalResourceTable(nodeId)
+	table, err := m.GetLocalResourceTable(nodeId)
 	if  nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	table.UnLockSlot(slotCount)
-	return m.db.StoreLocalResourceTable(table)
+	return m.SetLocalResourceTable(table)
 }
 
 func (m *Manager) SetLocalResourceTable(table *types.LocalResourceTable) error {
@@ -181,10 +159,6 @@ func (m *Manager) CleanLocalResourceTables() error {
 	}
 	return nil
 }
-//func (m *Manager) refreshLocalResourceTable() error {
-//
-//	return nil
-//}
 
 func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
 	m.remoteTableQueue = append(m.remoteTableQueue, table)
@@ -241,12 +215,10 @@ func (m *Manager) refreshOrgResourceTable() error {
 			i--
 		}
 	}
+	// If is new one, add
 	for _, r := range tmp {
 		m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
 	}
 	return nil
 }
-//func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
-//	m.eventCh <- event
-//	return nil
-//}
+
