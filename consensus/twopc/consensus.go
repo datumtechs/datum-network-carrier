@@ -415,37 +415,38 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	// Store vote
 	t.state.StorePrepareVote(voteMsg)
 
-	yesVoteCount := t.state.GetTaskDataSupplierPrepareYesVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskPowerSupplierPrepareYesVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskResulterPrepareYesVoteCount(voteMsg.ProposalId)
+	yesVoteCount := t.state.GetTaskPrepareYesVoteCount(voteMsg.ProposalId)
+	totalVoteCount := t.state.GetTaskPrepareTotalVoteCount(voteMsg.ProposalId)
 
-	// Change the propoState to `confirmPeriod`
-	if taskMemCount == yesVoteCount {
+	if taskMemCount == totalVoteCount {
+		// Change the propoState to `confirmPeriod`
+		if taskMemCount == yesVoteCount {
 
-		now := uint64(time.Now().UnixNano())
-		// 修改状态
-		t.state.ChangeToConfirm(voteMsg.ProposalId, now)
+			now := uint64(time.Now().UnixNano())
+			// 修改状态
+			t.state.ChangeToConfirm(voteMsg.ProposalId, now)
 
-		if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
-			// Send consensus result
-			t.collectTaskResult(&types.ConsensuResult{
-				TaskConsResult: &types.TaskConsResult{
-					TaskId: task.TaskId,
-					Status: types.TaskConsensusInterrupt,
-					Done:   false,
-					Err:    err,
-				},
-				//Resources:
-			})
+			if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
+				// Send consensus result
+				t.collectTaskResult(&types.ConsensuResult{
+					TaskConsResult: &types.TaskConsResult{
+						TaskId: task.TaskId,
+						Status: types.TaskConsensusInterrupt,
+						Done:   false,
+						Err:    err,
+					},
+					//Resources:
+				})
 
-			// todo 这里先考虑下是否直接清除掉 proposalState ????
-			// clean some invalid data
+				// todo 这里先考虑下是否直接清除掉 proposalState ????
+				// clean some invalid data
+				t.delProposalStateAndTask(voteMsg.ProposalId)
+				return err
+			}
+		} else {
 			t.delProposalStateAndTask(voteMsg.ProposalId)
-			return err
 		}
-
 	}
-
 	return nil
 }
 // (on Subscriber)
@@ -646,7 +647,6 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			t.delProposalStateAndTask(voteMsg.ProposalId)
 		}
 	}
-
 	return nil
 }
 
