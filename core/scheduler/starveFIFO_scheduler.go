@@ -19,7 +19,7 @@ const (
 	defaultScheduleTaskInterval = 20 * time.Millisecond
 	electionOrgCondition        = 10000
 	electionLocalSeed           = 2
-	taskComputeOrgCount         = 3
+	//taskComputeOrgCount         = 3
 )
 
 var (
@@ -176,7 +176,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		//sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
 
 		// 【选出 其他组织的算力】
-		powers, err := sche.electionConputeOrg(task.OwnerIdentityId(), taskComputeOrgCount, cost)
+		powers, err := sche.electionConputeOrg(task.PowerPartyIds(), task.OwnerIdentityId(), cost)
 		if nil != err {
 			log.Errorf("Failed to election power org, err: %s", err)
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
@@ -274,8 +274,13 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ScheduleTaskWra
 		}
 
 		if role == types.DataSupplier {
+
+			powerPartyIds := make([]string, len(schedTask.Task.PowerSuppliers))
+			for i, power := range schedTask.Task.PowerSuppliers {
+				powerPartyIds[i] = power.PartyId
+			}
 			// mock election power orgs
-			powers, err := sche.electionConputeOrg(schedTask.Task.Owner.IdentityId, taskComputeOrgCount, cost)
+			powers, err := sche.electionConputeOrg(powerPartyIds, schedTask.Task.Owner.IdentityId, cost)
 			if nil != err {
 				log.Errorf("Failed to election power org, err: %s", err)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
@@ -499,9 +504,9 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 		Port: internalNodeInfo.ExternalPort,
 	}, nil
 }
-func (sche *SchedulerStarveFIFO) electionConputeOrg(ownerIdentity string, calculateCount int, cost *types.TaskOperationCost) ([]*types.NodeAlias, error) {
-
-	orgs := make([]*types.NodeAlias, 0)
+func (sche *SchedulerStarveFIFO) electionConputeOrg(powerPartyIds []string, ownerIdentity string, cost *types.TaskOperationCost) ([]*types.TaskNodeAlias, error) {
+	calculateCount := len(powerPartyIds)
+	orgs := make([]*types.TaskNodeAlias, calculateCount)
 	identityIds := make([]string, 0)
 
 	for _, r := range sche.resourceMng.GetRemoteResouceTables() {
@@ -510,7 +515,6 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(ownerIdentity string, calcul
 		}
 		if r.IsEnough(cost.Mem, cost.Processor, cost.Bandwidth) {
 			identityIds = append(identityIds, r.GetIdentityId())
-			//identityIdTmp[r.GetIdentityId()] = struct{}{}
 		}
 	}
 	if calculateCount > len(identityIds) {
@@ -518,9 +522,8 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(ownerIdentity string, calcul
 	}
 	// Election
 	index := electionOrgCondition % len(identityIds)
-	identityIdTmp := make(map[string]struct{}, 0)
+	identityIdTmp := make(map[string]struct{}, calculateCount)
 	for i := calculateCount; i > 0; i-- {
-
 		identityIdTmp[identityIds[index]] = struct{}{}
 		index++
 
@@ -530,13 +533,16 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(ownerIdentity string, calcul
 	if nil != err {
 		return nil, err
 	}
+
+	i := 0
 	for _, iden := range identityArr {
 		if _, ok := identityIdTmp[iden.IdentityId()]; ok {
-			orgs = append(orgs, &types.NodeAlias{
+			orgs[i] =  &types.TaskNodeAlias{
+				PartyId:    powerPartyIds[i],
 				Name:       iden.Name(),
 				NodeId:     iden.NodeId(),
 				IdentityId: iden.IdentityId(),
-			})
+			}
 		}
 	}
 	return orgs, nil
