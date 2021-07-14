@@ -12,7 +12,7 @@ func ConvertTaskEventToPB (event *TaskEvent) *pb.TaskEventShow {
 	return &pb.TaskEventShow{
 		Type:     event.Type,
 		TaskId:   event.TaskId,
-		Owner:    ConvertTaskNodeAliasToPB(event.Owner),
+		Owner:    ConvertNodeAliasToPB(event.Owner),
 		Content:  event.Content,
 		CreateAt: event.CreateAt,
 	}
@@ -22,7 +22,7 @@ func ConvertTaskEventFromPB (event *pb.TaskEventShow) *TaskEvent {
 	return &TaskEvent{
 		Type:     event.Type,
 		TaskId:   event.TaskId,
-		Owner:    ConvertTaskNodeAliasFromPB(event.Owner),
+		Owner:    ConvertNodeAliasFromPB(event.Owner),
 		Content:  event.Content,
 		CreateAt: event.CreateAt,
 	}
@@ -36,7 +36,7 @@ func ConvertTaskEventArrToPB (events []*TaskEvent) []*pb.TaskEventShow {
 		e := &pb.TaskEventShow{
 			Type:     event.Type,
 			TaskId:   event.TaskId,
-			Owner:    ConvertTaskNodeAliasToPB(event.Owner),
+			Owner:    ConvertNodeAliasToPB(event.Owner),
 			Content:  event.Content,
 			CreateAt: event.CreateAt,
 		}
@@ -52,7 +52,7 @@ func ConvertTaskEventArrFromPB (events []*pb.TaskEventShow) []*TaskEvent {
 		e := &TaskEvent{
 			Type:     event.Type,
 			TaskId:   event.TaskId,
-			Owner:    ConvertTaskNodeAliasFromPB(event.Owner),
+			Owner:    ConvertNodeAliasFromPB(event.Owner),
 			Content:  event.Content,
 			CreateAt: event.CreateAt,
 		}

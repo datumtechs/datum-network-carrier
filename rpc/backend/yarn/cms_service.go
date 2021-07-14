@@ -1,16 +1,16 @@
-package backend
+package yarn
 
 import (
 	"context"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"strings"
 )
 
 func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
 	node, err := svr.B.GetNodeInfo()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrGetNodeInfoStr)
 	}
 	peers := make([]*pb.YarnRegisteredPeer, len(node.Peers))
 	for i, v := range node.Peers {
@@ -40,7 +40,7 @@ func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetP
 
 	return &pb.GetNodeInfoResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		Information: &pb.YarnNodeInfo{
 			NodeType:     node.NodeType,
 			NodeId:       node.NodeId,
@@ -61,7 +61,7 @@ func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetP
 func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
 	registerNodes, err := svr.B.GetRegisteredPeers()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetRegisteredPeersStr)
+		return nil, backend.NewRpcBizErr(ErrGetRegisteredPeersStr)
 	}
 	jobNodes := make([]*pb.YarnRegisteredJobNode, len(registerNodes.JobNodes))
 	for i, v := range registerNodes.JobNodes {
@@ -114,7 +114,7 @@ func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Em
 	}
 	return &pb.GetRegisteredPeersResponse{
 		Status:    0,
-		Msg:       OK,
+		Msg:       backend.OK,
 		JobNodes:  jobNodes,
 		DataNodes: dataNodes,
 	}, nil
@@ -129,11 +129,11 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 	seedNode.SeedNodeId()
 	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		SeedPeer: &pb.SeedPeer{
 			Id:           seedNode.Id,
 			InternalIp:   seedNode.InternalIp,
@@ -153,11 +153,11 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 	svr.B.DeleteSeedNode(seedNode.Id)
 	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSetSeedNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		SeedPeer: &pb.SeedPeer{
 			Id:           seedNode.Id,
 			InternalIp:   seedNode.InternalIp,
@@ -172,15 +172,15 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	err := svr.B.DeleteSeedNode(req.Id)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrDeleteSeedNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrDeleteSeedNodeInfoStr)
 	}
-	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
+	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetSeedNodeListResponse, error) {
 	list, err := svr.B.GetSeedNodeList()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetSeedNodeListStr)
+		return nil, backend.NewRpcBizErr(ErrGetSeedNodeListStr)
 	}
 	seeds := make([]*pb.SeedPeer, len(list))
 	for i, v := range list {
@@ -194,7 +194,7 @@ func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.Empty
 	}
 	return &pb.GetSeedNodeListResponse{
 		Status:    0,
-		Msg:       OK,
+		Msg:       backend.OK,
 		SeedPeers: seeds,
 	}, nil
 }
@@ -210,11 +210,11 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 	node.DataNodeId()
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSetDataNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
 	return &pb.SetDataNodeResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		DataNode: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
@@ -239,11 +239,11 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, node.Id)
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSetDataNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
 	return &pb.SetDataNodeResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		DataNode: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
@@ -257,16 +257,16 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 
 func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
-		return nil, NewRpcBizErr(ErrDeleteDataNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrDeleteDataNodeInfoStr)
 	}
-	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
+	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetDataNodeListStr)
+		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	datas := make([]*pb.YarnRegisteredPeer, len(list))
 	for i, v := range list {
@@ -285,7 +285,7 @@ func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 	}
 	return &pb.GetRegisteredNodeListResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		Nodes:  datas,
 	}, nil
 }
@@ -302,11 +302,11 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
 		log.WithError(err).Error("SetRegisterNode failed.")
-		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
 	return &pb.SetJobNodeResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		JobNode: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
@@ -330,11 +330,11 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSetJobNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
 	return &pb.SetJobNodeResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		JobNode: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
@@ -348,15 +348,15 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 
 func (svr *YarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, req.Id); nil != err {
-		return nil, NewRpcBizErr(ErrDeleteJobNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrDeleteJobNodeInfoStr)
 	}
-	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
+	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetDataNodeListStr)
+		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	jobs := make([]*pb.YarnRegisteredPeer, len(list))
 	for i, v := range list {
@@ -375,61 +375,15 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 	}
 	return &pb.GetRegisteredNodeListResponse{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 		Nodes:  jobs,
-	}, nil
-}
-
-func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
-	var err error
-	go func() {
-		err = svr.B.SendTaskEvent(&types.TaskEventInfo{
-			Type:       req.TaskEvent.Type,
-			Identity:   req.TaskEvent.IdentityId,
-			TaskId:     req.TaskEvent.TaskId,
-			Content:    req.TaskEvent.Content,
-			CreateTime: req.TaskEvent.CreateAt,
-		})
-	}()
-	if nil != err {
-		return nil, NewRpcBizErr(ErrReportTaskEventStr)
-	}
-	return &pb.SimpleResponseCode{Status: 0, Msg: OK}, nil
-}
-
-func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*pb.SimpleResponseCode, error) {
-	return nil, nil
-}
-
-func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
-	jobNodeList, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	if nil != err {
-		return nil, NewRpcBizErr(ErrGetJobNodeListStr)
-	}
-	var resourceId string
-	for _, jobNode := range jobNodeList {
-		if req.Ip == jobNode.InternalIp && req.Port == jobNode.InternalPort {
-			resourceId = jobNode.Id
-			break
-		}
-	}
-	if "" == strings.Trim(resourceId, "") {
-		return nil, NewRpcBizErr(ErrGetJobNodeListStr)
-	}
-	err = svr.B.StoreDataResourceDataUsed(types.NewDataResourceDataUsed(resourceId, req.OriginId, "", req.FilePath))
-	if nil != err {
-		return nil, NewRpcBizErr(ErrReportUpFileSummaryStr)
-	}
-	return &pb.SimpleResponseCode{
-		Status: 0,
-		Msg:    OK,
 	}, nil
 }
 
 func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrQueryDataResourceTableListStr)
+		return nil, backend.NewRpcBizErr(ErrQueryDataResourceTableListStr)
 	}
 
 	var nodeId string
@@ -441,7 +395,7 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 	}
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, nodeId)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetDataNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
 
 	return &pb.QueryAvailableDataNodeResponse{
@@ -452,11 +406,11 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 func (svr *YarnServiceServer) QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error) {
 	dataResourceDataUsed, err := svr.B.QueryDataResourceDataUsed(req.OriginId)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrQueryDataResourceDataUsedStr)
+		return nil, backend.NewRpcBizErr(ErrQueryDataResourceDataUsedStr)
 	}
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceDataUsed.GetNodeId())
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetDataNodeInfoStr)
+		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
 
 	return &pb.QueryFilePositionResponse{

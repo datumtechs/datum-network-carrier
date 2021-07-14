@@ -1,10 +1,11 @@
-package backend
+package metadata
 
 import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
@@ -30,7 +31,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	}
 	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetMetaDataDetailStr)
+		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailStr)
 	}
 
 	columns := make([]*pb.MetaDataColumnDetail, len(metaDataDetail.MetaData.ColumnMetas))
@@ -46,7 +47,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	}
 
 	return &pb.GetMetaDataDetailResponse{
-		Owner:       types.ConvertTaskNodeAliasToPB(metaDataDetail.Owner),
+		Owner:       types.ConvertNodeAliasToPB(metaDataDetail.Owner),
 		Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
 	}, nil
 }
@@ -54,12 +55,12 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataDetailListResponse, error) {
 	metaDataList, err := svr.B.GetMetaDataDetailList()
 	if nil != err {
-		return nil, NewRpcBizErr(ErrGetMetaDataDetailListStr)
+		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailListStr)
 	}
 	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
 	for i, metaDataDetail := range metaDataList {
 		resp := &pb.GetMetaDataDetailResponse{
-			Owner:       types.ConvertTaskNodeAliasToPB(metaDataDetail.Owner),
+			Owner:       types.ConvertNodeAliasToPB(metaDataDetail.Owner),
 			Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
 		}
 		respList[i] = resp
@@ -67,28 +68,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 
 	return &pb.GetMetaDataDetailListResponse{
 		Status:       0,
-		Msg:          OK,
-		MetaDataList: respList,
-	}, nil
-}
-
-func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
-	metaDataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
-	if nil != err {
-		return nil, NewRpcBizErr(ErrGetMetaDataDetailListStr)
-	}
-	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
-	for i, metaDataDetail := range metaDataList {
-		resp := &pb.GetMetaDataDetailResponse{
-			Owner:       types.ConvertTaskNodeAliasToPB(metaDataDetail.Owner),
-			Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
-		}
-		respList[i] = resp
-	}
-
-	return &pb.GetMetaDataDetailListResponse{
-		Status:       0,
-		Msg:          OK,
+		Msg:          backend.OK,
 		MetaDataList: respList,
 	}, nil
 }
@@ -125,11 +105,11 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 
 	err := svr.B.SendMsg(metaDataMsg)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSendMetaDataMsgStr)
+		return nil, backend.NewRpcBizErr(ErrSendMetaDataMsgStr)
 	}
 	return &pb.PublishMetaDataResponse{
 		Status:     0,
-		Msg:        OK,
+		Msg:        backend.OK,
 		MetaDataId: metaDataId,
 	}, nil
 }
@@ -142,10 +122,10 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
-		return nil, NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
+		return nil, backend.NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
 	}
 	return &pb.SimpleResponseCode{
 		Status: 0,
-		Msg:    OK,
+		Msg:    backend.OK,
 	}, nil
 }
