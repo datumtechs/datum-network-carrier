@@ -261,7 +261,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 
 	switch schedTask.Role {
 
-	// 如果 当前参与方为 DataSupplier
+	// 如果 当前参与方为 DataSupplier   [重新 演算 选 powers]
 	case types.DataSupplier:
 
 		powerPartyIds := make([]string, len(schedTask.Task.PowerSuppliers))
@@ -272,25 +272,15 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 		powers, err := sche.electionConputeOrg(powerPartyIds, schedTask.Task.Owner.IdentityId, cost)
 		if nil != err {
 			log.Errorf("Failed to election power org, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+			schedTask.SendFailedResult(schedTask.Task.TaskId, fmt.Errorf("failed to election power org, err: %s", err))
 			return
 		}
 
 		// compare powerSuppliers of task And powerSuppliers of election
 		if len(powers) != len(schedTask.Task.PowerSuppliers) {
-			err := fmt.Errorf("election powerSuppliers and task powerSuppliers is not match")
-			log.Error(err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
-				//Resource:
-			})
-
+			log.Errorf("election powerSuppliers and task powerSuppliers is not match")
+			schedTask.SendFailedResult(schedTask.Task.TaskId,
+				fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"))
 			return
 		}
 
@@ -301,21 +291,14 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 		}
 		for _, supplier := range schedTask.Task.PowerSuppliers {
 			if _, ok := tmp[supplier.IdentityId]; !ok {
-				err := fmt.Errorf("election powerSuppliers and task powerSuppliers is not match")
-				log.Error(err)
-				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-					schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-				schedTask.SendResult(&types.ScheduleResult{
-					TaskId: schedTask.Task.TaskId,
-					Status: types.TaskSchedFailed,
-					Err:    fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
-				})
+				log.Errorf("election powerSuppliers and task powerSuppliers is not match")
+				schedTask.SendFailedResult(schedTask.Task.TaskId,
+					fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"))
 				return
 			}
 		}
 
-		// TODO 选出 关于自己 metaDataId 所在的 dataNode
+		// 选出 关于自己 metaDataId 所在的 dataNode
 		var metaDataId string
 		for _, dataResource := range schedTask.Task.Partners {
 			if self.IdentityId == dataResource.IdentityId {
@@ -325,30 +308,17 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 		}
 		dataNodeId, err := sche.dataCenter.QueryLocalResourceIdByMetaDataId(metaDataId)
 		if nil != err {
-			err := fmt.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
-			log.Error(err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
-			})
+			log.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
+			schedTask.SendFailedResult(schedTask.Task.TaskId,
+				fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"))
 			return
 		}
+
 		dataNode, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataNodeId)
 		if nil != err {
-			err := fmt.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
-			log.Error(err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
-			})
+			log.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
+			schedTask.SendFailedResult(schedTask.Task.TaskId,
+				fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"))
 			return
 		}
 
@@ -362,24 +332,26 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 			},
 		})
 
-	// 如果 当前参与方为 DataSupplier
+	// 如果 当前参与方为 PowerSupplier  [选出自己的 内部 power 资源, 并锁定, todo 在最后 DoneXxxxWrap 中解锁]
 	case types.PowerSupplier:
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 		selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
 		if nil != err {
 			log.Errorf("Failed to election internal power resource, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed to replay sched myself local power on replay schedule task"),
-			})
+			schedTask.SendFailedResult(schedTask.Task.TaskId,
+				fmt.Errorf("failed to replay sched myself local power on replay schedule task"))
 			return
 		}
-		// Lock local resource (jobNode)
-		sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
+
+		// lock local resource with task
+		// todo 这些成功被锁住的资源会在 taskManager 中被释放 ...
+		if err := sche.resourceMng.LockLocalResourceWithTask(selfResourceInfo.Id, needSlotCount,
+			types.ConvertScheduleTaskToTask(schedTask.Task)); nil != err {
+			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s}, err: %s", selfResourceInfo.Id, schedTask.Task.TaskId, err)
+			schedTask.SendFailedResult(schedTask.Task.TaskId, err)
+			return
+		}
+
 		schedTask.SendResult(&types.ScheduleResult{
 			TaskId: schedTask.Task.TaskId,
 			Status: types.TaskSchedOk,
@@ -390,20 +362,14 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 			},
 		})
 
-	// 如果 当前参与方为 ResultSupplier
+	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
 	case types.ResultSupplier:
 
 		localResourceTables, err := sche.resourceMng.GetLocalResourceTables()
 		if nil != err {
-			log.Errorf("Failed to election internal data resource, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
-			})
+			log.Errorf("Failed to election internal data resource with replay schedule task, err: %s", err)
+			schedTask.SendFailedResult(schedTask.Task.TaskId,
+				fmt.Errorf("failed to election internal data resource with replay schedule task, err: %s", err))
 			return
 		}
 
@@ -411,14 +377,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 		resourceInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, resource.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query internal data node resource, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
-			})
+			schedTask.SendFailedResult(schedTask.Task.TaskId,
+				fmt.Errorf("failed to query internal data node resource, err: %s", err))
 			return
 		}
 

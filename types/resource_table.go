@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 )
@@ -27,7 +28,7 @@ type LocalResourceTable struct {
 	nodeResource *resource // The total resource on the node
 	assign       bool      // Whether to assign the slot tag
 	slotTotal    uint32    // The total number of slots are allocated on the resource of this node
-	slotLocked   uint32    // Maybe we will to use, so lock first.
+	//slotLocked   uint32    // Maybe we will to use, so lock first.
 	slotUsed     uint32    // The number of slots that have been used on the resource of the node
 }
 type localResourceTableRlp struct {
@@ -69,39 +70,44 @@ func (r *LocalResourceTable) SetSlotUnit(slot *Slot) {
 	r.slotTotal = uint32(min)
 }
 
-func (r *LocalResourceTable) RemianSlot() uint32 { return r.slotTotal - r.slotUsed - r.slotLocked }
-func (r *LocalResourceTable) UseSlot(count uint32) {
-	if r.slotLocked < count {
-		return
+func (r *LocalResourceTable) RemianSlot() uint32 { return r.slotTotal - r.slotUsed /*- r.slotLocked*/ }
+func (r *LocalResourceTable) UseSlot(count uint32) error {
+	//if r.slotLocked < count {
+	//	return
+	//}
+	//r.slotUsed += count
+	//r.slotLocked -= count
+	if r.RemianSlot() < count {
+		return fmt.Errorf("Failed to lock local resource, slotRemain {%s} less than need lock count {%s}", r.RemianSlot(), count)
 	}
 	r.slotUsed += count
-	r.slotLocked -= count
-
+	return nil
 }
-func (r *LocalResourceTable) FreeSlot(count uint32) {
+func (r *LocalResourceTable) FreeSlot(count uint32) error {
 	if r.slotUsed < count {
-		r.slotUsed = 0
+		return fmt.Errorf("Failed to unlock local resource, slotUsed {%s} less than need free count {%s}", r.slotUsed, count)
 	} else {
-		r.slotUsed = r.slotUsed - count
+		r.slotUsed -= count
 	}
+	return nil
 }
-func (r *LocalResourceTable) LockSlot(count uint32) {
-	if count > r.RemianSlot() {
-		r.slotLocked = r.slotTotal - r.slotUsed
-	} else {
-		r.slotLocked += count
-	}
-}
-func (r *LocalResourceTable) UnLockSlot(count uint32) {
-	if r.slotLocked <= count {
-		r.slotLocked = 0
-	} else {
-		r.slotLocked = r.slotLocked - count
-	}
-}
+//func (r *LocalResourceTable) LockSlot(count uint32) {
+//	if count > r.RemianSlot() {
+//		r.slotLocked = r.slotTotal - r.slotUsed
+//	} else {
+//		r.slotLocked += count
+//	}
+//}
+//func (r *LocalResourceTable) UnLockSlot(count uint32) {
+//	if r.slotLocked <= count {
+//		r.slotLocked = 0
+//	} else {
+//		r.slotLocked = r.slotLocked - count
+//	}
+//}
 func (r *LocalResourceTable) GetTotalSlot() uint32  { return r.slotTotal }
 func (r *LocalResourceTable) GetUsedSlot() uint32   { return r.slotUsed }
-func (r *LocalResourceTable) GetLockedSlot() uint32 { return r.slotLocked }
+//func (r *LocalResourceTable) GetLockedSlot() uint32 { return r.slotLocked }
 func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
 	if r.RemianSlot() < slotCount {
 		return false

@@ -284,6 +284,8 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		Task:     task,
 		ResultCh: make(chan *types.ScheduleResult),
 	}
+
+	// replay schedule task on myself ...
 	t.sendReplaySchedTask(replaySchedTask)
 	result := replaySchedTask.RecvResult()
 
