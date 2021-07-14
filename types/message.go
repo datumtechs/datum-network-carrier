@@ -785,15 +785,16 @@ type TaskNodeAlias struct {
 	IdentityId string `json:"identityId"`
 }
 
-func ConvertNodeAliasToPB(alias *NodeAlias) *pb.OrganizationIdentityInfo {
-	return &pb.OrganizationIdentityInfo{
+func ConvertTaskNodeAliasToPB(alias *TaskNodeAlias) *pb.TaskOrganizationIdentityInfo {
+	return &pb.TaskOrganizationIdentityInfo{
+		PartyId:    alias.PartyId,
 		Name:       alias.Name,
 		NodeId:     alias.NodeId,
 		IdentityId: alias.IdentityId,
 	}
 }
-func ConvertNodeAliasFromPB(org *pb.OrganizationIdentityInfo) *NodeAlias {
-	return &NodeAlias{
+func ConvertTaskNodeAliasFromPB(org *pb.TaskOrganizationIdentityInfo) *TaskNodeAlias {
+	return &TaskNodeAlias{
 		Name:       org.Name,
 		NodeId:     org.NodeId,
 		IdentityId: org.IdentityId,
@@ -803,7 +804,7 @@ func ConvertNodeAliasFromPB(org *pb.OrganizationIdentityInfo) *NodeAlias {
 func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*pb.OrganizationIdentityInfo {
 	orgs := make([]*pb.OrganizationIdentityInfo, len(aliases))
 	for i, a := range aliases {
-		org := ConvertNodeAliasToPB(a)
+		org := ConvertTaskNodeAliasToPB(a)
 		orgs[i] = org
 	}
 	return orgs
@@ -811,7 +812,7 @@ func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*pb.OrganizationIdentityInf
 func ConvertNodeAliasArrFromPB(orgs []*pb.OrganizationIdentityInfo) []*NodeAlias {
 	aliases := make([]*NodeAlias, len(orgs))
 	for i, o := range orgs {
-		alias := ConvertNodeAliasFromPB(o)
+		alias := ConvertTaskNodeAliasFromPB(o)
 		aliases[i] = alias
 	}
 	return aliases
