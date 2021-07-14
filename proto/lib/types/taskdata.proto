@@ -22,6 +22,7 @@ message TaskData {
     string desc       = 11;
     uint64 createAt   = 12;
     uint64 endAt      = 13;
+    string party_id   = 14;
     // 算法提供者信息
     OrganizationData algoSupplier = 15;
     TaskResourceData taskResource = 16;
@@ -90,7 +91,7 @@ message TaskResultReceiverData {
 }
 
 message OrganizationData {
-    string alias    = 1;
+    string party_id = 1;
     string identity = 2;
     string nodeId   = 3;
     string nodeName = 4;

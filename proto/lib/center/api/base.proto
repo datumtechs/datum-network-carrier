@@ -14,6 +14,16 @@ message Organization  {
     string identity_id = 3;
 }
 
+message TaskOrganization  {
+    string party_id = 1;
+    // org name
+    string name = 2;
+    // the node_id for org
+    string node_id = 3;
+    // the identity for org
+    string identity_id = 4;
+}
+
 message SimpleResponse {
     // 0 for ok, !0 error
     int32  status = 1;
