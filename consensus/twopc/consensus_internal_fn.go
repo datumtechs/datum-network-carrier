@@ -165,7 +165,7 @@ func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*types.TaskE
 func (t *TwoPC) driveTask(
 	pid peer.ID,
 	proposalId common.Hash,
-	taskDir ctypes.ProposalTaskDir,
+	taskDir types.ProposalTaskDir,
 	taskState types.TaskState,
 	taskRole  types.TaskRole,
 	task *types.ScheduleTask,
@@ -196,7 +196,7 @@ func (t *TwoPC) driveTask(
 	}
 	t.sendTaskToTaskManagerForExecute(taskWrap)
 	go func() {
-		if taskDir == ctypes.RecvTaskDir {
+		if taskDir == types.RecvTaskDir {
 			if taskResultWrap, ok := <-taskWrap.ResultCh; ok {
 				if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
 					log.Error(err)

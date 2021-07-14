@@ -653,6 +653,7 @@ func (msg *TaskMsg) OwnerTaskSupplier() *TaskSupplier { return msg.Data.Owner }
 func (msg *TaskMsg) OwnerName() string                { return msg.Data.Owner.Name }
 func (msg *TaskMsg) OwnerNodeId() string              { return msg.Data.Owner.NodeId }
 func (msg *TaskMsg) OwnerIdentityId() string          { return msg.Data.Owner.IdentityId }
+func (msg *TaskMsg) OwnerPartyId() string             { return msg.Data.Owner.PartyId }
 func (msg *TaskMsg) TaskName() string                 { return msg.Data.TaskName }
 func (msg *TaskMsg) Partners() []*NodeAlias {
 	partners := make([]*NodeAlias, len(msg.Data.Partners))
