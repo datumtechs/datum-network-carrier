@@ -117,8 +117,6 @@ const (
 	//ConfirmEpochFirst   ConfirmEpoch = 1
 	//ConfirmEpochSecond  ConfirmEpoch = 2
 
-	SendTaskDir ProposalTaskDir = 0x00
-	RecvTaskDir ProposalTaskDir = 0x01
 )
 
 var (
@@ -130,19 +128,10 @@ var (
 //
 //func (c ConfirmEpoch) Uint64() uint64 { return uint64(c) }
 
-type ProposalTaskDir uint8
-
-func (dir ProposalTaskDir) String() string {
-	if dir == SendTaskDir {
-		return "sendTask"
-	} else {
-		return "recvTask"
-	}
-}
 
 type ProposalState struct {
 	ProposalId         common.Hash
-	TaskDir            ProposalTaskDir
+	TaskDir            types.ProposalTaskDir
 	TaskId             string
 	PeriodNum          ProposalStatePeriod
 	PrePeriodStartTime uint64
@@ -155,7 +144,7 @@ type ProposalState struct {
 
 var EmptyProposalState = new(ProposalState)
 
-func NewProposalState(proposalId common.Hash, taskId string, TaskDir ProposalTaskDir, startTime uint64) *ProposalState {
+func NewProposalState(proposalId common.Hash, taskId string, TaskDir types.ProposalTaskDir, startTime uint64) *ProposalState {
 	return &ProposalState{
 		ProposalId:       proposalId,
 		TaskId:           taskId,

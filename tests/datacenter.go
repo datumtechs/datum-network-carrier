@@ -144,7 +144,7 @@ func InsertTask() {
 		CreateAt:   uint64(time.Now().Unix()),
 		EndAt:      uint64(uint64(time.Now().Unix())),
 		AlgoSupplier: &libTypes.OrganizationData{
-			Alias:    "",
+			PartyId:    "",
 			NodeId:   Identity,
 			NodeName: NodeName,
 			Identity: Identity,
@@ -157,7 +157,7 @@ func InsertTask() {
 		MetadataSupplier: []*libTypes.TaskMetadataSupplierData{
 			{
 				Organization: &libTypes.OrganizationData{
-					Alias:    "",
+					PartyId:   "",
 					NodeId:   Identity,
 					NodeName: NodeName,
 					Identity: Identity,
@@ -178,7 +178,7 @@ func InsertTask() {
 		ResourceSupplier: []*libTypes.TaskResourceSupplierData{
 			{
 				Organization: &libTypes.OrganizationData{
-					Alias:    "",
+					PartyId:   "",
 					NodeId:   Identity,
 					NodeName: NodeName,
 					Identity: Identity,
@@ -196,14 +196,14 @@ func InsertTask() {
 		Receivers: []*libTypes.TaskResultReceiverData{
 			{
 				Receiver: &libTypes.OrganizationData{
-					Alias:    "",
+					PartyId:   "",
 					NodeId:   Identity,
 					NodeName: NodeName,
 					Identity: Identity,
 				},
 				Provider: []*libTypes.OrganizationData{
 					{
-						Alias:    "",
+						PartyId:   "",
 						NodeId:   Identity,
 						NodeName: NodeName,
 						Identity: Identity,
@@ -213,7 +213,7 @@ func InsertTask() {
 		},
 		PartnerList: []*libTypes.OrganizationData{
 			{
-				Alias:    "",
+				PartyId:   "",
 				NodeId:   Identity,
 				NodeName: NodeName,
 				Identity: Identity,
