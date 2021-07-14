@@ -40,7 +40,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 
 	for i, power := range powerList {
 		resp := &pb.GetPowerTotalDetailResponse{
-			Owner: types.ConvertTaskNodeAliasToPB(power.Owner),
+			Owner: types.ConvertNodeAliasToPB(power.Owner),
 			Power: &pb.PowerTotalDetail{
 				Information: types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
 				TotalTaskCount:power.PowerDetail.TotalTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
@@ -66,7 +66,7 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 	for i, power := range powerList {
 
 		resp := &pb.GetPowerSingleDetailResponse{
-			Owner:  types.ConvertTaskNodeAliasToPB(power.Owner),
+			Owner:  types.ConvertNodeAliasToPB(power.Owner),
 			Power: &pb.PowerSingleDetail{
 				JobNodeId: power.PowerDetail.JobNodeId,
 				PowerId: power.PowerDetail.PowerId,
