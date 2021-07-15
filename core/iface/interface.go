@@ -52,7 +52,7 @@ type LocalStoreCarrierDB interface {
 	QueryLocalTaskPowerUsed(taskId string) (*types.LocalTaskPowerUsed, error)
 	QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error)
 	// about DataResourceTable
-	StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
+	StoreDataResourceTable(StoreDataResourceTables *types.DataResourceTable) error
 	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
 	RemoveDataResourceTable(nodeId string) error
 	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
