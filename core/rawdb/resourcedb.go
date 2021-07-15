@@ -848,10 +848,10 @@ func QueryDataResourceTables (db DatabaseReader) ([]*types.DataResourceTable, er
 
 
 // 操作 原始文件Id 所在的 数据服务信息  (originId -> {nodeId/metaDataId/filePath}})
-func StoreDataResourceDataUsed(db KeyValueStore, dataResourceDataUsed *types.DataResourceDataUsed) error {
+func StoreDataResourceFileUpload(db KeyValueStore, dataResourceFileUpload *types.DataResourceFileUpload) error {
 
-	key := GetDataResourceDataUsedKey(dataResourceDataUsed.GetOriginId())
-	val, err := rlp.EncodeToBytes(dataResourceDataUsed)
+	key := GetDataResourceFileUploadKey(dataResourceFileUpload.GetOriginId())
+	val, err := rlp.EncodeToBytes(dataResourceFileUpload)
 	if nil != err {
 		return err
 	}
@@ -860,16 +860,16 @@ func StoreDataResourceDataUsed(db KeyValueStore, dataResourceDataUsed *types.Dat
 		return err
 	}
 
-	has, err := db.Has(GetDataResourceDataUsedIdListKey())
+	has, err := db.Has(GetDataResourceFileUploadIdListKey())
 	if nil != err {
 		return err
 	}
 
 	var originIds []string
 	if !has {
-		originIds = []string{dataResourceDataUsed.GetOriginId()}
+		originIds = []string{dataResourceFileUpload.GetOriginId()}
 	} else {
-		idsByte, err := db.Get(GetDataResourceDataUsedIdListKey())
+		idsByte, err := db.Get(GetDataResourceFileUploadIdListKey())
 		if nil != err {
 			return err
 		}
@@ -880,13 +880,13 @@ func StoreDataResourceDataUsed(db KeyValueStore, dataResourceDataUsed *types.Dat
 		var include bool
 
 		for _, id := range originIds {
-			if id == dataResourceDataUsed.GetOriginId() {
+			if id == dataResourceFileUpload.GetOriginId() {
 				include = true
 				break
 			}
 		}
 		if !include {
-			originIds = append(originIds, dataResourceDataUsed.GetOriginId())
+			originIds = append(originIds, dataResourceFileUpload.GetOriginId())
 		}
 	}
 
@@ -895,12 +895,12 @@ func StoreDataResourceDataUsed(db KeyValueStore, dataResourceDataUsed *types.Dat
 		return err
 	}
 
-	return db.Put(GetDataResourceDataUsedIdListKey(), index)
+	return db.Put(GetDataResourceFileUploadIdListKey(), index)
 }
 
-func StoreDataResourceDataUseds(db KeyValueStore, dataResourceDataUseds []*types.DataResourceDataUsed) error {
+func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*types.DataResourceFileUpload) error {
 
-	has, err := db.Has(GetDataResourceDataUsedIdListKey())
+	has, err := db.Has(GetDataResourceFileUploadIdListKey())
 	if nil != err {
 		return err
 	}
@@ -908,7 +908,7 @@ func StoreDataResourceDataUseds(db KeyValueStore, dataResourceDataUseds []*types
 	inputIds := make([]string, len(dataResourceDataUseds))
 	for i, dataResourceDataUsed := range dataResourceDataUseds {
 		inputIds[i] =  dataResourceDataUsed.GetOriginId()
-		key := GetDataResourceDataUsedKey(dataResourceDataUsed.GetOriginId())
+		key := GetDataResourceFileUploadKey(dataResourceDataUsed.GetOriginId())
 		val, err := rlp.EncodeToBytes(dataResourceDataUsed)
 		if nil != err {
 			return err
@@ -923,7 +923,7 @@ func StoreDataResourceDataUseds(db KeyValueStore, dataResourceDataUseds []*types
 	if !has {
 		originIds = inputIds
 	} else {
-		idsByte, err := db.Get(GetDataResourceDataUsedIdListKey())
+		idsByte, err := db.Get(GetDataResourceFileUploadIdListKey())
 		if nil != err {
 			return err
 		}
@@ -949,11 +949,11 @@ func StoreDataResourceDataUseds(db KeyValueStore, dataResourceDataUseds []*types
 		return err
 	}
 
-	return db.Put(GetDataResourceDataUsedIdListKey(), index)
+	return db.Put(GetDataResourceFileUploadIdListKey(), index)
 }
 
-func RemoveDataResourceDataUsed(db KeyValueStore, originId string) error {
-	has, err := db.Has(GetDataResourceDataUsedIdListKey())
+func RemoveDataResourceFileUpload(db KeyValueStore, originId string) error {
+	has, err := db.Has(GetDataResourceFileUploadIdListKey())
 	if nil != err {
 		return err
 	}
@@ -962,7 +962,7 @@ func RemoveDataResourceDataUsed(db KeyValueStore, originId string) error {
 	if !has {
 		return nil
 	} else {
-		idsByte, err := db.Get(GetDataResourceDataUsedIdListKey())
+		idsByte, err := db.Get(GetDataResourceFileUploadIdListKey())
 		if nil != err {
 			return err
 		}
@@ -974,7 +974,7 @@ func RemoveDataResourceDataUsed(db KeyValueStore, originId string) error {
 		for i := 0; i <= len(originIds); i++ {
 			id := originIds[i]
 			if id == originId {
-				key := GetDataResourceDataUsedKey(originId)
+				key := GetDataResourceFileUploadKey(originId)
 				if err := db.Delete(key); nil != err {
 					return err
 				}
@@ -990,17 +990,17 @@ func RemoveDataResourceDataUsed(db KeyValueStore, originId string) error {
 		return err
 	}
 
-	return db.Put(GetDataResourceDataUsedIdListKey(), index)
+	return db.Put(GetDataResourceFileUploadIdListKey(), index)
 }
 
-func QueryDataResourceDataUsed (db DatabaseReader, originId string) (*types.DataResourceDataUsed, error) {
-	key := GetDataResourceDataUsedKey(originId)
+func QueryDataResourceFileUpload (db DatabaseReader, originId string) (*types.DataResourceFileUpload, error) {
+	key := GetDataResourceFileUploadKey(originId)
 	vb, err := db.Get(key)
 	if nil != err {
 		return nil, err
 	}
 
-	var dataResourceDataUsed types.DataResourceDataUsed
+	var dataResourceDataUsed types.DataResourceFileUpload
 
 	if err := rlp.DecodeBytes(vb, &dataResourceDataUsed); nil != err {
 		return nil, err
@@ -1008,15 +1008,15 @@ func QueryDataResourceDataUsed (db DatabaseReader, originId string) (*types.Data
 	return &dataResourceDataUsed, nil
 }
 
-func QueryDataResourceDataUseds (db DatabaseReader) ([]*types.DataResourceDataUsed, error) {
-	has, err := db.Has(GetDataResourceDataUsedIdListKey())
+func QueryDataResourceFileUploads (db DatabaseReader) ([]*types.DataResourceFileUpload, error) {
+	has, err := db.Has(GetDataResourceFileUploadIdListKey())
 	if nil != err {
 		return nil, err
 	}
 	if !has {
 		return nil, ErrNotFound
 	}
-	b, err := db.Get(GetDataResourceDataUsedIdListKey())
+	b, err := db.Get(GetDataResourceFileUploadIdListKey())
 	if nil != err {
 		return nil, err
 	}
@@ -1025,16 +1025,16 @@ func QueryDataResourceDataUseds (db DatabaseReader) ([]*types.DataResourceDataUs
 		return nil, err
 	}
 
-	arr := make([]*types.DataResourceDataUsed, len(originIds))
+	arr := make([]*types.DataResourceFileUpload, len(originIds))
 	for i, originId := range originIds {
 
-		key := GetDataResourceDataUsedKey(originId)
+		key := GetDataResourceFileUploadKey(originId)
 		vb, err := db.Get(key)
 		if nil != err {
 			return nil, err
 		}
 
-		var dataResourceDataUsed types.DataResourceDataUsed
+		var dataResourceDataUsed types.DataResourceFileUpload
 
 		if err := rlp.DecodeBytes(vb, &dataResourceDataUsed); nil != err {
 			return nil, err
@@ -1164,37 +1164,72 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 }
 
 
-func StoreLocalResourceIdByMetaDataId(db DatabaseWriter, metaDataId, resourceId string) error {
-	key := GetResourceMetaDataIdMapingKey(metaDataId)
-	index, err := rlp.EncodeToBytes(resourceId)
+//func StoreLocalResourceIdByMetaDataId(db DatabaseWriter, metaDataId, resourceId string) error {
+//	key := GetResourceMetaDataIdMapingKey(metaDataId)
+//	index, err := rlp.EncodeToBytes(resourceId)
+//	if nil != err {
+//		return err
+//	}
+//	return db.Put(key, index)
+//}
+//
+//func RemoveLocalResourceIdByMetaDataId(db DatabaseDeleter, metaDataId string) error {
+//	key := GetResourceMetaDataIdMapingKey(metaDataId)
+//	return db.Delete(key)
+//}
+//
+//func QueryLocalResourceIdByMetaDataId(db DatabaseReader, metaDataId string) (string, error) {
+//	key := GetResourceMetaDataIdMapingKey(metaDataId)
+//	has, err := db.Has(key)
+//	if nil != err {
+//		return "", err
+//	}
+//
+//	if !has {
+//		return "", ErrNotFound
+//	}
+//	idsByte, err := db.Get(key)
+//	if nil != err {
+//		return "", err
+//	}
+//	var resourceId string
+//	if err := rlp.DecodeBytes(idsByte, &resourceId); nil != err {
+//		return "", err
+//	}
+//	return resourceId, nil
+//}
+
+func StoreDataResourceDiskUsed(db DatabaseWriter, dataResourceDiskUsed *types.DataResourceDiskUsed) error {
+	key := GetDataResourceDiskUsedKey(dataResourceDiskUsed.GetMetaDataId())
+	val, err := rlp.EncodeToBytes(dataResourceDiskUsed)
 	if nil != err {
 		return err
 	}
-	return db.Put(key, index)
+	return db.Put(key, val)
 }
 
-func RemoveLocalResourceIdByMetaDataId(db DatabaseDeleter, metaDataId string) error {
-	key := GetResourceMetaDataIdMapingKey(metaDataId)
+func RemoveDataResourceDiskUsed(db DatabaseDeleter, metaDataId string) error {
+	key := GetDataResourceDiskUsedKey(metaDataId)
 	return db.Delete(key)
 }
 
-func QueryLocalResourceIdByMetaDataId(db DatabaseReader, metaDataId string) (string, error) {
-	key := GetResourceMetaDataIdMapingKey(metaDataId)
+func QueryDataResourceDiskUsed(db DatabaseReader, metaDataId string) (*types.DataResourceDiskUsed, error) {
+	key := GetDataResourceDiskUsedKey(metaDataId)
 	has, err := db.Has(key)
 	if nil != err {
-		return "", err
+		return nil, err
 	}
 
 	if !has {
-		return "", ErrNotFound
+		return nil, ErrNotFound
 	}
-	idsByte, err := db.Get(key)
+	vb, err := db.Get(key)
 	if nil != err {
-		return "", err
+		return nil, err
 	}
-	var resourceId string
-	if err := rlp.DecodeBytes(idsByte, &resourceId); nil != err {
-		return "", err
+	var dataResourceDiskUsed types.DataResourceDiskUsed
+	if err := rlp.DecodeBytes(vb, &dataResourceDiskUsed); nil != err {
+		return nil, err
 	}
-	return resourceId, nil
+	return &dataResourceDiskUsed, nil
 }

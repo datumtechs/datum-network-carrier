@@ -248,21 +248,21 @@ func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, err
 	return rawdb.QueryLocalResourceIdByPowerId(dc.db, powerId)
 }
 
-func (dc *DataCenter)  StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.StoreLocalResourceIdByMetaDataId(dc.db, metaDataId, dataNodeId)
-}
-func (dc *DataCenter)  RemoveLocalResourceIdByMetaDataId(metaDataId string) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.RemoveLocalResourceIdByMetaDataId(dc.db, metaDataId)
-}
-func (dc *DataCenter)  QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QueryLocalResourceIdByMetaDataId(dc.db, metaDataId)
-}
+//func (dc *DataCenter)  StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error {
+//	dc.mu.RLock()
+//	defer dc.mu.RUnlock()
+//	return rawdb.StoreLocalResourceIdByMetaDataId(dc.db, metaDataId, dataNodeId)
+//}
+//func (dc *DataCenter)  RemoveLocalResourceIdByMetaDataId(metaDataId string) error {
+//	dc.mu.RLock()
+//	defer dc.mu.RUnlock()
+//	return rawdb.RemoveLocalResourceIdByMetaDataId(dc.db, metaDataId)
+//}
+//func (dc *DataCenter)  QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error) {
+//	dc.mu.RLock()
+//	defer dc.mu.RUnlock()
+//	return rawdb.QueryLocalResourceIdByMetaDataId(dc.db, metaDataId)
+//}
 
 // about power on datacenter
 func (dc *DataCenter) InsertResource(resource *types.Resource) error {
@@ -657,36 +657,54 @@ func (dc *DataCenter) QueryDataResourceTables() ([]*types.DataResourceTable, err
 	return rawdb.QueryDataResourceTables(dc.db)
 }
 
-// about DataResourceDataUsed
-func (dc *DataCenter) StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error {
+// about DataResourceFileUpload
+func (dc *DataCenter) StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreDataResourceDataUsed(dc.db, dataResourceDataUsed)
+	return rawdb.StoreDataResourceFileUpload(dc.db, dataResourceDataUsed)
 }
 
-func (dc *DataCenter) StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error {
+func (dc *DataCenter) StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreDataResourceDataUseds(dc.db, dataResourceDataUseds)
+	return rawdb.StoreDataResourceFileUploads(dc.db, dataResourceDataUseds)
 }
 
-func (dc *DataCenter) RemoveDataResourceDataUsed(originId string) error {
+func (dc *DataCenter) RemoveDataResourceFileUpload(originId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveDataResourceDataUsed(dc.db, originId)
+	return rawdb.RemoveDataResourceFileUpload(dc.db, originId)
 }
 
-func (dc *DataCenter) QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error) {
+func (dc *DataCenter) QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryDataResourceDataUsed(dc.db, originId)
+	return rawdb.QueryDataResourceFileUpload(dc.db, originId)
 }
 
-func (dc *DataCenter) QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error) {
+func (dc *DataCenter) QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryDataResourceDataUseds(dc.db)
+	return rawdb.QueryDataResourceFileUploads(dc.db)
 }
+
+// about DataResourceDiskUsed
+func (dc *DataCenter) StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.StoreDataResourceDiskUsed(dc.db, dataResourceDiskUsed)
+}
+func (dc *DataCenter) RemoveDataResourceDiskUsed(metaDataId string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.RemoveDataResourceDiskUsed(dc.db, metaDataId)
+}
+func (dc *DataCenter)  QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryDataResourceDiskUsed(dc.db, metaDataId)
+}
+
 
 func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	dc.mu.Lock()
@@ -727,20 +745,4 @@ func (dc *DataCenter) Stop() {
 	log.Info("Datacenter manager stopped")
 }
 
-//func (dc *DataCenter) StoreRunningTask(task *types.Task) error {
-//	dc.mu.Lock()
-//	defer dc.mu.Unlock()
-//	rawdb.WriteRunningTask(dc.db, task)
-//	return nil
-//}
-//func (dc *DataCenter) IncreaseRunningTaskCountOnOrg() uint32 {
-//	dc.mu.Lock()
-//	defer dc.mu.Unlock()
-//	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
-//}
-//
-//func (dc *DataCenter) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
-//	dc.mu.Lock()
-//	defer dc.mu.Unlock()
-//	return rawdb.IncreaseRunningTaskCountForJobNode(dc.db, jobNodeId)
-//}
+

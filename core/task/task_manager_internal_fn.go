@@ -112,7 +112,7 @@ func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.DoneScheduleT
 			return err
 		}
 	}
-	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.Task.SchedTask, task.Task.Resources))
+	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task, task.Task.Resources))
 	if nil != err {
 		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 		return err
@@ -140,7 +140,7 @@ func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.DoneScheduleTa
 		}
 	}
 
-	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task.Task.SchedTask, task.Task.Resources))
+	resp, err := client.HandleTaskReadyGo(m.convertScheduleTaskToTaskReadyGoReq(task, task.Task.Resources))
 	if nil != err {
 		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 		return err
@@ -222,8 +222,8 @@ func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types
 	return task
 }
 // TODO 需要实现
-func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.Task, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
-	
+func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.DoneScheduleTaskChWrap, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
+
 	return &common.TaskReadyGoReq{
 		//TaskId
 		//ContractId
