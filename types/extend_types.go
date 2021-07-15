@@ -140,6 +140,9 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo  {
 func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*OrgMetaDataInfo  {
 	result := make([]*OrgMetaDataInfo, 0, input.Len())
 	for _, metadata := range input {
+		if metadata == nil {
+			continue
+		}
 		result = append(result, NewOrgMetaDataInfoFromMetadata(metadata))
 	}
 	return result
