@@ -135,6 +135,9 @@ func (s *Service) Start() error {
 			log.WithError(err).Errorf("Cound not start the consensus engine: %s, err: %v", typ.String(), err)
 		}
 	}
+	if s.messageManager != nil {
+		s.messageManager.Start()
+	}
 	return nil
 }
 

@@ -33,7 +33,7 @@ func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNode
 		nodeId: nodeId,
 	}
 	// try to connect grpc server.
-	runutil.RunEvery(client.ctx, 2*time.Second, func() {
+	runutil.RunEvery(client.ctx, 10 * time.Second, func() {
 		client.connecting()
 	})
 	return client, nil
@@ -72,7 +72,7 @@ func (c *JobNodeClient) connecting() {
 	// set client with conn for computeProviderClient
 	c.computeProviderClient = computesvc.NewComputeProviderClient(conn)
 	if err != nil {
-		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
+		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for jobnode) failed")
 	}
 	c.conn = conn
 }

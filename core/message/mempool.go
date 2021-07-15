@@ -1,18 +1,15 @@
 package message
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
 
-
-
 type MempoolConfig struct {
-	NodeId    string
+	NodeId string
 }
-
-
 
 type Mempool struct {
 	cfg *MempoolConfig
@@ -24,9 +21,9 @@ type Mempool struct {
 	powerMsgQueue    *PowerMsgList
 	taskMsgQueue     *TaskMsgList
 
-	all			*msgLookup
+	all *msgLookup
 
-	identityErrCh   chan error
+	identityErrCh chan error
 }
 
 func NewMempool(cfg *MempoolConfig) *Mempool {
@@ -42,27 +39,33 @@ func NewMempool(cfg *MempoolConfig) *Mempool {
 
 // SubscribeNewTxsEvent registers a subscription of NewTxsEvent and
 // starts sending evengine to the given channel.
-func (pool *Mempool) SubscribeNewIdentityMsgsEvent(ch chan<- types.IdentityMsgEvent) event.Subscription {
+
+func (pool *Mempool) SubscribeNewMessageEvent(ch chan<- *feed.Event) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewIdentityRevokeMsgsEvent(ch chan<- types.IdentityRevokeMsgEvent) event.Subscription {
+
+/*
+func (pool *Mempool) SubscribeNewIdentityMsgsEvent(ch chan<- *feed.Event) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewMetaDataMsgsEvent(ch chan<- types.MetaDataMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewIdentityRevokeMsgsEvent(ch chan<- *feed.Event) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewMetaDataRevokeMsgsEvent(ch chan<- types.MetaDataRevokeMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewMetaDataMsgsEvent(ch chan<- *feed.Event) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewPowerMsgsEvent(ch chan<- types.PowerMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewMetaDataRevokeMsgsEvent(ch chan<- *feed.Event) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewPowerRevokeMsgsEvent(ch chan<- types.PowerRevokeMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewPowerMsgsEvent(ch chan<- *feed.Event) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
-func (pool *Mempool) SubscribeNewTaskMsgsEvent(ch chan<- types.TaskMsgEvent) event.Subscription {
+func (pool *Mempool) SubscribeNewPowerRevokeMsgsEvent(ch chan<- *feed.Event) event.Subscription {
 	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
 }
+func (pool *Mempool) SubscribeNewTaskMsgsEvent(ch chan<- *feed.Event) event.Subscription {
+	return pool.scope.Track(pool.msgFeed.Subscribe(ch))
+}*/
 
 func (pool *Mempool) Add(msg types.Msg) error {
 
@@ -71,19 +74,28 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		identity, _ := msg.(*types.IdentityMsg)
 		identity.NodeId = pool.cfg.NodeId
 		// We've directly injected a replacement identityMsg, notify subsystems
-		go pool.msgFeed.Send(types.IdentityMsgEvent{identity})
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.ApplyIdentity,
+			Data: &types.IdentityMsgEvent{Msg: identity},
+		})
 
 	case *types.IdentityRevokeMsg:
 		identityRevoke, _ := msg.(*types.IdentityRevokeMsg)
 
 		// We've directly injected a replacement identityMsg, notify subsystems
-		go pool.msgFeed.Send(types.IdentityRevokeMsgEvent{identityRevoke})
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.RevokeIdentity,
+			Data: &types.IdentityRevokeMsgEvent{Msg: identityRevoke},
+		})
 
 	case *types.PowerMsg:
 		power, _ := msg.(*types.PowerMsg)
 		pool.powerMsgQueue.put(power)
 		// We've directly injected a replacement identityRevokeMsg, notify subsystems
-		go pool.msgFeed.Send(types.PowerMsgEvent{types.PowerMsgs{power}})
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.ApplyPower,
+			Data: &types.PowerMsgEvent{Msgs: types.PowerMsgs{power}},
+		})
 
 	case *types.PowerRevokeMsg:
 		powerRevoke, _ := msg.(*types.PowerRevokeMsg)
@@ -93,13 +105,19 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		}
 		pool.powerMsgQueue.popBy(power.CreateAt())
 		// We've directly injected a replacement powerRevokeMsg, notify subsystems
-		go pool.msgFeed.Send(types.PowerRevokeMsgEvent{types.PowerRevokeMsgs{powerRevoke}})
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.RevokePower,
+			Data: &types.PowerRevokeMsgEvent{Msgs: types.PowerRevokeMsgs{powerRevoke}},
+		})
 
 	case *types.MetaDataMsg:
 		metaData, _ := msg.(*types.MetaDataMsg)
 		pool.metaDataMsgQueue.put(metaData)
 		// We've directly injected a replacement metaDataMsg, notify subsystems
-		go pool.msgFeed.Send(types.MetaDataMsgEvent{types.MetaDataMsgs{metaData}})
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.ApplyMetadata,
+			Data: &types.MetaDataMsgEvent{Msgs: types.MetaDataMsgs{metaData}},
+		})
 
 	case *types.MetaDataRevokeMsg:
 		metaDataRevoke, _ := msg.(*types.MetaDataRevokeMsg)
@@ -109,13 +127,19 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		}
 		pool.metaDataMsgQueue.popBy(metaData.CreateAt())
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
-		go pool.msgFeed.Send(types.MetaDataRevokeMsgEvent{types.MetaDataRevokeMsgs{metaDataRevoke}})
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.RevokeMetadata,
+			Data: &types.MetaDataRevokeMsgEvent{Msgs: types.MetaDataRevokeMsgs{metaDataRevoke}},
+		})
 
 	case *types.TaskMsg:
 		task, _ := msg.(*types.TaskMsg)
 		pool.taskMsgQueue.put(task)
 		// We've directly injected a replacement taskMsg, notify subsystems
-		go pool.msgFeed.Send(types.TaskMsgEvent{types.TaskMsgs{task}})
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.ApplyTask,
+			Data: &types.TaskMsgEvent{Msgs: types.TaskMsgs{task}},
+		})
 
 	default:
 		log.Fatalf("Failed to add msg, can not match the msg type")
@@ -123,9 +147,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 
 	return nil
 }
-
-
-
 
 type msgLookup struct {
 	allMateDataMsg map[string]*types.MetaDataMsg
@@ -156,6 +177,7 @@ func (lookup *msgLookup) rangeMetaDataMsg(f func(metaDataId string, msg *types.M
 		}
 	}
 }
+
 // RangePowerMsg calls f on each key and value present in the map.
 func (lookup *msgLookup) rangePowerMsg(f func(powerId string, msg *types.PowerMsg) bool) {
 	lookup.powerMsgLock.RLock()
@@ -167,6 +189,7 @@ func (lookup *msgLookup) rangePowerMsg(f func(powerId string, msg *types.PowerMs
 		}
 	}
 }
+
 // RangeTaskMsg calls f on each key and value present in the map.
 func (lookup *msgLookup) rangeTaskMsg(f func(taskId string, msg *types.TaskMsg) bool) {
 	lookup.taskMsgLock.RLock()
@@ -186,6 +209,7 @@ func (lookup *msgLookup) getMetaDataMsg(metaDataId string) *types.MetaDataMsg {
 
 	return lookup.allMateDataMsg[metaDataId]
 }
+
 // Get returns a powerMsg if it exists in the lookup, or nil if not found.
 func (lookup *msgLookup) getPowerMsg(powerId string) *types.PowerMsg {
 	lookup.powerMsgLock.RLock()
@@ -193,6 +217,7 @@ func (lookup *msgLookup) getPowerMsg(powerId string) *types.PowerMsg {
 
 	return lookup.allPowerMsg[powerId]
 }
+
 // Get returns a taskMsg if it exists in the lookup, or nil if not found.
 func (lookup *msgLookup) getTaskMsg(taskId string) *types.TaskMsg {
 	lookup.taskMsgLock.RLock()
@@ -208,6 +233,7 @@ func (lookup *msgLookup) metaDataMsgCount() int {
 
 	return len(lookup.allMateDataMsg)
 }
+
 // Count returns the current number of items in the lookup.
 func (lookup *msgLookup) powerMsgCount() int {
 	lookup.powerMsgLock.RLock()
@@ -215,6 +241,7 @@ func (lookup *msgLookup) powerMsgCount() int {
 
 	return len(lookup.allPowerMsg)
 }
+
 // Count returns the current number of items in the lookup.
 func (lookup *msgLookup) taskMsgCount() int {
 	lookup.taskMsgLock.RLock()
@@ -230,6 +257,7 @@ func (lookup *msgLookup) addMetaDataMsg(msg *types.MetaDataMsg) {
 
 	lookup.allMateDataMsg[msg.MetaDataId] = msg
 }
+
 // Add adds a powerMsg to the lookup.
 func (lookup *msgLookup) addPowerMsg(msg *types.PowerMsg) {
 	lookup.powerMsgLock.RLock()
@@ -237,6 +265,7 @@ func (lookup *msgLookup) addPowerMsg(msg *types.PowerMsg) {
 
 	lookup.allPowerMsg[msg.PowerId] = msg
 }
+
 // Add adds a taskMsg to the lookup.
 func (lookup *msgLookup) addTaskMsg(msg *types.TaskMsg) {
 	lookup.taskMsgLock.RLock()
@@ -251,12 +280,14 @@ func (lookup *msgLookup) removeMetaDataMsg(metaDataId string) {
 	delete(lookup.allMateDataMsg, metaDataId)
 	lookup.metaDataMsgLock.RUnlock()
 }
+
 // Remove removes a powerMsg from the lookup.
 func (lookup *msgLookup) removePowerMsg(powerId string) {
 	lookup.powerMsgLock.RLock()
 	delete(lookup.allPowerMsg, powerId)
 	lookup.powerMsgLock.RUnlock()
 }
+
 // Remove removes a taskMsg from the lookup.
 func (lookup *msgLookup) removeTaskMsg(taskId string) {
 	lookup.taskMsgLock.RLock()
@@ -275,6 +306,7 @@ func (lookup *msgLookup) extractMetaDataMsg(metaDataId string) (*types.MetaDataM
 	delete(lookup.allMateDataMsg, metaDataId)
 	return metaDataMsg, true
 }
+
 // Extract removes a powerMsg from the lookup, and return.
 func (lookup *msgLookup) extractPowerMsg(powerId string) (*types.PowerMsg, bool) {
 	lookup.powerMsgLock.RLock()
@@ -286,6 +318,7 @@ func (lookup *msgLookup) extractPowerMsg(powerId string) (*types.PowerMsg, bool)
 	delete(lookup.allPowerMsg, powerId)
 	return powerMsg, true
 }
+
 // Extract removes a taskMsg from the lookup, and return.
 func (lookup *msgLookup) extractTaskMsg(taskId string) (*types.TaskMsg, bool) {
 	lookup.taskMsgLock.RLock()
