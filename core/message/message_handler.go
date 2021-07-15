@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/event"
@@ -30,19 +31,20 @@ type MessageHandler struct {
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
 
-	identityMsgCh       chan types.IdentityMsgEvent
-	identityRevokeMsgCh chan types.IdentityRevokeMsgEvent
-	powerMsgCh          chan types.PowerMsgEvent
-	powerRevokeMsgCh    chan types.PowerRevokeMsgEvent
-	metaDataMsgCh       chan types.MetaDataMsgEvent
-	metaDataRevokeMsgCh chan types.MetaDataRevokeMsgEvent
-	taskMsgCh           chan types.TaskMsgEvent
-
-	identityMsgSub       event.Subscription
-	identityRevokeMsgSub event.Subscription
-	powerMsgSub          event.Subscription
-	metaDataMsgSub       event.Subscription
-	taskMsgSub           event.Subscription
+	msgChannel chan *feed.Event
+	//identityMsgCh       chan types.IdentityMsgEvent
+	//identityRevokeMsgCh chan types.IdentityRevokeMsgEvent
+	//powerMsgCh          chan types.PowerMsgEvent
+	//powerRevokeMsgCh    chan types.PowerRevokeMsgEvent
+	//metaDataMsgCh       chan types.MetaDataMsgEvent
+	//metaDataRevokeMsgCh chan types.MetaDataRevokeMsgEvent
+	//taskMsgCh           chan types.TaskMsgEvent
+	msgSub               event.Subscription
+	//identityMsgSub       event.Subscription
+	//identityRevokeMsgSub event.Subscription
+	//powerMsgSub          event.Subscription
+	//metaDataMsgSub       event.Subscription
+	//taskMsgSub           event.Subscription
 
 	powerMsgCache    types.PowerMsgs
 	metaDataMsgCache types.MetaDataMsgs
@@ -57,22 +59,24 @@ func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.M
 		pool:        pool,
 		dataCenter:  dataCenter,
 		taskManager: taskManager,
+		msgChannel:  make(chan *feed.Event, 1),
 	}
 	return m
 }
 
 func (m *MessageHandler) Start() error {
+	m.msgSub = m.pool.SubscribeNewMessageEvent(m.msgChannel)
 
-	m.identityMsgSub = m.pool.SubscribeNewIdentityMsgsEvent(m.identityMsgCh)
-	m.identityRevokeMsgSub = m.pool.SubscribeNewIdentityRevokeMsgsEvent(m.identityRevokeMsgCh)
+	//m.identityMsgSub = m.pool.SubscribeNewIdentityMsgsEvent(m.msgChannel)
+	//m.identityRevokeMsgSub = m.pool.SubscribeNewIdentityRevokeMsgsEvent(m.msgChannel)
 
-	m.powerMsgSub = m.pool.SubscribeNewPowerMsgsEvent(m.powerMsgCh)
-	m.pool.SubscribeNewPowerRevokeMsgsEvent(m.powerRevokeMsgCh)
+	//m.powerMsgSub = m.pool.SubscribeNewPowerMsgsEvent(m.msgChannel)
+	//m.pool.SubscribeNewPowerRevokeMsgsEvent(m.msgChannel)
 
-	m.metaDataMsgSub = m.pool.SubscribeNewMetaDataMsgsEvent(m.metaDataMsgCh)
-	m.pool.SubscribeNewMetaDataRevokeMsgsEvent(m.metaDataRevokeMsgCh)
+	//m.metaDataMsgSub = m.pool.SubscribeNewMetaDataMsgsEvent(m.msgChannel)
+	//m.pool.SubscribeNewMetaDataRevokeMsgsEvent(m.msgChannel)
 
-	m.taskMsgSub = m.pool.SubscribeNewTaskMsgsEvent(m.taskMsgCh)
+	//m.taskMsgSub = m.pool.SubscribeNewTaskMsgsEvent(m.msgChannel)
 
 	go m.loop()
 	return nil
@@ -85,103 +89,108 @@ func (m *MessageHandler) loop() {
 
 	for {
 		select {
-		case event := <-m.identityMsgCh:
-			if err := m.BroadcastIdentityMsg(event.Msg); nil != err {
-				log.Error("Failed to broadcast org identityMsg  on MessageHandler, err:", err)
-			}
-		case <-m.identityRevokeMsgCh:
-
-			if err := m.BroadcastIdentityRevokeMsg(); nil != err {
-				log.Error("Failed to remove org identity on MessageHandler, err:", err)
-			}
-		case event := <-m.powerMsgCh:
-			m.lockPower.Lock()
-			m.powerMsgCache = append(m.powerMsgCache, event.Msgs...)
-			m.lockPower.Unlock()
-			if len(m.powerMsgCache) >= defaultPowerMsgsCacheSize {
-				if err := m.BroadcastPowerMsgs(m.powerMsgCache); nil != err {
-					log.Error(fmt.Sprintf("%s", err))
+		case event := <-m.msgChannel:
+			switch event.Type {
+			case types.ApplyIdentity:
+				eventMessage := event.Data.(*types.IdentityMsgEvent)
+				if err := m.BroadcastIdentityMsg(eventMessage.Msg); nil != err {
+					log.Error("Failed to broadcast org identityMsg  on MessageHandler, err:", err)
 				}
-				m.powerMsgCache = make(types.PowerMsgs, 0)
-				powerTimer.Reset(defaultBroadcastPowerMsgInterval)
-			}
-		case event := <-m.powerRevokeMsgCh:
-			tmp := make(map[string]int, len(event.Msgs))
-			for i, msg := range event.Msgs {
-				tmp[msg.PowerId] = i
-			}
+			case types.RevokeIdentity:
+				if err := m.BroadcastIdentityRevokeMsg(); nil != err {
+					log.Error("Failed to remove org identity on MessageHandler, err:", err)
+				}
+			case types.ApplyPower:
+				m.lockPower.Lock()
+				msg := event.Data.(*types.PowerMsgEvent)
+				m.powerMsgCache = append(m.powerMsgCache, msg.Msgs...)
+				m.lockPower.Unlock()
+				if len(m.powerMsgCache) >= defaultPowerMsgsCacheSize {
+					if err := m.BroadcastPowerMsgs(m.powerMsgCache); nil != err {
+						log.Error(fmt.Sprintf("%s", err))
+					}
+					m.powerMsgCache = make(types.PowerMsgs, 0)
+					powerTimer.Reset(defaultBroadcastPowerMsgInterval)
+				}
+			case types.RevokePower:
+				eventMessage := event.Data.(*types.PowerRevokeMsgEvent)
+				tmp := make(map[string]int, len(eventMessage.Msgs))
+				for i, msg := range eventMessage.Msgs {
+					tmp[msg.PowerId] = i
+				}
 
-			// Remove local cache powerMsgs
-			m.lockPower.Lock()
-			for i := 0; i < len(m.powerMsgCache); i++ {
-				msg := m.powerMsgCache[i]
-				if _, ok := tmp[msg.PowerId]; ok {
-					delete(tmp, msg.PowerId)
-					m.powerMsgCache = append(m.powerMsgCache[:i], m.powerMsgCache[i+1:]...)
-					i--
+				// Remove local cache powerMsgs
+				m.lockPower.Lock()
+				for i := 0; i < len(m.powerMsgCache); i++ {
+					msg := m.powerMsgCache[i]
+					if _, ok := tmp[msg.PowerId]; ok {
+						delete(tmp, msg.PowerId)
+						m.powerMsgCache = append(m.powerMsgCache[:i], m.powerMsgCache[i+1:]...)
+						i--
+					}
+				}
+				m.lockPower.Unlock()
+
+				// Revoke remote power
+				if len(tmp) != 0 {
+					msgs, index := make(types.PowerRevokeMsgs, len(tmp)), 0
+					for _, i := range tmp {
+						msgs[index] = eventMessage.Msgs[i]
+						index++
+					}
+					if err := m.BroadcastPowerRevokeMsgs(msgs); nil != err {
+						log.Error(fmt.Sprintf("%s", err))
+					}
+				}
+			case types.ApplyMetadata:
+				eventMessage := event.Data.(*types.MetaDataMsgEvent)
+				m.lockMetaData.Lock()
+				m.metaDataMsgCache = append(m.metaDataMsgCache, eventMessage.Msgs...)
+				m.lockMetaData.Unlock()
+				if len(m.metaDataMsgCache) >= defaultMetaDataMsgsCacheSize {
+					m.BroadcastMetaDataMsgs(m.metaDataMsgCache)
+					m.metaDataMsgCache = make(types.MetaDataMsgs, 0)
+					metaDataTimer.Reset(defaultBroadcastMetaDataMsgInterval)
+				}
+			case types.RevokeMetadata:
+				eventMessage := event.Data.(*types.MetaDataRevokeMsgEvent)
+				tmp := make(map[string]int, len(eventMessage.Msgs))
+				for i, msg := range eventMessage.Msgs {
+					tmp[msg.MetaDataId] = i
+				}
+
+				// Remove local cache metaDataMsgs
+				m.lockMetaData.Lock()
+				for i := 0; i < len(m.metaDataMsgCache); i++ {
+					msg := m.metaDataMsgCache[i]
+					if _, ok := tmp[msg.MetaDataId]; ok {
+						delete(tmp, msg.MetaDataId)
+						m.metaDataMsgCache = append(m.metaDataMsgCache[:i], m.metaDataMsgCache[i+1:]...)
+						i--
+					}
+				}
+				m.lockMetaData.Unlock()
+
+				// Revoke remote metaData
+				if len(tmp) != 0 {
+					msgs, index := make(types.MetaDataRevokeMsgs, len(tmp)), 0
+					for _, i := range tmp {
+						msgs[index] = eventMessage.Msgs[i]
+						index++
+					}
+					if err := m.BroadcastMetaDataRevokeMsgs(msgs); nil != err {
+						log.Error(fmt.Sprintf("%s", err))
+					}
+				}
+			case types.ApplyTask:
+				eventMessage := event.Data.(*types.TaskMsgEvent)
+				m.taskMsgCache = append(m.taskMsgCache, eventMessage.Msgs...)
+				if len(m.taskMsgCache) >= defaultTaskMsgsCacheSize {
+					m.BroadcastTaskMsgs(m.taskMsgCache)
+					m.taskMsgCache = make(types.TaskMsgs, 0)
+					taskTimer.Reset(defaultBroadcastTaskMsgInterval)
 				}
 			}
-			m.lockPower.Unlock()
-
-			// Revoke remote power
-			if len(tmp) != 0 {
-				msgs, index := make(types.PowerRevokeMsgs, len(tmp)), 0
-				for _, i := range tmp {
-					msgs[index] = event.Msgs[i]
-					index++
-				}
-				if err := m.BroadcastPowerRevokeMsgs(msgs); nil != err {
-					log.Error(fmt.Sprintf("%s", err))
-				}
-			}
-
-		case event := <-m.metaDataMsgCh:
-			m.lockMetaData.Lock()
-			m.metaDataMsgCache = append(m.metaDataMsgCache, event.Msgs...)
-			m.lockMetaData.Unlock()
-			if len(m.metaDataMsgCache) >= defaultMetaDataMsgsCacheSize {
-				m.BroadcastMetaDataMsgs(m.metaDataMsgCache)
-				m.metaDataMsgCache = make(types.MetaDataMsgs, 0)
-				metaDataTimer.Reset(defaultBroadcastMetaDataMsgInterval)
-			}
-		case event := <-m.metaDataRevokeMsgCh:
-			tmp := make(map[string]int, len(event.Msgs))
-			for i, msg := range event.Msgs {
-				tmp[msg.MetaDataId] = i
-			}
-
-			// Remove local cache metaDataMsgs
-			m.lockMetaData.Lock()
-			for i := 0; i < len(m.metaDataMsgCache); i++ {
-				msg := m.metaDataMsgCache[i]
-				if _, ok := tmp[msg.MetaDataId]; ok {
-					delete(tmp, msg.MetaDataId)
-					m.metaDataMsgCache = append(m.metaDataMsgCache[:i], m.metaDataMsgCache[i+1:]...)
-					i--
-				}
-			}
-			m.lockMetaData.Unlock()
-
-			// Revoke remote metaData
-			if len(tmp) != 0 {
-				msgs, index := make(types.MetaDataRevokeMsgs, len(tmp)), 0
-				for _, i := range tmp {
-					msgs[index] = event.Msgs[i]
-					index++
-				}
-				if err := m.BroadcastMetaDataRevokeMsgs(msgs); nil != err {
-					log.Error(fmt.Sprintf("%s", err))
-				}
-			}
-
-		case event := <-m.taskMsgCh:
-			m.taskMsgCache = append(m.taskMsgCache, event.Msgs...)
-			if len(m.taskMsgCache) >= defaultTaskMsgsCacheSize {
-				m.BroadcastTaskMsgs(m.taskMsgCache)
-				m.taskMsgCache = make(types.TaskMsgs, 0)
-				taskTimer.Reset(defaultBroadcastTaskMsgInterval)
-			}
-
 		case <-powerTimer.C:
 			if len(m.powerMsgCache) >= 0 {
 				m.BroadcastPowerMsgs(m.powerMsgCache)
@@ -203,11 +212,7 @@ func (m *MessageHandler) loop() {
 				taskTimer.Reset(defaultBroadcastTaskMsgInterval)
 			}
 			// Err() channel will be closed when unsubscribing.
-		case <-m.powerMsgSub.Err():
-			return
-		case <-m.metaDataMsgSub.Err():
-			return
-		case <-m.taskMsgSub.Err():
+		case <-m.msgSub.Err():
 			return
 		}
 	}
