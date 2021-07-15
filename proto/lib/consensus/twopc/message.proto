@@ -3,15 +3,18 @@ syntax = "proto3";
 package rpcapi;
 
 import "repos/protobuf/gogoproto/gogo.proto";
+import "lib/types/taskdata.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc";
 
 // 2pc prepare 阶段信息
 message PrepareMsg {
-    bytes      proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
-    TaskOption task_option = 2;            // 任务msg
-    uint64     create_at   = 3;              // proposal 创建的时间
-    bytes      sign        = 4 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 任务发起者签名
+    bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Idbytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
+    bytes                        task_role   = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
+    TaskOrganizationIdentityInfo owner       = 3;                  // PrepareMsg 发起人信息, 也是task 发起者
+    types.TaskData               TaskInfo    = 4;               // 任务
+    uint64                       create_at   = 5;              // proposal 创建的时间
+    bytes                        sign        = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 任务发起者签名
 }
 
 // 2pc prepareVote
@@ -27,13 +30,13 @@ message PrepareVote {
 
 // 2pc confirm 阶段信息
 message ConfirmMsg {
+//    uint64                       epoch       = 3;                  // confirm 阶段的第几轮 Msg
     bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
     bytes                        task_role   = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];
-    uint64                       epoch       = 3;                  // confirm 阶段的第几轮 Msg
-    TaskOrganizationIdentityInfo owner       = 4;                  // ConfirmMsg 发起者信息 <其实也就是 任务发起方的信息, 提案发起者的信息>
-    ConfirmTaskPeerInfo          peer_desc   = 5;              // task 各个参与方的 内部资源信息 (对外的ip:port, 做任务用的)
-    uint64                       create_at   = 6;              // ConfirmMsg 创建的时间
-    bytes                        sign        = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // ConfirmMsg 发起者签名
+    TaskOrganizationIdentityInfo owner       = 3;                  // ConfirmMsg 发起者信息 <其实也就是 任务发起方的信息, 提案发起者的信息>
+    ConfirmTaskPeerInfo          peer_desc   = 4;              // task 各个参与方的 内部资源信息 (对外的ip:port, 做任务用的)
+    uint64                       create_at   = 5;              // ConfirmMsg 创建的时间
+    bytes                        sign        = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // ConfirmMsg 发起者签名
 }
 
 // On ConfirmMsg, the task partners peerInfo
@@ -47,13 +50,13 @@ message ConfirmTaskPeerInfo {
 // 2pc confirmVote
 message ConfirmVote {
 
+//    uint64                       epoch       = 2;                  // confirm 阶段的第几轮 Msg
     bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
-    uint64                       epoch       = 2;                  // confirm 阶段的第几轮 Msg
-    bytes                        task_role   = 3 [(gogoproto.moretags) = "ssz-max:\"32\""];              // The role information of the current recipient of the task
-    TaskOrganizationIdentityInfo owner       = 4;                  // ConfirmVote 投票人信息
-    bytes                        vote_option = 5 [(gogoproto.moretags) = "ssz-max:\"32\""];            // ConfirmVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
-    uint64                       create_at   = 6;              // vote 创建的时间
-    bytes                        sign        = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 投票发起者签名
+    bytes                        task_role   = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];              // The role information of the current recipient of the task
+    TaskOrganizationIdentityInfo owner       = 3;                  // ConfirmVote 投票人信息
+    bytes                        vote_option = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];            // ConfirmVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
+    uint64                       create_at   = 5;              // vote 创建的时间
+    bytes                        sign        = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 投票发起者签名
 
 }
 // 触发任务执行消息
@@ -70,29 +73,29 @@ message TaskResultMsg {
     bytes                        proposal_id     = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];                // 2pc 提案Id
     bytes                        task_role       = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];                  // The role information of the current recipient of the task
     bytes                        task_id         = 3 [(gogoproto.moretags) = "ssz-max:\"128\""];                    // 提案中对应的任务Id
-    TaskOrganizationIdentityInfo owner           = 4;            // taskResult发起者信息
+    TaskOrganizationIdentityInfo owner           = 4;            // taskResultMsg 发起者信息 (任务的参与方)
     repeated TaskEvent           task_event_list = 5;            // 任务在该参与方上产生的event
     uint64                       create_at       = 6;                  // TaskResultMsg 创建的时间
     bytes                        sign            = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                       // TaskResultMsg 发起者签名
 
 }
 
-message TaskOption {
-
-    bytes                        task_role               = 1 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
-    bytes                        task_id                 = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];
-    bytes                        task_name               = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
-    TaskOrganizationIdentityInfo owner                   = 4;
-    TaskOrganizationIdentityInfo algo_supplier           = 5;
-    repeated DataSupplierOption  data_supplier           = 6;
-    repeated PowerSupplierOption power_supplier          = 7;
-    repeated ReceiverOption      receivers               = 8;
-    TaskOperationCost            operation_cost          = 9;
-    bytes                        calculate_contract_code = 10 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
-    bytes                        datasplit_contract_code = 11 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
-    uint64                       create_at               = 12;
-
-}
+//message TaskOption {
+//
+//  bytes                        task_role = 1 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
+//  bytes                        task_id = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];
+//  bytes                        task_name = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
+//  TaskOrganizationIdentityInfo owner = 4;
+//  TaskOrganizationIdentityInfo algo_supplier = 5;
+//  repeated DataSupplierOption  data_supplier = 6;
+//  repeated PowerSupplierOption power_supplier = 7;
+//  repeated ReceiverOption      receivers = 8;
+//  TaskOperationCost            operation_cost = 9;
+//  bytes                        calculate_contract_code = 10 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
+//  bytes                        datasplit_contract_code = 11 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
+//  uint64                       create_at = 12;
+//
+//}
 
 message DataSupplierOption {
     TaskOrganizationIdentityInfo member_info       = 1;

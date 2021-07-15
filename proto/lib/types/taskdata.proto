@@ -34,8 +34,11 @@ message TaskData {
     // 结果接收方组织
     repeated TaskResultReceiverData receivers = 24;
     // 任务参与方
-    repeated OrganizationData partnerList   = 25;
-    repeated EventData        eventDataList = 26;
+    repeated OrganizationData partnerList           = 25;
+    repeated EventData        eventDataList         = 26;
+    string                    CalculateContractCode = 27;
+    string                    DataSplitContractCode = 28;
+    string                    ContractExtraParams   = 29;
 }
 
 // 任务算力提供方基础信息
