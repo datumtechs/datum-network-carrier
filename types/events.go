@@ -6,6 +6,16 @@ import (
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
+const (
+	ApplyIdentity = iota + 1
+	RevokeIdentity
+	ApplyMetadata
+	RevokeMetadata
+	ApplyPower
+	RevokePower
+	ApplyTask
+)
+
 type IdentityMsgEvent struct{ Msg *IdentityMsg }
 type IdentityRevokeMsgEvent struct{ Msg *IdentityRevokeMsg }
 type MetaDataMsgEvent struct{ Msgs MetaDataMsgs }

@@ -35,7 +35,7 @@ func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNo
 		nodeId: nodeId,
 	}
 	// try to connect grpc server.
-	runutil.RunEvery(client.ctx, 2*time.Second, func() {
+	runutil.RunEvery(client.ctx, 10*time.Second, func() {
 		client.connecting()
 	})
 	return client, nil
