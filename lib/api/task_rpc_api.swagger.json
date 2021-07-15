@@ -201,12 +201,18 @@
           "type": "string"
         },
         "owner": {
-          "$ref": "#/definitions/rpcapiTaskDataSupplierDeclare"
+          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
         },
         "partners": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiTaskDataSupplierDeclare"
+          }
+        },
+        "power_party_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
           }
         },
         "receivers": {
@@ -222,6 +228,9 @@
           "type": "string"
         },
         "datasplit_contractcode": {
+          "type": "string"
+        },
+        "contract_extra_params": {
           "type": "string"
         }
       }
@@ -275,7 +284,7 @@
       "type": "object",
       "properties": {
         "member_info": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
         },
         "meta_data_info": {
           "$ref": "#/definitions/rpcapiTaskMetaDataDeclare"
@@ -287,7 +296,7 @@
       "type": "object",
       "properties": {
         "member_info": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
         },
         "meta_data_id": {
           "type": "string"
@@ -308,10 +317,10 @@
           "type": "string"
         },
         "owner": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
         },
         "algo_supplier": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
         },
         "data_supplier": {
           "type": "array",
@@ -328,7 +337,7 @@
         "receivers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+            "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
           }
         },
         "create_at": {
@@ -411,11 +420,28 @@
       },
       "title": "任务的所需操作成本 (定义任务的大小)"
     },
+    "rpcapiTaskOrganizationIdentityInfo": {
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        }
+      }
+    },
     "rpcapiTaskPowerSupplierShow": {
       "type": "object",
       "properties": {
         "member_info": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
         },
         "power_info": {
           "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
@@ -427,12 +453,12 @@
       "type": "object",
       "properties": {
         "member_info": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
         },
         "providers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+            "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
           }
         }
       }

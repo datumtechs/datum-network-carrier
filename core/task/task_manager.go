@@ -93,7 +93,7 @@ func (m *Manager) loop() {
 
 			// 添加本地缓存
 			m.addRunningTaskCache(task)
-			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId)
+			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId())
 
 		default:
 		}
@@ -110,7 +110,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 
 			events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
 			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				errtask.TaskId, errtask.Onwer().IdentityId, fmt.Sprintf("failed to parse taskMsg")))
+				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to parse taskMsg")))
 
 			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to parse taskMsg"); nil != e {
 				log.Error("Failed to store the err taskMsg", "taskId", errtask)
@@ -123,7 +123,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 		for _, errtask := range errTasks {
 			events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
 			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				errtask.TaskId, errtask.Onwer().IdentityId, fmt.Sprintf("failed to validate taskMsg")))
+				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to validate taskMsg")))
 
 			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to validate taskMsg"); nil != e {
 				log.Error("Failed to store the err taskMsg", "taskId", errtask)
