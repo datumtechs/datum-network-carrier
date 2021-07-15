@@ -3,6 +3,7 @@ package p2p
 import (
 	"context"
 	"crypto/ecdsa"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
@@ -15,6 +16,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers/scorers"
 	"github.com/RosettaFlow/Carrier-Go/params"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/gogo/protobuf/proto"
@@ -301,6 +303,12 @@ func (s *Service) SetStreamHandler(topic string, handler network.StreamHandler) 
 // PeerID returns the Peer ID of the local peer.
 func (s *Service) PeerID() peer.ID {
 	return s.host.ID()
+}
+
+// NodeId returns the Node ID of the local peer.
+func (s *Service) NodeId() string {
+	pubBytes := crypto.FromECDSAPub(&s.privKey.PublicKey)
+	return hex.EncodeToString(pubBytes[1:])
 }
 
 // Disconnect from a peer.

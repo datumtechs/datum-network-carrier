@@ -20,7 +20,7 @@ var DefaultConfig = Config{
 
 type Config struct {
 	CarrierDB core.CarrierDB
-	p2p       p2p.P2P
+	P2P       p2p.P2P
 
 	// Database options
 	SkipBcVersionCheck bool `toml:"-"`
