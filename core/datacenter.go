@@ -345,7 +345,7 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.SaveIdentity(dc.ctx, types.NewSaveIdentityRequest(identity))
 	if err != nil {
-		log.WithError(err).WithField("hash", identity.Hash()).Errorf("InsertIdentity failed")
+		//log.WithError(err).WithField("hash", identity.Hash()).Errorf("InsertIdentity failed")
 		return err
 	}
 	if response.Status != 0 {
@@ -375,7 +375,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
-	defer dc.mu.RUnlock()
+	defer dc.serviceMu.RUnlock()
 	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{LastUpdateTime: uint64(time.Now().Unix())})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
