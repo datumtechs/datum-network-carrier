@@ -19,7 +19,6 @@ type Resource struct {
 func NewResource(data *libTypes.ResourceData) *Resource {
 	return &Resource{data: data}
 }
-func (m *Resource) GetIdentityId() string { return m.data.Identity }
 func (m *Resource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()
 	if err == nil {
@@ -47,6 +46,18 @@ func (m *Resource) Hash() common.Hash {
 	return v
 }
 
+func (m *Resource) GetIdentityId() string { return m.data.Identity }
+func (m *Resource) GetNodeId() string { return m.data.NodeId }
+func (m *Resource) GetNodeName() string { return m.data.NodeName }
+func (m *Resource) GetDataStatus() string { return m.data.DataStatus }
+func (m *Resource) GetState() string { return m.data.State }
+func (m *Resource) GetTotalMem() uint64 { return m.data.TotalMem }
+func (m *Resource) GetUsedMem() uint64 { return m.data.UsedMem }
+func (m *Resource) GetTotalProcessor() uint64 { return m.data.TotalProcessor }
+func (m *Resource) GetUsedProcessor() uint64 { return m.data.UsedProcessor }
+func (m *Resource) GetTotalBandWidth() uint64 { return m.data.TotalBandWidth }
+func (m *Resource) GetUsedBandWidth() uint64 { return m.data.UsedBandWidth }
+
 // ResourceArray is a Transaction slice type for basic sorting.
 type ResourceArray []*Resource
 
@@ -61,6 +72,7 @@ func (s ResourceArray) GetPb(i int) []byte {
 	s[i].EncodePb(buffer)
 	return buffer.Bytes()
 }
+
 
 func NewResourceArray(metaData []*libTypes.ResourceData) ResourceArray {
 	var s ResourceArray

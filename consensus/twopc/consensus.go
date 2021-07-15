@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -16,30 +17,30 @@ import (
 )
 
 const (
-	defaultCleanExpireProposalInterval = 30 * time.Millisecond
+	//defaultCleanExpireProposalInterval  = 30 * time.Millisecond
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
 )
 
 type TwoPC struct {
-	config     *Config
-	p2p        p2p.P2P
-	peerSet    *ctypes.PeerSet
-	state      *state
-	dataCenter iface.ForConsensusDB
-	// TODO 需要有一个地方 监听整个 共识结果 ...
+	config      *Config
+	p2p         p2p.P2P
+	peerSet     *ctypes.PeerSet
+	state       *state
+	dataCenter  iface.ForResourceDB
+	resourceMng *resource.Manager
 
 	// fetch tasks scheduled from `Scheduler`
 	schedTaskCh <-chan *types.ConsensusTaskWrap
 	// send remote task to `Scheduler` to replay
 	replayTaskCh chan<- *types.ReplayScheduleTaskWrap
 	// send has consensused remote tasks to taskManager
-	recvSchedTaskCh chan<- *types.DoneScheduleTaskChWrap
-	asyncCallCh     chan func()
-	quit            chan struct{}
+	doneScheduleTaskCh chan<- *types.DoneScheduleTaskChWrap
+	asyncCallCh        chan func()
+	quit               chan struct{}
 	// The task being processed by myself  (taskId -> task)
-	sendTasks map[string]*types.ScheduleTask
+	sendTasks map[string]*types.Task
 	// The task processing  that received someone else (taskId -> task)
-	recvTasks map[string]*types.ScheduleTask
+	recvTasks map[string]*types.Task
 
 	taskResultCh   chan *types.ConsensuResult
 	taskResultChs  map[string]chan<- *types.ConsensuResult
@@ -50,25 +51,27 @@ type TwoPC struct {
 
 func New(
 	conf *Config,
-	dataCenter iface.ForConsensusDB,
+	dataCenter iface.ForResourceDB,
+	resourceMng *resource.Manager,
 	p2p p2p.P2P,
 	schedTaskCh chan *types.ConsensusTaskWrap,
 	replayTaskCh chan *types.ReplayScheduleTaskWrap,
-	recvSchedTaskCh chan*types.DoneScheduleTaskChWrap,
-	) *TwoPC {
+	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
+) *TwoPC {
 	return &TwoPC{
-		config:       conf,
-		p2p:          p2p,
-		peerSet:      ctypes.NewPeerSet(10), // TODO 暂时写死的
-		state:        newState(),
-		dataCenter:   dataCenter,
-		schedTaskCh:  schedTaskCh,
-		replayTaskCh: replayTaskCh,
-		recvSchedTaskCh: recvSchedTaskCh,
-		asyncCallCh:  make(chan func(), conf.PeerMsgQueueSize),
-		quit:         make(chan struct{}),
-		sendTasks:    make(map[string]*types.ScheduleTask),
-		recvTasks:    make(map[string]*types.ScheduleTask),
+		config:     conf,
+		p2p:        p2p,
+		peerSet:    ctypes.NewPeerSet(10), // TODO 暂时写死的
+		state:      newState(),
+		dataCenter: dataCenter,
+		resourceMng: resourceMng,
+		schedTaskCh:        schedTaskCh,
+		replayTaskCh:       replayTaskCh,
+		doneScheduleTaskCh: doneScheduleTaskCh,
+		asyncCallCh:        make(chan func(), conf.PeerMsgQueueSize),
+		quit:               make(chan struct{}),
+		sendTasks:          make(map[string]*types.Task),
+		recvTasks:          make(map[string]*types.Task),
 
 		taskResultCh:  make(chan *types.ConsensuResult, 100),
 		taskResultChs: make(map[string]chan<- *types.ConsensuResult, 100),
@@ -86,7 +89,7 @@ func (t *TwoPC) Close() error {
 	return nil
 }
 func (t *TwoPC) loop() {
-	cleanExpireProposalTimer := time.NewTimer(defaultCleanExpireProposalInterval)
+	//cleanExpireProposalTimer := time.NewTimer(defaultCleanExpireProposalInterval)
 	refreshProposalStateTimer := time.NewTimer(defaultRefreshProposalStateInternal)
 	for {
 		select {
@@ -96,7 +99,7 @@ func (t *TwoPC) loop() {
 				if err := t.OnPrepare(taskWrap.Task); nil != err {
 					taskWrap.SendResult(&types.ConsensuResult{
 						TaskConsResult: &types.TaskConsResult{
-							TaskId: taskWrap.Task.TaskId,
+							TaskId: taskWrap.Task.TaskId(),
 							Status: types.TaskConsensusInterrupt,
 							Done:   false,
 							Err:    fmt.Errorf("failed to OnPrepare 2pc, %s", err),
@@ -117,10 +120,8 @@ func (t *TwoPC) loop() {
 			}
 			t.sendConsensusTaskResultToSched(res)
 
-		// TODO case : 需要做一次 confirmMsg 的超时 vote 重发机制, epoch 这时需要等于 2
-
-		case <-cleanExpireProposalTimer.C:
-			t.cleanExpireProposal()
+		//case <-cleanExpireProposalTimer.C:
+		//	t.cleanExpireProposal()
 
 		case <-refreshProposalStateTimer.C:
 			go t.refreshProposalState()
@@ -132,13 +133,13 @@ func (t *TwoPC) loop() {
 	}
 }
 
-func (t *TwoPC) OnPrepare(task *types.ScheduleTask) error {
+func (t *TwoPC) OnPrepare(task *types.Task) error {
 
 	return nil
 }
-func (t *TwoPC) OnHandle(task *types.ScheduleTask, selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensuResult) error {
+func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensuResult) error {
 
-	if t.isProcessingTask(task.TaskId) {
+	if t.isProcessingTask(task.TaskId()) {
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
 
@@ -146,33 +147,47 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, selfPeerResource *types.Prepa
 	proposalHash := rlputil.RlpHash([]interface{}{
 		t.config.Option.NodeID,
 		now,
-		task.TaskId,
-		task.TaskName,
-		task.Owner,
-		task.Partners,
-		task.PowerSuppliers,
-		task.Receivers,
-		task.OperationCost,
-		task.CreateAt,
+		task.TaskId(),
+		task.TaskData().TaskName,
+		task.TaskData().PartyId,
+		task.TaskData().Identity,
+		task.TaskData().NodeId,
+		task.TaskData().NodeName,
+		task.TaskData().DataId,
+		task.TaskData().DataStatus,
+		task.TaskData().State,
+		task.TaskData().MetadataSupplier,
+		task.TaskData().ResourceSupplier,
+		task.TaskData().Receivers,
+		task.TaskData().CalculateContractCode,
+		task.TaskData().DataSplitContractCode,
+		task.TaskData().ContractExtraParams,
+		task.TaskData().TaskResource,
+		task.TaskData().CreateAt,
 	})
 
-	proposalState := ctypes.NewProposalState(proposalHash, task.TaskId, types.SendTaskDir, now)
+	proposalState := ctypes.NewProposalState(proposalHash, task.TaskId(), types.SendTaskDir, now)
 	// add proposal
 	t.addProposalState(proposalState)
 	// add task
-	t.addSendTask(task)
+	// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
+	if err := t.addSendTask(task); nil != err {
+		log.Errorf("Failed to store local task, err: %s", err)
+		return fmt.Errorf("failed to store local task, err: %s", err)
+	}
 	// add ResultCh
-	t.addTaskResultCh(task.TaskId, result)
+	t.addTaskResultCh(task.TaskId(), result)
 	// set myself peerInfo cache
 	t.state.StoreSelfPeerInfo(proposalHash, selfPeerResource)
 
+
+
 	// Start handle task ...
 	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-
 		// Send consensus result
 		t.collectTaskResult(&types.ConsensuResult{
 			TaskConsResult: &types.TaskConsResult{
-				TaskId: task.TaskId,
+				TaskId: task.TaskId(),
 				Status: types.TaskConsensusInterrupt,
 				Done:   false,
 				Err:    err,
@@ -181,6 +196,10 @@ func (t *TwoPC) OnHandle(task *types.ScheduleTask, selfPeerResource *types.Prepa
 		})
 		// clean some invalid data
 		t.delProposalStateAndTask(proposalHash)
+
+		if err := t.dataCenter.RemoveLocalTask(task.TaskId()); nil != err {
+			log.Errorf("Failed to remove local task, err: %s", err)
+		}
 		return err
 	}
 
@@ -266,12 +285,20 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	// Create the proposal state from recv.Proposal
 	proposalState := ctypes.NewProposalState(proposal.ProposalId,
-		proposal.TaskId, types.RecvTaskDir, proposal.CreateAt)
+		proposal.TaskId(), types.RecvTaskDir, proposal.CreateAt)
 
-	task := proposal.ScheduleTask
+	task := proposal.Task
 
 	t.addProposalState(proposalState)
-	t.addRecvTask(task)
+	// 将接受到的 task 保存本地
+	// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地.. todo 让 超时检查 proposalState 机制去清除 task 和各类本地缓存
+	if err :=t.addRecvTask(task); nil != err {
+		log.Errorf("Failed to store local task, err: %s", err)
+		// clean some data
+		t.delProposalStateAndTask(proposal.ProposalId)
+		return fmt.Errorf("failed to store local task, err: %s", err)
+	}
+
 	if err := t.validateRecvTask(task); nil != err {
 		// clean some data
 		t.delProposalStateAndTask(proposal.ProposalId)
@@ -280,10 +307,13 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	// Send task to Scheduler to replay sched.
 	replaySchedTask := &types.ReplayScheduleTaskWrap{
-		Role:     types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
+		Role:     types.TaskRoleFromBytes(prepareMsg.TaskRole),
 		Task:     task,
 		ResultCh: make(chan *types.ScheduleResult),
 	}
+
+
+	// replay schedule task on myself ...
 	t.sendReplaySchedTask(replaySchedTask)
 	result := replaySchedTask.RecvResult()
 
@@ -294,7 +324,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	vote := &types.PrepareVote{
 		ProposalId: proposal.ProposalId,
-		TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole),
+		TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskRole),
 		Owner: &types.NodeAlias{
 			Name:       self.Name,
 			NodeId:     self.NodeId,
@@ -319,13 +349,14 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	t.state.StorePrepareVoteState(vote)
 	if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
 		err := fmt.Errorf("failed to `SendTwoPcPrepareVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
-			proposal.TaskId, prepareMsg.TaskOption.TaskRole, self.NodeId, err)
+			proposal.TaskId, prepareMsg.TaskRole, self.NodeId, err)
 		log.Error(err)
 		return err
 	}
 
 	return nil
 }
+
 // (on Publisher)
 func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
 
@@ -356,10 +387,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		return ctypes.ErrPrepareVoteRepeatedly
 	}
 
-	dataSupplierCount := uint32(len(task.Partners))
-	powerSupplierCount := uint32(len(task.PowerSuppliers))
-	resulterCount := uint32(len(task.Receivers))
-
+	dataSupplierCount := uint32(len(task.TaskData().MetadataSupplier) - 1)
+	powerSupplierCount := uint32(len(task.TaskData().ResourceSupplier))
+	resulterCount := uint32(len(task.TaskData().Receivers))
 	taskMemCount := dataSupplierCount + powerSupplierCount + resulterCount
 
 	var identityValid bool
@@ -368,8 +398,8 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		if dataSupplierCount == t.state.GetTaskDataSupplierPrepareTotalVoteCount(voteMsg.ProposalId) {
 			return ctypes.ErrVoteCountOverflow
 		}
-		for _, dataSupplier := range task.Partners {
-			if dataSupplier.IdentityId == voteMsg.Owner.IdentityId {
+		for _, dataSupplier := range task.TaskData().MetadataSupplier {
+			if dataSupplier.Organization.Identity == voteMsg.Owner.IdentityId {
 
 				// TODO validate vote sign
 
@@ -381,8 +411,8 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		if powerSupplierCount == t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) {
 			return ctypes.ErrVoteCountOverflow
 		}
-		for _, powerSupplier := range task.PowerSuppliers {
-			if powerSupplier.IdentityId == voteMsg.Owner.IdentityId {
+		for _, powerSupplier := range task.TaskData().ResourceSupplier {
+			if powerSupplier.Organization.Identity == voteMsg.Owner.IdentityId {
 
 				// TODO validate vote sign
 
@@ -394,8 +424,8 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		if resulterCount == t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId) {
 			return ctypes.ErrVoteCountOverflow
 		}
-		for _, resulter := range task.Receivers {
-			if resulter.IdentityId == voteMsg.Owner.IdentityId {
+		for _, resulter := range task.TaskData().Receivers {
+			if resulter.Receiver.Identity == voteMsg.Owner.IdentityId {
 
 				// TODO validate vote sign
 
@@ -413,39 +443,43 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	// Store vote
 	t.state.StorePrepareVote(voteMsg)
 
-	yesVoteCount := t.state.GetTaskDataSupplierPrepareYesVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskPowerSupplierPrepareYesVoteCount(voteMsg.ProposalId) +
-		t.state.GetTaskResulterPrepareYesVoteCount(voteMsg.ProposalId)
+	yesVoteCount := t.state.GetTaskPrepareYesVoteCount(voteMsg.ProposalId)
+	totalVoteCount := t.state.GetTaskPrepareTotalVoteCount(voteMsg.ProposalId)
 
-	// Change the propoState to `confirmPeriod`
-	if taskMemCount == yesVoteCount {
+	if taskMemCount == totalVoteCount {
+		// Change the propoState to `confirmPeriod`
+		if taskMemCount == yesVoteCount {
 
-		now := uint64(time.Now().UnixNano())
-		// 修改状态
-		t.state.ChangeToConfirm(voteMsg.ProposalId, now)
+			now := uint64(time.Now().UnixNano())
+			// 修改状态
+			t.state.ChangeToConfirm(voteMsg.ProposalId, now)
 
-		if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
-			// Send consensus result
-			t.collectTaskResult(&types.ConsensuResult{
-				TaskConsResult: &types.TaskConsResult{
-					TaskId: task.TaskId,
-					Status: types.TaskConsensusInterrupt,
-					Done:   false,
-					Err:    err,
-				},
-				//Resources:
-			})
+			if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
+				// Send consensus result
+				t.collectTaskResult(&types.ConsensuResult{
+					TaskConsResult: &types.TaskConsResult{
+						TaskId: task.TaskId(),
+						Status: types.TaskConsensusInterrupt,
+						Done:   false,
+						Err:    err,
+					},
+					//Resources:
+				})
 
-			// todo 这里先考虑下是否直接清除掉 proposalState ????
-			// clean some invalid data
+				// todo 这里先考虑下是否直接清除掉 proposalState ????
+				// clean some invalid data
+				t.delProposalStateAndTask(voteMsg.ProposalId)
+				return err
+			}
+		} else {
+
+			// TODO 需要支持  confirmMsg 的取消 消息类型 (演示版本, 先不处理了 ...)
 			t.delProposalStateAndTask(voteMsg.ProposalId)
-			return err
 		}
-
 	}
-
 	return nil
 }
+
 // (on Subscriber)
 func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
 
@@ -515,6 +549,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	}
 	return nil
 }
+
 // (on Publisher)
 func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 
@@ -548,9 +583,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		return ctypes.ErrPrepareVoteRepeatedly
 	}
 
-	dataSupplierCount := uint32(len(task.Partners))
-	powerSupplierCount := uint32(len(task.PowerSuppliers))
-	resulterCount := uint32(len(task.Receivers))
+	dataSupplierCount := uint32(len(task.TaskData().MetadataSupplier) - 1)
+	powerSupplierCount := uint32(len(task.TaskData().ResourceSupplier))
+	resulterCount := uint32(len(task.TaskData().Receivers))
 	taskMemCount := dataSupplierCount + powerSupplierCount + resulterCount
 
 	var identityValid bool
@@ -559,8 +594,8 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		if dataSupplierCount == t.state.GetTaskDataSupplierConfirmTotalVoteCount(voteMsg.ProposalId) {
 			return ctypes.ErrVoteCountOverflow
 		}
-		for _, dataSupplier := range task.Partners {
-			if dataSupplier.IdentityId == voteMsg.Owner.IdentityId {
+		for _, dataSupplier := range task.TaskData().MetadataSupplier {
+			if dataSupplier.Organization.Identity == voteMsg.Owner.IdentityId {
 
 				// TODO validate vote sign
 
@@ -572,8 +607,8 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		if powerSupplierCount == t.state.GetTaskPowerSupplierConfirmTotalVoteCount(voteMsg.ProposalId) {
 			return ctypes.ErrVoteCountOverflow
 		}
-		for _, powerSupplier := range task.PowerSuppliers {
-			if powerSupplier.IdentityId == voteMsg.Owner.IdentityId {
+		for _, powerSupplier := range task.TaskData().ResourceSupplier {
+			if powerSupplier.Organization.Identity == voteMsg.Owner.IdentityId {
 
 				// TODO validate vote sign
 
@@ -585,8 +620,8 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		if resulterCount == t.state.GetTaskResulterConfirmTotalVoteCount(voteMsg.ProposalId) {
 			return ctypes.ErrVoteCountOverflow
 		}
-		for _, resulter := range task.Receivers {
-			if resulter.IdentityId == voteMsg.Owner.IdentityId {
+		for _, resulter := range task.TaskData().Receivers {
+			if resulter.Receiver.Identity == voteMsg.Owner.IdentityId {
 
 				// TODO validate vote sign
 
@@ -619,7 +654,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 				// Send consensus result
 				t.collectTaskResult(&types.ConsensuResult{
 					TaskConsResult: &types.TaskConsResult{
-						TaskId: task.TaskId,
+						TaskId: task.TaskId(),
 						Status: types.TaskConsensusInterrupt,
 						Done:   false,
 						Err:    err,
@@ -644,7 +679,6 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			t.delProposalStateAndTask(voteMsg.ProposalId)
 		}
 	}
-
 	return nil
 }
 
@@ -688,6 +722,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole, task)
 	return nil
 }
+
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方
 func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) error {
 	if err := handler.SendTwoPcTaskResultMsg(context.TODO(), t.p2p, pid, msg.TaskResultMsg); nil != err {
@@ -697,6 +732,7 @@ func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) err
 	}
 	return nil
 }
+
 // (on Publisher)
 func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error {
 	msg, err := fetchTaskResultMsg(taskResultMsg)

@@ -14,17 +14,16 @@ const (
 
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
-	db                     iface.ForResourceDB // Low level persistent database to store final content.
+	dataCenter iface.ForResourceDB // Low level persistent database to store final content.
 	//eventCh                chan *types.TaskEventInfo
-	slotUnit               *types.Slot
+	slotUnit *types.Slot
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue []*types.RemoteResourceTable
-
 }
 
-func NewResourceManager(db iface.ForResourceDB) *Manager {
+func NewResourceManager(dataCenter iface.ForResourceDB) *Manager {
 	m := &Manager{
-		db:               db,
+		dataCenter: dataCenter,
 		//eventCh:          make(chan *types.TaskEventInfo, 0),
 		//localTables:      make(map[string]*types.LocalResourceTable),
 		//localTableQueue:  make([]*types.LocalResourceTable, 0),
@@ -52,11 +51,11 @@ func (m *Manager) Start() error {
 
 	m.SetSlotUnit(0, 0, 0)
 	// store slotUnit
-	if err := m.db.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
+	if err := m.dataCenter.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
 	}
 	// load remote org resource Tables
-	remoteResources, err := m.db.QueryOrgResourceTables()
+	remoteResources, err := m.dataCenter.QueryOrgResourceTables()
 	if nil != err {
 		return err
 	}
@@ -67,7 +66,7 @@ func (m *Manager) Start() error {
 
 func (m *Manager) Stop() error {
 	// store slotUnit
-	if err := m.db.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
+	if err := m.dataCenter.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
 	}
 	// store local resource Tables
@@ -75,7 +74,7 @@ func (m *Manager) Stop() error {
 	//	return err
 	//}
 	// store remote org resource Tables
-	if err := m.db.StoreOrgResourceTables(m.remoteTableQueue); nil != err {
+	if err := m.dataCenter.StoreOrgResourceTables(m.remoteTableQueue); nil != err {
 		return err
 	}
 	return nil
@@ -95,65 +94,69 @@ func (m *Manager) SetSlotUnit(mem, p, b uint64) {
 	//}
 }
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
+//func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
+//
+//	table, err := m.GetLocalResourceTable(nodeId)
+//	if nil != err {
+//		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
+//	}
+//	if table.GetLockedSlot() < slotCount {
+//		return fmt.Errorf("Insufficient locked number of slots of node: %s", nodeId)
+//	}
+//	table.UseSlot(slotCount)
+//	return m.SetLocalResourceTable(table)
+//}
+//func (m *Manager) FreeSlot(nodeId string, slotCount uint32) error {
+//	table, err := m.GetLocalResourceTable(nodeId)
+//	if nil != err {
+//		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
+//	}
+//	table.FreeSlot(slotCount)
+//	return m.SetLocalResourceTable(table)
+//}
 func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
-
 	table, err := m.GetLocalResourceTable(nodeId)
-	if  nil != err {
+	if nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
-	if table.GetLockedSlot() < slotCount {
-		return fmt.Errorf("Insufficient locked number of slots of node: %s", nodeId)
+	//if table.RemianSlot() < slotCount {
+	//	return fmt.Errorf("Insufficient slotRemain {%s} less than need lock count {%s} slots of node: %s", table.RemianSlot(),slotCount , nodeId)
+	//}
+	if err := table.UseSlot(slotCount); nil != err {
+		return err
 	}
-	table.UseSlot(slotCount)
 	return m.SetLocalResourceTable(table)
 }
 func (m *Manager) FreeSlot(nodeId string, slotCount uint32) error {
 	table, err := m.GetLocalResourceTable(nodeId)
-	if  nil != err {
+	if nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
-	table.FreeSlot(slotCount)
-	return m.SetLocalResourceTable(table)
-}
-func (m *Manager) LockSlot(nodeId string, slotCount uint32) error {
-	table, err := m.GetLocalResourceTable(nodeId)
-	if  nil != err {
-		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
+	if err := table.FreeSlot(slotCount); nil != err {
+		return err
 	}
-	if table.RemianSlot() < slotCount {
-		return fmt.Errorf("Insufficient remaining number of slots of node: %s", nodeId)
-	}
-	table.LockSlot(slotCount)
-	return m.SetLocalResourceTable(table)
-}
-func (m *Manager) UnLockSlot(nodeId string, slotCount uint32) error {
-	table, err := m.GetLocalResourceTable(nodeId)
-	if  nil != err {
-		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
-	}
-	table.UnLockSlot(slotCount)
 	return m.SetLocalResourceTable(table)
 }
 
 func (m *Manager) SetLocalResourceTable(table *types.LocalResourceTable) error {
-	return m.db.StoreLocalResourceTable(table)
+	return m.dataCenter.StoreLocalResourceTable(table)
 }
 func (m *Manager) GetLocalResourceTable(nodeId string) (*types.LocalResourceTable, error) {
-	return m.db.QueryLocalResourceTable(nodeId)
+	return m.dataCenter.QueryLocalResourceTable(nodeId)
 }
 func (m *Manager) GetLocalResourceTables() ([]*types.LocalResourceTable, error) {
-	return m.db.QueryLocalResourceTables()
+	return m.dataCenter.QueryLocalResourceTables()
 }
 func (m *Manager) DelLocalResourceTable(nodeId string) error {
-	return m.db.RemoveLocalResourceTable(nodeId)
+	return m.dataCenter.RemoveLocalResourceTable(nodeId)
 }
 func (m *Manager) CleanLocalResourceTables() error {
-	localResourceTableArr, err := m.db.QueryLocalResourceTables()
+	localResourceTableArr, err := m.dataCenter.QueryLocalResourceTables()
 	if nil != err {
 		return err
 	}
 	for _, table := range localResourceTableArr {
-		if err := m.db.RemoveLocalResourceTable(table.GetNodeId()); nil != err {
+		if err := m.dataCenter.RemoveLocalResourceTable(table.GetNodeId()); nil != err {
 			return err
 		}
 	}
@@ -196,7 +199,7 @@ func (m *Manager) CleanRemoteResourceTables() {
 }
 func (m *Manager) GetRemoteResouceTables() []*types.RemoteResourceTable { return m.remoteTableQueue }
 func (m *Manager) refreshOrgResourceTable() error {
-	resources, err := m.db.GetResourceList()
+	resources, err := m.dataCenter.GetResourceList()
 	if nil != err {
 		return err
 	}
@@ -219,6 +222,83 @@ func (m *Manager) refreshOrgResourceTable() error {
 	for _, r := range tmp {
 		m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
 	}
+	return nil
+}
+
+
+// TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
+func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint64, task *types.Task) error {
+
+	log.Infof("Start lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.TaskId(), jobNodeId, needSlotCount)
+
+	// Lock local resource (jobNode)
+	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {
+		log.Errorf("Failed to lock internal power resource, err: %s", err)
+		return fmt.Errorf("failed to lock internal power resource, err: %s", err)
+	}
+
+	//// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
+	//if err := m.dataCenter.StoreLocalTask(task); nil != err {
+	//
+	//	m.FreeSlot(jobNodeId, uint32(needSlotCount))
+	//
+	//	log.Errorf("Failed to store local task, err: %s", err)
+	//	return fmt.Errorf("failed to store local task, err: %s", err)
+	//}
+
+	if err := m.dataCenter.StoreJobNodeRunningTaskId(jobNodeId, task.TaskId()); nil != err {
+
+		m.FreeSlot(jobNodeId, uint32(needSlotCount))
+		m.dataCenter.RemoveLocalTask(task.TaskId())
+
+		log.Errorf("Failed to store local taskId and jobNodeId index, err: %s", err)
+		return fmt.Errorf("failed to store local taskId and jobNodeId index, err: %s", err)
+	}
+	if err := m.dataCenter.StoreLocalTaskPowerUsed(types.NewLocalTaskPowerUsed(task.TaskId(), jobNodeId, needSlotCount)); nil != err {
+
+		m.FreeSlot(jobNodeId, uint32(needSlotCount))
+		m.dataCenter.RemoveLocalTask(task.TaskId())
+		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.TaskId())
+
+		log.Errorf("Failed to store local taskId use jobNode slot, err: %s", err)
+		return fmt.Errorf("failed to store local taskId use jobNode slot, err: %s", err)
+	}
+
+	log.Infof("Finished lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.TaskId(), jobNodeId, needSlotCount)
+	return nil
+}
+
+// TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
+func  (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
+
+	localTaskPowerUsed, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId)
+	if nil != err {
+		log.Errorf("Failed to query local taskId and jobNodeId index, err: %s", err)
+		return fmt.Errorf("failed to query local taskId and jobNodeId index, err: %s", err)
+	}
+
+	log.Infof("Start unlock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", taskId, localTaskPowerUsed.GetNodeId(), localTaskPowerUsed.GetSlotCount())
+
+	// Lock local resource (jobNode)
+	if err := m.FreeSlot(localTaskPowerUsed.GetNodeId(), uint32(localTaskPowerUsed.GetSlotCount())); nil != err {
+		log.Errorf("Failed to unlock internal power resource, err: %s", err)
+		return fmt.Errorf("failed to unlock internal power resource, err: %s", err)
+	}
+	//
+	if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
+		log.Errorf("Failed to remove local task, err: %s", err)
+		return fmt.Errorf("failed to remove local task, err: %s", err)
+	}
+	if err := m.dataCenter.RemoveJobNodeRunningTaskId(localTaskPowerUsed.GetNodeId(), taskId); nil != err {
+		log.Errorf("Failed to remove local taskId and jobNodeId index, err: %s", err)
+		return fmt.Errorf("failed to remove local taskId and jobNodeId index, err: %s", err)
+	}
+	if err := m.dataCenter.RemoveLocalTaskPowerUsed(taskId); nil != err {
+
+		log.Errorf("Failed to remove local taskId use jobNode slot, err: %s", err)
+		return fmt.Errorf("failed to remove local taskId use jobNode slot, err: %s", err)
+	}
+	log.Infof("Finished unlock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", taskId, localTaskPowerUsed.GetNodeId(), localTaskPowerUsed.GetSlotCount())
 	return nil
 }
 

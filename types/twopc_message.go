@@ -51,7 +51,9 @@ func (msg *PrepareMsgWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
 		msg.ProposalId,
-		msg.TaskOption,
+		msg.TaskRole,
+		msg.Owner,
+		msg.TaskInfo,
 		msg.CreateAt,
 	})
 
@@ -143,7 +145,6 @@ func (msg *ConfirmMsgWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
 		msg.ProposalId,
-		msg.Epoch,
 		msg.Owner,
 		msg.CreateAt,
 	})
@@ -190,7 +191,6 @@ func (msg *ConfirmVoteWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
 		msg.ProposalId,
-		msg.Epoch,
 		msg.TaskRole,
 		msg.Owner,
 		msg.VoteOption,

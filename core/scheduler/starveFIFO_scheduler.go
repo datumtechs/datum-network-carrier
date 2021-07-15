@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -32,8 +33,7 @@ type SchedulerStarveFIFO struct {
 	queue *types.TaskBullets
 	// the very very starve local task by priority
 	starveQueue *types.TaskBullets
-	// the cache with scheduled local task, will be send to `Consensus`
-	scheduledQueue []*types.ScheduleTask
+
 	// fetch local task from taskManager`
 	localTaskMsgCh chan types.TaskMsgs
 	// send local task scheduled to `Consensus`
@@ -62,7 +62,6 @@ func NewSchedulerStarveFIFO(
 		resourceMng:          mng,
 		queue:                new(types.TaskBullets),
 		starveQueue:          new(types.TaskBullets),
-		scheduledQueue:       make([]*types.ScheduleTask, 0),
 		localTaskMsgCh:       localTaskMsgCh,
 		needConsensusTaskCh:  needConsensusTaskCh,
 		replayScheduleTaskCh: replayScheduleTaskCh,
@@ -107,7 +106,7 @@ func (sche *SchedulerStarveFIFO) OnStart() error {
 	go sche.loop()
 	return nil
 }
-func (sche *SchedulerStarveFIFO) OnStop() error  { return nil }  // TODO 未实现 ...
+func (sche *SchedulerStarveFIFO) OnStop() error  { return nil } // TODO 未实现 ...
 func (sche *SchedulerStarveFIFO) OnError() error { return sche.err }
 func (sche *SchedulerStarveFIFO) Name() string   { return "SchedulerStarveFIFO" }
 func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
@@ -128,7 +127,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 	}
 
 	go func() {
-		task := bullet.TaskMsg
+		taskMsg := bullet.TaskMsg
 		repushFn := func(bullet *types.TaskBullet) {
 
 			bullet.IncreaseResched()
@@ -136,17 +135,17 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 				// 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
 				log.Error("The number of times the task has been rescheduled exceeds the expected threshold", "taskId", bullet.TaskId)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type,
-					task.TaskId, task.Onwer().IdentityId, fmt.Sprintf(
+					taskMsg.TaskId, taskMsg.OwnerIdentityId(), fmt.Sprintf(
 						"The number of times the task has been rescheduled exceeds the expected threshold")))
 
 				sendTask := &types.DoneScheduleTaskChWrap{
-					ProposalId: common.Hash{},
+					ProposalId:   common.Hash{},
 					SelfTaskRole: types.TaskOnwer,
 					// SelfPeerInfo:
 					Task: &types.ConsensusScheduleTask{
 						TaskDir:   types.SendTaskDir,
 						TaskState: types.TaskStateFailed,
-						SchedTask: types.ConvertTaskMsgToScheduleTask(task, nil),
+						SchedTask: types.ConvertTaskMsgToTask(taskMsg, nil),
 					},
 					ResultCh: make(chan *types.TaskResultMsgWrap, 0),
 				}
@@ -160,8 +159,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			}
 		}
 
-		cost := &types.TaskOperationCost{Mem: task.OperationCost().Mem, Processor: task.OperationCost().Processor,
-			Bandwidth: task.OperationCost().Bandwidth}
+		cost := &types.TaskOperationCost{Mem: taskMsg.OperationCost().CostMem, Processor: uint64(taskMsg.OperationCost().CostProcessor),
+			Bandwidth: taskMsg.OperationCost().CostBandwidth}
 		//needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 		//
 		////  [选出其他组织的 算力] 如果自己不是 power 角色, 那么就不会与这一步
@@ -176,35 +175,51 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		//// Lock local resource (jobNode)
 		//sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
 
+		dataIdentityIdCache := map[string]struct{}{taskMsg.OwnerIdentityId(): struct{}{}}
+		for _, dataSupplier := range taskMsg.TaskMetadataSupplierDatas() {
+			dataIdentityIdCache[dataSupplier.Organization.Identity] = struct{}{}
+		}
+		for _, receiver := range taskMsg.TaskResultReceiverDatas() {
+			dataIdentityIdCache[receiver.Receiver.Identity] = struct{}{}
+		}
 		// 【选出 其他组织的算力】
-		powers, err := sche.electionConputeOrg(task.PowerPartyIds(), task.OwnerIdentityId(), cost)
+		powers, err := sche.electionConputeOrg(taskMsg.PowerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
 			log.Errorf("Failed to election power org, err: %s", err)
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				task.TaskId, task.Onwer().IdentityId, err.Error()))
+				taskMsg.TaskId, taskMsg.OwnerIdentityId(), err.Error()))
 			repushFn(bullet)
 			return
 		}
 
-		// 【选出 发起方 自己的 metaDataId 的 file 对应的  dataNode [ip:port]】
-		dataNodeId, err := sche.dataCenter.QueryLocalResourceIdByMetaDataId(task.OwnerTaskSupplier().MetaData.MetaDataId)
-		if nil != err {
-			log.Errorf("Failed to query localResourceId By MetaDataId: %s, err: %s", task.OwnerTaskSupplier().MetaData.MetaDataId, err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				task.TaskId, task.Onwer().IdentityId, err.Error()))
-			repushFn(bullet)
-			return
+		var dataNodeId string
+		for _, dataSupplier := range taskMsg.TaskMetadataSupplierDatas() {
+			// identity 和 partyId 都一致, 才是同一个人 ..
+			if taskMsg.OwnerIdentityId() == dataSupplier.Organization.Identity && taskMsg.OwnerPartyId() == dataSupplier.Organization.PartyId {
+				// 【选出 发起方 自己的 metaDataId 的 file 对应的  dataNode [ip:port]】
+				dataNodeId, err = sche.dataCenter.QueryLocalResourceIdByMetaDataId(dataSupplier.MetaId)
+				if nil != err {
+					log.Errorf("Failed to query localResourceId By MetaDataId of task owner: %s, err: %s", dataSupplier.MetaId, err)
+					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
+						taskMsg.TaskId, taskMsg.OwnerIdentityId(), err.Error()))
+					repushFn(bullet)
+					return
+				}
+				break
+			}
 		}
+
 		dataNodeResource, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataNodeId)
 		if nil != err {
 			log.Errorf("Failed to query localResourceInfo By dataNodeId: %s, err: %s", dataNodeId, err)
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				task.TaskId, task.Onwer().IdentityId, err.Error()))
+				taskMsg.TaskId, taskMsg.OwnerIdentityId(), err.Error()))
 			repushFn(bullet)
 			return
 		}
+
 		// Send task to consensus Engine to consensus.
-		scheduleTask := types.ConvertTaskMsgToScheduleTask(task, powers)
+		scheduleTask := types.ConvertTaskMsgToTask(taskMsg, powers)
 		toConsensusTask := &types.ConsensusTaskWrap{
 			Task: scheduleTask,
 			OwnerDataResource: &types.PrepareVoteResource{
@@ -220,7 +235,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		// Consensus failed, task needs to be suspended and rescheduled
 		if consensusRes.Status == types.TaskConsensusInterrupt {
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				task.TaskId, task.Onwer().IdentityId, consensusRes.Err.Error()))
+				taskMsg.TaskId, taskMsg.Data.TaskData().Identity, consensusRes.Err.Error()))
 			repushFn(bullet)
 			return
 		}
@@ -241,119 +256,100 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 	return nil
 }
-func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleTaskWrap)  {
+func (sche *SchedulerStarveFIFO) replaySchedule(replayTask *types.ReplayScheduleTaskWrap) {
 
-	cost := &types.TaskOperationCost{Mem: schedTask.Task.OperationCost.Mem, Processor: schedTask.Task.OperationCost.Processor,
-		Bandwidth: schedTask.Task.OperationCost.Bandwidth}
+	cost := &types.TaskOperationCost{
+		Mem: replayTask.Task.TaskData().TaskResource.CostMem,
+		Processor: uint64(replayTask.Task.TaskData().TaskResource.CostProcessor),
+		Bandwidth: replayTask.Task.TaskData().TaskResource.CostBandwidth,
+	}
 
 	self, err := sche.dataCenter.GetIdentity()
 	if nil != err {
 		log.Errorf("Failed to query self identityInfo, err: %s", err)
-		schedTask.SendFailedResult(schedTask.Task.TaskId, err)
+		replayTask.SendFailedResult(replayTask.Task.TaskId(), err)
 		return
 	}
 	// 任务的 重演者 不应该是 任务的发起者
-	if self.IdentityId == schedTask.Task.Owner.IdentityId {
+	if self.IdentityId == replayTask.Task.TaskData().Identity {
 		log.Errorf("failed to validate task, self cannot be task owner")
-		schedTask.SendFailedResult(schedTask.Task.TaskId, fmt.Errorf("task ower can not replay schedule task"))
+		replayTask.SendFailedResult(replayTask.Task.TaskId(), fmt.Errorf("task ower can not replay schedule task"))
 		return
 	}
 
-	switch schedTask.Role {
+	switch replayTask.Role {
 
-	// 如果 当前参与方为 DataSupplier
+	// 如果 当前参与方为 DataSupplier   [重新 演算 选 powers]
 	case types.DataSupplier:
 
-		powerPartyIds := make([]string, len(schedTask.Task.PowerSuppliers))
-		for i, power := range schedTask.Task.PowerSuppliers {
-			powerPartyIds[i] = power.PartyId
+		powerPartyIds := make([]string, len(replayTask.Task.TaskData().ResourceSupplier))
+		for i, power := range replayTask.Task.TaskData().ResourceSupplier {
+			powerPartyIds[i] = power.Organization.PartyId
+		}
+
+		dataIdentityIdCache := map[string]struct{}{replayTask.Task.TaskData().Identity: {}}
+		for _, dataSupplier := range replayTask.Task.TaskData().MetadataSupplier {
+			dataIdentityIdCache[dataSupplier.Organization.Identity] = struct{}{}
+		}
+		for _, receiver := range replayTask.Task.TaskData().Receivers {
+			dataIdentityIdCache[receiver.Receiver.Identity] = struct{}{}
 		}
 		// mock election power orgs
-		powers, err := sche.electionConputeOrg(powerPartyIds, schedTask.Task.Owner.IdentityId, cost)
+		powers, err := sche.electionConputeOrg(powerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
 			log.Errorf("Failed to election power org, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
+			replayTask.SendFailedResult(replayTask.Task.TaskId(), fmt.Errorf("failed to election power org, err: %s", err))
 			return
 		}
 
 		// compare powerSuppliers of task And powerSuppliers of election
-		if len(powers) != len(schedTask.Task.PowerSuppliers) {
-			err := fmt.Errorf("election powerSuppliers and task powerSuppliers is not match")
-			log.Error(err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
-				//Resource:
-			})
-
+		if len(powers) != len(replayTask.Task.TaskData().ResourceSupplier) {
+			log.Errorf("election powerSuppliers and task powerSuppliers is not match")
+			replayTask.SendFailedResult(replayTask.Task.TaskId(),
+				fmt.Errorf("election powerSuppliers and task powerSuppliers is not match"))
 			return
 		}
 
 		tmp := make(map[string]struct{}, len(powers))
 
 		for _, power := range powers {
-			tmp[power.IdentityId] = struct{}{}
+			tmp[power.Organization.Identity] = struct{}{}
 		}
-		for _, supplier := range schedTask.Task.PowerSuppliers {
-			if _, ok := tmp[supplier.IdentityId]; !ok {
-				err := fmt.Errorf("election powerSuppliers and task powerSuppliers is not match")
-				log.Error(err)
-				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-					schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-				schedTask.SendResult(&types.ScheduleResult{
-					TaskId: schedTask.Task.TaskId,
-					Status: types.TaskSchedFailed,
-					Err:    fmt.Errorf("replay election powers is not matching recvTask.Powers on replay schedule task"),
-				})
+		for _, power := range replayTask.Task.TaskData().ResourceSupplier {
+			if _, ok := tmp[power.Organization.Identity]; !ok {
+				log.Errorf("election powerSuppliers and task powerSuppliers is not match")
+				replayTask.SendFailedResult(replayTask.Task.TaskId(),
+					fmt.Errorf("election powerSuppliers and task powerSuppliers is not match"))
 				return
 			}
 		}
 
-		// TODO 选出 关于自己 metaDataId 所在的 dataNode
+		// 选出 关于自己 metaDataId 所在的 dataNode
 		var metaDataId string
-		for _, dataResource := range schedTask.Task.Partners {
-			if self.IdentityId == dataResource.IdentityId {
-				metaDataId = dataResource.MetaData.MetaDataId
+		for _, dataResource := range replayTask.Task.TaskData().MetadataSupplier{
+			if self.IdentityId == dataResource.Organization.Identity {
+				metaDataId = dataResource.MetaId
 				break
 			}
 		}
 		dataNodeId, err := sche.dataCenter.QueryLocalResourceIdByMetaDataId(metaDataId)
 		if nil != err {
-			err := fmt.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
-			log.Error(err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
-			})
+			log.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
+			replayTask.SendFailedResult(replayTask.Task.TaskId(),
+				fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"))
 			return
 		}
+
 		dataNode, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataNodeId)
 		if nil != err {
-			err := fmt.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
-			log.Error(err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"),
-			})
+			log.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
+			replayTask.SendFailedResult(replayTask.Task.TaskId(),
+				fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"))
 			return
 		}
 
-		schedTask.SendResult(&types.ScheduleResult{
-			TaskId: schedTask.Task.TaskId,
+		replayTask.SendResult(&types.ScheduleResult{
+			TaskId: replayTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
 				Id:   dataNode.Id,
@@ -362,26 +358,26 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 			},
 		})
 
-	// 如果 当前参与方为 DataSupplier
+	// 如果 当前参与方为 PowerSupplier  [选出自己的 内部 power 资源, 并锁定, todo 在最后 DoneXxxxWrap 中解锁]
 	case types.PowerSupplier:
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 		selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
 		if nil != err {
 			log.Errorf("Failed to election internal power resource, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed to replay sched myself local power on replay schedule task"),
-			})
+			replayTask.SendFailedResult(replayTask.Task.TaskId(),
+				fmt.Errorf("failed to replay sched myself local power on replay schedule task"))
 			return
 		}
-		// Lock local resource (jobNode)
-		sche.resourceMng.LockSlot(selfResourceInfo.Id, uint32(needSlotCount))
-		schedTask.SendResult(&types.ScheduleResult{
-			TaskId: schedTask.Task.TaskId,
+
+		if err := sche.resourceMng.LockLocalResourceWithTask(selfResourceInfo.Id, needSlotCount,
+			replayTask.Task); nil != err {
+			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s}, err: %s", selfResourceInfo.Id, replayTask.Task.TaskId, err)
+			replayTask.SendFailedResult(replayTask.Task.TaskId(), err)
+			return
+		}
+
+		replayTask.SendResult(&types.ScheduleResult{
+			TaskId: replayTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
 				Id:   selfResourceInfo.Id,
@@ -390,20 +386,14 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 			},
 		})
 
-	// 如果 当前参与方为 ResultSupplier
+	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
 	case types.ResultSupplier:
 
 		localResourceTables, err := sche.resourceMng.GetLocalResourceTables()
 		if nil != err {
-			log.Errorf("Failed to election internal data resource, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
-			})
+			log.Errorf("Failed to election internal data resource with replay schedule task, err: %s", err)
+			replayTask.SendFailedResult(replayTask.Task.TaskId(),
+				fmt.Errorf("failed to election internal data resource with replay schedule task, err: %s", err))
 			return
 		}
 
@@ -411,19 +401,13 @@ func (sche *SchedulerStarveFIFO) replaySchedule(schedTask *types.ReplayScheduleT
 		resourceInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, resource.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query internal data node resource, err: %s", err)
-			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-				schedTask.Task.TaskId, schedTask.Task.Owner.IdentityId, err.Error()))
-
-			schedTask.SendResult(&types.ScheduleResult{
-				TaskId: schedTask.Task.TaskId,
-				Status: types.TaskSchedFailed,
-				Err:    fmt.Errorf("failed to replay sched myself local data node on replay schedule task"),
-			})
+			replayTask.SendFailedResult(replayTask.Task.TaskId(),
+				fmt.Errorf("failed to query internal data node resource, err: %s", err))
 			return
 		}
 
-		schedTask.SendResult(&types.ScheduleResult{
-			TaskId: schedTask.Task.TaskId,
+		replayTask.SendResult(&types.ScheduleResult{
+			TaskId: replayTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
 				Id:   resourceInfo.Id,
@@ -488,22 +472,31 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 		Port: internalNodeInfo.ExternalPort,
 	}, nil
 }
-func (sche *SchedulerStarveFIFO) electionConputeOrg(powerPartyIds []string, ownerIdentity string, cost *types.TaskOperationCost) ([]*types.TaskNodeAlias, error) {
+func (sche *SchedulerStarveFIFO) electionConputeOrg(
+	powerPartyIds []string,
+	dataIdentityIdCache map[string]struct{},
+	cost *types.TaskOperationCost,
+) ([]*libTypes.TaskResourceSupplierData, error) {
+
+
 	calculateCount := len(powerPartyIds)
-	orgs := make([]*types.TaskNodeAlias, calculateCount)
 	identityIds := make([]string, 0)
 
 	for _, r := range sche.resourceMng.GetRemoteResouceTables() {
-		if r.GetIdentityId() == ownerIdentity {
+		// 计算方不可以是任务发起方 和 数据参与方 和 接收方
+		if _, ok := dataIdentityIdCache[r.GetIdentityId()]; ok {
 			continue
 		}
+		// 还需要有足够的 资源
 		if r.IsEnough(cost.Mem, cost.Processor, cost.Bandwidth) {
 			identityIds = append(identityIds, r.GetIdentityId())
 		}
 	}
+
 	if calculateCount > len(identityIds) {
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
+
 	// Election
 	index := electionOrgCondition % len(identityIds)
 	identityIdTmp := make(map[string]struct{}, calculateCount)
@@ -513,22 +506,59 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(powerPartyIds []string, owne
 
 	}
 
-	identityArr, err := sche.dataCenter.GetIdentityList()
+	if len(identityIdTmp) != calculateCount {
+		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	}
+
+	identityInfoArr, err := sche.dataCenter.GetIdentityList()
+	if nil != err {
+		return nil, err
+	}
+	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
+	for _, identityInfo := range identityInfoArr {
+		if _, ok := identityIdTmp[identityInfo.IdentityId()]; ok {
+			identityInfoTmp[identityInfo.IdentityId()] = identityInfo
+		}
+	}
+	if len(identityInfoTmp) != calculateCount {
+		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	}
+
+	resourceArr, err := sche.dataCenter.GetResourceList()
 	if nil != err {
 		return nil, err
 	}
 
+	orgs := make([]*libTypes.TaskResourceSupplierData, calculateCount)
 	i := 0
-	for _, iden := range identityArr {
-		if _, ok := identityIdTmp[iden.IdentityId()]; ok {
-			orgs[i] =  &types.TaskNodeAlias{
-				PartyId:    powerPartyIds[i],
-				Name:       iden.Name(),
-				NodeId:     iden.NodeId(),
-				IdentityId: iden.IdentityId(),
+	for _, iden := range resourceArr {
+
+		if i == calculateCount {
+			break
+		}
+
+		if info, ok := identityInfoTmp[iden.GetIdentityId()]; ok {
+			orgs[i] = &libTypes.TaskResourceSupplierData{
+				Organization: &libTypes.OrganizationData{
+					PartyId:  powerPartyIds[i],
+					NodeName: info.Name(),
+					NodeId:   info.NodeId(),
+					Identity: info.IdentityId(),
+				},
+				ResourceUsedOverview: &libTypes.ResourceUsedOverview{
+					TotalMem:       iden.GetTotalMem(),
+					UsedMem:        iden.GetUsedMem(),
+					TotalProcessor: uint32(iden.GetTotalProcessor()),
+					UsedProcessor:  uint32(iden.GetUsedProcessor()),
+					TotalBandwidth: iden.GetTotalBandWidth(),
+					UsedBandwidth:  iden.GetUsedBandWidth(),
+				},
 			}
+			i++
+			delete(identityInfoTmp, iden.GetIdentityId())
 		}
 	}
+
 	return orgs, nil
 }
 

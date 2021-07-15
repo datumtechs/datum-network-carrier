@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"sync/atomic"
+	"time"
 )
 
 const (
@@ -532,102 +533,67 @@ func (h *TaskBullets) DecreaseTerm() {
 
 type TaskMsg struct {
 	TaskId string `json:"taskId"`
-	Data   *taskdata
+	Data   *Task
+	PowerPartyIds []string `json:"powerPartyIds"`
 	// caches
 	hash atomic.Value
 }
 
 func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
+
 	return &TaskMsg{
-		Data: &taskdata{
-			TaskName: req.TaskName,
-			Owner: &TaskSupplier{
-				TaskNodeAlias: &TaskNodeAlias{
-					PartyId:    req.Owner.MemberInfo.PartyId,
-					Name:       req.Owner.MemberInfo.Name,
-					NodeId:     req.Owner.MemberInfo.NodeId,
-					IdentityId: req.Owner.MemberInfo.IdentityId,
-				},
-				MetaData: &SupplierMetaData{
-					MetaDataId:      req.Owner.MetaDataInfo.MetaDataId,
-					ColumnIndexList: make([]uint64, 0),
-				},
+		TaskId:     "",
+		PowerPartyIds: req.PowerPartyIds,
+		Data: NewTask(&libTypes.TaskData{
+			TaskId:     "",
+			TaskName:   req.TaskName,
+			PartyId:    req.Owner.MemberInfo.PartyId,
+			Identity:   req.Owner.MemberInfo.IdentityId,
+			NodeId:     req.Owner.MemberInfo.NodeId,
+			NodeName:   req.Owner.MemberInfo.Name,
+			DataId:     "",
+			DataStatus: ResourceDataStatusN.String(),
+			State:      TaskStatePending.String(),
+			Reason:     "",
+			EventCount: 0,
+			Desc:       "",
+			CreateAt:   uint64(time.Now().UnixNano()),
+			EndAt:      0,
+			StartAt:    0,
+			AlgoSupplier: &libTypes.OrganizationData{
+				PartyId:  req.Owner.MemberInfo.PartyId,
+				Identity: req.Owner.MemberInfo.IdentityId,
+				NodeId:   req.Owner.MemberInfo.NodeId,
+				NodeName: req.Owner.MemberInfo.Name,
 			},
-			Partners:              make([]*TaskSupplier, 0),
-			PowerPartyIds:         req.PowerPartyIds,
-			Receivers:             make([]*TaskResultReceiver, 0),
-			CalculateContractCode: req.CalculateContractcode,
-			DataSplitContractCode: req.DatasplitContractcode,
-			ContractExtraParams:   req.ContractExtraParams,
-			OperationCost: &TaskOperationCost{
-				Processor: req.OperationCost.CostProcessor,
-				Mem:       req.OperationCost.CostMem,
-				Bandwidth: req.OperationCost.CostBandwidth,
-				Duration:  req.OperationCost.Duration,
+			TaskResource: &libTypes.TaskResourceData{
+				CostProcessor: uint32(req.OperationCost.CostProcessor),
+				CostMem:       req.OperationCost.CostMem,
+				CostBandwidth: req.OperationCost.CostBandwidth,
+				Duration:      req.OperationCost.Duration,
 			},
-		},
+
+
+		}),
 	}
 }
-func ConvertTaskMsgToScheduleTask(task *TaskMsg, powers []*TaskNodeAlias) *ScheduleTask {
-	partners := make([]*ScheduleTaskDataSupplier, len(task.PartnerTaskSuppliers()))
-	for i, p := range task.PartnerTaskSuppliers() {
-		partner := &ScheduleTaskDataSupplier{
-			TaskNodeAlias: &TaskNodeAlias{
-				PartyId:    p.PartyId,
-				Name:       p.Name,
-				NodeId:     p.NodeId,
-				IdentityId: p.IdentityId,
-			},
-			MetaData: p.MetaData,
-		}
-		partners[i] = partner
-	}
-
-	powerArr := make([]*ScheduleTaskPowerSupplier, len(powers))
-	for i, p := range powers {
-		power := &ScheduleTaskPowerSupplier{
-			TaskNodeAlias: p,
-		}
-		powerArr[i] = power
-	}
-
-	receivers := make([]*ScheduleTaskResultReceiver, len(task.ReceiverDetails()))
-	for i, r := range task.ReceiverDetails() {
-		receiver := &ScheduleTaskResultReceiver{
-			TaskNodeAlias: r.TaskNodeAlias,
-			Providers:     r.Providers,
-		}
-		receivers[i] = receiver
-	}
-	return &ScheduleTask{
-		TaskId:   task.TaskId,
-		TaskName: task.TaskName(),
-		Owner: &ScheduleTaskDataSupplier{
-			TaskNodeAlias: task.Onwer(),
-			MetaData:      task.OwnerTaskSupplier().MetaData,
-		},
-		Partners:              partners,
-		PowerSuppliers:        powerArr,
-		Receivers:             receivers,
-		CalculateContractCode: task.CalculateContractCode(),
-		DataSplitContractCode: task.DataSplitContractCode(),
-		OperationCost:         task.OperationCost(),
-		CreateAt:              task.CreateAt(),
-	}
+func ConvertTaskMsgToTask(taskMsg *TaskMsg, powers  []*libTypes.TaskResourceSupplierData) *Task {
+	taskMsg.Data.SetResourceSupplierArr(powers)
+	return taskMsg.Data
 }
 
-type taskdata struct {
-	TaskName              string                `json:"taskName"`
-	Owner                 *TaskSupplier         `json:"owner"`
-	Partners              []*TaskSupplier       `json:"partners"`
-	PowerPartyIds         []string              `json:"powerPartyIds"`
-	Receivers             []*TaskResultReceiver `json:"receivers"`
-	CalculateContractCode string                `json:"calculateContractCode"`
-	DataSplitContractCode string                `json:"dataSplitContractCode"`
-	ContractExtraParams   string                `json:"contractExtraParams"`
-	OperationCost         *TaskOperationCost    `json:"spend"`
-	CreateAt              uint64                `json:"createAt"`
-}
+//type taskdata struct {
+//	TaskName              string                `json:"taskName"`
+//	Owner                 *TaskSupplier         `json:"owner"`
+//	Partners              []*TaskSupplier       `json:"partners"`
+//	PowerPartyIds         []string              `json:"powerPartyIds"`
+//	Receivers             []*TaskResultReceiver `json:"receivers"`
+//	CalculateContractCode string                `json:"calculateContractCode"`
+//	DataSplitContractCode string                `json:"dataSplitContractCode"`
+//	ContractExtraParams   string                `json:"contractExtraParams"`
+//	OperationCost         *TaskOperationCost    `json:"spend"`
+//	CreateAt              uint64                `json:"createAt"`
+//}
 
 type TaskMsgs []*TaskMsg
 
@@ -641,50 +607,66 @@ func (msg *TaskMsg) String() string {
 	return string(result)
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
-func (msg *TaskMsg) Onwer() *TaskNodeAlias {
-	return &TaskNodeAlias{
-		PartyId:    msg.Data.Owner.PartyId,
-		Name:       msg.Data.Owner.Name,
-		NodeId:     msg.Data.Owner.NodeId,
-		IdentityId: msg.Data.Owner.IdentityId,
+func (msg *TaskMsg) Owner() *libTypes.OrganizationData {
+	return &libTypes.OrganizationData{
+		PartyId:  msg.Data.data.PartyId,
+		NodeName: msg.Data.data.NodeName,
+		NodeId:   msg.Data.data.NodeId,
+		Identity: msg.Data.data.Identity,
 	}
 }
-func (msg *TaskMsg) OwnerTaskSupplier() *TaskSupplier { return msg.Data.Owner }
-func (msg *TaskMsg) OwnerName() string                { return msg.Data.Owner.Name }
-func (msg *TaskMsg) OwnerNodeId() string              { return msg.Data.Owner.NodeId }
-func (msg *TaskMsg) OwnerIdentityId() string          { return msg.Data.Owner.IdentityId }
-func (msg *TaskMsg) OwnerPartyId() string             { return msg.Data.Owner.PartyId }
-func (msg *TaskMsg) TaskName() string                 { return msg.Data.TaskName }
-func (msg *TaskMsg) Partners() []*NodeAlias {
-	partners := make([]*NodeAlias, len(msg.Data.Partners))
-	for i, v := range msg.Data.Partners {
-		partners[i] = &NodeAlias{
-			Name:       v.Name,
-			NodeId:     v.NodeId,
-			IdentityId: v.IdentityId,
+func (msg *TaskMsg) OwnerName() string       { return msg.Data.data.NodeName }
+func (msg *TaskMsg) OwnerNodeId() string     { return msg.Data.data.NodeId }
+func (msg *TaskMsg) OwnerIdentityId() string { return msg.Data.data.Identity }
+func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.data.PartyId }
+func (msg *TaskMsg) TaskName() string        { return msg.Data.data.TaskName }
+
+func (msg *TaskMsg) TaskMetadataSuppliers() []*libTypes.OrganizationData {
+	partners := make([]*libTypes.OrganizationData, len(msg.Data.data.MetadataSupplier))
+	for i, v := range msg.Data.data.MetadataSupplier {
+		partners[i] = &libTypes.OrganizationData{
+			PartyId:  v.Organization.PartyId,
+			NodeName: v.Organization.NodeName,
+			NodeId:   v.Organization.NodeId,
+			Identity: v.Organization.Identity,
 		}
 	}
 	return partners
 }
-func (msg *TaskMsg) PartnerTaskSuppliers() []*TaskSupplier { return msg.Data.Partners }
-func (msg *TaskMsg) PowerPartyIds() []string               { return msg.Data.PowerPartyIds }
-func (msg *TaskMsg) Receivers() []*NodeAlias {
-	receivers := make([]*NodeAlias, len(msg.Data.Receivers))
-	for i, v := range msg.Data.Receivers {
-		receivers[i] = &NodeAlias{
-			Name:       v.Name,
-			NodeId:     v.NodeId,
-			IdentityId: v.IdentityId,
+func (msg *TaskMsg) TaskMetadataSupplierDatas () []*libTypes.TaskMetadataSupplierData { return msg.Data.data.MetadataSupplier }
+
+func (msg *TaskMsg) TaskResourceSuppliers() []*libTypes.OrganizationData {
+	powers := make([]*libTypes.OrganizationData, len(msg.Data.data.ResourceSupplier))
+	for i, v := range msg.Data.data.ResourceSupplier {
+		powers[i] = &libTypes.OrganizationData{
+			PartyId:  v.Organization.PartyId,
+			NodeName: v.Organization.NodeName,
+			NodeId:   v.Organization.NodeId,
+			Identity: v.Organization.Identity,
+		}
+	}
+	return powers
+}
+func (msg *TaskMsg) TaskResourceSupplierDatas () []*libTypes.TaskResourceSupplierData { return msg.Data.data.ResourceSupplier }
+func (msg *TaskMsg) GetPowerPartyIds() []string               { return msg.PowerPartyIds }
+func (msg *TaskMsg) GetReceivers() []*libTypes.OrganizationData {
+	receivers := make([]*libTypes.OrganizationData, len(msg.Data.data.Receivers))
+	for i, v := range msg.Data.data.Receivers {
+		receivers[i] =  &libTypes.OrganizationData{
+			PartyId:  v.Receiver.PartyId,
+			NodeName: v.Receiver.NodeName,
+			NodeId:   v.Receiver.NodeId,
+			Identity: v.Receiver.Identity,
 		}
 	}
 	return receivers
 }
-func (msg *TaskMsg) ReceiverDetails() []*TaskResultReceiver { return msg.Data.Receivers }
-func (msg *TaskMsg) CalculateContractCode() string          { return msg.Data.CalculateContractCode }
-func (msg *TaskMsg) DataSplitContractCode() string          { return msg.Data.DataSplitContractCode }
-func (msg *TaskMsg) ContractExtraParams() string            { return msg.Data.ContractExtraParams }
-func (msg *TaskMsg) OperationCost() *TaskOperationCost      { return msg.Data.OperationCost }
-func (msg *TaskMsg) CreateAt() uint64                       { return msg.Data.CreateAt }
+func (msg *TaskMsg) TaskResultReceiverDatas() []*libTypes.TaskResultReceiverData { return msg.Data.data.Receivers }
+func (msg *TaskMsg) CalculateContractCode() string          { return msg.Data.data.CalculateContractCode }
+func (msg *TaskMsg) DataSplitContractCode() string          { return msg.Data.data.DataSplitContractCode }
+func (msg *TaskMsg) ContractExtraParams() string            { return msg.Data.data.ContractExtraParams }
+func (msg *TaskMsg) OperationCost() *libTypes.TaskResourceData      { return msg.Data.data.TaskResource }
+func (msg *TaskMsg) CreateAt() uint64                       { return msg.Data.data.CreateAt }
 func (msg *TaskMsg) GetTaskId() string {
 	if "" != msg.TaskId {
 		return msg.TaskId
@@ -706,7 +688,7 @@ func (s TaskMsgs) Len() int { return len(s) }
 
 // Swap swaps the i'th and the j'th element in s.
 func (s TaskMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
+func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.data.CreateAt < s[j].Data.data.CreateAt }
 
 type TaskSupplier struct {
 	*TaskNodeAlias
@@ -796,7 +778,7 @@ func ConvertNodeAliasToPB(alias *NodeAlias) *pb.OrganizationIdentityInfo {
 
 func ConvertTaskNodeAliasToPB(alias *TaskNodeAlias) *pb.TaskOrganizationIdentityInfo {
 	return &pb.TaskOrganizationIdentityInfo{
-		PartyId:  alias.PartyId,
+		PartyId:    alias.PartyId,
 		Name:       alias.Name,
 		NodeId:     alias.NodeId,
 		IdentityId: alias.IdentityId,
