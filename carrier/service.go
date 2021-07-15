@@ -48,7 +48,8 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
-	pool := message.NewMempool(&message.MempoolConfig{NodeId: " TODO 这里需要填写 读外部配置文件咯, nodeId"}) // todo need  set mempool cfg
+	nodeId := config.P2P.NodeId()
+	pool := message.NewMempool(&message.MempoolConfig{NodeId: nodeId})
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
@@ -99,7 +100,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		&twopc.Config{},
 		s.carrierDB,
 		resourceMng,
-		s.config.p2p,
+		s.config.P2P,
 		needConsensusTaskCh,
 		replayScheduleTaskCh,
 		doneScheduleTaskCh,

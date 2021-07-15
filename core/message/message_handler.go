@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultPowerMsgsCacheSize    = 5
-	defaultMetaDataMsgsCacheSize = 5
+	defaultMetaDataMsgsCacheSize = 1
 	defaultTaskMsgsCacheSize     = 5
 
 	defaultBroadcastPowerMsgInterval    = 100 * time.Millisecond
@@ -59,7 +59,7 @@ func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.M
 		pool:        pool,
 		dataCenter:  dataCenter,
 		taskManager: taskManager,
-		msgChannel:  make(chan *feed.Event, 1),
+		msgChannel:  make(chan *feed.Event, 5),
 	}
 	return m
 }
@@ -219,7 +219,6 @@ func (m *MessageHandler) loop() {
 }
 
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
-
 	// add identity to local db
 	if err := m.dataCenter.StoreIdentity(msg.NodeAlias); nil != err {
 		log.Error("Failed to store local org identity on MessageHandler, err:", err)
@@ -231,7 +230,6 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 		log.Error("Failed to broadcast org org identity on MessageHandler, err:", err)
 		return err
 	}
-
 	return nil
 }
 
