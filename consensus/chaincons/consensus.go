@@ -12,8 +12,8 @@ type Chaincons struct {
 func New() *Chaincons {return &Chaincons{}}
 func (c *Chaincons)Start() error {return nil}
 func (c *Chaincons) Close() error {return nil}
-func (c *Chaincons)OnPrepare(task *types.ScheduleTask) error {return nil}
-func (c *Chaincons)OnHandle(task *types.ScheduleTask,selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensuResult) error  {return nil}
+func (c *Chaincons)OnPrepare(task *types.Task) error {return nil}
+func (c *Chaincons)OnHandle(task *types.Task,selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensuResult) error  {return nil}
 func (c *Chaincons) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {return nil}
 func (c *Chaincons) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {return nil}
 func (c *Chaincons)OnError() error  {return nil}

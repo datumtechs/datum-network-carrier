@@ -4,7 +4,7 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc";
 
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
-import "common.proto";
+import "lib/fighter/common/common.proto";
 
 service ComputeProvider {
    rpc GetStatus(google.protobuf.Empty) returns (GetStatusReply) {
