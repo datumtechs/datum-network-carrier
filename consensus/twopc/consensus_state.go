@@ -6,7 +6,6 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
-	"time"
 )
 
 type state struct {
@@ -42,29 +41,29 @@ func newState() *state {
 
 func (s *state) EmptyInfo () *ctypes.ProposalState { return s.empty }
 
-func (s *state) CleanExpireProposal() ([]string, []string) {
-	now := uint64(time.Now().UnixNano())
-	sendTaskIds := make([]string, 0)
-	recvTaskIds := make([]string, 0)
-
-	// This function does not need to be locked,
-	// and the small function inside handles the lock by itself
-	for id, proposal := range s.runningProposals {
-		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
-			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId",
-				proposal.TaskId, "taskDir", proposal.TaskDir.String())
-			s.CleanProposalState(id)
-			if proposal.TaskDir == types.SendTaskDir {
-				sendTaskIds = append(sendTaskIds, proposal.TaskId)
-			} else {
-				recvTaskIds = append(recvTaskIds, proposal.TaskId)
-			}
-
-		}
-	}
-
-	return sendTaskIds, recvTaskIds
-}
+//func (s *state) CleanExpireProposal() ([]string, []string) {
+//	now := uint64(time.Now().UnixNano())
+//	sendTaskIds := make([]string, 0)
+//	recvTaskIds := make([]string, 0)
+//
+//	// This function does not need to be locked,
+//	// and the small function inside handles the lock by itself
+//	for id, proposal := range s.runningProposals {
+//		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
+//			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId",
+//				proposal.TaskId, "taskDir", proposal.TaskDir.String())
+//			s.CleanProposalState(id)
+//			if proposal.TaskDir == types.SendTaskDir {
+//				sendTaskIds = append(sendTaskIds, proposal.TaskId)
+//			} else {
+//				recvTaskIds = append(recvTaskIds, proposal.TaskId)
+//			}
+//
+//		}
+//	}
+//
+//	return sendTaskIds, recvTaskIds
+//}
 
 func (s *state) HasProposal(proposalId common.Hash) bool {
 	s.proposalsLock.RLock()

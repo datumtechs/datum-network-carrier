@@ -402,7 +402,8 @@ func (t *TwoPC) verifySelfSigned(m []byte, sig []byte) bool {
 //	return vp.agency.VerifyHeader(header, nil)
 //}
 
-func (t *TwoPC) validateRecvTask(task *types.ScheduleTask) error {
+// TODO 需要实现
+func (t *TwoPC) validateRecvTask(task *types.Task) error {
 
 	return nil
 }

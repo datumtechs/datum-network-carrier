@@ -8,12 +8,12 @@ import (
 
 type ProposalTask struct {
 	ProposalId common.Hash
-	*ScheduleTask
+	*Task
 	CreateAt uint64
 }
 
 type ConsensusTaskWrap struct {
-	Task              *ScheduleTask
+	Task              *Task
 	OwnerDataResource *PrepareVoteResource
 	ResultCh          chan *ConsensuResult
 }
@@ -37,7 +37,7 @@ func (wrap *ConsensusTaskWrap) String() string {
 
 type ReplayScheduleTaskWrap struct {
 	Role     TaskRole
-	Task     *ScheduleTask
+	Task     *Task
 	ResultCh chan *ScheduleResult
 }
 func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
@@ -72,29 +72,29 @@ type DoneScheduleTaskChWrap struct {
 type ConsensusScheduleTask struct {
 	TaskDir   ProposalTaskDir
 	TaskState TaskState
-	SchedTask *ScheduleTask
+	SchedTask *Task
 	Resources *pb.ConfirmTaskPeerInfo
 }
 
-type ScheduleTask struct {
-	TaskId                string                        `json:"TaskId"`
-	TaskName              string                        `json:"taskName"`
-	Owner                 *ScheduleTaskDataSupplier     `json:"owner"`
-	Partners              []*ScheduleTaskDataSupplier   `json:"partners"`
-	PowerSuppliers        []*ScheduleTaskPowerSupplier  `json:"powerSuppliers"`
-	Receivers             []*ScheduleTaskResultReceiver `json:"receivers"`
-	CalculateContractCode string                        `json:"calculateContractCode"`
-	DataSplitContractCode string                        `json:"dataSplitContractCode"`
-	OperationCost         *TaskOperationCost            `json:"spend"`
-	CreateAt              uint64                        `json:"createAt"`
-	StartAt               uint64                        `json:"startAt"`
-}
+//type ScheduleTask struct {
+//	TaskId                string                        `json:"TaskId"`
+//	TaskName              string                        `json:"taskName"`
+//	Owner                 *ScheduleTaskDataSupplier     `json:"owner"`
+//	Partners              []*ScheduleTaskDataSupplier   `json:"partners"`
+//	PowerSuppliers        []*ScheduleTaskPowerSupplier  `json:"powerSuppliers"`
+//	Receivers             []*ScheduleTaskResultReceiver `json:"receivers"`
+//	CalculateContractCode string                        `json:"calculateContractCode"`
+//	DataSplitContractCode string                        `json:"dataSplitContractCode"`
+//	OperationCost         *TaskOperationCost            `json:"spend"`
+//	CreateAt              uint64                        `json:"createAt"`
+//	StartAt               uint64                        `json:"startAt"`
+//}
 
-// TODO 未实现 转换
-func ConvertScheduleTaskToTask(task *ScheduleTask) *Task {
-
-	return &Task{}
-}
+//// TODO 未实现 转换
+//func ConvertScheduleTaskToTask(task *ScheduleTask) *Task {
+//
+//	return &Task{}
+//}
 
 type ScheduleTaskDataSupplier struct {
 	*TaskNodeAlias

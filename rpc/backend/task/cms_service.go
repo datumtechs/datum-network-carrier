@@ -3,7 +3,9 @@ package task
 import (
 	"context"
 	"errors"
+	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -54,12 +56,6 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	if req == nil || req.Owner == nil {
 		return nil, errors.New("required owner")
 	}
-	if req.Owner.MetaDataInfo == nil {
-		return nil, errors.New("required metadataInfo")
-	}
-	if req.Owner.MemberInfo == nil {
-		return nil, errors.New("required memberInfo of owner")
-	}
 	if req.OperationCost == nil {
 		return nil, errors.New("required operationCost")
 	}
@@ -71,52 +67,70 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	}
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
-	partners := make([]*types.TaskSupplier, len(req.Partners))
+	partners := make([]*libTypes.TaskMetadataSupplierData, len(req.Partners))
 	for i, v := range req.Partners {
-		partner := &types.TaskSupplier{
-			TaskNodeAlias: &types.TaskNodeAlias{
-				PartyId:    v.MemberInfo.PartyId,
-				Name:       v.MemberInfo.Name,
-				NodeId:     v.MemberInfo.NodeId,
-				IdentityId: v.MemberInfo.IdentityId,
-			},
-			MetaData: &types.SupplierMetaData{
-				MetaDataId:      v.MetaDataInfo.MetaDataId,
-				ColumnIndexList: v.MetaDataInfo.ColumnIndexList,
-			},
-		}
-		partners[i] = partner
-	}
-	taskMsg.Data.Partners = partners
 
-	receivers := make([]*types.TaskResultReceiver, len(req.Receivers))
+		metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+		if nil != err {
+			return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}", v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+		}
+
+		columnArr := make([]*libTypes.ColumnMeta, len(v.MetaDataInfo.ColumnIndexList))
+		for j, index := range v.MetaDataInfo.ColumnIndexList {
+			col := metaData.MetaData.ColumnMetas[index]
+			columnArr[j] = &libTypes.ColumnMeta{
+				Cindex:   col.Cindex,
+				Ctype:    col.Ctype,
+				Cname:    col.Cname,
+				Csize:    col.Csize,
+				Ccomment: col.Ccomment,
+			}
+		}
+
+		partners[i] = &libTypes.TaskMetadataSupplierData{
+			Organization: &libTypes.OrganizationData{
+				PartyId:  v.MemberInfo.PartyId,
+				NodeName: v.MemberInfo.Name,
+				NodeId:   v.MemberInfo.NodeId,
+				Identity: v.MemberInfo.IdentityId,
+			},
+			MetaId:     v.MetaDataInfo.MetaDataId,
+			MetaName:   metaData.MetaData.MetaDataSummary.TableName,
+			ColumnList: columnArr,
+		}
+	}
+
+	taskMsg.Data.SetMetadataSupplierArr(partners)
+
+	receivers := make([]*libTypes.TaskResultReceiverData, len(req.Receivers))
 	for i, v := range req.Receivers {
 
-		providers := make([]*types.TaskNodeAlias, len(v.Providers))
+		providers := make([]*libTypes.OrganizationData, len(v.Providers))
 		for j, val := range v.Providers {
-			provider := &types.TaskNodeAlias{
-				PartyId:    val.PartyId,
-				Name:       val.Name,
-				NodeId:     val.NodeId,
-				IdentityId: val.IdentityId,
+			provider := &libTypes.OrganizationData{
+				PartyId:  val.PartyId,
+				NodeName: val.Name,
+				NodeId:   val.NodeId,
+				Identity: val.IdentityId,
 			}
 			providers[j] = provider
 		}
 
-		receiver := &types.TaskResultReceiver{
-			TaskNodeAlias: &types.TaskNodeAlias{
-				PartyId:    v.MemberInfo.PartyId,
-				Name:       v.MemberInfo.Name,
-				NodeId:     v.MemberInfo.NodeId,
-				IdentityId: v.MemberInfo.IdentityId,
-			},
-			Providers: providers,
-		}
+		receiver := &libTypes.TaskResultReceiverData{
 
+			Receiver: &libTypes.OrganizationData{
+				PartyId:  v.MemberInfo.PartyId,
+				NodeName: v.MemberInfo.Name,
+				NodeId:   v.MemberInfo.NodeId,
+				Identity: v.MemberInfo.IdentityId,
+			},
+			Provider: providers,
+		}
 		receivers[i] = receiver
 	}
-	taskMsg.Data.Receivers = receivers
+	taskMsg.Data.SetReceivers(receivers)
 	taskId := taskMsg.GetTaskId()
+	taskMsg.Data.TaskData().TaskId = taskId
 
 	err := svr.B.SendMsg(taskMsg)
 	if nil != err {

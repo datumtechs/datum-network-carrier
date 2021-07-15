@@ -380,6 +380,13 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
+//func (dc *DataCenter) GetIdentityListByIds(identityIds []string) (types.IdentityArray, error) {
+//	dc.serviceMu.RLock()
+//	defer dc.mu.RUnlock()
+//
+//	return nil, nil
+//}
+
 // about task on local
 // local task
 func (dc *DataCenter) StoreLocalTask(task *types.Task) error {

@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 )
 
+
 type Task struct {
 	data *libTypes.TaskData
 
@@ -56,6 +57,28 @@ func (m *Task) TaskData() *libTypes.TaskData {
 	return m.data
 }
 
+func (m *Task) SetEventList(eventList []*TaskEventInfo) {
+	eventArr := make([]*libTypes.EventData, len(eventList))
+	for i, ev := range eventList{
+		eventArr[i] = &libTypes.EventData{
+			TaskId: ev.TaskId,
+			EventType: ev.Type,
+			EventAt: ev.CreateTime,
+			EventContent: ev.Content,
+			Identity: ev.Identity,
+		}
+	}
+	m.data.EventDataList = eventArr
+}
+func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskMetadataSupplierData) {
+	m.data.MetadataSupplier = arr
+}
+func (m *Task) SetResourceSupplierArr(arr []*libTypes.TaskResourceSupplierData) {
+	m.data.ResourceSupplier = arr
+}
+func (m *Task) SetReceivers(arr []*libTypes.TaskResultReceiverData) {
+	m.data.Receivers = arr
+}
 
 
 // TaskDataArray is a Transaction slice type for basic sorting.
