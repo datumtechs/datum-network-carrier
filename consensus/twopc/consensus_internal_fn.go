@@ -176,7 +176,10 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 		t.pulishFinishedTaskToDataCenter(proposalState.TaskId)
 	} else {
 		// 给 task  owner 发出 taskResultMsg  TODO 先不做处理 ...
-
+		// task  参与方需要清除本地task
+		if err := t.dataCenter.RemoveLocalTask(proposalState.TaskId); nil != err {
+			log.Errorf("Faied to remove local task, on task partner, task dir {%s}, taskId {%s}", types.SendTaskDir.String(), proposalState.TaskId)
+		}
 	}
 	// 清空本地 资源占用 和 各种缓存...
 	t.delProposalStateAndTask(proposalState.ProposalId)
