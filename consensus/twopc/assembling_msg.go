@@ -1,6 +1,7 @@
 package twopc
 
 import (
+	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -8,6 +9,11 @@ import (
 
 func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, startTime uint64) *pb.PrepareMsg {
 	// region receivers come from task.Receivers
+	bys := new(bytes.Buffer)
+	err := task.EncodePb(bys)
+	if err != nil {
+		return nil
+	}
 	return &pb.PrepareMsg{
 		ProposalId: proposalId.Bytes(),
 		Owner: &pb.TaskOrganizationIdentityInfo{
@@ -15,7 +21,7 @@ func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, sta
 			NodeId:     []byte(task.TaskData().NodeId),
 			IdentityId: []byte(task.TaskData().Identity),
 		},
-		TaskInfo: task.TaskData(),
+		TaskInfo: bys.Bytes(),
 		CreateAt: startTime,
 	}
 }
@@ -72,9 +78,14 @@ func makeTaskResultMsg(startTime uint64) *pb.TaskResultMsg {
 
 func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, error) {
 
+	task := new(types.Task)
+	err := task.DecodePb(prepareMsg.TaskInfo)
+	if err != nil {
+		return nil, err
+	}
 	return &types.ProposalTask{
 		ProposalId: common.BytesToHash(prepareMsg.ProposalId),
-		Task: types.NewTask(prepareMsg.TaskInfo),
+		Task: task,
 		CreateAt: prepareMsg.CreateAt,
 	}, nil
 }

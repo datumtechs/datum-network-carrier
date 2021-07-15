@@ -8,11 +8,11 @@ import (
 	fmt "fmt"
 	common "github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -552,7 +552,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ComputeProviderClient interface {
-	GetStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetStatusReply, error)
+	GetStatus(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetStatusReply, error)
 	GetTaskDetails(ctx context.Context, in *GetTaskDetailsReq, opts ...grpc.CallOption) (*GetTaskDetailsReply, error)
 	UploadShard(ctx context.Context, opts ...grpc.CallOption) (ComputeProvider_UploadShardClient, error)
 	HandleTaskReadyGo(ctx context.Context, in *common.TaskReadyGoReq, opts ...grpc.CallOption) (*common.TaskReadyGoReply, error)
@@ -566,7 +566,7 @@ func NewComputeProviderClient(cc *grpc.ClientConn) ComputeProviderClient {
 	return &computeProviderClient{cc}
 }
 
-func (c *computeProviderClient) GetStatus(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetStatusReply, error) {
+func (c *computeProviderClient) GetStatus(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetStatusReply, error) {
 	out := new(GetStatusReply)
 	err := c.cc.Invoke(ctx, "/computesvc.ComputeProvider/GetStatus", in, out, opts...)
 	if err != nil {
@@ -629,7 +629,7 @@ func (c *computeProviderClient) HandleTaskReadyGo(ctx context.Context, in *commo
 
 // ComputeProviderServer is the server API for ComputeProvider service.
 type ComputeProviderServer interface {
-	GetStatus(context.Context, *empty.Empty) (*GetStatusReply, error)
+	GetStatus(context.Context, *emptypb.Empty) (*GetStatusReply, error)
 	GetTaskDetails(context.Context, *GetTaskDetailsReq) (*GetTaskDetailsReply, error)
 	UploadShard(ComputeProvider_UploadShardServer) error
 	HandleTaskReadyGo(context.Context, *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error)
@@ -639,7 +639,7 @@ type ComputeProviderServer interface {
 type UnimplementedComputeProviderServer struct {
 }
 
-func (*UnimplementedComputeProviderServer) GetStatus(ctx context.Context, req *empty.Empty) (*GetStatusReply, error) {
+func (*UnimplementedComputeProviderServer) GetStatus(ctx context.Context, req *emptypb.Empty) (*GetStatusReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetStatus not implemented")
 }
 func (*UnimplementedComputeProviderServer) GetTaskDetails(ctx context.Context, req *GetTaskDetailsReq) (*GetTaskDetailsReply, error) {
@@ -657,7 +657,7 @@ func RegisterComputeProviderServer(s *grpc.Server, srv ComputeProviderServer) {
 }
 
 func _ComputeProvider_GetStatus_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -669,7 +669,7 @@ func _ComputeProvider_GetStatus_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: "/computesvc.ComputeProvider/GetStatus",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ComputeProviderServer).GetStatus(ctx, req.(*empty.Empty))
+		return srv.(ComputeProviderServer).GetStatus(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
