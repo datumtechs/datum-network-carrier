@@ -221,6 +221,9 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.TaskEventInfo) error {
 // metadata api
 func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) {
 	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
+	if metadata == nil {
+		return nil, errors.New("not found metadata by special Id")
+	}
 	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
 }
 
