@@ -453,42 +453,42 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 
 // about DataResourceTable
 func (s *CarrierAPIBackend) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
-	return nil
+	return s.carrier.carrierDB.StoreDataResourceTable(dataResourceTable)
 }
 
 func (s *CarrierAPIBackend) StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error {
-	return nil
+	return s.carrier.carrierDB.StoreDataResourceTables(dataResourceTables)
 }
 
 func (s *CarrierAPIBackend) RemoveDataResourceTable(nodeId string) error {
-	return nil
+	return s.carrier.carrierDB.RemoveDataResourceTable(nodeId)
 }
 
 func (s *CarrierAPIBackend) QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error) {
-	return nil, nil
+	return s.carrier.carrierDB.QueryDataResourceTable(nodeId)
 }
 
 func (s *CarrierAPIBackend) QueryDataResourceTables() ([]*types.DataResourceTable, error) {
-	return nil, nil
+	return s.carrier.carrierDB.QueryDataResourceTables()
 }
 
 // about DataResourceDataUsed
 func (s *CarrierAPIBackend) StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error {
-	return nil
+	return s.carrier.carrierDB.StoreDataResourceDataUsed(dataResourceDataUsed)
 }
 
 func (s *CarrierAPIBackend) StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error {
-	return nil
+	return s.carrier.carrierDB.StoreDataResourceDataUseds(dataResourceDataUseds)
 }
 
 func (s *CarrierAPIBackend) RemoveDataResourceDataUsed(originId string) error {
-	return nil
+	return s.carrier.carrierDB.RemoveDataResourceDataUsed(originId)
 }
 
 func (s *CarrierAPIBackend) QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error) {
-	return nil, nil
+	return s.carrier.carrierDB.QueryDataResourceDataUsed(originId)
 }
 
 func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error) {
-	return nil, nil
+	return s.carrier.carrierDB.QueryDataResourceDataUseds()
 }
