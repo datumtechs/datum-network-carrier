@@ -871,3 +871,26 @@ func ConvertResourceUsageFromPB(usage *pb.ResourceUsedDetailShow) *ResourceUsage
 		UsedBandwidth:  usage.UsedBandwidth,
 	}
 }
+
+/**
+Example:
+{
+  "party_id": "p0",
+  "data_party": {
+      "input_file": "../data/bank_predict_data.csv",
+      "id_column_name": "CLIENT_ID"
+    },
+  "dynamic_parameter": {
+    "model_restore_party": "p0",
+    "train_task_id": "task_id"
+  }
+}
+ */
+type FighterTaskReadyGoReqContractCfg struct {
+	PartyId     string          `json:"party_id"`
+	DataParty struct{
+		InputFile  string      `json:"input_file"`
+		IdColumnName string    `json:"id_column_name"`
+	}  `json:"data_party"`
+	DynamicParameter   map[string]interface{}  `json:"dynamic_parameter"`
+}

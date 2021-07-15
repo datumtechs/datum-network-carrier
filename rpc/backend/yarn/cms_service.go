@@ -404,11 +404,11 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 	}, nil
 }
 func (svr *YarnServiceServer) QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error) {
-	dataResourceDataUsed, err := svr.B.QueryDataResourceDataUsed(req.OriginId)
+	dataResourceFileUpload, err := svr.B.QueryDataResourceFileUpload(req.OriginId)
 	if nil != err {
 		return nil, backend.NewRpcBizErr(ErrQueryDataResourceDataUsedStr)
 	}
-	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceDataUsed.GetNodeId())
+	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceFileUpload.GetNodeId())
 	if nil != err {
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
@@ -416,6 +416,6 @@ func (svr *YarnServiceServer) QueryFilePosition(ctx context.Context, req *pb.Que
 	return &pb.QueryFilePositionResponse{
 		Ip:       dataNode.InternalIp,
 		Port:     dataNode.InternalPort,
-		FilePath: dataResourceDataUsed.GetFilePath(),
+		FilePath: dataResourceFileUpload.GetFilePath(),
 	}, nil
 }

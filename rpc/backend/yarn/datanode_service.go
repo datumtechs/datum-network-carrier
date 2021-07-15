@@ -9,21 +9,21 @@ import (
 )
 
 func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
-	jobNodeList, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	dataNodeList, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
-		return nil, backend.NewRpcBizErr(ErrGetJobNodeListStr)
+		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	var resourceId string
-	for _, jobNode := range jobNodeList {
-		if req.Ip == jobNode.InternalIp && req.Port == jobNode.InternalPort {
-			resourceId = jobNode.Id
+	for _, dataNode := range dataNodeList {
+		if req.Ip == dataNode.InternalIp && req.Port == dataNode.InternalPort {
+			resourceId = dataNode.Id
 			break
 		}
 	}
 	if "" == strings.Trim(resourceId, "") {
-		return nil, backend.NewRpcBizErr(ErrGetJobNodeListStr)
+		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
-	err = svr.B.StoreDataResourceDataUsed(types.NewDataResourceDataUsed(resourceId, req.OriginId, "", req.FilePath))
+	err = svr.B.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(resourceId, req.OriginId, "", req.FilePath))
 	if nil != err {
 		return nil, backend.NewRpcBizErr(ErrReportUpFileSummaryStr)
 	}
