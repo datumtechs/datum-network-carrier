@@ -11,6 +11,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
+	"time"
 )
 
 func (t *TwoPC) isProcessingTask(taskId string) bool {
@@ -176,10 +177,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 		t.pulishFinishedTaskToDataCenter(proposalState.TaskId)
 	} else {
 		// 给 task  owner 发出 taskResultMsg  TODO 先不做处理 ...
-		// task  参与方需要清除本地task
-		if err := t.dataCenter.RemoveLocalTask(proposalState.TaskId); nil != err {
-			log.Errorf("Faied to remove local task, on task partner, task dir {%s}, taskId {%s}", types.SendTaskDir.String(), proposalState.TaskId)
-		}
+
 	}
 	// 清空本地 资源占用 和 各种缓存...
 	t.delProposalStateAndTask(proposalState.ProposalId)
@@ -198,6 +196,7 @@ func (t *TwoPC) pulishFinishedTaskToDataCenter(taskId string) {
 		return
 	}
 	task.SetEventList(eventList)
+	task.TaskData().EndAt = uint64(time.Now().UnixNano())
 	if err := t.dataCenter.InsertTask(task); nil != err {
 		log.Error("Failed to pulish task and eventlist to datacenter, taskId {%s}, err {%s}", taskId, err)
 		return
