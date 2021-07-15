@@ -18,105 +18,105 @@ import (
 
 // With subscriber
 func (t *TwoPC) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
-	proposalId := common.BytesToHash(prepareMsg.ProposalId)
-	if t.state.HasProposal(proposalId) {
-		return ctypes.ErrProposalAlreadyProcessed
-	}
-	// Now, we has not  proposalState (on subscriber)
-
-	now := uint64(time.Now().UnixNano())
-	if prepareMsg.CreateAt >= now {
-		return ctypes.ErrProposalInTheFuture
-	}
-
-	if len(prepareMsg.TaskOption.TaskRole) != 1 ||
-		types.TaskRoleFromBytes(prepareMsg.TaskOption.TaskRole) == types.TaskRoleUnknown {
-		return ctypes.ErrPrososalTaskRoleIsUnknown
-	}
-	taskId := string(prepareMsg.TaskOption.TaskId)
-
-	if t.isProcessingTask(taskId) {
-		return ctypes.ErrPrososalTaskIsProcessed
-	}
-
-	// Verify the signature
-	_, err := t.verifyMsgSigned(prepareMsg.TaskOption.Owner.NodeId, prepareMsg.SealHash().Bytes(), prepareMsg.Signature())
-	if err != nil {
-		return err
-	}
-
-	// validate the owner
-	if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.Owner); nil != err {
-		log.Error("Failed to validate prepareMsg, the owner organization identity is invalid", "err", err)
-		return err
-	}
-
-	// validate the algo supplier
-	if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.AlgoSupplier); nil != err {
-		log.Error("Failed to validate prepareMsg, the algoSupplier organization identity is invalid", "err", err)
-		return err
-	}
-
-	// validate data suppliers
-	if len(prepareMsg.TaskOption.DataSupplier) == 0 {
-		return fmt.Errorf("Failed to validate prepareMsg, the data suppliers is empty")
-	}
-	for _, supplier := range prepareMsg.TaskOption.DataSupplier {
-		if err := t.validateOrganizationIdentity(supplier.MemberInfo); nil != err {
-			log.Error("Failed to validate prepareMsg, the dataSupplier organization identity is invalid", "err", err)
-			return err
-		}
-	}
-
-	// validate power suppliers
-	if len(prepareMsg.TaskOption.PowerSupplier) == 0 {
-		return fmt.Errorf("Failed to validate prepareMsg, the data suppliers is empty")
-	}
-	powerSuppliers := make(map[string]struct{}, len(prepareMsg.TaskOption.PowerSupplier))
-	for _, supplier := range prepareMsg.TaskOption.PowerSupplier {
-		if err := t.validateOrganizationIdentity(supplier.MemberInfo); nil != err {
-			log.Error("Failed to validate prepareMsg, the powerSupplier organization identity is invalid", "err", err)
-			return err
-		}
-		powerSuppliers[string(supplier.MemberInfo.IdentityId)] = struct{}{}
-	}
-
-	// validate receicers
-	if len(prepareMsg.TaskOption.Receivers) == 0 {
-		return fmt.Errorf("Failed to validate prepareMsg, the data suppliers is empty")
-	}
-
-	for _, supplier := range prepareMsg.TaskOption.Receivers {
-		if err := t.validateOrganizationIdentity(supplier.MemberInfo); nil != err {
-			log.Error("Failed to validate prepareMsg, the powerSupplier organization identity is invalid", "err", err)
-			return err
-		}
-		receiverIdentityId := string(supplier.MemberInfo.IdentityId)
-		for _, provider := range supplier.Providers {
-			providerIdentityId := string(provider.IdentityId)
-			if _, ok := powerSuppliers[providerIdentityId]; !ok {
-				return fmt.Errorf("Has invalid provider with receiver", "providerIdentityId", providerIdentityId, "receiverIndentityId", receiverIdentityId)
-			}
-		}
-	}
-
-	// validate OperationCost
-	if 0 == prepareMsg.TaskOption.OperationCost.CostProcessor ||
-		0 == prepareMsg.TaskOption.OperationCost.CostMem ||
-		0 == prepareMsg.TaskOption.OperationCost.CostBandwidth ||
-		0 == prepareMsg.TaskOption.OperationCost.Duration {
-		return ctypes.ErrProposalTaskOperationCostInvalid
-	}
-
-	// validate contractCode
-	if 0 == len(prepareMsg.TaskOption.CalculateContractCode) {
-		return ctypes.ErrProposalTaskCalculateContractCodeEmpty
-	}
-
-	// validate task create time
-	if prepareMsg.TaskOption.CreateAt >= prepareMsg.CreateAt {
-		return ctypes.ErrProposalParamsInvalid
-	}
+	//proposalId := common.BytesToHash(prepareMsg.ProposalId)
+	//if t.state.HasProposal(proposalId) {
+	//	return ctypes.ErrProposalAlreadyProcessed
+	//}
+	//// Now, we has not  proposalState (on subscriber)
+	//
+	//now := uint64(time.Now().UnixNano())
+	//if prepareMsg.CreateAt >= now {
+	//	return ctypes.ErrProposalInTheFuture
+	//}
+	//
+	//if len(prepareMsg.TaskRole) != 1 ||
+	//	types.TaskRoleFromBytes(prepareMsg.TaskRole) == types.TaskRoleUnknown {
+	//	return ctypes.ErrPrososalTaskRoleIsUnknown
+	//}
+	//taskId := string(prepareMsg.TaskOption.TaskId)
+	//
+	//if t.isProcessingTask(taskId) {
+	//	return ctypes.ErrPrososalTaskIsProcessed
+	//}
+	//
+	//// Verify the signature
+	//_, err := t.verifyMsgSigned(prepareMsg.TaskOption.Owner.NodeId, prepareMsg.SealHash().Bytes(), prepareMsg.Signature())
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//// validate the owner
+	//if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.Owner); nil != err {
+	//	log.Error("Failed to validate prepareMsg, the owner organization identity is invalid", "err", err)
+	//	return err
+	//}
+	//
+	//// validate the algo supplier
+	//if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.AlgoSupplier); nil != err {
+	//	log.Error("Failed to validate prepareMsg, the algoSupplier organization identity is invalid", "err", err)
+	//	return err
+	//}
+	//
+	//// validate data suppliers
+	//if len(prepareMsg.TaskOption.DataSupplier) == 0 {
+	//	return fmt.Errorf("Failed to validate prepareMsg, the data suppliers is empty")
+	//}
+	//for _, supplier := range prepareMsg.TaskOption.DataSupplier {
+	//	if err := t.validateOrganizationIdentity(supplier.MemberInfo); nil != err {
+	//		log.Error("Failed to validate prepareMsg, the dataSupplier organization identity is invalid", "err", err)
+	//		return err
+	//	}
+	//}
+	//
+	//// validate power suppliers
+	//if len(prepareMsg.TaskOption.PowerSupplier) == 0 {
+	//	return fmt.Errorf("Failed to validate prepareMsg, the data suppliers is empty")
+	//}
+	//powerSuppliers := make(map[string]struct{}, len(prepareMsg.TaskOption.PowerSupplier))
+	//for _, supplier := range prepareMsg.TaskOption.PowerSupplier {
+	//	if err := t.validateOrganizationIdentity(supplier.MemberInfo); nil != err {
+	//		log.Error("Failed to validate prepareMsg, the powerSupplier organization identity is invalid", "err", err)
+	//		return err
+	//	}
+	//	powerSuppliers[string(supplier.MemberInfo.IdentityId)] = struct{}{}
+	//}
+	//
+	//// validate receicers
+	//if len(prepareMsg.TaskOption.Receivers) == 0 {
+	//	return fmt.Errorf("Failed to validate prepareMsg, the data suppliers is empty")
+	//}
+	//
+	//for _, supplier := range prepareMsg.TaskOption.Receivers {
+	//	if err := t.validateOrganizationIdentity(supplier.MemberInfo); nil != err {
+	//		log.Error("Failed to validate prepareMsg, the powerSupplier organization identity is invalid", "err", err)
+	//		return err
+	//	}
+	//	receiverIdentityId := string(supplier.MemberInfo.IdentityId)
+	//	for _, provider := range supplier.Providers {
+	//		providerIdentityId := string(provider.IdentityId)
+	//		if _, ok := powerSuppliers[providerIdentityId]; !ok {
+	//			return fmt.Errorf("Has invalid provider with receiver", "providerIdentityId", providerIdentityId, "receiverIndentityId", receiverIdentityId)
+	//		}
+	//	}
+	//}
+	//
+	//// validate OperationCost
+	//if 0 == prepareMsg.TaskOption.OperationCost.CostProcessor ||
+	//	0 == prepareMsg.TaskOption.OperationCost.CostMem ||
+	//	0 == prepareMsg.TaskOption.OperationCost.CostBandwidth ||
+	//	0 == prepareMsg.TaskOption.OperationCost.Duration {
+	//	return ctypes.ErrProposalTaskOperationCostInvalid
+	//}
+	//
+	//// validate contractCode
+	//if 0 == len(prepareMsg.TaskOption.CalculateContractCode) {
+	//	return ctypes.ErrProposalTaskCalculateContractCodeEmpty
+	//}
+	//
+	//// validate task create time
+	//if prepareMsg.TaskOption.CreateAt >= prepareMsg.CreateAt {
+	//	return ctypes.ErrProposalParamsInvalid
+	//}
 	return nil
 }
 
@@ -207,11 +207,6 @@ func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap
 		return ctypes.ErrConfirmMsgInTheFuture
 	}
 
-	// validate epoch number
-	if confirmMsg.Epoch == 0 || confirmMsg.Epoch > types.MsgEpochMaxNumber {
-		return ctypes.ErrConfirmMsgEpochInvalid
-	}
-
 	// Verify the signature
 	_, err := t.verifyMsgSigned(confirmMsg.Owner.NodeId, confirmMsg.SealHash().Bytes(), confirmMsg.Signature())
 	if err != nil {
@@ -250,11 +245,6 @@ func (t *TwoPC) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteW
 	now := uint64(time.Now().UnixNano())
 	if confirmVote.CreateAt >= now {
 		return ctypes.ErrConfirmVoteInTheFuture
-	}
-
-	// validate epoch number
-	if confirmVote.Epoch == 0 || confirmVote.Epoch > types.MsgEpochMaxNumber {
-		return ctypes.ErrConfirmVoteEpochInvalid
 	}
 
 	if types.TaskRoleFromBytes(confirmVote.TaskRole) == types.TaskRoleUnknown {

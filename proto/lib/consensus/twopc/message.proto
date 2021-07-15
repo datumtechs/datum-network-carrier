@@ -12,7 +12,7 @@ message PrepareMsg {
     bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Idbytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
     bytes                        task_role   = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
     TaskOrganizationIdentityInfo owner       = 3;                  // PrepareMsg 发起人信息, 也是task 发起者
-    types.TaskData               TaskInfo    = 4;               // 任务
+    bytes                        taskInfo    = 4 [(gogoproto.moretags) = "ssz-max:\"16777216\""];               // 任务 types.TaskData serial by pb.
     uint64                       create_at   = 5;              // proposal 创建的时间
     bytes                        sign        = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 任务发起者签名
 }

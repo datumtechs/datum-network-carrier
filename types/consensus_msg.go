@@ -96,7 +96,6 @@ func ConvertConfirmMsg(msg *ConfirmMsg) *pb.ConfirmMsg {
 	return &pb.ConfirmMsg{
 		ProposalId: msg.ProposalId.Bytes(),
 		TaskRole:   msg.TaskRole.Bytes(),
-		Epoch:      msg.Epoch,
 		Owner: &pb.TaskOrganizationIdentityInfo{
 			Name:       []byte(msg.Owner.Name),
 			NodeId:     []byte(msg.Owner.NodeId),
@@ -110,7 +109,6 @@ func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 	return &ConfirmMsg{
 		ProposalId: common.BytesToHash(msg.ProposalId),
 		TaskRole:   TaskRoleFromBytes(msg.TaskRole),
-		Epoch:      msg.Epoch,
 		Owner: &NodeAlias{
 			Name:       string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
@@ -134,7 +132,6 @@ type ConfirmVote struct {
 func ConvertConfirmVote(vote *ConfirmVote) *pb.ConfirmVote {
 	return &pb.ConfirmVote{
 		ProposalId: vote.ProposalId.Bytes(),
-		Epoch:      vote.Epoch,
 		TaskRole:   vote.TaskRole.Bytes(),
 		Owner: &pb.TaskOrganizationIdentityInfo{
 			Name:       []byte(vote.Owner.Name),
@@ -149,7 +146,6 @@ func ConvertConfirmVote(vote *ConfirmVote) *pb.ConfirmVote {
 func FetchConfirmVote(vote *pb.ConfirmVote) *ConfirmVote {
 	return &ConfirmVote{
 		ProposalId: common.BytesToHash(vote.ProposalId),
-		Epoch:      vote.Epoch,
 		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
 		Owner: &NodeAlias{
 			Name:       string(vote.Owner.Name),

@@ -122,7 +122,7 @@ func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.DoneScheduleT
 		return nil
 	}
 
-	task.Task.SchedTask.StartAt = uint64(time.Now().UnixNano())
+	task.Task.SchedTask.TaskData().StartAt = uint64(time.Now().UnixNano())
 	m.addRunningTaskCache(task)
 
 	log.Infof("Success to publish schedTask to `data-Fighter` node to executing, taskId: %s", task.Task.SchedTask.TaskId)
@@ -150,7 +150,7 @@ func (m *Manager) executeTaskOnJobNode(nodeId string, task *types.DoneScheduleTa
 		return nil
 	}
 
-	task.Task.SchedTask.StartAt = uint64(time.Now().UnixNano())
+	task.Task.SchedTask.TaskData().StartAt = uint64(time.Now().UnixNano())
 	m.addRunningTaskCache(task)
 	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: %s", task.Task.SchedTask.TaskId)
 	return nil
@@ -163,7 +163,7 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId string) {
 		return
 	}
 
-	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId)
+	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
 	if nil != err {
 		log.Error("Failed to Query all task event list for sending datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
 		return
@@ -200,106 +200,107 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 
 	close(taskWrap.ResultCh)
 	// clean local task cache
-	m.removeRunningTaskCache(taskWrap.Task.SchedTask.TaskId)
+	m.removeRunningTaskCache(taskWrap.Task.SchedTask.TaskId())
 	// 解锁 本地 资源缓存
 	m.resourceMng.UnLockLocalResourceWithTask(taskId)
 }
 
 func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventData, reason string) error {
 
-	// make dataSupplierArr
-	metadataSupplierArr := make([]*libTypes.TaskMetadataSupplierData, len(msg.PartnerTaskSuppliers()))
-	for i, dataSupplier := range msg.PartnerTaskSuppliers() {
-
-		data, err := m.dataCenter.GetMetadataByDataId(dataSupplier.MetaData.MetaDataId)
-		if nil != err {
-			return err
-		}
-		metaData := types.NewOrgMetaDataInfoFromMetadata(data)
-		mclist := metaData.MetaData.ColumnMetas
-
-		columnList := make([]*libTypes.ColumnMeta, len(dataSupplier.MetaData.ColumnIndexList))
-		for j, index := range dataSupplier.MetaData.ColumnIndexList {
-			columnList[j] = &libTypes.ColumnMeta{
-				Cindex: uint32(index),
-				Cname: mclist[index].Cname,
-				Ctype: mclist[index].Ctype,
-				// unit:
-				Csize: mclist[index].Csize,
-				Ccomment: mclist[index].Ccomment,
-			}
-		}
-
-		metadataSupplierArr[i] = &libTypes.TaskMetadataSupplierData{
-			Organization: &libTypes.OrganizationData{
-				PartyId: dataSupplier.PartyId,
-				Identity: dataSupplier.IdentityId,
-				NodeId: dataSupplier.NodeId,
-				NodeName: dataSupplier.Name,
-			},
-			MetaId: metaData.MetaData.MetaDataSummary.MetaDataId,
-			MetaName:  metaData.MetaData.MetaDataSummary.TableName,
-			ColumnList: columnList,
-		}
-	}
-
-	// make powerSupplierArr (Empty powerSupplierArr)
-
-	// make receiverArr
-	receiverArr := make([]*libTypes.TaskResultReceiverData, len(msg.ReceiverDetails()))
-	for i, recv := range msg.ReceiverDetails() {
-		receiverArr[i] = &libTypes.TaskResultReceiverData{
-			Receiver: &libTypes.OrganizationData{
-				PartyId: recv.PartyId,
-				Identity: recv.IdentityId,
-				NodeId: recv.NodeId,
-				NodeName: recv.Name,
-			},
-			Provider: make([]*libTypes.OrganizationData, 0),
-		}
-	}
-
-
-	task :=  types.NewTask(&libTypes.TaskData{
-		Identity: msg.OwnerNodeId(),
-		NodeId: msg.OwnerNodeId(),
-		NodeName:msg.OwnerName(),
-		DataId: "",
-		// the status of data, N means normal, D means deleted.
-		DataStatus: types.ResourceDataStatusN.String(),
-		TaskId: msg.TaskId,
-		TaskName: msg.TaskName(),
-		State: types.TaskStateFailed.String(),
-		Reason: reason,
-		EventCount: uint32(len(events)),
-		// Desc
-		CreateAt: msg.CreateAt(),
-		EndAt: uint64(time.Now().UnixNano()),
-		// 少了 StartAt
-		AlgoSupplier: &libTypes.OrganizationData{
-			PartyId:  msg.OwnerPartyId(),
-			Identity: msg.OwnerIdentityId(),
-			NodeId:   msg.OwnerNodeId(),
-			NodeName: msg.OwnerName(),
-		},
-		TaskResource: &libTypes.TaskResourceData{
-			CostMem: msg.OperationCost().Mem,
-			CostProcessor: uint32(msg.OperationCost().Processor),
-			CostBandwidth: msg.OperationCost().Bandwidth,
-			Duration: msg.OperationCost().Duration,
-		},
-		MetadataSupplier: metadataSupplierArr,
-		ResourceSupplier: make([]*libTypes.TaskResourceSupplierData, 0),
-		Receivers: receiverArr,
-		//PartnerList:
-		EventDataList: events,
-	})
-	return m.dataCenter.InsertTask(task)
+	//// make dataSupplierArr
+	//metadataSupplierArr := make([]*libTypes.TaskMetadataSupplierData, len(msg.PartnerTaskSuppliers()))
+	//for i, dataSupplier := range msg.PartnerTaskSuppliers() {
+	//
+	//	data, err := m.dataCenter.GetMetadataByDataId(dataSupplier.MetaData.MetaDataId)
+	//	if nil != err {
+	//		return err
+	//	}
+	//	metaData := types.NewOrgMetaDataInfoFromMetadata(data)
+	//	mclist := metaData.MetaData.ColumnMetas
+	//
+	//	columnList := make([]*libTypes.ColumnMeta, len(dataSupplier.MetaData.ColumnIndexList))
+	//	for j, index := range dataSupplier.MetaData.ColumnIndexList {
+	//		columnList[j] = &libTypes.ColumnMeta{
+	//			Cindex: uint32(index),
+	//			Cname: mclist[index].Cname,
+	//			Ctype: mclist[index].Ctype,
+	//			// unit:
+	//			Csize: mclist[index].Csize,
+	//			Ccomment: mclist[index].Ccomment,
+	//		}
+	//	}
+	//
+	//	metadataSupplierArr[i] = &libTypes.TaskMetadataSupplierData{
+	//		Organization: &libTypes.OrganizationData{
+	//			PartyId: dataSupplier.PartyId,
+	//			Identity: dataSupplier.IdentityId,
+	//			NodeId: dataSupplier.NodeId,
+	//			NodeName: dataSupplier.Name,
+	//		},
+	//		MetaId: metaData.MetaData.MetaDataSummary.MetaDataId,
+	//		MetaName:  metaData.MetaData.MetaDataSummary.TableName,
+	//		ColumnList: columnList,
+	//	}
+	//}
+	//
+	//// make powerSupplierArr (Empty powerSupplierArr)
+	//
+	//// make receiverArr
+	//receiverArr := make([]*libTypes.TaskResultReceiverData, len(msg.ReceiverDetails()))
+	//for i, recv := range msg.ReceiverDetails() {
+	//	receiverArr[i] = &libTypes.TaskResultReceiverData{
+	//		Receiver: &libTypes.OrganizationData{
+	//			PartyId: recv.PartyId,
+	//			Identity: recv.IdentityId,
+	//			NodeId: recv.NodeId,
+	//			NodeName: recv.Name,
+	//		},
+	//		Provider: make([]*libTypes.OrganizationData, 0),
+	//	}
+	//}
+	//
+	//
+	//task :=  types.NewTask(&libTypes.TaskData{
+	//	Identity: msg.OwnerNodeId(),
+	//	NodeId: msg.OwnerNodeId(),
+	//	NodeName:msg.OwnerName(),
+	//	DataId: "",
+	//	// the status of data, N means normal, D means deleted.
+	//	DataStatus: types.ResourceDataStatusN.String(),
+	//	TaskId: msg.TaskId,
+	//	TaskName: msg.TaskName(),
+	//	State: types.TaskStateFailed.String(),
+	//	Reason: reason,
+	//	EventCount: uint32(len(events)),
+	//	// Desc
+	//	CreateAt: msg.CreateAt(),
+	//	EndAt: uint64(time.Now().UnixNano()),
+	//	// 少了 StartAt
+	//	AlgoSupplier: &libTypes.OrganizationData{
+	//		PartyId:  msg.OwnerPartyId(),
+	//		Identity: msg.OwnerIdentityId(),
+	//		NodeId:   msg.OwnerNodeId(),
+	//		NodeName: msg.OwnerName(),
+	//	},
+	//	TaskResource: &libTypes.TaskResourceData{
+	//		CostMem: msg.OperationCost().Mem,
+	//		CostProcessor: uint32(msg.OperationCost().Processor),
+	//		CostBandwidth: msg.OperationCost().Bandwidth,
+	//		Duration: msg.OperationCost().Duration,
+	//	},
+	//	MetadataSupplier: metadataSupplierArr,
+	//	ResourceSupplier: make([]*libTypes.TaskResourceSupplierData, 0),
+	//	Receivers: receiverArr,
+	//	//PartnerList:
+	//	EventDataList: events,
+	//})
+	//return m.dataCenter.InsertTask(task)
+	return nil
 }
 
 
 // TODO 需要实现
-func (m *Manager) convertScheduleTaskToTask(task *types.ScheduleTask, eventList []*types.TaskEventInfo)  *types.Task {
+func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types.TaskEventInfo)  *types.Task {
 
 	//
 	//types.NewTask(&libTypes.TaskData{
@@ -350,7 +351,7 @@ func (m *Manager) convertScheduleTaskToTask(task *types.ScheduleTask, eventList 
 	return nil
 }
 // TODO 需要实现
-func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.ScheduleTask, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
+func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.Task, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
 
 	return &common.TaskReadyGoReq{
 		//TaskId
@@ -368,7 +369,7 @@ func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.ScheduleTask, 
 
 func (m *Manager) addRunningTaskCache(task *types.DoneScheduleTaskChWrap) {
 	m.runningTaskCacheLock.Lock()
-	m.runningTaskCache[task.Task.SchedTask.TaskId] = task
+	m.runningTaskCache[task.Task.SchedTask.TaskId()] = task
 	m.runningTaskCacheLock.Unlock()
 }
 
@@ -419,7 +420,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 			if err := m.driveTaskForExecute(task.SelfTaskRole, task); nil != err {
 				log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-					task.Task.SchedTask.TaskId, task.Task.SchedTask.Owner.IdentityId, fmt.Sprintf("failed to execute task"))
+					task.Task.SchedTask.TaskId(), task.Task.SchedTask.TaskData().Identity, fmt.Sprintf("failed to execute task"))
 				// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter  (里面有解锁 本地资源 ...)
 				m.dataCenter.StoreTaskEvent(event)
 				m.pulishFinishedTaskToDataCenter(taskId)  //
@@ -442,7 +443,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 				log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
 				identityId, _ := m.dataCenter.GetIdentityId()
 				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-					task.Task.SchedTask.TaskId, identityId, fmt.Sprintf("failed to execute task"))
+					task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("failed to execute task"))
 
 				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者.. (里面有解锁 本地资源 ...)
 				m.dataCenter.StoreTaskEvent(event)

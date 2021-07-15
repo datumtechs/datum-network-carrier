@@ -803,6 +803,12 @@
         },
         "file_path": {
           "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
         }
       }
     },
