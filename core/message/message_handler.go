@@ -15,7 +15,7 @@ import (
 
 const (
 	defaultPowerMsgsCacheSize    = 5
-	defaultMetaDataMsgsCacheSize = 5
+	defaultMetaDataMsgsCacheSize = 1
 	defaultTaskMsgsCacheSize     = 5
 
 	defaultBroadcastPowerMsgInterval    = 100 * time.Millisecond
@@ -59,7 +59,7 @@ func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.M
 		pool:        pool,
 		dataCenter:  dataCenter,
 		taskManager: taskManager,
-		msgChannel:  make(chan *feed.Event, 1),
+		msgChannel:  make(chan *feed.Event, 5),
 	}
 	return m
 }
