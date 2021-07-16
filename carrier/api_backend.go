@@ -470,6 +470,11 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	return types.NewTaskEventFromAPIEvent(taskEvent), err
 }
 
+func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*types.TaskEvent, error) {
+	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskIds(taskIds)
+	return types.NewTaskEventFromAPIEvent(taskEvent), err
+}
+
 // about DataResourceTable
 func (s *CarrierAPIBackend) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
 	return s.carrier.carrierDB.StoreDataResourceTable(dataResourceTable)

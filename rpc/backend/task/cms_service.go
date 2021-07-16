@@ -52,6 +52,21 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 	}, nil
 }
 
+
+func (svr *TaskServiceServer) GetTaskEventListByTaskIds (ctx context.Context, req *pb.GetTaskEventListByTaskIdsRequest) (*pb.GetTaskEventListResponse, error) {
+
+	events, err := svr.B.GetTaskEventListByTaskIds(req.TaskIds)
+	if nil != err {
+		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventListStr)
+	}
+
+	return &pb.GetTaskEventListResponse{
+		Status:        0,
+		Msg:           backend.OK,
+		TaskEventList: types.ConvertTaskEventArrToPB(events),
+	}, nil
+}
+
 func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
 	if req == nil || req.Owner == nil {
 		return nil, errors.New("required owner")

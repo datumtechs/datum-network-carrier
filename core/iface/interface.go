@@ -111,6 +111,7 @@ type TaskCarrierDB interface {
 	GetTaskList() (types.TaskDataArray, error)
 	GetRunningTaskCountOnOrg() uint32
 	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*api.TaskEvent, error)
 }
 
 type ForConsensusDB interface {

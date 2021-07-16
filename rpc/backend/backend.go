@@ -39,6 +39,7 @@ type Backend interface {
 	// task api
 	GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	GetTaskEventList(taskId string) ([]*types.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*types.TaskEvent, error)
 
 	// about DataResourceTable
 	//StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
