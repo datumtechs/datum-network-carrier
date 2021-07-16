@@ -162,6 +162,12 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		task := bullet.UnschedTask
 		repushFn := func(bullet *types.TaskBullet) {
 
+			// unlock local resource
+			if err := sche.resourceMng.UnLockLocalResourceWithTask(bullet.UnschedTask.Data.TaskId()); nil != err {
+				log.Errorf("Failed to call UnLockLocalResourceWithTask() on SchedulerStarveFIFO. repush into queue, taskId: {%s}, err: {%s}",
+					bullet.UnschedTask.Data.TaskId(), err)
+			}
+
 			bullet.IncreaseResched()
 			if bullet.Resched > ReschedMaxCount {
 				// 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
@@ -262,9 +268,10 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		toConsensusTask := &types.ConsensusTaskWrap{
 			Task: scheduleTask,
 			OwnerDataResource: &types.PrepareVoteResource{
-				Id:   dataResourceDiskUsed.GetNodeId(),
-				Ip:   dataNodeResource.ExternalIp,
-				Port: dataNodeResource.ExternalPort,
+				Id:      dataResourceDiskUsed.GetNodeId(),
+				Ip:      dataNodeResource.ExternalIp,
+				Port:    dataNodeResource.ExternalPort,
+				PartyId: task.Data.TaskData().PartyId,
 			},
 			ResultCh: make(chan *types.ConsensuResult, 0),
 		}
@@ -313,7 +320,6 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		for i, power := range replayScheduleTask.Task.TaskData().ResourceSupplier {
 			powerPartyIds[i] = power.Organization.PartyId
 		}
-
 
 		dataIdentityIdCache := make(map[string]struct{})
 		// 选出 关于自己 metaDataId 所在的 dataNode

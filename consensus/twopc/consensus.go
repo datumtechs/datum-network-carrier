@@ -182,7 +182,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 
 	// Start handle task ...
 	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-		// Send consensus result
+		// Send consensus result to Scheduler
 		t.collectTaskResult(&types.ConsensuResult{
 			TaskConsResult: &types.TaskConsResult{
 				TaskId: task.TaskId(),
@@ -194,10 +194,6 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		})
 		// clean some invalid data
 		t.delProposalStateAndTask(proposalHash)
-
-		if err := t.dataCenter.RemoveLocalTask(task.TaskId()); nil != err {
-			log.Errorf("Failed to remove local task, err: %s", err)
-		}
 		return err
 	}
 
