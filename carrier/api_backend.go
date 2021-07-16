@@ -69,12 +69,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 			registerNodes[jobsLen+i] = n
 		}
 	}
-	name, err := s.carrier.carrierDB.GetYarnName()
-	if nil != err {
-		log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
-		return nil, err
-	}
-	identity, err := s.carrier.carrierDB.GetIdentityId()
+	//name, err := s.carrier.carrierDB.GetYarnName()
+	//if nil != err {
+	//	log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
+	//	return nil, err
+	//}
+	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
 		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
 		return nil, err
@@ -82,17 +82,17 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
 	return &types.YarnNodeInfo{
 		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
-		NodeId:       "",       //TODO 读配置
-		InternalIp:   "",       // TODO 读配置
-		ExternalIp:   "",       // TODO 读p2p
-		InternalPort: "",       // TODO 读配置
-		ExternalPort: "",       //TODO 读p2p
-		IdentityType: "",       // TODO 读配置
-		IdentityId:   identity, // TODO 读接口
-		Name:         name,
+		NodeId:       identity.NodeId,
+		InternalIp:   "",                             //
+		ExternalIp:   "",                             //
+		InternalPort: "",                             //
+		ExternalPort: "",                             //
+		IdentityType: types.IdentityTypeDID.String(), // 默认先是 DID
+		IdentityId:   identity.IdentityId,
+		Name:         identity.Name,
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
-		State:        "", // TODO 读系统状态
+		State:        types.YarnStateActive.String(),
 	}, nil
 }
 
@@ -274,7 +274,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 	powerList := make([]*types.OrgPowerDetail, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
 		powerList = append(powerList, &types.OrgPowerDetail{
-			Owner:       &types.NodeAlias{
+			Owner: &types.NodeAlias{
 				Name:       resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentity(),
@@ -283,7 +283,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
 				Tasks:            make([]*types.PowerTask, 0),
-				ResourceUsage:    &types.ResourceUsage{
+				ResourceUsage: &types.ResourceUsage{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -291,7 +291,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 					TotalBandwidth: resource.GetTotalBandWidth(),
 					UsedBandwidth:  resource.GetUsedBandWidth(),
 				},
-				State:            resource.GetState(),
+				State: resource.GetState(),
 			},
 		})
 	}
@@ -325,7 +325,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		}
 		validLocalTaskPowerUsedMap[jobNode.GetJobNodeId()] = validLocalTaskPowerUsedList
 	}
-	readElement := func(jobNodeId string, taskId string) (uint64){
+	readElement := func(jobNodeId string, taskId string) uint64 {
 		if arr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
 			for _, powerUsed := range arr {
 				if jobNodeId == powerUsed.GetNodeId() && powerUsed.GetTaskId() == taskId {
@@ -346,15 +346,15 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 					continue
 				}
 				powerTask := &types.PowerTask{
-					TaskId:         taskId,
-					Owner:          &types.NodeAlias{
+					TaskId: taskId,
+					Owner: &types.NodeAlias{
 						Name:       task.TaskData().GetNodeName(),
 						NodeId:     task.TaskData().GetNodeId(),
 						IdentityId: task.TaskData().GetIdentity(),
 					},
-					Patners:        make([]*types.NodeAlias, 0),
-					Receivers:      nil,
-					OperationCost:  &types.TaskOperationCost{
+					Patners:   make([]*types.NodeAlias, 0),
+					Receivers: nil,
+					OperationCost: &types.TaskOperationCost{
 						Processor: uint64(task.TaskData().GetTaskResource().GetCostProcessor()),
 						Mem:       uint64(task.TaskData().GetTaskResource().GetCostMem()),
 						Bandwidth: uint64(task.TaskData().GetTaskResource().GetCostBandwidth()),
@@ -389,7 +389,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	result := make([]*types.NodePowerDetail, 0)
 	for _, jobNode := range machineList.To() {
 		nodePowerDetail := &types.NodePowerDetail{
-			Owner:       &types.NodeAlias{
+			Owner: &types.NodeAlias{
 				Name:       jobNode.GetNodeName(),
 				NodeId:     jobNode.GetNodeId(),
 				IdentityId: jobNode.GetIdentity(),
@@ -400,7 +400,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				TotalTaskCount:   uint32(taskCount(jobNode.GetJobNodeId())),
 				CurrentTaskCount: uint32(taskCount(jobNode.GetJobNodeId())),
 				Tasks:            make([]*types.PowerTask, 0),
-				ResourceUsage:    &types.ResourceUsage{
+				ResourceUsage: &types.ResourceUsage{
 					TotalMem:       jobNode.GetTotalMem(),
 					UsedMem:        jobNode.GetUsedMem(),
 					TotalProcessor: jobNode.GetTotalProcessor(),
@@ -408,7 +408,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 					TotalBandwidth: jobNode.GetTotalBandWidth(),
 					UsedBandwidth:  jobNode.GetUsedBandWidth(),
 				},
-				State:            jobNode.GetState(),
+				State: jobNode.GetState(),
 			},
 		}
 		powerTaskArray := buildPowerTaskList(jobNode.JobNodeId)

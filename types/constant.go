@@ -9,6 +9,18 @@ const (
 	ResourceDataStatusD ResourceDataStatus = "D"
 )
 
+type YarnState string
+
+func (y YarnState) String() string { return string(y) }
+
+// 调度服务自身的状态信息 (active: 活跃; leave: 离开网络; join: 加入网络 unuseful: 不可用)
+const (
+	YarnStateActive   YarnState = "active"
+	YarnStateLeave    YarnState = "leave"
+	YarnStateJoin     YarnState = "join"
+	YarnStateUnuseful YarnState = "unuseful"
+)
+
 type PowerState string
 
 func (p PowerState) String() string { return string(p) }
@@ -39,4 +51,12 @@ const (
 	TaskStateRunning TaskState = "running"
 	TaskStateFailed  TaskState = "failed"
 	TaskStateSuccess TaskState = "success"
+)
+
+type IdentityType string
+func (i IdentityType) String() string { return string(i) }
+
+const (
+	IdentityTypeCA  IdentityType = "CA"
+	IdentityTypeDID IdentityType = "DID"
 )

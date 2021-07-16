@@ -35,7 +35,7 @@ var IncEventType = errors.New("incorrect evengine type")
 
 // 系统码
 var (
-	TaskExecuteEOF                 = NewEventType("0008000", "Task execute EOF")
+	TaskExecuteEOF = NewEventType("0008000", "Task execute EOF")
 )
 
 // 调度服务事件
@@ -49,7 +49,7 @@ var (
 	TaskResourceElectionFailed = NewEventType("0100006", "The resource of task was failed on election")
 	TaskStartConsensus         = NewEventType("0101001", "The task was started to consensus")
 	TaskFailedConsensus        = NewEventType("0101002", "The task was failed to consensus")
-	TaskProposalStateDeadline = NewEventType("0101003", "The task proposalState was deadline")
+	TaskProposalStateDeadline  = NewEventType("0101003", "The task proposalState was deadline")
 )
 
 var ScheduleEvent = map[string]string{
@@ -111,7 +111,7 @@ var (
 	StartComputeTask      = NewEventType("0309009", "Starts the computation task.")
 	CancelComputeTask     = NewEventType("0309010", "Cancel the execution of a computation task.")
 	ExecuteComputeSucceed = NewEventType("0309011", "The computation task executed successfully.") // 计算成功
-	ExecuteComputeFailed  = NewEventType("0309012", "The computation task failed to execute.") // 计算失败
+	ExecuteComputeFailed  = NewEventType("0309012", "The computation task failed to execute.")     // 计算失败
 	ReportComputeResult   = NewEventType("0309013", "Report of calculation results.")
 	ReportTaskUsage       = NewEventType("0309014", "Resource usage for reporting tasks.")
 )
