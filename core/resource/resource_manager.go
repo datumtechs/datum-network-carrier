@@ -290,11 +290,11 @@ func  (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 		log.Errorf("Failed to unlock internal power resource, err: %s", err)
 		return fmt.Errorf("failed to unlock internal power resource, err: %s", err)
 	}
-	// 移除 本地任务
-	if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
-		log.Errorf("Failed to remove local task, err: %s", err)
-		return fmt.Errorf("failed to remove local task, err: %s", err)
-	}
+	//// 移除 本地任务
+	//if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
+	//	log.Errorf("Failed to remove local task, err: %s", err)
+	//	return fmt.Errorf("failed to remove local task, err: %s", err)
+	//}
 
 	if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
 		log.Errorf("Failed to remove local task event list, err: %s", err)
