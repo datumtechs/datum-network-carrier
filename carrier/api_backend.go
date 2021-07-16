@@ -162,8 +162,7 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
 
 func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
 	switch typ {
-	case types.PREFIX_TYPE_DATANODE:
-	case types.PREFIX_TYPE_JOBNODE:
+	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
 	default:
 		return types.NONCONNECTED, errors.New("invalid nodeType")
 	}
@@ -180,16 +179,28 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 			return types.NONCONNECTED, err
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
+
+		// add data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
+		if err != nil {
+			log.Errorf("Failed to store local data resource table, dataNodeId {%s}, {%s}", node.Id, err)
+			return types.NONCONNECTED, err
+		}
 	}
+	node.ConnState = types.CONNECTED
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
 		return types.NONCONNECTED, err
 	}
-	node.ConnState = types.CONNECTED
 	return types.CONNECTED, nil
 }
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+	switch typ {
+	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	default:
+		return errors.New("invalid nodeType")
+	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
 		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
 			client.Close()
@@ -200,6 +211,11 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
 			client.Close()
 			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
+		}
+		// remove data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
+		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); err != nil {
+			log.Errorf("Failed to remove local data resource table, dataNodeId {%s}, {%s}", id, err)
+			return err
 		}
 	}
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
@@ -475,23 +491,23 @@ func (s *CarrierAPIBackend) QueryDataResourceTables() ([]*types.DataResourceTabl
 	return s.carrier.carrierDB.QueryDataResourceTables()
 }
 
-// about DataResourceDataUsed
-func (s *CarrierAPIBackend) StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error {
-	return s.carrier.carrierDB.StoreDataResourceDataUsed(dataResourceDataUsed)
+// about DataResourceFileUpload
+func (s *CarrierAPIBackend) StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error {
+	return s.carrier.carrierDB.StoreDataResourceFileUpload(dataResourceDataUsed)
 }
 
-func (s *CarrierAPIBackend) StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error {
-	return s.carrier.carrierDB.StoreDataResourceDataUseds(dataResourceDataUseds)
+func (s *CarrierAPIBackend) StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error {
+	return s.carrier.carrierDB.StoreDataResourceFileUploads(dataResourceDataUseds)
 }
 
-func (s *CarrierAPIBackend) RemoveDataResourceDataUsed(originId string) error {
-	return s.carrier.carrierDB.RemoveDataResourceDataUsed(originId)
+func (s *CarrierAPIBackend) RemoveDataResourceFileUpload(originId string) error {
+	return s.carrier.carrierDB.RemoveDataResourceFileUpload(originId)
 }
 
-func (s *CarrierAPIBackend) QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error) {
-	return s.carrier.carrierDB.QueryDataResourceDataUsed(originId)
+func (s *CarrierAPIBackend) QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error) {
+	return s.carrier.carrierDB.QueryDataResourceFileUpload(originId)
 }
 
-func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error) {
-	return s.carrier.carrierDB.QueryDataResourceDataUseds()
+func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceFileUpload, error) {
+	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }

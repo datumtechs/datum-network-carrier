@@ -3,22 +3,34 @@ package rawdb
 import "github.com/RosettaFlow/Carrier-Go/common"
 
 var (
-	nodeResourceKeyPrefix         = []byte("NodeResourceKey:")
-	nodeResourceIdListKey         = []byte("nodeResourceIdListKey")
-	orgResourceKeyPrefix          = []byte("OrgResourceKey:")
-	orgResourceIdListKey          = []byte("OrgResourceIdListKey")
-	nodeResourceSlotUnitKey       = []byte("nodeResourceSlotKey")
-	localTaskPowerUsedKeyPrefix   = []byte("localTaskPowerUsedKey:")
-	localTaskPowerUsedIdListKey   = []byte("localTaskPowerUsedIdListKey")
-	dataResourceTableKeyPrefix    = []byte("dataResourceTableKey:")
-	dataResourceTableIdListKey    = []byte("dataResourceTableIdListKey")
-	dataResourceDataUsedKeyPrefix = []byte("dataResourceDataUsedKey:")
-	dataResourceDataUsedIdListKey = []byte("dataResourceDataUsedIdListKey")
-
+	// jobNodeId -> LocalResourceTable
+	nodeResourceKeyPrefix           = []byte("NodeResourceKey:")
+	// key -> [jobNodeId, jobNodeId, ..., jobNodeId]
+	nodeResourceIdListKey           = []byte("nodeResourceIdListKey")
+	// identityId -> RemoteResourceTable
+	orgResourceKeyPrefix            = []byte("OrgResourceKey:")
+	// key -> [identityId, identityId, ..., identityId]
+	orgResourceIdListKey            = []byte("OrgResourceIdListKey")
+	// key -> SlotUnit
+	nodeResourceSlotUnitKey         = []byte("nodeResourceSlotUnitKey")
+	// taskId -> LocalTaskPowerUsed
+	localTaskPowerUsedKeyPrefix     = []byte("localTaskPowerUsedKey:")
+	// key -> [taskId, taskId, ..., taskId]
+	localTaskPowerUsedIdListKey     = []byte("localTaskPowerUsedIdListKey")
+	// dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
+	dataResourceTableKeyPrefix      = []byte("dataResourceTableKey:")
+	// key -> [dataNodeId, dataNodeId, ..., dataNodeId]
+	dataResourceTableIdListKey      = []byte("dataResourceTableIdListKey")
+	// originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
+	dataResourceFileUploadKeyPrefix = []byte("dataResourceDataUsedKey:")
+	// key -> [originId, originId, ..., originId]
+	dataResourceFileUploadIdListKey = []byte("dataResourceFileUploadIdListKey")
+	// jonNodeId -> [taskId, taskId, ..., taskId]
 	resourceTaskIdsKeyPrefix = []byte("resourceTaskIdsKeyPrefix:")
-
+	// powerId -> jobNodeId
 	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
-	resourceMetaDataIdMapingKeyPrefix = []byte("resourceMetaDataIdMapingKeyPrefix:")
+	// metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
+	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -28,8 +40,8 @@ func GetNodeResourceKey(jobNodeId string) []byte {
 func GetNodeResourceIdListKey() []byte {
 	return nodeResourceIdListKey
 }
-func GetOrgResourceKey(jobNodeId string) []byte {
-	return append(orgResourceKeyPrefix, common.Hex2Bytes(jobNodeId)...)
+func GetOrgResourceKey(identityId string) []byte {
+	return append(orgResourceKeyPrefix, common.Hex2Bytes(identityId)...)
 }
 func GetOrgResourceIdListKey() []byte {
 	return orgResourceIdListKey
@@ -46,28 +58,32 @@ func GetLocalTaskPowerUsedIdListKey() []byte {
 }
 
 
-func GetDataResourceTableKey(nodeId string) []byte {
-	return append(dataResourceTableKeyPrefix, []byte(nodeId)...)
+func GetDataResourceTableKey(dataNodeId string) []byte {
+	return append(dataResourceTableKeyPrefix, []byte(dataNodeId)...)
 }
 func GetDataResourceTableIdListKey() []byte {
 	return dataResourceTableIdListKey
 }
 
 
-func GetDataResourceDataUsedKey(originId string) []byte {
-	return append(dataResourceDataUsedKeyPrefix, []byte(originId)...)
+func GetDataResourceFileUploadKey(originId string) []byte {
+	return append(dataResourceFileUploadKeyPrefix, []byte(originId)...)
 }
-func GetDataResourceDataUsedIdListKey() []byte {
-	return dataResourceDataUsedIdListKey
+func GetDataResourceFileUploadIdListKey() []byte {
+	return dataResourceFileUploadIdListKey
 }
 
-func GetResourceTaskIdsKey(originId string) []byte {
-	return append(resourceTaskIdsKeyPrefix, []byte(originId)...)
+func GetResourceTaskIdsKey(jonNodeId string) []byte {
+	return append(resourceTaskIdsKeyPrefix, []byte(jonNodeId)...)
 }
 
 func GetResourcePowerIdMapingKey(powerId string) []byte {
 	return append(resourcePowerIdMapingKeyPrefix, []byte(powerId)...)
 }
-func GetResourceMetaDataIdMapingKey(powerId string) []byte {
-	return append(resourceMetaDataIdMapingKeyPrefix, []byte(powerId)...)
+//func GetResourceMetaDataIdMapingKey(powerId string) []byte {
+//	return append(resourceMetaDataIdMapingKeyPrefix, []byte(powerId)...)
+//}
+
+func GetDataResourceDiskUsedKey(metaDataId string) []byte {
+	return append(dataResourceDiskUsedKeyPrefix, []byte(metaDataId)...)
 }

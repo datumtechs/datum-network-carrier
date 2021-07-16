@@ -192,12 +192,12 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			return
 		}
 
-		var dataNodeId string
+		var dataResourceDiskUsed *types.DataResourceDiskUsed
 		for _, dataSupplier := range taskMsg.TaskMetadataSupplierDatas() {
 			// identity 和 partyId 都一致, 才是同一个人 ..
 			if taskMsg.OwnerIdentityId() == dataSupplier.Organization.Identity && taskMsg.OwnerPartyId() == dataSupplier.Organization.PartyId {
 				// 【选出 发起方 自己的 metaDataId 的 file 对应的  dataNode [ip:port]】
-				dataNodeId, err = sche.dataCenter.QueryLocalResourceIdByMetaDataId(dataSupplier.MetaId)
+				dataResourceDiskUsed, err = sche.dataCenter.QueryDataResourceDiskUsed(dataSupplier.MetaId)
 				if nil != err {
 					log.Errorf("Failed to query localResourceId By MetaDataId of task owner: %s, err: %s", dataSupplier.MetaId, err)
 					sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
@@ -209,9 +209,9 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			}
 		}
 
-		dataNodeResource, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataNodeId)
+		dataNodeResource, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to query localResourceInfo By dataNodeId: %s, err: %s", dataNodeId, err)
+			log.Errorf("Failed to query localResourceInfo By dataNodeId: %s, err: %s", dataResourceDiskUsed.GetNodeId(), err)
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 				taskMsg.TaskId, taskMsg.OwnerIdentityId(), err.Error()))
 			repushFn(bullet)
@@ -223,7 +223,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		toConsensusTask := &types.ConsensusTaskWrap{
 			Task: scheduleTask,
 			OwnerDataResource: &types.PrepareVoteResource{
-				Id:   dataNodeId,
+				Id:   dataResourceDiskUsed.GetNodeId(),
 				Ip:   dataNodeResource.ExternalIp,
 				Port: dataNodeResource.ExternalPort,
 			},
@@ -332,7 +332,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayTask *types.ReplaySchedule
 				break
 			}
 		}
-		dataNodeId, err := sche.dataCenter.QueryLocalResourceIdByMetaDataId(metaDataId)
+		dataResourceDiskUsed, err := sche.dataCenter.QueryDataResourceDiskUsed(metaDataId)
 		if nil != err {
 			log.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
 			replayTask.SendFailedResult(replayTask.Task.TaskId(),
@@ -340,7 +340,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayTask *types.ReplaySchedule
 			return
 		}
 
-		dataNode, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataNodeId)
+		dataNode, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
 			log.Errorf("failed query internal data node by metaDataId, metaDataId: %s", metaDataId)
 			replayTask.SendFailedResult(replayTask.Task.TaskId(),

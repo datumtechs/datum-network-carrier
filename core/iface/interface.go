@@ -24,10 +24,10 @@ type LocalStoreCarrierDB interface {
 	StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error
 	RemoveLocalResourceIdByPowerId(powerId string) error
 	QueryLocalResourceIdByPowerId(powerId string) (string, error)
-	// metaDataId -> dataNodeId
-    StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error
-    RemoveLocalResourceIdByMetaDataId(metaDataId string) error
-    QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error)
+	//// metaDataId -> dataNodeId
+    //StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error
+    //RemoveLocalResourceIdByMetaDataId(metaDataId string) error
+    //QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error)
 
 	// about jobRerource
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
@@ -57,12 +57,16 @@ type LocalStoreCarrierDB interface {
 	RemoveDataResourceTable(nodeId string) error
 	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
-	// about DataResourceDataUsed
-	StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error
-	StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error
-	RemoveDataResourceDataUsed(originId string) error
-	QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error)
-	QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error)
+	// about DataResourceFileUpload
+	StoreDataResourceFileUpload(dataResourceFileUpload *types.DataResourceFileUpload) error
+	StoreDataResourceFileUploads(dataResourceFileUploads []*types.DataResourceFileUpload) error
+	RemoveDataResourceFileUpload(originId string) error
+	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
+	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
+	// about DataResourceDiskUsed
+    StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
+    RemoveDataResourceDiskUsed(metaDataId string) error
+    QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
 }
 
 type MetadataCarrierDB interface {
