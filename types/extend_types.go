@@ -111,6 +111,7 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo  {
 		},
 		MetaData: &MetaDataInfo{
 			MetaDataSummary: &MetaDataSummary{
+				MetaDataId: input.data.GetDataId(),
 				OriginId:  input.data.GetOriginId(),
 				TableName: input.data.GetTableName(),
 				Desc:      input.data.GetDesc(),

@@ -31,6 +31,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	}
 	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetMetaDataDetail failed")
 		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailStr)
 	}
 
@@ -55,6 +56,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataDetailListResponse, error) {
 	metaDataList, err := svr.B.GetMetaDataDetailList()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetMetaDataDetailList failed")
 		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailListStr)
 	}
 	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
@@ -105,6 +107,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 
 	err := svr.B.SendMsg(metaDataMsg)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:PublishMetaData failed")
 		return nil, backend.NewRpcBizErr(ErrSendMetaDataMsgStr)
 	}
 	return &pb.PublishMetaDataResponse{
@@ -122,6 +125,7 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:RevokeMetaData failed")
 		return nil, backend.NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
 	}
 	return &pb.SimpleResponseCode{

@@ -199,8 +199,10 @@ func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	metaDataSummaryListResponse, err := dc.client.GetMetaDataSummaryList(dc.ctx)
-	return types.NewMetadataArrayFromResponse(metaDataSummaryListResponse), err
+	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.MetadataListRequest{
+		LastUpdateTime:      uint64( timeutils.Now().Unix()),
+	})
+	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
 
 // about power on local
@@ -291,8 +293,8 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.PowerListRequest{})
-	return types.NewResourceArrayFromPowerListResponse(powerListRequest), err
+	powerListRequest, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
+	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListRequest), err
 }
 
 // about identity on local
