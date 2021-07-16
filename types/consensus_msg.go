@@ -23,29 +23,31 @@ type ConsensusMsg interface {
 }
 
 type PrepareVoteResource struct {
-	Id   string
-	Ip   string
-	Port string
+	Id      string
+	Ip      string
+	Port    string
+	PartyId string
 }
 
 func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
 	return &pb.TaskPeerInfo{
-		Ip:   []byte(peerInfo.Ip),
-		Port: []byte(peerInfo.Port),
+		Ip:      []byte(peerInfo.Ip),
+		Port:    []byte(peerInfo.Port),
+		PartyId: []byte(peerInfo.PartyId),
 	}
 }
 func FetchTaskPeerInfo(peerInfo *pb.TaskPeerInfo) *PrepareVoteResource {
 	return &PrepareVoteResource{
-		Ip:   string(peerInfo.Ip),
-		Port: string(peerInfo.Port),
+		Ip:      string(peerInfo.Ip),
+		Port:    string(peerInfo.Port),
+		PartyId: string(peerInfo.PartyId),
 	}
 }
-
 
 type PrepareVote struct {
 	ProposalId common.Hash
 	TaskRole   TaskRole
-	Owner      *NodeAlias
+	Owner      *TaskNodeAlias
 	VoteOption VoteOption
 	PeerInfo   *PrepareVoteResource
 	CreateAt   uint64
@@ -60,6 +62,7 @@ func ConvertPrepareVote(vote *PrepareVote) *pb.PrepareVote {
 			Name:       []byte(vote.Owner.Name),
 			NodeId:     []byte(vote.Owner.NodeId),
 			IdentityId: []byte(vote.Owner.IdentityId),
+			PartyId:    []byte(vote.Owner.PartyId),
 		},
 		VoteOption: vote.VoteOption.Bytes(),
 		PeerInfo:   ConvertTaskPeerInfo(vote.PeerInfo),
@@ -71,10 +74,11 @@ func FetchPrepareVote(vote *pb.PrepareVote) *PrepareVote {
 	return &PrepareVote{
 		ProposalId: common.BytesToHash(vote.ProposalId),
 		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
-		Owner: &NodeAlias{
+		Owner: &TaskNodeAlias{
 			Name:       string(vote.Owner.Name),
 			NodeId:     string(vote.Owner.NodeId),
 			IdentityId: string(vote.Owner.IdentityId),
+			PartyId:    string(vote.Owner.PartyId),
 		},
 		VoteOption: VoteOptionFromBytes(vote.VoteOption),
 		PeerInfo:   FetchTaskPeerInfo(vote.PeerInfo),
@@ -84,36 +88,43 @@ func FetchPrepareVote(vote *pb.PrepareVote) *PrepareVote {
 }
 
 type ConfirmMsg struct {
-	ProposalId common.Hash
-	TaskRole   TaskRole
-	Epoch      uint64
-	Owner      *NodeAlias
-	CreateAt   uint64
-	Sign       []byte
+	ProposalId  common.Hash
+	TaskRole    TaskRole
+	TaskPartyId string
+	Owner       *TaskNodeAlias
+	PeerDesc    *pb.ConfirmTaskPeerInfo
+	CreateAt    uint64
+	Sign        []byte
 }
 
 func ConvertConfirmMsg(msg *ConfirmMsg) *pb.ConfirmMsg {
 	return &pb.ConfirmMsg{
-		ProposalId: msg.ProposalId.Bytes(),
-		TaskRole:   msg.TaskRole.Bytes(),
+		ProposalId:  msg.ProposalId.Bytes(),
+		TaskRole:    msg.TaskRole.Bytes(),
+		TaskPartyId: []byte(msg.TaskPartyId),
 		Owner: &pb.TaskOrganizationIdentityInfo{
 			Name:       []byte(msg.Owner.Name),
 			NodeId:     []byte(msg.Owner.NodeId),
 			IdentityId: []byte(msg.Owner.IdentityId),
+			PartyId:    []byte(msg.Owner.PartyId),
 		},
+		PeerDesc: msg.PeerDesc,
 		CreateAt: msg.CreateAt,
 		Sign:     msg.Sign,
 	}
 }
 func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 	return &ConfirmMsg{
-		ProposalId: common.BytesToHash(msg.ProposalId),
-		TaskRole:   TaskRoleFromBytes(msg.TaskRole),
-		Owner: &NodeAlias{
+		ProposalId:  common.BytesToHash(msg.ProposalId),
+		TaskRole:    TaskRoleFromBytes(msg.TaskRole),
+		TaskPartyId: string(msg.TaskPartyId),
+		Owner: &TaskNodeAlias{
 			Name:       string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
+			PartyId:    string(msg.Owner.PartyId),
 		},
+		PeerDesc: msg.PeerDesc,
 		CreateAt: msg.CreateAt,
 		Sign:     msg.Sign,
 	}
@@ -121,9 +132,8 @@ func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 
 type ConfirmVote struct {
 	ProposalId common.Hash
-	Epoch      uint64
 	TaskRole   TaskRole
-	Owner      *NodeAlias
+	Owner      *TaskNodeAlias
 	VoteOption VoteOption
 	CreateAt   uint64
 	Sign       []byte
@@ -137,6 +147,7 @@ func ConvertConfirmVote(vote *ConfirmVote) *pb.ConfirmVote {
 			Name:       []byte(vote.Owner.Name),
 			NodeId:     []byte(vote.Owner.NodeId),
 			IdentityId: []byte(vote.Owner.IdentityId),
+			PartyId:    []byte(vote.Owner.PartyId),
 		},
 		VoteOption: vote.VoteOption.Bytes(),
 		CreateAt:   vote.CreateAt,
@@ -147,10 +158,11 @@ func FetchConfirmVote(vote *pb.ConfirmVote) *ConfirmVote {
 	return &ConfirmVote{
 		ProposalId: common.BytesToHash(vote.ProposalId),
 		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
-		Owner: &NodeAlias{
+		Owner: &TaskNodeAlias{
 			Name:       string(vote.Owner.Name),
 			NodeId:     string(vote.Owner.NodeId),
 			IdentityId: string(vote.Owner.IdentityId),
+			PartyId:    string(vote.Owner.PartyId),
 		},
 		VoteOption: VoteOptionFromBytes(vote.VoteOption),
 		CreateAt:   vote.CreateAt,
@@ -159,21 +171,24 @@ func FetchConfirmVote(vote *pb.ConfirmVote) *ConfirmVote {
 }
 
 type CommitMsg struct {
-	ProposalId common.Hash
-	TaskRole   TaskRole
-	Owner      *NodeAlias
-	CreateAt   uint64
-	Sign       []byte
+	ProposalId  common.Hash
+	TaskRole    TaskRole
+	TaskPartyId string
+	Owner       *TaskNodeAlias
+	CreateAt    uint64
+	Sign        []byte
 }
 
 func ConvertCommitMsg(msg *CommitMsg) *pb.CommitMsg {
 	return &pb.CommitMsg{
-		ProposalId: msg.ProposalId.Bytes(),
-		TaskRole:   msg.TaskRole.Bytes(),
+		ProposalId:  msg.ProposalId.Bytes(),
+		TaskRole:    msg.TaskRole.Bytes(),
+		TaskPartyId: []byte(msg.TaskPartyId),
 		Owner: &pb.TaskOrganizationIdentityInfo{
 			Name:       []byte(msg.Owner.Name),
 			NodeId:     []byte(msg.Owner.NodeId),
 			IdentityId: []byte(msg.Owner.IdentityId),
+			PartyId:    []byte(msg.Owner.PartyId),
 		},
 		CreateAt: msg.CreateAt,
 		Sign:     msg.Sign,
@@ -181,12 +196,14 @@ func ConvertCommitMsg(msg *CommitMsg) *pb.CommitMsg {
 }
 func FetchCommitMsg(msg *pb.CommitMsg) *CommitMsg {
 	return &CommitMsg{
-		ProposalId: common.BytesToHash(msg.ProposalId),
-		TaskRole:   TaskRoleFromBytes(msg.TaskRole),
-		Owner: &NodeAlias{
+		ProposalId:  common.BytesToHash(msg.ProposalId),
+		TaskRole:    TaskRoleFromBytes(msg.TaskRole),
+		TaskPartyId: string(msg.TaskPartyId),
+		Owner: &TaskNodeAlias{
 			Name:       string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
+			PartyId:    string(msg.Owner.PartyId),
 		},
 		CreateAt: msg.CreateAt,
 		Sign:     msg.Sign,
@@ -196,6 +213,7 @@ func FetchCommitMsg(msg *pb.CommitMsg) *CommitMsg {
 type TaskResultMsg struct {
 	ProposalId    common.Hash
 	TaskRole      TaskRole
+	Owner         *TaskNodeAlias
 	TaskId        string
 	TaskEventList []*TaskEventInfo
 	CreateAt      uint64
@@ -204,8 +222,14 @@ type TaskResultMsg struct {
 
 func ConvertTaskResultMsg(msg *TaskResultMsg) *pb.TaskResultMsg {
 	return &pb.TaskResultMsg{
-		ProposalId:    msg.ProposalId.Bytes(),
-		TaskRole:      msg.TaskRole.Bytes(),
+		ProposalId: msg.ProposalId.Bytes(),
+		TaskRole:   msg.TaskRole.Bytes(),
+		Owner: &pb.TaskOrganizationIdentityInfo{
+			Name:       []byte(msg.Owner.Name),
+			NodeId:     []byte(msg.Owner.NodeId),
+			IdentityId: []byte(msg.Owner.IdentityId),
+			PartyId:    []byte(msg.Owner.PartyId),
+		},
 		TaskId:        []byte(msg.TaskId),
 		TaskEventList: ConvertTaskEventArr(msg.TaskEventList),
 		CreateAt:      msg.CreateAt,
@@ -215,8 +239,14 @@ func ConvertTaskResultMsg(msg *TaskResultMsg) *pb.TaskResultMsg {
 
 func FetchTaskResultMsg(msg *pb.TaskResultMsg) *TaskResultMsg {
 	return &TaskResultMsg{
-		ProposalId:    common.BytesToHash(msg.ProposalId),
-		TaskRole:      TaskRoleFromBytes(msg.TaskRole),
+		ProposalId: common.BytesToHash(msg.ProposalId),
+		TaskRole:   TaskRoleFromBytes(msg.TaskRole),
+		Owner: &TaskNodeAlias{
+			Name:       string(msg.Owner.Name),
+			NodeId:     string(msg.Owner.NodeId),
+			IdentityId: string(msg.Owner.IdentityId),
+			PartyId:    string(msg.Owner.PartyId),
+		},
 		TaskId:        string(msg.TaskId),
 		TaskEventList: FetchTaskEventArr(msg.TaskEventList),
 		CreateAt:      msg.CreateAt,

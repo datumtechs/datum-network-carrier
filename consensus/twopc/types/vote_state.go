@@ -32,7 +32,7 @@ func (state *VoteState) HasPrepareVote(proposalId common.Hash) bool {
 	}
 	return false
 }
-func (state *VoteState) HasConfirmVote(proposalId common.Hash, epoch uint64) bool {
+func (state *VoteState) HasConfirmVote(proposalId common.Hash) bool {
 
 	if _, ok := state.confirmVoteState[proposalId]; ok {
 		return true
