@@ -93,7 +93,6 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		resourceClientSet: resourceClientSet,
 	}
 
-	// todo: some logic could be added...
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
 	s.Engines[types.TwopcTyp] = twopc.New( // todo the 2pc config will be setup
@@ -106,7 +105,6 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		doneScheduleTaskCh,
 	)
 	s.Engines[types.ChainconsTyp] = chaincons.New()
-	// todo: set datachain....
 
 	// load stored jobNode and dataNode
 	jobNodeList, err := s.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
