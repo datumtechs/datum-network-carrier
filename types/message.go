@@ -903,7 +903,7 @@ type FighterTaskReadyGoReqContractCfg struct {
 	PartyId     string          `json:"party_id"`
 	DataParty struct{
 		InputFile  string      `json:"input_file"`
-		IdColumnName string    `json:"id_column_name"`
+		IdColumnName string    `json:"id_column_name"`  // 目前 默认只会用一列, 后面再拓展 ..
 	}  `json:"data_party"`
 	DynamicParameter   map[string]interface{}  `json:"dynamic_parameter"`
 }

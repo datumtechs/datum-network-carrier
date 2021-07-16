@@ -103,21 +103,27 @@ func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, e
 			PartyId:    string(prepareVote.Owner.PartyId),
 		},
 		VoteOption: types.VoteOptionFromBytes(prepareVote.VoteOption),
-		PeerInfo: &types.PrepareVoteResource{
-			Id:   "",
-			Ip:   string(prepareVote.PeerInfo.Ip),
-			Port: string(prepareVote.PeerInfo.Port),
-		},
-		CreateAt: prepareVote.CreateAt,
-		Sign:     prepareVote.Sign,
+		CreateAt:   prepareVote.CreateAt,
+		Sign:       prepareVote.Sign,
 	}
+
+	if msg.VoteOption == types.Yes {
+		msg.PeerInfo = &types.PrepareVoteResource{
+			Id:      "",
+			Ip:      string(prepareVote.PeerInfo.Ip),
+			Port:    string(prepareVote.PeerInfo.Port),
+			PartyId: string(prepareVote.PeerInfo.PartyId),
+		}
+	}
+
 	return msg, nil
 }
 
 func fetchConfirmMsg(confirmMsg *types.ConfirmMsgWrap) (*types.ConfirmMsg, error) {
 	msg := &types.ConfirmMsg{
-		ProposalId: common.BytesToHash(confirmMsg.ProposalId),
-		TaskRole:   types.TaskRoleFromBytes(confirmMsg.TaskRole),
+		ProposalId:  common.BytesToHash(confirmMsg.ProposalId),
+		TaskRole:    types.TaskRoleFromBytes(confirmMsg.TaskRole),
+		TaskPartyId: string(confirmMsg.TaskPartyId),
 		Owner: &types.TaskNodeAlias{
 			Name:       string(confirmMsg.Owner.Name),
 			NodeId:     string(confirmMsg.Owner.NodeId),
@@ -150,8 +156,9 @@ func fetchConfirmVote(confirmVote *types.ConfirmVoteWrap) (*types.ConfirmVote, e
 
 func fetchCommitMsg(commitMsg *types.CommitMsgWrap) (*types.CommitMsg, error) {
 	msg := &types.CommitMsg{
-		ProposalId: common.BytesToHash(commitMsg.ProposalId),
-		TaskRole:   types.TaskRoleFromBytes(commitMsg.TaskRole),
+		ProposalId:  common.BytesToHash(commitMsg.ProposalId),
+		TaskRole:    types.TaskRoleFromBytes(commitMsg.TaskRole),
+		TaskPartyId: string(commitMsg.TaskPartyId),
 		Owner: &types.TaskNodeAlias{
 			Name:       string(commitMsg.Owner.Name),
 			NodeId:     string(commitMsg.Owner.NodeId),
