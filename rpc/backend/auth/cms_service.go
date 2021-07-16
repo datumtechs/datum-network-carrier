@@ -24,6 +24,7 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 
 	err := svr.B.SendMsg(identityMsg)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:ApplyIdentityJoin failed")
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
 	}
 	return &pb.SimpleResponseCode{
@@ -37,6 +38,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 	identityRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 	err := svr.B.SendMsg(identityRevokeMsg)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
 	}
 	return &pb.SimpleResponseCode{
@@ -48,6 +50,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeIdentityResponse, error) {
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetNodeIdentity failed")
 		return nil, backend.NewRpcBizErr(ErrGetNodeIdentityStr)
 	}
 	return &pb.GetNodeIdentityResponse{
@@ -64,6 +67,7 @@ func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *pb.Empty
 func (svr *AuthServiceServer) GetIdentityList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetIdentityListResponse, error) {
 	identityList, err := svr.B.GetIdentityList()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetIdentityList failed")
 		return nil, backend.NewRpcBizErr(ErrGetIdentityListStr)
 	}
 	arr := make([]*pb.OrganizationIdentityInfo, len(identityList))

@@ -218,7 +218,6 @@ func (m *PrepareVote) GetSign() []byte {
 
 // 2pc confirm 阶段信息
 type ConfirmMsg struct {
-	// uint64                    epoch         = 3;                  // confirm 阶段的第几轮 Msg
 	ProposalId           []byte                        `protobuf:"bytes,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty" ssz-max:"1024"`
 	TaskRole             []byte                        `protobuf:"bytes,2,opt,name=task_role,json=taskRole,proto3" json:"task_role,omitempty" ssz-max:"32"`
 	TaskPartyId          []byte                        `protobuf:"bytes,3,opt,name=task_party_id,json=taskPartyId,proto3" json:"task_party_id,omitempty" ssz-max:"64"`
@@ -387,7 +386,6 @@ func (m *ConfirmTaskPeerInfo) GetResultReceiverPeerInfoList() []*TaskPeerInfo {
 
 // 2pc confirmVote
 type ConfirmVote struct {
-	// uint64                    epoch       = 2;                  // confirm 阶段的第几轮 Msg
 	ProposalId           []byte                        `protobuf:"bytes,1,opt,name=proposal_id,json=proposalId,proto3" json:"proposal_id,omitempty" ssz-max:"1024"`
 	TaskRole             []byte                        `protobuf:"bytes,2,opt,name=task_role,json=taskRole,proto3" json:"task_role,omitempty" ssz-max:"32"`
 	Owner                *TaskOrganizationIdentityInfo `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
