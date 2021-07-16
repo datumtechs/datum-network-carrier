@@ -9,6 +9,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 	"time"
@@ -218,6 +219,7 @@ func (t *TwoPC) driveTask(
 	taskDir types.ProposalTaskDir,
 	taskState types.TaskState,
 	taskRole  types.TaskRole,
+	selfIdentity *libTypes.OrganizationData,
 	task *types.Task,
 	) {
 

@@ -59,12 +59,12 @@ func New(
 	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
 ) *TwoPC {
 	return &TwoPC{
-		config:     conf,
-		p2p:        p2p,
-		peerSet:    ctypes.NewPeerSet(10), // TODO 暂时写死的
-		state:      newState(),
-		dataCenter: dataCenter,
-		resourceMng: resourceMng,
+		config:             conf,
+		p2p:                p2p,
+		peerSet:            ctypes.NewPeerSet(10), // TODO 暂时写死的
+		state:              newState(),
+		dataCenter:         dataCenter,
+		resourceMng:        resourceMng,
 		schedTaskCh:        schedTaskCh,
 		replayTaskCh:       replayTaskCh,
 		doneScheduleTaskCh: doneScheduleTaskCh,
@@ -108,7 +108,7 @@ func (t *TwoPC) loop() {
 					return
 				}
 				if err := t.OnHandle(taskWrap.Task, taskWrap.OwnerDataResource, taskWrap.ResultCh); nil != err {
-					log.Error("Failed to OnStart 2pc", "err", err)
+					log.Error("Failed to OnHandle 2pc", "err", err)
 				}
 			}()
 		case fn := <-t.asyncCallCh:
@@ -172,15 +172,13 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 	// add task
 	// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
 	if err := t.addSendTask(task); nil != err {
-		log.Errorf("Failed to store local task, err: %s", err)
+		log.Errorf("Failed to store local task on consensus.OnHanlde(), err: %s", err)
 		return fmt.Errorf("failed to store local task, err: %s", err)
 	}
 	// add ResultCh
 	t.addTaskResultCh(task.TaskId(), result)
 	// set myself peerInfo cache
 	t.state.StoreSelfPeerInfo(proposalHash, selfPeerResource)
-
-
 
 	// Start handle task ...
 	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
@@ -292,7 +290,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	t.addProposalState(proposalState)
 	// 将接受到的 task 保存本地
 	// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地.. todo 让 超时检查 proposalState 机制去清除 task 和各类本地缓存
-	if err :=t.addRecvTask(task); nil != err {
+	if err := t.addRecvTask(task); nil != err {
 		log.Errorf("Failed to store local task, err: %s", err)
 		// clean some data
 		t.delProposalStateAndTask(proposal.ProposalId)
@@ -306,12 +304,10 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	}
 
 	// Send task to Scheduler to replay sched.
-	replaySchedTask := &types.ReplayScheduleTaskWrap{
-		Role:     types.TaskRoleFromBytes(prepareMsg.TaskRole),
-		Task:     task,
-		ResultCh: make(chan *types.ScheduleResult),
-	}
-
+	replaySchedTask := types.NewReplayScheduleTaskWrap(
+		types.TaskRoleFromBytes(prepareMsg.TaskRole),
+		"partyId",
+		task)
 
 	// replay schedule task on myself ...
 	t.sendReplaySchedTask(replaySchedTask)
@@ -325,10 +321,11 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	vote := &types.PrepareVote{
 		ProposalId: proposal.ProposalId,
 		TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskRole),
-		Owner: &types.NodeAlias{
+		Owner: &types.TaskNodeAlias{
 			Name:       self.Name,
 			NodeId:     self.NodeId,
 			IdentityId: self.IdentityId,
+			PartyId:    string(prepareMsg.TaskPartyId),
 		},
 		CreateAt: uint64(time.Now().UnixNano()),
 	}
@@ -493,7 +490,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	}
 
 	// If you have already voted then we will not vote again
-	if t.state.HasConfirmVoteState(msg.ProposalId, msg.Epoch) {
+	if t.state.HasConfirmVoteState(msg.ProposalId) {
 		return ctypes.ErrConfirmVotehadVoted
 	}
 
@@ -527,7 +524,6 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 
 	vote := &types.ConfirmVote{
 		ProposalId: msg.ProposalId,
-		Epoch:      msg.Epoch,
 		TaskRole:   msg.TaskRole,
 		Owner:      msg.Owner,
 		VoteOption: types.Yes,

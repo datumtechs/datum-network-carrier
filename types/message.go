@@ -478,15 +478,15 @@ func (s MetaDataMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Dat
 // ------------------- task -------------------
 
 type TaskBullet struct {
-	*TaskMsg
+	UnschedTask *UnSchedTaskWrap
 	Starve  bool
 	Term    uint32
 	Resched uint32
 }
 
-func NewTaskBullet(task *TaskMsg) *TaskBullet {
+func NewTaskBulletByTaskMsg(msg *TaskMsg) *TaskBullet {
 	return &TaskBullet{
-		TaskMsg: task,
+		UnschedTask: NewUnSchedTaskWrap(msg.Data, msg.PowerPartyIds),
 	}
 }
 
@@ -530,6 +530,19 @@ func (h *TaskBullets) DecreaseTerm() {
 		(*h)[i].DecreaseTerm()
 	}
 }
+
+
+type UnSchedTaskWrap struct {
+	Data   *Task
+	PowerPartyIds []string `json:"powerPartyIds"`
+}
+func NewUnSchedTaskWrap (task *Task, powerPartyIds []string) *UnSchedTaskWrap {
+	return &UnSchedTaskWrap{
+		Data: task,
+		PowerPartyIds: powerPartyIds,
+	}
+}
+
 
 type TaskMsg struct {
 	TaskId string `json:"taskId"`
@@ -577,9 +590,9 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 		}),
 	}
 }
-func ConvertTaskMsgToTask(taskMsg *TaskMsg, powers  []*libTypes.TaskResourceSupplierData) *Task {
-	taskMsg.Data.SetResourceSupplierArr(powers)
-	return taskMsg.Data
+func ConvertTaskMsgToTaskWithPowers(task *Task, powers  []*libTypes.TaskResourceSupplierData) *Task {
+	task.SetResourceSupplierArr(powers)
+	return task
 }
 
 //type taskdata struct {

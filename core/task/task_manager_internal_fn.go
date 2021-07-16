@@ -102,7 +102,7 @@ func (m *Manager) driveTaskForExecute (taskRole types.TaskRole , task *types.Don
 	return nil
 }
 
-func (m *Manager) executeTaskOnDataNode(nodeId string, task *types.DoneScheduleTaskChWrap) error {
+func (m *Manager) executeTaskOnDataNode(nodeId string, self , task *types.DoneScheduleTaskChWrap) error {
 
 	// clinet *grpclient.DataNodeClient,
 	client, isconn := m.resourceClientSet.QueryDataNodeClient(nodeId)
@@ -222,11 +222,11 @@ func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types
 	return task
 }
 // TODO 需要实现
-func (m *Manager) convertScheduleTaskToTaskReadyGoReq(task *types.DoneScheduleTaskChWrap, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
+func (m *Manager) convertScheduleTaskToTaskReadyGoReq(self , task *types.DoneScheduleTaskChWrap, resources  *pb.ConfirmTaskPeerInfo) *common.TaskReadyGoReq {
 
 	return &common.TaskReadyGoReq{
-		//TaskId
-		//ContractId
+		TaskId: task.Task.SchedTask.TaskId(),
+		ContractId: task.Task.SchedTask.TaskData().CalculateContractCode,
 		//DataId
 		//PartyId
 		//EnvId

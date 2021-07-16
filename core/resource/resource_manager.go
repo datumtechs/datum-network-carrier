@@ -49,7 +49,13 @@ func (m *Manager) loop() {
 
 func (m *Manager) Start() error {
 
-	m.SetSlotUnit(0, 0, 0)
+	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
+	if nil != err {
+		log.Errorf("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
+	}else {
+		m.SetSlotUnit(slotUnit.Mem, slotUnit.Processor, slotUnit.Bandwidth)
+	}
+
 	// store slotUnit
 	if err := m.dataCenter.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
@@ -237,14 +243,14 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 		return fmt.Errorf("failed to lock internal power resource, err: %s", err)
 	}
 
-	// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
-	if err := m.dataCenter.StoreLocalTask(task); nil != err {
-
-		m.FreeSlot(jobNodeId, uint32(needSlotCount))
-
-		log.Errorf("Failed to store local task, err: %s", err)
-		return fmt.Errorf("failed to store local task, err: %s", err)
-	}
+	//// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
+	//if err := m.dataCenter.StoreLocalTask(task); nil != err {
+	//
+	//	m.FreeSlot(jobNodeId, uint32(needSlotCount))
+	//
+	//	log.Errorf("Failed to store local task, err: %s", err)
+	//	return fmt.Errorf("failed to store local task, err: %s", err)
+	//}
 
 	if err := m.dataCenter.StoreJobNodeRunningTaskId(jobNodeId, task.TaskId()); nil != err {
 

@@ -37,8 +37,18 @@ func (wrap *ConsensusTaskWrap) String() string {
 
 type ReplayScheduleTaskWrap struct {
 	Role     TaskRole
+	PartyId  string
 	Task     *Task
 	ResultCh chan *ScheduleResult
+}
+
+func NewReplayScheduleTaskWrap (role TaskRole, partyId  string, task *Task) *ReplayScheduleTaskWrap{
+	return &ReplayScheduleTaskWrap{
+		Role: role,
+		PartyId: partyId,
+		Task: task,
+		ResultCh: make(chan *ScheduleResult),
+	}
 }
 func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
 	wrap.SendResult(&ScheduleResult{
@@ -65,7 +75,7 @@ func (wrap *ReplayScheduleTaskWrap) String() string {
 type DoneScheduleTaskChWrap struct {
 	ProposalId   common.Hash
 	SelfTaskRole TaskRole
-	SelfPeerInfo *pb.TaskPeerInfo
+	//SelfPeerInfo *pb.TaskPeerInfo
 	Task         *ConsensusScheduleTask
 	ResultCh     chan *TaskResultMsgWrap
 }
@@ -141,17 +151,5 @@ type ScheduleResult struct {
 
 type ConsensuResult struct {
 	*TaskConsResult
-	//Resources *pb.ConfirmTaskPeerInfo
-	//OwnerResource          *PrepareVoteResource
-	//PartnersResource       []*PrepareVoteResource
-	//PowerSuppliersResource []*PrepareVoteResource
-	//ReceiversResource      []*PrepareVoteResource
 }
 
-//type ScheduleNodeAlias struct {
-//	Name         string `json:"name"`
-//	NodeId       string `json:"nodeId"`
-//	IdentityId   string `json:"identityId"`
-//	PeerIp   string `json:"peerIp"`
-//	PeerPort string `json:"peerPort"`
-//}

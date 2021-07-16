@@ -22,7 +22,7 @@ type Manager struct {
 	eventCh chan *types.TaskEventInfo
 	// send the validated taskMsgs to scheduler
 	localTaskMsgCh chan<- types.TaskMsgs
-	// TODO 接收 被调度好的 task, 准备发给自己的  Fighter-Py
+	// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者 发给 dataCenter
 	doneScheduleTaskCh   chan *types.DoneScheduleTaskChWrap
 	runningTaskCache     map[string]*types.DoneScheduleTaskChWrap
 	runningTaskCacheLock sync.RWMutex
@@ -85,7 +85,7 @@ func (m *Manager) loop() {
 		// 自己组织的 Fighter 上报过来的 event
 		case event := <-m.eventCh:
 			if err := m.handleEvent(event); nil != err {
-				log.Error("Failed to store task event on local", "taskId", event.TaskId, "event", event.String())
+				log.Error("Failed to call handleEvent() on TaskManager", "taskId", event.TaskId, "event", event.String())
 			}
 
 		// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者直接存到 dataCenter
@@ -113,7 +113,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to parse taskMsg")))
 
 			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to parse taskMsg"); nil != e {
-				log.Error("Failed to store the err taskMsg", "taskId", errtask)
+				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
 			}
 		}
 		return err
@@ -126,7 +126,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to validate taskMsg")))
 
 			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to validate taskMsg"); nil != e {
-				log.Error("Failed to store the err taskMsg", "taskId", errtask)
+				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
 			}
 		}
 		return err
@@ -141,7 +141,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 	identityId, err := m.dataCenter.GetIdentityId()
 	if nil != err {
-		log.Errorf("Failed to query self identityId on SendTaskEvent, %s", err)
+		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
 		return err
 	}
 	event.Identity = identityId

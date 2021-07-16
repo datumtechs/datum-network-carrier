@@ -215,8 +215,8 @@ func  (s *state) StoreConfirmVoteState(vote *types.ConfirmVote) {
 func  (s *state) HasPrepareVoteState(proposalId common.Hash) bool {
 	return s.selfVoteState.HasPrepareVote(proposalId)
 }
-func  (s *state) HasConfirmVoteState(proposalId common.Hash, epoch uint64) bool {
-	return s.selfVoteState.HasConfirmVote(proposalId, epoch)
+func  (s *state) HasConfirmVoteState(proposalId common.Hash) bool {
+	return s.selfVoteState.HasConfirmVote(proposalId)
 }
 
 func  (s *state) RemovePrepareVoteState(proposalId common.Hash) {
