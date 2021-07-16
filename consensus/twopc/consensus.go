@@ -224,7 +224,18 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		task.TaskData().CreateAt,
 	})
 
-	proposalState := ctypes.NewProposalState(proposalHash, task.TaskId(), types.SendTaskDir, now)
+	proposalState := ctypes.NewProposalState(
+		proposalHash,
+		task.TaskId(),
+		types.SendTaskDir,
+		types.TaskOnwer,
+		&types.TaskNodeAlias{
+			PartyId: task.TaskData().PartyId,
+			Name: task.TaskData().Identity,
+			NodeId: task.TaskData().NodeId,
+			IdentityId: task.TaskData().NodeName,
+		},
+		now)
 	// add proposal
 	t.addProposalState(proposalState)
 	// add task
@@ -273,9 +284,26 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrPrepareVotehadVoted
 	}
 
+
+	self, err := t.dataCenter.GetIdentity()
+	if nil != err {
+		log.Errorf("Failed to call onPrepareMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposal.TaskId(), err)
+		return err
+	}
+
 	// Create the proposal state from recv.Proposal
-	proposalState := ctypes.NewProposalState(proposal.ProposalId,
-		proposal.TaskId(), types.RecvTaskDir, proposal.CreateAt)
+	proposalState := ctypes.NewProposalState(
+		proposal.ProposalId,
+		proposal.TaskId(),
+		types.RecvTaskDir,
+		types.TaskRoleFromBytes(prepareMsg.TaskRole),
+		&types.TaskNodeAlias{
+			PartyId: string(prepareMsg.TaskPartyId),
+			Name: self.Name,
+			NodeId: self.NodeId,
+			IdentityId: self.IdentityId,
+		},
+		proposal.CreateAt)
 
 	t.addProposalState(proposalState)
 
@@ -299,17 +327,6 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	// replay schedule task on myself ...
 	t.sendReplaySchedTaskToScheduler(replaySchedTask)
 	result := replaySchedTask.RecvResult()
-
-	self, err := t.dataCenter.GetIdentity()
-	if nil != err {
-
-		t.resourceMng.UnLockLocalResourceWithTask(task.TaskId())
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		t.dataCenter.RemoveLocalTask(task.TaskId())
-		// clean some data
-		t.delProposalStateAndTask(proposal.ProposalId)
-		return err
-	}
 
 	vote := &types.PrepareVote{
 		ProposalId: proposal.ProposalId,

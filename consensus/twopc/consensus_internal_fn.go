@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -164,15 +165,68 @@ func (t *TwoPC) refreshProposalState() {
 
 func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 	if proposalState.TaskDir == types.SendTaskDir {
-		// 发布 task 和  event 给 dataCenter
-		t.pulishFinishedTaskToDataCenter(proposalState.TaskId)
+		// Send consensus result to Scheduler
+		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
+			TaskConsResult: &types.TaskConsResult{
+				TaskId: proposalState.TaskId,
+				Status: types.TaskConsensusInterrupt,
+				Done:   false,
+				Err:    fmt.Errorf("the task proposalState coming deadline"),
+			},
+		})
+		// clean some invalid data
+		t.delProposalStateAndTask(proposalState.ProposalId)
 	} else {
-		// 给 task  owner 发出 taskResultMsg  TODO 先不做处理 ...
 
+		task, ok := t.recvTasks[proposalState.TaskId]
+		if !ok {
+			log.Errorf("Failed to query recvTaskInfo on consensus.handleInvalidProposal(), taskId: {%s}", proposalState.TaskId)
+			return
+		}
+		eventList, err := t.dataCenter.GetTaskEventList(proposalState.TaskId)
+		if nil != err {
+			log.Errorf("Failed to GetTaskEventList() on consensus.handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.TaskId, err)
+			eventList = make([]*types.TaskEventInfo, 0)
+		}
+		eventList = append(eventList, &types.TaskEventInfo{
+			Type: evengine.TaskProposalStateDeadline.Type,
+			Identity: proposalState.SelfIdentity.IdentityId,
+			TaskId: proposalState.TaskId,
+			Content: evengine.TaskProposalStateDeadline.Msg,
+			CreateTime: uint64(time.Now().UnixNano()),
+		})
+		taskResultWrap := &types.TaskResultMsgWrap{
+			TaskResultMsg: &pb.TaskResultMsg{
+				ProposalId: proposalState.ProposalId.Bytes(),
+				TaskRole: proposalState.TaskRole.Bytes(),
+				TaskId: []byte(proposalState.TaskId),
+				Owner: &pb.TaskOrganizationIdentityInfo{
+					PartyId: []byte(proposalState.SelfIdentity.PartyId),
+					Name: []byte(proposalState.SelfIdentity.Name),
+					NodeId: []byte(proposalState.SelfIdentity.NodeId),
+					IdentityId: []byte(proposalState.SelfIdentity.IdentityId),
+				},
+				TaskEventList: types.ConvertTaskEventArr(eventList),
+				CreateAt: uint64(time.Now().UnixNano()),
+				Sign: nil,
+			},
+		}
+
+		// Send taskResultMsg to task Owner
+		pid, err := p2p.HexPeerID(task.TaskData().NodeId)
+		if nil == err {
+			if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
+				log.Error(err)
+			}
+		}
+
+		t.resourceMng.UnLockLocalResourceWithTask(proposalState.TaskId)
+		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
+		t.dataCenter.RemoveLocalTask(proposalState.TaskId)
+		t.dataCenter.CleanTaskEventList(proposalState.TaskId)
+		// clean some data
+		t.delProposalStateAndTask(proposalState.ProposalId)
 	}
-	// 清空本地 资源占用 和 各种缓存...
-	t.delProposalStateAndTask(proposalState.ProposalId)
-	t.resourceMng.UnLockLocalResourceWithTask(proposalState.TaskId)
 }
 
 func (t *TwoPC) pulishFinishedTaskToDataCenter(taskId string) {

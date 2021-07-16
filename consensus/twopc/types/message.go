@@ -128,10 +128,11 @@ var (
 //
 //func (c ConfirmEpoch) Uint64() uint64 { return uint64(c) }
 
-
 type ProposalState struct {
 	ProposalId         common.Hash
 	TaskDir            types.ProposalTaskDir
+	TaskRole           types.TaskRole
+	SelfIdentity       *types.TaskNodeAlias
 	TaskId             string
 	PeriodNum          ProposalStatePeriod
 	PrePeriodStartTime uint64
@@ -144,11 +145,15 @@ type ProposalState struct {
 
 var EmptyProposalState = new(ProposalState)
 
-func NewProposalState(proposalId common.Hash, taskId string, TaskDir types.ProposalTaskDir, startTime uint64) *ProposalState {
+func NewProposalState(proposalId common.Hash, taskId string,
+	TaskDir types.ProposalTaskDir, taskRole types.TaskRole, selfIdentity *types.TaskNodeAlias, startTime uint64) *ProposalState {
+
 	return &ProposalState{
 		ProposalId:       proposalId,
 		TaskId:           taskId,
 		TaskDir:          TaskDir,
+		TaskRole:         taskRole,
+		SelfIdentity:     selfIdentity,
 		PeriodNum:        PeriodPrepare,
 		PeriodStartTime:  startTime,
 		DeadlineDuration: ProposalDeadlineDuration,
@@ -163,18 +168,19 @@ func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate
 //	return pstate.PeriodStartTime - pstate.PeriodEndTime
 //}
 func (pstate *ProposalState) GetPeriod() ProposalStatePeriod { return pstate.PeriodNum }
-func (pstate *ProposalState) IsPreparePeriod() bool     { return pstate.PeriodNum == PeriodPrepare }
-func (pstate *ProposalState) IsConfirmPeriod() bool     { return pstate.PeriodNum == PeriodConfirm }
-func (pstate *ProposalState) IsCommitPeriod() bool      { return pstate.PeriodNum == PeriodCommit }
-func (pstate *ProposalState) IsFinishedPeriod() bool    { return pstate.PeriodNum == PeriodFinished }
-func (pstate *ProposalState) IsNotPreparePeriod() bool  { return !pstate.IsPreparePeriod() }
-func (pstate *ProposalState) IsNotConfirmPeriod() bool  { return !pstate.IsConfirmPeriod() }
-func (pstate *ProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCommitPeriod() }
-func (pstate *ProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
+func (pstate *ProposalState) IsPreparePeriod() bool          { return pstate.PeriodNum == PeriodPrepare }
+func (pstate *ProposalState) IsConfirmPeriod() bool          { return pstate.PeriodNum == PeriodConfirm }
+func (pstate *ProposalState) IsCommitPeriod() bool           { return pstate.PeriodNum == PeriodCommit }
+func (pstate *ProposalState) IsFinishedPeriod() bool         { return pstate.PeriodNum == PeriodFinished }
+func (pstate *ProposalState) IsNotPreparePeriod() bool       { return !pstate.IsPreparePeriod() }
+func (pstate *ProposalState) IsNotConfirmPeriod() bool       { return !pstate.IsConfirmPeriod() }
+func (pstate *ProposalState) IsNotCommitPeriod() bool        { return !pstate.IsCommitPeriod() }
+func (pstate *ProposalState) IsNotFinishedPeriod() bool      { return !pstate.IsFinishedPeriod() }
 func (pstate *ProposalState) IsDeadline() bool {
 	now := uint64(time.Now().UnixNano())
 	return (now - pstate.CreateAt) >= ProposalDeadlineDuration
 }
+
 //func (pstate *ProposalState) IsFirstConfirmEpoch() bool {
 //	if pstate.ConfirmEpoch == ConfirmEpochFirst {
 //		return true
@@ -193,6 +199,7 @@ func (pstate *ProposalState) IsEmpty() bool {
 	}
 	return false
 }
+
 //func (pstate *ProposalState) GetConfirmEpoch() ConfirmEpoch { return pstate.ConfirmEpoch }
 func (pstate *ProposalState) IsPrepareTimeout() bool {
 
@@ -204,7 +211,7 @@ func (pstate *ProposalState) IsPrepareTimeout() bool {
 	duration := uint64(PrepareMsgVotingTimeout.Nanoseconds())
 
 	// Due to the time boundary problem, the value `==`
-	if pstate.IsPreparePeriod() && (now - pstate.PeriodStartTime) >= duration {
+	if pstate.IsPreparePeriod() && (now-pstate.PeriodStartTime) >= duration {
 		return true
 	}
 	return false
@@ -227,11 +234,12 @@ func (pstate *ProposalState) IsConfirmTimeout() bool {
 	now := uint64(time.Now().UnixNano())
 	duration := uint64(ConfirmMsgVotingTimeout.Nanoseconds())
 
-	if pstate.IsConfirmPeriod() && (now - pstate.PeriodStartTime) >= duration {
+	if pstate.IsConfirmPeriod() && (now-pstate.PeriodStartTime) >= duration {
 		return true
 	}
 	return false
 }
+
 //func (pstate *ProposalState) IsFirstConfirmEpochTimeout() bool {
 //
 //	if pstate.IsPreparePeriod() {
@@ -293,12 +301,11 @@ func (pstate *ProposalState) IsCommitTimeout() bool {
 	duration := uint64(CommitMsgEndingTimeout.Nanoseconds())
 
 	// Due to the time boundary problem, the value `==`
-	if pstate.IsCommitPeriod() && (now - pstate.PeriodStartTime) >= duration {
+	if pstate.IsCommitPeriod() && (now-pstate.PeriodStartTime) >= duration {
 		return true
 	}
 	return false
 }
-
 
 func (pstate *ProposalState) ChangeToConfirm(startTime uint64) {
 	if pstate.PeriodNum == PeriodPrepare {
@@ -317,8 +324,8 @@ func (pstate *ProposalState) ChangeToCommit(startTime uint64) {
 	}
 	//pstate.ConfirmEpoch = ConfirmEpochUnknown
 }
-func  (pstate *ProposalState) ChangeToFinished(startTime uint64) {
-	if pstate.PeriodNum == PeriodCommit{
+func (pstate *ProposalState) ChangeToFinished(startTime uint64) {
+	if pstate.PeriodNum == PeriodCommit {
 		pstate.PrePeriodStartTime = pstate.PeriodStartTime
 		pstate.PeriodStartTime = startTime
 		pstate.PeriodNum = PeriodFinished
