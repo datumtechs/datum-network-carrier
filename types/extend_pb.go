@@ -190,6 +190,42 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 	return metadataArray
 }
 
+func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) MetadataArray {
+	var metadataArray MetadataArray
+	for _, v := range response.GetMetadataList() {
+		data := &libTypes.MetaData{
+			Identity:             v.GetOwner().GetIdentityId(),
+			NodeId:               v.GetOwner().GetNodeId(),
+			NodeName:  			  v.GetOwner().GetName(),
+			DataId:               v.GetMetaSummary().GetMetaDataId(),
+			DataStatus:           "N",	// todo: 待定
+			OriginId:             v.GetMetaSummary().GetOriginId(),
+			TableName:            v.GetMetaSummary().GetTableName(),
+			FilePath:             v.GetMetaSummary().GetFilePath(),
+			Desc:                 v.GetMetaSummary().GetDesc(),
+			Rows:                 uint64(v.GetMetaSummary().GetRows()),
+			Columns:              uint64(v.GetMetaSummary().GetColumns()),
+			Size_:                v.GetMetaSummary().GetSize_(),
+			FileType:             v.GetMetaSummary().GetFileType(),
+			State:                v.GetMetaSummary().GetState(),
+			HasTitleRow:          v.GetMetaSummary().GetHasTitle(),
+			ColumnMetaList:       make([]*libTypes.ColumnMeta, 0),
+		}
+		for _, columnDetail := range v.GetColumnMeta() {
+			data.ColumnMetaList = append(data.ColumnMetaList, &libTypes.ColumnMeta{
+				Cindex:               columnDetail.GetCindex(),
+				Cname:                columnDetail.GetCname(),
+				Ctype:                columnDetail.GetCtype(),
+				Csize:                columnDetail.GetCsize(),
+				Ccomment:             columnDetail.GetCcomment(),
+			})
+		}
+		metadata := NewMetadata(data)
+		metadataArray = append(metadataArray, metadata)
+	}
+	return metadataArray
+}
+
 func NewResourceArrayFromPowerListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
 	return nil
 }
