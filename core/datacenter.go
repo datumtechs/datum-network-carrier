@@ -515,6 +515,23 @@ func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent,
 	return taskEventResponse.TaskEventList, err
 }
 
+func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*api.TaskEvent, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+
+	eventList := make([]*api.TaskEvent, 0)
+	for _, taskId := range taskIds {
+		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
+			TaskId: taskId,
+		})
+		if nil != err {
+			return nil, err
+		}
+		eventList = append(eventList, taskEventResponse.TaskEventList...)
+	}
+	return eventList, nil
+}
+
 // For ResourceManager
 // about jobRerource
 func (dc *DataCenter) StoreLocalResourceTable(resource *types.LocalResourceTable) error {
