@@ -129,7 +129,7 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 		ConnState:    types.NONCONNECTED,
 	}
 	seedNode.SeedNodeId()
-	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
+	_, err := svr.B.SetSeedNode(seedNode)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:SetSeedNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
@@ -154,7 +154,7 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 		ConnState:    types.NONCONNECTED,
 	}
 	svr.B.DeleteSeedNode(seedNode.Id)
-	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
+	_, err := svr.B.SetSeedNode(seedNode) 
 	if nil != err {
 		log.WithError(err).Error("RPC-API:UpdateSeedNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
@@ -214,7 +214,7 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:SetDataNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
@@ -244,7 +244,7 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 	}
 	// delete and insert.
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, node.Id)
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:UpdateDataNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
@@ -309,7 +309,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		ConnState:    types.NONCONNECTED,
 	}
 	node.DataNodeId()
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:SetJobNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
@@ -338,7 +338,7 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		ConnState:    types.NONCONNECTED,
 	}
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
+	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:UpdateJobNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
