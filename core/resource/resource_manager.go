@@ -237,14 +237,14 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 		return fmt.Errorf("failed to lock internal power resource, err: %s", err)
 	}
 
-	//// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
-	//if err := m.dataCenter.StoreLocalTask(task); nil != err {
-	//
-	//	m.FreeSlot(jobNodeId, uint32(needSlotCount))
-	//
-	//	log.Errorf("Failed to store local task, err: %s", err)
-	//	return fmt.Errorf("failed to store local task, err: %s", err)
-	//}
+	// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
+	if err := m.dataCenter.StoreLocalTask(task); nil != err {
+
+		m.FreeSlot(jobNodeId, uint32(needSlotCount))
+
+		log.Errorf("Failed to store local task, err: %s", err)
+		return fmt.Errorf("failed to store local task, err: %s", err)
+	}
 
 	if err := m.dataCenter.StoreJobNodeRunningTaskId(jobNodeId, task.TaskId()); nil != err {
 
@@ -284,11 +284,17 @@ func  (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 		log.Errorf("Failed to unlock internal power resource, err: %s", err)
 		return fmt.Errorf("failed to unlock internal power resource, err: %s", err)
 	}
-	//
+	// 移除 本地任务
 	if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
 		log.Errorf("Failed to remove local task, err: %s", err)
 		return fmt.Errorf("failed to remove local task, err: %s", err)
 	}
+
+	if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
+		log.Errorf("Failed to remove local task event list, err: %s", err)
+		return fmt.Errorf("failed to remove local task event list, err: %s", err)
+	}
+
 	if err := m.dataCenter.RemoveJobNodeRunningTaskId(localTaskPowerUsed.GetNodeId(), taskId); nil != err {
 		log.Errorf("Failed to remove local taskId and jobNodeId index, err: %s", err)
 		return fmt.Errorf("failed to remove local taskId and jobNodeId index, err: %s", err)

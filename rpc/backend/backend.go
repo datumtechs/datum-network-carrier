@@ -47,10 +47,10 @@ type Backend interface {
 	//QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
 
-	// about DataResourceDataUsed
-	StoreDataResourceDataUsed(dataResourceDataUsed *types.DataResourceDataUsed) error
-	StoreDataResourceDataUseds(dataResourceDataUseds []*types.DataResourceDataUsed) error
-	//RemoveDataResourceDataUsed(originId string) error
-	QueryDataResourceDataUsed(originId string) (*types.DataResourceDataUsed, error)
-	//QueryDataResourceDataUseds() ([]*types.DataResourceDataUsed, error)
+	// about DataResourceFileUpload
+	StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error
+	StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error
+	//RemoveDataResourceFileUpload(originId string) error
+	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
+	//QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 }

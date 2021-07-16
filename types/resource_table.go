@@ -332,29 +332,36 @@ func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
 func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
 func (drt *DataResourceTable) RemainDisk() uint64 { return drt.totalDisk - drt.usedDisk }
 func (drt *DataResourceTable) UseDisk(use uint64)  {
-	if drt.totalDisk - drt.usedDisk > use {
-		drt.usedDisk = drt.usedDisk + use
+	if drt.RemainDisk() > use {
+		drt.usedDisk += use
 	} else {
 		drt.usedDisk = drt.totalDisk
 	}
 }
+func (drt *DataResourceTable) FreeDisk(use uint64) {
+	if drt.usedDisk > use {
+		drt.usedDisk -= use
+	} else {
+		drt.usedDisk = 0
+	}
+}
 
-type DataResourceDataUsed struct {
+type DataResourceFileUpload struct {
 	originId   string   // db key
 	nodeId     string
 	metaDataId string
 	filePath   string
 }
 
-type dDataResourceDataUsedRlp struct {
+type dataResourceFileUploadRlp struct {
 	NodeId     string
 	OriginId   string
 	MetaDataId string
 	FilePath   string
 }
 
-func NewDataResourceDataUsed(nodeId, originId, metaDataId, filePath string) *DataResourceDataUsed {
-	return &DataResourceDataUsed{
+func NewDataResourceFileUpload(nodeId, originId, metaDataId, filePath string) *DataResourceFileUpload {
+	return &DataResourceFileUpload{
 		nodeId:     nodeId,
 		originId:   originId,
 		metaDataId: metaDataId,
@@ -363,8 +370,8 @@ func NewDataResourceDataUsed(nodeId, originId, metaDataId, filePath string) *Dat
 }
 
 // EncodeRLP implements rlp.Encoder.
-func (drt *DataResourceDataUsed) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, dDataResourceDataUsedRlp{
+func (drt *DataResourceFileUpload) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, dataResourceFileUploadRlp{
 		NodeId:     drt.nodeId,
 		OriginId:   drt.originId,
 		MetaDataId: drt.metaDataId,
@@ -373,16 +380,61 @@ func (drt *DataResourceDataUsed) EncodeRLP(w io.Writer) error {
 }
 
 // DecodeRLP implements rlp.Decoder.
-func (drt *DataResourceDataUsed) DecodeRLP(s *rlp.Stream) error {
-	var dec dDataResourceDataUsedRlp
+func (drt *DataResourceFileUpload) DecodeRLP(s *rlp.Stream) error {
+	var dec dataResourceFileUploadRlp
 	err := s.Decode(&dec)
 	if err == nil {
 		drt.nodeId, drt.originId, drt.metaDataId, drt.filePath = dec.NodeId, dec.OriginId, dec.MetaDataId, dec.FilePath
 	}
 	return err
 }
-func (drt *DataResourceDataUsed) GetNodeId() string     { return drt.nodeId }
-func (drt *DataResourceDataUsed) GetOriginId() string   { return drt.originId }
-func (drt *DataResourceDataUsed) SetMetaDataId(metaDataId string) { drt.metaDataId = metaDataId }
-func (drt *DataResourceDataUsed) GetMetaDataId() string { return drt.metaDataId }
-func (drt *DataResourceDataUsed) GetFilePath() string   { return drt.filePath }
+func (drt *DataResourceFileUpload) GetNodeId() string               { return drt.nodeId }
+func (drt *DataResourceFileUpload) GetOriginId() string             { return drt.originId }
+func (drt *DataResourceFileUpload) SetMetaDataId(metaDataId string) { drt.metaDataId = metaDataId }
+func (drt *DataResourceFileUpload) GetMetaDataId() string           { return drt.metaDataId }
+func (drt *DataResourceFileUpload) GetFilePath() string             { return drt.filePath }
+
+
+
+type DataResourceDiskUsed struct {
+	metaDataId string   // db key
+	nodeId     string
+	diskUsed   uint64
+}
+
+type dataResourceDiskUsedRlp struct {
+	MetaDataId string   // db key
+	NodeId     string
+	DiskUsed   uint64
+}
+
+func NewDataResourceDiskUsed(metaDataId, nodeId string, diskUsed uint64) *DataResourceDiskUsed {
+	return &DataResourceDiskUsed{
+		metaDataId: metaDataId,
+		nodeId:     nodeId,
+		diskUsed:  diskUsed,
+	}
+}
+
+// EncodeRLP implements rlp.Encoder.
+func (drt *DataResourceDiskUsed) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, dataResourceDiskUsedRlp{
+		MetaDataId: drt.metaDataId,
+		NodeId:     drt.nodeId,
+		DiskUsed:   drt.diskUsed,
+	})
+}
+
+// DecodeRLP implements rlp.Decoder.
+func (drt *DataResourceDiskUsed) DecodeRLP(s *rlp.Stream) error {
+	var dec dataResourceDiskUsedRlp
+	err := s.Decode(&dec)
+	if err == nil {
+		drt.metaDataId, drt.nodeId,  drt.diskUsed = dec.MetaDataId,  dec.NodeId, dec.DiskUsed
+	}
+	return err
+}
+func (drt *DataResourceDiskUsed) GetMetaDataId() string { return drt.metaDataId }
+func (drt *DataResourceDiskUsed) GetNodeId() string     { return drt.nodeId }
+func (drt *DataResourceDiskUsed) GetDiskUsed() uint64   { return drt.diskUsed }
+
