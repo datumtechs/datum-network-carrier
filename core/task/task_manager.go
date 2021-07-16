@@ -53,30 +53,7 @@ func NewTaskManager(
 	return m
 }
 
-func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
-	eventType := event.Type
-	if len(eventType) != ev.EventTypeCharLen {
-		return ev.IncEventType
-	}
-	// TODO need to validate the task that have been processing ? Maybe~
-	if event.Type == ev.TaskExecuteEOF.Type {
-		if task, ok := m.queryRunningTaskCacheOk(event.TaskId); ok {
 
-			if task.Task.TaskDir == types.RecvTaskDir {
-				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..  (里面有解锁本地资源 ...)
-				m.dataCenter.StoreTaskEvent(event)
-				m.sendTaskResultMsgToConsensus(event.TaskId)
-
-			} else {
-				//  如果是 自己的task, 认为任务终止 ... 发送到 dataCenter (里面有解锁本地资源 ...)
-				m.pulishFinishedTaskToDataCenter(event.TaskId)
-			}
-		}
-		return nil
-	} else {
-		return m.eventEngine.StoreEvent(event)
-	}
-}
 
 func (m *Manager) loop() {
 

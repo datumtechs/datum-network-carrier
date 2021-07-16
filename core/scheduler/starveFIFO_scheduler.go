@@ -386,9 +386,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			TaskId: replayScheduleTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
-				Id:   dataNode.Id,
-				Ip:   dataNode.ExternalIp,
-				Port: dataNode.ExternalPort,
+				Id:      dataNode.Id,
+				Ip:      dataNode.ExternalIp,
+				Port:    dataNode.ExternalPort,
+				PartyId: replayScheduleTask.PartyId,
 			},
 		})
 
@@ -414,9 +415,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			TaskId: replayScheduleTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
-				Id:   selfResourceInfo.Id,
-				Ip:   selfResourceInfo.Ip,
-				Port: selfResourceInfo.Port,
+				Id:      selfResourceInfo.Id,
+				Ip:      selfResourceInfo.Ip,
+				Port:    selfResourceInfo.Port,
+				PartyId: replayScheduleTask.PartyId,
 			},
 		})
 
@@ -444,9 +446,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			TaskId: replayScheduleTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
-				Id:   resourceInfo.Id,
-				Ip:   resourceInfo.ExternalIp,
-				Port: resourceInfo.ExternalPort,
+				Id:      resourceInfo.Id,
+				Ip:      resourceInfo.ExternalIp,
+				Port:    resourceInfo.ExternalPort,
+				PartyId: replayScheduleTask.PartyId,
 			},
 		})
 	}
