@@ -34,6 +34,7 @@ import (
 func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetPowerTotalDetailList failed")
 		return nil, backend.NewRpcBizErr(ErrGetTotalPowerListStr)
 	}
 	respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
@@ -59,6 +60,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerSingleDetailList()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetPowerSingleDetailList failed")
 		return nil, backend.NewRpcBizErr(ErrGetSinglePowerListStr)
 	}
 	respList := make([]*pb.GetPowerSingleDetailResponse, len(powerList))
@@ -97,6 +99,7 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 
 	err := svr.B.SendMsg(powerMsg)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:PublishPower failed")
 		return nil, backend.NewRpcBizErr(ErrSendPowerMsgStr)
 	}
 	return &pb.PublishPowerResponse{
@@ -118,6 +121,7 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 
 	err := svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:RevokePower failed")
 		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgStr)
 	}
 	return &pb.SimpleResponseCode{

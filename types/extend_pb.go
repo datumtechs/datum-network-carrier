@@ -190,7 +190,7 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 	return metadataArray
 }
 
-func NewResourceArrayFromPowerListResponse(response *api.PowerListResponse) ResourceArray {
+func NewResourceArrayFromPowerListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
 	return nil
 }
 

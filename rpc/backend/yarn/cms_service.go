@@ -10,6 +10,7 @@ import (
 func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetNodeInfoResponse, error) {
 	node, err := svr.B.GetNodeInfo()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetNodeInfo failed")
 		return nil, backend.NewRpcBizErr(ErrGetNodeInfoStr)
 	}
 	peers := make([]*pb.YarnRegisteredPeer, len(node.Peers))
@@ -61,6 +62,7 @@ func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetP
 func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredPeersResponse, error) {
 	registerNodes, err := svr.B.GetRegisteredPeers()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetRegisteredPeers failed")
 		return nil, backend.NewRpcBizErr(ErrGetRegisteredPeersStr)
 	}
 	jobNodes := make([]*pb.YarnRegisteredJobNode, len(registerNodes.JobNodes))
@@ -129,6 +131,7 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 	seedNode.SeedNodeId()
 	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
+		log.WithError(err).Error("RPC-API:SetSeedNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
 	return &pb.SetSeedNodeResponse{
@@ -153,6 +156,7 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 	svr.B.DeleteSeedNode(seedNode.Id)
 	_, err := svr.B.SetSeedNode(seedNode) // TODO 未完成 ...
 	if nil != err {
+		log.WithError(err).Error("RPC-API:UpdateSeedNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
 	return &pb.SetSeedNodeResponse{
@@ -172,6 +176,7 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	err := svr.B.DeleteSeedNode(req.Id)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:DeleteSeedNode failed")
 		return nil, backend.NewRpcBizErr(ErrDeleteSeedNodeInfoStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
@@ -180,6 +185,7 @@ func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.Delete
 func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetSeedNodeListResponse, error) {
 	list, err := svr.B.GetSeedNodeList()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetSeedNodeList failed")
 		return nil, backend.NewRpcBizErr(ErrGetSeedNodeListStr)
 	}
 	seeds := make([]*pb.SeedPeer, len(list))
@@ -210,6 +216,7 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 	node.DataNodeId()
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
+		log.WithError(err).Error("RPC-API:SetDataNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
 	return &pb.SetDataNodeResponse{
@@ -239,6 +246,7 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, node.Id)
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node) // TODO 未完成 ...
 	if nil != err {
+		log.WithError(err).Error("RPC-API:UpdateDataNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
 	return &pb.SetDataNodeResponse{
@@ -257,6 +265,7 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 
 func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
+		log.WithError(err).Error("RPC-API:DeleteDataNode failed")
 		return nil, backend.NewRpcBizErr(ErrDeleteDataNodeInfoStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
@@ -266,6 +275,7 @@ func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetDataNodeList failed")
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	datas := make([]*pb.YarnRegisteredPeer, len(list))
@@ -301,7 +311,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 	node.DataNodeId()
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
-		log.WithError(err).Error("SetRegisterNode failed.")
+		log.WithError(err).Error("RPC-API:SetJobNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
 	return &pb.SetJobNodeResponse{
@@ -330,6 +340,7 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
 	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node) // TODO 未完成 ...
 	if nil != err {
+		log.WithError(err).Error("RPC-API:UpdateJobNode failed")
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
 	return &pb.SetJobNodeResponse{
@@ -348,6 +359,7 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 
 func (svr *YarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, req.Id); nil != err {
+		log.WithError(err).Error("RPC-API:DeleteJobNode failed")
 		return nil, backend.NewRpcBizErr(ErrDeleteJobNodeInfoStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
@@ -356,6 +368,7 @@ func (svr *YarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteR
 func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetJobNodeList failed")
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	jobs := make([]*pb.YarnRegisteredPeer, len(list))
@@ -383,6 +396,7 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:QueryAvailableDataNode failed")
 		return nil, backend.NewRpcBizErr(ErrQueryDataResourceTableListStr)
 	}
 
@@ -395,6 +409,7 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 	}
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, nodeId)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:QueryAvailableDataNode failed")
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
 
@@ -406,10 +421,12 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 func (svr *YarnServiceServer) QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error) {
 	dataResourceFileUpload, err := svr.B.QueryDataResourceFileUpload(req.OriginId)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:QueryFilePosition-QueryDataResourceFileUpload failed")
 		return nil, backend.NewRpcBizErr(ErrQueryDataResourceDataUsedStr)
 	}
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceFileUpload.GetNodeId())
 	if nil != err {
+		log.WithError(err).Error("RPC-API:QueryFilePosition-GetRegisterNode failed")
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
 
