@@ -291,8 +291,8 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.PowerListRequest{})
-	return types.NewResourceArrayFromPowerListResponse(powerListRequest), err
+	powerListRequest, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
+	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListRequest), err
 }
 
 // about identity on local
