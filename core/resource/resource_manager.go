@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -51,7 +52,7 @@ func (m *Manager) Start() error {
 
 	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
 	if nil != err {
-		log.Errorf("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
+		log.Warn("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
 	}else {
 		m.SetSlotUnit(slotUnit.Mem, slotUnit.Processor, slotUnit.Bandwidth)
 	}
@@ -62,11 +63,12 @@ func (m *Manager) Start() error {
 	}
 	// load remote org resource Tables
 	remoteResources, err := m.dataCenter.QueryOrgResourceTables()
-	if nil != err {
+	if nil != err && err != rawdb.ErrNotFound {
 		return err
 	}
 	m.remoteTableQueue = remoteResources
 	go m.loop()
+	log.Info("Started resourceManager ...")
 	return nil
 }
 

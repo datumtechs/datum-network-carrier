@@ -105,7 +105,7 @@ func multiAddressBuilderWithID(ipAddr, protocol string, port uint, id peer.ID) (
 // private key contents cannot be marshaled, an exception is thrown.
 func privKeyOption(privkey *ecdsa.PrivateKey) libp2p.Option {
 	return func(cfg *libp2p.Config) error {
-		log.Debug("ECDSA private key generated")
+		log.Info("ECDSA private key generated")
 		return cfg.Apply(libp2p.Identity(convertToInterfacePrivkey(privkey)))
 	}
 }

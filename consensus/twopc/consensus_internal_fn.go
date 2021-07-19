@@ -164,6 +164,9 @@ func (t *TwoPC) refreshProposalState() {
 }
 
 func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
+
+	log.Debug("Call handleInvalidProposal(), handle and clean proposalState and task", "proposalId", proposalState.ProposalId, "taskId", proposalState.TaskId, "taskDir", proposalState.TaskDir.String())
+
 	if proposalState.TaskDir == types.SendTaskDir {
 		// Send consensus result to Scheduler
 		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
@@ -228,25 +231,26 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 		t.delProposalStateAndTask(proposalState.ProposalId)
 	}
 }
-
-func (t *TwoPC) pulishFinishedTaskToDataCenter(taskId string) {
-	eventList, err := t.dataCenter.GetTaskEventList(taskId)
-	if nil != err {
-		log.Errorf("Failed to Query local task event list for sending datacenter, taskId {%s}, err {%s}", taskId, err)
-		return
-	}
-	task, err := t.dataCenter.GetLocalTask(taskId)
-	if nil != err {
-		log.Errorf("Failed to Query local task info for sending datacenter, taskId {%s}, err {%s}", taskId, err)
-		return
-	}
-	task.SetEventList(eventList)
-	task.TaskData().EndAt = uint64(time.Now().UnixNano())
-	if err := t.dataCenter.InsertTask(task); nil != err {
-		log.Error("Failed to pulish task and eventlist to datacenter, taskId {%s}, err {%s}", taskId, err)
-		return
-	}
-}
+//
+//func (t *TwoPC) pulishFinishedTaskToDataCenter(taskId string) {
+//	eventList, err := t.dataCenter.GetTaskEventList(taskId)
+//	if nil != err {
+//		log.Errorf("Failed to Query local task event list for sending datacenter, taskId {%s}, err {%s}", taskId, err)
+//		return
+//	}
+//	task, err := t.dataCenter.GetLocalTask(taskId)
+//	if nil != err {
+//		log.Errorf("Failed to Query local task info for sending datacenter, taskId {%s}, err {%s}", taskId, err)
+//		return
+//	}
+//	task.SetEventList(eventList)
+//	task.TaskData().EndAt = uint64(time.Now().UnixNano())
+//	//task.TaskData().State =
+//	if err := t.dataCenter.InsertTask(task); nil != err {
+//		log.Error("Failed to pulish task and eventlist to datacenter, taskId {%s}, err {%s}", taskId, err)
+//		return
+//	}
+//}
 
 func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*types.TaskEventInfo) error {
 	for _, event := range events {

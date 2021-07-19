@@ -3,7 +3,6 @@ package task
 import (
 	"context"
 	"errors"
-	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -74,46 +73,46 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	if req.OperationCost == nil {
 		return nil, errors.New("required operationCost")
 	}
-	if req.Receivers == nil {
+	if len(req.Receivers) == 0 {
 		return nil, errors.New("required receivers")
 	}
-	if req.Partners == nil {
+	if len( req.DataSupplier) == 0 {
 		return nil, errors.New("required partners")
 	}
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
-	partners := make([]*libTypes.TaskMetadataSupplierData, len(req.Partners))
-	for i, v := range req.Partners {
-
-		metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
-		if nil != err {
-			return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}", v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
-		}
-
-		columnArr := make([]*libTypes.ColumnMeta, len(v.MetaDataInfo.ColumnIndexList))
-		for j, index := range v.MetaDataInfo.ColumnIndexList {
-			col := metaData.MetaData.ColumnMetas[index]
-			columnArr[j] = &libTypes.ColumnMeta{
-				Cindex:   col.Cindex,
-				Ctype:    col.Ctype,
-				Cname:    col.Cname,
-				Csize:    col.Csize,
-				Ccomment: col.Ccomment,
-			}
-		}
-
-		partners[i] = &libTypes.TaskMetadataSupplierData{
-			Organization: &libTypes.OrganizationData{
-				PartyId:  v.MemberInfo.PartyId,
-				NodeName: v.MemberInfo.Name,
-				NodeId:   v.MemberInfo.NodeId,
-				Identity: v.MemberInfo.IdentityId,
-			},
-			MetaId:     v.MetaDataInfo.MetaDataId,
-			MetaName:   metaData.MetaData.MetaDataSummary.TableName,
-			ColumnList: columnArr,
-		}
-	}
+	partners := make([]*libTypes.TaskMetadataSupplierData, len(req.DataSupplier))
+	//for i, v := range req.DataSupplier {
+	//
+	//	metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+	//	if nil != err {
+	//		return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}", v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+	//	}
+	//
+	//	columnArr := make([]*libTypes.ColumnMeta, len(v.MetaDataInfo.ColumnIndexList))
+	//	for j, index := range v.MetaDataInfo.ColumnIndexList {
+	//		col := metaData.MetaData.ColumnMetas[index]
+	//		columnArr[j] = &libTypes.ColumnMeta{
+	//			Cindex:   col.Cindex,
+	//			Ctype:    col.Ctype,
+	//			Cname:    col.Cname,
+	//			Csize:    col.Csize,
+	//			Ccomment: col.Ccomment,
+	//		}
+	//	}
+	//
+	//	partners[i] = &libTypes.TaskMetadataSupplierData{
+	//		Organization: &libTypes.OrganizationData{
+	//			PartyId:  v.MemberInfo.PartyId,
+	//			NodeName: v.MemberInfo.Name,
+	//			NodeId:   v.MemberInfo.NodeId,
+	//			Identity: v.MemberInfo.IdentityId,
+	//		},
+	//		MetaId:     v.MetaDataInfo.MetaDataId,
+	//		MetaName:   metaData.MetaData.MetaDataSummary.TableName,
+	//		ColumnList: columnArr,
+	//	}
+	//}
 
 	taskMsg.Data.SetMetadataSupplierArr(partners)
 
@@ -144,7 +143,7 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 		receivers[i] = receiver
 	}
 	taskMsg.Data.SetReceivers(receivers)
-	taskId := taskMsg.GetTaskId()
+	taskId := taskMsg.SetTaskId()
 	taskMsg.Data.TaskData().TaskId = taskId
 
 	err := svr.B.SendMsg(taskMsg)

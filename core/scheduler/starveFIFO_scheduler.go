@@ -8,8 +8,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/types"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -80,7 +80,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 		case tasks := <-sche.localTaskMsgCh:
 
 			for _, task := range tasks {
-
+				// todo 里面序列化 pb 报错了 ...
 				if err := sche.dataCenter.StoreLocalTask(task.Data); nil != err {
 
 					e := fmt.Errorf("store local task failed, taskId {%s}, err {%s}", task.Data.TaskData().TaskId, err)
@@ -130,16 +130,13 @@ func (sche *SchedulerStarveFIFO) loop() {
 	}
 }
 
-func (sche *SchedulerStarveFIFO) OnStart() error {
-	err := sche.resourceMng.Start()
-	if nil != err {
-		return err
-	}
+func (sche *SchedulerStarveFIFO) Start() error {
 	go sche.loop()
+	log.Info("Started SchedulerStarveFIFO ...")
 	return nil
 }
-func (sche *SchedulerStarveFIFO) OnStop() error  { return nil } // TODO 未实现 ...
-func (sche *SchedulerStarveFIFO) OnError() error { return sche.err }
+func (sche *SchedulerStarveFIFO) Stop() error  { return nil } // TODO 未实现 ...
+func (sche *SchedulerStarveFIFO) Error() error { return sche.err }
 func (sche *SchedulerStarveFIFO) Name() string   { return "SchedulerStarveFIFO" }
 func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
 	heap.Push(sche.queue, bullet) //
@@ -154,19 +151,24 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		x := heap.Pop(sche.starveQueue)
 		bullet = x.(*types.TaskBullet)
 	} else {
-		x := heap.Pop(sche.queue)
-		bullet = x.(*types.TaskBullet)
+		if sche.queue.Len() != 0 {
+			x := heap.Pop(sche.queue)
+			bullet = x.(*types.TaskBullet)
+		} else {
+			log.Info("There is not task on FIFO scheduler, finished try schedule timer ...")
+			return nil
+		}
 	}
 
 	go func() {
 		task := bullet.UnschedTask
 		repushFn := func(bullet *types.TaskBullet) {
 
-			// unlock local resource
-			if err := sche.resourceMng.UnLockLocalResourceWithTask(bullet.UnschedTask.Data.TaskId()); nil != err {
-				log.Errorf("Failed to call UnLockLocalResourceWithTask() on SchedulerStarveFIFO. repush into queue, taskId: {%s}, err: {%s}",
-					bullet.UnschedTask.Data.TaskId(), err)
-			}
+			//// unlock local resource
+			//if err := sche.resourceMng.UnLockLocalResourceWithTask(bullet.UnschedTask.Data.TaskId()); nil != err {
+			//	log.Errorf("Failed to call UnLockLocalResourceWithTask() on SchedulerStarveFIFO. repush into queue, taskId: {%s}, err: {%s}",
+			//		bullet.UnschedTask.Data.TaskId(), err)
+			//}
 
 			bullet.IncreaseResched()
 			if bullet.Resched > ReschedMaxCount {
@@ -424,6 +426,9 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 
 	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
 	case types.ResultSupplier:
+
+
+		// TODO 判断 task 中对应自己的 privors  是否符合 自己预期 (如: 是否和  powerSuppliers 一致?? 一期 先不做校验了 ...)
 
 		localResourceTables, err := sche.resourceMng.GetLocalResourceTables()
 		if nil != err {

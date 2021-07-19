@@ -28,8 +28,11 @@ func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *type
 		CreateTime: uint64(time.Now().UnixNano()),
 	}
 }
-func  (e *EventEngine) StoreEvent(event *types.TaskEventInfo) error {
-	return e.dataCenter.StoreTaskEvent(event)
+func  (e *EventEngine) StoreEvent(event *types.TaskEventInfo) {
+	if err := e.dataCenter.StoreTaskEvent(event); nil != err {
+		log.Errorf("Failed to Store task event, taskId: {%s}, evnet: {%s}, err: {%s}", event.TaskId, event.String(), err)
+	}
+	return
 }
 func  (e *EventEngine) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
 	return e.dataCenter.GetTaskEventList(taskId)

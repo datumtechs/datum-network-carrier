@@ -261,6 +261,7 @@ func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*
 			result = append(result, metadata)
 		}
 	}
+	log.Debugf("Query metaData list, identityId: {%s}, len: {%d}", identityId, len(result))
 	return result, nil
 }
 
@@ -271,6 +272,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Query all org's power list, len: {%d}", len(resourceList))
 	powerList := make([]*types.OrgPowerDetail, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
 		powerList = append(powerList, &types.OrgPowerDetail{

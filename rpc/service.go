@@ -136,6 +136,7 @@ func (s *Service) Start() error {
 			}
 		}
 	}()
+	log.Info("Started grpcServer ...")
 	return nil
 }
 

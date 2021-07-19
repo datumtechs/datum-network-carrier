@@ -79,6 +79,7 @@ func (m *MessageHandler) Start() error {
 	//m.taskMsgSub = m.pool.SubscribeNewTaskMsgsEvent(m.msgChannel)
 
 	go m.loop()
+	log.Info("Started messageManager ...")
 	return nil
 }
 
@@ -227,9 +228,10 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 
 	// send identity to datacenter
 	if err := m.dataCenter.InsertIdentity(msg.ToDataCenter()); nil != err {
-		log.Errorf("Failed to broadcast org org identity on MessageHandler, identityId: {%s}, err: {%s}", msg.IdentityId, err)
+		log.Errorf("Failed to broadcast org org identity on MessageHandler, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, err: {%s}", msg.IdentityId, msg.NodeId, msg.Name, err)
 		return err
 	}
+	log.Debugf("Registered identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", msg.IdentityId, msg.NodeId, msg.Name)
 	return nil
 }
 
@@ -256,6 +258,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 		log.Errorf("Failed to remove org identity to remote on MessageHandler, identityId: {%s}, err: {%s}", identity, err)
 		return err
 	}
+	log.Debugf("Revoke identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", identity.IdentityId, identity.NodeId, identity.Name)
 	return nil
 }
 

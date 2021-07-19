@@ -21,7 +21,7 @@ type GrpcClient struct {
 
 // NewClient creates a client that uses the given GRPC client.
 func NewGrpcClient(ctx context.Context, addr string) (*GrpcClient, error) {
-	ctx, cancel := context.WithTimeout(ctx, 1 * time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2 * time.Second)  //TODO 默认连接 dataCenter 的 grpc client 超时时间设为 2 s
 	_ = cancel
 	conn, err := dialContext(ctx, addr)
 	if err != nil {
@@ -46,7 +46,7 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 
 // MetaDataSave saves new metadata to database.
 func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSaveRequest) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.metadataService.MetaDataSave(ctx, request)
 }
@@ -64,13 +64,13 @@ func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.Metadata
 }
 
 func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.MetadataByIdRequest) (*api.MetadataByIdResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.metadataService.GetMetadataById(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMetaDataRequest) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.metadataService.RevokeMetaData(ctx, request)
 }
@@ -78,37 +78,37 @@ func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMet
 // ************************************** Resource module *******************************************************
 
 func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.PublishPower(ctx, request)
 }
 
 func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.SyncPower(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.RevokePower(ctx, request)
 }
 
 func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *api.PowerSummaryByIdentityRequest) (*api.PowerTotalSummaryResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request)
 }
 
 func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerTotalSummaryListResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.GetPowerTotalSummaryList(ctx, &emptypb.Empty{})
 }
 
 func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.PowerListRequest) (*api.PowerListResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.GetPowerList(ctx, request)
 }
@@ -116,13 +116,13 @@ func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.PowerListRe
 // ************************************** Identity module *******************************************************
 
 func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.identityService.RevokeIdentityJoin(ctx, request)
 }
@@ -136,25 +136,25 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.Identity
 // ************************************** Task module *******************************************************
 
 func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.taskService.SaveTask(ctx, request)
 }
 
 func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.DetailTaskRequest) (*api.TaskDetail, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx,2*time.Second)
 	defer cancel()
 	return gc.taskService.GetDetailTask(ctx, request)
 }
 
 func (gc *GrpcClient) ListTask(ctx context.Context, request *api.TaskListRequest) (*api.TaskListResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	return gc.taskService.ListTask(ctx, request)
 }
 
 func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.TaskEventRequest) (*api.TaskEventResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	return gc.taskService.ListTaskEvent(ctx, request)
 }

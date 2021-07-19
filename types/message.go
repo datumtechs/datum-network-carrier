@@ -592,6 +592,23 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 }
 func ConvertTaskMsgToTaskWithPowers(task *Task, powers  []*libTypes.TaskResourceSupplierData) *Task {
 	task.SetResourceSupplierArr(powers)
+
+	if len(powers) == 0 {
+		return task
+	}
+
+	// 组装 选出来的, powerSuppliers 到 receivers 中
+	privors := make([]*libTypes.OrganizationData, len(powers))
+	for i, supplier := range powers {
+		privors[i] =  supplier.Organization
+	}
+
+	for i, _ := range task.TaskData().Receivers {
+		receiver := task.TaskData().Receivers[i]
+		receiver.Provider = privors
+		task.TaskData().Receivers[i] = receiver
+	}
+
 	return task
 }
 
@@ -680,7 +697,7 @@ func (msg *TaskMsg) DataSplitContractCode() string          { return msg.Data.da
 func (msg *TaskMsg) ContractExtraParams() string            { return msg.Data.data.ContractExtraParams }
 func (msg *TaskMsg) OperationCost() *libTypes.TaskResourceData      { return msg.Data.data.TaskResource }
 func (msg *TaskMsg) CreateAt() uint64                       { return msg.Data.data.CreateAt }
-func (msg *TaskMsg) GetTaskId() string {
+func (msg *TaskMsg) SetTaskId() string {
 	if "" != msg.TaskId {
 		return msg.TaskId
 	}

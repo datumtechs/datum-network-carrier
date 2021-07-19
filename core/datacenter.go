@@ -149,7 +149,7 @@ func (dc *DataCenter) SetRegisterNode(typ types.RegisteredNodeType, node *types.
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
-	return types.NONCONNECTED, nil
+	return node.ConnState, nil
 }
 
 func (dc *DataCenter) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {

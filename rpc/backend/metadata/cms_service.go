@@ -67,7 +67,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 		}
 		respList[i] = resp
 	}
-
+	log.Debugf("Query all org's metaData list, len: {%d}", len(respList))
 	return &pb.GetMetaDataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,

@@ -269,7 +269,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 }
 
 
-func (m *Manager) pulishFinishedTaskToDataCenter(taskId string) {
+func (m *Manager) pulishFinishedTaskToDataCenter(taskId, taskState string) {
 	taskWrap, ok := m.queryRunningTaskCacheOk(taskId)
 	if !ok {
 		return
@@ -280,7 +280,7 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId string) {
 		log.Error("Failed to Query all task event list for sending datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
 		return
 	}
-	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList)); nil != err {
+	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList, taskState)); nil != err {
 		log.Error("Failed to save task to datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
 		return
 	}
@@ -303,6 +303,7 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 		log.Errorf( "Not found taskwrap, taskId: %s", taskId)
 		return
 	}
+
 	taskResultMsg := m.makeTaskResult(taskWrap)
 	if nil != taskResultMsg {
 		taskWrap.ResultCh <- taskResultMsg
@@ -330,10 +331,11 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 }
 
 
-func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types.TaskEventInfo)  *types.Task {
+func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types.TaskEventInfo, state string)  *types.Task {
 	task.TaskData().EventDataList = types.ConvertTaskEventArrToDataCenter(eventList)
 	task.TaskData().EventCount = uint32(len(eventList))
 	task.TaskData().EndAt = uint64(time.Now().UnixNano())
+	task.TaskData().State = state
 	return task
 }
 
@@ -540,7 +542,7 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 		return ev.IncEventType
 	}
 	// TODO need to validate the task that have been processing ? Maybe~
-	if event.Type == ev.TaskExecuteEOF.Type {
+	if event.Type == ev.TaskExecuteSucceedEOF.Type || event.Type == ev.TaskExecuteFailedEOF.Type {
 		if task, ok := m.queryRunningTaskCacheOk(event.TaskId); ok {
 
 			// 先 缓存下 最终休止符 event
@@ -552,7 +554,12 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 
 			} else {
 				//  如果是 自己的task, 认为任务终止 ... 发送到 dataCenter (里面有解锁本地资源 ...)
-				m.pulishFinishedTaskToDataCenter(event.TaskId)
+				if event.Type == ev.TaskExecuteSucceedEOF.Type {
+					m.pulishFinishedTaskToDataCenter(event.TaskId, types.TaskStateSuccess.String())
+				} else {
+					m.pulishFinishedTaskToDataCenter(event.TaskId, types.TaskStateFailed.String())
+				}
+
 			}
 		}
 		return nil
@@ -575,7 +582,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 
 			// 发起方直接 往 dataCenter 发送数据 (里面有解锁 本地资源 ...)
-			m.pulishFinishedTaskToDataCenter(taskId)
+			m.pulishFinishedTaskToDataCenter(taskId, task.Task.TaskState.String())
 
 		case types.TaskStateRunning:
 
@@ -585,7 +592,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 					task.Task.SchedTask.TaskId(), task.Task.SchedTask.TaskData().Identity, fmt.Sprintf("failed to execute task"))
 				// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter  (里面有解锁 本地资源 ...)
 				m.dataCenter.StoreTaskEvent(event)
-				m.pulishFinishedTaskToDataCenter(taskId)  //
+				m.pulishFinishedTaskToDataCenter(taskId, types.TaskStateFailed.String())  //
 			}
 			// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
 		default:
