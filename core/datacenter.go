@@ -73,7 +73,11 @@ func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
 func (dc *DataCenter) GetYarnName() (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadYarnName(dc.db), nil
+	name, err :=  rawdb.ReadYarnName(dc.db)
+	if nil != err {
+		return "", err
+	}
+	return name, nil
 }
 
 // InsertChain saves the data of block to the database.
@@ -136,13 +140,13 @@ func (dc *DataCenter) DeleteSeedNode(id string) error {
 func (dc *DataCenter) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadSeedNode(dc.db, id), nil
+	return rawdb.ReadSeedNode(dc.db, id)
 }
 
 func (dc *DataCenter) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadAllSeedNodes(dc.db), nil
+	return rawdb.ReadAllSeedNodes(dc.db)
 }
 
 func (dc *DataCenter) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
@@ -162,13 +166,13 @@ func (dc *DataCenter) DeleteRegisterNode(typ types.RegisteredNodeType, id string
 func (dc *DataCenter) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadRegisterNode(dc.db, typ, id), nil
+	return rawdb.ReadRegisterNode(dc.db, typ, id)
 }
 
 func (dc *DataCenter) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
+	return rawdb.ReadAllRegisterNodes(dc.db, typ)
 }
 
 // about metaData
@@ -223,13 +227,13 @@ func (dc *DataCenter) RemoveLocalResource(jobNodeId string) error {
 func (dc *DataCenter) GetLocalResource(jobNodeId string) (*types.LocalResource, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadLocalResource(dc.db, jobNodeId), nil
+	return rawdb.ReadLocalResource(dc.db, jobNodeId)
 }
 
 func (dc *DataCenter) GetLocalResourceList() (types.LocalResourceArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadAllLocalResource(dc.db), nil
+	return rawdb.ReadAllLocalResource(dc.db)
 }
 
 func (dc *DataCenter) StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error {
@@ -315,13 +319,21 @@ func (dc *DataCenter) RemoveIdentity() error {
 func (dc *DataCenter) GetIdentityId() (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadLocalIdentity(dc.db).GetNodeIdentityId(), nil
+	identity, err := rawdb.ReadLocalIdentity(dc.db)
+	if nil != err {
+		return "", err
+	}
+	return identity.GetNodeIdentityId(), nil
 }
 
 func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.ReadLocalIdentity(dc.db), nil
+	identity, err := rawdb.ReadLocalIdentity(dc.db)
+	if nil != err {
+		return nil, err
+	}
+	return identity, nil
 }
 
 // about identity on datacenter
@@ -417,7 +429,10 @@ func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	task := rawdb.ReadLocalTask(dc.db, taskId)
+	task, err := rawdb.ReadLocalTask(dc.db, taskId)
+	if nil != err {
+		return err
+	}
 	task.TaskData().State = state
 	rawdb.DeleteLocalTask(dc.db, taskId)
 	rawdb.WriteLocalTask(dc.db, task)
@@ -430,20 +445,19 @@ func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	task := rawdb.ReadLocalTask(dc.db, taskId)
-	return task, nil
+	return rawdb.ReadLocalTask(dc.db, taskId)
 }
 
 func (dc *DataCenter) GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadLocalTaskByIds(dc.db, taskIds), nil
+	return rawdb.ReadLocalTaskByIds(dc.db, taskIds)
 }
 
 func (dc *DataCenter) GetLocalTaskList() (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadAllLocalTasks(dc.db), nil
+	return rawdb.ReadAllLocalTasks(dc.db)
 }
 
 func (dc *DataCenter) StoreJobNodeRunningTaskId(jobNodeId, taskId string) error {
@@ -499,7 +513,10 @@ func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
 func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	taskList := rawdb.ReadAllLocalTasks(dc.db)
+	taskList, err := rawdb.ReadAllLocalTasks(dc.db)
+	if nil != err {
+		return 0
+	}
 	if taskList != nil {
 		return uint32(taskList.Len())
 	}
@@ -735,7 +752,7 @@ func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadTaskEvent(dc.db, taskId), nil
+	return rawdb.ReadTaskEvent(dc.db, taskId)
 }
 
 func (dc *DataCenter) RemoveTaskEventList(taskId string) error {

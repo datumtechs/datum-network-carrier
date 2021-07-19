@@ -117,6 +117,9 @@ message GetPowerTotalDetailListResponse {
     repeated GetPowerTotalDetailResponse power_list = 1;  // 全网的算力总详情列表
 }
 
+
+// TODO 要改下, 只需要 入参 jobNodeId
+//      底层自己加上 资源大小 ...
 message PublishPowerRequest {
     OrganizationIdentityInfo owner       = 1;           // 算力的拥有者
     string                   job_node_id = 2;     // 计算服务id (节点内部的)
