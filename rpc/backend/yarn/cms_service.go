@@ -428,12 +428,14 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 			break
 		}
 	}
+
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, nodeId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode failed, fileType: {%s}, fileSize: {%s}", req.FileType, req.FileSize)
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
-
+	log.Debugf("RPC-API:QueryAvailableDataNode succeed, fileType: {%s}, fileSize: {%d}, return dataNodeId: {%s}, dataNodeIp: {%s}, dataNodePort: {%s}",
+		req.FileType, req.FileSize, dataNode.Id, dataNode.InternalIp, dataNode.InternalPort)
 	return &pb.QueryAvailableDataNodeResponse{
 		Ip:   dataNode.InternalIp,
 		Port: dataNode.InternalPort,

@@ -16,15 +16,20 @@ const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
 // ReadLocalIdentity retrieves the identity of local.
-func ReadLocalIdentity(db DatabaseReader) *types.NodeAlias {
+func ReadLocalIdentity(db DatabaseReader) (*types.NodeAlias, error) {
 	var blob libtypes.OrganizationData
-	enc, _ := db.Get(localIdentityKey)
-	blob.Unmarshal(enc)
+	enc, err := db.Get(localIdentityKey)
+	if nil != err {
+		return nil, err
+	}
+	if err := blob.Unmarshal(enc); nil != err {
+		return nil, err
+	}
 	return &types.NodeAlias{
 		Name:       blob.GetNodeName(),
 		NodeId:     blob.GetNodeId(),
 		IdentityId: blob.GetIdentity(),
-	}
+	}, nil
 }
 
 // WriteLocalIdentity stores the local identity.
@@ -49,16 +54,16 @@ func DeleteLocalIdentity(db DatabaseDeleter) {
 }
 
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
-func ReadRunningTaskIDList(db DatabaseReader, jobNodeId string) []string {
+func ReadRunningTaskIDList(db DatabaseReader, jobNodeId string) ([]string, error) {
 	blob, _ := db.Get(runningTaskIDListKey(jobNodeId))
 	var array dbtype.StringArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
 			log.WithError(err).Fatal("Failed to decode old RunningTaskIdList")
 		}
-		return array.GetArray()
+		return array.GetArray(), nil
 	}
-	return nil
+	return nil, ErrNotFound
 }
 
 func WriteRunningTaskIDList(db KeyValueStore, jobNodeId, taskId string) {
@@ -204,11 +209,16 @@ func DeleteIdentityStr(db DatabaseDeleter) {
 }
 
 // ReadYarnName retrieves the name of yarn.
-func ReadYarnName(db DatabaseReader) string {
+func ReadYarnName(db DatabaseReader) (string, error) {
 	var yarnName dbtype.StringPB
-	enc, _ := db.Get(yarnNameKey)
-	yarnName.Unmarshal(enc)
-	return yarnName.GetV()
+	enc, err := db.Get(yarnNameKey)
+	if nil != err {
+		return "", err
+	}
+	if err := yarnName.Unmarshal(enc); nil != err {
+		return "", err
+	}
+	return yarnName.GetV(), nil
 }
 
 // WriteYarnName stores the name of yarn.
@@ -230,14 +240,14 @@ func DeleteYarnName(db DatabaseDeleter) {
 }
 
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
-func ReadSeedNode(db DatabaseReader, nodeId string) *types.SeedNodeInfo {
+func ReadSeedNode(db DatabaseReader, nodeId string) (*types.SeedNodeInfo, error) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var seedNodes dbtype.SeedNodeListPB
 	if err := seedNodes.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
 	for _, seed := range seedNodes.GetSeedNodeList() {
 		if strings.EqualFold(seed.Id, nodeId) {
@@ -246,22 +256,22 @@ func ReadSeedNode(db DatabaseReader, nodeId string) *types.SeedNodeInfo {
 				InternalIp:   seed.InternalIp,
 				InternalPort: seed.InternalPort,
 				ConnState:    types.NodeConnStatus(seed.ConnState),
-			}
+			}, nil
 		}
 	}
-	return nil
+	return nil, ErrNotFound
 }
 
 // ReadAllSeedNodes retrieves all the seed nodes in the database.
 // All returned seed nodes are sorted in reverse.
-func ReadAllSeedNodes(db DatabaseReader) []*types.SeedNodeInfo {
+func ReadAllSeedNodes(db DatabaseReader) ([]*types.SeedNodeInfo, error) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var seedNodes dbtype.SeedNodeListPB
 	if err := seedNodes.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
 	var nodes []*types.SeedNodeInfo
 	for _, seed := range seedNodes.SeedNodeList {
@@ -272,7 +282,7 @@ func ReadAllSeedNodes(db DatabaseReader) []*types.SeedNodeInfo {
 			ConnState:    types.NodeConnStatus(seed.ConnState),
 		})
 	}
-	return nodes
+	return nodes, nil
 }
 
 // WriteSeedNodes serializes the seed node into the database. If the cumulated
@@ -361,16 +371,17 @@ func registryNodeKey(nodeType types.RegisteredNodeType) []byte {
 }
 
 // ReadRegisterNode retrieves the register node with the corresponding nodeId.
-func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, nodeId string) *types.RegisteredNodeInfo {
+func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, nodeId string) (*types.RegisteredNodeInfo, error) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if err := registeredNodes.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
-	for _, registered := range registeredNodes.GetRegisteredNodeList() {
+	lis := registeredNodes.GetRegisteredNodeList()
+	for _, registered := range lis {
 		if strings.EqualFold(registered.Id, nodeId) {
 			return &types.RegisteredNodeInfo{
 				Id:           registered.Id,
@@ -379,22 +390,22 @@ func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, node
 				ExternalIp:   registered.ExternalIp,
 				ExternalPort: registered.ExternalPort,
 				ConnState:    types.NodeConnStatus(registered.ConnState),
-			}
+			}, nil
 		}
 	}
-	return nil
+	return nil, ErrNotFound
 }
 
 // ReadAllRegisterNodes retrieves all the registered nodes in the database.
 // All returned registered nodes are sorted in reverse.
-func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) []*types.RegisteredNodeInfo {
+func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if err := registeredNodes.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
 	var nodes []*types.RegisteredNodeInfo
 	for _, registered := range registeredNodes.GetRegisteredNodeList() {
@@ -407,7 +418,7 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) 
 			ConnState:    types.NodeConnStatus(registered.ConnState),
 		})
 	}
-	return nodes
+	return nodes, nil
 }
 
 // WriteRegisterNodes serializes the registered node into the database. If the cumulated
@@ -485,14 +496,14 @@ func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) 
 }
 
 // ReadTaskEvent retrieves the evengine of task with the corresponding taskId.
-func ReadTaskEvent(db DatabaseReader, taskId string) []*types.TaskEventInfo {
+func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, error) {
 	blob, err := db.Get(taskEventKey(taskId))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var events dbtype.TaskEventArrayPB
 	if err := events.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
 	resEvent := make([]*types.TaskEventInfo, 0)
 	for _, e := range events.GetTaskEventList() {
@@ -506,11 +517,11 @@ func ReadTaskEvent(db DatabaseReader, taskId string) []*types.TaskEventInfo {
 			})
 		}
 	}
-	return resEvent
+	return resEvent, nil
 }
 
 // ReadAllTaskEvent retrieves the task event with all.
-func ReadAllTaskEvents(db KeyValueStore) []*types.TaskEventInfo {
+func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
 	prefix := taskEventPrefix
 	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
@@ -537,7 +548,7 @@ func ReadAllTaskEvents(db KeyValueStore) []*types.TaskEventInfo {
 			}
 		}
 	}
-	return result
+	return result, nil
 }
 
 // WriteTaskEvent serializes the task evengine into the database.
@@ -605,22 +616,22 @@ func DeleteTaskEvent(db KeyValueStore, taskId string) {
 }
 
 // ReadLocalResource retrieves the resource of local with the corresponding jobNodeId.
-func ReadLocalResource(db DatabaseReader, jobNodeId string) *types.LocalResource {
+func ReadLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResource, error) {
 	blob, err := db.Get(localResourceKey(jobNodeId))
 	if err != nil {
 		log.WithError(err).Fatal("Failed to read local resource")
-		return nil
+		return nil, err
 	}
 	localResource := new(libtypes.LocalResourceData)
 	if err := localResource.Unmarshal(blob); err != nil {
 		log.WithError(err).Fatal("Failed to unmarshal local resource")
-		return nil
+		return nil, err
 	}
-	return types.NewLocalResource(localResource)
+	return types.NewLocalResource(localResource), nil
 }
 
 // ReadAllLocalResource retrieves the local resource with all.
-func ReadAllLocalResource(db KeyValueStore) types.LocalResourceArray {
+func ReadAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
 	prefix := localResourcePrefix
 	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
@@ -638,7 +649,7 @@ func ReadAllLocalResource(db KeyValueStore) types.LocalResourceArray {
 			array = append(array, types.NewLocalResource(localResource))
 		}
 	}
-	return array
+	return array, nil
 }
 
 // WriteLocalResource serializes the local resource into the database.
@@ -661,32 +672,32 @@ func DeleteLocalResource(db KeyValueStore, jobNodeId string) {
 }
 
 // ReadLocalTask retrieves the local task with the corresponding taskId.
-func ReadLocalTask(db DatabaseReader, taskId string) *types.Task {
+func ReadLocalTask(db DatabaseReader, taskId string) (*types.Task, error) {
 	blob, err := db.Get(localTaskKey)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var taskList dbtype.TaskArrayPB
 	if err := taskList.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
 	for _, task := range taskList.GetTaskList() {
 		if strings.EqualFold(task.TaskId, taskId) {
-			return types.NewTask(task)
+			return types.NewTask(task), nil
 		}
 	}
-	return nil
+	return nil, ErrNotFound
 }
 
 // ReadLocalTaskByIds retrieves the local tasks with the corresponding taskIds.
-func ReadLocalTaskByIds(db DatabaseReader, taskIds []string) types.TaskDataArray {
+func ReadLocalTaskByIds(db DatabaseReader, taskIds []string) (types.TaskDataArray, error) {
 	blob, err := db.Get(localTaskKey)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var taskList dbtype.TaskArrayPB
 	if err := taskList.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
 	tmp := make(map[string]struct{}, 0)
 	taskArr := make(types.TaskDataArray, 0)
@@ -698,24 +709,24 @@ func ReadLocalTaskByIds(db DatabaseReader, taskIds []string) types.TaskDataArray
 			taskArr = append(taskArr, types.NewTask(task))
 		}
 	}
-	return taskArr
+	return taskArr, nil
 }
 
 // ReadAllLocalTasks retrieves all the local task in the database.
-func ReadAllLocalTasks(db DatabaseReader) types.TaskDataArray {
+func ReadAllLocalTasks(db DatabaseReader) (types.TaskDataArray, error) {
 	blob, err := db.Get(localTaskKey)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	var array dbtype.TaskArrayPB
 	if err := array.Unmarshal(blob); err != nil {
-		return nil
+		return nil, err
 	}
 	result := make(types.TaskDataArray, 0)
 	for _, task := range array.GetTaskList() {
 		result = append(result, types.NewTask(task))
 	}
-	return result
+	return result, nil
 }
 
 // WriteLocalTask serializes the local task into the database.

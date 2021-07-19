@@ -232,11 +232,11 @@ func (dc *DataChain) DeleteSeedNode(id string) error {
 }
 
 func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
-	return rawdb.ReadSeedNode(dc.db, id), nil
+	return rawdb.ReadSeedNode(dc.db, id)
 }
 
 func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
-	return rawdb.ReadAllSeedNodes(dc.db), nil
+	return rawdb.ReadAllSeedNodes(dc.db)
 }
 // TODO 未完成 ...
 func (dc *DataChain) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
@@ -251,11 +251,11 @@ func (dc *DataChain) DeleteRegisterNode(typ types.RegisteredNodeType, id string)
 }
 
 func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
-	return rawdb.ReadRegisterNode(dc.db, typ, id), nil
+	return rawdb.ReadRegisterNode(dc.db, typ, id)
 }
 
 func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	return rawdb.ReadAllRegisterNodes(dc.db, typ), nil
+	return rawdb.ReadAllRegisterNodes(dc.db, typ)
 }
 
 // TODO 存储当前组织正在参与运行的任务详情 (正在运行的, 管理台需要看 我的任务列表, 存储使用的 pb和数据中心一样, 最后需要两边都查回来本地合并列表展示)
