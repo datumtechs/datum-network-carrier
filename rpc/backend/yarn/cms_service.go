@@ -129,11 +129,14 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 		ConnState:    types.NONCONNECTED,
 	}
 	seedNode.SeedNodeId()
-	_, err := svr.B.SetSeedNode(seedNode)
+	status, err := svr.B.SetSeedNode(seedNode)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:SetSeedNode failed")
+		log.WithError(err).Errorf("RPC-API:SetSeedNode failed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}",
+			seedNode.Id, req.InternalIp, req.InternalPort)
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
+	log.Debugf("RPC-API:SetSeedNode succeed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d}",
+		seedNode.Id, req.InternalIp, req.InternalPort, status.Int32())
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -141,7 +144,7 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 			Id:           seedNode.Id,
 			InternalIp:   seedNode.InternalIp,
 			InternalPort: seedNode.InternalPort,
-			ConnState:    seedNode.ConnState.Int32(),
+			ConnState:    status.Int32(),
 		},
 	}, nil
 }
@@ -154,11 +157,14 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 		ConnState:    types.NONCONNECTED,
 	}
 	svr.B.DeleteSeedNode(seedNode.Id)
-	_, err := svr.B.SetSeedNode(seedNode) 
+	status, err := svr.B.SetSeedNode(seedNode)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:UpdateSeedNode failed")
+		log.WithError(err).Errorf("RPC-API:UpdateSeedNode failed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}",
+			req.Id, req.InternalIp, req.InternalPort)
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfoStr)
 	}
+	log.Debugf("RPC-API:UpdateSeedNode succeed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d}",
+		req.Id, req.InternalIp, req.InternalPort, status.Int32())
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -166,19 +172,18 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 			Id:           seedNode.Id,
 			InternalIp:   seedNode.InternalIp,
 			InternalPort: seedNode.InternalPort,
-			ConnState:    seedNode.ConnState.Int32(),
+			ConnState:    status.Int32(),
 		},
 	}, nil
-
-	return nil, nil
 }
 
 func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	err := svr.B.DeleteSeedNode(req.Id)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:DeleteSeedNode failed")
+		log.WithError(err).Errorf("RPC-API:DeleteSeedNode failed, seedNodeId: {%s}", req.Id)
 		return nil, backend.NewRpcBizErr(ErrDeleteSeedNodeInfoStr)
 	}
+	log.Debugf("RPC-API:DeleteSeedNode succeed, seedNodeId: {%s}", req.Id)
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
 }
 
@@ -213,12 +218,15 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		ExternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-	node.DataNodeId()
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
+	node.SetDataNodeId()
+	status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:SetDataNode failed")
+		log.WithError(err).Errorf("RPC-API:SetDataNode failed, dataNodeId:{%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
+			node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
+	log.Debugf("RPC-API:SetDataNode succeed, dataNodeId:{%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStatus: {%d}",
+		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
 	return &pb.SetDataNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -228,7 +236,7 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState:    node.ConnState.Int32(),
+			ConnState:    status.Int32(),
 		},
 	}, nil
 }
@@ -244,11 +252,14 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 	}
 	// delete and insert.
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, node.Id)
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
+	status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:UpdateDataNode failed")
+		log.WithError(err).Errorf("RPC-API:UpdateDataNode failed, dataNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
+			req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfoStr)
 	}
+	log.Debugf("RPC-API:UpdateDataNode succeed, dataNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStatus: {%d}",
+		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
 	return &pb.SetDataNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -258,16 +269,17 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState:    node.ConnState.Int32(),
+			ConnState:    status.Int32(),
 		},
 	}, nil
 }
 
 func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, req.Id); nil != err {
-		log.WithError(err).Error("RPC-API:DeleteDataNode failed")
+		log.WithError(err).Errorf("RPC-API:DeleteDataNode failed, dataNodeId: {%s}", req.Id)
 		return nil, backend.NewRpcBizErr(ErrDeleteDataNodeInfoStr)
 	}
+	log.Debugf("RPC-API:DeleteDataNode succeed, dataNodeId: {%s}", req.Id)
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
 }
 
@@ -308,12 +320,16 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		ExternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-	node.DataNodeId()
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
+	node.SetJobNodeId()
+	status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:SetJobNode failed")
+		log.WithError(err).Errorf("RPC-API:SetJobNode failed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
+			node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
+
+	log.Debugf("RPC-API:SetJobNode succeed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStats: {%d}",
+		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
 	return &pb.SetJobNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -323,7 +339,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState:    node.ConnState.Int32(),
+			ConnState:    status.Int32(),
 		},
 	}, nil
 }
@@ -338,11 +354,15 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		ConnState:    types.NONCONNECTED,
 	}
 	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
-	_, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
+	status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:UpdateJobNode failed")
+		log.WithError(err).Errorf("RPC-API:UpdateJobNode failed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
+			req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfoStr)
 	}
+
+	log.Debugf("RPC-API:UpdateJobNode succeed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStats: {%d}",
+		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
 	return &pb.SetJobNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -352,16 +372,17 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.InternalPort,
-			ConnState:    node.ConnState.Int32(),
+			ConnState:    status.Int32(),
 		},
 	}, nil
 }
 
 func (svr *YarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*pb.SimpleResponseCode, error) {
 	if err := svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, req.Id); nil != err {
-		log.WithError(err).Error("RPC-API:DeleteJobNode failed")
+		log.WithError(err).Errorf("RPC-API:DeleteJobNode failed, jobNodeId: {%s}", req.Id)
 		return nil, backend.NewRpcBizErr(ErrDeleteJobNodeInfoStr)
 	}
+	log.Debugf("RPC-API:DeleteJobNode succeed, jobNodeId: {%s}", req.Id)
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
 }
 
@@ -396,7 +417,7 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:QueryAvailableDataNode failed")
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode failed, fileType: {%s}, fileSize: {%s}", req.FileType, req.FileSize)
 		return nil, backend.NewRpcBizErr(ErrQueryDataResourceTableListStr)
 	}
 
@@ -409,7 +430,7 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 	}
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, nodeId)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:QueryAvailableDataNode failed")
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode failed, fileType: {%s}, fileSize: {%s}", req.FileType, req.FileSize)
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
 
@@ -421,12 +442,12 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 func (svr *YarnServiceServer) QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error) {
 	dataResourceFileUpload, err := svr.B.QueryDataResourceFileUpload(req.OriginId)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:QueryFilePosition-QueryDataResourceFileUpload failed")
+		log.WithError(err).Errorf("RPC-API:QueryFilePosition-QueryDataResourceFileUpload failed, originId: {%s}", req.OriginId)
 		return nil, backend.NewRpcBizErr(ErrQueryDataResourceDataUsedStr)
 	}
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceFileUpload.GetNodeId())
 	if nil != err {
-		log.WithError(err).Error("RPC-API:QueryFilePosition-GetRegisterNode failed")
+		log.WithError(err).Errorf("RPC-API:QueryFilePosition-GetRegisterNode failed, originId: {%s}", req.OriginId)
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
 

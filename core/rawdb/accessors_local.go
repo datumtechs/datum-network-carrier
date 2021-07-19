@@ -415,7 +415,7 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) 
 func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, registeredNode *types.RegisteredNodeInfo) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
-		log.Warn("Failed to load old registered nodes", "error", err)
+		log.Warnf("Failed to load old registered nodes, err: {%s}",  err)
 	}
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if len(blob) > 0 {
@@ -454,7 +454,7 @@ func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, reg
 func DeleteRegisterNode(db KeyValueStore, nodeType types.RegisteredNodeType, id string) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
-		log.Warn("Failed to load old registered nodes", "error", err)
+		log.Warnf("Failed to load old registered nodes, err: {%s}", err)
 	}
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if len(blob) > 0 {
@@ -738,7 +738,7 @@ func WriteLocalTask(db KeyValueStore, task *types.Task) {
 		}
 	}
 	array.TaskList = append(array.TaskList, task.TaskData())
-	data, err := array.Marshal()
+	data, err := array.Marshal() // TODO 这里序列化报错了
 	if err != nil {
 		log.WithError(err).Fatal("Failed to encode local task")
 	}

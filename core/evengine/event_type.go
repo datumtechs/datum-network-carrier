@@ -35,7 +35,9 @@ var IncEventType = errors.New("incorrect evengine type")
 
 // 系统码
 var (
-	TaskExecuteEOF = NewEventType("0008000", "Task execute EOF")
+	// 任务最终成功
+	TaskExecuteSucceedEOF = NewEventType("0008000", "Task execute succeed EOF")
+	TaskExecuteFailedEOF  = NewEventType("0008001", "Task execute failed EOF")
 )
 
 // 调度服务事件

@@ -4,6 +4,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
 	"github.com/ethereum/go-ethereum/rlp"
+	"time"
 )
 
 type NodeConnStatus int32
@@ -51,7 +52,7 @@ func (seed *SeedNodeInfo) SeedNodeId() string {
 	if "" != seed.Id {
 		return seed.Id
 	}
-	seed.Id = PREFIX_SEEDNODE_ID + seed.hash().Hex()
+	seed.Id = PREFIX_SEEDNODE_ID + seed.hashByCreateTime().Hex()
 	return seed.Id
 }
 func (seed *SeedNodeInfo) hash() (h common.Hash) {
@@ -67,18 +68,34 @@ func (seed *SeedNodeInfo) hash() (h common.Hash) {
 	hw.Sum(h[:0])
 	return h
 }
-func (node *RegisteredNodeInfo) JobNodeId() string {
+func (seed *SeedNodeInfo) hashByCreateTime() (h common.Hash) {
+	hw := sha3.NewKeccak256()
+	d := &struct {
+		InternalIp   string
+		InternalPort string
+		CreateTime  uint64
+	}{
+		InternalIp:   seed.InternalIp,
+		InternalPort: seed.InternalPort,
+		CreateTime: uint64(time.Now().UnixNano()),
+	}
+	rlp.Encode(hw, d)
+	hw.Sum(h[:0])
+	return h
+}
+
+func (node *RegisteredNodeInfo) SetJobNodeId() string {
 	if "" != node.Id {
 		return node.Id
 	}
-	node.Id = PREFIX_JOBNODE_ID + node.hash(PREFIX_TYPE_JOBNODE).Hex()
+	node.Id = PREFIX_JOBNODE_ID + node.hashByCreateTime(PREFIX_TYPE_JOBNODE).Hex()
 	return node.Id
 }
-func (node *RegisteredNodeInfo) DataNodeId() string {
+func (node *RegisteredNodeInfo) SetDataNodeId() string {
 	if "" != node.Id {
 		return node.Id
 	}
-	node.Id = PREFIX_DATANODE_ID + node.hash(PREFIX_TYPE_DATANODE).Hex()
+	node.Id = PREFIX_DATANODE_ID + node.hashByCreateTime(PREFIX_TYPE_DATANODE).Hex()
 	return node.Id
 }
 func (node *RegisteredNodeInfo) hash(typ RegisteredNodeType) (h common.Hash) {
@@ -95,6 +112,28 @@ func (node *RegisteredNodeInfo) hash(typ RegisteredNodeType) (h common.Hash) {
 		InternalPort: node.InternalPort,
 		ExternalIp: node.ExternalIp,
 		ExternalPort: node.ExternalPort,
+	}
+	rlp.Encode(hw, d)
+	hw.Sum(h[:0])
+	return h
+}
+
+func (node *RegisteredNodeInfo) hashByCreateTime (typ RegisteredNodeType) (h common.Hash) {
+	hw := sha3.NewKeccak256()
+	d := &struct {
+		Type 		RegisteredNodeType
+		InternalIp   string
+		InternalPort string
+		ExternalIp   string
+		ExternalPort string
+		CreateAt     uint64
+	}{
+		Type: typ,
+		InternalIp:   node.InternalIp,
+		InternalPort: node.InternalPort,
+		ExternalIp: node.ExternalIp,
+		ExternalPort: node.ExternalPort,
+		CreateAt:  uint64(time.Now().UnixNano()),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])

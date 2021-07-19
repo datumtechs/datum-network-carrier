@@ -49,11 +49,15 @@ func NewTaskManager(
 		doneScheduleTaskCh: doneScheduleTaskCh,
 		runningTaskCache:   make(map[string]*types.DoneScheduleTaskChWrap, 0),
 	}
-	go m.loop()
 	return m
 }
 
-
+func (m *Manager) Start() error {
+	go m.loop()
+	log.Info("Started taskManager ...")
+	return nil
+}
+func (m *Manager)Stop() error { return nil }
 
 func (m *Manager) loop() {
 

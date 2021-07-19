@@ -83,6 +83,7 @@ func New(
 
 func (t *TwoPC) Start() error {
 	go t.loop()
+	log.Info("Started 2pc consensus engine ...")
 	return nil
 }
 func (t *TwoPC) Close() error {

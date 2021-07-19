@@ -134,7 +134,7 @@ func RemoveNodeResource (db KeyValueStore, resourceId string) error {
 		}
 
 
-		for i := 0; i <= len(resourceIds); i++ {
+		for i := 0; i < len(resourceIds); i++ {
 			id := resourceIds[i]
 			if id == resourceId {
 				key := GetNodeResourceKey(resourceId)
@@ -328,7 +328,7 @@ func RemoveOrgResource (db KeyValueStore, identityId string) error {
 		}
 
 
-		for i := 0; i <= len(identityIds); i++ {
+		for i := 0; i < len(identityIds); i++ {
 			id := identityIds[i]
 			if id == identityId {
 				key := GetOrgResourceKey(identityId)
@@ -573,7 +573,7 @@ func RemoveLocalTaskPowerUsed(db KeyValueStore, taskId string) error {
 		}
 
 
-		for i := 0; i <= len(taskIds); i++ {
+		for i := 0; i < len(taskIds); i++ {
 			id := taskIds[i]
 			if id == taskId {
 				key := GetLocalTaskPowerUsedKey(taskId)
@@ -772,7 +772,7 @@ func RemoveDataResourceTable(db KeyValueStore, nodeId string) error {
 		}
 
 
-		for i := 0; i <= len(nodeIds); i++ {
+		for i := 0; i < len(nodeIds); i++ {
 			id := nodeIds[i]
 			if id == nodeId {
 				key := GetDataResourceTableKey(nodeId)
@@ -971,7 +971,7 @@ func RemoveDataResourceFileUpload(db KeyValueStore, originId string) error {
 		}
 
 
-		for i := 0; i <= len(originIds); i++ {
+		for i := 0; i < len(originIds); i++ {
 			id := originIds[i]
 			if id == originId {
 				key := GetDataResourceFileUploadKey(originId)
@@ -1090,7 +1090,7 @@ func RemoveResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
 		if err := rlp.DecodeBytes(idsByte, &taskIds); nil != err {
 			return err
 		}
-		for i := 0; i <= len(taskIds); i++ {
+		for i := 0; i < len(taskIds); i++ {
 			id := taskIds[i]
 			if id == taskId {
 				taskIds = append(taskIds[:i], taskIds[i+1:]...)

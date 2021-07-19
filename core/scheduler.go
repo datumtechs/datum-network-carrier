@@ -2,8 +2,8 @@ package core
 
 
 type Scheduler interface {
-	OnStart() error
-	OnStop() error
-	OnError () error
+	Start() error
+	Stop() error
+	Error () error
 	Name() string
 }

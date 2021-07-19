@@ -19,7 +19,7 @@ type Mempool struct {
 
 	metaDataMsgQueue *MetaDataMsgList
 	powerMsgQueue    *PowerMsgList
-	taskMsgQueue     *TaskMsgList
+	//taskMsgQueue     *TaskMsgList
 
 	all *msgLookup
 
@@ -33,7 +33,7 @@ func NewMempool(cfg *MempoolConfig) *Mempool {
 		all:              lookup,
 		metaDataMsgQueue: newMetaDataMsgList(lookup),
 		powerMsgQueue:    newPowerMsgList(lookup),
-		taskMsgQueue:     newTaskMsgList(lookup),
+		//taskMsgQueue:     newTaskMsgList(lookup),
 	}
 }
 
@@ -134,7 +134,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 
 	case *types.TaskMsg:
 		task, _ := msg.(*types.TaskMsg)
-		pool.taskMsgQueue.put(task)
+		//pool.taskMsgQueue.put(task)
 		// We've directly injected a replacement taskMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyTask,

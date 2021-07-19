@@ -134,9 +134,27 @@ func (s *Service) Start() error {
 			log.WithError(err).Errorf("Cound not start the consensus engine: %s, err: %v", typ.String(), err)
 		}
 	}
-	if s.messageManager != nil {
-		s.messageManager.Start()
+	if nil != s.resourceManager {
+		if err := s.resourceManager.Start(); nil != err {
+			log.WithError(err).Errorf("Failed to start the resourceManager, err: %v", err)
+		}
 	}
+	if nil != s.messageManager {
+		if err := s.messageManager.Start(); nil != err {
+			log.WithError(err).Errorf("Failed to start the messageManager, err: %v", err)
+		}
+	}
+	if nil != s.taskManager {
+		if err := s.taskManager.Start(); nil != err {
+			log.WithError(err).Errorf("Failed to start the taskManager, err: %v", err)
+		}
+	}
+	if nil != s.scheduler {
+		if err := s.scheduler.Start(); nil != err {
+			log.WithError(err).Errorf("Failed to start the scheduler, err: %v", err)
+		}
+	}
+
 	return nil
 }
 
