@@ -22,15 +22,18 @@ import (
 func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskDetailListResponse, error) {
 	tasks, err := svr.B.GetTaskDetailList()
 	if nil != err {
+		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskListStr)
 	}
 	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
 	for i, task := range tasks {
 		t := &pb.GetTaskDetailResponse{
 			Information: types.ConvertTaskDetailShowToPB(task),
+			Role: task.Role,
 		}
 		arr[i] = t
 	}
+	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}", len(arr))
 	return &pb.GetTaskDetailListResponse{
 		Status:   0,
 		Msg:      backend.OK,
@@ -42,9 +45,10 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 
 	events, err := svr.B.GetTaskEventList(req.TaskId)
 	if nil != err {
+		log.WithError(err).Errorf("RPC-API:GetTaskEventList failed, taskId: {%s}", req.TaskId)
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventListStr)
 	}
-
+	log.Debugf("RPC-API:GetTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.TaskId, len(events))
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
@@ -57,9 +61,10 @@ func (svr *TaskServiceServer) GetTaskEventListByTaskIds (ctx context.Context, re
 
 	events, err := svr.B.GetTaskEventListByTaskIds(req.TaskIds)
 	if nil != err {
+		log.WithError(err).Errorf("RPC-API:GetTaskEventListByTaskIds failed, taskId: {%v}", req.TaskIds)
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventListStr)
 	}
-
+	log.Debugf("RPC-API:GetTaskEventListByTaskIds succeed, taskId: {%v},  eventList len: {%d}", req.TaskIds, len(events))
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,

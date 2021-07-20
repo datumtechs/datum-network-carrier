@@ -227,7 +227,7 @@ func (s *CarrierAPIBackend) GetRegisterNode(typ types.RegisteredNodeType, id str
 }
 
 func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	nodeList, err :=  s.carrier.carrierDB.GetRegisterNodeList(typ)
+	nodeList, err := s.carrier.carrierDB.GetRegisterNodeList(typ)
 	if nil != err {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 				jobNode.ConnState = types.CONNECTED
 			}
 
-			table ,err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
+			table, err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
 			if nil != err {
 				continue
 			}
@@ -385,8 +385,11 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				if err != nil {
 					continue
 				}
+
+				// 封装任务 摘要 ...
 				powerTask := &types.PowerTask{
 					TaskId: taskId,
+					TaskName: task.TaskData().TaskName,
 					Owner: &types.NodeAlias{
 						Name:       task.TaskData().GetNodeName(),
 						NodeId:     task.TaskData().GetNodeId(),
@@ -400,15 +403,22 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 						Bandwidth: uint64(task.TaskData().GetTaskResource().GetCostBandwidth()),
 						Duration:  uint64(task.TaskData().GetTaskResource().GetDuration()),
 					},
-					OperationSpend: nil,
+					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
+					CreateAt: task.TaskData().CreateAt,
 				}
-				for _, partner := range task.TaskData().GetPartnerList() {
-					powerTask.Patners = append(powerTask.Patners, &types.NodeAlias{
-						Name:       partner.GetNodeName(),
-						NodeId:     partner.GetNodeId(),
-						IdentityId: partner.GetIdentity(),
-					})
+				for _, dataSupplier := range task.TaskData().MetadataSupplier {
+					// 协作方, 需要过滤掉自己
+					if task.TaskData().GetNodeId() != dataSupplier.Organization.Identity {
+						powerTask.Patners = append(powerTask.Patners, &types.NodeAlias{
+							Name:       dataSupplier.Organization.GetNodeName(),
+							NodeId:     dataSupplier.Organization.GetNodeId(),
+							IdentityId: dataSupplier.Organization.GetIdentity(),
+						})
+					}
+
 				}
+
+				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
 				powerTask.OperationSpend = &types.TaskOperationCost{
 					Processor: slotUint.Processor * slotCount,
@@ -485,24 +495,60 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
-	if err != nil {
+
+	if rawdb.IsNotDBFoundErr(err) {
 		return nil, err
 	}
 	localIdentityId, err := s.carrier.carrierDB.GetIdentityId()
 	if err != nil {
 		return nil, err
 	}
-	result := make(types.TaskDataArray, 0)
-	result = append(result, localTaskArray...)
+
 	// the task has been executed.
 	networkTaskList, err := s.carrier.carrierDB.GetTaskList()
+	if rawdb.IsNotDBFoundErr(err) {
+		return nil, err
+	}
+
+	result := make([]*types.TaskDetailShow, 0)
+	for _, task := range localTaskArray {
+		result = append(result, types.NewTaskDetailShowFromTaskData(task, types.TaskRoleOwner.String()))
+	}
+
 	for _, networkTask := range networkTaskList {
-		if networkTask.TaskData().GetIdentity() != localIdentityId {
+
+		// task 发起方
+		if networkTask.TaskData().GetIdentity() == localIdentityId {
+			result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRoleOwner.String()))
 			continue
 		}
-		result = append(result, networkTask)
+
+		// task 参与方
+		for _, dataSupplier := range networkTask.TaskData().MetadataSupplier {
+			if dataSupplier.Organization.Identity == localIdentityId {
+				result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRoleDataSupplier.String()))
+				continue
+			}
+		}
+
+		// 算力提供方
+		for _, powerSupplier := range networkTask.TaskData().ResourceSupplier {
+			if powerSupplier.Organization.Identity == localIdentityId {
+				result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRolePowerSupplier.String()))
+				continue
+			}
+		}
+
+		// 数据接收方
+		for _, receiver := range networkTask.TaskData().Receivers {
+			if receiver.Receiver.Identity == localIdentityId {
+				result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRoleReceiver.String()))
+				continue
+			}
+		}
 	}
-	return types.NewTaskDetailShowArrayFromTaskDataArray(result), err
+
+	return result, err
 }
 
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
