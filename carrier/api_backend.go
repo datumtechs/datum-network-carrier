@@ -235,6 +235,16 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 	if typ == types.PREFIX_TYPE_JOBNODE {
 		for i, jobNode := range nodeList {
 
+			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(jobNode.Id)
+			if !ok {
+				jobNode.ConnState = types.NONCONNECTED
+			}
+			if !client.IsConnected() {
+				jobNode.ConnState = types.NONCONNECTED
+			} else {
+				jobNode.ConnState = types.CONNECTED
+			}
+
 			table ,err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
 			if nil != err {
 				continue
