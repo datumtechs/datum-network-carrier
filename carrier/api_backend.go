@@ -3,6 +3,7 @@ package carrier
 import (
 	"errors"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -24,13 +25,13 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 // system (the yarn node self info)
 func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	if nil != err {
-		log.Error("Failed to get all job nodes, on GetNodeInfo(), err:", err)
+	if rawdb.IsNotDBFoundErr(err) {
+		log.Error("Failed to get all `job nodes`, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
 	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
-	if nil != err {
-		log.Error("Failed to get all data nodes, on GetNodeInfo(), err:", err)
+	if rawdb.IsNotDBFoundErr(err) {
+		log.Error("Failed to get all `data nodes, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
 	jobsLen := len(jobNodes)
