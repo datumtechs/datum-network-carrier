@@ -215,6 +215,11 @@ func (p *TestP2P) PeerID() peer.ID {
 	return p.BHost.ID()
 }
 
+// PeerID returns the node ID of the local peer.
+func (p *TestP2P) NodeId() string {
+	return ""
+}
+
 // Host returns the libp2p host of the
 // local peer.
 func (p *TestP2P) Host() host.Host {
