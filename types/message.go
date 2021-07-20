@@ -97,32 +97,20 @@ func (msg *IdentityRevokeMsg) MsgType() string { return MSG_IDENTITY_REVOKE }
 
 type PowerMsg struct {
 	// This is only used when marshaling to JSON.
-	PowerId string `json:"powerId"`
-	Data    *powerData
+	PowerId   string `json:"powerId"`
+	JobNodeId string `json:"jobNodeId"`
+	CreateAt  uint64 `json:"createAt"`
 	// caches
 	hash atomic.Value
 }
 
 func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
-	return &PowerMsg{
-		Data: &powerData{
-			NodeAlias: &NodeAlias{
-				Name:       req.Owner.Name,
-				NodeId:     req.Owner.NodeId,
-				IdentityId: req.Owner.IdentityId,
-			},
-			JobNodeId: req.JobNodeId,
-			Information: struct {
-				Mem       uint64 `json:"mem,omitempty"`
-				Processor uint64 `json:"processor,omitempty"`
-				Bandwidth uint64 `json:"bandwidth,omitempty"`
-			}{
-				Mem:       req.Information.Mem,
-				Processor: req.Information.Processor,
-				Bandwidth: req.Information.Bandwidth,
-			},
-		},
+	msg := &PowerMsg{
+		JobNodeId: req.JobNodeId,
+		CreateAt: uint64(time.Now().UnixNano()),
 	}
+	msg.GetPowerId()
+	return msg
 }
 
 type powerData struct {
@@ -143,63 +131,59 @@ type PowerRevokeMsg struct {
 
 func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMsg {
 	return &PowerRevokeMsg{
-		NodeAlias: &NodeAlias{
-			Name:       req.Owner.Name,
-			NodeId:     req.Owner.NodeId,
-			IdentityId: req.Owner.IdentityId,
-		},
 		PowerId: req.PowerId,
+		CreateAt: uint64(time.Now().UnixNano()),
 	}
 }
 
 type PowerMsgs []*PowerMsg
 type PowerRevokeMsgs []*PowerRevokeMsg
 
-func (msg *PowerMsg) ToLocal() *LocalResource {
-	return NewLocalResource(&libTypes.LocalResourceData{
-		Identity:  msg.OwnerIdentityId(),
-		NodeId:    msg.OwnerNodeId(),
-		NodeName:  msg.OwnerName(),
-		JobNodeId: msg.JobNodeId(),
-		DataId:    msg.PowerId,
-		// the status of data, N means normal, D means deleted.
-		DataStatus: ResourceDataStatusN.String(),
-		// resource status, eg: create/release/revoke
-		State: PowerStateRelease.String(),
-		// unit: byte
-		TotalMem: msg.Memory(),
-		// unit: byte
-		UsedMem: 0,
-		// number of cpu cores.
-		TotalProcessor: msg.Processor(),
-		UsedProcessor:  0,
-		// unit: byte
-		TotalBandWidth: msg.Bandwidth(),
-		UsedBandWidth:  0,
-	})
-}
-func (msg *PowerMsg) ToDataCenter() *Resource {
-	return NewResource(&libTypes.ResourceData{
-		Identity: msg.OwnerIdentityId(),
-		NodeId:   msg.OwnerNodeId(),
-		NodeName: msg.OwnerName(),
-		DataId:   msg.PowerId,
-		// the status of data, N means normal, D means deleted.
-		DataStatus: ResourceDataStatusN.String(),
-		// resource status, eg: create/release/revoke
-		State: PowerStateRelease.String(),
-		// unit: byte
-		TotalMem: msg.Memory(),
-		// unit: byte
-		UsedMem: 0,
-		// number of cpu cores.
-		TotalProcessor: msg.Processor(),
-		UsedProcessor:  0,
-		// unit: byte
-		TotalBandWidth: msg.Bandwidth(),
-		UsedBandWidth:  0,
-	})
-}
+//func (msg *PowerMsg) ToLocal() *LocalResource {
+//	return NewLocalResource(&libTypes.LocalResourceData{
+//		Identity:  msg.OwnerIdentityId(),
+//		NodeId:    msg.OwnerNodeId(),
+//		NodeName:  msg.OwnerName(),
+//		JobNodeId: msg.JobNodeId(),
+//		DataId:    msg.PowerId,
+//		// the status of data, N means normal, D means deleted.
+//		DataStatus: ResourceDataStatusN.String(),
+//		// resource status, eg: create/release/revoke
+//		State: PowerStateRelease.String(),
+//		// unit: byte
+//		TotalMem: msg.Memory(),
+//		// unit: byte
+//		UsedMem: 0,
+//		// number of cpu cores.
+//		TotalProcessor: msg.Processor(),
+//		UsedProcessor:  0,
+//		// unit: byte
+//		TotalBandWidth: msg.Bandwidth(),
+//		UsedBandWidth:  0,
+//	})
+//}
+//func (msg *PowerMsg) ToDataCenter() *Resource {
+//	return NewResource(&libTypes.ResourceData{
+//		Identity: msg.OwnerIdentityId(),
+//		NodeId:   msg.OwnerNodeId(),
+//		NodeName: msg.OwnerName(),
+//		DataId:   msg.PowerId,
+//		// the status of data, N means normal, D means deleted.
+//		DataStatus: ResourceDataStatusN.String(),
+//		// resource status, eg: create/release/revoke
+//		State: PowerStateRelease.String(),
+//		// unit: byte
+//		TotalMem: msg.Memory(),
+//		// unit: byte
+//		UsedMem: 0,
+//		// number of cpu cores.
+//		TotalProcessor: msg.Processor(),
+//		UsedProcessor:  0,
+//		// unit: byte
+//		TotalBandWidth: msg.Bandwidth(),
+//		UsedBandWidth:  0,
+//	})
+//}
 func (msg *PowerMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerMsg) String() string {
@@ -210,60 +194,63 @@ func (msg *PowerMsg) String() string {
 	return string(result)
 }
 func (msg *PowerMsg) MsgType() string { return MSG_POWER }
-func (msg *PowerMsg) Onwer() *NodeAlias {
-	return &NodeAlias{
-		Name:       msg.Data.Name,
-		NodeId:     msg.Data.NodeId,
-		IdentityId: msg.Data.IdentityId,
-	}
-}
 
-func (msg *PowerMsg) OwnerName() string       { return msg.Data.Name }
-func (msg *PowerMsg) OwnerNodeId() string     { return msg.Data.NodeId }
-func (msg *PowerMsg) OwnerIdentityId() string { return msg.Data.IdentityId }
-func (msg *PowerMsg) JobNodeId() string       { return msg.Data.JobNodeId }
-func (msg *PowerMsg) Memory() uint64          { return msg.Data.Information.Mem }
-func (msg *PowerMsg) Processor() uint64       { return msg.Data.Information.Processor }
-func (msg *PowerMsg) Bandwidth() uint64       { return msg.Data.Information.Bandwidth }
-func (msg *PowerMsg) CreateAt() uint64        { return msg.Data.CreateAt }
+func (msg *PowerMsg) GetJobNodeId() string    { return msg.JobNodeId }
+func (msg *PowerMsg) GetCreateAt() uint64        { return msg.CreateAt }
 func (msg *PowerMsg) GetPowerId() string {
 	if "" != msg.PowerId {
 		return msg.PowerId
 	}
-	msg.PowerId = PREFIX_POWER_ID + msg.Hash().Hex()
+	msg.PowerId = PREFIX_POWER_ID + msg.HashByCreateTime().Hex()
 	return msg.PowerId
 }
+
 func (msg *PowerMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlputil.RlpHash(msg.Data)
+	v := rlputil.RlpHash([]interface{}{
+		msg.JobNodeId,
+	})
 	msg.hash.Store(v)
 	return v
 }
 
-func (msg *PowerRevokeMsg) ToDataCenter() *Resource {
-	return NewResource(&libTypes.ResourceData{
-		Identity: msg.IdentityId,
-		NodeId:   msg.NodeId,
-		NodeName: msg.Name,
-		DataId:   msg.PowerId,
-		// the status of data, N means normal, D means deleted.
-		DataStatus: ResourceDataStatusD.String(),
-		// resource status, eg: create/release/revoke
-		State: PowerStateRevoke.String(),
-		// unit: byte
-		TotalMem: 0,
-		// unit: byte
-		UsedMem: 0,
-		// number of cpu cores.
-		TotalProcessor: 0,
-		UsedProcessor:  0,
-		// unit: byte
-		TotalBandWidth: 0,
-		UsedBandWidth:  0,
+func (msg *PowerMsg) HashByCreateTime() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	v := rlputil.RlpHash([]interface{}{
+		msg.JobNodeId,
+		msg.CreateAt,
+		//uint64(time.Now().UnixNano()),
 	})
+	msg.hash.Store(v)
+	return v
 }
+
+//func (msg *PowerRevokeMsg) ToDataCenter() *Resource {
+//	return NewResource(&libTypes.ResourceData{
+//		Identity: msg.IdentityId,
+//		NodeId:   msg.NodeId,
+//		NodeName: msg.Name,
+//		DataId:   msg.PowerId,
+//		// the status of data, N means normal, D means deleted.
+//		DataStatus: ResourceDataStatusD.String(),
+//		// resource status, eg: create/release/revoke
+//		State: PowerStateRevoke.String(),
+//		// unit: byte
+//		TotalMem: 0,
+//		// unit: byte
+//		UsedMem: 0,
+//		// number of cpu cores.
+//		TotalProcessor: 0,
+//		UsedProcessor:  0,
+//		// unit: byte
+//		TotalBandWidth: 0,
+//		UsedBandWidth:  0,
+//	})
+//}
 func (msg *PowerRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerRevokeMsg) String() string {
@@ -280,7 +267,7 @@ func (s PowerMsgs) Len() int { return len(s) }
 
 // Swap swaps the i'th and the j'th element in s.
 func (s PowerMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s PowerMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Data.CreateAt }
+func (s PowerMsgs) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
 
 // ------------------- metaData -------------------
 
@@ -318,6 +305,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 				},
 				ColumnMetas: make([]*types.ColumnMeta, 0),
 			},
+			CreateAt: uint64(time.Now().UnixNano()),
 		},
 	}
 }
@@ -366,6 +354,7 @@ func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDat
 			IdentityId: req.Owner.IdentityId,
 		},
 		MetaDataId: req.MetaDataId,
+		CreateAt: uint64(time.Now().UnixNano()),
 	}
 }
 
@@ -479,9 +468,9 @@ func (s MetaDataMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Dat
 
 type TaskBullet struct {
 	UnschedTask *UnSchedTaskWrap
-	Starve  bool
-	Term    uint32
-	Resched uint32
+	Starve      bool
+	Term        uint32
+	Resched     uint32
 }
 
 func NewTaskBulletByTaskMsg(msg *TaskMsg) *TaskBullet {
@@ -531,22 +520,21 @@ func (h *TaskBullets) DecreaseTerm() {
 	}
 }
 
-
 type UnSchedTaskWrap struct {
-	Data   *Task
+	Data          *Task
 	PowerPartyIds []string `json:"powerPartyIds"`
 }
-func NewUnSchedTaskWrap (task *Task, powerPartyIds []string) *UnSchedTaskWrap {
+
+func NewUnSchedTaskWrap(task *Task, powerPartyIds []string) *UnSchedTaskWrap {
 	return &UnSchedTaskWrap{
-		Data: task,
+		Data:          task,
 		PowerPartyIds: powerPartyIds,
 	}
 }
 
-
 type TaskMsg struct {
-	TaskId string `json:"taskId"`
-	Data   *Task
+	TaskId        string `json:"taskId"`
+	Data          *Task
 	PowerPartyIds []string `json:"powerPartyIds"`
 	// caches
 	hash atomic.Value
@@ -555,7 +543,7 @@ type TaskMsg struct {
 func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 
 	return &TaskMsg{
-		TaskId:     "",
+		TaskId:        "",
 		PowerPartyIds: req.PowerPartyIds,
 		Data: NewTask(&libTypes.TaskData{
 			TaskId:     "",
@@ -585,12 +573,10 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 				CostBandwidth: req.OperationCost.CostBandwidth,
 				Duration:      req.OperationCost.Duration,
 			},
-
-
 		}),
 	}
 }
-func ConvertTaskMsgToTaskWithPowers(task *Task, powers  []*libTypes.TaskResourceSupplierData) *Task {
+func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libTypes.TaskResourceSupplierData) *Task {
 	task.SetResourceSupplierArr(powers)
 
 	if len(powers) == 0 {
@@ -600,7 +586,7 @@ func ConvertTaskMsgToTaskWithPowers(task *Task, powers  []*libTypes.TaskResource
 	// 组装 选出来的, powerSuppliers 到 receivers 中
 	privors := make([]*libTypes.OrganizationData, len(powers))
 	for i, supplier := range powers {
-		privors[i] =  supplier.Organization
+		privors[i] = supplier.Organization
 	}
 
 	for i, _ := range task.TaskData().Receivers {
@@ -663,7 +649,9 @@ func (msg *TaskMsg) TaskMetadataSuppliers() []*libTypes.OrganizationData {
 	}
 	return partners
 }
-func (msg *TaskMsg) TaskMetadataSupplierDatas () []*libTypes.TaskMetadataSupplierData { return msg.Data.data.MetadataSupplier }
+func (msg *TaskMsg) TaskMetadataSupplierDatas() []*libTypes.TaskMetadataSupplierData {
+	return msg.Data.data.MetadataSupplier
+}
 
 func (msg *TaskMsg) TaskResourceSuppliers() []*libTypes.OrganizationData {
 	powers := make([]*libTypes.OrganizationData, len(msg.Data.data.ResourceSupplier))
@@ -677,12 +665,14 @@ func (msg *TaskMsg) TaskResourceSuppliers() []*libTypes.OrganizationData {
 	}
 	return powers
 }
-func (msg *TaskMsg) TaskResourceSupplierDatas () []*libTypes.TaskResourceSupplierData { return msg.Data.data.ResourceSupplier }
-func (msg *TaskMsg) GetPowerPartyIds() []string               { return msg.PowerPartyIds }
+func (msg *TaskMsg) TaskResourceSupplierDatas() []*libTypes.TaskResourceSupplierData {
+	return msg.Data.data.ResourceSupplier
+}
+func (msg *TaskMsg) GetPowerPartyIds() []string { return msg.PowerPartyIds }
 func (msg *TaskMsg) GetReceivers() []*libTypes.OrganizationData {
 	receivers := make([]*libTypes.OrganizationData, len(msg.Data.data.Receivers))
 	for i, v := range msg.Data.data.Receivers {
-		receivers[i] =  &libTypes.OrganizationData{
+		receivers[i] = &libTypes.OrganizationData{
 			PartyId:  v.Receiver.PartyId,
 			NodeName: v.Receiver.NodeName,
 			NodeId:   v.Receiver.NodeId,
@@ -691,12 +681,14 @@ func (msg *TaskMsg) GetReceivers() []*libTypes.OrganizationData {
 	}
 	return receivers
 }
-func (msg *TaskMsg) TaskResultReceiverDatas() []*libTypes.TaskResultReceiverData { return msg.Data.data.Receivers }
-func (msg *TaskMsg) CalculateContractCode() string          { return msg.Data.data.CalculateContractCode }
-func (msg *TaskMsg) DataSplitContractCode() string          { return msg.Data.data.DataSplitContractCode }
-func (msg *TaskMsg) ContractExtraParams() string            { return msg.Data.data.ContractExtraParams }
-func (msg *TaskMsg) OperationCost() *libTypes.TaskResourceData      { return msg.Data.data.TaskResource }
-func (msg *TaskMsg) CreateAt() uint64                       { return msg.Data.data.CreateAt }
+func (msg *TaskMsg) TaskResultReceiverDatas() []*libTypes.TaskResultReceiverData {
+	return msg.Data.data.Receivers
+}
+func (msg *TaskMsg) CalculateContractCode() string             { return msg.Data.data.CalculateContractCode }
+func (msg *TaskMsg) DataSplitContractCode() string             { return msg.Data.data.DataSplitContractCode }
+func (msg *TaskMsg) ContractExtraParams() string               { return msg.Data.data.ContractExtraParams }
+func (msg *TaskMsg) OperationCost() *libTypes.TaskResourceData { return msg.Data.data.TaskResource }
+func (msg *TaskMsg) CreateAt() uint64                          { return msg.Data.data.CreateAt }
 func (msg *TaskMsg) SetTaskId() string {
 	if "" != msg.TaskId {
 		return msg.TaskId
@@ -915,12 +907,12 @@ Example:
     "train_task_id": "task_id"
   }
 }
- */
+*/
 type FighterTaskReadyGoReqContractCfg struct {
-	PartyId     string          `json:"party_id"`
-	DataParty struct{
-		InputFile  string      `json:"input_file"`
-		IdColumnName string    `json:"id_column_name"`  // 目前 默认只会用一列, 后面再拓展 ..
-	}  `json:"data_party"`
-	DynamicParameter   map[string]interface{}  `json:"dynamic_parameter"`
+	PartyId   string `json:"party_id"`
+	DataParty struct {
+		InputFile    string `json:"input_file"`
+		IdColumnName string `json:"id_column_name"` // 目前 默认只会用一列, 后面再拓展 ..
+	} `json:"data_party"`
+	DynamicParameter map[string]interface{} `json:"dynamic_parameter"`
 }

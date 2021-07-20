@@ -103,7 +103,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		if nil == power {
 			return nil
 		}
-		pool.powerMsgQueue.popBy(power.CreateAt())
+		pool.powerMsgQueue.popBy(power.CreateAt)
 		// We've directly injected a replacement powerRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokePower,

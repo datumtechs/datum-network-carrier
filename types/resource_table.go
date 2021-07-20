@@ -22,9 +22,13 @@ var (
 
 	DefaultDisk = uint64(10*1024*1024*1024*1024*1024)  //10pb
 )
+func GetDefaultResoueceMem () uint64 { return DefaultResouece.mem }
+func GetDefaultResoueceProcessor () uint64 { return DefaultResouece.processor }
+func GetDefaultResoueceBandwidth () uint64 { return DefaultResouece.bandwidth }
 
 type LocalResourceTable struct {
 	nodeId       string    // Resource node id
+	powerId      string
 	nodeResource *resource // The total resource on the node
 	assign       bool      // Whether to assign the slot tag
 	slotTotal    uint32    // The total number of slots are allocated on the resource of this node
@@ -33,6 +37,7 @@ type LocalResourceTable struct {
 }
 type localResourceTableRlp struct {
 	NodeId    string // node id
+	PowerId   string
 	Mem       uint64
 	Processor uint64
 	Bandwidth uint64
@@ -41,9 +46,10 @@ type localResourceTableRlp struct {
 	SlotUsed  uint32 // The number of slots that have been used on the resource of the node
 }
 
-func NewLocalResourceTable(nodeId string, mem, processor, bandwidth uint64) *LocalResourceTable {
+func NewLocalResourceTable(nodeId, powerId string, mem, processor, bandwidth uint64) *LocalResourceTable {
 	return &LocalResourceTable{
 		nodeId: nodeId,
+		powerId: powerId,
 		//nodeResource: &resource{
 		//	mem:       mem,
 		//	processor: processor,
@@ -54,6 +60,7 @@ func NewLocalResourceTable(nodeId string, mem, processor, bandwidth uint64) *Loc
 	}
 }
 func (r *LocalResourceTable) GetNodeId() string    { return r.nodeId }
+func (r *LocalResourceTable) GetPowerId() string    { return r.powerId }
 func (r *LocalResourceTable) GetMem() uint64       { return r.nodeResource.mem }
 func (r *LocalResourceTable) GetProcessor() uint64 { return r.nodeResource.processor }
 func (r *LocalResourceTable) GetBandwidth() uint64 { return r.nodeResource.bandwidth }
@@ -119,6 +126,7 @@ func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
 func (r *LocalResourceTable) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, localResourceTableRlp{
 		NodeId:    r.nodeId,
+		PowerId:   r.powerId,
 		Mem:       r.nodeResource.mem,
 		Processor: r.nodeResource.processor,
 		Bandwidth: r.nodeResource.bandwidth,
@@ -134,8 +142,8 @@ func (r *LocalResourceTable) DecodeRLP(s *rlp.Stream) error {
 	err := s.Decode(&dec)
 	if err == nil {
 		nodeResource := &resource{mem: dec.Mem, processor: dec.Processor, bandwidth: dec.Bandwidth}
-		r.nodeId, r.assign, r.slotTotal, r.slotUsed, r.nodeResource =
-			dec.NodeId, dec.Assign, dec.SlotTotal, dec.SlotUsed, nodeResource
+		r.nodeId, r.powerId, r.assign, r.slotTotal, r.slotUsed, r.nodeResource =
+			dec.NodeId, dec.PowerId, dec.Assign, dec.SlotTotal, dec.SlotUsed, nodeResource
 	}
 	return err
 }

@@ -39,8 +39,8 @@ func newPowerMsgList(all *msgLookup) *PowerMsgList {
 	}
 }
 func (lis *PowerMsgList) put(msg *types.PowerMsg) {
-	heap.Push(lis.prioty, msg.CreateAt())
-	lis.items[msg.CreateAt()], lis.cache = msg, nil
+	heap.Push(lis.prioty, msg.CreateAt)
+	lis.items[msg.CreateAt], lis.cache = msg, nil
 }
 
 func (lis *PowerMsgList) get(createAt uint64) *types.PowerMsg {

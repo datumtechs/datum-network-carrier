@@ -6,7 +6,6 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"time"
 )
 
 //
@@ -53,6 +52,8 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 		respList[i] = resp
 	}
 	return &pb.GetPowerTotalDetailListResponse{
+		Status: 0,
+		Msg: backend.OK,
 		PowerList: respList,
 	}, nil
 }
@@ -82,17 +83,17 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 		respList[i] = resp
 	}
 	return &pb.GetPowerSingleDetailListResponse{
+		Status: 0,
+		Msg: backend.OK,
 		PowerList: respList,
 	}, nil
 }
 
 func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
-	if req == nil || req.Owner == nil {
+	if req == nil {
 		return nil, errors.New("required owner")
 	}
-	if req.Information == nil {
-		return nil, errors.New("required information")
-	}
+
 	
 	powerMsg := types.NewPowerMessageFromRequest(req)
 	powerId := powerMsg.GetPowerId()
@@ -110,14 +111,13 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 }
 
 func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
-	if req == nil || req.Owner == nil {
+	if req == nil {
 		return nil, errors.New("required owner")
 	}
 	if req.PowerId == "" {
 		return nil, errors.New("required powerId")
 	}
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
-	powerRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 
 	err := svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {

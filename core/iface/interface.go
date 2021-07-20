@@ -29,41 +29,46 @@ type LocalStoreCarrierDB interface {
     //RemoveLocalResourceIdByMetaDataId(metaDataId string) error
     //QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error)
 
-	// about jobRerource
+	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
 	RemoveLocalResourceTable(resourceId string) error
 	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
 	QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error)
 	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
-	// about Org power resource
+	// about Org power resource (identityId -> {identityId, resourceTotal, resourceUsed})
 	StoreOrgResourceTable(resource *types.RemoteResourceTable) error
 	StoreOrgResourceTables(resources []*types.RemoteResourceTable) error
 	RemoveOrgResourceTable(identityId string) error
 	QueryOrgResourceTable(identityId string) (*types.RemoteResourceTable, error)
 	QueryOrgResourceTables() ([]*types.RemoteResourceTable, error)
-	// about slotUnit
+	// about slotUnit (key -> slotUnit)
 	StoreNodeResourceSlotUnit(slot *types.Slot) error
 	RemoveNodeResourceSlotUnit() error
 	QueryNodeResourceSlotUnit() (*types.Slot, error)
-	// about TaskPowerUsed
+	// about TaskPowerUsed  (taskId -> {taskId, jobNodeId, slotCount})
 	StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error
 	StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error
 	RemoveLocalTaskPowerUsed(taskId string) error
 	QueryLocalTaskPowerUsed(taskId string) (*types.LocalTaskPowerUsed, error)
 	QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error)
-	// about DataResourceTable
+	// resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
+	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
+	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
+	GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
+	GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
+	// about DataResourceTable (dataNodeId -> {dataNodeId, totalDisk, usedDisk})
 	StoreDataResourceTable(StoreDataResourceTables *types.DataResourceTable) error
 	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
 	RemoveDataResourceTable(nodeId string) error
 	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
-	// about DataResourceFileUpload
+	// about DataResourceFileUpload (originId -> {originId, dataNodeId, metaDataId, filePath})
 	StoreDataResourceFileUpload(dataResourceFileUpload *types.DataResourceFileUpload) error
 	StoreDataResourceFileUploads(dataResourceFileUploads []*types.DataResourceFileUpload) error
 	RemoveDataResourceFileUpload(originId string) error
 	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
-	// about DataResourceDiskUsed
+	// about DataResourceDiskUsed (metaDataId -> {metaDataId, dataNodeId, diskUsed})
     StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
     RemoveDataResourceDiskUsed(metaDataId string) error
     QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
@@ -102,10 +107,7 @@ type TaskCarrierDB interface {
 	GetLocalTask(taskId string) (*types.Task, error)
 	GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
 	GetLocalTaskList() (types.TaskDataArray, error)
-	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
-	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
-	GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
-	GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
+
 	// about task on datacenter
 	InsertTask(task *types.Task) error
 	GetTaskList() (types.TaskDataArray, error)
