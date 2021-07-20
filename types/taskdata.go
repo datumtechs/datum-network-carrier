@@ -115,6 +115,7 @@ func (s TaskDataArray) To() []*libTypes.TaskData {
 type TaskDetailShow struct {
 	TaskId        string                   `json:"taskId"`
 	TaskName      string                   `json:"taskName"`
+	Role 		  string 					`json:"role"`
 	Owner         *TaskNodeAlias               `json:"owner"`
 	AlgoSupplier  *TaskNodeAlias               `json:"algoSupplier"`
 	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`

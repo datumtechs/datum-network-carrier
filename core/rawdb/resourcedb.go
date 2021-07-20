@@ -16,6 +16,9 @@ var (
 func IsNotDBFoundErr(err error) bool {
 	return nil != err && err != ErrNotFound
 }
+func IsDBFoundErr (err error) bool {
+	return nil != err && err == ErrNotFound
+}
 
 // 操作 本组织 计算服务的资源
 func StoreNodeResource(db KeyValueStore, resource *types.LocalResourceTable) error {
