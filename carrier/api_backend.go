@@ -226,7 +226,34 @@ func (s *CarrierAPIBackend) GetRegisterNode(typ types.RegisteredNodeType, id str
 }
 
 func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
-	return s.carrier.carrierDB.GetRegisterNodeList(typ)
+	nodeList, err :=  s.carrier.carrierDB.GetRegisterNodeList(typ)
+	if nil != err {
+		return nil, err
+	}
+
+	// 需要处理 计算服务 信息
+	if typ == types.PREFIX_TYPE_JOBNODE {
+		for i, jobNode := range nodeList {
+
+			table ,err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
+			if nil != err {
+				continue
+			}
+			if nil != table {
+				jobNode.ConnState = types.ENABLE_POWER
+			}
+			taskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(jobNode.Id)
+			if nil != err {
+				continue
+			}
+			if taskCount > 0 {
+				jobNode.ConnState = types.BUSY_POWER
+			}
+			nodeList[i] = jobNode
+		}
+	}
+
+	return nodeList, nil
 }
 
 func (s *CarrierAPIBackend) SendTaskEvent(event *types.TaskEventInfo) error {
@@ -389,31 +416,31 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	}
 	//
 	result := make([]*types.NodePowerDetail, 0)
-	for _, jobNode := range machineList.To() {
+	for _, resource := range machineList.To() {
 		nodePowerDetail := &types.NodePowerDetail{
 			Owner: &types.NodeAlias{
-				Name:       jobNode.GetNodeName(),
-				NodeId:     jobNode.GetNodeId(),
-				IdentityId: jobNode.GetIdentity(),
+				Name:       resource.GetNodeName(),
+				NodeId:     resource.GetNodeId(),
+				IdentityId: resource.GetIdentity(),
 			},
 			PowerDetail: &types.PowerSingleDetail{
-				JobNodeId:        jobNode.GetJobNodeId(),
+				JobNodeId:        resource.GetJobNodeId(),
 				PowerId:          "",
-				TotalTaskCount:   uint32(taskCount(jobNode.GetJobNodeId())),
-				CurrentTaskCount: uint32(taskCount(jobNode.GetJobNodeId())),
+				TotalTaskCount:   uint32(taskCount(resource.GetJobNodeId())),
+				CurrentTaskCount: uint32(taskCount(resource.GetJobNodeId())),
 				Tasks:            make([]*types.PowerTask, 0),
 				ResourceUsage: &types.ResourceUsage{
-					TotalMem:       jobNode.GetTotalMem(),
-					UsedMem:        jobNode.GetUsedMem(),
-					TotalProcessor: jobNode.GetTotalProcessor(),
-					UsedProcessor:  jobNode.GetUsedProcessor(),
-					TotalBandwidth: jobNode.GetTotalBandWidth(),
-					UsedBandwidth:  jobNode.GetUsedBandWidth(),
+					TotalMem:       resource.GetTotalMem(),
+					UsedMem:        resource.GetUsedMem(),
+					TotalProcessor: resource.GetTotalProcessor(),
+					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalBandwidth: resource.GetTotalBandWidth(),
+					UsedBandwidth:  resource.GetUsedBandWidth(),
 				},
-				State: jobNode.GetState(),
+				State: resource.GetState(),
 			},
 		}
-		powerTaskArray := buildPowerTaskList(jobNode.JobNodeId)
+		powerTaskArray := buildPowerTaskList(resource.JobNodeId)
 		nodePowerDetail.PowerDetail.Tasks = powerTaskArray
 		result = append(result, nodePowerDetail)
 	}

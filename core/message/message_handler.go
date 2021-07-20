@@ -263,39 +263,84 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 }
 
 func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
+
+	identity, err := m.dataCenter.GetIdentity()
+	if nil != err {
+		return fmt.Errorf("Failed to broadcast powerMsgs, query local identityInfo failed, {%s}", err)
+	}
+
 	errs := make([]string, 0)
 	for _, power := range powerMsgs {
 		// 存储本地的 资源信息
-		if err := m.dataCenter.StoreLocalResourceTable(types.NewLocalResourceTable(power.JobNodeId(),
-			power.Memory(), power.Processor(), power.Bandwidth())); nil != err {
+		if err := m.dataCenter.StoreLocalResourceTable(types.NewLocalResourceTable(power.JobNodeId, power.PowerId,
+			types.GetDefaultResoueceMem(), types.GetDefaultResoueceProcessor(), types.GetDefaultResoueceBandwidth())); nil != err {
 			log.Errorf("Failed to StoreLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err)
+				power.PowerId, power.JobNodeId, err)
 			errs = append(errs, fmt.Sprintf("failed to StoreLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err))
+				power.PowerId, power.JobNodeId, err))
 			continue
 		}
 
-		if err := m.dataCenter.StoreLocalResourceIdByPowerId(power.PowerId, power.JobNodeId()); nil != err {
+		if err := m.dataCenter.StoreLocalResourceIdByPowerId(power.PowerId, power.JobNodeId); nil != err {
 			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err)
+				power.PowerId, power.JobNodeId, err)
 			errs = append(errs, fmt.Sprintf("failed to StoreLocalResourceIdByPowerId on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err))
+				power.PowerId, power.JobNodeId, err))
 			continue
 		}
-		if err := m.dataCenter.InsertLocalResource(power.ToLocal()); nil != err {
+		if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libTypes.LocalResourceData{
+			Identity:  identity.IdentityId,
+			NodeId:    identity.NodeId,
+			NodeName:  identity.Name,
+			JobNodeId: power.JobNodeId,
+			DataId:    power.PowerId,
+			// the status of data, N means normal, D means deleted.
+			DataStatus: types.ResourceDataStatusN.String(),
+			// resource status, eg: create/release/revoke
+			State: types.PowerStateRelease.String(),
+			// unit: byte
+			TotalMem: types.GetDefaultResoueceMem(),  // todo 使用 默认的资源大小
+			// unit: byte
+			UsedMem: 0,
+			// number of cpu cores.
+			TotalProcessor: types.GetDefaultResoueceProcessor(),  // todo 使用 默认的资源大小
+			UsedProcessor:  0,
+			// unit: byte
+			TotalBandWidth: types.GetDefaultResoueceBandwidth(),    // todo 使用 默认的资源大小
+			UsedBandWidth:  0,
+		})); nil != err {
 			log.Errorf("Failed to store power to local on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err)
+				power.PowerId, power.JobNodeId, err)
 			errs = append(errs, fmt.Sprintf("failed to store power to local on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err))
+				power.PowerId, power.JobNodeId, err))
 			continue
 		}
 
 		// 发布到全网
-		if err := m.dataCenter.InsertResource(power.ToDataCenter()); nil != err {
+		if err := m.dataCenter.InsertResource(types.NewResource(&libTypes.ResourceData{
+			Identity:  identity.IdentityId,
+			NodeId:    identity.NodeId,
+			NodeName:  identity.Name,
+			DataId:    power.PowerId,
+			// the status of data, N means normal, D means deleted.
+			DataStatus: types.ResourceDataStatusN.String(),
+			// resource status, eg: create/release/revoke
+			State: types.PowerStateRelease.String(),
+			// unit: byte
+			TotalMem: types.GetDefaultResoueceMem(),  // todo 使用 默认的资源大小
+			// unit: byte
+			UsedMem: 0,
+			// number of cpu cores.
+			TotalProcessor: types.GetDefaultResoueceProcessor(),  // todo 使用 默认的资源大小
+			UsedProcessor:  0,
+			// unit: byte
+			TotalBandWidth: types.GetDefaultResoueceBandwidth(),    // todo 使用 默认的资源大小
+			UsedBandWidth:  0,
+		})); nil != err {
 			log.Errorf("Failed to store power to dataCenter on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err)
+				power.PowerId, power.JobNodeId, err)
 			errs = append(errs, fmt.Sprintf("failed to store power to dataCenter on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				power.PowerId, power.JobNodeId(), err))
+				power.PowerId, power.JobNodeId, err))
 			continue
 		}
 
@@ -307,6 +352,12 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 }
 
 func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRevokeMsgs) error {
+
+	identity, err := m.dataCenter.GetIdentity()
+	if nil != err {
+		return fmt.Errorf("Failed to broadcast powerRevokeMsgs, query local identityInfo failed, {%s}", err)
+	}
+
 	errs := make([]string, 0)
 	for _, revoke := range powerRevokeMsgs {
 
@@ -340,15 +391,28 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 				revoke.PowerId, jobNodeId, err))
 			continue
 		}
-		if err := m.dataCenter.RemoveLocalResource(jobNodeId); nil != err {
-			log.Errorf("Failed to RemoveLocalResource on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				revoke.PowerId, jobNodeId, err)
-			errs = append(errs, fmt.Sprintf("filed to RemoveLocalResource on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-				revoke.PowerId, jobNodeId, err))
-			continue
-		}
 
-		if err := m.dataCenter.InsertResource(revoke.ToDataCenter()); nil != err {
+
+		if err := m.dataCenter.InsertResource(types.NewResource(&libTypes.ResourceData{
+			Identity:  identity.IdentityId,
+			NodeId:    identity.NodeId,
+			NodeName:  identity.Name,
+			DataId:    revoke.PowerId,
+			// the status of data, N means normal, D means deleted.
+			DataStatus: types.ResourceDataStatusD.String(),
+			// resource status, eg: create/release/revoke
+			State: types.PowerStateRevoke.String(),
+			// unit: byte
+			TotalMem: 0,
+			// unit: byte
+			UsedMem: 0,
+			// number of cpu cores.
+			TotalProcessor: 0,
+			UsedProcessor:  0,
+			// unit: byte
+			TotalBandWidth: 0,
+			UsedBandWidth:  0,
+		})); nil != err {
 			log.Error("Failed to remove dataCenter resource on MessageHandler, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)
 			errs = append(errs, fmt.Sprintf("failed to remove dataCenter resource on MessageHandler, jobNodeId: {%s}, err: {%s}",

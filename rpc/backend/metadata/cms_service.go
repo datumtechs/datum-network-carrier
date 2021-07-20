@@ -7,7 +7,6 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"time"
 )
 
 //func (svr *MetaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataSummaryListResponse, error) {
@@ -89,7 +88,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 		return nil, errors.New("required columnMeta of information")
 	}
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
-	metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
+	//metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
@@ -122,7 +121,7 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 		return nil, errors.New("required owner")
 	}
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
-	metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	//metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
 	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetaData failed")

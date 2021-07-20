@@ -9,23 +9,25 @@ import (
 
 type NodeConnStatus int32
 type RegisteredNodeType string
-func (status NodeConnStatus) Int32() int32 {return int32(status)}
-func (typ RegisteredNodeType) String() string {return string(typ)}
+
+func (status NodeConnStatus) Int32() int32    { return int32(status) }
+func (typ RegisteredNodeType) String() string { return string(typ) }
 
 const (
-	CONNECTED             NodeConnStatus = 0
-	NONCONNECTED          NodeConnStatus = -1
-	ENABLECOMPUTERESOURCE NodeConnStatus = 1
+	CONNECTED    NodeConnStatus = 0 // 连接上就是未启用算力
+	NONCONNECTED NodeConnStatus = -1
+	ENABLE_POWER NodeConnStatus = 1 // 启用算力
+	BUSY_POWER   NodeConnStatus = 2 // 算力被占用(有任务在执行 ...)
+
 )
 
 const (
 	PREFIX_TYPE_YARNNODE RegisteredNodeType = "yarnNode"
-	PREFIX_TYPE_JOBNODE RegisteredNodeType = "jobNode"
+	PREFIX_TYPE_JOBNODE  RegisteredNodeType = "jobNode"
 	PREFIX_TYPE_DATANODE RegisteredNodeType = "dataNode"
 
-
 	PREFIX_SEEDNODE_ID = "seed:"
-	PREFIX_JOBNODE_ID = "jobNode:"
+	PREFIX_JOBNODE_ID  = "jobNode:"
 	PREFIX_DATANODE_ID = "dataNode:"
 )
 
@@ -45,9 +47,10 @@ type RegisteredNodeInfo struct {
 	ConnState    NodeConnStatus `json:"connState"`
 }
 type RegisteredNodeDetail struct {
-	NodeType 			string 				`json:"nodeType"`
+	NodeType string `json:"nodeType"`
 	*RegisteredNodeInfo
 }
+
 func (seed *SeedNodeInfo) SeedNodeId() string {
 	if "" != seed.Id {
 		return seed.Id
@@ -73,11 +76,11 @@ func (seed *SeedNodeInfo) hashByCreateTime() (h common.Hash) {
 	d := &struct {
 		InternalIp   string
 		InternalPort string
-		CreateTime  uint64
+		CreateTime   uint64
 	}{
 		InternalIp:   seed.InternalIp,
 		InternalPort: seed.InternalPort,
-		CreateTime: uint64(time.Now().UnixNano()),
+		CreateTime:   uint64(time.Now().UnixNano()),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])
@@ -101,16 +104,16 @@ func (node *RegisteredNodeInfo) SetDataNodeId() string {
 func (node *RegisteredNodeInfo) hash(typ RegisteredNodeType) (h common.Hash) {
 	hw := sha3.NewKeccak256()
 	d := &struct {
-		Type 		RegisteredNodeType
+		Type         RegisteredNodeType
 		InternalIp   string
 		InternalPort string
 		ExternalIp   string
 		ExternalPort string
 	}{
-		Type: typ,
+		Type:         typ,
 		InternalIp:   node.InternalIp,
 		InternalPort: node.InternalPort,
-		ExternalIp: node.ExternalIp,
+		ExternalIp:   node.ExternalIp,
 		ExternalPort: node.ExternalPort,
 	}
 	rlp.Encode(hw, d)
@@ -118,22 +121,22 @@ func (node *RegisteredNodeInfo) hash(typ RegisteredNodeType) (h common.Hash) {
 	return h
 }
 
-func (node *RegisteredNodeInfo) hashByCreateTime (typ RegisteredNodeType) (h common.Hash) {
+func (node *RegisteredNodeInfo) hashByCreateTime(typ RegisteredNodeType) (h common.Hash) {
 	hw := sha3.NewKeccak256()
 	d := &struct {
-		Type 		RegisteredNodeType
+		Type         RegisteredNodeType
 		InternalIp   string
 		InternalPort string
 		ExternalIp   string
 		ExternalPort string
 		CreateAt     uint64
 	}{
-		Type: typ,
+		Type:         typ,
 		InternalIp:   node.InternalIp,
 		InternalPort: node.InternalPort,
-		ExternalIp: node.ExternalIp,
+		ExternalIp:   node.ExternalIp,
 		ExternalPort: node.ExternalPort,
-		CreateAt:  uint64(time.Now().UnixNano()),
+		CreateAt:     uint64(time.Now().UnixNano()),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])

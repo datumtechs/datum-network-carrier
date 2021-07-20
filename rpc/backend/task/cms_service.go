@@ -82,38 +82,6 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
 	partners := make([]*libTypes.TaskMetadataSupplierData, len(req.DataSupplier))
-	//for i, v := range req.DataSupplier {
-	//
-	//	metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
-	//	if nil != err {
-	//		return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}", v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
-	//	}
-	//
-	//	columnArr := make([]*libTypes.ColumnMeta, len(v.MetaDataInfo.ColumnIndexList))
-	//	for j, index := range v.MetaDataInfo.ColumnIndexList {
-	//		col := metaData.MetaData.ColumnMetas[index]
-	//		columnArr[j] = &libTypes.ColumnMeta{
-	//			Cindex:   col.Cindex,
-	//			Ctype:    col.Ctype,
-	//			Cname:    col.Cname,
-	//			Csize:    col.Csize,
-	//			Ccomment: col.Ccomment,
-	//		}
-	//	}
-	//
-	//	partners[i] = &libTypes.TaskMetadataSupplierData{
-	//		Organization: &libTypes.OrganizationData{
-	//			PartyId:  v.MemberInfo.PartyId,
-	//			NodeName: v.MemberInfo.Name,
-	//			NodeId:   v.MemberInfo.NodeId,
-	//			Identity: v.MemberInfo.IdentityId,
-	//		},
-	//		MetaId:     v.MetaDataInfo.MetaDataId,
-	//		MetaName:   metaData.MetaData.MetaDataSummary.TableName,
-	//		ColumnList: columnArr,
-	//	}
-	//}
-
 	taskMsg.Data.SetMetadataSupplierArr(partners)
 
 	receivers := make([]*libTypes.TaskResultReceiverData, len(req.Receivers))
