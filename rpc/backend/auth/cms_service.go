@@ -19,7 +19,6 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 	}
 
 	if "" == strings.Trim(req.Member.IdentityId, "") ||
-		"" == strings.Trim(req.Member.NodeId, "") ||
 		"" == strings.Trim(req.Member.Name, "") {
 		return &pb.SimpleResponseCode{
 			Status: 0,
@@ -27,10 +26,11 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 		}, nil
 	}
 
+
 	identityMsg.NodeAlias = &types.NodeAlias{}
 	identityMsg.Name = req.Member.Name
 	identityMsg.IdentityId = req.Member.IdentityId
-	identityMsg.NodeId = req.Member.NodeId
+	//identityMsg.NodeId = req.Member.NodeId
 	identityMsg.CreateAt = uint64(time.Now().UnixNano())
 
 	err := svr.B.SendMsg(identityMsg)

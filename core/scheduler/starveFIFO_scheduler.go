@@ -8,8 +8,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -137,7 +137,7 @@ func (sche *SchedulerStarveFIFO) Start() error {
 }
 func (sche *SchedulerStarveFIFO) Stop() error  { return nil } // TODO 未实现 ...
 func (sche *SchedulerStarveFIFO) Error() error { return sche.err }
-func (sche *SchedulerStarveFIFO) Name() string   { return "SchedulerStarveFIFO" }
+func (sche *SchedulerStarveFIFO) Name() string { return "SchedulerStarveFIFO" }
 func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
 	heap.Push(sche.queue, bullet) //
 }
@@ -426,7 +426,6 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 
 	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
 	case types.ResultSupplier:
-
 
 		// TODO 判断 task 中对应自己的 privors  是否符合 自己预期 (如: 是否和  powerSuppliers 一致?? 一期 先不做校验了 ...)
 
