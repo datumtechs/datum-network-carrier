@@ -659,7 +659,8 @@ func (dc *DataCenter) QueryLocalTaskPowerUsed(taskId string) (*types.LocalTaskPo
 func (dc *DataCenter) QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryLocalTaskPowerUseds(dc.db)
+	res, _ := rawdb.QueryLocalTaskPowerUseds(dc.db)
+	return res, nil
 }
 
 // about DataResourceTable
