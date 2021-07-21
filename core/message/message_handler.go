@@ -296,7 +296,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			JobNodeId: power.JobNodeId,
 			DataId:    power.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusN.String(),
+			DataStatus: types.DataStatusNormal.String(),
 			// resource status, eg: create/release/revoke
 			State: types.PowerStateRelease.String(),
 			// unit: byte
@@ -324,7 +324,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			NodeName:  identity.Name,
 			DataId:    power.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusN.String(),
+			DataStatus: types.DataStatusNormal.String(),
 			// resource status, eg: create/release/revoke
 			State: types.PowerStateRelease.String(),
 			// unit: byte
@@ -400,7 +400,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 			NodeName:  identity.Name,
 			DataId:    revoke.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.ResourceDataStatusD.String(),
+			DataStatus: types.DataStatusDeleted.String(),
 			// resource status, eg: create/release/revoke
 			State: types.PowerStateRevoke.String(),
 			// unit: byte

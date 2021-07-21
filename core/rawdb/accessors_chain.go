@@ -106,7 +106,6 @@ func HasHeader(db DatabaseReader, hash common.Hash, number uint64) bool {
 
 // ReadHeader retrieves the block header corresponding to the hash.
 func ReadHeader(db DatabaseReader, hash common.Hash, number uint64) *types.Header {
-	// todo: protobuf or rlp, consider.............
 	data := ReadHeaderPB(db, hash, number)
 	if len(data) == 0 {
 		return nil

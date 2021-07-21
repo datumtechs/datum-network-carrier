@@ -1,12 +1,12 @@
 package types
 
-type ResourceDataStatus string
+type DataStatus string
 
-func (r ResourceDataStatus) String() string { return string(r) }
+func (r DataStatus) String() string { return string(r) }
 
 const (
-	ResourceDataStatusN ResourceDataStatus = "N"
-	ResourceDataStatusD ResourceDataStatus = "D"
+	DataStatusNormal  DataStatus = "N"
+	DataStatusDeleted DataStatus = "D"
 )
 
 type YarnState string

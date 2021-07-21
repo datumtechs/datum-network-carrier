@@ -53,7 +53,7 @@ func (m *Manager) Start() error {
 	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
 	if nil != err {
 		log.Warn("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
-	}else {
+	} else {
 		m.SetSlotUnit(slotUnit.Mem, slotUnit.Processor, slotUnit.Bandwidth)
 	}
 
@@ -102,6 +102,7 @@ func (m *Manager) SetSlotUnit(mem, p, b uint64) {
 	//}
 }
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
+
 //func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
 //
 //	table, err := m.GetLocalResourceTable(nodeId)
@@ -233,7 +234,6 @@ func (m *Manager) refreshOrgResourceTable() error {
 	return nil
 }
 
-
 // TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
 func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint64, task *types.Task) error {
 
@@ -277,7 +277,7 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 }
 
 // TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
-func  (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
+func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 
 	localTaskPowerUsed, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId)
 	if nil != err {
@@ -315,4 +315,3 @@ func  (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 	log.Infof("Finished unlock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", taskId, localTaskPowerUsed.GetNodeId(), localTaskPowerUsed.GetSlotCount())
 	return nil
 }
-

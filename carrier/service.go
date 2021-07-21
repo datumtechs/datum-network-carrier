@@ -171,7 +171,7 @@ func (s *Service) Stop() error {
 	if s.cancel != nil {
 		defer s.cancel()
 	}
-	// todo: could add some logic for here
+	// todo: could add some logic for here（some logic for stop.）
 	return nil
 }
 
