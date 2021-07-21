@@ -168,21 +168,21 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadataSummaryList() {
 		metadata := NewMetadata(&libTypes.MetaData{
-			Identity:             v.GetOwner().GetIdentityId(),
-			NodeId:               v.GetOwner().GetNodeId(),
-			NodeName:  			  v.GetOwner().GetName(),
-			DataId:               v.GetInformation().GetMetaDataId(),
-			DataStatus:           "N",	// todo: 待定
-			OriginId:             v.GetInformation().GetOriginId(),
-			TableName:            v.GetInformation().GetTableName(),
-			FilePath:             v.GetInformation().GetFilePath(),
-			Desc:                 v.GetInformation().GetDesc(),
-			Rows:                 uint64(v.GetInformation().GetRows()),
-			Columns:              uint64(v.GetInformation().GetColumns()),
-			Size_:                v.GetInformation().GetSize_(),
-			FileType:             v.GetInformation().GetFileType(),
-			State:                v.GetInformation().GetState(),
-			HasTitleRow:          v.GetInformation().GetHasTitle(),
+			Identity:    v.GetOwner().GetIdentityId(),
+			NodeId:      v.GetOwner().GetNodeId(),
+			NodeName:    v.GetOwner().GetName(),
+			DataId:      v.GetInformation().GetMetaDataId(),
+			DataStatus:  DataStatusNormal.String(),
+			OriginId:    v.GetInformation().GetOriginId(),
+			TableName:   v.GetInformation().GetTableName(),
+			FilePath:    v.GetInformation().GetFilePath(),
+			Desc:        v.GetInformation().GetDesc(),
+			Rows:        uint64(v.GetInformation().GetRows()),
+			Columns:     uint64(v.GetInformation().GetColumns()),
+			Size_:       v.GetInformation().GetSize_(),
+			FileType:    v.GetInformation().GetFileType(),
+			State:       v.GetInformation().GetState(),
+			HasTitleRow: v.GetInformation().GetHasTitle(),
 			ColumnMetaList:       make([]*libTypes.ColumnMeta, 0),
 		})
 		metadataArray = append(metadataArray, metadata)
@@ -198,7 +198,7 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 			NodeId:               v.GetOwner().GetNodeId(),
 			NodeName:  			  v.GetOwner().GetName(),
 			DataId:               v.GetMetaSummary().GetMetaDataId(),
-			DataStatus:           "N",	// todo: 待定
+			DataStatus:           DataStatusNormal.String(),
 			OriginId:             v.GetMetaSummary().GetOriginId(),
 			TableName:            v.GetMetaSummary().GetTableName(),
 			FilePath:             v.GetMetaSummary().GetFilePath(),
@@ -238,7 +238,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetName(),
 			DataId:     "", // todo: to be determined
-			DataStatus: "", // todo: to be determined
+			DataStatus: DataStatusNormal.String(),
 			State:      v.GetPower().GetState(),
 			TotalMem:   v.GetPower().GetInformation().GetTotalMem(),
 			UsedMem:    v.GetPower().GetInformation().GetUsedMem(),
