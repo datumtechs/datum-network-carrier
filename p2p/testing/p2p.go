@@ -3,6 +3,7 @@ package testing
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
@@ -213,6 +214,15 @@ func (p *TestP2P) Disconnect(pid peer.ID) error {
 // PeerID returns the Peer ID of the local peer.
 func (p *TestP2P) PeerID() peer.ID {
 	return p.BHost.ID()
+}
+
+// PeerID returns the node ID of the local peer.
+func (p *TestP2P) NodeId() string {
+	return ""
+}
+
+func (p *TestP2P) PirKey() *ecdsa.PrivateKey {
+	return nil
 }
 
 // Host returns the libp2p host of the
