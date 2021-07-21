@@ -335,6 +335,10 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 				proposalId.String(), taskId, taskRole.String(), partyId, identityId, nodeId, err)
 			return
 		}
+
+		log.Debugf("Succceed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, nodeId: %s",
+			proposalId.String(), taskId, taskRole.String(), partyId, identityId, nodeId)
+
 		errCh <- nil
 	}
 
@@ -405,6 +409,9 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 			return
 		}
 
+		log.Debugf("Succceed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s",
+			proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId)
+
 		errCh <- nil
 	}
 
@@ -473,6 +480,9 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 			errCh <- err
 			return
 		}
+
+		log.Debugf("Succceed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s",
+			proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId)
 
 		errCh <- nil
 	}
