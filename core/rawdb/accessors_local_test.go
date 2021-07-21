@@ -30,7 +30,7 @@ func TestLocalTask(t *testing.T) {
 	}
 	WriteLocalTask(database, types.NewTask(data01))
 
-	res := ReadLocalTask(database, data01.TaskId)
+	res, _ := ReadLocalTask(database, data01.TaskId)
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.TaskId()))
 
 	// test update state
@@ -38,22 +38,22 @@ func TestLocalTask(t *testing.T) {
 	DeleteLocalTask(database, data01.TaskId)
 	WriteLocalTask(database, res)
 
-	res = ReadLocalTask(database, data01.TaskId)
+	res, _ = ReadLocalTask(database, data01.TaskId)
 	assert.Equal(t, "failed", res.TaskData().State)
 
-	taskList := ReadAllLocalTasks(database)
+	taskList, _ := ReadAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 1)
 
 	// delete
 	DeleteLocalTask(database, data01.TaskId)
 
-	taskList = ReadAllLocalTasks(database)
+	taskList, _ = ReadAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 0)
 
 	// delete
 	DeleteSeedNodes(database)
 
-	taskList = ReadAllLocalTasks(database)
+	taskList, _ = ReadAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 0)
 }
 
@@ -69,24 +69,24 @@ func TestSeedNode(t *testing.T) {
 	WriteSeedNodes(database, seedNodeInfo)
 
 	// get seed
-	rseed := ReadSeedNode(database, "id")
+	rseed, _ := ReadSeedNode(database, "id")
 	t.Logf("seed info : %v", rseed)
 	assert.Assert(t, strings.EqualFold("id", rseed.Id))
 
 	// read all
-	seedNodes := ReadAllSeedNodes(database)
+	seedNodes, _ := ReadAllSeedNodes(database)
 	assert.Assert(t, len(seedNodes) == 1)
 
 	// delete
 	DeleteSeedNode(database, "id")
 
-	seedNodes = ReadAllSeedNodes(database)
+	seedNodes, _ = ReadAllSeedNodes(database)
 	assert.Assert(t, len(seedNodes) == 0)
 
 	// delete
 	DeleteSeedNodes(database)
 
-	seedNodes = ReadAllSeedNodes(database)
+	seedNodes, _ = ReadAllSeedNodes(database)
 	assert.Assert(t, len(seedNodes) == 0)
 }
 
@@ -104,24 +104,24 @@ func TestRegisteredNode(t *testing.T) {
 	WriteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE, registered)
 
 	// get seed
-	r := ReadRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
+	r, _ := ReadRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
 	t.Logf("registered info : %v", r)
 	assert.Assert(t, strings.EqualFold("id", r.Id))
 
 	// read all
-	registeredNodes := ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ := ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
 	assert.Assert(t, len(registeredNodes) == 1)
 
 	// delete
 	DeleteRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
 
-	registeredNodes = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
 	assert.Assert(t, len(registeredNodes) == 0)
 
 	// delete
 	DeleteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
 
-	registeredNodes = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
 	assert.Assert(t, len(registeredNodes) == 0)
 }
 
@@ -145,18 +145,18 @@ func TestTaskEvent(t *testing.T) {
 	}
 	WriteTaskEvent(database, taskEvent2)
 
-	revent := ReadTaskEvent(database, "taskEventTaskId")
+	revent, _ := ReadTaskEvent(database, "taskEventTaskId")
 	t.Logf("task evengine info : %v", len(revent))
 	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].Identity))
 
 	// read all
-	taskEvents := ReadAllTaskEvents(database)
+	taskEvents, _ := ReadAllTaskEvents(database)
 	assert.Assert(t, len(taskEvents) == 2)
 
 	// delete
 	DeleteTaskEvent(database, "taskEventTaskId")
 
-	taskEvents = ReadAllTaskEvents(database)
+	taskEvents, _ = ReadAllTaskEvents(database)
 	assert.Assert(t, len(taskEvents) == 0)
 }
 
@@ -170,13 +170,13 @@ func TestLocalIdentity(t *testing.T) {
 	WriteLocalIdentity(database, nodeAlias)
 	WriteLocalIdentity(database, nodeAlias)
 
-	rnode := ReadLocalIdentity(database)
+	rnode, _ := ReadLocalIdentity(database)
 	assert.Equal(t, rnode.IdentityId, nodeAlias.IdentityId)
 	assert.Equal(t, rnode.NodeId, nodeAlias.NodeId)
 	assert.Equal(t, rnode.Name, nodeAlias.Name)
 
 	DeleteLocalIdentity(database)
-	rnode = ReadLocalIdentity(database)
+	rnode, _ = ReadLocalIdentity(database)
 	assert.Equal(t, rnode.IdentityId, "")
 	assert.Equal(t, rnode.NodeId, "")
 	assert.Equal(t, rnode.Name, "")
@@ -220,13 +220,13 @@ func TestLocalResource(t *testing.T) {
 	}
 	WriteLocalResource(database, types.NewLocalResource(localResource02))
 
-	r1 := ReadLocalResource(database, localResource01.JobNodeId)
+	r1, _ := ReadLocalResource(database, localResource01.JobNodeId)
 	assert.Equal(t, types.NewLocalResource(localResource01).Hash(), r1.Hash())
 
-	array := ReadAllLocalResource(database)
+	array, _ := ReadAllLocalResource(database)
 	require.True(t, array.Len() == 2)
 
 	DeleteLocalResource(database, localResource01.JobNodeId)
-	array = ReadAllLocalResource(database)
+	array, _ = ReadAllLocalResource(database)
 	require.True(t, array.Len() == 1)
 }
