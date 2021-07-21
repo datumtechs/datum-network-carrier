@@ -54,9 +54,21 @@ const (
 )
 
 type IdentityType string
+
 func (i IdentityType) String() string { return string(i) }
 
 const (
 	IdentityTypeCA  IdentityType = "CA"
 	IdentityTypeDID IdentityType = "DID"
+)
+
+type RoleInTask string
+
+func (r RoleInTask) String() string { return string(r) }
+
+const (
+	TaskRoleOwner         RoleInTask = "owner"
+	TaskRoleDataSupplier  RoleInTask = "dataSupplier"
+	TaskRolePowerSupplier RoleInTask = "powerSupplier"
+	TaskRoleReceiver      RoleInTask = "receiver"
 )

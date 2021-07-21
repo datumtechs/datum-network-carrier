@@ -72,6 +72,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 	switch msg.(type) {
 	case *types.IdentityMsg:
 		identity, _ := msg.(*types.IdentityMsg)
+		// 先设置 本地节点的 nodeId
 		identity.NodeId = pool.cfg.NodeId
 		// We've directly injected a replacement identityMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{

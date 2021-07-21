@@ -2,6 +2,8 @@ package auth
 
 import (
 	"context"
+	"errors"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -10,30 +12,37 @@ import (
 )
 
 func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
+
+	identity, err := svr.B.GetNodeIdentity()
+	if rawdb.IsNotDBFoundErr(err) {
+		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
+			req.Member.IdentityId, req.Member.NodeId, req.Member.Name)
+		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
+	}
+
+	if identity.IdentityId() != "" {
+		log.Errorf("RPC-API:ApplyIdentityJoin failed, identity was already exist, old identityId: {%s}, old nodeId: {%s}, old nodeName: {%s}",
+			identity.IdentityId(), identity.NodeId(), identity.Name())
+		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
+	}
+
 	identityMsg := new(types.IdentityMsg)
 	if req.Member == nil {
-		return &pb.SimpleResponseCode{
-			Status: 0,
-			Msg:    "Invalid Params",
-		}, nil
+		return nil, errors.New("Invalid Params, req.Member is nil")
 	}
 
 	if "" == strings.Trim(req.Member.IdentityId, "") ||
-		"" == strings.Trim(req.Member.NodeId, "") ||
 		"" == strings.Trim(req.Member.Name, "") {
-		return &pb.SimpleResponseCode{
-			Status: 0,
-			Msg:    "Invalid Params",
-		}, nil
+		return nil, errors.New("Invalid Params, req.Member.IdentityId or req.Member.Name is empty")
 	}
 
 	identityMsg.NodeAlias = &types.NodeAlias{}
 	identityMsg.Name = req.Member.Name
 	identityMsg.IdentityId = req.Member.IdentityId
-	identityMsg.NodeId = req.Member.NodeId
+	//identityMsg.NodeId = req.Member.NodeId
 	identityMsg.CreateAt = uint64(time.Now().UnixNano())
 
-	err := svr.B.SendMsg(identityMsg)
+	err = svr.B.SendMsg(identityMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			req.Member.IdentityId, req.Member.NodeId, req.Member.Name)
@@ -48,12 +57,19 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 }
 
 func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.EmptyGetParams) (*pb.SimpleResponseCode, error) {
+
+	_, err := svr.B.GetNodeIdentity()
+	if rawdb.IsDBFoundErr(err) {
+		log.Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity", )
+		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsgStr)
+	}
+
 	identityRevokeMsg := new(types.IdentityRevokeMsg)
 	identityRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
-	err := svr.B.SendMsg(identityRevokeMsg)
+	err = svr.B.SendMsg(identityRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
+		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsgStr)
 	}
 	log.Debug("RPC-API:RevokeIdentityJoin succeed SendMsg")
 	return &pb.SimpleResponseCode{
