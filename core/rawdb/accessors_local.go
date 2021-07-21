@@ -749,7 +749,7 @@ func WriteLocalTask(db KeyValueStore, task *types.Task) {
 		}
 	}
 	array.TaskList = append(array.TaskList, task.TaskData())
-	data, err := array.Marshal() // TODO 这里序列化报错了
+	data, err := array.Marshal()
 	if err != nil {
 		log.WithError(err).Fatal("Failed to encode local task")
 	}
