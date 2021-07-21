@@ -46,31 +46,37 @@ type PowerSingleDetail struct {
 
 type PowerTask struct {
 	TaskId         string             `json:"taskId"`
+	TaskName       string             `json:"taskName"`
 	Owner          *NodeAlias         `json:"owner"`
 	Patners        []*NodeAlias       `json:"patners"`
 	Receivers      []*NodeAlias       `json:"receivers"`
 	OperationCost  *TaskOperationCost `json:"operationCost"`
 	OperationSpend *TaskOperationCost `json:"operationSpend"`
+	CreateAt       uint64             `json:"createAt"`
 }
 
 func ConvertPowerTaskToPB(task *PowerTask) *pb.PowerTask {
 	return &pb.PowerTask{
 		TaskId:         task.TaskId,
+		TaskName:       task.TaskName,
 		Owner:          ConvertNodeAliasToPB(task.Owner),
 		Patners:        ConvertNodeAliasArrToPB(task.Patners),
 		Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 		OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
 		OperationSpend: ConvertTaskOperationCostToPB(task.OperationSpend),
+		CreateAt:       task.CreateAt,
 	}
 }
 func ConvertPowerTaskFromPB(task *pb.PowerTask) *PowerTask {
 	return &PowerTask{
 		TaskId:         task.TaskId,
+		TaskName:       task.TaskName,
 		Owner:          ConvertNodeAliasFromPB(task.Owner),
 		Patners:        ConvertNodeAliasArrFromPB(task.Patners),
 		Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 		OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
 		OperationSpend: ConvertTaskOperationCostFromPB(task.OperationSpend),
+		CreateAt:       task.CreateAt,
 	}
 }
 
@@ -80,11 +86,13 @@ func ConvertPowerTaskArrToPB(tasks []*PowerTask) []*pb.PowerTask {
 	for i, task := range tasks {
 		t := &pb.PowerTask{
 			TaskId:         task.TaskId,
+			TaskName:       task.TaskName,
 			Owner:          ConvertNodeAliasToPB(task.Owner),
 			Patners:        ConvertNodeAliasArrToPB(task.Patners),
 			Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 			OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
 			OperationSpend: ConvertTaskOperationCostToPB(task.OperationSpend),
+			CreateAt:       task.CreateAt,
 		}
 		arr[i] = t
 	}
@@ -95,11 +103,13 @@ func ConvertPowerTaskArrFromPB(tasks []*pb.PowerTask) []*PowerTask {
 	for i, task := range tasks {
 		t := &PowerTask{
 			TaskId:         task.TaskId,
+			TaskName:       task.TaskName,
 			Owner:          ConvertNodeAliasFromPB(task.Owner),
 			Patners:        ConvertNodeAliasArrFromPB(task.Patners),
 			Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 			OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
 			OperationSpend: ConvertTaskOperationCostFromPB(task.OperationSpend),
+			CreateAt:       task.CreateAt,
 		}
 		arr[i] = t
 	}
@@ -115,4 +125,3 @@ type NodePowerDetail struct {
 	Owner       *NodeAlias         `json:"owner"`
 	PowerDetail *PowerSingleDetail `json:"powerDetail"`
 }
-

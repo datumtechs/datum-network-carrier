@@ -1,14 +1,24 @@
 package rawdb
 
 import (
-	"errors"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	leveldberr "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
 var (
-	ErrNotFound = errors.New("rawdb: not found")
+	//ErrNotFound = errors.New("rawdb: not found")
+	//ErrLeveldbNotFound = leveldberr.ErrNotFound
+
+	ErrNotFound = leveldberr.ErrNotFound
 )
+
+func IsNotDBFoundErr(err error) bool {
+	return nil != err && err != ErrNotFound
+}
+func IsDBFoundErr (err error) bool {
+	return nil != err && err == ErrNotFound
+}
 
 // 操作 本组织 计算服务的资源
 func StoreNodeResource(db KeyValueStore, resource *types.LocalResourceTable) error {

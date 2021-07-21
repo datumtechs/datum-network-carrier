@@ -220,6 +220,7 @@ func (m *MessageHandler) loop() {
 }
 
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
+
 	// add identity to local db
 	if err := m.dataCenter.StoreIdentity(msg.NodeAlias); nil != err {
 		log.Errorf("Failed to store local org identity on MessageHandler, identityId: {%s}, err: {%s}", msg.IdentityId, err)
