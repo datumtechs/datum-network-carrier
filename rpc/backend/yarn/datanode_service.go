@@ -11,6 +11,7 @@ import (
 func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*pb.SimpleResponseCode, error) {
 	dataNodeList, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if nil != err {
+		log.WithError(err).Error("RPC-API:ReportUpFileSummary failed, call GetRegisterNodeList() failed")
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	var resourceId string
@@ -21,10 +22,12 @@ func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.R
 		}
 	}
 	if "" == strings.Trim(resourceId, "") {
+		log.Error("RPC-API:ReportUpFileSummary failed, req.resourceId is empty")
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	err = svr.B.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(resourceId, req.OriginId, "", req.FilePath))
 	if nil != err {
+		log.WithError(err).Error("RPC-API:ReportUpFileSummary failed, call StoreDataResourceFileUpload() failed")
 		return nil, backend.NewRpcBizErr(ErrReportUpFileSummaryStr)
 	}
 	return &pb.SimpleResponseCode{
