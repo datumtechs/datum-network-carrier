@@ -571,8 +571,11 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 }
 func (m *Manager) handleDoneScheduleTask(taskId string) {
 
+	log.Debugf("Start handle DoneScheduleTask, taskId: {%s}", taskId)
+
 	task, ok := m.queryRunningTaskCacheOk(taskId)
 	if !ok {
+		log.Debugf("Failed to start handle DoneScheduleTask, not found local task cache, taskId: {%s}", taskId)
 		return
 	}
 

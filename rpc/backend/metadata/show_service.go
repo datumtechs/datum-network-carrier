@@ -10,6 +10,7 @@ import (
 func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
 	metaDataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
 	if nil != err {
+		log.WithError(err).Errorf("RPC-API:GetMetaDataDetailListByOwner failed, identityId: {%s}", req.IdentityId)
 		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailListStr)
 	}
 	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
@@ -20,7 +21,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Conte
 		}
 		respList[i] = resp
 	}
-
+	log.Debugf("RPC-API:GetMetaDataDetailListByOwner succeed, identityId: {%s}, metaDataList len: {%d}", req.IdentityId, len(respList))
 	return &pb.GetMetaDataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,

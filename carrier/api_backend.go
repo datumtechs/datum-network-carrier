@@ -360,7 +360,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	for _, taskPowerUsed := range localTaskPowerUsedList {
 		// condition: jobNode
 		usedArr, ok := validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()]
-		if  ok  {
+		if ok {
 			usedArr = append(usedArr, taskPowerUsed)
 		} else {
 			usedArr = make([]*types.LocalTaskPowerUsed, 0)
@@ -376,7 +376,6 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	//		validLocalTaskPowerUsedMap[jobNode.GetJobNodeId()] = usedArr
 	//	}
 	//}
-
 
 	readElement := func(jobNodeId string, taskId string) uint64 {
 		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
@@ -403,7 +402,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 
 				// 封装任务 摘要 ...
 				powerTask := &types.PowerTask{
-					TaskId: taskId,
+					TaskId:   taskId,
 					TaskName: task.TaskData().TaskName,
 					Owner: &types.NodeAlias{
 						Name:       task.TaskData().GetNodeName(),
@@ -419,7 +418,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 						Duration:  uint64(task.TaskData().GetTaskResource().GetDuration()),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
-					CreateAt: task.TaskData().CreateAt,
+					CreateAt:       task.TaskData().CreateAt,
 				}
 				for _, dataSupplier := range task.TaskData().MetadataSupplier {
 					// 协作方, 需要过滤掉自己
@@ -452,9 +451,10 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		return len(validLocalTaskPowerUsedMap[jobNodeId])
 	}
 
+	resourceList := machineList.To()
 	// 逐个处理当前
-	result := make([]*types.NodePowerDetail, 0)
-	for _, resource := range machineList.To() {
+	result := make([]*types.NodePowerDetail, len(resourceList))
+	for i, resource := range resourceList {
 		nodePowerDetail := &types.NodePowerDetail{
 			Owner: &types.NodeAlias{
 				Name:       resource.GetNodeName(),
@@ -480,7 +480,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		}
 		powerTaskArray := buildPowerTaskList(resource.GetJobNodeId())
 		nodePowerDetail.PowerDetail.Tasks = powerTaskArray
-		result = append(result, nodePowerDetail)
+		result[i] = nodePowerDetail
 	}
 	return result, nil
 }
