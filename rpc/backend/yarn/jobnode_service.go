@@ -8,17 +8,16 @@ import (
 )
 
 func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*pb.SimpleResponseCode, error) {
-	var err error
-	go func() {
-		err = svr.B.SendTaskEvent(&types.TaskEventInfo{
-			Type:       req.TaskEvent.Type,
-			Identity:   req.TaskEvent.IdentityId,
-			TaskId:     req.TaskEvent.TaskId,
-			Content:    req.TaskEvent.Content,
-			CreateTime: req.TaskEvent.CreateAt,
-		})
-	}()
+	log.Debugf("RPC-API:ReportTaskEvent, req: {%v}", req)
+	err := svr.B.SendTaskEvent(&types.TaskEventInfo{
+		Type:       req.TaskEvent.Type,
+		Identity:   req.TaskEvent.IdentityId,
+		TaskId:     req.TaskEvent.TaskId,
+		Content:    req.TaskEvent.Content,
+		CreateTime: req.TaskEvent.CreateAt,
+	})
 	if nil != err {
+		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
 		return nil, backend.NewRpcBizErr(ErrReportTaskEventStr)
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil

@@ -168,7 +168,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 		return types.NONCONNECTED, errors.New("invalid nodeType")
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
-		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.ExternalIp, node.ExternalPort), node.Id)
+		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
 			return types.NONCONNECTED, err
 		}
@@ -345,7 +345,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	if err != nil {
 		return nil, err
 	}
-	// query used of power for local task.
+	// query used of power for local task. : taskId -> {taskId, jobNodeId, slotCount}
 	localTaskPowerUsedList, err := s.carrier.carrierDB.QueryLocalTaskPowerUseds()
 	if err != nil {
 		return nil, err
@@ -354,20 +354,33 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	if err != nil {
 		return nil, err
 	}
+
+	// 收集 本地所有的 jonNode 上的 powerUsed 数组
 	validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
-	for _, jobNode := range machineList {
-		validLocalTaskPowerUsedList := make([]*types.LocalTaskPowerUsed, 0)
-		for _, taskPowerUsed := range localTaskPowerUsedList {
-			// condition: jobNode
-			if jobNode.GetJobNodeId() == taskPowerUsed.GetNodeId() {
-				validLocalTaskPowerUsedList = append(validLocalTaskPowerUsedList, taskPowerUsed)
-			}
+	for _, taskPowerUsed := range localTaskPowerUsedList {
+		// condition: jobNode
+		usedArr, ok := validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()]
+		if  ok  {
+			usedArr = append(usedArr, taskPowerUsed)
+		} else {
+			usedArr = make([]*types.LocalTaskPowerUsed, 0)
 		}
-		validLocalTaskPowerUsedMap[jobNode.GetJobNodeId()] = validLocalTaskPowerUsedList
+		validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()] = usedArr
 	}
+
+	//// 收集 本地所有 计算资源的 powerUsed 数组
+	//validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
+	//for _, jobNode := range machineList {
+	//	// condition: jobNode
+	//	if usedArr, ok := localTaskPowerUsedTmp[jobNode.GetJobNodeId()]; ok {
+	//		validLocalTaskPowerUsedMap[jobNode.GetJobNodeId()] = usedArr
+	//	}
+	//}
+
+
 	readElement := func(jobNodeId string, taskId string) uint64 {
-		if arr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
-			for _, powerUsed := range arr {
+		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
+			for _, powerUsed := range usedArr {
 				if jobNodeId == powerUsed.GetNodeId() && powerUsed.GetTaskId() == taskId {
 					return powerUsed.GetSlotCount()
 				}
@@ -378,8 +391,10 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 
 	buildPowerTaskList := func(jobNodeId string) []*types.PowerTask {
 		powerTaskList := make([]*types.PowerTask, 0)
-		if arr, ok := validLocalTaskPowerUsedMap[jobNodeId]; !ok {
-			for _, powerUsed := range arr {
+
+		// 逐个 处理 jobNodeId 上的 task 信息
+		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
+			for _, powerUsed := range usedArr {
 				taskId := powerUsed.GetTaskId()
 				task, err := s.carrier.carrierDB.GetLocalTask(taskId)
 				if err != nil {
@@ -432,10 +447,12 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		return powerTaskList
 	}
 
+	// 计算 jobNodeId 上的 task 数量
 	taskCount := func(jobNodeId string) int {
 		return len(validLocalTaskPowerUsedMap[jobNodeId])
 	}
-	//
+
+	// 逐个处理当前
 	result := make([]*types.NodePowerDetail, 0)
 	for _, resource := range machineList.To() {
 		nodePowerDetail := &types.NodePowerDetail{
@@ -446,7 +463,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 			},
 			PowerDetail: &types.PowerSingleDetail{
 				JobNodeId:        resource.GetJobNodeId(),
-				PowerId:          "",
+				PowerId:          resource.DataId,
 				TotalTaskCount:   uint32(taskCount(resource.GetJobNodeId())),
 				CurrentTaskCount: uint32(taskCount(resource.GetJobNodeId())),
 				Tasks:            make([]*types.PowerTask, 0),
@@ -461,7 +478,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				State: resource.GetState(),
 			},
 		}
-		powerTaskArray := buildPowerTaskList(resource.JobNodeId)
+		powerTaskArray := buildPowerTaskList(resource.GetJobNodeId())
 		nodePowerDetail.PowerDetail.Tasks = powerTaskArray
 		result = append(result, nodePowerDetail)
 	}
