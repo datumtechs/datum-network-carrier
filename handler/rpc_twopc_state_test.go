@@ -92,7 +92,7 @@ func TestPrepareMsgRPCHandler_SendsPrepareMsg(t *testing.T) {
 
 	prepareMsg := &twopcpb.PrepareMsg{
 		ProposalId:           []byte("proposalId"),
-		TaskOption:           &twopcpb.TaskOption{},
+		TaskInfo:             []byte{},
 		CreateAt:             uint64(timeutils.Now().Unix()),
 		Sign:                 make([]byte, 64),
 	}
