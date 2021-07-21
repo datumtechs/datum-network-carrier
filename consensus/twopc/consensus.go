@@ -241,6 +241,9 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 			IdentityId: task.TaskData().NodeName,
 		},
 		now)
+
+	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalHash, task.TaskId())
+
 	// add proposal
 	t.addProposalState(proposalState)
 	// add task
