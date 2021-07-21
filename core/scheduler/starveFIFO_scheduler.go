@@ -202,8 +202,13 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 				sche.SendTaskToTaskManager(failedTask)
 			} else {
 				if bullet.Starve {
+					// 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
+					log.Debugf("Task repush  into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+						bullet.UnschedTask.Data.TaskId(), bullet.Resched, ReschedMaxCount)
 					heap.Push(sche.starveQueue, bullet)
 				} else {
+					log.Debugf("Task repush  into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+						bullet.UnschedTask.Data.TaskId(), bullet.Resched, ReschedMaxCount)
 					heap.Push(sche.queue, bullet)
 				}
 			}

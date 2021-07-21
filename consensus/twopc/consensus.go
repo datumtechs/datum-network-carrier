@@ -98,7 +98,11 @@ func (t *TwoPC) loop() {
 		case taskWrap := <-t.schedTaskCh:
 			// Start a goroutine to process a new schedTask
 			go func() {
+
+				log.Debugf("Start consensus task on 2pc consensus engine, taskId: {%s}", taskWrap.Task.TaskId())
+
 				if err := t.OnPrepare(taskWrap.Task); nil != err {
+					log.Errorf("Failed to call `OnPrepare()` on 2pc consensus engine, taskId: {%s}, err: {%s}", taskWrap.Task.TaskId(), err)
 					taskWrap.SendResult(&types.ConsensuResult{
 						TaskConsResult: &types.TaskConsResult{
 							TaskId: taskWrap.Task.TaskId(),
@@ -110,7 +114,7 @@ func (t *TwoPC) loop() {
 					return
 				}
 				if err := t.OnHandle(taskWrap.Task, taskWrap.OwnerDataResource, taskWrap.ResultCh); nil != err {
-					log.Error("Failed to OnHandle 2pc", "err", err)
+					log.Errorf("Failed to call `OnHandle()` on 2pc consensus engine, taskId: {%s}, err: {%s}", taskWrap.Task.TaskId(), err)
 				}
 			}()
 		case fn := <-t.asyncCallCh:
