@@ -72,7 +72,7 @@ func (c *JobNodeClient) connecting() {
 	// set client with conn for computeProviderClient
 	c.computeProviderClient = computesvc.NewComputeProviderClient(conn)
 	if err != nil {
-		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for jobnode) failed")
+		log.WithError(err).WithField("id", c.nodeId).WithField("addr", c.addr).Error("Connect GRPC server(for jobnode) failed")
 	}
 	c.conn = conn
 }
