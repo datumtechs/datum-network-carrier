@@ -147,7 +147,7 @@ type PowerRevokeMsgs []*PowerRevokeMsg
 //		JobNodeId: msg.JobNodeId(),
 //		DataId:    msg.PowerId,
 //		// the status of data, N means normal, D means deleted.
-//		DataStatus: ResourceDataStatusN.String(),
+//		DataStatus: DataStatusNormal.String(),
 //		// resource status, eg: create/release/revoke
 //		State: PowerStateRelease.String(),
 //		// unit: byte
@@ -169,7 +169,7 @@ type PowerRevokeMsgs []*PowerRevokeMsg
 //		NodeName: msg.OwnerName(),
 //		DataId:   msg.PowerId,
 //		// the status of data, N means normal, D means deleted.
-//		DataStatus: ResourceDataStatusN.String(),
+//		DataStatus: DataStatusNormal.String(),
 //		// resource status, eg: create/release/revoke
 //		State: PowerStateRelease.String(),
 //		// unit: byte
@@ -236,7 +236,7 @@ func (msg *PowerMsg) HashByCreateTime() common.Hash {
 //		NodeName: msg.Name,
 //		DataId:   msg.PowerId,
 //		// the status of data, N means normal, D means deleted.
-//		DataStatus: ResourceDataStatusD.String(),
+//		DataStatus: DataStatusDeleted.String(),
 //		// resource status, eg: create/release/revoke
 //		State: PowerStateRevoke.String(),
 //		// unit: byte
@@ -378,7 +378,7 @@ func (msg *MetaDataMsg) ToDataCenter() *Metadata {
 		HasTitleRow:    msg.HasTitle(),
 		ColumnMetaList: msg.ColumnMetas(),
 		// the status of data, N means normal, D means deleted.
-		DataStatus: ResourceDataStatusN.String(),
+		DataStatus: DataStatusNormal.String(),
 		// metaData status, eg: create/release/revoke
 		State: MetaDataStateRelease.String(),
 	})
@@ -441,7 +441,7 @@ func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
 		NodeName: msg.Name,
 		DataId:   msg.MetaDataId,
 		// the status of data, N means normal, D means deleted.
-		DataStatus: ResourceDataStatusD.String(),
+		DataStatus: DataStatusDeleted.String(),
 		// metaData status, eg: create/release/revoke
 		State: MetaDataStateRevoke.String(),
 	})
@@ -553,7 +553,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			NodeId:     req.Owner.NodeId,
 			NodeName:   req.Owner.Name,
 			DataId:     "",
-			DataStatus: ResourceDataStatusN.String(),
+			DataStatus: DataStatusNormal.String(),
 			State:      TaskStatePending.String(),
 			Reason:     "",
 			EventCount: 0,

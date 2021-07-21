@@ -311,6 +311,11 @@ func (s *Service) NodeId() string {
 	return hex.EncodeToString(pubBytes[1:])
 }
 
+// NodeId returns the privateKey of the local peer.
+func (s *Service) PirKey() *ecdsa.PrivateKey {
+	return s.privKey
+}
+
 // Disconnect from a peer.
 func (s *Service) Disconnect(pid peer.ID) error {
 	return s.host.Network().ClosePeer(pid)

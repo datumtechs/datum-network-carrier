@@ -2,6 +2,7 @@ package p2p
 
 import (
 	"context"
+	"crypto/ecdsa"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
@@ -70,6 +71,7 @@ type PeerManager interface {
 	Disconnect(peer.ID) error
 	PeerID() peer.ID
 	NodeId() string
+	PirKey() *ecdsa.PrivateKey
 	Host() host.Host
 	ENR() *enr.Record
 	DiscoveryAddresses() ([]multiaddr.Multiaddr, error)

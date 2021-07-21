@@ -14,6 +14,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/handler"
+	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
@@ -92,11 +93,19 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		),
 		resourceClientSet: resourceClientSet,
 	}
+	// read config from p2p config.
+	NodeId, _ := p2p.HexID(nodeId)
 
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
-	s.Engines[types.TwopcTyp] = twopc.New( // todo the 2pc config will be setup
-		&twopc.Config{},
+	s.Engines[types.TwopcTyp] = twopc.New(
+		&twopc.Config{
+			Option: &twopc.OptionConfig{
+				NodePriKey: s.config.P2P.PirKey(),
+				NodeID:     NodeId,
+			},
+			PeerMsgQueueSize: 1024,
+		},
 		s.carrierDB,
 		resourceMng,
 		s.config.P2P,
@@ -162,7 +171,7 @@ func (s *Service) Stop() error {
 	if s.cancel != nil {
 		defer s.cancel()
 	}
-	// todo: could add some logic for here
+	// todo: could add some logic for here（some logic for stop.）
 	return nil
 }
 
