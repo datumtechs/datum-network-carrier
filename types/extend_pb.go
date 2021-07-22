@@ -257,7 +257,7 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 		NodeId:     response.GetOwner().GetNodeId(),
 		NodeName:   response.GetOwner().GetName(),
 		DataId:     "", // todo: to be determined
-		DataStatus: "", // todo: to be determined
+		DataStatus: DataStatusNormal.String(),
 		State:      response.GetPower().GetState(),
 		TotalMem:   response.GetPower().GetInformation().GetTotalMem(),
 		UsedMem:    response.GetPower().GetInformation().GetUsedMem(),
@@ -275,8 +275,8 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			Identity:             v.GetOwner().GetIdentityId(),
 			NodeId:               v.GetOwner().GetNodeId(),
 			NodeName:             v.GetOwner().GetName(),
-			DataId:               v.GetTaskId(), // todo: to be determined
-			DataStatus:           "Y",           // todo: to be determined
+			DataId:               v.GetTaskId(),
+			DataStatus:           DataStatusNormal.String(),
 			TaskId:               v.GetTaskId(),
 			TaskName:             v.GetTaskName(),
 			State:                v.GetState(),
