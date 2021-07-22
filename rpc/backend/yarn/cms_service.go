@@ -417,7 +417,7 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode failed, fileType: {%s}, fileSize: {%s}", req.FileType, req.FileSize)
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryDataResourceTables failed, fileType: {%s}, fileSize: {%s}", req.FileType, req.FileSize)
 		return nil, backend.NewRpcBizErr(ErrQueryDataResourceTableListStr)
 	}
 
@@ -431,7 +431,8 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 
 	dataNode, err := svr.B.GetRegisterNode(types.PREFIX_TYPE_DATANODE, nodeId)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode failed, fileType: {%s}, fileSize: {%s}", req.FileType, req.FileSize)
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-GetRegisterNode failed, fileType: {%s}, fileSize: {%s}, dataNodeId: {%s}",
+			req.FileType, req.FileSize, nodeId)
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
 	log.Debugf("RPC-API:QueryAvailableDataNode succeed, fileType: {%s}, fileSize: {%d}, return dataNodeId: {%s}, dataNodeIp: {%s}, dataNodePort: {%s}",
@@ -452,6 +453,9 @@ func (svr *YarnServiceServer) QueryFilePosition(ctx context.Context, req *pb.Que
 		log.WithError(err).Errorf("RPC-API:QueryFilePosition-GetRegisterNode failed, originId: {%s}", req.OriginId)
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoStr)
 	}
+
+	log.Debugf("RPC-API:QueryFilePosition Succeed, originId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, filePath: {%s}",
+		req.OriginId, dataNode.InternalIp, dataNode.InternalPort, dataResourceFileUpload.GetFilePath())
 
 	return &pb.QueryFilePositionResponse{
 		Ip:       dataNode.InternalIp,

@@ -3,6 +3,7 @@ package metadata
 import (
 	"context"
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -87,6 +88,13 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	if req.Information.ColumnMeta == nil {
 		return nil, errors.New("required columnMeta of information")
 	}
+
+	_, err := svr.B.GetNodeIdentity()
+	if rawdb.IsDBNotFoundErr(err) {
+		log.Errorf("RPC-API:PublishMetaData failed, the identity was not exist, can not revoke identity")
+		return nil, backend.NewRpcBizErr(ErrSendMetaDataMsgStr)
+	}
+
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
 	//metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 
@@ -104,7 +112,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	metaDataMsg.Data.Information.ColumnMetas = ColumnMetas
 	metaDataId := metaDataMsg.GetMetaDataId()
 
-	err := svr.B.SendMsg(metaDataMsg)
+	err = svr.B.SendMsg(metaDataMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetaData failed")
 		return nil, backend.NewRpcBizErr(ErrSendMetaDataMsgStr)
@@ -120,9 +128,16 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	if req == nil || req.Owner == nil {
 		return nil, errors.New("required owner")
 	}
+
+	_, err := svr.B.GetNodeIdentity()
+	if rawdb.IsDBNotFoundErr(err) {
+		log.Errorf("RPC-API:RevokeMetaData failed, the identity was not exist, can not revoke identity")
+		return nil, backend.NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
+	}
+
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	//metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
-	err := svr.B.SendMsg(metaDataRevokeMsg)
+	err = svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetaData failed")
 		return nil, backend.NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultRefreshOrgResourceInterval = 60 * time.Millisecond
+	defaultRefreshOrgResourceInterval = 30 * time.Second
 )
 
 type Manager struct {
@@ -36,10 +36,10 @@ func NewResourceManager(dataCenter iface.ForResourceDB) *Manager {
 }
 
 func (m *Manager) loop() {
-	refreshTimer := time.NewTimer(defaultRefreshOrgResourceInterval)
+	refreshTicker := time.NewTicker(defaultRefreshOrgResourceInterval)
 	for {
 		select {
-		case <-refreshTimer.C:
+		case <-refreshTicker.C:
 			if err := m.refreshOrgResourceTable(); nil != err {
 				log.Errorf("Failed to refresh org resourceTables, err: %s", err)
 			}

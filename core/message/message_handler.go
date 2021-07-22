@@ -14,13 +14,13 @@ import (
 )
 
 const (
-	defaultPowerMsgsCacheSize    = 5
-	defaultMetaDataMsgsCacheSize = 1
+	defaultPowerMsgsCacheSize    = 3
+	defaultMetaDataMsgsCacheSize = 3
 	defaultTaskMsgsCacheSize     = 5
 
-	defaultBroadcastPowerMsgInterval    = 100 * time.Millisecond
-	defaultBroadcastMetaDataMsgInterval = 100 * time.Millisecond
-	defaultBroadcastTaskMsgInterval     = 10 * time.Millisecond
+	defaultBroadcastPowerMsgInterval    = 30 * time.Second
+	defaultBroadcastMetaDataMsgInterval = 30 * time.Second
+	defaultBroadcastTaskMsgInterval     = 10 * time.Second
 )
 
 
@@ -32,19 +32,8 @@ type MessageHandler struct {
 	taskManager *task.Manager
 
 	msgChannel chan *feed.Event
-	//identityMsgCh       chan types.IdentityMsgEvent
-	//identityRevokeMsgCh chan types.IdentityRevokeMsgEvent
-	//powerMsgCh          chan types.PowerMsgEvent
-	//powerRevokeMsgCh    chan types.PowerRevokeMsgEvent
-	//metaDataMsgCh       chan types.MetaDataMsgEvent
-	//metaDataRevokeMsgCh chan types.MetaDataRevokeMsgEvent
-	//taskMsgCh           chan types.TaskMsgEvent
+
 	msgSub               event.Subscription
-	//identityMsgSub       event.Subscription
-	//identityRevokeMsgSub event.Subscription
-	//powerMsgSub          event.Subscription
-	//metaDataMsgSub       event.Subscription
-	//taskMsgSub           event.Subscription
 
 	powerMsgCache    types.PowerMsgs
 	metaDataMsgCache types.MetaDataMsgs
@@ -84,9 +73,9 @@ func (m *MessageHandler) Start() error {
 }
 
 func (m *MessageHandler) loop() {
-	powerTimer := time.NewTimer(defaultBroadcastPowerMsgInterval)
-	metaDataTimer := time.NewTimer(defaultBroadcastMetaDataMsgInterval)
-	taskTimer := time.NewTimer(defaultBroadcastTaskMsgInterval)
+	powerTicker := time.NewTicker(defaultBroadcastPowerMsgInterval)
+	metaDataTicker := time.NewTicker(defaultBroadcastMetaDataMsgInterval)
+	taskTicker := time.NewTicker(defaultBroadcastTaskMsgInterval)
 
 	for {
 		select {
@@ -111,7 +100,6 @@ func (m *MessageHandler) loop() {
 						log.Error(fmt.Sprintf("Failed to call `BroadcastPowerMsgs` on MessageHandler, {%s}", err))
 					}
 					m.powerMsgCache = make(types.PowerMsgs, 0)
-					powerTimer.Reset(defaultBroadcastPowerMsgInterval)
 				}
 			case types.RevokePower:
 				eventMessage := event.Data.(*types.PowerRevokeMsgEvent)
@@ -153,7 +141,6 @@ func (m *MessageHandler) loop() {
 						log.Errorf("Failed to call `BroadcastMetaDataMsgs` on MessageHandler, {%s}", err)
 					}
 					m.metaDataMsgCache = make(types.MetaDataMsgs, 0)
-					metaDataTimer.Reset(defaultBroadcastMetaDataMsgInterval)
 				}
 			case types.RevokeMetadata:
 				eventMessage := event.Data.(*types.MetaDataRevokeMsgEvent)
@@ -193,38 +180,38 @@ func (m *MessageHandler) loop() {
 						log.Errorf("Failed to call `BroadcastTaskMsgs` on MessageHandler, {%s}", err)
 					}
 					m.taskMsgCache = make(types.TaskMsgs, 0)
-					taskTimer.Reset(defaultBroadcastTaskMsgInterval)
 				}
 			}
-		case <-powerTimer.C:
+		case <-powerTicker.C:
+
 			if len(m.powerMsgCache) > 0 {
 				if err := m.BroadcastPowerMsgs(m.powerMsgCache); nil != err {
 					log.Errorf("Failed to call `BroadcastPowerMsgs` on MessageHandler with timer, {%s}", err)
 				}
 				m.powerMsgCache = make(types.PowerMsgs, 0)
-				powerTimer.Reset(defaultBroadcastPowerMsgInterval)
 			}
 
-		case <-metaDataTimer.C:
+		case <-metaDataTicker.C:
+
 			if len(m.metaDataMsgCache) > 0 {
 				if err := 	m.BroadcastMetaDataMsgs(m.metaDataMsgCache); nil != err {
 					log.Errorf("Failed to call `BroadcastMetaDataMsgs` on MessageHandler with timer, {%s}", err)
 				}
 				m.metaDataMsgCache = make(types.MetaDataMsgs, 0)
-				powerTimer.Reset(defaultBroadcastMetaDataMsgInterval)
 			}
 
-		case <-taskTimer.C:
+		case <-taskTicker.C:
+
 			if len(m.taskMsgCache) > 0 {
 				if err := m.BroadcastTaskMsgs(m.taskMsgCache); nil != err {
 					log.Errorf("Failed to call `BroadcastTaskMsgs` on MessageHandler with timer, {%s}", err)
 				}
 				m.taskMsgCache = make(types.TaskMsgs, 0)
-				taskTimer.Reset(defaultBroadcastTaskMsgInterval)
 			}
 
 		// Err() channel will be closed when unsubscribing.
-		case <-m.msgSub.Err():
+		case err := <-m.msgSub.Err():
+			log.Errorf("Received err from msgSub, return loop, err: {%s}", err)
 			return
 		}
 	}
