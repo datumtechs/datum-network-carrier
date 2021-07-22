@@ -65,9 +65,11 @@ func (m *Manager) loop() {
 		select {
 		// 自己组织的 Fighter 上报过来的 event
 		case event := <-m.eventCh:
-			if err := m.handleEvent(event); nil != err {
-				log.Error("Failed to call handleEvent() on TaskManager", "taskId", event.TaskId, "event", event.String())
-			}
+			go func() {
+				if err := m.handleEvent(event); nil != err {
+					log.Error("Failed to call handleEvent() on TaskManager", "taskId", event.TaskId, "event", event.String())
+				}
+			}()
 
 		// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者直接存到 dataCenter
 		case task := <-m.doneScheduleTaskCh:

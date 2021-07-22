@@ -58,7 +58,7 @@ func (gc *GrpcClient) GetMetaDataSummaryList(ctx context.Context) (*api.MetaData
 }
 
 func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.MetadataListRequest) (*api.MetadataListResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 3 * time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 10 * time.Second)
 	defer cancel()
 	return gc.metadataService.GetMetadataList(ctx, request)
 }
