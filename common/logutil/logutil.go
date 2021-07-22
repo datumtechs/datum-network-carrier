@@ -4,11 +4,9 @@ package logutil
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/params"
-	"io"
-	"net/url"
-	"os"
-	"strings"
 	"github.com/sirupsen/logrus"
+	"io"
+	"os"
 )
 
 func addLogWriter(w io.Writer) {
@@ -33,7 +31,7 @@ func ConfigurePersistentLogging(logFileName string) error {
 // Masks the url credentials before logging for security purpose
 // [scheme:][//[userinfo@]host][/]path[?query][#fragment] -->  [scheme:][//[***]host][/***][#***]
 // if the format is not matched nothing is done, string is returned as is.
-func MaskCredentialsLogging(currUrl string) string {
+/*func MaskCredentialsLogging(currUrl string) string {
 	// error if the input is not a URL
 	MaskedUrl := currUrl
 	u, err := url.Parse(currUrl)
@@ -51,4 +49,4 @@ func MaskCredentialsLogging(currUrl string) string {
 		MaskedUrl = strings.Replace(MaskedUrl, u.RawFragment, "***", 1)
 	}
 	return MaskedUrl
-}
+}*/
