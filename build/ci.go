@@ -77,7 +77,7 @@ func main() {
 // Compiling
 
 func doInstall(cmdline []string) {
-	// ./cmd/platon
+	// ./cmd/carrier
 	var (
 		arch    = flag.String("arch", "", "Architecture to cross build for")
 		cc      = flag.String("cc", "", "C compiler to cross build with")
