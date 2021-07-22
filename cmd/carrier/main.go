@@ -25,6 +25,8 @@ import (
 var (
 	appFlags = []cli.Flag{
 		flags.SetGCPercent,
+		flags.DeveloperFlag,
+		flags.TestnetFlag,
 		// todo: more flags could be define here.
 	}
 
@@ -44,6 +46,8 @@ var (
 		flags.RPCPort,
 		flags.CertFlag,
 		flags.KeyFlag,
+		flags.DisableGRPCGateway,
+		flags.GPRCGatewayCorsDomain,
 		flags.GRPCGatewayHost,
 		flags.GRPCGatewayPort,
 		flags.GrpcMaxCallRecvMsgSizeFlag,
