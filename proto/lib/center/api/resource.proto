@@ -127,7 +127,7 @@ service ResourceService {
   // 查看指定节点的总算力摘要
   rpc GetPowerSummaryByIdentityId (PowerSummaryByIdentityRequest) returns (PowerTotalSummaryResponse);
 
-  // 查看各个节点的总算力摘要列表 (不包含 任务描述)
+  // 查看各个组织的总算力摘要列表
   rpc GetPowerTotalSummaryList (google.protobuf.Empty) returns (PowerTotalSummaryListResponse);
 
 }
