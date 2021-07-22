@@ -51,6 +51,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 		}
 		respList[i] = resp
 	}
+	log.Debugf("RPC-API:GetPowerTotalDetailList succeed, powerList: {%d}", len(respList))
 	return &pb.GetPowerTotalDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,
@@ -82,6 +83,7 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 		}
 		respList[i] = resp
 	}
+	log.Debugf("RPC-API:GetPowerSingleDetailList succeed, powerList: {%d}", len(respList))
 	return &pb.GetPowerSingleDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,

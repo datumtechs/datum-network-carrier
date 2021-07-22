@@ -98,7 +98,11 @@ func (t *TwoPC) loop() {
 		case taskWrap := <-t.schedTaskCh:
 			// Start a goroutine to process a new schedTask
 			go func() {
+
+				log.Debugf("Start consensus task on 2pc consensus engine, taskId: {%s}", taskWrap.Task.TaskId())
+
 				if err := t.OnPrepare(taskWrap.Task); nil != err {
+					log.Errorf("Failed to call `OnPrepare()` on 2pc consensus engine, taskId: {%s}, err: {%s}", taskWrap.Task.TaskId(), err)
 					taskWrap.SendResult(&types.ConsensuResult{
 						TaskConsResult: &types.TaskConsResult{
 							TaskId: taskWrap.Task.TaskId(),
@@ -110,7 +114,7 @@ func (t *TwoPC) loop() {
 					return
 				}
 				if err := t.OnHandle(taskWrap.Task, taskWrap.OwnerDataResource, taskWrap.ResultCh); nil != err {
-					log.Error("Failed to OnHandle 2pc", "err", err)
+					log.Errorf("Failed to call `OnHandle()` on 2pc consensus engine, taskId: {%s}, err: {%s}", taskWrap.Task.TaskId(), err)
 				}
 			}()
 		case fn := <-t.asyncCallCh:
@@ -237,6 +241,9 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 			IdentityId: task.TaskData().NodeName,
 		},
 		now)
+
+	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalHash, task.TaskId())
+
 	// add proposal
 	t.addProposalState(proposalState)
 	// add task
@@ -249,6 +256,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 
 	// Start handle task ...
 	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
+		log.Errorf("Failed to send PrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
 		// Send consensus result to Scheduler
 		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 			TaskConsResult: &types.TaskConsResult{
@@ -270,10 +278,12 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 // Handle the prepareMsg from the task pulisher peer (on Subscriber)
 func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
 
+
 	proposal, err := fetchPrepareMsg(prepareMsg)
 	if nil != err {
 		return err
 	}
+	log.Debugf("Received remote prepareMsg, proposalId: {%s}, taskId: {%s}, remote pid: {%s}", proposal.ProposalId, proposal.TaskId(), pid)
 
 	// 第一次接收到 发起方的 prepareMsg, 这时, 以作为接收方的身份处理msg并本地生成 proposalState
 	if t.state.HasProposal(proposal.ProposalId) {
@@ -380,6 +390,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	if nil != err {
 		return err
 	}
+
+	log.Debugf("Received remote prepareVote, proposalId: {%s}, remote pid: {%s}", voteMsg.ProposalId, pid)
+
 	if t.state.HasNotProposal(voteMsg.ProposalId) {
 		return ctypes.ErrProposalNotFound
 	}
@@ -512,6 +525,8 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		return err
 	}
 
+	log.Debugf("Received remote confirmMsg, proposalId: {%s}, remote pid: {%s}", msg.ProposalId, pid)
+
 	if t.state.HasNotProposal(msg.ProposalId) {
 		return ctypes.ErrProposalNotFound
 	}
@@ -595,6 +610,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	if nil != err {
 		return err
 	}
+
+	log.Debugf("Received remote confirmVote, proposalId: {%s}, remote pid: {%s}", voteMsg.ProposalId, pid)
+
 	if t.state.HasNotProposal(voteMsg.ProposalId) {
 		return ctypes.ErrProposalNotFound
 	}
@@ -748,6 +766,8 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 		return err
 	}
 
+	log.Debugf("Received remote commitMsg, proposalId: {%s}, remote pid: {%s}", msg.ProposalId, pid)
+
 	if t.state.HasNotProposal(msg.ProposalId) {
 		return ctypes.ErrProposalNotFound
 	}
@@ -801,7 +821,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方
 func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) error {
 	if err := handler.SendTwoPcTaskResultMsg(context.TODO(), t.p2p, pid, msg.TaskResultMsg); nil != err {
-		err := fmt.Errorf("failed to `SendTwoPcTaskResultMsg` to task owner, taskId: %s, taskRole: %s, other nodeId: %s, other peerId: %s, err: %s",
+		err := fmt.Errorf("failed to `SendTwoPcTaskResultMsg` to task owner, taskId: {%s}, taskRole: {%s}, other nodeId: {%s}, other peerId: {%s}, err: {%s}",
 			msg.TaskResultMsg.TaskId, msg.TaskRole, msg.TaskResultMsg.Owner.NodeId, pid, err)
 		return err
 	}
@@ -814,6 +834,8 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 	if nil != err {
 		return err
 	}
+
+	log.Debugf("Received remote taskResultMsg, proposalId: {%s}, remote pid: {%s}", msg.ProposalId, pid)
 
 	if t.state.HasNotProposal(msg.ProposalId) {
 		return ctypes.ErrProposalNotFound

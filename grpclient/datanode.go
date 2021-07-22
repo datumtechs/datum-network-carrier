@@ -73,7 +73,7 @@ func (c *DataNodeClient) connecting() {
 	c.connMu.Unlock()
 	c.dataProviderClient = datasvc.NewDataProviderClient(conn)
 	if err != nil {
-		log.WithError(err).WithField("id", c.nodeId).Error("Connect GRPC server(for datanode) failed")
+		log.WithError(err).WithField("id", c.nodeId).WithField("adrr", c.addr).Error("Connect GRPC server(for datanode) failed")
 	}
 	c.conn = conn
 }
