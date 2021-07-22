@@ -83,6 +83,7 @@ type MetadataCarrierDB interface {
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	GetResourceList() (types.ResourceArray, error)
+	SyncPowerUsed (resource *types.LocalResource) error
 }
 
 type IdentityCarrierDB interface {

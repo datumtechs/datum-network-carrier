@@ -57,6 +57,24 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 	return request
 }
 
+func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
+	return &api.SyncPowerRequest{
+		Power: &api.Power{
+			JobNodeId:   resource.data.JobNodeId,
+			PowerId:     resource.data.DataId,
+			Information: &api.ResourceUsed{
+				TotalMem: resource.data.TotalMem,
+				TotalProcessor: uint32(resource.data.TotalProcessor),
+				TotalBandwidth: resource.data.TotalBandWidth,
+				UsedMem: resource.data.UsedMem,
+				UsedProcessor: uint32(resource.data.UsedProcessor),
+				UsedBandwidth: resource.data.UsedBandWidth,
+			},
+			State:       resource.data.State,
+		},
+	}
+}
+
 func NewSaveIdentityRequest(identity *Identity) *api.SaveIdentityRequest {
 	request := &api.SaveIdentityRequest{
 		Member:               &api.Organization{
