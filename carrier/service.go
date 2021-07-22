@@ -171,6 +171,7 @@ func (s *Service) Stop() error {
 	if s.cancel != nil {
 		defer s.cancel()
 	}
+	s.carrierDB.Stop()
 	// todo: could add some logic for here（some logic for stop.）
 	return nil
 }
