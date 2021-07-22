@@ -69,6 +69,7 @@ var (
 		flags.EnableUPnPFlag,
 		flags.DisableDiscv5,
 		flags.StaticPeers,
+		flags.RelayNode,
 	}
 
 	debugFlags = []cli.Flag{
