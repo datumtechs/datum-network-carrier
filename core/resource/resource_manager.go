@@ -307,8 +307,12 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 		return fmt.Errorf("failed to update local jobNodeResource, {%s}", err)
 	}
 
-	// TODO 还需要 将资源使用实况 实时上报给  dataCenter  [添加资源使用情况]
-
+	// 还需要 将资源使用实况 实时上报给  dataCenter  [添加资源使用情况]
+	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
+		log.Errorf("Failed to sync jobNodeResource to dataCenter, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
+			task.TaskId(), jobNodeId, needSlotCount, err)
+		return fmt.Errorf("failed tosync jobNodeResource to dataCenter, {%s}", err)
+	}
 
 	log.Infof("Finished lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.TaskId(), jobNodeId, needSlotCount)
 	return nil
@@ -376,13 +380,17 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 	jobNodeResource.GetData().UsedBandWidth -= usedBandwidth
 
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
-		log.Errorf("Failed to update local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
+		log.Errorf("Failed to update local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%s}, err: {%s}",
 			taskId, jobNodeId, freeSlotUnitCount, err)
 		return fmt.Errorf("failed to update local jobNodeResource, {%s}", err)
 	}
 
-	// TODO 还需要 将资源使用实况 实时上报给  dataCenter  [释放资源使用情况]
-
+	// 还需要 将资源使用实况 实时上报给  dataCenter  [释放资源使用情况]
+	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
+		log.Errorf("Failed to sync jobNodeResource to dataCenter, taskId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%s}, err: {%s}",
+			taskId, jobNodeId, freeSlotUnitCount, err)
+		return fmt.Errorf("failed tosync jobNodeResource to dataCenter, {%s}", err)
+	}
 
 	log.Infof("Finished unlock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", taskId, localTaskPowerUsed.GetNodeId(), localTaskPowerUsed.GetSlotCount())
 	return nil

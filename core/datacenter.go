@@ -285,6 +285,22 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	return nil
 }
 
+
+func (dc *DataCenter) SyncPowerUsed (resource *types.LocalResource) error {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+	response, err := dc.client.SyncPower(dc.ctx, types.NewSyncPowerRequest(resource))
+	if err != nil {
+		log.WithError(err).WithField("hash", resource.Hash()).Errorf("SyncPowerUsed failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("sync resource used error: %s", response.Msg)
+	}
+	return nil
+}
+
+
 func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
