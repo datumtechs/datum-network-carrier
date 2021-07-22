@@ -96,15 +96,15 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 		return nil, errors.New("required owner")
 	}
 
-	
 	powerMsg := types.NewPowerMessageFromRequest(req)
 	powerId := powerMsg.GetPowerId()
 
 	err := svr.B.SendMsg(powerMsg)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:PublishPower failed")
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.JobNodeId, powerId)
 		return nil, backend.NewRpcBizErr(ErrSendPowerMsgStr)
 	}
+	log.Debugf("RPC-API:PublishPower succeed, jobNodeId: {%s}, powerId: {%s}", req.JobNodeId, powerId)
 	return &pb.PublishPowerResponse{
 		Status:  0,
 		Msg:     backend.OK,
@@ -123,9 +123,10 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 
 	err := svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:RevokePower failed")
+		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.PowerId)
 		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgStr)
 	}
+	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.PowerId)
 	return &pb.SimpleResponseCode{
 		Status: 0,
 		Msg:    backend.OK,
