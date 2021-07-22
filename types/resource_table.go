@@ -79,22 +79,25 @@ func (r *LocalResourceTable) SetSlotUnit(slot *Slot) {
 
 func (r *LocalResourceTable) RemianSlot() uint32 { return r.slotTotal - r.slotUsed /*- r.slotLocked*/ }
 func (r *LocalResourceTable) UseSlot(count uint32) error {
-	//if r.slotLocked < count {
-	//	return
-	//}
-	//r.slotUsed += count
-	//r.slotLocked -= count
+
 	if r.RemianSlot() < count {
 		return fmt.Errorf("Failed to lock local resource, slotRemain {%s} less than need lock count {%s}", r.RemianSlot(), count)
 	}
 	r.slotUsed += count
+	r.assign = true
 	return nil
 }
 func (r *LocalResourceTable) FreeSlot(count uint32) error {
-	if r.slotUsed < count {
+	if !r.assign {
+		return nil
+	}
+	if r.slotUsed == 0 || r.slotUsed < count {
 		return fmt.Errorf("Failed to unlock local resource, slotUsed {%s} less than need free count {%s}", r.slotUsed, count)
 	} else {
 		r.slotUsed -= count
+	}
+	if r.slotUsed == 0 {
+		r.assign = false
 	}
 	return nil
 }

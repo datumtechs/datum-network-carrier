@@ -95,11 +95,11 @@ func (m *MessageHandler) loop() {
 			case types.ApplyIdentity:
 				eventMessage := event.Data.(*types.IdentityMsgEvent)
 				if err := m.BroadcastIdentityMsg(eventMessage.Msg); nil != err {
-					log.Error("Failed to broadcast org identityMsg  on MessageHandler, err:", err)
+					log.Errorf("Failed to call `BroadcastIdentityMsg` on MessageHandler, {%s}", err)
 				}
 			case types.RevokeIdentity:
 				if err := m.BroadcastIdentityRevokeMsg(); nil != err {
-					log.Error("Failed to remove org identity on MessageHandler, err:", err)
+					log.Errorf("Failed to call `BroadcastIdentityRevokeMsg` on MessageHandler, {%s}", err)
 				}
 			case types.ApplyPower:
 				m.lockPower.Lock()
@@ -108,7 +108,7 @@ func (m *MessageHandler) loop() {
 				m.lockPower.Unlock()
 				if len(m.powerMsgCache) >= defaultPowerMsgsCacheSize {
 					if err := m.BroadcastPowerMsgs(m.powerMsgCache); nil != err {
-						log.Error(fmt.Sprintf("%s", err))
+						log.Error(fmt.Sprintf("Failed to call `BroadcastPowerMsgs` on MessageHandler, {%s}", err))
 					}
 					m.powerMsgCache = make(types.PowerMsgs, 0)
 					powerTimer.Reset(defaultBroadcastPowerMsgInterval)
@@ -140,7 +140,7 @@ func (m *MessageHandler) loop() {
 						index++
 					}
 					if err := m.BroadcastPowerRevokeMsgs(msgs); nil != err {
-						log.Error(fmt.Sprintf("%s", err))
+						log.Errorf("Failed to call `BroadcastPowerRevokeMsgs` on MessageHandler, {%s}", err)
 					}
 				}
 			case types.ApplyMetadata:
@@ -149,7 +149,9 @@ func (m *MessageHandler) loop() {
 				m.metaDataMsgCache = append(m.metaDataMsgCache, eventMessage.Msgs...)
 				m.lockMetaData.Unlock()
 				if len(m.metaDataMsgCache) >= defaultMetaDataMsgsCacheSize {
-					m.BroadcastMetaDataMsgs(m.metaDataMsgCache)
+					if err := m.BroadcastMetaDataMsgs(m.metaDataMsgCache); nil != err {
+						log.Errorf("Failed to call `BroadcastMetaDataMsgs` on MessageHandler, {%s}", err)
+					}
 					m.metaDataMsgCache = make(types.MetaDataMsgs, 0)
 					metaDataTimer.Reset(defaultBroadcastMetaDataMsgInterval)
 				}
@@ -180,39 +182,48 @@ func (m *MessageHandler) loop() {
 						index++
 					}
 					if err := m.BroadcastMetaDataRevokeMsgs(msgs); nil != err {
-						log.Error(fmt.Sprintf("%s", err))
+						log.Errorf("Failed to call `BroadcastMetaDataRevokeMsgs` on MessageHandler, {%s}", err)
 					}
 				}
 			case types.ApplyTask:
 				eventMessage := event.Data.(*types.TaskMsgEvent)
 				m.taskMsgCache = append(m.taskMsgCache, eventMessage.Msgs...)
 				if len(m.taskMsgCache) >= defaultTaskMsgsCacheSize {
-					m.BroadcastTaskMsgs(m.taskMsgCache)
+					if err := m.BroadcastTaskMsgs(m.taskMsgCache); nil != err {
+						log.Errorf("Failed to call `BroadcastTaskMsgs` on MessageHandler, {%s}", err)
+					}
 					m.taskMsgCache = make(types.TaskMsgs, 0)
 					taskTimer.Reset(defaultBroadcastTaskMsgInterval)
 				}
 			}
 		case <-powerTimer.C:
-			if len(m.powerMsgCache) >= 0 {
-				m.BroadcastPowerMsgs(m.powerMsgCache)
+			if len(m.powerMsgCache) > 0 {
+				if err := m.BroadcastPowerMsgs(m.powerMsgCache); nil != err {
+					log.Errorf("Failed to call `BroadcastPowerMsgs` on MessageHandler with timer, {%s}", err)
+				}
 				m.powerMsgCache = make(types.PowerMsgs, 0)
 				powerTimer.Reset(defaultBroadcastPowerMsgInterval)
 			}
 
 		case <-metaDataTimer.C:
-			if len(m.metaDataMsgCache) >= 0 {
-				m.BroadcastMetaDataMsgs(m.metaDataMsgCache)
+			if len(m.metaDataMsgCache) > 0 {
+				if err := 	m.BroadcastMetaDataMsgs(m.metaDataMsgCache); nil != err {
+					log.Errorf("Failed to call `BroadcastMetaDataMsgs` on MessageHandler with timer, {%s}", err)
+				}
 				m.metaDataMsgCache = make(types.MetaDataMsgs, 0)
 				powerTimer.Reset(defaultBroadcastMetaDataMsgInterval)
 			}
 
 		case <-taskTimer.C:
-			if len(m.taskMsgCache) >= 0 {
-				m.BroadcastTaskMsgs(m.taskMsgCache)
+			if len(m.taskMsgCache) > 0 {
+				if err := m.BroadcastTaskMsgs(m.taskMsgCache); nil != err {
+					log.Errorf("Failed to call `BroadcastTaskMsgs` on MessageHandler with timer, {%s}", err)
+				}
 				m.taskMsgCache = make(types.TaskMsgs, 0)
 				taskTimer.Reset(defaultBroadcastTaskMsgInterval)
 			}
-			// Err() channel will be closed when unsubscribing.
+
+		// Err() channel will be closed when unsubscribing.
 		case <-m.msgSub.Err():
 			return
 		}
@@ -267,20 +278,36 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 
 	identity, err := m.dataCenter.GetIdentity()
 	if nil != err {
-		return fmt.Errorf("Failed to broadcast powerMsgs, query local identityInfo failed, {%s}", err)
+		return fmt.Errorf("query local identityInfo failed, {%s}", err)
 	}
 
 	errs := make([]string, 0)
+
+	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
+	if nil != err {
+		return fmt.Errorf("query local slotUnit failed, {%s}", err)
+	}
+
 	for _, power := range powerMsgs {
 		// 存储本地的 资源信息
-		if err := m.dataCenter.StoreLocalResourceTable(types.NewLocalResourceTable(power.JobNodeId, power.PowerId,
-			types.GetDefaultResoueceMem(), types.GetDefaultResoueceProcessor(), types.GetDefaultResoueceBandwidth())); nil != err {
+
+		resourceTable := types.NewLocalResourceTable(
+			power.JobNodeId,
+			power.PowerId,
+			types.GetDefaultResoueceMem(),
+			types.GetDefaultResoueceProcessor(),
+			types.GetDefaultResoueceBandwidth(),
+			)
+		resourceTable.SetSlotUnit(slotUnit)
+
+		if err := m.dataCenter.StoreLocalResourceTable(resourceTable); nil != err {
 			log.Errorf("Failed to StoreLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)
 			errs = append(errs, fmt.Sprintf("failed to StoreLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err))
 			continue
 		}
+
 
 		if err := m.dataCenter.StoreLocalResourceIdByPowerId(power.PowerId, power.JobNodeId); nil != err {
 			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",

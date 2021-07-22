@@ -12,8 +12,6 @@ import (
 
 func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
-	defer closeStream(stream, log)
-
 	SetRPCStreamDeadlines(stream)
 
 	m, ok := msg.(*pb.PrepareMsg)
@@ -46,12 +44,11 @@ func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, str
 		return err
 	}
 
+	closeStream(stream, log)
 	return nil
 }
 
 func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-
-	defer closeStream(stream, log)
 
 	SetRPCStreamDeadlines(stream)
 
@@ -83,13 +80,12 @@ func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, st
 		return err
 	}
 
+	closeStream(stream, log)
 	return nil
 }
 
 
 func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-
-	defer closeStream(stream, log)
 
 	SetRPCStreamDeadlines(stream)
 
@@ -121,13 +117,12 @@ func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, str
 		return err
 	}
 
+	closeStream(stream, log)
 	return nil
 }
 
 
 func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-
-	defer closeStream(stream, log)
 
 	SetRPCStreamDeadlines(stream)
 
@@ -159,12 +154,11 @@ func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, st
 		return err
 	}
 
+	closeStream(stream, log)
 	return nil
 }
 
 func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-
-	defer closeStream(stream, log)
 
 	SetRPCStreamDeadlines(stream)
 
@@ -196,12 +190,11 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 		return err
 	}
 
+	closeStream(stream, log)
 	return nil
 }
 
 func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
-
-	defer closeStream(stream, log)
 
 	SetRPCStreamDeadlines(stream)
 
@@ -233,6 +226,7 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 		return err
 	}
 
+	closeStream(stream, log)
 	return nil
 }
 
