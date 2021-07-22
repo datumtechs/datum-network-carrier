@@ -12,4 +12,5 @@ type CarrierDB interface {
 	iface.IdentityCarrierDB
 	iface.TaskCarrierDB
 	InsertData(blocks types.Blocks) (int, error)
+	Stop()
 }
