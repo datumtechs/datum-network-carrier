@@ -14,13 +14,13 @@ import (
 func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
 
 	identity, err := svr.B.GetNodeIdentity()
-	if rawdb.IsNotDBFoundErr(err) {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			req.Member.IdentityId, req.Member.NodeId, req.Member.Name)
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
 	}
 
-	if identity.IdentityId() != "" {
+	if nil != identity {
 		log.Errorf("RPC-API:ApplyIdentityJoin failed, identity was already exist, old identityId: {%s}, old nodeId: {%s}, old nodeName: {%s}",
 			identity.IdentityId(), identity.NodeId(), identity.Name())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
@@ -59,8 +59,8 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.EmptyGetParams) (*pb.SimpleResponseCode, error) {
 
 	_, err := svr.B.GetNodeIdentity()
-	if rawdb.IsDBFoundErr(err) {
-		log.Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity", )
+	if rawdb.IsDBNotFoundErr(err) {
+		log.Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
 		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsgStr)
 	}
 

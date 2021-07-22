@@ -25,12 +25,12 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 // system (the yarn node self info)
 func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	if rawdb.IsNotDBFoundErr(err) {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Error("Failed to get all `job nodes`, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
 	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
-	if rawdb.IsNotDBFoundErr(err) {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Error("Failed to get all `data nodes, on GetNodeInfo(), err:", err)
 		return nil, err
 	}
@@ -497,6 +497,9 @@ func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
 
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	nodeAlias, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		return nil, err
+	}
 	return types.NewIdentity(&libTypes.IdentityData{
 		Identity: nodeAlias.IdentityId,
 		NodeId:   nodeAlias.NodeId,
@@ -513,7 +516,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
 
-	if rawdb.IsNotDBFoundErr(err) {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	localIdentityId, err := s.carrier.carrierDB.GetIdentityId()
@@ -523,7 +526,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 
 	// the task has been executed.
 	networkTaskList, err := s.carrier.carrierDB.GetTaskList()
-	if rawdb.IsNotDBFoundErr(err) {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 
