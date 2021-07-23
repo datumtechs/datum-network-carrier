@@ -78,7 +78,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
 		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
-		return nil, err
+		return nil, fmt.Errorf("query local identity failed, %s", err)
 	}
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
 	return &types.YarnNodeInfo{
@@ -626,7 +626,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	}
 	localIdentityId, err := s.carrier.carrierDB.GetIdentityId()
 	if err != nil {
-		return nil, fmt.Errorf("query local identityId failed, {%s}", err)
+		return nil, fmt.Errorf("query local identityId failed, %s", err)
 	}
 
 	// the task has been executed.

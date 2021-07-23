@@ -298,7 +298,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
 		log.Errorf("Failed to call onPrepareMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposal.TaskId(), err)
-		return err
+		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
 	// Create the proposal state from recv.Proposal
@@ -563,7 +563,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		t.dataCenter.RemoveLocalTask(task.TaskId())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
-		return err
+		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
 	vote := &types.ConfirmVote{
@@ -799,7 +799,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 		t.dataCenter.RemoveLocalTask(task.TaskId())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
-		return err
+		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
 	// 修改状态

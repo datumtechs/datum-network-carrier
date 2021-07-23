@@ -52,7 +52,7 @@ func (m *Manager) Start() error {
 
 	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
 	if nil != err {
-		log.Warn("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
+		log.Warnf("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
 	} else {
 		m.SetSlotUnit(slotUnit.Mem, slotUnit.Processor, slotUnit.Bandwidth)
 	}
@@ -216,7 +216,10 @@ func (m *Manager) refreshOrgResourceTable() error {
 	for _, r := range resources {
 		tmp[r.GetIdentityId()] = r
 	}
-	for i, resource := range m.remoteTableQueue {
+	for i := 0; i < len(m.remoteTableQueue); i++ {
+
+		resource := m.remoteTableQueue[i]
+
 		// If has, update
 		if r, ok := tmp[resource.GetIdentityId()]; ok {
 			m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)

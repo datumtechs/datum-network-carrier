@@ -104,7 +104,7 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	}
 
 	powerMsg := types.NewPowerMessageFromRequest(req)
-	powerId := powerMsg.GetPowerId()
+	powerId := powerMsg.SetPowerId()
 
 	err = svr.B.SendMsg(powerMsg)
 	if nil != err {
