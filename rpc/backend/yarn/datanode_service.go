@@ -22,7 +22,7 @@ func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.R
 		}
 	}
 	if "" == strings.Trim(resourceId, "") {
-		log.Error("RPC-API:ReportUpFileSummary failed, req.resourceId is empty")
+		log.Error("RPC-API:ReportUpFileSummary failed, not found resourceId")
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeListStr)
 	}
 	err = svr.B.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(resourceId, req.OriginId, "", req.FilePath))
@@ -30,6 +30,10 @@ func (svr *YarnServiceServer) ReportUpFileSummary(ctx context.Context, req *pb.R
 		log.WithError(err).Error("RPC-API:ReportUpFileSummary failed, call StoreDataResourceFileUpload() failed")
 		return nil, backend.NewRpcBizErr(ErrReportUpFileSummaryStr)
 	}
+
+	log.Debugf("RPC-API:ReportUpFileSummary succeed, req.OriginId: {%s}, req.FilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
+		req.OriginId, req.FilePath, req.Ip, req.Port, resourceId)
+
 	return &pb.SimpleResponseCode{
 		Status: 0,
 		Msg:    backend.OK,

@@ -437,6 +437,7 @@ func (svr *YarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *p
 	}
 	log.Debugf("RPC-API:QueryAvailableDataNode succeed, fileType: {%s}, fileSize: {%d}, return dataNodeId: {%s}, dataNodeIp: {%s}, dataNodePort: {%s}",
 		req.FileType, req.FileSize, dataNode.Id, dataNode.InternalIp, dataNode.InternalPort)
+
 	return &pb.QueryAvailableDataNodeResponse{
 		Ip:   dataNode.InternalIp,
 		Port: dataNode.InternalPort,
