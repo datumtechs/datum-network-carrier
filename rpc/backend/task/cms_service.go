@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -85,6 +86,14 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	if len( req.DataSupplier) == 0 {
 		return nil, errors.New("required partners")
 	}
+
+	_, err := svr.B.GetNodeIdentity()
+	if rawdb.IsDBNotFoundErr(err) {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, the identity was not exist, can not revoke identity")
+		return nil, backend.NewRpcBizErr(ErrSendTaskMsgStr)
+	}
+
+
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
 	// add  dataSuppliers
@@ -160,7 +169,7 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	taskId := taskMsg.SetTaskId()
 	taskMsg.Data.TaskData().TaskId = taskId
 
-	err := svr.B.SendMsg(taskMsg)
+	err = svr.B.SendMsg(taskMsg)
 	if nil != err {
 		return nil, backend.NewRpcBizErr(ErrSendTaskMsgStr)
 	}

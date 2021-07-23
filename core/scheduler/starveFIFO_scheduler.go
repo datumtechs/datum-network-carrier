@@ -17,7 +17,7 @@ import (
 const (
 	ReschedMaxCount             = 8
 	StarveTerm                  = 3
-	defaultScheduleTaskInterval = 20 * time.Millisecond
+	defaultScheduleTaskInterval = 2 * time.Second
 	electionOrgCondition        = 10000
 	electionLocalSeed           = 2
 	//taskComputeOrgCount         = 3
@@ -72,7 +72,7 @@ func NewSchedulerStarveFIFO(
 	}
 }
 func (sche *SchedulerStarveFIFO) loop() {
-	taskTimer := time.NewTimer(defaultScheduleTaskInterval)
+	taskTicker := time.NewTicker(defaultScheduleTaskInterval)
 	for {
 		select {
 		// From taskManager
@@ -131,7 +131,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 			go sche.replaySchedule(replayScheduleTask)
 
 		// 定时调度 队列中的任务信息
-		case <-taskTimer.C:
+		case <-taskTicker.C:
 			sche.trySchedule()
 		}
 
@@ -163,7 +163,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			x := heap.Pop(sche.queue)
 			bullet = x.(*types.TaskBullet)
 		} else {
-			log.Info("There is not task on FIFO scheduler, finished try schedule timer ...")
+			//log.Info("There is not task on FIFO scheduler, finished try schedule timer ...")
 			return nil
 		}
 	}
