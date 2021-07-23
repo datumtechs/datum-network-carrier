@@ -35,7 +35,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetPowerTotalDetailList failed")
-		return nil, backend.NewRpcBizErr(ErrGetTotalPowerListStr)
+		return nil, ErrGetTotalPowerList
 	}
 	respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
 
@@ -64,7 +64,7 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 	powerList, err := svr.B.GetPowerSingleDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetPowerSingleDetailList failed")
-		return nil, backend.NewRpcBizErr(ErrGetSinglePowerListStr)
+		return nil, ErrGetSinglePowerList
 	}
 	respList := make([]*pb.GetPowerSingleDetailResponse, len(powerList))
 
@@ -100,7 +100,7 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.Errorf("RPC-API:PublishPower failed, the identity was not exist, can not revoke identity")
-		return nil, backend.NewRpcBizErr(ErrSendPowerMsgStr)
+		return nil, ErrSendPowerMsg
 	}
 
 	powerMsg := types.NewPowerMessageFromRequest(req)
@@ -109,7 +109,7 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	err = svr.B.SendMsg(powerMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.JobNodeId, powerId)
-		return nil, backend.NewRpcBizErr(ErrSendPowerMsgStr)
+		return nil, ErrSendPowerMsg
 	}
 	log.Debugf("RPC-API:PublishPower succeed, jobNodeId: {%s}, powerId: {%s}", req.JobNodeId, powerId)
 	return &pb.PublishPowerResponse{
@@ -130,7 +130,7 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.Errorf("RPC-API:RevokePower failed, the identity was not exist, can not revoke identity")
-		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgStr)
+		return nil, ErrSendPowerRevokeMsg
 	}
 
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
@@ -138,7 +138,7 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	err = svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.PowerId)
-		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgStr)
+		return nil, ErrSendPowerRevokeMsg
 	}
 	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.PowerId)
 	return &pb.SimpleResponseCode{

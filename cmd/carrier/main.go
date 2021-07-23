@@ -25,6 +25,8 @@ import (
 var (
 	appFlags = []cli.Flag{
 		flags.SetGCPercent,
+		flags.DeveloperFlag,
+		flags.TestnetFlag,
 		// todo: more flags could be define here.
 	}
 
@@ -44,6 +46,8 @@ var (
 		flags.RPCPort,
 		flags.CertFlag,
 		flags.KeyFlag,
+		flags.DisableGRPCGateway,
+		flags.GPRCGatewayCorsDomain,
 		flags.GRPCGatewayHost,
 		flags.GRPCGatewayPort,
 		flags.GrpcMaxCallRecvMsgSizeFlag,
@@ -65,11 +69,20 @@ var (
 		flags.EnableUPnPFlag,
 		flags.DisableDiscv5,
 		flags.StaticPeers,
+		flags.RelayNode,
 	}
 
 	debugFlags = []cli.Flag{
 		debug.DebugFlag,
 		flags.EnableDebugRPCEndpoints,
+		debug.PProfFlag,
+		debug.PProfPortFlag,
+		debug.PProfAddrFlag,
+		debug.MemProfileRateFlag,
+		debug.MutexProfileFractionFlag,
+		debug.BlockProfileRateFlag,
+		debug.CPUProfileFlag,
+		debug.TraceFlag,
 	}
 
 )
