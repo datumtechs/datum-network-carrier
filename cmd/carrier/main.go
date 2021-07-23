@@ -75,6 +75,14 @@ var (
 	debugFlags = []cli.Flag{
 		debug.DebugFlag,
 		flags.EnableDebugRPCEndpoints,
+		debug.PProfFlag,
+		debug.PProfPortFlag,
+		debug.PProfAddrFlag,
+		debug.MemProfileRateFlag,
+		debug.MutexProfileFractionFlag,
+		debug.BlockProfileRateFlag,
+		debug.CPUProfileFlag,
+		debug.TraceFlag,
 	}
 
 )
