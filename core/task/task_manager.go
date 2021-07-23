@@ -125,7 +125,7 @@ func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
 	identityId, err := m.dataCenter.GetIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
-		return err
+		return fmt.Errorf("query local identityId failed, %s", err)
 	}
 	event.Identity = identityId
 	m.sendTaskEvent(event)

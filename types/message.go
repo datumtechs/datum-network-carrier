@@ -109,7 +109,7 @@ func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
 		JobNodeId: req.JobNodeId,
 		CreateAt: uint64(time.Now().UnixNano()),
 	}
-	msg.GetPowerId()
+	msg.SetPowerId()
 	return msg
 }
 
@@ -197,7 +197,7 @@ func (msg *PowerMsg) MsgType() string { return MSG_POWER }
 
 func (msg *PowerMsg) GetJobNodeId() string    { return msg.JobNodeId }
 func (msg *PowerMsg) GetCreateAt() uint64        { return msg.CreateAt }
-func (msg *PowerMsg) GetPowerId() string {
+func (msg *PowerMsg) SetPowerId() string {
 	if "" != msg.PowerId {
 		return msg.PowerId
 	}
@@ -217,16 +217,12 @@ func (msg *PowerMsg) Hash() common.Hash {
 }
 
 func (msg *PowerMsg) HashByCreateTime() common.Hash {
-	if hash := msg.hash.Load(); hash != nil {
-		return hash.(common.Hash)
-	}
-	v := rlputil.RlpHash([]interface{}{
+
+	return  rlputil.RlpHash([]interface{}{
 		msg.JobNodeId,
-		msg.CreateAt,
-		//uint64(time.Now().UnixNano()),
+		//msg.CreateAt,
+		uint64(time.Now().UnixNano()),
 	})
-	msg.hash.Store(v)
-	return v
 }
 
 //func (msg *PowerRevokeMsg) ToDataCenter() *Resource {
@@ -418,11 +414,11 @@ func (msg *MetaDataMsg) HasTitle() bool                   { return msg.Data.Info
 func (msg *MetaDataMsg) State() string                    { return msg.Data.Information.MetaDataSummary.State }
 func (msg *MetaDataMsg) ColumnMetas() []*types.ColumnMeta { return msg.Data.Information.ColumnMetas }
 func (msg *MetaDataMsg) CreateAt() uint64                 { return msg.Data.CreateAt }
-func (msg *MetaDataMsg) GetMetaDataId() string {
+func (msg *MetaDataMsg) SetMetaDataId() string {
 	if "" != msg.MetaDataId {
 		return msg.MetaDataId
 	}
-	msg.MetaDataId = PREFIX_METADATA_ID + msg.Hash().Hex()
+	msg.MetaDataId = PREFIX_METADATA_ID + msg.HashByCreateTime().Hex()
 	return msg.MetaDataId
 }
 func (msg *MetaDataMsg) Hash() common.Hash {
@@ -432,6 +428,13 @@ func (msg *MetaDataMsg) Hash() common.Hash {
 	v := rlputil.RlpHash(msg.Data)
 	msg.hash.Store(v)
 	return v
+}
+
+func (msg *MetaDataMsg) HashByCreateTime() common.Hash {
+	return rlputil.RlpHash([]interface{}{
+		msg.Data.Information.MetaDataSummary.OriginId,
+		uint64(time.Now().UnixNano()),
+	})
 }
 
 func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
@@ -693,16 +696,26 @@ func (msg *TaskMsg) SetTaskId() string {
 	if "" != msg.TaskId {
 		return msg.TaskId
 	}
-	msg.TaskId = PREFIX_TASK_ID + msg.Hash().Hex()
+	msg.TaskId = PREFIX_TASK_ID + msg.HashByCreateTime().Hex()
 	return msg.TaskId
 }
 func (msg *TaskMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlputil.RlpHash(msg.Data)
+	v := rlputil.RlpHash(msg.Data.TaskData())
 	msg.hash.Store(v)
 	return v
+}
+
+func (msg *TaskMsg) HashByCreateTime() common.Hash {
+	return rlputil.RlpHash([]interface{}{
+		msg.Data.TaskData().Identity,
+		msg.Data.TaskData().PartyId,
+		msg.Data.TaskData().TaskName,
+		//msg.Data.TaskData().CreateAt,
+		uint64(time.Now().UnixNano()),
+	})
 }
 
 // Len returns the length of s.

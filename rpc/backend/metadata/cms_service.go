@@ -98,6 +98,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
 	//metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
 
+
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
 		ColumnMeta := &libtypes.ColumnMeta{
@@ -110,13 +111,17 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 		ColumnMetas[i] = ColumnMeta
 	}
 	metaDataMsg.Data.Information.ColumnMetas = ColumnMetas
-	metaDataId := metaDataMsg.GetMetaDataId()
+	metaDataId := metaDataMsg.SetMetaDataId()
+
+	//b, _ := json.Marshal(metaDataMsg)
+	//log.Debugf("############ Input req: {%s}", string(b))
 
 	err = svr.B.SendMsg(metaDataMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetaData failed")
 		return nil, ErrSendMetaDataMsg
 	}
+	log.Debugf("RPC-API:PublishMetaData succeed, originId: {%s}, return metadataId: {%s}", req.Information.MetaDataSummary.OriginId, metaDataId)
 	return &pb.PublishMetaDataResponse{
 		Status:     0,
 		Msg:        backend.OK,
@@ -142,6 +147,7 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 		log.WithError(err).Error("RPC-API:RevokeMetaData failed")
 		return nil, ErrSendMetaDataRevokeMsg
 	}
+	log.Debugf("RPC-API:RevokeMetaData succeed, metadataId: {%s}", req.MetaDataId)
 	return &pb.SimpleResponseCode{
 		Status: 0,
 		Msg:    backend.OK,
