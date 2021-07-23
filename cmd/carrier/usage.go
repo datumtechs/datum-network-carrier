@@ -43,6 +43,8 @@ var appHelpFlagGroups = []flagGroup{
 		Flags: []cli.Flag{
 			flags.RPCHost,
 			flags.RPCPort,
+			flags.DisableGRPCGateway,
+			flags.GPRCGatewayCorsDomain,
 			flags.GRPCGatewayHost,
 			flags.GRPCGatewayPort,
 			flags.CertFlag,
@@ -68,6 +70,8 @@ var appHelpFlagGroups = []flagGroup{
 	{
 		Name: "carrier",
 		Flags: []cli.Flag{
+			flags.DeveloperFlag,
+			flags.TestnetFlag,
 			flags.DataDirFlag,
 			flags.ClearDB,
 			flags.VerbosityFlag,
@@ -94,6 +98,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.EnableUPnPFlag,
 			flags.DisableDiscv5,
 			flags.StaticPeers,
+			flags.RelayNode,
 		},
 	},
 	{

@@ -11,9 +11,9 @@ fi
 workspace="$PWD/build/_workspace"
 root="$PWD"
 cardir="$workspace/src/github.com/RosettaFlow"
-if [ ! -L "cardir/Carrier-Go" ]; then
-    mkdir -p "cardir"
-    cd "cardir"
+if [ ! -L "$cardir/Carrier-Go" ]; then
+    mkdir -p "$cardir"
+    cd "$cardir"
     ln -s ../../../../../. Carrier-Go
     cd "$root"
 fi
@@ -23,8 +23,8 @@ GOPATH="$workspace"
 export GOPATH
 
 # Run the command inside the workspace.
-cd "cardir/Carrier-Go"
-PWD="cardir/Carrier-Go"
+cd "$cardir/Carrier-Go"
+PWD="$cardir/Carrier-Go"
 
 # Launch the arguments with the configured environment.
 exec "$@"

@@ -18,7 +18,7 @@ func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.Repor
 	})
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
-		return nil, backend.NewRpcBizErr(ErrReportTaskEventStr)
+		return nil, ErrReportTaskEvent
 	}
 	return &pb.SimpleResponseCode{Status: 0, Msg: backend.OK}, nil
 }
