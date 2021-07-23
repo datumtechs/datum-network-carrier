@@ -196,6 +196,35 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 	return types.CONNECTED, nil
 }
 
+//func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+//
+//	switch typ {
+//	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+//	default:
+//		return types.NONCONNECTED, errors.New("invalid nodeType")
+//	}
+//	if typ == types.PREFIX_TYPE_JOBNODE {
+//		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
+//			client.Close()
+//			s.carrier.resourceClientSet.RemoveJobNodeClient(id)
+//		}
+//	}
+//	if typ == types.PREFIX_TYPE_DATANODE {
+//		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
+//			client.Close()
+//			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
+//		}
+//		// remove data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
+//		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); err != nil {
+//			log.Errorf("Failed to remove local data resource table, dataNodeId {%s}, {%s}", id, err)
+//			return err
+//		}
+//	}
+//	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
+//
+//
+//}
+
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
 	switch typ {
 	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
@@ -521,7 +550,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	}
 	localIdentityId, err := s.carrier.carrierDB.GetIdentityId()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("query local identityId failed, {%s}", err)
 	}
 
 	// the task has been executed.
