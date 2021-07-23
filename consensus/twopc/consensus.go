@@ -91,8 +91,7 @@ func (t *TwoPC) Close() error {
 	return nil
 }
 func (t *TwoPC) loop() {
-	//cleanExpireProposalTimer := time.NewTimer(defaultCleanExpireProposalInterval)
-	refreshProposalStateTimer := time.NewTimer(defaultRefreshProposalStateInternal)
+	refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal)
 	for {
 		select {
 		case taskWrap := <-t.schedTaskCh:
@@ -129,7 +128,7 @@ func (t *TwoPC) loop() {
 		//case <-cleanExpireProposalTimer.C:
 		//	t.cleanExpireProposal()
 
-		case <-refreshProposalStateTimer.C:
+		case <-refreshProposalStateTicker.C:
 			go t.refreshProposalState()
 
 		case <-t.quit:

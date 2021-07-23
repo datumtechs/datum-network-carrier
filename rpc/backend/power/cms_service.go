@@ -3,6 +3,7 @@ package power
 import (
 	"context"
 	"errors"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -96,10 +97,16 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 		return nil, errors.New("required owner")
 	}
 
+	_, err := svr.B.GetNodeIdentity()
+	if rawdb.IsDBNotFoundErr(err) {
+		log.Errorf("RPC-API:PublishPower failed, the identity was not exist, can not revoke identity")
+		return nil, backend.NewRpcBizErr(ErrSendPowerMsgStr)
+	}
+
 	powerMsg := types.NewPowerMessageFromRequest(req)
 	powerId := powerMsg.GetPowerId()
 
-	err := svr.B.SendMsg(powerMsg)
+	err = svr.B.SendMsg(powerMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.JobNodeId, powerId)
 		return nil, backend.NewRpcBizErr(ErrSendPowerMsgStr)
@@ -119,9 +126,16 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	if req.PowerId == "" {
 		return nil, errors.New("required powerId")
 	}
+
+	_, err := svr.B.GetNodeIdentity()
+	if rawdb.IsDBNotFoundErr(err) {
+		log.Errorf("RPC-API:RevokePower failed, the identity was not exist, can not revoke identity")
+		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgStr)
+	}
+
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 
-	err := svr.B.SendMsg(powerRevokeMsg)
+	err = svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.PowerId)
 		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgStr)

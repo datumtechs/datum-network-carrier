@@ -13,10 +13,10 @@ var (
 	ErrNotFound = leveldberr.ErrNotFound
 )
 
-func IsNotDBFoundErr(err error) bool {
+func IsNoDBNotFoundErr(err error) bool {
 	return nil != err && err != ErrNotFound
 }
-func IsDBFoundErr (err error) bool {
+func IsDBNotFoundErr(err error) bool {
 	return nil != err && err == ErrNotFound
 }
 
