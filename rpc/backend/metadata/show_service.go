@@ -11,7 +11,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Conte
 	metaDataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetMetaDataDetailListByOwner failed, identityId: {%s}", req.IdentityId)
-		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailListStr)
+		return nil, ErrGetMetaDataDetailList
 	}
 	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
 	for i, metaDataDetail := range metaDataList {

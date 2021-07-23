@@ -17,13 +17,13 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			req.Member.IdentityId, req.Member.NodeId, req.Member.Name)
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
+		return nil, ErrSendIdentityMsg
 	}
 
 	if nil != identity {
 		log.Errorf("RPC-API:ApplyIdentityJoin failed, identity was already exist, old identityId: {%s}, old nodeId: {%s}, old nodeName: {%s}",
 			identity.IdentityId(), identity.NodeId(), identity.Name())
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
+		return nil, ErrSendIdentityMsg
 	}
 
 	identityMsg := new(types.IdentityMsg)
@@ -46,7 +46,7 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			req.Member.IdentityId, req.Member.NodeId, req.Member.Name)
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsgStr)
+		return nil, ErrSendIdentityMsg
 	}
 	log.Debugf("RPC-API:ApplyIdentityJoin succeed SendMsg, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 		req.Member.IdentityId, req.Member.NodeId, req.Member.Name)
@@ -61,7 +61,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
-		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsgStr)
+		return nil, ErrSendIdentityRevokeMsg
 	}
 
 	identityRevokeMsg := new(types.IdentityRevokeMsg)
@@ -69,7 +69,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 	err = svr.B.SendMsg(identityRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")
-		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsgStr)
+		return nil, ErrSendIdentityRevokeMsg
 	}
 	log.Debug("RPC-API:RevokeIdentityJoin succeed SendMsg")
 	return &pb.SimpleResponseCode{
@@ -82,7 +82,7 @@ func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *pb.Empty
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetNodeIdentity failed")
-		return nil, backend.NewRpcBizErr(ErrGetNodeIdentityStr)
+		return nil, ErrGetNodeIdentity
 	}
 	return &pb.GetNodeIdentityResponse{
 		Status: 0,
@@ -99,7 +99,7 @@ func (svr *AuthServiceServer) GetIdentityList(ctx context.Context, req *pb.Empty
 	identityList, err := svr.B.GetIdentityList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetIdentityList failed")
-		return nil, backend.NewRpcBizErr(ErrGetIdentityListStr)
+		return nil, ErrGetIdentityList
 	}
 	arr := make([]*pb.OrganizationIdentityInfo, len(identityList))
 	for i, identity := range identityList {
