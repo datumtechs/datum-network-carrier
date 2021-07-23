@@ -32,7 +32,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetMetaDataDetail failed")
-		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailStr)
+		return nil, ErrGetMetaDataDetail
 	}
 
 	columns := make([]*pb.MetaDataColumnDetail, len(metaDataDetail.MetaData.ColumnMetas))
@@ -57,7 +57,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 	metaDataList, err := svr.B.GetMetaDataDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetMetaDataDetailList failed")
-		return nil, backend.NewRpcBizErr(ErrGetMetaDataDetailListStr)
+		return nil, ErrGetMetaDataDetailList
 	}
 	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
 	for i, metaDataDetail := range metaDataList {
@@ -92,7 +92,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.Errorf("RPC-API:PublishMetaData failed, the identity was not exist, can not revoke identity")
-		return nil, backend.NewRpcBizErr(ErrSendMetaDataMsgStr)
+		return nil, ErrSendMetaDataMsg
 	}
 
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
@@ -115,7 +115,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	err = svr.B.SendMsg(metaDataMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetaData failed")
-		return nil, backend.NewRpcBizErr(ErrSendMetaDataMsgStr)
+		return nil, ErrSendMetaDataMsg
 	}
 	return &pb.PublishMetaDataResponse{
 		Status:     0,
@@ -132,7 +132,7 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.Errorf("RPC-API:RevokeMetaData failed, the identity was not exist, can not revoke identity")
-		return nil, backend.NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
+		return nil, ErrSendMetaDataRevokeMsg
 	}
 
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
@@ -140,7 +140,7 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	err = svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetaData failed")
-		return nil, backend.NewRpcBizErr(ErrSendMetaDataRevokeMsgStr)
+		return nil, ErrSendMetaDataRevokeMsg
 	}
 	return &pb.SimpleResponseCode{
 		Status: 0,
