@@ -58,7 +58,7 @@ func MkdirAll(dirPath string) error {
 }
 
 // WriteFile is the static-analysis enforced method for writing binary data to a file
-// in Prysm, enforcing a single entrypoint with standardized permissions.
+// in Carrier, eforcing a single entrypoint with standardized permissions.
 func WriteFile(file string, data []byte) error {
 	expanded, err := ExpandPath(file)
 	if err != nil {
