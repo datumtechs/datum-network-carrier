@@ -174,6 +174,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 	}
+
 	if typ == types.PREFIX_TYPE_DATANODE {
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
@@ -227,6 +228,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 
 	}
+
 	if typ == types.PREFIX_TYPE_DATANODE {
 
 		// 先校验 dataNode 上是否已被 使用
@@ -285,12 +287,34 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		return errors.New("invalid nodeType")
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
+
+		// 先校验 jobNode 上是否有正在执行的 task
+		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(id)
+		if nil != err {
+			return fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
+		}
+		if runningTaskCount > 0 {
+			return fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
+		}
+
 		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
 			client.Close()
 			s.carrier.resourceClientSet.RemoveJobNodeClient(id)
 		}
 	}
+
 	if typ == types.PREFIX_TYPE_DATANODE {
+
+		// 先校验 dataNode 上是否已被 使用
+		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
+		if nil != err {
+			return fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
+		}
+		if dataNodeTable.IsUsed() {
+			return fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
+				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
+		}
+
 		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
 			client.Close()
 			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
