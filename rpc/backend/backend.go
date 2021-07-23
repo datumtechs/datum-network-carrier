@@ -17,6 +17,7 @@ type Backend interface {
 	GetSeedNode(id string) (*types.SeedNodeInfo, error)
 	GetSeedNodeList() ([]*types.SeedNodeInfo, error)
 	SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
+	UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
 	DeleteRegisterNode(typ types.RegisteredNodeType, id string) error
 	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
 	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)

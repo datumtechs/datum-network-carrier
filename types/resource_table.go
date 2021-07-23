@@ -342,6 +342,7 @@ func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
 func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
 func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
 func (drt *DataResourceTable) RemainDisk() uint64 { return drt.totalDisk - drt.usedDisk }
+func (drt *DataResourceTable) IsUsed() bool { return drt.usedDisk != 0 }
 func (drt *DataResourceTable) UseDisk(use uint64)  {
 	if drt.RemainDisk() > use {
 		drt.usedDisk += use

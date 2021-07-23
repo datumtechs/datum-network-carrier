@@ -251,8 +251,9 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		ConnState:    types.NONCONNECTED,
 	}
 	// delete and insert.
-	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, node.Id)
-	status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
+	//svr.B.DeleteRegisterNode(types.PREFIX_TYPE_DATANODE, node.Id)
+	//status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_DATANODE, node)
+	status, err := svr.B.UpdateRegisterNode(types.PREFIX_TYPE_DATANODE, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateDataNode failed, dataNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
 			req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
@@ -353,8 +354,9 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		ExternalPort: req.InternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
-	svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
-	status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
+	//svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
+	//status, err := svr.B.SetRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
+	status, err := svr.B.UpdateRegisterNode(types.PREFIX_TYPE_JOBNODE, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateJobNode failed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
 			req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)

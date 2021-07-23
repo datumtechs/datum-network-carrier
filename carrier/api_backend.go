@@ -170,60 +170,113 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 	if typ == types.PREFIX_TYPE_JOBNODE {
 		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, err
+			return types.NONCONNECTED, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 	}
 	if typ == types.PREFIX_TYPE_DATANODE {
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, err
+			return types.NONCONNECTED, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
 		// add data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
-			log.Errorf("Failed to store local data resource table, dataNodeId {%s}, {%s}", node.Id, err)
-			return types.NONCONNECTED, err
+			return types.NONCONNECTED, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 	}
 	node.ConnState = types.CONNECTED
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
-		return types.NONCONNECTED, err
+		return types.NONCONNECTED, fmt.Errorf("Store registerNode to db failed, %s", err)
 	}
 	return types.CONNECTED, nil
 }
 
-//func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
-//
-//	switch typ {
-//	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
-//	default:
-//		return types.NONCONNECTED, errors.New("invalid nodeType")
-//	}
-//	if typ == types.PREFIX_TYPE_JOBNODE {
-//		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
-//			client.Close()
-//			s.carrier.resourceClientSet.RemoveJobNodeClient(id)
-//		}
-//	}
-//	if typ == types.PREFIX_TYPE_DATANODE {
-//		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
-//			client.Close()
-//			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
-//		}
-//		// remove data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
-//		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); err != nil {
-//			log.Errorf("Failed to remove local data resource table, dataNodeId {%s}, {%s}", id, err)
-//			return err
-//		}
-//	}
-//	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
-//
-//
-//}
+func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+
+	switch typ {
+	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	default:
+		return types.NONCONNECTED, errors.New("invalid nodeType")
+	}
+	if typ == types.PREFIX_TYPE_JOBNODE {
+
+		// 先校验 jobNode 上是否有正在执行的 task
+		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(node.Id)
+		if nil != err {
+			return types.NONCONNECTED, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
+		}
+		if runningTaskCount > 0 {
+			return types.NONCONNECTED, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
+		}
+
+		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(node.Id); ok {
+			// remove old client instanse
+			client.Close()
+			s.carrier.resourceClientSet.RemoveJobNodeClient(node.Id)
+		}
+
+		// generate new client
+		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		if err != nil {
+			return types.NONCONNECTED, fmt.Errorf("connect new jobNode failed, %s", err)
+		}
+		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
+
+	}
+	if typ == types.PREFIX_TYPE_DATANODE {
+
+		// 先校验 dataNode 上是否已被 使用
+		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
+		if nil != err {
+			return types.NONCONNECTED, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
+		}
+		if dataNodeTable.IsUsed() {
+			return types.NONCONNECTED, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
+				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
+		}
+
+		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(node.Id); ok {
+			// remove old client instanse
+			client.Close()
+			s.carrier.resourceClientSet.RemoveDataNodeClient(node.Id)
+		}
+
+		// remove old data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
+		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.Id); err != nil {
+			return types.NONCONNECTED, fmt.Errorf("remove disk summary of old dataNode, %s", err)
+		}
+
+		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		if err != nil {
+			return types.NONCONNECTED, fmt.Errorf("connect new dataNode failed, %s", err)
+		}
+		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
+
+		// add new data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
+		if err != nil {
+			return types.NONCONNECTED, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
+		}
+
+	}
+
+	// remove  old jobNode from db
+	if err := s.carrier.carrierDB.DeleteRegisterNode(typ, node.Id); nil != err {
+		return types.NONCONNECTED, fmt.Errorf("remove old registerNode from db failed, %s", err)
+	}
+
+	// add new node to db
+	node.ConnState = types.CONNECTED
+	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
+	if err != nil {
+		return types.NONCONNECTED, fmt.Errorf("Store new registerNode to db failed, %s", err)
+	}
+	return types.CONNECTED, nil
+}
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
 	switch typ {
@@ -244,8 +297,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		}
 		// remove data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); err != nil {
-			log.Errorf("Failed to remove local data resource table, dataNodeId {%s}, {%s}", id, err)
-			return err
+			return fmt.Errorf("remove disk summary of old registerNode, %s", err)
 		}
 	}
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
