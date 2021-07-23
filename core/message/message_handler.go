@@ -221,13 +221,13 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 
 	// add identity to local db
 	if err := m.dataCenter.StoreIdentity(msg.NodeAlias); nil != err {
-		log.Errorf("Failed to store local org identity on MessageHandler, identityId: {%s}, err: {%s}", msg.IdentityId, err)
+		log.Errorf("Failed to store local org identity on MessageHandler with broadcast, identityId: {%s}, err: {%s}", msg.IdentityId, err)
 		return err
 	}
 
 	// send identity to datacenter
 	if err := m.dataCenter.InsertIdentity(msg.ToDataCenter()); nil != err {
-		log.Errorf("Failed to broadcast org org identity on MessageHandler, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, err: {%s}", msg.IdentityId, msg.NodeId, msg.Name, err)
+		log.Errorf("Failed to broadcast org org identity on MessageHandler with broadcast, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, err: {%s}", msg.IdentityId, msg.NodeId, msg.Name, err)
 		return err
 	}
 	log.Debugf("Registered identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", msg.IdentityId, msg.NodeId, msg.Name)
@@ -239,11 +239,11 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 	// remove identity from local db
 	identity, err := m.dataCenter.GetIdentity()
 	if nil != err {
-		log.Errorf("Failed to get local org identity on MessageHandler, identityId: {%s}, err: {%s}", identity, err)
+		log.Errorf("Failed to get local org identity on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity, err)
 		return err
 	}
 	if err := m.dataCenter.RemoveIdentity(); nil != err {
-		log.Errorf("Failed to delete org identity to local on MessageHandler, identityId: {%s}, err: {%s}", identity, err)
+		log.Errorf("Failed to delete org identity to local on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity, err)
 		return err
 	}
 
@@ -254,7 +254,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 			NodeId:   identity.NodeId,
 			Identity: identity.IdentityId,
 		})); nil != err {
-		log.Errorf("Failed to remove org identity to remote on MessageHandler, identityId: {%s}, err: {%s}", identity, err)
+		log.Errorf("Failed to remove org identity to remote on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity, err)
 		return err
 	}
 	log.Debugf("Revoke identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", identity.IdentityId, identity.NodeId, identity.Name)
@@ -288,18 +288,18 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 		resourceTable.SetSlotUnit(slotUnit)
 
 		if err := m.dataCenter.StoreLocalResourceTable(resourceTable); nil != err {
-			log.Errorf("Failed to StoreLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreLocalResourceTable on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to StoreLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to StoreLocalResourceTable on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err))
 			continue
 		}
 
 
 		if err := m.dataCenter.StoreLocalResourceIdByPowerId(power.PowerId, power.JobNodeId); nil != err {
-			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler with broadcast,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to StoreLocalResourceIdByPowerId on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to StoreLocalResourceIdByPowerId on MessageHandler with broadcast,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err))
 			continue
 		}
@@ -324,9 +324,9 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			TotalBandWidth: types.GetDefaultResoueceBandwidth(),    // todo 使用 默认的资源大小
 			UsedBandWidth:  0,
 		})); nil != err {
-			log.Errorf("Failed to store power to local on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to store power to local on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to store power to local on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to store power to local on MessageHandler with broadcast,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err))
 			continue
 		}
@@ -352,12 +352,14 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			TotalBandWidth: types.GetDefaultResoueceBandwidth(),    // todo 使用 默认的资源大小
 			UsedBandWidth:  0,
 		})); nil != err {
-			log.Errorf("Failed to store power to dataCenter on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to store power to dataCenter on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to store power to dataCenter on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to store power to dataCenter on MessageHandler with broadcast,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err))
 			continue
 		}
+
+		log.Debugf("broadcast power msg succeed, powerId: {%s}, jobNodeId: {%s}", power.PowerId, power.JobNodeId)
 
 	}
 	if len(errs) != 0 {
@@ -378,31 +380,31 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 
 		jobNodeId, err := m.dataCenter.QueryLocalResourceIdByPowerId(revoke.PowerId)
 		if nil != err {
-			log.Errorf("Failed to QueryLocalResourceIdByPowerId on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryLocalResourceIdByPowerId on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to QueryLocalResourceIdByPowerId on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to QueryLocalResourceIdByPowerId on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err))
 			continue
 		}
 		if err := m.dataCenter.RemoveLocalResourceIdByPowerId(revoke.PowerId); nil != err {
-			log.Errorf("Failed to RemoveLocalResourceIdByPowerId on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to RemoveLocalResourceIdByPowerId on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to RemoveLocalResourceIdByPowerId on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to RemoveLocalResourceIdByPowerId on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err))
 			continue
 		}
 		if err := m.dataCenter.RemoveLocalResourceTable(jobNodeId); nil != err {
-			log.Errorf("Failed to RemoveLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to RemoveLocalResourceTable on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to RemoveLocalResourceTable on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to RemoveLocalResourceTable on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err))
 			continue
 		}
 
 		if err := m.dataCenter.RemoveLocalResource(jobNodeId); nil != err {
-			log.Errorf("Failed to RemoveLocalResource on MessageHandler, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to RemoveLocalResource on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to RemoveLocalResource on MessageHandler,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to RemoveLocalResource on MessageHandler with revoke,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err))
 			continue
 		}
@@ -428,12 +430,14 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 			TotalBandWidth: 0,
 			UsedBandWidth:  0,
 		})); nil != err {
-			log.Error("Failed to remove dataCenter resource on MessageHandler, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to remove dataCenter resource on MessageHandler with revoke, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)
-			errs = append(errs, fmt.Sprintf("failed to remove dataCenter resource on MessageHandler, jobNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to remove dataCenter resource on MessageHandler with revoke, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err))
 			continue
 		}
+
+		log.Debugf("revoke power msg succeed, powerId: {%s}, jobNodeId: {%s}", revoke.PowerId, jobNodeId)
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast powerRevokeMsgs errs: \n%s", strings.Join(errs, "\n"))
@@ -448,56 +452,61 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 		// 维护本地 数据服务的 orginId  和 metaDataId 关系
 		dataResourceFileUpload, err := m.dataCenter.QueryDataResourceFileUpload(metaData.OriginId())
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceFileUpload on MessageHandler, originId: {%s}, metaDataId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, err: {%s}",
 				metaData.OriginId(), metaData.MetaDataId, err)
-			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceFileUpload on MessageHandler, originId: {%s}, metaDataId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, err: {%s}",
 				metaData.OriginId(), metaData.MetaDataId, err))
 			continue
 		}
 		dataResourceFileUpload.SetMetaDataId(metaData.MetaDataId)
 		if err := m.dataCenter.StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
-			log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
-			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceFileUpload on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 		// 记录原始数据占用资源大小
 		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceTable on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
-			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceTable on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 		dataResourceTable.UseDisk(uint64(metaData.Size()))
 		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
-			log.Errorf("Failed to StoreDataResourceTable on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
-			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceTable on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 		// 单独记录 metaData 的 Size 和所在 dataNodeId
 		if err := m.dataCenter.StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
 			metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), uint64(metaData.Size()))); nil != err {
-			log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
-			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceDiskUsed on MessageHandler, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 
 		if err := m.dataCenter.InsertMetadata(metaData.ToDataCenter()); nil != err {
-			log.Errorf("Failed to store metaData to dataCenter on MessageHandler, err:", err)
-			errs = append(errs, fmt.Sprintf("originId: %s, %s", metaData.OriginId(), err))
+			log.Errorf("Failed to store metaData to dataCenter on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
+			errs = append(errs, fmt.Sprintf("failed to store metaData to dataCenter on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
+
+		log.Debugf("broadcast metaData msg succeed, originId: {%s}, metaDataId: {%s}", metaData.OriginId(), metaData.MetaDataId)
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast metaDataMsgs errs: \n%s", strings.Join(errs, "\n"))
 	}
+
 	return nil
 }
 
@@ -507,46 +516,47 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.Me
 		// 需要将 dataNode 的 disk 使用信息 加回来 ...
 		dataResourceDiskUsed, err := m.dataCenter.QueryDataResourceDiskUsed(revoke.MetaDataId)
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceDiskUsed on MessageHandler, metaDataId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceDiskUsed on MessageHandler with revoke, metaDataId: {%s}, err: {%s}",
 				revoke.MetaDataId, err)
-			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceDiskUsed on MessageHandler, metaDataId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceDiskUsed on MessageHandler with revoke, metaDataId: {%s}, err: {%s}",
 				revoke.MetaDataId, err))
 			continue
 		}
 		// 记录原始数据占用资源大小
 		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceDiskUsed.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceTable on MessageHandler, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with revoke, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.MetaDataId, dataResourceDiskUsed.GetNodeId(), err)
-			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceTable on MessageHandler, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceTable on MessageHandler with revoke, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.MetaDataId, dataResourceDiskUsed.GetNodeId(), err))
 			continue
 		}
 		dataResourceTable.FreeDisk(dataResourceDiskUsed.GetDiskUsed())
 		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
-			log.Errorf("Failed to StoreDataResourceTable on MessageHandler, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with revoke, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.MetaDataId, dataResourceDiskUsed.GetNodeId(), err)
-			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceTable on MessageHandler, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceTable on MessageHandler with revoke, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.MetaDataId, dataResourceDiskUsed.GetNodeId(), err))
 			continue
 		}
 
 		// 移除 metaData 的 Size 和所在 dataNodeId 的单条记录
 		if err := m.dataCenter.RemoveDataResourceDiskUsed(revoke.MetaDataId); nil != err {
-			log.Errorf("Failed to RemoveDataResourceDiskUsed on MessageHandler, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to RemoveDataResourceDiskUsed on MessageHandler with revoke, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.MetaDataId, dataResourceDiskUsed.GetNodeId(), err)
-			errs = append(errs, fmt.Sprintf("failed to RemoveDataResourceDiskUsed on MessageHandler, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to RemoveDataResourceDiskUsed on MessageHandler with revoke, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.MetaDataId, dataResourceDiskUsed.GetNodeId(), err))
 			continue
 		}
 
 		if err := m.dataCenter.InsertMetadata(revoke.ToDataCenter()); nil != err {
-			log.Errorf("Failed to store metaData to dataCenter on MessageHandler,metaDataId: {%s}, err: {%s}",
+			log.Errorf("Failed to store metaData to dataCenter on MessageHandler with revoke, metaDataId: {%s}, err: {%s}",
 				revoke.MetaDataId, err)
-			errs = append(errs, fmt.Sprintf("failed to store metaData to dataCenter on MessageHandler,metaDataId: {%s}, err: {%s}",
+			errs = append(errs, fmt.Sprintf("failed to store metaData to dataCenter on MessageHandler with revoke, metaDataId: {%s}, err: {%s}",
 				revoke.MetaDataId, err))
 			continue
 		}
+		log.Debugf("revoke metaData msg succeed, metaDataId: {%s}", revoke.MetaDataId)
 	}
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast metaDataRevokeMsgs errs: \n%s", strings.Join(errs, "\n"))
