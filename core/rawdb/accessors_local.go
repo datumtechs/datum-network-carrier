@@ -563,14 +563,14 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 			log.WithError(err).Fatal("Failed to decode old task evengine")
 		}
 	}
-	for _, s := range array.GetTaskEventList() {
-		if strings.EqualFold(s.GetTaskId(), taskEvent.TaskId) &&
-			strings.EqualFold(s.GetIdentity(), taskEvent.Identity) &&
-			strings.EqualFold(s.GetEventContent(), taskEvent.Content){
-			log.WithFields(logrus.Fields{ "identity": s.Identity }).Info("Skip duplicated task evengine")
-			return
-		}
-	}
+	//for _, s := range array.GetTaskEventList() {
+	//	if strings.EqualFold(s.TaskId, taskEvent.TaskId) &&
+	//		strings.EqualFold(s.Identity, taskEvent.Identity) &&
+	//		strings.EqualFold(s.EventContent, taskEvent.Content) {
+	//		log.WithFields(logrus.Fields{ "identity": s.Identity, "taskId": s.TaskId }).Info("Skip duplicated task evengine")
+	//		return
+	//	}
+	//}
 	array.TaskEventList = append(array.TaskEventList, &libtypes.EventData{
 		TaskId:               taskEvent.TaskId,
 		EventType:            taskEvent.Type,
