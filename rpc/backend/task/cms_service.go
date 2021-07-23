@@ -24,7 +24,7 @@ func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.Emp
 	tasks, err := svr.B.GetTaskDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
-		return nil, backend.NewRpcBizErr(ErrGetNodeTaskListStr)
+		return nil, ErrGetNodeTaskList
 	}
 	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
 	for i, task := range tasks {
@@ -47,7 +47,7 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 	events, err := svr.B.GetTaskEventList(req.TaskId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetTaskEventList failed, taskId: {%s}", req.TaskId)
-		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventListStr)
+		return nil, ErrGetNodeTaskEventList
 	}
 	log.Debugf("RPC-API:GetTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.TaskId, len(events))
 	return &pb.GetTaskEventListResponse{
@@ -63,7 +63,7 @@ func (svr *TaskServiceServer) GetTaskEventListByTaskIds (ctx context.Context, re
 	events, err := svr.B.GetTaskEventListByTaskIds(req.TaskIds)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetTaskEventListByTaskIds failed, taskId: {%v}", req.TaskIds)
-		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventListStr)
+		return nil, ErrGetNodeTaskEventList
 	}
 	log.Debugf("RPC-API:GetTaskEventListByTaskIds succeed, taskId: {%v},  eventList len: {%d}", req.TaskIds, len(events))
 	return &pb.GetTaskEventListResponse{
@@ -90,7 +90,7 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, the identity was not exist, can not revoke identity")
-		return nil, backend.NewRpcBizErr(ErrSendTaskMsgStr)
+		return nil, ErrSendTaskMsg
 	}
 
 
@@ -171,7 +171,7 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 
 	err = svr.B.SendMsg(taskMsg)
 	if nil != err {
-		return nil, backend.NewRpcBizErr(ErrSendTaskMsgStr)
+		return nil, ErrSendTaskMsg
 	}
 	return &pb.PublishTaskDeclareResponse{
 		Status: 0,
