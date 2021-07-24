@@ -3,7 +3,7 @@ package peers
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/rand"
-	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers/scorers"

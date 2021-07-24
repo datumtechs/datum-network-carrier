@@ -42,7 +42,7 @@ func newState() *state {
 func (s *state) EmptyInfo () *ctypes.ProposalState { return s.empty }
 
 //func (s *state) CleanExpireProposal() ([]string, []string) {
-//	now := uint64(time.Now().UnixNano())
+//	now := uint64(timeutils.UnixMsec())
 //	sendTaskIds := make([]string, 0)
 //	recvTaskIds := make([]string, 0)
 //

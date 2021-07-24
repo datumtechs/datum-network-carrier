@@ -2,9 +2,9 @@ package evengine
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"time"
 )
 
 
@@ -25,7 +25,7 @@ func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *type
 		TaskId: taskId,
 		Identity: identityId,
 		Content: fmt.Sprintf("%s, reason: %s", ScheduleEvent[typ], extra),
-		CreateTime: uint64(time.Now().UnixNano()),
+		CreateTime: uint64(timeutils.UnixMsec()),
 	}
 }
 func  (e *EventEngine) StoreEvent(event *types.TaskEventInfo) {
