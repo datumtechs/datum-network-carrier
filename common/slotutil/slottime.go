@@ -1,7 +1,7 @@
 package slotutil
 
 import (
-	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	types "github.com/prysmaticlabs/eth2-types"
 	"time"

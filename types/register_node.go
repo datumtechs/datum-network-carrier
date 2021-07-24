@@ -2,9 +2,9 @@ package types
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
 	"github.com/ethereum/go-ethereum/rlp"
-	"time"
 )
 
 type NodeConnStatus int32
@@ -80,7 +80,7 @@ func (seed *SeedNodeInfo) hashByCreateTime() (h common.Hash) {
 	}{
 		InternalIp:   seed.InternalIp,
 		InternalPort: seed.InternalPort,
-		CreateTime:   uint64(time.Now().UnixNano()),
+		CreateTime:   uint64(timeutils.UnixMsec()),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])
@@ -136,7 +136,7 @@ func (node *RegisteredNodeInfo) hashByCreateTime(typ RegisteredNodeType) (h comm
 		InternalPort: node.InternalPort,
 		ExternalIp:   node.ExternalIp,
 		ExternalPort: node.ExternalPort,
-		CreateAt:     uint64(time.Now().UnixNano()),
+		CreateAt:     uint64(timeutils.UnixMsec()),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])
