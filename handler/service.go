@@ -7,7 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
