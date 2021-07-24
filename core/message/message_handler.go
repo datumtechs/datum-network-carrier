@@ -448,6 +448,7 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 				metaData.OriginId(), metaData.MetaDataId, err))
 			continue
 		}
+		// 更新 fileupload 信息中的 metadataId
 		dataResourceFileUpload.SetMetaDataId(metaData.MetaDataId)
 		if err := m.dataCenter.StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
 			log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
