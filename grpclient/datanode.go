@@ -61,7 +61,9 @@ func (c *DataNodeClient) Close() {
 	if c.cancel != nil {
 		c.cancel()
 	}
-	c.conn.Close()
+	if nil != c.conn {
+		c.conn.Close()
+	}
 }
 
 func (c *DataNodeClient) connecting() {

@@ -34,7 +34,7 @@ func StoreNodeResource(db KeyValueStore, resource *types.LocalResourceTable) err
 	}
 
 	has, err := db.Has(GetNodeResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -74,7 +74,7 @@ func StoreNodeResource(db KeyValueStore, resource *types.LocalResourceTable) err
 func StoreNodeResources(db KeyValueStore, resources []*types.LocalResourceTable) error {
 
 	has, err := db.Has(GetNodeResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -127,7 +127,7 @@ func StoreNodeResources(db KeyValueStore, resources []*types.LocalResourceTable)
 
 func RemoveNodeResource (db KeyValueStore, resourceId string) error {
 	has, err := db.Has(GetNodeResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -182,7 +182,7 @@ func QueryNodeResource(db DatabaseReader, resourceId string) (*types.LocalResour
 
 func QueryNodeResources (db DatabaseReader) ([]*types.LocalResourceTable, error) {
 	has, err := db.Has(GetNodeResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	if !has {
@@ -229,7 +229,7 @@ func StoreOrgResource(db KeyValueStore, resource *types.RemoteResourceTable) err
 	}
 
 	has, err := db.Has(GetOrgResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -269,7 +269,7 @@ func StoreOrgResource(db KeyValueStore, resource *types.RemoteResourceTable) err
 func StoreOrgResources(db KeyValueStore, resources []*types.RemoteResourceTable) error {
 
 	has, err := db.Has(GetOrgResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -321,7 +321,7 @@ func StoreOrgResources(db KeyValueStore, resources []*types.RemoteResourceTable)
 
 func RemoveOrgResource (db KeyValueStore, identityId string) error {
 	has, err := db.Has(GetOrgResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -377,7 +377,7 @@ func QueryOrgResource (db DatabaseReader, identityId string) (*types.RemoteResou
 
 func QueryOrgResources (db DatabaseReader) ([]*types.RemoteResourceTable, error) {
 	has, err := db.Has(GetOrgResourceIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	if !has {
@@ -427,7 +427,7 @@ func StoreNodeResourceSlotUnit(db DatabaseWriter, slot *types.Slot) error {
 
 func RemoveNodeResourceSlotUnit (db KeyValueStore) error {
 	has, err := db.Has(GetNodeResourceSlotUnitKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 	if !has {
@@ -441,7 +441,7 @@ func RemoveNodeResourceSlotUnit (db KeyValueStore) error {
 
 func QueryNodeResourceSlotUnit(db DatabaseReader) (*types.Slot, error) {
 	has, err := db.Has(GetNodeResourceSlotUnitKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	if !has {
@@ -473,7 +473,7 @@ func StoreLocalTaskPowerUsed(db KeyValueStore, taskPowerUsed *types.LocalTaskPow
 	}
 
 	has, err := db.Has(GetLocalTaskPowerUsedIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -513,7 +513,7 @@ func StoreLocalTaskPowerUsed(db KeyValueStore, taskPowerUsed *types.LocalTaskPow
 func StoreLocalTaskPowerUseds(db KeyValueStore, taskPowerUseds []*types.LocalTaskPowerUsed) error {
 
 	has, err := db.Has(GetLocalTaskPowerUsedIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -566,7 +566,7 @@ func StoreLocalTaskPowerUseds(db KeyValueStore, taskPowerUseds []*types.LocalTas
 
 func RemoveLocalTaskPowerUsed(db KeyValueStore, taskId string) error {
 	has, err := db.Has(GetLocalTaskPowerUsedIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -622,7 +622,7 @@ func QueryLocalTaskPowerUsed (db DatabaseReader, taskId string) (*types.LocalTas
 
 func QueryLocalTaskPowerUseds (db DatabaseReader) ([]*types.LocalTaskPowerUsed, error) {
 	has, err := db.Has(GetLocalTaskPowerUsedIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	if !has {
@@ -672,7 +672,7 @@ func StoreDataResourceTable(db KeyValueStore, dataResourceTable *types.DataResou
 	}
 
 	has, err := db.Has(GetDataResourceTableIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -712,7 +712,7 @@ func StoreDataResourceTable(db KeyValueStore, dataResourceTable *types.DataResou
 func StoreDataResourceTables(db KeyValueStore, dataResourceTables []*types.DataResourceTable) error {
 
 	has, err := db.Has(GetDataResourceTableIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -765,7 +765,7 @@ func StoreDataResourceTables(db KeyValueStore, dataResourceTables []*types.DataR
 
 func RemoveDataResourceTable(db KeyValueStore, nodeId string) error {
 	has, err := db.Has(GetDataResourceTableIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -821,7 +821,7 @@ func QueryDataResourceTable (db DatabaseReader, nodeId string) (*types.DataResou
 
 func QueryDataResourceTables (db DatabaseReader) ([]*types.DataResourceTable, error) {
 	has, err := db.Has(GetDataResourceTableIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	if !has {
@@ -871,7 +871,7 @@ func StoreDataResourceFileUpload(db KeyValueStore, dataResourceFileUpload *types
 	}
 
 	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -911,7 +911,7 @@ func StoreDataResourceFileUpload(db KeyValueStore, dataResourceFileUpload *types
 func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*types.DataResourceFileUpload) error {
 
 	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -964,7 +964,7 @@ func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*typ
 
 func RemoveDataResourceFileUpload(db KeyValueStore, originId string) error {
 	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if nil != err {
+	if  IsNoDBNotFoundErr(err) {
 		return err
 	}
 
@@ -1020,7 +1020,7 @@ func QueryDataResourceFileUpload (db DatabaseReader, originId string) (*types.Da
 
 func QueryDataResourceFileUploads (db DatabaseReader) ([]*types.DataResourceFileUpload, error) {
 	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	if !has {
@@ -1058,7 +1058,7 @@ func QueryDataResourceFileUploads (db DatabaseReader) ([]*types.DataResourceFile
 func StoreResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
 	key := GetResourceTaskIdsKey(resourceId)
 	has, err := db.Has(key)
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 	var taskIds []string
@@ -1085,7 +1085,7 @@ func StoreResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
 func RemoveResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
 	key := GetResourceTaskIdsKey(resourceId)
 	has, err := db.Has(key)
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return err
 	}
 	var taskIds []string
@@ -1119,7 +1119,7 @@ func RemoveResourceTaskId(db KeyValueStore, resourceId, taskId string) error {
 func QueryResourceTaskIds(db KeyValueStore, resourceId string) ([]string, error) {
 	key := GetResourceTaskIdsKey(resourceId)
 	has, err := db.Has(key)
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 	var taskIds []string
@@ -1155,7 +1155,7 @@ func RemoveLocalResourceIdByPowerId(db DatabaseDeleter, powerId string) error {
 func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, error) {
 	key := GetResourcePowerIdMapingKey(powerId)
 	has, err := db.Has(key)
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return "", err
 	}
 
@@ -1191,7 +1191,7 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 //func QueryLocalResourceIdByMetaDataId(db DatabaseReader, metaDataId string) (string, error) {
 //	key := GetResourceMetaDataIdMapingKey(metaDataId)
 //	has, err := db.Has(key)
-//	if nil != err {
+//	if IsNoDBNotFoundErr(err) {
 //		return "", err
 //	}
 //
@@ -1226,7 +1226,7 @@ func RemoveDataResourceDiskUsed(db DatabaseDeleter, metaDataId string) error {
 func QueryDataResourceDiskUsed(db DatabaseReader, metaDataId string) (*types.DataResourceDiskUsed, error) {
 	key := GetDataResourceDiskUsedKey(metaDataId)
 	has, err := db.Has(key)
-	if nil != err {
+	if IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 
