@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
+	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -205,7 +206,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
 
-	now := uint64(time.Now().UnixNano())
+	now := uint64(timeutils.UnixMsec())
 	proposalHash := rlputil.RlpHash([]interface{}{
 		t.config.Option.NodeID,
 		now,
@@ -347,7 +348,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 			IdentityId: self.IdentityId,
 			PartyId:    string(prepareMsg.TaskPartyId),
 		},
-		CreateAt: uint64(time.Now().UnixNano()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 		//Sign:
 	}
 
@@ -478,7 +479,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		// Change the propoState to `confirmPeriod`
 		if taskMemCount == yesVoteCount {
 
-			now := uint64(time.Now().UnixNano())
+			now := uint64(timeutils.UnixMsec())
 			// 修改状态
 			t.state.ChangeToConfirm(voteMsg.ProposalId, now)
 
@@ -576,7 +577,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 			IdentityId: self.IdentityId,
 		},
 		VoteOption: types.Yes,
-		CreateAt: uint64(time.Now().UnixNano()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 		//Sign
 	}
 
@@ -700,7 +701,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	if taskMemCount == totalVoteCount {
 		if taskMemCount == yesVoteCount {
 
-			now := uint64(time.Now().UnixNano())
+			now := uint64(timeutils.UnixMsec())
 
 			// 修改状态
 			t.state.ChangeToCommit(voteMsg.ProposalId, now)

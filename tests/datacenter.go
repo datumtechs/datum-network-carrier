@@ -3,11 +3,11 @@ package tests
 import (
 	"context"
 	"fmt"
+	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"time"
 )
 
 var (
@@ -141,8 +141,8 @@ func InsertTask() {
 		Reason:     "",
 		EventCount: 0,
 		Desc:       "",
-		CreateAt:   uint64(time.Now().Unix()),
-		EndAt:      uint64(uint64(time.Now().Unix())),
+		CreateAt:   uint64(timeutils.UnixMsec()),
+		EndAt:      uint64(timeutils.UnixMsec()),
 		AlgoSupplier: &libTypes.OrganizationData{
 			PartyId:    "",
 			NodeId:   Identity,

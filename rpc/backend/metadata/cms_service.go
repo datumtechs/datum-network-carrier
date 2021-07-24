@@ -96,7 +96,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	}
 
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
-	//metaDataMsg.Data.CreateAt = uint64(time.Now().UnixNano())
+	//metaDataMsg.Data.CreateAt = uint64(timeutils.UnixMsec())
 
 
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
@@ -141,7 +141,7 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	}
 
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
-	//metaDataRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	//metaDataRevokeMsg.CreateAt = uint64(timeutils.UnixMsec())
 	err = svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetaData failed")

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
+	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"sync/atomic"
-	"time"
 )
 
 const (
@@ -107,7 +107,7 @@ type PowerMsg struct {
 func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
 	msg := &PowerMsg{
 		JobNodeId: req.JobNodeId,
-		CreateAt: uint64(time.Now().UnixNano()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 	msg.SetPowerId()
 	return msg
@@ -132,7 +132,7 @@ type PowerRevokeMsg struct {
 func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMsg {
 	return &PowerRevokeMsg{
 		PowerId: req.PowerId,
-		CreateAt: uint64(time.Now().UnixNano()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 }
 
@@ -221,7 +221,7 @@ func (msg *PowerMsg) HashByCreateTime() common.Hash {
 	return  rlputil.RlpHash([]interface{}{
 		msg.JobNodeId,
 		//msg.CreateAt,
-		uint64(time.Now().UnixNano()),
+		uint64(timeutils.UnixMsec()),
 	})
 }
 
@@ -301,7 +301,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 				},
 				ColumnMetas: make([]*types.ColumnMeta, 0),
 			},
-			CreateAt: uint64(time.Now().UnixNano()),
+			CreateAt: uint64(timeutils.UnixMsec()),
 		},
 	}
 }
@@ -350,7 +350,7 @@ func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDat
 			IdentityId: req.Owner.IdentityId,
 		},
 		MetaDataId: req.MetaDataId,
-		CreateAt: uint64(time.Now().UnixNano()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 }
 
@@ -433,7 +433,7 @@ func (msg *MetaDataMsg) Hash() common.Hash {
 func (msg *MetaDataMsg) HashByCreateTime() common.Hash {
 	return rlputil.RlpHash([]interface{}{
 		msg.Data.Information.MetaDataSummary.OriginId,
-		uint64(time.Now().UnixNano()),
+		uint64(timeutils.UnixMsec()),
 	})
 }
 
@@ -561,7 +561,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			Reason:     "",
 			EventCount: 0,
 			Desc:       "",
-			CreateAt:   uint64(time.Now().UnixNano()),
+			CreateAt:   uint64(timeutils.UnixMsec()),
 			EndAt:      0,
 			StartAt:    0,
 			AlgoSupplier: &libTypes.OrganizationData{
@@ -714,7 +714,7 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 		msg.Data.TaskData().PartyId,
 		msg.Data.TaskData().TaskName,
 		//msg.Data.TaskData().CreateAt,
-		uint64(time.Now().UnixNano()),
+		uint64(timeutils.UnixMsec()),
 	})
 }
 
