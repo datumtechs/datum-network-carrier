@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
-	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
 	"github.com/ethereum/go-ethereum/rlp"
 )

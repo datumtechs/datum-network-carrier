@@ -2,7 +2,7 @@ package handler
 
 import (
 	"context"
-	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"

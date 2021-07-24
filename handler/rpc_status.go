@@ -3,7 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
-	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
