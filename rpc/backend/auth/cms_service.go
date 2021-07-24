@@ -3,12 +3,12 @@ package auth
 import (
 	"context"
 	"errors"
+	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
-	"time"
 )
 
 func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*pb.SimpleResponseCode, error) {
@@ -40,7 +40,7 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 	identityMsg.Name = req.Member.Name
 	identityMsg.IdentityId = req.Member.IdentityId
 	//identityMsg.NodeId = req.Member.NodeId
-	identityMsg.CreateAt = uint64(time.Now().UnixNano())
+	identityMsg.CreateAt = uint64(timeutils.UnixMsec())
 
 	err = svr.B.SendMsg(identityMsg)
 	if nil != err {
@@ -65,7 +65,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 	}
 
 	identityRevokeMsg := new(types.IdentityRevokeMsg)
-	identityRevokeMsg.CreateAt = uint64(time.Now().UnixNano())
+	identityRevokeMsg.CreateAt = uint64(timeutils.UnixMsec())
 	err = svr.B.SendMsg(identityRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")

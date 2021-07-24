@@ -1,6 +1,7 @@
 package rawdb
 
 import (
+	timeutils "github.com/RosettaFlow/Carrier-Go/common/timeutil"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -8,7 +9,6 @@ import (
 	"gotest.tools/assert"
 	"strings"
 	"testing"
-	"time"
 )
 
 func TestLocalTask(t *testing.T) {
@@ -25,8 +25,8 @@ func TestLocalTask(t *testing.T) {
 		Reason:               "reason",
 		EventCount:           4,
 		Desc:                 "desc",
-		CreateAt:             uint64(time.Now().Second()),
-		EndAt:                uint64(time.Now().Second()),
+		CreateAt:             uint64(timeutils.UnixMsec()),
+		EndAt:                uint64(timeutils.UnixMsec()),
 	}
 	WriteLocalTask(database, types.NewTask(data01))
 
@@ -132,7 +132,7 @@ func TestTaskEvent(t *testing.T) {
 		Identity:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent",
-		CreateTime: uint64(time.Now().Second()),
+		CreateTime: uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent)
 
@@ -141,7 +141,7 @@ func TestTaskEvent(t *testing.T) {
 		Identity:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent-02",
-		CreateTime: uint64(time.Now().Second()),
+		CreateTime: uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent2)
 
