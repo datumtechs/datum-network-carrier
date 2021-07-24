@@ -4,6 +4,7 @@ import (
 	"container/heap"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -89,7 +90,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 
 					log.Errorf("failed to call StoreLocalTask on SchedulerStarveFIFO with schedule task, err: {%s}", e.Error())
 
-					task.Data.TaskData().EndAt = uint64(time.Now().UnixNano())
+					task.Data.TaskData().EndAt = uint64(timeutils.UnixMsec())
 					task.Data.TaskData().Reason = e.Error()
 					task.Data.TaskData().State = types.TaskStateFailed.String()
 

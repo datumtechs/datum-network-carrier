@@ -3,13 +3,13 @@ package task
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strconv"
-	"time"
 )
 
 
@@ -191,7 +191,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 		return nil
 	}
 
-	task.Task.SchedTask.TaskData().StartAt = uint64(time.Now().UnixNano())
+	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
 	m.addRunningTaskCache(task)
 
 	log.Infof("Success to publish schedTask to `data-Fighter` node to executing,  taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}",
@@ -260,7 +260,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 		return nil
 	}
 
-	task.Task.SchedTask.TaskData().StartAt = uint64(time.Now().UnixNano())
+	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
 	m.addRunningTaskCache(task)
 
 	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}",
@@ -326,7 +326,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 	msg.Data.TaskData().EventDataList = events
 	msg.Data.TaskData().EventCount = uint32(len(events))
 	msg.Data.TaskData().Reason = reason
-	msg.Data.TaskData().EndAt = uint64(time.Now().UnixNano())
+	msg.Data.TaskData().EndAt = uint64(timeutils.UnixMsec())
 	return m.dataCenter.InsertTask(msg.Data)
 }
 
@@ -334,7 +334,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types.TaskEventInfo, state string)  *types.Task {
 	task.TaskData().EventDataList = types.ConvertTaskEventArrToDataCenter(eventList)
 	task.TaskData().EventCount = uint32(len(eventList))
-	task.TaskData().EndAt = uint64(time.Now().UnixNano())
+	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
 	task.TaskData().State = state
 	return task
 }
@@ -530,7 +530,7 @@ func (m *Manager) makeTaskResult (taskWrap *types.DoneScheduleTaskChWrap)  *type
 				IdentityId: []byte(taskWrap.SelfIdentity.Identity),
 			},
 			TaskEventList: types.ConvertTaskEventArr(eventList),
-			CreateAt: uint64(time.Now().UnixNano()),
+			CreateAt: uint64(timeutils.UnixMsec()),
 			Sign: nil,
 		},
 	}

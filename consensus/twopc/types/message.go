@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"time"
 
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
@@ -121,7 +122,7 @@ const (
 
 var (
 	// during 60s, if the proposal haven't been done, kill it
-	ProposalDeadlineDuration = uint64(60 * (time.Second.Nanoseconds()))
+	ProposalDeadlineDuration = uint64(60 * (time.Second.Milliseconds()))
 )
 
 //type ConfirmEpoch uint64
@@ -157,7 +158,7 @@ func NewProposalState(proposalId common.Hash, taskId string,
 		PeriodNum:        PeriodPrepare,
 		PeriodStartTime:  startTime,
 		DeadlineDuration: ProposalDeadlineDuration,
-		CreateAt:         uint64(time.Now().UnixNano()),
+		CreateAt:         uint64(timeutils.UnixMsec()),
 	}
 }
 
@@ -177,7 +178,7 @@ func (pstate *ProposalState) IsNotConfirmPeriod() bool       { return !pstate.Is
 func (pstate *ProposalState) IsNotCommitPeriod() bool        { return !pstate.IsCommitPeriod() }
 func (pstate *ProposalState) IsNotFinishedPeriod() bool      { return !pstate.IsFinishedPeriod() }
 func (pstate *ProposalState) IsDeadline() bool {
-	now := uint64(time.Now().UnixNano())
+	now := uint64(timeutils.UnixMsec())
 	return (now - pstate.CreateAt) >= ProposalDeadlineDuration
 }
 
@@ -207,8 +208,8 @@ func (pstate *ProposalState) IsPrepareTimeout() bool {
 		return true
 	}
 
-	now := uint64(time.Now().UnixNano())
-	duration := uint64(PrepareMsgVotingTimeout.Nanoseconds())
+	now := uint64(timeutils.UnixMsec())
+	duration := uint64(PrepareMsgVotingTimeout.Milliseconds())
 
 	// Due to the time boundary problem, the value `==`
 	if pstate.IsPreparePeriod() && (now-pstate.PeriodStartTime) >= duration {
@@ -231,8 +232,8 @@ func (pstate *ProposalState) IsConfirmTimeout() bool {
 		return true
 	}
 
-	now := uint64(time.Now().UnixNano())
-	duration := uint64(ConfirmMsgVotingTimeout.Nanoseconds())
+	now := uint64(timeutils.UnixMsec())
+	duration := uint64(ConfirmMsgVotingTimeout.Milliseconds())
 
 	if pstate.IsConfirmPeriod() && (now-pstate.PeriodStartTime) >= duration {
 		return true
@@ -297,8 +298,8 @@ func (pstate *ProposalState) IsCommitTimeout() bool {
 		return true
 	}
 
-	now := uint64(time.Now().UnixNano())
-	duration := uint64(CommitMsgEndingTimeout.Nanoseconds())
+	now := uint64(timeutils.UnixMsec())
+	duration := uint64(CommitMsgEndingTimeout.Milliseconds())
 
 	// Due to the time boundary problem, the value `==`
 	if pstate.IsCommitPeriod() && (now-pstate.PeriodStartTime) >= duration {

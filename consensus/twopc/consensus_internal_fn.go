@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
-	"time"
 )
 
 func (t *TwoPC) isProcessingTask(taskId string) bool {
@@ -137,17 +137,17 @@ func (t *TwoPC) refreshProposalState() {
 		switch proposalState.GetPeriod() {
 		case ctypes.PeriodPrepare:
 			if proposalState.IsPrepareTimeout() {
-				proposalState.ChangeToConfirm(proposalState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Nanoseconds()))
+				proposalState.ChangeToConfirm(proposalState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodConfirm:
 			if proposalState.IsConfirmTimeout() {
-				proposalState.ChangeToCommit(proposalState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Nanoseconds()))
+				proposalState.ChangeToCommit(proposalState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodCommit:
 			if proposalState.IsCommitTimeout() {
-				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Nanoseconds()))
+				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodFinished:
@@ -196,7 +196,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 			Identity: proposalState.SelfIdentity.IdentityId,
 			TaskId: proposalState.TaskId,
 			Content: evengine.TaskProposalStateDeadline.Msg,
-			CreateTime: uint64(time.Now().UnixNano()),
+			CreateTime: uint64(timeutils.UnixMsec()),
 		})
 		taskResultWrap := &types.TaskResultMsgWrap{
 			TaskResultMsg: &pb.TaskResultMsg{
@@ -210,7 +210,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 					IdentityId: []byte(proposalState.SelfIdentity.IdentityId),
 				},
 				TaskEventList: types.ConvertTaskEventArr(eventList),
-				CreateAt: uint64(time.Now().UnixNano()),
+				CreateAt: uint64(timeutils.UnixMsec()),
 				Sign: nil,
 			},
 		}
@@ -244,7 +244,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 //		return
 //	}
 //	task.SetEventList(eventList)
-//	task.TaskData().EndAt = uint64(time.Now().UnixNano())
+//	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
 //	//task.TaskData().State =
 //	if err := t.dataCenter.InsertTask(task); nil != err {
 //		log.Error("Failed to pulish task and eventlist to datacenter, taskId {%s}, err {%s}", taskId, err)
