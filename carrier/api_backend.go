@@ -207,7 +207,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(node.Id)
-		if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
 			return types.NONCONNECTED, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
 		if runningTaskCount > 0 {
@@ -233,10 +233,10 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 
 		// 先校验 dataNode 上是否已被 使用
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
-		if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
 			return types.NONCONNECTED, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
 		}
-		if dataNodeTable.IsUsed() {
+		if dataNodeTable.IsNotEmpty() && dataNodeTable.IsUsed() {
 			return types.NONCONNECTED, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
 				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
 		}
@@ -248,7 +248,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 		}
 
 		// remove old data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
-		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.Id); err != nil {
+		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.Id); rawdb.IsNoDBNotFoundErr(err) {
 			return types.NONCONNECTED, fmt.Errorf("remove disk summary of old dataNode, %s", err)
 		}
 
@@ -290,7 +290,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(id)
-		if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
 		if runningTaskCount > 0 {
@@ -307,10 +307,10 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 
 		// 先校验 dataNode 上是否已被 使用
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
-		if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
 		}
-		if dataNodeTable.IsUsed() {
+		if dataNodeTable.IsNotEmpty() && dataNodeTable.IsUsed() {
 			return fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
 				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
 		}
@@ -320,7 +320,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
 		}
 		// remove data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
-		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); err != nil {
+		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("remove disk summary of old registerNode, %s", err)
 		}
 	}
