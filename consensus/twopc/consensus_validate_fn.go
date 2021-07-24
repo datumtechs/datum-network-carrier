@@ -5,13 +5,13 @@ import (
 	"crypto/elliptic"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"time"
 )
 
 
@@ -24,7 +24,7 @@ func (t *TwoPC) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap
 	//}
 	//// Now, we has not  proposalState (on subscriber)
 	//
-	//now := uint64(time.Now().UnixNano())
+	//now := uint64(timeutils.UnixMsec())
 	//if prepareMsg.CreateAt >= now {
 	//	return ctypes.ErrProposalInTheFuture
 	//}
@@ -139,7 +139,7 @@ func (t *TwoPC) validatePrepareVote(pid peer.ID, prepareVote *types.PrepareVoteW
 		return ctypes.ErrPrepareVoteIllegal
 	}
 
-	now := uint64(time.Now().UnixNano())
+	now := uint64(timeutils.UnixMsec())
 	if prepareVote.CreateAt >= now {
 		return ctypes.ErrPrepareVoteInTheFuture
 	}
@@ -202,7 +202,7 @@ func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap
 	if proposalState.PeriodStartTime >= confirmMsg.CreateAt {
 		return ctypes.ErrConfirmMsgIllegal
 	}
-	now := uint64(time.Now().UnixNano())
+	now := uint64(timeutils.UnixMsec())
 	if confirmMsg.CreateAt >= now {
 		return ctypes.ErrConfirmMsgInTheFuture
 	}
@@ -242,7 +242,7 @@ func (t *TwoPC) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteW
 	if proposalState.PeriodStartTime >= confirmVote.CreateAt {
 		return ctypes.ErrConfirmVoteIllegal
 	}
-	now := uint64(time.Now().UnixNano())
+	now := uint64(timeutils.UnixMsec())
 	if confirmVote.CreateAt >= now {
 		return ctypes.ErrConfirmVoteInTheFuture
 	}
@@ -292,7 +292,7 @@ func (t *TwoPC) validateCommitMsg(pid peer.ID, commitMsg *types.CommitMsgWrap) e
 	if proposalState.PeriodStartTime >= commitMsg.CreateAt {
 		return ctypes.ErrCommitMsgIllegal
 	}
-	now := uint64(time.Now().UnixNano())
+	now := uint64(timeutils.UnixMsec())
 	if commitMsg.CreateAt >= now {
 		return ctypes.ErrCommitMsgInTheFuture
 	}

@@ -19,3 +19,7 @@ func Until(t time.Time) time.Duration {
 func Now() time.Time {
 	return time.Now()
 }
+
+func UnixMsec() int64 {
+	return time.Now().UnixNano() / 1e6
+}
