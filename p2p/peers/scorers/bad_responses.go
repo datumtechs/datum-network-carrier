@@ -20,13 +20,12 @@ const (
 // BadResponsesScorer represents bad responses scoring service.
 type BadResponsesScorer struct {
 	config *BadResponsesScorerConfig
-	store *peerdata.Store
+	store  *peerdata.Store
 }
 
 type BadResponsesScorerConfig struct {
 	// Threshold specifies number of bad responses tolerated, before peer is banned.
-	Threshold int
-	//
+	Threshold     int
 	DecayInterval time.Duration
 }
 
@@ -37,7 +36,7 @@ func newBadResponsesScorer(store *peerdata.Store, config *BadResponsesScorerConf
 	}
 	scorer := &BadResponsesScorer{
 		config: config,
-		store: store,
+		store:  store,
 	}
 	if scorer.config.Threshold == 0 {
 		scorer.config.Threshold = DefaultBadResponsesThreshold
@@ -149,5 +148,3 @@ func (s *BadResponsesScorer) Decay() {
 		}
 	}
 }
-
-
