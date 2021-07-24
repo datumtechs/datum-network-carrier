@@ -40,6 +40,18 @@ func NewMetaDataSaveRequest(metadata *Metadata) *api.MetaDataSaveRequest {
 	return request
 }
 
+func NewMetaDataRevokeRequest(metadata *Metadata) *api.RevokeMetaDataRequest {
+	request := &api.RevokeMetaDataRequest{
+		Owner: &api.Organization{
+			IdentityId: metadata.MetadataData().Identity,
+			NodeId: metadata.MetadataData().NodeId,
+			Name: metadata.MetadataData().NodeName,
+		},
+		MetaDataId: metadata.MetadataData().DataId,
+	}
+	return request
+}
+
 func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 	request := &api.PublishPowerRequest{
 		Owner:                &api.Organization{
@@ -53,6 +65,18 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 			Processor:            uint32(resource.data.GetTotalProcessor()),
 			Bandwidth:            resource.data.GetTotalBandWidth(),
 		},
+	}
+	return request
+}
+
+func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
+	request := &api.RevokePowerRequest{
+		Owner:                &api.Organization{
+			Name:                 resource.data.GetNodeName(),
+			NodeId:               resource.data.GetNodeId(),
+			IdentityId:           resource.data.GetIdentity(),
+		},
+		PowerId:          	  resource.data.DataId,
 	}
 	return request
 }

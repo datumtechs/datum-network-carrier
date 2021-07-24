@@ -410,7 +410,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 		}
 
 
-		if err := m.dataCenter.InsertResource(types.NewResource(&libTypes.ResourceData{
+		if err := m.dataCenter.RevokeResource(types.NewResource(&libTypes.ResourceData{
 			Identity:  identity.IdentityId,
 			NodeId:    identity.NodeId,
 			NodeName:  identity.Name,
@@ -419,16 +419,6 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 			DataStatus: types.DataStatusDeleted.String(),
 			// resource status, eg: create/release/revoke
 			State: types.PowerStateRevoke.String(),
-			// unit: byte
-			TotalMem: 0,
-			// unit: byte
-			UsedMem: 0,
-			// number of cpu cores.
-			TotalProcessor: 0,
-			UsedProcessor:  0,
-			// unit: byte
-			TotalBandWidth: 0,
-			UsedBandWidth:  0,
 		})); nil != err {
 			log.Errorf("Failed to remove dataCenter resource on MessageHandler with revoke, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)
@@ -549,7 +539,7 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgs(metaDataRevokeMsgs types.Me
 			continue
 		}
 
-		if err := m.dataCenter.InsertMetadata(revoke.ToDataCenter()); nil != err {
+		if err := m.dataCenter.RevokeMetadata(revoke.ToDataCenter()); nil != err {
 			log.Errorf("Failed to store metaData to dataCenter on MessageHandler with revoke, metaDataId: {%s}, err: {%s}",
 				revoke.MetaDataId, err)
 			errs = append(errs, fmt.Sprintf("failed to store metaData to dataCenter on MessageHandler with revoke, metaDataId: {%s}, err: {%s}",

@@ -76,12 +76,14 @@ type LocalStoreCarrierDB interface {
 
 type MetadataCarrierDB interface {
 	InsertMetadata(metadata *types.Metadata) error
+	RevokeMetadata(metadata *types.Metadata) error
 	GetMetadataByDataId(dataId string) (*types.Metadata, error)
 	GetMetadataList() (types.MetadataArray, error)
 }
 
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
+	RevokeResource(resource *types.Resource) error
 	GetResourceList() (types.ResourceArray, error)
 	SyncPowerUsed (resource *types.LocalResource) error
 }
