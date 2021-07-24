@@ -24,6 +24,10 @@ message TaskSummaryResponse {
     string state = 8;
 }
 
+message TaskListByIdentityRequest {
+    string identity_id = 1;
+}
+
 message TaskListRequest {
     uint64 last_update_time = 1;
 }
@@ -158,6 +162,9 @@ service TaskService {
 
   // 查询任务列表
   rpc ListTask(TaskListRequest) returns (TaskListResponse);
+
+  // 根据组织身份查询任务列表
+  rpc ListTaskByIdentity(TaskListByIdentityRequest) returns (TaskListResponse);
 
   // 查询任务的事件列表
   rpc ListTaskEvent(TaskEventRequest) returns (TaskEventResponse);
