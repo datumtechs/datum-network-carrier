@@ -189,6 +189,20 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
+func (dc *DataCenter) RevokeMetadata(metadata *types.Metadata) error {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+	response, err := dc.client.RevokeMetaData(dc.ctx, types.NewMetaDataRevokeRequest(metadata))
+	if err != nil {
+		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("RevokeMetadata failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("revoke metadata error: %s", response.Msg)
+	}
+	return nil
+}
+
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -279,6 +293,21 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	}
 	if response.Status != 0 {
 		return fmt.Errorf("insert resource error: %s", response.Msg)
+	}
+	return nil
+}
+
+
+func (dc *DataCenter) RevokeResource(resource *types.Resource) error {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+	response, err := dc.client.RevokeResource(dc.ctx, types.RevokePowerRequest(resource))
+	if err != nil {
+		log.WithError(err).WithField("hash", resource.Hash()).Errorf("RevokeResource failed")
+		return err
+	}
+	if response.Status != 0 {
+		return fmt.Errorf("revoke resource error: %s", response.Msg)
 	}
 	return nil
 }
