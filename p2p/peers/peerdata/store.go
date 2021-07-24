@@ -57,7 +57,7 @@ type PeerData struct {
 	ProcessedBlocks      uint64
 	BlockProviderUpdated time.Time
 	// Gossip Scoring data.
-	TopicScores map[string]*pbrpc.TopicScoreSnapshot
+	TopicScores      map[string]*pbrpc.TopicScoreSnapshot
 	GossipScore      float64
 	BehaviourPenalty float64
 }
