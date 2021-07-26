@@ -722,6 +722,7 @@ func (p *Status) HighestEpoch() types.Epoch {
 	//return helpers.SlotToEpoch(highestSlot)
 	return 0
 }
+
 //
 
 // ConnectedPeerLimit returns the peer limit of concurrent peers connected to the node.
@@ -775,7 +776,6 @@ func (p *Status) addIpToTracker(pid peer.ID) {
 	stringIP := ip.String()
 	p.ipTracker[stringIP] += 1
 }
-
 
 func (p *Status) tallyIPTracker() {
 	tracker := map[string]uint64{}
