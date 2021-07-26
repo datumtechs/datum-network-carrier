@@ -129,11 +129,12 @@ func (s *Service) sendRPCStatusRequest(ctx context.Context, id peer.ID) error {
 func (s *Service) reValidatePeer(ctx context.Context, id peer.ID) error {
 	//s.cfg.P2P.Peers().Scorers().PeerStatusScorer().SetHeadSlot(s.cfg.Chain.HeadSlot())
 	if err := s.sendRPCStatusRequest(ctx, id); err != nil {
+		log.WithField("peer", id).WithError(err).Debug("reValidatePeer: Could not send status to peer")
 		return err
 	}
 	// Do not return an error for ping requests.
 	if err := s.sendPingRequest(ctx, id); err != nil {
-		log.WithError(err).Debug("Could not ping peer")
+		log.WithField("peer", id).WithError(err).Debug("Could not ping peer")
 	}
 	return nil
 }
