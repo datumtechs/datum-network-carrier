@@ -1,13 +1,11 @@
 package scorers
 
 import (
-	"errors"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/peer"
 	types "github.com/prysmaticlabs/eth2-types"
-	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
 	"math"
 )
 
@@ -75,7 +73,8 @@ func (s *PeerStatusScorer) IsBadPeer(pid peer.ID) bool {
 
 // isBadPeer is lock-free version of IsBadPeer.
 func (s *PeerStatusScorer) isBadPeer(pid peer.ID) bool {
-	peerData, ok := s.store.PeerData(pid)
+	//TODO: update condition
+	/*peerData, ok := s.store.PeerData(pid)
 	if !ok {
 		return false
 	}
@@ -87,7 +86,7 @@ func (s *PeerStatusScorer) isBadPeer(pid peer.ID) bool {
 		if errors.Is(peerData.ChainStateValidationError, err) {
 			return true
 		}
-	}
+	}*/
 	return false
 }
 

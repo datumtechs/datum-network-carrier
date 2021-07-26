@@ -51,7 +51,7 @@ func (s *Service) AddConnectionHandler(reqFunc, goodByeFunc func(ctx context.Con
 	s.host.Network().Notify(&network.NotifyBundle{
 		ConnectedF: func(net network.Network, conn network.Conn) {
 			remotePeer := conn.RemotePeer()
-			log.WithField("peer", remotePeer.String()).Debug("Receive Handshake request")
+			log.WithField("peer", remotePeer.String()).Trace("Receive Handshake request")
 			disconnectFromPeer := func() {
 				s.peers.SetConnectionState(remotePeer, peers.PeerDisconnecting)
 				// Only attempt a goodbye if we are still connected to the peer
@@ -130,7 +130,7 @@ func (s *Service) AddConnectionHandler(reqFunc, goodByeFunc func(ctx context.Con
 				}*/
 				s.peers.SetConnectionState(conn.RemotePeer(), peers.PeerConnecting)
 				if err := reqFunc(context.TODO(), conn.RemotePeer()); err != nil && err != io.EOF {
-					log.WithError(err).Debug("Handshake failed, remotePeer: %s", conn.RemotePeer().String())
+					log.WithError(err).Debugf("Handshake failed, remotePeer: %s", conn.RemotePeer().String())
 					disconnectFromPeer()
 					return
 				}
@@ -148,6 +148,7 @@ func (s *Service) AddDisconnectionHandler(handler func(ctx context.Context, id p
 			log := log.WithField("multiAddr", peerMultiaddrString(conn))
 			// Must be handled in a goroutine as this callback cannot be blocking.
 			go func() {
+				log.WithField("peer", conn.RemotePeer()).Debug("Disconnect from peer")
 				// Exit early if we are still connected to the peer.
 				if net.Connectedness(conn.RemotePeer()) == network.Connected {
 					return
