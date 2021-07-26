@@ -209,6 +209,8 @@ func (s *Service) Start() error {
 			log.Errorf("Could not connect to static peer: %v", err)
 		}
 		s.connectWithAllPeers(addrs)
+		//todo: need to verify...
+		peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
 	}
 
 	// periodic functions
