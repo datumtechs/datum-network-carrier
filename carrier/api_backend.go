@@ -630,7 +630,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	}
 
 	// the task has been executed.
-	networkTaskList, err := s.carrier.carrierDB.GetTaskList()
+	networkTaskList, err := s.carrier.carrierDB.GetTaskListByIdentityId(localIdentityId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}

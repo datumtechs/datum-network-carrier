@@ -74,6 +74,7 @@ func (s *Service) Start() error {
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Errorf("Could not listen to port in Start() %s: %v", address, err)
+		return err
 	}
 	s.listener = lis
 	log.WithField("address", address).Info("gRPC server listening on port")
@@ -103,6 +104,7 @@ func (s *Service) Start() error {
 		creds, err := credentials.NewServerTLSFromFile(s.cfg.CertFlag, s.cfg.KeyFlag)
 		if err != nil {
 			log.WithError(err).Fatal("Could not load TLS keys")
+			return err
 		}
 		opts = append(opts, grpc.Creds(creds))
 	} else {

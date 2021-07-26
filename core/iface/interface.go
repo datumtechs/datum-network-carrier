@@ -113,7 +113,7 @@ type TaskCarrierDB interface {
 
 	// about task on datacenter
 	InsertTask(task *types.Task) error
-	GetTaskList() (types.TaskDataArray, error)
+	GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
 	GetRunningTaskCountOnOrg() uint32
 	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
 	GetTaskEventListByTaskIds(taskIds []string) ([]*api.TaskEvent, error)

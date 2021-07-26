@@ -16,90 +16,10 @@ import (
 
 func (m *Manager) driveTaskForExecute (task *types.DoneScheduleTaskChWrap) error {
 
-	//switch task.SelfTaskRole {
-	//case types.TaskOnwer:
-	//	//dataNodeList, err := m.dataCenter.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
-	//	//if nil != err {
-	//	//	return err
-	//	//}
-	//	//ip := string(task.Task.Resources.OwnerPeerInfo.Ip)
-	//	//port := string(task.Task.Resources.OwnerPeerInfo.Port)
-	//	//
-	//	//var dataNodeId string
-	//	//for _, dataNode := range dataNodeList {
-	//	//	if ip == dataNode.ExternalIp && port == dataNode.ExternalPort {
-	//	//		dataNodeId = dataNode.Id
-	//	//		break
-	//	//	}
-	//	//}
-	//	return m.executeTaskOnDataNode(task)
-	//
-	//case types.DataSupplier:
-	//	//dataNodeList, err := m.dataCenter.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
-	//	//if nil != err {
-	//	//	return err
-	//	//}
-	//	//
-	//	//tmp := make(map[string]struct{}, len(task.Task.Resources.DataSupplierPeerInfoList))
-	//	//for _, dataNode := range task.Task.Resources.DataSupplierPeerInfoList {
-	//	//	tmp[string(dataNode.Ip) + "_" + string(dataNode.Port)] = struct{}{}
-	//	//}
-	//
-	//	// task 中的 dataNode 可能是 单个组织的 多个 dataNode,
-	//	// 逐个下发 task
-	//	for _, dataNode := range dataNodeList {
-	//		if _, ok := tmp[dataNode.ExternalIp + "_" + dataNode.ExternalPort]; ok {
-	//			if err := m.executeTaskOnDataNode(task); nil != err {
-	//				log.Errorf("Failed to execute task on dataNode: %s, %s", dataNode.Id, err)
-	//				return err
-	//			}
-	//		}
-	//	}
-	//
-	//case types.PowerSupplier:
-	//	jobNodeList, err := m.dataCenter.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	//	if nil != err {
-	//		return err
-	//	}
-	//
-	//	tmp := make(map[string]struct{}, len(task.Task.Resources.PowerSupplierPeerInfoList))
-	//	for _, jobNode := range task.Task.Resources.PowerSupplierPeerInfoList {
-	//		tmp[string(jobNode.Ip) + "_" + string(jobNode.Port)] = struct{}{}
-	//	}
-	//
-	//	// task 中的 jobNode 可能是 单个组织的 多个 jobNode,
-	//	// 逐个下发 task
-	//	for _, jobNode := range jobNodeList {
-	//		if _, ok := tmp[jobNode.ExternalIp + "_" + jobNode.ExternalPort]; ok {
-	//			if err := m.executeTaskOnJobNode(jobNode.Id, task); nil != err {
-	//				log.Errorf("Failed to execute task on jobNode: %s, %s", jobNode.Id, err)
-	//				return err
-	//			}
-	//		}
-	//	}
-	//
-	//case types.ResultSupplier:
-	//	dataNodeList, err := m.dataCenter.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
-	//	if nil != err {
-	//		return err
-	//	}
-	//
-	//	tmp := make(map[string]struct{}, len(task.Task.Resources.ResultReceiverPeerInfoList))
-	//	for _, receiveNode := range task.Task.Resources.ResultReceiverPeerInfoList {
-	//		tmp[string(receiveNode.Ip) + "_" + string(receiveNode.Port)] = struct{}{}
-	//	}
-	//
-	//	// task 中的 dataNode 可能是 单个组织的 多个 dataNode,
-	//	// 逐个下发 task
-	//	for _, dataNode := range dataNodeList {
-	//		if _, ok := tmp[dataNode.ExternalIp + "_" + dataNode.ExternalPort]; ok {
-	//			if err := m.executeTaskOnDataNode(task); nil != err {
-	//				log.Errorf("Failed to execute task on receiveNode: %s, %s", dataNode.Id, err)
-	//				return err
-	//			}
-	//		}
-	//	}
-	//}
+	//time.Sleep(10000*time.Second)
+	//return nil
+	return fmt.Errorf("Mock task finished")
+
 
 	switch task.SelfTaskRole {
 	case types.TaskOnwer, types.DataSupplier, types.ResultSupplier :
