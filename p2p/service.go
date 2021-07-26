@@ -426,7 +426,7 @@ func (s *Service) connectWithAllPeers(multiAddrs []multiaddr.Multiaddr) {
 		// make each dial non-blocking
 		go func(info peer.AddrInfo) {
 			if err := s.connectWithPeer(s.ctx, info); err != nil {
-				log.WithError(err).Tracef("Could not connect with peer %s", info.String())
+				log.WithError(err).Debugf("Could not connect with peer %s", info.String())
 			}
 		}(info)
 	}
