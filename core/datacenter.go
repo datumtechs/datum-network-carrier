@@ -549,7 +549,15 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 func (dc *DataCenter) GetTaskList() (types.TaskDataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdateTime: uint64(timeutils.UnixMsec())})
+	identityId, err := dc.GetIdentityId()
+	if err != nil {
+		return nil, err
+	}
+	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdateTime: uint64(timeutils.UnixMsec())})
+	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.TaskListByIdentityRequest{
+		LastUpdateTime: uint64(timeutils.UnixMsec()),
+		IdentityId: identityId,
+	})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
