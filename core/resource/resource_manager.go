@@ -398,3 +398,16 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 	log.Infof("Finished unlock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", taskId, localTaskPowerUsed.GetNodeId(), localTaskPowerUsed.GetSlotCount())
 	return nil
 }
+
+
+// todo 构造一些假的 本地任务信息
+//func (m *Manager) mockLocalTaskList(){
+//	identity, err := m.dataCenter.GetIdentity()
+//	if nil != err {
+//		log.Warnf("failed to query identityInfo, err: {%s}", err)
+//		return
+//	}
+//
+//
+//
+//}
