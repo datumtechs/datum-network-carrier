@@ -1,6 +1,7 @@
 package carrier
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
@@ -220,7 +221,14 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return types.NONCONNECTED, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
+
+		b, _ := json.Marshal(resourceTable)
+		log.Debugf("still have the published computing power information on old jobNode on UpdateRegisterNode, %s", string(b))
+
+
 		if nil != resourceTable {
+			b, _ := json.Marshal(resourceTable)
+			log.Errorf("still have the published computing power information on old jobNode json: {%s}", string(b))
 			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, old jobNodeId: {%s}, old powerId: {%s}",
 				node.Id, resourceTable.GetPowerId())
 		}
@@ -313,6 +321,10 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
+
+		b, _ := json.Marshal(resourceTable)
+		log.Debugf("still have the published computing power information on old jobNode on DeleteRegisterNode, %s", string(b))
+
 		if nil != resourceTable {
 			return fmt.Errorf("still have the published computing power information on old jobNode failed, old jobNodeId: {%s}, old powerId: {%s}",
 				id, resourceTable.GetPowerId())

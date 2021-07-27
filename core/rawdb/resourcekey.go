@@ -1,6 +1,5 @@
 package rawdb
 
-import "github.com/RosettaFlow/Carrier-Go/common"
 
 var (
 	// jobNodeId -> LocalResourceTable
@@ -35,13 +34,13 @@ var (
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
 func GetNodeResourceKey(jobNodeId string) []byte {
-	return append(nodeResourceKeyPrefix, common.Hex2Bytes(jobNodeId)...)
+	return append(nodeResourceKeyPrefix, []byte(jobNodeId)...)
 }
 func GetNodeResourceIdListKey() []byte {
 	return nodeResourceIdListKey
 }
 func GetOrgResourceKey(identityId string) []byte {
-	return append(orgResourceKeyPrefix, common.Hex2Bytes(identityId)...)
+	return append(orgResourceKeyPrefix, []byte(identityId)...)
 }
 func GetOrgResourceIdListKey() []byte {
 	return orgResourceIdListKey
