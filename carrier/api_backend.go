@@ -1,7 +1,6 @@
 package carrier
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
@@ -222,15 +221,10 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 			return types.NONCONNECTED, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
 
-		b, _ := json.Marshal(resourceTable)
-		log.Debugf("still have the published computing power information on old jobNode on UpdateRegisterNode, %s", string(b))
-
-
 		if nil != resourceTable {
-			b, _ := json.Marshal(resourceTable)
-			log.Errorf("still have the published computing power information on old jobNode json: {%s}", string(b))
-			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, old jobNodeId: {%s}, old powerId: {%s}",
-				node.Id, resourceTable.GetPowerId())
+			log.Debugf("still have the published computing power information on old jobNode on UpdateRegisterNode, %s", resourceTable.String())
+			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+				node.Id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
@@ -322,12 +316,10 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 			return fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
 
-		b, _ := json.Marshal(resourceTable)
-		log.Debugf("still have the published computing power information on old jobNode on DeleteRegisterNode, %s", string(b))
-
 		if nil != resourceTable {
-			return fmt.Errorf("still have the published computing power information on old jobNode failed, old jobNodeId: {%s}, old powerId: {%s}",
-				id, resourceTable.GetPowerId())
+			log.Debugf("still have the published computing power information on old jobNode on DeleteRegisterNode, %s", resourceTable.String())
+			return fmt.Errorf("still have the published computing power information on old jobNode failed,input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+				id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
