@@ -1,6 +1,7 @@
 package message
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
@@ -287,6 +288,8 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			)
 		resourceTable.SetSlotUnit(slotUnit)
 
+		b, _ := json.Marshal(resourceTable)
+		log.Debugf("Publish power, StoreLocalResourceTable, %s", string(b))
 		if err := m.dataCenter.StoreLocalResourceTable(resourceTable); nil != err {
 			log.Errorf("Failed to StoreLocalResourceTable on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)

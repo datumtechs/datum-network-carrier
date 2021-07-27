@@ -103,26 +103,7 @@ func (m *Manager) SetSlotUnit(mem, p, b uint64) {
 }
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
 
-//func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
-//
-//	table, err := m.GetLocalResourceTable(nodeId)
-//	if nil != err {
-//		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
-//	}
-//	if table.GetLockedSlot() < slotCount {
-//		return fmt.Errorf("Insufficient locked number of slots of node: %s", nodeId)
-//	}
-//	table.UseSlot(slotCount)
-//	return m.SetLocalResourceTable(table)
-//}
-//func (m *Manager) FreeSlot(nodeId string, slotCount uint32) error {
-//	table, err := m.GetLocalResourceTable(nodeId)
-//	if nil != err {
-//		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
-//	}
-//	table.FreeSlot(slotCount)
-//	return m.SetLocalResourceTable(table)
-//}
+
 func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
 	table, err := m.GetLocalResourceTable(nodeId)
 	if nil != err {
