@@ -23,7 +23,10 @@ func ensurePeerConnections(ctx context.Context, h host.Host, peers ...string) {
 			log.Errorf("Could not make peer: %v", err)
 			continue
 		}
-
+		if peerInfo.ID == h.ID() {
+			log.Trace("ensurePeerConnections: Could not to connect self")
+			continue
+		}
 		c := h.Network().ConnsToPeer(peerInfo.ID)
 		if len(c) == 0 {
 			if err := connectWithTimeout(ctx, h, peerInfo); err != nil {
