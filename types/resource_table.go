@@ -59,6 +59,11 @@ func NewLocalResourceTable(nodeId, powerId string, mem, processor, bandwidth uin
 		assign:       false,
 	}
 }
+
+func (r *LocalResourceTable) String() string {
+	return fmt.Sprintf(`{"nodeId": "%s", "powerId": "%s", "nodeResource": {"mem": %d, "processor": %d, "bandwidth": %d}, "assign": %v}`,
+		r.nodeId, r.powerId, r.nodeResource.mem, r.nodeResource.processor, r.nodeResource.bandwidth, r.assign)
+}
 func (r *LocalResourceTable) GetNodeId() string    { return r.nodeId }
 func (r *LocalResourceTable) GetPowerId() string    { return r.powerId }
 func (r *LocalResourceTable) GetMem() uint64       { return r.nodeResource.mem }
