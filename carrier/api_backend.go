@@ -221,7 +221,8 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 			return types.NONCONNECTED, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
 		if nil != resourceTable {
-			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, old powerId: {%s}", resourceTable.GetPowerId())
+			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, old jobNodeId: {%s}, old powerId: {%s}",
+				node.Id, resourceTable.GetPowerId())
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
@@ -313,7 +314,8 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 			return fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
 		if nil != resourceTable {
-			return fmt.Errorf("still have the published computing power information on old jobNode failed, old powerId: {%s}", resourceTable.GetPowerId())
+			return fmt.Errorf("still have the published computing power information on old jobNode failed, old jobNodeId: {%s}, old powerId: {%s}",
+				id, resourceTable.GetPowerId())
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
