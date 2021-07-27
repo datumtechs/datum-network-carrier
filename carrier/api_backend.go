@@ -77,20 +77,29 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	//}
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
-		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
-		return nil, fmt.Errorf("query local identity failed, %s", err)
+		log.Warnf("Failed to get identity, on GetNodeInfo(), err:", err)
+		//return nil, fmt.Errorf("query local identity failed, %s", err)
 	}
+	var identityId string
+	var nodeId string
+	var nodeName string
+	if nil != identity {
+		identityId = identity.IdentityId
+		nodeId = identity.NodeId
+		nodeName = identity.Name
+	}
+
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
 	return &types.YarnNodeInfo{
 		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
-		NodeId:       identity.NodeId,
+		NodeId:       nodeId,
 		InternalIp:   "",                             //
 		ExternalIp:   "",                             //
 		InternalPort: "",                             //
 		ExternalPort: "",                             //
 		IdentityType: types.IdentityTypeDID.String(), // 默认先是 DID
-		IdentityId:   identity.IdentityId,
-		Name:         identity.Name,
+		IdentityId:   identityId,
+		Name:         nodeName,
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
 		State:        types.YarnStateActive.String(),
