@@ -27,12 +27,12 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Error("Failed to get all `job nodes`, on GetNodeInfo(), err:", err)
+		log.Errorf("Failed to get all `job nodes`, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
 	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Error("Failed to get all `data nodes, on GetNodeInfo(), err:", err)
+		log.Errorf("Failed to get all `data nodes, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
 	jobsLen := len(jobNodes)
@@ -78,7 +78,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	//}
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
-		log.Warnf("Failed to get identity, on GetNodeInfo(), err:", err)
+		log.Warnf("Failed to get identity, on GetNodeInfo(), err: {%s}", err)
 		//return nil, fmt.Errorf("query local identity failed, %s", err)
 	}
 	var identityId string
