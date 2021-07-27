@@ -214,6 +214,16 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
 
+
+		// 算力已发布的jobNode不可以直接删除
+		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
+		if rawdb.IsNoDBNotFoundErr(err) {
+			return types.NONCONNECTED, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
+		}
+		if nil != resourceTable {
+			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed")
+		}
+
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
@@ -296,6 +306,15 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		return errors.New("invalid nodeType")
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
+
+		// 算力已发布的jobNode不可以直接删除
+		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(id)
+		if rawdb.IsNoDBNotFoundErr(err) {
+			return fmt.Errorf("query local power resource on old jobNode failed, %s", err)
+		}
+		if nil != resourceTable {
+			return fmt.Errorf("still have the published computing power information on old jobNode failed")
+		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(id)
