@@ -77,6 +77,7 @@ func P2PStaticNodeAddrs(cliCtx *cli.Context, dataDir string) ([]string, error) {
 		staticNodeAddrs = append(staticNodeAddrs, cmdStatics...)
 	}
 	path := ResolvePath(dataDir, datadirStaticNodes)
+	log.Debugf("resolve path for static nodes, path: %s", path)
 	if path == "" {
 		return staticNodeAddrs, nil
 	}
@@ -94,7 +95,7 @@ func P2PStaticNodeAddrs(cliCtx *cli.Context, dataDir string) ([]string, error) {
 	if filepath.Ext(path) == ".json" {
 		fileNodes, err := readStaticNodesFromJSON(path)
 		if err != nil {
-			log.WithError(err).Errorf("Can't load sttaic node file from JSON %s: %v", path, err)
+			log.WithError(err).Errorf("Can't load static node file from JSON %s: %v", path, err)
 			return staticNodeAddrs, nil
 		}
 		staticNodeAddrs = append(staticNodeAddrs, fileNodes...)
