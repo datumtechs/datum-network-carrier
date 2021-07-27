@@ -96,24 +96,29 @@ func (s *Service) sendRPCStatusRequest(ctx context.Context, id peer.ID) error {
 		HeadRoot:       make([]byte, 32),
 		HeadSlot:       0,
 	}
+	log.WithField("peer", id).Debug("sendRPCStatusRequest:TODO: will send status message")
 	stream, err := s.cfg.P2P.Send(ctx, resp, p2p.RPCStatusTopic, id)
 	if err != nil {
+		log.WithField("peer", id).WithError(err).Debug("sendRPCStatusRequest:TODO: send failed")
 		return err
 	}
 	defer closeStream(stream, log)
 
 	code, errMsg, err := ReadStatusCode(stream, s.cfg.P2P.Encoding())
 	if err != nil {
+		log.WithField("peer", id).WithError(err).Debug("sendRPCStatusRequest:TODO: ReadStatusCode failed")
 		return err
 	}
 
 	if code != 0 {
+		log.WithField("peer", id).Debug("sendRPCStatusRequest:TODO: code != 0")
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(id)
 		return errors.New(errMsg)
 	}
 
 	msg := &pb.Status{}
 	if err := s.cfg.P2P.Encoding().DecodeWithMaxLength(stream, msg); err != nil {
+		log.WithField("peer", id).WithError(err).Debug("sendRPCStatusRequest:TODO: DecodeWithMaxLength failed")
 		return err
 	}
 
@@ -121,6 +126,7 @@ func (s *Service) sendRPCStatusRequest(ctx context.Context, id peer.ID) error {
 	err = s.validateStatusMessage(ctx, msg)
 	s.cfg.P2P.Peers().Scorers().PeerStatusScorer().SetPeerStatus(id, msg, err)
 	if s.cfg.P2P.Peers().IsBad(id) {
+		log.WithField("peer", id).Debug("sendRPCStatusRequest:TODO: bad peer")
 		s.disconnectBadPeer(s.ctx, id)
 	}
 	return err
@@ -150,7 +156,9 @@ func (s *Service) statusRPCHandler(ctx context.Context, msg interface{}, stream 
 	if !ok {
 		return errors.New("message is not type *pb.Status")
 	}
+	log.WithField("peer", stream.Conn().ID()).Debug("statusRPCHandler:TODO: receive status message")
 	if err := s.rateLimiter.validateRequest(stream, 1); err != nil {
+		log.WithField("peer", stream.Conn().ID()).WithError(err).Debug("statusRPCHandler:TODO: validateRequest failed")
 		return err
 	}
 	s.rateLimiter.add(stream, 1)
@@ -200,6 +208,7 @@ func (s *Service) statusRPCHandler(ctx context.Context, msg interface{}, stream 
 	s.cfg.P2P.Peers().SetChainState(remotePeer, m)
 
 	if err := s.respondWithStatus(ctx, stream); err != nil {
+		log.WithField("peer", stream.Conn().ID()).Debug("statusRPCHandler:TODO: respondWithStatus failed")
 		return err
 	}
 	closeStream(stream, log)
