@@ -3,9 +3,12 @@ package p2p
 import (
 	"context"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
+	"github.com/RosettaFlow/Carrier-Go/p2p/peers/peerdata"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"io"
 	"sync"
@@ -95,15 +98,15 @@ func (s *Service) AddConnectionHandler(reqFunc, goodByeFunc func(ctx context.Con
 				//TODO: need to check status
 				// Do not perform handshake on inbound dials.
 				if conn.Stat().Direction == network.DirInbound {
-					/*_, err := s.peers.ChainState(remotePeer)
+					_, err := s.peers.ChainState(remotePeer)
 					peerExists := err == nil
-					currentTime := timeutils.Now()*/
+					currentTime := timeutils.Now()
 
 					// Wait for peer to initiate handshake
 					time.Sleep(timeForStatus)
 
 					// Exit if we are disconnected with the peer.
-					/*if s.host.Network().Connectedness(remotePeer) != network.Connected {
+					if s.host.Network().Connectedness(remotePeer) != network.Connected {
 						return
 					}
 					// If peer hasn't sent a status request, we disconnect with them
@@ -121,18 +124,17 @@ func (s *Service) AddConnectionHandler(reqFunc, goodByeFunc func(ctx context.Con
 						// exit if we don't receive any current status messages from 
 						// peer.
 						if updated.IsZero() || !updated.After(currentTime) {
-							disconnectFromPeer()
+ 							disconnectFromPeer()
 							return
 						}
-					}*/
+					}
 					validPeerConnection()
 					return
 				}
 				s.peers.SetConnectionState(conn.RemotePeer(), peers.PeerConnecting)
 				if err := reqFunc(context.TODO(), conn.RemotePeer()); err != nil && err != io.EOF {
 					log.WithError(err).Debugf("Handshake failed, remotePeer: %s", conn.RemotePeer().String())
-					//todo: need to check...
-					//disconnectFromPeer()
+					disconnectFromPeer()
 					return
 				}
 				validPeerConnection()
