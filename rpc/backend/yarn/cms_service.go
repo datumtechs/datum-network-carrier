@@ -2,6 +2,7 @@ package yarn
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -189,7 +190,7 @@ func (svr *YarnServiceServer) DeleteSeedNode(ctx context.Context, req *pb.Delete
 
 func (svr *YarnServiceServer) GetSeedNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetSeedNodeListResponse, error) {
 	list, err := svr.B.GetSeedNodeList()
-	if nil != err {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("RPC-API:GetSeedNodeList failed")
 		return nil, ErrGetSeedNodeList
 	}
@@ -287,7 +288,7 @@ func (svr *YarnServiceServer) DeleteDataNode(ctx context.Context, req *pb.Delete
 func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
-	if nil != err {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("RPC-API:GetDataNodeList failed")
 		return nil, ErrGetDataNodeList
 	}
@@ -390,7 +391,7 @@ func (svr *YarnServiceServer) DeleteJobNode(ctx context.Context, req *pb.DeleteR
 
 func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetRegisteredNodeListResponse, error) {
 	list, err := svr.B.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	if nil != err {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Error("RPC-API:GetJobNodeList failed")
 		return nil, ErrGetDataNodeList
 	}
