@@ -2,21 +2,18 @@ package handler
 
 import (
 	"context"
-	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/abool"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
-	"math/rand"
 	"sync"
 	"time"
 )
@@ -91,7 +88,7 @@ func (s *Service) Start() error {
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 
 	// for testing
-	runutil.RunEvery(s.ctx, 10*time.Second, func() {
+	/*runutil.RunEvery(s.ctx, 10*time.Second, func() {
 		peerId := s.cfg.P2P.Peers().Active()
 		//target, _ := peer.Decode("16Uiu2HAm7pq7heDZwmrmWt9rXV8C1t5ENmyPKtToZAV6pioc1CrW")
 		for _, id := range peerId {
@@ -105,7 +102,7 @@ func (s *Service) Start() error {
 					Step:                 uint64(rand.Int63n(100)),
 				})
 		}
-	})
+	})*/
 
 	log.Info("Starting handler service")
 	return nil
