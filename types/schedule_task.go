@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -165,3 +166,6 @@ type ConsensuResult struct {
 	*TaskConsResult
 }
 
+func (res *ConsensuResult) String() string {
+	return fmt.Sprintf(`{"taskId": %s, "status": %s, "done": %v, "err": %s}`, res.TaskId, res.Status.String(), res.Done, res.Err)
+}
