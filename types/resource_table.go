@@ -8,32 +8,33 @@ import (
 
 var (
 	// TODO 写死的 资源固定消耗 ...
-	multipleNumber  = uint64(3)
+	multipleNumber  = uint64(8)
 	DefaultSlotUnit = &Slot{
-		Mem:       1024,
-		Processor: 1,
-		Bandwidth: 1024,
+		Mem:       1024 * 1024 * 2, // 2mb      (byte)
+		Processor: 1,               // 1核      (cpu)
+		Bandwidth: 1024 * 64,       // 64kbps   (bps)  64kbps ÷8 = 8k/s
 	}
 	DefaultResouece = &resource{
-		mem:       1024 * multipleNumber,
-		processor: 1 * multipleNumber,
-		bandwidth: 1024 * multipleNumber,
+		mem:       1024 * 1024 * 1024 * multipleNumber,           // 8*gb     (byte)
+		processor: 2 * multipleNumber,                            // 18 cpu   (cpu)
+		bandwidth: 1024 * 1024 * multipleNumber * multipleNumber, // 64Mbps   (bps)   64Mbps÷8=8M/s，这相当于60兆宽带的下载速度，宽带应该是100兆
 	}
 
-	DefaultDisk = uint64(10*1024*1024*1024*1024*1024)  //10pb
+	DefaultDisk = uint64(10 * 1024 * 1024 * 1024 * 1024 * 1024) //10pb
 )
-func GetDefaultResoueceMem () uint64 { return DefaultResouece.mem }
-func GetDefaultResoueceProcessor () uint64 { return DefaultResouece.processor }
-func GetDefaultResoueceBandwidth () uint64 { return DefaultResouece.bandwidth }
+
+func GetDefaultResoueceMem() uint64       { return DefaultResouece.mem }
+func GetDefaultResoueceProcessor() uint64 { return DefaultResouece.processor }
+func GetDefaultResoueceBandwidth() uint64 { return DefaultResouece.bandwidth }
 
 type LocalResourceTable struct {
-	nodeId       string    // Resource node id
+	nodeId       string // Resource node id
 	powerId      string
 	nodeResource *resource // The total resource on the node
 	assign       bool      // Whether to assign the slot tag
 	slotTotal    uint32    // The total number of slots are allocated on the resource of this node
 	//slotLocked   uint32    // Maybe we will to use, so lock first.
-	slotUsed     uint32    // The number of slots that have been used on the resource of the node
+	slotUsed uint32 // The number of slots that have been used on the resource of the node
 }
 type localResourceTableRlp struct {
 	NodeId    string // node id
@@ -48,7 +49,7 @@ type localResourceTableRlp struct {
 
 func NewLocalResourceTable(nodeId, powerId string, mem, processor, bandwidth uint64) *LocalResourceTable {
 	return &LocalResourceTable{
-		nodeId: nodeId,
+		nodeId:  nodeId,
 		powerId: powerId,
 		//nodeResource: &resource{
 		//	mem:       mem,
@@ -65,7 +66,7 @@ func (r *LocalResourceTable) String() string {
 		r.nodeId, r.powerId, r.nodeResource.mem, r.nodeResource.processor, r.nodeResource.bandwidth, r.assign)
 }
 func (r *LocalResourceTable) GetNodeId() string    { return r.nodeId }
-func (r *LocalResourceTable) GetPowerId() string    { return r.powerId }
+func (r *LocalResourceTable) GetPowerId() string   { return r.powerId }
 func (r *LocalResourceTable) GetMem() uint64       { return r.nodeResource.mem }
 func (r *LocalResourceTable) GetProcessor() uint64 { return r.nodeResource.processor }
 func (r *LocalResourceTable) GetBandwidth() uint64 { return r.nodeResource.bandwidth }
@@ -106,6 +107,7 @@ func (r *LocalResourceTable) FreeSlot(count uint32) error {
 	}
 	return nil
 }
+
 //func (r *LocalResourceTable) LockSlot(count uint32) {
 //	if count > r.RemianSlot() {
 //		r.slotLocked = r.slotTotal - r.slotUsed
@@ -120,8 +122,9 @@ func (r *LocalResourceTable) FreeSlot(count uint32) error {
 //		r.slotLocked = r.slotLocked - count
 //	}
 //}
-func (r *LocalResourceTable) GetTotalSlot() uint32  { return r.slotTotal }
-func (r *LocalResourceTable) GetUsedSlot() uint32   { return r.slotUsed }
+func (r *LocalResourceTable) GetTotalSlot() uint32 { return r.slotTotal }
+func (r *LocalResourceTable) GetUsedSlot() uint32  { return r.slotUsed }
+
 //func (r *LocalResourceTable) GetLockedSlot() uint32 { return r.slotLocked }
 func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
 	if r.RemianSlot() < slotCount {
@@ -317,7 +320,7 @@ type dataResourceTableRlp struct {
 
 func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResourceTable {
 	return &DataResourceTable{
-		nodeId:    nodeId,
+		nodeId: nodeId,
 		//totalDisk: totalDisk,
 		//usedDisk:  usedDisk,
 		totalDisk: DefaultDisk,
@@ -346,12 +349,12 @@ func (drt *DataResourceTable) DecodeRLP(s *rlp.Stream) error {
 func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
 func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
 func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
-func (drt *DataResourceTable) RemainDisk() uint64 { return drt.totalDisk - drt.usedDisk }
-func (drt *DataResourceTable) IsUsed() bool { return drt.usedDisk != 0 }
-func (drt *DataResourceTable) IsNotUsed() bool { return !drt.IsUsed() }
-func (drt *DataResourceTable) IsEmpty() bool { return nil == drt }
-func (drt *DataResourceTable) IsNotEmpty() bool { return !drt.IsEmpty() }
-func (drt *DataResourceTable) UseDisk(use uint64)  {
+func (drt *DataResourceTable) RemainDisk() uint64   { return drt.totalDisk - drt.usedDisk }
+func (drt *DataResourceTable) IsUsed() bool         { return drt.usedDisk != 0 }
+func (drt *DataResourceTable) IsNotUsed() bool      { return !drt.IsUsed() }
+func (drt *DataResourceTable) IsEmpty() bool        { return nil == drt }
+func (drt *DataResourceTable) IsNotEmpty() bool     { return !drt.IsEmpty() }
+func (drt *DataResourceTable) UseDisk(use uint64) {
 	if drt.RemainDisk() > use {
 		drt.usedDisk += use
 	} else {
@@ -367,7 +370,7 @@ func (drt *DataResourceTable) FreeDisk(use uint64) {
 }
 
 type DataResourceFileUpload struct {
-	originId   string   // db key
+	originId   string // db key
 	nodeId     string
 	metaDataId string
 	filePath   string
@@ -414,16 +417,14 @@ func (drt *DataResourceFileUpload) SetMetaDataId(metaDataId string) { drt.metaDa
 func (drt *DataResourceFileUpload) GetMetaDataId() string           { return drt.metaDataId }
 func (drt *DataResourceFileUpload) GetFilePath() string             { return drt.filePath }
 
-
-
 type DataResourceDiskUsed struct {
-	metaDataId string   // db key
+	metaDataId string // db key
 	nodeId     string
 	diskUsed   uint64
 }
 
 type dataResourceDiskUsedRlp struct {
-	MetaDataId string   // db key
+	MetaDataId string // db key
 	NodeId     string
 	DiskUsed   uint64
 }
@@ -432,7 +433,7 @@ func NewDataResourceDiskUsed(metaDataId, nodeId string, diskUsed uint64) *DataRe
 	return &DataResourceDiskUsed{
 		metaDataId: metaDataId,
 		nodeId:     nodeId,
-		diskUsed:  diskUsed,
+		diskUsed:   diskUsed,
 	}
 }
 
@@ -450,11 +451,10 @@ func (drt *DataResourceDiskUsed) DecodeRLP(s *rlp.Stream) error {
 	var dec dataResourceDiskUsedRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		drt.metaDataId, drt.nodeId,  drt.diskUsed = dec.MetaDataId,  dec.NodeId, dec.DiskUsed
+		drt.metaDataId, drt.nodeId, drt.diskUsed = dec.MetaDataId, dec.NodeId, dec.DiskUsed
 	}
 	return err
 }
 func (drt *DataResourceDiskUsed) GetMetaDataId() string { return drt.metaDataId }
 func (drt *DataResourceDiskUsed) GetNodeId() string     { return drt.nodeId }
 func (drt *DataResourceDiskUsed) GetDiskUsed() uint64   { return drt.diskUsed }
-
