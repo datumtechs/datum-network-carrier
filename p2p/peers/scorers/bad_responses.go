@@ -115,9 +115,10 @@ func (s *BadResponsesScorer) IsBadPeer(pid peer.ID) bool {
 
 // isBadPeer is lock-free version of IsBadPeer.
 func (s *BadResponsesScorer) isBadPeer(pid peer.ID) bool {
-	if peerData, ok := s.store.PeerData(pid); ok {
+	//TODO: need to remove....
+	/*if peerData, ok := s.store.PeerData(pid); ok {
 		return peerData.BadResponses >= s.config.Threshold
-	}
+	}*/
 	return false
 }
 
