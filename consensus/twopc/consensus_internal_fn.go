@@ -64,9 +64,9 @@ func (t *TwoPC) collectTaskResultWillSendToSched(result *types.ConsensuResult) {
 }
 func (t *TwoPC) sendConsensusTaskResultToSched (result *types.ConsensuResult) {
 	t.taskResultLock.Lock()
-	log.Debugf("Need SendTaskResultCh taskId: {%s}", result.TaskId)
+	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
 	if ch, ok := t.taskResultChs[result.TaskId]; ok {
-		log.Debugf("Start SendTaskResultCh taskId: {%s}", result.TaskId)
+		log.Debugf("Start SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
 		ch <- result
 		close(ch)
 		delete(t.taskResultChs, result.TaskId)
