@@ -210,7 +210,7 @@ func (s *Service) Start() error {
 		}
 		s.connectWithAllPeers(addrs)
 		//todo: need to verify...
-		//peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
+		peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
 	}
 
 	// periodic functions
