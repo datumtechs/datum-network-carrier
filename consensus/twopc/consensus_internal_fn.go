@@ -319,7 +319,11 @@ func (t *TwoPC) driveTask(
 
 func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
 
-	prepareMsg := makePrepareMsgWithoutTaskRole(proposalId, task, startTime)
+	prepareMsg, err := makePrepareMsgWithoutTaskRole(proposalId, task, startTime)
+
+	if nil != err {
+		return fmt.Errorf("failed to make prepareMsg, %s", err)
+	}
 
 	sendTaskFn := func(proposalId common.Hash, taskRole types.TaskRole, partyId, identityId, nodeId, taskId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
 		var pid, err = p2p.HexPeerID(nodeId)

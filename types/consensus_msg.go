@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 )
@@ -28,7 +29,9 @@ type PrepareVoteResource struct {
 	Port    string
 	PartyId string
 }
-
+func (resource PrepareVoteResource) String() string {
+	return fmt.Sprintf(`{"id": %s, "ip": %s, "port": %s, "partyId": %s}`, resource.Id, resource.Ip, resource.Port, resource.PartyId)
+}
 func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
 	return &pb.TaskPeerInfo{
 		Ip:      []byte(peerInfo.Ip),

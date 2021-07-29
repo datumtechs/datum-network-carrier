@@ -7,12 +7,12 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, startTime uint64) *pb.PrepareMsg {
+func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, startTime uint64) (*pb.PrepareMsg, error) {
 	// region receivers come from task.Receivers
 	bys := new(bytes.Buffer)
 	err := task.EncodePb(bys)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	return &pb.PrepareMsg{
 		ProposalId: proposalId.Bytes(),
@@ -24,7 +24,7 @@ func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, sta
 		},
 		TaskInfo: bys.Bytes(),
 		CreateAt: startTime,
-	}
+	}, nil
 }
 
 func makePrepareVote() *pb.PrepareVote {
