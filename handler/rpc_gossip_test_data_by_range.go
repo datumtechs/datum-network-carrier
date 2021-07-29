@@ -74,10 +74,10 @@ func (s *Service) validateGossipRangeRequest(r *libp2ppb.GossipTestData) error {
 	count := r.Count
 	step := r.Step
 	if count < 10 {
-		return p2ptypes.ErrInvalidRequest
+		//return p2ptypes.ErrInvalidRequest
 	}
 	if step < 1 {
-		return p2ptypes.ErrInvalidRequest
+		//return p2ptypes.ErrInvalidRequest
 	}
 	return nil
 }
