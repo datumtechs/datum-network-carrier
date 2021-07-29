@@ -130,6 +130,8 @@ func (t *TwoPC) refreshProposalState() {
 	for id, proposalState := range t.state.GetProposalStates() {
 
 		if proposalState.IsDeadline() {
+			log.Debugf("Started refresh proposalState loop, the proposalState was deadline, proposalId: {%s}, taskId: {%s}",
+				id.String(), proposalState.TaskId)
 			t.handleInvalidProposal(proposalState)
 			continue
 		}
@@ -137,27 +139,35 @@ func (t *TwoPC) refreshProposalState() {
 		switch proposalState.GetPeriod() {
 		case ctypes.PeriodPrepare:
 			if proposalState.IsPrepareTimeout() {
+				log.Debugf("Started refresh proposalState loop, the proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}",
+					id.String(), proposalState.TaskId)
 				proposalState.ChangeToConfirm(proposalState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodConfirm:
 			if proposalState.IsConfirmTimeout() {
+				log.Debugf("Started refresh proposalState loop, the proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}",
+					id.String(), proposalState.TaskId)
 				proposalState.ChangeToCommit(proposalState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodCommit:
 			if proposalState.IsCommitTimeout() {
+				log.Debugf("Started refresh proposalState loop, the proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}",
+					id.String(), proposalState.TaskId)
 				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
 				t.state.UpdateProposalState(proposalState)
 			}
 		case ctypes.PeriodFinished:
 			//
 			if proposalState.IsDeadline() {
+				log.Debugf("Started refresh proposalState loop, the proposalState was deadline, proposalId: {%s}, taskId: {%s}",
+					id.String(), proposalState.TaskId)
 				t.handleInvalidProposal(proposalState)
 			}
 
 		default:
-			log.Error("Unknown the proposalState period", "proposalId", id.String())
+			log.Errorf("Unknown the proposalState period, proposalId: {%s}, taskId: {%s}", id.String(), proposalState.TaskId)
 			t.handleInvalidProposal(proposalState)
 		}
 	}
@@ -223,10 +233,16 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 			}
 		}
 
-		t.resourceMng.UnLockLocalResourceWithTask(proposalState.TaskId)
+		if err := t.resourceMng.UnLockLocalResourceWithTask(proposalState.TaskId); nil != err {
+			log.Errorf("Failed to Unlock local resource with task, taskId: {%s}", proposalState.TaskId)
+		}
 		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		t.dataCenter.RemoveLocalTask(proposalState.TaskId)
-		t.dataCenter.CleanTaskEventList(proposalState.TaskId)
+		if err := t.dataCenter.RemoveLocalTask(proposalState.TaskId); nil != err {
+			log.Errorf("Failed to remove local task, taskId: {%s}", proposalState.TaskId)
+		}
+		if err := t.dataCenter.CleanTaskEventList(proposalState.TaskId); nil != err {
+			log.Errorf("Failed to clean event list of task, taskId: {%s}", proposalState.TaskId)
+		}
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 	}
