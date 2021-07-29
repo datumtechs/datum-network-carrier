@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
@@ -745,6 +746,10 @@ type TaskOperationCost struct {
 	Mem       uint64 `json:"mem"`
 	Bandwidth uint64 `json:"bandwidth"`
 	Duration  uint64 `json:"duration"`
+}
+
+func (cost *TaskOperationCost) String() string {
+	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
 }
 
 func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *pb.TaskOperationCostDeclare {
