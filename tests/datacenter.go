@@ -234,7 +234,7 @@ func InsertTask() {
 		panic("from data center InsertTask fail," + terr.Error() + "\n")
 	} else {
 		fmt.Print("InsertTask successful\n")
-		result, err := dc.GetTaskList()
+		result, err := dc.GetLocalTaskList()
 		if nil != err {
 			fmt.Println("err", err)
 		}
@@ -300,7 +300,7 @@ func GetData() {
 	// endregion
 
 	// region GetTaskList
-	GetTaskList, err := dc.GetTaskList()
+	GetTaskList, err := dc.GetLocalTaskList()
 	if nil != err {
 		fmt.Println("err", err)
 	}
