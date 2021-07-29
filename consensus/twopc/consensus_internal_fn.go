@@ -322,8 +322,8 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	sendTaskFn := func(proposalId common.Hash, taskRole types.TaskRole, partyId, identityId, nodeId, taskId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
 		var pid, err = p2p.HexPeerID(nodeId)
 		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, nodeId: %s, err: %s",
-				proposalId.String(), taskId, taskRole.String(), partyId, identityId, nodeId, err)
+			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid, err)
 			return
 		}
 		// set other peer's role and partyId
@@ -331,13 +331,13 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 		prepareMsg.TaskPartyId = []byte(partyId)
 
 		if err = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg); nil != err {
-			errCh <- fmt.Errorf("failed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, nodeId: %s, err: %s",
-				proposalId.String(), taskId, taskRole.String(), partyId, identityId, nodeId, err)
+			errCh <- fmt.Errorf("failed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid, err)
 			return
 		}
 
-		log.Debugf("Succceed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, nodeId: %s",
-			proposalId.String(), taskId, taskRole.String(), partyId, identityId, nodeId)
+		log.Debugf("Succceed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s",
+			proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid)
 
 		errCh <- nil
 	}
@@ -392,8 +392,8 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 	sendConfirmMsgFn := func(proposalId common.Hash, taskRole types.TaskRole, taskPartyId, identityId, nodeId, taskId string, confirmMsg *pb.ConfirmMsg, errCh chan<- error) {
 		pid, err := p2p.HexPeerID(nodeId)
 		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s, err: %s",
-				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId, err)
+			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			return
 		}
 
@@ -403,14 +403,14 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 
 		// Send the ConfirmMsg to other peer
 		if err := handler.SendTwoPcConfirmMsg(context.TODO(), t.p2p, pid, confirmMsg); nil != err {
-			errCh <- fmt.Errorf("failed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s, err: %s",
-				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId, err)
+			errCh <- fmt.Errorf("failed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			errCh <- err
 			return
 		}
 
-		log.Debugf("Succceed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s",
-			proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId)
+		log.Debugf("Succceed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s",
+			proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid)
 
 		errCh <- nil
 	}
@@ -464,8 +464,8 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 	sendCommitMsgFn := func(proposalId common.Hash, taskRole types.TaskRole, taskPartyId, identityId, nodeId, taskId string, commitMsg *pb.CommitMsg, errCh chan<- error) {
 		pid, err := p2p.HexPeerID(nodeId)
 		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s, err: %s",
-				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId, err)
+			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			return
 		}
 
@@ -475,14 +475,14 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 
 		// Send the ConfirmMsg to other peer
 		if err := handler.SendTwoPcCommitMsg(context.TODO(), t.p2p, pid, commitMsg); nil != err {
-			errCh <- fmt.Errorf("failed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s, err: %s",
-				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId, err)
+			errCh <- fmt.Errorf("failed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			errCh <- err
 			return
 		}
 
-		log.Debugf("Succceed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, nodeId: %s",
-			proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, nodeId)
+		log.Debugf("Succceed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s",
+			proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid)
 
 		errCh <- nil
 	}
