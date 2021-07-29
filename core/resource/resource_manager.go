@@ -43,7 +43,6 @@ func (m *Manager) loop() {
 			if err := m.refreshOrgResourceTable(); nil != err {
 				log.Errorf("Failed to refresh org resourceTables, err: %s", err)
 			}
-		default:
 		}
 	}
 }
