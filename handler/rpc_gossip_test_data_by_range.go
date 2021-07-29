@@ -8,10 +8,12 @@ import (
 	"github.com/pkg/errors"
 	"github.com/prysmaticlabs/prysm/shared/traceutil"
 	"go.opencensus.io/trace"
+	"math/rand"
 	"time"
 )
 
 func (s *Service) gossipTestDataByRangeRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
+	log.WithField("peer", stream.Conn().RemotePeer()).Debug("Receive gossipTestData message")
 	ctx, span := trace.StartSpan(ctx, "handler.GossipTestDataByRangeRPCHandler")
 	defer span.End()
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
@@ -72,10 +74,10 @@ func (s *Service) validateGossipRangeRequest(r *libp2ppb.GossipTestData) error {
 	count := r.Count
 	step := r.Step
 	if count < 10 {
-		return p2ptypes.ErrInvalidRequest
+		//return p2ptypes.ErrInvalidRequest
 	}
 	if step < 1 {
-		return p2ptypes.ErrInvalidRequest
+		//return p2ptypes.ErrInvalidRequest
 	}
 	return nil
 }
@@ -85,24 +87,24 @@ func generateTestData() ([]*libp2ppb.SignedGossipTestData, error) {
 		{
 			Data:                 &libp2ppb.GossipTestData{
 				Data:                 []byte("data01"),
-				Count:                11,
-				Step:                 11,
+				Count:                uint64(rand.Int63n(100)),
+				Step:                 uint64(rand.Int63n(100)),
 			},
 			Signature:            make([]byte, 48),
 		},
 		{
 			Data:                 &libp2ppb.GossipTestData{
 				Data:                 []byte("data02"),
-				Count:                22,
-				Step:                 22,
+				Count:                uint64(rand.Int63n(100)),
+				Step:                 uint64(rand.Int63n(100)),
 			},
 			Signature:            make([]byte, 48),
 		},
 		{
 			Data:                 &libp2ppb.GossipTestData{
 				Data:                 []byte("data03"),
-				Count:                33,
-				Step:                 33,
+				Count:                uint64(rand.Int63n(100)),
+				Step:                 uint64(rand.Int63n(100)),
 			},
 			Signature:            make([]byte, 48),
 		},
