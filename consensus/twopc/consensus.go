@@ -372,7 +372,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 			proposal.TaskId, prepareMsg.TaskRole, self.NodeId, err)
 		log.Error(err)
 
-		t.releaseLocalResourceWithTask("on onPrepareMsg", task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposal.ProposalId)
 		return err
@@ -556,7 +556,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
-		t.releaseLocalResourceWithTask("on onConfirmMsg", task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 		return fmt.Errorf("query local identity failed, %s", err)
@@ -587,7 +587,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 			task.TaskId, msg.TaskRole, self.NodeId, err)
 		log.Error(err)
 
-		t.releaseLocalResourceWithTask("on onConfirmMsg", task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 		return err
@@ -787,7 +787,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
-		t.releaseLocalResourceWithTask("on onCommitMsg", task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 		return fmt.Errorf("query local identity failed, %s", err)
