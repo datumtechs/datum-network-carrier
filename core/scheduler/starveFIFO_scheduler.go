@@ -221,8 +221,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			Bandwidth: task.Data.TaskData().TaskResource.CostBandwidth,
 		}
 
-		log.Debugf("Call trySchedule start, taskId: {%s}, partyId: {%s}, taskCost: {%v}",
-			task.Data.TaskData().TaskId, task.Data.TaskData().PartyId, cost)
+		log.Debugf("Call trySchedule start, taskId: {%s}, partyId: {%s}, taskCost: {%s}",
+			task.Data.TaskData().TaskId, task.Data.TaskData().PartyId, cost.String())
 
 		//needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 		//
@@ -324,8 +324,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		Bandwidth: replayScheduleTask.Task.TaskData().TaskResource.CostBandwidth,
 	}
 
-	log.Debugf("Call replaySchedule start, taskId: {%s}, taskRole: {%s}, partyId: {%s}, taskCost: {%v}",
-		replayScheduleTask.Task.TaskId(), replayScheduleTask.Role.String(), replayScheduleTask.PartyId, cost)
+	log.Debugf("Call replaySchedule start, taskId: {%s}, taskRole: {%s}, partyId: {%s}, taskCost: {%s}",
+		replayScheduleTask.Task.TaskId(), replayScheduleTask.Role.String(), replayScheduleTask.PartyId, cost.String())
 
 	selfIdentityId, err := sche.dataCenter.GetIdentityId()
 	if nil != err {
