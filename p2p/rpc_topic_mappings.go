@@ -4,7 +4,8 @@ import (
 	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"reflect"
 
-	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	p2ppb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/pkg/errors"
 	types "github.com/prysmaticlabs/eth2-types"
 )
@@ -29,22 +30,28 @@ const (
 	RPCGossipTestDataByRangeTopic = "/rosettanet/carrier_chain/req/gossip_test_data_by_range" + schemaVersionV1
 
 	// for 2pc consensus
-	RPCTwoPcPrepareMsgTopic = "/rosettanet/consensus/twopc/send_preparemsg" + schemaVersionV1
-	RPCTwoPcPrepareVoteTopic = "/rosettanet/consensus/twopc/send_preparevote" + schemaVersionV1
-	RPCTwoPcConfirmMsgTopic = "/rosettanet/consensus/twopc/send_confirmmsg" + schemaVersionV1
-	RPCTwoPcConfirmVoteTopic = "/rosettanet/consensus/twopc/send_confirmvote" + schemaVersionV1
-	RPCTwoPcCommitMsgTopic = "/rosettanet/consensus/twopc/send_commitmsg" + schemaVersionV1
+	RPCTwoPcPrepareMsgTopic    = "/rosettanet/consensus/twopc/send_preparemsg" + schemaVersionV1
+	RPCTwoPcPrepareVoteTopic   = "/rosettanet/consensus/twopc/send_preparevote" + schemaVersionV1
+	RPCTwoPcConfirmMsgTopic    = "/rosettanet/consensus/twopc/send_confirmmsg" + schemaVersionV1
+	RPCTwoPcConfirmVoteTopic   = "/rosettanet/consensus/twopc/send_confirmvote" + schemaVersionV1
+	RPCTwoPcCommitMsgTopic     = "/rosettanet/consensus/twopc/send_commitmsg" + schemaVersionV1
 	RPCTwoPcTaskResultMsgTopic = "/rosettanet/consensus/twopc/send_taskresultmsg" + schemaVersionV1
 )
 
 // RPCTopicMappings map the base message type to the rpc request.
 var RPCTopicMappings = map[string]interface{}{
-	RPCStatusTopic:        new(pb.Status),
-	RPCGoodByeTopic:       new(types.SSZUint64),
-	RPCBlocksByRangeTopic: new(pb.CarrierBlocksByRangeRequest),
-	RPCPingTopic:          new(types.SSZUint64),
-	RPCMetaDataTopic:      new(interface{}),
+	RPCStatusTopic:                new(p2ppb.Status),
+	RPCGoodByeTopic:               new(types.SSZUint64),
+	RPCBlocksByRangeTopic:         new(p2ppb.CarrierBlocksByRangeRequest),
+	RPCPingTopic:                  new(types.SSZUint64),
+	RPCMetaDataTopic:              new(interface{}),
 	RPCGossipTestDataByRangeTopic: new(libp2ppb.GossipTestData),
+	RPCTwoPcPrepareMsgTopic:       new(twopcpb.PrepareMsg),
+	RPCTwoPcPrepareVoteTopic:      new(twopcpb.PrepareVote),
+	RPCTwoPcConfirmMsgTopic:       new(twopcpb.ConfirmMsg),
+	RPCTwoPcConfirmVoteTopic:      new(twopcpb.ConfirmVote),
+	RPCTwoPcCommitMsgTopic:        new(twopcpb.CommitMsg),
+	RPCTwoPcTaskResultMsgTopic:    new(twopcpb.TaskResultMsg),
 }
 
 // VerifyTopicMapping verifies that the topic and its accompanying

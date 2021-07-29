@@ -380,7 +380,7 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	}
 	if len(errStrs) != 0 {
 		return fmt.Errorf(
-			`failed to Send PrepareMsg for task:
+			`failed to SendPrepareMsg for task:
 %s`, strings.Join(errStrs, "\n"))
 	}
 
