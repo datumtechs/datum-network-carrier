@@ -187,7 +187,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 					bullet.UnschedTask.Data.TaskId(), bullet.Resched, ReschedMaxCount)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type,
 					bullet.UnschedTask.Data.TaskId(), bullet.UnschedTask.Data.TaskData().Identity, fmt.Sprintf(
-						"The number of times the task has been rescheduled exceeds the expected threshold")))
+						"Task rescheduled exceeds the expected threshold")))
 
 				failedTask := &types.DoneScheduleTaskChWrap{
 					ProposalId:   common.Hash{},
@@ -302,6 +302,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		}
 		sche.SendTaskToConsensus(toConsensusTask)
 		consensusRes := toConsensusTask.RecvResult()
+
+		log.Debugf("Received task result from consensus, taskId: {%s}, result status: {%s}", consensusRes.TaskId, consensusRes.Status)
 
 		// Consensus failed, task needs to be suspended and rescheduled
 		if consensusRes.Status == types.TaskConsensusInterrupt {

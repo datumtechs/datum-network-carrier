@@ -196,6 +196,8 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId, taskState string) {
 		return
 	}
 
+	log.Debugf("Start pulishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", taskId, taskState)
+
 	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
 	if nil != err {
 		log.Error("Failed to Query all task event list for sending datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
@@ -487,13 +489,13 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 }
 func (m *Manager) handleDoneScheduleTask(taskId string) {
 
-	log.Debugf("Start handle DoneScheduleTask, taskId: {%s}", taskId)
-
 	task, ok := m.queryRunningTaskCacheOk(taskId)
 	if !ok {
 		log.Debugf("Failed to start handle DoneScheduleTask, not found local task cache, taskId: {%s}", taskId)
 		return
 	}
+
+	log.Debugf("Start handle DoneScheduleTask, taskId: {%s}, taskRole: {%s}, taskState: {%s}", taskId, task.SelfTaskRole.String(), task.Task.TaskState.String())
 
 	switch task.SelfTaskRole {
 	case types.TaskOnwer:
