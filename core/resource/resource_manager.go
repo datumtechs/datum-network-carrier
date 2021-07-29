@@ -378,7 +378,7 @@ func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option R
 			log.Errorf("Failed to remove local task  %s, taskId: {%s}", logdesc, taskId)
 		}
 	}
-	if option.IsRemoveLocalTask() {
+	if option.IsCleanTaskEvents() {
 		if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
 			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}", logdesc, taskId)
 		}
