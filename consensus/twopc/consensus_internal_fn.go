@@ -49,11 +49,13 @@ func (t *TwoPC) delRecvTask(taskId string) {
 }
 func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.ConsensuResult) {
 	t.taskResultLock.Lock()
+	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
 	t.taskResultChs[taskId] = resultCh
 	t.taskResultLock.Unlock()
 }
 func (t *TwoPC) removeTaskResultCh(taskId string) {
 	t.taskResultLock.Lock()
+	log.Debugf("RemoveTaskResultCh taskId: {%s}", taskId)
 	delete(t.taskResultChs, taskId)
 	t.taskResultLock.Unlock()
 }
@@ -62,7 +64,9 @@ func (t *TwoPC) collectTaskResultWillSendToSched(result *types.ConsensuResult) {
 }
 func (t *TwoPC) sendConsensusTaskResultToSched (result *types.ConsensuResult) {
 	t.taskResultLock.Lock()
+	log.Debugf("Need SendTaskResultCh taskId: {%s}", result.TaskId)
 	if ch, ok := t.taskResultChs[result.TaskId]; ok {
+		log.Debugf("Start SendTaskResultCh taskId: {%s}", result.TaskId)
 		ch <- result
 		close(ch)
 		delete(t.taskResultChs, result.TaskId)
@@ -170,7 +174,7 @@ func (t *TwoPC) refreshProposalState() {
 
 func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 
-	log.Debug("Call handleInvalidProposal(), handle and clean proposalState and task", "proposalId", proposalState.ProposalId, "taskId", proposalState.TaskId, "taskDir", proposalState.TaskDir.String())
+	log.Debugf("Call handleInvalidProposal(), handle and clean proposalState and task, proposalId: {%s}, taskId: {%s}, taskDir: {%s}", proposalState.ProposalId, proposalState.TaskId, proposalState.TaskDir.String())
 
 	if proposalState.TaskDir == types.SendTaskDir {
 		// Send consensus result to Scheduler

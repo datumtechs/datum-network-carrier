@@ -121,7 +121,18 @@ type ScheduleTaskResultReceiver struct {
 }
 
 type TaskConsStatus uint16
-
+func (t TaskConsStatus) String() string {
+	switch t {
+	case TaskSucceed:
+		return "TaskSucceed"
+	case TaskConsensusInterrupt:
+		return "TaskConsensusInterrupt"
+	case TaskRunningInterrupt:
+		return "TaskRunningInterrupt"
+	default:
+		return "UnknownTaskResultStatus"
+	}
+}
 const (
 	TaskSucceed            TaskConsStatus = 0x0000
 	TaskConsensusInterrupt TaskConsStatus = 0x0001
