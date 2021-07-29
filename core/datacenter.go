@@ -537,11 +537,11 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.SaveTask(dc.ctx, types.NewTaskDetail(task))
 	if err != nil {
-		log.WithError(err).WithField("hash", task.Hash()).Errorf("InsertTask failed")
+		log.WithError(err).WithField("taskId", task.TaskId()).Errorf("InsertTask failed")
 		return err
 	}
 	if response.Status != 0 {
-		return fmt.Errorf("insert task error: %s", response.Msg)
+		return fmt.Errorf("insert task, taskId: {%s},  error: %s", task.TaskId(), response.Msg)
 	}
 	return nil
 }
