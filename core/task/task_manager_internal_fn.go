@@ -209,12 +209,7 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId, taskState string) {
 	close(taskWrap.ResultCh)
 	// clean local task cache
 	m.removeRunningTaskCache(taskId)
-	// 解锁 本地 资源缓存
-	m.resourceMng.UnLockLocalResourceWithTask(taskId)
-	// 清掉 本地任务
-	m.dataCenter.RemoveLocalTask(taskId)
-	// 清掉 本地事件
-	m.dataCenter.CleanTaskEventList(taskId)
+	m.releaseLocalResourceWithTask("on taskManager.pulishFinishedTaskToDataCenter()", taskId)
 }
 func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 
@@ -544,5 +539,22 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		default:
 			log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
 		}
+	}
+}
+
+
+func (m *Manager) releaseLocalResourceWithTask (logdesc, taskId string) {
+
+	// 解锁 本地 资源缓存
+	if err := m.resourceMng.UnLockLocalResourceWithTask(taskId); nil != err {
+		log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
+	}
+	// 清掉 本地任务
+	if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
+		log.Errorf("Failed to remove local task  %s, taskId: {%s}", logdesc, taskId)
+	}
+	// 清掉 本地事件
+	if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
+		log.Errorf("Failed to clean event list of task  %s, taskId: {%s}", logdesc, taskId)
 	}
 }
