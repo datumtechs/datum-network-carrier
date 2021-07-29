@@ -821,8 +821,8 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方
 func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) error {
 	if err := handler.SendTwoPcTaskResultMsg(context.TODO(), t.p2p, pid, msg.TaskResultMsg); nil != err {
-		err := fmt.Errorf("failed to `SendTwoPcTaskResultMsg` to task owner, taskId: {%s}, taskRole: {%s}, other nodeId: {%s}, other peerId: {%s}, err: {%s}",
-			msg.TaskResultMsg.TaskId, msg.TaskRole, msg.TaskResultMsg.Owner.NodeId, pid, err)
+		err := fmt.Errorf("failed to `SendTwoPcTaskResultMsg` to task owner, taskId: {%s}, taskRole: {%s}, other identityId: {%s}, other peerId: {%s}, err: {%s}",
+			msg.TaskResultMsg.TaskId, msg.TaskRole, msg.TaskResultMsg.Owner.IdentityId, pid, err)
 		return err
 	}
 	return nil
