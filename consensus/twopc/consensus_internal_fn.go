@@ -233,16 +233,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 			}
 		}
 
-		if err := t.resourceMng.UnLockLocalResourceWithTask(proposalState.TaskId); nil != err {
-			log.Errorf("Failed to Unlock local resource with task, taskId: {%s}", proposalState.TaskId)
-		}
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		if err := t.dataCenter.RemoveLocalTask(proposalState.TaskId); nil != err {
-			log.Errorf("Failed to remove local task, taskId: {%s}", proposalState.TaskId)
-		}
-		if err := t.dataCenter.CleanTaskEventList(proposalState.TaskId); nil != err {
-			log.Errorf("Failed to clean event list of task, taskId: {%s}", proposalState.TaskId)
-		}
+		t.releaseLocalResourceWithTask("on consensus.handleInvalidProposal()", proposalState.TaskId)
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 	}
@@ -315,11 +306,7 @@ func (t *TwoPC) driveTask(
 				if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
 					log.Error(err)
 				}
-
-				t.resourceMng.UnLockLocalResourceWithTask(task.TaskId())
-				// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-				t.dataCenter.RemoveLocalTask(task.TaskId())
-				t.dataCenter.CleanTaskEventList(task.TaskId())
+				t.releaseLocalResourceWithTask("on consensus.driveTask()", task.TaskId())
 				// clean some data
 				t.delProposalStateAndTask(proposalId)
 			}
@@ -542,4 +529,18 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 	}
 
 	return nil
+}
+
+
+func (t *TwoPC) releaseLocalResourceWithTask (logdesc, taskId string) {
+	if err := t.resourceMng.UnLockLocalResourceWithTask(taskId); nil != err {
+		log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
+	}
+	// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
+	if err := t.dataCenter.RemoveLocalTask(taskId); nil != err {
+		log.Errorf("Failed to remove local task  %s, taskId: {%s}", logdesc, taskId)
+	}
+	if err := t.dataCenter.CleanTaskEventList(taskId); nil != err {
+		log.Errorf("Failed to clean event list of task  %s, taskId: {%s}", logdesc, taskId)
+	}
 }
