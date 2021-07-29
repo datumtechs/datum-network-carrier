@@ -78,7 +78,6 @@ func (m *Manager) loop() {
 			m.addRunningTaskCache(task)
 			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId())
 
-		default:
 		}
 	}
 }
