@@ -365,6 +365,26 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 }
 
 
+
+func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option ReleaseResourceOption) {
+	if option.IsUnlockLocalResorce() {
+		if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
+			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
+		}
+	}
+	if option.IsRemoveLocalTask() {
+		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
+		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
+			log.Errorf("Failed to remove local task  %s, taskId: {%s}", logdesc, taskId)
+		}
+	}
+	if option.IsRemoveLocalTask() {
+		if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
+			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}", logdesc, taskId)
+		}
+	}
+}
+
 // todo 构造一些假的 本地任务信息
 //func (m *Manager) mockLocalTaskList(){
 //	identity, err := m.dataCenter.GetIdentity()

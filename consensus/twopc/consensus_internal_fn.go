@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -15,6 +16,9 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 )
+
+
+
 
 func (t *TwoPC) isProcessingTask(taskId string) bool {
 	if _, ok := t.sendTasks[taskId]; ok {
@@ -26,15 +30,6 @@ func (t *TwoPC) isProcessingTask(taskId string) bool {
 	return false
 }
 
-//func (t *TwoPC) cleanExpireProposal() {
-//	expireProposalSendTaskIds, expireProposalRecvTaskIds := t.state.CleanExpireProposal()
-//	for _, sendTaskId := range expireProposalSendTaskIds {
-//		delete(t.sendTasks, sendTaskId)
-//	}
-//	for _, recvTaskId := range expireProposalRecvTaskIds {
-//		delete(t.recvTasks, recvTaskId)
-//	}
-//}
 
 func (t *TwoPC) addSendTask(task *types.Task)  {
 	t.sendTasks[task.TaskId()] = task
@@ -233,7 +228,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 			}
 		}
 
-		t.releaseLocalResourceWithTask("on consensus.handleInvalidProposal()", proposalState.TaskId)
+		t.resourceMng.ReleaseLocalResourceWithTask("on consensus.handleInvalidProposal()", proposalState.TaskId, resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 	}
@@ -306,7 +301,7 @@ func (t *TwoPC) driveTask(
 				if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
 					log.Error(err)
 				}
-				t.releaseLocalResourceWithTask("on consensus.driveTask()", task.TaskId())
+				t.resourceMng.ReleaseLocalResourceWithTask("on consensus.driveTask()", task.TaskId(), resource.SetAllReleaseResourceOption())
 				// clean some data
 				t.delProposalStateAndTask(proposalId)
 			}
@@ -531,16 +526,3 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 	return nil
 }
 
-
-func (t *TwoPC) releaseLocalResourceWithTask (logdesc, taskId string) {
-	if err := t.resourceMng.UnLockLocalResourceWithTask(taskId); nil != err {
-		log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
-	}
-	// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-	if err := t.dataCenter.RemoveLocalTask(taskId); nil != err {
-		log.Errorf("Failed to remove local task  %s, taskId: {%s}", logdesc, taskId)
-	}
-	if err := t.dataCenter.CleanTaskEventList(taskId); nil != err {
-		log.Errorf("Failed to clean event list of task  %s, taskId: {%s}", logdesc, taskId)
-	}
-}
