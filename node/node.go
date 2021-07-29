@@ -159,12 +159,14 @@ func (b *CarrierNode) Start() {
 
 	// -------------------------------------------------------------
 	//TODO: mock, Temporarily set the initial success of the system
-	b.stateFeed.Send(&feed.Event{
-		Type: statefeed.Initialized,
-		Data: &statefeed.InitializedData{
-			StartTime: time.Now(),
-		},
-	})
+	go func() {
+		b.stateFeed.Send(&feed.Event{
+			Type: statefeed.Initialized,
+			Data: &statefeed.InitializedData{
+				StartTime: time.Now(),
+			},
+		})
+	}()
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 	stop := b.stop

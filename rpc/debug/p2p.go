@@ -9,6 +9,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // GetPeer returns the data known about the peer defined by the provided peer id.
@@ -32,6 +33,11 @@ func (ds *Server) ListPeers(_ context.Context, _ *empty.Empty) (*rpcpb.DebugPeer
 		responses = append(responses, resp)
 	}
 	return &rpcpb.DebugPeerResponses{Responses: responses}, nil
+}
+
+func (ds *Server) GetPeerCount(context.Context, *emptypb.Empty) (*rpcpb.DebugPeerCountResponse, error){
+	peerIds := ds.PeersFetcher.Peers().Active()
+	return &rpcpb.DebugPeerCountResponse{Count: uint64(len(peerIds))}, nil
 }
 
 func (ds *Server) getPeer(pid peer.ID) (*rpcpb.DebugPeerResponse, error) {
