@@ -77,7 +77,6 @@ func (m *Manager) loop() {
 			// 添加本地缓存
 			m.addRunningTaskCache(task)
 			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId())
-
 		}
 	}
 }
