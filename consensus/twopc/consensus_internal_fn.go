@@ -15,6 +15,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
+	"sync"
 )
 
 
@@ -325,7 +326,10 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 		return fmt.Errorf("failed to make prepareMsg, %s", err)
 	}
 
-	sendTaskFn := func(proposalId common.Hash, taskRole types.TaskRole, partyId, identityId, nodeId, taskId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
+	sendTaskFn := func(wg *sync.WaitGroup, proposalId common.Hash, taskRole types.TaskRole, partyId, identityId, nodeId, taskId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
+
+		defer wg.Done()
+
 		var pid, err = p2p.HexPeerID(nodeId)
 		if nil != err {
 			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
@@ -341,38 +345,39 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 				proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid, err)
 			return
 		}
-
 		log.Debugf("Succceed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s",
 			proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid)
-
-		errCh <- nil
 	}
 
-	errCh := make(chan error, (len(task.TaskData().MetadataSupplier) - 1) + len(task.TaskData().ResourceSupplier)+len(task.TaskData().Receivers))
+	size := (len(task.TaskData().MetadataSupplier) - 1) + len(task.TaskData().ResourceSupplier)+len(task.TaskData().Receivers)
+	errCh := make(chan error, size)
+	var wg sync.WaitGroup
 
-	go func() {
-		for _, dataSupplier := range task.TaskData().MetadataSupplier {
-			// 排除掉 task 发起方 ...
-			if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
-				go sendTaskFn(proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
-					dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), prepareMsg, errCh)
-			}
+	for _, dataSupplier := range task.TaskData().MetadataSupplier {
+		// 排除掉 task 发起方 ...
+		if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
+			wg.Add(1)
+			go sendTaskFn(&wg, proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
+				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), prepareMsg, errCh)
 		}
-	}()
-	go func() {
-		for _, powerSupplier := range task.TaskData().ResourceSupplier {
-			go sendTaskFn(proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
-				powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), prepareMsg, errCh)
-		}
-	}()
+	}
+	for _, powerSupplier := range task.TaskData().ResourceSupplier {
+		wg.Add(1)
+		go sendTaskFn(&wg, proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
+			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), prepareMsg, errCh)
+	}
 
-	go func() {
-		for _, receiver := range task.TaskData().Receivers {
-			go sendTaskFn(proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-				receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), prepareMsg, errCh)
-		}
-	}()
+	for _, receiver := range task.TaskData().Receivers {
+		wg.Add(1)
+		go sendTaskFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
+			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), prepareMsg, errCh)
+	}
+
+	wg.Wait()
+	close(errCh)
+
 	errStrs := make([]string, 0)
+
 	for err := range errCh {
 		if nil != err {
 			errStrs = append(errStrs, err.Error())
@@ -380,10 +385,9 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	}
 	if len(errStrs) != 0 {
 		return fmt.Errorf(
-			`failed to SendPrepareMsg for task:
-%s`, strings.Join(errStrs, "\n"))
+			"\n######################################################## \n%s\n########################################################\n",
+			strings.Join(errStrs, "\n"))
 	}
-
 	return nil
 }
 

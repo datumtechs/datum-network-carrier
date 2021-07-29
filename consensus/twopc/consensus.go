@@ -256,7 +256,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 
 	// Start handle task ...
 	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-		log.Errorf("Failed to send PrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
+		log.Errorf("Failed to sendPrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
 		// Send consensus result to Scheduler
 		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 			TaskConsResult: &types.TaskConsResult{
