@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
@@ -16,7 +17,7 @@ func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, str
 
 	m, ok := msg.(*pb.PrepareMsg)
 	if !ok {
-		log.Errorf("Failed to convert `PrepareMsg` from msg, proposalId: {%s}", string(m.ProposalId))
+		log.Errorf("Failed to convert `PrepareMsg` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return errors.New("message is not type *pb.PrepareMsg")
 	}
 
@@ -26,7 +27,7 @@ func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, str
 	if err := s.validatePrepareMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `validatePrepareMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `validatePrepareMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -34,13 +35,13 @@ func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, str
 	if err := s.onPrepareMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `onPrepareMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `onPrepareMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
 	// response code
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		log.WithError(err).Errorf("Could not write to stream for response, after to call `onPrepareMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Could not write to stream for response, after to call `onPrepareMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -54,7 +55,7 @@ func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, st
 
 	m, ok := msg.(*pb.PrepareVote)
 	if !ok {
-		log.Errorf("Failed to convert `PrepareVote` from msg, proposalId: {%s}", string(m.ProposalId))
+		log.Errorf("Failed to convert `PrepareVote` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return errors.New("message is not type *pb.PrepareVote")
 	}
 
@@ -62,7 +63,7 @@ func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, st
 	if err := s.validatePrepareVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `validatePrepareVote`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `validatePrepareVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -70,13 +71,13 @@ func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, st
 	if err := s.onPrepareVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `onPrepareVote`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `onPrepareVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
 	// response code
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		log.WithError(err).Errorf("Could not write to stream for response, after to call `onPrepareVote`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Could not write to stream for response, after to call `onPrepareVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -91,7 +92,7 @@ func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, str
 
 	m, ok := msg.(*pb.ConfirmMsg)
 	if !ok {
-		log.Errorf("Failed to convert `ConfirmMsg` from msg, proposalId: {%s}", string(m.ProposalId))
+		log.Errorf("Failed to convert `ConfirmMsg` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return errors.New("message is not type *pb.ConfirmMsg")
 	}
 
@@ -99,7 +100,7 @@ func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, str
 	if err := s.validateConfirmMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `validateConfirmMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `validateConfirmMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -107,13 +108,13 @@ func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, str
 	if err := s.onConfirmMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `onConfirmMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `onConfirmMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
 	// response code
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		log.WithError(err).Errorf("Could not write to stream for response, after to call `onConfirmMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Could not write to stream for response, after to call `onConfirmMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -128,7 +129,7 @@ func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, st
 
 	m, ok := msg.(*pb.ConfirmVote)
 	if !ok {
-		log.Errorf("Failed to convert `ConfirmVote` from msg, proposalId: {%s}", string(m.ProposalId))
+		log.Errorf("Failed to convert `ConfirmVote` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return errors.New("message is not type *pb.ConfirmVote")
 	}
 
@@ -136,7 +137,7 @@ func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, st
 	if err := s.validateConfirmVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `validateConfirmVote`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `validateConfirmVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -144,13 +145,13 @@ func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, st
 	if err := s.onConfirmVote(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `onConfirmVote`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `onConfirmVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
 	// response code
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		log.WithError(err).Errorf("Could not write to stream for response, after to call `onConfirmVote`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Could not write to stream for response, after to call `onConfirmVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -164,7 +165,7 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 
 	m, ok := msg.(*pb.CommitMsg)
 	if !ok {
-		log.Errorf("Failed to convert `CommitMsg` from msg, proposalId: {%s}", string(m.ProposalId))
+		log.Errorf("Failed to convert `CommitMsg` from msg, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return errors.New("message is not type *pb.CommitMsg")
 	}
 
@@ -172,7 +173,7 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 	if err := s.validateCommitMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `validateCommitMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `validateCommitMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -180,13 +181,13 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 	if err := s.onCommitMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `onCommitMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Failed to call `onCommitMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
 	// response code
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		log.WithError(err).Errorf("Could not write to stream for response, after to call `onCommitMsg`, proposalId: {%s}", string(m.ProposalId))
+		log.WithError(err).Errorf("Could not write to stream for response, after to call `onCommitMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
 		return err
 	}
 
@@ -200,7 +201,7 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 
 	m, ok := msg.(*pb.TaskResultMsg)
 	if !ok {
-		log.Errorf("Failed to convert `TaskResultMsg` from msg, proposalId: {%s}, taskId: {%s}", string(m.ProposalId), string(m.TaskId))
+		log.Errorf("Failed to convert `TaskResultMsg` from msg, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
 		return errors.New("message is not type *pb.TaskResultMsg")
 	}
 
@@ -208,7 +209,7 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 	if err := s.validateTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `validateTaskResultMsg`, proposalId: {%s}, taskId: {%s}", string(m.ProposalId), string(m.TaskId))
+		log.WithError(err).Errorf("Failed to call `validateTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
 		return err
 	}
 
@@ -216,13 +217,13 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 	if err := s.onTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", string(m.ProposalId), string(m.TaskId))
+		log.WithError(err).Errorf("Failed to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
 		return err
 	}
 
 	// response code
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		log.WithError(err).Errorf("Could not write to stream for response, after to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", string(m.ProposalId), string(m.TaskId))
+		log.WithError(err).Errorf("Could not write to stream for response, after to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
 		return err
 	}
 

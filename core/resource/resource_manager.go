@@ -65,7 +65,14 @@ func (m *Manager) Start() error {
 	if nil != err && err != rawdb.ErrNotFound {
 		return err
 	}
-	m.remoteTableQueue = remoteResources
+	if len(remoteResources) != 0 {
+		m.remoteTableQueue = remoteResources
+	} else {
+		if err := m.refreshOrgResourceTable(); nil != err {
+			log.Errorf("Failed to refresh org resourceTables on Start resourceManager, err: %s", err)
+		}
+	}
+
 	go m.loop()
 	log.Info("Started resourceManager ...")
 	return nil
@@ -367,6 +374,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 
 
 func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option ReleaseResourceOption) {
+	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, releaseOption: {%d}", logdesc, taskId, option)
 	if option.IsUnlockLocalResorce() {
 		if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
 			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}", logdesc, taskId)

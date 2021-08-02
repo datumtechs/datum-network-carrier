@@ -12,6 +12,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -261,12 +262,14 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		// 【选出 其他组织的算力】
 		powers, err := sche.electionConputeOrg(task.PowerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
-			log.Errorf("Failed to election power org, taskId: {%s}, err: {%s}", task.Data.TaskId(), err)
+			log.Errorf("Failed to election powers org on trySchedule, taskId: {%s}, err: {%s}", task.Data.TaskId(), err)
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 				task.Data.TaskData().TaskId, task.Data.TaskData().Identity, err.Error()))
 			repushFn(bullet)
 			return
 		}
+
+		log.Debugf("Succeed to election powers org on trySchedule, taskId {%s}, powers: {%s}", task.Data.TaskId(), utilOrgPowerArrString(powers))
 
 		// 获取 metaData 所在的dataNode 资源
 		dataResourceDiskUsed, err := sche.dataCenter.QueryDataResourceDiskUsed(metaDataId)
@@ -370,10 +373,12 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		// mock election power orgs
 		powers, err := sche.electionConputeOrg(powerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
-			log.Errorf("Failed to election power org on replay schedule task, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
+			log.Errorf("Failed to election powers org on replaySchedule task, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(), fmt.Errorf("failed to election power org on replay schedule task, %s", err))
 			return
 		}
+
+		log.Debugf("Succeed to election powers org on replaySchedule, taskId {%s}, powers: {%s}", replayScheduleTask.Task.TaskId(), utilOrgPowerArrString(powers))
 
 		// compare powerSuppliers of task And powerSuppliers of election
 		if len(powers) != len(replayScheduleTask.Task.TaskData().ResourceSupplier) {
@@ -640,4 +645,16 @@ func (sche *SchedulerStarveFIFO) SendTaskToConsensus(task *types.ConsensusTaskWr
 
 func (sche *SchedulerStarveFIFO) SendTaskToTaskManager(task *types.DoneScheduleTaskChWrap) {
 	sche.doneSchedTaskCh <- task
+}
+
+
+func utilOrgPowerArrString(powers []*libTypes.TaskResourceSupplierData) string {
+	arr := make([]string, len(powers))
+	for i, power := range powers {
+		arr[i] = power.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
 }
