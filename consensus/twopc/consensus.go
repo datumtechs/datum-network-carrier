@@ -255,21 +255,23 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 	t.state.StoreSelfPeerInfo(proposalHash, selfPeerResource)
 
 	// Start handle task ...
-	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-		log.Errorf("Failed to sendPrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
-		// Send consensus result to Scheduler
-		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
-			TaskConsResult: &types.TaskConsResult{
-				TaskId: task.TaskId(),
-				Status: types.TaskConsensusInterrupt,
-				Done:   false,
-				Err:    err,
-			},
-		})
-		// clean some invalid data
-		t.delProposalStateAndTask(proposalHash)
-		return err
-	}
+	go func() {
+
+		if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
+			log.Errorf("Failed to sendPrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
+			// Send consensus result to Scheduler
+			t.collectTaskResultWillSendToSched(&types.ConsensuResult{
+				TaskConsResult: &types.TaskConsResult{
+					TaskId: task.TaskId(),
+					Status: types.TaskConsensusInterrupt,
+					Done:   false,
+					Err:    err,
+				},
+			})
+			// clean some invalid data
+			t.delProposalStateAndTask(proposalHash)
+		}
+	}()
 	return nil
 }
 
@@ -370,16 +372,18 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	// store self vote state And Send vote to Other peer
 	t.state.StorePrepareVoteState(vote)
-	if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
-		err := fmt.Errorf("failed to `SendTwoPcPrepareVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
-			proposal.TaskId, prepareMsg.TaskRole, self.NodeId, err)
-		log.Error(err)
+	go func() {
 
-		t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
-		// clean some data
-		t.delProposalStateAndTask(proposal.ProposalId)
-		return err
-	}
+		if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
+			err := fmt.Errorf("failed to `SendTwoPcPrepareVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
+				proposal.TaskId, prepareMsg.TaskRole, self.NodeId, err)
+			log.Error(err)
+
+			t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
+			// clean some data
+			t.delProposalStateAndTask(proposal.ProposalId)
+		}
+	}()
 	return nil
 }
 
@@ -498,35 +502,41 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			// 修改状态
 			t.state.ChangeToConfirm(voteMsg.ProposalId, now)
 
-			if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
-				// Send consensus result
+			go func() {
+
+				if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
+					// Send consensus result
+					t.collectTaskResultWillSendToSched(&types.ConsensuResult{
+						TaskConsResult: &types.TaskConsResult{
+							TaskId: task.TaskId(),
+							Status: types.TaskConsensusInterrupt,
+							Done:   false,
+							Err:    err,
+						},
+						//Resources:
+					})
+
+					// clean some invalid data
+					t.delProposalStateAndTask(voteMsg.ProposalId)
+				}
+			}()
+
+		} else {
+
+			// Send consensus result
+			go func() {
+
 				t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 					TaskConsResult: &types.TaskConsResult{
 						TaskId: task.TaskId(),
 						Status: types.TaskConsensusInterrupt,
 						Done:   false,
-						Err:    err,
+						Err:    fmt.Errorf("The prepareMsg voting result was not passed"),
 					},
 					//Resources:
 				})
-
-				// clean some invalid data
 				t.delProposalStateAndTask(voteMsg.ProposalId)
-				return err
-			}
-		} else {
-
-			// Send consensus result
-			t.collectTaskResultWillSendToSched(&types.ConsensuResult{
-				TaskConsResult: &types.TaskConsResult{
-					TaskId: task.TaskId(),
-					Status: types.TaskConsensusInterrupt,
-					Done:   false,
-					Err:    fmt.Errorf("The prepareMsg voting result was not passed"),
-				},
-				//Resources:
-			})
-			t.delProposalStateAndTask(voteMsg.ProposalId)
+			}()
 		}
 	}
 	return nil
@@ -600,16 +610,20 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	t.state.StoreConfirmTaskPeerInfo(msg.ProposalId, confirmMsg.PeerDesc)
 	// store self vote state And Send vote to Other peer
 	t.state.StoreConfirmVoteState(vote)
-	if err = handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, types.ConvertConfirmVote(vote)); nil != err {
-		err := fmt.Errorf("failed to `SendTwoPcConfirmVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
-			task.TaskId, msg.TaskRole, self.NodeId, err)
-		log.Error(err)
 
-		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
-		// clean some data
-		t.delProposalStateAndTask(proposalState.ProposalId)
-		return err
-	}
+	go func() {
+
+		if err = handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, types.ConvertConfirmVote(vote)); nil != err {
+			err := fmt.Errorf("failed to `SendTwoPcConfirmVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
+				task.TaskId, msg.TaskRole, self.NodeId, err)
+			log.Error(err)
+
+			t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
+			// clean some data
+			t.delProposalStateAndTask(proposalState.ProposalId)
+		}
+	}()
+
 	return nil
 }
 
@@ -726,22 +740,24 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			// 修改状态
 			t.state.ChangeToCommit(voteMsg.ProposalId, now)
 
-			if err := t.sendCommitMsg(voteMsg.ProposalId, task, now); nil != err {
-				// Send consensus result
-				t.collectTaskResultWillSendToSched(&types.ConsensuResult{
-					TaskConsResult: &types.TaskConsResult{
-						TaskId: task.TaskId(),
-						Status: types.TaskConsensusInterrupt,
-						Done:   false,
-						Err:    err,
-					},
-					//Resources:
-				})
+			go func() {
 
-				// clean some invalid data
-				t.delProposalStateAndTask(voteMsg.ProposalId)
-				return err
-			}
+				if err := t.sendCommitMsg(voteMsg.ProposalId, task, now); nil != err {
+					// Send consensus result
+					t.collectTaskResultWillSendToSched(&types.ConsensuResult{
+						TaskConsResult: &types.TaskConsResult{
+							TaskId: task.TaskId(),
+							Status: types.TaskConsensusInterrupt,
+							Done:   false,
+							Err:    err,
+						},
+						//Resources:
+					})
+
+					// clean some invalid data
+					t.delProposalStateAndTask(voteMsg.ProposalId)
+				}
+			}()
 
 			// If sending `CommitMsg` is successful,
 			// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
@@ -755,16 +771,19 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		} else {
 
 			// Send consensus result
-			t.collectTaskResultWillSendToSched(&types.ConsensuResult{
-				TaskConsResult: &types.TaskConsResult{
-					TaskId: task.TaskId(),
-					Status: types.TaskConsensusInterrupt,
-					Done:   false,
-					Err:    fmt.Errorf("The prepareMsg voting result was not passed"),
-				},
-				//Resources:
-			})
-			t.delProposalStateAndTask(voteMsg.ProposalId)
+			go func() {
+
+				t.collectTaskResultWillSendToSched(&types.ConsensuResult{
+					TaskConsResult: &types.TaskConsResult{
+						TaskId: task.TaskId(),
+						Status: types.TaskConsensusInterrupt,
+						Done:   false,
+						Err:    fmt.Errorf("The prepareMsg voting result was not passed"),
+					},
+					//Resources:
+				})
+				t.delProposalStateAndTask(voteMsg.ProposalId)
+			}()
 
 
 			// 共识 未达成. 删除本地 资源
@@ -825,13 +844,16 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	t.state.ChangeToCommit(msg.ProposalId, msg.CreateAt)
 	// If sending `CommitMsg` is successful,
 	// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-	t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole,
-		&libTypes.OrganizationData{
-		PartyId:  msg.TaskPartyId,
-		Identity: self.IdentityId,
-		NodeId: self.NodeId,
-		NodeName: self.Name,
-	},task)
+	go func() {
+
+		t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole,
+			&libTypes.OrganizationData{
+				PartyId:  msg.TaskPartyId,
+				Identity: self.IdentityId,
+				NodeId: self.NodeId,
+				NodeName: self.Name,
+			},task)
+	}()
 	// 最后留给 定时器 清除本地 proposalState 香瓜内心戏
 	return nil
 }
@@ -875,6 +897,6 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 	if !ok {
 		return ctypes.ErrProposalTaskNotFound
 	}
-	t.storeTaskEvent(pid, proposalState.TaskId, msg.TaskEventList)
+	go t.storeTaskEvent(pid, proposalState.TaskId, msg.TaskEventList)
 	return nil
 }
