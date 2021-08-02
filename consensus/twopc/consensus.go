@@ -279,11 +279,14 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
 
 
-	proposal, err := fetchPrepareMsg(prepareMsg)
+	msg, err := fetchPrepareMsg(prepareMsg)
 	if nil != err {
 		return err
 	}
-	log.Debugf("Received remote prepareMsg, proposalId: {%s}, taskId: {%s}, remote pid: {%s}", proposal.ProposalId, proposal.TaskId(), pid)
+	log.Debugf("Received remote prepareMsg, remote pid: {%s}, prepareMsg: %s",
+		pid, msg.String())
+
+	proposal := fetchProposalFromPrepareMsg(msg)
 
 	// 第一次接收到 发起方的 prepareMsg, 这时, 以作为接收方的身份处理msg并本地生成 proposalState
 	if t.state.HasProposal(proposal.ProposalId) {
@@ -388,7 +391,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		return err
 	}
 
-	log.Debugf("Received remote prepareVote, proposalId: {%s}, remote pid: {%s}", voteMsg.ProposalId, pid)
+	log.Debugf("Received remote prepareVote, remote pid: {%s}, prepareVote: %s", pid, voteMsg.String())
 
 	if t.state.HasNotProposal(voteMsg.ProposalId) {
 		return ctypes.ErrProposalNotFound
@@ -405,12 +408,16 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	// find the task of proposal on sendTasks
 	task, ok := t.sendTasks[proposalState.TaskId]
 	if !ok {
-		return ctypes.ErrProposalTaskNotFound
+		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrProposalTaskNotFound, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 	}
 
 	// Voter voted repeatedly
 	if t.state.HasPrepareVoting(voteMsg.Owner.IdentityId, voteMsg.ProposalId) {
-		return ctypes.ErrPrepareVoteRepeatedly
+		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrPrepareVoteRepeatedly, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 	}
 
 	dataSupplierCount := uint32(len(task.TaskData().MetadataSupplier) - 1)
@@ -422,7 +429,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	switch voteMsg.TaskRole {
 	case types.DataSupplier:
 		if dataSupplierCount == t.state.GetTaskDataSupplierPrepareTotalVoteCount(voteMsg.ProposalId) {
-			return ctypes.ErrVoteCountOverflow
+			return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 		}
 		for _, dataSupplier := range task.TaskData().MetadataSupplier {
 
@@ -435,7 +444,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		}
 	case types.PowerSupplier:
 		if powerSupplierCount == t.state.GetTaskPowerSupplierPrepareTotalVoteCount(voteMsg.ProposalId) {
-			return ctypes.ErrVoteCountOverflow
+			return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 		}
 		for _, powerSupplier := range task.TaskData().ResourceSupplier {
 
@@ -448,7 +459,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		}
 	case types.ResultSupplier:
 		if resulterCount == t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId) {
-			return ctypes.ErrVoteCountOverflow
+			return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 		}
 		for _, resulter := range task.TaskData().Receivers {
 
@@ -460,10 +473,15 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			}
 		}
 	default:
-		return ctypes.ErrMsgOwnerNodeIdInvalid
+		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrMsgOwnerNodeIdInvalid, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
+
 	}
 	if !identityValid {
-		return ctypes.ErrProposalPrepareVoteOwnerInvalid
+		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrProposalPrepareVoteOwnerInvalid, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 	}
 
 	// Store vote
@@ -522,7 +540,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		return err
 	}
 
-	log.Debugf("Received remote confirmMsg, proposalId: {%s}, remote pid: {%s}", msg.ProposalId, pid)
+	log.Debugf("Received remote confirmMsg, remote pid: {%s}, confirmMsg: %s", pid, msg.String())
 
 	if t.state.HasNotProposal(msg.ProposalId) {
 		return ctypes.ErrProposalNotFound
@@ -603,7 +621,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		return err
 	}
 
-	log.Debugf("Received remote confirmVote, proposalId: {%s}, remote pid: {%s}", voteMsg.ProposalId, pid)
+	log.Debugf("Received remote confirmVote, remote pid: {%s}, comfirmVote: %s", pid, voteMsg.String())
 
 	if t.state.HasNotProposal(voteMsg.ProposalId) {
 		return ctypes.ErrProposalNotFound
@@ -640,7 +658,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	switch voteMsg.TaskRole {
 	case types.DataSupplier:
 		if dataSupplierCount == t.state.GetTaskDataSupplierConfirmTotalVoteCount(voteMsg.ProposalId) {
-			return ctypes.ErrVoteCountOverflow
+			return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 		}
 		for _, dataSupplier := range task.TaskData().MetadataSupplier {
 
@@ -653,7 +673,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		}
 	case types.PowerSupplier:
 		if powerSupplierCount == t.state.GetTaskPowerSupplierConfirmTotalVoteCount(voteMsg.ProposalId) {
-			return ctypes.ErrVoteCountOverflow
+			return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 		}
 		for _, powerSupplier := range task.TaskData().ResourceSupplier {
 
@@ -666,7 +688,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		}
 	case types.ResultSupplier:
 		if resulterCount == t.state.GetTaskResulterConfirmTotalVoteCount(voteMsg.ProposalId) {
-			return ctypes.ErrVoteCountOverflow
+			return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 		}
 		for _, resulter := range task.TaskData().Receivers {
 
@@ -678,10 +702,14 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			}
 		}
 	default:
-		return ctypes.ErrMsgOwnerNodeIdInvalid
+		return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrMsgOwnerNodeIdInvalid, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 	}
 	if !identityValid {
-		return ctypes.ErrProposalConfirmVoteVoteOwnerInvalid
+		return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrProposalConfirmVoteVoteOwnerInvalid, task.TaskData().TaskId, voteMsg.TaskRole.String(),
+			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
 	}
 
 	// Store vote
@@ -758,7 +786,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 		return err
 	}
 
-	log.Debugf("Received remote commitMsg, proposalId: {%s}, remote pid: {%s}", msg.ProposalId, pid)
+	log.Debugf("Received remote commitMsg, remote pid: {%s}, commitMsg: %s", pid, msg.String())
 
 	if t.state.HasNotProposal(msg.ProposalId) {
 		return ctypes.ErrProposalNotFound
@@ -825,7 +853,7 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 		return err
 	}
 
-	log.Debugf("Received remote taskResultMsg, proposalId: {%s}, remote pid: {%s}", msg.ProposalId, pid)
+	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
 	if t.state.HasNotProposal(msg.ProposalId) {
 		return ctypes.ErrProposalNotFound
