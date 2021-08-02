@@ -359,7 +359,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	if result.Status == types.TaskSchedFailed {
 		vote.VoteOption = types.No
-		log.Warn("Failed to replay schedule task", "taskId", result.TaskId, "err", result.Err.Error())
+		log.Warnf("Failed to replay schedule task, will vote `NO`, taskId: {%s}, err: {%s}", result.TaskId, result.Err.Error())
 	} else {
 		vote.VoteOption = types.Yes
 		vote.PeerInfo = &types.PrepareVoteResource{
@@ -367,7 +367,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 			Port:    result.Resource.Port,
 			PartyId: result.Resource.PartyId,
 		}
-		log.Info("Succeed to replay schedule task, will vote `YES`", "taskId", result.TaskId)
+		log.Infof("Succeed to replay schedule task, will vote `YES`, taskId: {%s}", result.TaskId)
 	}
 
 	// store self vote state And Send vote to Other peer
