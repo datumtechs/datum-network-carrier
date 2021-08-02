@@ -2,8 +2,10 @@ package twopc
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -81,7 +83,11 @@ func makeTaskResultMsg(startTime uint64) *pb.TaskResultMsg {
 
 func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, error) {
 
-	task := new(types.Task)
+	if nil == prepareMsg || nil == prepareMsg.TaskInfo {
+		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
+	}
+
+	task := types.NewTask(&libtypes.TaskData{})
 	err := task.DecodePb(prepareMsg.TaskInfo)
 	if err != nil {
 		return nil, err
