@@ -530,6 +530,7 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	if nil != err {
 		return nil, err
 	}
+	log.Debugf("GetLocalResourceTables on electionConputeNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
 		if r.IsEnough(needSlotCount) {
 			resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
@@ -559,7 +560,9 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	calculateCount := len(powerPartyIds)
 	identityIds := make([]string, 0)
 
-	for _, r := range sche.resourceMng.GetRemoteResouceTables() {
+	remoteReources := sche.resourceMng.GetRemoteResouceTables()
+	log.Debugf("GetRemoteResouceTables on electionConputeOrg, remoteResources: %s", utilRemoteResourceArrString(remoteReources))
+	for _, r := range remoteReources {
 		// 计算方不可以是任务发起方 和 数据参与方 和 接收方
 		if _, ok := dataIdentityIdCache[r.GetIdentityId()]; ok {
 			continue
@@ -591,6 +594,8 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	if nil != err {
 		return nil, err
 	}
+
+	log.Debugf("GetIdentityList by dataCenter on electionConputeOrg, identityList: %s", identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 		if _, ok := identityIdTmp[identityInfo.IdentityId()]; ok {
@@ -605,6 +610,8 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	if nil != err {
 		return nil, err
 	}
+
+	log.Debugf("GetResourceList by dataCenter on electionConputeOrg, resources: %s", resourceArr.String())
 
 	orgs := make([]*libTypes.TaskResourceSupplierData, calculateCount)
 	i := 0
@@ -635,7 +642,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 			delete(identityInfoTmp, iden.GetIdentityId())
 		}
 	}
-
+	
 	return orgs, nil
 }
 
@@ -652,6 +659,27 @@ func utilOrgPowerArrString(powers []*libTypes.TaskResourceSupplierData) string {
 	arr := make([]string, len(powers))
 	for i, power := range powers {
 		arr[i] = power.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
+}
+func utilLocalResourceArrString(resources []*types.LocalResourceTable) string {
+	arr := make([]string, len(resources))
+	for i, r := range resources {
+		arr[i] = r.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
+}
+
+func utilRemoteResourceArrString(resources []*types.RemoteResourceTable) string {
+	arr := make([]string, len(resources))
+	for i, r := range resources {
+		arr[i] = r.String()
 	}
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
