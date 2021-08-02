@@ -474,10 +474,13 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
+		log.Debugf("GetLocalResourceTables on replaySchedule by taskRole is the resuler, localResources: %s", utilLocalResourceArrString(localResourceTables))
+
 		resource := localResourceTables[len(localResourceTables)-1]
 		resourceInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, resource.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to query internal data node resource,taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
+			log.Errorf("Failed to query internal data node resource,taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+				replayScheduleTask.Task.TaskId(), resource.GetNodeId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
 				fmt.Errorf("failed to query internal data node resource, %s", err))
 			return
@@ -642,7 +645,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 			delete(identityInfoTmp, iden.GetIdentityId())
 		}
 	}
-	
+
 	return orgs, nil
 }
 
