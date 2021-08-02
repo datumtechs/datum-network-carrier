@@ -3,7 +3,6 @@ package power
 import (
 	"context"
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -98,8 +97,8 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	}
 
 	_, err := svr.B.GetNodeIdentity()
-	if rawdb.IsDBNotFoundErr(err) {
-		log.Errorf("RPC-API:PublishPower failed, the identity was not exist, can not revoke identity")
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power")
 		return nil, ErrSendPowerMsg
 	}
 
@@ -128,8 +127,8 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 	}
 
 	_, err := svr.B.GetNodeIdentity()
-	if rawdb.IsDBNotFoundErr(err) {
-		log.Errorf("RPC-API:RevokePower failed, the identity was not exist, can not revoke identity")
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
 		return nil, ErrSendPowerRevokeMsg
 	}
 

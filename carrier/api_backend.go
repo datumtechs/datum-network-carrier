@@ -26,12 +26,12 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Error("Failed to get all `job nodes`, on GetNodeInfo(), err:", err)
+		log.Errorf("Failed to get all `job nodes`, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
 	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Error("Failed to get all `data nodes, on GetNodeInfo(), err:", err)
+		log.Errorf("Failed to get all `data nodes, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
 	jobsLen := len(jobNodes)
@@ -77,20 +77,29 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	//}
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
-		log.Error("Failed to get identity, on GetNodeInfo(), err:", err)
-		return nil, fmt.Errorf("query local identity failed, %s", err)
+		log.Warnf("Failed to get identity, on GetNodeInfo(), err: {%s}", err)
+		//return nil, fmt.Errorf("query local identity failed, %s", err)
 	}
+	var identityId string
+	var nodeId string
+	var nodeName string
+	if nil != identity {
+		identityId = identity.IdentityId
+		nodeId = identity.NodeId
+		nodeName = identity.Name
+	}
+
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
 	return &types.YarnNodeInfo{
 		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
-		NodeId:       identity.NodeId,
+		NodeId:       nodeId,
 		InternalIp:   "",                             //
 		ExternalIp:   "",                             //
 		InternalPort: "",                             //
 		ExternalPort: "",                             //
 		IdentityType: types.IdentityTypeDID.String(), // 默认先是 DID
-		IdentityId:   identity.IdentityId,
-		Name:         identity.Name,
+		IdentityId:   identityId,
+		Name:         nodeName,
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
 		State:        types.YarnStateActive.String(),
@@ -205,6 +214,19 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
 
+
+		// 算力已发布的jobNode不可以直接删除
+		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
+		if rawdb.IsNoDBNotFoundErr(err) {
+			return types.NONCONNECTED, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
+		}
+
+		if nil != resourceTable {
+			log.Debugf("still have the published computing power information on old jobNode on UpdateRegisterNode, %s", resourceTable.String())
+			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+				node.Id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
+		}
+
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
@@ -287,6 +309,18 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		return errors.New("invalid nodeType")
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
+
+		// 算力已发布的jobNode不可以直接删除
+		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(id)
+		if rawdb.IsNoDBNotFoundErr(err) {
+			return fmt.Errorf("query local power resource on old jobNode failed, %s", err)
+		}
+
+		if nil != resourceTable {
+			log.Debugf("still have the published computing power information on old jobNode on DeleteRegisterNode, %s", resourceTable.String())
+			return fmt.Errorf("still have the published computing power information on old jobNode failed,input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+				id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
+		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(id)

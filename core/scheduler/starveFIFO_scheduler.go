@@ -187,7 +187,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 					bullet.UnschedTask.Data.TaskId(), bullet.Resched, ReschedMaxCount)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type,
 					bullet.UnschedTask.Data.TaskId(), bullet.UnschedTask.Data.TaskData().Identity, fmt.Sprintf(
-						"The number of times the task has been rescheduled exceeds the expected threshold")))
+						"Task rescheduled exceeds the expected threshold")))
 
 				failedTask := &types.DoneScheduleTaskChWrap{
 					ProposalId:   common.Hash{},
@@ -221,8 +221,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			Bandwidth: task.Data.TaskData().TaskResource.CostBandwidth,
 		}
 
-		log.Debugf("Call trySchedule start, taskId: {%s}, partyId: {%s}, taskCost: {%v}",
-			task.Data.TaskData().TaskId, task.Data.TaskData().PartyId, cost)
+		log.Debugf("Call trySchedule start, taskId: {%s}, partyId: {%s}, taskCost: {%s}",
+			task.Data.TaskData().TaskId, task.Data.TaskData().PartyId, cost.String())
 
 		//needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
 		//
@@ -303,6 +303,8 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		sche.SendTaskToConsensus(toConsensusTask)
 		consensusRes := toConsensusTask.RecvResult()
 
+		log.Debugf("Received task result from consensus, taskId: {%s}, result status: {%s}", consensusRes.TaskId, consensusRes.Status)
+
 		// Consensus failed, task needs to be suspended and rescheduled
 		if consensusRes.Status == types.TaskConsensusInterrupt {
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
@@ -324,8 +326,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		Bandwidth: replayScheduleTask.Task.TaskData().TaskResource.CostBandwidth,
 	}
 
-	log.Debugf("Call replaySchedule start, taskId: {%s}, taskRole: {%s}, partyId: {%s}, taskCost: {%v}",
-		replayScheduleTask.Task.TaskId(), replayScheduleTask.Role.String(), replayScheduleTask.PartyId, cost)
+	log.Debugf("Call replaySchedule start, taskId: {%s}, taskRole: {%s}, partyId: {%s}, taskCost: {%s}",
+		replayScheduleTask.Task.TaskId(), replayScheduleTask.Role.String(), replayScheduleTask.PartyId, cost.String())
 
 	selfIdentityId, err := sche.dataCenter.GetIdentityId()
 	if nil != err {

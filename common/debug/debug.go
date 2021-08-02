@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/fjl/memsize/memsizeui"
 	"github.com/pkg/errors"
-	"github.com/urfave/cli/v2"
 	log "github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
 	"io"
 	"net/http"
+	_ "net/http/pprof" // required to serve pprof http endpoints.
 	"os"
 	"os/user"
 	"path/filepath"

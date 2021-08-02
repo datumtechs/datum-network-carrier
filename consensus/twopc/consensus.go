@@ -256,7 +256,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 
 	// Start handle task ...
 	if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-		log.Errorf("Failed to send PrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
+		log.Errorf("Failed to sendPrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
 		// Send consensus result to Scheduler
 		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 			TaskConsResult: &types.TaskConsResult{
@@ -372,10 +372,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 			proposal.TaskId, prepareMsg.TaskRole, self.NodeId, err)
 		log.Error(err)
 
-		t.resourceMng.UnLockLocalResourceWithTask(task.TaskId())
-
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		t.dataCenter.RemoveLocalTask(task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposal.ProposalId)
 		return err
@@ -559,9 +556,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
-		t.resourceMng.UnLockLocalResourceWithTask(task.TaskId())
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		t.dataCenter.RemoveLocalTask(task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 		return fmt.Errorf("query local identity failed, %s", err)
@@ -592,10 +587,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 			task.TaskId, msg.TaskRole, self.NodeId, err)
 		log.Error(err)
 
-
-		t.resourceMng.UnLockLocalResourceWithTask(task.TaskId())
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		t.dataCenter.RemoveLocalTask(task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 		return err
@@ -795,9 +787,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
-		t.resourceMng.UnLockLocalResourceWithTask(task.TaskId())
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		t.dataCenter.RemoveLocalTask(task.TaskId())
+		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 		return fmt.Errorf("query local identity failed, %s", err)
@@ -821,8 +811,8 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方
 func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) error {
 	if err := handler.SendTwoPcTaskResultMsg(context.TODO(), t.p2p, pid, msg.TaskResultMsg); nil != err {
-		err := fmt.Errorf("failed to `SendTwoPcTaskResultMsg` to task owner, taskId: {%s}, taskRole: {%s}, other nodeId: {%s}, other peerId: {%s}, err: {%s}",
-			msg.TaskResultMsg.TaskId, msg.TaskRole, msg.TaskResultMsg.Owner.NodeId, pid, err)
+		err := fmt.Errorf("failed to `SendTwoPcTaskResultMsg` to task owner, taskId: {%s}, taskRole: {%s}, other identityId: {%s}, other peerId: {%s}, err: {%s}",
+			msg.TaskResultMsg.TaskId, msg.TaskRole, msg.TaskResultMsg.Owner.IdentityId, pid, err)
 		return err
 	}
 	return nil

@@ -733,7 +733,7 @@ func ReadAllLocalTasks(db DatabaseReader) (types.TaskDataArray, error) {
 func WriteLocalTask(db KeyValueStore, task *types.Task) {
 	blob, err := db.Get(localTaskKey)
 	if err != nil {
-		log.Warn("Failed to load old local task", "error", err)
+		log.Warnf("Failed to load old local task, err: {%s}", err)
 	}
 	var array dbtype.TaskArrayPB
 	if len(blob) > 0 {
@@ -762,7 +762,7 @@ func WriteLocalTask(db KeyValueStore, task *types.Task) {
 func DeleteLocalTask(db KeyValueStore, taskId string) {
 	blob, err := db.Get(localTaskKey)
 	if err != nil {
-		log.Warn("Failed to load old local task", "error", err)
+		log.Warnf("Failed to load old local task, err: {%s}", err)
 	}
 	var array dbtype.TaskArrayPB
 	if len(blob) > 0 {

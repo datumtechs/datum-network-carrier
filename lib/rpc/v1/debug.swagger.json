@@ -65,6 +65,29 @@
         ]
       }
     },
+    "/carrier/v1/debug/peerCount": {
+      "get": {
+        "summary": "Returns all the related data for every peer tracked by the host node(count).",
+        "operationId": "Debug_GetPeerCount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DebugPeerCountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "Debug"
+        ]
+      }
+    },
     "/carrier/v1/debug/peers": {
       "get": {
         "summary": "Returns all the related data for every peer tracked by the host node.",
@@ -177,6 +200,15 @@
       ],
       "default": "DISCONNECTED",
       "description": "ConnectionState states the current status of the peer."
+    },
+    "v1DebugPeerCountResponse": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
     },
     "v1DebugPeerResponse": {
       "type": "object",

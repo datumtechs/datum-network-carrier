@@ -7,7 +7,7 @@
 GOBIN = $(shell pwd)/build/bin
 GO ?= latest
 GPATH = $(shell go env GOPATH)
-GORUN = env GO111MODULE=on GOPATH=$(GPATH) go run
+GORUN = env GO111MODULE=on GOPATH=$(GPATH) GOPROXY=https://goproxy.cn go run
 
 carrier:
 	$(GORUN) build/ci.go install ./cmd/carrier

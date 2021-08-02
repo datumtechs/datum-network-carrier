@@ -60,7 +60,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *pb.Em
 
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
-		log.Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
+		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
 		return nil, ErrSendIdentityRevokeMsg
 	}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -195,6 +196,8 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId, taskState string) {
 		return
 	}
 
+	log.Debugf("Start pulishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", taskId, taskState)
+
 	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
 	if nil != err {
 		log.Error("Failed to Query all task event list for sending datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
@@ -209,12 +212,7 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId, taskState string) {
 	close(taskWrap.ResultCh)
 	// clean local task cache
 	m.removeRunningTaskCache(taskId)
-	// 解锁 本地 资源缓存
-	m.resourceMng.UnLockLocalResourceWithTask(taskId)
-	// 清掉 本地任务
-	m.dataCenter.RemoveLocalTask(taskId)
-	// 清掉 本地事件
-	m.dataCenter.CleanTaskEventList(taskId)
+	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.pulishFinishedTaskToDataCenter()", taskId, resource.SetAllReleaseResourceOption())
 }
 func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 
@@ -491,13 +489,13 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 }
 func (m *Manager) handleDoneScheduleTask(taskId string) {
 
-	log.Debugf("Start handle DoneScheduleTask, taskId: {%s}", taskId)
-
 	task, ok := m.queryRunningTaskCacheOk(taskId)
 	if !ok {
 		log.Debugf("Failed to start handle DoneScheduleTask, not found local task cache, taskId: {%s}", taskId)
 		return
 	}
+
+	log.Debugf("Start handle DoneScheduleTask, taskId: {%s}, taskRole: {%s}, taskState: {%s}", taskId, task.SelfTaskRole.String(), task.Task.TaskState.String())
 
 	switch task.SelfTaskRole {
 	case types.TaskOnwer:
@@ -546,3 +544,5 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		}
 	}
 }
+
+

@@ -3,7 +3,6 @@ package metadata
 import (
 	"context"
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -90,8 +89,8 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	}
 
 	_, err := svr.B.GetNodeIdentity()
-	if rawdb.IsDBNotFoundErr(err) {
-		log.Errorf("RPC-API:PublishMetaData failed, the identity was not exist, can not revoke identity")
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishMetaData failed, query local identity failed, can not publish metadata")
 		return nil, ErrSendMetaDataMsg
 	}
 
@@ -135,8 +134,8 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 	}
 
 	_, err := svr.B.GetNodeIdentity()
-	if rawdb.IsDBNotFoundErr(err) {
-		log.Errorf("RPC-API:RevokeMetaData failed, the identity was not exist, can not revoke identity")
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetaData failed, query local identity failed, can not revoke metadata")
 		return nil, ErrSendMetaDataRevokeMsg
 	}
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -88,8 +87,8 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	}
 
 	_, err := svr.B.GetNodeIdentity()
-	if rawdb.IsDBNotFoundErr(err) {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, the identity was not exist, can not revoke identity")
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed, can not publish task")
 		return nil, ErrSendTaskMsg
 	}
 
@@ -102,7 +101,10 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 
 		metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
 		if nil != err {
-			return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}", v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
+				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+			return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}",
+				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
 		}
 
 		columnArr := make([]*libTypes.ColumnMeta, len(v.MetaDataInfo.ColumnIndexList))
@@ -171,8 +173,11 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 
 	err = svr.B.SendMsg(taskMsg)
 	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, taskId: {%s}",
+			taskId)
 		return nil, ErrSendTaskMsg
 	}
+	log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}", taskId)
 	return &pb.PublishTaskDeclareResponse{
 		Status: 0,
 		Msg:    backend.OK,

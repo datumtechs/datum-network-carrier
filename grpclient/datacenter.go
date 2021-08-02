@@ -136,7 +136,7 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.Identity
 // ************************************** Task module *******************************************************
 
 func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) (*api.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 	return gc.taskService.SaveTask(ctx, request)
 }
