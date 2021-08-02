@@ -184,6 +184,7 @@ func (s *state) ChangeToFinised(proposalId common.Hash, startTime uint64) {
 
 // 作为发起方时, 自己给当前 proposal 提供的资源信息 ... [根据 metaDataId 锁定的 dataNode资源]
 func (s *state) StoreSelfPeerInfo(proposalId common.Hash, peerInfo *types.PrepareVoteResource) {
+	log.Debugf("Start Store slef peerInfo, proposalId: {%s}, peerInfo: {%s}", proposalId.String(), peerInfo.String())
 	s.selfPeerInfoCache[proposalId] = peerInfo
 }
 func (s *state) GetSelfPeerInfo(proposalId common.Hash)  *types.PrepareVoteResource{

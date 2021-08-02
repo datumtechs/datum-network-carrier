@@ -97,9 +97,9 @@ func (s *Service) Start() error {
 			SendGossipTestDataByRangeRequest(s.ctx, s.cfg.P2P,
 				id,
 				&libp2ppb.GossipTestData{
-					Data:                 []byte("test data data"),
-					Count:                10,
-					Step:                 5,
+					Data:                 []byte(fmt.Sprintf("rand.Uint64(%d)", rand.Uint64())),
+					Count:                uint64(rand.Int63n(100)),
+					Step:                 uint64(rand.Int63n(100)),
 				})
 		}
 	})*/
