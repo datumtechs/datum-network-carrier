@@ -269,7 +269,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			return
 		}
 
-		log.Debugf("Succeed to election powers org on trySchedule, taskId {%s}, powers: {%s}", task.Data.TaskId(), utilOrgPowerArrString(powers))
+		log.Debugf("Succeed to election powers org on trySchedule, taskId {%s}, powers: %s", task.Data.TaskId(), utilOrgPowerArrString(powers))
 
 		// 获取 metaData 所在的dataNode 资源
 		dataResourceDiskUsed, err := sche.dataCenter.QueryDataResourceDiskUsed(metaDataId)
@@ -378,7 +378,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
-		log.Debugf("Succeed to election powers org on replaySchedule, taskId {%s}, powers: {%s}", replayScheduleTask.Task.TaskId(), utilOrgPowerArrString(powers))
+		log.Debugf("Succeed to election powers org on replaySchedule, taskId {%s}, powers: %s", replayScheduleTask.Task.TaskId(), utilOrgPowerArrString(powers))
 
 		// compare powerSuppliers of task And powerSuppliers of election
 		if len(powers) != len(replayScheduleTask.Task.TaskData().ResourceSupplier) {

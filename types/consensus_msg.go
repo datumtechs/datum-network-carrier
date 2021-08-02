@@ -34,6 +34,9 @@ func (resource PrepareVoteResource) String() string {
 	return fmt.Sprintf(`{"id": %s, "ip": %s, "port": %s, "partyId": %s}`, resource.Id, resource.Ip, resource.Port, resource.PartyId)
 }
 func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
+	if nil == peerInfo {
+		return &pb.TaskPeerInfo{}
+	}
 	return &pb.TaskPeerInfo{
 		Ip:      []byte(peerInfo.Ip),
 		Port:    []byte(peerInfo.Port),
@@ -41,6 +44,9 @@ func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
 	}
 }
 func FetchTaskPeerInfo(peerInfo *pb.TaskPeerInfo) *PrepareVoteResource {
+	if nil == peerInfo {
+		return &PrepareVoteResource{}
+	}
 	return &PrepareVoteResource{
 		Ip:      string(peerInfo.Ip),
 		Port:    string(peerInfo.Port),
