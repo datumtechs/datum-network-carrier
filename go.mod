@@ -6,9 +6,7 @@ require (
 	github.com/d4l3k/messagediff v1.2.1
 	github.com/ethereum/go-ethereum v1.10.3
 	github.com/ferranbt/fastssz v0.0.0-20210526181520-7df50c8568f8
-	github.com/fjl/gencodec v0.0.0-20191126094850-e283372f291f // indirect
 	github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5
-	github.com/garslo/gogen v0.0.0-20170307003452-d6ebae628c7c // indirect
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.2
 	github.com/golang/snappy v0.0.3
