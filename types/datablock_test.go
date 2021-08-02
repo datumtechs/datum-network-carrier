@@ -45,10 +45,10 @@ func newBlock() *Block {
 					DataId:               "resource-dataId",
 					DataStatus:           "resource-dataStatus",
 					State:                "resource-state",
-					TotalMem:             "1000MB",
-					UsedMem:              "200MB",
+					TotalMem:             100*1024,
+					UsedMem:              100*2014,
 					TotalProcessor:       0,
-					TotalBandWidth:       "1000",
+					TotalBandWidth:       100*1024,
 				},
 			},
 		}
@@ -82,9 +82,8 @@ func newBlock() *Block {
 					Reason:               "task-reason",
 					EventCount:           1,
 					Desc:                 "task-desc",
-					PartnerList:          []*types.Partner{
+					PartnerList:          []*types.OrganizationData{
 						{
-							Alias:                "1-partner-alias",
 							Identity:             "1-partner-identity",
 							NodeId:               "1-partner-nodeId",
 							NodeName:             "1-partner-nodeName",
