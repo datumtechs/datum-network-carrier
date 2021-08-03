@@ -355,6 +355,11 @@ func (drt *DataResourceTable) DecodeRLP(s *rlp.Stream) error {
 	}
 	return err
 }
+
+func (drt *DataResourceTable) String() string {
+	return fmt.Sprintf(`{"nodeId": %s, "totalDisk": %d, "usedDisk": %d}`,
+		drt.nodeId, drt.totalDisk, drt.usedDisk)
+}
 func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
 func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
 func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
