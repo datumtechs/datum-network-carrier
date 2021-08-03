@@ -592,7 +592,7 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 func DeleteTaskEvent(db KeyValueStore, taskId string) {
 	blob, err := db.Get(taskEventKey(taskId))
 	if err != nil {
-		log.Warn("Failed to load old task evengine", "error", err)
+		log.Warnf("Failed to load old task evengine, err: {%s}", err)
 	}
 	var array dbtype.TaskEventArrayPB
 	if len(blob) > 0 {

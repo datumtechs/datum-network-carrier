@@ -12,6 +12,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -261,12 +262,14 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		// 【选出 其他组织的算力】
 		powers, err := sche.electionConputeOrg(task.PowerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
-			log.Errorf("Failed to election power org, taskId: {%s}, err: {%s}", task.Data.TaskId(), err)
+			log.Errorf("Failed to election powers org on trySchedule, taskId: {%s}, err: {%s}", task.Data.TaskId(), err)
 			sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
 				task.Data.TaskData().TaskId, task.Data.TaskData().Identity, err.Error()))
 			repushFn(bullet)
 			return
 		}
+
+		log.Debugf("Succeed to election powers org on trySchedule, taskId {%s}, powers: %s", task.Data.TaskId(), utilOrgPowerArrString(powers))
 
 		// 获取 metaData 所在的dataNode 资源
 		dataResourceDiskUsed, err := sche.dataCenter.QueryDataResourceDiskUsed(metaDataId)
@@ -370,10 +373,12 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		// mock election power orgs
 		powers, err := sche.electionConputeOrg(powerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
-			log.Errorf("Failed to election power org on replay schedule task, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
+			log.Errorf("Failed to election powers org on replaySchedule task, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(), fmt.Errorf("failed to election power org on replay schedule task, %s", err))
 			return
 		}
+
+		log.Debugf("Succeed to election powers org on replaySchedule, taskId {%s}, powers: %s", replayScheduleTask.Task.TaskId(), utilOrgPowerArrString(powers))
 
 		// compare powerSuppliers of task And powerSuppliers of election
 		if len(powers) != len(replayScheduleTask.Task.TaskData().ResourceSupplier) {
@@ -469,10 +474,13 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
+		log.Debugf("GetLocalResourceTables on replaySchedule by taskRole is the resuler, localResources: %s", utilLocalResourceArrString(localResourceTables))
+
 		resource := localResourceTables[len(localResourceTables)-1]
 		resourceInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, resource.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to query internal data node resource,taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
+			log.Errorf("Failed to query internal data node resource,taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+				replayScheduleTask.Task.TaskId(), resource.GetNodeId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
 				fmt.Errorf("failed to query internal data node resource, %s", err))
 			return
@@ -525,6 +533,7 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	if nil != err {
 		return nil, err
 	}
+	log.Debugf("GetLocalResourceTables on electionConputeNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
 		if r.IsEnough(needSlotCount) {
 			resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
@@ -554,7 +563,9 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	calculateCount := len(powerPartyIds)
 	identityIds := make([]string, 0)
 
-	for _, r := range sche.resourceMng.GetRemoteResouceTables() {
+	remoteReources := sche.resourceMng.GetRemoteResouceTables()
+	log.Debugf("GetRemoteResouceTables on electionConputeOrg, remoteResources: %s", utilRemoteResourceArrString(remoteReources))
+	for _, r := range remoteReources {
 		// 计算方不可以是任务发起方 和 数据参与方 和 接收方
 		if _, ok := dataIdentityIdCache[r.GetIdentityId()]; ok {
 			continue
@@ -586,6 +597,8 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	if nil != err {
 		return nil, err
 	}
+
+	log.Debugf("GetIdentityList by dataCenter on electionConputeOrg, identityList: %s", identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 		if _, ok := identityIdTmp[identityInfo.IdentityId()]; ok {
@@ -600,6 +613,8 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	if nil != err {
 		return nil, err
 	}
+
+	log.Debugf("GetResourceList by dataCenter on electionConputeOrg, resources: %s", resourceArr.String())
 
 	orgs := make([]*libTypes.TaskResourceSupplierData, calculateCount)
 	i := 0
@@ -640,4 +655,37 @@ func (sche *SchedulerStarveFIFO) SendTaskToConsensus(task *types.ConsensusTaskWr
 
 func (sche *SchedulerStarveFIFO) SendTaskToTaskManager(task *types.DoneScheduleTaskChWrap) {
 	sche.doneSchedTaskCh <- task
+}
+
+
+func utilOrgPowerArrString(powers []*libTypes.TaskResourceSupplierData) string {
+	arr := make([]string, len(powers))
+	for i, power := range powers {
+		arr[i] = power.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
+}
+func utilLocalResourceArrString(resources []*types.LocalResourceTable) string {
+	arr := make([]string, len(resources))
+	for i, r := range resources {
+		arr[i] = r.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
+}
+
+func utilRemoteResourceArrString(resources []*types.RemoteResourceTable) string {
+	arr := make([]string, len(resources))
+	for i, r := range resources {
+		arr[i] = r.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
 }

@@ -62,8 +62,8 @@ func NewLocalResourceTable(nodeId, powerId string, mem, processor, bandwidth uin
 }
 
 func (r *LocalResourceTable) String() string {
-	return fmt.Sprintf(`{"nodeId": "%s", "powerId": "%s", "nodeResource": {"mem": %d, "processor": %d, "bandwidth": %d}, "assign": %v}`,
-		r.nodeId, r.powerId, r.nodeResource.mem, r.nodeResource.processor, r.nodeResource.bandwidth, r.assign)
+	return fmt.Sprintf(`{"nodeId": "%s", "powerId": "%s", "nodeResource": %s, "assign": %v}`,
+		r.nodeId, r.powerId, r.nodeResource.String(), r.assign)
 }
 func (r *LocalResourceTable) GetNodeId() string    { return r.nodeId }
 func (r *LocalResourceTable) GetPowerId() string   { return r.powerId }
@@ -179,6 +179,10 @@ type resource struct {
 	bandwidth uint64
 }
 
+func (r *resource) String() string {
+	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d}`, r.mem, r.processor, r.bandwidth)
+}
+
 // Other org total resource item
 type RemoteResourceTable struct {
 	// other org identityId
@@ -238,6 +242,11 @@ func (r *RemoteResourceTable) DecodeRLP(s *rlp.Stream) error {
 		r.identityId, r.total, r.used = dec.IdentityId, totalResource, usedResource
 	}
 	return err
+}
+
+func (resource *RemoteResourceTable)String() string {
+	return fmt.Sprintf(`{"identityId": "%s", "total": %s, "used": %s}`,
+		resource.identityId, resource.total.String(), resource.used.String())
 }
 func (r *RemoteResourceTable) Remain() (uint64, uint64, uint64) {
 	return r.total.mem - r.used.mem, r.total.processor - r.used.processor, r.total.bandwidth - r.used.bandwidth

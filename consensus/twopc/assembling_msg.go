@@ -81,7 +81,7 @@ func makeTaskResultMsg(startTime uint64) *pb.TaskResultMsg {
 	return nil
 }
 
-func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, error) {
+func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 
 	if nil == prepareMsg || nil == prepareMsg.TaskInfo {
 		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
@@ -92,12 +92,30 @@ func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.ProposalTask, err
 	if err != nil {
 		return nil, err
 	}
-	return &types.ProposalTask{
-		ProposalId: common.BytesToHash(prepareMsg.ProposalId),
-		Task:       task,
-		CreateAt:   prepareMsg.CreateAt,
-	}, nil
+	return &types.PrepareMsg{
+			ProposalId: common.BytesToHash(prepareMsg.ProposalId),
+			TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskRole),
+			TaskPartyId: string(prepareMsg.TaskPartyId),
+			Owner: &types.TaskNodeAlias{
+				Name:       string(prepareMsg.Owner.Name),
+				NodeId:     string(prepareMsg.Owner.NodeId),
+				IdentityId: string(prepareMsg.Owner.IdentityId),
+				PartyId:    string(prepareMsg.Owner.PartyId),
+			},
+			TaskInfo: task,
+			CreateAt: prepareMsg.CreateAt,
+			Sign: prepareMsg.Sign,
+		},
+	 nil
 }
+func fetchProposalFromPrepareMsg (prepareMsg *types.PrepareMsg) *types.ProposalTask {
+	return &types.ProposalTask{
+		ProposalId: prepareMsg.ProposalId,
+		Task:       prepareMsg.TaskInfo,
+		CreateAt:   prepareMsg.CreateAt,
+	}
+}
+
 func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, error) {
 	msg := &types.PrepareVote{
 		ProposalId: common.BytesToHash(prepareVote.ProposalId),
