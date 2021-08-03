@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
+	"strings"
 	"sync/atomic"
 )
 
@@ -69,6 +70,12 @@ func (m *Identity) NodeId() string {
 	return m.data.GetNodeId()
 }
 
+func (m *Identity) String() string {
+	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "status": %s}`,
+	//	m.data.Identity, m.data.NodeId, m.data.NodeName, m.data.DataId, m.data.DataStatus, m.data.Status)
+	return m.data.String()
+}
+
 // IdentityArray is a Transaction slice type for basic sorting.
 type IdentityArray []*Identity
 
@@ -99,3 +106,15 @@ func (s IdentityArray) To() []*libTypes.IdentityData {
 	}
 	return arr
 }
+
+func  (s IdentityArray) String () string {
+	arr := make([]string, len(s))
+	for i, iden := range s {
+		arr[i] = iden.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
+}
+

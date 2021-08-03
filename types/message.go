@@ -808,6 +808,11 @@ type TaskNodeAlias struct {
 	IdentityId string `json:"identityId"`
 }
 
+func (tna *TaskNodeAlias) String () string {
+	return fmt.Sprintf(`{"partyId": %s, "name": %s, "nodeId": %s, "identityId": %s}`, tna.PartyId, tna.Name, tna.NodeId, tna.IdentityId)
+}
+
+
 func ConvertNodeAliasToPB(alias *NodeAlias) *pb.OrganizationIdentityInfo {
 	return &pb.OrganizationIdentityInfo{
 		Name:       alias.Name,

@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
+	"strings"
 	"sync/atomic"
 )
 
@@ -57,6 +58,10 @@ func (m *Resource) GetTotalProcessor() uint64 { return m.data.TotalProcessor }
 func (m *Resource) GetUsedProcessor() uint64 { return m.data.UsedProcessor }
 func (m *Resource) GetTotalBandWidth() uint64 { return m.data.TotalBandWidth }
 func (m *Resource) GetUsedBandWidth() uint64 { return m.data.UsedBandWidth }
+func (m *Resource) String() string {
+	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "state": %s, "totalMem": %d, "usedMem": %d, "totalProcessor": %d, "usedProcessor": %d, "totalBandWidth": %d, "usedBandWidth": %d}`)
+	return m.data.String()
+}
 
 // ResourceArray is a Transaction slice type for basic sorting.
 type ResourceArray []*Resource
@@ -88,6 +93,17 @@ func (s ResourceArray) To() []*libTypes.ResourceData {
 		arr = append(arr, v.data)
 	}
 	return arr
+}
+
+func  (s ResourceArray) String () string {
+	arr := make([]string, len(s))
+	for i, iden := range s {
+		arr[i] = iden.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
 }
 
 // 新增 local Resource

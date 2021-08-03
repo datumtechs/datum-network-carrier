@@ -300,13 +300,7 @@ func (t *TwoPC) driveTask(
 
 func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
 
-	prepareMsg, err := makePrepareMsgWithoutTaskRole(proposalId, task, startTime)
-
-	if nil != err {
-		return fmt.Errorf("failed to make prepareMsg, %s", err)
-	}
-
-	sendTaskFn := func(wg *sync.WaitGroup, proposalId common.Hash, taskRole types.TaskRole, partyId, identityId, nodeId, taskId string, prepareMsg *pb.PrepareMsg, errCh chan<- error) {
+	sendTaskFn := func(wg *sync.WaitGroup, proposalId common.Hash, taskRole types.TaskRole, partyId, identityId, nodeId, taskId string, errCh chan<- error) {
 
 		defer wg.Done()
 
@@ -316,6 +310,15 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 				proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid, err)
 			return
 		}
+
+		prepareMsg, err := makePrepareMsgWithoutTaskRole(proposalId, task, startTime)
+
+		if nil != err {
+			errCh <- fmt.Errorf("failed to make prepareMsg, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
+				proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid, err)
+			return
+		}
+
 		// set other peer's role and partyId
 		prepareMsg.TaskRole = taskRole.Bytes()
 		prepareMsg.TaskPartyId = []byte(partyId)
@@ -334,24 +337,27 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	errCh := make(chan error, size)
 	var wg sync.WaitGroup
 
-	for _, dataSupplier := range task.TaskData().MetadataSupplier {
+	for i := 0; i < len(task.TaskData().MetadataSupplier); i++ {
+		dataSupplier := task.TaskData().MetadataSupplier[i]
 		// 排除掉 task 发起方 ...
 		if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
 			wg.Add(1)
 			go sendTaskFn(&wg, proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
-				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), prepareMsg, errCh)
+				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), errCh)
 		}
 	}
-	for _, powerSupplier := range task.TaskData().ResourceSupplier {
+	for i := 0; i < len(task.TaskData().ResourceSupplier); i++ {
+		powerSupplier := task.TaskData().ResourceSupplier[i]
 		wg.Add(1)
 		go sendTaskFn(&wg, proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
-			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), prepareMsg, errCh)
+			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), errCh)
 	}
 
-	for _, receiver := range task.TaskData().Receivers {
+	for i := 0; i < len(task.TaskData().Receivers); i++ {
+		receiver := task.TaskData().Receivers[i]
 		wg.Add(1)
 		go sendTaskFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), prepareMsg, errCh)
+			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), errCh)
 	}
 
 	wg.Wait()
@@ -374,13 +380,11 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 
 func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
 
-	confirmMsg := makeConfirmMsg(proposalId, task, startTime)
-	confirmMsg.PeerDesc = t.makeConfirmTaskPeerDesc(proposalId)
-
+	peerDesc := t.makeConfirmTaskPeerDesc(proposalId)
 	// store the proposal about all partner peerInfo of task to local cache
-	t.state.StoreConfirmTaskPeerInfo(proposalId, confirmMsg.PeerDesc)
+	t.state.StoreConfirmTaskPeerInfo(proposalId, peerDesc)
 
-	sendConfirmMsgFn := func(wg *sync.WaitGroup, proposalId common.Hash, taskRole types.TaskRole, taskPartyId, identityId, nodeId, taskId string, confirmMsg *pb.ConfirmMsg, errCh chan<- error) {
+	sendConfirmMsgFn := func(wg *sync.WaitGroup, proposalId common.Hash, taskRole types.TaskRole, taskPartyId, identityId, nodeId, taskId string, peerDesc *pb.ConfirmTaskPeerInfo, errCh chan<- error) {
 
 		defer wg.Done()
 
@@ -390,6 +394,9 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			return
 		}
+
+		confirmMsg := makeConfirmMsg(proposalId, task, startTime)
+		confirmMsg.PeerDesc = peerDesc
 
 		// set other peer's role and partyId
 		confirmMsg.TaskRole = taskRole.Bytes()
@@ -408,32 +415,30 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 
 	}
 
-
 	size := (len(task.TaskData().MetadataSupplier) - 1) + len(task.TaskData().ResourceSupplier) + len(task.TaskData().Receivers)
 	errCh := make(chan error, size)
 	var wg sync.WaitGroup
 
-	for _, dataSupplier := range task.TaskData().MetadataSupplier {
-		// 排除掉 task 发起方 ...  identityId + partyId
+	for i := 0; i < len(task.TaskData().MetadataSupplier); i++ {
+		dataSupplier := task.TaskData().MetadataSupplier[i]
+		// 排除掉 task 发起方 ...
 		if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
-
 			wg.Add(1)
 			go sendConfirmMsgFn(&wg, proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
-				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), confirmMsg, errCh)
+				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), peerDesc, errCh)
 		}
 	}
-	for _, powerSupplier := range task.TaskData().ResourceSupplier {
-
+	for i := 0; i < len(task.TaskData().ResourceSupplier); i++ {
+		powerSupplier := task.TaskData().ResourceSupplier[i]
 		wg.Add(1)
 		go sendConfirmMsgFn(&wg, proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
-			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), confirmMsg, errCh)
+			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), peerDesc, errCh)
 	}
-
-	for _, receiver := range task.TaskData().Receivers {
-
+	for i := 0; i < len(task.TaskData().Receivers); i++ {
+		receiver := task.TaskData().Receivers[i]
 		wg.Add(1)
 		go sendConfirmMsgFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), confirmMsg, errCh)
+			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), peerDesc, errCh)
 	}
 
 	wg.Wait()
@@ -456,9 +461,7 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 
 func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
 
-	commitMsg := makeCommitMsg(proposalId, task, startTime)
-
-	sendCommitMsgFn := func(wg *sync.WaitGroup, proposalId common.Hash, taskRole types.TaskRole, taskPartyId, identityId, nodeId, taskId string, commitMsg *pb.CommitMsg, errCh chan<- error) {
+	sendCommitMsgFn := func(wg *sync.WaitGroup, proposalId common.Hash, taskRole types.TaskRole, taskPartyId, identityId, nodeId, taskId string, errCh chan<- error) {
 
 		defer wg.Done()
 
@@ -468,7 +471,7 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			return
 		}
-
+		commitMsg := makeCommitMsg(proposalId, task, startTime)
 		// set other peer's role and partyId
 		commitMsg.TaskRole = taskRole.Bytes()
 		commitMsg.TaskPartyId = []byte(taskPartyId)
@@ -491,28 +494,26 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 	errCh := make(chan error, size)
 	var wg sync.WaitGroup
 
-	for _, dataSupplier := range task.TaskData().MetadataSupplier {
-		// 排除掉 task 发起方 ...  identityId + partyId
+	for i := 0; i < len(task.TaskData().MetadataSupplier); i++ {
+		dataSupplier := task.TaskData().MetadataSupplier[i]
+		// 排除掉 task 发起方 ...
 		if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
-
 			wg.Add(1)
 			go sendCommitMsgFn(&wg, proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
-				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), commitMsg, errCh)
+				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), errCh)
 		}
 	}
-
-	for _, powerSupplier := range task.TaskData().ResourceSupplier {
-
+	for i := 0; i < len(task.TaskData().ResourceSupplier); i++ {
+		powerSupplier := task.TaskData().ResourceSupplier[i]
 		wg.Add(1)
 		go sendCommitMsgFn(&wg, proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
-			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), commitMsg, errCh)
+			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), errCh)
 	}
-
-	for _, receiver := range task.TaskData().Receivers {
-
+	for i := 0; i < len(task.TaskData().Receivers); i++ {
+		receiver := task.TaskData().Receivers[i]
 		wg.Add(1)
 		go sendCommitMsgFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), commitMsg, errCh)
+			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), errCh)
 	}
 
 	wg.Wait()

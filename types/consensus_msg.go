@@ -29,10 +29,14 @@ type PrepareVoteResource struct {
 	Port    string
 	PartyId string
 }
+
 func (resource PrepareVoteResource) String() string {
 	return fmt.Sprintf(`{"id": %s, "ip": %s, "port": %s, "partyId": %s}`, resource.Id, resource.Ip, resource.Port, resource.PartyId)
 }
 func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
+	if nil == peerInfo {
+		return &pb.TaskPeerInfo{}
+	}
 	return &pb.TaskPeerInfo{
 		Ip:      []byte(peerInfo.Ip),
 		Port:    []byte(peerInfo.Port),
@@ -40,11 +44,29 @@ func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {
 	}
 }
 func FetchTaskPeerInfo(peerInfo *pb.TaskPeerInfo) *PrepareVoteResource {
+	if nil == peerInfo {
+		return &PrepareVoteResource{}
+	}
 	return &PrepareVoteResource{
 		Ip:      string(peerInfo.Ip),
 		Port:    string(peerInfo.Port),
 		PartyId: string(peerInfo.PartyId),
 	}
+}
+
+type PrepareMsg struct {
+	ProposalId  common.Hash
+	TaskRole    TaskRole
+	TaskPartyId string
+	Owner       *TaskNodeAlias
+	TaskInfo    *Task
+	CreateAt    uint64
+	Sign        []byte
+}
+
+func (msg *PrepareMsg) String() string {
+	return fmt.Sprintf(`{"proposalId": %s, "taskRole": %s, "taskPartyId": %s, "owner": %s, "createAt": %d, "sign": %v}`,
+		msg.ProposalId.String(), msg.TaskRole.String(), msg.TaskPartyId, msg.Owner.String(), msg.CreateAt, msg.Sign)
 }
 
 type PrepareVote struct {
@@ -55,6 +77,11 @@ type PrepareVote struct {
 	PeerInfo   *PrepareVoteResource
 	CreateAt   uint64
 	Sign       []byte
+}
+
+func (vote *PrepareVote) String() string {
+	return fmt.Sprintf(`{"proposalId": %s, "taskRole": %s, "owner": %s, "voteOption": %s, "peerInfo": %s, "createAt": %d, "sign": %v}`,
+		vote.ProposalId.String(), vote.TaskRole.String(), vote.Owner.String(), vote.VoteOption.String(), vote.PeerInfo.String(), vote.CreateAt, vote.Sign)
 }
 
 func ConvertPrepareVote(vote *PrepareVote) *pb.PrepareVote {
@@ -100,6 +127,11 @@ type ConfirmMsg struct {
 	Sign        []byte
 }
 
+func (msg *ConfirmMsg) String() string {
+	return fmt.Sprintf(`{"proposalId": %s, "taskRole": %s, "taskPartyId": %s, "owner": %s, "peerDesc": %s, "createAt": %d, "sign": %v}`,
+		msg.ProposalId.String(), msg.TaskRole.String(), msg.TaskPartyId, msg.Owner.String(), msg.PeerDesc.String(), msg.CreateAt, msg.Sign)
+}
+
 func ConvertConfirmMsg(msg *ConfirmMsg) *pb.ConfirmMsg {
 	return &pb.ConfirmMsg{
 		ProposalId:  msg.ProposalId.Bytes(),
@@ -142,6 +174,11 @@ type ConfirmVote struct {
 	Sign       []byte
 }
 
+func (vote *ConfirmVote) String() string {
+	return fmt.Sprintf(`{"proposalId": %s, "taskRole": %s, "owner": %s, "voteOption": %s, "createAt": %d, "sign": %v}`,
+		vote.ProposalId.String(), vote.TaskRole.String(), vote.Owner.String(), vote.VoteOption.String(), vote.CreateAt, vote.Sign)
+}
+
 func ConvertConfirmVote(vote *ConfirmVote) *pb.ConfirmVote {
 	return &pb.ConfirmVote{
 		ProposalId: vote.ProposalId.Bytes(),
@@ -180,6 +217,11 @@ type CommitMsg struct {
 	Owner       *TaskNodeAlias
 	CreateAt    uint64
 	Sign        []byte
+}
+
+func (msg *CommitMsg) String() string {
+	return fmt.Sprintf(`{"proposalId": %s, "taskRole": %s, "taskPartyId": %s, "owner": %s, "createAt": %d, "sign": %v}`,
+		msg.ProposalId.String(), msg.TaskRole.String(), msg.TaskPartyId, msg.Owner.String(), msg.CreateAt, msg.Sign)
 }
 
 func ConvertCommitMsg(msg *CommitMsg) *pb.CommitMsg {
@@ -222,6 +264,12 @@ type TaskResultMsg struct {
 	CreateAt      uint64
 	Sign          []byte
 }
+
+func (msg *TaskResultMsg)String() string {
+	return fmt.Sprintf(`{"proposalId": %s, "taskRole": %s, "owner": %s, "taskId": %s, "createAt": %d, "sign": %v}`,
+		msg.ProposalId.String(), msg.TaskRole.String(),msg.Owner.String(), msg.TaskId, msg.CreateAt, msg.Sign)
+}
+
 
 func ConvertTaskResultMsg(msg *TaskResultMsg) *pb.TaskResultMsg {
 	return &pb.TaskResultMsg{
