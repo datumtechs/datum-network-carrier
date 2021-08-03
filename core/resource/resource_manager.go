@@ -199,18 +199,21 @@ func (m *Manager) refreshOrgResourceTable() error {
 	if nil != err {
 		return err
 	}
-	tmp := make(map[string]*types.Resource, len(resources))
-	for _, r := range resources {
-		tmp[r.GetIdentityId()] = r
+	tmpMap := make(map[string]int, len(resources))
+	tmpArr := make([]*types.Resource, len(resources))
+	for i, r := range resources {
+		tmpMap[r.GetIdentityId()] = i
+		tmpArr[i] = r
 	}
 	for i := 0; i < len(m.remoteTableQueue); i++ {
 
 		resource := m.remoteTableQueue[i]
 
 		// If has, update
-		if r, ok := tmp[resource.GetIdentityId()]; ok {
+		if index, ok := tmpMap[resource.GetIdentityId()]; ok {
+			r := tmpArr[index]
 			m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)
-			delete(tmp, resource.GetIdentityId())
+			delete(tmpMap, resource.GetIdentityId())
 		} else {
 			// If no has, delete
 			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
@@ -218,8 +221,12 @@ func (m *Manager) refreshOrgResourceTable() error {
 		}
 	}
 	// If is new one, add
-	for _, r := range tmp {
-		m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
+	if len(tmpMap) != 0 {
+		for _, r := range tmpArr {
+			if _, ok := tmpMap[r.GetIdentityId()]; ok {
+				m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
+			}
+		}
 	}
 	return nil
 }
