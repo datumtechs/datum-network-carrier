@@ -212,21 +212,22 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		now,
 		task.TaskId(),
 		task.TaskData().TaskName,
-		task.TaskData().PartyId,
-		task.TaskData().Identity,
-		task.TaskData().NodeId,
-		task.TaskData().NodeName,
-		task.TaskData().DataId,
-		task.TaskData().DataStatus,
-		task.TaskData().State,
-		task.TaskData().MetadataSupplier,
-		task.TaskData().ResourceSupplier,
-		task.TaskData().Receivers,
-		task.TaskData().CalculateContractCode,
-		task.TaskData().DataSplitContractCode,
-		task.TaskData().ContractExtraParams,
-		task.TaskData().TaskResource,
+		//task.TaskData().PartyId,
+		//task.TaskData().Identity,
+		//task.TaskData().NodeId,
+		//task.TaskData().NodeName,
+		//task.TaskData().DataId,
+		//task.TaskData().DataStatus,
+		//task.TaskData().State,
+		//task.TaskData().MetadataSupplier,
+		//task.TaskData().ResourceSupplier,
+		//task.TaskData().Receivers,
+		//task.TaskData().CalculateContractCode,
+		//task.TaskData().DataSplitContractCode,
+		//task.TaskData().ContractExtraParams,
+		//task.TaskData().TaskResource,
 		task.TaskData().CreateAt,
+		uint64(time.Now().Nanosecond()),
 	})
 
 	proposalState := ctypes.NewProposalState(
@@ -376,7 +377,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 		if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
 			err := fmt.Errorf("failed to `SendTwoPcPrepareVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
-				proposal.TaskId, prepareMsg.TaskRole, self.NodeId, err)
+				task.TaskId(), prepareMsg.TaskRole, self.NodeId, err)
 			log.Error(err)
 
 			t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
@@ -398,7 +399,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	log.Debugf("Received remote prepareVote, remote pid: {%s}, prepareVote: %s", pid, voteMsg.String())
 
 	if t.state.HasNotProposal(voteMsg.ProposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s onPrepareVote", ctypes.ErrProposalNotFound)
 	}
 	proposalState := t.state.GetProposalState(voteMsg.ProposalId)
 	// 只有 当前 state 是 prepare 状态才可以处理 prepare 阶段的 vote
