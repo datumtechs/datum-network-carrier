@@ -41,7 +41,7 @@ func (m *Manager) loop() {
 		select {
 		case <-refreshTicker.C:
 			if err := m.refreshOrgResourceTable(); nil != err {
-				log.Errorf("Failed to refresh org resourceTables, err: %s", err)
+				log.Errorf("Failed to refresh org resourceTables on loop, err: %s", err)
 			}
 		}
 	}
