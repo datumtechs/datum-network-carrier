@@ -204,7 +204,7 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId, taskState string) {
 		return
 	}
 	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList, taskState)); nil != err {
-		log.Error("Failed to save task to datacenter", "taskId", taskWrap.Task.SchedTask.TaskId)
+		log.Errorf("Failed to save task to datacenter, taskId: {%s}", taskWrap.Task.SchedTask.TaskId)
 		return
 	}
 

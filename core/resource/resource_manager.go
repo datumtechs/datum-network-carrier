@@ -377,18 +377,18 @@ func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option R
 	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, releaseOption: {%d}", logdesc, taskId, option)
 	if option.IsUnlockLocalResorce() {
 		if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
-			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
+			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
 	}
 	if option.IsRemoveLocalTask() {
 		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
 		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
-			log.Errorf("Failed to remove local task  %s, taskId: {%s}", logdesc, taskId)
+			log.Errorf("Failed to remove local task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
 	}
 	if option.IsCleanTaskEvents() {
 		if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
-			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}", logdesc, taskId)
+			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
 	}
 }
