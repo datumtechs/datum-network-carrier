@@ -103,7 +103,7 @@ type IdentityCarrierDB interface {
 type TaskCarrierDB interface {
 	StoreTaskEvent(event *types.TaskEventInfo) error
 	GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error)
-	CleanTaskEventList(taskId string) error
+	RemoveTaskEventList(taskId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
 	UpdateLocalTaskState(taskId, state string) error  // 任务的状态 (pending: 等在中; running: 计算中; failed: 失败; success: 成功)
