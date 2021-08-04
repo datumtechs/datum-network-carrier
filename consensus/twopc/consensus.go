@@ -259,7 +259,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 	go func() {
 
 		if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-			log.Errorf("Failed to sendPrepareMsg, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
+			log.Errorf("Failed to call `SendTwoPcPrepareMsg`, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
 			// Send consensus result to Scheduler
 			t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 				TaskConsResult: &types.TaskConsResult{
@@ -360,6 +360,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	if result.Status == types.TaskSchedFailed {
 		vote.VoteOption = types.No
+		vote.PeerInfo = &types.PrepareVoteResource{}
 		log.Warnf("Failed to replay schedule task, will vote `NO`, taskId: {%s}, err: {%s}", result.TaskId, result.Err.Error())
 	} else {
 		vote.VoteOption = types.Yes
@@ -376,13 +377,16 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	go func() {
 
 		if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
-			err := fmt.Errorf("failed to `SendTwoPcPrepareVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
-				task.TaskId(), prepareMsg.TaskRole, self.NodeId, err)
+			err := fmt.Errorf("failed to call `SendTwoPcPrepareVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}, err: {%s}",
+				proposal.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid, err)
 			log.Error(err)
 
 			t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 			// clean some data
 			t.delProposalStateAndTask(proposal.ProposalId)
+		} else {
+			log.Debugf("Succceed to call `SendTwoPcPrepareVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}",
+				proposal.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid)
 		}
 	}()
 	return nil
@@ -506,6 +510,8 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			go func() {
 
 				if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
+					log.Errorf("Failed to call`SendTwoPcConfirmMsg` proposalId: {%s}, taskId: {%s}, err: {%s}",
+						proposalState.ProposalId.String(), task.TaskId(), err)
 					// Send consensus result
 					t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 						TaskConsResult: &types.TaskConsResult{
@@ -526,6 +532,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 
 			// Send consensus result
 			go func() {
+
+				log.Debugf("PrepareVoting failed on consensus's prepare epoch, the `YES` vote count is no enough, `YES` vote count: {%d}, need total count: {%d}",
+					yesVoteCount, totalVoteCount)
 
 				t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 					TaskConsResult: &types.TaskConsResult{
@@ -615,13 +624,16 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	go func() {
 
 		if err = handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, types.ConvertConfirmVote(vote)); nil != err {
-			err := fmt.Errorf("failed to `SendTwoPcConfirmVote`, taskId: %s, taskRole: %s, nodeId: %s, err: %s",
-				task.TaskId, msg.TaskRole, self.NodeId, err)
+			err := fmt.Errorf("failed to call `SendTwoPcConfirmVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}, err: {%s}",
+				proposalState.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid, err)
 			log.Error(err)
 
 			t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 			// clean some data
 			t.delProposalStateAndTask(proposalState.ProposalId)
+		}else {
+			log.Debugf("Succceed to call `SendTwoPcConfirmVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}",
+				proposalState.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid)
 		}
 	}()
 
@@ -744,6 +756,10 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			go func() {
 
 				if err := t.sendCommitMsg(voteMsg.ProposalId, task, now); nil != err {
+
+					log.Errorf("Failed to call`SendTwoPcCommitMsg` proposalId: {%s}, taskId: {%s}, err: {%s}",
+						proposalState.ProposalId.String(), task.TaskId(), err)
+
 					// Send consensus result
 					t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 						TaskConsResult: &types.TaskConsResult{
@@ -773,6 +789,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 			// Send consensus result
 			go func() {
+
+				log.Debugf("ConfrimVoting failed on consensus's confirm epoch, the `YES` vote count is no enough, `YES` vote count: {%d}, need total count: {%d}",
+					yesVoteCount, totalVoteCount)
 
 				t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 					TaskConsResult: &types.TaskConsResult{
@@ -846,7 +865,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	// If sending `CommitMsg` is successful,
 	// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 	go func() {
-
+		
 		t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole,
 			&libTypes.OrganizationData{
 				PartyId:  msg.TaskPartyId,
@@ -862,8 +881,8 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 // Subscriber 在完成任务时对 task 生成 taskResultMsg 反馈给 发起方
 func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) error {
 	if err := handler.SendTwoPcTaskResultMsg(context.TODO(), t.p2p, pid, msg.TaskResultMsg); nil != err {
-		err := fmt.Errorf("failed to `SendTwoPcTaskResultMsg` to task owner, taskId: {%s}, taskRole: {%s}, other identityId: {%s}, other peerId: {%s}, err: {%s}",
-			msg.TaskResultMsg.TaskId, msg.TaskRole, msg.TaskResultMsg.Owner.IdentityId, pid, err)
+		err := fmt.Errorf("failed to call `SendTwoPcTaskResultMsg`, taskId: {%s}, taskRole: {%s}, task owner's identityId: {%s}, task owner's peerId: {%s}, err: {%s}",
+			msg.TaskResultMsg.TaskId, types.TaskRoleFromBytes(msg.TaskRole).String(), string(msg.TaskResultMsg.Owner.IdentityId), pid, err)
 		return err
 	}
 	return nil
