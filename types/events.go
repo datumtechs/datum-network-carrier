@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
@@ -30,6 +31,11 @@ type TaskEventInfo struct {
 	TaskId     string `json:"taskId"`
 	Content    string `json:"content"`
 	CreateTime uint64 `json:"createTime"`
+}
+
+func (ev *TaskEventInfo) String() string {
+	return fmt.Sprintf(`{"taskId": %s, "identity", %s, type": %s, "content": %s, "createTime": %d}`,
+		ev.TaskId, ev.Identity, ev.Type, ev.Content, ev.CreateTime)
 }
 
 func (msg *IdentityMsgEvent) String() string {
@@ -81,13 +87,7 @@ func (msg *TaskMsgEvent) String() string {
 	}
 	return string(result)
 }
-func (msg *TaskEventInfo) String() string {
-	result, err := json.Marshal(msg)
-	if err != nil{
-		return "Failed to generate string"
-	}
-	return string(result)
-}
+
 
 func ConvertTaskEvent(event *TaskEventInfo) *pb.TaskEvent {
 	return &pb.TaskEvent{

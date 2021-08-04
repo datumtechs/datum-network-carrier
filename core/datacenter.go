@@ -794,13 +794,20 @@ func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteTaskEvent(dc.db, event)
+	log.Debugf("Store task eventList, event: %s", event.String())
 	return nil
 }
 
 func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadTaskEvent(dc.db, taskId)
+
+	list, err := rawdb.ReadTaskEvent(dc.db, taskId)
+	if nil != err {
+		return nil, err
+	}
+	log.Debugf("Query task eventList, taskId: {%s}, eventList Len: {%d}", taskId, len(list))
+	return list, nil
 }
 
 func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
