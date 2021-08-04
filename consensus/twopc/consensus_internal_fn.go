@@ -258,7 +258,8 @@ func (t *TwoPC) driveTask(
 	task *types.Task,
 	) {
 
-
+	log.Debugf("Start to call `driveTask`, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
+		proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
 
 	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
 	if nil == confirmTaskPeerInfo {
@@ -390,7 +391,7 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 
 		pid, err := p2p.HexPeerID(nodeId)
 		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
 				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			return
 		}
@@ -404,13 +405,13 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 
 		// Send the ConfirmMsg to other peer
 		if err := handler.SendTwoPcConfirmMsg(context.TODO(), t.p2p, pid, confirmMsg); nil != err {
-			errCh <- fmt.Errorf("failed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+			errCh <- fmt.Errorf("failed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
 				proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid, err)
 			errCh <- err
 			return
 		}
 
-		log.Debugf("Succceed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s",
+		log.Debugf("Succceed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
 			proposalId.String(), taskId, taskRole.String(), taskPartyId, identityId, pid)
 
 	}
