@@ -110,6 +110,9 @@ type TaskCarrierDB interface {
 	GetLocalTask(taskId string) (*types.Task, error)
 	GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
 	GetLocalTaskList() (types.TaskDataArray, error)
+	GetLocalTaskAndEvents(taskId string) (*types.Task, error)
+	GetLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
+	GetLocalTaskAndEventsList() (types.TaskDataArray, error)
 
 	// about task on datacenter
 	InsertTask(task *types.Task) error

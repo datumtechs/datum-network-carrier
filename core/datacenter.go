@@ -503,6 +503,61 @@ func (dc *DataCenter) GetLocalTaskList() (types.TaskDataArray, error) {
 	return rawdb.ReadAllLocalTasks(dc.db)
 }
 
+func (dc *DataCenter) GetLocalTaskAndEvents(taskId string) (*types.Task, error) {
+	if taskId == "" {
+		return nil, errors.New("invalid params taskId for GetLocalTask")
+	}
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	task, err := rawdb.ReadLocalTask(dc.db, taskId)
+	if nil != err {
+		return nil, err
+	}
+	list, err := rawdb.ReadTaskEvent(dc.db, taskId)
+	if nil != err {
+		return nil, err
+	}
+	task.SetEventList(list)
+	return task, nil
+}
+
+func (dc *DataCenter) GetLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	tasks, err := rawdb.ReadLocalTaskByIds(dc.db, taskIds)
+	if nil != err {
+		return nil, err
+	}
+	for i, task := range tasks {
+		list, err := rawdb.ReadTaskEvent(dc.db, task.TaskId())
+		if nil != err {
+			return nil, err
+		}
+		task.SetEventList(list)
+		tasks[i] = task
+	}
+	return tasks, nil
+}
+
+func (dc *DataCenter) GetLocalTaskAndEventsList() (types.TaskDataArray, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+
+	tasks, err := rawdb.ReadAllLocalTasks(dc.db)
+	if nil != err {
+		return nil, err
+	}
+	for i, task := range tasks {
+		list, err := rawdb.ReadTaskEvent(dc.db, task.TaskId())
+		if nil != err {
+			return nil, err
+		}
+		task.SetEventList(list)
+		tasks[i] = task
+	}
+	return tasks, nil
+}
+
 func (dc *DataCenter) StoreJobNodeRunningTaskId(jobNodeId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
