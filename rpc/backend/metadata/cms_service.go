@@ -88,15 +88,24 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 		return nil, errors.New("required columnMeta of information")
 	}
 
-	_, err := svr.B.GetNodeIdentity()
+	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetaData failed, query local identity failed, can not publish metadata")
 		return nil, ErrSendMetaDataMsg
 	}
 
+	if identity.IdentityId() != req.Owner.IdentityId {
+		return nil, errors.New("invalid identityId of req")
+	}
+	if identity.NodeId() != req.Owner.NodeId {
+		return nil, errors.New("invalid nodeId of req")
+	}
+	if identity.Name() != req.Owner.Name {
+		return nil, errors.New("invalid nodeName of req")
+	}
+
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
 	//metaDataMsg.Data.CreateAt = uint64(timeutils.UnixMsec())
-
 
 	ColumnMetas := make([]*libtypes.ColumnMeta, len(req.Information.ColumnMeta))
 	for i, v := range req.Information.ColumnMeta {
@@ -111,9 +120,6 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	}
 	metaDataMsg.Data.Information.ColumnMetas = ColumnMetas
 	metaDataId := metaDataMsg.SetMetaDataId()
-
-	//b, _ := json.Marshal(metaDataMsg)
-	//log.Debugf("############ Input req: {%s}", string(b))
 
 	err = svr.B.SendMsg(metaDataMsg)
 	if nil != err {
@@ -133,14 +139,25 @@ func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.Re
 		return nil, errors.New("required owner")
 	}
 
-	_, err := svr.B.GetNodeIdentity()
+	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetaData failed, query local identity failed, can not revoke metadata")
 		return nil, ErrSendMetaDataRevokeMsg
 	}
 
+	if identity.IdentityId() != req.Owner.IdentityId {
+		return nil, errors.New("invalid identityId of req")
+	}
+	if identity.NodeId() != req.Owner.NodeId {
+		return nil, errors.New("invalid nodeId of req")
+	}
+	if identity.Name() != req.Owner.Name {
+		return nil, errors.New("invalid nodeName of req")
+	}
+
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	//metaDataRevokeMsg.CreateAt = uint64(timeutils.UnixMsec())
+
 	err = svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetaData failed")

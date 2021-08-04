@@ -382,9 +382,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 
 		// compare powerSuppliers of task And powerSuppliers of election
 		if len(powers) != len(replayScheduleTask.Task.TaskData().ResourceSupplier) {
-			log.Errorf("election powerSuppliers and task powerSuppliers is not match on replay schedule task, taskId: {%s}", replayScheduleTask.Task.TaskId())
+			log.Errorf("reschedule powers len and task powers len is not match on replay schedule task, taskId: {%s}, reschedule power len: {%d}, task powers len: {%d}",
+				replayScheduleTask.Task.TaskId(), len(powers), len(replayScheduleTask.Task.TaskData().ResourceSupplier))
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
-				fmt.Errorf("election powerSuppliers and task powerSuppliers is not match on replay schedule task"))
+				fmt.Errorf("reschedule powers len and task powers len is not match on replay schedule task"))
 			return
 		}
 
@@ -395,9 +396,10 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		}
 		for _, power := range replayScheduleTask.Task.TaskData().ResourceSupplier {
 			if _, ok := tmp[power.Organization.Identity]; !ok {
-				log.Errorf("election powerSuppliers and task powerSuppliers is not match, taskId: {%s}", replayScheduleTask.Task.TaskId())
+				log.Errorf("task power identityId not found on reschedule powers on replay schedule task, taskId: {%s}, task power identityId: {%s}",
+					replayScheduleTask.Task.TaskId(), power.Organization.Identity)
 				replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
-					fmt.Errorf("election powerSuppliers and task powerSuppliers is not match"))
+					fmt.Errorf("task power identityId not found on reschedule powers on replay schedule task"))
 				return
 			}
 		}
@@ -465,7 +467,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 
 		// TODO 判断 task 中对应自己的 privors  是否符合 自己预期 (如: 是否和  powerSuppliers 一致?? 一期 先不做校验了 ...)
 
-		localResourceTables, err := sche.resourceMng.GetLocalResourceTables()
+		dataResourceTables, err := sche.dataCenter.QueryDataResourceTables()
 		if nil != err {
 			log.Errorf("Failed to election internal data resource with replay schedule task, taskId: {%s}, err: {%s}",
 				replayScheduleTask.Task.TaskId(), err)
@@ -474,9 +476,9 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
-		log.Debugf("GetLocalResourceTables on replaySchedule by taskRole is the resuler, localResources: %s", utilLocalResourceArrString(localResourceTables))
+		log.Debugf("QueryDataResourceTables on replaySchedule by taskRole is the resuler, dataResourceTables: %s", utilDataResourceArrString(dataResourceTables))
 
-		resource := localResourceTables[len(localResourceTables)-1]
+		resource := dataResourceTables[len(dataResourceTables)-1]
 		resourceInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, resource.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query internal data node resource,taskId: {%s}, dataNodeId: {%s}, err: {%s}",
@@ -680,6 +682,18 @@ func utilLocalResourceArrString(resources []*types.LocalResourceTable) string {
 }
 
 func utilRemoteResourceArrString(resources []*types.RemoteResourceTable) string {
+	arr := make([]string, len(resources))
+	for i, r := range resources {
+		arr[i] = r.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
+}
+
+
+func utilDataResourceArrString(resources []*types.DataResourceTable) string {
 	arr := make([]string, len(resources))
 	for i, r := range resources {
 		arr[i] = r.String()

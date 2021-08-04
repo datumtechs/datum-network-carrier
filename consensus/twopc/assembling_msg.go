@@ -93,8 +93,8 @@ func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.PrepareMsg, error
 		return nil, err
 	}
 	return &types.PrepareMsg{
-			ProposalId: common.BytesToHash(prepareMsg.ProposalId),
-			TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskRole),
+			ProposalId:  common.BytesToHash(prepareMsg.ProposalId),
+			TaskRole:    types.TaskRoleFromBytes(prepareMsg.TaskRole),
 			TaskPartyId: string(prepareMsg.TaskPartyId),
 			Owner: &types.TaskNodeAlias{
 				Name:       string(prepareMsg.Owner.Name),
@@ -104,11 +104,11 @@ func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.PrepareMsg, error
 			},
 			TaskInfo: task,
 			CreateAt: prepareMsg.CreateAt,
-			Sign: prepareMsg.Sign,
+			Sign:     prepareMsg.Sign,
 		},
-	 nil
+		nil
 }
-func fetchProposalFromPrepareMsg (prepareMsg *types.PrepareMsg) *types.ProposalTask {
+func fetchProposalFromPrepareMsg(prepareMsg *types.PrepareMsg) *types.ProposalTask {
 	return &types.ProposalTask{
 		ProposalId: prepareMsg.ProposalId,
 		Task:       prepareMsg.TaskInfo,
@@ -127,18 +127,24 @@ func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, e
 			PartyId:    string(prepareVote.Owner.PartyId),
 		},
 		VoteOption: types.VoteOptionFromBytes(prepareVote.VoteOption),
-		CreateAt:   prepareVote.CreateAt,
-		Sign:       prepareVote.Sign,
-	}
-
-	if msg.VoteOption == types.Yes {
-		msg.PeerInfo = &types.PrepareVoteResource{
+		PeerInfo: &types.PrepareVoteResource{
 			Id:      "",
 			Ip:      string(prepareVote.PeerInfo.Ip),
 			Port:    string(prepareVote.PeerInfo.Port),
 			PartyId: string(prepareVote.PeerInfo.PartyId),
-		}
+		},
+		CreateAt: prepareVote.CreateAt,
+		Sign:     prepareVote.Sign,
 	}
+
+	//if msg.VoteOption == types.Yes {
+	//	msg.PeerInfo = &types.PrepareVoteResource{
+	//		Id:      "",
+	//		Ip:      string(prepareVote.PeerInfo.Ip),
+	//		Port:    string(prepareVote.PeerInfo.Port),
+	//		PartyId: string(prepareVote.PeerInfo.PartyId),
+	//	}
+	//}
 
 	return msg, nil
 }
@@ -196,7 +202,7 @@ func fetchCommitMsg(commitMsg *types.CommitMsgWrap) (*types.CommitMsg, error) {
 }
 
 func fetchTaskResultMsg(commitMsg *types.TaskResultMsgWrap) (*types.TaskResultMsg, error) {
-	taskEventList := make([]*types.TaskEventInfo, 0)
+	taskEventList := make([]*types.TaskEventInfo, len(commitMsg.TaskEventList))
 	for index, value := range commitMsg.TaskEventList {
 		taskEventList[index] = &types.TaskEventInfo{
 			Type:       string(value.Type),

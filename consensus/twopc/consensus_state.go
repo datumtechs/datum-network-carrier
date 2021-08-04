@@ -41,30 +41,6 @@ func newState() *state {
 
 func (s *state) EmptyInfo () *ctypes.ProposalState { return s.empty }
 
-//func (s *state) CleanExpireProposal() ([]string, []string) {
-//	now := uint64(timeutils.UnixMsec())
-//	sendTaskIds := make([]string, 0)
-//	recvTaskIds := make([]string, 0)
-//
-//	// This function does not need to be locked,
-//	// and the small function inside handles the lock by itself
-//	for id, proposal := range s.runningProposals {
-//		if (now - proposal.CreateAt) > ctypes.ProposalDeadlineDuration {
-//			log.Info("Clean 2pc expire Proposal", "proposalId", id.String(), "taskId",
-//				proposal.TaskId, "taskDir", proposal.TaskDir.String())
-//			s.CleanProposalState(id)
-//			if proposal.TaskDir == types.SendTaskDir {
-//				sendTaskIds = append(sendTaskIds, proposal.TaskId)
-//			} else {
-//				recvTaskIds = append(recvTaskIds, proposal.TaskId)
-//			}
-//
-//		}
-//	}
-//
-//	return sendTaskIds, recvTaskIds
-//}
-
 func (s *state) HasProposal(proposalId common.Hash) bool {
 	s.proposalsLock.RLock()
 	defer s.proposalsLock.RUnlock()
@@ -144,6 +120,8 @@ func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
 	s.proposalsLock.Lock()
 	defer s.proposalsLock.Unlock()
 
+	log.Debugf("Start to call `ChangeToConfirm`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
+
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
 		return
@@ -151,16 +129,12 @@ func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
 	proposalState.ChangeToConfirm(startTime)
 	s.runningProposals[proposalId] = proposalState
 }
-//func (s *state) ChangeToConfirmSecondEpoch(proposalId common.Hash, startTime uint64) {
-//	proposalState, ok := s.runningProposals[proposalId]
-//	if !ok {
-//		return
-//	}
-//	proposalState.ChangeToConfirmSecondEpoch(startTime)
-//}
+
 func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
 	s.proposalsLock.Lock()
 	defer s.proposalsLock.Unlock()
+
+	log.Debugf("Start to call `ChangeToCommit`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
 
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {
@@ -173,6 +147,8 @@ func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
 func (s *state) ChangeToFinised(proposalId common.Hash, startTime uint64) {
 	s.proposalsLock.Lock()
 	defer s.proposalsLock.Unlock()
+
+	log.Debugf("Start to call `ChangeToFinised`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
 
 	proposalState, ok := s.runningProposals[proposalId]
 	if !ok {

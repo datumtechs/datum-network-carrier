@@ -124,7 +124,7 @@ func (t *TwoPC) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap
 func (t *TwoPC) validatePrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
 	proposalId := common.BytesToHash(prepareVote.ProposalId)
 	if t.state.HasNotProposal(proposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s validatePrepareVote", ctypes.ErrProposalNotFound)
 	}
 	// (On publisher)
 	// Now, we has proposalState, current period is `preparePeriod`
@@ -177,7 +177,7 @@ func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap
 
 	proposalId := common.BytesToHash(confirmMsg.ProposalId)
 	if t.state.HasNotProposal(proposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s validateConfirmMsg", ctypes.ErrProposalNotFound)
 	}
 
 	// (On subscriber)
@@ -226,7 +226,7 @@ func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap
 func (t *TwoPC) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 	proposalId := common.BytesToHash(confirmVote.ProposalId)
 	if t.state.HasNotProposal(proposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s validateConfirmVote", ctypes.ErrProposalNotFound)
 	}
 
 	// (On publisher)
@@ -277,7 +277,7 @@ func (t *TwoPC) validateCommitMsg(pid peer.ID, commitMsg *types.CommitMsgWrap) e
 
 	proposalId := common.BytesToHash(commitMsg.ProposalId)
 	if t.state.HasNotProposal(proposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s validateCommitMsg", ctypes.ErrProposalNotFound)
 	}
 
 	// (On subscriber)
