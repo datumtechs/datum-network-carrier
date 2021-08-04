@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var resource = NewResource(&types.ResourceData{
+var resource_test = NewResource(&types.ResourceData{
 	Identity:             "identity",
 	NodeId:               "nodeId",
 	NodeName:             "nodeName",
@@ -22,7 +22,7 @@ var resource = NewResource(&types.ResourceData{
 
 func TestResourceEncode(t *testing.T) {
 	buffer := new(bytes.Buffer)
-	err := resource.EncodePb(buffer)
+	err := resource_test.EncodePb(buffer)
 	if err != nil {
 		t.Fatal("resource encode protobuf failed, err: ", err)
 	}
