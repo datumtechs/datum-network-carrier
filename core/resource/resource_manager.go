@@ -159,40 +159,40 @@ func (m *Manager) CleanLocalResourceTables() error {
 	return nil
 }
 
-func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
-	m.remoteTableQueue = append(m.remoteTableQueue, table)
-}
-func (m *Manager) UpdateRemoteResouceTable(table *types.RemoteResourceTable) {
-	for i := 0; i < len(m.remoteTableQueue); i++ {
-		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
-			m.remoteTableQueue[i] = table
-		}
-	}
-}
-func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable) {
-	var has bool
-	for i := 0; i < len(m.remoteTableQueue); i++ {
-		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
-			m.remoteTableQueue[i] = table
-			has = true
-		}
-	}
-	if has {
-		return
-	}
-	m.remoteTableQueue = append(m.remoteTableQueue, table)
-}
-func (m *Manager) DelRemoteResourceTable(identityId string) {
-	for i := 0; i < len(m.remoteTableQueue); i++ {
-		if m.remoteTableQueue[i].GetIdentityId() == identityId {
-			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
-			i--
-		}
-	}
-}
-func (m *Manager) CleanRemoteResourceTables() {
-	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
-}
+//func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
+//	m.remoteTableQueue = append(m.remoteTableQueue, table)
+//}
+//func (m *Manager) UpdateRemoteResouceTable(table *types.RemoteResourceTable) {
+//	for i := 0; i < len(m.remoteTableQueue); i++ {
+//		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
+//			m.remoteTableQueue[i] = table
+//		}
+//	}
+//}
+//func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable) {
+//	var has bool
+//	for i := 0; i < len(m.remoteTableQueue); i++ {
+//		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
+//			m.remoteTableQueue[i] = table
+//			has = true
+//		}
+//	}
+//	if has {
+//		return
+//	}
+//	m.remoteTableQueue = append(m.remoteTableQueue, table)
+//}
+//func (m *Manager) DelRemoteResourceTable(identityId string) {
+//	for i := 0; i < len(m.remoteTableQueue); i++ {
+//		if m.remoteTableQueue[i].GetIdentityId() == identityId {
+//			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
+//			i--
+//		}
+//	}
+//}
+//func (m *Manager) CleanRemoteResourceTables() {
+//	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
+//}
 func (m *Manager) GetRemoteResouceTables() []*types.RemoteResourceTable { return m.remoteTableQueue }
 func (m *Manager) refreshOrgResourceTable() error {
 	resources, err := m.dataCenter.GetResourceList()
