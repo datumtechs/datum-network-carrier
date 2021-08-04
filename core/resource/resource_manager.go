@@ -337,7 +337,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 		return fmt.Errorf("failed to unlock internal power resource, {%s}", err)
 	}
 
-	if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
+	if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
 		log.Errorf("Failed to remove local task event list, taskId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%s}, err: {%s}",
 			taskId, jobNodeId, freeSlotUnitCount, err)
 		return fmt.Errorf("failed to remove local task event list, {%s}", err)
@@ -407,7 +407,7 @@ func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option R
 	}
 	if option.IsCleanTaskEvents() {
 		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
-		if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
+		if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
 			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
 	}

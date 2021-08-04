@@ -810,17 +810,12 @@ func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, e
 	return list, nil
 }
 
-func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	rawdb.DeleteTaskEvent(dc.db, taskId)
-	return nil
-}
 
-func (dc *DataCenter) CleanTaskEventList(taskId string) error  {
+func (dc *DataCenter) RemoveTaskEventList(taskId string) error  {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteTaskEvent(dc.db, taskId)
+	log.Debugf("Remove task eventList, taskId: {%s}", taskId)
 	return nil
 }
 
