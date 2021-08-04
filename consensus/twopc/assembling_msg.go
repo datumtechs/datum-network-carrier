@@ -117,7 +117,7 @@ func fetchProposalFromPrepareMsg(prepareMsg *types.PrepareMsg) *types.ProposalTa
 }
 
 func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, error) {
-	log.Debugf("=============================== partyId Len: %d", len(prepareVote.PeerInfo.PartyId))
+	//log.Debugf("=============================== partyId Len: %d", len(prepareVote.PeerInfo.PartyId))
 	msg := &types.PrepareVote{
 		ProposalId: common.BytesToHash(prepareVote.ProposalId),
 		TaskRole:   types.TaskRoleFromBytes(prepareVote.TaskRole),

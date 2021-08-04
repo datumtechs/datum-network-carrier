@@ -10,7 +10,7 @@ const (
 )
 
 func SetAllReleaseResourceOption() ReleaseResourceOption {
-	return UnlockLocalResorce | UnlockLocalResorce | CleanTaskEvents
+	return UnlockLocalResorce | RemoveLocalTask | CleanTaskEvents
 }
 
 func (option ReleaseResourceOption) IsUnlockLocalResorce() bool {
