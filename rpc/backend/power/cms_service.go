@@ -6,6 +6,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"strings"
 )
 
 //
@@ -83,12 +84,22 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 		}
 		respList[i] = resp
 	}
-	log.Debugf("RPC-API:GetPowerSingleDetailList succeed, powerList: {%d}", len(respList))
+	log.Debugf("RPC-API:GetPowerSingleDetailList succeed, powerList: {%d}, json: %s", len(respList), utilGetPowerSingleDetailResponseArrString(respList))
 	return &pb.GetPowerSingleDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,
 		PowerList: respList,
 	}, nil
+}
+func utilGetPowerSingleDetailResponseArrString(resp []*pb.GetPowerSingleDetailResponse) string {
+	arr := make([]string, len(resp))
+	for i, u := range resp {
+		arr[i] = u.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
 }
 
 func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {

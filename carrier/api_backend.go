@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"strings"
 )
 
 // CarrierAPIBackend implements rpc.Backend for Carrier
@@ -483,15 +484,23 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Invoke:GetPowerSingleDetailList, call GetLocalResourceList, machineList: %s", machineList.String())
+
 	// query used of power for local task. : taskId -> {taskId, jobNodeId, slotCount}
 	localTaskPowerUsedList, err := s.carrier.carrierDB.QueryLocalTaskPowerUseds()
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryLocalTaskPowerUseds, localTaskPowerUsedList: %s",
+		utilLocalTaskPowerUsedArrString(localTaskPowerUsedList))
+
 	slotUint, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
+		slotUint.String())
+
 
 	// 收集 本地所有的 jonNode 上的 powerUsed 数组
 	validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
@@ -830,4 +839,15 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUpload(originId string) (*types
 
 func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceFileUpload, error) {
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
+}
+
+func utilLocalTaskPowerUsedArrString(used []*types.LocalTaskPowerUsed) string {
+	arr := make([]string, len(used))
+	for i, u := range used {
+		arr[i] = u.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
 }

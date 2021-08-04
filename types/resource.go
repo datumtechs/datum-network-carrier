@@ -148,6 +148,7 @@ func (m *LocalResource) Hash() common.Hash {
 	return v
 }
 
+
 // ResourceArray is a Transaction slice type for basic sorting.
 type LocalResourceArray []*LocalResource
 
@@ -177,4 +178,14 @@ func (s LocalResourceArray) To() []*libTypes.LocalResourceData {
 		arr = append(arr, v.data)
 	}
 	return arr
+}
+func (s LocalResourceArray) String() string {
+	arr := make([]string, len(s))
+	for i, r := range s {
+		arr[i] = r.data.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
 }
