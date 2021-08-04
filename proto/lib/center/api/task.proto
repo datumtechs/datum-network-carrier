@@ -69,6 +69,8 @@ message TaskDetail {
     TaskOperationCostDeclare operation_cost = 20;
     // 任务描述
     string desc = 21;
+    // 事件列表
+    repeated TaskEvent task_event_list = 22;
 }
 
 message TaskResultReceiver {
