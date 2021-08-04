@@ -315,6 +315,11 @@ func (pcache *LocalTaskPowerUsed) DecodeRLP(s *rlp.Stream) error {
 func (pcache *LocalTaskPowerUsed) GetTaskId() string    { return pcache.taskId }
 func (pcache *LocalTaskPowerUsed) GetNodeId() string    { return pcache.nodeId }
 func (pcache *LocalTaskPowerUsed) GetSlotCount() uint64 { return pcache.slotCount }
+func (pcache *LocalTaskPowerUsed) String() string {
+	return fmt.Sprintf(`{"taskId": %s, "nodeId": %s, "slotCount":, %d}`,
+		pcache.taskId, pcache.nodeId, pcache.slotCount)
+}
+
 
 type DataResourceTable struct {
 	nodeId    string
