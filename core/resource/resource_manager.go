@@ -41,7 +41,7 @@ func (m *Manager) loop() {
 		select {
 		case <-refreshTicker.C:
 			if err := m.refreshOrgResourceTable(); nil != err {
-				log.Errorf("Failed to refresh org resourceTables, err: %s", err)
+				log.Errorf("Failed to refresh org resourceTables on loop, err: %s", err)
 			}
 		}
 	}
@@ -159,68 +159,85 @@ func (m *Manager) CleanLocalResourceTables() error {
 	return nil
 }
 
-func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
-	m.remoteTableQueue = append(m.remoteTableQueue, table)
-}
-func (m *Manager) UpdateRemoteResouceTable(table *types.RemoteResourceTable) {
-	for i := 0; i < len(m.remoteTableQueue); i++ {
-		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
-			m.remoteTableQueue[i] = table
-		}
-	}
-}
-func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable) {
-	var has bool
-	for i := 0; i < len(m.remoteTableQueue); i++ {
-		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
-			m.remoteTableQueue[i] = table
-			has = true
-		}
-	}
-	if has {
-		return
-	}
-	m.remoteTableQueue = append(m.remoteTableQueue, table)
-}
-func (m *Manager) DelRemoteResourceTable(identityId string) {
-	for i := 0; i < len(m.remoteTableQueue); i++ {
-		if m.remoteTableQueue[i].GetIdentityId() == identityId {
-			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
-			i--
-		}
-	}
-}
-func (m *Manager) CleanRemoteResourceTables() {
-	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
-}
+//func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
+//	m.remoteTableQueue = append(m.remoteTableQueue, table)
+//}
+//func (m *Manager) UpdateRemoteResouceTable(table *types.RemoteResourceTable) {
+//	for i := 0; i < len(m.remoteTableQueue); i++ {
+//		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
+//			m.remoteTableQueue[i] = table
+//		}
+//	}
+//}
+//func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable) {
+//	var has bool
+//	for i := 0; i < len(m.remoteTableQueue); i++ {
+//		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
+//			m.remoteTableQueue[i] = table
+//			has = true
+//		}
+//	}
+//	if has {
+//		return
+//	}
+//	m.remoteTableQueue = append(m.remoteTableQueue, table)
+//}
+//func (m *Manager) DelRemoteResourceTable(identityId string) {
+//	for i := 0; i < len(m.remoteTableQueue); i++ {
+//		if m.remoteTableQueue[i].GetIdentityId() == identityId {
+//			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
+//			i--
+//		}
+//	}
+//}
+//func (m *Manager) CleanRemoteResourceTables() {
+//	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
+//}
 func (m *Manager) GetRemoteResouceTables() []*types.RemoteResourceTable { return m.remoteTableQueue }
 func (m *Manager) refreshOrgResourceTable() error {
 	resources, err := m.dataCenter.GetResourceList()
 	if nil != err {
 		return err
 	}
-	tmp := make(map[string]*types.Resource, len(resources))
-	for _, r := range resources {
-		tmp[r.GetIdentityId()] = r
-	}
-	for i := 0; i < len(m.remoteTableQueue); i++ {
 
-		resource := m.remoteTableQueue[i]
+	remoteResourceArr := make([]*types.RemoteResourceTable, len(resources))
 
-		// If has, update
-		if r, ok := tmp[resource.GetIdentityId()]; ok {
-			m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)
-			delete(tmp, resource.GetIdentityId())
-		} else {
-			// If no has, delete
-			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
-			i--
-		}
+	for i, r := range resources {
+		remoteResourceArr[i] = types.NewOrgResourceFromResource(r)
 	}
-	// If is new one, add
-	for _, r := range tmp {
-		m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
-	}
+
+	m.remoteTableQueue = remoteResourceArr
+
+	//tmpMap := make(map[string]int, len(resources))
+	//tmpArr := make([]*types.Resource, len(resources))
+	//for i, r := range resources {
+	//	tmpMap[r.GetIdentityId()] = i
+	//	tmpArr[i] = r
+	//}
+	//
+	//for i := 0; i < len(m.remoteTableQueue); i++ {
+	//
+	//	resource := m.remoteTableQueue[i]
+	//
+	//	// If has, update
+	//	if index, ok := tmpMap[resource.GetIdentityId()]; ok {
+	//		r := tmpArr[index]
+	//		m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)
+	//		delete(tmpMap, resource.GetIdentityId())
+	//	} else {
+	//		// If no has, delete
+	//		m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
+	//		i--
+	//	}
+	//}
+	//// If is new one, add
+	//if len(tmpMap) != 0 {
+	//	for _, r := range tmpArr {
+	//		if _, ok := tmpMap[r.GetIdentityId()]; ok {
+	//			m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
+	//		}
+	//	}
+	//}
 	return nil
 }
 
@@ -377,18 +394,18 @@ func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option R
 	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, releaseOption: {%d}", logdesc, taskId, option)
 	if option.IsUnlockLocalResorce() {
 		if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
-			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
+			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
 	}
 	if option.IsRemoveLocalTask() {
 		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
 		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
-			log.Errorf("Failed to remove local task  %s, taskId: {%s}", logdesc, taskId)
+			log.Errorf("Failed to remove local task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
 	}
 	if option.IsCleanTaskEvents() {
 		if err := m.dataCenter.CleanTaskEventList(taskId); nil != err {
-			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}", logdesc, taskId)
+			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
 	}
 }

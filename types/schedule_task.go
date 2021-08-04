@@ -149,7 +149,16 @@ type TaskConsResult struct {
 }
 
 type TaskSchedStatus bool
-
+func (status TaskSchedStatus) String() string {
+	switch status {
+	case TaskSchedOk:
+		return "TaskSchedOk"
+	case TaskSchedFailed:
+		return "TaskSchedFailed"
+	default:
+		return "UnknownTaskSchedResult"
+	}
+}
 const (
 	TaskSchedOk     TaskSchedStatus = true
 	TaskSchedFailed TaskSchedStatus = false
@@ -161,7 +170,10 @@ type ScheduleResult struct {
 	Err      error
 	Resource *PrepareVoteResource
 }
-
+func (res *ScheduleResult) String() string {
+	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s, "resource": %s}`,
+		res.TaskId, res.Status.String(), res.Err, res.Resource.String())
+}
 type ConsensuResult struct {
 	*TaskConsResult
 }

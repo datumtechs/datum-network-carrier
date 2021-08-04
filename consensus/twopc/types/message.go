@@ -168,7 +168,21 @@ func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate
 //func (pstate *ProposalState) CurrPeriodDuration() uint64 {
 //	return pstate.PeriodStartTime - pstate.PeriodEndTime
 //}
-func (pstate *ProposalState) GetPeriod() ProposalStatePeriod { return pstate.PeriodNum }
+func (pstate *ProposalState) GetPeriod() string {
+
+	switch pstate.PeriodNum  {
+	case PeriodPrepare:
+		return "PeriodPrepare"
+	case PeriodConfirm:
+		return "PeriodConfirm"
+	case PeriodCommit:
+		return "PeriodCommit"
+	case PeriodFinished:
+		return "PeriodFinished"
+	default:
+		return "PeriodUnknown"
+	}
+}
 func (pstate *ProposalState) IsPreparePeriod() bool          { return pstate.PeriodNum == PeriodPrepare }
 func (pstate *ProposalState) IsConfirmPeriod() bool          { return pstate.PeriodNum == PeriodConfirm }
 func (pstate *ProposalState) IsCommitPeriod() bool           { return pstate.PeriodNum == PeriodCommit }

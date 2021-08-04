@@ -102,8 +102,20 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 		return nil, ErrSendPowerMsg
 	}
 
+	//if identity.IdentityId() != req.Owner.IdentityId {
+	//	return nil, errors.New("invalid identityId of req")
+	//}
+	//if identity.NodeId() != req.Owner.NodeId {
+	//	return nil, errors.New("invalid nodeId of req")
+	//}
+	//if identity.Name() != req.Owner.Name {
+	//	return nil, errors.New("invalid nodeName of req")
+	//}
+
+
 	powerMsg := types.NewPowerMessageFromRequest(req)
 	powerId := powerMsg.SetPowerId()
+
 
 	err = svr.B.SendMsg(powerMsg)
 	if nil != err {
@@ -131,6 +143,16 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
 		return nil, ErrSendPowerRevokeMsg
 	}
+
+	//if identity.IdentityId() != req.Owner.IdentityId {
+	//	return nil, errors.New("invalid identityId of req")
+	//}
+	//if identity.NodeId() != req.Owner.NodeId {
+	//	return nil, errors.New("invalid nodeId of req")
+	//}
+	//if identity.Name() != req.Owner.Name {
+	//	return nil, errors.New("invalid nodeName of req")
+	//}
 
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 
