@@ -214,7 +214,6 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 	}
 	if typ == types.PREFIX_TYPE_JOBNODE {
 
-
 		// 算力已发布的jobNode不可以直接删除
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
@@ -669,7 +668,6 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 		return nil, err
 	}
 
-
 	makeTaskViewFn := func(task *types.Task) *types.TaskDetailShow {
 		// task 发起方
 		if task.TaskData().GetIdentity() == localIdentityId {
@@ -699,7 +697,6 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 		return nil
 	}
 
-
 	result := make([]*types.TaskDetailShow, 0)
 	for _, task := range localTaskArray {
 		if taskView := makeTaskViewFn(task); nil != taskView {
@@ -724,7 +721,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	}
 
 	// 先查出 task 在本地的 eventList
-	localEventList ,err := s.carrier.carrierDB.GetTaskEventList(taskId)
+	localEventList, err := s.carrier.carrierDB.GetTaskEventList(taskId)
 	if nil != err {
 		return nil, err
 	}
@@ -732,13 +729,13 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	evenList := make([]*types.TaskEvent, len(localEventList))
 	for i, e := range localEventList {
 		evenList[i] = &types.TaskEvent{
-			TaskId: e.TaskId,
-			Type: e.Type,
+			TaskId:   e.TaskId,
+			Type:     e.Type,
 			CreateAt: e.CreateTime,
-			Content: e.Content,
+			Content:  e.Content,
 			Owner: &types.NodeAlias{
-				Name: identity.Name,
-				NodeId: identity.NodeId,
+				Name:       identity.Name,
+				NodeId:     identity.NodeId,
 				IdentityId: identity.IdentityId,
 			},
 		}
@@ -760,22 +757,22 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*type
 	}
 
 	evenList := make([]*types.TaskEvent, 0)
-	
+
 	// 先查出 task 在本地的 eventList
 	for _, taskId := range taskIds {
-		localEventList ,err := s.carrier.carrierDB.GetTaskEventList(taskId)
+		localEventList, err := s.carrier.carrierDB.GetTaskEventList(taskId)
 		if nil != err {
 			return nil, err
 		}
 		for i, e := range localEventList {
 			evenList[i] = &types.TaskEvent{
-				TaskId: e.TaskId,
-				Type: e.Type,
+				TaskId:   e.TaskId,
+				Type:     e.Type,
 				CreateAt: e.CreateTime,
-				Content: e.Content,
+				Content:  e.Content,
 				Owner: &types.NodeAlias{
-					Name: identity.Name,
-					NodeId: identity.NodeId,
+					Name:       identity.Name,
+					NodeId:     identity.NodeId,
 					IdentityId: identity.IdentityId,
 				},
 			}
