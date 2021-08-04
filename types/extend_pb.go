@@ -357,7 +357,8 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			ResourceSupplier: make([]*libTypes.TaskResourceSupplierData, 0, len(v.GetPowerSupplier())),
 			Receivers:        make([]*libTypes.TaskResultReceiverData, 0, len(v.GetReceivers())),
 			PartnerList:      make([]*libTypes.OrganizationData, 0, len(v.GetDataSupplier())),
-			EventDataList:    make([]*libTypes.EventData, 0, len(v.GetTaskEventList())),
+			//EventDataList:    make([]*libTypes.EventData, 0, len(v.GetTaskEventList())),
+			EventDataList: nil,
 		})
 
 		// MetadataSupplier filling
@@ -431,17 +432,17 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			}
 			task.data.Receivers = append(task.data.Receivers, receiverData)
 		}
-		// eventList
-		for _, ev := range v.GetTaskEventList() {
-			event := &libTypes.EventData{
-				TaskId: ev.TaskId,
-				Identity: ev.Owner.IdentityId,
-				EventType: ev.Type,
-				EventContent: ev.Content,
-				EventAt: ev.CreateAt,
-			}
-			task.data.EventDataList = append(task.data.EventDataList, event)
-		}
+		//// eventList  event 交由另外的 接口去查询, 本接口只查 task 详情 ...
+		//for _, ev := range v.GetTaskEventList() {
+		//	event := &libTypes.EventData{
+		//		TaskId: ev.TaskId,
+		//		Identity: ev.Owner.IdentityId,
+		//		EventType: ev.Type,
+		//		EventContent: ev.Content,
+		//		EventAt: ev.CreateAt,
+		//	}
+		//	task.data.EventDataList = append(task.data.EventDataList, event)
+		//}
 
 		taskArray = append(taskArray, task)
 	}

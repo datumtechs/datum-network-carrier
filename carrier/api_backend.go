@@ -653,7 +653,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
 	// the task is executing.
-	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskAndEventsList()
+	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
 
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
@@ -717,13 +717,77 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 }
 
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
+
+	identity, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		return nil, err
+	}
+
+	// 先查出 task 在本地的 eventList
+	localEventList ,err := s.carrier.carrierDB.GetTaskEventList(taskId)
+	if nil != err {
+		return nil, err
+	}
+
+	evenList := make([]*types.TaskEvent, len(localEventList))
+	for i, e := range localEventList {
+		evenList[i] = &types.TaskEvent{
+			TaskId: e.TaskId,
+			Type: e.Type,
+			CreateAt: e.CreateTime,
+			Content: e.Content,
+			Owner: &types.NodeAlias{
+				Name: identity.Name,
+				NodeId: identity.NodeId,
+				IdentityId: identity.IdentityId,
+			},
+		}
+	}
+
 	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskId(taskId)
-	return types.NewTaskEventFromAPIEvent(taskEvent), err
+	if nil != err {
+		return nil, err
+	}
+	evenList = append(evenList, types.NewTaskEventFromAPIEvent(taskEvent)...)
+	return evenList, nil
 }
 
 func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*types.TaskEvent, error) {
+
+	identity, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		return nil, err
+	}
+
+	evenList := make([]*types.TaskEvent, 0)
+	
+	// 先查出 task 在本地的 eventList
+	for _, taskId := range taskIds {
+		localEventList ,err := s.carrier.carrierDB.GetTaskEventList(taskId)
+		if nil != err {
+			return nil, err
+		}
+		for i, e := range localEventList {
+			evenList[i] = &types.TaskEvent{
+				TaskId: e.TaskId,
+				Type: e.Type,
+				CreateAt: e.CreateTime,
+				Content: e.Content,
+				Owner: &types.NodeAlias{
+					Name: identity.Name,
+					NodeId: identity.NodeId,
+					IdentityId: identity.IdentityId,
+				},
+			}
+		}
+	}
+
 	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskIds(taskIds)
-	return types.NewTaskEventFromAPIEvent(taskEvent), err
+	if nil != err {
+		return nil, err
+	}
+	evenList = append(evenList, types.NewTaskEventFromAPIEvent(taskEvent)...)
+	return evenList, nil
 }
 
 // about DataResourceTable
