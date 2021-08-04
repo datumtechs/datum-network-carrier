@@ -445,7 +445,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		if err := sche.resourceMng.LockLocalResourceWithTask(selfResourceInfo.Id, needSlotCount,
 			replayScheduleTask.Task); nil != err {
 			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s}, err: {%s}",
-				selfResourceInfo.Id, replayScheduleTask.Task.TaskId, err)
+				selfResourceInfo.Id, replayScheduleTask.Task.TaskId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
 				fmt.Errorf("failed to lock localresource, {%s}", err))
 			return
