@@ -767,8 +767,8 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*type
 		if rawdb.IsDBNotFoundErr(err) {
 			continue
 		}
-		for i, e := range localEventList {
-			evenList[i] = &types.TaskEvent{
+		for _, e := range localEventList {
+			evenList = append(evenList, &types.TaskEvent{
 				TaskId:   e.TaskId,
 				Type:     e.Type,
 				CreateAt: e.CreateTime,
@@ -778,7 +778,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*type
 					NodeId:     identity.NodeId,
 					IdentityId: identity.IdentityId,
 				},
-			}
+			})
 		}
 	}
 
