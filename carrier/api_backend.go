@@ -653,7 +653,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
 	// the task is executing.
-	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
+	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskAndEventsList()
 
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
