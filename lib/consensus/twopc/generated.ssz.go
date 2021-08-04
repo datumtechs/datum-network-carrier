@@ -1299,7 +1299,7 @@ func (t *TaskPeerInfo) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the TaskPeerInfo object to a target array
 func (t *TaskPeerInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(8)
+	offset := int(12)
 
 	// Offset (0) 'Ip'
 	dst = ssz.WriteOffset(dst, offset)
@@ -1308,6 +1308,10 @@ func (t *TaskPeerInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Offset (1) 'Port'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.Port)
+
+	// Offset (2) 'PartyId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.PartyId)
 
 	// Field (0) 'Ip'
 	if len(t.Ip) > 64 {
@@ -1323,6 +1327,13 @@ func (t *TaskPeerInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, t.Port...)
 
+	// Field (2) 'PartyId'
+	if len(t.PartyId) > 64 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.PartyId...)
+
 	return
 }
 
@@ -1330,24 +1341,29 @@ func (t *TaskPeerInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (t *TaskPeerInfo) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 8 {
+	if size < 12 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1 uint64
+	var o0, o1, o2 uint64
 
 	// Offset (0) 'Ip'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 8 {
+	if o0 < 12 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
 	// Offset (1) 'Port'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (2) 'PartyId'
+	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
 		return ssz.ErrOffset
 	}
 
@@ -1365,7 +1381,7 @@ func (t *TaskPeerInfo) UnmarshalSSZ(buf []byte) error {
 
 	// Field (1) 'Port'
 	{
-		buf = tail[o1:]
+		buf = tail[o1:o2]
 		if len(buf) > 64 {
 			return ssz.ErrBytesLength
 		}
@@ -1374,18 +1390,33 @@ func (t *TaskPeerInfo) UnmarshalSSZ(buf []byte) error {
 		}
 		t.Port = append(t.Port, buf...)
 	}
+
+	// Field (2) 'PartyId'
+	{
+		buf = tail[o2:]
+		if len(buf) > 64 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.PartyId) == 0 {
+			t.PartyId = make([]byte, 0, len(buf))
+		}
+		t.PartyId = append(t.PartyId, buf...)
+	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the TaskPeerInfo object
 func (t *TaskPeerInfo) SizeSSZ() (size int) {
-	size = 8
+	size = 12
 
 	// Field (0) 'Ip'
 	size += len(t.Ip)
 
 	// Field (1) 'Port'
 	size += len(t.Port)
+
+	// Field (2) 'PartyId'
+	size += len(t.PartyId)
 
 	return
 }
@@ -1412,6 +1443,13 @@ func (t *TaskPeerInfo) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 	hh.PutBytes(t.Port)
+
+	// Field (2) 'PartyId'
+	if len(t.PartyId) > 64 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.PartyId)
 
 	hh.Merkleize(indx)
 	return
