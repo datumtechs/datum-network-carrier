@@ -669,41 +669,47 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 		return nil, err
 	}
 
-	result := make([]*types.TaskDetailShow, 0)
-	for _, task := range localTaskArray {
-		result = append(result, types.NewTaskDetailShowFromTaskData(task, types.TaskRoleOwner.String()))
-	}
 
-	for _, networkTask := range networkTaskList {
-
+	makeTaskViewFn := func(task *types.Task) *types.TaskDetailShow {
 		// task 发起方
-		if networkTask.TaskData().GetIdentity() == localIdentityId {
-			result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRoleOwner.String()))
-			continue
+		if task.TaskData().GetIdentity() == localIdentityId {
+			return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleOwner.String())
 		}
 
 		// task 参与方
-		for _, dataSupplier := range networkTask.TaskData().MetadataSupplier {
+		for _, dataSupplier := range task.TaskData().MetadataSupplier {
 			if dataSupplier.Organization.Identity == localIdentityId {
-				result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRoleDataSupplier.String()))
-				continue
+				return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleDataSupplier.String())
 			}
 		}
 
 		// 算力提供方
-		for _, powerSupplier := range networkTask.TaskData().ResourceSupplier {
+		for _, powerSupplier := range task.TaskData().ResourceSupplier {
 			if powerSupplier.Organization.Identity == localIdentityId {
-				result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRolePowerSupplier.String()))
-				continue
+				return types.NewTaskDetailShowFromTaskData(task, types.TaskRolePowerSupplier.String())
 			}
 		}
 
 		// 数据接收方
-		for _, receiver := range networkTask.TaskData().Receivers {
+		for _, receiver := range task.TaskData().Receivers {
 			if receiver.Receiver.Identity == localIdentityId {
-				result = append(result, types.NewTaskDetailShowFromTaskData(networkTask, types.TaskRoleReceiver.String()))
-				continue
+				return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleReceiver.String())
 			}
+		}
+		return nil
+	}
+
+
+	result := make([]*types.TaskDetailShow, 0)
+	for _, task := range localTaskArray {
+		if taskView := makeTaskViewFn(task); nil != taskView {
+			result = append(result, taskView)
+		}
+	}
+
+	for _, networkTask := range networkTaskList {
+		if taskView := makeTaskViewFn(networkTask); nil != taskView {
+			result = append(result, taskView)
 		}
 	}
 
