@@ -147,6 +147,10 @@ func (s *Service) initCaches() error {
 
 func (s *Service) registerHandlers() {
 	// Wait until chain start.
+
+	// Register respective rpc handlers at state initialized evengine.
+	s.registerRPCHandlers()
+	
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := s.cfg.StateNotifier.StateFeed().Subscribe(stateChannel)
 	defer stateSub.Unsubscribe()
@@ -163,8 +167,7 @@ func (s *Service) registerHandlers() {
 				startTime := data.StartTime
 				log.WithField("starttime", startTime).Debug("Received state initialized evengine")
 
-				// Register respective rpc handlers at state initialized evengine.
-				s.registerRPCHandlers()
+
 				// Wait for chainstart in separate routine.
 				go func() {
 					if startTime.After(timeutils.Now()) {
