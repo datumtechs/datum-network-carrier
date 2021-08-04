@@ -392,12 +392,12 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 
 func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option ReleaseResourceOption) {
 	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, releaseOption: {%d}", logdesc, taskId, option)
-	if option.IsUnlockLocalResorce() {
-		log.Debugf("start unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
-		if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
-			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
-		}
-	}
+	//if option.IsUnlockLocalResorce() {
+	//	log.Debugf("start unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
+	//	if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
+	//		log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
+	//	}
+	//}
 	//if option.IsRemoveLocalTask() {
 	//	log.Debugf("start remove local task  %s, taskId: {%s}", logdesc, taskId)
 	//	// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
