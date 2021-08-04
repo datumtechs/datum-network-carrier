@@ -338,7 +338,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	// Send task to Scheduler to replay sched.
 	replaySchedTask := types.NewReplayScheduleTaskWrap(
 		types.TaskRoleFromBytes(prepareMsg.TaskRole),
-		string(prepareMsg.TaskPartyId),
+		msg.TaskPartyId,
 		task)
 
 	// replay schedule task on myself ...
@@ -352,7 +352,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 			Name:       self.Name,
 			NodeId:     self.NodeId,
 			IdentityId: self.IdentityId,
-			PartyId:    string(prepareMsg.TaskPartyId),
+			PartyId:    msg.TaskPartyId,
 		},
 		CreateAt: uint64(timeutils.UnixMsec()),
 		//Sign:
@@ -367,7 +367,8 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		vote.PeerInfo = &types.PrepareVoteResource{
 			Ip:      result.Resource.Ip,
 			Port:    result.Resource.Port,
-			PartyId: result.Resource.PartyId,
+			//PartyId: result.Resource.PartyId,
+			PartyId: msg.TaskPartyId,
 		}
 		log.Infof("Succeed to replay schedule task, will vote `YES`, taskId: {%s}", result.TaskId)
 	}
@@ -865,7 +866,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	// If sending `CommitMsg` is successful,
 	// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 	go func() {
-		
+
 		t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole,
 			&libTypes.OrganizationData{
 				PartyId:  msg.TaskPartyId,
