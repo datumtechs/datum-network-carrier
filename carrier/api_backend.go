@@ -722,7 +722,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 
 	// 先查出 task 在本地的 eventList
 	localEventList, err := s.carrier.carrierDB.GetTaskEventList(taskId)
-	if nil != err {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
 
@@ -761,8 +761,11 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*type
 	// 先查出 task 在本地的 eventList
 	for _, taskId := range taskIds {
 		localEventList, err := s.carrier.carrierDB.GetTaskEventList(taskId)
-		if nil != err {
+		if rawdb.IsNoDBNotFoundErr(err) {
 			return nil, err
+		}
+		if rawdb.IsDBNotFoundErr(err) {
+			continue
 		}
 		for i, e := range localEventList {
 			evenList[i] = &types.TaskEvent{
