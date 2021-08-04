@@ -196,7 +196,7 @@ func fetchCommitMsg(commitMsg *types.CommitMsgWrap) (*types.CommitMsg, error) {
 }
 
 func fetchTaskResultMsg(commitMsg *types.TaskResultMsgWrap) (*types.TaskResultMsg, error) {
-	taskEventList := make([]*types.TaskEventInfo, 0)
+	taskEventList := make([]*types.TaskEventInfo, len(commitMsg.TaskEventList))
 	for index, value := range commitMsg.TaskEventList {
 		taskEventList[index] = &types.TaskEventInfo{
 			Type:       string(value.Type),

@@ -508,7 +508,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		case types.TaskStateRunning:
 
 			if err := m.driveTaskForExecute(task); nil != err {
-				log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
+				log.Errorf("Failed to execute task on taskOnwer node, taskId:{ %s}, %s", task.Task.SchedTask.TaskId(), err)
 				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 					task.Task.SchedTask.TaskId(), task.Task.SchedTask.TaskData().Identity, fmt.Sprintf("failed to execute task"))
 				// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter  (里面有解锁 本地资源 ...)
@@ -517,7 +517,8 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 			}
 			// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
 		default:
-			log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
+			log.Errorf("Failed to handle unknown task state, taskId: {%s}, taskRole: {%s}, taskState: {%s}",
+				task.Task.SchedTask.TaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
 		}
 	//case types.DataSupplier:
 	//case types.PowerSupplier:
@@ -530,7 +531,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		case types.TaskStateRunning:
 
 			if err := m.driveTaskForExecute(task); nil != err {
-				log.Errorf("Failed to execute task on taskOnwer node, taskId: %s, %s", task.Task.SchedTask.TaskId, err)
+				log.Errorf("Failed to execute task on taskOnwer node, taskId: {%s}, %s", task.Task.SchedTask.TaskId(), err)
 				identityId, _ := m.dataCenter.GetIdentityId()
 				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 					task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("failed to execute task"))
@@ -540,7 +541,8 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 				m.sendTaskResultMsgToConsensus(taskId)
 			}
 		default:
-			log.Error("Failed to handle unknown task", "taskId", task.Task.SchedTask.TaskId)
+			log.Errorf("Failed to handle unknown task state, taskId: {%s}, taskRole: {%s}, taskState: {%s}",
+				task.Task.SchedTask.TaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
 		}
 	}
 }
