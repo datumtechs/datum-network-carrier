@@ -555,12 +555,12 @@ func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
 func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 	blob, err := db.Get(taskEventKey(taskEvent.TaskId))
 	if err != nil {
-		log.WithError(err).Warn("Failed to load old task evengine")
+		log.WithError(err).Warn("Failed to load old task events")
 	}
 	var array dbtype.TaskEventArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
-			log.WithError(err).Fatal("Failed to decode old task evengine")
+			log.WithError(err).Fatal("Failed to decode old task events")
 		}
 	}
 	//for _, s := range array.GetTaskEventList() {
@@ -581,10 +581,10 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 
 	data, err := array.Marshal()
 	if err != nil {
-		log.WithError(err).Fatal("Failed to encode task evengine")
+		log.WithError(err).Fatal("Failed to encode task events")
 	}
 	if err := db.Put(taskEventKey(taskEvent.TaskId), data); err != nil {
-		log.WithError(err).Fatal("Failed to write task evengine")
+		log.WithError(err).Fatal("Failed to write task events")
 	}
 }
 
@@ -597,7 +597,7 @@ func DeleteTaskEvent(db KeyValueStore, taskId string) {
 	var array dbtype.TaskEventArrayPB
 	if len(blob) > 0 {
 		if err := array.Unmarshal(blob); err != nil {
-			log.WithError(err).Fatal("Failed to decode old task evengine")
+			log.WithError(err).Fatal("Failed to decode old task events")
 		}
 	}
 	finalArray := new(dbtype.TaskEventArrayPB)
@@ -660,7 +660,7 @@ func WriteLocalResource(db KeyValueStore, localResource *types.LocalResource) {
 		log.WithError(err).Fatal("Failed to encode local resource")
 	}
 	if err := db.Put(localResourceKey(localResource.GetJobNodeId()), buffer.Bytes()); err != nil {
-		log.WithError(err).Fatal("Failed to write task evengine")
+		log.WithError(err).Fatal("Failed to write local resource")
 	}
 }
 
