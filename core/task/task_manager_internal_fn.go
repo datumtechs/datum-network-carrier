@@ -213,6 +213,8 @@ func (m *Manager) pulishFinishedTaskToDataCenter(taskId, taskState string) {
 	// clean local task cache
 	m.removeRunningTaskCache(taskId)
 	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.pulishFinishedTaskToDataCenter()", taskId, resource.SetAllReleaseResourceOption())
+
+	log.Debugf("Finished pulishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", taskId, taskState)
 }
 func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 
@@ -247,7 +249,6 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 	msg.Data.TaskData().EndAt = uint64(timeutils.UnixMsec())
 	return m.dataCenter.InsertTask(msg.Data)
 }
-
 
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types.TaskEventInfo, state string)  *types.Task {
 	task.TaskData().EventDataList = types.ConvertTaskEventArrToDataCenter(eventList)
@@ -531,7 +532,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		case types.TaskStateRunning:
 
 			if err := m.driveTaskForExecute(task); nil != err {
-				log.Errorf("Failed to execute task on taskOnwer node, taskId: {%s}, %s", task.Task.SchedTask.TaskId(), err)
+				log.Errorf("Failed to execute task on %s node, taskId: {%s}, %s", task.SelfTaskRole.String(), task.Task.SchedTask.TaskId(), err)
 				identityId, _ := m.dataCenter.GetIdentityId()
 				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 					task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("failed to execute task"))

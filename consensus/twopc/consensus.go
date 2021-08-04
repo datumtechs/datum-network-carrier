@@ -345,6 +345,8 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	t.sendReplaySchedTaskToScheduler(replaySchedTask)
 	result := replaySchedTask.RecvResult()
 
+	log.Debugf("Received the reschedule task result from `scheduler.replaySchedule()`, the result: %s", result.String())
+
 	vote := &types.PrepareVote{
 		ProposalId: proposal.ProposalId,
 		TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskRole),
@@ -367,8 +369,8 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		vote.PeerInfo = &types.PrepareVoteResource{
 			Ip:      result.Resource.Ip,
 			Port:    result.Resource.Port,
-			//PartyId: result.Resource.PartyId,
-			PartyId: msg.TaskPartyId,
+			PartyId: result.Resource.PartyId,
+			//PartyId: msg.TaskPartyId,
 		}
 		log.Infof("Succeed to replay schedule task, will vote `YES`, taskId: {%s}", result.TaskId)
 	}
@@ -564,7 +566,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 	log.Debugf("Received remote confirmMsg, remote pid: {%s}, confirmMsg: %s", pid, msg.String())
 
 	if t.state.HasNotProposal(msg.ProposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s onConfirmMsg", ctypes.ErrProposalNotFound)
 	}
 
 	// If you have already voted then we will not vote again
@@ -652,7 +654,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	log.Debugf("Received remote confirmVote, remote pid: {%s}, comfirmVote: %s", pid, voteMsg.String())
 
 	if t.state.HasNotProposal(voteMsg.ProposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s onConfirmVote", ctypes.ErrProposalNotFound)
 	}
 	proposalState := t.state.GetProposalState(voteMsg.ProposalId)
 	// 只有 当前 state 是 confirm 状态才可以处理 confirm 阶段的 vote
@@ -829,7 +831,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	log.Debugf("Received remote commitMsg, remote pid: {%s}, commitMsg: %s", pid, msg.String())
 
 	if t.state.HasNotProposal(msg.ProposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s onCommitMsg", ctypes.ErrProposalNotFound)
 	}
 
 	proposalState := t.state.GetProposalState(msg.ProposalId)
@@ -899,13 +901,15 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
 	if t.state.HasNotProposal(msg.ProposalId) {
-		return ctypes.ErrProposalNotFound
+		return fmt.Errorf("%s onTaskResultMsg", ctypes.ErrProposalNotFound)
 	}
 	proposalState := t.state.GetProposalState(msg.ProposalId)
 
 	// 只有 当前 state 是 commit <定时任务还未更新 proposalState>
 	// 或 finished <定时任务更新了 proposalState> 状态才可以处理 commit 阶段的 Msg
 	if proposalState.IsNotCommitPeriod() || proposalState.IsNotFinishedPeriod() {
+		log.Debugf("Current proposalState is taskResult timeout on `onTaskResultMsg`, proposalId: {%s}, epoch: {%s}",
+			proposalState.ProposalId.String(), proposalState.GetPeriod())
 		return ctypes.ErrProposalTaskResultMsgTimeout
 	}
 

@@ -136,7 +136,7 @@ func (t *TwoPC) refreshProposalState() {
 			continue
 		}
 
-		switch proposalState.GetPeriod() {
+		switch proposalState.CurrPeriodNum() {
 		case ctypes.PeriodPrepare:
 			if proposalState.IsPrepareTimeout() {
 				log.Debugf("Started refresh proposalState loop, the proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}",
