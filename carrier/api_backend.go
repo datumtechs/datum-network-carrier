@@ -510,7 +510,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		if ok {
 			usedArr = append(usedArr, taskPowerUsed)
 		} else {
-			usedArr = make([]*types.LocalTaskPowerUsed, 0)
+			usedArr = []*types.LocalTaskPowerUsed{taskPowerUsed}
 		}
 		validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()] = usedArr
 	}
