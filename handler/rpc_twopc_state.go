@@ -217,7 +217,7 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 	if err := s.onTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		log.WithError(err).Errorf("Failed to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
+		log.WithError(err).Warnf("Warning to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
 		return err
 	}
 

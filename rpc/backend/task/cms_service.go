@@ -8,6 +8,7 @@ import (
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"strings"
 )
 
 //func (svr *TaskServiceServer) GetTaskSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskSummaryListResponse, error) {
@@ -33,7 +34,7 @@ func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.Emp
 		}
 		arr[i] = t
 	}
-	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}", len(arr))
+	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}, json: %s", len(arr), utilTaskDetailResponseArrString(arr))
 	return &pb.GetTaskDetailListResponse{
 		Status:   0,
 		Msg:      backend.OK,
@@ -183,4 +184,16 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 		Msg:    backend.OK,
 		TaskId: taskId,
 	}, nil
+}
+
+
+func utilTaskDetailResponseArrString(tasks []*pb.GetTaskDetailResponse) string {
+	arr := make([]string, len(tasks))
+	for i, t := range tasks {
+		arr[i] = t.String()
+	}
+	if len(arr) != 0 {
+		return "[" + strings.Join(arr, ",") + "]"
+	}
+	return "[]"
 }

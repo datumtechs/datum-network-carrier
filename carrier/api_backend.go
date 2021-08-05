@@ -494,12 +494,12 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryLocalTaskPowerUseds, localTaskPowerUsedList: %s",
 		utilLocalTaskPowerUsedArrString(localTaskPowerUsedList))
 
-	slotUint, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
+	slotUnit, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
-		slotUint.String())
+		slotUnit.String())
 
 
 	// 收集 本地所有的 jonNode 上的 powerUsed 数组
@@ -582,9 +582,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
 				powerTask.OperationSpend = &types.TaskOperationCost{
-					Processor: slotUint.Processor * slotCount,
-					Mem:       slotUint.Mem * slotCount,
-					Bandwidth: slotUint.Bandwidth * slotCount,
+					Processor: slotUnit.Processor * slotCount,
+					Mem:       slotUnit.Mem * slotCount,
+					Bandwidth: slotUnit.Bandwidth * slotCount,
 					Duration:  task.TaskData().GetTaskResource().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)

@@ -908,7 +908,7 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 	// 只有 当前 state 是 commit <定时任务还未更新 proposalState>
 	// 或 finished <定时任务更新了 proposalState> 状态才可以处理 commit 阶段的 Msg
 	if proposalState.IsNotCommitPeriod() || proposalState.IsNotFinishedPeriod() {
-		log.Debugf("Current proposalState is taskResult timeout on `onTaskResultMsg`, proposalId: {%s}, epoch: {%s}",
+		log.Warnf("Warning the current proposalState is taskResult timeout on `onTaskResultMsg`, proposalId: {%s}, epoch: {%s}",
 			proposalState.ProposalId.String(), proposalState.GetPeriod())
 		return ctypes.ErrProposalTaskResultMsgTimeout
 	}

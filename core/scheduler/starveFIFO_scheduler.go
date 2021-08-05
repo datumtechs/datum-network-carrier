@@ -634,13 +634,14 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 					NodeId:   info.NodeId(),
 					Identity: info.IdentityId(),
 				},
+				// TODO 这里的 task 资源消耗是事先加上的 先在这里直接加上 写死的(任务定义的)
 				ResourceUsedOverview: &libTypes.ResourceUsedOverview{
 					TotalMem:       iden.GetTotalMem(),
-					UsedMem:        iden.GetUsedMem(),
+					UsedMem:        cost.Mem,
 					TotalProcessor: uint32(iden.GetTotalProcessor()),
-					UsedProcessor:  uint32(iden.GetUsedProcessor()),
+					UsedProcessor:  uint32(cost.Processor),
 					TotalBandwidth: iden.GetTotalBandWidth(),
-					UsedBandwidth:  iden.GetUsedBandWidth(),
+					UsedBandwidth:  cost.Bandwidth,
 				},
 			}
 			i++
