@@ -853,7 +853,7 @@ func utilLocalTaskPowerUsedArrString(used []*types.LocalTaskPowerUsed) string {
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
 	}
-	return ""
+	return "[]"
 }
 
 func utilLocalTaskPowerUsedMapString(taskPowerUsedMap map[string][]*types.LocalTaskPowerUsed) string {
@@ -864,5 +864,5 @@ func utilLocalTaskPowerUsedMapString(taskPowerUsedMap map[string][]*types.LocalT
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
 	}
-	return ""
+	return "[]"
 }

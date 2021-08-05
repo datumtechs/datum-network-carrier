@@ -99,7 +99,7 @@ func utilGetPowerSingleDetailResponseArrString(resp []*pb.GetPowerSingleDetailRe
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
 	}
-	return ""
+	return "[]"
 }
 
 func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {

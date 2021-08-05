@@ -669,7 +669,7 @@ func utilOrgPowerArrString(powers []*libTypes.TaskResourceSupplierData) string {
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
 	}
-	return ""
+	return "[]"
 }
 func utilLocalResourceArrString(resources []*types.LocalResourceTable) string {
 	arr := make([]string, len(resources))
@@ -679,7 +679,7 @@ func utilLocalResourceArrString(resources []*types.LocalResourceTable) string {
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
 	}
-	return ""
+	return "[]"
 }
 
 func utilRemoteResourceArrString(resources []*types.RemoteResourceTable) string {
@@ -690,7 +690,7 @@ func utilRemoteResourceArrString(resources []*types.RemoteResourceTable) string 
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
 	}
-	return ""
+	return "[]"
 }
 
 
@@ -702,5 +702,5 @@ func utilDataResourceArrString(resources []*types.DataResourceTable) string {
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
 	}
-	return ""
+	return "[]"
 }
