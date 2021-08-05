@@ -544,6 +544,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				taskId := powerUsed.GetTaskId()
 				task, err := s.carrier.carrierDB.GetLocalTask(taskId)
 				if err != nil {
+					log.Errorf("Failed to query local task on GetPowerSingleDetailList, taskId: {%s}, err: {%s}", taskId, err)
 					continue
 				}
 
