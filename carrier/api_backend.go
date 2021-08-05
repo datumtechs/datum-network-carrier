@@ -515,6 +515,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()] = usedArr
 	}
 
+	log.Debugf("Invoke:GetPowerSingleDetailList, make validLocalTaskPowerUsedMap, validLocalTaskPowerUsedMap: %s",
+		utilLocalTaskPowerUsedMapString(validLocalTaskPowerUsedMap))
+
 	//// 收集 本地所有 计算资源的 powerUsed 数组
 	//validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
 	//for _, jobNode := range machineList {
@@ -846,6 +849,17 @@ func utilLocalTaskPowerUsedArrString(used []*types.LocalTaskPowerUsed) string {
 	arr := make([]string, len(used))
 	for i, u := range used {
 		arr[i] = u.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return ""
+}
+
+func utilLocalTaskPowerUsedMapString(taskPowerUsedMap map[string][]*types.LocalTaskPowerUsed) string {
+	arr := make([]string, 0)
+	for jobNodeId, useds := range taskPowerUsedMap {
+		arr = append(arr, fmt.Sprintf(`{"%s": %s}`, jobNodeId, utilLocalTaskPowerUsedArrString(useds)))
 	}
 	if len(arr) != 0 {
 		return "[" +  strings.Join(arr, ",") + "]"
