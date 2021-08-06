@@ -175,12 +175,6 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 		repushFn := func(bullet *types.TaskBullet) {
 
-			//// unlock local resource
-			//if err := sche.resourceMng.UnLockLocalResourceWithTask(bullet.UnschedTask.Data.TaskId()); nil != err {
-			//	log.Errorf("Failed to call UnLockLocalResourceWithTask() on SchedulerStarveFIFO. repush into queue, taskId: {%s}, err: {%s}",
-			//		bullet.UnschedTask.Data.TaskId(), err)
-			//}
-
 			bullet.IncreaseResched()
 			if bullet.Resched > ReschedMaxCount {
 				// 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
@@ -293,6 +287,11 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 		// Send task to consensus Engine to consensus.
 		scheduleTask := types.ConvertTaskMsgToTaskWithPowers(task.Data, powers)
+		// restore task by power
+		if err := sche.dataCenter.StoreLocalTask(task.Data); nil != err {
+			log.Errorf("Failed tp update local task by election powers on `trySchedule()`, taskId: {%s}, err: {%s}", task.Data.TaskId(), err)
+		}
+
 		toConsensusTask := &types.ConsensusTaskWrap{
 			Task: scheduleTask,
 			OwnerDataResource: &types.PrepareVoteResource{

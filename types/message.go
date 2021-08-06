@@ -602,19 +602,6 @@ func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libTypes.TaskResourceS
 	return task
 }
 
-//type taskdata struct {
-//	TaskName              string                `json:"taskName"`
-//	Owner                 *TaskSupplier         `json:"owner"`
-//	Partners              []*TaskSupplier       `json:"partners"`
-//	PowerPartyIds         []string              `json:"powerPartyIds"`
-//	Receivers             []*TaskResultReceiver `json:"receivers"`
-//	CalculateContractCode string                `json:"calculateContractCode"`
-//	DataSplitContractCode string                `json:"dataSplitContractCode"`
-//	ContractExtraParams   string                `json:"contractExtraParams"`
-//	OperationCost         *TaskOperationCost    `json:"spend"`
-//	CreateAt              uint64                `json:"createAt"`
-//}
-
 type TaskMsgs []*TaskMsg
 
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
