@@ -115,6 +115,7 @@ func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Em
 		}
 		dataNodes[i] = node
 	}
+	log.Debugf("RPC-API:GetRegisteredPeers succeed, jobNode len: {%d}, dataNode len: {%d}", len(jobNodes), len(dataNodes))
 	return &pb.GetRegisteredPeersResponse{
 		Status:    0,
 		Msg:       backend.OK,

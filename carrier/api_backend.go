@@ -71,11 +71,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 			registerNodes[jobsLen+i] = n
 		}
 	}
-	//name, err := s.carrier.carrierDB.GetYarnName()
-	//if nil != err {
-	//	log.Error("Failed to get yarn nodeName, on GetNodeInfo(), err:", err)
-	//	return nil, err
-	//}
+
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
 		log.Warnf("Failed to get identity, on GetNodeInfo(), err: {%s}", err)
@@ -120,6 +116,13 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 	}
 	jns := make([]*types.YarnRegisteredJobNode, len(jobNodes))
 	for i, v := range jobNodes {
+
+		var duration uint64
+		node, has := s.carrier.resourceClientSet.QueryJobNodeClient(v.Id)
+		if has {
+			duration = uint64(node.RunningDuration())
+		}
+
 		n := &types.YarnRegisteredJobNode{
 			Id:           v.Id,
 			InternalIp:   v.InternalIp,
@@ -127,14 +130,22 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 			InternalPort: v.InternalPort,
 			ExternalPort: v.ExternalPort,
 			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: 0, // TODO 添加运行时长 ...
+			Duration: duration, // ms
 		}
+
 		n.Task.Count, _ = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
 		n.Task.TaskIds, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
 		jns[i] = n
 	}
 	dns := make([]*types.YarnRegisteredDataNode, len(jobNodes))
 	for i, v := range dataNodes {
+
+		var duration uint64
+		node, has := s.carrier.resourceClientSet.QueryDataNodeClient(v.Id)
+		if has {
+			duration = uint64(node.RunningDuration())
+		}
+
 		n := &types.YarnRegisteredDataNode{
 			Id:           v.Id,
 			InternalIp:   v.InternalIp,
@@ -142,7 +153,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 			InternalPort: v.InternalPort,
 			ExternalPort: v.ExternalPort,
 			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: 0, // TODO 添加运行时长 ...
+			Duration: duration, // ms
 		}
 		n.Delta.FileCount = 0
 		n.Delta.FileTotalSize = 0

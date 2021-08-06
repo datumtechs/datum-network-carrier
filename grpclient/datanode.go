@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc"
 	"google.golang.org/grpc"
@@ -21,6 +22,7 @@ type DataNodeClient struct {
 	addr   string
 	nodeId string
 	connMu sync.RWMutex
+	connStartAt   int64
 
 	//TODO: define some client...
 	dataProviderClient datasvc.DataProviderClient
@@ -58,6 +60,7 @@ func NewDataNodeClientWithConn(ctx context.Context, addr string, nodeId string) 
 }
 
 func (c *DataNodeClient) Close() {
+	c.connStartAt = 0
 	if c.cancel != nil {
 		c.cancel()
 	}
@@ -78,6 +81,7 @@ func (c *DataNodeClient) connecting() {
 		log.WithError(err).WithField("id", c.nodeId).WithField("adrr", c.addr).Error("Connect GRPC server(for datanode) failed")
 	}
 	c.conn = conn
+	c.connStartAt = timeutils.UnixMsec()
 }
 
 func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
@@ -99,11 +103,21 @@ func (c *DataNodeClient) IsConnected() bool {
 		return false
 	}
 }
+func (c *DataNodeClient) IsNotConnected() bool { return !c.IsConnected()}
 
 func (c *DataNodeClient) Reconnect() error {
 	c.connecting()
 	return nil
 }
+
+func (c *DataNodeClient) RunningDuration() int64 {
+	if c.IsNotConnected() {
+		c.connStartAt = 0
+		return 0
+	}
+	return timeutils.UnixMsec() - c.connStartAt
+}
+
 
 func (c *DataNodeClient) GetStatus() (*datasvc.GetStatusReply, error) {
 	return nil, errors.New("method GetStatus not implemented")

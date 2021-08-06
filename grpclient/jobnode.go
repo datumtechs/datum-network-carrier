@@ -3,6 +3,7 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	"github.com/pkg/errors"
@@ -19,6 +20,7 @@ type JobNodeClient struct {
 	addr   string
 	nodeId string
 	connMu sync.RWMutex
+	connStartAt   int64
 
 	//TODO: define some client...
 	computeProviderClient computesvc.ComputeProviderClient
@@ -56,10 +58,13 @@ func NewJobNodeClientWithConn(ctx context.Context, addr string, nodeId string) (
 }
 
 func (c *JobNodeClient) Close() {
+	c.connStartAt = 0
 	if c.cancel != nil {
 		c.cancel()
 	}
-	c.conn.Close()
+	if nil != c.conn {
+		c.conn.Close()
+	}
 }
 
 func (c *JobNodeClient) connecting() {
@@ -75,6 +80,7 @@ func (c *JobNodeClient) connecting() {
 		log.WithError(err).WithField("id", c.nodeId).WithField("addr", c.addr).Error("Connect GRPC server(for jobnode) failed")
 	}
 	c.conn = conn
+	c.connStartAt = timeutils.UnixMsec()
 }
 
 func (c *JobNodeClient) GetClientConn() *grpc.ClientConn {
@@ -96,10 +102,19 @@ func (c *JobNodeClient) IsConnected() bool {
 		return false
 	}
 }
+func (c *JobNodeClient) IsNotConnected() bool { return !c.IsConnected()}
 
 func (c *JobNodeClient) Reconnect() error {
 	c.connecting()
 	return nil
+}
+
+func (c *JobNodeClient) RunningDuration() int64 {
+	if c.IsNotConnected() {
+		c.connStartAt = 0
+		return 0
+	}
+	return timeutils.UnixMsec() - c.connStartAt
 }
 
 func (c *JobNodeClient) GetStatus() (*computesvc.GetStatusReply, error) {

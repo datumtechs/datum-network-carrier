@@ -82,14 +82,20 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 	}
 
 	// clinet *grpclient.DataNodeClient,
-	client, isconn := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
-	if !isconn {
+	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
+	if !has {
+		log.Errorf("Failed to query internal data node, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}",
+			task.Task.SchedTask.TaskId(), dataNodeId, ip, port)
+		return errors.New("data node client not found")
+	}
+	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.Errorf("Failed to connect internal data node, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
 				task.Task.SchedTask.TaskId(), dataNodeId, ip, port, err)
 			return err
 		}
 	}
+
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
 		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
@@ -151,14 +157,20 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 	}
 
 	// clinet *grpclient.DataNodeClient,
-	client, isconn := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
-	if !isconn {
+	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
+	if !has {
+		log.Errorf("Failed to query internal job node, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}",
+			task.Task.SchedTask.TaskId(), jobNodeId, ip, port)
+		return errors.New("job node client not found")
+	}
+	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.Errorf("Failed to connect internal job node, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
 				task.Task.SchedTask.TaskId(), jobNodeId, ip, port, err)
 			return err
 		}
 	}
+
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
 		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",

@@ -9,28 +9,6 @@ import (
 	"strings"
 )
 
-//
-//func (svr *PowerServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *PowerServiceServer) GetPowerSingleSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *PowerServiceServer) GetPowerTotalSummaryByState(ctx context.Context, req *pb.GetPowerTotalSummaryByStateRequest) (*pb.GetPowerTotalSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *PowerServiceServer) GetPowerSingleSummaryByState(ctx context.Context, req *pb.GetPowerSingleSummaryByStateRequest) (*pb.GetPowerSingleSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *PowerServiceServer) GetPowerTotalSummaryByOwner(ctx context.Context, req *pb.GetPowerTotalSummaryByOwnerRequest) (*pb.GetPowerTotalSummaryResponse, error) {
-//	return nil, nil
-//}
-//func (svr *PowerServiceServer) GetPowerSingleSummaryByOwner(ctx context.Context, req *pb.GetPowerSingleSummaryByOwnerRequest) (*pb.GetPowerSingleSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *PowerServiceServer) GetPowerSingleDetail(ctx context.Context, req *pb.GetPowerSingleDetailRequest) (*pb.GetPowerSingleDetailResponse, error) {
-//	return nil, nil
-//}
 func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {

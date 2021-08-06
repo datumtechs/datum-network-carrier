@@ -11,15 +11,6 @@ import (
 	"strings"
 )
 
-//func (svr *TaskServiceServer) GetTaskSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *TaskServiceServer) GetTaskJoinSummaryList(ctx context.Context, req *pb.GetTaskJoinSummaryListRequest) (*pb.GetTaskJoinSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *TaskServiceServer) GetTaskDetail(ctx context.Context, req *pb.GetTaskDetailRequest) (*pb.GetTaskDetailResponse, error) {
-//	return nil, nil
-//}
 func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskDetailListResponse, error) {
 	tasks, err := svr.B.GetTaskDetailList()
 	if nil != err {

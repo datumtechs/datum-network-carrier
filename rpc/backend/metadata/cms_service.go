@@ -9,18 +9,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-//func (svr *MetaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetMetaDataSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *MetaDataServiceServer) GetMetaDataSummaryByState(ctx context.Context, req *pb.GetMetaDataSummaryByStateRequest) (*pb.GetMetaDataSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *MetaDataServiceServer) GetMetaDataSummaryByOwner(ctx context.Context, req *pb.GetMetaDataSummaryByOwnerRequest) (*pb.GetMetaDataSummaryListResponse, error) {
-//	return nil, nil
-//}
-//func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
-//	return nil, nil
-//}
 func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
 	if req.IdentityId == "" {
 		return nil, errors.New("required identity")
