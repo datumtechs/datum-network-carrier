@@ -1243,3 +1243,31 @@ func QueryDataResourceDiskUsed(db DatabaseReader, metaDataId string) (*types.Dat
 	}
 	return &dataResourceDiskUsed, nil
 }
+
+func StoreLocalTaskExecuteStatus(db DatabaseWriter, taskId string) error {
+	key := GetLocalTaskExecuteStatus(taskId)
+	val, err := rlp.EncodeToBytes("yes")
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func RemoveLocalTaskExecuteStatus(db DatabaseDeleter, taskId string) error {
+	key := GetLocalTaskExecuteStatus(taskId)
+	return db.Delete(key)
+}
+
+func HasLocalTaskExecute(db DatabaseReader, taskId string) (bool, error) {
+	key := GetLocalTaskExecuteStatus(taskId)
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return false, err
+	}
+	if !has {
+		return false, nil
+	}
+	return true, nil
+}
+
+//

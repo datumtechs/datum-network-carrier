@@ -30,6 +30,8 @@ var (
 	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
 	// metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
+	// taskId -> executeStatus
+	localTaskExecuteStatusPrefix = []byte("localTaskExecuteStatus")
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -85,4 +87,8 @@ func GetResourcePowerIdMapingKey(powerId string) []byte {
 
 func GetDataResourceDiskUsedKey(metaDataId string) []byte {
 	return append(dataResourceDiskUsedKeyPrefix, []byte(metaDataId)...)
+}
+
+func GetLocalTaskExecuteStatus(taskId string) []byte {
+	return append(localTaskExecuteStatusPrefix, []byte(taskId)...)
 }

@@ -391,7 +391,20 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 
 
 func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option ReleaseResourceOption) {
+
 	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, releaseOption: {%d}", logdesc, taskId, option)
+
+	has, err := m.dataCenter.HasLocalTaskExecute(taskId)
+	if nil != err {
+		log.Errorf("Failed to query local task exec status with task %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
+		return
+	}
+
+	if has {
+		log.Debugf("The local task have been executing, don't `ReleaseLocalResourceWithTask` %s, taskId: {%s}, releaseOption: {%d}", logdesc, taskId, option)
+		return
+	}
+
 	if option.IsUnlockLocalResorce() {
 		log.Debugf("start unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
 		if err := m.UnLockLocalResourceWithTask(taskId); nil != err {

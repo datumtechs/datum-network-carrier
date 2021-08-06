@@ -263,9 +263,18 @@ func (t *TwoPC) driveTask(
 
 	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
 	if nil == confirmTaskPeerInfo {
-		log.Error("Failed to find local cache about all peer resource {externalIP:externalPORT}")
+		log.Errorf("Failed to find local cache about all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
+			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
 		return
 	}
+
+	// Store task exec status
+	if err := t.dataCenter.StoreLocalTaskExecuteStatus(task.TaskId()); nil != err {
+		log.Errorf("Failed to store local task about exec status, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}, err: {%s}",
+			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity, err)
+		return
+	}
+
 	// Send task to TaskManager to execute
 	taskWrap := &types.DoneScheduleTaskChWrap{
 		ProposalId: proposalId,

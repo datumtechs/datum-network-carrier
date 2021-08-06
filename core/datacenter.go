@@ -846,6 +846,23 @@ func (dc *DataCenter)  QueryDataResourceDiskUsed(metaDataId string) (*types.Data
 }
 
 
+func (dc *DataCenter)  StoreLocalTaskExecuteStatus(taskId string) error   {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.StoreLocalTaskExecuteStatus(dc.db, taskId)
+}
+func (dc *DataCenter)  RemoveLocalTaskExecuteStatus (taskId string) error  {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.RemoveLocalTaskExecuteStatus(dc.db, taskId)
+}
+func (dc *DataCenter)  HasLocalTaskExecute(taskId string) (bool, error)  {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasLocalTaskExecute(dc.db, taskId)
+}
+
+
 func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
