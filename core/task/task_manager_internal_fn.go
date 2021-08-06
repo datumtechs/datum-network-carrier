@@ -206,17 +206,17 @@ func (m *Manager) publishFinishedTaskToDataCenter(taskId, taskState string) {
 
 	log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", taskId, taskState)
 
-	//eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
-	//if nil != err {
-	//	log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
-	//	return
-	//}
-	//
-	//// todo 组装 算力参与方的 资源使用信息
-	//if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList, taskState)); nil != err {
-	//	log.Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
-	//	return
-	//}
+	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
+	if nil != err {
+		log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
+		return
+	}
+
+	// todo 组装 算力参与方的 资源使用信息
+	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList, taskState)); nil != err {
+		log.Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
+		return
+	}
 
 	// 发送到 dataCenter 成功后 ...
 	close(taskWrap.ResultCh)
