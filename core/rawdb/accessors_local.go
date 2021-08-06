@@ -741,14 +741,24 @@ func WriteLocalTask(db KeyValueStore, task *types.Task) {
 			log.WithError(err).Fatal("Failed to decode old local task")
 		}
 	}
+
+	var duplicated bool = false
 	// Check whether there is duplicate data.
-	for _, s := range array.GetTaskList() {
+	for i, s := range array.TaskList {
 		if strings.EqualFold(s.TaskId, task.TaskId()) {
-			log.WithFields(logrus.Fields{ "taskId": s.TaskId }).Info("Skip duplicated local task")
-			return
+			log.WithFields(logrus.Fields{ "taskId": s.TaskId }).Info("update duplicated local task")
+			//return
+			array.TaskList[i] = task.TaskData()
+			duplicated = true
+			break
 		}
 	}
-	array.TaskList = append(array.TaskList, task.TaskData())
+
+	// add new task
+	if !duplicated {
+		array.TaskList = append(array.TaskList, task.TaskData())
+	}
+
 	data, err := array.Marshal()
 	if err != nil {
 		log.WithError(err).Fatal("Failed to encode local task")

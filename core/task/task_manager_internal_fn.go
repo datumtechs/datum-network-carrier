@@ -16,7 +16,14 @@ import (
 
 func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error {
 
+	if err := m.dataCenter.UpdateLocalTaskState(task.Task.SchedTask.TaskId(), types.TaskStateRunning.String()); nil != err {
+		log.Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}, err: {%s}",
+			task.Task.SchedTask.TaskId(), types.TaskStateRunning.String(), err)
+	}
+
 	return fmt.Errorf("Mock task finished")
+
+
 
 	switch task.SelfTaskRole {
 	case types.TaskOnwer, types.DataSupplier, types.ResultSupplier:
