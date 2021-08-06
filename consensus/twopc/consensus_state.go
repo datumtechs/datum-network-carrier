@@ -24,6 +24,10 @@ type state struct {
 	empty *ctypes.ProposalState
 
 	proposalsLock sync.RWMutex
+	//selfPeerCacheLock sync.RWMutex
+	//prepareVotesLock sync.RWMutex
+	//confirmVotesLock sync.RWMutex
+
 }
 
 func newState() *state {

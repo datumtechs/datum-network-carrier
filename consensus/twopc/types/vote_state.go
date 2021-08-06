@@ -8,6 +8,9 @@ import (
 type VoteState struct {
 	prepareVoteSate       map[common.Hash]*types.PrepareVote
 	confirmVoteState map[common.Hash]*types.ConfirmVote
+
+	//preparelock sync.RWMutex
+	//confirmlock sync.RWMutex
 }
 
 func NewVoteState() *VoteState{
@@ -17,16 +20,21 @@ func NewVoteState() *VoteState{
 	}
 }
 func (state *VoteState) StorePrepareVote(vote *types.PrepareVote) {
+	//state.preparelock.Lock()
 	if _, ok := state.prepareVoteSate[vote.ProposalId]; !ok {
 		state.prepareVoteSate[vote.ProposalId] = vote
 	}
+	//state.preparelock.Unlock()
 }
 func (state *VoteState) StoreConfirmVote(vote *types.ConfirmVote) {
+	//state.confirmlock.Lock()
 	if _, ok := state.confirmVoteState[vote.ProposalId]; !ok {
 		state.confirmVoteState[vote.ProposalId] = vote
 	}
+	//state.confirmlock.Unlock()
 }
 func (state *VoteState) HasPrepareVote(proposalId common.Hash) bool {
+
 	if _, ok := state.prepareVoteSate[proposalId]; ok {
 		return true
 	}
