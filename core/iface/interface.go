@@ -25,9 +25,9 @@ type LocalStoreCarrierDB interface {
 	RemoveLocalResourceIdByPowerId(powerId string) error
 	QueryLocalResourceIdByPowerId(powerId string) (string, error)
 	//// metaDataId -> dataNodeId
-    //StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error
-    //RemoveLocalResourceIdByMetaDataId(metaDataId string) error
-    //QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error)
+	//StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error
+	//RemoveLocalResourceIdByMetaDataId(metaDataId string) error
+	//QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error)
 
 	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
@@ -69,9 +69,13 @@ type LocalStoreCarrierDB interface {
 	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 	// about DataResourceDiskUsed (metaDataId -> {metaDataId, dataNodeId, diskUsed})
-    StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
-    RemoveDataResourceDiskUsed(metaDataId string) error
-    QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
+	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
+	RemoveDataResourceDiskUsed(metaDataId string) error
+	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
+	// about task exec status (taskId -> "yes")
+	StoreLocalTaskExecuteStatus(taskId string) error
+	RemoveLocalTaskExecuteStatus(taskId string) error
+	HasLocalTaskExecute(taskId string) (bool, error)
 }
 
 type MetadataCarrierDB interface {
@@ -85,7 +89,7 @@ type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
 	GetResourceList() (types.ResourceArray, error)
-	SyncPowerUsed (resource *types.LocalResource) error
+	SyncPowerUsed(resource *types.LocalResource) error
 }
 
 type IdentityCarrierDB interface {
@@ -106,7 +110,7 @@ type TaskCarrierDB interface {
 	RemoveTaskEventList(taskId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
-	UpdateLocalTaskState(taskId, state string) error  // 任务的状态 (pending: 等在中; running: 计算中; failed: 失败; success: 成功)
+	UpdateLocalTaskState(taskId, state string) error // 任务的状态 (pending: 等在中; running: 计算中; failed: 失败; success: 成功)
 	GetLocalTask(taskId string) (*types.Task, error)
 	GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
 	GetLocalTaskList() (types.TaskDataArray, error)

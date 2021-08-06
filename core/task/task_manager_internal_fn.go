@@ -220,6 +220,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(taskId, taskState string) {
 
 	// 发送到 dataCenter 成功后 ...
 	close(taskWrap.ResultCh)
+
+	if err := m.dataCenter.RemoveLocalTaskExecuteStatus(taskId); nil != err {
+		log.Errorf("Failed to remove task executing status on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
+		return
+	}
 	// clean local task cache
 	m.removeRunningTaskCache(taskId)
 	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.publishFinishedTaskToDataCenter()", taskId, resource.SetAllReleaseResourceOption())
@@ -236,11 +241,17 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 
 	log.Debugf("Start sendTaskResultMsgToConsensus, taskId: {%s}", taskId)
 
+	if err := m.dataCenter.RemoveLocalTaskExecuteStatus(taskId); nil != err {
+		log.Errorf("Failed to remove task executing status on sendTaskResultMsgToConsensus, taskId: {%s}, err: {%s}", taskId, err)
+		return
+	}
+
 	taskResultMsg := m.makeTaskResult(taskWrap)
 	if nil != taskResultMsg {
 		taskWrap.ResultCh <- taskResultMsg
 	}
 	close(taskWrap.ResultCh)
+
 	// clean local task cache
 	m.removeRunningTaskCache(taskWrap.Task.SchedTask.TaskId())
 
