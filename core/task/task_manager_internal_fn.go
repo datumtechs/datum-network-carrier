@@ -121,13 +121,13 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
-		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
+		log.Errorf("Falied to call publish schedTask to `data-Fighter` node to executing, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
 			task.Task.SchedTask.TaskId(), dataNodeId, ip, port, err)
 		return err
 	}
 	if !resp.Ok {
-		log.Errorf("Falied to publish schedTask to `data-Fighter` node to executing, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, ip, port)
+		log.Errorf("Falied to executing task from `data-Fighter` node response, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, resp: {%s}",
+			task.Task.SchedTask.TaskId(), dataNodeId, ip, port, resp.String())
 		return nil
 	}
 
