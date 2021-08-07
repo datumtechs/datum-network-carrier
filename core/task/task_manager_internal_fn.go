@@ -16,7 +16,9 @@ import (
 
 func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error {
 
-	if err := m.dataCenter.UpdateLocalTaskState(task.Task.SchedTask.TaskId(), types.TaskStateRunning.String()); nil != err {
+	task.Task.SchedTask.TaskData().State = types.TaskStateRunning.String()
+	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
+	if err := m.dataCenter.StoreLocalTask(task.Task.SchedTask); nil != err {
 		log.Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}, err: {%s}",
 			task.Task.SchedTask.TaskId(), types.TaskStateRunning.String(), err)
 	}
