@@ -25,7 +25,7 @@ func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error 
 	// update local cache
 	m.addRunningTaskCache(task)
 
-	return fmt.Errorf("Mock task finished")
+	//return fmt.Errorf("Mock task finished")
 
 
 
