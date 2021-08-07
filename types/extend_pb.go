@@ -298,9 +298,11 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 			DataStatus:     DataStatusNormal.String(),
 			State:          v.GetPower().GetState(),
 			TotalMem:       v.GetPower().GetInformation().GetTotalMem(),
-			UsedMem:        v.GetPower().GetInformation().GetUsedMem(),
 			TotalProcessor: uint64(v.GetPower().GetInformation().GetTotalProcessor()),
 			TotalBandWidth: v.GetPower().GetInformation().GetTotalBandwidth(),
+			UsedMem:        v.GetPower().GetInformation().GetUsedMem(),
+			UsedProcessor:  uint64(v.GetPower().GetInformation().GetUsedProcessor()),
+			UsedBandWidth:  v.GetPower().GetInformation().GetUsedBandwidth(),
 		})
 		resourceArray = append(resourceArray, resource)
 	}
@@ -317,9 +319,11 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 		DataStatus:     DataStatusNormal.String(),
 		State:          response.GetPower().GetState(),
 		TotalMem:       response.GetPower().GetInformation().GetTotalMem(),
-		UsedMem:        response.GetPower().GetInformation().GetUsedMem(),
 		TotalProcessor: uint64(response.GetPower().GetInformation().GetTotalProcessor()),
 		TotalBandWidth: response.GetPower().GetInformation().GetTotalBandwidth(),
+		UsedMem:        response.GetPower().GetInformation().GetUsedMem(),
+		UsedProcessor: uint64(response.GetPower().GetInformation().GetUsedProcessor()),
+		UsedBandWidth: response.GetPower().GetInformation().GetUsedBandwidth(),
 	})
 	resourceArray = append(resourceArray, resource)
 	return resourceArray
