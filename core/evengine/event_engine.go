@@ -24,7 +24,7 @@ func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *type
 		Type: typ,
 		TaskId: taskId,
 		Identity: identityId,
-		Content: fmt.Sprintf("%s, reason: %s", ScheduleEvent[typ], extra),
+		Content: fmt.Sprintf("%s, reason: {%s}", ScheduleEvent[typ], extra),
 		CreateTime: uint64(timeutils.UnixMsec()),
 	}
 }
