@@ -51,11 +51,15 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 	var find bool
 	var ip string
 	var port string
+
+	// 先看看自己是否 owner
 	if string(task.Task.Resources.OwnerPeerInfo.PartyId) == task.SelfIdentity.PartyId {
 		ip = string(task.Task.Resources.OwnerPeerInfo.Ip)
 		port = string(task.Task.Resources.OwnerPeerInfo.Port)
 		find = true
 	}
+
+	// 否则，继续看看  自己是否 dataSupplier
 	if !find {
 		for _, resource := range task.Task.Resources.DataSupplierPeerInfoList {
 			if string(resource.PartyId) == task.SelfIdentity.PartyId {
@@ -67,6 +71,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 		}
 	}
 
+	// 最后，继续看看  自己是否 resultReceiver
 	if !find {
 		for _, resource := range task.Task.Resources.ResultReceiverPeerInfoList {
 			if string(resource.PartyId) == task.SelfIdentity.PartyId {
@@ -380,11 +385,14 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 	partyId := task.SelfIdentity.PartyId
 
-	var find bool
+
 	var filePath string
 	var columnNameList []string
 
 	if task.SelfTaskRole == types.TaskOnwer || task.SelfTaskRole == types.DataSupplier {
+
+		var find bool
+
 		for _, dataSupplier := range task.Task.SchedTask.TaskData().MetadataSupplier {
 			if partyId == dataSupplier.Organization.PartyId {
 
@@ -400,12 +408,14 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 				break
 			}
 		}
+
+		if !find {
+			return "", fmt.Errorf("can not find the dataSupplier for find originFilePath, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
+				task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
+		}
 	}
 
-	if !find {
-		return "", fmt.Errorf("can not find the dataSupplier, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
-			task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
-	}
+
 	// 目前 默认只会用一列, 后面再拓展 ..
 	req := &types.FighterTaskReadyGoReqContractCfg{
 		PartyId: "p2",
@@ -419,16 +429,19 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	}
 
 	var dynamicParameter map[string]interface{}
-	if err := json.Unmarshal([]byte(task.Task.SchedTask.TaskData().ContractExtraParams), &dynamicParameter); nil != err {
-		return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
-			task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
+	log.Debugf("Start json Unmarshal the `ContractExtraParams`, ContractExtraParams: %s", task.Task.SchedTask.TaskData().ContractExtraParams)
+	if "" != task.Task.SchedTask.TaskData().ContractExtraParams {
+		if err := json.Unmarshal([]byte(task.Task.SchedTask.TaskData().ContractExtraParams), &dynamicParameter); nil != err {
+			return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
+				task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId, err)
+		}
 	}
 	req.DynamicParameter = dynamicParameter
 
 	b, err := json.Marshal(req)
 	if nil != err {
-		return "", fmt.Errorf("can not json Marshal the `FighterTaskReadyGoReqContractCfg`, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
-			task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
+		return "", fmt.Errorf("can not json Marshal the `FighterTaskReadyGoReqContractCfg`, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
+			task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId, err)
 	}
 	return string(b), nil
 }

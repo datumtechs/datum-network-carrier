@@ -550,6 +550,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 		TaskId:        "",
 		PowerPartyIds: req.PowerPartyIds,
 		Data: NewTask(&libTypes.TaskData{
+
 			TaskId:     "",
 			TaskName:   req.TaskName,
 			PartyId:    req.Owner.PartyId,
@@ -577,6 +578,9 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 				CostBandwidth: req.OperationCost.CostBandwidth,
 				Duration:      req.OperationCost.Duration,
 			},
+			CalculateContractCode: req.CalculateContractcode,
+			DataSplitContractCode: req.DatasplitContractcode,
+			ContractExtraParams: req.ContractExtraParams,
 		}),
 	}
 }
