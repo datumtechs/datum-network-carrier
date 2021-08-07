@@ -405,25 +405,25 @@ func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option R
 		return
 	}
 
-	if option.IsUnlockLocalResorce() {
-		log.Debugf("start unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
-		if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
-			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
-		}
-	}
-	if option.IsRemoveLocalTask() {
-		log.Debugf("start remove local task  %s, taskId: {%s}", logdesc, taskId)
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
-		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
-			log.Errorf("Failed to remove local task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
-		}
-	}
-	if option.IsCleanTaskEvents() {
-		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
-		if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
-			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
-		}
-	}
+	//if option.IsUnlockLocalResorce() {
+	//	log.Debugf("start unlock local resource with task %s, taskId: {%s}", logdesc, taskId)
+	//	if err := m.UnLockLocalResourceWithTask(taskId); nil != err {
+	//		log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
+	//	}
+	//}
+	//if option.IsRemoveLocalTask() {
+	//	log.Debugf("start remove local task  %s, taskId: {%s}", logdesc, taskId)
+	//	// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
+	//	if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
+	//		log.Errorf("Failed to remove local task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
+	//	}
+	//}
+	//if option.IsCleanTaskEvents() {
+	//	log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
+	//	if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
+	//		log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
+	//	}
+	//}
 }
 
 // todo 构造一些假的 本地任务信息
