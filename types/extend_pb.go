@@ -131,6 +131,7 @@ func NewTaskDetail(task *Task) *api.TaskDetail {
 		PowerSupplier: make([]*api.TaskPowerSupplier, 0),
 		Receivers:     make([]*api.TaskResultReceiver, 0),
 		CreateAt:      task.data.GetCreateAt(),
+		StartAt:       task.data.GetStartAt(),
 		EndAt:         task.data.GetEndAt(),
 		State:         task.data.GetState(),
 		OperationCost: &api.TaskOperationCostDeclare{
