@@ -66,7 +66,7 @@ var (
 	ErrProposalConfirmMsgTimeout = errors.New("Receiving confirmMsg of proposal timeout")
 	ErrProposalConfirmVoteTimeout = errors.New("Receiving confirmVote of proposal timeout")
 	ErrProposalCommitMsgTimeout = errors.New("Receiving commitMsg of proposal timeout")
-	ErrProposalTaskResultMsgTimeout = errors.New("Receiving taskResultMsg of proposal timeout")
+	ErrTaskResultMsgInvalid = errors.New("Receiving taskResultMsg is invalid")
 
 
 	ErrProposalPrepareVoteFuture = errors.New("Receiving prepareVote of proposal is future msg")

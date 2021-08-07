@@ -236,9 +236,9 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		types.SendTaskDir,
 		types.TaskOnwer,
 		&types.TaskNodeAlias{
-			PartyId: task.TaskData().PartyId,
-			Name: task.TaskData().Identity,
-			NodeId: task.TaskData().NodeId,
+			PartyId:    task.TaskData().PartyId,
+			Name:       task.TaskData().Identity,
+			NodeId:     task.TaskData().NodeId,
 			IdentityId: task.TaskData().NodeName,
 		},
 		now)
@@ -281,7 +281,6 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 // Handle the prepareMsg from the task pulisher peer (on Subscriber)
 func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
 
-
 	msg, err := fetchPrepareMsg(prepareMsg)
 	if nil != err {
 		return err
@@ -301,7 +300,6 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrPrepareVotehadVoted
 	}
 
-
 	self, err := t.dataCenter.GetIdentity()
 	if nil != err {
 		log.Errorf("Failed to call onPrepareMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposal.TaskId(), err)
@@ -315,9 +313,9 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		types.RecvTaskDir,
 		types.TaskRoleFromBytes(prepareMsg.TaskRole),
 		&types.TaskNodeAlias{
-			PartyId: string(prepareMsg.TaskPartyId),
-			Name: self.Name,
-			NodeId: self.NodeId,
+			PartyId:    string(prepareMsg.TaskPartyId),
+			Name:       self.Name,
+			NodeId:     self.NodeId,
 			IdentityId: self.IdentityId,
 		},
 		proposal.CreateAt)
@@ -613,7 +611,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 			IdentityId: self.IdentityId,
 		},
 		VoteOption: types.Yes,
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt:   uint64(timeutils.UnixMsec()),
 		//Sign
 	}
 
@@ -634,7 +632,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 			t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 			// clean some data
 			t.delProposalStateAndTask(proposalState.ProposalId)
-		}else {
+		} else {
 			log.Debugf("Succceed to call `SendTwoPcConfirmVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}",
 				proposalState.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid)
 		}
@@ -783,9 +781,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 			t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOnwer,
 				&libTypes.OrganizationData{
-					PartyId: task.TaskData().PartyId,
+					PartyId:  task.TaskData().PartyId,
 					Identity: task.TaskData().Identity,
-					NodeId: task.TaskData().NodeId,
+					NodeId:   task.TaskData().NodeId,
 					NodeName: task.TaskData().NodeName,
 				}, task)
 		} else {
@@ -807,7 +805,6 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 				})
 				t.delProposalStateAndTask(voteMsg.ProposalId)
 			}()
-
 
 			// 共识 未达成. 删除本地 资源
 			//// If the vote is not reached, we will clear the local `proposalState` related cache
@@ -873,9 +870,9 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 			&libTypes.OrganizationData{
 				PartyId:  msg.TaskPartyId,
 				Identity: self.IdentityId,
-				NodeId: self.NodeId,
+				NodeId:   self.NodeId,
 				NodeName: self.Name,
-			},task)
+			}, task)
 	}()
 	// 最后留给 定时器 清除本地 proposalState 香瓜内心戏
 	return nil
@@ -900,28 +897,29 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
-	if t.state.HasNotProposal(msg.ProposalId) {
-		return fmt.Errorf("%s onTaskResultMsg", ctypes.ErrProposalNotFound)
+	//if t.state.HasNotProposal(msg.ProposalId) {
+	//	return fmt.Errorf("%s onTaskResultMsg", ctypes.ErrProposalNotFound)
+	//}
+	//proposalState := t.state.GetProposalState(msg.ProposalId)
+	//
+	//// 只有 当前 state 是 commit <定时任务还未更新 proposalState>
+	//// 或 finished <定时任务更新了 proposalState> 状态才可以处理 commit 阶段的 Msg
+	//if proposalState.IsNotCommitPeriod() || proposalState.IsNotFinishedPeriod() {
+	//	log.Warnf("Warning the current proposalState is taskResult timeout on `onTaskResultMsg`, proposalId: {%s}, epoch: {%s}",
+	//		proposalState.ProposalId.String(), proposalState.GetPeriod())
+	//	return ctypes.ErrProposalTaskResultMsgTimeout
+	//}
+	has, err := t.dataCenter.HasLocalTaskExecute(msg.TaskId)
+	if nil != err {
+		log.Errorf("Failed to query local task executing status on `onTaskResultMsg`, taskId: {%s}, err: {%s}",
+			msg.TaskId, err)
+		return fmt.Errorf("query local task failed")
 	}
-	proposalState := t.state.GetProposalState(msg.ProposalId)
 
-	// 只有 当前 state 是 commit <定时任务还未更新 proposalState>
-	// 或 finished <定时任务更新了 proposalState> 状态才可以处理 commit 阶段的 Msg
-	if proposalState.IsNotCommitPeriod() || proposalState.IsNotFinishedPeriod() {
-		log.Warnf("Warning the current proposalState is taskResult timeout on `onTaskResultMsg`, proposalId: {%s}, epoch: {%s}",
-			proposalState.ProposalId.String(), proposalState.GetPeriod())
-		return ctypes.ErrProposalTaskResultMsgTimeout
+	if !has {
+		log.Warnf("Warning not found local task executing status on `onTaskResultMsg`, taskId: {%s}", msg.TaskId)
+		return fmt.Errorf("%s, the local task is not found", ctypes.ErrTaskResultMsgInvalid)
 	}
-
-	// 判断任务方向
-	if t.state.IsRecvTaskOnProposalState(msg.ProposalId) {
-		return ctypes.ErrMsgTaskDirInvalid
-	}
-	// find the task of proposal on recvTasks
-	_, ok := t.sendTasks[proposalState.TaskId]
-	if !ok {
-		return ctypes.ErrProposalTaskNotFound
-	}
-	go t.storeTaskEvent(pid, proposalState.TaskId, msg.TaskEventList)
+	go t.storeTaskEvent(pid, msg.TaskId, msg.TaskEventList)
 	return nil
 }
