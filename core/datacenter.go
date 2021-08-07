@@ -466,23 +466,23 @@ func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 	return nil
 }
 
-func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
-	if taskId == "" || state == "" {
-		return errors.New("invalid params taskId or state for UpdateLocalTaskState")
-	}
-	log.Debugf("Start to update local task state, taskId: {%s}, need update state: {%s}", taskId, state)
-
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	task, err := rawdb.ReadLocalTask(dc.db, taskId)
-	if nil != err {
-		return err
-	}
-	task.TaskData().State = state
-	rawdb.DeleteLocalTask(dc.db, taskId)
-	rawdb.WriteLocalTask(dc.db, task)
-	return nil
-}
+//func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
+//	if taskId == "" || state == "" {
+//		return errors.New("invalid params taskId or state for UpdateLocalTaskState")
+//	}
+//	log.Debugf("Start to update local task state, taskId: {%s}, need update state: {%s}", taskId, state)
+//
+//	dc.mu.Lock()
+//	defer dc.mu.Unlock()
+//	task, err := rawdb.ReadLocalTask(dc.db, taskId)
+//	if nil != err {
+//		return err
+//	}
+//	task.TaskData().State = state
+//	rawdb.DeleteLocalTask(dc.db, taskId)
+//	rawdb.WriteLocalTask(dc.db, task)
+//	return nil
+//}
 
 func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
 	if taskId == "" {

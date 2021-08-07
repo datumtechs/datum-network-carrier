@@ -30,7 +30,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 		}
 		respList[i] = resp
 	}
-	log.Debugf("RPC-API:GetPowerTotalDetailList succeed, powerList: {%d}", len(respList))
+	log.Debugf("RPC-API:GetPowerTotalDetailList succeed, powerList: {%d}, json: %s", len(respList), utilGetPowerTotalDetailResponseArrString(respList))
 	return &pb.GetPowerTotalDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,
@@ -68,6 +68,16 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 		Msg: backend.OK,
 		PowerList: respList,
 	}, nil
+}
+func utilGetPowerTotalDetailResponseArrString(resp []*pb.GetPowerTotalDetailResponse) string {
+	arr := make([]string, len(resp))
+	for i, u := range resp {
+		arr[i] = u.String()
+	}
+	if len(arr) != 0 {
+		return "[" +  strings.Join(arr, ",") + "]"
+	}
+	return "[]"
 }
 func utilGetPowerSingleDetailResponseArrString(resp []*pb.GetPowerSingleDetailResponse) string {
 	arr := make([]string, len(resp))
