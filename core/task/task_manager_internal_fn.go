@@ -22,6 +22,8 @@ func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error 
 		log.Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}, err: {%s}",
 			task.Task.SchedTask.TaskId(), types.TaskStateRunning.String(), err)
 	}
+	// update local cache
+	m.addRunningTaskCache(task)
 
 	return fmt.Errorf("Mock task finished")
 
