@@ -857,7 +857,7 @@ func (dc *DataCenter)  StoreLocalTaskExecuteStatus(taskId string) error   {
 func (dc *DataCenter)  RemoveLocalTaskExecuteStatus (taskId string) error  {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	log.Debugf("Rmove local task executing status, taskId: {%s}", taskId)
+	log.Debugf("Remove local task executing status, taskId: {%s}", taskId)
 	return rawdb.RemoveLocalTaskExecuteStatus(dc.db, taskId)
 }
 func (dc *DataCenter)  HasLocalTaskExecute(taskId string) (bool, error)  {
