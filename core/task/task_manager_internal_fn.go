@@ -545,7 +545,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 
 	task, ok := m.queryRunningTaskCacheOk(taskId)
 	if !ok {
-		log.Debugf("Failed to start handle DoneScheduleTask, not found local task cache, taskId: {%s}", taskId)
+		log.Errorf("Failed to start handle DoneScheduleTask, not found local task cache, taskId: {%s}", taskId)
 		return
 	}
 
