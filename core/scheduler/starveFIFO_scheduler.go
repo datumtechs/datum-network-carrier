@@ -441,6 +441,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
+		log.Debugf("Succeed electionConputeNode on replaySchedule(), taskId: {%s}, jobNode: %s", replayScheduleTask.Task.TaskId(), selfResourceInfo.String())
 		if err := sche.resourceMng.LockLocalResourceWithTask(selfResourceInfo.Id, needSlotCount,
 			replayScheduleTask.Task); nil != err {
 			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s}, err: {%s}",
@@ -549,6 +550,7 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	if nil != err {
 		return nil, err
 	}
+	log.Debugf("Succeed electionConputeNode, jobNode: %s", internalNodeInfo.String())
 	return &types.PrepareVoteResource{
 		Id:   resourceId,
 		Ip:   internalNodeInfo.ExternalIp,

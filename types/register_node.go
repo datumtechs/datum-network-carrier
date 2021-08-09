@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
@@ -45,6 +46,10 @@ type RegisteredNodeInfo struct {
 	ExternalIp   string         `json:"externalIp"`
 	ExternalPort string         `json:"externalPort"`
 	ConnState    NodeConnStatus `json:"connState"`
+}
+func (n *RegisteredNodeInfo) String() string {
+	return fmt.Sprintf(`{"id": %s, "internalIp": %s, "internalPort": %s, "externalIp": %s, "externalPort": %s, "connState": %d}`,
+		n.Id, n.InternalIp, n.InternalPort, n.ExternalIp, n.ExternalPort, n.ConnState.Int32())
 }
 type RegisteredNodeDetail struct {
 	NodeType string `json:"nodeType"`
