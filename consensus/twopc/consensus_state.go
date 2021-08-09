@@ -116,7 +116,10 @@ func (s *state) DelProposalState(proposalId common.Hash) {
 }
 
 func (s *state) GetProposalStates() map[common.Hash]*ctypes.ProposalState {
-	return s.runningProposals
+	s.proposalsLock.RLock()
+	proposals := s.runningProposals
+	s.proposalsLock.RUnlock()
+	return proposals
 }
 
 func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
@@ -147,19 +150,19 @@ func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
 	s.runningProposals[proposalId] = proposalState
 }
 
-//func (s *state) ChangeToFinished(proposalId common.Hash, startTime uint64) {
-//	s.proposalsLock.Lock()
-//	defer s.proposalsLock.Unlock()
-//
-//	log.Debugf("Start to call `ChangeToFinished`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
-//
-//	proposalState, ok := s.runningProposals[proposalId]
-//	if !ok {
-//		return
-//	}
-//	proposalState.ChangeToFinished(startTime)
-//	s.runningProposals[proposalId] = proposalState
-//}
+func (s *state) ChangeToFinished(proposalId common.Hash, startTime uint64) {
+	s.proposalsLock.Lock()
+	defer s.proposalsLock.Unlock()
+
+	log.Debugf("Start to call `ChangeToFinished`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
+
+	proposalState, ok := s.runningProposals[proposalId]
+	if !ok {
+		return
+	}
+	proposalState.ChangeToFinished(startTime)
+	s.runningProposals[proposalId] = proposalState
+}
 
 // 作为发起方时, 自己给当前 proposal 提供的资源信息 ... [根据 metaDataId 锁定的 dataNode资源]
 func (s *state) StoreSelfPeerInfo(proposalId common.Hash, peerInfo *types.PrepareVoteResource) {
