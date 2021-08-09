@@ -27,8 +27,6 @@ func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error 
 
 	//return fmt.Errorf("Mock task finished")
 
-
-
 	switch task.SelfTaskRole {
 	case types.TaskOnwer, types.DataSupplier, types.ResultSupplier:
 		return m.executeTaskOnDataNode(task)
@@ -38,7 +36,6 @@ func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error 
 		log.Errorf("Faided to driveTaskForExecute(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.Task.SchedTask.TaskId(), task.SelfTaskRole.String())
 		return errors.New("Unknown resource node type")
 	}
-	return nil
 }
 
 func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) error {
@@ -48,10 +45,9 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 		return err
 	}
 
-
 	// 找到自己的投票
-	ip := string(task.Task.SelfVotePeerInfo.Ip)
-	port := string(task.Task.SelfVotePeerInfo.Port)
+	ip := task.Task.SelfVotePeerInfo.Ip
+	port := task.Task.SelfVotePeerInfo.Port
 
 	var dataNodeId string
 	for _, dataNode := range dataNodeList {
@@ -111,8 +107,8 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 	}
 
 	// 找到自己的投票
-	ip := string(task.Task.SelfVotePeerInfo.Ip)
-	port := string(task.Task.SelfVotePeerInfo.Port)
+	ip := task.Task.SelfVotePeerInfo.Ip
+	port := task.Task.SelfVotePeerInfo.Port
 
 	var jobNodeId string
 	for _, jobNode := range jobNodeList {
@@ -335,7 +331,6 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 	partyId := task.SelfIdentity.PartyId
 
-
 	var filePath string
 	var idColumnName string
 
@@ -368,7 +363,6 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 				task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
 		}
 	}
-
 
 	// 目前 默认只会用一列, 后面再拓展 ..
 	req := &types.FighterTaskReadyGoReqContractCfg{

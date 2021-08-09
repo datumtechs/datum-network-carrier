@@ -83,7 +83,7 @@ type ConsensusScheduleTask struct {
 	TaskDir          ProposalTaskDir
 	TaskState        TaskState
 	SchedTask        *Task
-	SelfVotePeerInfo *pb.TaskPeerInfo
+	SelfVotePeerInfo *PrepareVoteResource
 	Resources        *pb.ConfirmTaskPeerInfo
 }
 
