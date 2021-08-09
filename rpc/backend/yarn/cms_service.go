@@ -21,8 +21,8 @@ func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetP
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
 				Id:           v.RegisteredNodeInfo.Id,
 				InternalIp:   v.InternalIp,
-				ExternalIp:   v.ExternalIp,
 				InternalPort: v.InternalPort,
+				ExternalIp:   v.ExternalIp,
 				ExternalPort: v.ExternalPort,
 				ConnState:    v.ConnState.Int32(),
 			},
@@ -47,8 +47,8 @@ func (svr *YarnServiceServer) GetNodeInfo(ctx context.Context, req *pb.EmptyGetP
 			NodeType:     node.NodeType,
 			NodeId:       node.NodeId,
 			InternalIp:   node.InternalIp,
-			ExternalIp:   node.ExternalIp,
 			InternalPort: node.InternalPort,
+			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.ExternalPort,
 			IdentityType: node.IdentityType,
 			IdentityId:   node.IdentityId,
@@ -217,7 +217,7 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.InternalPort,
+		ExternalPort: req.ExternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
 	node.SetDataNodeId()
@@ -237,7 +237,7 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.InternalPort,
+			ExternalPort: node.ExternalPort,
 			ConnState:    status.Int32(),
 		},
 	}, nil
@@ -249,7 +249,7 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.InternalPort,
+		ExternalPort: req.ExternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
 	// delete and insert.
@@ -271,7 +271,7 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.InternalPort,
+			ExternalPort: node.ExternalPort,
 			ConnState:    status.Int32(),
 		},
 	}, nil
@@ -302,7 +302,7 @@ func (svr *YarnServiceServer) GetDataNodeList(ctx context.Context, req *pb.Empty
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.InternalPort,
+				ExternalPort: v.ExternalPort,
 				ConnState:    v.ConnState.Int32(),
 			},
 		}
@@ -320,7 +320,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.InternalPort,
+		ExternalPort: req.ExternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
 	node.SetJobNodeId()
@@ -341,7 +341,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.InternalPort,
+			ExternalPort: node.ExternalPort,
 			ConnState:    status.Int32(),
 		},
 	}, nil
@@ -353,7 +353,7 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.InternalPort,
+		ExternalPort: req.ExternalPort,
 		ConnState:    types.NONCONNECTED,
 	}
 	//svr.B.DeleteRegisterNode(types.PREFIX_TYPE_JOBNODE, node.Id)
@@ -375,7 +375,7 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.InternalPort,
+			ExternalPort: node.ExternalPort,
 			ConnState:    status.Int32(),
 		},
 	}, nil
@@ -405,7 +405,7 @@ func (svr *YarnServiceServer) GetJobNodeList(ctx context.Context, req *pb.EmptyG
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.InternalPort,
+				ExternalPort: v.ExternalPort,
 				ConnState:    v.ConnState.Int32(),
 			},
 		}
