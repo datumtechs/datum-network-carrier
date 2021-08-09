@@ -155,9 +155,9 @@ func (t *TwoPC) refreshProposalState() {
 			if proposalState.IsCommitTimeout() {
 				log.Debugf("Started refresh proposalState loop, the proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}",
 					id.String(), proposalState.TaskId)
-				//proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
-				//t.state.UpdateProposalState(proposalState)
-				t.handleInvalidProposal(proposalState)
+				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
+				t.state.UpdateProposalState(proposalState)
+				//t.handleInvalidProposal(proposalState)
 			}
 		case ctypes.PeriodFinished:
 			//
@@ -178,6 +178,22 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 
 	log.Debugf("Call handleInvalidProposal(), handle and clean proposalState and task, proposalId: {%s}, taskId: {%s}, taskDir: {%s}", proposalState.ProposalId, proposalState.TaskId, proposalState.TaskDir.String())
 
+	has, err := t.dataCenter.HasLocalTaskExecute(proposalState.TaskId)
+	if nil != err {
+		log.Errorf("Failed to query local task exec status with task on handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.TaskId, err)
+		// 最终 clean some data
+		t.delProposalStateAndTask(proposalState.ProposalId)
+		return
+	}
+
+	if has {
+		log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache, taskId: {%s}", proposalState.TaskId)
+		// 最终 clean some data
+		t.delProposalStateAndTask(proposalState.ProposalId)
+		return
+	}
+
+
 	if proposalState.TaskDir == types.SendTaskDir {
 		// Send consensus result to Scheduler
 		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
@@ -188,8 +204,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 				Err:    fmt.Errorf("the task proposalState coming deadline"),
 			},
 		})
-		// clean some invalid data
-		t.delProposalStateAndTask(proposalState.ProposalId)
+
 	} else {
 
 		task, ok := t.recvTasks[proposalState.TaskId]
@@ -206,7 +221,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 			Type: evengine.TaskProposalStateDeadline.Type,
 			Identity: proposalState.SelfIdentity.IdentityId,
 			TaskId: proposalState.TaskId,
-			Content: evengine.TaskProposalStateDeadline.Msg,
+			Content: fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 			CreateTime: uint64(timeutils.UnixMsec()),
 		})
 		taskResultWrap := &types.TaskResultMsgWrap{
@@ -235,9 +250,11 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 		}
 
 		t.resourceMng.ReleaseLocalResourceWithTask("on consensus.handleInvalidProposal()", proposalState.TaskId, resource.SetAllReleaseResourceOption())
-		// clean some data
-		t.delProposalStateAndTask(proposalState.ProposalId)
+
 	}
+
+	// 最终 clean some data
+	t.delProposalStateAndTask(proposalState.ProposalId)
 }
 
 func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*types.TaskEventInfo) error {
@@ -298,13 +315,13 @@ func (t *TwoPC) driveTask(
 					log.Error(err)
 				}
 				t.resourceMng.ReleaseLocalResourceWithTask("on consensus.driveTask()", task.TaskId(), resource.SetAllReleaseResourceOption())
-				// clean some data
-				t.delProposalStateAndTask(proposalId)
+				//// clean some data
+				//t.delProposalStateAndTask(proposalId)
 			}
 		} else {
 			<-taskWrap.ResultCh  // publish taskInfo to dataCenter done ..
-			// clean local proposalState and task cache
-			t.delProposalStateAndTask(proposalId)
+			//// clean local proposalState and task cache
+			//t.delProposalStateAndTask(proposalId)
 		}
 	}()
 }

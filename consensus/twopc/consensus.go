@@ -772,20 +772,25 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 						//Resources:
 					})
 
-					// clean some invalid data
-					t.delProposalStateAndTask(voteMsg.ProposalId)
+				} else {
+					// If sending `CommitMsg` is successful,
+					// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
+					t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOnwer,
+						&libTypes.OrganizationData{
+							PartyId:  task.TaskData().PartyId,
+							Identity: task.TaskData().Identity,
+							NodeId:   task.TaskData().NodeId,
+							NodeName: task.TaskData().NodeName,
+						}, task)
 				}
+
+				// 不成功, commitMsg 有失败的
+				// 成功,  commitMsg 全发出去之后，预示着 共识完成
+				t.delProposalStateAndTask(voteMsg.ProposalId)
+
 			}()
 
-			// If sending `CommitMsg` is successful,
-			// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-			t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOnwer,
-				&libTypes.OrganizationData{
-					PartyId:  task.TaskData().PartyId,
-					Identity: task.TaskData().Identity,
-					NodeId:   task.TaskData().NodeId,
-					NodeName: task.TaskData().NodeName,
-				}, task)
+
 		} else {
 
 			// Send consensus result
@@ -873,6 +878,9 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 				NodeId:   self.NodeId,
 				NodeName: self.Name,
 			}, task)
+
+		// 最后清除 各类 proposal 相关的数据 ...
+		t.delProposalStateAndTask(msg.ProposalId)
 	}()
 	// 最后留给 定时器 清除本地 proposalState 香瓜内心戏
 	return nil
