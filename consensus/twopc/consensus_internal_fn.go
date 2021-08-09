@@ -130,7 +130,7 @@ func (t *TwoPC) refreshProposalState() {
 	for id, proposalState := range t.state.GetProposalStates() {
 
 		if proposalState.IsDeadline() {
-			log.Debugf("Started refresh proposalState loop, the proposalState was deadline, proposalId: {%s}, taskId: {%s}",
+			log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, proposalId: {%s}, taskId: {%s}",
 				id.String(), proposalState.TaskId)
 			t.handleInvalidProposal(proposalState)
 			continue
@@ -155,13 +155,14 @@ func (t *TwoPC) refreshProposalState() {
 			if proposalState.IsCommitTimeout() {
 				log.Debugf("Started refresh proposalState loop, the proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}",
 					id.String(), proposalState.TaskId)
-				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
-				t.state.UpdateProposalState(proposalState)
+				//proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
+				//t.state.UpdateProposalState(proposalState)
+				t.handleInvalidProposal(proposalState)
 			}
 		case ctypes.PeriodFinished:
 			//
 			if proposalState.IsDeadline() {
-				log.Debugf("Started refresh proposalState loop, the proposalState was deadline, proposalId: {%s}, taskId: {%s}",
+				log.Debugf("Started refresh proposalState loop, the proposalState was finished but coming deadline now, proposalId: {%s}, taskId: {%s}",
 					id.String(), proposalState.TaskId)
 				t.handleInvalidProposal(proposalState)
 			}
