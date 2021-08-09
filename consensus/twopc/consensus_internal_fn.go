@@ -156,8 +156,8 @@ func (t *TwoPC) refreshProposalState() {
 				log.Debugf("Started refresh proposalState loop, the proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}",
 					id.String(), proposalState.TaskId)
 				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
-				t.state.UpdateProposalState(proposalState)
-				//t.handleInvalidProposal(proposalState)
+				//t.state.UpdateProposalState(proposalState)
+				t.handleInvalidProposal(proposalState)
 			}
 		case ctypes.PeriodFinished:
 			//
@@ -187,7 +187,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 	}
 
 	if has {
-		log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache, taskId: {%s}", proposalState.TaskId)
+		log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache of consensus, taskId: {%s}", proposalState.TaskId)
 		// 最终 clean some data
 		t.delProposalStateAndTask(proposalState.ProposalId)
 		return
