@@ -419,6 +419,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
+		log.Debugf("Succeed dataSupplier dataNode on replaySchedule(), taskId: {%s}, dataNode: %s", replayScheduleTask.Task.TaskId(), dataNode.String())
+
 		replayScheduleTask.SendResult(&types.ScheduleResult{
 			TaskId: replayScheduleTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
@@ -433,7 +435,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 	// 如果 当前参与方为 PowerSupplier  [选出自己的 内部 power 资源, 并锁定, todo 在最后 DoneXxxxWrap 中解锁]
 	case types.PowerSupplier:
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Processor, cost.Bandwidth)
-		selfResourceInfo, err := sche.electionConputeNode(uint32(needSlotCount))
+		jobNode, err := sche.electionConputeNode(uint32(needSlotCount))
 		if nil != err {
 			log.Errorf("Failed to election internal power resource, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
@@ -441,11 +443,12 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
-		log.Debugf("Succeed electionConputeNode on replaySchedule(), taskId: {%s}, jobNode: %s", replayScheduleTask.Task.TaskId(), selfResourceInfo.String())
-		if err := sche.resourceMng.LockLocalResourceWithTask(selfResourceInfo.Id, needSlotCount,
+		log.Debugf("Succeed powerSupplier jobNode on replaySchedule(), taskId: {%s}, jobNode: %s", replayScheduleTask.Task.TaskId(), jobNode.String())
+
+		if err := sche.resourceMng.LockLocalResourceWithTask(jobNode.Id, needSlotCount,
 			replayScheduleTask.Task); nil != err {
 			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s}, err: {%s}",
-				selfResourceInfo.Id, replayScheduleTask.Task.TaskId(), err)
+				jobNode.Id, replayScheduleTask.Task.TaskId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
 				fmt.Errorf("failed to lock localresource, {%s}", err))
 			return
@@ -455,9 +458,9 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			TaskId: replayScheduleTask.Task.TaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
-				Id:      selfResourceInfo.Id,
-				Ip:      selfResourceInfo.Ip,
-				Port:    selfResourceInfo.Port,
+				Id:      jobNode.Id,
+				Ip:      jobNode.ExternalIp,
+				Port:    jobNode.ExternalPort,
 				PartyId: replayScheduleTask.PartyId,
 			},
 		})
@@ -487,6 +490,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 				fmt.Errorf("failed to query internal data node resource, %s", err))
 			return
 		}
+
+		log.Debugf("Succeed resultReceiver dataNode on replaySchedule(), taskId: {%s}, dataNode: %s", replayScheduleTask.Task.TaskId(), resourceInfo.String())
 
 		replayScheduleTask.SendResult(&types.ScheduleResult{
 			TaskId: replayScheduleTask.Task.TaskId(),
@@ -527,7 +532,7 @@ func (sche *SchedulerStarveFIFO) increaseTaskTerm() {
 		i++
 	}
 }
-func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*types.PrepareVoteResource, error) {
+func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*types.RegisteredNodeInfo, error) {
 
 	resourceNodeIdArr := make([]string, 0)
 
@@ -546,16 +551,11 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	}
 
 	resourceId := resourceNodeIdArr[len(resourceNodeIdArr)%electionLocalSeed]
-	internalNodeInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_JOBNODE, resourceId)
+	jobNode, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_JOBNODE, resourceId)
 	if nil != err {
 		return nil, err
 	}
-	log.Debugf("Succeed electionConputeNode, jobNode: %s", internalNodeInfo.String())
-	return &types.PrepareVoteResource{
-		Id:   resourceId,
-		Ip:   internalNodeInfo.ExternalIp,
-		Port: internalNodeInfo.ExternalPort,
-	}, nil
+	return jobNode, nil
 }
 func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	powerPartyIds []string,

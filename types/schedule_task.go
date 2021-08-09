@@ -20,8 +20,6 @@ type ConsensusTaskWrap struct {
 	ResultCh          chan *ConsensuResult
 }
 
-
-
 func (wrap *ConsensusTaskWrap) SendResult(result *ConsensuResult) {
 	wrap.ResultCh <- result
 	close(wrap.ResultCh)
@@ -44,19 +42,19 @@ type ReplayScheduleTaskWrap struct {
 	ResultCh chan *ScheduleResult
 }
 
-func NewReplayScheduleTaskWrap (role TaskRole, partyId  string, task *Task) *ReplayScheduleTaskWrap{
+func NewReplayScheduleTaskWrap(role TaskRole, partyId string, task *Task) *ReplayScheduleTaskWrap {
 	return &ReplayScheduleTaskWrap{
-		Role: role,
-		PartyId: partyId,
-		Task: task,
+		Role:     role,
+		PartyId:  partyId,
+		Task:     task,
 		ResultCh: make(chan *ScheduleResult),
 	}
 }
 func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
 	wrap.SendResult(&ScheduleResult{
-		TaskId:taskId,
+		TaskId: taskId,
 		Status: TaskSchedFailed,
-		Err: err,
+		Err:    err,
 	})
 }
 func (wrap *ReplayScheduleTaskWrap) SendResult(result *ScheduleResult) {
@@ -82,10 +80,11 @@ type DoneScheduleTaskChWrap struct {
 	ResultCh     chan *TaskResultMsgWrap
 }
 type ConsensusScheduleTask struct {
-	TaskDir   ProposalTaskDir
-	TaskState TaskState
-	SchedTask *Task
-	Resources *pb.ConfirmTaskPeerInfo
+	TaskDir          ProposalTaskDir
+	TaskState        TaskState
+	SchedTask        *Task
+	SelfVotePeerInfo *pb.TaskPeerInfo
+	Resources        *pb.ConfirmTaskPeerInfo
 }
 
 //type ScheduleTask struct {
@@ -101,7 +100,6 @@ type ConsensusScheduleTask struct {
 //	CreateAt              uint64                        `json:"createAt"`
 //	StartAt               uint64                        `json:"startAt"`
 //}
-
 
 type ScheduleTaskDataSupplier struct {
 	*TaskNodeAlias
@@ -122,6 +120,7 @@ type ScheduleTaskResultReceiver struct {
 }
 
 type TaskConsStatus uint16
+
 func (t TaskConsStatus) String() string {
 	switch t {
 	case TaskSucceed:
@@ -134,6 +133,7 @@ func (t TaskConsStatus) String() string {
 		return "UnknownTaskResultStatus"
 	}
 }
+
 const (
 	TaskSucceed            TaskConsStatus = 0x0000
 	TaskConsensusInterrupt TaskConsStatus = 0x0001
@@ -149,6 +149,7 @@ type TaskConsResult struct {
 }
 
 type TaskSchedStatus bool
+
 func (status TaskSchedStatus) String() string {
 	switch status {
 	case TaskSchedOk:
@@ -159,6 +160,7 @@ func (status TaskSchedStatus) String() string {
 		return "UnknownTaskSchedResult"
 	}
 }
+
 const (
 	TaskSchedOk     TaskSchedStatus = true
 	TaskSchedFailed TaskSchedStatus = false
@@ -170,10 +172,12 @@ type ScheduleResult struct {
 	Err      error
 	Resource *PrepareVoteResource
 }
+
 func (res *ScheduleResult) String() string {
 	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s, "resource": %s}`,
 		res.TaskId, res.Status.String(), res.Err, res.Resource.String())
 }
+
 type ConsensuResult struct {
 	*TaskConsResult
 }

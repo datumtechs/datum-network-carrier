@@ -279,6 +279,13 @@ func (t *TwoPC) driveTask(
 	log.Debugf("Start to call `driveTask`, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
 		proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
 
+	selfVotePeerInfo := t.state.GetSelfPeerInfo(proposalId)
+	if nil == selfVotePeerInfo {
+		log.Errorf("Failed to find local cache about myself prepareVote peer internal resource, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
+			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
+		return
+	}
+
 	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
 	if nil == confirmTaskPeerInfo {
 		log.Errorf("Failed to find local cache about all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
@@ -302,6 +309,11 @@ func (t *TwoPC) driveTask(
 			TaskDir:   taskDir,
 			TaskState: taskState,
 			SchedTask: task,
+			SelfVotePeerInfo: &pb.TaskPeerInfo{
+				Ip: []byte(selfVotePeerInfo.Ip),
+				Port: []byte(selfVotePeerInfo.Port),
+				PartyId: []byte(selfVotePeerInfo.PartyId),
+			},
 			Resources: confirmTaskPeerInfo,
 		},
 		ResultCh: make(chan *types.TaskResultMsgWrap, 0),
