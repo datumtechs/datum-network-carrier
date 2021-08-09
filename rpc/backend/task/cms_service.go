@@ -77,13 +77,15 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	if len( req.DataSupplier) == 0 {
 		return nil, errors.New("required partners")
 	}
+	if "" == req.CalculateContractcode {
+		return nil, errors.New("required CalculateContractCode")
+	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed, can not publish task")
 		return nil, ErrSendTaskMsg
 	}
-
 
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
