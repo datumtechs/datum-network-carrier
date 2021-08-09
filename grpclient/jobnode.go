@@ -67,20 +67,22 @@ func (c *JobNodeClient) Close() {
 	}
 }
 
-func (c *JobNodeClient) connecting() {
+func (c *JobNodeClient) connecting() error {
 	if c.IsConnected() {
-		return
+		return nil
 	}
 	c.connMu.Lock()
 	conn, err := dialContext(c.ctx, c.addr)
 	c.connMu.Unlock()
-	// set client with conn for computeProviderClient
-	c.computeProviderClient = computesvc.NewComputeProviderClient(conn)
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).WithField("addr", c.addr).Error("Connect GRPC server(for jobnode) failed")
+		return err
 	}
+	// set client with conn for computeProviderClient
+	c.computeProviderClient = computesvc.NewComputeProviderClient(conn)
 	c.conn = conn
 	c.connStartAt = timeutils.UnixMsec()
+	return nil
 }
 
 func (c *JobNodeClient) GetClientConn() *grpc.ClientConn {
@@ -105,7 +107,11 @@ func (c *JobNodeClient) IsConnected() bool {
 func (c *JobNodeClient) IsNotConnected() bool { return !c.IsConnected()}
 
 func (c *JobNodeClient) Reconnect() error {
-	c.connecting()
+	err := c.connecting()
+	if err != nil {
+		log.WithError(err).WithField("jobNode", c.nodeId).Debug("Reconnect to jobNode failed")
+		return err
+	}
 	return nil
 }
 
