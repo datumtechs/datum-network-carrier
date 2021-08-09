@@ -40,123 +40,97 @@ func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error 
 
 func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) error {
 
-	dataNodeList, err := m.dataCenter.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
-	if nil != err {
-		return err
-	}
-
 	// 找到自己的投票
-	ip := task.Task.SelfVotePeerInfo.Ip
-	port := task.Task.SelfVotePeerInfo.Port
-
-	var dataNodeId string
-	for _, dataNode := range dataNodeList {
-		if dataNode.ExternalIp == ip && dataNode.ExternalPort == port {
-			dataNodeId = dataNode.Id
-			break
-		}
-	}
+	dataNodeId := task.Task.SelfVotePeerInfo.Id
 
 	// clinet *grpclient.DataNodeClient,
 	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
 	if !has {
-		log.Errorf("Failed to query internal data node, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, ip, port)
+		log.Errorf("Failed to query internal data node, taskId: {%s}, dataNodeId: {%s}",
+			task.Task.SchedTask.TaskId(), dataNodeId)
 		return errors.New("data node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
-			log.Errorf("Failed to connect internal data node, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
-				task.Task.SchedTask.TaskId(), dataNodeId, ip, port, err)
+			log.Errorf("Failed to connect internal data node, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+				task.Task.SchedTask.TaskId(), dataNodeId, err)
 			return err
 		}
 	}
 
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
-		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, ip, port, err)
+		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+			task.Task.SchedTask.TaskId(), dataNodeId, err)
 		return err
 	}
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
-		log.Errorf("Falied to call publish schedTask to `data-Fighter` node to executing, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, ip, port, err)
+		log.Errorf("Falied to call publish schedTask to `data-Fighter` node to executing, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+			task.Task.SchedTask.TaskId(), dataNodeId, err)
 		return err
 	}
 	if !resp.Ok {
-		log.Errorf("Falied to executing task from `data-Fighter` node response, taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}, resp: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, ip, port, resp.String())
+		log.Errorf("Falied to executing task from `data-Fighter` node response, taskId: {%s}, dataNodeId: {%s}, resp: {%s}",
+			task.Task.SchedTask.TaskId(), dataNodeId, resp.String())
 		return nil
 	}
 
 	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
 	m.addRunningTaskCache(task)
 
-	log.Infof("Success to publish schedTask to `data-Fighter` node to executing,  taskId: {%s}, dataNodeId: {%s}, ip: {%s}, port: {%s}",
-		task.Task.SchedTask.TaskId(), dataNodeId, ip, port)
+	log.Infof("Success to publish schedTask to `data-Fighter` node to executing,  taskId: {%s}, dataNodeId: {%s}",
+		task.Task.SchedTask.TaskId(), dataNodeId)
 	return nil
 }
 
 func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error {
 
-	jobNodeList, err := m.dataCenter.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	if nil != err {
-		return err
-	}
 
 	// 找到自己的投票
-	ip := task.Task.SelfVotePeerInfo.Ip
-	port := task.Task.SelfVotePeerInfo.Port
+	jobNodeId := task.Task.SelfVotePeerInfo.Id
 
-	var jobNodeId string
-	for _, jobNode := range jobNodeList {
-		if jobNode.ExternalIp == ip && jobNode.ExternalPort == port {
-			jobNodeId = jobNode.Id
-			break
-		}
-	}
 
 	// clinet *grpclient.DataNodeClient,
 	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
 	if !has {
-		log.Errorf("Failed to query internal job node, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId, ip, port)
+		log.Errorf("Failed to query internal job node, taskId: {%s}, jobNodeId: {%s}",
+			task.Task.SchedTask.TaskId(), jobNodeId)
 		return errors.New("job node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
-			log.Errorf("Failed to connect internal job node, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
-				task.Task.SchedTask.TaskId(), jobNodeId, ip, port, err)
+			log.Errorf("Failed to connect internal job node, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+				task.Task.SchedTask.TaskId(), jobNodeId, err)
 			return err
 		}
 	}
 
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
-		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId, ip, port, err)
+		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+			task.Task.SchedTask.TaskId(), jobNodeId, err)
 		return err
 	}
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
-		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId, ip, port, err)
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+			task.Task.SchedTask.TaskId(), jobNodeId, err)
 		return err
 	}
 	if !resp.Ok {
-		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId, ip, port)
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}",
+			task.Task.SchedTask.TaskId(), jobNodeId)
 		return nil
 	}
 
 	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
 	m.addRunningTaskCache(task)
 
-	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}, ip: {%s}, port: {%s}",
-		task.Task.SchedTask.TaskId(), jobNodeId, ip, port)
+	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}",
+		task.Task.SchedTask.TaskId(), jobNodeId)
 	return nil
 }
 

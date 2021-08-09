@@ -310,6 +310,7 @@ func (t *TwoPC) driveTask(
 			TaskState: taskState,
 			SchedTask: task,
 			SelfVotePeerInfo: &types.PrepareVoteResource{
+				Id: selfVotePeerInfo.Id,
 				Ip: selfVotePeerInfo.Ip,
 				Port: selfVotePeerInfo.Port,
 				PartyId: selfVotePeerInfo.PartyId,
