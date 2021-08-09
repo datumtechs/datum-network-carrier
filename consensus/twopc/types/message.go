@@ -255,52 +255,6 @@ func (pstate *ProposalState) IsConfirmTimeout() bool {
 	return false
 }
 
-//func (pstate *ProposalState) IsFirstConfirmEpochTimeout() bool {
-//
-//	if pstate.IsPreparePeriod() {
-//		return false
-//	}
-//	if pstate.IsSecondConfirmEpoch() {
-//		return true
-//	}
-//	if pstate.IsCommitPeriod() {
-//		return true
-//	}
-//	if pstate.IsFinishedPeriod() {
-//		return true
-//	}
-//
-//	now := uint64(time.Now().UnixNano())
-//	duration := uint64(ConfirmMsgVotingTimeout.Nanoseconds())
-//
-//	if pstate.IsFirstConfirmEpoch() && (now - pstate.PeriodStartTime) >= duration {
-//		return true
-//	}
-//	return false
-//}
-//func (pstate *ProposalState) IsSecondConfirmEpochTimeout() bool {
-//
-//	if pstate.IsPreparePeriod() {
-//		return false
-//	}
-//	if pstate.IsFirstConfirmEpoch() {
-//		return false
-//	}
-//	if pstate.IsCommitPeriod() {
-//		return true
-//	}
-//	if pstate.IsFinishedPeriod() {
-//		return true
-//	}
-//
-//	now := uint64(time.Now().UnixNano())
-//	duration := uint64(ConfirmMsgVotingTimeout.Nanoseconds())
-//
-//	if pstate.IsSecondConfirmEpoch() && (now - pstate.PeriodStartTime) >= duration {
-//		return true
-//	}
-//	return false
-//}
 func (pstate *ProposalState) IsCommitTimeout() bool {
 	if pstate.IsPreparePeriod() {
 		return false

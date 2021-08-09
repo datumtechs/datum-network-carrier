@@ -387,7 +387,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 
 	var filePath string
-	var columnNameList []string
+	var idColumnName string
 
 	if task.SelfTaskRole == types.TaskOnwer || task.SelfTaskRole == types.DataSupplier {
 
@@ -401,8 +401,12 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 					return "", err
 				}
 				filePath = metaData.MetadataData().FilePath
-				for _, col := range dataSupplier.ColumnList {
-					columnNameList = append(columnNameList, col.Cname)
+				//for _, col := range dataSupplier.ColumnList {
+				//	columnNameList = append(columnNameList, col.Cname)
+				//}
+				// 目前只取 第一列 (对于 dataSupplier)
+				if len(dataSupplier.ColumnList) != 0 {
+					idColumnName = dataSupplier.ColumnList[0].Cname
 				}
 				find = true
 				break
@@ -418,13 +422,13 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 	// 目前 默认只会用一列, 后面再拓展 ..
 	req := &types.FighterTaskReadyGoReqContractCfg{
-		PartyId: "p2",
+		PartyId: partyId,
 		DataParty: struct {
 			InputFile    string `json:"input_file"`
 			IdColumnName string `json:"id_column_name"`
 		}{
 			InputFile:    filePath,
-			IdColumnName: columnNameList[0], // 目前 默认只会用一列, 后面再拓展 ..
+			IdColumnName: idColumnName, // 目前 默认只会用一列, 后面再拓展 .. 只有 dataSupplier 才有, powerSupplier 不会有
 		},
 	}
 
