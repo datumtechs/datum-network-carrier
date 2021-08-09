@@ -281,14 +281,14 @@ func (t *TwoPC) driveTask(
 
 	selfVotePeerInfo := t.state.GetSelfPeerInfo(proposalId)
 	if nil == selfVotePeerInfo {
-		log.Errorf("Failed to find local cache about myself prepareVote peer internal resource, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
+		log.Errorf("Failed to find local cache about prepareVote myself internal resource, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
 			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
 		return
 	}
 
 	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
 	if nil == confirmTaskPeerInfo {
-		log.Errorf("Failed to find local cache about all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
+		log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
 			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
 		return
 	}
@@ -309,10 +309,10 @@ func (t *TwoPC) driveTask(
 			TaskDir:   taskDir,
 			TaskState: taskState,
 			SchedTask: task,
-			SelfVotePeerInfo: &pb.TaskPeerInfo{
-				Ip: []byte(selfVotePeerInfo.Ip),
-				Port: []byte(selfVotePeerInfo.Port),
-				PartyId: []byte(selfVotePeerInfo.PartyId),
+			SelfVotePeerInfo: &types.PrepareVoteResource{
+				Ip: selfVotePeerInfo.Ip,
+				Port: selfVotePeerInfo.Port,
+				PartyId: selfVotePeerInfo.PartyId,
 			},
 			Resources: confirmTaskPeerInfo,
 		},
