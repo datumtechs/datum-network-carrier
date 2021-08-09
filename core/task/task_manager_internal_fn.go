@@ -48,46 +48,10 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 		return err
 	}
 
-	var find bool
-	var ip string
-	var port string
 
-	// 先看看自己是否 owner
-	if string(task.Task.Resources.OwnerPeerInfo.PartyId) == task.SelfIdentity.PartyId {
-		ip = string(task.Task.Resources.OwnerPeerInfo.Ip)
-		port = string(task.Task.Resources.OwnerPeerInfo.Port)
-		find = true
-	}
-
-	// 否则，继续看看  自己是否 dataSupplier
-	if !find {
-		for _, resource := range task.Task.Resources.DataSupplierPeerInfoList {
-			if string(resource.PartyId) == task.SelfIdentity.PartyId {
-				ip = string(resource.Ip)
-				port = string(resource.Port)
-				find = true
-				break
-			}
-		}
-	}
-
-	// 最后，继续看看  自己是否 resultReceiver
-	if !find {
-		for _, resource := range task.Task.Resources.ResultReceiverPeerInfoList {
-			if string(resource.PartyId) == task.SelfIdentity.PartyId {
-				ip = string(resource.Ip)
-				port = string(resource.Port)
-				find = true
-				break
-			}
-		}
-	}
-
-	if !find {
-		log.Errorf("Failed to call executeTaskOnDataNode(), not found dataNode, taskId: {%s}, self.IdentityId: {%s}, self.partyId: {%s}",
-			task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
-		return errors.New("Not found dataNode")
-	}
+	// 找到自己的投票
+	ip := string(task.Task.SelfVotePeerInfo.Ip)
+	port := string(task.Task.SelfVotePeerInfo.Port)
 
 	var dataNodeId string
 	for _, dataNode := range dataNodeList {
@@ -146,23 +110,9 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 		return err
 	}
 
-	var find bool
-	var ip string
-	var port string
-	for _, resource := range task.Task.Resources.PowerSupplierPeerInfoList {
-		if string(resource.PartyId) == task.SelfIdentity.PartyId {
-			ip = string(resource.Ip)
-			port = string(resource.Port)
-			find = true
-			break
-		}
-	}
-
-	if !find {
-		log.Errorf("Failed to call executeTaskOnJobNode(), not found jobNode, taskId: {%s}, self.IdentityId: {%s}, self.partyId: {%s}",
-			task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
-		return errors.New("Not found jobNode")
-	}
+	// 找到自己的投票
+	ip := string(task.Task.SelfVotePeerInfo.Ip)
+	port := string(task.Task.SelfVotePeerInfo.Port)
 
 	var jobNodeId string
 	for _, jobNode := range jobNodeList {
