@@ -292,10 +292,12 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			log.Errorf("Failed tp update local task by election powers on `trySchedule()`, taskId: {%s}, err: {%s}", task.Data.TaskId(), err)
 		}
 
+		log.Debugf("Succeed dataSupplier dataNode on trySchedule(), taskId: {%s}, dataNode: %s", task.Data.TaskId(), dataNodeResource.String())
+
 		toConsensusTask := &types.ConsensusTaskWrap{
 			Task: scheduleTask,
 			OwnerDataResource: &types.PrepareVoteResource{
-				Id:      dataResourceDiskUsed.GetNodeId(),
+				Id:      dataNodeResource.Id,
 				Ip:      dataNodeResource.ExternalIp,
 				Port:    dataNodeResource.ExternalPort,
 				PartyId: task.Data.TaskData().PartyId,
@@ -320,7 +322,6 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 	return nil
 }
 func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.ReplayScheduleTaskWrap) {
-
 
 	cost := &types.TaskOperationCost{
 		Mem:       replayScheduleTask.Task.TaskData().TaskResource.CostMem,
@@ -377,7 +378,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 			return
 		}
 
-		log.Debugf("Succeed to election powers org on replaySchedule, taskId {%s}, powers: %s", replayScheduleTask.Task.TaskId(), utilOrgPowerArrString(powers))
+		log.Debugf("Succeed to election powers org on replaySchedule(), taskId {%s}, powers: %s", replayScheduleTask.Task.TaskId(), utilOrgPowerArrString(powers))
 
 		// compare powerSuppliers of task And powerSuppliers of election
 		if len(powers) != len(replayScheduleTask.Task.TaskData().ResourceSupplier) {
@@ -661,14 +662,13 @@ func (sche *SchedulerStarveFIFO) SendTaskToTaskManager(task *types.DoneScheduleT
 	sche.doneSchedTaskCh <- task
 }
 
-
 func utilOrgPowerArrString(powers []*libTypes.TaskResourceSupplierData) string {
 	arr := make([]string, len(powers))
 	for i, power := range powers {
 		arr[i] = power.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }
@@ -678,7 +678,7 @@ func utilLocalResourceArrString(resources []*types.LocalResourceTable) string {
 		arr[i] = r.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }
@@ -689,11 +689,10 @@ func utilRemoteResourceArrString(resources []*types.RemoteResourceTable) string 
 		arr[i] = r.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }
-
 
 func utilDataResourceArrString(resources []*types.DataResourceTable) string {
 	arr := make([]string, len(resources))
@@ -701,7 +700,7 @@ func utilDataResourceArrString(resources []*types.DataResourceTable) string {
 		arr[i] = r.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }
