@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptypes "github.com/RosettaFlow/Carrier-Go/p2p/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
@@ -149,7 +150,7 @@ func (s *Service) registerRPC(baseTopic string, handle rpcHandler) {
 				if err != p2ptypes.ErrWrongForkDigestVersion {
 					log.WithError(err).Error("Could not handle p2p RPC")
 				}
-				//traceutil.AnnotateError(span, err)
+				traceutil.AnnotateError(span, err)
 			}
 			return
 		}
@@ -163,11 +164,11 @@ func (s *Service) registerRPC(baseTopic string, handle rpcHandler) {
 				// Debug logs for goodbye/status errors
 				if strings.Contains(topic, p2p.RPCGoodByeTopic) || strings.Contains(topic, p2p.RPCStatusTopic) {
 					log.WithError(err).Debug("Could not decode goodbye stream message")
-					//traceutil.AnnotateError(span, err)
+					traceutil.AnnotateError(span, err)
 					return
 				}
 				log.WithError(err).Debug("Could not decode stream message")
-				//traceutil.AnnotateError(span, err)
+				traceutil.AnnotateError(span, err)
 				return
 			}
 			if err := handle(ctx, msg.Interface(), stream); err != nil {
@@ -175,13 +176,13 @@ func (s *Service) registerRPC(baseTopic string, handle rpcHandler) {
 				if err != p2ptypes.ErrWrongForkDigestVersion {
 					log.WithError(err).Error("Could not handle p2p RPC")
 				}
-				//traceutil.AnnotateError(span, err)
+				traceutil.AnnotateError(span, err)
 			}
 		} else {
 			msg := reflect.New(t)
 			if err := s.cfg.P2P.Encoding().DecodeWithMaxLength(stream, msg.Interface()); err != nil {
 				log.WithError(err).Debug("Could not decode stream message")
-				//traceutil.AnnotateError(span, err)
+				traceutil.AnnotateError(span, err)
 				return
 			}
 			if err := handle(ctx, msg.Elem().Interface(), stream); err != nil {
@@ -189,7 +190,7 @@ func (s *Service) registerRPC(baseTopic string, handle rpcHandler) {
 				if err != p2ptypes.ErrWrongForkDigestVersion {
 					log.WithError(err).Error("Could not handle p2p RPC")
 				}
-				//traceutil.AnnotateError(span, err)
+				traceutil.AnnotateError(span, err)
 			}
 		}
 	})
