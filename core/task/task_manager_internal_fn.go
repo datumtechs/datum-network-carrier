@@ -351,7 +351,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	}
 
 	var dynamicParameter map[string]interface{}
-	log.Debugf("Start json Unmarshal the `ContractExtraParams`, ContractExtraParams: %s", task.Task.SchedTask.TaskData().ContractExtraParams)
+	log.Debugf("Start json Unmarshal the `ContractExtraParams`, taskId: {%s}, ContractExtraParams: %s", task.Task.SchedTask.TaskId(), task.Task.SchedTask.TaskData().ContractExtraParams)
 	if "" != task.Task.SchedTask.TaskData().ContractExtraParams {
 		if err := json.Unmarshal([]byte(task.Task.SchedTask.TaskData().ContractExtraParams), &dynamicParameter); nil != err {
 			return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
