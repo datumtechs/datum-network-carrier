@@ -909,18 +909,6 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
-	//if t.state.HasNotProposal(msg.ProposalId) {
-	//	return fmt.Errorf("%s onTaskResultMsg", ctypes.ErrProposalNotFound)
-	//}
-	//proposalState := t.state.GetProposalState(msg.ProposalId)
-	//
-	//// 只有 当前 state 是 commit <定时任务还未更新 proposalState>
-	//// 或 finished <定时任务更新了 proposalState> 状态才可以处理 commit 阶段的 Msg
-	//if proposalState.IsNotCommitPeriod() || proposalState.IsNotFinishedPeriod() {
-	//	log.Warnf("Warning the current proposalState is taskResult timeout on `onTaskResultMsg`, proposalId: {%s}, epoch: {%s}",
-	//		proposalState.ProposalId.String(), proposalState.GetPeriod())
-	//	return ctypes.ErrProposalTaskResultMsgTimeout
-	//}
 	has, err := t.dataCenter.HasLocalTaskExecute(msg.TaskId)
 	if nil != err {
 		log.Errorf("Failed to query local task executing status on `onTaskResultMsg`, taskId: {%s}, err: {%s}",
@@ -930,8 +918,8 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 
 	if !has {
 		log.Warnf("Warning not found local task executing status on `onTaskResultMsg`, taskId: {%s}", msg.TaskId)
-		return fmt.Errorf("%s, the local task is not found", ctypes.ErrTaskResultMsgInvalid)
+		return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResultMsgInvalid)
 	}
-	go t.storeTaskEvent(pid, msg.TaskId, msg.TaskEventList)
+	t.storeTaskEvent(pid, msg.TaskId, msg.TaskEventList)
 	return nil
 }
