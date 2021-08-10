@@ -20,6 +20,7 @@ type Manager struct {
 	resourceClientSet *grpclient.InternalResourceClientSet
 
 	eventCh chan *types.TaskEventInfo
+	quit    chan struct{}
 	// send the validated taskMsgs to scheduler
 	localTaskMsgCh chan<- types.TaskMsgs
 	// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者 发给 dataCenter
@@ -48,6 +49,7 @@ func NewTaskManager(
 		localTaskMsgCh:     localTaskMsgCh,
 		doneScheduleTaskCh: doneScheduleTaskCh,
 		runningTaskCache:   make(map[string]*types.DoneScheduleTaskChWrap, 0),
+		quit:               make(chan struct{}),
 	}
 	return m
 }
@@ -57,7 +59,10 @@ func (m *Manager) Start() error {
 	log.Info("Started taskManager ...")
 	return nil
 }
-func (m *Manager)Stop() error { return nil }
+func (m *Manager) Stop() error {
+	close(m.quit)
+	return nil
+}
 
 func (m *Manager) loop() {
 
@@ -77,6 +82,10 @@ func (m *Manager) loop() {
 			// 添加本地缓存
 			m.addRunningTaskCache(task)
 			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId())
+
+		case <-m.quit:
+			log.Info("Stopped taskManager ...")
+			return
 		}
 	}
 }

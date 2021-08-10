@@ -135,7 +135,7 @@ func (t *TwoPC) loop() {
 			go t.refreshProposalState()
 
 		case <-t.quit:
-			log.Info("Stop 2pc consensus engine ...")
+			log.Info("Stopped 2pc consensus engine ...")
 			return
 		}
 	}

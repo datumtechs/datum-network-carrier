@@ -83,14 +83,11 @@ func (m *Manager) Stop() error {
 	if err := m.dataCenter.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
 	}
-	// store local resource Tables
-	//if err := m.db.StoreLocalResourceTables(m.localTableQueue); nil != err {
-	//	return err
-	//}
 	// store remote org resource Tables
 	if err := m.dataCenter.StoreOrgResourceTables(m.remoteTableQueue); nil != err {
 		return err
 	}
+	log.Infof("Stopped resource manager ...")
 	return nil
 }
 

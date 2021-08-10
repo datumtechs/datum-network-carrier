@@ -23,7 +23,6 @@ const (
 	defaultBroadcastTaskMsgInterval     = 10 * time.Second
 )
 
-
 type MessageHandler struct {
 	pool       *Mempool
 	dataCenter iface.ForHandleDB
@@ -32,8 +31,9 @@ type MessageHandler struct {
 	taskManager *task.Manager
 
 	msgChannel chan *feed.Event
+	quit       chan struct{}
 
-	msgSub               event.Subscription
+	msgSub event.Subscription
 
 	powerMsgCache    types.PowerMsgs
 	metaDataMsgCache types.MetaDataMsgs
@@ -49,26 +49,19 @@ func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.M
 		dataCenter:  dataCenter,
 		taskManager: taskManager,
 		msgChannel:  make(chan *feed.Event, 5),
+		quit:        make(chan struct{}),
 	}
 	return m
 }
 
 func (m *MessageHandler) Start() error {
 	m.msgSub = m.pool.SubscribeNewMessageEvent(m.msgChannel)
-
-	//m.identityMsgSub = m.pool.SubscribeNewIdentityMsgsEvent(m.msgChannel)
-	//m.identityRevokeMsgSub = m.pool.SubscribeNewIdentityRevokeMsgsEvent(m.msgChannel)
-
-	//m.powerMsgSub = m.pool.SubscribeNewPowerMsgsEvent(m.msgChannel)
-	//m.pool.SubscribeNewPowerRevokeMsgsEvent(m.msgChannel)
-
-	//m.metaDataMsgSub = m.pool.SubscribeNewMetaDataMsgsEvent(m.msgChannel)
-	//m.pool.SubscribeNewMetaDataRevokeMsgsEvent(m.msgChannel)
-
-	//m.taskMsgSub = m.pool.SubscribeNewTaskMsgsEvent(m.msgChannel)
-
 	go m.loop()
-	log.Info("Started messageManager ...")
+	log.Info("Started message handler ...")
+	return nil
+}
+func (m *MessageHandler) Stop() error {
+	close(m.quit)
 	return nil
 }
 
@@ -194,7 +187,7 @@ func (m *MessageHandler) loop() {
 		case <-metaDataTicker.C:
 
 			if len(m.metaDataMsgCache) > 0 {
-				if err := 	m.BroadcastMetaDataMsgs(m.metaDataMsgCache); nil != err {
+				if err := m.BroadcastMetaDataMsgs(m.metaDataMsgCache); nil != err {
 					log.Errorf("Failed to call `BroadcastMetaDataMsgs` on MessageHandler with timer, %s", err)
 				}
 				m.metaDataMsgCache = make(types.MetaDataMsgs, 0)
@@ -212,6 +205,9 @@ func (m *MessageHandler) loop() {
 		// Err() channel will be closed when unsubscribing.
 		case err := <-m.msgSub.Err():
 			log.Errorf("Received err from msgSub, return loop, err: %s", err)
+			return
+		case <-m.quit:
+			log.Infof("Stopped message handler ...")
 			return
 		}
 	}
@@ -284,7 +280,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			types.GetDefaultResoueceMem(),
 			types.GetDefaultResoueceProcessor(),
 			types.GetDefaultResoueceBandwidth(),
-			)
+		)
 		resourceTable.SetSlotUnit(slotUnit)
 
 		log.Debugf("Publish power, StoreLocalResourceTable, %s", resourceTable.String())
@@ -295,7 +291,6 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 				power.PowerId, power.JobNodeId, err))
 			continue
 		}
-
 
 		if err := m.dataCenter.StoreLocalResourceIdByPowerId(power.PowerId, power.JobNodeId); nil != err {
 			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler with broadcast,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
@@ -315,14 +310,14 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			// resource status, eg: create/release/revoke
 			State: types.PowerStateRelease.String(),
 			// unit: byte
-			TotalMem: types.GetDefaultResoueceMem(),  // todo 使用 默认的资源大小
+			TotalMem: types.GetDefaultResoueceMem(), // todo 使用 默认的资源大小
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: types.GetDefaultResoueceProcessor(),  // todo 使用 默认的资源大小
+			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
-			TotalBandWidth: types.GetDefaultResoueceBandwidth(),    // todo 使用 默认的资源大小
+			TotalBandWidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
 			UsedBandWidth:  0,
 		})); nil != err {
 			log.Errorf("Failed to store power to local on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
@@ -334,23 +329,23 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 
 		// 发布到全网
 		if err := m.dataCenter.InsertResource(types.NewResource(&libTypes.ResourceData{
-			Identity:  identity.IdentityId,
-			NodeId:    identity.NodeId,
-			NodeName:  identity.Name,
-			DataId:    power.PowerId,
+			Identity: identity.IdentityId,
+			NodeId:   identity.NodeId,
+			NodeName: identity.Name,
+			DataId:   power.PowerId,
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.DataStatusNormal.String(),
 			// resource status, eg: create/release/revoke
 			State: types.PowerStateRelease.String(),
 			// unit: byte
-			TotalMem: types.GetDefaultResoueceMem(),  // todo 使用 默认的资源大小
+			TotalMem: types.GetDefaultResoueceMem(), // todo 使用 默认的资源大小
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: types.GetDefaultResoueceProcessor(),  // todo 使用 默认的资源大小
+			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
-			TotalBandWidth: types.GetDefaultResoueceBandwidth(),    // todo 使用 默认的资源大小
+			TotalBandWidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
 			UsedBandWidth:  0,
 		})); nil != err {
 			log.Errorf("Failed to store power to dataCenter on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
@@ -410,12 +405,11 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 			continue
 		}
 
-
 		if err := m.dataCenter.RevokeResource(types.NewResource(&libTypes.ResourceData{
-			Identity:  identity.IdentityId,
-			NodeId:    identity.NodeId,
-			NodeName:  identity.Name,
-			DataId:    revoke.PowerId,
+			Identity: identity.IdentityId,
+			NodeId:   identity.NodeId,
+			NodeName: identity.Name,
+			DataId:   revoke.PowerId,
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.DataStatusDeleted.String(),
 			// resource status, eg: create/release/revoke
@@ -453,43 +447,43 @@ func (m *MessageHandler) BroadcastMetaDataMsgs(metaDataMsgs types.MetaDataMsgs) 
 		dataResourceFileUpload.SetMetaDataId(metaData.MetaDataId)
 		if err := m.dataCenter.StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
 			log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
 			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 		// 记录原始数据占用资源大小
 		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
 			errs = append(errs, fmt.Sprintf("failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 		dataResourceTable.UseDisk(uint64(metaData.Size()))
 		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
 			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
 			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 		// 单独记录 metaData 的 Size 和所在 dataNodeId
 		if err := m.dataCenter.StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
 			metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), uint64(metaData.Size()))); nil != err {
 			log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
 			errs = append(errs, fmt.Sprintf("failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 
 		if err := m.dataCenter.InsertMetadata(metaData.ToDataCenter()); nil != err {
 			log.Errorf("Failed to store metaData to dataCenter on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err)
 			errs = append(errs, fmt.Sprintf("failed to store metaData to dataCenter on MessageHandler with broadcast, originId: {%s}, metaDataId: {%s}, dataNodeId: {%s}, err: {%s}",
-				metaData.OriginId(),metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
+				metaData.OriginId(), metaData.MetaDataId, dataResourceFileUpload.GetNodeId(), err))
 			continue
 		}
 

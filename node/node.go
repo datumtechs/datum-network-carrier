@@ -198,7 +198,7 @@ func (b *CarrierNode) Close() {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
-	log.Info("Stopping rosetta node")
+	log.Info("Stopping carrier node")
 	b.services.StopAll()
 	b.cancel()
 	close(b.stop)
