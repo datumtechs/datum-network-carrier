@@ -21,33 +21,61 @@ import (
 
 
 
-func (t *TwoPC) isProcessingTask(taskId string) bool {
-	if _, ok := t.sendTasks[taskId]; ok {
+func (t *TwoPC) isConsensusTask(taskId string) bool {
+	if _, ok := t.GetSendTaskWithOk(taskId); ok {
 		return true
 	}
-	if _, ok := t.recvTasks[taskId]; ok {
+	if _, ok := t.GetRecvTaskWithOk(taskId); ok {
 		return true
 	}
 	return false
 }
 
-
 func (t *TwoPC) addSendTask(task *types.Task)  {
-	t.sendTasks[task.TaskId()] = task
+	t.sendTaskLock.Lock()
+	t.sendTaskCache[task.TaskId()] = task
+	t.sendTaskLock.Unlock()
 }
 func (t *TwoPC) addRecvTask(task *types.Task) {
-	t.recvTasks[task.TaskId()] = task
+	t.recvTaskLock.Lock()
+	t.recvTaskCache[task.TaskId()] = task
+	t.recvTaskLock.Unlock()
 }
-func (t *TwoPC) delTask(taskId string) {
+func (t *TwoPC) delTaskCache(taskId string) {
 	t.delSendTask(taskId)
 	t.delRecvTask(taskId)
 }
 func (t *TwoPC) delSendTask(taskId string) {
-	delete(t.sendTasks, taskId)
+	t.sendTaskLock.Lock()
+	delete(t.sendTaskCache, taskId)
+	t.sendTaskLock.Unlock()
 }
 func (t *TwoPC) delRecvTask(taskId string) {
-	delete(t.recvTasks, taskId)
+	t.recvTaskLock.Lock()
+	delete(t.recvTaskCache, taskId)
+	t.recvTaskLock.Unlock()
 }
+func (t *TwoPC) GetSendTaskWithOk(taskId string) (*types.Task, bool) {
+	t.sendTaskLock.RLock()
+	task, ok := t.sendTaskCache[taskId]
+	t.sendTaskLock.RUnlock()
+	return task, ok
+}
+func (t *TwoPC) GetSendTask(taskId string) *types.Task {
+	task, _ := t.GetSendTaskWithOk(taskId)
+	return task
+}
+func (t *TwoPC) GetRecvTaskWithOk(taskId string) (*types.Task, bool) {
+	t.recvTaskLock.RLock()
+	task, ok := t.recvTaskCache[taskId]
+	t.recvTaskLock.RUnlock()
+	return task, ok
+}
+func (t *TwoPC) GetRecvTask(taskId string) *types.Task {
+	task, _ := t.GetRecvTaskWithOk(taskId)
+	return task
+}
+
 func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.ConsensuResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
@@ -89,7 +117,7 @@ func (t *TwoPC) delProposalStateAndTask(proposalId common.Hash) {
 	if state := t.state.GetProposalState(proposalId); t.state.EmptyInfo() != state {
 		log.Infof("Start remove proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.TaskId)
 		t.state.CleanProposalState(proposalId)
-		t.delTask(state.TaskId)
+		t.delTaskCache(state.TaskId)
 	}
 }
 
@@ -207,7 +235,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 
 	} else {
 
-		task, ok := t.recvTasks[proposalState.TaskId]
+		task, ok := t.GetRecvTaskWithOk(proposalState.TaskId)
 		if !ok {
 			log.Errorf("Failed to query recvTaskInfo on consensus.handleInvalidProposal(), taskId: {%s}", proposalState.TaskId)
 			return
