@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
+	"time"
 )
 
 type Manager struct {
@@ -66,6 +67,8 @@ func (m *Manager) Stop() error {
 
 func (m *Manager) loop() {
 
+	taskMonitorTicker := time.NewTicker(30*time.Second)
+
 	for {
 		select {
 		// 自己组织的 Fighter 上报过来的 event
@@ -82,6 +85,9 @@ func (m *Manager) loop() {
 			// 添加本地缓存
 			m.addRunningTaskCache(task)
 			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId())
+
+		case <- taskMonitorTicker.C:
+			m.expireTaskMonitor()
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")
