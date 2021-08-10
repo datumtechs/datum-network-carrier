@@ -52,6 +52,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	// todo: to init config
 	config := makeConfig(cliCtx)
 	configureNetwork(cliCtx)
+	configureTracing(cliCtx)
 
 	// Copy config and resolve the datadir so future changes to the current
 	// working directory don't affect the node.

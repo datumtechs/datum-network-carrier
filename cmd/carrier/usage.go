@@ -65,6 +65,10 @@ var appHelpFlagGroups = []flagGroup{
 			debug.MutexProfileFractionFlag,
 			debug.DebugFlag,
 			flags.EnableDebugRPCEndpoints,
+			flags.EnableTracingFlag,
+			flags.TracingProcessNameFlag,
+			flags.TracingEndpointFlag,
+			flags.TraceSampleFractionFlag,
 		},
 	},
 	{
