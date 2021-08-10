@@ -69,19 +69,21 @@ func (c *DataNodeClient) Close() {
 	}
 }
 
-func (c *DataNodeClient) connecting() {
+func (c *DataNodeClient) connecting() error {
 	if c.IsConnected() {
-		return
+		return nil
 	}
 	c.connMu.Lock()
 	conn, err := dialContext(c.ctx, c.addr)
 	c.connMu.Unlock()
-	c.dataProviderClient = datasvc.NewDataProviderClient(conn)
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).WithField("adrr", c.addr).Error("Connect GRPC server(for datanode) failed")
+		return err
 	}
+	c.dataProviderClient = datasvc.NewDataProviderClient(conn)
 	c.conn = conn
 	c.connStartAt = timeutils.UnixMsec()
+	return nil
 }
 
 func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
@@ -106,7 +108,11 @@ func (c *DataNodeClient) IsConnected() bool {
 func (c *DataNodeClient) IsNotConnected() bool { return !c.IsConnected()}
 
 func (c *DataNodeClient) Reconnect() error {
-	c.connecting()
+	err := c.connecting()
+	if err != nil {
+		log.WithError(err).WithField("dataNodeId", c.nodeId).Debug("Reconnect to dataNode failed")
+		return err
+	}
 	return nil
 }
 
