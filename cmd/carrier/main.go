@@ -83,6 +83,10 @@ var (
 		debug.BlockProfileRateFlag,
 		debug.CPUProfileFlag,
 		debug.TraceFlag,
+		flags.EnableTracingFlag,
+		flags.TracingProcessNameFlag,
+		flags.TracingEndpointFlag,
+		flags.TraceSampleFractionFlag,
 	}
 
 )

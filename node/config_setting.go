@@ -3,6 +3,7 @@ package node
 import (
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
+	"github.com/RosettaFlow/Carrier-Go/common/tracing"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/urfave/cli/v2"
 )
@@ -44,4 +45,14 @@ func configureNetwork(cliCtx *cli.Context) {
 		c.BootstrapNodes = cliCtx.StringSlice(flags.BootstrapNode.Name)
 		params.OverrideCarrierNetworkConfig(c)
 	}
+}
+
+func configureTracing(cliCtx *cli.Context) error {
+	return tracing.Setup(
+		"carrier-network", // service name
+		cliCtx.String(flags.TracingProcessNameFlag.Name),
+		cliCtx.String(flags.TracingEndpointFlag.Name),
+		cliCtx.Float64(flags.TraceSampleFractionFlag.Name),
+		cliCtx.Bool(flags.EnableTracingFlag.Name),
+	)
 }

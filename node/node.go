@@ -49,6 +49,9 @@ type CarrierNode struct {
 // New creates a new node instance, sets up configuration options, and registers
 // every required service to the node.
 func New(cliCtx *cli.Context) (*CarrierNode, error) {
+	if err := configureTracing(cliCtx); err != nil {
+		return nil, err
+	}
 	// todo: to init config
 	config := makeConfig(cliCtx)
 	configureNetwork(cliCtx)

@@ -211,7 +211,7 @@ var (
 	// EnableUPnPFlag specifies if UPnP should be enabled or not. The default value is false.
 	EnableUPnPFlag = &cli.BoolFlag{
 		Name:  "enable-upnp",
-		Usage: "Enable the service (Beacon chain or Validator) to use UPnP when possible.",
+		Usage: "Enable the service (Carrier chain or Validator) to use UPnP when possible.",
 	}
 	// DisableDiscv5 disables running discv5.
 	DisableDiscv5 = &cli.BoolFlag{
@@ -223,6 +223,31 @@ var (
 		Name:  "gc-percent",
 		Usage: "The percentage of freshly allocated data to live data on which the gc will be run again.",
 		Value: 100,
+	}
+
+	// ================================= Tracing Flags ===========================================
+	// EnableTracingFlag defines a flag to enable p2p message tracing.
+	EnableTracingFlag = &cli.BoolFlag{
+		Name:  "enable-tracing",
+		Usage: "Enable request tracing.",
+	}
+	// TracingProcessNameFlag defines a flag to specify a process name.
+	TracingProcessNameFlag = &cli.StringFlag{
+		Name:  "tracing-process-name",
+		Usage: "The name to apply to tracing tag \"process_name\"",
+	}
+	// TracingEndpointFlag flag defines the http endpoint for serving traces to Jaeger.
+	TracingEndpointFlag = &cli.StringFlag{
+		Name:  "tracing-endpoint",
+		Usage: "Tracing endpoint defines where network traces are exposed to Jaeger.",
+		Value: "http://127.0.0.1:14268/api/traces",
+	}
+	// TraceSampleFractionFlag defines a flag to indicate what fraction of p2p
+	// messages are sampled for tracing.
+	TraceSampleFractionFlag = &cli.Float64Flag{
+		Name:  "trace-sample-fraction",
+		Usage: "Indicate what fraction of p2p messages are sampled for tracing.",
+		Value: 0.20,
 	}
 )
 

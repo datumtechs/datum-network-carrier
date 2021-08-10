@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
@@ -27,13 +28,13 @@ func (s *Service) Broadcast(ctx context.Context, msg proto.Message) error {
 	forkDigest, err := s.forkDigest()
 	if err != nil {
 		err := errors.Wrap(err, "could not retrieve fork digest")
-		//traceutil.AnnotateError(span, err)
+		traceutil.AnnotateError(span, err)
 		return err
 	}
 
 	topic, ok := GossipTypeMapping[reflect.TypeOf(msg)]
 	if !ok {
-		//traceutil.AnnotateError(span, ErrMessageNotMapped)
+		traceutil.AnnotateError(span, ErrMessageNotMapped)
 		return ErrMessageNotMapped
 	}
 	return s.broadcastObject(ctx, msg, fmt.Sprintf(topic, forkDigest))
