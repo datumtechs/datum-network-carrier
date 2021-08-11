@@ -330,9 +330,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 					return "", err
 				}
 				filePath = metaData.MetadataData().FilePath
-				//for _, col := range dataSupplier.ColumnList {
-				//	columnNameList = append(columnNameList, col.Cname)
-				//}
+
 				// 目前只取 第一列 (对于 dataSupplier)
 				if len(dataSupplier.ColumnList) != 0 {
 					idColumnName = dataSupplier.ColumnList[0].Cname
