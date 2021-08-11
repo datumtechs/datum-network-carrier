@@ -244,9 +244,9 @@ func (r *RemoteResourceTable) DecodeRLP(s *rlp.Stream) error {
 	return err
 }
 
-func (resource *RemoteResourceTable)String() string {
+func (r *RemoteResourceTable) String() string {
 	return fmt.Sprintf(`{"identityId": "%s", "total": %s, "used": %s}`,
-		resource.identityId, resource.total.String(), resource.used.String())
+		r.identityId, r.total.String(), r.used.String())
 }
 func (r *RemoteResourceTable) Remain() (uint64, uint64, uint64) {
 	return r.total.mem - r.used.mem, r.total.processor - r.used.processor, r.total.bandwidth - r.used.bandwidth

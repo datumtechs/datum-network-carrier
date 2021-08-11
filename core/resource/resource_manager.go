@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
+	"sync"
 	"time"
 )
 
@@ -20,6 +21,7 @@ type Manager struct {
 	slotUnit *types.Slot
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue []*types.RemoteResourceTable
+	remoteTableQueueMu sync.RWMutex
 }
 
 func NewResourceManager(dataCenter iface.ForResourceDB) *Manager {
@@ -190,7 +192,11 @@ func (m *Manager) CleanLocalResourceTables() error {
 //func (m *Manager) CleanRemoteResourceTables() {
 //	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
 //}
-func (m *Manager) GetRemoteResouceTables() []*types.RemoteResourceTable { return m.remoteTableQueue }
+func (m *Manager) GetRemoteResourceTables() []*types.RemoteResourceTable {
+	m.remoteTableQueueMu.RLock()
+	defer m.remoteTableQueueMu.RUnlock()
+	return m.remoteTableQueue
+}
 func (m *Manager) refreshOrgResourceTable() error {
 	resources, err := m.dataCenter.GetResourceList()
 	if nil != err {
@@ -202,6 +208,9 @@ func (m *Manager) refreshOrgResourceTable() error {
 	for i, r := range resources {
 		remoteResourceArr[i] = types.NewOrgResourceFromResource(r)
 	}
+
+	m.remoteTableQueueMu.Lock()
+	defer m.remoteTableQueueMu.Unlock()
 
 	m.remoteTableQueue = remoteResourceArr
 
