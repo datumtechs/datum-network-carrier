@@ -130,22 +130,36 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 	return nil
 }
 
-func (m *Manager) publishFinishedTaskToDataCenter(taskId, taskState string) {
+func (m *Manager) publishFinishedTaskToDataCenter(taskId string) {
 	taskWrap, ok := m.queryRunningTaskCacheOk(taskId)
 	if !ok {
 		return
 	}
-
-	log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", taskId, taskState)
 
 	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
 	if nil != err {
 		log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
 		return
 	}
+	var isFailed bool
+	for _, event := range eventList {
+		if event.Type == ev.TaskFailed.Type {
+			isFailed = true
+			break
+		}
+	}
+	var taskState string
+	if isFailed {
+		taskState = types.TaskStateFailed.String()
+	} else {
+		taskState = types.TaskStateSuccess.String()
+	}
 
-	// todo 组装 算力参与方的 资源使用信息
-	if err := m.dataCenter.InsertTask(m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList, taskState)); nil != err {
+	log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", taskId, taskState)
+
+	finalTask := m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList, taskState)
+
+	if err := m.dataCenter.InsertTask(finalTask); nil != err {
 		log.Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
 		return
 	}
@@ -178,7 +192,7 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 		return
 	}
 
-	taskResultMsg := m.makeTaskResult(taskWrap)
+	taskResultMsg := m.makeTaskResultByEventList(taskWrap)
 	if nil != taskResultMsg {
 		taskWrap.ResultCh <- taskResultMsg
 	}
@@ -397,7 +411,7 @@ func (m *Manager) ForEachRunningTaskCache (f  func(taskId string, task *types.Do
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) makeTaskResult(taskWrap *types.DoneScheduleTaskChWrap) *types.TaskResultMsgWrap {
+func (m *Manager) makeTaskResultByEventList(taskWrap *types.DoneScheduleTaskChWrap) *types.TaskResultMsgWrap {
 
 	if taskWrap.Task.TaskDir == types.SendTaskDir || types.TaskOnwer == taskWrap.SelfTaskRole {
 		log.Errorf("send task OR task owner can not make TaskResult Msg")
@@ -440,18 +454,17 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 
 			// 先 缓存下 最终休止符 event
 			m.dataCenter.StoreTaskEvent(event)
+			if event.Type == ev.TaskExecuteFailedEOF.Type {
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "",types.TaskStateFailed)
+			} else {
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "",types.TaskStateSuccess)
+			}
 
 			if task.Task.TaskDir == types.RecvTaskDir {
 				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..  (里面有解锁本地资源 ...)
 				m.sendTaskResultMsgToConsensus(event.TaskId)
-
 			} else {
-				//  如果是 自己的task, 认为任务终止 ... 发送到 dataCenter (里面有解锁本地资源 ...)
-				if event.Type == ev.TaskExecuteSucceedEOF.Type {
-					m.publishFinishedTaskToDataCenter(event.TaskId, types.TaskStateSuccess.String())
-				} else {
-					m.publishFinishedTaskToDataCenter(event.TaskId, types.TaskStateFailed.String())
-				}
+				m.publishFinishedTaskToDataCenter(event.TaskId)
 
 			}
 			return nil
@@ -481,42 +494,36 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 
-			// 发起方直接 往 dataCenter 发送数据 (里面有解锁 本地资源 ...)
-			m.publishFinishedTaskToDataCenter(taskId, task.Task.TaskState.String())
+			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "", task.Task.TaskState)
+			m.publishFinishedTaskToDataCenter(taskId)
 
 		case types.TaskStateRunning:
 
 			if err := m.driveTaskForExecute(task); nil != err {
 				log.Errorf("Failed to execute task on taskOnwer node, taskId:{%s}, %s", task.Task.SchedTask.TaskId(), err)
-				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-					task.Task.SchedTask.TaskId(), task.Task.SchedTask.TaskData().Identity, fmt.Sprintf("failed to execute task"))
-				// 因为是 自己的任务, 所以直接将 task  和 event list  发给 dataCenter  (里面有解锁 本地资源 ...)
-				m.dataCenter.StoreTaskEvent(event)
-				m.publishFinishedTaskToDataCenter(taskId, types.TaskStateFailed.String()) //
+
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
+				m.publishFinishedTaskToDataCenter(taskId)
 			}
 			// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
 		default:
 			log.Errorf("Failed to handle unknown task state, taskId: {%s}, taskRole: {%s}, taskState: {%s}",
 				task.Task.SchedTask.TaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
 		}
-	//case types.DataSupplier:
-	//case types.PowerSupplier:
-	//case types.ResultSupplier:
+
 	default:
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..  (里面有解锁 本地资源 ...)
+			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "", task.Task.TaskState)
 			m.sendTaskResultMsgToConsensus(taskId)
 		case types.TaskStateRunning:
 
 			if err := m.driveTaskForExecute(task); nil != err {
 				log.Errorf("Failed to execute task on %s node, taskId: {%s}, %s", task.SelfTaskRole.String(), task.Task.SchedTask.TaskId(), err)
-				identityId, _ := m.dataCenter.GetIdentityId()
-				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-					task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("failed to execute task"))
 
 				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者.. (里面有解锁 本地资源 ...)
-				m.dataCenter.StoreTaskEvent(event)
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
 				m.sendTaskResultMsgToConsensus(taskId)
 			}
 		default:
@@ -538,18 +545,33 @@ func (m *Manager) expireTaskMonitor () {
 					taskId, duration, task.Task.SchedTask.TaskData().TaskResource.Duration)
 
 				identityId, _ := m.dataCenter.GetIdentityId()
-
-				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-					task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("task running expire"))
-				m.dataCenter.StoreTaskEvent(event)
-
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("task running expire"),types.TaskStateFailed)
 				switch task.SelfTaskRole {
 				case types.TaskOnwer:
-					m.publishFinishedTaskToDataCenter(taskId, types.TaskStateFailed.String())
+					m.publishFinishedTaskToDataCenter(taskId)
 				default:
 					m.sendTaskResultMsgToConsensus(taskId)
 				}
 			}
 		}
 	}
+}
+
+
+func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state types.TaskState) {
+	var evTyp string
+	var evMsg string
+	if state == types.TaskStateFailed {
+		evTyp = ev.TaskFailed.Type
+		evMsg = ev.TaskFailed.Msg
+	} else {
+		evTyp = ev.TaskSucceed.Type
+		evMsg = ev.TaskSucceed.Msg
+	}
+	if "" != extra {
+		evMsg = extra
+	}
+	event := m.eventEngine.GenerateEvent(evTyp,
+		taskId, identityId, evMsg)
+	m.dataCenter.StoreTaskEvent(event)
 }
