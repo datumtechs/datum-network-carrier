@@ -72,8 +72,8 @@ func (c *JobNodeClient) connecting() error {
 		return nil
 	}
 	c.connMu.Lock()
+	defer c.connMu.Unlock()
 	conn, err := dialContext(c.ctx, c.addr)
-	c.connMu.Unlock()
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).WithField("addr", c.addr).Error("Connect GRPC server(for jobnode) failed")
 		return err
@@ -90,6 +90,8 @@ func (c *JobNodeClient) GetClientConn() *grpc.ClientConn {
 }
 
 func (c *JobNodeClient) ConnStatus() connectivity.State {
+	c.connMu.RLock()
+	defer c.connMu.RUnlock()
 	if c.conn == nil {
 		return connectivity.Shutdown
 	}

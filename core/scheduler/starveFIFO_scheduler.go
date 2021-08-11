@@ -575,9 +575,9 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	calculateCount := len(powerPartyIds)
 	identityIds := make([]string, 0)
 
-	remoteReources := sche.resourceMng.GetRemoteResouceTables()
-	log.Debugf("GetRemoteResouceTables on electionConputeOrg, remoteResources: %s", utilRemoteResourceArrString(remoteReources))
-	for _, r := range remoteReources {
+	remoteResources := sche.resourceMng.GetRemoteResourceTables()
+	log.Debugf("GetRemoteResourceTables on electionConputeOrg, remoteResources: %s", utilRemoteResourceArrString(remoteResources))
+	for _, r := range remoteResources {
 		// 计算方不可以是任务发起方 和 数据参与方 和 接收方
 		if _, ok := dataIdentityIdCache[r.GetIdentityId()]; ok {
 			continue
