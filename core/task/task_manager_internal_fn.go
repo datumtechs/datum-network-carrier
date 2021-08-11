@@ -77,8 +77,6 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 		return nil
 	}
 
-	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
-	m.addRunningTaskCache(task)
 
 	log.Infof("Success to publish schedTask to `data-Fighter` node to executing,  taskId: {%s}, dataNodeId: {%s}",
 		task.Task.SchedTask.TaskId(), dataNodeId)
@@ -126,8 +124,6 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 		return nil
 	}
 
-	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
-	m.addRunningTaskCache(task)
 
 	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}",
 		task.Task.SchedTask.TaskId(), jobNodeId)
@@ -351,7 +347,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	}
 
 	var dynamicParameter map[string]interface{}
-	log.Debugf("Start json Unmarshal the `ContractExtraParams`, ContractExtraParams: %s", task.Task.SchedTask.TaskData().ContractExtraParams)
+	log.Debugf("Start json Unmarshal the `ContractExtraParams`, taskId: {%s}, ContractExtraParams: %s", task.Task.SchedTask.TaskId(), task.Task.SchedTask.TaskData().ContractExtraParams)
 	if "" != task.Task.SchedTask.TaskData().ContractExtraParams {
 		if err := json.Unmarshal([]byte(task.Task.SchedTask.TaskData().ContractExtraParams), &dynamicParameter); nil != err {
 			return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
@@ -381,13 +377,24 @@ func (m *Manager) removeRunningTaskCache(taskId string) {
 }
 
 func (m *Manager) queryRunningTaskCacheOk(taskId string) (*types.DoneScheduleTaskChWrap, bool) {
+	m.runningTaskCacheLock.RLock()
 	task, ok := m.runningTaskCache[taskId]
+	m.runningTaskCacheLock.RUnlock()
 	return task, ok
 }
 
 func (m *Manager) queryRunningTaskCache(taskId string) *types.DoneScheduleTaskChWrap {
 	task, _ := m.queryRunningTaskCacheOk(taskId)
 	return task
+}
+
+func (m *Manager) ForEachRunningTaskCache (f  func(taskId string, task *types.DoneScheduleTaskChWrap) bool ) {
+	m.runningTaskCacheLock.Lock()
+	for taskId, task := range m.runningTaskCache {
+		if ok := f(taskId, task); ok {
+		}
+	}
+	m.runningTaskCacheLock.Unlock()
 }
 
 func (m *Manager) makeTaskResult(taskWrap *types.DoneScheduleTaskChWrap) *types.TaskResultMsgWrap {
@@ -515,6 +522,34 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		default:
 			log.Errorf("Failed to handle unknown task state, taskId: {%s}, taskRole: {%s}, taskState: {%s}",
 				task.Task.SchedTask.TaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
+		}
+	}
+}
+
+func (m *Manager) expireTaskMonitor () {
+
+	for taskId, task := range m.runningTaskCache {
+		if task.Task.SchedTask.TaskData().State == types.TaskStateRunning.String() && task.Task.SchedTask.TaskData().StartAt != 0 {
+
+			// the task has running expire
+			duration := uint64(timeutils.UnixMsec()) - task.Task.SchedTask.TaskData().StartAt
+			if duration >= task.Task.SchedTask.TaskData().TaskResource.Duration {
+				log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
+					taskId, duration, task.Task.SchedTask.TaskData().TaskResource.Duration)
+
+				identityId, _ := m.dataCenter.GetIdentityId()
+
+				event := m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+					task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("task running expire"))
+				m.dataCenter.StoreTaskEvent(event)
+
+				switch task.SelfTaskRole {
+				case types.TaskOnwer:
+					m.publishFinishedTaskToDataCenter(taskId, types.TaskStateFailed.String())
+				default:
+					m.sendTaskResultMsgToConsensus(taskId)
+				}
+			}
 		}
 	}
 }
