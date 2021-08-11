@@ -296,7 +296,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.DoneScheduleTaskChWrap) (*commo
 	if nil != err {
 		return nil, err
 	}
-
+	log.Debugf("Succeed make contractCfg, taskId:{%s}, contractCfg: %s", task.Task.SchedTask.TaskId(), contractExtraParams)
 	return &common.TaskReadyGoReq{
 		TaskId:     task.Task.SchedTask.TaskId(),
 		ContractId: task.Task.SchedTask.TaskData().CalculateContractCode,
