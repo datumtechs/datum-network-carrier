@@ -1,3 +1,5 @@
+// +build none
+
 /*
 The ci command is called from Continuous Integration scripts.
 
@@ -83,7 +85,7 @@ func doInstall(cmdline []string) {
 		cc      = flag.String("cc", "", "C compiler to cross build with")
 		gcflags = flag.String("gcflags", "", "Turn off compiler code optimization and function inlining")
 	)
-	flag.CommandLine.Parse(cmdline)
+	flag.CommandLine.Parse(cmdline[1:])
 	env := build.Env()
 
 	// Check Go version. People regularly open issues about compilation
@@ -95,7 +97,7 @@ func doInstall(cmdline []string) {
 
 		if minor < 9 {
 			log.Println("You have Go version", runtime.Version())
-			log.Println("go-ethereum requires at least Go version 1.9 and cannot")
+			log.Println("program requires at least Go version 1.6 and cannot")
 			log.Println("be compiled with an earlier version. Please upgrade your Go installation.")
 			os.Exit(1)
 		}
@@ -177,6 +179,9 @@ func buildFlags(env build.Environment) (flags []string) {
 	}
 	if runtime.GOOS == "windows" {
 		ld = append(ld, "-extldflags", "-static")
+	}
+	if env.IsRace {
+		flags = append(flags, "-race")
 	}
 
 	if len(ld) > 0 {

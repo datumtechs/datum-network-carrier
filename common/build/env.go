@@ -15,6 +15,7 @@ var (
 	BuildnumFlag    = flag.String("buildnum", "", `Overrides CI build number`)
 	PullRequestFlag = flag.Bool("pull-request", false, `Overrides pull request status of the build`)
 	CronJobFlag     = flag.Bool("cron-job", false, `Overrides cron job status of the build`)
+	RaceFlag     	= flag.Bool("race", false, `Open application competition analysis`)
 )
 
 // Environment contains metadata provided by the build environment.
@@ -25,11 +26,12 @@ type Environment struct {
 	Buildnum            string
 	IsPullRequest       bool
 	IsCronJob           bool
+	IsRace				bool
 }
 
 func (env Environment) String() string {
-	return fmt.Sprintf("%s env (commit:%s branch:%s tag:%s buildnum:%s pr:%t)",
-		env.Name, env.Commit, env.Branch, env.Tag, env.Buildnum, env.IsPullRequest)
+	return fmt.Sprintf("%s env (commit:%s branch:%s tag:%s buildnum:%s pr:%t race:%t)",
+		env.Name, env.Commit, env.Branch, env.Tag, env.Buildnum, env.IsPullRequest, env.IsRace)
 }
 
 // Env returns metadata about the current CI environment, falling back to LocalEnv
@@ -112,6 +114,9 @@ func applyEnvFlags(env Environment) Environment {
 	}
 	if *CronJobFlag {
 		env.IsCronJob = true
+	}
+	if *RaceFlag {
+		env.IsRace = true
 	}
 	return env
 }

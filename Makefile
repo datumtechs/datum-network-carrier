@@ -14,6 +14,11 @@ carrier:
 	@echo "Done building."
 	@echo "Run \"$(GOBIN)/carrier\" to launch carrier."
 
+carrier-race:
+	$(GORUN) build/ci.go install ./cmd/carrier --race
+	@echo "Done building."
+	@echo "Run \"$(GOBIN)/carrier\" to launch carrier."
+
 all:
 	$(GORUN) build/ci.go install
 
