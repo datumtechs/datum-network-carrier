@@ -179,7 +179,8 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 			taskId)
 		return nil, ErrSendTaskMsg
 	}
-	log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}, taskMsg: %s", taskId, taskMsg.String())
+	//log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}, taskMsg: %s", taskId, taskMsg.String())
+	log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}", taskId)
 	return &pb.PublishTaskDeclareResponse{
 		Status: 0,
 		Msg:    backend.OK,
