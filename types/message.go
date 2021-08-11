@@ -9,6 +9,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"strings"
 	"sync/atomic"
 )
 
@@ -611,11 +612,8 @@ type TaskMsgs []*TaskMsg
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
 func (msg *TaskMsg) String() string {
-	result, err := json.Marshal(msg)
-	if err != nil {
-		return "Failed to generate string"
-	}
-	return string(result)
+	return fmt.Sprintf(`{"taskId": %s, "powerPartyIds": %s, "task": %s}`,
+		msg.TaskId, "["+strings.Join(msg.PowerPartyIds, ",")+"]", msg.Data.TaskData().String())
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 func (msg *TaskMsg) Owner() *libTypes.OrganizationData {
