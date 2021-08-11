@@ -40,13 +40,15 @@ type TwoPC struct {
 	asyncCallCh        chan func()
 	quit               chan struct{}
 	// The task being processed by myself  (taskId -> task)
-	sendTasks map[string]*types.Task
+	sendTaskCache map[string]*types.Task
 	// The task processing  that received someone else (taskId -> task)
-	recvTasks map[string]*types.Task
+	recvTaskCache map[string]*types.Task
 
 	taskResultCh   chan *types.ConsensuResult
 	taskResultChs  map[string]chan<- *types.ConsensuResult
 	taskResultLock sync.Mutex
+	sendTaskLock   sync.RWMutex
+	recvTaskLock   sync.RWMutex
 
 	Errs []error
 }
@@ -72,8 +74,8 @@ func New(
 		doneScheduleTaskCh: doneScheduleTaskCh,
 		asyncCallCh:        make(chan func(), conf.PeerMsgQueueSize),
 		quit:               make(chan struct{}),
-		sendTasks:          make(map[string]*types.Task),
-		recvTasks:          make(map[string]*types.Task),
+		sendTaskCache:          make(map[string]*types.Task),
+		recvTaskCache:          make(map[string]*types.Task),
 
 		taskResultCh:  make(chan *types.ConsensuResult, 100),
 		taskResultChs: make(map[string]chan<- *types.ConsensuResult, 100),
@@ -133,7 +135,7 @@ func (t *TwoPC) loop() {
 			go t.refreshProposalState()
 
 		case <-t.quit:
-			log.Info("Stop 2pc consensus engine ...")
+			log.Info("Stopped 2pc consensus engine ...")
 			return
 		}
 	}
@@ -202,7 +204,7 @@ func (t *TwoPC) OnPrepare(task *types.Task) error {
 }
 func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensuResult) error {
 
-	if t.isProcessingTask(task.TaskId()) {
+	if t.isConsensusTask(task.TaskId()) {
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
 
@@ -212,20 +214,6 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		now,
 		task.TaskId(),
 		task.TaskData().TaskName,
-		//task.TaskData().PartyId,
-		//task.TaskData().Identity,
-		//task.TaskData().NodeId,
-		//task.TaskData().NodeName,
-		//task.TaskData().DataId,
-		//task.TaskData().DataStatus,
-		//task.TaskData().State,
-		//task.TaskData().MetadataSupplier,
-		//task.TaskData().ResourceSupplier,
-		//task.TaskData().Receivers,
-		//task.TaskData().CalculateContractCode,
-		//task.TaskData().DataSplitContractCode,
-		//task.TaskData().ContractExtraParams,
-		//task.TaskData().TaskResource,
 		task.TaskData().CreateAt,
 		uint64(time.Now().Nanosecond()),
 	})
@@ -420,7 +408,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		return ctypes.ErrMsgTaskDirInvalid
 	}
 	// find the task of proposal on sendTasks
-	task, ok := t.sendTasks[proposalState.TaskId]
+	task, ok := t.GetSendTaskWithOk(proposalState.TaskId)
 	if !ok {
 		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 			ctypes.ErrProposalTaskNotFound, task.TaskData().TaskId, voteMsg.TaskRole.String(),
@@ -592,7 +580,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		return ctypes.ErrMsgTaskDirInvalid
 	}
 	// find the task of proposal on recvTasks
-	task, ok := t.recvTasks[proposalState.TaskId]
+	task, ok := t.GetRecvTaskWithOk(proposalState.TaskId)
 	if !ok {
 		return ctypes.ErrProposalTaskNotFound
 	}
@@ -671,7 +659,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		return ctypes.ErrMsgTaskDirInvalid
 	}
 	// find the task of proposal on sendTasks
-	task, ok := t.sendTasks[proposalState.TaskId]
+	task, ok := t.GetSendTaskWithOk(proposalState.TaskId)
 	if !ok {
 		return ctypes.ErrProposalTaskNotFound
 	}
@@ -856,7 +844,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 		return ctypes.ErrMsgTaskDirInvalid
 	}
 	// find the task of proposal on recvTasks
-	task, ok := t.recvTasks[proposalState.TaskId]
+	task, ok := t.GetRecvTaskWithOk(proposalState.TaskId)
 	if !ok {
 		return ctypes.ErrProposalTaskNotFound
 	}
@@ -909,18 +897,6 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
-	//if t.state.HasNotProposal(msg.ProposalId) {
-	//	return fmt.Errorf("%s onTaskResultMsg", ctypes.ErrProposalNotFound)
-	//}
-	//proposalState := t.state.GetProposalState(msg.ProposalId)
-	//
-	//// 只有 当前 state 是 commit <定时任务还未更新 proposalState>
-	//// 或 finished <定时任务更新了 proposalState> 状态才可以处理 commit 阶段的 Msg
-	//if proposalState.IsNotCommitPeriod() || proposalState.IsNotFinishedPeriod() {
-	//	log.Warnf("Warning the current proposalState is taskResult timeout on `onTaskResultMsg`, proposalId: {%s}, epoch: {%s}",
-	//		proposalState.ProposalId.String(), proposalState.GetPeriod())
-	//	return ctypes.ErrProposalTaskResultMsgTimeout
-	//}
 	has, err := t.dataCenter.HasLocalTaskExecute(msg.TaskId)
 	if nil != err {
 		log.Errorf("Failed to query local task executing status on `onTaskResultMsg`, taskId: {%s}, err: {%s}",
@@ -930,8 +906,8 @@ func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgW
 
 	if !has {
 		log.Warnf("Warning not found local task executing status on `onTaskResultMsg`, taskId: {%s}", msg.TaskId)
-		return fmt.Errorf("%s, the local task is not found", ctypes.ErrTaskResultMsgInvalid)
+		return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResultMsgInvalid)
 	}
-	go t.storeTaskEvent(pid, msg.TaskId, msg.TaskEventList)
+	t.storeTaskEvent(pid, msg.TaskId, msg.TaskEventList)
 	return nil
 }

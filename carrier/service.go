@@ -93,6 +93,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		),
 		resourceClientSet: resourceClientSet,
 	}
+	
 	// read config from p2p config.
 	NodeId, _ := p2p.HexID(nodeId)
 
@@ -172,7 +173,33 @@ func (s *Service) Stop() error {
 		defer s.cancel()
 	}
 	s.carrierDB.Stop()
-	// todo: could add some logic for here（some logic for stop.）
+
+	for typ, engine := range s.Engines {
+		if err := engine.Close(); nil != err {
+			log.WithError(err).Errorf("Cound not close the consensus engine: %s, err: %v", typ.String(), err)
+		}
+	}
+	if nil != s.resourceManager {
+		if err := s.resourceManager.Stop(); nil != err {
+			log.WithError(err).Errorf("Failed to stop the resourceManager, err: %v", err)
+		}
+	}
+	if nil != s.messageManager {
+		if err := s.messageManager.Stop(); nil != err {
+			log.WithError(err).Errorf("Failed to stop the messageManager, err: %v", err)
+		}
+	}
+	if nil != s.taskManager {
+		if err := s.taskManager.Stop(); nil != err {
+			log.WithError(err).Errorf("Failed to stop the taskManager, err: %v", err)
+		}
+	}
+	if nil != s.scheduler {
+		if err := s.scheduler.Stop(); nil != err {
+			log.WithError(err).Errorf("Failed to stop the scheduler, err: %v", err)
+		}
+	}
+
 	return nil
 }
 

@@ -45,10 +45,10 @@ type SchedulerStarveFIFO struct {
 	replayScheduleTaskCh <-chan *types.ReplayScheduleTaskWrap
 	// 发送经过调度好的 task 交给 taskManager 去分发给自己的 Fighter-Py
 	doneSchedTaskCh chan<- *types.DoneScheduleTaskChWrap
-
-	eventEngine *evengine.EventEngine
-	dataCenter  iface.ForResourceDB
-	err         error
+	quit            chan struct{}
+	eventEngine     *evengine.EventEngine
+	dataCenter      iface.ForResourceDB
+	err             error
 }
 
 func NewSchedulerStarveFIFO(
@@ -71,6 +71,7 @@ func NewSchedulerStarveFIFO(
 		doneSchedTaskCh:      doneSchedTaskCh,
 		dataCenter:           dataCenter,
 		eventEngine:          eventEngine,
+		quit:                 make(chan struct{}),
 	}
 }
 func (sche *SchedulerStarveFIFO) loop() {
@@ -135,6 +136,10 @@ func (sche *SchedulerStarveFIFO) loop() {
 		// 定时调度 队列中的任务信息
 		case <-taskTicker.C:
 			sche.trySchedule()
+
+		case <- sche.quit:
+			log.Info("Stopped SchedulerStarveFIFO ...")
+			return
 		}
 
 	}
@@ -145,11 +150,14 @@ func (sche *SchedulerStarveFIFO) Start() error {
 	log.Info("Started SchedulerStarveFIFO ...")
 	return nil
 }
-func (sche *SchedulerStarveFIFO) Stop() error  { return nil } // TODO 未实现 ...
+func (sche *SchedulerStarveFIFO) Stop() error  {
+	close(sche.quit)
+	return nil
+}
 func (sche *SchedulerStarveFIFO) Error() error { return sche.err }
 func (sche *SchedulerStarveFIFO) Name() string { return "SchedulerStarveFIFO" }
 func (sche *SchedulerStarveFIFO) addTaskBullet(bullet *types.TaskBullet) {
-	heap.Push(sche.queue, bullet) //
+	heap.Push(sche.queue, bullet)
 }
 func (sche *SchedulerStarveFIFO) trySchedule() error {
 
