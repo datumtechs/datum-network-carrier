@@ -118,8 +118,28 @@ func (s *state) DelProposalState(proposalId common.Hash) {
 func (s *state) GetProposalStates() map[common.Hash]*ctypes.ProposalState {
 	s.proposalsLock.RLock()
 	proposals := s.runningProposals
+	proposalMap := make(map[common.Hash]*ctypes.ProposalState, len(proposals))
+	for hash, proposalState := range proposals {
+		proposalMap[hash] = &ctypes.ProposalState{
+			ProposalId:         proposalState.ProposalId,
+			TaskDir:            proposalState.TaskDir,
+			TaskRole:           proposalState.TaskRole,
+			SelfIdentity:       &types.TaskNodeAlias{
+				PartyId:    proposalState.SelfIdentity.PartyId,
+				Name:       proposalState.SelfIdentity.Name,
+				NodeId:     proposalState.SelfIdentity.NodeId,
+				IdentityId: proposalState.SelfIdentity.IdentityId,
+			},
+			TaskId:             proposalState.TaskId,
+			PeriodNum:          proposalState.PeriodNum,
+			PrePeriodStartTime: proposalState.PrePeriodStartTime,
+			PeriodStartTime:    proposalState.PeriodStartTime,
+			DeadlineDuration:   proposalState.DeadlineDuration,
+			CreateAt:           proposalState.CreateAt,
+		}
+	}
 	s.proposalsLock.RUnlock()
-	return proposals
+	return proposalMap
 }
 
 func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {

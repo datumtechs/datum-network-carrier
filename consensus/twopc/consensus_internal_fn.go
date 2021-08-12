@@ -154,7 +154,6 @@ func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskP
 
 func (t *TwoPC) refreshProposalState() {
 
-
 	for id, proposalState := range t.state.GetProposalStates() {
 
 		if proposalState.IsDeadline() {
