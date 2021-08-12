@@ -12,6 +12,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	"strconv"
+	"time"
 )
 
 func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error {
@@ -135,6 +136,8 @@ func (m *Manager) publishFinishedTaskToDataCenter(taskId string) {
 	if !ok {
 		return
 	}
+
+	time.Sleep(2*time.Second)  // todo 故意等待小段时间 防止 onTaskResultMsg 因为 网络延迟, 而没收集全 其他 peer 的 eventList
 
 	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
 	if nil != err {
