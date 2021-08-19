@@ -13,6 +13,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/pkg/errors"
 	"strings"
 	"sync"
 	"time"
@@ -247,14 +248,14 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 	go func() {
 
 		if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-			log.Errorf("Failed to call `SendTwoPcPrepareMsg`, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: {%s}", proposalHash, task.TaskId(), err)
+			log.Errorf("Failed to call `SendTwoPcPrepareMsg`, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: \n%s", proposalHash, task.TaskId(), err)
 			// Send consensus result to Scheduler
 			t.collectTaskResultWillSendToSched(&types.ConsensuResult{
 				TaskConsResult: &types.TaskConsResult{
 					TaskId: task.TaskId(),
 					Status: types.TaskConsensusInterrupt,
 					Done:   false,
-					Err:    err,
+					Err:    errors.New("failed to call `SendTwoPcPrepareMsg`"),
 				},
 			})
 			// clean some invalid data
@@ -369,10 +370,9 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	t.state.StorePrepareVoteState(vote)
 	go func() {
 
-		if err = handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
-			err := fmt.Errorf("failed to call `SendTwoPcPrepareVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}, err: {%s}",
+		if err := handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, types.ConvertPrepareVote(vote)); nil != err {
+			log.Errorf("failed to call `SendTwoPcPrepareVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}, err: \n%s",
 				proposal.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid, err)
-			log.Error(err)
 
 			t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 			// clean some data
@@ -503,7 +503,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			go func() {
 
 				if err := t.sendConfirmMsg(voteMsg.ProposalId, task, now); nil != err {
-					log.Errorf("Failed to call`SendTwoPcConfirmMsg` proposalId: {%s}, taskId: {%s}, err: {%s}",
+					log.Errorf("Failed to call `SendTwoPcConfirmMsg` proposalId: {%s}, taskId: {%s}, err: \n%s",
 						proposalState.ProposalId.String(), task.TaskId(), err)
 					// Send consensus result
 					t.collectTaskResultWillSendToSched(&types.ConsensuResult{
@@ -511,7 +511,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 							TaskId: task.TaskId(),
 							Status: types.TaskConsensusInterrupt,
 							Done:   false,
-							Err:    err,
+							Err:    errors.New("failed to call `SendTwoPcConfirmMsg`"),
 						},
 						//Resources:
 					})
@@ -534,7 +534,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 						TaskId: task.TaskId(),
 						Status: types.TaskConsensusInterrupt,
 						Done:   false,
-						Err:    fmt.Errorf("The prepareMsg voting result was not passed"),
+						Err:    errors.New("The prepareMsg voting result was not passed"),
 					},
 					//Resources:
 				})
@@ -616,10 +616,9 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 
 	go func() {
 
-		if err = handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, types.ConvertConfirmVote(vote)); nil != err {
-			err := fmt.Errorf("failed to call `SendTwoPcConfirmVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}, err: {%s}",
+		if err := handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, types.ConvertConfirmVote(vote)); nil != err {
+			log.Errorf("failed to call `SendTwoPcConfirmVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}, err: \n%s",
 				proposalState.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid, err)
-			log.Error(err)
 
 			t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 			// clean some data
@@ -750,7 +749,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 				if err := t.sendCommitMsg(voteMsg.ProposalId, task, now); nil != err {
 
-					log.Errorf("Failed to call`SendTwoPcCommitMsg` proposalId: {%s}, taskId: {%s}, err: {%s}",
+					log.Errorf("Failed to call`SendTwoPcCommitMsg` proposalId: {%s}, taskId: {%s}, err: \n%s",
 						proposalState.ProposalId.String(), task.TaskId(), err)
 
 					// Send consensus result
@@ -759,7 +758,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 							TaskId: task.TaskId(),
 							Status: types.TaskConsensusInterrupt,
 							Done:   false,
-							Err:    err,
+							Err:    errors.New("failed to call `SendTwoPcCommitMsg`"),
 						},
 						//Resources:
 					})
@@ -788,7 +787,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			// Send consensus result
 			go func() {
 
-				log.Debugf("ConfrimVoting failed on consensus's confirm epoch, the `YES` vote count is no enough, `YES` vote count: {%d}, need total count: {%d}",
+				log.Debugf("ConfirmVoting failed on consensus's confirm epoch, the `YES` vote count is no enough, `YES` vote count: {%d}, need total count: {%d}",
 					yesVoteCount, totalVoteCount)
 
 				t.collectTaskResultWillSendToSched(&types.ConsensuResult{
@@ -796,7 +795,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 						TaskId: task.TaskId(),
 						Status: types.TaskConsensusInterrupt,
 						Done:   false,
-						Err:    fmt.Errorf("The prepareMsg voting result was not passed"),
+						Err:    errors.New("The cofirmMsg voting result was not passed"),
 					},
 					//Resources:
 				})
