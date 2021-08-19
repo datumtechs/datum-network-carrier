@@ -10,9 +10,15 @@ import "google/api/annotations.proto";
 
 //  ------------------------  yarn  ------------------------
 
+enum NodeType {
+  SeedNode = 0;
+  JobNode = 1;
+  DataNode = 2;
+}
+
 // 调度服务的信息
 message YarnNodeInfo {
-  string                      node_type = 1;                             // 服务node的类型
+  NodeType                    node_type = 1;                             // 服务node的类型
   string                      node_id = 2;                               // 调度服务的 nodeId, 代表整个机构的 nodeId
   string                      internal_ip = 3;                           // 调度服务的内网 ip, 给 管理台用
   string                      external_ip = 4;                           // 调度服务的外网 ip, 给 外部做p2p用
@@ -42,7 +48,7 @@ message YarnNodeSysInfo {
 
 // 调度服务上被注册的资源节点信息
 message YarnRegisteredPeer {
-  string                   node_type = 1;                      // 计算or数据服务node的类型
+  NodeType                   node_type = 1;                    // 计算or数据服务node的类型
   YarnRegisteredPeerDetail node_detail = 2;                    // 计算or数据服务node的网络信息
 }
 
@@ -63,39 +69,39 @@ message SeedPeer {
   int32  conn_state = 5;                    // 是否被调度服务连接上 (-1: 未被调度服务连接上; 0: 连接上)
 }
 
-// 调度服务上的 计算服务详情信息
-message YarnRegisteredJobNode {
-  string                       id = 2;                            // 计算服务的唯一Id
-  string                       internal_ip = 3;                   // 计算服务的内网 ip, 给 管理台用
-  string                       external_ip = 4;                   // 计算服务的外网 ip, 给 多方协作任务用
-  string                       internal_port = 5;                 // 计算服务的内网 port, 给 管理台用
-  string                       external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
-  ResourceUsedDetailShow       information = 7;                   // 计算服务的算力资源使用情况
-  uint64                       duration = 8;                      // 计算服务远行时长 (从加入网络中的时间点计算)
-  YarnRegisteredJobNodeTaskIds task = 9;                          // 计算服务上的任务Id和个数
-}
-
-message YarnRegisteredJobNodeTaskIds {
-  uint32          count = 1;
-  repeated string task_ids = 2;
-}
-
-
-message YarnRegisteredDataNode {
-  string                      id = 2;                            // 数据服务的唯一Id
-  string                      internal_ip = 3;                   // 数据服务的内网 ip, 给 管理台用
-  string                      external_ip = 4;                   // 数据服务的外网 ip, 给 多方协作任务用
-  string                      internal_port = 5;                 // 数据服务的内网 port, 给 管理台用
-  string                      external_port = 6;                 // 数据服务的外网 port, 给 多方协作任务用
-  ResourceUsedDetailShow      information = 7;                   // 数据服务的算力资源使用情况
-  uint64                      duration = 8;                      // 数据服务远行时长 (从加入网络中的时间点计算)
-  YarnRegisteredDataNodeDelta delta = 9;                         // 数据服务上的文件统计信息
-}
-
-message YarnRegisteredDataNodeDelta {
-  uint32 fileCount = 1;                           // 数据服务对外公开的源文件个数
-  uint32 fileTotalSize = 2;                       // 数据服务对外公开的源文件总大小  (单位: byte)
-}
+//// 调度服务上的 计算服务详情信息
+//message YarnRegisteredJobNode {
+//  string                       id = 2;                            // 计算服务的唯一Id
+//  string                       internal_ip = 3;                   // 计算服务的内网 ip, 给 管理台用
+//  string                       external_ip = 4;                   // 计算服务的外网 ip, 给 多方协作任务用
+//  string                       internal_port = 5;                 // 计算服务的内网 port, 给 管理台用
+//  string                       external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
+//  ResourceUsedDetailShow       information = 7;                   // 计算服务的算力资源使用情况
+//  uint64                       duration = 8;                      // 计算服务远行时长 (从加入网络中的时间点计算)
+//  YarnRegisteredJobNodeTaskIds task = 9;                          // 计算服务上的任务Id和个数
+//}
+//
+//message YarnRegisteredJobNodeTaskIds {
+//  uint32          count = 1;
+//  repeated string task_ids = 2;
+//}
+//
+//
+//message YarnRegisteredDataNode {
+//  string                      id = 2;                            // 数据服务的唯一Id
+//  string                      internal_ip = 3;                   // 数据服务的内网 ip, 给 管理台用
+//  string                      external_ip = 4;                   // 数据服务的外网 ip, 给 多方协作任务用
+//  string                      internal_port = 5;                 // 数据服务的内网 port, 给 管理台用
+//  string                      external_port = 6;                 // 数据服务的外网 port, 给 多方协作任务用
+//  ResourceUsedDetailShow      information = 7;                   // 数据服务的算力资源使用情况
+//  uint64                      duration = 8;                      // 数据服务远行时长 (从加入网络中的时间点计算)
+//  YarnRegisteredDataNodeDelta delta = 9;                         // 数据服务上的文件统计信息
+//}
+//
+//message YarnRegisteredDataNodeDelta {
+//  uint32 fileCount = 1;                           // 数据服务对外公开的源文件个数
+//  uint32 fileTotalSize = 2;                       // 数据服务对外公开的源文件总大小  (单位: byte)
+//}
 
 
 message GetNodeInfoResponse {
@@ -105,14 +111,14 @@ message GetNodeInfoResponse {
 }
 
 message GetRegisteredPeersRequest {
-  string                   node_type = 1;                      // 计算or数据服务node的类型
+  NodeType                   node_type = 1;                      // 种子or计算or数据服务node的类型
 }
 
 message GetRegisteredPeersResponse {
   int32                           status = 1;                               // 响应码
   string                          msg = 2;                                  // 错误信息
-  repeated YarnRegisteredJobNode  job_nodes = 3;                            // 注册在调度服务上的 计算服务信息
-  repeated YarnRegisteredDataNode data_nodes = 4;                           // 注册在调度服务上的 数据服务信息
+  repeated SeedPeer               seed_nodes = 3;                           // 注册在调度服务上的 种子节点信息
+  repeated YarnRegisteredPeer     nodes = 4;                                // 注册在调度服务上的 计算or数据服务信息
 }
 
 message DeleteRegisteredNodeRequest {
@@ -206,7 +212,7 @@ message ReportTaskEventRequest {
 
 // 节点的资源使用实况上报请求
 message ReportTaskResourceExpenseRequest {
-  string                    node_type = 1;                        // 计算or数据服务node的类型
+  NodeType                  node_type = 1;                        // 计算or数据服务node的类型
   string                    node_id = 2;                          // 节点Id
   uint64                    total_mem = 3;                        // 节点的总内存 (单位: byte)
   uint64                    total_processor = 4;                  // 节点的总核数 (单位: 个)
