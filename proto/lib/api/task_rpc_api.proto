@@ -143,7 +143,7 @@ message TerminateTaskRequest {
 
 // ## 任务 相关接口
 service TaskService {
-  
+
   // 查看全部任务详情列表
   rpc GetTaskDetailList (EmptyGetParams) returns (GetTaskDetailListResponse) {
     option (google.api.http) = {
