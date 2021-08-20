@@ -13,16 +13,16 @@ import "google/api/annotations.proto";
 
 
 
-// 任务详情 (供展示用)
-message TaskDetailShow {
+// 任务详情
+message TaskDetail {
   string                                task_id = 1;                         // 任务Id
   string                                task_name = 2;                       // 任务名称
   string                                user = 3;                            // 发起任务的用户的信息 (task是属于用户的)
   UserType                              user_type = 4;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
   TaskOrganizationIdentityInfo          sender = 5;                          // 任务发起方
   TaskOrganizationIdentityInfo          algo_supplier = 6;                   // 算法提供方 (目前就是和 任务发起方是同一个 ...)
-  repeated TaskDataSupplierShow         data_supplier = 7;                   // 数据提供方
-  repeated TaskPowerSupplierShow        power_supplier = 8;                  // 算力提供方
+  repeated TaskDataSupplier             data_supplier = 7;                   // 数据提供方
+  repeated TaskPowerSupplier            power_supplier = 8;                  // 算力提供方
   repeated TaskOrganizationIdentityInfo receivers = 9;                       // 任务结果方
   uint64                                create_at = 10;                      // 任务发起时间
   uint64                                start_at = 11;                       // 任务启动时间
@@ -31,19 +31,19 @@ message TaskDetailShow {
   TaskOperationCostDeclare              operation_cost = 14;                 // 任务所需资源声明
 }
 // 任务数据提供方信息 (任务详情展示用)
-message TaskDataSupplierShow {
+message TaskDataSupplier {
   TaskOrganizationIdentityInfo member_info = 1;                              // 身份信息
   string                       meta_data_id = 2;                             // 元数据Id
   string                       meta_data_name = 3;                           // 元数据名称
 }
 // 任务算力提供方信息 (任务详情展示用)
-message TaskPowerSupplierShow {
+message TaskPowerSupplier {
   TaskOrganizationIdentityInfo member_info = 1;                         // 身份信息
-  ResourceUsedDetailShow       power_info = 2;                          // 算力使用情况
+  ResourceUsedDetail           power_info = 2;                          // 算力使用情况
 }
 
 // 任务事件定义
-message TaskEventShow {
+message TaskEvent {
   string                   type = 1;                        // 事件类型码
   string                   task_id = 2;                     // 事件对应的任务id
   OrganizationIdentityInfo owner = 3;                       // 产生事件的节点身份
@@ -90,7 +90,7 @@ message TaskOperationCostDeclare {
 
 
 message GetTaskDetailResponse {
-  TaskDetailShow information = 1;             // 任务详情
+  TaskDetail     information = 1;             // 任务详情
   string         role = 2;                    // 我在任务中的角色 (owner: 任务发起方; dataSupplier: 数据提供方: powerSupplier: 算力提供方; receiver: 结果接收方)
 }
 message GetTaskDetailListResponse {
@@ -108,7 +108,7 @@ message GetTaskEventListByTaskIdsRequest {
 message GetTaskEventListResponse {
   int32                  status = 1;                      // 响应码
   string                 msg = 2;                         // 错误信息
-  repeated TaskEventShow task_event_list = 3;             // 任务事件列表
+  repeated TaskEvent     task_event_list = 3;             // 任务事件列表
 }
 
 

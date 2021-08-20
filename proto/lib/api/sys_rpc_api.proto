@@ -26,7 +26,7 @@ message YarnNodeInfo {
   string                      external_port = 6;                         // 调度服务的外网 port, 给 外部做p2p用
   string                      identity_type = 7;                         // 身份认证标识的类型 (ca 或者 did)
   string                      identity_id = 8;                           // 身份认证标识的id
-  ResourceUsedDetailShow      resource_used = 9;                         // 调度服务系统本身资源信息
+  ResourceUsedDetail          resource_used = 9;                         // 调度服务系统本身资源信息
   repeated YarnRegisteredPeer peers = 10;                                // 调度服务上被注册的 计算or数据服务节点信息
   repeated SeedPeer           seed_peers = 11;                           // 调度服务上被注册的种子节点信息
   string                      state = 12;                                // 调度服务自身的状态信息 (active: 活跃; leave: 离开网络; join: 加入网络 unuseful: 不可用)
@@ -76,7 +76,7 @@ message SeedPeer {
 //  string                       external_ip = 4;                   // 计算服务的外网 ip, 给 多方协作任务用
 //  string                       internal_port = 5;                 // 计算服务的内网 port, 给 管理台用
 //  string                       external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
-//  ResourceUsedDetailShow       information = 7;                   // 计算服务的算力资源使用情况
+//  ResourceUsedDetail           information = 7;                   // 计算服务的算力资源使用情况
 //  uint64                       duration = 8;                      // 计算服务远行时长 (从加入网络中的时间点计算)
 //  YarnRegisteredJobNodeTaskIds task = 9;                          // 计算服务上的任务Id和个数
 //}
@@ -93,7 +93,7 @@ message SeedPeer {
 //  string                      external_ip = 4;                   // 数据服务的外网 ip, 给 多方协作任务用
 //  string                      internal_port = 5;                 // 数据服务的内网 port, 给 管理台用
 //  string                      external_port = 6;                 // 数据服务的外网 port, 给 多方协作任务用
-//  ResourceUsedDetailShow      information = 7;                   // 数据服务的算力资源使用情况
+//  ResourceUsedDetail          information = 7;                   // 数据服务的算力资源使用情况
 //  uint64                      duration = 8;                      // 数据服务远行时长 (从加入网络中的时间点计算)
 //  YarnRegisteredDataNodeDelta delta = 9;                         // 数据服务上的文件统计信息
 //}
@@ -117,8 +117,7 @@ message GetRegisteredPeersRequest {
 message GetRegisteredPeersResponse {
   int32                           status = 1;                               // 响应码
   string                          msg = 2;                                  // 错误信息
-  repeated SeedPeer               seed_nodes = 3;                           // 注册在调度服务上的 种子节点信息
-  repeated YarnRegisteredPeer     nodes = 4;                                // 注册在调度服务上的 计算or数据服务信息
+  repeated YarnRegisteredPeer     nodes = 3;                                // 注册在调度服务上的 计算or数据服务信息
 }
 
 message DeleteRegisteredNodeRequest {
@@ -214,14 +213,7 @@ message ReportTaskEventRequest {
 message ReportTaskResourceExpenseRequest {
   NodeType                  node_type = 1;                        // 计算or数据服务node的类型
   string                    node_id = 2;                          // 节点Id
-  uint64                    total_mem = 3;                        // 节点的总内存 (单位: byte)
-  uint64                    total_processor = 4;                  // 节点的总核数 (单位: 个)
-  uint64                    total_bandwidth = 5;                  // 节点的总带宽 (单位: bps)
-  uint64                    total_disk = 6;                       // 节点的总磁盘容量 (单位: byte)
-  uint64                    used_mem = 7;                         // 节点的已使用内存 (单位: byte)
-  uint64                    used_processor = 8;                   // 节点的已使用核数 (单位: 个)
-  uint64                    used_bandwidth = 9;                   // 节点的已使用带宽 (单位: bps)
-  uint64                    used_disk = 10;                       // 节点的已使用磁盘容量 (单位: byte)
+  ResourceUsedDetail        usage = 3;                            // 服务的资源实况
 }
 
 message ReportUpFileSummaryRequest {

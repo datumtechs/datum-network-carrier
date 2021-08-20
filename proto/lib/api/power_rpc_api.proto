@@ -14,7 +14,7 @@ import "google/api/annotations.proto";
 
 // 单个算力详情
 message PowerSingleDetail {
-  ResourceUsedDetailShow information = 1;                      // 算力实况
+  ResourceUsedDetail     information = 1;                      // 算力实况
   string                 job_node_id = 2;                      // 计算服务id (节点内部的)
   string                 power_id = 3;                         // 算力id
   uint32                 total_task_count = 4;                 // 算力上总共执行的任务数 (已完成的和正在执行的)
@@ -25,7 +25,7 @@ message PowerSingleDetail {
 
 //  总算力详情
 message PowerTotalDetail {
-  ResourceUsedDetailShow information = 1;                 // 算力实况
+  ResourceUsedDetail     information = 1;                 // 算力实况
   uint32                 total_task_count = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
   uint32                 current_task_count = 3;          // 算力上正在执行的任务数
   repeated PowerTask     tasks = 4;                       // 算力上正在执行的任务详情信息
