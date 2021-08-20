@@ -69,7 +69,6 @@ enum AuditMetaDataOption {
 message AuditMetaDataAuthorityRequest {
   string                          meta_data_auth_id = 1;                  // 元数据授权申请Id
   AuditMetaDataOption             audit = 2;                              // 审核结果
-  bytes                           sign = 3;                               // 审核数据授权申请的组织的签名
 }
 
 message GetMetaDataAuthority {
