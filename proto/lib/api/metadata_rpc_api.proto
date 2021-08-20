@@ -37,7 +37,7 @@ message MetaDataColumnDetail {
 }
 
 // 源文件的详情
-message MetaDataDetailShow {
+message MetaDataDetail {
   MetaDataSummary               meta_data_summary = 1;
   repeated MetaDataColumnDetail column_meta = 2;
   uint32                        total_task_count = 3;            // 该元数据参与过得任务数 (已完成的和正在执行的)
@@ -51,12 +51,12 @@ message GetMetaDataDetailRequest {
 
 message GetMetaDataDetailResponse {
   OrganizationIdentityInfo owner = 1;              // 元数据的拥有者
-  MetaDataDetailShow       information = 2;        // 元文件详情主体
+  MetaDataDetail           information = 2;        // 元文件详情主体
 }
 
 
 message PublishMetaDataRequest {
-  MetaDataDetailShow       information = 1;                    // 元数据详情
+  MetaDataDetail        information = 1;                    // 元数据详情
 }
 message PublishMetaDataResponse {
   int32  status = 1;                         // 响应码
