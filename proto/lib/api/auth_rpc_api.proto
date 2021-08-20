@@ -51,6 +51,7 @@ message ApplyMetaDataAuthorityRequest {
   string                                user = 1;                            // 发起任务的用户的信息 (task是属于用户的)
   UserType                              user_type = 2;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
   MetaDataAuthority                     auth = 3;                            // 元数据使用授权信息
+  bytes                                 sign = 4;                            // 发起数据授权申请的账户的签名
 }
 // 用户对元数据使用授权申请resp
 message ApplyMetaDataAuthorityResponse {
@@ -68,6 +69,7 @@ enum AuditMetaDataOption {
 message AuditMetaDataAuthorityRequest {
   string                          meta_data_auth_id = 1;                  // 元数据授权申请Id
   AuditMetaDataOption             audit = 2;                              // 审核结果
+  bytes                           sign = 3;                               // 审核数据授权申请的组织的签名
 }
 
 message GetMetaDataAuthority {

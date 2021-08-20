@@ -124,6 +124,7 @@ message PublishTaskDeclareRequest {
   string                             calculate_contractcode = 9;           //  计算合约
   string                             datasplit_contractcode = 10;          //  数据分片合约
   string                             contract_extra_params = 11;           //  合约调用的额外可变入参 (json 字符串, 根据算法来)
+  bytes                              sign = 12;                            //  发起任务的账户的签名
 }
 
 message PublishTaskDeclareResponse {
@@ -133,10 +134,16 @@ message PublishTaskDeclareResponse {
 }
 
 
+message TerminateTaskRequest {
+  string                              user = 1;                             //  发起任务的用户的信息 (task是属于用户的)
+  UserType                            user_type = 2;                        //  用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+  string                              task_id = 3;                          //  任务id
+  bytes                               sign = 12;                            //  发起任务的账户的签名
+}
+
 // ## 任务 相关接口
 service TaskService {
-
-
+  
   // 查看全部任务详情列表
   rpc GetTaskDetailList (EmptyGetParams) returns (GetTaskDetailListResponse) {
     option (google.api.http) = {
@@ -165,6 +172,14 @@ service TaskService {
   rpc PublishTaskDeclare (PublishTaskDeclareRequest) returns (PublishTaskDeclareResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/task/publish"
+      body: "*"
+    };
+  }
+
+  // 终止任务
+  rpc TerminateTask (TerminateTaskRequest) returns (SimpleResponseCode) {
+    option (google.api.http) = {
+      post: "/carrier/v1/task/terminate"
       body: "*"
     };
   }
