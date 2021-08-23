@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -19,17 +20,21 @@ type Manager struct {
 	//eventCh                chan *types.TaskEventInfo
 	slotUnit *types.Slot
 	//remoteTables     map[string]*types.RemoteResourceTable
-	remoteTableQueue []*types.RemoteResourceTable
+	remoteTableQueue     []*types.RemoteResourceTable
+	mockIdentityIdsFile  string
+	mockIdentityIdsCache map[string]struct{}
 }
 
-func NewResourceManager(dataCenter iface.ForResourceDB) *Manager {
+func NewResourceManager(dataCenter iface.ForResourceDB, mockIdentityIdsFile string) *Manager {
 	m := &Manager{
 		dataCenter: dataCenter,
 		//eventCh:          make(chan *types.TaskEventInfo, 0),
 		//localTables:      make(map[string]*types.LocalResourceTable),
 		//localTableQueue:  make([]*types.LocalResourceTable, 0),
-		remoteTableQueue: make([]*types.RemoteResourceTable, 0),
-		slotUnit:         types.DefaultSlotUnit, // TODO for test
+		remoteTableQueue:    make([]*types.RemoteResourceTable, 0),
+		slotUnit:            types.DefaultSlotUnit, // TODO for test
+		mockIdentityIdsFile: mockIdentityIdsFile,   //TODO for test
+		mockIdentityIdsCache: make(map[string]struct{}, 0),
 	}
 
 	return m
@@ -73,6 +78,21 @@ func (m *Manager) Start() error {
 		}
 	}
 
+	// build mock identityIds cache
+	if "" != m.mockIdentityIdsFile {
+		var identityIdList []string
+		if err := fileutil.LoadJSON(m.mockIdentityIdsFile, &identityIdList); err != nil {
+			log.Errorf("Failed to load `--mock-identity-file` on Start resourceManager, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
+			return err
+		}
+
+		for _, iden := range identityIdList {
+			m.mockIdentityIdsCache[iden] = struct{}{}
+		}
+	}
+
+
+
 	go m.loop()
 	log.Info("Started resourceManager ...")
 	return nil
@@ -105,7 +125,6 @@ func (m *Manager) SetSlotUnit(mem, p, b uint64) {
 	//}
 }
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
-
 
 func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
 	table, err := m.GetLocalResourceTable(nodeId)
@@ -250,7 +269,6 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 		return fmt.Errorf("failed to lock internal power resource, {%s}", err)
 	}
 
-
 	if err := m.dataCenter.StoreJobNodeRunningTaskId(jobNodeId, task.TaskId()); nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
@@ -268,7 +286,6 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 			task.TaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to store local taskId use jobNode slot, {%s}", err)
 	}
-
 
 	// 更新本地 resource 资源信息 [添加资源使用情况]
 	jobNodeResource, err := m.dataCenter.GetLocalResource(jobNodeId)
@@ -385,9 +402,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 	return nil
 }
 
-
-
-func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option ReleaseResourceOption) {
+func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId string, option ReleaseResourceOption) {
 
 	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, releaseOption: {%d}", logdesc, taskId, option)
 
@@ -423,14 +438,9 @@ func (m *Manager) ReleaseLocalResourceWithTask (logdesc, taskId string, option R
 	}
 }
 
-// todo 构造一些假的 本地任务信息
-//func (m *Manager) mockLocalTaskList(){
-//	identity, err := m.dataCenter.GetIdentity()
-//	if nil != err {
-//		log.Warnf("failed to query identityInfo, err: {%s}", err)
-//		return
-//	}
-//
-//
-//
-//}
+func (m *Manager) IsMockIdentityId (identityId string) bool {
+	if _, ok := m.mockIdentityIdsCache[identityId]; ok {
+		return true
+	}
+	return false
+}

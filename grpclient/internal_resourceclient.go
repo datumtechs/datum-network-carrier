@@ -31,6 +31,9 @@ func (nodeSet *InternalResourceClientSet) QueryJobNodeClients() []*JobNodeClient
 func (nodeSet *InternalResourceClientSet) RemoveJobNodeClient(nodeId string)  {
 	delete(nodeSet.jobNodes, nodeId)
 }
+func (nodeSet *InternalResourceClientSet) JobNodeClientSize() int {
+	return len(nodeSet.jobNodes)
+}
 
 
 func (nodeSet *InternalResourceClientSet) StoreDataNodeClient(nodeId string, client *DataNodeClient) {
@@ -49,4 +52,7 @@ func (nodeSet *InternalResourceClientSet) QueryDataNodeClients() []*DataNodeClie
 }
 func (nodeSet *InternalResourceClientSet) RemoveDataNodeClient(nodeId string)  {
 	delete(nodeSet.dataNodes, nodeId)
+}
+func (nodeSet *InternalResourceClientSet) DataNodeClientSize() int {
+	return len(nodeSet.dataNodes)
 }
