@@ -82,7 +82,7 @@ func (m *Manager) Start() error {
 	if "" != m.mockIdentityIdsFile {
 		var identityIdList []string
 		if err := fileutil.LoadJSON(m.mockIdentityIdsFile, &identityIdList); err != nil {
-			log.Errorf("Failed to load `--mock-identity-file`, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
+			log.Errorf("Failed to load `--mock-identity-file` on Start resourceManager, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
 			return err
 		}
 
@@ -438,14 +438,9 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId string, option Re
 	}
 }
 
-// todo 构造一些假的 本地任务信息
-//func (m *Manager) mockLocalTaskList(){
-//	identity, err := m.dataCenter.GetIdentity()
-//	if nil != err {
-//		log.Warnf("failed to query identityInfo, err: {%s}", err)
-//		return
-//	}
-//
-//
-//
-//}
+func (m *Manager) IsMockIdentityId (identityId string) bool {
+	if _, ok := m.mockIdentityIdsCache[identityId]; ok {
+		return true
+	}
+	return false
+}
