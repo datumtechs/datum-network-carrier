@@ -249,6 +249,13 @@ var (
 		Usage: "Indicate what fraction of p2p messages are sampled for tracing.",
 		Value: 0.20,
 	}
+
+	// +++++++++++++++++++++++++++++++++++++++++ Mock Flags +++++++++++++++++++++++++++++++++++++++++
+	MockIdentityIdFileFlag = &cli.StringFlag{
+		Name:  "mock-identity-file",
+		Usage: "Specifies the file path of the identityid information required by mock.",
+		Value: "",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other
