@@ -643,10 +643,17 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	log.Debugf("GetIdentityList by dataCenter on electionConputeOrg, identityList: %s", identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
+
+		// Skip the mock identityId
+		if sche.resourceMng.IsMockIdentityId(identityInfo.IdentityId()) {
+			continue
+		}
+
 		if _, ok := identityIdTmp[identityInfo.IdentityId()]; ok {
 			identityInfoTmp[identityInfo.IdentityId()] = identityInfo
 		}
 	}
+
 	if len(identityInfoTmp) != calculateCount {
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
