@@ -572,7 +572,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 						IdentityId: task.TaskData().GetIdentity(),
 					},
 					Patners:   make([]*types.NodeAlias, 0),
-					Receivers: nil,
+					Receivers: make([]*types.NodeAlias, 0),
 					OperationCost: &types.TaskOperationCost{
 						Processor: uint64(task.TaskData().GetTaskResource().GetCostProcessor()),
 						Mem:       uint64(task.TaskData().GetTaskResource().GetCostMem()),
@@ -582,6 +582,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
 					CreateAt:       task.TaskData().CreateAt,
 				}
+				// 组装 数据参与方
 				for _, dataSupplier := range task.TaskData().MetadataSupplier {
 					// 协作方, 需要过滤掉自己
 					if task.TaskData().GetNodeId() != dataSupplier.Organization.Identity {
@@ -592,6 +593,14 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 						})
 					}
 
+				}
+				// 组装结果接收方
+				for _, receiver := range task.TaskData().Receivers {
+					powerTask.Receivers = append(powerTask.Receivers, &types.NodeAlias{
+						Name:       receiver.Receiver.GetNodeName(),
+						NodeId:     receiver.Receiver.GetNodeId(),
+						IdentityId: receiver.Receiver.GetIdentity(),
+					})
 				}
 
 				// 计算任务使用实况 ...
