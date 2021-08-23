@@ -83,6 +83,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
 		taskManager:     taskManager,
 		scheduler: scheduler.NewSchedulerStarveFIFO(
+			resourceClientSet,
 			eventEngine,
 			resourceMng,
 			config.CarrierDB,
