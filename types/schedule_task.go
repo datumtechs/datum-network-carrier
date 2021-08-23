@@ -140,7 +140,6 @@ const (
 	TaskRunningInterrupt   TaskConsStatus = 0x0100
 )
 
-// Task consensus result
 type TaskConsResult struct {
 	TaskId string
 	Status TaskConsStatus

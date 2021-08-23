@@ -883,7 +883,7 @@ func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, e
 	if nil != err {
 		return nil, err
 	}
-	log.Debugf("Query task eventList, taskId: {%s}, eventList Len: {%d}", taskId, len(list))
+	log.Debugf("Query local task eventList, taskId: {%s}, local eventList Len: {%d}", taskId, len(list))
 	return list, nil
 }
 

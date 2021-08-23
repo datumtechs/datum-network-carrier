@@ -101,15 +101,24 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
 		}
 
+		colTmp := make(map[uint32]*libTypes.ColumnMeta, len(metaData.MetaData.ColumnMetas))
+		for _, col := range metaData.MetaData.ColumnMetas {
+			colTmp[col.Cindex] = col
+		}
+
 		columnArr := make([]*libTypes.ColumnMeta, len(v.MetaDataInfo.ColumnIndexList))
-		for j, index := range v.MetaDataInfo.ColumnIndexList {
-			col := metaData.MetaData.ColumnMetas[index]
-			columnArr[j] = &libTypes.ColumnMeta{
-				Cindex:   col.Cindex,
-				Ctype:    col.Ctype,
-				Cname:    col.Cname,
-				Csize:    col.Csize,
-				Ccomment: col.Ccomment,
+		for j, colIndex := range v.MetaDataInfo.ColumnIndexList {
+			if col, ok := colTmp[uint32(colIndex)]; ok {
+				columnArr[j] = &libTypes.ColumnMeta{
+					Cindex:   col.Cindex,
+					Ctype:    col.Ctype,
+					Cname:    col.Cname,
+					Csize:    col.Csize,
+					Ccomment: col.Ccomment,
+				}
+			} else {
+				return nil, fmt.Errorf("not found column of metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
+					v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId, colIndex)
 			}
 		}
 
@@ -160,7 +169,6 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	// add empty powerSuppliers
 	taskMsg.Data.TaskData().ResourceSupplier = make([]*libTypes.TaskResourceSupplierData, 0)
 
-
 	// add taskId
 	taskId := taskMsg.SetTaskId()
 	taskMsg.Data.TaskData().TaskId = taskId
@@ -171,6 +179,7 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 			taskId)
 		return nil, ErrSendTaskMsg
 	}
+	//log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}, taskMsg: %s", taskId, taskMsg.String())
 	log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}", taskId)
 	return &pb.PublishTaskDeclareResponse{
 		Status: 0,

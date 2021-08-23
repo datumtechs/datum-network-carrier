@@ -195,7 +195,12 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 				failedTask := &types.DoneScheduleTaskChWrap{
 					ProposalId:   common.Hash{},
 					SelfTaskRole: types.TaskOnwer,
-					// SelfPeerInfo:
+					SelfIdentity: &libTypes.OrganizationData{
+						PartyId:  task.Data.TaskData().PartyId,
+						Identity: task.Data.TaskData().Identity,
+						NodeId:   task.Data.TaskData().NodeId,
+						NodeName: task.Data.TaskData().NodeName,
+					},
 					Task: &types.ConsensusScheduleTask{
 						TaskDir:   types.SendTaskDir,
 						TaskState: types.TaskStateFailed,

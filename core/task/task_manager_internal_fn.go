@@ -12,6 +12,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	"strconv"
+	"time"
 )
 
 func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error {
@@ -135,6 +136,8 @@ func (m *Manager) publishFinishedTaskToDataCenter(taskId string) {
 	if !ok {
 		return
 	}
+
+	time.Sleep(2*time.Second)  // todo 故意等待小段时间 防止 onTaskResultMsg 因为 网络延迟, 而没收集全 其他 peer 的 eventList
 
 	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
 	if nil != err {
@@ -296,7 +299,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.DoneScheduleTaskChWrap) (*commo
 	if nil != err {
 		return nil, err
 	}
-
+	log.Debugf("Succeed make contractCfg, taskId:{%s}, contractCfg: %s", task.Task.SchedTask.TaskId(), contractExtraParams)
 	return &common.TaskReadyGoReq{
 		TaskId:     task.Task.SchedTask.TaskId(),
 		ContractId: task.Task.SchedTask.TaskData().CalculateContractCode,
@@ -330,9 +333,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 					return "", err
 				}
 				filePath = metaData.MetadataData().FilePath
-				//for _, col := range dataSupplier.ColumnList {
-				//	columnNameList = append(columnNameList, col.Cname)
-				//}
+
 				// 目前只取 第一列 (对于 dataSupplier)
 				if len(dataSupplier.ColumnList) != 0 {
 					idColumnName = dataSupplier.ColumnList[0].Cname
