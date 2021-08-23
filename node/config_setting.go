@@ -13,16 +13,18 @@ const (
 )
 
 type carrierConfig struct {
-	Carrier   carrier.Config
-	Node      Config
+	Carrier carrier.Config
+	Node    Config
 	// more config modules
+	MockIdeneityIdsFile string
 }
 
 func makeConfig(cliCtx *cli.Context) carrierConfig {
 	// Load defaults.
 	cfg := carrierConfig{
-		Carrier:   carrier.DefaultConfig,
-		Node:      defaultNodeConfig(),
+		Carrier:             carrier.DefaultConfig,
+		Node:                defaultNodeConfig(),
+		MockIdeneityIdsFile: cliCtx.String(flags.MockIdentityIdFileFlag.Name),
 	}
 
 	// todo: file conf load for config.

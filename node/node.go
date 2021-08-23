@@ -94,7 +94,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// register backend service.
-	if err := node.registerBackendService(&config.Carrier); err != nil {
+	if err := node.registerBackendService(&config.Carrier, config.MockIdeneityIdsFile); err != nil {
 		return nil, err
 	}
 
@@ -242,10 +242,10 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	return b.services.RegisterService(svc)
 }
 
-func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config) error {
+func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config, mockIdentityIdsFile string) error {
 	carrierConfig.CarrierDB = b.db
 	carrierConfig.P2P = b.fetchP2P()
-	backendService, err := carrier.NewService(b.ctx, carrierConfig)
+	backendService, err := carrier.NewService(b.ctx, carrierConfig, mockIdentityIdsFile)
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
