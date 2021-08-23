@@ -31,6 +31,7 @@ message YarnNodeInfo {
   repeated SeedPeer           seed_peers = 11;                           // 调度服务上被注册的种子节点信息
   string                      state = 12;                                // 调度服务自身的状态信息 (active: 活跃; leave: 离开网络; join: 加入网络 unuseful: 不可用)
   string                      name = 13;                                 // 组织的Name
+  uint32                      relate_peers = 14;                         // 本调度服务被外部组织(调度服务/种子节点)的连接数目
 }
 
 
