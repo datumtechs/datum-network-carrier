@@ -12,7 +12,7 @@ import (
 
 // Clients who receive a prepare message on this topic MUST validate the conditions
 // within process_prepare_message before forwarding it across the network.
-func (s *Service) validatePrepareMessage(ctx context.Context, pid peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
+func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
 	// Validation runs on publish (not just subscriptions), so we should approve any message from ourselves.
 	if pid == s.cfg.P2P.PeerID() {
 		return pubsub.ValidationAccept
