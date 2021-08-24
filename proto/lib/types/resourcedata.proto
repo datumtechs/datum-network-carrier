@@ -92,7 +92,7 @@ message ResourceUsageOverview {
     uint64 used_bandwidth = 7;
     // 服务的总磁盘空间 (单位: byte)
     uint64 total_disk = 8;
-    // 服务的医用磁盘空间 (单位: byte)
+    // 服务的已用磁盘空间 (单位: byte)
     uint64 used_disk = 9;
 }
 
