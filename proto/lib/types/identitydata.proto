@@ -6,6 +6,7 @@ import "repos/protobuf/gogoproto/gogo.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
+// IdentityData represents the stored data structure.
 message IdentityData {
     string identity = 1;
     string nodeId   = 2;
