@@ -605,6 +605,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 
 		// Skip the mock identityId
 		if sche.resourceMng.IsMockIdentityId(r.GetIdentityId()) {
+			log.Debugf("Filter remoteResource, IsMockIdentityId: %s", r.GetIdentityId())
 			continue
 		}
 
@@ -646,6 +647,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 
 		// Skip the mock identityId
 		if sche.resourceMng.IsMockIdentityId(identityInfo.IdentityId()) {
+			log.Debugf("Filter mockIdentityId, IsMockIdentityId: %s, name: %s", identityInfo.IdentityId(), identityInfo.Name())
 			continue
 		}
 
@@ -666,17 +668,17 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	log.Debugf("GetResourceList by dataCenter on electionConputeOrg, resources: %s", resourceArr.String())
 
 	orgs := make([]*libTypes.TaskResourceSupplierData, calculateCount)
-	i := 0
+	orgNo := 0
 	for _, iden := range resourceArr {
 
-		if i == calculateCount {
+		if orgNo == calculateCount {
 			break
 		}
 
 		if info, ok := identityInfoTmp[iden.GetIdentityId()]; ok {
-			orgs[i] = &libTypes.TaskResourceSupplierData{
+			orgs[orgNo] = &libTypes.TaskResourceSupplierData{
 				Organization: &libTypes.OrganizationData{
-					PartyId:  powerPartyIds[i],
+					PartyId:  powerPartyIds[orgNo],
 					NodeName: info.Name(),
 					NodeId:   info.NodeId(),
 					Identity: info.IdentityId(),
@@ -691,11 +693,15 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 					UsedBandwidth:  cost.Bandwidth,
 				},
 			}
-			i++
+			orgNo++
 			delete(identityInfoTmp, iden.GetIdentityId())
 		}
 	}
 
+	if orgNo != calculateCount {
+		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	}
+	
 	return orgs, nil
 }
 
