@@ -280,7 +280,7 @@ service YarnService {
   }
 
   // 删除种子节点信息
-  rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
+  rpc DeleteSeedNode (DeleteRegisteredNodeRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/deleteSeed"
       body: "*"
@@ -311,7 +311,7 @@ service YarnService {
     };
   }
   // 删除数据服务信息
-  rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
+  rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/deleteDataNode"
       body: "*"
@@ -341,7 +341,7 @@ service YarnService {
     };
   }
   // 删除计算服务信息
-  rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponseCode) {
+  rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/deleteJobNode"
       body: "*"
@@ -357,14 +357,14 @@ service YarnService {
 
   // about report
   // 上报任务事件
-  rpc ReportTaskEvent (ReportTaskEventRequest) returns (SimpleResponseCode) {
+  rpc ReportTaskEvent (ReportTaskEventRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/reportTaskEvent"
       body: "*"
     };
   }
   // 上报资源使用实况
-  rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (SimpleResponseCode) {
+  rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/reportTaskResourceExpense"
       body: "*"
@@ -372,7 +372,7 @@ service YarnService {
   }
 
   // 上报 成功上传的原始文件Id
-  rpc  ReportUpFileSummary (ReportUpFileSummaryRequest) returns (SimpleResponseCode) {
+  rpc  ReportUpFileSummary (ReportUpFileSummaryRequest) returns (SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/reportUpFileSummary"
       body: "*"
