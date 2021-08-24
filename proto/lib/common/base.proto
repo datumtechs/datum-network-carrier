@@ -1,42 +1,40 @@
 syntax = "proto3";
 
-package common;
+package api.protobuf;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/common";
 
 // A represents the basic information of the organization.
 message Organization  {
   // org name
-  string name = 1;
+    string name = 1;
   // the node_id for org
-  string node_id = 2;
+    string node_id = 2;
   // the identity for org
-  string identity_id = 3;
+    string identity_id = 3;
 }
 
 // 任务下的组织信息
 message TaskOrganization  {
-  string party_id = 1;
+    string party_id = 1;
   // org name
-  string name = 2;
+    string name = 2;
   // the node_id for org
-  string node_id = 3;
+    string node_id = 3;
   // the identity for org
-  string identity_id = 4;
+    string identity_id = 4;
 }
-
-message EmptyGetParams {}
 
 message SimpleResponse {
   // the code for response
-  int32  status = 1;
+    int32 status = 1;
   // the message for response
-  string msg = 2;
+    string msg = 2;
 }
 
 enum UserType {
-  Unknown = 0;
-  ETH = 1;
-  ATP = 2;
-  LAT = 3;
+    Unknown = 0;
+    ETH     = 1;
+    ATP     = 2;
+    LAT     = 3;
 }

@@ -20,7 +20,7 @@ message TaskListRequest {
 
 message TaskListResponse {
   // 任务摘要列表
-    repeated TaskDetail task_list = 1;
+    repeated types.TaskDetail task_list = 1;
 }
 
 // 任务详情请求参数
@@ -39,17 +39,17 @@ message TaskEventResponse {
   // 错误信息
     string msg = 2;
   // 事件列表
-    repeated TaskEvent task_event_list = 3;
+    repeated types.TaskEvent task_event_list = 3;
 }
 
 // TaskService defines the interface to interact with the central data service.
 service TaskService {
 
   // 存储任务
-  rpc SaveTask(TaskDetail) returns (SimpleResponse);
+  rpc SaveTask(types.TaskDetail) returns (api.protobuf.SimpleResponse);
 
   // 查询任务详情（任务ID、节点ID、参与方标识）
-  rpc GetDetailTask(DetailTaskRequest) returns (TaskDetail);
+  rpc GetDetailTask(DetailTaskRequest) returns (types.TaskDetail);
 
   // 查询任务列表
   rpc ListTask(TaskListRequest) returns (TaskListResponse);

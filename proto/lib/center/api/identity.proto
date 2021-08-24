@@ -10,13 +10,13 @@ import "lib/types/metadata.proto";
 import "google/protobuf/empty.proto";
 
 message SaveIdentityRequest {
-    Organization member = 1;
+    api.protobuf.Organization member = 1;
   // 节点的身份凭证（DID中的凭证信息）
     string credential = 2;
 }
 
 message RevokeIdentityJoinRequest {
-    Organization member = 1;
+    api.protobuf.Organization member = 1;
 }
 
 message IdentityListRequest {
@@ -25,43 +25,43 @@ message IdentityListRequest {
 }
 
 message IdentityListResponse {
-    repeated Organization identity_list = 1;
+    repeated api.protobuf.Organization identity_list = 1;
   // 数据的最后更新点（秒级时间戳）
     uint64 last_update_time = 2;
 }
 
 // 定义：元数据授权申请记录
 message SaveMetadataAuthorityRequest {
-  string                                user = 1;                            // 发起任务的用户的信息 (task是属于用户的)
-  UserType                              user_type = 2;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  MetaDataAuthority                     auth = 3;                            // 元数据使用授权信息
-  string                                meta_data_auth_id = 4;               // 元数据授权申请的ID编号
+    string                  user              = 1;                            // 发起任务的用户的信息 (task是属于用户的)
+    api.protobuf.UserType   user_type         = 2;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+    types.MetaDataAuthority auth              = 3;                            // 元数据使用授权信息
+    string                  meta_data_auth_id = 4;               // 元数据授权申请的ID编号
 }
 
 message AuditMetadataAuthorityRequest {
-  string                          meta_data_auth_id = 1;                  // 元数据授权申请Id
-  AuditMetaDataOption             audit = 2;                              // 审核结果
+    string                    meta_data_auth_id = 1;                  // 元数据授权申请Id
+    types.AuditMetaDataOption audit             = 2;                              // 审核结果
 }
 
 message MetadataAuthorityListRequest {
-  string identity_id = 1;   // 组织标识
-  uint64 last_update = 2;   // 最后同步事件（秒级时间戳）
+    string identity_id = 1;   // 组织标识
+    uint64 last_update = 2;   // 最后同步事件（秒级时间戳）
 }
 
 message MetaDataAuthorityResponse {
-  string                                meta_data_auth_id = 1;               // 元数据授权申请Id
-  string                                user = 2;                            // 发起任务的用户的信息 (task是属于用户的)
-  UserType                              user_type = 3;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  MetaDataAuthority                     auth = 4;                            // 元数据使用授权信息
-  AuditMetaDataOption                   audit = 5;                           // 审核结果
-  uint64                                apply_at = 6;                        // 发起授权申请的时间 (单位: ms)
-  uint64                                audit_at = 7;                        // 审核授权申请的时间 (单位: ms)
+    string                    meta_data_auth_id = 1;               // 元数据授权申请Id
+    string                    user              = 2;                            // 发起任务的用户的信息 (task是属于用户的)
+    api.protobuf.UserType     user_type         = 3;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+    types.MetaDataAuthority   auth              = 4;                            // 元数据使用授权信息
+    types.AuditMetaDataOption audit             = 5;                           // 审核结果
+    uint64                    apply_at          = 6;                        // 发起授权申请的时间 (单位: ms)
+    uint64                    audit_at          = 7;                        // 审核授权申请的时间 (单位: ms)
 }
 
 message MetadataAuthorityListResponse {
-  int32                                status = 1;                       // 响应码
-  string                               msg = 2;                          // 错误信息
-  repeated  MetaDataAuthorityResponse  list = 3;                         // 数据授权信息列表
+    int32                              status = 1;                       // 响应码
+    string                             msg    = 2;                          // 错误信息
+    repeated MetaDataAuthorityResponse list   = 3;                         // 数据授权信息列表
 }
 
 // 身份信息服务
@@ -71,18 +71,18 @@ service IdentityService {
   rpc GetIdentityList(IdentityListRequest) returns (IdentityListResponse);
 
   // 存储身份信息（节点用于申请接入网络的基本信息，详细的存于本地）
-  rpc SaveIdentity (SaveIdentityRequest) returns (SimpleResponse);
+  rpc SaveIdentity (SaveIdentityRequest) returns (api.protobuf.SimpleResponse);
 
   // 注销准入网络
-  rpc RevokeIdentityJoin (RevokeIdentityJoinRequest) returns (SimpleResponse);
+  rpc RevokeIdentityJoin (RevokeIdentityJoinRequest) returns (api.protobuf.SimpleResponse);
 
   // v2.0
   // 存储元数据鉴权申请记录
-  rpc SaveMetadataAuthority(SaveMetadataAuthorityRequest) returns (SimpleResponse);
+  rpc SaveMetadataAuthority(SaveMetadataAuthorityRequest) returns (api.protobuf.SimpleResponse);
 
   // 数据授权审核，规则：
   // 1、授权后，可以将审核结果绑定到原有申请记录之上
-  rpc AuditMetadataAuthority(AuditMetadataAuthorityRequest) returns (SimpleResponse);
+  rpc AuditMetadataAuthority(AuditMetadataAuthorityRequest) returns (api.protobuf.SimpleResponse);
 
   // 获取数据授权申请列表
   // 规则：参数存在时根据条件获取，参数不存在时全量返回

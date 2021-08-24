@@ -7,40 +7,41 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 import "lib/common/base.proto";
 import "lib/types/metadata.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
 //  ------------------------  metadata  ------------------------
 message GetMetaDataDetailRequest {
-  string identity_id = 1;
-  string meta_data_id = 2;
+    string identity_id  = 1;
+    string meta_data_id = 2;
 }
 
 message GetMetaDataDetailResponse {
-  Organization             owner = 1;              // 元数据的拥有者
-  MetaDataDetail           information = 2;        // 元文件详情主体
+    api.protobuf.Organization owner       = 1;              // 元数据的拥有者
+    types.MetaDataDetail      information = 2;        // 元文件详情主体
 }
 
 message PublishMetaDataRequest {
-  MetaDataDetail        information = 1;                    // 元数据详情
+    types.MetaDataDetail information = 1;                    // 元数据详情
 }
 
 message PublishMetaDataResponse {
-  int32  status = 1;                         // 响应码
-  string msg = 2;                            // 错误信息
-  string meta_data_id = 3;                   // 元数据id
+    int32  status       = 1;                         // 响应码
+    string msg          = 2;                            // 错误信息
+    string meta_data_id = 3;                   // 元数据id
 }
 
 message RevokeMetaDataRequest {
-  string                   meta_data_id = 1;
+    string meta_data_id = 1;
 }
 
 message GetMetaDataDetailListResponse {
-  int32                              status = 1;                         // 响应码
-  string                             msg = 2;                         // 错误信息
-  repeated GetMetaDataDetailResponse meta_data_list = 3;                      // 元数据列表
+    int32                              status         = 1;                         // 响应码
+    string                             msg            = 2;                         // 错误信息
+    repeated GetMetaDataDetailResponse meta_data_list = 3;                      // 元数据列表
 }
 
 message GetMetaDataDetailListByOwnerRequest {
-  string identity_id = 1;
+    string identity_id = 1;
 }
 
 // ## 元数据 相关接口
@@ -55,7 +56,7 @@ service MetaDataService {
   }
 
   // 查看全网元数据列表
-  rpc GetMetaDataDetailList (EmptyGetParams) returns (GetMetaDataDetailListResponse) {
+  rpc GetMetaDataDetailList (google.protobuf.Empty) returns (GetMetaDataDetailListResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/metadata/list"
       body: "*"
@@ -78,7 +79,7 @@ service MetaDataService {
     };
   }
   // 撤销元数据 (从底层网络撤销)
-  rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponse) {
+  rpc RevokeMetaData (RevokeMetaDataRequest) returns (api.protobuf.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/metadata/revoke"
       body: "*"
