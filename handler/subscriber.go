@@ -36,8 +36,38 @@ func (s *Service) registerSubscribers() {
 	s.subscribe(
 		p2p.GossipTestDataTopicFormat,
 		s.validateGossipTestData,
-		s.gossipTestDataSubscriber)
-	//TODO: more subscribe to be register...
+		s.gossipTestDataSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcPrepareMsgTopicFormat,
+		s.validatePrepareMessagePubSub,
+		s.prepareMessageSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcPrepareVoteTopicFormat,
+		s.validatePrepareVotePubSub,
+		s.prepareVoteSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcConfirmMsgTopicFormat,
+		s.validateConfirmMessagePubSub,
+		s.confirmMessageSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcConfirmVoteTopicFormat,
+		s.validateConfirmVotePubSub,
+		s.confirmVoteSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcCommitMsgTopicFormat,
+		s.validateCommitMessagePubSub,
+		s.commitMessageSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcTaskResultMsgTopicFormat,
+		s.validateTaskResultMessagePubSub,
+		s.taskResultMessageSubscriber,
+	)
 }
 
 // subscribe to a given topic with a given validator and subscription handler.
