@@ -10,9 +10,9 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 message ResourceData {
     string identity_id = 1;    // owner.
-    string node_id   = 2 ;   // owner.
-    string node_name = 3;    // owner.
-    string data_id   = 4;    // powerId
+    string node_id     = 2 ;   // owner.
+    string node_name   = 3;    // owner.
+    string data_id     = 4;    // powerId
   // the status of data, N means normal, D means deleted.
     string data_status = 5;
   // resource status, eg: create/release/revoke
@@ -30,11 +30,11 @@ message ResourceData {
 }
 
 message LocalResourceData {
-    string identity_id  = 1;    // owner.
-    string node_id    = 2 ;   // owner.
-    string node_name  = 3;    // owner.
+    string identity_id = 1;    // owner.
+    string node_id     = 2 ;   // owner.
+    string node_name   = 3;    // owner.
     string job_node_id = 4;   // jobNodeId
-    string data_id    = 5;    // powerId
+    string data_id     = 5;    // powerId
     // the status of data, N means normal, D means deleted.
     string data_status = 6;
     // resource status, eg: create/release/revoke
