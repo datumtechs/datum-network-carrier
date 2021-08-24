@@ -18,7 +18,7 @@ import (
 const pubsubMessageTimeout = 30 * time.Second
 
 // subHandler represents handler for a given subscription.
-type subHandler func(context.Context, proto.Message) error
+type subHandler func(context.Context, peer.ID, proto.Message) error
 
 // noopValidator is a no-op that only decodes the message, but does not check its contents.
 func (s *Service) noopValidator(_ context.Context, _ peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
@@ -90,7 +90,7 @@ func (s *Service) subscribeWithBase(topic string, validator pubsub.ValidatorEx, 
 			return
 		}
 
-		if err := handle(ctx, msg.ValidatorData.(proto.Message)); err != nil {
+		if err := handle(ctx, msg.ReceivedFrom, msg.ValidatorData.(proto.Message)); err != nil {
 			log.WithError(err).Debug("Could not handle p2p pubsub")
 			messageFailedProcessingCounter.WithLabelValues(topic).Inc()
 			return
