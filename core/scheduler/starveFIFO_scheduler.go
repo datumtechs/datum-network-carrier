@@ -8,9 +8,11 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
@@ -31,7 +33,8 @@ var (
 )
 
 type SchedulerStarveFIFO struct {
-	resourceMng *resource.Manager
+	internalNodeSet *grpclient.InternalResourceClientSet
+	resourceMng     *resource.Manager
 	// the local task into this queue, first
 	queue *types.TaskBullets
 	// the very very starve local task by priority
@@ -52,6 +55,7 @@ type SchedulerStarveFIFO struct {
 }
 
 func NewSchedulerStarveFIFO(
+	internalNodeSet *grpclient.InternalResourceClientSet,
 	eventEngine *evengine.EventEngine,
 	mng *resource.Manager,
 	dataCenter iface.ForResourceDB,
@@ -62,6 +66,7 @@ func NewSchedulerStarveFIFO(
 ) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
+		internalNodeSet:      internalNodeSet,
 		resourceMng:          mng,
 		queue:                new(types.TaskBullets),
 		starveQueue:          new(types.TaskBullets),
@@ -137,7 +142,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 		case <-taskTicker.C:
 			sche.trySchedule()
 
-		case <- sche.quit:
+		case <-sche.quit:
 			log.Info("Stopped SchedulerStarveFIFO ...")
 			return
 		}
@@ -150,7 +155,7 @@ func (sche *SchedulerStarveFIFO) Start() error {
 	log.Info("Started SchedulerStarveFIFO ...")
 	return nil
 }
-func (sche *SchedulerStarveFIFO) Stop() error  {
+func (sche *SchedulerStarveFIFO) Stop() error {
 	close(sche.quit)
 	return nil
 }
@@ -546,7 +551,12 @@ func (sche *SchedulerStarveFIFO) increaseTaskTerm() {
 		i++
 	}
 }
+
 func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*types.RegisteredNodeInfo, error) {
+
+	if nil == sche.internalNodeSet || 0 == sche.internalNodeSet.JobNodeClientSize() {
+		return nil, errors.New("not found alive jobNode")
+	}
 
 	resourceNodeIdArr := make([]string, 0)
 
@@ -557,9 +567,14 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	log.Debugf("GetLocalResourceTables on electionConputeNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
 		if r.IsEnough(needSlotCount) {
-			resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
+
+			jobNodeClient, find := sche.internalNodeSet.QueryJobNodeClient(r.GetNodeId())
+			if find && jobNodeClient.IsConnected() {
+				resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
+			}
 		}
 	}
+
 	if len(resourceNodeIdArr) == 0 {
 		return nil, ErrEnoughInternalResourceCount
 	}
@@ -569,8 +584,12 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	if nil != err {
 		return nil, err
 	}
+	if nil == jobNode {
+		return nil, errors.New("not found jobNode information")
+	}
 	return jobNode, nil
 }
+
 func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	powerPartyIds []string,
 	dataIdentityIdCache map[string]struct{},
@@ -581,8 +600,14 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	identityIds := make([]string, 0)
 
 	remoteResources := sche.resourceMng.GetRemoteResourceTables()
-	log.Debugf("GetRemoteResourceTables on electionConputeOrg, remoteResources: %s", utilRemoteResourceArrString(remoteResources))
+	log.Debugf("GetRemoteResouceTables on electionConputeOrg, remoteResources: %s", utilRemoteResourceArrString(remoteResources))
 	for _, r := range remoteResources {
+
+		// Skip the mock identityId
+		if sche.resourceMng.IsMockIdentityId(r.GetIdentityId()) {
+			continue
+		}
+
 		// 计算方不可以是任务发起方 和 数据参与方 和 接收方
 		if _, ok := dataIdentityIdCache[r.GetIdentityId()]; ok {
 			continue
@@ -618,10 +643,17 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	log.Debugf("GetIdentityList by dataCenter on electionConputeOrg, identityList: %s", identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
+
+		// Skip the mock identityId
+		if sche.resourceMng.IsMockIdentityId(identityInfo.IdentityId()) {
+			continue
+		}
+
 		if _, ok := identityIdTmp[identityInfo.IdentityId()]; ok {
 			identityInfoTmp[identityInfo.IdentityId()] = identityInfo
 		}
 	}
+
 	if len(identityInfoTmp) != calculateCount {
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}

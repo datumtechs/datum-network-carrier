@@ -45,7 +45,7 @@ type Service struct {
 
 // NewService creates a new CarrierServer object (including the
 // initialisation of the common Carrier object)
-func NewService(ctx context.Context, config *Config) (*Service, error) {
+func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
@@ -62,7 +62,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 
-	resourceMng := resource.NewResourceManager(config.CarrierDB)
+	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
 
 	taskManager := task.NewTaskManager(
 		config.CarrierDB,
@@ -83,6 +83,7 @@ func NewService(ctx context.Context, config *Config) (*Service, error) {
 		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
 		taskManager:     taskManager,
 		scheduler: scheduler.NewSchedulerStarveFIFO(
+			resourceClientSet,
 			eventEngine,
 			resourceMng,
 			config.CarrierDB,
