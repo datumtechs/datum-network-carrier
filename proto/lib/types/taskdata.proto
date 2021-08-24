@@ -12,37 +12,37 @@ import "lib/types/resourcedata.proto";
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 message TaskData {
-    string identity   = 1;
-    string nodeId     = 2;
-    string nodeName   = 3;
-    string dataId     = 4;
-    string dataStatus = 5;
-    string taskId     = 6;
-    string taskName   = 7;
+    string identity_id   = 1;
+    string node_id     = 2;
+    string node_name   = 3;
+    string data_id     = 4;
+    string data_status = 5;
+    string task_id     = 6;
+    string task_name   = 7;
   // success/failed/running/pending/waiting
     string state      = 8;
     string reason     = 9;
-    uint32 eventCount = 10;
+    uint32 event_count = 10;
     string desc       = 11;
-    uint64 createAt   = 12;
-    uint64 endAt      = 13;
-    uint64 startAt    = 14;
+    uint64 create_at   = 12;
+    uint64 end_at      = 13;
+    uint64 start_at    = 14;
     string party_id   = 15;
     // 算法提供者信息
-    api.protobuf.TaskOrganization        algoSupplier = 20;
-    api.protobuf.TaskResourceCostDeclare taskResource = 21;
+    api.protobuf.TaskOrganization        algo_supplier = 20;
+    api.protobuf.TaskResourceCostDeclare task_resource = 21;
     // 数据提供方组信息
-    repeated TaskDataSupplier metadataSupplier = 22;
+    repeated TaskDataSupplier metadata_supplier = 22;
     // 算力提供方组织
-    repeated TaskPowerSupplier resourceSupplier = 23;
+    repeated TaskPowerSupplier resource_supplier = 23;
     // 结果接收方组织
     repeated TaskResultReceiver receivers = 24;
     // 任务参与方
-    repeated api.protobuf.TaskOrganization partnerList           = 25;
-    repeated TaskEvent                     eventDataList         = 26;
-    string                                 CalculateContractCode = 27;
-    string                                 DataSplitContractCode = 28;
-    string                                 ContractExtraParams   = 29;
+    repeated api.protobuf.TaskOrganization partner_list           = 25;
+    repeated TaskEvent                     event_data_list         = 26;
+    string                                 calculate_contract_code = 27;
+    string                                 data_splits_contract_code = 28;
+    string                                 contract_extra_params   = 29;
 }
 
 // 定义：任务详细信息
@@ -73,7 +73,7 @@ message TaskPowerSupplier {
     // 身份信息
     api.protobuf.TaskOrganization organization = 1;
     // 算力使用情况
-    types.ResourceUsageOverview resourceUsedOverview = 2;
+    types.ResourceUsageOverview resource_used_overview = 2;
 }
 
 // 定义：任务结果接收详细信息

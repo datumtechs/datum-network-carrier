@@ -9,46 +9,46 @@ import "repos/protobuf/gogoproto/gogo.proto";
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 message ResourceData {
-    string identity = 1;    // owner.
-    string nodeId   = 2 ;   // owner.
-    string nodeName = 3;    // owner.
-    string dataId   = 4;    // powerId
+    string identity_id = 1;    // owner.
+    string node_id   = 2 ;   // owner.
+    string node_name = 3;    // owner.
+    string data_id   = 4;    // powerId
   // the status of data, N means normal, D means deleted.
-    string dataStatus = 5;
+    string data_status = 5;
   // resource status, eg: create/release/revoke
     string state = 6;
   // unit: byte
-    uint64 totalMem = 7;
+    uint64 total_mem = 7;
   // unit: byte
-    uint64 usedMem = 8;
+    uint64 used_mem = 8;
   // number of cpu cores.
-    uint64 totalProcessor = 9;
-    uint64 usedProcessor  = 10;
+    uint64 total_processor = 9;
+    uint64 used_processor  = 10;
   // unit: byte
     uint64 totalBandWidth = 11;
     uint64 usedBandWidth  = 12;
 }
 
 message LocalResourceData {
-    string identity  = 1;    // owner.
-    string nodeId    = 2 ;   // owner.
-    string nodeName  = 3;    // owner.
-    string jobNodeId = 4;   // jobNodeId
-    string dataId    = 5;    // powerId
+    string identity_id  = 1;    // owner.
+    string node_id    = 2 ;   // owner.
+    string node_name  = 3;    // owner.
+    string job_node_id = 4;   // jobNodeId
+    string data_id    = 5;    // powerId
     // the status of data, N means normal, D means deleted.
-    string dataStatus = 6;
+    string data_status = 6;
     // resource status, eg: create/release/revoke
     string state = 7;
     // unit: byte
-    uint64 totalMem = 8;
+    uint64 total_mem = 8;
     // unit: byte
-    uint64 usedMem = 9;
+    uint64 used_mem = 9;
     // number of cpu cores.
-    uint64 totalProcessor = 10;
-    uint64 usedProcessor  = 11;
+    uint64 total_processor = 10;
+    uint64 used_processor  = 11;
     // unit: byte
-    uint64 totalBandWidth = 12;
-    uint64 usedBandWidth  = 13;
+    uint64 total_band_width = 12;
+    uint64 used_band_width  = 13;
 }
 
 // =============================== For API =============================
