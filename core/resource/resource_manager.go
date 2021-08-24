@@ -218,44 +218,17 @@ func (m *Manager) refreshOrgResourceTable() error {
 		return err
 	}
 
-	remoteResourceArr := make([]*types.RemoteResourceTable, len(resources))
+	remoteResourceArr := make([]*types.RemoteResourceTable, 0, len(resources))
 
-	for i, r := range resources {
-		remoteResourceArr[i] = types.NewOrgResourceFromResource(r)
+	for _, r := range resources {
+		if m.IsMockIdentityId(r.GetIdentityId()){
+			log.Debugf("Filter remoteResource on refreshOrgResourceTable, IsMockIdentityId: %s", r.GetIdentityId())
+			continue
+		}
+		remoteResourceArr = append(remoteResourceArr, types.NewOrgResourceFromResource(r))
 	}
-
 	m.remoteTableQueue = remoteResourceArr
 
-	//tmpMap := make(map[string]int, len(resources))
-	//tmpArr := make([]*types.Resource, len(resources))
-	//for i, r := range resources {
-	//	tmpMap[r.GetIdentityId()] = i
-	//	tmpArr[i] = r
-	//}
-	//
-	//for i := 0; i < len(m.remoteTableQueue); i++ {
-	//
-	//	resource := m.remoteTableQueue[i]
-	//
-	//	// If has, update
-	//	if index, ok := tmpMap[resource.GetIdentityId()]; ok {
-	//		r := tmpArr[index]
-	//		m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)
-	//		delete(tmpMap, resource.GetIdentityId())
-	//	} else {
-	//		// If no has, delete
-	//		m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
-	//		i--
-	//	}
-	//}
-	//// If is new one, add
-	//if len(tmpMap) != 0 {
-	//	for _, r := range tmpArr {
-	//		if _, ok := tmpMap[r.GetIdentityId()]; ok {
-	//			m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
-	//		}
-	//	}
-	//}
 	return nil
 }
 

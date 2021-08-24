@@ -605,7 +605,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 
 		// Skip the mock identityId
 		if sche.resourceMng.IsMockIdentityId(r.GetIdentityId()) {
-			log.Debugf("Filter remoteResource, IsMockIdentityId: %s", r.GetIdentityId())
+			log.Debugf("Filter remoteResource on electionConputeOrg, IsMockIdentityId: %s", r.GetIdentityId())
 			continue
 		}
 
@@ -647,7 +647,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 
 		// Skip the mock identityId
 		if sche.resourceMng.IsMockIdentityId(identityInfo.IdentityId()) {
-			log.Debugf("Filter mockIdentityId, IsMockIdentityId: %s, name: %s", identityInfo.IdentityId(), identityInfo.Name())
+			log.Debugf("Filter mockIdentityId  on electionConputeOrg, IsMockIdentityId: %s, name: %s", identityInfo.IdentityId(), identityInfo.Name())
 			continue
 		}
 
