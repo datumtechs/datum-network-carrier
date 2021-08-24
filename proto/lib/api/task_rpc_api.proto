@@ -5,78 +5,80 @@ package rpcapi;
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
 import "lib/common/base.proto";
+import "lib/common/data.proto";
 import "lib/types/taskdata.proto";
 import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
 
 message GetTaskDetailResponse {
-  TaskDetail     information = 1;             // 任务详情
-  string         role = 2;                    // 我在任务中的角色 (owner: 任务发起方; dataSupplier: 数据提供方: powerSupplier: 算力提供方; receiver: 结果接收方)
+    types.TaskDetail information = 1;             // 任务详情
+    string           role        = 2;                    // 我在任务中的角色 (owner: 任务发起方; dataSupplier: 数据提供方: powerSupplier: 算力提供方; receiver: 结果接收方)
 }
 
 message GetTaskDetailListResponse {
-  int32                          status = 1;                 // 响应码
-  string                         msg = 2;                    // 错误信息
-  repeated GetTaskDetailResponse task_list = 3;              // 任务详情列表
+    int32                          status    = 1;                 // 响应码
+    string                         msg       = 2;                    // 错误信息
+    repeated GetTaskDetailResponse task_list = 3;              // 任务详情列表
 }
 
 message GetTaskEventListRequest {
-  string task_id = 1;
+    string task_id = 1;
 }
 
 message GetTaskEventListByTaskIdsRequest {
-  repeated string task_ids = 1;
+    repeated string task_ids = 1;
 }
 
 message GetTaskEventListResponse {
-  int32                  status = 1;                      // 响应码
-  string                 msg = 2;                         // 错误信息
-  repeated TaskEvent     task_event_list = 3;             // 任务事件列表
+    int32                    status          = 1;                      // 响应码
+    string                   msg             = 2;                         // 错误信息
+    repeated types.TaskEvent task_event_list = 3;             // 任务事件列表
 }
 
 message PublishTaskDeclareRequest {
-  string                             task_name = 1;                        //  任务名称
-  string                             user = 2;                             //  发起任务的用户的信息 (task是属于用户的)
-  UserType                           user_type = 3;                        //  用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  TaskOrganization                   sender = 4;                           //  任务发起者 组织信息
-  repeated TaskDataSupplierDeclare   data_supplier = 5;                    //  任务的数据提供方, 包含发起者和参与方
-  repeated string                    power_party_ids = 6;                  //  算力提供方未来要用的 标签
-  repeated TaskResultReceiver        receivers = 7;                        //  任务结果接受者
-  TaskResourceCostDeclare            operation_cost = 8;                   //  任务所需资源声明
-  string                             calculate_contractcode = 9;           //  计算合约
-  string                             datasplit_contractcode = 10;          //  数据分片合约
-  string                             contract_extra_params = 11;           //  合约调用的额外可变入参 (json 字符串, 根据算法来)
-  bytes                              sign = 12;                            //  发起任务的账户的签名
+    string                               task_name              = 1;                        //  任务名称
+    string                               user                   = 2;                             //  发起任务的用户的信息 (task是属于用户的)
+    api.protobuf.UserType                user_type              = 3;                        //  用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+    api.protobuf.TaskOrganization        sender                 = 4;                           //  任务发起者 组织信息
+    repeated TaskDataSupplierDeclare     data_supplier          = 5;                    //  任务的数据提供方, 包含发起者和参与方
+    repeated string                      power_party_ids        = 6;                  //  算力提供方未来要用的 标签
+    repeated types.TaskResultReceiver    receivers              = 7;                        //  任务结果接受者
+    api.protobuf.TaskResourceCostDeclare operation_cost         = 8;                   //  任务所需资源声明
+    string                               calculate_contractcode = 9;           //  计算合约
+    string                               datasplit_contractcode = 10;          //  数据分片合约
+    string                               contract_extra_params  = 11;           //  合约调用的额外可变入参 (json 字符串, 根据算法来)
+    bytes                                sign                   = 12;                            //  发起任务的账户的签名
 }
 
 // 任务数据供应者信息 (任务详情定义用)
 message TaskDataSupplierDeclare {
-  TaskOrganization             member_info = 1;                         // 身份信息
-  TaskMetaDataDeclare          meta_data_info = 2;                      // 任务使用的元数据信息
+    api.protobuf.TaskOrganization member_info    = 1;                         // 身份信息
+    TaskMetaDataDeclare           meta_data_info = 2;                      // 任务使用的元数据信息
 }
 
 message TaskMetaDataDeclare {
-  string          meta_data_id = 1;                                 // 元数据id
-  repeated uint64 column_index_list = 2;                            // 该任务使用原始数据的第几列
+    string          meta_data_id      = 1;                                 // 元数据id
+    repeated uint64 column_index_list = 2;                            // 该任务使用原始数据的第几列
 }
 
 message PublishTaskDeclareResponse {
-  int32  status = 1;                      // 响应码
-  string msg = 2;                         // 错误信息
-  string task_id = 3;                     // 任务id
+    int32  status  = 1;                      // 响应码
+    string msg     = 2;                         // 错误信息
+    string task_id = 3;                     // 任务id
 }
 
 message TerminateTaskRequest {
-  string                              user = 1;                             //  发起任务的用户的信息 (task是属于用户的)
-  UserType                            user_type = 2;                        //  用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  string                              task_id = 3;                          //  任务id
-  bytes                               sign = 12;                            //  发起任务的账户的签名
+    string                user      = 1;                             //  发起任务的用户的信息 (task是属于用户的)
+    api.protobuf.UserType user_type = 2;                        //  用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+    string                task_id   = 3;                          //  任务id
+    bytes                 sign      = 12;                            //  发起任务的账户的签名
 }
 
 // ## 任务 相关接口
 service TaskService {
 
   // 查看全部任务详情列表
-  rpc GetTaskDetailList (EmptyGetParams) returns (GetTaskDetailListResponse) {
+  rpc GetTaskDetailList (google.protobuf.Empty) returns (GetTaskDetailListResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/task/list"
       body: "*"
@@ -108,7 +110,7 @@ service TaskService {
   }
 
   // 终止任务
-  rpc TerminateTask (TerminateTaskRequest) returns (SimpleResponse) {
+  rpc TerminateTask (TerminateTaskRequest) returns (api.protobuf.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/task/terminate"
       body: "*"

@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
@@ -313,40 +314,542 @@ func (m *LocalResourceData) GetUsedBandWidth() uint64 {
 	return 0
 }
 
+// 定义：代表一个服务器纯粹的算力数据
+type Power struct {
+	// 计算服务id (节点内部的)
+	JobNodeId string `protobuf:"bytes,1,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
+	// 算力id
+	PowerId string `protobuf:"bytes,2,opt,name=power_id,json=powerId,proto3" json:"power_id,omitempty"`
+	// 算力实况
+	Information *ResourceUsageOverview `protobuf:"bytes,3,opt,name=information,proto3" json:"information,omitempty"`
+	// 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+	State                string   `protobuf:"bytes,4,opt,name=state,proto3" json:"state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Power) Reset()         { *m = Power{} }
+func (m *Power) String() string { return proto.CompactTextString(m) }
+func (*Power) ProtoMessage()    {}
+func (*Power) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8efe43321c6120dd, []int{2}
+}
+func (m *Power) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *Power) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_Power.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *Power) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Power.Merge(m, src)
+}
+func (m *Power) XXX_Size() int {
+	return m.Size()
+}
+func (m *Power) XXX_DiscardUnknown() {
+	xxx_messageInfo_Power.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Power proto.InternalMessageInfo
+
+func (m *Power) GetJobNodeId() string {
+	if m != nil {
+		return m.JobNodeId
+	}
+	return ""
+}
+
+func (m *Power) GetPowerId() string {
+	if m != nil {
+		return m.PowerId
+	}
+	return ""
+}
+
+func (m *Power) GetInformation() *ResourceUsageOverview {
+	if m != nil {
+		return m.Information
+	}
+	return nil
+}
+
+func (m *Power) GetState() string {
+	if m != nil {
+		return m.State
+	}
+	return ""
+}
+
+// 单个算力详情（对应到具体某一台服务器）
+type PowerSingleDetail struct {
+	Information          *ResourceUsageOverview `protobuf:"bytes,1,opt,name=information,proto3" json:"information,omitempty"`
+	JobNodeId            string                 `protobuf:"bytes,2,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
+	PowerId              string                 `protobuf:"bytes,3,opt,name=power_id,json=powerId,proto3" json:"power_id,omitempty"`
+	TotalTaskCount       uint32                 `protobuf:"varint,4,opt,name=total_task_count,json=totalTaskCount,proto3" json:"total_task_count,omitempty"`
+	CurrentTaskCount     uint32                 `protobuf:"varint,5,opt,name=current_task_count,json=currentTaskCount,proto3" json:"current_task_count,omitempty"`
+	Tasks                []*PowerTask           `protobuf:"bytes,6,rep,name=tasks,proto3" json:"tasks,omitempty"`
+	State                string                 `protobuf:"bytes,7,opt,name=state,proto3" json:"state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *PowerSingleDetail) Reset()         { *m = PowerSingleDetail{} }
+func (m *PowerSingleDetail) String() string { return proto.CompactTextString(m) }
+func (*PowerSingleDetail) ProtoMessage()    {}
+func (*PowerSingleDetail) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8efe43321c6120dd, []int{3}
+}
+func (m *PowerSingleDetail) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PowerSingleDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PowerSingleDetail.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PowerSingleDetail) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PowerSingleDetail.Merge(m, src)
+}
+func (m *PowerSingleDetail) XXX_Size() int {
+	return m.Size()
+}
+func (m *PowerSingleDetail) XXX_DiscardUnknown() {
+	xxx_messageInfo_PowerSingleDetail.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PowerSingleDetail proto.InternalMessageInfo
+
+func (m *PowerSingleDetail) GetInformation() *ResourceUsageOverview {
+	if m != nil {
+		return m.Information
+	}
+	return nil
+}
+
+func (m *PowerSingleDetail) GetJobNodeId() string {
+	if m != nil {
+		return m.JobNodeId
+	}
+	return ""
+}
+
+func (m *PowerSingleDetail) GetPowerId() string {
+	if m != nil {
+		return m.PowerId
+	}
+	return ""
+}
+
+func (m *PowerSingleDetail) GetTotalTaskCount() uint32 {
+	if m != nil {
+		return m.TotalTaskCount
+	}
+	return 0
+}
+
+func (m *PowerSingleDetail) GetCurrentTaskCount() uint32 {
+	if m != nil {
+		return m.CurrentTaskCount
+	}
+	return 0
+}
+
+func (m *PowerSingleDetail) GetTasks() []*PowerTask {
+	if m != nil {
+		return m.Tasks
+	}
+	return nil
+}
+
+func (m *PowerSingleDetail) GetState() string {
+	if m != nil {
+		return m.State
+	}
+	return ""
+}
+
+// 系统资源消耗概览
+type ResourceUsageOverview struct {
+	// 服务系统的总内存
+	TotalMem uint64 `protobuf:"varint,2,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
+	// 服务系统的已用内存
+	UsedMem uint64 `protobuf:"varint,3,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
+	// 服务的总内核数
+	TotalProcessor uint32 `protobuf:"varint,4,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
+	// 服务的已用内核数
+	UsedProcessor uint32 `protobuf:"varint,5,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
+	// 服务的总带宽数
+	TotalBandwidth uint64 `protobuf:"varint,6,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
+	// 服务的已用带宽数
+	UsedBandwidth uint64 `protobuf:"varint,7,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
+	// 服务的总磁盘空间 (单位: byte)
+	TotalDisk uint64 `protobuf:"varint,8,opt,name=total_disk,json=totalDisk,proto3" json:"total_disk,omitempty"`
+	// 服务的医用磁盘空间 (单位: byte)
+	UsedDisk             uint64   `protobuf:"varint,9,opt,name=used_disk,json=usedDisk,proto3" json:"used_disk,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ResourceUsageOverview) Reset()         { *m = ResourceUsageOverview{} }
+func (m *ResourceUsageOverview) String() string { return proto.CompactTextString(m) }
+func (*ResourceUsageOverview) ProtoMessage()    {}
+func (*ResourceUsageOverview) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8efe43321c6120dd, []int{4}
+}
+func (m *ResourceUsageOverview) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ResourceUsageOverview) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ResourceUsageOverview.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ResourceUsageOverview) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ResourceUsageOverview.Merge(m, src)
+}
+func (m *ResourceUsageOverview) XXX_Size() int {
+	return m.Size()
+}
+func (m *ResourceUsageOverview) XXX_DiscardUnknown() {
+	xxx_messageInfo_ResourceUsageOverview.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ResourceUsageOverview proto.InternalMessageInfo
+
+func (m *ResourceUsageOverview) GetTotalMem() uint64 {
+	if m != nil {
+		return m.TotalMem
+	}
+	return 0
+}
+
+func (m *ResourceUsageOverview) GetUsedMem() uint64 {
+	if m != nil {
+		return m.UsedMem
+	}
+	return 0
+}
+
+func (m *ResourceUsageOverview) GetTotalProcessor() uint32 {
+	if m != nil {
+		return m.TotalProcessor
+	}
+	return 0
+}
+
+func (m *ResourceUsageOverview) GetUsedProcessor() uint32 {
+	if m != nil {
+		return m.UsedProcessor
+	}
+	return 0
+}
+
+func (m *ResourceUsageOverview) GetTotalBandwidth() uint64 {
+	if m != nil {
+		return m.TotalBandwidth
+	}
+	return 0
+}
+
+func (m *ResourceUsageOverview) GetUsedBandwidth() uint64 {
+	if m != nil {
+		return m.UsedBandwidth
+	}
+	return 0
+}
+
+func (m *ResourceUsageOverview) GetTotalDisk() uint64 {
+	if m != nil {
+		return m.TotalDisk
+	}
+	return 0
+}
+
+func (m *ResourceUsageOverview) GetUsedDisk() uint64 {
+	if m != nil {
+		return m.UsedDisk
+	}
+	return 0
+}
+
+// 总算力详情（对应到一个组织下的所有算力资源）
+type PowerTotalDetail struct {
+	Information          *ResourceUsageOverview `protobuf:"bytes,1,opt,name=information,proto3" json:"information,omitempty"`
+	TotalTaskCount       uint32                 `protobuf:"varint,2,opt,name=total_task_count,json=totalTaskCount,proto3" json:"total_task_count,omitempty"`
+	CurrentTaskCount     uint32                 `protobuf:"varint,3,opt,name=current_task_count,json=currentTaskCount,proto3" json:"current_task_count,omitempty"`
+	Tasks                []*PowerTask           `protobuf:"bytes,4,rep,name=tasks,proto3" json:"tasks,omitempty"`
+	State                string                 `protobuf:"bytes,5,opt,name=state,proto3" json:"state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
+}
+
+func (m *PowerTotalDetail) Reset()         { *m = PowerTotalDetail{} }
+func (m *PowerTotalDetail) String() string { return proto.CompactTextString(m) }
+func (*PowerTotalDetail) ProtoMessage()    {}
+func (*PowerTotalDetail) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8efe43321c6120dd, []int{5}
+}
+func (m *PowerTotalDetail) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PowerTotalDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PowerTotalDetail.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PowerTotalDetail) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PowerTotalDetail.Merge(m, src)
+}
+func (m *PowerTotalDetail) XXX_Size() int {
+	return m.Size()
+}
+func (m *PowerTotalDetail) XXX_DiscardUnknown() {
+	xxx_messageInfo_PowerTotalDetail.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PowerTotalDetail proto.InternalMessageInfo
+
+func (m *PowerTotalDetail) GetInformation() *ResourceUsageOverview {
+	if m != nil {
+		return m.Information
+	}
+	return nil
+}
+
+func (m *PowerTotalDetail) GetTotalTaskCount() uint32 {
+	if m != nil {
+		return m.TotalTaskCount
+	}
+	return 0
+}
+
+func (m *PowerTotalDetail) GetCurrentTaskCount() uint32 {
+	if m != nil {
+		return m.CurrentTaskCount
+	}
+	return 0
+}
+
+func (m *PowerTotalDetail) GetTasks() []*PowerTask {
+	if m != nil {
+		return m.Tasks
+	}
+	return nil
+}
+
+func (m *PowerTotalDetail) GetState() string {
+	if m != nil {
+		return m.State
+	}
+	return ""
+}
+
+// 算力上的任务信息
+type PowerTask struct {
+	TaskId               string                          `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	TaskName             string                          `protobuf:"bytes,2,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
+	Owner                *common.Organization            `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
+	Patners              []*common.Organization          `protobuf:"bytes,4,rep,name=patners,proto3" json:"patners,omitempty"`
+	Receivers            []*common.Organization          `protobuf:"bytes,5,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	OperationCost        *common.TaskResourceCostDeclare `protobuf:"bytes,6,opt,name=operation_cost,json=operationCost,proto3" json:"operation_cost,omitempty"`
+	OperationSpend       *common.TaskResourceCostDeclare `protobuf:"bytes,7,opt,name=operation_spend,json=operationSpend,proto3" json:"operation_spend,omitempty"`
+	CreateAt             uint64                          `protobuf:"varint,8,opt,name=createAt,proto3" json:"createAt,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
+	XXX_unrecognized     []byte                          `json:"-"`
+	XXX_sizecache        int32                           `json:"-"`
+}
+
+func (m *PowerTask) Reset()         { *m = PowerTask{} }
+func (m *PowerTask) String() string { return proto.CompactTextString(m) }
+func (*PowerTask) ProtoMessage()    {}
+func (*PowerTask) Descriptor() ([]byte, []int) {
+	return fileDescriptor_8efe43321c6120dd, []int{6}
+}
+func (m *PowerTask) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PowerTask) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PowerTask.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PowerTask) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PowerTask.Merge(m, src)
+}
+func (m *PowerTask) XXX_Size() int {
+	return m.Size()
+}
+func (m *PowerTask) XXX_DiscardUnknown() {
+	xxx_messageInfo_PowerTask.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PowerTask proto.InternalMessageInfo
+
+func (m *PowerTask) GetTaskId() string {
+	if m != nil {
+		return m.TaskId
+	}
+	return ""
+}
+
+func (m *PowerTask) GetTaskName() string {
+	if m != nil {
+		return m.TaskName
+	}
+	return ""
+}
+
+func (m *PowerTask) GetOwner() *common.Organization {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *PowerTask) GetPatners() []*common.Organization {
+	if m != nil {
+		return m.Patners
+	}
+	return nil
+}
+
+func (m *PowerTask) GetReceivers() []*common.Organization {
+	if m != nil {
+		return m.Receivers
+	}
+	return nil
+}
+
+func (m *PowerTask) GetOperationCost() *common.TaskResourceCostDeclare {
+	if m != nil {
+		return m.OperationCost
+	}
+	return nil
+}
+
+func (m *PowerTask) GetOperationSpend() *common.TaskResourceCostDeclare {
+	if m != nil {
+		return m.OperationSpend
+	}
+	return nil
+}
+
+func (m *PowerTask) GetCreateAt() uint64 {
+	if m != nil {
+		return m.CreateAt
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*ResourceData)(nil), "types.ResourceData")
 	proto.RegisterType((*LocalResourceData)(nil), "types.LocalResourceData")
+	proto.RegisterType((*Power)(nil), "types.Power")
+	proto.RegisterType((*PowerSingleDetail)(nil), "types.PowerSingleDetail")
+	proto.RegisterType((*ResourceUsageOverview)(nil), "types.ResourceUsageOverview")
+	proto.RegisterType((*PowerTotalDetail)(nil), "types.PowerTotalDetail")
+	proto.RegisterType((*PowerTask)(nil), "types.PowerTask")
 }
 
 func init() { proto.RegisterFile("lib/types/resourcedata.proto", fileDescriptor_8efe43321c6120dd) }
 
 var fileDescriptor_8efe43321c6120dd = []byte{
-	// 388 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x93, 0xd1, 0x8a, 0xda, 0x40,
-	0x14, 0x86, 0x89, 0x9a, 0x68, 0x46, 0x2d, 0x74, 0x28, 0x65, 0x10, 0x09, 0x62, 0x4b, 0x11, 0x4a,
-	0xcd, 0x45, 0xaf, 0x7a, 0x6b, 0x4b, 0x8b, 0xd0, 0x4a, 0x49, 0x2f, 0x0a, 0x7b, 0x37, 0xc9, 0xcc,
-	0x6a, 0x96, 0xe8, 0x91, 0x99, 0x13, 0x16, 0x1f, 0x67, 0xdf, 0x66, 0x2f, 0xf7, 0x11, 0x16, 0x1f,
-	0x64, 0x59, 0x66, 0xa2, 0x89, 0xbb, 0xac, 0xbb, 0xde, 0xec, 0xdd, 0xf9, 0xff, 0xf3, 0xff, 0x27,
-	0x81, 0x8f, 0x21, 0xfd, 0x2c, 0x8d, 0x43, 0xdc, 0xac, 0xa5, 0x0e, 0x95, 0xd4, 0x90, 0xab, 0x44,
-	0x0a, 0x8e, 0x7c, 0xbc, 0x56, 0x80, 0x40, 0x5d, 0xbb, 0xe9, 0x7d, 0x50, 0x72, 0x0d, 0x3a, 0xb4,
-	0x5e, 0x9c, 0x9f, 0x87, 0x73, 0x98, 0x83, 0x15, 0x76, 0x2a, 0xb2, 0xc3, 0xbb, 0x1a, 0xe9, 0x44,
-	0xbb, 0x13, 0x3f, 0x38, 0x72, 0xda, 0x23, 0xad, 0x54, 0xc8, 0x15, 0xa6, 0xb8, 0x61, 0xce, 0xc0,
-	0x19, 0xf9, 0x51, 0xa9, 0xe9, 0x7b, 0xe2, 0xad, 0x40, 0xc8, 0xa9, 0x60, 0x35, 0xbb, 0xd9, 0x29,
-	0xd3, 0x31, 0xd3, 0x8c, 0x2f, 0x25, 0xab, 0x17, 0x9d, 0xbd, 0x36, 0x1d, 0xf3, 0x6b, 0x53, 0xc1,
-	0x1a, 0x45, 0xa7, 0x50, 0x34, 0x20, 0xc4, 0x4c, 0xff, 0x90, 0x63, 0xae, 0x99, 0x6b, 0x77, 0x07,
-	0x0e, 0x7d, 0x47, 0x5c, 0x8d, 0x1c, 0x25, 0xf3, 0xec, 0xaa, 0x10, 0xe6, 0x4b, 0x08, 0xc8, 0xb3,
-	0x3f, 0x72, 0xc9, 0x9a, 0x03, 0x67, 0xd4, 0x88, 0x4a, 0x4d, 0x19, 0x69, 0xe6, 0x5a, 0x0a, 0xb3,
-	0x6a, 0xd9, 0xd5, 0x5e, 0xd2, 0x4f, 0xe4, 0x8d, 0x4d, 0xfd, 0x55, 0x90, 0x48, 0xad, 0x41, 0x31,
-	0xdf, 0x06, 0x1e, 0xb9, 0xf4, 0x23, 0xe9, 0x9a, 0x4a, 0x15, 0x23, 0x36, 0xf6, 0xd0, 0x2c, 0xaf,
-	0x4d, 0xf8, 0x4a, 0xfc, 0x4f, 0x05, 0x2e, 0x58, 0xfb, 0xe0, 0x5a, 0xe9, 0xee, 0xaf, 0x55, 0xb1,
-	0x4e, 0x75, 0xad, 0x34, 0x87, 0x57, 0x75, 0xf2, 0xf6, 0x37, 0x24, 0x3c, 0x7b, 0x55, 0x0a, 0x7d,
-	0xe2, 0x5f, 0x40, 0x3c, 0x2b, 0x6a, 0x05, 0x88, 0xca, 0x38, 0x60, 0xe4, 0x3e, 0xc3, 0xc8, 0x3b,
-	0xce, 0xa8, 0x79, 0x8c, 0x51, 0xeb, 0x38, 0x23, 0xff, 0x25, 0x46, 0xe4, 0x34, 0x46, 0xed, 0xd3,
-	0x18, 0x75, 0x4e, 0x63, 0xd4, 0x7d, 0x82, 0xd1, 0xe4, 0xdb, 0xf5, 0x36, 0x70, 0x6e, 0xb6, 0x81,
-	0x73, 0xbb, 0x0d, 0x9c, 0xb3, 0xcf, 0xf3, 0x14, 0x17, 0x79, 0x3c, 0x4e, 0x60, 0x19, 0x46, 0xa0,
-	0x25, 0x22, 0xff, 0x99, 0xc1, 0x65, 0xf8, 0x9d, 0x2b, 0x95, 0x4a, 0xf5, 0xe5, 0x17, 0x84, 0xe5,
-	0xf3, 0x8c, 0x3d, 0xfb, 0xcc, 0xbe, 0xde, 0x07, 0x00, 0x00, 0xff, 0xff, 0x9f, 0x82, 0x3f, 0x34,
-	0xb2, 0x03, 0x00, 0x00,
+	// 864 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xcd, 0x6e, 0x23, 0x45,
+	0x10, 0xd6, 0xd8, 0x19, 0xff, 0x94, 0x93, 0x6c, 0xb6, 0xc5, 0xc2, 0x6c, 0x08, 0xd6, 0xca, 0xb0,
+	0x4b, 0x24, 0xc0, 0x46, 0x81, 0x03, 0x5c, 0x90, 0xd8, 0x44, 0xa0, 0x48, 0x4b, 0x76, 0xe5, 0x80,
+	0x90, 0xb8, 0x58, 0x3d, 0x33, 0xb5, 0xde, 0xde, 0x78, 0xa6, 0x47, 0xdd, 0xed, 0x58, 0xcb, 0x93,
+	0x70, 0xe1, 0x80, 0xc4, 0x8d, 0x17, 0xe1, 0xc8, 0x23, 0xa0, 0x9c, 0x78, 0x0a, 0x84, 0xba, 0x7a,
+	0xfe, 0x6c, 0x39, 0x89, 0x57, 0x62, 0x6f, 0x53, 0x55, 0xdf, 0x57, 0xd3, 0x55, 0xdf, 0xd7, 0x1e,
+	0xc3, 0xc1, 0x4c, 0x84, 0x23, 0xf3, 0x2a, 0x43, 0x3d, 0x52, 0xa8, 0xe5, 0x5c, 0x45, 0x18, 0x73,
+	0xc3, 0x87, 0x99, 0x92, 0x46, 0x32, 0x9f, 0x2a, 0xfb, 0xf7, 0x2c, 0x28, 0x92, 0x49, 0x22, 0xd3,
+	0x51, 0xc8, 0x35, 0xba, 0xea, 0x52, 0xba, 0x22, 0xed, 0xbf, 0xaf, 0x30, 0x93, 0x7a, 0x44, 0x41,
+	0x38, 0x7f, 0x3e, 0x9a, 0xca, 0xa9, 0xa4, 0x80, 0x9e, 0x1c, 0x68, 0xf0, 0x6f, 0x03, 0xb6, 0xc7,
+	0xf9, 0x0b, 0x4f, 0xb8, 0xe1, 0x6c, 0x1f, 0x3a, 0x22, 0xc6, 0xd4, 0x08, 0xf3, 0x2a, 0xf0, 0x1e,
+	0x78, 0x87, 0xdd, 0x71, 0x19, 0xb3, 0xb7, 0xa1, 0x95, 0xca, 0x18, 0x4f, 0xe3, 0xa0, 0x41, 0x95,
+	0x3c, 0xb2, 0x1c, 0xfb, 0x74, 0xc6, 0x13, 0x0c, 0x9a, 0x8e, 0x53, 0xc4, 0x96, 0x63, 0xcf, 0x74,
+	0x1a, 0x07, 0x5b, 0x8e, 0xe3, 0x22, 0xd6, 0x07, 0xb0, 0x4f, 0xe7, 0x86, 0x9b, 0xb9, 0x0e, 0x7c,
+	0xaa, 0xd5, 0x32, 0xec, 0x2d, 0xf0, 0xb5, 0xe1, 0x06, 0x83, 0x16, 0x95, 0x5c, 0x60, 0xdf, 0x64,
+	0xa4, 0xe1, 0xb3, 0xef, 0x30, 0x09, 0xda, 0x0f, 0xbc, 0xc3, 0xad, 0x71, 0x19, 0xb3, 0x00, 0xda,
+	0x73, 0x8d, 0xb1, 0x2d, 0x75, 0xa8, 0x54, 0x84, 0xec, 0x11, 0xec, 0x12, 0xea, 0x99, 0x92, 0x11,
+	0x6a, 0x2d, 0x55, 0xd0, 0x25, 0xc0, 0x4a, 0x96, 0x7d, 0x00, 0x3b, 0x96, 0x52, 0xc1, 0x80, 0x60,
+	0xcb, 0xc9, 0xb2, 0xdb, 0x63, 0x9e, 0xc6, 0x3f, 0x8a, 0xd8, 0xbc, 0x08, 0x7a, 0xb5, 0x6e, 0x65,
+	0xb6, 0xe8, 0x56, 0xc1, 0xb6, 0xab, 0x6e, 0x65, 0x72, 0xf0, 0x5b, 0x13, 0xee, 0x3e, 0x91, 0x11,
+	0x9f, 0xbd, 0x51, 0x15, 0x0e, 0xa0, 0xfb, 0x52, 0x86, 0x67, 0x8e, 0xe6, 0x84, 0xa8, 0x12, 0x35,
+	0x8d, 0xfc, 0x1b, 0x34, 0x6a, 0x5d, 0xaf, 0x51, 0xfb, 0x3a, 0x8d, 0x3a, 0xd7, 0x6b, 0xd4, 0xbd,
+	0x4d, 0x23, 0xd8, 0x4c, 0xa3, 0xde, 0x66, 0x1a, 0x6d, 0x6f, 0xa6, 0xd1, 0xce, 0x3a, 0x8d, 0x7e,
+	0xf1, 0xc0, 0x7f, 0x26, 0x17, 0xa8, 0x58, 0x1f, 0x7a, 0x2f, 0x65, 0x38, 0xb1, 0x7b, 0x9d, 0x88,
+	0x38, 0x97, 0xa6, 0xb6, 0xc9, 0xfb, 0xd0, 0xc9, 0x2c, 0xd0, 0x16, 0x9d, 0x3a, 0x6d, 0x8a, 0x4f,
+	0x63, 0xf6, 0x15, 0xf4, 0x44, 0xfa, 0x5c, 0xaa, 0x84, 0x1b, 0x21, 0x53, 0x52, 0xa8, 0x77, 0x74,
+	0x30, 0xa4, 0x9b, 0x3d, 0x2c, 0xc4, 0xff, 0x41, 0xf3, 0x29, 0x3e, 0xbd, 0x44, 0x75, 0x29, 0x70,
+	0x31, 0xae, 0x13, 0xaa, 0x65, 0x6f, 0xd5, 0x96, 0x3d, 0xf8, 0xbd, 0x01, 0x77, 0xe9, 0x68, 0xe7,
+	0x22, 0x9d, 0xce, 0xf0, 0x04, 0x0d, 0x17, 0xb3, 0xd5, 0x77, 0x79, 0xaf, 0xfb, 0xae, 0x95, 0x31,
+	0x1b, 0x37, 0x8d, 0xd9, 0x5c, 0x1e, 0xf3, 0x10, 0xf6, 0x68, 0xc7, 0x13, 0xc3, 0xf5, 0xc5, 0x24,
+	0x92, 0xf3, 0xd4, 0xd0, 0x89, 0x77, 0xf2, 0xdd, 0x7f, 0xcf, 0xf5, 0xc5, 0xb1, 0xcd, 0xb2, 0x8f,
+	0x81, 0x45, 0x73, 0xa5, 0x30, 0x35, 0x75, 0xac, 0x4f, 0xd8, 0xbd, 0xbc, 0x52, 0xa1, 0x1f, 0x81,
+	0x6f, 0x51, 0xd6, 0x86, 0xcd, 0xc3, 0xde, 0xd1, 0x5e, 0x3e, 0x0c, 0xcd, 0x6e, 0x51, 0x63, 0x57,
+	0x5e, 0xef, 0xc9, 0xc1, 0x1f, 0x0d, 0xb8, 0xb7, 0x76, 0x6e, 0xf6, 0x2e, 0x74, 0xdd, 0x79, 0x13,
+	0x4c, 0x68, 0xd0, 0xba, 0x5d, 0xef, 0x43, 0xc7, 0x3a, 0x81, 0x6a, 0xcd, 0x65, 0xbf, 0x7e, 0x08,
+	0x77, 0x1c, 0x2f, 0x2b, 0x9d, 0x58, 0x1f, 0xb3, 0xb2, 0xe2, 0x43, 0xd8, 0xa5, 0x1e, 0x15, 0xce,
+	0x8d, 0xb8, 0xe2, 0xd8, 0xb2, 0x5f, 0xc8, 0xd3, 0x78, 0x41, 0x5e, 0x6c, 0xad, 0x58, 0x96, 0xb2,
+	0x65, 0xbf, 0x0a, 0xd7, 0x5e, 0xf6, 0xac, 0x83, 0xbd, 0x07, 0xe0, 0xfa, 0xc5, 0x42, 0x5f, 0xe4,
+	0xf7, 0xd0, 0x4d, 0x7a, 0x22, 0xf4, 0x85, 0x1d, 0x9b, 0xba, 0x50, 0xd5, 0x5d, 0x45, 0x1a, 0xd5,
+	0x16, 0x07, 0xff, 0x78, 0xb0, 0xe7, 0x16, 0x4b, 0xf8, 0xff, 0xc7, 0x53, 0xeb, 0x8c, 0xd1, 0x78,
+	0x0d, 0x63, 0x34, 0x6f, 0x33, 0xc6, 0xd6, 0x86, 0xc6, 0xf0, 0xeb, 0xc6, 0xf8, 0xb5, 0x09, 0xdd,
+	0x12, 0xca, 0xde, 0x81, 0x36, 0xbd, 0xb1, 0xbc, 0xda, 0x2d, 0x1b, 0x9e, 0xc6, 0xe4, 0x12, 0x5b,
+	0x48, 0xed, 0x8f, 0xab, 0xbb, 0x0e, 0x1d, 0x9b, 0xa0, 0x1f, 0xd7, 0x4f, 0xc1, 0x97, 0x8b, 0x14,
+	0x55, 0x7e, 0xa7, 0xf7, 0x87, 0x3c, 0x13, 0xc3, 0xe2, 0xb3, 0x3b, 0x7c, 0xaa, 0xa6, 0x3c, 0x15,
+	0x3f, 0xd3, 0x12, 0xc6, 0x0e, 0xc8, 0x3e, 0x87, 0x76, 0xc6, 0x4d, 0x8a, 0xaa, 0x38, 0xf5, 0x4d,
+	0x9c, 0x02, 0xca, 0xbe, 0x80, 0xae, 0xc2, 0x08, 0xc5, 0xa5, 0xe5, 0xf9, 0xb7, 0xf2, 0x2a, 0x30,
+	0x7b, 0x02, 0xbb, 0x32, 0x43, 0x45, 0xf9, 0x49, 0x24, 0xb5, 0x21, 0x6f, 0xf5, 0x8e, 0x1e, 0x2e,
+	0xd3, 0x69, 0x5d, 0xb9, 0x92, 0xc7, 0x52, 0x9b, 0x13, 0x8c, 0x66, 0x5c, 0xe1, 0x78, 0xa7, 0x24,
+	0xdb, 0x2c, 0x3b, 0x83, 0x3b, 0x55, 0x37, 0x9d, 0x61, 0x1a, 0x93, 0x05, 0x37, 0x6e, 0x57, 0x9d,
+	0xe5, 0xdc, 0x92, 0xed, 0x07, 0x23, 0x52, 0xc8, 0x0d, 0x7e, 0x6d, 0x8a, 0x0f, 0x46, 0x11, 0x3f,
+	0xfe, 0xf2, 0xcf, 0xab, 0xbe, 0xf7, 0xd7, 0x55, 0xdf, 0xfb, 0xfb, 0xaa, 0xef, 0xfd, 0xf4, 0xd1,
+	0x54, 0x98, 0x17, 0xf3, 0x70, 0x18, 0xc9, 0x64, 0x34, 0x96, 0x1a, 0x8d, 0xe1, 0xdf, 0xcc, 0xe4,
+	0x62, 0x74, 0xcc, 0x95, 0x12, 0xa8, 0x3e, 0xf9, 0x56, 0x8e, 0xca, 0xff, 0x51, 0x61, 0x8b, 0x0e,
+	0xf2, 0xd9, 0x7f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xbd, 0x1a, 0x5c, 0x93, 0x5b, 0x09, 0x00, 0x00,
 }
 
 func (m *ResourceData) Marshal() (dAtA []byte, err error) {
@@ -554,6 +1057,397 @@ func (m *LocalResourceData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *Power) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *Power) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *Power) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.State)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Information != nil {
+		{
+			size, err := m.Information.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.PowerId) > 0 {
+		i -= len(m.PowerId)
+		copy(dAtA[i:], m.PowerId)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.PowerId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.JobNodeId) > 0 {
+		i -= len(m.JobNodeId)
+		copy(dAtA[i:], m.JobNodeId)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.JobNodeId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PowerSingleDetail) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PowerSingleDetail) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PowerSingleDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.State)))
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.Tasks) > 0 {
+		for iNdEx := len(m.Tasks) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Tasks[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintResourcedata(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x32
+		}
+	}
+	if m.CurrentTaskCount != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.CurrentTaskCount))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.TotalTaskCount != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalTaskCount))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.PowerId) > 0 {
+		i -= len(m.PowerId)
+		copy(dAtA[i:], m.PowerId)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.PowerId)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.JobNodeId) > 0 {
+		i -= len(m.JobNodeId)
+		copy(dAtA[i:], m.JobNodeId)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.JobNodeId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Information != nil {
+		{
+			size, err := m.Information.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ResourceUsageOverview) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ResourceUsageOverview) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ResourceUsageOverview) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.UsedDisk != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedDisk))
+		i--
+		dAtA[i] = 0x48
+	}
+	if m.TotalDisk != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalDisk))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.UsedBandwidth != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedBandwidth))
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.TotalBandwidth != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalBandwidth))
+		i--
+		dAtA[i] = 0x30
+	}
+	if m.UsedProcessor != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedProcessor))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.TotalProcessor != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalProcessor))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.UsedMem != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedMem))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.TotalMem != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalMem))
+		i--
+		dAtA[i] = 0x10
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PowerTotalDetail) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PowerTotalDetail) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PowerTotalDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.State)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Tasks) > 0 {
+		for iNdEx := len(m.Tasks) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Tasks[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintResourcedata(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.CurrentTaskCount != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.CurrentTaskCount))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.TotalTaskCount != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalTaskCount))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Information != nil {
+		{
+			size, err := m.Information.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PowerTask) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PowerTask) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PowerTask) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.CreateAt != 0 {
+		i = encodeVarintResourcedata(dAtA, i, uint64(m.CreateAt))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.OperationSpend != nil {
+		{
+			size, err := m.OperationSpend.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.OperationCost != nil {
+		{
+			size, err := m.OperationCost.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Receivers) > 0 {
+		for iNdEx := len(m.Receivers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Receivers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintResourcedata(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.Patners) > 0 {
+		for iNdEx := len(m.Patners) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Patners[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintResourcedata(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.TaskName) > 0 {
+		i -= len(m.TaskName)
+		copy(dAtA[i:], m.TaskName)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.TaskName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.TaskId) > 0 {
+		i -= len(m.TaskId)
+		copy(dAtA[i:], m.TaskId)
+		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.TaskId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintResourcedata(dAtA []byte, offset int, v uint64) int {
 	offset -= sovResourcedata(v)
 	base := offset
@@ -670,6 +1564,189 @@ func (m *LocalResourceData) Size() (n int) {
 	}
 	if m.UsedBandWidth != 0 {
 		n += 1 + sovResourcedata(uint64(m.UsedBandWidth))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *Power) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.JobNodeId)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	l = len(m.PowerId)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.Information != nil {
+		l = m.Information.Size()
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	l = len(m.State)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PowerSingleDetail) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Information != nil {
+		l = m.Information.Size()
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	l = len(m.JobNodeId)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	l = len(m.PowerId)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.TotalTaskCount != 0 {
+		n += 1 + sovResourcedata(uint64(m.TotalTaskCount))
+	}
+	if m.CurrentTaskCount != 0 {
+		n += 1 + sovResourcedata(uint64(m.CurrentTaskCount))
+	}
+	if len(m.Tasks) > 0 {
+		for _, e := range m.Tasks {
+			l = e.Size()
+			n += 1 + l + sovResourcedata(uint64(l))
+		}
+	}
+	l = len(m.State)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *ResourceUsageOverview) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.TotalMem != 0 {
+		n += 1 + sovResourcedata(uint64(m.TotalMem))
+	}
+	if m.UsedMem != 0 {
+		n += 1 + sovResourcedata(uint64(m.UsedMem))
+	}
+	if m.TotalProcessor != 0 {
+		n += 1 + sovResourcedata(uint64(m.TotalProcessor))
+	}
+	if m.UsedProcessor != 0 {
+		n += 1 + sovResourcedata(uint64(m.UsedProcessor))
+	}
+	if m.TotalBandwidth != 0 {
+		n += 1 + sovResourcedata(uint64(m.TotalBandwidth))
+	}
+	if m.UsedBandwidth != 0 {
+		n += 1 + sovResourcedata(uint64(m.UsedBandwidth))
+	}
+	if m.TotalDisk != 0 {
+		n += 1 + sovResourcedata(uint64(m.TotalDisk))
+	}
+	if m.UsedDisk != 0 {
+		n += 1 + sovResourcedata(uint64(m.UsedDisk))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PowerTotalDetail) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Information != nil {
+		l = m.Information.Size()
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.TotalTaskCount != 0 {
+		n += 1 + sovResourcedata(uint64(m.TotalTaskCount))
+	}
+	if m.CurrentTaskCount != 0 {
+		n += 1 + sovResourcedata(uint64(m.CurrentTaskCount))
+	}
+	if len(m.Tasks) > 0 {
+		for _, e := range m.Tasks {
+			l = e.Size()
+			n += 1 + l + sovResourcedata(uint64(l))
+		}
+	}
+	l = len(m.State)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PowerTask) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.TaskId)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	l = len(m.TaskName)
+	if l > 0 {
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if len(m.Patners) > 0 {
+		for _, e := range m.Patners {
+			l = e.Size()
+			n += 1 + l + sovResourcedata(uint64(l))
+		}
+	}
+	if len(m.Receivers) > 0 {
+		for _, e := range m.Receivers {
+			l = e.Size()
+			n += 1 + l + sovResourcedata(uint64(l))
+		}
+	}
+	if m.OperationCost != nil {
+		l = m.OperationCost.Size()
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.OperationSpend != nil {
+		l = m.OperationSpend.Size()
+		n += 1 + l + sovResourcedata(uint64(l))
+	}
+	if m.CreateAt != 0 {
+		n += 1 + sovResourcedata(uint64(m.CreateAt))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1403,6 +2480,1148 @@ func (m *LocalResourceData) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.UsedBandWidth |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipResourcedata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *Power) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowResourcedata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Power: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Power: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.JobNodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PowerId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Information == nil {
+				m.Information = &ResourceUsageOverview{}
+			}
+			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipResourcedata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PowerSingleDetail) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowResourcedata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PowerSingleDetail: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PowerSingleDetail: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Information == nil {
+				m.Information = &ResourceUsageOverview{}
+			}
+			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.JobNodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PowerId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalTaskCount", wireType)
+			}
+			m.TotalTaskCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalTaskCount |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CurrentTaskCount", wireType)
+			}
+			m.CurrentTaskCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CurrentTaskCount |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tasks", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tasks = append(m.Tasks, &PowerTask{})
+			if err := m.Tasks[len(m.Tasks)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipResourcedata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowResourcedata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ResourceUsageOverview: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ResourceUsageOverview: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalMem", wireType)
+			}
+			m.TotalMem = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalMem |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsedMem", wireType)
+			}
+			m.UsedMem = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UsedMem |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalProcessor", wireType)
+			}
+			m.TotalProcessor = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalProcessor |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsedProcessor", wireType)
+			}
+			m.UsedProcessor = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UsedProcessor |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalBandwidth", wireType)
+			}
+			m.TotalBandwidth = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalBandwidth |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsedBandwidth", wireType)
+			}
+			m.UsedBandwidth = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UsedBandwidth |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalDisk", wireType)
+			}
+			m.TotalDisk = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalDisk |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsedDisk", wireType)
+			}
+			m.UsedDisk = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UsedDisk |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipResourcedata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PowerTotalDetail) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowResourcedata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PowerTotalDetail: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PowerTotalDetail: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Information == nil {
+				m.Information = &ResourceUsageOverview{}
+			}
+			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalTaskCount", wireType)
+			}
+			m.TotalTaskCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalTaskCount |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CurrentTaskCount", wireType)
+			}
+			m.CurrentTaskCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CurrentTaskCount |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tasks", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Tasks = append(m.Tasks, &PowerTask{})
+			if err := m.Tasks[len(m.Tasks)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipResourcedata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PowerTask) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowResourcedata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PowerTask: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PowerTask: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &common.Organization{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Patners", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Patners = append(m.Patners, &common.Organization{})
+			if err := m.Patners[len(m.Patners)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Receivers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Receivers = append(m.Receivers, &common.Organization{})
+			if err := m.Receivers[len(m.Receivers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperationCost", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.OperationCost == nil {
+				m.OperationCost = &common.TaskResourceCostDeclare{}
+			}
+			if err := m.OperationCost.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperationSpend", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthResourcedata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.OperationSpend == nil {
+				m.OperationSpend = &common.TaskResourceCostDeclare{}
+			}
+			if err := m.OperationSpend.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
+			}
+			m.CreateAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowResourcedata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CreateAt |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

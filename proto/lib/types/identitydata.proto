@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package types;
 
+import "lib/common/base.proto";
 import "repos/protobuf/gogoproto/gogo.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";

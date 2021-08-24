@@ -5,6 +5,7 @@ package api;
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
 import "lib/common/base.proto";
+import "lib/common/data.proto";
 import "lib/types/identitydata.proto";
 import "lib/types/resourcedata.proto";
 import "google/protobuf/empty.proto";
@@ -22,7 +23,7 @@ message PurePower {
 // 发布算力请求参数
 message PublishPowerRequest {
   // 算力的拥有者
-    Organization owner = 1;
+    api.protobuf.Organization owner = 1;
   // 算力ID
     string power_id = 2;
   // 发布的算力信息
@@ -38,7 +39,7 @@ message PublishPowerResponse {
 
 message RevokePowerRequest {
   // 算力的拥有者
-    Organization owner = 1;
+    api.protobuf.Organization owner = 1;
   // 算力id
     string power_id = 2;
 }
@@ -46,7 +47,7 @@ message RevokePowerRequest {
 //  总算力摘要
 message PowerTotalSummary {
   // 算力实况
-    ResourceUsageOverview information = 1;
+    types.ResourceUsageOverview information = 1;
   // 算力上总共执行的任务数 (已完成的和正在执行的)
     uint32 total_task_count = 2;
   // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
@@ -55,7 +56,7 @@ message PowerTotalSummary {
 
 message PowerTotalSummaryResponse {
   // 算力拥有者信息
-    Organization owner = 1;
+    api.protobuf.Organization owner = 1;
   // 算力总摘要
     PowerTotalSummary power = 2;
 }
@@ -75,25 +76,25 @@ message PowerListRequest {
 }
 
 message PowerListResponse {
-    repeated Power power_list       = 1;
-    uint64         last_update_time = 2;
+    repeated types.Power power_list       = 1;
+    uint64               last_update_time = 2;
 }
 
 message SyncPowerRequest {
-    Power power = 1;
+    types.Power power = 1;
 }
 
 // 资源（算力）接口定义
 service ResourceService {
 
   // 存储资源
-  rpc PublishPower (PublishPowerRequest) returns (SimpleResponse);
+  rpc PublishPower (PublishPowerRequest) returns (api.protobuf.SimpleResponse);
 
   // 新增，算力同步，实时通知算力的使用情况（组织下的具体的服务器）
-  rpc SyncPower(SyncPowerRequest) returns(SimpleResponse);
+  rpc SyncPower(SyncPowerRequest) returns(api.protobuf.SimpleResponse);
 
   // 撤销资源
-  rpc RevokePower (RevokePowerRequest) returns (SimpleResponse);
+  rpc RevokePower (RevokePowerRequest) returns (api.protobuf.SimpleResponse);
 
   // 新增，用于同步给管理台，获取所有算力资源信息
   rpc GetPowerList(PowerListRequest) returns (PowerListResponse);

@@ -3,7 +3,7 @@ syntax = "proto3";
 package types;
 
 import "lib/common/base.proto";
-import "lib/types/taskdata.proto";
+import "lib/common/data.proto";
 import "repos/protobuf/gogoproto/gogo.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
@@ -67,13 +67,13 @@ message Power {
 
 // 单个算力详情（对应到具体某一台服务器）
 message PowerSingleDetail {
-    ResourceUsageOverview  information = 1;                      // 算力实况
-    string                 job_node_id = 2;                      // 计算服务id (节点内部的)
-    string                 power_id = 3;                         // 算力id
-    uint32                 total_task_count = 4;                 // 算力上总共执行的任务数 (已完成的和正在执行的)
-    uint32                 current_task_count = 5;               // 算力上正在执行的任务数
-    repeated PowerTask     tasks = 6;                            // 算力上正在执行的任务详情信息
-    string                 state = 7;                            // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+    ResourceUsageOverview information        = 1;                      // 算力实况
+    string                job_node_id        = 2;                      // 计算服务id (节点内部的)
+    string                power_id           = 3;                         // 算力id
+    uint32                total_task_count   = 4;                 // 算力上总共执行的任务数 (已完成的和正在执行的)
+    uint32                current_task_count = 5;               // 算力上正在执行的任务数
+    repeated PowerTask    tasks              = 6;                            // 算力上正在执行的任务详情信息
+    string                state              = 7;                            // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
 
 // 系统资源消耗概览
@@ -98,21 +98,21 @@ message ResourceUsageOverview {
 
 // 总算力详情（对应到一个组织下的所有算力资源）
 message PowerTotalDetail {
-    ResourceUsageOverview  information = 1;                 // 算力实况
-    uint32                 total_task_count = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
-    uint32                 current_task_count = 3;          // 算力上正在执行的任务数
-    repeated PowerTask     tasks = 4;                       // 算力上正在执行的任务详情信息
-    string                 state = 5;                       // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
+    ResourceUsageOverview information        = 1;                 // 算力实况
+    uint32                total_task_count   = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
+    uint32                current_task_count = 3;          // 算力上正在执行的任务数
+    repeated PowerTask    tasks              = 4;                       // 算力上正在执行的任务详情信息
+    string                state              = 5;                       // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
 }
 
 // 算力上的任务信息
 message PowerTask {
-    string                            task_id = 1;              // 任务Id
-    string                            task_name = 2;            // 任务名称
-    Organization                      owner = 3;                // 任务发起方身份信息
-    repeated Organization             patners = 4;              // 任务协作方信息
-    repeated Organization             receivers = 5;            // 任务结果接收方信息
-    TaskResourceCostDeclare           operation_cost = 6;       // 任务所需的资源大小信息
-    TaskResourceCostDeclare           operation_spend = 7;      // 任务已经花费的资源大小信息
-    uint64                            createAt = 8;             // 任务的发起时间
+    string                               task_id         = 1;              // 任务Id
+    string                               task_name       = 2;            // 任务名称
+    api.protobuf.Organization            owner           = 3;                // 任务发起方身份信息
+    repeated api.protobuf.Organization   patners         = 4;              // 任务协作方信息
+    repeated api.protobuf.Organization   receivers       = 5;            // 任务结果接收方信息
+    api.protobuf.TaskResourceCostDeclare operation_cost  = 6;       // 任务所需的资源大小信息
+    api.protobuf.TaskResourceCostDeclare operation_spend = 7;      // 任务已经花费的资源大小信息
+    uint64                               createAt        = 8;             // 任务的发起时间
 }
