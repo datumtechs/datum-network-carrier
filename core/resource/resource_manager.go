@@ -80,6 +80,7 @@ func (m *Manager) Start() error {
 
 	// build mock identityIds cache
 	if "" != m.mockIdentityIdsFile {
+		log.Debugf("Started load mock identityIds, file: %s", m.mockIdentityIdsFile)
 		var identityIdList []string
 		if err := fileutil.LoadJSON(m.mockIdentityIdsFile, &identityIdList); err != nil {
 			log.Errorf("Failed to load `--mock-identity-file` on Start resourceManager, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
@@ -89,6 +90,7 @@ func (m *Manager) Start() error {
 		for _, iden := range identityIdList {
 			m.mockIdentityIdsCache[iden] = struct{}{}
 		}
+		log.Debugf("Finished load mock identityIds, mock identityId size: %d", len(m.mockIdentityIdsCache))
 	}
 
 
