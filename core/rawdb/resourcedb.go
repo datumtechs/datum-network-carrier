@@ -94,7 +94,7 @@ func StoreNodeResources(db KeyValueStore, resources []*types.LocalResourceTable)
 
 	var resourceIds []string
 	if !has {
-		resourceIds = inputIds
+		resourceIds = inputIds    // had not old local resourceIds ever, just use inputIds become local resourceIds first
 	} else {
 		idsByte, err := db.Get(GetNodeResourceIdListKey())
 		if nil != err {
@@ -104,17 +104,30 @@ func StoreNodeResources(db KeyValueStore, resources []*types.LocalResourceTable)
 			return err
 		}
 
-		tmp := make(map[string]struct{})
-
-		for _, id := range resourceIds {
-			tmp[id] = struct{}{}
-		}
+		newIdCache := make(map[string]struct{})
 		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				resourceIds = append(resourceIds, id)
+			newIdCache[id] = struct{}{}
+		}
+
+		oldIdCache := make(map[string]struct{})
+		for i := 0; i < len(resourceIds); i++ {
+			id := resourceIds[i]
+			if _, ok := newIdCache[id]; !ok { // need to delete from local resourceIds
+				key := GetNodeResourceKey(id)
+				if err := db.Delete(key); nil != err {
+					return err
+				}
+				resourceIds = append(resourceIds[:i], resourceIds[i+1:]...)
+				i--
+			} else {
+				oldIdCache[id] = struct{}{} // need to update from local resourceIds
 			}
 		}
-
+		for _, id := range inputIds {
+			if _, ok := oldIdCache[id]; !ok {
+				resourceIds = append(resourceIds, id) // need to add to local resourceIds
+			}
+		}
 	}
 
 	index, err := rlp.EncodeToBytes(resourceIds)
@@ -273,6 +286,7 @@ func StoreOrgResources(db KeyValueStore, resources []*types.RemoteResourceTable)
 		return err
 	}
 
+	// fetch all inputIds
 	inputIds := make([]string, len(resources))
 	for i, re := range resources {
 		inputIds[i] =  re.GetIdentityId()
@@ -287,31 +301,48 @@ func StoreOrgResources(db KeyValueStore, resources []*types.RemoteResourceTable)
 		}
 	}
 
-	var resourceIds []string
+	var identityIds []string
 	if !has {
-		resourceIds = inputIds
+		identityIds = inputIds   // had not old resourceIds ever, just use inputIds become resourceIds first
 	} else {
+
+		// load old resourceIds
 		idsByte, err := db.Get(GetOrgResourceIdListKey())
 		if nil != err {
 			return err
 		}
-		if err := rlp.DecodeBytes(idsByte, &resourceIds); nil != err {
+		if err := rlp.DecodeBytes(idsByte, &identityIds); nil != err {
 			return err
 		}
 
-		tmp := make(map[string]struct{})
-
-		for _, id := range resourceIds {
-			tmp[id] = struct{}{}
+		newIdCache := make(map[string]struct{})
+		for _, identityId := range inputIds {
+			newIdCache[identityId] = struct{}{}
 		}
-		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				resourceIds = append(resourceIds, id)
+
+		oldIdCache := make(map[string]struct{})
+		for i := 0; i < len(identityIds); i++ {
+			identityId := identityIds[i]
+			if _, ok := newIdCache[identityId]; !ok { // need to delete from resourceIds
+				key := GetOrgResourceKey(identityId)
+				if err := db.Delete(key); nil != err {
+					return err
+				}
+				identityIds = append(identityIds[:i], identityIds[i+1:]...)
+				i--
+			} else { // need to update from resourceIds
+				oldIdCache[identityId] = struct{}{}
+			}
+		}
+
+		for _, identityId := range inputIds {
+			if _, ok := oldIdCache[identityId]; !ok { // need to add to resourceIds
+				identityIds = append(identityIds, identityId)
 			}
 		}
 	}
 
-	index, err := rlp.EncodeToBytes(resourceIds)
+	index, err := rlp.EncodeToBytes(identityIds)
 	if nil != err {
 		return err
 	}
@@ -543,17 +574,31 @@ func StoreLocalTaskPowerUseds(db KeyValueStore, taskPowerUseds []*types.LocalTas
 			return err
 		}
 
-		tmp := make(map[string]struct{})
-
-		for _, id := range taskIds {
-			tmp[id] = struct{}{}
+		newIdCache := make(map[string]struct{})
+		for _, taskId := range inputIds {
+			newIdCache[taskId] = struct{}{}
 		}
-		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				taskIds = append(taskIds, id)
+
+		oldIdCache := make(map[string]struct{})
+		for i := 0; i < len(taskIds); i++ {
+			taskId := taskIds[i]
+			if _, ok := newIdCache[taskId]; !ok { // need to delete from taskIds
+				key := GetLocalTaskPowerUsedKey(taskId)
+				if err := db.Delete(key); nil != err {
+					return err
+				}
+				taskIds = append(taskIds[:i], taskIds[i+1:]...)
+				i--
+			} else { // need to update from taskIds
+				oldIdCache[taskId] = struct{}{}
 			}
 		}
 
+		for _, taskId := range inputIds {
+			if _, ok := oldIdCache[taskId]; !ok {
+				taskIds = append(taskIds, taskId) // need to add to taskIds
+			}
+		}
 	}
 
 	index, err := rlp.EncodeToBytes(taskIds)
@@ -742,17 +787,32 @@ func StoreDataResourceTables(db KeyValueStore, dataResourceTables []*types.DataR
 			return err
 		}
 
-		tmp := make(map[string]struct{})
 
-		for _, id := range nodeIds {
-			tmp[id] = struct{}{}
+		newIdCache := make(map[string]struct{})
+		for _, nodeId := range inputIds {
+			newIdCache[nodeId] = struct{}{}
 		}
-		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				nodeIds = append(nodeIds, id)
+
+		oldIdCache := make(map[string]struct{})
+		for i := 0; i < len(nodeIds); i++ {
+			nodeId := nodeIds[i]
+			if _, ok := newIdCache[nodeId]; !ok { // need to delete from nodeIds
+				key := GetDataResourceTableKey(nodeId)
+				if err := db.Delete(key); nil != err {
+					return err
+				}
+				nodeIds = append(nodeIds[:i], nodeIds[i+1:]...)
+				i--
+			} else { // need to update from nodeIds
+				oldIdCache[nodeId] = struct{}{}
 			}
 		}
 
+		for _, id := range inputIds {
+			if _, ok := oldIdCache[id]; !ok {
+				nodeIds = append(nodeIds, id)  // need to add to nodeIds
+			}
+		}
 	}
 
 	index, err := rlp.EncodeToBytes(nodeIds)
@@ -941,17 +1001,31 @@ func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*typ
 			return err
 		}
 
-		tmp := make(map[string]struct{})
-
-		for _, id := range originIds {
-			tmp[id] = struct{}{}
+		newIdCache := make(map[string]struct{})
+		for _, originId := range inputIds {
+			newIdCache[originId] = struct{}{}
 		}
-		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				originIds = append(originIds, id)
+
+		oldIdCache := make(map[string]struct{})
+		for i := 0; i < len(originIds); i++ {
+			originId := originIds[i]
+			if _, ok := newIdCache[originId]; !ok { // need to delete from originIds
+				key := GetDataResourceFileUploadKey(originId)
+				if err := db.Delete(key); nil != err {
+					return err
+				}
+				originIds = append(originIds[:i], originIds[i+1:]...)
+				i--
+			} else { // need to update from originIds
+				oldIdCache[originId] = struct{}{}
 			}
 		}
 
+		for _, id := range inputIds {
+			if _, ok := oldIdCache[id]; !ok {
+				originIds = append(originIds, id)  // need to add to originIds
+			}
+		}
 	}
 
 	index, err := rlp.EncodeToBytes(originIds)
