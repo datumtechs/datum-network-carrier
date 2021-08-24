@@ -24,6 +24,11 @@ const rangeLimit = 1024
 const seenBlockSize = 1000
 const seenAttSize = 10000
 const seenPrepareMsgSize = 1000
+const seenPrepareVoteSize = 1000
+const seenConfirmMsgSize = 1000
+const seenConfirmVoteSize = 1000
+const seenCommitMsgSize = 1000
+const seenTaskResultMsgSize = 1000
 const seenGossipTestDataSize = 100
 const seenProposerSlashingSize = 100
 const badBlockSize = 1000
@@ -52,9 +57,20 @@ type Service struct {
 	seenGossipDataCache *lru.Cache
 	badBlockCache       *lru.Cache
 	badBlockLock        sync.RWMutex
-	seenPrepareMsgLock  sync.RWMutex
-	seenPrepareMsgCache *lru.Cache
-	chainStarted        *abool.AtomicBool
+	// Consensus-related
+	seenPrepareMsgLock     sync.RWMutex
+	seenPrepareMsgCache    *lru.Cache
+	seenPrepareVoteLock    sync.RWMutex
+	seenPrepareVoteCache   *lru.Cache
+	seenConfirmMsgLock     sync.RWMutex
+	seenConfirmMsgCache    *lru.Cache
+	seenConfirmVoteLock    sync.RWMutex
+	seenConfirmVoteCache   *lru.Cache
+	seenCommitMsgLock      sync.RWMutex
+	seenCommitMsgCache     *lru.Cache
+	seenTaskResultMsgLock  sync.RWMutex
+	seenTaskResultMsgCache *lru.Cache
+	chainStarted           *abool.AtomicBool
 }
 
 // NewService initializes new regular sync service.
@@ -147,8 +163,34 @@ func (s *Service) initCaches() error {
 	if err != nil {
 		return err
 	}
+
+	prepareVoteCache, err := lru.New(seenPrepareVoteSize)
+	if err != nil {
+		return err
+	}
+	confirmMsgCache, err := lru.New(seenConfirmMsgSize)
+	if err != nil {
+		return err
+	}
+	confirmVoteCache, err := lru.New(seenConfirmVoteSize)
+	if err != nil {
+		return err
+	}
+	commitMsgCache, err := lru.New(seenCommitMsgSize)
+	if err != nil {
+		return err
+	}
+	taskResultMsgCache, err := lru.New(seenTaskResultMsgSize)
+	if err != nil {
+		return err
+	}
 	s.seenGossipDataCache = gossipCache
 	s.seenPrepareMsgCache = prepareMsgCache
+	s.seenPrepareVoteCache = prepareVoteCache
+	s.seenConfirmMsgCache = confirmMsgCache
+	s.seenConfirmVoteCache = confirmVoteCache
+	s.seenCommitMsgCache = commitMsgCache
+	s.seenTaskResultMsgCache = taskResultMsgCache
 	return nil
 }
 
@@ -157,7 +199,7 @@ func (s *Service) registerHandlers() {
 
 	// Register respective rpc handlers at state initialized evengine.
 	s.registerRPCHandlers()
-	
+
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := s.cfg.StateNotifier.StateFeed().Subscribe(stateChannel)
 	defer stateSub.Unsubscribe()
@@ -173,7 +215,6 @@ func (s *Service) registerHandlers() {
 				}
 				startTime := data.StartTime
 				log.WithField("starttime", startTime).Debug("Received state initialized evengine")
-
 
 				// Wait for chainstart in separate routine.
 				go func() {
