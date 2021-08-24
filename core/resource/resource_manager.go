@@ -54,6 +54,21 @@ func (m *Manager) loop() {
 
 func (m *Manager) Start() error {
 
+	// build mock identityIds cache
+	if "" != m.mockIdentityIdsFile {
+		log.Debugf("Started load mock identityIds, file: %s", m.mockIdentityIdsFile)
+		var identityIdList []string
+		if err := fileutil.LoadJSON(m.mockIdentityIdsFile, &identityIdList); err != nil {
+			log.Errorf("Failed to load `--mock-identity-file` on Start resourceManager, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
+			return err
+		}
+
+		for _, iden := range identityIdList {
+			m.mockIdentityIdsCache[iden] = struct{}{}
+		}
+		log.Debugf("Finished load mock identityIds, mock identityId size: %d", len(m.mockIdentityIdsCache))
+	}
+
 	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
 	if nil != err {
 		log.Warnf("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
@@ -77,23 +92,6 @@ func (m *Manager) Start() error {
 			log.Errorf("Failed to refresh org resourceTables on Start resourceManager, err: %s", err)
 		}
 	}
-
-	// build mock identityIds cache
-	if "" != m.mockIdentityIdsFile {
-		log.Debugf("Started load mock identityIds, file: %s", m.mockIdentityIdsFile)
-		var identityIdList []string
-		if err := fileutil.LoadJSON(m.mockIdentityIdsFile, &identityIdList); err != nil {
-			log.Errorf("Failed to load `--mock-identity-file` on Start resourceManager, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
-			return err
-		}
-
-		for _, iden := range identityIdList {
-			m.mockIdentityIdsCache[iden] = struct{}{}
-		}
-		log.Debugf("Finished load mock identityIds, mock identityId size: %d", len(m.mockIdentityIdsCache))
-	}
-
-
 
 	go m.loop()
 	log.Info("Started resourceManager ...")
