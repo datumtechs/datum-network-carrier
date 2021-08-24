@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	defaultRefreshOrgResourceInterval = 30 * time.Second
+	defaultRefreshOrgResourceInterval = 300 * time.Second
 )
 
 type Manager struct {
