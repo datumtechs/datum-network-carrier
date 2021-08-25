@@ -1,7 +1,7 @@
 package iface
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -122,8 +122,8 @@ type TaskCarrierDB interface {
 	InsertTask(task *types.Task) error
 	GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
 	GetRunningTaskCountOnOrg() uint32
-	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*api.TaskEvent, error)
+	GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 }
 
 type ForConsensusDB interface {

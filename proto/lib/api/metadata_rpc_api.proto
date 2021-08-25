@@ -17,11 +17,11 @@ message GetMetaDataDetailRequest {
 
 message GetMetaDataDetailResponse {
     api.protobuf.Organization owner       = 1;              // 元数据的拥有者
-    types.MetaDataDetail      information = 2;        // 元文件详情主体
+    types.MetadataDetail      information = 2;        // 元文件详情主体
 }
 
 message PublishMetaDataRequest {
-    types.MetaDataDetail information = 1;                    // 元数据详情
+    types.MetadataDetail information = 1;                    // 元数据详情
 }
 
 message PublishMetaDataResponse {

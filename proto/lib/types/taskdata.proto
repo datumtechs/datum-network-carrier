@@ -38,11 +38,11 @@ message TaskData {
     // 结果接收方组织
     repeated TaskResultReceiver receivers = 24;
     // 任务参与方
-    repeated api.protobuf.TaskOrganization partner_list              = 25;
-    repeated TaskEvent                     task_event_list           = 26;
-    string                                 calculate_contract_code   = 27;
-    string                                 data_splits_contract_code = 28;
-    string                                 contract_extra_params     = 29;
+    repeated api.protobuf.TaskOrganization partner_list             = 25;
+    repeated TaskEvent                     task_event_list          = 26;
+    string                                 calculate_contract_code  = 27;
+    string                                 data_split_contract_code = 28;
+    string                                 contract_extra_params    = 29;
 
     // v2.0
     // 发起任务的用户的信息 (task是属于用户的)
@@ -89,15 +89,15 @@ message TaskResultReceiver {
     // 任务接收方组织信息
     api.protobuf.TaskOrganization receiver = 1;
     // 提供结果的组织方信息（列表）
-    repeated api.protobuf.TaskOrganization provider = 2;
+    repeated api.protobuf.TaskOrganization providers = 2;
 }
 
 // 任务数据提供方基本信息
 message TaskDataSupplier {
-    api.protobuf.TaskOrganization member_info    = 1;                              // 身份信息
-    string                        meta_data_id   = 2;                             // 元数据Id
-    string                        meta_data_name = 3;                           // 元数据名称
-    repeated MetadataColumn       column_list    = 4;
+    api.protobuf.TaskOrganization member_info   = 1;                              // 身份信息
+    string                        metadata_id   = 2;                             // 元数据Id
+    string                        metadata_name = 3;                           // 元数据名称
+    repeated MetadataColumn       column_list   = 4;
 }
 
 // 任务事件定义

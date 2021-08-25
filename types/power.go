@@ -1,6 +1,8 @@
 package types
 
-import pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+import (
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+)
 
 //// Resource usage of a single node host machine (Local storage)
 //type NodeResourceUsagePower struct {
@@ -55,8 +57,8 @@ type PowerTask struct {
 	CreateAt       uint64             `json:"createAt"`
 }
 
-func ConvertPowerTaskToPB(task *PowerTask) *pb.PowerTask {
-	return &pb.PowerTask{
+func ConvertPowerTaskToPB(task *PowerTask) *libTypes.PowerTask {
+	return &libTypes.PowerTask{
 		TaskId:         task.TaskId,
 		TaskName:       task.TaskName,
 		Owner:          ConvertNodeAliasToPB(task.Owner),
@@ -67,7 +69,7 @@ func ConvertPowerTaskToPB(task *PowerTask) *pb.PowerTask {
 		CreateAt:       task.CreateAt,
 	}
 }
-func ConvertPowerTaskFromPB(task *pb.PowerTask) *PowerTask {
+func ConvertPowerTaskFromPB(task *libTypes.PowerTask) *PowerTask {
 	return &PowerTask{
 		TaskId:         task.TaskId,
 		TaskName:       task.TaskName,
@@ -80,11 +82,11 @@ func ConvertPowerTaskFromPB(task *pb.PowerTask) *PowerTask {
 	}
 }
 
-func ConvertPowerTaskArrToPB(tasks []*PowerTask) []*pb.PowerTask {
+func ConvertPowerTaskArrToPB(tasks []*PowerTask) []*libTypes.PowerTask {
 
-	arr := make([]*pb.PowerTask, len(tasks))
+	arr := make([]*libTypes.PowerTask, len(tasks))
 	for i, task := range tasks {
-		t := &pb.PowerTask{
+		t := &libTypes.PowerTask{
 			TaskId:         task.TaskId,
 			TaskName:       task.TaskName,
 			Owner:          ConvertNodeAliasToPB(task.Owner),
@@ -98,7 +100,7 @@ func ConvertPowerTaskArrToPB(tasks []*PowerTask) []*pb.PowerTask {
 	}
 	return arr
 }
-func ConvertPowerTaskArrFromPB(tasks []*pb.PowerTask) []*PowerTask {
+func ConvertPowerTaskArrFromPB(tasks []*libTypes.PowerTask) []*PowerTask {
 	arr := make([]*PowerTask, len(tasks))
 	for i, task := range tasks {
 		t := &PowerTask{

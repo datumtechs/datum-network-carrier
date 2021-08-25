@@ -1,6 +1,7 @@
 package types
 
 import pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+
 type TaskEvent struct {
 	TaskId   string     `json:"taskId"`
 	Type     string     `json:"type"`

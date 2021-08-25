@@ -467,7 +467,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 			Owner: &types.NodeAlias{
 				Name:       resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
-				IdentityId: resource.GetIdentity(),
+				IdentityId: resource.GetIdentityId(),
 			},
 			PowerDetail: &types.PowerTotalDetail{
 				TotalTaskCount:   0,
@@ -569,27 +569,27 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 					Owner: &types.NodeAlias{
 						Name:       task.TaskData().GetNodeName(),
 						NodeId:     task.TaskData().GetNodeId(),
-						IdentityId: task.TaskData().GetIdentity(),
+						IdentityId: task.TaskData().GetIdentityId(),
 					},
 					Patners:   make([]*types.NodeAlias, 0),
 					Receivers: make([]*types.NodeAlias, 0),
 					OperationCost: &types.TaskOperationCost{
-						Processor: uint64(task.TaskData().GetTaskResource().GetCostProcessor()),
-						Mem:       uint64(task.TaskData().GetTaskResource().GetCostMem()),
-						Bandwidth: uint64(task.TaskData().GetTaskResource().GetCostBandwidth()),
-						Duration:  uint64(task.TaskData().GetTaskResource().GetDuration()),
+						Processor: uint64(task.TaskData().GetOperationCost().GetCostProcessor()),
+						Mem:       uint64(task.TaskData().GetOperationCost().GetCostMem()),
+						Bandwidth: uint64(task.TaskData().GetOperationCost().GetCostBandwidth()),
+						Duration:  uint64(task.TaskData().GetOperationCost().GetDuration()),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
 					CreateAt:       task.TaskData().CreateAt,
 				}
 				// 组装 数据参与方
-				for _, dataSupplier := range task.TaskData().MetadataSupplier {
+				for _, dataSupplier := range task.TaskData().DataSupplier {
 					// 协作方, 需要过滤掉自己
-					if task.TaskData().GetNodeId() != dataSupplier.Organization.Identity {
+					if task.TaskData().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
 						powerTask.Patners = append(powerTask.Patners, &types.NodeAlias{
-							Name:       dataSupplier.Organization.GetNodeName(),
-							NodeId:     dataSupplier.Organization.GetNodeId(),
-							IdentityId: dataSupplier.Organization.GetIdentity(),
+							Name:       dataSupplier.MemberInfo.GetNodeName(),
+							NodeId:     dataSupplier.MemberInfo.GetNodeId(),
+							IdentityId: dataSupplier.MemberInfo.GetIdentityId(),
 						})
 					}
 
@@ -599,7 +599,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 					powerTask.Receivers = append(powerTask.Receivers, &types.NodeAlias{
 						Name:       receiver.Receiver.GetNodeName(),
 						NodeId:     receiver.Receiver.GetNodeId(),
-						IdentityId: receiver.Receiver.GetIdentity(),
+						IdentityId: receiver.Receiver.GetIdentityId(),
 					})
 				}
 
@@ -609,7 +609,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 					Processor: slotUnit.Processor * slotCount,
 					Mem:       slotUnit.Mem * slotCount,
 					Bandwidth: slotUnit.Bandwidth * slotCount,
-					Duration:  task.TaskData().GetTaskResource().GetDuration(),
+					Duration:  task.TaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
 			}
@@ -630,7 +630,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 			Owner: &types.NodeAlias{
 				Name:       resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
-				IdentityId: resource.GetIdentity(),
+				IdentityId: resource.GetIdentityId(),
 			},
 			PowerDetail: &types.PowerSingleDetail{
 				JobNodeId:        resource.GetJobNodeId(),
@@ -672,7 +672,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 		return nil, err
 	}
 	return types.NewIdentity(&libTypes.IdentityData{
-		Identity: nodeAlias.IdentityId,
+		IdentityId: nodeAlias.IdentityId,
 		NodeId:   nodeAlias.NodeId,
 		NodeName: nodeAlias.Name,
 	}), err
@@ -703,27 +703,27 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 
 	makeTaskViewFn := func(task *types.Task) *types.TaskDetailShow {
 		// task 发起方
-		if task.TaskData().GetIdentity() == localIdentityId {
+		if task.TaskData().GetIdentityId() == localIdentityId {
 			return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleOwner.String())
 		}
 
 		// task 参与方
-		for _, dataSupplier := range task.TaskData().MetadataSupplier {
-			if dataSupplier.Organization.Identity == localIdentityId {
+		for _, dataSupplier := range task.TaskData().DataSupplier {
+			if dataSupplier.MemberInfo.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleDataSupplier.String())
 			}
 		}
 
 		// 算力提供方
-		for _, powerSupplier := range task.TaskData().ResourceSupplier {
-			if powerSupplier.Organization.Identity == localIdentityId {
+		for _, powerSupplier := range task.TaskData().PowerSupplier {
+			if powerSupplier.Organization.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, types.TaskRolePowerSupplier.String())
 			}
 		}
 
 		// 数据接收方
 		for _, receiver := range task.TaskData().Receivers {
-			if receiver.Receiver.Identity == localIdentityId {
+			if receiver.Receiver.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleReceiver.String())
 			}
 		}

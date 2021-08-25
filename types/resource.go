@@ -47,7 +47,7 @@ func (m *Resource) Hash() common.Hash {
 	return v
 }
 
-func (m *Resource) GetIdentityId() string { return m.data.Identity }
+func (m *Resource) GetIdentityId() string { return m.data.IdentityId }
 func (m *Resource) GetNodeId() string { return m.data.NodeId }
 func (m *Resource) GetNodeName() string { return m.data.NodeName }
 func (m *Resource) GetDataStatus() string { return m.data.DataStatus }
@@ -119,7 +119,7 @@ func NewLocalResource(data *libTypes.LocalResourceData) *LocalResource {
 	return &LocalResource{data: data}
 }
 func (m *LocalResource) GetData() *libTypes.LocalResourceData { return m.data }
-func (m *LocalResource) GetIdentityId() string { return m.data.Identity }
+func (m *LocalResource) GetIdentityId() string { return m.data.IdentityId }
 func (m *LocalResource) GetJobNodeId() string { return m.data.JobNodeId }
 func (m *LocalResource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()

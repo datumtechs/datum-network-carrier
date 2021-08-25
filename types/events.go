@@ -126,35 +126,35 @@ func FetchTaskEventArr(events []*pb.TaskEvent) []*TaskEventInfo {
 }
 
 
-func ConvertTaskEventToDataCenter(event *TaskEventInfo) *libTypes.EventData {
-	return &libTypes.EventData{
+func ConvertTaskEventToDataCenter(event *TaskEventInfo) *libTypes.TaskEvent {
+	return &libTypes.TaskEvent{
 		TaskId       :event.TaskId,
-		EventType    :event.Type,
-		Identity     :event.Identity,
-		EventContent :event.Content,
-		EventAt      :event.CreateTime,
+		Type    :event.Type,
+		IdentityId     :event.Identity,
+		Content :event.Content,
+		CreateAt      :event.CreateTime,
 	}
 }
 
-func FetchTaskEventFromDataCenter(event *libTypes.EventData) *TaskEventInfo {
+func FetchTaskEventFromDataCenter(event *libTypes.TaskEvent) *TaskEventInfo {
 	return &TaskEventInfo{
 		TaskId: event.TaskId,
-		Type: event.EventType,
-		Identity: event.Identity,
-		Content: event.EventContent,
-		CreateTime: event.EventAt,
+		Type: event.Type,
+		Identity: event.IdentityId,
+		Content: event.Content,
+		CreateTime: event.CreateAt,
 	}
 }
 
-func ConvertTaskEventArrToDataCenter(events []*TaskEventInfo) []*libTypes.EventData {
-	arr := make([]*libTypes.EventData, len(events))
+func ConvertTaskEventArrToDataCenter(events []*TaskEventInfo) []*libTypes.TaskEvent {
+	arr := make([]*libTypes.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = ConvertTaskEventToDataCenter(ev)
 	}
 	return arr
 }
 
-func FetchTaskEventArrFromDataCenter(events []*libTypes.EventData) []*TaskEventInfo {
+func FetchTaskEventArrFromDataCenter(events []*libTypes.TaskEvent) []*TaskEventInfo {
 	arr := make([]*TaskEventInfo, len(events))
 	for i, ev := range events {
 		arr[i] = FetchTaskEventFromDataCenter(ev)

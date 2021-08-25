@@ -22,6 +22,7 @@ import (
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // Suppress "imported and not used" errors
@@ -34,7 +35,7 @@ var _ = descriptor.ForMessage
 var _ = metadata.Join
 
 func request_YarnService_GetNodeInfo_0(ctx context.Context, marshaler runtime.Marshaler, client YarnServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -51,7 +52,7 @@ func request_YarnService_GetNodeInfo_0(ctx context.Context, marshaler runtime.Ma
 }
 
 func local_request_YarnService_GetNodeInfo_0(ctx context.Context, marshaler runtime.Marshaler, server YarnServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -68,7 +69,7 @@ func local_request_YarnService_GetNodeInfo_0(ctx context.Context, marshaler runt
 }
 
 func request_YarnService_GetRegisteredPeers_0(ctx context.Context, marshaler runtime.Marshaler, client YarnServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq GetRegisteredPeersRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -85,7 +86,7 @@ func request_YarnService_GetRegisteredPeers_0(ctx context.Context, marshaler run
 }
 
 func local_request_YarnService_GetRegisteredPeers_0(ctx context.Context, marshaler runtime.Marshaler, server YarnServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq GetRegisteredPeersRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -204,7 +205,7 @@ func local_request_YarnService_DeleteSeedNode_0(ctx context.Context, marshaler r
 }
 
 func request_YarnService_GetSeedNodeList_0(ctx context.Context, marshaler runtime.Marshaler, client YarnServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -221,7 +222,7 @@ func request_YarnService_GetSeedNodeList_0(ctx context.Context, marshaler runtim
 }
 
 func local_request_YarnService_GetSeedNodeList_0(ctx context.Context, marshaler runtime.Marshaler, server YarnServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -340,7 +341,7 @@ func local_request_YarnService_DeleteDataNode_0(ctx context.Context, marshaler r
 }
 
 func request_YarnService_GetDataNodeList_0(ctx context.Context, marshaler runtime.Marshaler, client YarnServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -357,7 +358,7 @@ func request_YarnService_GetDataNodeList_0(ctx context.Context, marshaler runtim
 }
 
 func local_request_YarnService_GetDataNodeList_0(ctx context.Context, marshaler runtime.Marshaler, server YarnServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -476,7 +477,7 @@ func local_request_YarnService_DeleteJobNode_0(ctx context.Context, marshaler ru
 }
 
 func request_YarnService_GetJobNodeList_0(ctx context.Context, marshaler runtime.Marshaler, client YarnServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -493,7 +494,7 @@ func request_YarnService_GetJobNodeList_0(ctx context.Context, marshaler runtime
 }
 
 func local_request_YarnService_GetJobNodeList_0(ctx context.Context, marshaler runtime.Marshaler, server YarnServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq EmptyGetParams
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)

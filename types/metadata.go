@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
@@ -107,24 +106,17 @@ type OrgMetaDataInfo struct {
 }
 
 type MetaDataInfo struct {
-	MetaDataSummary *MetaDataSummary `json:"metaDataSummary"`
-	ColumnMetas     []*libTypes.ColumnMeta    `json:"columnMetas"`
+	MetaDataSummary *MetaDataSummary 			  `json:"metaDataSummary"`
+	ColumnMetas     []*libTypes.MetadataColumn    `json:"columnMetas"`
 }
 
-func ConvertMetaDataInfoToPB (metadata *MetaDataInfo) *pb.MetaDataDetailShow {
-	columns := make([]*pb.MetaDataColumnDetail, len(metadata.ColumnMetas))
-	for j, colv := range metadata.ColumnMetas {
-		column := &pb.MetaDataColumnDetail{
-			Cindex: colv.Cindex,
-			Cname: colv.Cname,
-			Ctype: colv.Ctype,
-			Csize: colv.Csize,
-			Ccomment: colv.Ccomment,
-		}
+func ConvertMetaDataInfoToPB (metadata *MetaDataInfo) *libTypes.MetadataDetail {
+	columns := make([]*libTypes.MetadataColumn, len(metadata.ColumnMetas))
+	for j, column := range metadata.ColumnMetas {
 		columns[j] = column
 	}
-	return &pb.MetaDataDetailShow{
-		MetaDataSummary: &pb.MetaDataSummary{
+	return &libTypes.MetadataDetail{
+		MetaDataSummary: &libTypes.MetaDataSummary{
 			MetaDataId: metadata.MetaDataSummary.MetaDataId,
 			OriginId: metadata.MetaDataSummary.OriginId,
 			TableName: metadata.MetaDataSummary.TableName,
@@ -137,36 +129,29 @@ func ConvertMetaDataInfoToPB (metadata *MetaDataInfo) *pb.MetaDataDetailShow {
 			HasTitle: metadata.MetaDataSummary.HasTitle,
 			State: metadata.MetaDataSummary.State,
 		},
-		ColumnMeta: columns,
+		MetadataColumnList: columns,
 	}
 }
 
-func ConvertMetaDataInfoFromPB (metadata *pb.MetaDataDetailShow) *MetaDataInfo {
-	columns := make([]*libTypes.ColumnMeta, len(metadata.ColumnMeta))
-	for j, colv := range metadata.ColumnMeta {
-		column := &libTypes.ColumnMeta{
-			Cindex: colv.Cindex,
-			Cname: colv.Cname,
-			Ctype: colv.Ctype,
-			Csize: colv.Csize,
-			Ccomment: colv.Ccomment,
-		}
-		columns[j] = column
-	}
-	return &MetaDataInfo{
-		MetaDataSummary: &MetaDataSummary{
-			MetaDataId: metadata.MetaDataSummary.MetaDataId,
-			OriginId: metadata.MetaDataSummary.OriginId,
-			TableName: metadata.MetaDataSummary.TableName,
-			Desc: metadata.MetaDataSummary.Desc,
-			FilePath: metadata.MetaDataSummary.FilePath,
-			Rows:metadata.MetaDataSummary.Rows,
-			Columns: metadata.MetaDataSummary.Columns,
-			Size: metadata.MetaDataSummary.Size_,
-			FileType: metadata.MetaDataSummary.FileType,
-			HasTitle: metadata.MetaDataSummary.HasTitle,
-			State: metadata.MetaDataSummary.State,
-		},
-		ColumnMetas: columns,
-	}
-}
+//func ConvertMetaDataInfoFromPB (metadata *libTypes.MetadataDetail) *MetaDataInfo {
+//	columns := make([]*libTypes.MetadataColumn, len(metadata.MetadataColumnList))
+//	for j, column := range metadata.MetadataColumnList {
+//		columns[j] = column
+//	}
+//	return &MetaDataInfo{
+//		MetaDataSummary: &MetaDataSummary{
+//			MetaDataId: metadata.MetaDataSummary.MetaDataId,
+//			OriginId: metadata.MetaDataSummary.OriginId,
+//			TableName: metadata.MetaDataSummary.TableName,
+//			Desc: metadata.MetaDataSummary.Desc,
+//			FilePath: metadata.MetaDataSummary.FilePath,
+//			Rows:metadata.MetaDataSummary.Rows,
+//			Columns: metadata.MetaDataSummary.Columns,
+//			Size: metadata.MetaDataSummary.Size_,
+//			FileType: metadata.MetaDataSummary.FileType,
+//			HasTitle: metadata.MetaDataSummary.HasTitle,
+//			State: metadata.MetaDataSummary.State,
+//		},
+//		ColumnMetas: columns,
+//	}
+//}

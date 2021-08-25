@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"reflect"
 	"testing"
@@ -12,23 +13,23 @@ func newBlock() *Block {
 		return MetadataArray{
 			&Metadata{
 				data: &types.MetaData{
-					Identity:    "identity",
-					NodeId:      "NodeId",
-					DataId:      "dataId",
-					DataStatus:  "D",
-					FilePath:    "/a/b/c",
-					Desc:        "desc",
-					Rows:        10,
-					Columns:     100,
-					FileType:    "csv",
-					State:       "statue",
-					HasTitleRow: true,
-					ColumnMetaList: []*types.ColumnMeta{
+					IdentityId: "identity",
+					NodeId:     "NodeId",
+					DataId:     "dataId",
+					DataStatus: "D",
+					FilePath:   "/a/b/c",
+					Desc:       "desc",
+					Rows:       10,
+					Columns:    100,
+					FileType:   "csv",
+					State:      "statue",
+					HasTitle:   true,
+					MetadataColumnList: []*types.MetadataColumn{
 						{
-							Cindex:               0,
-							Cname:                "cname",
-							Ctype:                "ctype",
-							Csize:                0,
+							CIndex: 0,
+							CName:  "cname",
+							CType:  "ctype",
+							CSize:  0,
 						},
 					},
 				},
@@ -39,16 +40,16 @@ func newBlock() *Block {
 		return ResourceArray{
 			{
 				data: &types.ResourceData{
-					Identity:             "resource-identity",
-					NodeId:               "resource-nodeId",
-					NodeName:             "resource-nodeName",
-					DataId:               "resource-dataId",
-					DataStatus:           "resource-dataStatus",
-					State:                "resource-state",
-					TotalMem:             100*1024,
-					UsedMem:              100*2014,
-					TotalProcessor:       0,
-					TotalBandWidth:       100*1024,
+					IdentityId:     "resource-identity",
+					NodeId:         "resource-nodeId",
+					NodeName:       "resource-nodeName",
+					DataId:         "resource-dataId",
+					DataStatus:     "resource-dataStatus",
+					State:          "resource-state",
+					TotalMem:       100 * 1024,
+					UsedMem:        100 * 2014,
+					TotalProcessor: 0,
+					TotalBandWidth: 100 * 1024,
 				},
 			},
 		}
@@ -57,13 +58,13 @@ func newBlock() *Block {
 		return IdentityArray{
 			{
 				data: &types.IdentityData{
-					Identity:             "identity-identity",
-					NodeId:               "identity-nodeId",
-					NodeName:             "identity-nodeName",
-					DataId:               "identity-nodeId",
-					DataStatus:           "identity-dataStatus",
-					Status:               "identity-status",
-					Credential:           "{\"a\":\"b\"}",
+					IdentityId: "identity-identity",
+					NodeId:     "identity-nodeId",
+					NodeName:   "identity-nodeName",
+					DataId:     "identity-nodeId",
+					DataStatus: "identity-dataStatus",
+					Status:     "identity-status",
+					Credential: "{\"a\":\"b\"}",
 				},
 			},
 		}
@@ -72,30 +73,26 @@ func newBlock() *Block {
 		return TaskDataArray{
 			{
 				data: &types.TaskData{
-					Identity:             "task-identity",
-					NodeId:               "task-nodeId",
-					NodeName:             "task-nodeName",
-					DataId:               "task-dataId",
-					DataStatus:           "task-dataStatus",
-					TaskId:               "task-taskId",
-					State:                "task-state",
-					Reason:               "task-reason",
-					EventCount:           1,
-					Desc:                 "task-desc",
-					PartnerList:          []*types.OrganizationData{
+					IdentityId: "task-identity",
+					NodeId:     "task-nodeId",
+					NodeName:   "task-nodeName",
+					DataId:     "task-dataId",
+					DataStatus: "task-dataStatus",
+					TaskId:     "task-taskId",
+					State:      "task-state",
+					Reason:     "task-reason",
+					EventCount: 1,
+					Desc:       "task-desc",
+					PartnerList: []*apipb.TaskOrganization{
 						{
-							Identity:             "1-partner-identity",
-							NodeId:               "1-partner-nodeId",
-							NodeName:             "1-partner-nodeName",
+							IdentityId: "1-partner-identity",
+							NodeId:     "1-partner-nodeId",
+							NodeName:   "1-partner-nodeName",
 						},
 					},
-					EventDataList:        []*types.EventData{
+					TaskEventList: []*types.TaskEvent{
 						{
-							TaskId:               "1-evengine-taskId",
-							EventType:            "1-evengine-eventType",
-							EventAt:              0,
-							EventContent:         "1-evengine-eventContent",
-							Identity:             "1-evengine-identity",
+							TaskId: "1-evengine-taskId",
 						},
 					},
 				},
@@ -109,8 +106,8 @@ func newHeader() *Header {
 	return &Header{
 		ParentHash: []byte("parentHash"),
 		Version:    uint64(1),
-		Timestamp: uint64(1000000),
-		Extra: []byte("extraData"),
+		Timestamp:  uint64(1000000),
+		Extra:      []byte("extraData"),
 	}
 }
 

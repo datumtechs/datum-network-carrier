@@ -63,7 +63,7 @@ func (m *Identity) Name() string {
 }
 
 func (m *Identity) IdentityId() string {
-	return m.data.GetIdentity()
+	return m.data.GetIdentityId()
 }
 
 func (m *Identity) NodeId() string {

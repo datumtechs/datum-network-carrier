@@ -9,6 +9,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
@@ -415,8 +417,8 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityJoinRequest{
-		Member: &api.Organization{
-			Name:       identity.Name(),
+		Member: &apipb.Organization{
+			NodeName:       identity.Name(),
 			NodeId:     identity.NodeId(),
 			IdentityId: identity.IdentityId(),
 		},
@@ -628,7 +630,7 @@ func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	return 0
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error) {
+func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
@@ -637,11 +639,11 @@ func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent,
 	return taskEventResponse.TaskEventList, err
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*api.TaskEvent, error) {
+func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 
-	eventList := make([]*api.TaskEvent, 0)
+	eventList := make([]*libtypes.TaskEvent, 0)
 	for _, taskId := range taskIds {
 		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
 			TaskId: taskId,

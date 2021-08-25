@@ -8,7 +8,7 @@ import (
 )
 
 var resource_test = NewResource(&types.ResourceData{
-	Identity:             "identity",
+	IdentityId:             "identity",
 	NodeId:               "nodeId",
 	NodeName:             "nodeName",
 	DataId:               "dataId",

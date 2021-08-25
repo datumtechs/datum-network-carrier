@@ -3,6 +3,8 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
@@ -45,7 +47,7 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 }
 
 // MetaDataSave saves new metadata to database.
-func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSaveRequest) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSaveRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.metadataService.MetaDataSave(ctx, request)
@@ -69,7 +71,7 @@ func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.Metadata
 	return gc.metadataService.GetMetadataById(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMetaDataRequest) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMetaDataRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.metadataService.RevokeMetaData(ctx, request)
@@ -77,19 +79,19 @@ func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMet
 
 // ************************************** Resource module *******************************************************
 
-func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.PublishPower(ctx, request)
 }
 
-func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.SyncPower(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.RevokePower(ctx, request)
@@ -115,13 +117,13 @@ func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.PowerListRe
 
 // ************************************** Identity module *******************************************************
 
-func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.identityService.RevokeIdentityJoin(ctx, request)
@@ -135,13 +137,13 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.Identity
 
 // ************************************** Task module *******************************************************
 
-func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.TaskDetail) (*api.SimpleResponse, error) {
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *libtypes.TaskDetail) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 	return gc.taskService.SaveTask(ctx, request)
 }
 
-func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.DetailTaskRequest) (*api.TaskDetail, error) {
+func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.DetailTaskRequest) (*libtypes.TaskDetail, error) {
 	ctx, cancel := context.WithTimeout(ctx,2*time.Second)
 	defer cancel()
 	return gc.taskService.GetDetailTask(ctx, request)
