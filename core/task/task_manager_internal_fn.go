@@ -29,7 +29,7 @@ func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error 
 	//return fmt.Errorf("Mock task finished")
 
 	switch task.SelfTaskRole {
-	case types.TaskOnwer, types.DataSupplier, types.ResultSupplier:
+	case types.TaskOwner, types.DataSupplier, types.ResultSupplier:
 		return m.executeTaskOnDataNode(task)
 	case types.PowerSupplier:
 		return m.executeTaskOnJobNode(task)
@@ -321,7 +321,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	var filePath string
 	var idColumnName string
 
-	if task.SelfTaskRole == types.TaskOnwer || task.SelfTaskRole == types.DataSupplier {
+	if task.SelfTaskRole == types.TaskOwner || task.SelfTaskRole == types.DataSupplier {
 
 		var find bool
 
@@ -414,7 +414,7 @@ func (m *Manager) ForEachRunningTaskCache (f  func(taskId string, task *types.Do
 
 func (m *Manager) makeTaskResultByEventList(taskWrap *types.DoneScheduleTaskChWrap) *types.TaskResultMsgWrap {
 
-	if taskWrap.Task.TaskDir == types.SendTaskDir || types.TaskOnwer == taskWrap.SelfTaskRole {
+	if taskWrap.Task.TaskDir == types.SendTaskDir || types.TaskOwner == taskWrap.SelfTaskRole {
 		log.Errorf("send task OR task owner can not make TaskResult Msg")
 		return nil
 	}
@@ -491,7 +491,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 	log.Debugf("Start handle DoneScheduleTask, taskId: {%s}, taskRole: {%s}, taskState: {%s}", taskId, task.SelfTaskRole.String(), task.Task.TaskState.String())
 
 	switch task.SelfTaskRole {
-	case types.TaskOnwer:
+	case types.TaskOwner:
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 
@@ -548,7 +548,7 @@ func (m *Manager) expireTaskMonitor () {
 				identityId, _ := m.dataCenter.GetIdentityId()
 				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("task running expire"),types.TaskStateFailed)
 				switch task.SelfTaskRole {
-				case types.TaskOnwer:
+				case types.TaskOwner:
 					m.publishFinishedTaskToDataCenter(taskId)
 				default:
 					m.sendTaskResultMsgToConsensus(taskId)
