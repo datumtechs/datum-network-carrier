@@ -9,8 +9,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/handler"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -299,31 +299,31 @@ func (t *TwoPC) driveTask(
 	taskDir types.ProposalTaskDir,
 	taskState types.TaskState,
 	taskRole  types.TaskRole,
-	selfIdentity *libTypes.OrganizationData,
+	selfIdentity *apipb.TaskOrganization,
 	task *types.Task,
 	) {
 
 	log.Debugf("Start to call `driveTask`, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
-		proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
+		proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId)
 
 	selfVotePeerInfo := t.state.GetSelfPeerInfo(proposalId)
 	if nil == selfVotePeerInfo {
 		log.Errorf("Failed to find local cache about prepareVote myself internal resource, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
-			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
+			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId)
 		return
 	}
 
 	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
 	if nil == confirmTaskPeerInfo {
 		log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
-			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity)
+			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId)
 		return
 	}
 
 	// Store task exec status
 	if err := t.dataCenter.StoreLocalTaskExecuteStatus(task.TaskId()); nil != err {
 		log.Errorf("Failed to store local task about exec status, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}, err: {%s}",
-			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.Identity, err)
+			proposalId.String(), task.TaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId, err)
 		return
 	}
 
@@ -401,31 +401,31 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 			proposalId.String(), taskId, taskRole.String(), partyId, identityId, pid)
 	}
 
-	size := (len(task.TaskData().MetadataSupplier) - 1) + len(task.TaskData().ResourceSupplier) + len(task.TaskData().Receivers)
+	size := (len(task.TaskData().DataSupplier) - 1) + len(task.TaskData().PowerSupplier) + len(task.TaskData().Receivers)
 	errCh := make(chan error, size)
 	var wg sync.WaitGroup
 
-	for i := 0; i < len(task.TaskData().MetadataSupplier); i++ {
-		dataSupplier := task.TaskData().MetadataSupplier[i]
+	for i := 0; i < len(task.TaskData().DataSupplier); i++ {
+		dataSupplier := task.TaskData().DataSupplier[i]
 		// 排除掉 task 发起方 ...
-		if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
+		if task.TaskData().IdentityId != dataSupplier.MemberInfo.IdentityId && task.TaskData().PartyId != dataSupplier.MemberInfo.PartyId {
 			wg.Add(1)
-			go sendTaskFn(&wg, proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
-				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), errCh)
+			go sendTaskFn(&wg, proposalId, types.DataSupplier, dataSupplier.MemberInfo.PartyId,
+				dataSupplier.MemberInfo.IdentityId, dataSupplier.MemberInfo.NodeId, task.TaskId(), errCh)
 		}
 	}
-	for i := 0; i < len(task.TaskData().ResourceSupplier); i++ {
-		powerSupplier := task.TaskData().ResourceSupplier[i]
+	for i := 0; i < len(task.TaskData().PowerSupplier); i++ {
+		powerSupplier := task.TaskData().PowerSupplier[i]
 		wg.Add(1)
 		go sendTaskFn(&wg, proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
-			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), errCh)
+			powerSupplier.Organization.IdentityId, powerSupplier.Organization.NodeId, task.TaskId(), errCh)
 	}
 
 	for i := 0; i < len(task.TaskData().Receivers); i++ {
 		receiver := task.TaskData().Receivers[i]
 		wg.Add(1)
 		go sendTaskFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), errCh)
+			receiver.Receiver.IdentityId, receiver.Receiver.NodeId, task.TaskId(), errCh)
 	}
 
 	wg.Wait()
@@ -483,30 +483,30 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 
 	}
 
-	size := (len(task.TaskData().MetadataSupplier) - 1) + len(task.TaskData().ResourceSupplier) + len(task.TaskData().Receivers)
+	size := (len(task.TaskData().DataSupplier) - 1) + len(task.TaskData().PowerSupplier) + len(task.TaskData().Receivers)
 	errCh := make(chan error, size)
 	var wg sync.WaitGroup
 
-	for i := 0; i < len(task.TaskData().MetadataSupplier); i++ {
-		dataSupplier := task.TaskData().MetadataSupplier[i]
+	for i := 0; i < len(task.TaskData().DataSupplier); i++ {
+		dataSupplier := task.TaskData().DataSupplier[i]
 		// 排除掉 task 发起方 ...
-		if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
+		if task.TaskData().IdentityId != dataSupplier.MemberInfo.IdentityId && task.TaskData().PartyId != dataSupplier.MemberInfo.PartyId {
 			wg.Add(1)
-			go sendConfirmMsgFn(&wg, proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
-				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), peerDesc, errCh)
+			go sendConfirmMsgFn(&wg, proposalId, types.DataSupplier, dataSupplier.MemberInfo.PartyId,
+				dataSupplier.MemberInfo.IdentityId, dataSupplier.MemberInfo.NodeId, task.TaskId(), peerDesc, errCh)
 		}
 	}
-	for i := 0; i < len(task.TaskData().ResourceSupplier); i++ {
-		powerSupplier := task.TaskData().ResourceSupplier[i]
+	for i := 0; i < len(task.TaskData().PowerSupplier); i++ {
+		powerSupplier := task.TaskData().PowerSupplier[i]
 		wg.Add(1)
 		go sendConfirmMsgFn(&wg, proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
-			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), peerDesc, errCh)
+			powerSupplier.Organization.IdentityId, powerSupplier.Organization.NodeId, task.TaskId(), peerDesc, errCh)
 	}
 	for i := 0; i < len(task.TaskData().Receivers); i++ {
 		receiver := task.TaskData().Receivers[i]
 		wg.Add(1)
 		go sendConfirmMsgFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), peerDesc, errCh)
+			receiver.Receiver.IdentityId, receiver.Receiver.NodeId, task.TaskId(), peerDesc, errCh)
 	}
 
 	wg.Wait()
@@ -558,30 +558,30 @@ func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 	}
 
 
-	size := (len(task.TaskData().MetadataSupplier) - 1) + len(task.TaskData().ResourceSupplier) + len(task.TaskData().Receivers)
+	size := (len(task.TaskData().DataSupplier) - 1) + len(task.TaskData().PowerSupplier) + len(task.TaskData().Receivers)
 	errCh := make(chan error, size)
 	var wg sync.WaitGroup
 
-	for i := 0; i < len(task.TaskData().MetadataSupplier); i++ {
-		dataSupplier := task.TaskData().MetadataSupplier[i]
+	for i := 0; i < len(task.TaskData().DataSupplier); i++ {
+		dataSupplier := task.TaskData().DataSupplier[i]
 		// 排除掉 task 发起方 ...
-		if task.TaskData().Identity != dataSupplier.Organization.Identity && task.TaskData().PartyId != dataSupplier.Organization.PartyId {
+		if task.TaskData().IdentityId != dataSupplier.MemberInfo.IdentityId && task.TaskData().PartyId != dataSupplier.MemberInfo.PartyId {
 			wg.Add(1)
-			go sendCommitMsgFn(&wg, proposalId, types.DataSupplier, dataSupplier.Organization.PartyId,
-				dataSupplier.Organization.Identity, dataSupplier.Organization.NodeId, task.TaskId(), errCh)
+			go sendCommitMsgFn(&wg, proposalId, types.DataSupplier, dataSupplier.MemberInfo.PartyId,
+				dataSupplier.MemberInfo.IdentityId, dataSupplier.MemberInfo.NodeId, task.TaskId(), errCh)
 		}
 	}
-	for i := 0; i < len(task.TaskData().ResourceSupplier); i++ {
-		powerSupplier := task.TaskData().ResourceSupplier[i]
+	for i := 0; i < len(task.TaskData().PowerSupplier); i++ {
+		powerSupplier := task.TaskData().PowerSupplier[i]
 		wg.Add(1)
 		go sendCommitMsgFn(&wg, proposalId, types.PowerSupplier, powerSupplier.Organization.PartyId,
-			powerSupplier.Organization.Identity, powerSupplier.Organization.NodeId, task.TaskId(), errCh)
+			powerSupplier.Organization.IdentityId, powerSupplier.Organization.NodeId, task.TaskId(), errCh)
 	}
 	for i := 0; i < len(task.TaskData().Receivers); i++ {
 		receiver := task.TaskData().Receivers[i]
 		wg.Add(1)
 		go sendCommitMsgFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-			receiver.Receiver.Identity, receiver.Receiver.NodeId, task.TaskId(), errCh)
+			receiver.Receiver.IdentityId, receiver.Receiver.NodeId, task.TaskId(), errCh)
 	}
 
 	wg.Wait()

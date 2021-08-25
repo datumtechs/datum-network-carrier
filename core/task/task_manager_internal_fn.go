@@ -214,8 +214,8 @@ func (m *Manager) sendTaskEvent(event *types.TaskEventInfo) {
 	m.eventCh <- event
 }
 
-func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventData, reason string) error {
-	msg.Data.TaskData().EventDataList = events
+func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.TaskEvent, reason string) error {
+	msg.Data.TaskData().TaskEventList = events
 	msg.Data.TaskData().EventCount = uint32(len(events))
 	msg.Data.TaskData().Reason = reason
 	msg.Data.TaskData().EndAt = uint64(timeutils.UnixMsec())
@@ -223,7 +223,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.EventDa
 }
 
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types.TaskEventInfo, state string) *types.Task {
-	task.TaskData().EventDataList = types.ConvertTaskEventArrToDataCenter(eventList)
+	task.TaskData().TaskEventList = types.ConvertTaskEventArrToDataCenter(eventList)
 	task.TaskData().EventCount = uint32(len(eventList))
 	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
 	task.TaskData().State = state
@@ -325,10 +325,10 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 		var find bool
 
-		for _, dataSupplier := range task.Task.SchedTask.TaskData().MetadataSupplier {
-			if partyId == dataSupplier.Organization.PartyId {
+		for _, dataSupplier := range task.Task.SchedTask.TaskData().DataSupplier {
+			if partyId == dataSupplier.MemberInfo.PartyId {
 
-				metaData, err := m.dataCenter.GetMetadataByDataId(dataSupplier.MetaId)
+				metaData, err := m.dataCenter.GetMetadataByDataId(dataSupplier.MetadataId)
 				if nil != err {
 					return "", err
 				}
@@ -336,7 +336,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 				// 目前只取 第一列 (对于 dataSupplier)
 				if len(dataSupplier.ColumnList) != 0 {
-					idColumnName = dataSupplier.ColumnList[0].Cname
+					idColumnName = dataSupplier.ColumnList[0].CName
 				}
 				find = true
 				break
@@ -345,7 +345,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 		if !find {
 			return "", fmt.Errorf("can not find the dataSupplier for find originFilePath, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
-				task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId)
+				task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId)
 		}
 	}
 
@@ -366,7 +366,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	if "" != task.Task.SchedTask.TaskData().ContractExtraParams {
 		if err := json.Unmarshal([]byte(task.Task.SchedTask.TaskData().ContractExtraParams), &dynamicParameter); nil != err {
 			return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
-				task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId, err)
+				task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId, err)
 		}
 	}
 	req.DynamicParameter = dynamicParameter
@@ -374,7 +374,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	b, err := json.Marshal(req)
 	if nil != err {
 		return "", fmt.Errorf("can not json Marshal the `FighterTaskReadyGoReqContractCfg`, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, task.SelfIdentity.PartyId, err)
+			task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId, err)
 	}
 	return string(b), nil
 }
@@ -433,7 +433,7 @@ func (m *Manager) makeTaskResultByEventList(taskWrap *types.DoneScheduleTaskChWr
 				PartyId:    []byte(taskWrap.SelfIdentity.PartyId),
 				Name:       []byte(taskWrap.SelfIdentity.NodeName),
 				NodeId:     []byte(taskWrap.SelfIdentity.NodeId),
-				IdentityId: []byte(taskWrap.SelfIdentity.Identity),
+				IdentityId: []byte(taskWrap.SelfIdentity.IdentityId),
 			},
 			TaskEventList: types.ConvertTaskEventArr(eventList),
 			CreateAt:      uint64(timeutils.UnixMsec()),
@@ -456,9 +456,9 @@ func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
 			// 先 缓存下 最终休止符 event
 			m.dataCenter.StoreTaskEvent(event)
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "",types.TaskStateFailed)
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "",types.TaskStateFailed)
 			} else {
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "",types.TaskStateSuccess)
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "",types.TaskStateSuccess)
 			}
 
 			if task.Task.TaskDir == types.RecvTaskDir {
@@ -495,7 +495,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 
-			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "", task.Task.TaskState)
+			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "", task.Task.TaskState)
 			m.publishFinishedTaskToDataCenter(taskId)
 
 		case types.TaskStateRunning:
@@ -503,7 +503,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 			if err := m.driveTaskForExecute(task); nil != err {
 				log.Errorf("Failed to execute task on taskOnwer node, taskId:{%s}, %s", task.Task.SchedTask.TaskId(), err)
 
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
 				m.publishFinishedTaskToDataCenter(taskId)
 			}
 			// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
@@ -516,7 +516,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..  (里面有解锁 本地资源 ...)
-			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, "", task.Task.TaskState)
+			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "", task.Task.TaskState)
 			m.sendTaskResultMsgToConsensus(taskId)
 		case types.TaskStateRunning:
 
@@ -524,7 +524,7 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 				log.Errorf("Failed to execute task on %s node, taskId: {%s}, %s", task.SelfTaskRole.String(), task.Task.SchedTask.TaskId(), err)
 
 				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者.. (里面有解锁 本地资源 ...)
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.Identity, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
+				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
 				m.sendTaskResultMsgToConsensus(taskId)
 			}
 		default:
@@ -541,9 +541,9 @@ func (m *Manager) expireTaskMonitor () {
 
 			// the task has running expire
 			duration := uint64(timeutils.UnixMsec()) - task.Task.SchedTask.TaskData().StartAt
-			if duration >= task.Task.SchedTask.TaskData().TaskResource.Duration {
+			if duration >= task.Task.SchedTask.TaskData().OperationCost.Duration {
 				log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
-					taskId, duration, task.Task.SchedTask.TaskData().TaskResource.Duration)
+					taskId, duration, task.Task.SchedTask.TaskData().OperationCost.Duration)
 
 				identityId, _ := m.dataCenter.GetIdentityId()
 				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("task running expire"),types.TaskStateFailed)

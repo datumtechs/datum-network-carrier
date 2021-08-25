@@ -44,6 +44,39 @@
         ]
       }
     },
+    "/carrier/v1/task/eventListByTaskIds": {
+      "post": {
+        "summary": "查看某个任务的全部事件列表",
+        "operationId": "TaskService_GetTaskEventListByTaskIds",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskEventListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskEventListByTaskIdsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
     "/carrier/v1/task/list": {
       "post": {
         "summary": "查看全部任务详情列表",
@@ -68,7 +101,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiEmptyGetParams"
+              "properties": {}
             }
           }
         ],
@@ -109,6 +142,39 @@
           "TaskService"
         ]
       }
+    },
+    "/carrier/v1/task/terminate": {
+      "post": {
+        "summary": "终止任务",
+        "operationId": "TaskService_TerminateTask",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protobufSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiTerminateTaskRequest"
+            }
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -124,8 +190,94 @@
         }
       }
     },
-    "rpcapiEmptyGetParams": {
-      "type": "object"
+    "protobufOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
+    "protobufSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    },
+    "protobufTaskOrganization": {
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "type": "string"
+        },
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        }
+      },
+      "title": "任务下的组织信息"
+    },
+    "protobufTaskResourceCostDeclare": {
+      "type": "object",
+      "properties": {
+        "cost_mem": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的内存 (单位: byte)"
+        },
+        "cost_processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "任务所需的核数 (单位: 个)"
+        },
+        "cost_bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的带宽 (单位: bps)"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的运行时长 (单位: ms)"
+        }
+      },
+      "title": "任务需要花费的资源声明"
+    },
+    "protobufUserType": {
+      "type": "string",
+      "enum": [
+        "Unknown",
+        "ETH",
+        "ATP",
+        "LAT"
+      ],
+      "default": "Unknown"
     },
     "rpcapiGetTaskDetailListResponse": {
       "type": "object",
@@ -150,6 +302,20 @@
       "properties": {
         "information": {
           "$ref": "#/definitions/rpcapiTaskDetailShow"
+        },
+        "role": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiGetTaskEventListByTaskIdsRequest": {
+      "type": "object",
+      "properties": {
+        "task_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },
@@ -179,31 +345,22 @@
         }
       }
     },
-    "rpcapiOrganizationIdentityInfo": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "node_id": {
-          "type": "string"
-        },
-        "identity_id": {
-          "type": "string"
-        }
-      },
-      "title": "组织(节点)唯一标识抽象"
-    },
     "rpcapiPublishTaskDeclareRequest": {
       "type": "object",
       "properties": {
         "task_name": {
           "type": "string"
         },
-        "owner": {
-          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+        "user": {
+          "type": "string"
         },
-        "partners": {
+        "user_type": {
+          "$ref": "#/definitions/protobufUserType"
+        },
+        "sender": {
+          "$ref": "#/definitions/protobufTaskOrganization"
+        },
+        "data_supplier": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiTaskDataSupplierDeclare"
@@ -218,11 +375,11 @@
         "receivers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiTaskResultReceiverDeclare"
+            "$ref": "#/definitions/typesTaskResultReceiver"
           }
         },
         "operation_cost": {
-          "$ref": "#/definitions/rpcapiTaskOperationCostDeclare"
+          "$ref": "#/definitions/protobufTaskResourceCostDeclare"
         },
         "calculate_contractcode": {
           "type": "string"
@@ -232,6 +389,10 @@
         },
         "contract_extra_params": {
           "type": "string"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
         }
       }
     },
@@ -250,41 +411,11 @@
         }
       }
     },
-    "rpcapiResourceUsedDetailShow": {
-      "type": "object",
-      "properties": {
-        "total_mem": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "used_mem": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "total_processor": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "used_processor": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "total_bandwidth": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "used_bandwidth": {
-          "type": "string",
-          "format": "uint64"
-        }
-      },
-      "title": "系统本身资源抽象"
-    },
     "rpcapiTaskDataSupplierDeclare": {
       "type": "object",
       "properties": {
         "member_info": {
-          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+          "$ref": "#/definitions/protobufTaskOrganization"
         },
         "meta_data_info": {
           "$ref": "#/definitions/rpcapiTaskMetaDataDeclare"
@@ -296,7 +427,7 @@
       "type": "object",
       "properties": {
         "member_info": {
-          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+          "$ref": "#/definitions/protobufTaskOrganization"
         },
         "meta_data_id": {
           "type": "string"
@@ -305,7 +436,7 @@
           "type": "string"
         }
       },
-      "title": "任务数据提供方信息 (任务详情展示用)"
+      "title": "定义：任务数据提供方（仅用于web页面交互使用）"
     },
     "rpcapiTaskDetailShow": {
       "type": "object",
@@ -317,10 +448,10 @@
           "type": "string"
         },
         "owner": {
-          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+          "$ref": "#/definitions/protobufTaskOrganization"
         },
         "algo_supplier": {
-          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+          "$ref": "#/definitions/protobufTaskOrganization"
         },
         "data_supplier": {
           "type": "array",
@@ -337,7 +468,7 @@
         "receivers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+            "$ref": "#/definitions/protobufTaskOrganization"
           }
         },
         "create_at": {
@@ -356,10 +487,10 @@
           "type": "string"
         },
         "operation_cost": {
-          "$ref": "#/definitions/rpcapiTaskOperationCostDeclare"
+          "$ref": "#/definitions/protobufTaskResourceCostDeclare"
         }
       },
-      "title": "任务详情 (供展示用)"
+      "title": "定义：任务详情（仅用户与前端交互展示使用）"
     },
     "rpcapiTaskEventShow": {
       "type": "object",
@@ -371,7 +502,7 @@
           "type": "string"
         },
         "owner": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/protobufOrganization"
         },
         "content": {
           "type": "string"
@@ -381,7 +512,7 @@
           "format": "uint64"
         }
       },
-      "title": "任务事件定义"
+      "title": "定义：任务事件（仅用于web页面交互使用）"
     },
     "rpcapiTaskMetaDataDeclare": {
       "type": "object",
@@ -398,68 +529,33 @@
         }
       }
     },
-    "rpcapiTaskOperationCostDeclare": {
-      "type": "object",
-      "properties": {
-        "cost_mem": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "cost_processor": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "cost_bandwidth": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "duration": {
-          "type": "string",
-          "format": "uint64"
-        }
-      },
-      "title": "任务的所需操作成本 (定义任务的大小)"
-    },
-    "rpcapiTaskOrganizationIdentityInfo": {
-      "type": "object",
-      "properties": {
-        "party_id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "node_id": {
-          "type": "string"
-        },
-        "identity_id": {
-          "type": "string"
-        }
-      }
-    },
     "rpcapiTaskPowerSupplierShow": {
       "type": "object",
       "properties": {
         "member_info": {
-          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+          "$ref": "#/definitions/protobufTaskOrganization"
         },
         "power_info": {
-          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+          "$ref": "#/definitions/typesResourceUsageOverview"
         }
       },
-      "title": "任务算力提供方信息 (任务详情展示用)"
+      "title": "定义：算力提供方（仅用于web页面交互使用）"
     },
-    "rpcapiTaskResultReceiverDeclare": {
+    "rpcapiTerminateTaskRequest": {
       "type": "object",
       "properties": {
-        "member_info": {
-          "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
+        "user": {
+          "type": "string"
         },
-        "providers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiTaskOrganizationIdentityInfo"
-          }
+        "user_type": {
+          "$ref": "#/definitions/protobufUserType"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
         }
       }
     },
@@ -483,6 +579,69 @@
           }
         }
       }
+    },
+    "typesResourceUsageOverview": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务系统的总内存"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务系统的已用内存"
+        },
+        "total_processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "服务的总内核数"
+        },
+        "used_processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "服务的已用内核数"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的总带宽数"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的已用带宽数"
+        },
+        "total_disk": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的总磁盘空间 (单位: byte)"
+        },
+        "used_disk": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的已用磁盘空间 (单位: byte)"
+        }
+      },
+      "title": "系统资源消耗概览"
+    },
+    "typesTaskResultReceiver": {
+      "type": "object",
+      "properties": {
+        "receiver": {
+          "$ref": "#/definitions/protobufTaskOrganization",
+          "title": "任务接收方组织信息"
+        },
+        "providers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufTaskOrganization"
+          },
+          "title": "提供结果的组织方信息（列表）"
+        }
+      },
+      "title": "定义：任务结果接收详细信息"
     }
   }
 }

@@ -45,9 +45,9 @@ message MetaDataSummaryByStateResponse {
 }
 
 message Metadata {
-    api.protobuf.Organization     owner        = 1;
-    types.MetaDataSummary         meta_summary = 2;
-    repeated types.MetadataColumn column_meta  = 3;
+    api.protobuf.Organization     owner                = 1;
+    types.MetaDataSummary         meta_summary         = 2;
+    repeated types.MetadataColumn metadata_column_list = 3;
 }
 
 message MetadataListRequest {

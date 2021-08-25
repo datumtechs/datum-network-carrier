@@ -248,7 +248,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 		types.NewIdentity(&libTypes.IdentityData{
 			NodeName: identity.Name,
 			NodeId:   identity.NodeId,
-			Identity: identity.IdentityId,
+			IdentityId: identity.IdentityId,
 		})); nil != err {
 		log.Errorf("Failed to remove org identity to remote on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity, err)
 		return err
@@ -300,7 +300,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			continue
 		}
 		if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libTypes.LocalResourceData{
-			Identity:  identity.IdentityId,
+			IdentityId:  identity.IdentityId,
 			NodeId:    identity.NodeId,
 			NodeName:  identity.Name,
 			JobNodeId: power.JobNodeId,
@@ -329,7 +329,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 
 		// 发布到全网
 		if err := m.dataCenter.InsertResource(types.NewResource(&libTypes.ResourceData{
-			Identity: identity.IdentityId,
+			IdentityId: identity.IdentityId,
 			NodeId:   identity.NodeId,
 			NodeName: identity.Name,
 			DataId:   power.PowerId,
@@ -406,7 +406,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 		}
 
 		if err := m.dataCenter.RevokeResource(types.NewResource(&libTypes.ResourceData{
-			Identity: identity.IdentityId,
+			IdentityId: identity.IdentityId,
 			NodeId:   identity.NodeId,
 			NodeName: identity.Name,
 			DataId:   revoke.PowerId,

@@ -21,7 +21,7 @@ func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, sta
 		Owner: &pb.TaskOrganizationIdentityInfo{
 			Name:       []byte(task.TaskData().NodeName),
 			NodeId:     []byte(task.TaskData().NodeId),
-			IdentityId: []byte(task.TaskData().Identity),
+			IdentityId: []byte(task.TaskData().IdentityId),
 			PartyId:    []byte(task.TaskData().PartyId),
 		},
 		TaskInfo: bys.Bytes(),
@@ -42,7 +42,7 @@ func makeConfirmMsg(proposalId common.Hash, task *types.Task, startTime uint64) 
 		Owner: &pb.TaskOrganizationIdentityInfo{
 			Name:       []byte(task.TaskData().NodeName),
 			NodeId:     []byte(task.TaskData().NodeId),
-			IdentityId: []byte(task.TaskData().Identity),
+			IdentityId: []byte(task.TaskData().IdentityId),
 			PartyId:    []byte(task.TaskData().PartyId),
 		},
 		PeerDesc: nil,
@@ -66,7 +66,7 @@ func makeCommitMsg(proposalId common.Hash, task *types.Task, startTime uint64) *
 		Owner: &pb.TaskOrganizationIdentityInfo{
 			Name:       []byte(task.TaskData().NodeName),
 			NodeId:     []byte(task.TaskData().NodeId),
-			IdentityId: []byte(task.TaskData().Identity),
+			IdentityId: []byte(task.TaskData().IdentityId),
 			PartyId:    []byte(task.TaskData().PartyId),
 		},
 		CreateAt: startTime,

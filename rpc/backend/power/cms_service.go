@@ -4,12 +4,15 @@ import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
 
-func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerTotalDetailListResponse, error) {
+func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetPowerTotalDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetPowerTotalDetailList failed")
@@ -20,7 +23,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 	for i, power := range powerList {
 		resp := &pb.GetPowerTotalDetailResponse{
 			Owner: types.ConvertNodeAliasToPB(power.Owner),
-			Power: &pb.PowerTotalDetail{
+			Power: &libtypes.PowerTotalDetail{
 				Information: types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
 				TotalTaskCount:power.PowerDetail.TotalTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
 				CurrentTaskCount: power.PowerDetail.CurrentTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
@@ -38,7 +41,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 	}, nil
 }
 
-func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetPowerSingleDetailListResponse, error) {
+func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetPowerSingleDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerSingleDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetPowerSingleDetailList failed")
@@ -50,7 +53,7 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 
 		resp := &pb.GetPowerSingleDetailResponse{
 			Owner:  types.ConvertNodeAliasToPB(power.Owner),
-			Power: &pb.PowerSingleDetail{
+			Power: &libtypes.PowerSingleDetail{
 				JobNodeId: power.PowerDetail.JobNodeId,
 				PowerId: power.PowerDetail.PowerId,
 				Information:types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
@@ -129,7 +132,7 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	}, nil
 }
 
-func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*pb.SimpleResponseCode, error) {
+func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*apipb.SimpleResponse, error) {
 	if req == nil {
 		return nil, errors.New("required owner")
 	}
@@ -161,7 +164,7 @@ func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePo
 		return nil, ErrSendPowerRevokeMsg
 	}
 	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.PowerId)
-	return &pb.SimpleResponseCode{
+	return &apipb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

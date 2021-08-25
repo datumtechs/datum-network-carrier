@@ -9,24 +9,24 @@ import (
 )
 
 var metadata = NewMetadata(&types.MetaData{
-	Identity:             "Identity",
-	NodeId:               "nodeId",
-	DataId:               "dataId",
-	DataStatus:           "D",
-	FilePath:             "/a/a",
-	Desc:                 "desc",
-	Rows:                 1,
-	Columns:              2,
-	Size_:                3,
-	FileType:             "csv",
-	State:                "create",
-	HasTitleRow:          false,
-	ColumnMetaList:       []*types.ColumnMeta{
+	IdentityId: "Identity",
+	NodeId:     "nodeId",
+	DataId:     "dataId",
+	DataStatus: "D",
+	FilePath:   "/a/a",
+	Desc:       "desc",
+	Rows:       1,
+	Columns:    2,
+	Size_:      3,
+	FileType:   "csv",
+	State:      "create",
+	HasTitle:   false,
+	MetadataColumnList: []*types.MetadataColumn {
 		{
-			Cindex:               2,
-			Cname:                "cname",
-			Ctype:                "ctype",
-			Csize:                10,
+			CIndex: 2,
+			CName:  "cname",
+			CType:  "ctype",
+			CSize:  10,
 		},
 	},
 })

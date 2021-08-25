@@ -4,6 +4,7 @@ package rawdb
 
 import (
 	"bytes"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -17,7 +18,7 @@ const registeredNodeToKeep = 50
 
 // ReadLocalIdentity retrieves the identity of local.
 func ReadLocalIdentity(db DatabaseReader) (*types.NodeAlias, error) {
-	var blob libtypes.OrganizationData
+	var blob apipb.Organization
 	enc, err := db.Get(localIdentityKey)
 	if nil != err {
 		return nil, err
@@ -28,15 +29,15 @@ func ReadLocalIdentity(db DatabaseReader) (*types.NodeAlias, error) {
 	return &types.NodeAlias{
 		Name:       blob.GetNodeName(),
 		NodeId:     blob.GetNodeId(),
-		IdentityId: blob.GetIdentity(),
+		IdentityId: blob.GetIdentityId(),
 	}, nil
 }
 
 // WriteLocalIdentity stores the local identity.
 func WriteLocalIdentity(db DatabaseWriter, localIdentity *types.NodeAlias) {
-	pb := &libtypes.OrganizationData{
+	pb := &apipb.TaskOrganization{
 		PartyId:              "",
-		Identity:             localIdentity.GetNodeIdentityId(),
+		IdentityId:           localIdentity.GetNodeIdentityId(),
 		NodeId:               localIdentity.GetNodeIdStr(),
 		NodeName:             localIdentity.GetNodeName(),
 	}
@@ -509,11 +510,11 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, er
 	for _, e := range events.GetTaskEventList() {
 		if strings.EqualFold(e.GetTaskId(), taskId) {
 			resEvent = append(resEvent, &types.TaskEventInfo{
-				Type:       e.GetEventType(),
-				Identity:   e.GetIdentity(),
+				Type:       e.GetType(),
+				Identity:   e.GetIdentityId(),
 				TaskId:     e.GetTaskId(),
-				Content:    e.GetEventContent(),
-				CreateTime: e.GetEventAt(),
+				Content:    e.GetContent(),
+				CreateTime: e.GetCreateAt(),
 			})
 		}
 	}
@@ -539,11 +540,11 @@ func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
 			}
 			for _, e := range events.GetTaskEventList() {
 				result = append(result, &types.TaskEventInfo{
-					Type:       e.GetEventType(),
-					Identity:   e.GetIdentity(),
+					Type:       e.GetType(),
+					Identity:   e.GetIdentityId(),
 					TaskId:     e.GetTaskId(),
-					Content:    e.GetEventContent(),
-					CreateTime: e.GetEventAt(),
+					Content:    e.GetContent(),
+					CreateTime: e.GetCreateAt(),
 				})
 			}
 		}
@@ -571,12 +572,12 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 	//		return
 	//	}
 	//}
-	array.TaskEventList = append(array.TaskEventList, &libtypes.EventData{
-		TaskId:               taskEvent.TaskId,
-		EventType:            taskEvent.Type,
-		EventAt:              taskEvent.CreateTime,
-		EventContent:         taskEvent.Content,
-		Identity:             taskEvent.Identity,
+	array.TaskEventList = append(array.TaskEventList, &libtypes.TaskEvent{
+		TaskId:               	taskEvent.TaskId,
+		Type:            		taskEvent.Type,
+		CreateAt:              	taskEvent.CreateTime,
+		Content:         		taskEvent.Content,
+		IdentityId:             taskEvent.Identity,
 	})
 
 	data, err := array.Marshal()

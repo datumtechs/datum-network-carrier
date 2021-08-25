@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 )
 
-
 type Task struct {
 	data *libTypes.TaskData
 
@@ -58,28 +57,27 @@ func (m *Task) TaskData() *libTypes.TaskData {
 }
 
 func (m *Task) SetEventList(eventList []*TaskEventInfo) {
-	eventArr := make([]*libTypes.EventData, len(eventList))
-	for i, ev := range eventList{
-		eventArr[i] = &libTypes.EventData{
-			TaskId: ev.TaskId,
-			EventType: ev.Type,
-			EventAt: ev.CreateTime,
-			EventContent: ev.Content,
-			Identity: ev.Identity,
+	eventArr := make([]*libTypes.TaskEvent, len(eventList))
+	for i, ev := range eventList {
+		eventArr[i] = &libTypes.TaskEvent{
+			TaskId:     ev.TaskId,
+			Type:       ev.Type,
+			CreateAt:   ev.CreateTime,
+			Content:    ev.Content,
+			IdentityId: ev.Identity,
 		}
 	}
-	m.data.EventDataList = eventArr
+	m.data.TaskEventList = eventArr
 }
-func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskMetadataSupplierData) {
-	m.data.MetadataSupplier = arr
+func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskDataSupplier) {
+	m.data.DataSupplier = arr
 }
-func (m *Task) SetResourceSupplierArr(arr []*libTypes.TaskResourceSupplierData) {
-	m.data.ResourceSupplier = arr
+func (m *Task) SetResourceSupplierArr(arr []*libTypes.TaskPowerSupplier) {
+	m.data.PowerSupplier = arr
 }
-func (m *Task) SetReceivers(arr []*libTypes.TaskResultReceiverData) {
+func (m *Task) SetReceivers(arr []*libTypes.TaskResultReceiver) {
 	m.data.Receivers = arr
 }
-
 
 // TaskDataArray is a Transaction slice type for basic sorting.
 type TaskDataArray []*Task
@@ -115,12 +113,12 @@ func (s TaskDataArray) To() []*libTypes.TaskData {
 type TaskDetailShow struct {
 	TaskId        string                   `json:"taskId"`
 	TaskName      string                   `json:"taskName"`
-	Role 		  string 					`json:"role"`
-	Owner         *TaskNodeAlias               `json:"owner"`
-	AlgoSupplier  *TaskNodeAlias               `json:"algoSupplier"`
+	Role          string                   `json:"role"`
+	Owner         *TaskNodeAlias           `json:"owner"`
+	AlgoSupplier  *TaskNodeAlias           `json:"algoSupplier"`
 	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
 	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
-	Receivers     []*TaskNodeAlias             `json:"receivers"`
+	Receivers     []*TaskNodeAlias         `json:"receivers"`
 	CreateAt      uint64                   `json:"createat"`
 	StartAt       uint64                   `json:"startAt"`
 	EndAt         uint64                   `json:"endAt"`
@@ -129,14 +127,15 @@ type TaskDetailShow struct {
 }
 
 func ConvertTaskDetailShowToPB(task *TaskDetailShow) *pb.TaskDetailShow {
-	return &pb.TaskDetailShow{
+	return &pb.TaskDetailShow {
 		TaskId:        task.TaskId,
 		TaskName:      task.TaskName,
 		Owner:         ConvertTaskNodeAliasToPB(task.Owner),
 		AlgoSupplier:  ConvertTaskNodeAliasToPB(task.AlgoSupplier),
 		DataSupplier:  ConvertTaskDataSupplierShowArrToPB(task.DataSupplier),
 		PowerSupplier: ConvertTaskPowerSupplierShowArrToPB(task.PowerSupplier),
-		Receivers:     ConvertTaskNodeAliasArrToPB(task.Receivers),
+		//TODO: 结构问题，待确认
+		//Receivers:     ConvertTaskNodeAliasArrToPB(task.Receivers),
 		CreateAt:      task.CreateAt,
 		StartAt:       task.StartAt,
 		EndAt:         task.EndAt,
@@ -163,8 +162,8 @@ func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
 
 type TaskDataSupplierShow struct {
 	MemberInfo   *TaskNodeAlias `json:"memberInfo"`
-	MetaDataId   string     `json:"metaId"`
-	MetaDataName string     `json:"metaName"`
+	MetaDataId   string         `json:"metaId"`
+	MetaDataName string         `json:"metaName"`
 }
 
 func ConvertTaskDataSupplierShowToPB(dataSupplier *TaskDataSupplierShow) *pb.TaskDataSupplierShow {
@@ -211,7 +210,7 @@ func ConvertTaskDataSupplierShowArrFromPB(dataSuppliers []*pb.TaskDataSupplierSh
 }
 
 type TaskPowerSupplierShow struct {
-	MemberInfo    *TaskNodeAlias     `json:"memberInfo"`
+	MemberInfo    *TaskNodeAlias `json:"memberInfo"`
 	ResourceUsage *ResourceUsage `json:"resourceUsage"`
 }
 

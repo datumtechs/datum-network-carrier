@@ -30,19 +30,355 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// 定义：任务详情（仅用户与前端交互展示使用）
+type TaskDetailShow struct {
+	TaskId               string                          `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	TaskName             string                          `protobuf:"bytes,2,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
+	Owner                *common.TaskOrganization        `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
+	AlgoSupplier         *common.TaskOrganization        `protobuf:"bytes,4,opt,name=algo_supplier,json=algoSupplier,proto3" json:"algo_supplier,omitempty"`
+	DataSupplier         []*TaskDataSupplierShow         `protobuf:"bytes,5,rep,name=data_supplier,json=dataSupplier,proto3" json:"data_supplier,omitempty"`
+	PowerSupplier        []*TaskPowerSupplierShow        `protobuf:"bytes,6,rep,name=power_supplier,json=powerSupplier,proto3" json:"power_supplier,omitempty"`
+	Receivers            []*common.TaskOrganization      `protobuf:"bytes,7,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	CreateAt             uint64                          `protobuf:"varint,8,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
+	StartAt              uint64                          `protobuf:"varint,9,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt                uint64                          `protobuf:"varint,10,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	State                string                          `protobuf:"bytes,11,opt,name=state,proto3" json:"state,omitempty"`
+	OperationCost        *common.TaskResourceCostDeclare `protobuf:"bytes,12,opt,name=operation_cost,json=operationCost,proto3" json:"operation_cost,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
+	XXX_unrecognized     []byte                          `json:"-"`
+	XXX_sizecache        int32                           `json:"-"`
+}
+
+func (m *TaskDetailShow) Reset()         { *m = TaskDetailShow{} }
+func (m *TaskDetailShow) String() string { return proto.CompactTextString(m) }
+func (*TaskDetailShow) ProtoMessage()    {}
+func (*TaskDetailShow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a744901dce4e8cd, []int{0}
+}
+func (m *TaskDetailShow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskDetailShow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskDetailShow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskDetailShow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskDetailShow.Merge(m, src)
+}
+func (m *TaskDetailShow) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskDetailShow) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskDetailShow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskDetailShow proto.InternalMessageInfo
+
+func (m *TaskDetailShow) GetTaskId() string {
+	if m != nil {
+		return m.TaskId
+	}
+	return ""
+}
+
+func (m *TaskDetailShow) GetTaskName() string {
+	if m != nil {
+		return m.TaskName
+	}
+	return ""
+}
+
+func (m *TaskDetailShow) GetOwner() *common.TaskOrganization {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *TaskDetailShow) GetAlgoSupplier() *common.TaskOrganization {
+	if m != nil {
+		return m.AlgoSupplier
+	}
+	return nil
+}
+
+func (m *TaskDetailShow) GetDataSupplier() []*TaskDataSupplierShow {
+	if m != nil {
+		return m.DataSupplier
+	}
+	return nil
+}
+
+func (m *TaskDetailShow) GetPowerSupplier() []*TaskPowerSupplierShow {
+	if m != nil {
+		return m.PowerSupplier
+	}
+	return nil
+}
+
+func (m *TaskDetailShow) GetReceivers() []*common.TaskOrganization {
+	if m != nil {
+		return m.Receivers
+	}
+	return nil
+}
+
+func (m *TaskDetailShow) GetCreateAt() uint64 {
+	if m != nil {
+		return m.CreateAt
+	}
+	return 0
+}
+
+func (m *TaskDetailShow) GetStartAt() uint64 {
+	if m != nil {
+		return m.StartAt
+	}
+	return 0
+}
+
+func (m *TaskDetailShow) GetEndAt() uint64 {
+	if m != nil {
+		return m.EndAt
+	}
+	return 0
+}
+
+func (m *TaskDetailShow) GetState() string {
+	if m != nil {
+		return m.State
+	}
+	return ""
+}
+
+func (m *TaskDetailShow) GetOperationCost() *common.TaskResourceCostDeclare {
+	if m != nil {
+		return m.OperationCost
+	}
+	return nil
+}
+
+// 定义：任务数据提供方（仅用于web页面交互使用）
+type TaskDataSupplierShow struct {
+	MemberInfo           *common.TaskOrganization `protobuf:"bytes,1,opt,name=member_info,json=memberInfo,proto3" json:"member_info,omitempty"`
+	MetaDataId           string                   `protobuf:"bytes,2,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
+	MetaDataName         string                   `protobuf:"bytes,3,opt,name=meta_data_name,json=metaDataName,proto3" json:"meta_data_name,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
+	XXX_unrecognized     []byte                   `json:"-"`
+	XXX_sizecache        int32                    `json:"-"`
+}
+
+func (m *TaskDataSupplierShow) Reset()         { *m = TaskDataSupplierShow{} }
+func (m *TaskDataSupplierShow) String() string { return proto.CompactTextString(m) }
+func (*TaskDataSupplierShow) ProtoMessage()    {}
+func (*TaskDataSupplierShow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a744901dce4e8cd, []int{1}
+}
+func (m *TaskDataSupplierShow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskDataSupplierShow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskDataSupplierShow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskDataSupplierShow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskDataSupplierShow.Merge(m, src)
+}
+func (m *TaskDataSupplierShow) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskDataSupplierShow) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskDataSupplierShow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskDataSupplierShow proto.InternalMessageInfo
+
+func (m *TaskDataSupplierShow) GetMemberInfo() *common.TaskOrganization {
+	if m != nil {
+		return m.MemberInfo
+	}
+	return nil
+}
+
+func (m *TaskDataSupplierShow) GetMetaDataId() string {
+	if m != nil {
+		return m.MetaDataId
+	}
+	return ""
+}
+
+func (m *TaskDataSupplierShow) GetMetaDataName() string {
+	if m != nil {
+		return m.MetaDataName
+	}
+	return ""
+}
+
+// 定义：算力提供方（仅用于web页面交互使用）
+type TaskPowerSupplierShow struct {
+	MemberInfo           *common.TaskOrganization     `protobuf:"bytes,1,opt,name=member_info,json=memberInfo,proto3" json:"member_info,omitempty"`
+	PowerInfo            *types.ResourceUsageOverview `protobuf:"bytes,2,opt,name=power_info,json=powerInfo,proto3" json:"power_info,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
+}
+
+func (m *TaskPowerSupplierShow) Reset()         { *m = TaskPowerSupplierShow{} }
+func (m *TaskPowerSupplierShow) String() string { return proto.CompactTextString(m) }
+func (*TaskPowerSupplierShow) ProtoMessage()    {}
+func (*TaskPowerSupplierShow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a744901dce4e8cd, []int{2}
+}
+func (m *TaskPowerSupplierShow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskPowerSupplierShow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskPowerSupplierShow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskPowerSupplierShow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskPowerSupplierShow.Merge(m, src)
+}
+func (m *TaskPowerSupplierShow) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskPowerSupplierShow) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskPowerSupplierShow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskPowerSupplierShow proto.InternalMessageInfo
+
+func (m *TaskPowerSupplierShow) GetMemberInfo() *common.TaskOrganization {
+	if m != nil {
+		return m.MemberInfo
+	}
+	return nil
+}
+
+func (m *TaskPowerSupplierShow) GetPowerInfo() *types.ResourceUsageOverview {
+	if m != nil {
+		return m.PowerInfo
+	}
+	return nil
+}
+
+// 定义：任务事件（仅用于web页面交互使用）
+type TaskEventShow struct {
+	Type                 string               `protobuf:"bytes,1,opt,name=type,proto3" json:"type,omitempty"`
+	TaskId               string               `protobuf:"bytes,2,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	Owner                *common.Organization `protobuf:"bytes,3,opt,name=owner,proto3" json:"owner,omitempty"`
+	Content              string               `protobuf:"bytes,4,opt,name=content,proto3" json:"content,omitempty"`
+	CreateAt             uint64               `protobuf:"varint,5,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *TaskEventShow) Reset()         { *m = TaskEventShow{} }
+func (m *TaskEventShow) String() string { return proto.CompactTextString(m) }
+func (*TaskEventShow) ProtoMessage()    {}
+func (*TaskEventShow) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7a744901dce4e8cd, []int{3}
+}
+func (m *TaskEventShow) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *TaskEventShow) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_TaskEventShow.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *TaskEventShow) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_TaskEventShow.Merge(m, src)
+}
+func (m *TaskEventShow) XXX_Size() int {
+	return m.Size()
+}
+func (m *TaskEventShow) XXX_DiscardUnknown() {
+	xxx_messageInfo_TaskEventShow.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_TaskEventShow proto.InternalMessageInfo
+
+func (m *TaskEventShow) GetType() string {
+	if m != nil {
+		return m.Type
+	}
+	return ""
+}
+
+func (m *TaskEventShow) GetTaskId() string {
+	if m != nil {
+		return m.TaskId
+	}
+	return ""
+}
+
+func (m *TaskEventShow) GetOwner() *common.Organization {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *TaskEventShow) GetContent() string {
+	if m != nil {
+		return m.Content
+	}
+	return ""
+}
+
+func (m *TaskEventShow) GetCreateAt() uint64 {
+	if m != nil {
+		return m.CreateAt
+	}
+	return 0
+}
+
 type GetTaskDetailResponse struct {
-	Information          *types.TaskDetail `protobuf:"bytes,1,opt,name=information,proto3" json:"information,omitempty"`
-	Role                 string            `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	Information          *TaskDetailShow `protobuf:"bytes,1,opt,name=information,proto3" json:"information,omitempty"`
+	Role                 string          `protobuf:"bytes,2,opt,name=role,proto3" json:"role,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
 func (m *GetTaskDetailResponse) Reset()         { *m = GetTaskDetailResponse{} }
 func (m *GetTaskDetailResponse) String() string { return proto.CompactTextString(m) }
 func (*GetTaskDetailResponse) ProtoMessage()    {}
 func (*GetTaskDetailResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{0}
+	return fileDescriptor_7a744901dce4e8cd, []int{4}
 }
 func (m *GetTaskDetailResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -71,7 +407,7 @@ func (m *GetTaskDetailResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GetTaskDetailResponse proto.InternalMessageInfo
 
-func (m *GetTaskDetailResponse) GetInformation() *types.TaskDetail {
+func (m *GetTaskDetailResponse) GetInformation() *TaskDetailShow {
 	if m != nil {
 		return m.Information
 	}
@@ -98,7 +434,7 @@ func (m *GetTaskDetailListResponse) Reset()         { *m = GetTaskDetailListResp
 func (m *GetTaskDetailListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetTaskDetailListResponse) ProtoMessage()    {}
 func (*GetTaskDetailListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{1}
+	return fileDescriptor_7a744901dce4e8cd, []int{5}
 }
 func (m *GetTaskDetailListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -159,7 +495,7 @@ func (m *GetTaskEventListRequest) Reset()         { *m = GetTaskEventListRequest
 func (m *GetTaskEventListRequest) String() string { return proto.CompactTextString(m) }
 func (*GetTaskEventListRequest) ProtoMessage()    {}
 func (*GetTaskEventListRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{2}
+	return fileDescriptor_7a744901dce4e8cd, []int{6}
 }
 func (m *GetTaskEventListRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -206,7 +542,7 @@ func (m *GetTaskEventListByTaskIdsRequest) Reset()         { *m = GetTaskEventLi
 func (m *GetTaskEventListByTaskIdsRequest) String() string { return proto.CompactTextString(m) }
 func (*GetTaskEventListByTaskIdsRequest) ProtoMessage()    {}
 func (*GetTaskEventListByTaskIdsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{3}
+	return fileDescriptor_7a744901dce4e8cd, []int{7}
 }
 func (m *GetTaskEventListByTaskIdsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -243,19 +579,19 @@ func (m *GetTaskEventListByTaskIdsRequest) GetTaskIds() []string {
 }
 
 type GetTaskEventListResponse struct {
-	Status               int32              `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
-	Msg                  string             `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	TaskEventList        []*types.TaskEvent `protobuf:"bytes,3,rep,name=task_event_list,json=taskEventList,proto3" json:"task_event_list,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}           `json:"-"`
-	XXX_unrecognized     []byte             `json:"-"`
-	XXX_sizecache        int32              `json:"-"`
+	Status               int32            `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string           `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	TaskEventList        []*TaskEventShow `protobuf:"bytes,3,rep,name=task_event_list,json=taskEventList,proto3" json:"task_event_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *GetTaskEventListResponse) Reset()         { *m = GetTaskEventListResponse{} }
 func (m *GetTaskEventListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetTaskEventListResponse) ProtoMessage()    {}
 func (*GetTaskEventListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{4}
+	return fileDescriptor_7a744901dce4e8cd, []int{8}
 }
 func (m *GetTaskEventListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -298,7 +634,7 @@ func (m *GetTaskEventListResponse) GetMsg() string {
 	return ""
 }
 
-func (m *GetTaskEventListResponse) GetTaskEventList() []*types.TaskEvent {
+func (m *GetTaskEventListResponse) GetTaskEventList() []*TaskEventShow {
 	if m != nil {
 		return m.TaskEventList
 	}
@@ -327,7 +663,7 @@ func (m *PublishTaskDeclareRequest) Reset()         { *m = PublishTaskDeclareReq
 func (m *PublishTaskDeclareRequest) String() string { return proto.CompactTextString(m) }
 func (*PublishTaskDeclareRequest) ProtoMessage()    {}
 func (*PublishTaskDeclareRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{5}
+	return fileDescriptor_7a744901dce4e8cd, []int{9}
 }
 func (m *PublishTaskDeclareRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -453,7 +789,7 @@ func (m *TaskDataSupplierDeclare) Reset()         { *m = TaskDataSupplierDeclare
 func (m *TaskDataSupplierDeclare) String() string { return proto.CompactTextString(m) }
 func (*TaskDataSupplierDeclare) ProtoMessage()    {}
 func (*TaskDataSupplierDeclare) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{6}
+	return fileDescriptor_7a744901dce4e8cd, []int{10}
 }
 func (m *TaskDataSupplierDeclare) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -508,7 +844,7 @@ func (m *TaskMetaDataDeclare) Reset()         { *m = TaskMetaDataDeclare{} }
 func (m *TaskMetaDataDeclare) String() string { return proto.CompactTextString(m) }
 func (*TaskMetaDataDeclare) ProtoMessage()    {}
 func (*TaskMetaDataDeclare) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{7}
+	return fileDescriptor_7a744901dce4e8cd, []int{11}
 }
 func (m *TaskMetaDataDeclare) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -564,7 +900,7 @@ func (m *PublishTaskDeclareResponse) Reset()         { *m = PublishTaskDeclareRe
 func (m *PublishTaskDeclareResponse) String() string { return proto.CompactTextString(m) }
 func (*PublishTaskDeclareResponse) ProtoMessage()    {}
 func (*PublishTaskDeclareResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{8}
+	return fileDescriptor_7a744901dce4e8cd, []int{12}
 }
 func (m *PublishTaskDeclareResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -628,7 +964,7 @@ func (m *TerminateTaskRequest) Reset()         { *m = TerminateTaskRequest{} }
 func (m *TerminateTaskRequest) String() string { return proto.CompactTextString(m) }
 func (*TerminateTaskRequest) ProtoMessage()    {}
 func (*TerminateTaskRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_7a744901dce4e8cd, []int{9}
+	return fileDescriptor_7a744901dce4e8cd, []int{13}
 }
 func (m *TerminateTaskRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -686,6 +1022,10 @@ func (m *TerminateTaskRequest) GetSign() []byte {
 }
 
 func init() {
+	proto.RegisterType((*TaskDetailShow)(nil), "rpcapi.TaskDetailShow")
+	proto.RegisterType((*TaskDataSupplierShow)(nil), "rpcapi.TaskDataSupplierShow")
+	proto.RegisterType((*TaskPowerSupplierShow)(nil), "rpcapi.TaskPowerSupplierShow")
+	proto.RegisterType((*TaskEventShow)(nil), "rpcapi.TaskEventShow")
 	proto.RegisterType((*GetTaskDetailResponse)(nil), "rpcapi.GetTaskDetailResponse")
 	proto.RegisterType((*GetTaskDetailListResponse)(nil), "rpcapi.GetTaskDetailListResponse")
 	proto.RegisterType((*GetTaskEventListRequest)(nil), "rpcapi.GetTaskEventListRequest")
@@ -701,72 +1041,89 @@ func init() {
 func init() { proto.RegisterFile("lib/api/task_rpc_api.proto", fileDescriptor_7a744901dce4e8cd) }
 
 var fileDescriptor_7a744901dce4e8cd = []byte{
-	// 1030 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x56, 0x5b, 0x6f, 0xe3, 0x44,
-	0x14, 0x96, 0x9b, 0x36, 0x6d, 0x26, 0x4d, 0x2f, 0xb3, 0xa4, 0x75, 0xd3, 0x6e, 0x6b, 0xbc, 0x5a,
-	0x14, 0x2a, 0x61, 0x8b, 0x54, 0xb0, 0xa8, 0x12, 0x42, 0x6c, 0xb7, 0xac, 0x2a, 0x2d, 0x50, 0xb9,
-	0xe5, 0x85, 0x17, 0x33, 0x71, 0x4e, 0xb3, 0xa3, 0xb5, 0x3d, 0x66, 0x66, 0xdc, 0xdd, 0x20, 0x84,
-	0x80, 0x67, 0xc4, 0x0b, 0x0f, 0x3c, 0xf1, 0x7f, 0x78, 0x44, 0xe2, 0x0f, 0xa0, 0x6a, 0x7f, 0x08,
-	0x9a, 0xf1, 0xa5, 0xce, 0x0d, 0xba, 0x4f, 0x19, 0x9f, 0xdb, 0xf7, 0x9d, 0x39, 0x97, 0x09, 0xea,
-	0x84, 0xb4, 0xef, 0x92, 0x84, 0xba, 0x92, 0x88, 0x17, 0x3e, 0x4f, 0x02, 0x9f, 0x24, 0xd4, 0x49,
-	0x38, 0x93, 0x0c, 0xd7, 0x79, 0x12, 0x90, 0x84, 0x76, 0xda, 0xca, 0x26, 0x60, 0x51, 0xc4, 0x62,
-	0xb7, 0x4f, 0x04, 0x64, 0xea, 0x31, 0xf1, 0x80, 0x48, 0x92, 0x8b, 0x4d, 0x25, 0x96, 0xa3, 0x04,
-	0x84, 0x8e, 0x59, 0xd1, 0xec, 0x0d, 0x19, 0x1b, 0x86, 0xa0, 0xe1, 0x48, 0x1c, 0x33, 0x49, 0x24,
-	0x65, 0xb1, 0xc8, 0xb5, 0xbb, 0xb9, 0x56, 0x7f, 0xf5, 0xd3, 0x2b, 0x17, 0xa2, 0x44, 0x8e, 0x32,
-	0xa5, 0xfd, 0x0d, 0x6a, 0x3f, 0x05, 0x79, 0x49, 0xc4, 0x8b, 0x27, 0x20, 0x09, 0x0d, 0x3d, 0x10,
-	0x09, 0x8b, 0x05, 0xe0, 0x23, 0xd4, 0xa4, 0xf1, 0x15, 0xe3, 0x91, 0x8e, 0x65, 0x1a, 0x96, 0xd1,
-	0x6d, 0xf6, 0x36, 0x1d, 0x8d, 0xef, 0x54, 0xec, 0xab, 0x56, 0x18, 0xa3, 0x45, 0xce, 0x42, 0x30,
-	0x17, 0x2c, 0xa3, 0xdb, 0xf0, 0xf4, 0xd9, 0xfe, 0xc9, 0x40, 0x3b, 0x63, 0x10, 0xcf, 0xa8, 0x90,
-	0x25, 0xcc, 0x16, 0xaa, 0x0b, 0x49, 0x64, 0x2a, 0x34, 0xc2, 0x92, 0x97, 0x7f, 0xe1, 0x0d, 0x54,
-	0x8b, 0xc4, 0x30, 0x0f, 0xa4, 0x8e, 0xf8, 0x18, 0x35, 0xf4, 0x55, 0x86, 0x54, 0x48, 0xb3, 0x66,
-	0xd5, 0xba, 0xcd, 0xde, 0x7d, 0x27, 0xbb, 0x48, 0x67, 0x66, 0x0a, 0xde, 0x8a, 0xb2, 0x57, 0x68,
-	0x76, 0x0f, 0x6d, 0xe7, 0x26, 0xa7, 0xd7, 0x10, 0xcb, 0x8c, 0xc1, 0xb7, 0x29, 0x08, 0x89, 0xb7,
-	0xd1, 0xb2, 0x0e, 0x4b, 0x07, 0x9a, 0x41, 0xc3, 0xab, 0xab, 0xcf, 0xb3, 0x81, 0xfd, 0x31, 0xb2,
-	0x26, 0x7d, 0x1e, 0x8f, 0x2e, 0xb5, 0x4e, 0x14, 0xce, 0x3b, 0x68, 0x25, 0x77, 0x56, 0xfc, 0x6b,
-	0xdd, 0x86, 0xb7, 0x9c, 0x79, 0x0b, 0xfb, 0x07, 0x64, 0x4e, 0x43, 0xbe, 0x71, 0xd2, 0x1f, 0xa1,
-	0x75, 0x0d, 0x00, 0x2a, 0x46, 0x35, 0xf5, 0x8d, 0x4a, 0x25, 0x34, 0x80, 0xd7, 0x92, 0x55, 0x2c,
-	0xfb, 0xf5, 0x22, 0xda, 0x39, 0x4f, 0xfb, 0x21, 0x15, 0xcf, 0xb3, 0xab, 0x09, 0x42, 0xc2, 0xa1,
-	0x20, 0xbe, 0x9b, 0x5f, 0x66, 0x4c, 0x22, 0xc8, 0xf3, 0xd6, 0x99, 0x7c, 0x41, 0x22, 0x50, 0x55,
-	0x4c, 0x05, 0xf0, 0xa2, 0x8a, 0xea, 0x8c, 0x8f, 0x50, 0x43, 0xfd, 0xfa, 0x0a, 0xd5, 0xac, 0x59,
-	0x46, 0x77, 0xad, 0xb7, 0xe5, 0x94, 0x1d, 0xdd, 0x4f, 0xaf, 0x9c, 0xaf, 0x04, 0xf0, 0xcb, 0x51,
-	0x02, 0xde, 0x4a, 0x9a, 0x9f, 0xf0, 0x87, 0xa8, 0x2e, 0x20, 0x1e, 0x00, 0x37, 0x17, 0x75, 0xfb,
-	0xec, 0x8f, 0x7b, 0x28, 0x5e, 0x5f, 0xf2, 0x21, 0x89, 0xe9, 0x77, 0xba, 0x7d, 0xbc, 0xdc, 0x1a,
-	0x3f, 0x41, 0x2d, 0xd5, 0xdd, 0xbe, 0x48, 0x93, 0x24, 0xa4, 0xc0, 0xcd, 0x25, 0x9d, 0xf3, 0x41,
-	0x51, 0x6e, 0x9d, 0x10, 0x91, 0xe4, 0x22, 0xd7, 0x17, 0xc9, 0xad, 0x0e, 0x2a, 0x42, 0xfc, 0x0e,
-	0x5a, 0x4f, 0xd8, 0x4b, 0xe0, 0x7e, 0x42, 0xb8, 0x1c, 0xe9, 0x1a, 0xd5, 0x75, 0x8d, 0x5a, 0x5a,
-	0x7c, 0xae, 0xa4, 0x67, 0x03, 0x81, 0x1f, 0xa1, 0x06, 0x87, 0x00, 0xe8, 0x35, 0x70, 0x61, 0x2e,
-	0x6b, 0xa4, 0x9d, 0xca, 0xed, 0x7a, 0x20, 0xd2, 0x50, 0x7a, 0xb9, 0x85, 0x77, 0x6b, 0x8b, 0x9f,
-	0xa1, 0x35, 0x96, 0x00, 0xd7, 0xdc, 0xfd, 0x80, 0x09, 0x69, 0xae, 0xe8, 0x34, 0x1f, 0x4e, 0xa7,
-	0xe9, 0x81, 0x60, 0x29, 0x0f, 0xe0, 0x84, 0x09, 0x59, 0xb0, 0x6d, 0x95, 0xce, 0x4a, 0x8a, 0x3f,
-	0x40, 0x5b, 0x01, 0x09, 0x83, 0x34, 0x24, 0x12, 0xfc, 0x80, 0xc5, 0x92, 0x93, 0x40, 0x06, 0x6c,
-	0x00, 0x66, 0x43, 0xd7, 0xa1, 0x5d, 0x6a, 0x4f, 0x2a, 0x4a, 0xe5, 0xa6, 0xb2, 0x16, 0x49, 0x48,
-	0xe5, 0xb8, 0x1b, 0xca, 0xdc, 0x4a, 0xed, 0x98, 0x5b, 0x0f, 0xb5, 0x0b, 0x63, 0x1f, 0x5e, 0x49,
-	0x4e, 0xd4, 0x2d, 0x91, 0x48, 0x98, 0x4d, 0xed, 0x75, 0xaf, 0x50, 0x9e, 0x2a, 0xdd, 0xb9, 0x56,
-	0xa9, 0xbe, 0x10, 0x74, 0x18, 0x9b, 0xab, 0x96, 0xd1, 0x5d, 0xf5, 0xf4, 0xd9, 0xfe, 0xc3, 0x40,
-	0xdb, 0x73, 0xca, 0x81, 0x3f, 0x41, 0xcd, 0x08, 0xa2, 0x3e, 0x70, 0x5f, 0xed, 0x88, 0x7c, 0x85,
-	0xfc, 0x5f, 0x0f, 0xa0, 0xcc, 0xe5, 0x2c, 0xbe, 0x62, 0xf8, 0x53, 0xb4, 0x16, 0x81, 0x24, 0xbe,
-	0x6e, 0x06, 0x1d, 0x63, 0x41, 0xc7, 0xd8, 0xad, 0x36, 0xc2, 0xe7, 0x20, 0x89, 0x42, 0x2f, 0x9b,
-	0x20, 0xca, 0x05, 0x2a, 0x84, 0x1d, 0xa0, 0x7b, 0x33, 0x8c, 0xb0, 0x85, 0x56, 0x2b, 0x91, 0x8b,
-	0xd1, 0x47, 0xa5, 0xeb, 0x00, 0x1f, 0xa2, 0xcd, 0x80, 0x85, 0x69, 0x14, 0xfb, 0x34, 0x1e, 0xc0,
-	0xab, 0x6c, 0xf6, 0x16, 0xac, 0x5a, 0x77, 0xd1, 0x5b, 0xcf, 0x14, 0x67, 0x4a, 0xae, 0x67, 0xcd,
-	0x47, 0x9d, 0x59, 0xa3, 0xf6, 0xc6, 0xd3, 0x5e, 0xd9, 0x45, 0xb5, 0xb1, 0x5d, 0xf4, 0x8b, 0x81,
-	0xde, 0xba, 0x04, 0x1e, 0xd1, 0x98, 0x48, 0xc8, 0xfa, 0x29, 0x9b, 0xe3, 0x62, 0x54, 0x8d, 0x79,
-	0xa3, 0xba, 0x70, 0xc7, 0x51, 0x9d, 0x07, 0x3d, 0xab, 0xe8, 0xbd, 0x5f, 0x97, 0x50, 0x53, 0xb1,
-	0xb8, 0x00, 0x7e, 0x4d, 0x03, 0xc0, 0x09, 0xda, 0x9c, 0xda, 0xf0, 0x78, 0xcb, 0xc9, 0xde, 0x9d,
-	0x5b, 0xd8, 0x53, 0xf5, 0xee, 0x74, 0xde, 0x9e, 0xb9, 0xb4, 0xab, 0xfb, 0xd1, 0xb6, 0x7e, 0xfe,
-	0xfb, 0xf5, 0x6f, 0x0b, 0x1d, 0xbb, 0xed, 0x06, 0x84, 0x73, 0x0a, 0xdc, 0xbd, 0x7e, 0x5f, 0xbf,
-	0x79, 0xae, 0xaa, 0xc2, 0xb1, 0x71, 0x88, 0xbf, 0x47, 0x1b, 0x93, 0xdb, 0x15, 0x1f, 0x4c, 0x04,
-	0x9e, 0x5c, 0xf5, 0x1d, 0x6b, 0xbe, 0x41, 0x0e, 0xfc, 0x50, 0x03, 0x1f, 0xd8, 0x9d, 0x29, 0x60,
-	0x28, 0x6c, 0x15, 0xfa, 0xef, 0xb7, 0x4f, 0xda, 0xf4, 0xdb, 0x80, 0xbb, 0xf3, 0x60, 0x26, 0x9f,
-	0x8f, 0x3b, 0x10, 0x72, 0x34, 0xa1, 0xae, 0xfd, 0x60, 0x3e, 0xa1, 0x32, 0xaa, 0x62, 0xf6, 0xa3,
-	0x81, 0xf0, 0x74, 0x2b, 0xe2, 0xf2, 0xce, 0xe7, 0xbe, 0x08, 0x1d, 0xfb, 0xbf, 0x4c, 0x72, 0x36,
-	0x0f, 0x34, 0x9b, 0xfb, 0xb6, 0x39, 0xc5, 0x26, 0xc9, 0x9c, 0x14, 0x05, 0x8e, 0x5a, 0x63, 0xad,
-	0x8a, 0xf7, 0xca, 0x69, 0x9d, 0xd1, 0xc1, 0x9d, 0xbd, 0xf1, 0xd6, 0xbc, 0xa0, 0x51, 0x12, 0xc2,
-	0x1d, 0x0a, 0x22, 0x8b, 0x60, 0xc7, 0xc6, 0xe1, 0xe3, 0x47, 0x7f, 0xde, 0xec, 0x1b, 0x7f, 0xdd,
-	0xec, 0x1b, 0xff, 0xdc, 0xec, 0x1b, 0x5f, 0xbf, 0x3b, 0xa4, 0xf2, 0x79, 0xda, 0x77, 0x02, 0x16,
-	0xb9, 0x1e, 0x13, 0x20, 0x25, 0xf9, 0x2c, 0x64, 0x2f, 0xdd, 0x93, 0x2c, 0xc4, 0x7b, 0x4f, 0x99,
-	0x9b, 0xff, 0x39, 0xeb, 0xd7, 0x35, 0xf0, 0xd1, 0xbf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x13, 0xdd,
-	0xd8, 0xfb, 0xae, 0x09, 0x00, 0x00,
+	// 1306 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x57, 0x4d, 0x6f, 0x1b, 0xc5,
+	0x1b, 0xd7, 0xc6, 0x2f, 0xb1, 0x9f, 0xc4, 0x69, 0x3b, 0xad, 0xd3, 0x8d, 0x9b, 0xa6, 0xfe, 0x6f,
+	0xff, 0x45, 0xa6, 0x12, 0x36, 0xa4, 0x40, 0x51, 0xa1, 0x42, 0x69, 0x52, 0xaa, 0x48, 0x85, 0x46,
+	0x9b, 0xf6, 0xc2, 0xc5, 0x1a, 0xaf, 0x9f, 0xb8, 0xab, 0xee, 0xee, 0x2c, 0x33, 0xb3, 0x49, 0x83,
+	0x38, 0xf0, 0x72, 0x45, 0x5c, 0x10, 0xe2, 0x84, 0x38, 0xf1, 0x29, 0xf8, 0x02, 0x1c, 0x91, 0xf8,
+	0x02, 0x28, 0xea, 0x07, 0x41, 0x33, 0x3b, 0x6b, 0xef, 0xc6, 0x36, 0x4d, 0xe9, 0xc9, 0x33, 0xcf,
+	0xfb, 0x3c, 0x2f, 0xbf, 0x67, 0x0d, 0xad, 0xc0, 0x1f, 0xf4, 0x68, 0xec, 0xf7, 0x24, 0x15, 0xcf,
+	0xfa, 0x3c, 0xf6, 0xfa, 0x34, 0xf6, 0xbb, 0x31, 0x67, 0x92, 0x91, 0x2a, 0x8f, 0x3d, 0x1a, 0xfb,
+	0xad, 0xa6, 0x92, 0xf1, 0x58, 0x18, 0xb2, 0xa8, 0x37, 0xa0, 0x02, 0x53, 0x76, 0x81, 0x3c, 0xa4,
+	0x92, 0x1a, 0xb2, 0xad, 0xc8, 0xf2, 0x38, 0x46, 0xa1, 0x6d, 0xe6, 0x38, 0xeb, 0x13, 0x0e, 0x47,
+	0xc1, 0x12, 0xee, 0x61, 0x9e, 0x3b, 0x62, 0x6c, 0x14, 0xa0, 0x0e, 0x86, 0x46, 0x11, 0x93, 0x54,
+	0xfa, 0x2c, 0x12, 0x86, 0x7b, 0xc5, 0x70, 0xf5, 0x6d, 0x90, 0x1c, 0xf4, 0x30, 0x8c, 0xe5, 0x71,
+	0xca, 0x74, 0x7e, 0x2f, 0xc3, 0xca, 0x63, 0x2a, 0x9e, 0xed, 0xa0, 0xa4, 0x7e, 0xb0, 0xff, 0x94,
+	0x1d, 0x91, 0xcb, 0xb0, 0xa8, 0x5f, 0xe4, 0x0f, 0x6d, 0xab, 0x6d, 0x75, 0xea, 0x6e, 0x55, 0x5d,
+	0x77, 0x87, 0xe4, 0x0a, 0xd4, 0x35, 0x23, 0xa2, 0x21, 0xda, 0x0b, 0x9a, 0x55, 0x53, 0x84, 0xcf,
+	0x68, 0x88, 0xe4, 0x5d, 0xa8, 0xb0, 0xa3, 0x08, 0xb9, 0x5d, 0x6a, 0x5b, 0x9d, 0xa5, 0xcd, 0x8d,
+	0xee, 0x38, 0x19, 0x83, 0xe4, 0xa0, 0xab, 0x5c, 0x3c, 0xe2, 0x23, 0x1a, 0xf9, 0x5f, 0xea, 0xd8,
+	0xdc, 0x54, 0x98, 0x6c, 0x43, 0x83, 0x06, 0x23, 0xd6, 0x17, 0x49, 0x1c, 0x07, 0x3e, 0x72, 0xbb,
+	0x7c, 0x26, 0xed, 0x65, 0xa5, 0xb4, 0x6f, 0x74, 0xc8, 0x16, 0x34, 0x54, 0x32, 0x26, 0x46, 0x2a,
+	0xed, 0x52, 0x67, 0x69, 0x73, 0xbd, 0x9b, 0x16, 0x41, 0xab, 0xef, 0x50, 0x49, 0x33, 0x05, 0xf5,
+	0x4a, 0x77, 0x79, 0x98, 0xa3, 0x90, 0x1d, 0x58, 0x89, 0xd9, 0x11, 0xf2, 0x89, 0x8d, 0xaa, 0xb6,
+	0x71, 0x35, 0x6f, 0x63, 0x4f, 0x49, 0x14, 0x8c, 0x34, 0xe2, 0x3c, 0x89, 0x7c, 0x04, 0x75, 0x8e,
+	0x1e, 0xfa, 0x87, 0xc8, 0x85, 0xbd, 0xa8, 0x0d, 0xbc, 0xec, 0x25, 0x13, 0x05, 0x95, 0x5e, 0x8f,
+	0x23, 0x95, 0xd8, 0xa7, 0xd2, 0xae, 0xb5, 0xad, 0x4e, 0xd9, 0xad, 0xa5, 0x84, 0x2d, 0x49, 0xd6,
+	0xa0, 0x26, 0x24, 0xe5, 0x52, 0xf1, 0xea, 0x9a, 0xb7, 0xa8, 0xef, 0x5b, 0x92, 0x34, 0xa1, 0x8a,
+	0xd1, 0x50, 0x31, 0x40, 0x33, 0x2a, 0x18, 0x0d, 0xb7, 0x24, 0xb9, 0x04, 0x15, 0x21, 0xa9, 0x44,
+	0x7b, 0x49, 0x57, 0x2a, 0xbd, 0x90, 0x87, 0xb0, 0xc2, 0x62, 0xe4, 0xda, 0x79, 0xdf, 0x63, 0x42,
+	0xda, 0xcb, 0x3a, 0xe3, 0x37, 0xa6, 0xe3, 0x74, 0x4d, 0xa3, 0x6d, 0x33, 0x21, 0x77, 0xd0, 0x0b,
+	0x28, 0x47, 0xb7, 0x31, 0x56, 0x56, 0x54, 0xe7, 0x57, 0x0b, 0x2e, 0xcd, 0xca, 0x2e, 0xf9, 0x18,
+	0x96, 0x42, 0x0c, 0x07, 0xc8, 0xfb, 0x7e, 0x74, 0xc0, 0x74, 0x1f, 0xbd, 0x3c, 0x17, 0x90, 0xaa,
+	0xec, 0x46, 0x07, 0x8c, 0xb4, 0x61, 0x39, 0x44, 0x49, 0xfb, 0xba, 0xb0, 0xfe, 0xd0, 0xb4, 0x1b,
+	0x28, 0x9a, 0x72, 0xb6, 0x3b, 0x24, 0xff, 0x87, 0x95, 0x89, 0x84, 0x6e, 0xc9, 0x92, 0x96, 0x59,
+	0xce, 0x64, 0x54, 0x5b, 0x3a, 0x3f, 0x59, 0xd0, 0x9c, 0x59, 0xbb, 0xd7, 0x0f, 0xf1, 0x43, 0x80,
+	0xb4, 0x67, 0xb4, 0xfe, 0x82, 0xd6, 0x5f, 0xef, 0xea, 0x21, 0xed, 0x66, 0xb9, 0x7b, 0x22, 0xe8,
+	0x08, 0x1f, 0x1d, 0x22, 0x3f, 0xf4, 0xf1, 0xc8, 0xad, 0x6b, 0x79, 0xa5, 0xec, 0xfc, 0x66, 0x41,
+	0x43, 0x59, 0xbf, 0x7f, 0x88, 0x91, 0xd4, 0xf1, 0x10, 0x28, 0x2b, 0x5d, 0x33, 0x73, 0xfa, 0x9c,
+	0x1f, 0xc5, 0x85, 0xc2, 0x28, 0xbe, 0x5d, 0x9c, 0xb6, 0x56, 0x31, 0xec, 0x59, 0x93, 0x66, 0xc3,
+	0xa2, 0xc7, 0x22, 0x89, 0x91, 0xd4, 0x33, 0x56, 0x77, 0xb3, 0x6b, 0xb1, 0xef, 0x2a, 0xc5, 0xbe,
+	0x73, 0x10, 0x9a, 0x0f, 0x50, 0x4e, 0x10, 0xc2, 0x45, 0x11, 0xb3, 0x48, 0x20, 0xf9, 0x00, 0x96,
+	0xd4, 0xbb, 0x79, 0xa8, 0xbd, 0x98, 0xf4, 0xad, 0x16, 0x46, 0x6e, 0x0c, 0x29, 0x6e, 0x5e, 0x54,
+	0x3d, 0x94, 0xb3, 0x20, 0x43, 0x10, 0x7d, 0x76, 0xbe, 0xb1, 0x60, 0xad, 0xe0, 0xe7, 0xa1, 0x2f,
+	0xe4, 0xd8, 0xd7, 0x2a, 0x54, 0x55, 0xf7, 0x26, 0x42, 0xbb, 0xa9, 0xb8, 0xe6, 0x46, 0xce, 0x43,
+	0x29, 0x14, 0x23, 0x63, 0x48, 0x1d, 0xc9, 0x1d, 0x03, 0x51, 0x81, 0x2f, 0xa4, 0x5d, 0x2a, 0x8e,
+	0xf0, 0xcc, 0x77, 0xa4, 0x08, 0xa6, 0xbc, 0x39, 0x9b, 0x70, 0xd9, 0x88, 0xe8, 0xa2, 0xa4, 0x11,
+	0x7c, 0x91, 0xa0, 0x90, 0x73, 0x21, 0xd1, 0xb9, 0x0b, 0xed, 0xd3, 0x3a, 0xf7, 0x8e, 0x1f, 0x6b,
+	0x9e, 0xc8, 0x94, 0xd7, 0xa0, 0x66, 0x94, 0x55, 0xfc, 0x25, 0x95, 0xfa, 0x54, 0x5b, 0x38, 0xdf,
+	0x59, 0x60, 0x4f, 0xfb, 0x7c, 0xe5, 0x57, 0xdf, 0x85, 0x73, 0xda, 0x03, 0x2a, 0x1b, 0xf9, 0xb7,
+	0x37, 0xf3, 0xf5, 0x18, 0xb7, 0x9a, 0xdb, 0x90, 0x79, 0x87, 0xce, 0x8b, 0x32, 0xac, 0xed, 0x25,
+	0x83, 0xc0, 0x17, 0x4f, 0xd3, 0x04, 0xa5, 0xb3, 0x6e, 0xc2, 0x2f, 0xa0, 0xbe, 0x75, 0x0a, 0xf5,
+	0x09, 0x94, 0x13, 0x81, 0x3c, 0xab, 0xa5, 0x3a, 0x93, 0x5b, 0x50, 0x57, 0xbf, 0x7d, 0xdd, 0xcd,
+	0xaa, 0x3f, 0x57, 0x36, 0x57, 0x8b, 0xfd, 0xf9, 0x44, 0x20, 0x7f, 0x7c, 0x1c, 0xa3, 0x5b, 0x4b,
+	0xcc, 0x89, 0xbc, 0x0f, 0x55, 0x81, 0xd1, 0xf0, 0xcc, 0x1b, 0xc0, 0x48, 0x93, 0x9d, 0xd9, 0xd8,
+	0x7f, 0x6d, 0x1e, 0xf6, 0x67, 0x8f, 0x2b, 0xc2, 0xff, 0x1b, 0x70, 0x2e, 0x1d, 0xe5, 0x98, 0x72,
+	0x79, 0xac, 0x2b, 0x55, 0xd5, 0x95, 0x4a, 0x01, 0x7e, 0x4f, 0x51, 0x77, 0x87, 0x82, 0xdc, 0x9e,
+	0x06, 0xf8, 0x35, 0x33, 0xf1, 0x06, 0x31, 0x93, 0x40, 0xba, 0x46, 0x22, 0x8f, 0xed, 0xd3, 0xb0,
+	0x5b, 0xfb, 0xef, 0xb0, 0x4b, 0xde, 0x83, 0x55, 0x8f, 0x06, 0x5e, 0x12, 0xa8, 0xa1, 0x55, 0x63,
+	0xcc, 0xa9, 0x27, 0x3d, 0x36, 0x44, 0xbd, 0x1a, 0xea, 0x6e, 0x73, 0xcc, 0xdd, 0xce, 0x31, 0x95,
+	0x9a, 0x7a, 0xb5, 0x88, 0x03, 0x5f, 0x16, 0xd5, 0x20, 0x55, 0x1b, 0x73, 0x0b, 0x6a, 0x9b, 0xd0,
+	0xcc, 0x84, 0xfb, 0xf8, 0x5c, 0x72, 0xaa, 0xb2, 0x44, 0x43, 0x61, 0x16, 0xcb, 0xc5, 0x8c, 0x79,
+	0x5f, 0xf1, 0xf6, 0x34, 0x4b, 0xf5, 0x85, 0xf0, 0x47, 0x91, 0x5e, 0x2e, 0xcb, 0xae, 0x3e, 0x3b,
+	0xbf, 0x58, 0x70, 0x79, 0x4e, 0x39, 0x5e, 0x1f, 0x8c, 0xb7, 0xf2, 0xdb, 0x20, 0x07, 0xc8, 0x57,
+	0xf2, 0x8d, 0xf0, 0xa9, 0xd9, 0x0c, 0xe3, 0x26, 0x18, 0xaf, 0x13, 0x05, 0xc9, 0x1e, 0x5c, 0x9c,
+	0x21, 0x34, 0xb5, 0x89, 0xac, 0xa9, 0x4d, 0x74, 0x13, 0x2e, 0x78, 0x2c, 0x48, 0xc2, 0xa8, 0xef,
+	0x47, 0x43, 0x7c, 0x9e, 0x0e, 0xe0, 0x42, 0xbb, 0xd4, 0x29, 0xbb, 0xe7, 0x52, 0xc6, 0xae, 0xa2,
+	0xeb, 0x59, 0xeb, 0x43, 0x6b, 0xd6, 0xa8, 0xbd, 0xf2, 0xc8, 0xe7, 0x10, 0xa9, 0x54, 0x40, 0xa4,
+	0xef, 0xd5, 0x4a, 0x46, 0x1e, 0xfa, 0x11, 0x95, 0x98, 0xf6, 0x53, 0x3a, 0xc7, 0xd9, 0xa8, 0x5a,
+	0xf3, 0x46, 0x75, 0xe1, 0x8c, 0xa3, 0x3a, 0xcf, 0xf5, 0xac, 0xa2, 0x6f, 0xfe, 0x50, 0x81, 0x25,
+	0x15, 0xc5, 0xbe, 0x5a, 0x81, 0x1e, 0x92, 0x18, 0x2e, 0x4c, 0xe1, 0x3c, 0x59, 0xed, 0xa6, 0x9f,
+	0xa8, 0x13, 0xb7, 0xf7, 0xd5, 0x27, 0x6a, 0xeb, 0x7f, 0x33, 0xa1, 0x3b, 0x0f, 0x92, 0x4e, 0xfb,
+	0xdb, 0xbf, 0x5e, 0xfc, 0xb8, 0xd0, 0x72, 0x9a, 0x3d, 0x8f, 0x72, 0xee, 0x23, 0xef, 0x1d, 0xbe,
+	0xa3, 0x3f, 0x9e, 0x7b, 0xaa, 0x0a, 0x77, 0xac, 0x9b, 0xe4, 0x2b, 0x38, 0x7f, 0x1a, 0x62, 0xc9,
+	0xb5, 0x53, 0x86, 0x4f, 0x03, 0x7e, 0xab, 0x3d, 0x5f, 0xc0, 0x38, 0xbe, 0xa1, 0x1d, 0x5f, 0x73,
+	0x5a, 0x53, 0x8e, 0x31, 0x93, 0x55, 0xde, 0x7f, 0x9e, 0x2c, 0xb6, 0xe9, 0x0d, 0x41, 0x3a, 0xf3,
+	0xdc, 0x9c, 0x5e, 0x22, 0x67, 0x08, 0xa8, 0xab, 0x03, 0xea, 0x38, 0xd7, 0xe7, 0x07, 0x34, 0xb6,
+	0xaa, 0x22, 0xfb, 0xda, 0x02, 0x32, 0xdd, 0x8a, 0x64, 0x9c, 0xf3, 0xb9, 0x1b, 0xa1, 0xe5, 0xfc,
+	0x9b, 0x88, 0x89, 0xe6, 0xba, 0x8e, 0xe6, 0xaa, 0x63, 0x4f, 0x45, 0x13, 0xa7, 0x4a, 0x2a, 0x04,
+	0x0e, 0x8d, 0x42, 0xab, 0x92, 0xc9, 0x27, 0xfb, 0x8c, 0x0e, 0x6e, 0xad, 0x17, 0x5b, 0x73, 0xdf,
+	0x0f, 0xe3, 0x00, 0xcf, 0x50, 0x10, 0x99, 0x19, 0xbb, 0x63, 0xdd, 0xbc, 0x77, 0xfb, 0x8f, 0x93,
+	0x0d, 0xeb, 0xcf, 0x93, 0x0d, 0xeb, 0xef, 0x93, 0x0d, 0xeb, 0xf3, 0x37, 0x47, 0xbe, 0x7c, 0x9a,
+	0x0c, 0xba, 0x1e, 0x0b, 0x7b, 0x2e, 0x13, 0x28, 0x25, 0xfd, 0x24, 0x60, 0x47, 0xbd, 0xed, 0xd4,
+	0xc4, 0x5b, 0x0f, 0x58, 0xcf, 0xfc, 0xcb, 0x1b, 0x54, 0xb5, 0xe3, 0x5b, 0xff, 0x04, 0x00, 0x00,
+	0xff, 0xff, 0x68, 0xe1, 0x96, 0x7e, 0xf7, 0x0d, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1001,6 +1358,316 @@ var _TaskService_serviceDesc = grpc.ServiceDesc{
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "lib/api/task_rpc_api.proto",
+}
+
+func (m *TaskDetailShow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskDetailShow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskDetailShow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.OperationCost != nil {
+		{
+			size, err := m.OperationCost.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x62
+	}
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.State)))
+		i--
+		dAtA[i] = 0x5a
+	}
+	if m.EndAt != 0 {
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(m.EndAt))
+		i--
+		dAtA[i] = 0x50
+	}
+	if m.StartAt != 0 {
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(m.StartAt))
+		i--
+		dAtA[i] = 0x48
+	}
+	if m.CreateAt != 0 {
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(m.CreateAt))
+		i--
+		dAtA[i] = 0x40
+	}
+	if len(m.Receivers) > 0 {
+		for iNdEx := len(m.Receivers) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Receivers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x3a
+		}
+	}
+	if len(m.PowerSupplier) > 0 {
+		for iNdEx := len(m.PowerSupplier) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.PowerSupplier[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x32
+		}
+	}
+	if len(m.DataSupplier) > 0 {
+		for iNdEx := len(m.DataSupplier) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.DataSupplier[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if m.AlgoSupplier != nil {
+		{
+			size, err := m.AlgoSupplier.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.TaskName) > 0 {
+		i -= len(m.TaskName)
+		copy(dAtA[i:], m.TaskName)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.TaskName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.TaskId) > 0 {
+		i -= len(m.TaskId)
+		copy(dAtA[i:], m.TaskId)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.TaskId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskDataSupplierShow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskDataSupplierShow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskDataSupplierShow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.MetaDataName) > 0 {
+		i -= len(m.MetaDataName)
+		copy(dAtA[i:], m.MetaDataName)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.MetaDataName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.MetaDataId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.MemberInfo != nil {
+		{
+			size, err := m.MemberInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskPowerSupplierShow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskPowerSupplierShow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskPowerSupplierShow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.PowerInfo != nil {
+		{
+			size, err := m.PowerInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.MemberInfo != nil {
+		{
+			size, err := m.MemberInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *TaskEventShow) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *TaskEventShow) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *TaskEventShow) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.CreateAt != 0 {
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(m.CreateAt))
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.Content) > 0 {
+		i -= len(m.Content)
+		copy(dAtA[i:], m.Content)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.Content)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTaskRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.TaskId) > 0 {
+		i -= len(m.TaskId)
+		copy(dAtA[i:], m.TaskId)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.TaskId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Type) > 0 {
+		i -= len(m.Type)
+		copy(dAtA[i:], m.Type)
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(len(m.Type)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
 }
 
 func (m *GetTaskDetailResponse) Marshal() (dAtA []byte, err error) {
@@ -1436,20 +2103,20 @@ func (m *TaskMetaDataDeclare) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
 	if len(m.ColumnIndexList) > 0 {
-		dAtA7 := make([]byte, len(m.ColumnIndexList)*10)
-		var j6 int
+		dAtA14 := make([]byte, len(m.ColumnIndexList)*10)
+		var j13 int
 		for _, num := range m.ColumnIndexList {
 			for num >= 1<<7 {
-				dAtA7[j6] = uint8(uint64(num)&0x7f | 0x80)
+				dAtA14[j13] = uint8(uint64(num)&0x7f | 0x80)
 				num >>= 7
-				j6++
+				j13++
 			}
-			dAtA7[j6] = uint8(num)
-			j6++
+			dAtA14[j13] = uint8(num)
+			j13++
 		}
-		i -= j6
-		copy(dAtA[i:], dAtA7[:j6])
-		i = encodeVarintTaskRpcApi(dAtA, i, uint64(j6))
+		i -= j13
+		copy(dAtA[i:], dAtA14[:j13])
+		i = encodeVarintTaskRpcApi(dAtA, i, uint64(j13))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -1573,6 +2240,144 @@ func encodeVarintTaskRpcApi(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
+func (m *TaskDetailShow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.TaskId)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	l = len(m.TaskName)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.AlgoSupplier != nil {
+		l = m.AlgoSupplier.Size()
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if len(m.DataSupplier) > 0 {
+		for _, e := range m.DataSupplier {
+			l = e.Size()
+			n += 1 + l + sovTaskRpcApi(uint64(l))
+		}
+	}
+	if len(m.PowerSupplier) > 0 {
+		for _, e := range m.PowerSupplier {
+			l = e.Size()
+			n += 1 + l + sovTaskRpcApi(uint64(l))
+		}
+	}
+	if len(m.Receivers) > 0 {
+		for _, e := range m.Receivers {
+			l = e.Size()
+			n += 1 + l + sovTaskRpcApi(uint64(l))
+		}
+	}
+	if m.CreateAt != 0 {
+		n += 1 + sovTaskRpcApi(uint64(m.CreateAt))
+	}
+	if m.StartAt != 0 {
+		n += 1 + sovTaskRpcApi(uint64(m.StartAt))
+	}
+	if m.EndAt != 0 {
+		n += 1 + sovTaskRpcApi(uint64(m.EndAt))
+	}
+	l = len(m.State)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.OperationCost != nil {
+		l = m.OperationCost.Size()
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskDataSupplierShow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MemberInfo != nil {
+		l = m.MemberInfo.Size()
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	l = len(m.MetaDataId)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	l = len(m.MetaDataName)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskPowerSupplierShow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MemberInfo != nil {
+		l = m.MemberInfo.Size()
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.PowerInfo != nil {
+		l = m.PowerInfo.Size()
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *TaskEventShow) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Type)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	l = len(m.TaskId)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	l = len(m.Content)
+	if l > 0 {
+		n += 1 + l + sovTaskRpcApi(uint64(l))
+	}
+	if m.CreateAt != 0 {
+		n += 1 + sovTaskRpcApi(uint64(m.CreateAt))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *GetTaskDetailResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1841,6 +2646,896 @@ func sovTaskRpcApi(x uint64) (n int) {
 func sozTaskRpcApi(x uint64) (n int) {
 	return sovTaskRpcApi(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+func (m *TaskDetailShow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTaskRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskDetailShow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskDetailShow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &common.TaskOrganization{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field AlgoSupplier", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.AlgoSupplier == nil {
+				m.AlgoSupplier = &common.TaskOrganization{}
+			}
+			if err := m.AlgoSupplier.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DataSupplier", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.DataSupplier = append(m.DataSupplier, &TaskDataSupplierShow{})
+			if err := m.DataSupplier[len(m.DataSupplier)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerSupplier", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PowerSupplier = append(m.PowerSupplier, &TaskPowerSupplierShow{})
+			if err := m.PowerSupplier[len(m.PowerSupplier)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Receivers", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Receivers = append(m.Receivers, &common.TaskOrganization{})
+			if err := m.Receivers[len(m.Receivers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
+			}
+			m.CreateAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CreateAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartAt", wireType)
+			}
+			m.StartAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EndAt", wireType)
+			}
+			m.EndAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.EndAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OperationCost", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.OperationCost == nil {
+				m.OperationCost = &common.TaskResourceCostDeclare{}
+			}
+			if err := m.OperationCost.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTaskRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskDataSupplierShow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTaskRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskDataSupplierShow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskDataSupplierShow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MemberInfo == nil {
+				m.MemberInfo = &common.TaskOrganization{}
+			}
+			if err := m.MemberInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetaDataName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTaskRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskPowerSupplierShow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTaskRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskPowerSupplierShow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskPowerSupplierShow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MemberInfo == nil {
+				m.MemberInfo = &common.TaskOrganization{}
+			}
+			if err := m.MemberInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.PowerInfo == nil {
+				m.PowerInfo = &types.ResourceUsageOverview{}
+			}
+			if err := m.PowerInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTaskRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *TaskEventShow) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTaskRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: TaskEventShow: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: TaskEventShow: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Type = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &common.Organization{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Content", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Content = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
+			}
+			m.CreateAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTaskRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CreateAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTaskRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTaskRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *GetTaskDetailResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1900,7 +3595,7 @@ func (m *GetTaskDetailResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Information == nil {
-				m.Information = &types.TaskDetail{}
+				m.Information = &TaskDetailShow{}
 			}
 			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2371,7 +4066,7 @@ func (m *GetTaskEventListResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.TaskEventList = append(m.TaskEventList, &types.TaskEvent{})
+			m.TaskEventList = append(m.TaskEventList, &TaskEventShow{})
 			if err := m.TaskEventList[len(m.TaskEventList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

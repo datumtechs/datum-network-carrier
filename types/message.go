@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"strings"
@@ -65,9 +66,9 @@ type IdentityRevokeMsgs []*IdentityRevokeMsg
 
 func (msg *IdentityMsg) ToDataCenter() *Identity {
 	return NewIdentity(&libTypes.IdentityData{
-		NodeName: msg.Name,
-		NodeId:   msg.NodeId,
-		Identity: msg.IdentityId,
+		NodeName:   msg.Name,
+		NodeId:     msg.NodeId,
+		IdentityId: msg.IdentityId,
 	})
 }
 func (msg *IdentityMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -109,7 +110,7 @@ type PowerMsg struct {
 func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
 	msg := &PowerMsg{
 		JobNodeId: req.JobNodeId,
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt:  uint64(timeutils.UnixMsec()),
 	}
 	msg.SetPowerId()
 	return msg
@@ -133,7 +134,7 @@ type PowerRevokeMsg struct {
 
 func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMsg {
 	return &PowerRevokeMsg{
-		PowerId: req.PowerId,
+		PowerId:  req.PowerId,
 		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 }
@@ -197,8 +198,8 @@ func (msg *PowerMsg) String() string {
 }
 func (msg *PowerMsg) MsgType() string { return MSG_POWER }
 
-func (msg *PowerMsg) GetJobNodeId() string    { return msg.JobNodeId }
-func (msg *PowerMsg) GetCreateAt() uint64        { return msg.CreateAt }
+func (msg *PowerMsg) GetJobNodeId() string { return msg.JobNodeId }
+func (msg *PowerMsg) GetCreateAt() uint64  { return msg.CreateAt }
 func (msg *PowerMsg) SetPowerId() string {
 	if "" != msg.PowerId {
 		return msg.PowerId
@@ -220,7 +221,7 @@ func (msg *PowerMsg) Hash() common.Hash {
 
 func (msg *PowerMsg) HashByCreateTime() common.Hash {
 
-	return  rlputil.RlpHash([]interface{}{
+	return rlputil.RlpHash([]interface{}{
 		msg.JobNodeId,
 		//msg.CreateAt,
 		uint64(timeutils.UnixMsec()),
@@ -279,14 +280,9 @@ type MetaDataMsg struct {
 func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg {
 	return &MetaDataMsg{
 		Data: &metadataData{
-			NodeAlias: &NodeAlias{
-				Name:       req.Owner.Name,
-				NodeId:     req.Owner.NodeId,
-				IdentityId: req.Owner.IdentityId,
-			},
 			Information: struct {
-				MetaDataSummary *MetaDataSummary    `json:"metaDataSummary"`
-				ColumnMetas     []*types.ColumnMeta `json:"columnMetas"`
+				MetaDataSummary *MetaDataSummary           `json:"metaDataSummary"`
+				ColumnMetas     []*libTypes.MetadataColumn `json:"columnMetas"`
 			}{
 				MetaDataSummary: &MetaDataSummary{
 					MetaDataId: req.Information.MetaDataSummary.MetaDataId,
@@ -301,7 +297,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 					HasTitle:   req.Information.MetaDataSummary.HasTitle,
 					State:      req.Information.MetaDataSummary.State,
 				},
-				ColumnMetas: make([]*types.ColumnMeta, 0),
+				ColumnMetas: make([]*types.MetadataColumn, 0),
 			},
 			CreateAt: uint64(timeutils.UnixMsec()),
 		},
@@ -311,8 +307,8 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 type metadataData struct {
 	*NodeAlias
 	Information struct {
-		MetaDataSummary *MetaDataSummary    `json:"metaDataSummary"`
-		ColumnMetas     []*types.ColumnMeta `json:"columnMetas"`
+		MetaDataSummary *MetaDataSummary        `json:"metaDataSummary"`
+		ColumnMetas     []*types.MetadataColumn `json:"columnMetas"`
 	} `json:"information"`
 	CreateAt uint64 `json:"createAt"`
 }
@@ -346,13 +342,8 @@ type MetaDataRevokeMsg struct {
 
 func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetaDataRequest) *MetaDataRevokeMsg {
 	return &MetaDataRevokeMsg{
-		NodeAlias: &NodeAlias{
-			Name:       req.Owner.Name,
-			NodeId:     req.Owner.NodeId,
-			IdentityId: req.Owner.IdentityId,
-		},
 		MetaDataId: req.MetaDataId,
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt:   uint64(timeutils.UnixMsec()),
 	}
 }
 
@@ -361,20 +352,20 @@ type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
 func (msg *MetaDataMsg) ToDataCenter() *Metadata {
 	return NewMetadata(&libTypes.MetaData{
-		Identity:       msg.OwnerIdentityId(),
-		NodeId:         msg.OwnerNodeId(),
-		NodeName:       msg.OwnerName(),
-		DataId:         msg.MetaDataId,
-		OriginId:       msg.OriginId(),
-		TableName:      msg.TableName(),
-		FilePath:       msg.FilePath(),
-		FileType:       msg.FileType(),
-		Desc:           msg.Desc(),
-		Rows:           uint64(msg.Rows()),
-		Columns:        uint64(msg.Columns()),
-		Size_:          uint64(msg.Size()),
-		HasTitleRow:    msg.HasTitle(),
-		ColumnMetaList: msg.ColumnMetas(),
+		IdentityId:         msg.OwnerIdentityId(),
+		NodeId:             msg.OwnerNodeId(),
+		NodeName:           msg.OwnerName(),
+		DataId:             msg.MetaDataId,
+		OriginId:           msg.OriginId(),
+		TableName:          msg.TableName(),
+		FilePath:           msg.FilePath(),
+		FileType:           msg.FileType(),
+		Desc:               msg.Desc(),
+		Rows:               uint64(msg.Rows()),
+		Columns:            uint64(msg.Columns()),
+		Size_:              uint64(msg.Size()),
+		HasTitle:           msg.HasTitle(),
+		MetadataColumnList: msg.ColumnMetas(),
 		// the status of data, N means normal, D means deleted.
 		DataStatus: DataStatusNormal.String(),
 		// metaData status, eg: create/release/revoke
@@ -404,18 +395,18 @@ func (msg *MetaDataMsg) OwnerIdentityId() string { return msg.Data.IdentityId }
 func (msg *MetaDataMsg) MetaDataSummary() *MetaDataSummary {
 	return msg.Data.Information.MetaDataSummary
 }
-func (msg *MetaDataMsg) OriginId() string                 { return msg.Data.Information.MetaDataSummary.OriginId }
-func (msg *MetaDataMsg) TableName() string                { return msg.Data.Information.MetaDataSummary.TableName }
-func (msg *MetaDataMsg) Desc() string                     { return msg.Data.Information.MetaDataSummary.Desc }
-func (msg *MetaDataMsg) FilePath() string                 { return msg.Data.Information.MetaDataSummary.FilePath }
-func (msg *MetaDataMsg) Rows() uint32                     { return msg.Data.Information.MetaDataSummary.Rows }
-func (msg *MetaDataMsg) Columns() uint32                  { return msg.Data.Information.MetaDataSummary.Columns }
-func (msg *MetaDataMsg) Size() uint32                     { return msg.Data.Information.MetaDataSummary.Size }
-func (msg *MetaDataMsg) FileType() string                 { return msg.Data.Information.MetaDataSummary.FileType }
-func (msg *MetaDataMsg) HasTitle() bool                   { return msg.Data.Information.MetaDataSummary.HasTitle }
-func (msg *MetaDataMsg) State() string                    { return msg.Data.Information.MetaDataSummary.State }
-func (msg *MetaDataMsg) ColumnMetas() []*types.ColumnMeta { return msg.Data.Information.ColumnMetas }
-func (msg *MetaDataMsg) CreateAt() uint64                 { return msg.Data.CreateAt }
+func (msg *MetaDataMsg) OriginId() string                     { return msg.Data.Information.MetaDataSummary.OriginId }
+func (msg *MetaDataMsg) TableName() string                    { return msg.Data.Information.MetaDataSummary.TableName }
+func (msg *MetaDataMsg) Desc() string                         { return msg.Data.Information.MetaDataSummary.Desc }
+func (msg *MetaDataMsg) FilePath() string                     { return msg.Data.Information.MetaDataSummary.FilePath }
+func (msg *MetaDataMsg) Rows() uint32                         { return msg.Data.Information.MetaDataSummary.Rows }
+func (msg *MetaDataMsg) Columns() uint32                      { return msg.Data.Information.MetaDataSummary.Columns }
+func (msg *MetaDataMsg) Size() uint32                         { return msg.Data.Information.MetaDataSummary.Size }
+func (msg *MetaDataMsg) FileType() string                     { return msg.Data.Information.MetaDataSummary.FileType }
+func (msg *MetaDataMsg) HasTitle() bool                       { return msg.Data.Information.MetaDataSummary.HasTitle }
+func (msg *MetaDataMsg) State() string                        { return msg.Data.Information.MetaDataSummary.State }
+func (msg *MetaDataMsg) ColumnMetas() []*types.MetadataColumn { return msg.Data.Information.ColumnMetas }
+func (msg *MetaDataMsg) CreateAt() uint64                     { return msg.Data.CreateAt }
 func (msg *MetaDataMsg) SetMetaDataId() string {
 	if "" != msg.MetaDataId {
 		return msg.MetaDataId
@@ -441,10 +432,10 @@ func (msg *MetaDataMsg) HashByCreateTime() common.Hash {
 
 func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
 	return NewMetadata(&libTypes.MetaData{
-		Identity: msg.IdentityId,
-		NodeId:   msg.NodeId,
-		NodeName: msg.Name,
-		DataId:   msg.MetaDataId,
+		IdentityId: msg.IdentityId,
+		NodeId:     msg.NodeId,
+		NodeName:   msg.Name,
+		DataId:     msg.MetaDataId,
 		// the status of data, N means normal, D means deleted.
 		DataStatus: DataStatusDeleted.String(),
 		// metaData status, eg: create/release/revoke
@@ -554,10 +545,10 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 
 			TaskId:     "",
 			TaskName:   req.TaskName,
-			PartyId:    req.Owner.PartyId,
-			Identity:   req.Owner.IdentityId,
-			NodeId:     req.Owner.NodeId,
-			NodeName:   req.Owner.Name,
+			PartyId:    req.Sender.PartyId,
+			IdentityId: req.Sender.IdentityId,
+			NodeId:     req.Sender.NodeId,
+			NodeName:   req.Sender.NodeName,
 			DataId:     "",
 			DataStatus: DataStatusNormal.String(),
 			State:      TaskStatePending.String(),
@@ -567,25 +558,21 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			CreateAt:   uint64(timeutils.UnixMsec()),
 			EndAt:      0,
 			StartAt:    0,
-			AlgoSupplier: &libTypes.OrganizationData{
+			//TODO: 缺失，算法提供者信息
+			/*AlgoSupplier: &apipb.TaskOrganization{
 				PartyId:  req.Owner.PartyId,
 				Identity: req.Owner.IdentityId,
 				NodeId:   req.Owner.NodeId,
 				NodeName: req.Owner.Name,
-			},
-			TaskResource: &libTypes.TaskResourceData{
-				CostProcessor: uint32(req.OperationCost.CostProcessor),
-				CostMem:       req.OperationCost.CostMem,
-				CostBandwidth: req.OperationCost.CostBandwidth,
-				Duration:      req.OperationCost.Duration,
-			},
+			},*/
+			OperationCost:         req.OperationCost,
 			CalculateContractCode: req.CalculateContractcode,
 			DataSplitContractCode: req.DatasplitContractcode,
-			ContractExtraParams: req.ContractExtraParams,
+			ContractExtraParams:   req.ContractExtraParams,
 		}),
 	}
 }
-func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libTypes.TaskResourceSupplierData) *Task {
+func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libTypes.TaskPowerSupplier) *Task {
 	task.SetResourceSupplierArr(powers)
 
 	if len(powers) == 0 {
@@ -593,14 +580,14 @@ func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libTypes.TaskResourceS
 	}
 
 	// 组装 选出来的, powerSuppliers 到 receivers 中
-	privors := make([]*libTypes.OrganizationData, len(powers))
+	privors := make([]*apipb.TaskOrganization, len(powers))
 	for i, supplier := range powers {
 		privors[i] = supplier.Organization
 	}
 
-	for i, _ := range task.TaskData().Receivers {
+	for i := range task.TaskData().Receivers {
 		receiver := task.TaskData().Receivers[i]
-		receiver.Provider = privors
+		receiver.Providers = privors
 		task.TaskData().Receivers[i] = receiver
 	}
 
@@ -616,72 +603,72 @@ func (msg *TaskMsg) String() string {
 		msg.TaskId, "["+strings.Join(msg.PowerPartyIds, ",")+"]", msg.Data.TaskData().String())
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
-func (msg *TaskMsg) Owner() *libTypes.OrganizationData {
-	return &libTypes.OrganizationData{
-		PartyId:  msg.Data.data.PartyId,
-		NodeName: msg.Data.data.NodeName,
-		NodeId:   msg.Data.data.NodeId,
-		Identity: msg.Data.data.Identity,
+func (msg *TaskMsg) Owner() *apipb.TaskOrganization {
+	return &apipb.TaskOrganization{
+		PartyId:    msg.Data.data.PartyId,
+		NodeName:   msg.Data.data.NodeName,
+		NodeId:     msg.Data.data.NodeId,
+		IdentityId: msg.Data.data.IdentityId,
 	}
 }
 func (msg *TaskMsg) OwnerName() string       { return msg.Data.data.NodeName }
 func (msg *TaskMsg) OwnerNodeId() string     { return msg.Data.data.NodeId }
-func (msg *TaskMsg) OwnerIdentityId() string { return msg.Data.data.Identity }
+func (msg *TaskMsg) OwnerIdentityId() string { return msg.Data.data.IdentityId }
 func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.data.PartyId }
 func (msg *TaskMsg) TaskName() string        { return msg.Data.data.TaskName }
 
-func (msg *TaskMsg) TaskMetadataSuppliers() []*libTypes.OrganizationData {
-	partners := make([]*libTypes.OrganizationData, len(msg.Data.data.MetadataSupplier))
-	for i, v := range msg.Data.data.MetadataSupplier {
-		partners[i] = &libTypes.OrganizationData{
-			PartyId:  v.Organization.PartyId,
-			NodeName: v.Organization.NodeName,
-			NodeId:   v.Organization.NodeId,
-			Identity: v.Organization.Identity,
+func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {
+	partners := make([]*apipb.TaskOrganization, len(msg.Data.data.DataSupplier))
+	for i, v := range msg.Data.data.DataSupplier {
+		partners[i] = &apipb.TaskOrganization{
+			PartyId:    v.MemberInfo.PartyId,
+			NodeName:   v.MemberInfo.NodeName,
+			NodeId:     v.MemberInfo.NodeId,
+			IdentityId: v.MemberInfo.IdentityId,
 		}
 	}
 	return partners
 }
-func (msg *TaskMsg) TaskMetadataSupplierDatas() []*libTypes.TaskMetadataSupplierData {
-	return msg.Data.data.MetadataSupplier
+func (msg *TaskMsg) TaskMetadataSupplierDatas() []*libTypes.TaskDataSupplier {
+	return msg.Data.data.DataSupplier
 }
 
-func (msg *TaskMsg) TaskResourceSuppliers() []*libTypes.OrganizationData {
-	powers := make([]*libTypes.OrganizationData, len(msg.Data.data.ResourceSupplier))
-	for i, v := range msg.Data.data.ResourceSupplier {
-		powers[i] = &libTypes.OrganizationData{
-			PartyId:  v.Organization.PartyId,
-			NodeName: v.Organization.NodeName,
-			NodeId:   v.Organization.NodeId,
-			Identity: v.Organization.Identity,
+func (msg *TaskMsg) TaskResourceSuppliers() []*apipb.TaskOrganization {
+	powers := make([]*apipb.TaskOrganization, len(msg.Data.data.PowerSupplier))
+	for i, v := range msg.Data.data.PowerSupplier {
+		powers[i] = &apipb.TaskOrganization{
+			PartyId:    v.Organization.PartyId,
+			NodeName:   v.Organization.NodeName,
+			NodeId:     v.Organization.NodeId,
+			IdentityId: v.Organization.IdentityId,
 		}
 	}
 	return powers
 }
-func (msg *TaskMsg) TaskResourceSupplierDatas() []*libTypes.TaskResourceSupplierData {
-	return msg.Data.data.ResourceSupplier
+func (msg *TaskMsg) TaskResourceSupplierDatas() []*libTypes.TaskPowerSupplier {
+	return msg.Data.data.PowerSupplier
 }
 func (msg *TaskMsg) GetPowerPartyIds() []string { return msg.PowerPartyIds }
-func (msg *TaskMsg) GetReceivers() []*libTypes.OrganizationData {
-	receivers := make([]*libTypes.OrganizationData, len(msg.Data.data.Receivers))
+func (msg *TaskMsg) GetReceivers() []*apipb.TaskOrganization {
+	receivers := make([]*apipb.TaskOrganization, len(msg.Data.data.Receivers))
 	for i, v := range msg.Data.data.Receivers {
-		receivers[i] = &libTypes.OrganizationData{
-			PartyId:  v.Receiver.PartyId,
-			NodeName: v.Receiver.NodeName,
-			NodeId:   v.Receiver.NodeId,
-			Identity: v.Receiver.Identity,
+		receivers[i] = &apipb.TaskOrganization{
+			PartyId:    v.Receiver.PartyId,
+			NodeName:   v.Receiver.NodeName,
+			NodeId:     v.Receiver.NodeId,
+			IdentityId: v.Receiver.IdentityId,
 		}
 	}
 	return receivers
 }
-func (msg *TaskMsg) TaskResultReceiverDatas() []*libTypes.TaskResultReceiverData {
+func (msg *TaskMsg) TaskResultReceiverDatas() []*libTypes.TaskResultReceiver {
 	return msg.Data.data.Receivers
 }
-func (msg *TaskMsg) CalculateContractCode() string             { return msg.Data.data.CalculateContractCode }
-func (msg *TaskMsg) DataSplitContractCode() string             { return msg.Data.data.DataSplitContractCode }
-func (msg *TaskMsg) ContractExtraParams() string               { return msg.Data.data.ContractExtraParams }
-func (msg *TaskMsg) OperationCost() *libTypes.TaskResourceData { return msg.Data.data.TaskResource }
-func (msg *TaskMsg) CreateAt() uint64                          { return msg.Data.data.CreateAt }
+func (msg *TaskMsg) CalculateContractCode() string                 { return msg.Data.data.CalculateContractCode }
+func (msg *TaskMsg) DataSplitContractCode() string                 { return msg.Data.data.DataSplitContractCode }
+func (msg *TaskMsg) ContractExtraParams() string                   { return msg.Data.data.ContractExtraParams }
+func (msg *TaskMsg) OperationCost() *apipb.TaskResourceCostDeclare { return msg.Data.data.OperationCost }
+func (msg *TaskMsg) CreateAt() uint64                              { return msg.Data.data.CreateAt }
 func (msg *TaskMsg) SetTaskId() string {
 	if "" != msg.TaskId {
 		return msg.TaskId
@@ -700,7 +687,7 @@ func (msg *TaskMsg) Hash() common.Hash {
 
 func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	return rlputil.RlpHash([]interface{}{
-		msg.Data.TaskData().Identity,
+		msg.Data.TaskData().IdentityId,
 		msg.Data.TaskData().PartyId,
 		msg.Data.TaskData().TaskName,
 		//msg.Data.TaskData().CreateAt,
@@ -741,18 +728,18 @@ func (cost *TaskOperationCost) String() string {
 	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
 }
 
-func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *pb.TaskOperationCostDeclare {
-	return &pb.TaskOperationCostDeclare{
+func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *apipb.TaskResourceCostDeclare {
+	return &apipb.TaskResourceCostDeclare{
 		CostMem:       cost.Mem,
-		CostProcessor: cost.Processor,
+		CostProcessor: uint32(cost.Processor),
 		CostBandwidth: cost.Bandwidth,
 		Duration:      cost.Duration,
 	}
 }
-func ConvertTaskOperationCostFromPB(cost *pb.TaskOperationCostDeclare) *TaskOperationCost {
+func ConvertTaskOperationCostFromPB(cost *apipb.TaskResourceCostDeclare) *TaskOperationCost {
 	return &TaskOperationCost{
 		Mem:       cost.CostMem,
-		Processor: cost.CostProcessor,
+		Processor: uint64(cost.CostProcessor),
 		Bandwidth: cost.CostBandwidth,
 		Duration:  cost.Duration,
 	}
@@ -797,47 +784,46 @@ type TaskNodeAlias struct {
 	IdentityId string `json:"identityId"`
 }
 
-func (tna *TaskNodeAlias) String () string {
+func (tna *TaskNodeAlias) String() string {
 	return fmt.Sprintf(`{"partyId": %s, "name": %s, "nodeId": %s, "identityId": %s}`, tna.PartyId, tna.Name, tna.NodeId, tna.IdentityId)
 }
 
-
-func ConvertNodeAliasToPB(alias *NodeAlias) *pb.OrganizationIdentityInfo {
-	return &pb.OrganizationIdentityInfo{
-		Name:       alias.Name,
+func ConvertNodeAliasToPB(alias *NodeAlias) *apipb.Organization {
+	return &apipb.Organization{
+		NodeName:   alias.Name,
 		NodeId:     alias.NodeId,
 		IdentityId: alias.IdentityId,
 	}
 }
 
-func ConvertTaskNodeAliasToPB(alias *TaskNodeAlias) *pb.TaskOrganizationIdentityInfo {
-	return &pb.TaskOrganizationIdentityInfo{
+func ConvertTaskNodeAliasToPB(alias *TaskNodeAlias) *apipb.TaskOrganization {
+	return &apipb.TaskOrganization{
 		PartyId:    alias.PartyId,
-		Name:       alias.Name,
+		NodeName:   alias.Name,
 		NodeId:     alias.NodeId,
 		IdentityId: alias.IdentityId,
 	}
 }
 
-func ConvertNodeAliasFromPB(org *pb.OrganizationIdentityInfo) *NodeAlias {
+func ConvertNodeAliasFromPB(org *apipb.Organization) *NodeAlias {
 	return &NodeAlias{
-		Name:       org.Name,
+		Name:       org.NodeName,
 		NodeId:     org.NodeId,
 		IdentityId: org.IdentityId,
 	}
 }
 
-func ConvertTaskNodeAliasFromPB(org *pb.TaskOrganizationIdentityInfo) *TaskNodeAlias {
+func ConvertTaskNodeAliasFromPB(org *apipb.TaskOrganization) *TaskNodeAlias {
 	return &TaskNodeAlias{
 		PartyId:    org.PartyId,
-		Name:       org.Name,
+		Name:       org.NodeName,
 		NodeId:     org.NodeId,
 		IdentityId: org.IdentityId,
 	}
 }
 
-func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*pb.OrganizationIdentityInfo {
-	orgs := make([]*pb.OrganizationIdentityInfo, len(aliases))
+func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*apipb.Organization {
+	orgs := make([]*apipb.Organization, len(aliases))
 	for i, a := range aliases {
 		org := ConvertNodeAliasToPB(a)
 		orgs[i] = org
@@ -845,8 +831,8 @@ func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*pb.OrganizationIdentityInf
 	return orgs
 }
 
-func ConvertTaskNodeAliasArrToPB(aliases []*TaskNodeAlias) []*pb.TaskOrganizationIdentityInfo {
-	orgs := make([]*pb.TaskOrganizationIdentityInfo, len(aliases))
+func ConvertTaskNodeAliasArrToPB(aliases []*TaskNodeAlias) []*apipb.TaskOrganization {
+	orgs := make([]*apipb.TaskOrganization, len(aliases))
 	for i, a := range aliases {
 		org := ConvertTaskNodeAliasToPB(a)
 		orgs[i] = org
@@ -854,7 +840,7 @@ func ConvertTaskNodeAliasArrToPB(aliases []*TaskNodeAlias) []*pb.TaskOrganizatio
 	return orgs
 }
 
-func ConvertNodeAliasArrFromPB(orgs []*pb.OrganizationIdentityInfo) []*NodeAlias {
+func ConvertNodeAliasArrFromPB(orgs []*apipb.Organization) []*NodeAlias {
 	aliases := make([]*NodeAlias, len(orgs))
 	for i, o := range orgs {
 		alias := ConvertNodeAliasFromPB(o)
@@ -863,7 +849,7 @@ func ConvertNodeAliasArrFromPB(orgs []*pb.OrganizationIdentityInfo) []*NodeAlias
 	return aliases
 }
 
-func ConvertTaskNodeAliasArrFromPB(orgs []*pb.TaskOrganizationIdentityInfo) []*TaskNodeAlias {
+func ConvertTaskNodeAliasArrFromPB(orgs []*apipb.TaskOrganization) []*TaskNodeAlias {
 	aliases := make([]*TaskNodeAlias, len(orgs))
 	for i, o := range orgs {
 		alias := ConvertTaskNodeAliasFromPB(o)
@@ -885,22 +871,22 @@ type ResourceUsage struct {
 	UsedBandwidth  uint64 `json:"usedBandwidth"`
 }
 
-func ConvertResourceUsageToPB(usage *ResourceUsage) *pb.ResourceUsedDetailShow {
-	return &pb.ResourceUsedDetailShow{
+func ConvertResourceUsageToPB(usage *ResourceUsage) *libTypes.ResourceUsageOverview {
+	return &libTypes.ResourceUsageOverview{
 		TotalMem:       usage.TotalMem,
 		UsedMem:        usage.UsedMem,
-		TotalProcessor: usage.TotalProcessor,
-		UsedProcessor:  usage.UsedProcessor,
+		TotalProcessor: uint32(usage.TotalProcessor),
+		UsedProcessor:  uint32(usage.UsedProcessor),
 		TotalBandwidth: usage.TotalBandwidth,
 		UsedBandwidth:  usage.UsedBandwidth,
 	}
 }
-func ConvertResourceUsageFromPB(usage *pb.ResourceUsedDetailShow) *ResourceUsage {
+func ConvertResourceUsageFromPB(usage *libTypes.ResourceUsageOverview) *ResourceUsage {
 	return &ResourceUsage{
 		TotalMem:       usage.TotalMem,
 		UsedMem:        usage.UsedMem,
-		TotalProcessor: usage.TotalProcessor,
-		UsedProcessor:  usage.UsedProcessor,
+		TotalProcessor: uint64(usage.TotalProcessor),
+		UsedProcessor:  uint64(usage.UsedProcessor),
 		TotalBandwidth: usage.TotalBandwidth,
 		UsedBandwidth:  usage.UsedBandwidth,
 	}

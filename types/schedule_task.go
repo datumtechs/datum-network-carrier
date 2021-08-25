@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 type ProposalTask struct {
@@ -75,7 +75,7 @@ func (wrap *ReplayScheduleTaskWrap) String() string {
 type DoneScheduleTaskChWrap struct {
 	ProposalId   common.Hash
 	SelfTaskRole TaskRole
-	SelfIdentity *libTypes.OrganizationData
+	SelfIdentity *apipb.TaskOrganization
 	Task         *ConsensusScheduleTask
 	ResultCh     chan *TaskResultMsgWrap
 }
