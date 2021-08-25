@@ -29,20 +29,28 @@ message TaskData {
     uint64 start_at    = 14;
     string party_id    = 15;
     // 算法提供者信息
-    api.protobuf.TaskOrganization        algo_supplier = 20;
-    api.protobuf.TaskResourceCostDeclare task_resource = 21;
+    api.protobuf.TaskOrganization        algo_supplier  = 20;
+    api.protobuf.TaskResourceCostDeclare operation_cost = 21;
     // 数据提供方组信息
-    repeated TaskDataSupplier metadata_supplier = 22;
+    repeated TaskDataSupplier data_supplier = 22;
     // 算力提供方组织
-    repeated TaskPowerSupplier resource_supplier = 23;
+    repeated TaskPowerSupplier power_supplier = 23;
     // 结果接收方组织
     repeated TaskResultReceiver receivers = 24;
     // 任务参与方
     repeated api.protobuf.TaskOrganization partner_list              = 25;
-    repeated TaskEvent                     event_data_list           = 26;
+    repeated TaskEvent                     task_event_list           = 26;
     string                                 calculate_contract_code   = 27;
     string                                 data_splits_contract_code = 28;
     string                                 contract_extra_params     = 29;
+
+    // v2.0
+    // 发起任务的用户的信息 (task是属于用户的)
+    string                               user           = 30;
+    // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+    api.protobuf.UserType                user_type      = 31;
+    // 任务发起方
+    api.protobuf.TaskOrganization        sender         = 32;
 }
 
 // 定义：任务详细信息

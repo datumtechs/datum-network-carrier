@@ -22,8 +22,9 @@ message MetaData {
     uint64                  columns              = 11;
     uint64                  size                 = 12;
     string                  file_type            = 13;
+    // 元数据的状态 (create: 还未发布的新表; release: 已发布的表; revoke: 已撤销的表)
     string                  state                = 14;
-    bool                    has_title_row        = 15;
+    bool                    has_title            = 15;
     repeated MetadataColumn column_metadata_list = 16;
     string                  industry             = 17;
 }
@@ -57,7 +58,7 @@ message MetaDataSummary {
 // 元数据的详情信息
 message MetaDataDetail {
     MetaDataSummary         meta_data_summary = 1;
-    repeated MetadataColumn column_meta       = 2;
+    repeated MetadataColumn column_metadata_list       = 2;
     uint32                  total_task_count  = 3;            // 该元数据参与过得任务数 (已完成的和正在执行的)
 }
 
