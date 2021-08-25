@@ -10,7 +10,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
@@ -630,7 +630,7 @@ func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	return 0
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libTypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
@@ -639,11 +639,11 @@ func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskE
 	return taskEventResponse.TaskEventList, err
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libTypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 
-	eventList := make([]*libtypes.TaskEvent, 0)
+	eventList := make([]*libTypes.TaskEvent, 0)
 	for _, taskId := range taskIds {
 		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
 			TaskId: taskId,
@@ -869,7 +869,7 @@ func (dc *DataCenter)  HasLocalTaskExecute(taskId string) (bool, error)  {
 }
 
 
-func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
+func (dc *DataCenter) StoreTaskEvent(event *libTypes.TaskEvent) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteTaskEvent(dc.db, event)
@@ -877,7 +877,7 @@ func (dc *DataCenter) StoreTaskEvent(event *types.TaskEventInfo) error {
 	return nil
 }
 
-func (dc *DataCenter) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
+func (dc *DataCenter) GetTaskEventList(taskId string) ([]*libTypes.TaskEvent, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 

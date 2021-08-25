@@ -417,7 +417,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 	return nodeList, nil
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *types.TaskEventInfo) error {
+func (s *CarrierAPIBackend) SendTaskEvent(event *libTypes.TaskEvent) error {
 	// return s.carrier.resourceManager.SendTaskEvent(evengine)
 	return s.carrier.taskManager.SendTaskEvent(event)
 }
@@ -764,7 +764,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 		evenList[i] = &types.TaskEvent{
 			TaskId:   e.TaskId,
 			Type:     e.Type,
-			CreateAt: e.CreateTime,
+			CreateAt: e.CreateAt,
 			Content:  e.Content,
 			Owner: &types.NodeAlias{
 				Name:       identity.Name,
@@ -804,7 +804,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*type
 			evenList = append(evenList, &types.TaskEvent{
 				TaskId:   e.TaskId,
 				Type:     e.Type,
-				CreateAt: e.CreateTime,
+				CreateAt: e.CreateAt,
 				Content:  e.Content,
 				Owner: &types.NodeAlias{
 					Name:       identity.Name,

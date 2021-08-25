@@ -11,6 +11,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -242,14 +243,14 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 		eventList, err := t.dataCenter.GetTaskEventList(proposalState.TaskId)
 		if nil != err {
 			log.Errorf("Failed to GetTaskEventList() on consensus.handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.TaskId, err)
-			eventList = make([]*types.TaskEventInfo, 0)
+			eventList = make([]*libTypes.TaskEvent, 0)
 		}
-		eventList = append(eventList, &types.TaskEventInfo{
+		eventList = append(eventList, &libTypes.TaskEvent{
 			Type: evengine.TaskProposalStateDeadline.Type,
-			Identity: proposalState.SelfIdentity.IdentityId,
+			IdentityId: proposalState.SelfIdentity.IdentityId,
 			TaskId: proposalState.TaskId,
 			Content: fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
-			CreateTime: uint64(timeutils.UnixMsec()),
+			CreateAt: uint64(timeutils.UnixMsec()),
 		})
 		taskResultWrap := &types.TaskResultMsgWrap{
 			TaskResultMsg: &pb.TaskResultMsg{
@@ -284,7 +285,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 	t.delProposalStateAndTask(proposalState.ProposalId)
 }
 
-func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*types.TaskEventInfo) error {
+func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*libTypes.TaskEvent) error {
 	for _, event := range events {
 		if err := t.dataCenter.StoreTaskEvent(event); nil != err {
 			log.Error("Failed to store local task event from remote peer", "remote peerId", pid, "taskId", taskId)

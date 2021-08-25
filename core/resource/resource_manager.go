@@ -18,7 +18,7 @@ const (
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
 	dataCenter iface.ForResourceDB // Low level persistent database to store final content.
-	//eventCh                chan *types.TaskEventInfo
+	//eventCh                chan *libTypes.TaskEvent
 	slotUnit *types.Slot
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue     []*types.RemoteResourceTable
@@ -30,7 +30,7 @@ type Manager struct {
 func NewResourceManager(dataCenter iface.ForResourceDB, mockIdentityIdsFile string) *Manager {
 	m := &Manager{
 		dataCenter: dataCenter,
-		//eventCh:          make(chan *types.TaskEventInfo, 0),
+		//eventCh:          make(chan *libTypes.TaskEvent, 0),
 		//localTables:      make(map[string]*types.LocalResourceTable),
 		//localTableQueue:  make([]*types.LocalResourceTable, 0),
 		remoteTableQueue:    make([]*types.RemoteResourceTable, 0),

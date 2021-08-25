@@ -56,18 +56,18 @@ func (m *Task) TaskData() *libTypes.TaskData {
 	return m.data
 }
 
-func (m *Task) SetEventList(eventList []*TaskEventInfo) {
-	eventArr := make([]*libTypes.TaskEvent, len(eventList))
+func (m *Task) SetEventList(eventList []*libTypes.TaskEvent) {
+	/*eventArr := make([]*libTypes.TaskEvent, len(eventList))
 	for i, ev := range eventList {
 		eventArr[i] = &libTypes.TaskEvent{
 			TaskId:     ev.TaskId,
 			Type:       ev.Type,
-			CreateAt:   ev.CreateTime,
+			CreateAt:   ev.CreateAt,
 			Content:    ev.Content,
-			IdentityId: ev.Identity,
+			IdentityId: ev.IdentityId,
 		}
-	}
-	m.data.TaskEventList = eventArr
+	}*/
+	m.data.TaskEventList = eventList
 }
 func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskDataSupplier) {
 	m.data.DataSupplier = arr
