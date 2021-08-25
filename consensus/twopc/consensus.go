@@ -223,7 +223,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		proposalHash,
 		task.TaskId(),
 		types.SendTaskDir,
-		types.TaskOnwer,
+		types.TaskOwner,
 		&types.TaskNodeAlias{
 			PartyId:    task.TaskData().PartyId,
 			Name:       task.TaskData().IdentityId,
@@ -766,7 +766,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 				} else {
 					// If sending `CommitMsg` is successful,
 					// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-					t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOnwer,
+					t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOwner,
 						&apipb.TaskOrganization{
 							PartyId:  task.TaskData().PartyId,
 							IdentityId: task.TaskData().IdentityId,
@@ -805,7 +805,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			// 共识 未达成. 删除本地 资源
 			//// If the vote is not reached, we will clear the local `proposalState` related cache
 			//// and end the task as a failure, and publish the task information to the datacenter.
-			//t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateFailed, types.TaskOnwer, task)
+			//t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateFailed, types.TaskOwner, task)
 			//// clean some invalid data
 			//t.delProposalStateAndTask(voteMsg.ProposalId)
 		}

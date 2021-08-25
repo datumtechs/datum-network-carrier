@@ -200,7 +200,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 
 				failedTask := &types.DoneScheduleTaskChWrap{
 					ProposalId:   common.Hash{},
-					SelfTaskRole: types.TaskOnwer,
+					SelfTaskRole: types.TaskOwner,
 					SelfIdentity: &apipb.TaskOrganization{
 						PartyId:  task.Data.TaskData().PartyId,
 						IdentityId: task.Data.TaskData().IdentityId,

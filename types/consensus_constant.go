@@ -76,8 +76,8 @@ func (t TaskRole) String() string {
 		return "PowerSupplier"
 	case ResultSupplier:
 		return "ResultSupplier"
-	case TaskOnwer:
-		return "TaskOnwer"
+	case TaskOwner:
+		return "TaskOwner"
 	default:
 		return "TaskRoleUnknown"
 	}
@@ -88,7 +88,7 @@ const (
 	DataSupplier    TaskRole = 0x01
 	PowerSupplier   TaskRole = 0x02
 	ResultSupplier  TaskRole = 0x03
-	TaskOnwer       TaskRole = 0x04
+	TaskOwner       TaskRole = 0x04
 )
 
 func TaskRoleFromUint8(role uint8) TaskRole {
@@ -100,7 +100,7 @@ func TaskRoleFromUint8(role uint8) TaskRole {
 	case 0x03:
 		return ResultSupplier
 	case 0x04:
-		return TaskOnwer
+		return TaskOwner
 	default:
 		return TaskRoleUnknown
 	}
@@ -114,8 +114,8 @@ func TaskRoleFromStr(role string) TaskRole {
 		return PowerSupplier
 	case "ResultSupplier":
 		return ResultSupplier
-	case "TaskOnwer":
-		return TaskOnwer
+	case "TaskOwner":
+		return TaskOwner
 	default:
 		return TaskRoleUnknown
 	}
