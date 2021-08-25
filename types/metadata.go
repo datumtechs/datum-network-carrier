@@ -91,37 +91,3 @@ func (s MetadataArray) To() []*libTypes.MetaData {
 	}
 	return arr
 }
-
-// ----------------------------------------- metaData -----------------------------------------
-//type OrgMetaDataInfo struct {
-//	Owner    *NodeAlias    `json:"owner"`
-//	MetaData *MetaDataInfo `json:"metaData"`
-//}
-//
-//type MetaDataInfo struct {
-//	MetaDataSummary *libTypes.MetaDataSummary 			  `json:"metaDataSummary"`
-//	ColumnMetas     []*libTypes.MetadataColumn    `json:"columnMetas"`
-//}
-
-//func ConvertMetaDataInfoToPB (metadata *MetaDataInfo) *libTypes.MetadataDetail {
-//	columns := make([]*libTypes.MetadataColumn, len(metadata.ColumnMetas))
-//	for j, column := range metadata.ColumnMetas {
-//		columns[j] = column
-//	}
-//	return &libTypes.MetadataDetail{
-//		MetaDataSummary: &libTypes.MetaDataSummary{
-//			MetaDataId: metadata.MetaDataSummary.MetaDataId,
-//			OriginId: metadata.MetaDataSummary.OriginId,
-//			TableName: metadata.MetaDataSummary.TableName,
-//			Desc: metadata.MetaDataSummary.Desc,
-//			FilePath: metadata.MetaDataSummary.FilePath,
-//			Rows:metadata.MetaDataSummary.Rows,
-//			Columns: metadata.MetaDataSummary.Columns,
-//			Size_: uint32(metadata.MetaDataSummary.Size()),
-//			FileType: metadata.MetaDataSummary.FileType,
-//			HasTitle: metadata.MetaDataSummary.HasTitle,
-//			State: metadata.MetaDataSummary.State,
-//		},
-//		MetadataColumnList: columns,
-//	}
-//}

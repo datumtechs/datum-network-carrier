@@ -60,7 +60,7 @@ func TestLocalTask(t *testing.T) {
 func TestSeedNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	seedNodeInfo := &types.SeedNodeInfo{
+	seedNodeInfo := &pb.SeedPeer{
 		Id:           "id",
 		InternalIp:   "internalIp",
 		InternalPort: "9999",
@@ -93,7 +93,7 @@ func TestSeedNode(t *testing.T) {
 func TestRegisteredNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	registered := &types.RegisteredNodeInfo{
+	registered := &pb.YarnRegisteredPeerDetail{
 		Id:           "id",
 		InternalIp:   "internalIp",
 		InternalPort: "9999",
@@ -101,27 +101,27 @@ func TestRegisteredNode(t *testing.T) {
 		ExternalPort: "999",
 		ConnState:    1,
 	}
-	WriteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE, registered)
+	WriteRegisterNodes(database, pb.PrefixTypeJobNode, registered)
 
 	// get seed
-	r, _ := ReadRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
+	r, _ := ReadRegisterNode(database, pb.PrefixTypeJobNode, "id")
 	t.Logf("registered info : %v", r)
 	assert.Assert(t, strings.EqualFold("id", r.Id))
 
 	// read all
-	registeredNodes, _ := ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ := ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 1)
 
 	// delete
-	DeleteRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
+	DeleteRegisterNode(database, pb.PrefixTypeJobNode, "id")
 
-	registeredNodes, _ = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ = ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 
 	// delete
-	DeleteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	DeleteRegisterNodes(database, pb.PrefixTypeJobNode)
 
-	registeredNodes, _ = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ = ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 }
 

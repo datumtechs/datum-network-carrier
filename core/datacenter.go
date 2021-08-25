@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -123,7 +124,7 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // on yarn node api
-func (dc *DataCenter) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteSeedNodes(dc.db, seed)
@@ -137,39 +138,39 @@ func (dc *DataCenter) DeleteSeedNode(id string) error {
 	return nil
 }
 
-func (dc *DataCenter) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
+func (dc *DataCenter) GetSeedNode(id string) (*pb.SeedPeer, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadSeedNode(dc.db, id)
 }
 
-func (dc *DataCenter) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
+func (dc *DataCenter) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllSeedNodes(dc.db)
 }
 
-func (dc *DataCenter) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
-	return node.ConnState, nil
+	return types.NodeConnStatus(node.ConnState), nil
 }
 
-func (dc *DataCenter) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+func (dc *DataCenter) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteRegisterNode(dc.db, typ, id)
 	return nil
 }
 
-func (dc *DataCenter) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
+func (dc *DataCenter) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataCenter) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+func (dc *DataCenter) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllRegisterNodes(dc.db, typ)

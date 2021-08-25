@@ -9,9 +9,9 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -106,7 +106,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 					event := types.ConvertTaskEventToDataCenter(sche.eventEngine.GenerateEvent(
 						evengine.TaskDiscarded.Type, task.Data.TaskData().TaskId, identityId, e.Error()))
 					task.Data.TaskData().EventCount = 1
-					task.Data.TaskData().TaskEventList = []*pb.TaskEvent{event}
+					task.Data.TaskData().TaskEventList = []*libTypes.TaskEvent{event}
 
 					if err = sche.dataCenter.InsertTask(task.Data); nil != err {
 						log.Errorf("Failed to save task to datacenter, taskId: {%s}", task.Data.TaskData().TaskId)
@@ -294,7 +294,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			repushFn(bullet)
 			return
 		}
-		dataNodeResource, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceDiskUsed.GetNodeId())
+		dataNodeResource, err := sche.dataCenter.GetRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query localResourceInfo By dataNodeId: {%s}, taskId: {%s}, err: {%s}",
 				dataResourceDiskUsed.GetNodeId(), task.Data.TaskId(), err)
@@ -431,7 +431,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 				fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"))
 			return
 		}
-		dataNode, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, dataResourceDiskUsed.GetNodeId())
+		dataNode, err := sche.dataCenter.GetRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
 			log.Errorf("failed query internal data node by metaDataId, taskId: {%s}, metaDataId: {%s}", replayScheduleTask.Task.TaskId(), metaDataId)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
@@ -502,7 +502,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		log.Debugf("QueryDataResourceTables on replaySchedule by taskRole is the resuler, dataResourceTables: %s", utilDataResourceArrString(dataResourceTables))
 
 		resource := dataResourceTables[len(dataResourceTables)-1]
-		resourceInfo, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_DATANODE, resource.GetNodeId())
+		resourceInfo, err := sche.dataCenter.GetRegisterNode(pb.PrefixTypeDataNode, resource.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query internal data node resource,taskId: {%s}, dataNodeId: {%s}, err: {%s}",
 				replayScheduleTask.Task.TaskId(), resource.GetNodeId(), err)
@@ -553,7 +553,7 @@ func (sche *SchedulerStarveFIFO) increaseTaskTerm() {
 	}
 }
 
-func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*types.RegisteredNodeInfo, error) {
+func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*pb.YarnRegisteredPeerDetail, error) {
 
 	if nil == sche.internalNodeSet || 0 == sche.internalNodeSet.JobNodeClientSize() {
 		return nil, errors.New("not found alive jobNode")
@@ -581,7 +581,7 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*typ
 	}
 
 	resourceId := resourceNodeIdArr[len(resourceNodeIdArr)%electionLocalSeed]
-	jobNode, err := sche.dataCenter.GetRegisterNode(types.PREFIX_TYPE_JOBNODE, resourceId)
+	jobNode, err := sche.dataCenter.GetRegisterNode(pb.PrefixTypeJobNode, resourceId)
 	if nil != err {
 		return nil, err
 	}

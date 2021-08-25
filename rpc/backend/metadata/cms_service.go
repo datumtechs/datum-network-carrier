@@ -15,10 +15,10 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	if req.IdentityId == "" {
 		return nil, errors.New("required identity")
 	}
-	if req.MetaDataId == "" {
+	if req.MetadataId == "" {
 		return nil, errors.New("required metadataId")
 	}
-	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetaDataId)
+	metaDataDetail, err := svr.B.GetMetaDataDetail(req.IdentityId, req.MetadataId)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetMetaDataDetail failed")
 		return nil, ErrGetMetaDataDetail

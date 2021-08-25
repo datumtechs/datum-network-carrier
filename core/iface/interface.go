@@ -1,20 +1,21 @@
 package iface
 
 import (
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type LocalStoreCarrierDB interface {
 	GetYarnName() (string, error)
-	SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error)
+	SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error)
 	DeleteSeedNode(id string) error
-	GetSeedNode(id string) (*types.SeedNodeInfo, error)
-	GetSeedNodeList() ([]*types.SeedNodeInfo, error)
-	SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
-	DeleteRegisterNode(typ types.RegisteredNodeType, id string) error
-	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
-	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
+	GetSeedNode(id string) (*pb.SeedPeer, error)
+	GetSeedNodeList() ([]*pb.SeedPeer, error)
+	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error)
+	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
+	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
+	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
 
 	InsertLocalResource(resource *types.LocalResource) error
 	RemoveLocalResource(jobNodeId string) error

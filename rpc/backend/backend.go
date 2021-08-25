@@ -10,19 +10,19 @@ type Backend interface {
 	SendMsg(msg types.Msg) error
 
 	// system (the yarn node self info)
-	GetNodeInfo() (*types.YarnNodeInfo, error)
+	GetNodeInfo() (*pb.YarnNodeInfo, error)
 	GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error)
 
 	// local node resource api
-	SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error)
+	SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error)
 	DeleteSeedNode(id string) error
-	GetSeedNode(id string) (*types.SeedNodeInfo, error)
-	GetSeedNodeList() ([]*types.SeedNodeInfo, error)
-	SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
-	UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
-	DeleteRegisterNode(typ types.RegisteredNodeType, id string) error
-	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
-	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
+	GetSeedNode(id string) (*pb.SeedPeer, error)
+	GetSeedNodeList() ([]*pb.SeedPeer, error)
+	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error)
+	UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error)
+	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
+	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
+	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
 
 	SendTaskEvent(event *libTypes.TaskEvent) error
 

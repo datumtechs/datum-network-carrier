@@ -25,13 +25,13 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 }
 
 // system (the yarn node self info)
-func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
-	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
+	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed to get all `job nodes`, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
-	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed to get all `data nodes, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
@@ -39,36 +39,30 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	jobsLen := len(jobNodes)
 	datasLen := len(dataNodes)
 	length := jobsLen + datasLen
-	registerNodes := make([]*types.RegisteredNodeDetail, length)
+	registerNodes := make([]*pb.YarnRegisteredPeer, length)
 	if len(jobNodes) != 0 {
 		for i, v := range jobNodes {
-			n := &types.RegisteredNodeDetail{
-				NodeType: types.PREFIX_TYPE_JOBNODE.String(),
-			}
-			n.RegisteredNodeInfo = &types.RegisteredNodeInfo{
-				Id:           v.Id,
-				InternalIp:   v.InternalIp,
-				InternalPort: v.InternalPort,
-				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.ExternalPort,
-				ConnState:    v.ConnState,
+			n := &pb.YarnRegisteredPeer{
+				NodeType: pb.NodeType_JobNode,
+				NodeDetail: v,
 			}
 			registerNodes[i] = n
 		}
 	}
 	if len(dataNodes) != 0 {
 		for i, v := range dataNodes {
-			n := &types.RegisteredNodeDetail{
-				NodeType: types.PREFIX_TYPE_DATANODE.String(),
+			n := &pb.YarnRegisteredPeer{
+				NodeType: pb.NodeType_DataNode,
+				NodeDetail: v,
 			}
-			n.RegisteredNodeInfo = &types.RegisteredNodeInfo{
+			/*n.RegisteredNodeInfo = &pb.YarnRegisteredPeerDetail{
 				Id:           v.Id,
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,
 				ExternalPort: v.ExternalPort,
 				ConnState:    v.ConnState,
-			}
+			}*/
 			registerNodes[jobsLen+i] = n
 		}
 	}
@@ -88,8 +82,8 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	}
 
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
-	return &types.YarnNodeInfo{
-		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
+	return &pb.YarnNodeInfo{
+		NodeType:     pb.NodeType_YarnNode ,
 		NodeId:       nodeId,
 		InternalIp:   "",                             //
 		ExternalIp:   "",                             //
@@ -106,12 +100,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 
 func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
 	// all dataNodes on yarnNode
-	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
 		return nil, err
 	}
 	// all jobNodes on yarnNode
-	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
 	if nil != err {
 		return nil, err
 	}
@@ -166,7 +160,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetai
 	}, nil
 }
 
-func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error) {
 	//TODO: current node need to connect with seed node.(delay processing)
 	return s.carrier.carrierDB.SetSeedNode(seed)
 }
@@ -175,21 +169,21 @@ func (s *CarrierAPIBackend) DeleteSeedNode(id string) error {
 	return s.carrier.carrierDB.DeleteSeedNode(id)
 }
 
-func (s *CarrierAPIBackend) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
+func (s *CarrierAPIBackend) GetSeedNode(id string) (*pb.SeedPeer, error) {
 	return s.carrier.carrierDB.GetSeedNode(id)
 }
 
-func (s *CarrierAPIBackend) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
+func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return s.carrier.carrierDB.GetSeedNodeList()
 }
 
-func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
 	switch typ {
-	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
 		return types.NONCONNECTED, errors.New("invalid nodeType")
 	}
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
 			return types.NONCONNECTED, fmt.Errorf("connect new jobNode failed, %s", err)
@@ -197,7 +191,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 	}
 
-	if typ == types.PREFIX_TYPE_DATANODE {
+	if typ == pb.PrefixTypeDataNode {
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
 			return types.NONCONNECTED, fmt.Errorf("connect new dataNode failed, %s", err)
@@ -210,7 +204,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 			return types.NONCONNECTED, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 	}
-	node.ConnState = types.CONNECTED
+	node.ConnState = types.CONNECTED.Int32()
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
 		return types.NONCONNECTED, fmt.Errorf("Store registerNode to db failed, %s", err)
@@ -218,14 +212,14 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *
 	return types.CONNECTED, nil
 }
 
-func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
 
 	switch typ {
-	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
 		return types.NONCONNECTED, errors.New("invalid nodeType")
 	}
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 
 		// 算力已发布的jobNode不可以直接删除
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
@@ -263,7 +257,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 
 	}
 
-	if typ == types.PREFIX_TYPE_DATANODE {
+	if typ == pb.PrefixTypeDataNode {
 
 		// 先校验 dataNode 上是否已被 使用
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
@@ -306,7 +300,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 	}
 
 	// add new node to db
-	node.ConnState = types.CONNECTED
+	node.ConnState = types.CONNECTED.Int32()
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
 		return types.NONCONNECTED, fmt.Errorf("Store new registerNode to db failed, %s", err)
@@ -314,13 +308,13 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 	return types.CONNECTED, nil
 }
 
-func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
 	switch typ {
-	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
 		return errors.New("invalid nodeType")
 	}
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 
 		// 算力已发布的jobNode不可以直接删除
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(id)
@@ -349,7 +343,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		}
 	}
 
-	if typ == types.PREFIX_TYPE_DATANODE {
+	if typ == pb.PrefixTypeDataNode {
 
 		// 先校验 dataNode 上是否已被 使用
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
@@ -373,28 +367,28 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
 }
 
-func (s *CarrierAPIBackend) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
+func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
 	return s.carrier.carrierDB.GetRegisterNode(typ, id)
 }
 
-func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
 	nodeList, err := s.carrier.carrierDB.GetRegisterNodeList(typ)
 	if nil != err {
 		return nil, err
 	}
 
 	// 需要处理 计算服务 信息
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 		for i, jobNode := range nodeList {
 
 			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(jobNode.Id)
 			if !ok {
-				jobNode.ConnState = types.NONCONNECTED
+				jobNode.ConnState = types.NONCONNECTED.Int32()
 			}
 			if !client.IsConnected() {
-				jobNode.ConnState = types.NONCONNECTED
+				jobNode.ConnState = types.NONCONNECTED.Int32()
 			} else {
-				jobNode.ConnState = types.CONNECTED
+				jobNode.ConnState = types.CONNECTED.Int32()
 			}
 
 			table, err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
@@ -402,14 +396,14 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 				continue
 			}
 			if nil != table {
-				jobNode.ConnState = types.ENABLE_POWER
+				jobNode.ConnState = types.ENABLE_POWER.Int32()
 			}
 			taskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(jobNode.Id)
 			if nil != err {
 				continue
 			}
 			if taskCount > 0 {
-				jobNode.ConnState = types.BUSY_POWER
+				jobNode.ConnState = types.BUSY_POWER.Int32()
 			}
 			nodeList[i] = jobNode
 		}

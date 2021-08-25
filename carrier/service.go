@@ -14,6 +14,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	"github.com/RosettaFlow/Carrier-Go/handler"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
@@ -118,7 +119,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 
 	// load stored jobNode and dataNode
-	jobNodeList, err := s.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+	jobNodeList, err := s.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
 	if err == nil {
 		for _, node := range jobNodeList {
 			client, err := grpclient.NewJobNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
@@ -127,7 +128,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 			}
 		}
 	}
-	dataNodeList, err := s.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	dataNodeList, err := s.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if err == nil {
 		for _, node := range dataNodeList {
 			client, err := grpclient.NewDataNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)

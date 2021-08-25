@@ -4,6 +4,7 @@ package rawdb
 
 import (
 	"bytes"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -241,7 +242,7 @@ func DeleteYarnName(db DatabaseDeleter) {
 }
 
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
-func ReadSeedNode(db DatabaseReader, nodeId string) (*types.SeedNodeInfo, error) {
+func ReadSeedNode(db DatabaseReader, nodeId string) (*pb.SeedPeer, error) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
 		return nil, err
@@ -252,11 +253,11 @@ func ReadSeedNode(db DatabaseReader, nodeId string) (*types.SeedNodeInfo, error)
 	}
 	for _, seed := range seedNodes.GetSeedNodeList() {
 		if strings.EqualFold(seed.Id, nodeId) {
-			return &types.SeedNodeInfo{
+			return &pb.SeedPeer{
 				Id:           seed.Id,
 				InternalIp:   seed.InternalIp,
 				InternalPort: seed.InternalPort,
-				ConnState:    types.NodeConnStatus(seed.ConnState),
+				ConnState:    seed.ConnState,
 			}, nil
 		}
 	}
@@ -265,7 +266,7 @@ func ReadSeedNode(db DatabaseReader, nodeId string) (*types.SeedNodeInfo, error)
 
 // ReadAllSeedNodes retrieves all the seed nodes in the database.
 // All returned seed nodes are sorted in reverse.
-func ReadAllSeedNodes(db DatabaseReader) ([]*types.SeedNodeInfo, error) {
+func ReadAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
 		return nil, err
@@ -274,13 +275,13 @@ func ReadAllSeedNodes(db DatabaseReader) ([]*types.SeedNodeInfo, error) {
 	if err := seedNodes.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	var nodes []*types.SeedNodeInfo
+	var nodes []*pb.SeedPeer
 	for _, seed := range seedNodes.SeedNodeList {
-		nodes = append(nodes, &types.SeedNodeInfo{
+		nodes = append(nodes, &pb.SeedPeer{
 			Id:           seed.Id,
 			InternalIp:   seed.InternalIp,
 			InternalPort: seed.InternalPort,
-			ConnState:    types.NodeConnStatus(seed.ConnState),
+			ConnState:    seed.ConnState,
 		})
 	}
 	return nodes, nil
@@ -288,7 +289,7 @@ func ReadAllSeedNodes(db DatabaseReader) ([]*types.SeedNodeInfo, error) {
 
 // WriteSeedNodes serializes the seed node into the database. If the cumulated
 // seed node exceeds the limitation, the oldest will be dropped.
-func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
+func WriteSeedNodes(db KeyValueStore, seedNode *pb.SeedPeer) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
 		log.Warn("Failed to load old seed nodes", "error", err)
@@ -360,19 +361,19 @@ func DeleteSeedNodes(db DatabaseDeleter) {
 	}
 }
 
-func registryNodeKey(nodeType types.RegisteredNodeType) []byte {
+func registryNodeKey(nodeType pb.RegisteredNodeType) []byte {
 	var key []byte
-	if nodeType == types.PREFIX_TYPE_JOBNODE {
+	if nodeType == pb.PrefixTypeJobNode {
 		key = calcNodeKey
 	}
-	if nodeType == types.PREFIX_TYPE_DATANODE {
+	if nodeType == pb.PrefixTypeDataNode {
 		key = dataNodeKey
 	}
 	return key
 }
 
 // ReadRegisterNode retrieves the register node with the corresponding nodeId.
-func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, nodeId string) (*types.RegisteredNodeInfo, error) {
+func ReadRegisterNode(db DatabaseReader, nodeType pb.RegisteredNodeType, nodeId string) (*pb.YarnRegisteredPeerDetail, error) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		return nil, err
@@ -384,13 +385,13 @@ func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, node
 	lis := registeredNodes.GetRegisteredNodeList()
 	for _, registered := range lis {
 		if strings.EqualFold(registered.Id, nodeId) {
-			return &types.RegisteredNodeInfo{
+			return &pb.YarnRegisteredPeerDetail{
 				Id:           registered.Id,
 				InternalIp:   registered.InternalIp,
 				InternalPort: registered.InternalPort,
 				ExternalIp:   registered.ExternalIp,
 				ExternalPort: registered.ExternalPort,
-				ConnState:    types.NodeConnStatus(registered.ConnState),
+				ConnState:    registered.ConnState,
 			}, nil
 		}
 	}
@@ -399,7 +400,7 @@ func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, node
 
 // ReadAllRegisterNodes retrieves all the registered nodes in the database.
 // All returned registered nodes are sorted in reverse.
-func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+func ReadAllRegisterNodes(db DatabaseReader, nodeType pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		return nil, err
@@ -408,15 +409,15 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) 
 	if err := registeredNodes.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	var nodes []*types.RegisteredNodeInfo
+	var nodes []*pb.YarnRegisteredPeerDetail
 	for _, registered := range registeredNodes.GetRegisteredNodeList() {
-		nodes = append(nodes, &types.RegisteredNodeInfo{
+		nodes = append(nodes, &pb.YarnRegisteredPeerDetail{
 			Id:           registered.Id,
 			InternalIp:   registered.InternalIp,
 			InternalPort: registered.InternalPort,
 			ExternalIp:   registered.ExternalIp,
 			ExternalPort: registered.ExternalPort,
-			ConnState:    types.NodeConnStatus(registered.ConnState),
+			ConnState:    registered.ConnState,
 		})
 	}
 	return nodes, nil
@@ -424,7 +425,7 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) 
 
 // WriteRegisterNodes serializes the registered node into the database. If the cumulated
 // registered node exceeds the limitation, the oldest will be dropped.
-func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, registeredNode *types.RegisteredNodeInfo) {
+func WriteRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		log.Warnf("Failed to load old registered nodes, err: {%s}",  err)
@@ -463,7 +464,7 @@ func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, reg
 	}
 }
 
-func DeleteRegisterNode(db KeyValueStore, nodeType types.RegisteredNodeType, id string) {
+func DeleteRegisterNode(db KeyValueStore, nodeType pb.RegisteredNodeType, id string) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		log.Warnf("Failed to load old registered nodes, err: {%s}", err)
@@ -490,7 +491,7 @@ func DeleteRegisterNode(db KeyValueStore, nodeType types.RegisteredNodeType, id 
 }
 
 // DeleteRegisterNodes deletes all the registered nodes from the database.
-func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) {
+func DeleteRegisterNodes(db DatabaseDeleter, nodeType pb.RegisteredNodeType) {
 	if err := db.Delete(registryNodeKey(nodeType)); err != nil {
 		log.WithError(err).Fatal("Failed to delete registered node")
 	}
