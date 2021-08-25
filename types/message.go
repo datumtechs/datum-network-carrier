@@ -116,16 +116,6 @@ func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
 	return msg
 }
 
-type powerData struct {
-	*NodeAlias
-	JobNodeId   string `json:"jobNodeId"`
-	Information struct {
-		Mem       uint64 `json:"mem,omitempty"`
-		Processor uint64 `json:"processor,omitempty"`
-		Bandwidth uint64 `json:"bandwidth,omitempty"`
-	} `json:"information"`
-	CreateAt uint64 `json:"createAt"`
-}
 type PowerRevokeMsg struct {
 	*NodeAlias
 	PowerId  string `json:"powerId"`
@@ -142,51 +132,6 @@ func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMs
 type PowerMsgs []*PowerMsg
 type PowerRevokeMsgs []*PowerRevokeMsg
 
-//func (msg *PowerMsg) ToLocal() *LocalResource {
-//	return NewLocalResource(&libTypes.LocalResourceData{
-//		Identity:  msg.OwnerIdentityId(),
-//		NodeId:    msg.OwnerNodeId(),
-//		NodeName:  msg.OwnerName(),
-//		JobNodeId: msg.JobNodeId(),
-//		DataId:    msg.PowerId,
-//		// the status of data, N means normal, D means deleted.
-//		DataStatus: DataStatusNormal.String(),
-//		// resource status, eg: create/release/revoke
-//		State: PowerStateRelease.String(),
-//		// unit: byte
-//		TotalMem: msg.Memory(),
-//		// unit: byte
-//		UsedMem: 0,
-//		// number of cpu cores.
-//		TotalProcessor: msg.Processor(),
-//		UsedProcessor:  0,
-//		// unit: byte
-//		TotalBandWidth: msg.Bandwidth(),
-//		UsedBandWidth:  0,
-//	})
-//}
-//func (msg *PowerMsg) ToDataCenter() *Resource {
-//	return NewResource(&libTypes.ResourceData{
-//		Identity: msg.OwnerIdentityId(),
-//		NodeId:   msg.OwnerNodeId(),
-//		NodeName: msg.OwnerName(),
-//		DataId:   msg.PowerId,
-//		// the status of data, N means normal, D means deleted.
-//		DataStatus: DataStatusNormal.String(),
-//		// resource status, eg: create/release/revoke
-//		State: PowerStateRelease.String(),
-//		// unit: byte
-//		TotalMem: msg.Memory(),
-//		// unit: byte
-//		UsedMem: 0,
-//		// number of cpu cores.
-//		TotalProcessor: msg.Processor(),
-//		UsedProcessor:  0,
-//		// unit: byte
-//		TotalBandWidth: msg.Bandwidth(),
-//		UsedBandWidth:  0,
-//	})
-//}
 func (msg *PowerMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerMsg) String() string {
@@ -228,28 +173,6 @@ func (msg *PowerMsg) HashByCreateTime() common.Hash {
 	})
 }
 
-//func (msg *PowerRevokeMsg) ToDataCenter() *Resource {
-//	return NewResource(&libTypes.ResourceData{
-//		Identity: msg.IdentityId,
-//		NodeId:   msg.NodeId,
-//		NodeName: msg.Name,
-//		DataId:   msg.PowerId,
-//		// the status of data, N means normal, D means deleted.
-//		DataStatus: DataStatusDeleted.String(),
-//		// resource status, eg: create/release/revoke
-//		State: PowerStateRevoke.String(),
-//		// unit: byte
-//		TotalMem: 0,
-//		// unit: byte
-//		UsedMem: 0,
-//		// number of cpu cores.
-//		TotalProcessor: 0,
-//		UsedProcessor:  0,
-//		// unit: byte
-//		TotalBandWidth: 0,
-//		UsedBandWidth:  0,
-//	})
-//}
 func (msg *PowerRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *PowerRevokeMsg) Unmarshal(b []byte) error { return nil }
 func (msg *PowerRevokeMsg) String() string {
@@ -327,13 +250,6 @@ type MetaDataSummary struct {
 	State      string `json:"state,omitempty"`
 }
 
-//type ColumnMeta struct {
-//	Cindex   uint64 `json:"cindex,omitempty"`
-//	Cname    string `json:"cname,omitempty"`
-//	Ctype    string `json:"ctype,omitempty"`
-//	Csize    uint32 `json:"csize,omitempty"`
-//	Ccomment string `json:"ccomment,omitempty"`
-//}
 type MetaDataRevokeMsg struct {
 	*NodeAlias
 	MetaDataId string `json:"metaDataId"`

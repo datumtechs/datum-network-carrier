@@ -33,14 +33,13 @@ func (m *Metadata) EncodePb(w io.Writer) error {
 	return err
 }
 
-func MetaDataTojson(meta *Metadata) string {
+func MetaDataToJson(meta *Metadata) string {
 	result, err := json.Marshal(meta.data)
 	if err != nil {
 		panic("Convert To json fail")
 	}
 	return string(result)
 }
-
 
 func (m *Metadata) DecodePb(data []byte) error {
 	if m.data == nil {
@@ -94,12 +93,6 @@ func (s MetadataArray) To() []*libTypes.MetaData {
 }
 
 // ----------------------------------------- metaData -----------------------------------------
-
-//type OrgMetaDataSummary struct {
-//	Owner           *NodeAlias       `json:"owner"`
-//	MetaDataSummary *MetaDataSummary `json:"metaDataSummary"`
-//}
-
 type OrgMetaDataInfo struct {
 	Owner    *NodeAlias    `json:"owner"`
 	MetaData *MetaDataInfo `json:"metaData"`
@@ -132,26 +125,3 @@ func ConvertMetaDataInfoToPB (metadata *MetaDataInfo) *libTypes.MetadataDetail {
 		MetadataColumnList: columns,
 	}
 }
-
-//func ConvertMetaDataInfoFromPB (metadata *libTypes.MetadataDetail) *MetaDataInfo {
-//	columns := make([]*libTypes.MetadataColumn, len(metadata.MetadataColumnList))
-//	for j, column := range metadata.MetadataColumnList {
-//		columns[j] = column
-//	}
-//	return &MetaDataInfo{
-//		MetaDataSummary: &MetaDataSummary{
-//			MetaDataId: metadata.MetaDataSummary.MetaDataId,
-//			OriginId: metadata.MetaDataSummary.OriginId,
-//			TableName: metadata.MetaDataSummary.TableName,
-//			Desc: metadata.MetaDataSummary.Desc,
-//			FilePath: metadata.MetaDataSummary.FilePath,
-//			Rows:metadata.MetaDataSummary.Rows,
-//			Columns: metadata.MetaDataSummary.Columns,
-//			Size: metadata.MetaDataSummary.Size_,
-//			FileType: metadata.MetaDataSummary.FileType,
-//			HasTitle: metadata.MetaDataSummary.HasTitle,
-//			State: metadata.MetaDataSummary.State,
-//		},
-//		ColumnMetas: columns,
-//	}
-//}
