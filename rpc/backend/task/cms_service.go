@@ -104,8 +104,8 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
 		}
 
-		colTmp := make(map[uint32]*libTypes.MetadataColumn, len(metaData.MetaData.ColumnMetas))
-		for _, col := range metaData.MetaData.ColumnMetas {
+		colTmp := make(map[uint32]*libTypes.MetadataColumn, len(metaData.Information.MetadataColumnList))
+		for _, col := range metaData.Information.MetadataColumnList {
 			colTmp[col.CIndex] = col
 		}
 
@@ -134,7 +134,7 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 				IdentityId: v.MemberInfo.IdentityId,
 			},
 			MetadataId:     v.MetaDataInfo.MetaDataId,
-			MetadataName:   metaData.MetaData.MetaDataSummary.TableName,
+			MetadataName:   metaData.Information.MetaDataSummary.TableName,
 			ColumnList: columnArr,
 		}
 	}
