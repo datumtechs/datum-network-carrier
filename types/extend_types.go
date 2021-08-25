@@ -1,7 +1,9 @@
 package types
 
 import (
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 )
 
 func NewTaskDetailShowFromTaskData(input *Task, role string) *TaskDetailShow {
@@ -81,7 +83,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *TaskDetailShow {
 	return detailShow
 }
 
-func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*TaskEvent {
+func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*TaskEvent {
 	result := make([]*TaskEvent, 0, len(input))
 	for _, event := range input {
 		result = append(result, &TaskEvent{
@@ -97,15 +99,15 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*TaskEvent {
 	return result
 }
 
-func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo {
-	orgMetaDataInfo := &OrgMetaDataInfo{
-		Owner: &NodeAlias{
-			Name:       input.data.GetNodeName(),
+func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailResponse {
+	response := &pb.GetMetaDataDetailResponse{
+		Owner: &apipb.Organization{
+			NodeName:       input.data.GetNodeName(),
 			NodeId:     input.data.GetNodeId(),
 			IdentityId: input.data.GetIdentityId(),
 		},
-		MetaData: &MetaDataInfo{
-			MetaDataSummary: &MetaDataSummary{
+		Information: &libTypes.MetadataDetail{
+			MetaDataSummary: &libTypes.MetaDataSummary{
 				MetaDataId: input.data.GetDataId(),
 				OriginId:   input.data.GetOriginId(),
 				TableName:  input.data.GetTableName(),
@@ -113,22 +115,19 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo {
 				FilePath:   input.data.GetFilePath(),
 				Rows:       uint32(input.data.GetRows()),
 				Columns:    uint32(input.data.GetColumns()),
-				Size:       uint32(input.data.GetSize_()),
+				Size_:       uint32(input.data.GetSize_()),
 				FileType:   input.data.GetFileType(),
 				HasTitle:   input.data.GetHasTitle(),
 				State:      input.data.GetState(),
 			},
-			ColumnMetas: make([]*libtypes.MetadataColumn, 0, len(input.data.GetMetadataColumnList())),
+			MetadataColumnList:input.data.GetMetadataColumnList(),
 		},
 	}
-	for _, columnMeta := range input.data.GetMetadataColumnList() {
-		orgMetaDataInfo.MetaData.ColumnMetas = append(orgMetaDataInfo.MetaData.ColumnMetas,columnMeta)
-	}
-	return orgMetaDataInfo
+	return response
 }
 
-func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*OrgMetaDataInfo {
-	result := make([]*OrgMetaDataInfo, 0, input.Len())
+func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMetaDataDetailResponse {
+	result := make([]*pb.GetMetaDataDetailResponse, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue

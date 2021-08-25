@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -423,7 +424,7 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *libTypes.TaskEvent) error {
 }
 
 // metadata api
-func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) {
+func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*pb.GetMetaDataDetailResponse, error) {
 	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
 	if metadata == nil {
 		return nil, errors.New("not found metadata by special Id")
@@ -432,18 +433,18 @@ func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*t
 }
 
 // GetMetaDataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) {
+func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*pb.GetMetaDataDetailResponse, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
 	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
 }
 
-func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
+func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error) {
 	log.WithField("identityId", identityId).Debug("Invoke: GetMetaDataDetailListByOwner executing...")
 	metadataList, err := s.GetMetaDataDetailList()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*types.OrgMetaDataInfo, 0)
+	result := make([]*pb.GetMetaDataDetailResponse, 0)
 	for _, metadata := range metadataList {
 		if metadata.Owner.IdentityId == identityId {
 			result = append(result, metadata)

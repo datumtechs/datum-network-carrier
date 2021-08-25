@@ -204,10 +204,10 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 	return &MetaDataMsg{
 		Data: &metadataData{
 			Information: struct {
-				MetaDataSummary *MetaDataSummary           `json:"metaDataSummary"`
+				MetaDataSummary *libTypes.MetaDataSummary           `json:"metaDataSummary"`
 				ColumnMetas     []*libTypes.MetadataColumn `json:"columnMetas"`
 			}{
-				MetaDataSummary: &MetaDataSummary{
+				MetaDataSummary: &libTypes.MetaDataSummary{
 					MetaDataId: req.Information.MetaDataSummary.MetaDataId,
 					OriginId:   req.Information.MetaDataSummary.OriginId,
 					TableName:  req.Information.MetaDataSummary.TableName,
@@ -215,7 +215,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 					FilePath:   req.Information.MetaDataSummary.FilePath,
 					Rows:       req.Information.MetaDataSummary.Rows,
 					Columns:    req.Information.MetaDataSummary.Columns,
-					Size:       req.Information.MetaDataSummary.Size_,
+					Size_:       req.Information.MetaDataSummary.Size_,
 					FileType:   req.Information.MetaDataSummary.FileType,
 					HasTitle:   req.Information.MetaDataSummary.HasTitle,
 					State:      req.Information.MetaDataSummary.State,
@@ -230,24 +230,10 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 type metadataData struct {
 	*NodeAlias
 	Information struct {
-		MetaDataSummary *MetaDataSummary        `json:"metaDataSummary"`
+		MetaDataSummary *libTypes.MetaDataSummary        `json:"metaDataSummary"`
 		ColumnMetas     []*types.MetadataColumn `json:"columnMetas"`
 	} `json:"information"`
 	CreateAt uint64 `json:"createAt"`
-}
-
-type MetaDataSummary struct {
-	MetaDataId string `json:"metaDataId,omitempty"`
-	OriginId   string `json:"originId,omitempty"`
-	TableName  string `json:"tableName,omitempty"`
-	Desc       string `json:"desc,omitempty"`
-	FilePath   string `json:"filePath,omitempty"`
-	Rows       uint32 `json:"rows,omitempty"`
-	Columns    uint32 `json:"columns,omitempty"`
-	Size       uint32 `json:"size,omitempty"`
-	FileType   string `json:"fileType,omitempty"`
-	HasTitle   bool   `json:"hasTitle,omitempty"`
-	State      string `json:"state,omitempty"`
 }
 
 type MetaDataRevokeMsg struct {
@@ -308,7 +294,7 @@ func (msg *MetaDataMsg) Onwer() *NodeAlias {
 func (msg *MetaDataMsg) OwnerName() string       { return msg.Data.Name }
 func (msg *MetaDataMsg) OwnerNodeId() string     { return msg.Data.NodeId }
 func (msg *MetaDataMsg) OwnerIdentityId() string { return msg.Data.IdentityId }
-func (msg *MetaDataMsg) MetaDataSummary() *MetaDataSummary {
+func (msg *MetaDataMsg) MetaDataSummary() *libTypes.MetaDataSummary {
 	return msg.Data.Information.MetaDataSummary
 }
 func (msg *MetaDataMsg) OriginId() string                     { return msg.Data.Information.MetaDataSummary.OriginId }
@@ -317,7 +303,7 @@ func (msg *MetaDataMsg) Desc() string                         { return msg.Data.
 func (msg *MetaDataMsg) FilePath() string                     { return msg.Data.Information.MetaDataSummary.FilePath }
 func (msg *MetaDataMsg) Rows() uint32                         { return msg.Data.Information.MetaDataSummary.Rows }
 func (msg *MetaDataMsg) Columns() uint32                      { return msg.Data.Information.MetaDataSummary.Columns }
-func (msg *MetaDataMsg) Size() uint32                         { return msg.Data.Information.MetaDataSummary.Size }
+func (msg *MetaDataMsg) Size() uint32                         { return msg.Data.Information.MetaDataSummary.Size_ }
 func (msg *MetaDataMsg) FileType() string                     { return msg.Data.Information.MetaDataSummary.FileType }
 func (msg *MetaDataMsg) HasTitle() bool                       { return msg.Data.Information.MetaDataSummary.HasTitle }
 func (msg *MetaDataMsg) State() string                        { return msg.Data.Information.MetaDataSummary.State }

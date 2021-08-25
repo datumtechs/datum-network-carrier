@@ -23,23 +23,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 		log.WithError(err).Error("RPC-API:GetMetaDataDetail failed")
 		return nil, ErrGetMetaDataDetail
 	}
-
-	columns := make([]*libtypes.MetadataColumn, len(metaDataDetail.MetaData.ColumnMetas))
-	for i, colv := range metaDataDetail.MetaData.ColumnMetas {
-		column := &libtypes.MetadataColumn{
-			CIndex:   colv.CIndex,
-			CName:    colv.CName,
-			CType:    colv.CType,
-			CSize:    colv.CSize,
-			CComment: colv.CComment,
-		}
-		columns[i] = column
-	}
-
-	return &pb.GetMetaDataDetailResponse{
-		Owner:       types.ConvertNodeAliasToPB(metaDataDetail.Owner),
-		Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
-	}, nil
+	return metaDataDetail, nil
 }
 
 func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetMetaDataDetailListResponse, error) {
@@ -50,11 +34,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 	}
 	respList := make([]*pb.GetMetaDataDetailResponse, len(metaDataList))
 	for i, metaDataDetail := range metaDataList {
-		resp := &pb.GetMetaDataDetailResponse{
-			Owner:       types.ConvertNodeAliasToPB(metaDataDetail.Owner),
-			Information: types.ConvertMetaDataInfoToPB(metaDataDetail.MetaData),
-		}
-		respList[i] = resp
+		respList[i] = metaDataDetail
 	}
 	log.Debugf("Query all org's metaData list, len: {%d}", len(respList))
 	return &pb.GetMetaDataDetailListResponse{

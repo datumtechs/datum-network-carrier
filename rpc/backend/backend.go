@@ -1,6 +1,7 @@
 package backend
 
 import (
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -26,9 +27,9 @@ type Backend interface {
 	SendTaskEvent(event *libTypes.TaskEvent) error
 
 	// metadata api
-	GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error)
-	GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error)
-	GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error)
+	GetMetaDataDetail(identityId, metaDataId string) (*pb.GetMetaDataDetailResponse, error)
+	GetMetaDataDetailList() ([]*pb.GetMetaDataDetailResponse, error)
+	GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error)
 
 	// power api
 	GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error)
