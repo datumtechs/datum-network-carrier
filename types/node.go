@@ -1,25 +1,25 @@
 package types
 
-type YarnNodeInfo struct {
-	NodeType       string                `json:"nodeType"`
-	NodeId         string                `json:"nodeId"`
-	InternalIp     string                `json:"internalIp"`
-	ExternalIp     string                `json:"externalIp"`
-	InternalPort   string                `json:"internalPort"`
-	ExternalPort   string                `json:"externalPort"`
-	IdentityType   string                `json:"identityType"`
-	IdentityId     string                `json:"identityId"`
-	Name           string                `json:"name"`
-	TotalMem       uint64                `json:"totalMem"`
-	UsedMem        uint64                `json:"usedMem"`
-	TotalProcessor uint64                `json:"totalProcessor"`
-	UsedProcessor  uint64                `json:"usedProcessor"`
-	TotalBandwidth uint64                `json:"totalBandwidth"`
-	UsedBandwidth  uint64                `json:"usedBandwidth"`
-	Peers          []*RegisteredNodeDetail `json:"peers"`
-	SeedPeers      []*SeedNodeInfo         `json:"seedPeers"`
-	State          string                `json:"state"`
-}
+//type YarnNodeInfo struct {
+//	NodeType       string                `json:"nodeType"`
+//	NodeId         string                `json:"nodeId"`
+//	InternalIp     string                `json:"internalIp"`
+//	ExternalIp     string                `json:"externalIp"`
+//	InternalPort   string                `json:"internalPort"`
+//	ExternalPort   string                `json:"externalPort"`
+//	IdentityType   string                `json:"identityType"`
+//	IdentityId     string                `json:"identityId"`
+//	Name           string                `json:"name"`
+//	TotalMem       uint64                `json:"totalMem"`
+//	UsedMem        uint64                `json:"usedMem"`
+//	TotalProcessor uint64                `json:"totalProcessor"`
+//	UsedProcessor  uint64                `json:"usedProcessor"`
+//	TotalBandwidth uint64                `json:"totalBandwidth"`
+//	UsedBandwidth  uint64                `json:"usedBandwidth"`
+//	Peers          []*RegisteredNodeDetail `json:"peers"`
+//	SeedPeers      []*SeedNodeInfo         `json:"seedPeers"`
+//	State          string                `json:"state"`
+//}
 
 type YarnRegisteredNodeDetail struct {
 	JobNodes  []*YarnRegisteredJobNode  `json:"jobNodes"`

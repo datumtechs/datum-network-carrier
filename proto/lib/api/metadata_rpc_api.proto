@@ -11,7 +11,7 @@ import "google/protobuf/empty.proto";
 
 //  ------------------------  metadata  ------------------------
 message GetMetaDataDetailRequest {
-    string identity_id  = 1;
+    string identity_id = 1;
     string metadata_id = 2;
 }
 

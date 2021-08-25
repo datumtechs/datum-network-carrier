@@ -18,6 +18,7 @@ enum NodeType {
     SeedNode = 0;
     JobNode  = 1;
     DataNode = 2;
+    YarnNode = 3;
 }
 
 // 调度服务的信息
@@ -38,7 +39,6 @@ message YarnNodeInfo {
     uint32                      relate_peers  = 14;                         // 本调度服务被外部组织(调度服务/种子节点)的连接数目
 }
 
-
 // 调度服务的系统资源信息
 message YarnNodeSysInfo {
     string name            = 1;                  // 调度服务系统名称
@@ -49,7 +49,6 @@ message YarnNodeSysInfo {
     uint64 total_bandwidth = 6;       // 调度服务的总带宽数 (单位: bps)
     uint64 used_bandwidth  = 7;        // 调度服务的已用带宽数 (单位: bps)
 }
-
 
 // 调度服务上被注册的资源节点信息
 message YarnRegisteredPeer {
@@ -108,7 +107,6 @@ message SeedPeer {
 //  uint32 fileTotalSize = 2;                       // 数据服务对外公开的源文件总大小  (单位: byte)
 //}
 
-
 message GetNodeInfoResponse {
     int32        status      = 1;                      // 响应码
     string       msg         = 2;                         // 错误信息
@@ -134,6 +132,7 @@ message SetSeedNodeRequest {
     string internal_ip   = 2;                   // 种子节点的内网 ip, 给 管理台用
     string internal_port = 3;                 // 种子节点的内网 port, 给 管理台用
 }
+
 message SetSeedNodeResponse {
     int32    status    = 1;                      // 响应码
     string   msg       = 2;                         // 错误信息
@@ -147,17 +146,11 @@ message UpdateSeedNodeRequest {
     string internal_port = 4;                 // 种子节点的内网 port, 给 管理台用
 }
 
-//message DeleteSeedNodeRequest {
-//  string id = 1;                            // 种子节点的唯一Id
-//}
-
 message GetSeedNodeListResponse {
     int32             status = 1;                      // 响应码
     string            msg    = 2;                         // 错误信息
     repeated SeedPeer nodes  = 3;                       // 种子节点的详情信息
 }
-
-
 
 message SetDataNodeRequest {
     string internal_ip   = 3;                   // 数据服务的内网 ip, 给 管理台用
@@ -186,7 +179,6 @@ message GetRegisteredNodeListResponse {
     repeated YarnRegisteredPeer nodes  = 3;
 }
 
-
 message SetJobNodeRequest {
     string internal_ip   = 3;                   // 计算服务的内网 ip, 给 管理台用
     string external_ip   = 4;                   // 计算服务的外网 ip, 给 多方协作任务用
@@ -208,11 +200,9 @@ message UpdateJobNodeRequest {
     string external_port = 6;                 // 计算服务的外网 port, 给 多方协作任务用
 }
 
-
 message ReportTaskEventRequest {
     types.TaskEvent task_event = 1;
 }
-
 
 // 节点的资源使用实况上报请求
 message ReportTaskResourceExpenseRequest {
@@ -228,7 +218,6 @@ message ReportUpFileSummaryRequest {
     string port      = 4;         // Fighter 的 grpc server PORT
 }
 
-
 message QueryAvailableDataNodeRequest {
     uint64 file_size = 1;       // 要被上传的目标文件 大小 (单位: byte)
     string file_type = 2;       // 要被上传的目标文件  类型 (默认: "csv")
@@ -241,12 +230,12 @@ message QueryAvailableDataNodeResponse {
 message QueryFilePositionRequest {
     string origin_id = 1;              // 需要被下载的目标原始文件的 id
 }
+
 message QueryFilePositionResponse {
     string ip        = 1;                     // 需要被下载的目标原始文件所在的 数据服务内网ip
     string port      = 2;                   // 需要被下载的目标原始文件所在的 数据服务内网port
     string file_path = 3;              // 需要被下载的目标原始文件的完整相对路径名
 }
-
 
 // ## 调度服务 - 系统状态 接口
 service YarnService {
