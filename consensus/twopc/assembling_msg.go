@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -87,7 +87,7 @@ func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.PrepareMsg, error
 		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
 	}
 
-	task := types.NewTask(&libtypes.TaskData{})
+	task := types.NewTask(&libTypes.TaskData{})
 	err := task.DecodePb(prepareMsg.TaskInfo)
 	if err != nil {
 		return nil, err
@@ -203,14 +203,14 @@ func fetchCommitMsg(commitMsg *types.CommitMsgWrap) (*types.CommitMsg, error) {
 }
 
 func fetchTaskResultMsg(commitMsg *types.TaskResultMsgWrap) (*types.TaskResultMsg, error) {
-	taskEventList := make([]*types.TaskEventInfo, len(commitMsg.TaskEventList))
+	taskEventList := make([]*libTypes.TaskEvent, len(commitMsg.TaskEventList))
 	for index, value := range commitMsg.TaskEventList {
-		taskEventList[index] = &types.TaskEventInfo{
+		taskEventList[index] = &libTypes.TaskEvent{
 			Type:       string(value.Type),
 			TaskId:     string(value.TaskId),
-			Identity:   string(value.IdentityId),
+			IdentityId:   string(value.IdentityId),
 			Content:    string(value.Content),
-			CreateTime: value.CreateAt,
+			CreateAt: value.CreateAt,
 		}
 	}
 	msg := &types.TaskResultMsg{

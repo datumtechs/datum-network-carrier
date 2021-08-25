@@ -210,7 +210,7 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 func (m *Manager) sendTaskMsgsToScheduler(msgs types.TaskMsgs) {
 	m.localTaskMsgCh <- msgs
 }
-func (m *Manager) sendTaskEvent(event *types.TaskEventInfo) {
+func (m *Manager) sendTaskEvent(event *libTypes.TaskEvent) {
 	m.eventCh <- event
 }
 
@@ -222,7 +222,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.TaskEve
 	return m.dataCenter.InsertTask(msg.Data)
 }
 
-func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*types.TaskEventInfo, state string) *types.Task {
+func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libTypes.TaskEvent, state string) *types.Task {
 	task.TaskData().TaskEventList = types.ConvertTaskEventArrToDataCenter(eventList)
 	task.TaskData().EventCount = uint32(len(eventList))
 	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
@@ -442,7 +442,7 @@ func (m *Manager) makeTaskResultByEventList(taskWrap *types.DoneScheduleTaskChWr
 	}
 }
 
-func (m *Manager) handleEvent(event *types.TaskEventInfo) error {
+func (m *Manager) handleEvent(event *libTypes.TaskEvent) error {
 	eventType := event.Type
 	if len(eventType) != ev.EventTypeCharLen {
 		return ev.IncEventType

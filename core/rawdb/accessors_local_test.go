@@ -3,7 +3,7 @@ package rawdb
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
@@ -13,8 +13,8 @@ import (
 
 func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	data01 := &libtypes.TaskData{
-		Identity:             "identity",
+	data01 := &libTypes.TaskData{
+		IdentityId:             "identity",
 		NodeId:               "nodeid",
 		NodeName:             "nodename",
 		DataId:               "taskId",
@@ -127,27 +127,27 @@ func TestRegisteredNode(t *testing.T) {
 
 func TestTaskEvent(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	taskEvent := &types.TaskEventInfo{
+	taskEvent := &libTypes.TaskEvent{
 		Type:       "taskEventType",
-		Identity:   "taskEventIdentity",
+		IdentityId:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent",
-		CreateTime: uint64(timeutils.UnixMsec()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent)
 
-	taskEvent2 := &types.TaskEventInfo{
+	taskEvent2 := &libTypes.TaskEvent{
 		Type:       "taskEventType-02",
-		Identity:   "taskEventIdentity",
+		IdentityId:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent-02",
-		CreateTime: uint64(timeutils.UnixMsec()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent2)
 
 	revent, _ := ReadTaskEvent(database, "taskEventTaskId")
 	t.Logf("task evengine info : %v", len(revent))
-	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].Identity))
+	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].IdentityId))
 
 	// read all
 	taskEvents, _ := ReadAllTaskEvents(database)
@@ -184,8 +184,8 @@ func TestLocalIdentity(t *testing.T) {
 
 func TestLocalResource(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localResource01 := &libtypes.LocalResourceData{
-		Identity:             "01-identity",
+	localResource01 := &libTypes.LocalResourceData{
+		IdentityId:             "01-identity",
 		NodeId:               "01-nodeId",
 		NodeName:             "01-nodename",
 		JobNodeId:            "01",
@@ -203,8 +203,8 @@ func TestLocalResource(t *testing.T) {
 	_ = b
 	WriteLocalResource(database, types.NewLocalResource(localResource01))
 
-	localResource02 := &libtypes.LocalResourceData{
-		Identity:             "01-identity",
+	localResource02 := &libTypes.LocalResourceData{
+		IdentityId:             "01-identity",
 		NodeId:               "01-nodeId",
 		NodeName:             "01-nodename",
 		JobNodeId:            "02",

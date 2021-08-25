@@ -6,7 +6,7 @@ import (
 	"bytes"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
 	"strings"
@@ -497,7 +497,7 @@ func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) 
 }
 
 // ReadTaskEvent retrieves the evengine of task with the corresponding taskId.
-func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, error) {
+func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libTypes.TaskEvent, error) {
 	blob, err := db.Get(taskEventKey(taskId))
 	if err != nil {
 		return nil, err
@@ -506,15 +506,15 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, er
 	if err := events.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	resEvent := make([]*types.TaskEventInfo, 0)
+	resEvent := make([]*libTypes.TaskEvent, 0)
 	for _, e := range events.GetTaskEventList() {
 		if strings.EqualFold(e.GetTaskId(), taskId) {
-			resEvent = append(resEvent, &types.TaskEventInfo{
+			resEvent = append(resEvent, &libTypes.TaskEvent{
 				Type:       e.GetType(),
-				Identity:   e.GetIdentityId(),
+				IdentityId:   e.GetIdentityId(),
 				TaskId:     e.GetTaskId(),
 				Content:    e.GetContent(),
-				CreateTime: e.GetCreateAt(),
+				CreateAt: e.GetCreateAt(),
 			})
 		}
 	}
@@ -522,11 +522,11 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, er
 }
 
 // ReadAllTaskEvent retrieves the task event with all.
-func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
+func ReadAllTaskEvents(db KeyValueStore) ( []*libTypes.TaskEvent, error) {
 	prefix := taskEventPrefix
 	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
-	result := make([]*types.TaskEventInfo, 0)
+	result := make([]*libTypes.TaskEvent, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
@@ -539,13 +539,7 @@ func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
 				continue
 			}
 			for _, e := range events.GetTaskEventList() {
-				result = append(result, &types.TaskEventInfo{
-					Type:       e.GetType(),
-					Identity:   e.GetIdentityId(),
-					TaskId:     e.GetTaskId(),
-					Content:    e.GetContent(),
-					CreateTime: e.GetCreateAt(),
-				})
+				result = append(result, e)
 			}
 		}
 	}
@@ -553,7 +547,7 @@ func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
 }
 
 // WriteTaskEvent serializes the task evengine into the database.
-func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
+func WriteTaskEvent(db KeyValueStore, taskEvent *libTypes.TaskEvent) {
 	blob, err := db.Get(taskEventKey(taskEvent.TaskId))
 	if err != nil {
 		log.WithError(err).Warn("Failed to load old task events")
@@ -572,13 +566,7 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 	//		return
 	//	}
 	//}
-	array.TaskEventList = append(array.TaskEventList, &libtypes.TaskEvent{
-		TaskId:               	taskEvent.TaskId,
-		Type:            		taskEvent.Type,
-		CreateAt:              	taskEvent.CreateTime,
-		Content:         		taskEvent.Content,
-		IdentityId:             taskEvent.Identity,
-	})
+	array.TaskEventList = append(array.TaskEventList, taskEvent)
 
 	data, err := array.Marshal()
 	if err != nil {
@@ -623,7 +611,7 @@ func ReadLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResourc
 		log.WithError(err).Fatal("Failed to read local resource")
 		return nil, err
 	}
-	localResource := new(libtypes.LocalResourceData)
+	localResource := new(libTypes.LocalResourceData)
 	if err := localResource.Unmarshal(blob); err != nil {
 		log.WithError(err).Fatal("Failed to unmarshal local resource")
 		return nil, err
@@ -643,7 +631,7 @@ func ReadAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
 			if err != nil {
 				continue
 			}
-			localResource := new(libtypes.LocalResourceData)
+			localResource := new(libTypes.LocalResourceData)
 			if err := localResource.Unmarshal(blob); err != nil {
 				continue
 			}

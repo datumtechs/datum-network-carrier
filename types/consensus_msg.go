@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 type ConsensusEngineType string
@@ -260,7 +261,7 @@ type TaskResultMsg struct {
 	TaskRole      TaskRole
 	Owner         *TaskNodeAlias
 	TaskId        string
-	TaskEventList []*TaskEventInfo
+	TaskEventList []*libTypes.TaskEvent
 	CreateAt      uint64
 	Sign          []byte
 }

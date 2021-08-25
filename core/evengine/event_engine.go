@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
-	"github.com/RosettaFlow/Carrier-Go/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 
@@ -19,22 +19,22 @@ func NewEventEngine(dataCenter iface.TaskCarrierDB) *EventEngine {
 	}
 }
 
-func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *types.TaskEventInfo {
-	return &types.TaskEventInfo{
+func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *libTypes.TaskEvent {
+	return &libTypes.TaskEvent{
 		Type: typ,
 		TaskId: taskId,
-		Identity: identityId,
+		IdentityId: identityId,
 		Content: fmt.Sprintf("%s, reason: {%s}", ScheduleEvent[typ], extra),
-		CreateTime: uint64(timeutils.UnixMsec()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 }
-func  (e *EventEngine) StoreEvent(event *types.TaskEventInfo) {
+func  (e *EventEngine) StoreEvent(event *libTypes.TaskEvent) {
 	if err := e.dataCenter.StoreTaskEvent(event); nil != err {
 		log.Errorf("Failed to Store task event, taskId: {%s}, evnet: {%s}, err: {%s}", event.TaskId, event.String(), err)
 	}
 	return
 }
-func  (e *EventEngine) GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error) {
+func  (e *EventEngine) GetTaskEventList(taskId string) ([]*libTypes.TaskEvent, error) {
 	return e.dataCenter.GetTaskEventList(taskId)
 }
 func  (e *EventEngine)  RemoveTaskEventList(taskId string) error {
