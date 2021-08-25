@@ -46,11 +46,11 @@ message TaskData {
 
     // v2.0
     // 发起任务的用户的信息 (task是属于用户的)
-    string                               user           = 30;
+    string user = 30;
     // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-    api.protobuf.UserType                user_type      = 31;
+    api.protobuf.UserType user_type = 31;
     // 任务发起方
-    api.protobuf.TaskOrganization        sender         = 32;
+    api.protobuf.TaskOrganization sender = 32;
 }
 
 // 定义：任务详细信息

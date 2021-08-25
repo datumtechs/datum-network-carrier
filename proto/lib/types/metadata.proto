@@ -9,19 +9,19 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 // MetaData body data struct.
 message MetaData {
-    string                  identity_id          = 1;
-    string                  node_id              = 2;
-    string                  node_name            = 3;
-    string                  data_id              = 4;
-    string                  data_status          = 5;
-    string                  origin_id            = 6;
-    string                  table_name           = 7;
-    string                  file_path            = 8;
-    string                  desc                 = 9;
-    uint64                  rows                 = 10;
-    uint64                  columns              = 11;
-    uint64                  size                 = 12;
-    string                  file_type            = 13;
+    string identity_id = 1;
+    string node_id     = 2;
+    string node_name   = 3;
+    string data_id     = 4;
+    string data_status = 5;
+    string origin_id   = 6;
+    string table_name  = 7;
+    string file_path   = 8;
+    string desc        = 9;
+    uint64 rows        = 10;
+    uint64 columns     = 11;
+    uint64 size        = 12;
+    string file_type   = 13;
     // 元数据的状态 (create: 还未发布的新表; release: 已发布的表; revoke: 已撤销的表)
     string                  state                = 14;
     bool                    has_title            = 15;
@@ -57,9 +57,9 @@ message MetaDataSummary {
 
 // 元数据的详情信息
 message MetaDataDetail {
-    MetaDataSummary         meta_data_summary = 1;
-    repeated MetadataColumn column_metadata_list       = 2;
-    uint32                  total_task_count  = 3;            // 该元数据参与过得任务数 (已完成的和正在执行的)
+    MetaDataSummary         meta_data_summary    = 1;
+    repeated MetadataColumn column_metadata_list = 2;
+    uint32                  total_task_count     = 3;            // 该元数据参与过得任务数 (已完成的和正在执行的)
 }
 
 // 元数据的使用方式类型枚举
