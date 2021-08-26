@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	towTypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -228,7 +229,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			}
 		}
 
-		cost := &types.TaskOperationCost{
+		cost := &towTypes.TaskOperationCost{
 			Mem:       task.Data.TaskData().OperationCost.CostMem,
 			Processor: uint64(task.Data.TaskData().OperationCost.CostProcessor),
 			Bandwidth: task.Data.TaskData().OperationCost.CostBandwidth,
@@ -341,7 +342,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 }
 func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.ReplayScheduleTaskWrap) {
 
-	cost := &types.TaskOperationCost{
+	cost := &towTypes.TaskOperationCost{
 		Mem:       replayScheduleTask.Task.TaskData().OperationCost.CostMem,
 		Processor: uint64(replayScheduleTask.Task.TaskData().OperationCost.CostProcessor),
 		Bandwidth: replayScheduleTask.Task.TaskData().OperationCost.CostBandwidth,
@@ -593,7 +594,7 @@ func (sche *SchedulerStarveFIFO) electionConputeNode(needSlotCount uint32) (*pb.
 func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	powerPartyIds []string,
 	dataIdentityIdCache map[string]struct{},
-	cost *types.TaskOperationCost,
+	cost *towTypes.TaskOperationCost,
 ) ([]*libTypes.TaskPowerSupplier, error) {
 
 	calculateCount := len(powerPartyIds)

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
@@ -23,7 +24,7 @@ type taskOption struct {
 	DataSupplier          []*dataSupplierOption    `json:"dataSupplier"`
 	PowerSupplier         []*powerSupplierOption   `json:"powerSupplier"`
 	Receivers             []*receiverOption        `json:"receivers"`
-	OperationCost         *types.TaskOperationCost `json:"operationCost"`
+	OperationCost         *TaskOperationCost `json:"operationCost"`
 	CalculateContractCode string                   `json:"calculateContractCode"`
 	DataSplitContractCode string                   `json:"dataSplitContractCode"`
 	CreateAt              uint64                   `json:"createat"`
@@ -31,6 +32,17 @@ type taskOption struct {
 
 func (t *taskOption) Hash() common.Hash {
 	return rlputil.RlpHash(t)
+}
+
+type TaskOperationCost struct {
+	Processor uint64 `json:"processor"`
+	Mem       uint64 `json:"mem"`
+	Bandwidth uint64 `json:"bandwidth"`
+	Duration  uint64 `json:"duration"`
+}
+
+func (cost *TaskOperationCost) String() string {
+	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
 }
 
 type dataSupplierOption struct {
