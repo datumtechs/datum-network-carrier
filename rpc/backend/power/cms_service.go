@@ -5,7 +5,6 @@ import (
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -18,26 +17,20 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 		log.WithError(err).Error("RPC-API:GetPowerTotalDetailList failed")
 		return nil, ErrGetTotalPowerList
 	}
-	respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
-
-	for i, power := range powerList {
-		resp := &pb.GetPowerTotalDetailResponse{
-			Owner: types.ConvertNodeAliasToPB(power.Owner),
-			Power: &libtypes.PowerTotalDetail{
-				Information: types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
-				TotalTaskCount:power.PowerDetail.TotalTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
-				CurrentTaskCount: power.PowerDetail.CurrentTaskCount, // TODO 管理台查询 全网算力， 暂不显示 任务实况
-				Tasks: types.ConvertPowerTaskArrToPB(power.PowerDetail.Tasks), // TODO 管理台查询 全网算力， 暂不显示 任务实况
-				State: power.PowerDetail.State,
-			},
-		}
-		respList[i] = resp
-	}
-	log.Debugf("RPC-API:GetPowerTotalDetailList succeed, powerList: {%d}, json: %s", len(respList), utilGetPowerTotalDetailResponseArrString(respList))
+	//respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
+	//
+	//for i, power := range powerList {
+	//	resp := &pb.GetPowerTotalDetailResponse{
+	//		Owner: power.Owner,
+	//		Power: power.Power,
+	//	}
+	//	respList[i] = resp
+	//}
+	log.Debugf("RPC-API:GetPowerTotalDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetPowerTotalDetailResponseArrString(powerList))
 	return &pb.GetPowerTotalDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,
-		PowerList: respList,
+		PowerList: powerList,
 	}, nil
 }
 
@@ -47,29 +40,29 @@ func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req
 		log.WithError(err).Error("RPC-API:GetPowerSingleDetailList failed")
 		return nil, ErrGetSinglePowerList
 	}
-	respList := make([]*pb.GetPowerSingleDetailResponse, len(powerList))
-
-	for i, power := range powerList {
-
-		resp := &pb.GetPowerSingleDetailResponse{
-			Owner:  types.ConvertNodeAliasToPB(power.Owner),
-			Power: &libtypes.PowerSingleDetail{
-				JobNodeId: power.PowerDetail.JobNodeId,
-				PowerId: power.PowerDetail.PowerId,
-				Information:types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
-				TotalTaskCount:power.PowerDetail.TotalTaskCount,
-				CurrentTaskCount: power.PowerDetail.CurrentTaskCount,
-				Tasks: types.ConvertPowerTaskArrToPB(power.PowerDetail.Tasks),
-				State: power.PowerDetail.State,
-			},
-		}
-		respList[i] = resp
-	}
-	log.Debugf("RPC-API:GetPowerSingleDetailList succeed, powerList: {%d}, json: %s", len(respList), utilGetPowerSingleDetailResponseArrString(respList))
+	//respList := make([]*pb.GetPowerSingleDetailResponse, len(powerList))
+	//
+	//for i, power := range powerList {
+	//
+	//	resp := &pb.GetPowerSingleDetailResponse{
+	//		Owner:  types.ConvertNodeAliasToPB(power.Owner),
+	//		Power: &libtypes.PowerSingleDetail{
+	//			JobNodeId: power.PowerDetail.JobNodeId,
+	//			PowerId: power.PowerDetail.PowerId,
+	//			Information:types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
+	//			TotalTaskCount:power.PowerDetail.TotalTaskCount,
+	//			CurrentTaskCount: power.PowerDetail.CurrentTaskCount,
+	//			Tasks: types.ConvertPowerTaskArrToPB(power.PowerDetail.Tasks),
+	//			State: power.PowerDetail.State,
+	//		},
+	//	}
+	//	respList[i] = resp
+	//}
+	log.Debugf("RPC-API:GetPowerSingleDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetPowerSingleDetailResponseArrString(powerList))
 	return &pb.GetPowerSingleDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,
-		PowerList: respList,
+		PowerList: powerList,
 	}, nil
 }
 func utilGetPowerTotalDetailResponseArrString(resp []*pb.GetPowerTotalDetailResponse) string {

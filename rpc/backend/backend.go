@@ -32,8 +32,8 @@ type Backend interface {
 	GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error)
 
 	// power api
-	GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error)
-	GetPowerSingleDetailList() ([]*types.NodePowerDetail, error)
+	GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error)
+	GetPowerSingleDetailList() ([]*pb.GetPowerSingleDetailResponse, error)
 
 	// identity api
 	GetNodeIdentity() (*types.Identity, error)
