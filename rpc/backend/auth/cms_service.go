@@ -38,8 +38,8 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 		return nil, errors.New("Invalid Params, req.Member.IdentityId or req.Member.Name is empty")
 	}
 
-	identityMsg.NodeAlias = &types.NodeAlias{}
-	identityMsg.Name = req.Member.NodeName
+	identityMsg.Organization = &apipb.Organization{}
+	identityMsg.NodeName = req.Member.NodeName
 	identityMsg.IdentityId = req.Member.IdentityId
 	//identityMsg.NodeId = req.Member.NodeId
 	identityMsg.CreateAt = uint64(timeutils.UnixMsec())

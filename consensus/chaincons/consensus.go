@@ -17,7 +17,7 @@ func (c *Chaincons)Start() error {
 }
 func (c *Chaincons) Close() error {return nil}
 func (c *Chaincons)OnPrepare(task *types.Task) error {return nil}
-func (c *Chaincons)OnHandle(task *types.Task,selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensuResult) error  {return nil}
+func (c *Chaincons)OnHandle(task *types.Task,selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensusResult) error  {return nil}
 func (c *Chaincons) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {return nil}
 func (c *Chaincons) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {return nil}
 func (c *Chaincons)OnError() error  {return nil}

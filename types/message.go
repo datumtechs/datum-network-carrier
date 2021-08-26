@@ -53,7 +53,7 @@ type RegisteredNodeMsg struct {
 
 // ------------------- identity -------------------
 type IdentityMsg struct {
-	*NodeAlias
+	*apipb.Organization
 	CreateAt uint64 `json:"createAt"`
 }
 type IdentityRevokeMsg struct {
@@ -65,7 +65,7 @@ type IdentityRevokeMsgs []*IdentityRevokeMsg
 
 func (msg *IdentityMsg) ToDataCenter() *Identity {
 	return NewIdentity(&libTypes.IdentityData{
-		NodeName:   msg.Name,
+		NodeName:   msg.NodeName,
 		NodeId:     msg.NodeId,
 		IdentityId: msg.IdentityId,
 	})
@@ -80,7 +80,7 @@ func (msg *IdentityMsg) String() string {
 	return string(result)
 }
 func (msg *IdentityMsg) MsgType() string                { return MSG_IDENTITY }
-func (msg *IdentityMsg) OwnerName() string              { return msg.Name }
+func (msg *IdentityMsg) OwnerName() string              { return msg.NodeName }
 func (msg *IdentityMsg) OwnerNodeId() string            { return msg.NodeId }
 func (msg *IdentityMsg) OwnerIdentityId() string        { return msg.IdentityId }
 func (msg *IdentityMsg) MsgCreateAt() uint64            { return msg.CreateAt }
@@ -116,7 +116,7 @@ func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
 }
 
 type PowerRevokeMsg struct {
-	*NodeAlias
+	*apipb.Organization
 	PowerId  string `json:"powerId"`
 	CreateAt uint64 `json:"createAt"`
 }
@@ -227,7 +227,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 }
 
 type metadataData struct {
-	*NodeAlias
+	*apipb.Organization
 	Information struct {
 		MetaDataSummary *libTypes.MetaDataSummary        `json:"metaDataSummary"`
 		ColumnMetas     []*types.MetadataColumn `json:"columnMetas"`
@@ -236,7 +236,7 @@ type metadataData struct {
 }
 
 type MetaDataRevokeMsg struct {
-	*NodeAlias
+	*apipb.Organization
 	MetaDataId string `json:"metaDataId"`
 	CreateAt   uint64 `json:"createAt"`
 }
@@ -283,14 +283,14 @@ func (msg *MetaDataMsg) String() string {
 	return string(result)
 }
 func (msg *MetaDataMsg) MsgType() string { return MSG_METADATA }
-func (msg *MetaDataMsg) Onwer() *NodeAlias {
-	return &NodeAlias{
-		Name:       msg.Data.Name,
+func (msg *MetaDataMsg) Owner() *apipb.Organization {
+	return &apipb.Organization{
+		NodeName:       msg.Data.NodeName,
 		NodeId:     msg.Data.NodeId,
 		IdentityId: msg.Data.IdentityId,
 	}
 }
-func (msg *MetaDataMsg) OwnerName() string       { return msg.Data.Name }
+func (msg *MetaDataMsg) OwnerName() string       { return msg.Data.NodeName }
 func (msg *MetaDataMsg) OwnerNodeId() string     { return msg.Data.NodeId }
 func (msg *MetaDataMsg) OwnerIdentityId() string { return msg.Data.IdentityId }
 func (msg *MetaDataMsg) MetaDataSummary() *libTypes.MetaDataSummary {
@@ -335,7 +335,7 @@ func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
 	return NewMetadata(&libTypes.MetaData{
 		IdentityId: msg.IdentityId,
 		NodeId:     msg.NodeId,
-		NodeName:   msg.Name,
+		NodeName:   msg.NodeName,
 		DataId:     msg.MetaDataId,
 		// the status of data, N means normal, D means deleted.
 		DataStatus: DATA_STATUS_DELETED.String(),
@@ -603,20 +603,20 @@ func (s TaskMsgs) Len() int { return len(s) }
 func (s TaskMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.data.CreateAt < s[j].Data.data.CreateAt }
 
-type TaskSupplier struct {
-	*TaskNodeAlias
-	MetaData *SupplierMetaData `json:"metaData"`
-}
+//type TaskSupplier struct {
+//	*TaskNodeAlias
+//	MetaData *SupplierMetaData `json:"metaData"`
+//}
 
-type SupplierMetaData struct {
-	MetaDataId      string   `json:"metaDataId"`
-	ColumnIndexList []uint64 `json:"columnIndexList"`
-}
+//type SupplierMetaData struct {
+//	MetaDataId      string   `json:"metaDataId"`
+//	ColumnIndexList []uint64 `json:"columnIndexList"`
+//}
 
-type TaskResultReceiver struct {
-	*TaskNodeAlias
-	Providers []*TaskNodeAlias `json:"providers"`
-}
+//type TaskResultReceiver struct {
+//	*TaskNodeAlias
+//	Providers []*TaskNodeAlias `json:"providers"`
+//}
 
 type TaskOperationCost struct {
 	Processor uint64 `json:"processor"`
@@ -629,139 +629,139 @@ func (cost *TaskOperationCost) String() string {
 	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
 }
 
-func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *apipb.TaskResourceCostDeclare {
-	return &apipb.TaskResourceCostDeclare{
-		CostMem:       cost.Mem,
-		CostProcessor: uint32(cost.Processor),
-		CostBandwidth: cost.Bandwidth,
-		Duration:      cost.Duration,
-	}
-}
-func ConvertTaskOperationCostFromPB(cost *apipb.TaskResourceCostDeclare) *TaskOperationCost {
-	return &TaskOperationCost{
-		Mem:       cost.CostMem,
-		Processor: uint64(cost.CostProcessor),
-		Bandwidth: cost.CostBandwidth,
-		Duration:  cost.Duration,
-	}
-}
+//func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *apipb.TaskResourceCostDeclare {
+//	return &apipb.TaskResourceCostDeclare{
+//		CostMem:       cost.Mem,
+//		CostProcessor: uint32(cost.Processor),
+//		CostBandwidth: cost.Bandwidth,
+//		Duration:      cost.Duration,
+//	}
+//}
+//func ConvertTaskOperationCostFromPB(cost *apipb.TaskResourceCostDeclare) *TaskOperationCost {
+//	return &TaskOperationCost{
+//		Mem:       cost.CostMem,
+//		Processor: uint64(cost.CostProcessor),
+//		Bandwidth: cost.CostBandwidth,
+//		Duration:  cost.Duration,
+//	}
+//}
 
 // ------------------- data using authorize -------------------
 
-type DataAuthorizationApply struct {
-	PoposalHash string     `json:"poposalHash"`
-	Proposer    *NodeAlias `json:"proposer"`
-	Approver    *NodeAlias `json:"approver"`
-	Apply       struct {
-		MetaId       string `json:"metaId"`
-		UseCount     uint64 `json:"useCount"`
-		UseStartTime string `json:"useStartTime"`
-		UseEndTime   string `json:"useEndTime"`
-	} `json:"apply"`
-}
+//type DataAuthorizationApply struct {
+//	PoposalHash string     `json:"poposalHash"`
+//	Proposer    *NodeAlias `json:"proposer"`
+//	Approver    *NodeAlias `json:"approver"`
+//	Apply       struct {
+//		MetaId       string `json:"metaId"`
+//		UseCount     uint64 `json:"useCount"`
+//		UseStartTime string `json:"useStartTime"`
+//		UseEndTime   string `json:"useEndTime"`
+//	} `json:"apply"`
+//}
 
-type DataAuthorizationConfirm struct {
-	PoposalHash string     `json:"poposalHash"`
-	Proposer    *NodeAlias `json:"proposer"`
-	Approver    *NodeAlias `json:"approver"`
-	Approve     struct {
-		Vote   uint16 `json:"vote"`
-		Reason string `json:"reason"`
-	} `json:"approve"`
-}
+//type DataAuthorizationConfirm struct {
+//	PoposalHash string     `json:"poposalHash"`
+//	Proposer    *NodeAlias `json:"proposer"`
+//	Approver    *NodeAlias `json:"approver"`
+//	Approve     struct {
+//		Vote   uint16 `json:"vote"`
+//		Reason string `json:"reason"`
+//	} `json:"approve"`
+//}
 
 // ------------------- common -------------------
 
-type NodeAlias struct {
-	Name       string `json:"name"`
-	NodeId     string `json:"nodeId"`
-	IdentityId string `json:"identityId"`
-}
+//type NodeAlias struct {
+//	Name       string `json:"name"`
+//	NodeId     string `json:"nodeId"`
+//	IdentityId string `json:"identityId"`
+//}
 
-type TaskNodeAlias struct {
-	PartyId    string `json:"partyId"`
-	Name       string `json:"name"`
-	NodeId     string `json:"nodeId"`
-	IdentityId string `json:"identityId"`
-}
+//type TaskNodeAlias struct {
+//	PartyId    string `json:"partyId"`
+//	Name       string `json:"name"`
+//	NodeId     string `json:"nodeId"`
+//	IdentityId string `json:"identityId"`
+//}
 
-func (tna *TaskNodeAlias) String() string {
-	return fmt.Sprintf(`{"partyId": %s, "name": %s, "nodeId": %s, "identityId": %s}`, tna.PartyId, tna.Name, tna.NodeId, tna.IdentityId)
-}
+//func (tna *TaskNodeAlias) String() string {
+//	return fmt.Sprintf(`{"partyId": %s, "name": %s, "nodeId": %s, "identityId": %s}`, tna.PartyId, tna.Name, tna.NodeId, tna.IdentityId)
+//}
 
-func ConvertNodeAliasToPB(alias *NodeAlias) *apipb.Organization {
-	return &apipb.Organization{
-		NodeName:   alias.Name,
-		NodeId:     alias.NodeId,
-		IdentityId: alias.IdentityId,
-	}
-}
+//func ConvertNodeAliasToPB(alias *NodeAlias) *apipb.Organization {
+//	return &apipb.Organization{
+//		NodeName:   alias.Name,
+//		NodeId:     alias.NodeId,
+//		IdentityId: alias.IdentityId,
+//	}
+//}
 
-func ConvertTaskNodeAliasToPB(alias *TaskNodeAlias) *apipb.TaskOrganization {
-	return &apipb.TaskOrganization{
-		PartyId:    alias.PartyId,
-		NodeName:   alias.Name,
-		NodeId:     alias.NodeId,
-		IdentityId: alias.IdentityId,
-	}
-}
+//func ConvertTaskNodeAliasToPB(alias *TaskNodeAlias) *apipb.TaskOrganization {
+//	return &apipb.TaskOrganization{
+//		PartyId:    alias.PartyId,
+//		NodeName:   alias.Name,
+//		NodeId:     alias.NodeId,
+//		IdentityId: alias.IdentityId,
+//	}
+//}
 
-func ConvertNodeAliasFromPB(org *apipb.Organization) *NodeAlias {
-	return &NodeAlias{
-		Name:       org.NodeName,
-		NodeId:     org.NodeId,
-		IdentityId: org.IdentityId,
-	}
-}
+//func ConvertNodeAliasFromPB(org *apipb.Organization) *NodeAlias {
+//	return &NodeAlias{
+//		Name:       org.NodeName,
+//		NodeId:     org.NodeId,
+//		IdentityId: org.IdentityId,
+//	}
+//}
 
-func ConvertTaskNodeAliasFromPB(org *apipb.TaskOrganization) *TaskNodeAlias {
-	return &TaskNodeAlias{
-		PartyId:    org.PartyId,
-		Name:       org.NodeName,
-		NodeId:     org.NodeId,
-		IdentityId: org.IdentityId,
-	}
-}
+//func ConvertTaskNodeAliasFromPB(org *apipb.TaskOrganization) *TaskNodeAlias {
+//	return &TaskNodeAlias{
+//		PartyId:    org.PartyId,
+//		Name:       org.NodeName,
+//		NodeId:     org.NodeId,
+//		IdentityId: org.IdentityId,
+//	}
+//}
 
-func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*apipb.Organization {
-	orgs := make([]*apipb.Organization, len(aliases))
-	for i, a := range aliases {
-		org := ConvertNodeAliasToPB(a)
-		orgs[i] = org
-	}
-	return orgs
-}
+//func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*apipb.Organization {
+//	orgs := make([]*apipb.Organization, len(aliases))
+//	for i, a := range aliases {
+//		org := ConvertNodeAliasToPB(a)
+//		orgs[i] = org
+//	}
+//	return orgs
+//}
 
-func ConvertTaskNodeAliasArrToPB(aliases []*TaskNodeAlias) []*apipb.TaskOrganization {
-	orgs := make([]*apipb.TaskOrganization, len(aliases))
-	for i, a := range aliases {
-		org := ConvertTaskNodeAliasToPB(a)
-		orgs[i] = org
-	}
-	return orgs
-}
+//func ConvertTaskNodeAliasArrToPB(aliases []*TaskNodeAlias) []*apipb.TaskOrganization {
+//	orgs := make([]*apipb.TaskOrganization, len(aliases))
+//	for i, a := range aliases {
+//		org := ConvertTaskNodeAliasToPB(a)
+//		orgs[i] = org
+//	}
+//	return orgs
+//}
 
-func ConvertNodeAliasArrFromPB(orgs []*apipb.Organization) []*NodeAlias {
-	aliases := make([]*NodeAlias, len(orgs))
-	for i, o := range orgs {
-		alias := ConvertNodeAliasFromPB(o)
-		aliases[i] = alias
-	}
-	return aliases
-}
+//func ConvertNodeAliasArrFromPB(orgs []*apipb.Organization) []*NodeAlias {
+//	aliases := make([]*NodeAlias, len(orgs))
+//	for i, o := range orgs {
+//		alias := ConvertNodeAliasFromPB(o)
+//		aliases[i] = alias
+//	}
+//	return aliases
+//}
 
-func ConvertTaskNodeAliasArrFromPB(orgs []*apipb.TaskOrganization) []*TaskNodeAlias {
-	aliases := make([]*TaskNodeAlias, len(orgs))
-	for i, o := range orgs {
-		alias := ConvertTaskNodeAliasFromPB(o)
-		aliases[i] = alias
-	}
-	return aliases
-}
+//func ConvertTaskNodeAliasArrFromPB(orgs []*apipb.TaskOrganization) []*TaskNodeAlias {
+//	aliases := make([]*TaskNodeAlias, len(orgs))
+//	for i, o := range orgs {
+//		alias := ConvertTaskNodeAliasFromPB(o)
+//		aliases[i] = alias
+//	}
+//	return aliases
+//}
 
-func (n *NodeAlias) GetNodeName() string       { return n.Name }
-func (n *NodeAlias) GetNodeIdStr() string      { return n.NodeId }
-func (n *NodeAlias) GetNodeIdentityId() string { return n.IdentityId }
+//func (n *NodeAlias) GetNodeName() string       { return n.Name }
+//func (n *NodeAlias) GetNodeIdStr() string      { return n.NodeId }
+//func (n *NodeAlias) GetNodeIdentityId() string { return n.IdentityId }
 
 type ResourceUsage struct {
 	TotalMem       uint64 `json:"totalMem"`
@@ -772,26 +772,26 @@ type ResourceUsage struct {
 	UsedBandwidth  uint64 `json:"usedBandwidth"`
 }
 
-func ConvertResourceUsageToPB(usage *ResourceUsage) *libTypes.ResourceUsageOverview {
-	return &libTypes.ResourceUsageOverview{
-		TotalMem:       usage.TotalMem,
-		UsedMem:        usage.UsedMem,
-		TotalProcessor: uint32(usage.TotalProcessor),
-		UsedProcessor:  uint32(usage.UsedProcessor),
-		TotalBandwidth: usage.TotalBandwidth,
-		UsedBandwidth:  usage.UsedBandwidth,
-	}
-}
-func ConvertResourceUsageFromPB(usage *libTypes.ResourceUsageOverview) *ResourceUsage {
-	return &ResourceUsage{
-		TotalMem:       usage.TotalMem,
-		UsedMem:        usage.UsedMem,
-		TotalProcessor: uint64(usage.TotalProcessor),
-		UsedProcessor:  uint64(usage.UsedProcessor),
-		TotalBandwidth: usage.TotalBandwidth,
-		UsedBandwidth:  usage.UsedBandwidth,
-	}
-}
+//func ConvertResourceUsageToPB(usage *ResourceUsage) *libTypes.ResourceUsageOverview {
+//	return &libTypes.ResourceUsageOverview{
+//		TotalMem:       usage.TotalMem,
+//		UsedMem:        usage.UsedMem,
+//		TotalProcessor: uint32(usage.TotalProcessor),
+//		UsedProcessor:  uint32(usage.UsedProcessor),
+//		TotalBandwidth: usage.TotalBandwidth,
+//		UsedBandwidth:  usage.UsedBandwidth,
+//	}
+//}
+//func ConvertResourceUsageFromPB(usage *libTypes.ResourceUsageOverview) *ResourceUsage {
+//	return &ResourceUsage{
+//		TotalMem:       usage.TotalMem,
+//		UsedMem:        usage.UsedMem,
+//		TotalProcessor: uint64(usage.TotalProcessor),
+//		UsedProcessor:  uint64(usage.UsedProcessor),
+//		TotalBandwidth: usage.TotalBandwidth,
+//		UsedBandwidth:  usage.UsedBandwidth,
+//	}
+//}
 
 /**
 Example:

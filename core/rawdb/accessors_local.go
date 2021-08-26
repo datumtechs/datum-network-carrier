@@ -18,7 +18,7 @@ const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
 // ReadLocalIdentity retrieves the identity of local.
-func ReadLocalIdentity(db DatabaseReader) (*types.NodeAlias, error) {
+func ReadLocalIdentity(db DatabaseReader) (*apipb.Organization, error) {
 	var blob apipb.Organization
 	enc, err := db.Get(localIdentityKey)
 	if nil != err {
@@ -27,19 +27,19 @@ func ReadLocalIdentity(db DatabaseReader) (*types.NodeAlias, error) {
 	if err := blob.Unmarshal(enc); nil != err {
 		return nil, err
 	}
-	return &types.NodeAlias{
-		Name:       blob.GetNodeName(),
+	return &apipb.Organization{
+		NodeName:       blob.GetNodeName(),
 		NodeId:     blob.GetNodeId(),
 		IdentityId: blob.GetIdentityId(),
 	}, nil
 }
 
 // WriteLocalIdentity stores the local identity.
-func WriteLocalIdentity(db DatabaseWriter, localIdentity *types.NodeAlias) {
+func WriteLocalIdentity(db DatabaseWriter, localIdentity *apipb.Organization) {
 	pb := &apipb.TaskOrganization{
 		PartyId:              "",
-		IdentityId:           localIdentity.GetNodeIdentityId(),
-		NodeId:               localIdentity.GetNodeIdStr(),
+		IdentityId:           localIdentity.GetIdentityId(),
+		NodeId:               localIdentity.GetNodeId(),
 		NodeName:             localIdentity.GetNodeName(),
 	}
 	enc, _ := pb.Marshal()

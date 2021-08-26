@@ -9,13 +9,13 @@ package types
 //}
 //
 //type NodeResourceUsagePowerRes struct {
-//	Onwer *NodeAlias              `json:"owner"` // organization identity
+//	Owner *NodeAlias              `json:"owner"` // organization identity
 //	Usage *NodeResourceUsagePower `json:"usage"`
 //}
 //
 //// Resource usage of all node host machines in a single organization (Decentralized storage)
 //type OrgResourceUsagePower struct {
-//	Onwer         *NodeAlias     `json:"owner"` // organization identity
+//	Owner         *NodeAlias     `json:"owner"` // organization identity
 //	ResourceUsage *ResourceUsage `json:"resourceUsage"`
 //}
 //

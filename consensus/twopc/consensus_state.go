@@ -3,6 +3,7 @@ package twopc
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
@@ -124,9 +125,9 @@ func (s *state) GetProposalStates() map[common.Hash]*ctypes.ProposalState {
 			ProposalId:         proposalState.ProposalId,
 			TaskDir:            proposalState.TaskDir,
 			TaskRole:           proposalState.TaskRole,
-			SelfIdentity:       &types.TaskNodeAlias{
+			SelfIdentity:       &apipb.TaskOrganization{
 				PartyId:    proposalState.SelfIdentity.PartyId,
-				Name:       proposalState.SelfIdentity.Name,
+				NodeName:       proposalState.SelfIdentity.NodeName,
 				NodeId:     proposalState.SelfIdentity.NodeId,
 				IdentityId: proposalState.SelfIdentity.IdentityId,
 			},

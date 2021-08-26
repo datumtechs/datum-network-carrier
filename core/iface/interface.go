@@ -2,6 +2,7 @@ package iface
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -95,14 +96,14 @@ type ResourceCarrierDB interface {
 
 type IdentityCarrierDB interface {
 	InsertIdentity(identity *types.Identity) error
-	StoreIdentity(identity *types.NodeAlias) error
+	StoreIdentity(identity *apipb.Organization) error
 	RemoveIdentity() error
 	GetIdentityId() (string, error)
-	GetIdentity() (*types.NodeAlias, error)
+	GetIdentity() (*apipb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
 	GetIdentityList() (types.IdentityArray, error)
 	//GetIdentityListByIds(identityIds []string) (types.IdentityArray, error)
-	HasIdentity(identity *types.NodeAlias) (bool, error)
+	HasIdentity(identity *apipb.Organization) (bool, error)
 }
 
 type TaskCarrierDB interface {

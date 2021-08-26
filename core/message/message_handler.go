@@ -216,17 +216,17 @@ func (m *MessageHandler) loop() {
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) error {
 
 	// add identity to local db
-	if err := m.dataCenter.StoreIdentity(msg.NodeAlias); nil != err {
+	if err := m.dataCenter.StoreIdentity(msg.Organization); nil != err {
 		log.Errorf("Failed to store local org identity on MessageHandler with broadcast, identityId: {%s}, err: {%s}", msg.IdentityId, err)
 		return err
 	}
 
 	// send identity to datacenter
 	if err := m.dataCenter.InsertIdentity(msg.ToDataCenter()); nil != err {
-		log.Errorf("Failed to broadcast org org identity on MessageHandler with broadcast, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, err: {%s}", msg.IdentityId, msg.NodeId, msg.Name, err)
+		log.Errorf("Failed to broadcast org org identity on MessageHandler with broadcast, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, err: {%s}", msg.IdentityId, msg.NodeId, msg.NodeName, err)
 		return err
 	}
-	log.Debugf("Registered identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", msg.IdentityId, msg.NodeId, msg.Name)
+	log.Debugf("Registered identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", msg.IdentityId, msg.NodeId, msg.NodeName)
 	return nil
 }
 
@@ -246,14 +246,14 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 	// remove identity from dataCenter
 	if err := m.dataCenter.RevokeIdentity(
 		types.NewIdentity(&libTypes.IdentityData{
-			NodeName: identity.Name,
+			NodeName: identity.NodeName,
 			NodeId:   identity.NodeId,
 			IdentityId: identity.IdentityId,
 		})); nil != err {
 		log.Errorf("Failed to remove org identity to remote on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity, err)
 		return err
 	}
-	log.Debugf("Revoke identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", identity.IdentityId, identity.NodeId, identity.Name)
+	log.Debugf("Revoke identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", identity.IdentityId, identity.NodeId, identity.NodeName)
 	return nil
 }
 
@@ -302,7 +302,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 		if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libTypes.LocalResourceData{
 			IdentityId:  identity.IdentityId,
 			NodeId:    identity.NodeId,
-			NodeName:  identity.Name,
+			NodeName:  identity.NodeName,
 			JobNodeId: power.JobNodeId,
 			DataId:    power.PowerId,
 			// the status of data, N means normal, D means deleted.
@@ -331,7 +331,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 		if err := m.dataCenter.InsertResource(types.NewResource(&libTypes.ResourceData{
 			IdentityId: identity.IdentityId,
 			NodeId:   identity.NodeId,
-			NodeName: identity.Name,
+			NodeName: identity.NodeName,
 			DataId:   power.PowerId,
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.DATA_STATUS_NORMAL.String(),
@@ -408,7 +408,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 		if err := m.dataCenter.RevokeResource(types.NewResource(&libTypes.ResourceData{
 			IdentityId: identity.IdentityId,
 			NodeId:   identity.NodeId,
-			NodeName: identity.Name,
+			NodeName: identity.NodeName,
 			DataId:   revoke.PowerId,
 			// the status of data, N means normal, D means deleted.
 			DataStatus: types.DATA_STATUS_DELETED.String(),

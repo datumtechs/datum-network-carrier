@@ -162,7 +162,7 @@ func TestTaskEvent(t *testing.T) {
 
 func TestLocalIdentity(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	nodeAlias := &types.NodeAlias{
+	nodeAlias := &apipb.Organization{
 		Name:       "node-name",
 		NodeId:     "node-nodeId",
 		IdentityId: "node-identityId",
