@@ -131,7 +131,7 @@ func (svr *YarnServiceServer) SetSeedNode(ctx context.Context, req *pb.SetSeedNo
 	seedNode := &pb.SeedPeer{
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ConnState:    types.NONCONNECTED.Int32(),
+		ConnState:    types.NonConnected.Int32(),
 	}
 	seedNode.SeedNodeId()
 	status, err := svr.B.SetSeedNode(seedNode)
@@ -159,7 +159,7 @@ func (svr *YarnServiceServer) UpdateSeedNode(ctx context.Context, req *pb.Update
 		Id:           req.Id,
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ConnState:    types.NONCONNECTED.Int32(),
+		ConnState:    types.NonConnected.Int32(),
 	}
 	svr.B.DeleteSeedNode(seedNode.Id)
 	status, err := svr.B.SetSeedNode(seedNode)
@@ -221,7 +221,7 @@ func (svr *YarnServiceServer) SetDataNode(ctx context.Context, req *pb.SetDataNo
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NONCONNECTED.Int32(),
+		ConnState:    types.NonConnected.Int32(),
 	}
 	node.SetDataNodeId()
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeDataNode, node)
@@ -253,7 +253,7 @@ func (svr *YarnServiceServer) UpdateDataNode(ctx context.Context, req *pb.Update
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NONCONNECTED.Int32(),
+		ConnState:    types.NonConnected.Int32(),
 	}
 	// delete and insert.
 	//svr.B.DeleteRegisterNode(types.PrefixTypeDataNode, node.Id)
@@ -324,7 +324,7 @@ func (svr *YarnServiceServer) SetJobNode(ctx context.Context, req *pb.SetJobNode
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NONCONNECTED.Int32(),
+		ConnState:    types.NonConnected.Int32(),
 	}
 	node.SetJobNodeId()
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeJobNode, node)
@@ -357,7 +357,7 @@ func (svr *YarnServiceServer) UpdateJobNode(ctx context.Context, req *pb.UpdateJ
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NONCONNECTED.Int32(),
+		ConnState:    types.NonConnected.Int32(),
 	}
 	//svr.B.DeleteRegisterNode(types.PrefixTypeJobNode, node.Id)
 	//status, err := svr.B.SetRegisterNode(types.PrefixTypeJobNode, node)

@@ -128,7 +128,7 @@ func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, erro
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteSeedNodes(dc.db, seed)
-	return types.NONCONNECTED, nil
+	return types.NonConnected, nil
 }
 
 func (dc *DataCenter) DeleteSeedNode(id string) error {
