@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
@@ -110,145 +109,145 @@ func (s TaskDataArray) To() []*libTypes.TaskData {
 	return arr
 }
 
-type TaskDetailShow struct {
-	TaskId        string                   `json:"taskId"`
-	TaskName      string                   `json:"taskName"`
-	Role          string                   `json:"role"`
-	Owner         *TaskNodeAlias           `json:"owner"`
-	AlgoSupplier  *TaskNodeAlias           `json:"algoSupplier"`
-	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
-	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
-	Receivers     []*TaskNodeAlias         `json:"receivers"`
-	CreateAt      uint64                   `json:"createat"`
-	StartAt       uint64                   `json:"startAt"`
-	EndAt         uint64                   `json:"endAt"`
-	State         string                   `json:"state"`
-	OperationCost *TaskOperationCost       `json:"operationCost"`
-}
+//type TaskDetailShow struct {
+//	TaskId        string                   `json:"taskId"`
+//	TaskName      string                   `json:"taskName"`
+//	Role          string                   `json:"role"`
+//	Owner         *TaskNodeAlias           `json:"owner"`
+//	AlgoSupplier  *TaskNodeAlias           `json:"algoSupplier"`
+//	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
+//	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
+//	Receivers     []*TaskNodeAlias         `json:"receivers"`
+//	CreateAt      uint64                   `json:"createat"`
+//	StartAt       uint64                   `json:"startAt"`
+//	EndAt         uint64                   `json:"endAt"`
+//	State         string                   `json:"state"`
+//	OperationCost *TaskOperationCost       `json:"operationCost"`
+//}
 
-func ConvertTaskDetailShowToPB(task *TaskDetailShow) *pb.TaskDetailShow {
-	return &pb.TaskDetailShow {
-		TaskId:        task.TaskId,
-		TaskName:      task.TaskName,
-		Owner:         ConvertTaskNodeAliasToPB(task.Owner),
-		AlgoSupplier:  ConvertTaskNodeAliasToPB(task.AlgoSupplier),
-		DataSupplier:  ConvertTaskDataSupplierShowArrToPB(task.DataSupplier),
-		PowerSupplier: ConvertTaskPowerSupplierShowArrToPB(task.PowerSupplier),
-		//TODO: 结构问题，待确认
-		//Receivers:     ConvertTaskNodeAliasArrToPB(task.Receivers),
-		CreateAt:      task.CreateAt,
-		StartAt:       task.StartAt,
-		EndAt:         task.EndAt,
-		State:         task.State,
-		OperationCost: ConvertTaskOperationCostToPB(task.OperationCost),
-	}
-}
-func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
-	return &TaskDetailShow{
-		TaskId:        task.TaskId,
-		TaskName:      task.TaskName,
-		Owner:         ConvertTaskNodeAliasFromPB(task.Owner),
-		AlgoSupplier:  ConvertTaskNodeAliasFromPB(task.AlgoSupplier),
-		DataSupplier:  ConvertTaskDataSupplierShowArrFromPB(task.DataSupplier),
-		PowerSupplier: ConvertTaskPowerSupplierShowArrFromPB(task.PowerSupplier),
-		Receivers:     ConvertTaskNodeAliasArrFromPB(task.Receivers),
-		CreateAt:      task.CreateAt,
-		StartAt:       task.StartAt,
-		EndAt:         task.EndAt,
-		State:         task.State,
-		OperationCost: ConvertTaskOperationCostFromPB(task.OperationCost),
-	}
-}
+//func ConvertTaskDetailShowToPB(task *TaskDetailShow) *pb.TaskDetailShow {
+//	return &pb.TaskDetailShow {
+//		TaskId:        task.TaskId,
+//		TaskName:      task.TaskName,
+//		Owner:         ConvertTaskNodeAliasToPB(task.Owner),
+//		AlgoSupplier:  ConvertTaskNodeAliasToPB(task.AlgoSupplier),
+//		DataSupplier:  ConvertTaskDataSupplierShowArrToPB(task.DataSupplier),
+//		PowerSupplier: ConvertTaskPowerSupplierShowArrToPB(task.PowerSupplier),
+//		//TODO: 结构问题，待确认
+//		//Receivers:     ConvertTaskNodeAliasArrToPB(task.Receivers),
+//		CreateAt:      task.CreateAt,
+//		StartAt:       task.StartAt,
+//		EndAt:         task.EndAt,
+//		State:         task.State,
+//		OperationCost: ConvertTaskOperationCostToPB(task.OperationCost),
+//	}
+//}
+//func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
+//	return &TaskDetailShow{
+//		TaskId:        task.TaskId,
+//		TaskName:      task.TaskName,
+//		Owner:         ConvertTaskNodeAliasFromPB(task.Owner),
+//		AlgoSupplier:  ConvertTaskNodeAliasFromPB(task.AlgoSupplier),
+//		DataSupplier:  ConvertTaskDataSupplierShowArrFromPB(task.DataSupplier),
+//		PowerSupplier: ConvertTaskPowerSupplierShowArrFromPB(task.PowerSupplier),
+//		Receivers:     ConvertTaskNodeAliasArrFromPB(task.Receivers),
+//		CreateAt:      task.CreateAt,
+//		StartAt:       task.StartAt,
+//		EndAt:         task.EndAt,
+//		State:         task.State,
+//		OperationCost: ConvertTaskOperationCostFromPB(task.OperationCost),
+//	}
+//}
 
-type TaskDataSupplierShow struct {
-	MemberInfo   *TaskNodeAlias `json:"memberInfo"`
-	MetaDataId   string         `json:"metaId"`
-	MetaDataName string         `json:"metaName"`
-}
+//type TaskDataSupplierShow struct {
+//	MemberInfo   *TaskNodeAlias `json:"memberInfo"`
+//	MetaDataId   string         `json:"metaId"`
+//	MetaDataName string         `json:"metaName"`
+//}
 
-func ConvertTaskDataSupplierShowToPB(dataSupplier *TaskDataSupplierShow) *pb.TaskDataSupplierShow {
-	return &pb.TaskDataSupplierShow{
-		MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
-		MetaDataId:   dataSupplier.MetaDataId,
-		MetaDataName: dataSupplier.MetaDataName,
-	}
-}
-func ConvertTaskDataSupplierShowFromPB(dataSupplier *pb.TaskDataSupplierShow) *TaskDataSupplierShow {
-	return &TaskDataSupplierShow{
-		MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
-		MetaDataId:   dataSupplier.MetaDataId,
-		MetaDataName: dataSupplier.MetaDataName,
-	}
-}
-func ConvertTaskDataSupplierShowArrToPB(dataSuppliers []*TaskDataSupplierShow) []*pb.TaskDataSupplierShow {
-	arr := make([]*pb.TaskDataSupplierShow, len(dataSuppliers))
-	for i, dataSupplier := range dataSuppliers {
+//func ConvertTaskDataSupplierShowToPB(dataSupplier *TaskDataSupplierShow) *pb.TaskDataSupplierShow {
+//	return &pb.TaskDataSupplierShow{
+//		MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
+//		MetaDataId:   dataSupplier.MetaDataId,
+//		MetaDataName: dataSupplier.MetaDataName,
+//	}
+//}
+//func ConvertTaskDataSupplierShowFromPB(dataSupplier *pb.TaskDataSupplierShow) *TaskDataSupplierShow {
+//	return &TaskDataSupplierShow{
+//		MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
+//		MetaDataId:   dataSupplier.MetaDataId,
+//		MetaDataName: dataSupplier.MetaDataName,
+//	}
+//}
+//func ConvertTaskDataSupplierShowArrToPB(dataSuppliers []*TaskDataSupplierShow) []*pb.TaskDataSupplierShow {
+//	arr := make([]*pb.TaskDataSupplierShow, len(dataSuppliers))
+//	for i, dataSupplier := range dataSuppliers {
+//
+//		supplier := &pb.TaskDataSupplierShow{
+//			MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
+//			MetaDataId:   dataSupplier.MetaDataId,
+//			MetaDataName: dataSupplier.MetaDataName,
+//		}
+//		arr[i] = supplier
+//	}
+//
+//	return arr
+//}
+//func ConvertTaskDataSupplierShowArrFromPB(dataSuppliers []*pb.TaskDataSupplierShow) []*TaskDataSupplierShow {
+//	arr := make([]*TaskDataSupplierShow, len(dataSuppliers))
+//	for i, dataSupplier := range dataSuppliers {
+//
+//		supplier := &TaskDataSupplierShow{
+//			MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
+//			MetaDataId:   dataSupplier.MetaDataId,
+//			MetaDataName: dataSupplier.MetaDataName,
+//		}
+//		arr[i] = supplier
+//	}
+//
+//	return arr
+//}
 
-		supplier := &pb.TaskDataSupplierShow{
-			MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
-			MetaDataId:   dataSupplier.MetaDataId,
-			MetaDataName: dataSupplier.MetaDataName,
-		}
-		arr[i] = supplier
-	}
+//type TaskPowerSupplierShow struct {
+//	MemberInfo    *TaskNodeAlias `json:"memberInfo"`
+//	ResourceUsage *ResourceUsage `json:"resourceUsage"`
+//}
 
-	return arr
-}
-func ConvertTaskDataSupplierShowArrFromPB(dataSuppliers []*pb.TaskDataSupplierShow) []*TaskDataSupplierShow {
-	arr := make([]*TaskDataSupplierShow, len(dataSuppliers))
-	for i, dataSupplier := range dataSuppliers {
-
-		supplier := &TaskDataSupplierShow{
-			MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
-			MetaDataId:   dataSupplier.MetaDataId,
-			MetaDataName: dataSupplier.MetaDataName,
-		}
-		arr[i] = supplier
-	}
-
-	return arr
-}
-
-type TaskPowerSupplierShow struct {
-	MemberInfo    *TaskNodeAlias `json:"memberInfo"`
-	ResourceUsage *ResourceUsage `json:"resourceUsage"`
-}
-
-func ConvertTaskPowerSupplierShowShowToPB(powerSupplier *TaskPowerSupplierShow) *pb.TaskPowerSupplierShow {
-	return &pb.TaskPowerSupplierShow{
-		MemberInfo: ConvertTaskNodeAliasToPB(powerSupplier.MemberInfo),
-		PowerInfo:  ConvertResourceUsageToPB(powerSupplier.ResourceUsage),
-	}
-}
-func ConvertTaskPowerSupplierShowFromPB(powerSupplier *pb.TaskPowerSupplierShow) *TaskPowerSupplierShow {
-	return &TaskPowerSupplierShow{
-		MemberInfo:    ConvertTaskNodeAliasFromPB(powerSupplier.MemberInfo),
-		ResourceUsage: ConvertResourceUsageFromPB(powerSupplier.PowerInfo),
-	}
-}
-func ConvertTaskPowerSupplierShowArrToPB(powerSuppliers []*TaskPowerSupplierShow) []*pb.TaskPowerSupplierShow {
-	arr := make([]*pb.TaskPowerSupplierShow, len(powerSuppliers))
-	for i, powerSupplier := range powerSuppliers {
-
-		supplier := &pb.TaskPowerSupplierShow{
-			MemberInfo: ConvertTaskNodeAliasToPB(powerSupplier.MemberInfo),
-			PowerInfo:  ConvertResourceUsageToPB(powerSupplier.ResourceUsage),
-		}
-		arr[i] = supplier
-	}
-
-	return arr
-}
-func ConvertTaskPowerSupplierShowArrFromPB(powerSuppliers []*pb.TaskPowerSupplierShow) []*TaskPowerSupplierShow {
-	arr := make([]*TaskPowerSupplierShow, len(powerSuppliers))
-	for i, powerSupplier := range powerSuppliers {
-
-		supplier := &TaskPowerSupplierShow{
-			MemberInfo:    ConvertTaskNodeAliasFromPB(powerSupplier.MemberInfo),
-			ResourceUsage: ConvertResourceUsageFromPB(powerSupplier.PowerInfo),
-		}
-		arr[i] = supplier
-	}
-
-	return arr
-}
+//func ConvertTaskPowerSupplierShowShowToPB(powerSupplier *TaskPowerSupplierShow) *pb.TaskPowerSupplierShow {
+//	return &pb.TaskPowerSupplierShow{
+//		MemberInfo: ConvertTaskNodeAliasToPB(powerSupplier.MemberInfo),
+//		PowerInfo:  ConvertResourceUsageToPB(powerSupplier.ResourceUsage),
+//	}
+//}
+//func ConvertTaskPowerSupplierShowFromPB(powerSupplier *pb.TaskPowerSupplierShow) *TaskPowerSupplierShow {
+//	return &TaskPowerSupplierShow{
+//		MemberInfo:    ConvertTaskNodeAliasFromPB(powerSupplier.MemberInfo),
+//		ResourceUsage: ConvertResourceUsageFromPB(powerSupplier.PowerInfo),
+//	}
+//}
+//func ConvertTaskPowerSupplierShowArrToPB(powerSuppliers []*TaskPowerSupplierShow) []*pb.TaskPowerSupplierShow {
+//	arr := make([]*pb.TaskPowerSupplierShow, len(powerSuppliers))
+//	for i, powerSupplier := range powerSuppliers {
+//
+//		supplier := &pb.TaskPowerSupplierShow{
+//			MemberInfo: ConvertTaskNodeAliasToPB(powerSupplier.MemberInfo),
+//			PowerInfo:  ConvertResourceUsageToPB(powerSupplier.ResourceUsage),
+//		}
+//		arr[i] = supplier
+//	}
+//
+//	return arr
+//}
+//func ConvertTaskPowerSupplierShowArrFromPB(powerSuppliers []*pb.TaskPowerSupplierShow) []*TaskPowerSupplierShow {
+//	arr := make([]*TaskPowerSupplierShow, len(powerSuppliers))
+//	for i, powerSupplier := range powerSuppliers {
+//
+//		supplier := &TaskPowerSupplierShow{
+//			MemberInfo:    ConvertTaskNodeAliasFromPB(powerSupplier.MemberInfo),
+//			ResourceUsage: ConvertResourceUsageFromPB(powerSupplier.PowerInfo),
+//		}
+//		arr[i] = supplier
+//	}
+//
+//	return arr
+//}

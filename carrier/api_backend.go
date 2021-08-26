@@ -679,7 +679,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 }
 
 // task api
-func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
 
@@ -697,7 +697,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *types.TaskDetailShow {
+	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
 		// task 发起方
 		if task.TaskData().GetIdentityId() == localIdentityId {
 			return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleOwner.String())
@@ -726,7 +726,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 		return nil
 	}
 
-	result := make([]*types.TaskDetailShow, 0)
+	result := make([]*pb.TaskDetailShow, 0)
 	for _, task := range localTaskArray {
 		if taskView := makeTaskViewFn(task); nil != taskView {
 			result = append(result, taskView)
