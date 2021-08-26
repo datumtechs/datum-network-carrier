@@ -1,47 +1,42 @@
 package types
 
-import (
-	"fmt"
-)
-
 type NodeConnStatus int32
 //type RegisteredNodeType string
 
 func (status NodeConnStatus) Int32() int32    { return int32(status) }
 
-
 const (
-	CONNECTED    NodeConnStatus = 0 // 连接上就是未启用算力
-	NONCONNECTED NodeConnStatus = -1
-	ENABLE_POWER NodeConnStatus = 1 // 启用算力
-	BUSY_POWER   NodeConnStatus = 2 // 算力被占用(有任务在执行 ...)
+	Connected    NodeConnStatus = 0 // 连接上就是未启用算力
+	NonConnected NodeConnStatus = -1
+	EnablePower  NodeConnStatus = 1 // 启用算力
+	BusyPower    NodeConnStatus = 2 // 算力被占用(有任务在执行 ...)
 
 )
 
 
-type SeedNodeInfo struct {
-	Id           string         `json:"id"`
-	InternalIp   string         `json:"internalIp"`
-	InternalPort string         `json:"internalPort"`
-	ConnState    NodeConnStatus `json:"connState"`
-}
+//type SeedNodeInfo struct {
+//	Id           string         `json:"id"`
+//	InternalIp   string         `json:"internalIp"`
+//	InternalPort string         `json:"internalPort"`
+//	ConnState    NodeConnStatus `json:"connState"`
+//}
 
-type RegisteredNodeInfo struct {
-	Id           string         `json:"id"`
-	InternalIp   string         `json:"internalIp"`
-	InternalPort string         `json:"internalPort"`
-	ExternalIp   string         `json:"externalIp"`
-	ExternalPort string         `json:"externalPort"`
-	ConnState    NodeConnStatus `json:"connState"`
-}
-func (n *RegisteredNodeInfo) String() string {
-	return fmt.Sprintf(`{"id": %s, "internalIp": %s, "internalPort": %s, "externalIp": %s, "externalPort": %s, "connState": %d}`,
-		n.Id, n.InternalIp, n.InternalPort, n.ExternalIp, n.ExternalPort, n.ConnState.Int32())
-}
-type RegisteredNodeDetail struct {
-	NodeType string `json:"nodeType"`
-	*RegisteredNodeInfo
-}
+//type RegisteredNodeInfo struct {
+//	Id           string         `json:"id"`
+//	InternalIp   string         `json:"internalIp"`
+//	InternalPort string         `json:"internalPort"`
+//	ExternalIp   string         `json:"externalIp"`
+//	ExternalPort string         `json:"externalPort"`
+//	ConnState    NodeConnStatus `json:"connState"`
+//}
+//func (n *RegisteredNodeInfo) String() string {
+//	return fmt.Sprintf(`{"id": %s, "internalIp": %s, "internalPort": %s, "externalIp": %s, "externalPort": %s, "connState": %d}`,
+//		n.Id, n.InternalIp, n.InternalPort, n.ExternalIp, n.ExternalPort, n.ConnState.Int32())
+//}
+//type RegisteredNodeDetail struct {
+//	NodeType string `json:"nodeType"`
+//	*RegisteredNodeInfo
+//}
 
 //func (seed *SeedNodeInfo) SeedNodeId() string {
 //	if "" != seed.Id {

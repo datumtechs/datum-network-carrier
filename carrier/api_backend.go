@@ -181,12 +181,12 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
-		return types.NONCONNECTED, errors.New("invalid nodeType")
+		return types.NonConnected, errors.New("invalid nodeType")
 	}
 	if typ == pb.PrefixTypeJobNode {
 		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 	}
@@ -194,22 +194,22 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 	if typ == pb.PrefixTypeDataNode {
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
 		// add data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 	}
-	node.ConnState = types.CONNECTED.Int32()
+	node.ConnState = types.Connected.Int32()
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
-		return types.NONCONNECTED, fmt.Errorf("Store registerNode to db failed, %s", err)
+		return types.NonConnected, fmt.Errorf("Store registerNode to db failed, %s", err)
 	}
-	return types.CONNECTED, nil
+	return types.Connected, nil
 }
 
 func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
@@ -217,29 +217,29 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
-		return types.NONCONNECTED, errors.New("invalid nodeType")
+		return types.NonConnected, errors.New("invalid nodeType")
 	}
 	if typ == pb.PrefixTypeJobNode {
 
 		// 算力已发布的jobNode不可以直接删除
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
 
 		if nil != resourceTable {
 			log.Debugf("still have the published computing power information on old jobNode on UpdateRegisterNode, %s", resourceTable.String())
-			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+			return types.NonConnected, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
 				node.Id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
 		if runningTaskCount > 0 {
-			return types.NONCONNECTED, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
+			return types.NonConnected, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
 		}
 
 		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(node.Id); ok {
@@ -251,7 +251,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		// generate new client
 		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 
@@ -262,10 +262,10 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		// 先校验 dataNode 上是否已被 使用
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
 		}
 		if dataNodeTable.IsNotEmpty() && dataNodeTable.IsUsed() {
-			return types.NONCONNECTED, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
+			return types.NonConnected, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
 				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
 		}
 
@@ -277,35 +277,35 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 		// remove old data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.Id); rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("remove disk summary of old dataNode, %s", err)
+			return types.NonConnected, fmt.Errorf("remove disk summary of old dataNode, %s", err)
 		}
 
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
 		// add new data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 
 	}
 
 	// remove  old jobNode from db
 	if err := s.carrier.carrierDB.DeleteRegisterNode(typ, node.Id); nil != err {
-		return types.NONCONNECTED, fmt.Errorf("remove old registerNode from db failed, %s", err)
+		return types.NonConnected, fmt.Errorf("remove old registerNode from db failed, %s", err)
 	}
 
 	// add new node to db
-	node.ConnState = types.CONNECTED.Int32()
+	node.ConnState = types.Connected.Int32()
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
-		return types.NONCONNECTED, fmt.Errorf("Store new registerNode to db failed, %s", err)
+		return types.NonConnected, fmt.Errorf("Store new registerNode to db failed, %s", err)
 	}
-	return types.CONNECTED, nil
+	return types.Connected, nil
 }
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
@@ -383,12 +383,12 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 
 			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(jobNode.Id)
 			if !ok {
-				jobNode.ConnState = types.NONCONNECTED.Int32()
+				jobNode.ConnState = types.NonConnected.Int32()
 			}
 			if !client.IsConnected() {
-				jobNode.ConnState = types.NONCONNECTED.Int32()
+				jobNode.ConnState = types.NonConnected.Int32()
 			} else {
-				jobNode.ConnState = types.CONNECTED.Int32()
+				jobNode.ConnState = types.Connected.Int32()
 			}
 
 			table, err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
@@ -396,14 +396,14 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 				continue
 			}
 			if nil != table {
-				jobNode.ConnState = types.ENABLE_POWER.Int32()
+				jobNode.ConnState = types.EnablePower.Int32()
 			}
 			taskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(jobNode.Id)
 			if nil != err {
 				continue
 			}
 			if taskCount > 0 {
-				jobNode.ConnState = types.BUSY_POWER.Int32()
+				jobNode.ConnState = types.BusyPower.Int32()
 			}
 			nodeList[i] = jobNode
 		}
