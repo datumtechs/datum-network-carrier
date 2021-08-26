@@ -48,8 +48,8 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow 
 				NodeId:     metadataSupplier.GetMemberInfo().GetNodeId(),
 				IdentityId: metadataSupplier.GetMemberInfo().GetIdentityId(),
 			},
-			MetaDataId:   metadataSupplier.GetMetadataId(),
-			MetaDataName: metadataSupplier.GetMetadataName(),
+			MetadataId:   metadataSupplier.GetMetadataId(),
+			MetadataName: metadataSupplier.GetMetadataName(),
 		}
 		detailShow.DataSupplier = append(detailShow.DataSupplier, dataSupplier)
 	}
@@ -153,10 +153,11 @@ func NewOrgResourceFromResource(input *Resource) *RemoteResourceTable {
 		},
 	}
 }
-func NewOrgResourceArrayFromResourceArray(input ResourceArray) []*RemoteResourceTable {
-	result := make([]*RemoteResourceTable, input.Len())
-	for i, resource := range input {
-		result[i] = NewOrgResourceFromResource(resource)
-	}
-	return result
-}
+
+//func NewOrgResourceArrayFromResourceArray(input ResourceArray) []*RemoteResourceTable {
+//	result := make([]*RemoteResourceTable, input.Len())
+//	for i, resource := range input {
+//		result[i] = NewOrgResourceFromResource(resource)
+//	}
+//	return result
+//}

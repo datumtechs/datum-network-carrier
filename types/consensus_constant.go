@@ -1,6 +1,5 @@
 package types
 
-
 const (
 	MsgSignLength = 65
 	MsgEpochMaxNumber = 2

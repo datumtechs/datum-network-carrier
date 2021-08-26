@@ -110,38 +110,38 @@ func FetchTaskEventArr(events []*twopb.TaskEvent) []*libTypes.TaskEvent {
 	return arr
 }
 
-func ConvertTaskEventToDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
-	return &libTypes.TaskEvent{
-		TaskId:     event.TaskId,
-		Type:       event.Type,
-		IdentityId: event.IdentityId,
-		Content:    event.Content,
-		CreateAt:   event.CreateAt,
-	}
-}
+//func ConvertTaskEventToDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
+//	return &libTypes.TaskEvent{
+//		TaskId:     event.TaskId,
+//		Type:       event.Type,
+//		IdentityId: event.IdentityId,
+//		Content:    event.Content,
+//		CreateAt:   event.CreateAt,
+//	}
+//}
 
-func FetchTaskEventFromDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
-	return &libTypes.TaskEvent{
-		TaskId:     event.TaskId,
-		Type:       event.Type,
-		IdentityId: event.IdentityId,
-		Content:    event.Content,
-		CreateAt:   event.CreateAt,
-	}
-}
+//func FetchTaskEventFromDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
+//	return &libTypes.TaskEvent{
+//		TaskId:     event.TaskId,
+//		Type:       event.Type,
+//		IdentityId: event.IdentityId,
+//		Content:    event.Content,
+//		CreateAt:   event.CreateAt,
+//	}
+//}
 
-func ConvertTaskEventArrToDataCenter(events []*libTypes.TaskEvent) []*libTypes.TaskEvent {
-	arr := make([]*libTypes.TaskEvent, len(events))
-	for i, ev := range events {
-		arr[i] = ConvertTaskEventToDataCenter(ev)
-	}
-	return arr
-}
+//func ConvertTaskEventArrToDataCenter(events []*libTypes.TaskEvent) []*libTypes.TaskEvent {
+//	arr := make([]*libTypes.TaskEvent, len(events))
+//	for i, ev := range events {
+//		arr[i] = ConvertTaskEventToDataCenter(ev)
+//	}
+//	return arr
+//}
 
-func FetchTaskEventArrFromDataCenter(events []*libTypes.TaskEvent) []*libTypes.TaskEvent {
-	arr := make([]*libTypes.TaskEvent, len(events))
-	for i, ev := range events {
-		arr[i] = FetchTaskEventFromDataCenter(ev)
-	}
-	return arr
-}
+//func FetchTaskEventArrFromDataCenter(events []*libTypes.TaskEvent) []*libTypes.TaskEvent {
+//	arr := make([]*libTypes.TaskEvent, len(events))
+//	for i, ev := range events {
+//		arr[i] = FetchTaskEventFromDataCenter(ev)
+//	}
+//	return arr
+//}

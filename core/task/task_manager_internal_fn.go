@@ -223,7 +223,7 @@ func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.TaskEve
 }
 
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libTypes.TaskEvent, state string) *types.Task {
-	task.TaskData().TaskEventList = types.ConvertTaskEventArrToDataCenter(eventList)
+	task.TaskData().TaskEventList = eventList
 	task.TaskData().EventCount = uint32(len(eventList))
 	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
 	task.TaskData().State = state

@@ -29,7 +29,7 @@ message TaskDetailShow {
 
 // 定义：任务数据提供方（仅用于web页面交互使用）
 message TaskDataSupplierShow {
-    api.protobuf.TaskOrganization member_info    = 1;                              // 身份信息
+    api.protobuf.TaskOrganization member_info   = 1;                              // 身份信息
     string                        metadata_id   = 2;                             // 元数据Id
     string                        metadata_name = 3;                           // 元数据名称
 }

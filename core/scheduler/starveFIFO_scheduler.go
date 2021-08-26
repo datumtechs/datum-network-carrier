@@ -103,8 +103,7 @@ func (sche *SchedulerStarveFIFO) loop() {
 					task.Data.TaskData().State = types.TaskStateFailed.String()
 
 					identityId, _ := sche.dataCenter.GetIdentityId()
-					event := types.ConvertTaskEventToDataCenter(sche.eventEngine.GenerateEvent(
-						evengine.TaskDiscarded.Type, task.Data.TaskData().TaskId, identityId, e.Error()))
+					event := sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type, task.Data.TaskData().TaskId, identityId, e.Error())
 					task.Data.TaskData().EventCount = 1
 					task.Data.TaskData().TaskEventList = []*libTypes.TaskEvent{event}
 

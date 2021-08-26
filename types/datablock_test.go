@@ -3,7 +3,7 @@ package types
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	"github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"reflect"
 	"testing"
 )
@@ -12,7 +12,7 @@ func newBlock() *Block {
 	metadatas := func() MetadataArray {
 		return MetadataArray{
 			&Metadata{
-				data: &types.MetaData{
+				data: &libTypes.MetaData{
 					IdentityId: "identity",
 					NodeId:     "NodeId",
 					DataId:     "dataId",
@@ -24,7 +24,7 @@ func newBlock() *Block {
 					FileType:   "csv",
 					State:      "statue",
 					HasTitle:   true,
-					MetadataColumnList: []*types.MetadataColumn{
+					MetadataColumnList: []*libTypes.MetadataColumn{
 						{
 							CIndex: 0,
 							CName:  "cname",
@@ -39,7 +39,7 @@ func newBlock() *Block {
 	resources := func() ResourceArray {
 		return ResourceArray{
 			{
-				data: &types.ResourceData{
+				data: &libTypes.ResourceData{
 					IdentityId:     "resource-identity",
 					NodeId:         "resource-nodeId",
 					NodeName:       "resource-nodeName",
@@ -57,7 +57,7 @@ func newBlock() *Block {
 	identities := func() IdentityArray {
 		return IdentityArray{
 			{
-				data: &types.IdentityData{
+				data: &libTypes.IdentityData{
 					IdentityId: "identity-identity",
 					NodeId:     "identity-nodeId",
 					NodeName:   "identity-nodeName",
@@ -72,7 +72,7 @@ func newBlock() *Block {
 	taskdatas := func() TaskDataArray {
 		return TaskDataArray{
 			{
-				data: &types.TaskData{
+				data: &libTypes.TaskData{
 					IdentityId: "task-identity",
 					NodeId:     "task-nodeId",
 					NodeName:   "task-nodeName",
@@ -90,7 +90,7 @@ func newBlock() *Block {
 							NodeName:   "1-partner-nodeName",
 						},
 					},
-					TaskEventList: []*pb.TaskEventShow{
+					TaskEventList: []*libTypes.TaskEvent{
 						{
 							TaskId: "1-evengine-taskId",
 						},

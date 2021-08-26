@@ -109,7 +109,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to parse taskMsg")))
 
-			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to parse taskMsg"); nil != e {
+			if e := m.storeErrTaskMsg(errtask, events, "failed to parse taskMsg"); nil != e {
 				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
 			}
 		}
@@ -122,7 +122,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to validate taskMsg")))
 
-			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to validate taskMsg"); nil != e {
+			if e := m.storeErrTaskMsg(errtask, events, "failed to validate taskMsg"); nil != e {
 				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
 			}
 		}
