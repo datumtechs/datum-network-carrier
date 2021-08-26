@@ -1,9 +1,9 @@
 package types
 
 import (
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 )
 
 func NewTaskDetailShowFromTaskData(input *Task, role string) *TaskDetailShow {
@@ -83,15 +83,15 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *TaskDetailShow {
 	return detailShow
 }
 
-func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*TaskEvent {
-	result := make([]*TaskEvent, 0, len(input))
+func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*pb.TaskEventShow {
+	result := make([]*pb.TaskEventShow, 0, len(input))
 	for _, event := range input {
-		result = append(result, &TaskEvent{
+		result = append(result, &pb.TaskEventShow{
 			TaskId:   event.GetTaskId(),
 			Type:     event.GetType(),
 			CreateAt: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner: &NodeAlias{
+			Owner:    &apipb.Organization{
 				IdentityId: event.GetIdentityId(),
 			},
 		})
@@ -102,7 +102,7 @@ func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*TaskEvent {
 func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailResponse {
 	response := &pb.GetMetaDataDetailResponse{
 		Owner: &apipb.Organization{
-			NodeName:       input.data.GetNodeName(),
+			NodeName:   input.data.GetNodeName(),
 			NodeId:     input.data.GetNodeId(),
 			IdentityId: input.data.GetIdentityId(),
 		},
@@ -115,12 +115,12 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailRespon
 				FilePath:   input.data.GetFilePath(),
 				Rows:       uint32(input.data.GetRows()),
 				Columns:    uint32(input.data.GetColumns()),
-				Size_:       uint32(input.data.GetSize_()),
+				Size_:      uint32(input.data.GetSize_()),
 				FileType:   input.data.GetFileType(),
 				HasTitle:   input.data.GetHasTitle(),
 				State:      input.data.GetState(),
 			},
-			MetadataColumnList:input.data.GetMetadataColumnList(),
+			MetadataColumnList: input.data.GetMetadataColumnList(),
 		},
 	}
 	return response

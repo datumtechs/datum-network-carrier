@@ -44,7 +44,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	if len(jobNodes) != 0 {
 		for i, v := range jobNodes {
 			n := &pb.YarnRegisteredPeer{
-				NodeType: pb.NodeType_JobNode,
+				NodeType:   pb.NodeType_JobNode,
 				NodeDetail: v,
 			}
 			registerNodes[i] = n
@@ -53,7 +53,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	if len(dataNodes) != 0 {
 		for i, v := range dataNodes {
 			n := &pb.YarnRegisteredPeer{
-				NodeType: pb.NodeType_DataNode,
+				NodeType:   pb.NodeType_DataNode,
 				NodeDetail: v,
 			}
 			/*n.RegisteredNodeInfo = &pb.YarnRegisteredPeerDetail{
@@ -84,7 +84,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
 	return &pb.YarnNodeInfo{
-		NodeType:     pb.NodeType_YarnNode ,
+		NodeType:     pb.NodeType_YarnNode,
 		NodeId:       nodeId,
 		InternalIp:   "",                             //
 		ExternalIp:   "",                             //
@@ -125,8 +125,8 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, erro
 		v.TaskIdList, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
 		v.Duration = duration
 		registeredPeer := &pb.YarnRegisteredPeer{
-			NodeType:            pb.NodeType_JobNode,
-			NodeDetail:          v,
+			NodeType:   pb.NodeType_JobNode,
+			NodeDetail: v,
 		}
 		result = append(result, registeredPeer)
 	}
@@ -142,8 +142,8 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, erro
 		v.FileCount = 0
 		v.FileTotalSize = 0
 		registeredPeer := &pb.YarnRegisteredPeer{
-			NodeType:            pb.NodeType_DataNode,
-			NodeDetail:          v,
+			NodeType:   pb.NodeType_DataNode,
+			NodeDetail: v,
 		}
 		result = append(result, registeredPeer)
 		//n := &types.YarnRegisteredDataNode{
@@ -462,7 +462,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetail
 	for _, resource := range resourceList.To() {
 		powerList = append(powerList, &pb.GetPowerTotalDetailResponse{
 			Owner: &apipb.Organization{
-				NodeName:       resource.GetNodeName(),
+				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
@@ -470,7 +470,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetail
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
 				Tasks:            make([]*libTypes.PowerTask, 0),
-				Information: &libTypes.ResourceUsageOverview {
+				Information: &libTypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: uint32(resource.GetTotalProcessor()),
@@ -508,7 +508,6 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 	}
 	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
 		slotUnit.String())
-
 
 	// 收集 本地所有的 jonNode 上的 powerUsed 数组
 	validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
@@ -564,7 +563,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					TaskId:   taskId,
 					TaskName: task.TaskData().TaskName,
 					Owner: &apipb.Organization{
-						NodeName:       task.TaskData().GetNodeName(),
+						NodeName:   task.TaskData().GetNodeName(),
 						NodeId:     task.TaskData().GetNodeId(),
 						IdentityId: task.TaskData().GetIdentityId(),
 					},
@@ -574,7 +573,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 						CostProcessor: task.TaskData().GetOperationCost().GetCostProcessor(),
 						CostMem:       task.TaskData().GetOperationCost().GetCostMem(),
 						CostBandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
-						Duration:  task.TaskData().GetOperationCost().GetDuration(),
+						Duration:      task.TaskData().GetOperationCost().GetDuration(),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
 					CreateAt:       task.TaskData().CreateAt,
@@ -584,7 +583,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					// 协作方, 需要过滤掉自己
 					if task.TaskData().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
 						powerTask.Patners = append(powerTask.Patners, &apipb.Organization{
-							NodeName:       dataSupplier.MemberInfo.GetNodeName(),
+							NodeName:   dataSupplier.MemberInfo.GetNodeName(),
 							NodeId:     dataSupplier.MemberInfo.GetNodeId(),
 							IdentityId: dataSupplier.MemberInfo.GetIdentityId(),
 						})
@@ -594,7 +593,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				// 组装结果接收方
 				for _, receiver := range task.TaskData().Receivers {
 					powerTask.Receivers = append(powerTask.Receivers, &apipb.Organization{
-						NodeName:       receiver.Receiver.GetNodeName(),
+						NodeName:   receiver.Receiver.GetNodeName(),
 						NodeId:     receiver.Receiver.GetNodeId(),
 						IdentityId: receiver.Receiver.GetIdentityId(),
 					})
@@ -606,7 +605,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					CostProcessor: uint32(slotUnit.Processor * slotCount),
 					CostMem:       slotUnit.Mem * slotCount,
 					CostBandwidth: slotUnit.Bandwidth * slotCount,
-					Duration:  task.TaskData().GetOperationCost().GetDuration(),
+					Duration:      task.TaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
 			}
@@ -625,7 +624,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 	for i, resource := range resourceList {
 		nodePowerDetail := &pb.GetPowerSingleDetailResponse{
 			Owner: &apipb.Organization{
-				NodeName:       resource.GetNodeName(),
+				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
@@ -670,8 +669,8 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	}
 	return types.NewIdentity(&libTypes.IdentityData{
 		IdentityId: nodeAlias.IdentityId,
-		NodeId:   nodeAlias.NodeId,
-		NodeName: nodeAlias.Name,
+		NodeId:     nodeAlias.NodeId,
+		NodeName:   nodeAlias.Name,
 	}), err
 }
 
@@ -743,7 +742,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	return result, err
 }
 
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error) {
 
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
@@ -756,15 +755,15 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 		return nil, err
 	}
 
-	evenList := make([]*types.TaskEvent, len(localEventList))
+	evenList := make([]*pb.TaskEventShow, len(localEventList))
 	for i, e := range localEventList {
-		evenList[i] = &types.TaskEvent{
+		evenList[i] = &pb.TaskEventShow{
 			TaskId:   e.TaskId,
 			Type:     e.Type,
 			CreateAt: e.CreateAt,
 			Content:  e.Content,
-			Owner: &types.NodeAlias{
-				Name:       identity.Name,
+			Owner: &apipb.Organization{
+				NodeName:   identity.Name,
 				NodeId:     identity.NodeId,
 				IdentityId: identity.IdentityId,
 			},
@@ -779,14 +778,14 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	return evenList, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*types.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error) {
 
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
 		return nil, err
 	}
 
-	evenList := make([]*types.TaskEvent, 0)
+	evenList := make([]*pb.TaskEventShow, 0)
 
 	// 先查出 task 在本地的 eventList
 	for _, taskId := range taskIds {
@@ -798,13 +797,13 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*type
 			continue
 		}
 		for _, e := range localEventList {
-			evenList = append(evenList, &types.TaskEvent{
+			evenList = append(evenList, &pb.TaskEventShow{
 				TaskId:   e.TaskId,
 				Type:     e.Type,
 				CreateAt: e.CreateAt,
 				Content:  e.Content,
-				Owner: &types.NodeAlias{
-					Name:       identity.Name,
+				Owner: &apipb.Organization{
+					NodeName:   identity.Name,
 					NodeId:     identity.NodeId,
 					IdentityId: identity.IdentityId,
 				},
@@ -868,7 +867,7 @@ func utilLocalTaskPowerUsedArrString(used []*types.LocalTaskPowerUsed) string {
 		arr[i] = u.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }
@@ -879,7 +878,7 @@ func utilLocalTaskPowerUsedMapString(taskPowerUsedMap map[string][]*types.LocalT
 		arr = append(arr, fmt.Sprintf(`{"%s": %s}`, jobNodeId, utilLocalTaskPowerUsedArrString(useds)))
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }

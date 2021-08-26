@@ -50,7 +50,7 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
-		TaskEventList: types.ConvertTaskEventArrToPB(events),
+		TaskEventList: events,
 	}, nil
 }
 
@@ -66,7 +66,7 @@ func (svr *TaskServiceServer) GetTaskEventListByTaskIds (ctx context.Context, re
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
-		TaskEventList: types.ConvertTaskEventArrToPB(events),
+		TaskEventList: events,
 	}, nil
 }
 
