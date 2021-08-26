@@ -86,16 +86,16 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	return &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_YarnNode,
 		NodeId:       nodeId,
-		InternalIp:   "",                             //
-		ExternalIp:   "",                             //
-		InternalPort: "",                             //
-		ExternalPort: "",                             //
-		IdentityType: types.IdentityTypeDID.String(), // 默认先是 DID
+		InternalIp:   "",                               //
+		ExternalIp:   "",                               //
+		InternalPort: "",                               //
+		ExternalPort: "",                               //
+		IdentityType: types.IDENTITY_TYPE_DID.String(), // 默认先是 DID
 		IdentityId:   identityId,
 		Name:         nodeName,
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
-		State:        types.YarnStateActive.String(),
+		State:        types.YARN_STATE_ACTIVE.String(),
 	}, nil
 }
 
