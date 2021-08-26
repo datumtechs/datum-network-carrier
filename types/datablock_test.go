@@ -90,7 +90,7 @@ func newBlock() *Block {
 							NodeName:   "1-partner-nodeName",
 						},
 					},
-					TaskEventList: []*types.TaskEvent{
+					TaskEventList: []*pb.TaskEventShow{
 						{
 							TaskId: "1-evengine-taskId",
 						},
