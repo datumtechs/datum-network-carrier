@@ -618,17 +618,6 @@ func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.data.CreateAt < s[j].Da
 //	Providers []*TaskNodeAlias `json:"providers"`
 //}
 
-type TaskOperationCost struct {
-	Processor uint64 `json:"processor"`
-	Mem       uint64 `json:"mem"`
-	Bandwidth uint64 `json:"bandwidth"`
-	Duration  uint64 `json:"duration"`
-}
-
-func (cost *TaskOperationCost) String() string {
-	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
-}
-
 //func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *apipb.TaskResourceCostDeclare {
 //	return &apipb.TaskResourceCostDeclare{
 //		CostMem:       cost.Mem,
@@ -763,14 +752,14 @@ func (cost *TaskOperationCost) String() string {
 //func (n *NodeAlias) GetNodeIdStr() string      { return n.NodeId }
 //func (n *NodeAlias) GetNodeIdentityId() string { return n.IdentityId }
 
-type ResourceUsage struct {
-	TotalMem       uint64 `json:"totalMem"`
-	UsedMem        uint64 `json:"usedMem"`
-	TotalProcessor uint64 `json:"totalProcessor"`
-	UsedProcessor  uint64 `json:"usedProcessor"`
-	TotalBandwidth uint64 `json:"totalBandwidth"`
-	UsedBandwidth  uint64 `json:"usedBandwidth"`
-}
+//type ResourceUsage struct {
+//	TotalMem       uint64 `json:"totalMem"`
+//	UsedMem        uint64 `json:"usedMem"`
+//	TotalProcessor uint64 `json:"totalProcessor"`
+//	UsedProcessor  uint64 `json:"usedProcessor"`
+//	TotalBandwidth uint64 `json:"totalBandwidth"`
+//	UsedBandwidth  uint64 `json:"usedBandwidth"`
+//}
 
 //func ConvertResourceUsageToPB(usage *ResourceUsage) *libTypes.ResourceUsageOverview {
 //	return &libTypes.ResourceUsageOverview{
