@@ -18,8 +18,7 @@ const (
 	PREFIX_POWER_ID    = "power:"
 	PREFIX_METADATA_ID = "metadata:"
 	PREFIX_TASK_ID     = "task:"
-)
-const (
+
 	MSG_IDENTITY        = "identityMsg"
 	MSG_IDENTITY_REVOKE = "identityRevokeMsg"
 	MSG_POWER           = "powerMsg"
@@ -269,7 +268,7 @@ func (msg *MetaDataMsg) ToDataCenter() *Metadata {
 		HasTitle:           msg.HasTitle(),
 		MetadataColumnList: msg.ColumnMetas(),
 		// the status of data, N means normal, D means deleted.
-		DataStatus: DataStatusNormal.String(),
+		DataStatus: DATA_STATUS_NORMAL.String(),
 		// metaData status, eg: create/release/revoke
 		State: MetaDataStateRelease.String(),
 	})
@@ -339,7 +338,7 @@ func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
 		NodeName:   msg.Name,
 		DataId:     msg.MetaDataId,
 		// the status of data, N means normal, D means deleted.
-		DataStatus: DataStatusDeleted.String(),
+		DataStatus: DATA_STATUS_DELETED.String(),
 		// metaData status, eg: create/release/revoke
 		State: MetaDataStateRevoke.String(),
 	})
@@ -452,7 +451,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			NodeId:     req.Sender.NodeId,
 			NodeName:   req.Sender.NodeName,
 			DataId:     "",
-			DataStatus: DataStatusNormal.String(),
+			DataStatus: DATA_STATUS_NORMAL.String(),
 			State:      TaskStatePending.String(),
 			Reason:     "",
 			EventCount: 0,
