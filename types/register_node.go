@@ -10,7 +10,6 @@ const (
 	NonConnected NodeConnStatus = -1
 	EnablePower  NodeConnStatus = 1 // 启用算力
 	BusyPower    NodeConnStatus = 2 // 算力被占用(有任务在执行 ...)
-
 )
 
 
