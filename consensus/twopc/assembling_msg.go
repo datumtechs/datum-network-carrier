@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -96,8 +97,8 @@ func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.PrepareMsg, error
 			ProposalId:  common.BytesToHash(prepareMsg.ProposalId),
 			TaskRole:    types.TaskRoleFromBytes(prepareMsg.TaskRole),
 			TaskPartyId: string(prepareMsg.TaskPartyId),
-			Owner: &types.TaskNodeAlias{
-				Name:       string(prepareMsg.Owner.Name),
+			Owner: &apipb.TaskOrganization{
+				NodeName:   string(prepareMsg.Owner.Name),
 				NodeId:     string(prepareMsg.Owner.NodeId),
 				IdentityId: string(prepareMsg.Owner.IdentityId),
 				PartyId:    string(prepareMsg.Owner.PartyId),
@@ -121,8 +122,8 @@ func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, e
 	msg := &types.PrepareVote{
 		ProposalId: common.BytesToHash(prepareVote.ProposalId),
 		TaskRole:   types.TaskRoleFromBytes(prepareVote.TaskRole),
-		Owner: &types.TaskNodeAlias{
-			Name:       string(prepareVote.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(prepareVote.Owner.Name),
 			NodeId:     string(prepareVote.Owner.NodeId),
 			IdentityId: string(prepareVote.Owner.IdentityId),
 			PartyId:    string(prepareVote.Owner.PartyId),
@@ -155,8 +156,8 @@ func fetchConfirmMsg(confirmMsg *types.ConfirmMsgWrap) (*types.ConfirmMsg, error
 		ProposalId:  common.BytesToHash(confirmMsg.ProposalId),
 		TaskRole:    types.TaskRoleFromBytes(confirmMsg.TaskRole),
 		TaskPartyId: string(confirmMsg.TaskPartyId),
-		Owner: &types.TaskNodeAlias{
-			Name:       string(confirmMsg.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(confirmMsg.Owner.Name),
 			NodeId:     string(confirmMsg.Owner.NodeId),
 			IdentityId: string(confirmMsg.Owner.IdentityId),
 			PartyId:    string(confirmMsg.Owner.PartyId),
@@ -172,8 +173,8 @@ func fetchConfirmVote(confirmVote *types.ConfirmVoteWrap) (*types.ConfirmVote, e
 	msg := &types.ConfirmVote{
 		ProposalId: common.BytesToHash(confirmVote.ProposalId),
 		TaskRole:   types.TaskRoleFromBytes(confirmVote.TaskRole),
-		Owner: &types.TaskNodeAlias{
-			Name:       string(confirmVote.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(confirmVote.Owner.Name),
 			NodeId:     string(confirmVote.Owner.NodeId),
 			IdentityId: string(confirmVote.Owner.IdentityId),
 			PartyId:    string(confirmVote.Owner.PartyId),
@@ -190,8 +191,8 @@ func fetchCommitMsg(commitMsg *types.CommitMsgWrap) (*types.CommitMsg, error) {
 		ProposalId:  common.BytesToHash(commitMsg.ProposalId),
 		TaskRole:    types.TaskRoleFromBytes(commitMsg.TaskRole),
 		TaskPartyId: string(commitMsg.TaskPartyId),
-		Owner: &types.TaskNodeAlias{
-			Name:       string(commitMsg.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(commitMsg.Owner.Name),
 			NodeId:     string(commitMsg.Owner.NodeId),
 			IdentityId: string(commitMsg.Owner.IdentityId),
 			PartyId:    string(commitMsg.Owner.PartyId),
@@ -216,8 +217,8 @@ func fetchTaskResultMsg(commitMsg *types.TaskResultMsgWrap) (*types.TaskResultMs
 	msg := &types.TaskResultMsg{
 		ProposalId: common.BytesToHash(commitMsg.ProposalId),
 		TaskRole:   types.TaskRoleFromBytes(commitMsg.TaskRole),
-		Owner: &types.TaskNodeAlias{
-			Name:       string(commitMsg.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(commitMsg.Owner.Name),
 			NodeId:     string(commitMsg.Owner.NodeId),
 			IdentityId: string(commitMsg.Owner.IdentityId),
 			PartyId:    string(commitMsg.Owner.PartyId),

@@ -348,7 +348,7 @@ func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
 }
 
 // about identity on local
-func (dc *DataCenter) StoreIdentity(identity *types.NodeAlias) error {
+func (dc *DataCenter) StoreIdentity(identity *apipb.Organization) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteLocalIdentity(dc.db, identity)
@@ -369,10 +369,10 @@ func (dc *DataCenter) GetIdentityId() (string, error) {
 	if nil != err {
 		return "", err
 	}
-	return identity.GetNodeIdentityId(), nil
+	return identity.GetIdentityId(), nil
 }
 
-func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
+func (dc *DataCenter) GetIdentity() (*apipb.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	identity, err := rawdb.ReadLocalIdentity(dc.db)
@@ -383,7 +383,7 @@ func (dc *DataCenter) GetIdentity() (*types.NodeAlias, error) {
 }
 
 // about identity on datacenter
-func (dc *DataCenter) HasIdentity(identity *types.NodeAlias) (bool, error) {
+func (dc *DataCenter) HasIdentity(identity *apipb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	responses, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{

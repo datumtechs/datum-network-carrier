@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"time"
 
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
@@ -17,8 +18,8 @@ type taskOption struct {
 	Role                  types.TaskRole           `json:"role"` // The role information of the current recipient of the task
 	TaskId                string                   `json:"taskId"`
 	TaskName              string                   `json:"taskName"`
-	Owner                 *types.NodeAlias         `json:"owner"`
-	AlgoSupplier          *types.NodeAlias         `json:"algoSupplier"`
+	Owner                 *apipb.Organization         `json:"owner"`
+	AlgoSupplier          *apipb.Organization         `json:"algoSupplier"`
 	DataSupplier          []*dataSupplierOption    `json:"dataSupplier"`
 	PowerSupplier         []*powerSupplierOption   `json:"powerSupplier"`
 	Receivers             []*receiverOption        `json:"receivers"`
@@ -33,16 +34,16 @@ func (t *taskOption) Hash() common.Hash {
 }
 
 type dataSupplierOption struct {
-	MemberInfo      *types.NodeAlias `json:"memberInfo"`
+	MemberInfo      *apipb.Organization `json:"memberInfo"`
 	MetaDataId      string           `json:"metaDataId"`
 	ColumnIndexList []uint64         `json:"columnIndexList"`
 }
 type powerSupplierOption struct {
-	MemberInfo *types.NodeAlias `json:"memberInfo"`
+	MemberInfo *apipb.Organization `json:"memberInfo"`
 }
 type receiverOption struct {
-	MemberInfo *types.NodeAlias   `json:"memberInfo"`
-	Providers  []*types.NodeAlias `json:"providers"`
+	MemberInfo *apipb.Organization   `json:"memberInfo"`
+	Providers  []*apipb.Organization `json:"providers"`
 }
 
 type taskPeerInfo struct {
@@ -76,7 +77,7 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 type PrepareVote struct {
 	ProposalID  common.Hash      `json:"proposalId"`
 	Role        types.TaskRole   `json:"role"` // The role information of the current recipient of the task
-	Owner       *types.NodeAlias `json:"owner"`
+	Owner       *apipb.Organization `json:"owner"`
 	VoteOption  types.VoteOption `json:"voteOption"`
 	PeerInfo    *taskPeerInfo    `json:"peerInfo"`
 	CreateAt    uint64           `json:"createAt"`
@@ -133,7 +134,7 @@ type ProposalState struct {
 	ProposalId         common.Hash
 	TaskDir            types.ProposalTaskDir
 	TaskRole           types.TaskRole
-	SelfIdentity       *types.TaskNodeAlias
+	SelfIdentity       *apipb.TaskOrganization
 	TaskId             string
 	PeriodNum          ProposalStatePeriod
 	PrePeriodStartTime uint64
@@ -147,7 +148,7 @@ type ProposalState struct {
 var EmptyProposalState = new(ProposalState)
 
 func NewProposalState(proposalId common.Hash, taskId string,
-	TaskDir types.ProposalTaskDir, taskRole types.TaskRole, selfIdentity *types.TaskNodeAlias, startTime uint64) *ProposalState {
+	TaskDir types.ProposalTaskDir, taskRole types.TaskRole, selfIdentity *apipb.TaskOrganization, startTime uint64) *ProposalState {
 
 	return &ProposalState{
 		ProposalId:       proposalId,

@@ -77,7 +77,7 @@ func (t *TwoPC) GetRecvTask(taskId string) *types.Task {
 	return task
 }
 
-func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.ConsensuResult) {
+func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.ConsensusResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
 	t.taskResultChs[taskId] = resultCh
@@ -89,10 +89,10 @@ func (t *TwoPC) removeTaskResultCh(taskId string) {
 	delete(t.taskResultChs, taskId)
 	t.taskResultLock.Unlock()
 }
-func (t *TwoPC) collectTaskResultWillSendToSched(result *types.ConsensuResult) {
+func (t *TwoPC) collectTaskResultWillSendToSched(result *types.ConsensusResult) {
 	t.taskResultCh <- result
 }
-func (t *TwoPC) sendConsensusTaskResultToSched (result *types.ConsensuResult) {
+func (t *TwoPC) sendConsensusTaskResultToSched (result *types.ConsensusResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
 	if ch, ok := t.taskResultChs[result.TaskId]; ok {
@@ -224,7 +224,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 
 	if proposalState.TaskDir == types.SendTaskDir {
 		// Send consensus result to Scheduler
-		t.collectTaskResultWillSendToSched(&types.ConsensuResult{
+		t.collectTaskResultWillSendToSched(&types.ConsensusResult{
 			TaskConsResult: &types.TaskConsResult{
 				TaskId: proposalState.TaskId,
 				Status: types.TaskConsensusInterrupt,
@@ -259,7 +259,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 				TaskId: []byte(proposalState.TaskId),
 				Owner: &pb.TaskOrganizationIdentityInfo{
 					PartyId: []byte(proposalState.SelfIdentity.PartyId),
-					Name: []byte(proposalState.SelfIdentity.Name),
+					Name: []byte(proposalState.SelfIdentity.NodeName),
 					NodeId: []byte(proposalState.SelfIdentity.NodeId),
 					IdentityId: []byte(proposalState.SelfIdentity.IdentityId),
 				},

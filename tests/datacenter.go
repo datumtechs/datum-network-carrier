@@ -310,7 +310,7 @@ func GetData() {
 	// endregion
 
 	// region HasIdentity
-	result, err := dc.HasIdentity(&types.NodeAlias{
+	result, err := dc.HasIdentity(&apipb.Organization{
 		Name:       NodeName,
 		NodeId:     NodeId,
 		IdentityId: Identity})

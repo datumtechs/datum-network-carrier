@@ -244,7 +244,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 		//if nil != err {
 		//	log.Errorf("Failed to election internal power resource, err: %s", err)
 		//	sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskFailedConsensus.Type,
-		//		task.TaskId, task.Onwer().IdentityId, err.Error()))
+		//		task.TaskId, task.Owner().IdentityId, err.Error()))
 		//	repushFn(bullet)
 		//	return
 		//}
@@ -320,7 +320,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 				Port:    dataNodeResource.ExternalPort,
 				PartyId: task.Data.TaskData().PartyId,
 			},
-			ResultCh: make(chan *types.ConsensuResult, 0),
+			ResultCh: make(chan *types.ConsensusResult, 0),
 		}
 		sche.SendTaskToConsensus(toConsensusTask)
 		consensusRes := toConsensusTask.RecvResult()

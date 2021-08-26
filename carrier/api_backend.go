@@ -79,7 +79,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	if nil != identity {
 		identityId = identity.IdentityId
 		nodeId = identity.NodeId
-		nodeName = identity.Name
+		nodeName = identity.NodeName
 	}
 
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
@@ -670,7 +670,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	return types.NewIdentity(&libTypes.IdentityData{
 		IdentityId: nodeAlias.IdentityId,
 		NodeId:     nodeAlias.NodeId,
-		NodeName:   nodeAlias.Name,
+		NodeName:   nodeAlias.NodeName,
 	}), err
 }
 
@@ -763,7 +763,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 			CreateAt: e.CreateAt,
 			Content:  e.Content,
 			Owner: &apipb.Organization{
-				NodeName:   identity.Name,
+				NodeName:   identity.NodeName,
 				NodeId:     identity.NodeId,
 				IdentityId: identity.IdentityId,
 			},
@@ -803,7 +803,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 				CreateAt: e.CreateAt,
 				Content:  e.Content,
 				Owner: &apipb.Organization{
-					NodeName:   identity.Name,
+					NodeName:   identity.NodeName,
 					NodeId:     identity.NodeId,
 					IdentityId: identity.IdentityId,
 				},
