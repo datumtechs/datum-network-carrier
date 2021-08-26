@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -450,30 +451,30 @@ func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*
 }
 
 // power api
-func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) {
+func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error) {
 	log.Debug("Invoke: GetPowerTotalDetailList executing...")
 	resourceList, err := s.carrier.carrierDB.GetResourceList()
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Query all org's power list, len: {%d}", len(resourceList))
-	powerList := make([]*types.OrgPowerDetail, 0, resourceList.Len())
+	powerList := make([]*pb.GetPowerTotalDetailResponse, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
-		powerList = append(powerList, &types.OrgPowerDetail{
-			Owner: &types.NodeAlias{
-				Name:       resource.GetNodeName(),
+		powerList = append(powerList, &pb.GetPowerTotalDetailResponse{
+			Owner: &apipb.Organization{
+				NodeName:       resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
-			PowerDetail: &types.PowerTotalDetail{
+			Power: &libTypes.PowerTotalDetail{
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
-				Tasks:            make([]*types.PowerTask, 0),
-				ResourceUsage: &types.ResourceUsage{
+				Tasks:            make([]*libTypes.PowerTask, 0),
+				Information: &libTypes.ResourceUsageOverview {
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
-					TotalProcessor: resource.GetTotalProcessor(),
-					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalProcessor: uint32(resource.GetTotalProcessor()),
+					UsedProcessor:  uint32(resource.GetUsedProcessor()),
 					TotalBandwidth: resource.GetTotalBandWidth(),
 					UsedBandwidth:  resource.GetUsedBandWidth(),
 				},
@@ -484,7 +485,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
+func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDetailResponse, error) {
 	log.Debug("Invoke:GetPowerSingleDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.GetLocalResourceList()
@@ -545,8 +546,8 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		return 0
 	}
 
-	buildPowerTaskList := func(jobNodeId string) []*types.PowerTask {
-		powerTaskList := make([]*types.PowerTask, 0)
+	buildPowerTaskList := func(jobNodeId string) []*libTypes.PowerTask {
+		powerTaskList := make([]*libTypes.PowerTask, 0)
 
 		// 逐个 处理 jobNodeId 上的 task 信息
 		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
@@ -559,21 +560,21 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				}
 
 				// 封装任务 摘要 ...
-				powerTask := &types.PowerTask{
+				powerTask := &libTypes.PowerTask{
 					TaskId:   taskId,
 					TaskName: task.TaskData().TaskName,
-					Owner: &types.NodeAlias{
-						Name:       task.TaskData().GetNodeName(),
+					Owner: &apipb.Organization{
+						NodeName:       task.TaskData().GetNodeName(),
 						NodeId:     task.TaskData().GetNodeId(),
 						IdentityId: task.TaskData().GetIdentityId(),
 					},
-					Patners:   make([]*types.NodeAlias, 0),
-					Receivers: make([]*types.NodeAlias, 0),
-					OperationCost: &types.TaskOperationCost{
-						Processor: uint64(task.TaskData().GetOperationCost().GetCostProcessor()),
-						Mem:       uint64(task.TaskData().GetOperationCost().GetCostMem()),
-						Bandwidth: uint64(task.TaskData().GetOperationCost().GetCostBandwidth()),
-						Duration:  uint64(task.TaskData().GetOperationCost().GetDuration()),
+					Patners:   make([]*apipb.Organization, 0),
+					Receivers: make([]*apipb.Organization, 0),
+					OperationCost: &apipb.TaskResourceCostDeclare{
+						CostProcessor: task.TaskData().GetOperationCost().GetCostProcessor(),
+						CostMem:       task.TaskData().GetOperationCost().GetCostMem(),
+						CostBandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
+						Duration:  task.TaskData().GetOperationCost().GetDuration(),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
 					CreateAt:       task.TaskData().CreateAt,
@@ -582,8 +583,8 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				for _, dataSupplier := range task.TaskData().DataSupplier {
 					// 协作方, 需要过滤掉自己
 					if task.TaskData().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
-						powerTask.Patners = append(powerTask.Patners, &types.NodeAlias{
-							Name:       dataSupplier.MemberInfo.GetNodeName(),
+						powerTask.Patners = append(powerTask.Patners, &apipb.Organization{
+							NodeName:       dataSupplier.MemberInfo.GetNodeName(),
 							NodeId:     dataSupplier.MemberInfo.GetNodeId(),
 							IdentityId: dataSupplier.MemberInfo.GetIdentityId(),
 						})
@@ -592,8 +593,8 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				}
 				// 组装结果接收方
 				for _, receiver := range task.TaskData().Receivers {
-					powerTask.Receivers = append(powerTask.Receivers, &types.NodeAlias{
-						Name:       receiver.Receiver.GetNodeName(),
+					powerTask.Receivers = append(powerTask.Receivers, &apipb.Organization{
+						NodeName:       receiver.Receiver.GetNodeName(),
 						NodeId:     receiver.Receiver.GetNodeId(),
 						IdentityId: receiver.Receiver.GetIdentityId(),
 					})
@@ -601,10 +602,10 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 
 				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
-				powerTask.OperationSpend = &types.TaskOperationCost{
-					Processor: slotUnit.Processor * slotCount,
-					Mem:       slotUnit.Mem * slotCount,
-					Bandwidth: slotUnit.Bandwidth * slotCount,
+				powerTask.OperationSpend = &apipb.TaskResourceCostDeclare{
+					CostProcessor: uint32(slotUnit.Processor * slotCount),
+					CostMem:       slotUnit.Mem * slotCount,
+					CostBandwidth: slotUnit.Bandwidth * slotCount,
 					Duration:  task.TaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
@@ -620,25 +621,25 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 
 	resourceList := machineList.To()
 	// 逐个处理当前
-	result := make([]*types.NodePowerDetail, len(resourceList))
+	result := make([]*pb.GetPowerSingleDetailResponse, len(resourceList))
 	for i, resource := range resourceList {
-		nodePowerDetail := &types.NodePowerDetail{
-			Owner: &types.NodeAlias{
-				Name:       resource.GetNodeName(),
+		nodePowerDetail := &pb.GetPowerSingleDetailResponse{
+			Owner: &apipb.Organization{
+				NodeName:       resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
-			PowerDetail: &types.PowerSingleDetail{
+			Power: &libTypes.PowerSingleDetail{
 				JobNodeId:        resource.GetJobNodeId(),
 				PowerId:          resource.DataId,
 				TotalTaskCount:   uint32(taskCount(resource.GetJobNodeId())),
 				CurrentTaskCount: uint32(taskCount(resource.GetJobNodeId())),
-				Tasks:            make([]*types.PowerTask, 0),
-				ResourceUsage: &types.ResourceUsage{
+				Tasks:            make([]*libTypes.PowerTask, 0),
+				Information: &libTypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
-					TotalProcessor: resource.GetTotalProcessor(),
-					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalProcessor: uint32(resource.GetTotalProcessor()),
+					UsedProcessor:  uint32(resource.GetUsedProcessor()),
 					TotalBandwidth: resource.GetTotalBandWidth(),
 					UsedBandwidth:  resource.GetUsedBandWidth(),
 				},
@@ -646,7 +647,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 			},
 		}
 		powerTaskArray := buildPowerTaskList(resource.GetJobNodeId())
-		nodePowerDetail.PowerDetail.Tasks = powerTaskArray
+		nodePowerDetail.Power.Tasks = powerTaskArray
 		result[i] = nodePowerDetail
 	}
 	return result, nil
