@@ -10,11 +10,11 @@ import (
 	v1 "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -809,13 +809,13 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DebugClient interface {
 	// SetLoggingLevel sets the log-level of the beacon node programmatically.
-	SetLoggingLevel(ctx context.Context, in *LoggingLevelRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	SetLoggingLevel(ctx context.Context, in *LoggingLevelRequest, opts ...grpc.CallOption) (*empty.Empty, error)
 	// Returns all the related data for every peer tracked by the host node.
-	ListPeers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DebugPeerResponses, error)
+	ListPeers(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*DebugPeerResponses, error)
 	// Returns requested peer with specified peer id if it exists.
 	GetPeer(ctx context.Context, in *PeerRequest, opts ...grpc.CallOption) (*DebugPeerResponse, error)
 	// Returns all the related data for every peer tracked by the host node(count).
-	GetPeerCount(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DebugPeerCountResponse, error)
+	GetPeerCount(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*DebugPeerCountResponse, error)
 }
 
 type debugClient struct {
@@ -826,8 +826,8 @@ func NewDebugClient(cc *grpc.ClientConn) DebugClient {
 	return &debugClient{cc}
 }
 
-func (c *debugClient) SetLoggingLevel(ctx context.Context, in *LoggingLevelRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
-	out := new(emptypb.Empty)
+func (c *debugClient) SetLoggingLevel(ctx context.Context, in *LoggingLevelRequest, opts ...grpc.CallOption) (*empty.Empty, error) {
+	out := new(empty.Empty)
 	err := c.cc.Invoke(ctx, "/carrier.rpc.v1.Debug/SetLoggingLevel", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -835,7 +835,7 @@ func (c *debugClient) SetLoggingLevel(ctx context.Context, in *LoggingLevelReque
 	return out, nil
 }
 
-func (c *debugClient) ListPeers(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DebugPeerResponses, error) {
+func (c *debugClient) ListPeers(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*DebugPeerResponses, error) {
 	out := new(DebugPeerResponses)
 	err := c.cc.Invoke(ctx, "/carrier.rpc.v1.Debug/ListPeers", in, out, opts...)
 	if err != nil {
@@ -853,7 +853,7 @@ func (c *debugClient) GetPeer(ctx context.Context, in *PeerRequest, opts ...grpc
 	return out, nil
 }
 
-func (c *debugClient) GetPeerCount(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*DebugPeerCountResponse, error) {
+func (c *debugClient) GetPeerCount(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*DebugPeerCountResponse, error) {
 	out := new(DebugPeerCountResponse)
 	err := c.cc.Invoke(ctx, "/carrier.rpc.v1.Debug/GetPeerCount", in, out, opts...)
 	if err != nil {
@@ -865,29 +865,29 @@ func (c *debugClient) GetPeerCount(ctx context.Context, in *emptypb.Empty, opts 
 // DebugServer is the server API for Debug service.
 type DebugServer interface {
 	// SetLoggingLevel sets the log-level of the beacon node programmatically.
-	SetLoggingLevel(context.Context, *LoggingLevelRequest) (*emptypb.Empty, error)
+	SetLoggingLevel(context.Context, *LoggingLevelRequest) (*empty.Empty, error)
 	// Returns all the related data for every peer tracked by the host node.
-	ListPeers(context.Context, *emptypb.Empty) (*DebugPeerResponses, error)
+	ListPeers(context.Context, *empty.Empty) (*DebugPeerResponses, error)
 	// Returns requested peer with specified peer id if it exists.
 	GetPeer(context.Context, *PeerRequest) (*DebugPeerResponse, error)
 	// Returns all the related data for every peer tracked by the host node(count).
-	GetPeerCount(context.Context, *emptypb.Empty) (*DebugPeerCountResponse, error)
+	GetPeerCount(context.Context, *empty.Empty) (*DebugPeerCountResponse, error)
 }
 
 // UnimplementedDebugServer can be embedded to have forward compatible implementations.
 type UnimplementedDebugServer struct {
 }
 
-func (*UnimplementedDebugServer) SetLoggingLevel(ctx context.Context, req *LoggingLevelRequest) (*emptypb.Empty, error) {
+func (*UnimplementedDebugServer) SetLoggingLevel(ctx context.Context, req *LoggingLevelRequest) (*empty.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetLoggingLevel not implemented")
 }
-func (*UnimplementedDebugServer) ListPeers(ctx context.Context, req *emptypb.Empty) (*DebugPeerResponses, error) {
+func (*UnimplementedDebugServer) ListPeers(ctx context.Context, req *empty.Empty) (*DebugPeerResponses, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPeers not implemented")
 }
 func (*UnimplementedDebugServer) GetPeer(ctx context.Context, req *PeerRequest) (*DebugPeerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPeer not implemented")
 }
-func (*UnimplementedDebugServer) GetPeerCount(ctx context.Context, req *emptypb.Empty) (*DebugPeerCountResponse, error) {
+func (*UnimplementedDebugServer) GetPeerCount(ctx context.Context, req *empty.Empty) (*DebugPeerCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPeerCount not implemented")
 }
 
@@ -914,7 +914,7 @@ func _Debug_SetLoggingLevel_Handler(srv interface{}, ctx context.Context, dec fu
 }
 
 func _Debug_ListPeers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -926,7 +926,7 @@ func _Debug_ListPeers_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/carrier.rpc.v1.Debug/ListPeers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DebugServer).ListPeers(ctx, req.(*emptypb.Empty))
+		return srv.(DebugServer).ListPeers(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -950,7 +950,7 @@ func _Debug_GetPeer_Handler(srv interface{}, ctx context.Context, dec func(inter
 }
 
 func _Debug_GetPeerCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -962,7 +962,7 @@ func _Debug_GetPeerCount_Handler(srv interface{}, ctx context.Context, dec func(
 		FullMethod: "/carrier.rpc.v1.Debug/GetPeerCount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DebugServer).GetPeerCount(ctx, req.(*emptypb.Empty))
+		return srv.(DebugServer).GetPeerCount(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

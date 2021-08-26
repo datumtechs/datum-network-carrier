@@ -9,10 +9,10 @@ import (
 	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -686,7 +686,7 @@ type MetaDataServiceClient interface {
 	// 保存元数据
 	MetaDataSave(ctx context.Context, in *MetaDataSaveRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
-	GetMetaDataSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MetaDataSummaryListResponse, error)
+	GetMetaDataSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*MetaDataSummaryListResponse, error)
 	// 新增：元数据详细列表（用于将数据同步给管理台，考虑checkpoint同步点位）
 	GetMetadataList(ctx context.Context, in *MetadataListRequest, opts ...grpc.CallOption) (*MetadataListResponse, error)
 	// 新增，根据元数据ID查询元数据详情
@@ -712,7 +712,7 @@ func (c *metaDataServiceClient) MetaDataSave(ctx context.Context, in *MetaDataSa
 	return out, nil
 }
 
-func (c *metaDataServiceClient) GetMetaDataSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MetaDataSummaryListResponse, error) {
+func (c *metaDataServiceClient) GetMetaDataSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*MetaDataSummaryListResponse, error) {
 	out := new(MetaDataSummaryListResponse)
 	err := c.cc.Invoke(ctx, "/api.MetaDataService/GetMetaDataSummaryList", in, out, opts...)
 	if err != nil {
@@ -753,7 +753,7 @@ type MetaDataServiceServer interface {
 	// 保存元数据
 	MetaDataSave(context.Context, *MetaDataSaveRequest) (*common.SimpleResponse, error)
 	// 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
-	GetMetaDataSummaryList(context.Context, *emptypb.Empty) (*MetaDataSummaryListResponse, error)
+	GetMetaDataSummaryList(context.Context, *empty.Empty) (*MetaDataSummaryListResponse, error)
 	// 新增：元数据详细列表（用于将数据同步给管理台，考虑checkpoint同步点位）
 	GetMetadataList(context.Context, *MetadataListRequest) (*MetadataListResponse, error)
 	// 新增，根据元数据ID查询元数据详情
@@ -769,7 +769,7 @@ type UnimplementedMetaDataServiceServer struct {
 func (*UnimplementedMetaDataServiceServer) MetaDataSave(ctx context.Context, req *MetaDataSaveRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method MetaDataSave not implemented")
 }
-func (*UnimplementedMetaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *emptypb.Empty) (*MetaDataSummaryListResponse, error) {
+func (*UnimplementedMetaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *empty.Empty) (*MetaDataSummaryListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataSummaryList not implemented")
 }
 func (*UnimplementedMetaDataServiceServer) GetMetadataList(ctx context.Context, req *MetadataListRequest) (*MetadataListResponse, error) {
@@ -805,7 +805,7 @@ func _MetaDataService_MetaDataSave_Handler(srv interface{}, ctx context.Context,
 }
 
 func _MetaDataService_GetMetaDataSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -817,7 +817,7 @@ func _MetaDataService_GetMetaDataSummaryList_Handler(srv interface{}, ctx contex
 		FullMethod: "/api.MetaDataService/GetMetaDataSummaryList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetaDataServiceServer).GetMetaDataSummaryList(ctx, req.(*emptypb.Empty))
+		return srv.(MetaDataServiceServer).GetMetaDataSummaryList(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
