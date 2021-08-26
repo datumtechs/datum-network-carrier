@@ -28,7 +28,7 @@ const (
 	MSG_TASK            = "taskMsg"
 )
 
-type MsgType string
+type MessageType string
 
 type Msg interface {
 	Marshal() ([]byte, error)
@@ -38,24 +38,25 @@ type Msg interface {
 }
 
 // ------------------- SeedNode -------------------
-type SeedNodeMsg struct {
-	InternalIp   string `json:"internalIp"`
-	InternalPort string `json:"internalPort"`
-}
+//type SeedNodeMsg struct {
+//	InternalIp   string `json:"internalIp"`
+//	InternalPort string `json:"internalPort"`
+//}
 
 // ------------------- JobNode AND DataNode -------------------
-type RegisteredNodeMsg struct {
-	InternalIp   string `json:"internalIp"`
-	InternalPort string `json:"internalPort"`
-	ExternalIp   string `json:"externalIp"`
-	ExternalPort string `json:"externalPort"`
-}
+//type RegisteredNodeMsg struct {
+//	InternalIp   string `json:"internalIp"`
+//	InternalPort string `json:"internalPort"`
+//	ExternalIp   string `json:"externalIp"`
+//	ExternalPort string `json:"externalPort"`
+//}
 
 // ------------------- identity -------------------
 type IdentityMsg struct {
 	*apipb.Organization
 	CreateAt uint64 `json:"createAt"`
 }
+
 type IdentityRevokeMsg struct {
 	CreateAt uint64 `json:"createAt"`
 }
