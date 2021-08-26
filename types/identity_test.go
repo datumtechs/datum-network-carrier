@@ -8,13 +8,13 @@ import (
 )
 
 var identities = NewIdentity(&types.IdentityData{
-	Identity:             "",
-	NodeId:               "",
-	NodeName:             "",
-	DataId:               "",
-	DataStatus:           "",
-	Status:               "",
-	Credential:           "",
+	IdentityId: "",
+	NodeId:     "",
+	NodeName:   "",
+	DataId:     "",
+	DataStatus: "",
+	Status:     "",
+	Credential: "",
 })
 
 func TestIdentitiesEncode(t *testing.T) {

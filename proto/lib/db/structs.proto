@@ -52,7 +52,7 @@ message TaskArrayPB {
 }
 
 message TaskEventArrayPB {
-    repeated types.EventData task_event_list = 1;
+    repeated types.TaskEvent task_event_list = 1;
 }
 
 //// 存本地某个任务消耗的算力资源信息

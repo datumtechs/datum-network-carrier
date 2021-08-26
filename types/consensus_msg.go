@@ -3,7 +3,9 @@ package types
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 type ConsensusEngineType string
@@ -58,7 +60,7 @@ type PrepareMsg struct {
 	ProposalId  common.Hash
 	TaskRole    TaskRole
 	TaskPartyId string
-	Owner       *TaskNodeAlias
+	Owner       *apipb.TaskOrganization
 	TaskInfo    *Task
 	CreateAt    uint64
 	Sign        []byte
@@ -72,7 +74,7 @@ func (msg *PrepareMsg) String() string {
 type PrepareVote struct {
 	ProposalId common.Hash
 	TaskRole   TaskRole
-	Owner      *TaskNodeAlias
+	Owner      *apipb.TaskOrganization
 	VoteOption VoteOption
 	PeerInfo   *PrepareVoteResource
 	CreateAt   uint64
@@ -89,7 +91,7 @@ func ConvertPrepareVote(vote *PrepareVote) *pb.PrepareVote {
 		ProposalId: vote.ProposalId.Bytes(),
 		TaskRole:   vote.TaskRole.Bytes(),
 		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(vote.Owner.Name),
+			Name:       []byte(vote.Owner.NodeName),
 			NodeId:     []byte(vote.Owner.NodeId),
 			IdentityId: []byte(vote.Owner.IdentityId),
 			PartyId:    []byte(vote.Owner.PartyId),
@@ -104,8 +106,8 @@ func FetchPrepareVote(vote *pb.PrepareVote) *PrepareVote {
 	return &PrepareVote{
 		ProposalId: common.BytesToHash(vote.ProposalId),
 		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
-		Owner: &TaskNodeAlias{
-			Name:       string(vote.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(vote.Owner.Name),
 			NodeId:     string(vote.Owner.NodeId),
 			IdentityId: string(vote.Owner.IdentityId),
 			PartyId:    string(vote.Owner.PartyId),
@@ -121,7 +123,7 @@ type ConfirmMsg struct {
 	ProposalId  common.Hash
 	TaskRole    TaskRole
 	TaskPartyId string
-	Owner       *TaskNodeAlias
+	Owner       *apipb.TaskOrganization
 	PeerDesc    *pb.ConfirmTaskPeerInfo
 	CreateAt    uint64
 	Sign        []byte
@@ -138,7 +140,7 @@ func ConvertConfirmMsg(msg *ConfirmMsg) *pb.ConfirmMsg {
 		TaskRole:    msg.TaskRole.Bytes(),
 		TaskPartyId: []byte(msg.TaskPartyId),
 		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(msg.Owner.Name),
+			Name:       []byte(msg.Owner.NodeName),
 			NodeId:     []byte(msg.Owner.NodeId),
 			IdentityId: []byte(msg.Owner.IdentityId),
 			PartyId:    []byte(msg.Owner.PartyId),
@@ -153,8 +155,8 @@ func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 		ProposalId:  common.BytesToHash(msg.ProposalId),
 		TaskRole:    TaskRoleFromBytes(msg.TaskRole),
 		TaskPartyId: string(msg.TaskPartyId),
-		Owner: &TaskNodeAlias{
-			Name:       string(msg.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
 			PartyId:    string(msg.Owner.PartyId),
@@ -168,7 +170,7 @@ func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 type ConfirmVote struct {
 	ProposalId common.Hash
 	TaskRole   TaskRole
-	Owner      *TaskNodeAlias
+	Owner      *apipb.TaskOrganization
 	VoteOption VoteOption
 	CreateAt   uint64
 	Sign       []byte
@@ -184,7 +186,7 @@ func ConvertConfirmVote(vote *ConfirmVote) *pb.ConfirmVote {
 		ProposalId: vote.ProposalId.Bytes(),
 		TaskRole:   vote.TaskRole.Bytes(),
 		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(vote.Owner.Name),
+			Name:       []byte(vote.Owner.NodeName),
 			NodeId:     []byte(vote.Owner.NodeId),
 			IdentityId: []byte(vote.Owner.IdentityId),
 			PartyId:    []byte(vote.Owner.PartyId),
@@ -198,8 +200,8 @@ func FetchConfirmVote(vote *pb.ConfirmVote) *ConfirmVote {
 	return &ConfirmVote{
 		ProposalId: common.BytesToHash(vote.ProposalId),
 		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
-		Owner: &TaskNodeAlias{
-			Name:       string(vote.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(vote.Owner.Name),
 			NodeId:     string(vote.Owner.NodeId),
 			IdentityId: string(vote.Owner.IdentityId),
 			PartyId:    string(vote.Owner.PartyId),
@@ -214,7 +216,7 @@ type CommitMsg struct {
 	ProposalId  common.Hash
 	TaskRole    TaskRole
 	TaskPartyId string
-	Owner       *TaskNodeAlias
+	Owner       *apipb.TaskOrganization
 	CreateAt    uint64
 	Sign        []byte
 }
@@ -230,7 +232,7 @@ func ConvertCommitMsg(msg *CommitMsg) *pb.CommitMsg {
 		TaskRole:    msg.TaskRole.Bytes(),
 		TaskPartyId: []byte(msg.TaskPartyId),
 		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(msg.Owner.Name),
+			Name:       []byte(msg.Owner.NodeName),
 			NodeId:     []byte(msg.Owner.NodeId),
 			IdentityId: []byte(msg.Owner.IdentityId),
 			PartyId:    []byte(msg.Owner.PartyId),
@@ -244,8 +246,8 @@ func FetchCommitMsg(msg *pb.CommitMsg) *CommitMsg {
 		ProposalId:  common.BytesToHash(msg.ProposalId),
 		TaskRole:    TaskRoleFromBytes(msg.TaskRole),
 		TaskPartyId: string(msg.TaskPartyId),
-		Owner: &TaskNodeAlias{
-			Name:       string(msg.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
 			PartyId:    string(msg.Owner.PartyId),
@@ -258,9 +260,9 @@ func FetchCommitMsg(msg *pb.CommitMsg) *CommitMsg {
 type TaskResultMsg struct {
 	ProposalId    common.Hash
 	TaskRole      TaskRole
-	Owner         *TaskNodeAlias
+	Owner         *apipb.TaskOrganization
 	TaskId        string
-	TaskEventList []*TaskEventInfo
+	TaskEventList []*libTypes.TaskEvent
 	CreateAt      uint64
 	Sign          []byte
 }
@@ -276,7 +278,7 @@ func ConvertTaskResultMsg(msg *TaskResultMsg) *pb.TaskResultMsg {
 		ProposalId: msg.ProposalId.Bytes(),
 		TaskRole:   msg.TaskRole.Bytes(),
 		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(msg.Owner.Name),
+			Name:       []byte(msg.Owner.NodeName),
 			NodeId:     []byte(msg.Owner.NodeId),
 			IdentityId: []byte(msg.Owner.IdentityId),
 			PartyId:    []byte(msg.Owner.PartyId),
@@ -292,8 +294,8 @@ func FetchTaskResultMsg(msg *pb.TaskResultMsg) *TaskResultMsg {
 	return &TaskResultMsg{
 		ProposalId: common.BytesToHash(msg.ProposalId),
 		TaskRole:   TaskRoleFromBytes(msg.TaskRole),
-		Owner: &TaskNodeAlias{
-			Name:       string(msg.Owner.Name),
+		Owner: &apipb.TaskOrganization{
+			NodeName:       string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
 			PartyId:    string(msg.Owner.PartyId),

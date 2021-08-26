@@ -35,7 +35,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiEmptyGetParams"
+              "properties": {}
             }
           }
         ],
@@ -52,7 +52,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+              "$ref": "#/definitions/protobufSimpleResponse"
             }
           },
           "default": {
@@ -85,7 +85,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+              "$ref": "#/definitions/protobufSimpleResponse"
             }
           },
           "default": {
@@ -118,7 +118,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+              "$ref": "#/definitions/protobufSimpleResponse"
             }
           },
           "default": {
@@ -167,7 +167,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiEmptyGetParams"
+              "properties": {}
             }
           }
         ],
@@ -200,7 +200,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiEmptyGetParams"
+              "properties": {}
             }
           }
         ],
@@ -299,7 +299,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiEmptyGetParams"
+              "$ref": "#/definitions/rpcapiGetRegisteredPeersRequest"
             }
           }
         ],
@@ -316,7 +316,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+              "$ref": "#/definitions/protobufSimpleResponse"
             }
           },
           "default": {
@@ -349,7 +349,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+              "$ref": "#/definitions/protobufSimpleResponse"
             }
           },
           "default": {
@@ -382,7 +382,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+              "$ref": "#/definitions/protobufSimpleResponse"
             }
           },
           "default": {
@@ -431,7 +431,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiEmptyGetParams"
+              "properties": {}
             }
           }
         ],
@@ -652,6 +652,20 @@
         }
       }
     },
+    "protobufSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    },
     "rpcapiDeleteRegisteredNodeRequest": {
       "type": "object",
       "properties": {
@@ -659,9 +673,6 @@
           "type": "string"
         }
       }
-    },
-    "rpcapiEmptyGetParams": {
-      "type": "object"
     },
     "rpcapiGetNodeInfoResponse": {
       "type": "object",
@@ -696,6 +707,14 @@
         }
       }
     },
+    "rpcapiGetRegisteredPeersRequest": {
+      "type": "object",
+      "properties": {
+        "node_type": {
+          "$ref": "#/definitions/rpcapiNodeType"
+        }
+      }
+    },
     "rpcapiGetRegisteredPeersResponse": {
       "type": "object",
       "properties": {
@@ -706,16 +725,10 @@
         "msg": {
           "type": "string"
         },
-        "job_nodes": {
+        "nodes": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiYarnRegisteredJobNode"
-          }
-        },
-        "data_nodes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiYarnRegisteredDataNode"
+            "$ref": "#/definitions/rpcapiYarnRegisteredPeer"
           }
         }
       }
@@ -730,13 +743,22 @@
         "msg": {
           "type": "string"
         },
-        "seed_peers": {
+        "nodes": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiSeedPeer"
           }
         }
       }
+    },
+    "rpcapiNodeType": {
+      "type": "string",
+      "enum": [
+        "SeedNode",
+        "JobNode",
+        "DataNode"
+      ],
+      "default": "SeedNode"
     },
     "rpcapiQueryAvailableDataNodeRequest": {
       "type": "object",
@@ -787,13 +809,24 @@
       "type": "object",
       "properties": {
         "task_event": {
-          "$ref": "#/definitions/rpcapiTaskEventDeclare"
+          "$ref": "#/definitions/typesTaskEvent"
         }
       }
     },
     "rpcapiReportTaskResourceExpenseRequest": {
       "type": "object",
-      "title": "未定义"
+      "properties": {
+        "node_type": {
+          "$ref": "#/definitions/rpcapiNodeType"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "usage": {
+          "$ref": "#/definitions/typesResourceUsageOverview"
+        }
+      },
+      "title": "节点的资源使用实况上报请求"
     },
     "rpcapiReportUpFileSummaryRequest": {
       "type": "object",
@@ -812,40 +845,13 @@
         }
       }
     },
-    "rpcapiResourceUsedDetailShow": {
-      "type": "object",
-      "properties": {
-        "total_mem": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "used_mem": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "total_processor": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "used_processor": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "total_bandwidth": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "used_bandwidth": {
-          "type": "string",
-          "format": "uint64"
-        }
-      },
-      "title": "系统本身资源抽象"
-    },
     "rpcapiSeedPeer": {
       "type": "object",
       "properties": {
         "id": {
+          "type": "string"
+        },
+        "node_id": {
           "type": "string"
         },
         "internal_ip": {
@@ -927,6 +933,9 @@
     "rpcapiSetSeedNodeRequest": {
       "type": "object",
       "properties": {
+        "node_id": {
+          "type": "string"
+        },
         "internal_ip": {
           "type": "string"
         },
@@ -947,39 +956,6 @@
         },
         "seed_peer": {
           "$ref": "#/definitions/rpcapiSeedPeer"
-        }
-      }
-    },
-    "rpcapiSimpleResponseCode": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        }
-      }
-    },
-    "rpcapiTaskEventDeclare": {
-      "type": "object",
-      "properties": {
-        "type": {
-          "type": "string"
-        },
-        "task_id": {
-          "type": "string"
-        },
-        "identity_id": {
-          "type": "string"
-        },
-        "content": {
-          "type": "string"
-        },
-        "create_at": {
-          "type": "string",
-          "format": "uint64"
         }
       }
     },
@@ -1029,6 +1005,9 @@
         "id": {
           "type": "string"
         },
+        "node_id": {
+          "type": "string"
+        },
         "internal_ip": {
           "type": "string"
         },
@@ -1041,7 +1020,7 @@
       "type": "object",
       "properties": {
         "node_type": {
-          "type": "string"
+          "$ref": "#/definitions/rpcapiNodeType"
         },
         "node_id": {
           "type": "string"
@@ -1065,7 +1044,7 @@
           "type": "string"
         },
         "resource_used": {
-          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+          "$ref": "#/definitions/typesResourceUsageOverview"
         },
         "peers": {
           "type": "array",
@@ -1084,104 +1063,19 @@
         },
         "name": {
           "type": "string"
+        },
+        "relate_peers": {
+          "type": "integer",
+          "format": "int64"
         }
       },
       "title": "调度服务的信息"
-    },
-    "rpcapiYarnRegisteredDataNode": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "internal_ip": {
-          "type": "string"
-        },
-        "external_ip": {
-          "type": "string"
-        },
-        "internal_port": {
-          "type": "string"
-        },
-        "external_port": {
-          "type": "string"
-        },
-        "information": {
-          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
-        },
-        "duration": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "delta": {
-          "$ref": "#/definitions/rpcapiYarnRegisteredDataNodeDelta"
-        }
-      }
-    },
-    "rpcapiYarnRegisteredDataNodeDelta": {
-      "type": "object",
-      "properties": {
-        "fileCount": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "fileTotalSize": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    },
-    "rpcapiYarnRegisteredJobNode": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "internal_ip": {
-          "type": "string"
-        },
-        "external_ip": {
-          "type": "string"
-        },
-        "internal_port": {
-          "type": "string"
-        },
-        "external_port": {
-          "type": "string"
-        },
-        "information": {
-          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
-        },
-        "duration": {
-          "type": "string",
-          "format": "uint64"
-        },
-        "task": {
-          "$ref": "#/definitions/rpcapiYarnRegisteredJobNodeTaskIds"
-        }
-      },
-      "title": "调度服务上的 计算服务详情信息"
-    },
-    "rpcapiYarnRegisteredJobNodeTaskIds": {
-      "type": "object",
-      "properties": {
-        "count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "task_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
     },
     "rpcapiYarnRegisteredPeer": {
       "type": "object",
       "properties": {
         "node_type": {
-          "type": "string"
+          "$ref": "#/definitions/rpcapiNodeType"
         },
         "node_detail": {
           "$ref": "#/definitions/rpcapiYarnRegisteredPeerDetail"
@@ -1233,6 +1127,74 @@
           }
         }
       }
+    },
+    "typesResourceUsageOverview": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务系统的总内存"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务系统的已用内存"
+        },
+        "total_processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "服务的总内核数"
+        },
+        "used_processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "服务的已用内核数"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的总带宽数"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的已用带宽数"
+        },
+        "total_disk": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的总磁盘空间 (单位: byte)"
+        },
+        "used_disk": {
+          "type": "string",
+          "format": "uint64",
+          "title": "服务的已用磁盘空间 (单位: byte)"
+        }
+      },
+      "title": "系统资源消耗概览"
+    },
+    "typesTaskEvent": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "任务事件定义"
     }
   }
 }

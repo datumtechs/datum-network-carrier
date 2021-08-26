@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 type ProposalTask struct {
@@ -17,14 +17,14 @@ type ProposalTask struct {
 type ConsensusTaskWrap struct {
 	Task              *Task
 	OwnerDataResource *PrepareVoteResource
-	ResultCh          chan *ConsensuResult
+	ResultCh          chan *ConsensusResult
 }
 
-func (wrap *ConsensusTaskWrap) SendResult(result *ConsensuResult) {
+func (wrap *ConsensusTaskWrap) SendResult(result *ConsensusResult) {
 	wrap.ResultCh <- result
 	close(wrap.ResultCh)
 }
-func (wrap *ConsensusTaskWrap) RecvResult() *ConsensuResult {
+func (wrap *ConsensusTaskWrap) RecvResult() *ConsensusResult {
 	return <-wrap.ResultCh
 }
 func (wrap *ConsensusTaskWrap) String() string {
@@ -75,7 +75,7 @@ func (wrap *ReplayScheduleTaskWrap) String() string {
 type DoneScheduleTaskChWrap struct {
 	ProposalId   common.Hash
 	SelfTaskRole TaskRole
-	SelfIdentity *libTypes.OrganizationData
+	SelfIdentity *apipb.TaskOrganization
 	Task         *ConsensusScheduleTask
 	ResultCh     chan *TaskResultMsgWrap
 }
@@ -101,23 +101,23 @@ type ConsensusScheduleTask struct {
 //	StartAt               uint64                        `json:"startAt"`
 //}
 
-type ScheduleTaskDataSupplier struct {
-	*TaskNodeAlias
-	MetaData *SupplierMetaData `json:"metaData"`
-}
-type ScheduleTaskPowerSupplier struct {
-	*TaskNodeAlias
-}
+//type ScheduleTaskDataSupplier struct {
+//	*TaskNodeAlias
+//	MetaData *SupplierMetaData `json:"metaData"`
+//}
+//type ScheduleTaskPowerSupplier struct {
+//	*TaskNodeAlias
+//}
 
-type ScheduleSupplierMetaData struct {
-	MetaId          string   `json:"metaId"`
-	ColumnIndexList []uint64 `json:"columnIndexList"`
-}
+//type ScheduleSupplierMetaData struct {
+//	MetaId          string   `json:"metaId"`
+//	ColumnIndexList []uint64 `json:"columnIndexList"`
+//}
 
-type ScheduleTaskResultReceiver struct {
-	*TaskNodeAlias
-	Providers []*TaskNodeAlias `json:"providers"`
-}
+//type ScheduleTaskResultReceiver struct {
+//	*TaskNodeAlias
+//	Providers []*TaskNodeAlias `json:"providers"`
+//}
 
 type TaskConsStatus uint16
 
@@ -177,10 +177,10 @@ func (res *ScheduleResult) String() string {
 		res.TaskId, res.Status.String(), res.Err, res.Resource.String())
 }
 
-type ConsensuResult struct {
+type ConsensusResult struct {
 	*TaskConsResult
 }
 
-func (res *ConsensuResult) String() string {
+func (res *ConsensusResult) String() string {
 	return fmt.Sprintf(`{"taskId": %s, "status": %s, "done": %v, "err": %s}`, res.TaskId, res.Status.String(), res.Done, res.Err)
 }

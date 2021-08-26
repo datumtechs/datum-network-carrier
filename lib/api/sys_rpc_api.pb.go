@@ -6,11 +6,14 @@ package api
 import (
 	context "context"
 	fmt "fmt"
+	common "github.com/RosettaFlow/Carrier-Go/lib/common"
+	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -27,24 +30,56 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type NodeType int32
+
+const (
+	NodeType_SeedNode NodeType = 0
+	NodeType_JobNode  NodeType = 1
+	NodeType_DataNode NodeType = 2
+	NodeType_YarnNode NodeType = 3
+)
+
+var NodeType_name = map[int32]string{
+	0: "SeedNode",
+	1: "JobNode",
+	2: "DataNode",
+	3: "YarnNode",
+}
+
+var NodeType_value = map[string]int32{
+	"SeedNode": 0,
+	"JobNode":  1,
+	"DataNode": 2,
+	"YarnNode": 3,
+}
+
+func (x NodeType) String() string {
+	return proto.EnumName(NodeType_name, int32(x))
+}
+
+func (NodeType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_9da989a22daaf207, []int{0}
+}
+
 // 调度服务的信息
 type YarnNodeInfo struct {
-	NodeType             string                  `protobuf:"bytes,1,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
-	NodeId               string                  `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	InternalIp           string                  `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	ExternalIp           string                  `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
-	InternalPort         string                  `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ExternalPort         string                  `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
-	IdentityType         string                  `protobuf:"bytes,7,opt,name=identity_type,json=identityType,proto3" json:"identity_type,omitempty"`
-	IdentityId           string                  `protobuf:"bytes,8,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	ResourceUsed         *ResourceUsedDetailShow `protobuf:"bytes,9,opt,name=resource_used,json=resourceUsed,proto3" json:"resource_used,omitempty"`
-	Peers                []*YarnRegisteredPeer   `protobuf:"bytes,10,rep,name=peers,proto3" json:"peers,omitempty"`
-	SeedPeers            []*SeedPeer             `protobuf:"bytes,11,rep,name=seed_peers,json=seedPeers,proto3" json:"seed_peers,omitempty"`
-	State                string                  `protobuf:"bytes,12,opt,name=state,proto3" json:"state,omitempty"`
-	Name                 string                  `protobuf:"bytes,13,opt,name=name,proto3" json:"name,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
-	XXX_unrecognized     []byte                  `json:"-"`
-	XXX_sizecache        int32                   `json:"-"`
+	NodeType             NodeType                     `protobuf:"varint,1,opt,name=node_type,json=nodeType,proto3,enum=rpcapi.NodeType" json:"node_type,omitempty"`
+	NodeId               string                       `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	InternalIp           string                       `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	ExternalIp           string                       `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	InternalPort         string                       `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalPort         string                       `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	IdentityType         string                       `protobuf:"bytes,7,opt,name=identity_type,json=identityType,proto3" json:"identity_type,omitempty"`
+	IdentityId           string                       `protobuf:"bytes,8,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	ResourceUsed         *types.ResourceUsageOverview `protobuf:"bytes,9,opt,name=resource_used,json=resourceUsed,proto3" json:"resource_used,omitempty"`
+	Peers                []*YarnRegisteredPeer        `protobuf:"bytes,10,rep,name=peers,proto3" json:"peers,omitempty"`
+	SeedPeers            []*SeedPeer                  `protobuf:"bytes,11,rep,name=seed_peers,json=seedPeers,proto3" json:"seed_peers,omitempty"`
+	State                string                       `protobuf:"bytes,12,opt,name=state,proto3" json:"state,omitempty"`
+	Name                 string                       `protobuf:"bytes,13,opt,name=name,proto3" json:"name,omitempty"`
+	RelatePeers          uint32                       `protobuf:"varint,14,opt,name=relate_peers,json=relatePeers,proto3" json:"relate_peers,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
 }
 
 func (m *YarnNodeInfo) Reset()         { *m = YarnNodeInfo{} }
@@ -80,11 +115,11 @@ func (m *YarnNodeInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_YarnNodeInfo proto.InternalMessageInfo
 
-func (m *YarnNodeInfo) GetNodeType() string {
+func (m *YarnNodeInfo) GetNodeType() NodeType {
 	if m != nil {
 		return m.NodeType
 	}
-	return ""
+	return NodeType_SeedNode
 }
 
 func (m *YarnNodeInfo) GetNodeId() string {
@@ -136,7 +171,7 @@ func (m *YarnNodeInfo) GetIdentityId() string {
 	return ""
 }
 
-func (m *YarnNodeInfo) GetResourceUsed() *ResourceUsedDetailShow {
+func (m *YarnNodeInfo) GetResourceUsed() *types.ResourceUsageOverview {
 	if m != nil {
 		return m.ResourceUsed
 	}
@@ -169,6 +204,13 @@ func (m *YarnNodeInfo) GetName() string {
 		return m.Name
 	}
 	return ""
+}
+
+func (m *YarnNodeInfo) GetRelatePeers() uint32 {
+	if m != nil {
+		return m.RelatePeers
+	}
+	return 0
 }
 
 // 调度服务的系统资源信息
@@ -269,7 +311,7 @@ func (m *YarnNodeSysInfo) GetUsedBandwidth() uint64 {
 
 // 调度服务上被注册的资源节点信息
 type YarnRegisteredPeer struct {
-	NodeType             string                    `protobuf:"bytes,1,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
+	NodeType             NodeType                  `protobuf:"varint,1,opt,name=node_type,json=nodeType,proto3,enum=rpcapi.NodeType" json:"node_type,omitempty"`
 	NodeDetail           *YarnRegisteredPeerDetail `protobuf:"bytes,2,opt,name=node_detail,json=nodeDetail,proto3" json:"node_detail,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
 	XXX_unrecognized     []byte                    `json:"-"`
@@ -309,11 +351,11 @@ func (m *YarnRegisteredPeer) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_YarnRegisteredPeer proto.InternalMessageInfo
 
-func (m *YarnRegisteredPeer) GetNodeType() string {
+func (m *YarnRegisteredPeer) GetNodeType() NodeType {
 	if m != nil {
 		return m.NodeType
 	}
-	return ""
+	return NodeType_SeedNode
 }
 
 func (m *YarnRegisteredPeer) GetNodeDetail() *YarnRegisteredPeerDetail {
@@ -330,6 +372,11 @@ type YarnRegisteredPeerDetail struct {
 	InternalPort         string   `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
 	ExternalPort         string   `protobuf:"bytes,5,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
 	ConnState            int32    `protobuf:"varint,6,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
+	Duration             uint64   `protobuf:"varint,7,opt,name=duration,proto3" json:"duration,omitempty"`
+	TaskCount            uint32   `protobuf:"varint,8,opt,name=task_count,json=taskCount,proto3" json:"task_count,omitempty"`
+	TaskIdList           []string `protobuf:"bytes,9,rep,name=task_id_list,json=taskIdList,proto3" json:"task_id_list,omitempty"`
+	FileCount            uint32   `protobuf:"varint,10,opt,name=file_count,json=fileCount,proto3" json:"file_count,omitempty"`
+	FileTotalSize        uint32   `protobuf:"varint,11,opt,name=file_total_size,json=fileTotalSize,proto3" json:"file_total_size,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -410,11 +457,47 @@ func (m *YarnRegisteredPeerDetail) GetConnState() int32 {
 	return 0
 }
 
+func (m *YarnRegisteredPeerDetail) GetDuration() uint64 {
+	if m != nil {
+		return m.Duration
+	}
+	return 0
+}
+
+func (m *YarnRegisteredPeerDetail) GetTaskCount() uint32 {
+	if m != nil {
+		return m.TaskCount
+	}
+	return 0
+}
+
+func (m *YarnRegisteredPeerDetail) GetTaskIdList() []string {
+	if m != nil {
+		return m.TaskIdList
+	}
+	return nil
+}
+
+func (m *YarnRegisteredPeerDetail) GetFileCount() uint32 {
+	if m != nil {
+		return m.FileCount
+	}
+	return 0
+}
+
+func (m *YarnRegisteredPeerDetail) GetFileTotalSize() uint32 {
+	if m != nil {
+		return m.FileTotalSize
+	}
+	return 0
+}
+
 type SeedPeer struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	InternalPort         string   `protobuf:"bytes,3,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ConnState            int32    `protobuf:"varint,4,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
+	NodeId               string   `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ConnState            int32    `protobuf:"varint,5,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -460,6 +543,13 @@ func (m *SeedPeer) GetId() string {
 	return ""
 }
 
+func (m *SeedPeer) GetNodeId() string {
+	if m != nil {
+		return m.NodeId
+	}
+	return ""
+}
+
 func (m *SeedPeer) GetInternalIp() string {
 	if m != nil {
 		return m.InternalIp
@@ -481,323 +571,6 @@ func (m *SeedPeer) GetConnState() int32 {
 	return 0
 }
 
-// 调度服务上的 计算服务详情信息
-type YarnRegisteredJobNode struct {
-	Id                   string                        `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	InternalIp           string                        `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	ExternalIp           string                        `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
-	InternalPort         string                        `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ExternalPort         string                        `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
-	Information          *ResourceUsedDetailShow       `protobuf:"bytes,7,opt,name=information,proto3" json:"information,omitempty"`
-	Duration             uint64                        `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`
-	Task                 *YarnRegisteredJobNodeTaskIds `protobuf:"bytes,9,opt,name=task,proto3" json:"task,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
-	XXX_unrecognized     []byte                        `json:"-"`
-	XXX_sizecache        int32                         `json:"-"`
-}
-
-func (m *YarnRegisteredJobNode) Reset()         { *m = YarnRegisteredJobNode{} }
-func (m *YarnRegisteredJobNode) String() string { return proto.CompactTextString(m) }
-func (*YarnRegisteredJobNode) ProtoMessage()    {}
-func (*YarnRegisteredJobNode) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{5}
-}
-func (m *YarnRegisteredJobNode) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *YarnRegisteredJobNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_YarnRegisteredJobNode.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *YarnRegisteredJobNode) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_YarnRegisteredJobNode.Merge(m, src)
-}
-func (m *YarnRegisteredJobNode) XXX_Size() int {
-	return m.Size()
-}
-func (m *YarnRegisteredJobNode) XXX_DiscardUnknown() {
-	xxx_messageInfo_YarnRegisteredJobNode.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_YarnRegisteredJobNode proto.InternalMessageInfo
-
-func (m *YarnRegisteredJobNode) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
-
-func (m *YarnRegisteredJobNode) GetInternalIp() string {
-	if m != nil {
-		return m.InternalIp
-	}
-	return ""
-}
-
-func (m *YarnRegisteredJobNode) GetExternalIp() string {
-	if m != nil {
-		return m.ExternalIp
-	}
-	return ""
-}
-
-func (m *YarnRegisteredJobNode) GetInternalPort() string {
-	if m != nil {
-		return m.InternalPort
-	}
-	return ""
-}
-
-func (m *YarnRegisteredJobNode) GetExternalPort() string {
-	if m != nil {
-		return m.ExternalPort
-	}
-	return ""
-}
-
-func (m *YarnRegisteredJobNode) GetInformation() *ResourceUsedDetailShow {
-	if m != nil {
-		return m.Information
-	}
-	return nil
-}
-
-func (m *YarnRegisteredJobNode) GetDuration() uint64 {
-	if m != nil {
-		return m.Duration
-	}
-	return 0
-}
-
-func (m *YarnRegisteredJobNode) GetTask() *YarnRegisteredJobNodeTaskIds {
-	if m != nil {
-		return m.Task
-	}
-	return nil
-}
-
-type YarnRegisteredJobNodeTaskIds struct {
-	Count                uint32   `protobuf:"varint,1,opt,name=count,proto3" json:"count,omitempty"`
-	TaskIds              []string `protobuf:"bytes,2,rep,name=task_ids,json=taskIds,proto3" json:"task_ids,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *YarnRegisteredJobNodeTaskIds) Reset()         { *m = YarnRegisteredJobNodeTaskIds{} }
-func (m *YarnRegisteredJobNodeTaskIds) String() string { return proto.CompactTextString(m) }
-func (*YarnRegisteredJobNodeTaskIds) ProtoMessage()    {}
-func (*YarnRegisteredJobNodeTaskIds) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{6}
-}
-func (m *YarnRegisteredJobNodeTaskIds) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *YarnRegisteredJobNodeTaskIds) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_YarnRegisteredJobNodeTaskIds.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *YarnRegisteredJobNodeTaskIds) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_YarnRegisteredJobNodeTaskIds.Merge(m, src)
-}
-func (m *YarnRegisteredJobNodeTaskIds) XXX_Size() int {
-	return m.Size()
-}
-func (m *YarnRegisteredJobNodeTaskIds) XXX_DiscardUnknown() {
-	xxx_messageInfo_YarnRegisteredJobNodeTaskIds.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_YarnRegisteredJobNodeTaskIds proto.InternalMessageInfo
-
-func (m *YarnRegisteredJobNodeTaskIds) GetCount() uint32 {
-	if m != nil {
-		return m.Count
-	}
-	return 0
-}
-
-func (m *YarnRegisteredJobNodeTaskIds) GetTaskIds() []string {
-	if m != nil {
-		return m.TaskIds
-	}
-	return nil
-}
-
-type YarnRegisteredDataNode struct {
-	Id                   string                       `protobuf:"bytes,2,opt,name=id,proto3" json:"id,omitempty"`
-	InternalIp           string                       `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	ExternalIp           string                       `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
-	InternalPort         string                       `protobuf:"bytes,5,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ExternalPort         string                       `protobuf:"bytes,6,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
-	Information          *ResourceUsedDetailShow      `protobuf:"bytes,7,opt,name=information,proto3" json:"information,omitempty"`
-	Duration             uint64                       `protobuf:"varint,8,opt,name=duration,proto3" json:"duration,omitempty"`
-	Delta                *YarnRegisteredDataNodeDelta `protobuf:"bytes,9,opt,name=delta,proto3" json:"delta,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
-	XXX_unrecognized     []byte                       `json:"-"`
-	XXX_sizecache        int32                        `json:"-"`
-}
-
-func (m *YarnRegisteredDataNode) Reset()         { *m = YarnRegisteredDataNode{} }
-func (m *YarnRegisteredDataNode) String() string { return proto.CompactTextString(m) }
-func (*YarnRegisteredDataNode) ProtoMessage()    {}
-func (*YarnRegisteredDataNode) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{7}
-}
-func (m *YarnRegisteredDataNode) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *YarnRegisteredDataNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_YarnRegisteredDataNode.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *YarnRegisteredDataNode) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_YarnRegisteredDataNode.Merge(m, src)
-}
-func (m *YarnRegisteredDataNode) XXX_Size() int {
-	return m.Size()
-}
-func (m *YarnRegisteredDataNode) XXX_DiscardUnknown() {
-	xxx_messageInfo_YarnRegisteredDataNode.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_YarnRegisteredDataNode proto.InternalMessageInfo
-
-func (m *YarnRegisteredDataNode) GetId() string {
-	if m != nil {
-		return m.Id
-	}
-	return ""
-}
-
-func (m *YarnRegisteredDataNode) GetInternalIp() string {
-	if m != nil {
-		return m.InternalIp
-	}
-	return ""
-}
-
-func (m *YarnRegisteredDataNode) GetExternalIp() string {
-	if m != nil {
-		return m.ExternalIp
-	}
-	return ""
-}
-
-func (m *YarnRegisteredDataNode) GetInternalPort() string {
-	if m != nil {
-		return m.InternalPort
-	}
-	return ""
-}
-
-func (m *YarnRegisteredDataNode) GetExternalPort() string {
-	if m != nil {
-		return m.ExternalPort
-	}
-	return ""
-}
-
-func (m *YarnRegisteredDataNode) GetInformation() *ResourceUsedDetailShow {
-	if m != nil {
-		return m.Information
-	}
-	return nil
-}
-
-func (m *YarnRegisteredDataNode) GetDuration() uint64 {
-	if m != nil {
-		return m.Duration
-	}
-	return 0
-}
-
-func (m *YarnRegisteredDataNode) GetDelta() *YarnRegisteredDataNodeDelta {
-	if m != nil {
-		return m.Delta
-	}
-	return nil
-}
-
-type YarnRegisteredDataNodeDelta struct {
-	FileCount            uint32   `protobuf:"varint,1,opt,name=fileCount,proto3" json:"fileCount,omitempty"`
-	FileTotalSize        uint32   `protobuf:"varint,2,opt,name=fileTotalSize,proto3" json:"fileTotalSize,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *YarnRegisteredDataNodeDelta) Reset()         { *m = YarnRegisteredDataNodeDelta{} }
-func (m *YarnRegisteredDataNodeDelta) String() string { return proto.CompactTextString(m) }
-func (*YarnRegisteredDataNodeDelta) ProtoMessage()    {}
-func (*YarnRegisteredDataNodeDelta) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{8}
-}
-func (m *YarnRegisteredDataNodeDelta) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *YarnRegisteredDataNodeDelta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_YarnRegisteredDataNodeDelta.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *YarnRegisteredDataNodeDelta) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_YarnRegisteredDataNodeDelta.Merge(m, src)
-}
-func (m *YarnRegisteredDataNodeDelta) XXX_Size() int {
-	return m.Size()
-}
-func (m *YarnRegisteredDataNodeDelta) XXX_DiscardUnknown() {
-	xxx_messageInfo_YarnRegisteredDataNodeDelta.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_YarnRegisteredDataNodeDelta proto.InternalMessageInfo
-
-func (m *YarnRegisteredDataNodeDelta) GetFileCount() uint32 {
-	if m != nil {
-		return m.FileCount
-	}
-	return 0
-}
-
-func (m *YarnRegisteredDataNodeDelta) GetFileTotalSize() uint32 {
-	if m != nil {
-		return m.FileTotalSize
-	}
-	return 0
-}
-
 type GetNodeInfoResponse struct {
 	Status               int32         `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string        `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -811,7 +584,7 @@ func (m *GetNodeInfoResponse) Reset()         { *m = GetNodeInfoResponse{} }
 func (m *GetNodeInfoResponse) String() string { return proto.CompactTextString(m) }
 func (*GetNodeInfoResponse) ProtoMessage()    {}
 func (*GetNodeInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{9}
+	return fileDescriptor_9da989a22daaf207, []int{5}
 }
 func (m *GetNodeInfoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -861,21 +634,67 @@ func (m *GetNodeInfoResponse) GetInformation() *YarnNodeInfo {
 	return nil
 }
 
+type GetRegisteredPeersRequest struct {
+	NodeType             NodeType `protobuf:"varint,1,opt,name=node_type,json=nodeType,proto3,enum=rpcapi.NodeType" json:"node_type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetRegisteredPeersRequest) Reset()         { *m = GetRegisteredPeersRequest{} }
+func (m *GetRegisteredPeersRequest) String() string { return proto.CompactTextString(m) }
+func (*GetRegisteredPeersRequest) ProtoMessage()    {}
+func (*GetRegisteredPeersRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9da989a22daaf207, []int{6}
+}
+func (m *GetRegisteredPeersRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GetRegisteredPeersRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GetRegisteredPeersRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GetRegisteredPeersRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetRegisteredPeersRequest.Merge(m, src)
+}
+func (m *GetRegisteredPeersRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *GetRegisteredPeersRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetRegisteredPeersRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetRegisteredPeersRequest proto.InternalMessageInfo
+
+func (m *GetRegisteredPeersRequest) GetNodeType() NodeType {
+	if m != nil {
+		return m.NodeType
+	}
+	return NodeType_SeedNode
+}
+
 type GetRegisteredPeersResponse struct {
-	Status               int32                     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
-	Msg                  string                    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	JobNodes             []*YarnRegisteredJobNode  `protobuf:"bytes,3,rep,name=job_nodes,json=jobNodes,proto3" json:"job_nodes,omitempty"`
-	DataNodes            []*YarnRegisteredDataNode `protobuf:"bytes,4,rep,name=data_nodes,json=dataNodes,proto3" json:"data_nodes,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
-	XXX_unrecognized     []byte                    `json:"-"`
-	XXX_sizecache        int32                     `json:"-"`
+	Status               int32                 `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string                `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Nodes                []*YarnRegisteredPeer `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *GetRegisteredPeersResponse) Reset()         { *m = GetRegisteredPeersResponse{} }
 func (m *GetRegisteredPeersResponse) String() string { return proto.CompactTextString(m) }
 func (*GetRegisteredPeersResponse) ProtoMessage()    {}
 func (*GetRegisteredPeersResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{10}
+	return fileDescriptor_9da989a22daaf207, []int{7}
 }
 func (m *GetRegisteredPeersResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -918,23 +737,64 @@ func (m *GetRegisteredPeersResponse) GetMsg() string {
 	return ""
 }
 
-func (m *GetRegisteredPeersResponse) GetJobNodes() []*YarnRegisteredJobNode {
+func (m *GetRegisteredPeersResponse) GetNodes() []*YarnRegisteredPeer {
 	if m != nil {
-		return m.JobNodes
+		return m.Nodes
 	}
 	return nil
 }
 
-func (m *GetRegisteredPeersResponse) GetDataNodes() []*YarnRegisteredDataNode {
-	if m != nil {
-		return m.DataNodes
+type DeleteRegisteredNodeRequest struct {
+	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *DeleteRegisteredNodeRequest) Reset()         { *m = DeleteRegisteredNodeRequest{} }
+func (m *DeleteRegisteredNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*DeleteRegisteredNodeRequest) ProtoMessage()    {}
+func (*DeleteRegisteredNodeRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9da989a22daaf207, []int{8}
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DeleteRegisteredNodeRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
-	return nil
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DeleteRegisteredNodeRequest.Merge(m, src)
+}
+func (m *DeleteRegisteredNodeRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *DeleteRegisteredNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_DeleteRegisteredNodeRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DeleteRegisteredNodeRequest proto.InternalMessageInfo
+
+func (m *DeleteRegisteredNodeRequest) GetId() string {
+	if m != nil {
+		return m.Id
+	}
+	return ""
 }
 
 type SetSeedNodeRequest struct {
-	InternalIp           string   `protobuf:"bytes,1,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	InternalPort         string   `protobuf:"bytes,2,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	NodeId               string   `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,3,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -944,7 +804,7 @@ func (m *SetSeedNodeRequest) Reset()         { *m = SetSeedNodeRequest{} }
 func (m *SetSeedNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*SetSeedNodeRequest) ProtoMessage()    {}
 func (*SetSeedNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{11}
+	return fileDescriptor_9da989a22daaf207, []int{9}
 }
 func (m *SetSeedNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -973,6 +833,13 @@ func (m *SetSeedNodeRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_SetSeedNodeRequest proto.InternalMessageInfo
 
+func (m *SetSeedNodeRequest) GetNodeId() string {
+	if m != nil {
+		return m.NodeId
+	}
+	return ""
+}
+
 func (m *SetSeedNodeRequest) GetInternalIp() string {
 	if m != nil {
 		return m.InternalIp
@@ -1000,7 +867,7 @@ func (m *SetSeedNodeResponse) Reset()         { *m = SetSeedNodeResponse{} }
 func (m *SetSeedNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*SetSeedNodeResponse) ProtoMessage()    {}
 func (*SetSeedNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{12}
+	return fileDescriptor_9da989a22daaf207, []int{10}
 }
 func (m *SetSeedNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1052,8 +919,9 @@ func (m *SetSeedNodeResponse) GetSeedPeer() *SeedPeer {
 
 type UpdateSeedNodeRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	InternalPort         string   `protobuf:"bytes,3,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	NodeId               string   `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string   `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1063,7 +931,7 @@ func (m *UpdateSeedNodeRequest) Reset()         { *m = UpdateSeedNodeRequest{} }
 func (m *UpdateSeedNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSeedNodeRequest) ProtoMessage()    {}
 func (*UpdateSeedNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{13}
+	return fileDescriptor_9da989a22daaf207, []int{11}
 }
 func (m *UpdateSeedNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1099,6 +967,13 @@ func (m *UpdateSeedNodeRequest) GetId() string {
 	return ""
 }
 
+func (m *UpdateSeedNodeRequest) GetNodeId() string {
+	if m != nil {
+		return m.NodeId
+	}
+	return ""
+}
+
 func (m *UpdateSeedNodeRequest) GetInternalIp() string {
 	if m != nil {
 		return m.InternalIp
@@ -1116,7 +991,7 @@ func (m *UpdateSeedNodeRequest) GetInternalPort() string {
 type GetSeedNodeListResponse struct {
 	Status               int32       `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string      `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	SeedPeers            []*SeedPeer `protobuf:"bytes,3,rep,name=seed_peers,json=seedPeers,proto3" json:"seed_peers,omitempty"`
+	Nodes                []*SeedPeer `protobuf:"bytes,3,rep,name=nodes,proto3" json:"nodes,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -1126,7 +1001,7 @@ func (m *GetSeedNodeListResponse) Reset()         { *m = GetSeedNodeListResponse
 func (m *GetSeedNodeListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetSeedNodeListResponse) ProtoMessage()    {}
 func (*GetSeedNodeListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{14}
+	return fileDescriptor_9da989a22daaf207, []int{12}
 }
 func (m *GetSeedNodeListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1169,9 +1044,9 @@ func (m *GetSeedNodeListResponse) GetMsg() string {
 	return ""
 }
 
-func (m *GetSeedNodeListResponse) GetSeedPeers() []*SeedPeer {
+func (m *GetSeedNodeListResponse) GetNodes() []*SeedPeer {
 	if m != nil {
-		return m.SeedPeers
+		return m.Nodes
 	}
 	return nil
 }
@@ -1190,7 +1065,7 @@ func (m *SetDataNodeRequest) Reset()         { *m = SetDataNodeRequest{} }
 func (m *SetDataNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*SetDataNodeRequest) ProtoMessage()    {}
 func (*SetDataNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{15}
+	return fileDescriptor_9da989a22daaf207, []int{13}
 }
 func (m *SetDataNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1260,7 +1135,7 @@ func (m *SetDataNodeResponse) Reset()         { *m = SetDataNodeResponse{} }
 func (m *SetDataNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*SetDataNodeResponse) ProtoMessage()    {}
 func (*SetDataNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{16}
+	return fileDescriptor_9da989a22daaf207, []int{14}
 }
 func (m *SetDataNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1325,7 +1200,7 @@ func (m *UpdateDataNodeRequest) Reset()         { *m = UpdateDataNodeRequest{} }
 func (m *UpdateDataNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateDataNodeRequest) ProtoMessage()    {}
 func (*UpdateDataNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{17}
+	return fileDescriptor_9da989a22daaf207, []int{15}
 }
 func (m *UpdateDataNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1402,7 +1277,7 @@ func (m *GetRegisteredNodeListResponse) Reset()         { *m = GetRegisteredNode
 func (m *GetRegisteredNodeListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetRegisteredNodeListResponse) ProtoMessage()    {}
 func (*GetRegisteredNodeListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{18}
+	return fileDescriptor_9da989a22daaf207, []int{16}
 }
 func (m *GetRegisteredNodeListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1466,7 +1341,7 @@ func (m *SetJobNodeRequest) Reset()         { *m = SetJobNodeRequest{} }
 func (m *SetJobNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*SetJobNodeRequest) ProtoMessage()    {}
 func (*SetJobNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{19}
+	return fileDescriptor_9da989a22daaf207, []int{17}
 }
 func (m *SetJobNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1536,7 +1411,7 @@ func (m *SetJobNodeResponse) Reset()         { *m = SetJobNodeResponse{} }
 func (m *SetJobNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*SetJobNodeResponse) ProtoMessage()    {}
 func (*SetJobNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{20}
+	return fileDescriptor_9da989a22daaf207, []int{18}
 }
 func (m *SetJobNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1601,7 +1476,7 @@ func (m *UpdateJobNodeRequest) Reset()         { *m = UpdateJobNodeRequest{} }
 func (m *UpdateJobNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateJobNodeRequest) ProtoMessage()    {}
 func (*UpdateJobNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{21}
+	return fileDescriptor_9da989a22daaf207, []int{19}
 }
 func (m *UpdateJobNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1666,17 +1541,17 @@ func (m *UpdateJobNodeRequest) GetExternalPort() string {
 }
 
 type ReportTaskEventRequest struct {
-	TaskEvent            *TaskEventDeclare `protobuf:"bytes,1,opt,name=task_event,json=taskEvent,proto3" json:"task_event,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	TaskEvent            *types.TaskEvent `protobuf:"bytes,1,opt,name=task_event,json=taskEvent,proto3" json:"task_event,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
+	XXX_unrecognized     []byte           `json:"-"`
+	XXX_sizecache        int32            `json:"-"`
 }
 
 func (m *ReportTaskEventRequest) Reset()         { *m = ReportTaskEventRequest{} }
 func (m *ReportTaskEventRequest) String() string { return proto.CompactTextString(m) }
 func (*ReportTaskEventRequest) ProtoMessage()    {}
 func (*ReportTaskEventRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{22}
+	return fileDescriptor_9da989a22daaf207, []int{20}
 }
 func (m *ReportTaskEventRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1705,25 +1580,28 @@ func (m *ReportTaskEventRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReportTaskEventRequest proto.InternalMessageInfo
 
-func (m *ReportTaskEventRequest) GetTaskEvent() *TaskEventDeclare {
+func (m *ReportTaskEventRequest) GetTaskEvent() *types.TaskEvent {
 	if m != nil {
 		return m.TaskEvent
 	}
 	return nil
 }
 
-// 未定义
+// 节点的资源使用实况上报请求
 type ReportTaskResourceExpenseRequest struct {
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	NodeType             NodeType                     `protobuf:"varint,1,opt,name=node_type,json=nodeType,proto3,enum=rpcapi.NodeType" json:"node_type,omitempty"`
+	NodeId               string                       `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	Usage                *types.ResourceUsageOverview `protobuf:"bytes,3,opt,name=usage,proto3" json:"usage,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
+	XXX_unrecognized     []byte                       `json:"-"`
+	XXX_sizecache        int32                        `json:"-"`
 }
 
 func (m *ReportTaskResourceExpenseRequest) Reset()         { *m = ReportTaskResourceExpenseRequest{} }
 func (m *ReportTaskResourceExpenseRequest) String() string { return proto.CompactTextString(m) }
 func (*ReportTaskResourceExpenseRequest) ProtoMessage()    {}
 func (*ReportTaskResourceExpenseRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{23}
+	return fileDescriptor_9da989a22daaf207, []int{21}
 }
 func (m *ReportTaskResourceExpenseRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1752,6 +1630,27 @@ func (m *ReportTaskResourceExpenseRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ReportTaskResourceExpenseRequest proto.InternalMessageInfo
 
+func (m *ReportTaskResourceExpenseRequest) GetNodeType() NodeType {
+	if m != nil {
+		return m.NodeType
+	}
+	return NodeType_SeedNode
+}
+
+func (m *ReportTaskResourceExpenseRequest) GetNodeId() string {
+	if m != nil {
+		return m.NodeId
+	}
+	return ""
+}
+
+func (m *ReportTaskResourceExpenseRequest) GetUsage() *types.ResourceUsageOverview {
+	if m != nil {
+		return m.Usage
+	}
+	return nil
+}
+
 type ReportUpFileSummaryRequest struct {
 	OriginId             string   `protobuf:"bytes,1,opt,name=origin_id,json=originId,proto3" json:"origin_id,omitempty"`
 	FilePath             string   `protobuf:"bytes,2,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
@@ -1766,7 +1665,7 @@ func (m *ReportUpFileSummaryRequest) Reset()         { *m = ReportUpFileSummaryR
 func (m *ReportUpFileSummaryRequest) String() string { return proto.CompactTextString(m) }
 func (*ReportUpFileSummaryRequest) ProtoMessage()    {}
 func (*ReportUpFileSummaryRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{24}
+	return fileDescriptor_9da989a22daaf207, []int{22}
 }
 func (m *ReportUpFileSummaryRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1835,7 +1734,7 @@ func (m *QueryAvailableDataNodeRequest) Reset()         { *m = QueryAvailableDat
 func (m *QueryAvailableDataNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAvailableDataNodeRequest) ProtoMessage()    {}
 func (*QueryAvailableDataNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{25}
+	return fileDescriptor_9da989a22daaf207, []int{23}
 }
 func (m *QueryAvailableDataNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1890,7 +1789,7 @@ func (m *QueryAvailableDataNodeResponse) Reset()         { *m = QueryAvailableDa
 func (m *QueryAvailableDataNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAvailableDataNodeResponse) ProtoMessage()    {}
 func (*QueryAvailableDataNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{26}
+	return fileDescriptor_9da989a22daaf207, []int{24}
 }
 func (m *QueryAvailableDataNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1944,7 +1843,7 @@ func (m *QueryFilePositionRequest) Reset()         { *m = QueryFilePositionReque
 func (m *QueryFilePositionRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryFilePositionRequest) ProtoMessage()    {}
 func (*QueryFilePositionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{27}
+	return fileDescriptor_9da989a22daaf207, []int{25}
 }
 func (m *QueryFilePositionRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1993,7 +1892,7 @@ func (m *QueryFilePositionResponse) Reset()         { *m = QueryFilePositionResp
 func (m *QueryFilePositionResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryFilePositionResponse) ProtoMessage()    {}
 func (*QueryFilePositionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{28}
+	return fileDescriptor_9da989a22daaf207, []int{26}
 }
 func (m *QueryFilePositionResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -2044,17 +1943,16 @@ func (m *QueryFilePositionResponse) GetFilePath() string {
 }
 
 func init() {
+	proto.RegisterEnum("rpcapi.NodeType", NodeType_name, NodeType_value)
 	proto.RegisterType((*YarnNodeInfo)(nil), "rpcapi.YarnNodeInfo")
 	proto.RegisterType((*YarnNodeSysInfo)(nil), "rpcapi.YarnNodeSysInfo")
 	proto.RegisterType((*YarnRegisteredPeer)(nil), "rpcapi.YarnRegisteredPeer")
 	proto.RegisterType((*YarnRegisteredPeerDetail)(nil), "rpcapi.YarnRegisteredPeerDetail")
 	proto.RegisterType((*SeedPeer)(nil), "rpcapi.SeedPeer")
-	proto.RegisterType((*YarnRegisteredJobNode)(nil), "rpcapi.YarnRegisteredJobNode")
-	proto.RegisterType((*YarnRegisteredJobNodeTaskIds)(nil), "rpcapi.YarnRegisteredJobNodeTaskIds")
-	proto.RegisterType((*YarnRegisteredDataNode)(nil), "rpcapi.YarnRegisteredDataNode")
-	proto.RegisterType((*YarnRegisteredDataNodeDelta)(nil), "rpcapi.YarnRegisteredDataNodeDelta")
 	proto.RegisterType((*GetNodeInfoResponse)(nil), "rpcapi.GetNodeInfoResponse")
+	proto.RegisterType((*GetRegisteredPeersRequest)(nil), "rpcapi.GetRegisteredPeersRequest")
 	proto.RegisterType((*GetRegisteredPeersResponse)(nil), "rpcapi.GetRegisteredPeersResponse")
+	proto.RegisterType((*DeleteRegisteredNodeRequest)(nil), "rpcapi.DeleteRegisteredNodeRequest")
 	proto.RegisterType((*SetSeedNodeRequest)(nil), "rpcapi.SetSeedNodeRequest")
 	proto.RegisterType((*SetSeedNodeResponse)(nil), "rpcapi.SetSeedNodeResponse")
 	proto.RegisterType((*UpdateSeedNodeRequest)(nil), "rpcapi.UpdateSeedNodeRequest")
@@ -2078,121 +1976,123 @@ func init() {
 func init() { proto.RegisterFile("lib/api/sys_rpc_api.proto", fileDescriptor_9da989a22daaf207) }
 
 var fileDescriptor_9da989a22daaf207 = []byte{
-	// 1823 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe4, 0x59, 0x5f, 0x6f, 0x13, 0xcb,
-	0x15, 0xd7, 0xfa, 0x4f, 0x62, 0x1f, 0xc7, 0x01, 0x06, 0x08, 0x8e, 0x93, 0x18, 0x33, 0x09, 0x24,
-	0xa4, 0x25, 0xa6, 0xa9, 0x5a, 0x5a, 0x2a, 0xa4, 0x42, 0x02, 0x51, 0xaa, 0xfe, 0x09, 0x6b, 0x78,
-	0x00, 0x55, 0xb2, 0x26, 0xde, 0x21, 0x59, 0xf0, 0xfe, 0x61, 0x67, 0x9c, 0x60, 0x10, 0xad, 0xd4,
-	0x87, 0xf6, 0x03, 0xf4, 0xa5, 0x52, 0x1f, 0xda, 0xcf, 0xd0, 0x7e, 0x82, 0xbe, 0x55, 0xaa, 0x5a,
-	0x55, 0xaa, 0xfa, 0x7e, 0x85, 0xee, 0xc3, 0xfd, 0x12, 0x57, 0xba, 0x9a, 0xd9, 0x9d, 0xf5, 0xae,
-	0x77, 0xbd, 0x4e, 0xe0, 0x5e, 0x81, 0x74, 0xdf, 0x76, 0xcf, 0x9c, 0x39, 0xbf, 0x33, 0xe7, 0x77,
-	0xe6, 0xec, 0xcf, 0x09, 0xcc, 0xf7, 0xcc, 0xfd, 0x16, 0x71, 0xcd, 0x16, 0x1b, 0xb0, 0x8e, 0xe7,
-	0x76, 0x3b, 0xc4, 0x35, 0x37, 0x5c, 0xcf, 0xe1, 0x0e, 0x9a, 0xf2, 0xdc, 0x2e, 0x71, 0xcd, 0xfa,
-	0xa2, 0x72, 0xe9, 0x3a, 0x96, 0xe5, 0xd8, 0x1d, 0x8b, 0x32, 0x46, 0x0e, 0xa8, 0xef, 0x55, 0xaf,
-	0xab, 0x55, 0x4e, 0xd8, 0x8b, 0x78, 0x84, 0xfa, 0xe2, 0x81, 0xe3, 0x1c, 0xf4, 0xa8, 0x5c, 0x26,
-	0xb6, 0xed, 0x70, 0xc2, 0x4d, 0xc7, 0x66, 0xfe, 0x2a, 0xfe, 0x22, 0x0f, 0x33, 0x4f, 0x88, 0x67,
-	0xff, 0xd2, 0x31, 0xe8, 0xae, 0xfd, 0xcc, 0x41, 0x0b, 0x50, 0xb6, 0x1d, 0x83, 0x76, 0xf8, 0xc0,
-	0xa5, 0x35, 0xad, 0xa9, 0xad, 0x95, 0xf5, 0x92, 0x30, 0x3c, 0x1a, 0xb8, 0x14, 0x5d, 0x82, 0x69,
-	0xb9, 0x68, 0x1a, 0xb5, 0x9c, 0x5c, 0x9a, 0x12, 0xaf, 0xbb, 0x06, 0xba, 0x0c, 0x15, 0xd3, 0xe6,
-	0xd4, 0xb3, 0x49, 0xaf, 0x63, 0xba, 0xb5, 0xbc, 0x5c, 0x04, 0x65, 0xda, 0x75, 0x85, 0x03, 0x7d,
-	0x35, 0x74, 0x28, 0xf8, 0x0e, 0xca, 0xb4, 0xeb, 0xa2, 0x65, 0xa8, 0x86, 0x11, 0x5c, 0xc7, 0xe3,
-	0xb5, 0xa2, 0x74, 0x99, 0x51, 0xc6, 0x3d, 0xc7, 0xe3, 0xc2, 0x29, 0x8c, 0x22, 0x9d, 0xa6, 0x7c,
-	0x27, 0x65, 0x54, 0x4e, 0xa6, 0x41, 0x6d, 0x6e, 0xf2, 0x81, 0x7f, 0x8a, 0xe9, 0x20, 0x52, 0x60,
-	0x94, 0x27, 0x11, 0x09, 0x2b, 0x27, 0xd3, 0xa8, 0x95, 0x82, 0x84, 0x03, 0xd3, 0xae, 0x81, 0xb6,
-	0xa0, 0xea, 0x51, 0xe6, 0xf4, 0xbd, 0x2e, 0xed, 0xf4, 0x19, 0x35, 0x6a, 0xe5, 0xa6, 0xb6, 0x56,
-	0xd9, 0x6c, 0x6c, 0xf8, 0x84, 0x6c, 0xe8, 0xc1, 0xe2, 0x63, 0x46, 0x8d, 0x6d, 0xca, 0x89, 0xd9,
-	0x6b, 0x1f, 0x3a, 0xc7, 0xfa, 0x8c, 0x17, 0xb1, 0xa3, 0x9b, 0x50, 0x74, 0x29, 0xf5, 0x58, 0x0d,
-	0x9a, 0xf9, 0xb5, 0xca, 0x66, 0x5d, 0x6d, 0x16, 0x15, 0xd7, 0xe9, 0x81, 0xc9, 0x38, 0xf5, 0xa8,
-	0xb1, 0x47, 0xa9, 0xa7, 0xfb, 0x8e, 0xa8, 0x05, 0xc0, 0x28, 0x35, 0x3a, 0xfe, 0xb6, 0x8a, 0xdc,
-	0x76, 0x56, 0x6d, 0x6b, 0xd3, 0xc0, 0xb9, 0xcc, 0x82, 0x27, 0x86, 0x2e, 0x40, 0x91, 0x71, 0xc2,
-	0x69, 0x6d, 0x46, 0x1e, 0xc1, 0x7f, 0x41, 0x08, 0x0a, 0x36, 0xb1, 0x68, 0xad, 0x2a, 0x8d, 0xf2,
-	0x19, 0x7f, 0xa9, 0xc1, 0x19, 0x45, 0x75, 0x7b, 0xc0, 0x24, 0xdb, 0xca, 0x4f, 0x1b, 0xfa, 0x89,
-	0x0e, 0xe0, 0x0e, 0x27, 0xbd, 0x8e, 0x45, 0x2d, 0x49, 0x73, 0x41, 0x2f, 0x49, 0xc3, 0x2f, 0xa8,
-	0x85, 0xe6, 0xa1, 0x24, 0xaa, 0x21, 0xd7, 0xf2, 0x72, 0x6d, 0x5a, 0xbc, 0x8b, 0xa5, 0x55, 0x38,
-	0xe3, 0xef, 0x73, 0x3d, 0xa7, 0x4b, 0x19, 0x73, 0x3c, 0x49, 0x73, 0x41, 0x9f, 0x95, 0xe6, 0x3d,
-	0x65, 0x45, 0x57, 0x61, 0x56, 0xc6, 0x18, 0xfa, 0x15, 0xa5, 0x5f, 0x55, 0x58, 0x87, 0x6e, 0x61,
-	0xbc, 0x7d, 0x62, 0x1b, 0xc7, 0xa6, 0xc1, 0x0f, 0x25, 0xdd, 0x2a, 0xde, 0x3d, 0x65, 0x0d, 0xe3,
-	0x0d, 0xfd, 0xa6, 0x87, 0xf1, 0x42, 0x37, 0xcc, 0x01, 0x25, 0xeb, 0x9e, 0xdd, 0xef, 0x77, 0xa1,
-	0x22, 0x17, 0x0d, 0x49, 0xb0, 0x2c, 0x46, 0x65, 0xb3, 0x39, 0x9e, 0x45, 0xbf, 0x11, 0x74, 0x10,
-	0x9b, 0xfc, 0x67, 0xfc, 0x7f, 0x0d, 0x6a, 0xe3, 0x1c, 0xd1, 0x2c, 0xe4, 0x4c, 0x23, 0x40, 0xcd,
-	0x99, 0x89, 0x6b, 0x94, 0x9b, 0x74, 0x8d, 0xf2, 0x93, 0xaf, 0x51, 0xe1, 0x24, 0xd7, 0xa8, 0x98,
-	0x72, 0x8d, 0x96, 0x00, 0xba, 0x8e, 0x6d, 0x77, 0xfc, 0xee, 0x12, 0x95, 0x2f, 0xea, 0x65, 0x61,
-	0x69, 0x0b, 0x03, 0xfe, 0x2d, 0x94, 0x54, 0x3b, 0x9e, 0xfe, 0x18, 0x89, 0x2c, 0xf3, 0x29, 0x59,
-	0xc6, 0x13, 0x28, 0x8c, 0x26, 0xf0, 0xaf, 0x1c, 0x5c, 0x8c, 0x17, 0xf6, 0x67, 0xce, 0xbe, 0xe8,
-	0xed, 0x20, 0x9d, 0xdc, 0xb8, 0x74, 0x3e, 0xea, 0x70, 0xfa, 0xa9, 0xc8, 0xe5, 0x99, 0xe3, 0x59,
-	0x72, 0x0a, 0xcb, 0x46, 0x9d, 0x3c, 0x54, 0xa2, 0x5b, 0x50, 0x1d, 0x4a, 0x46, 0xdf, 0xf3, 0xb7,
-	0x97, 0xfc, 0xdb, 0xa9, 0xde, 0xd1, 0x8f, 0xa0, 0x20, 0xbe, 0x00, 0xc1, 0xac, 0x5a, 0x49, 0x6f,
-	0xd4, 0xa0, 0x4c, 0x8f, 0x08, 0x7b, 0xb1, 0x6b, 0x30, 0x5d, 0xee, 0xc0, 0xbf, 0x82, 0xc5, 0x2c,
-	0x2f, 0x31, 0x66, 0xba, 0x4e, 0xdf, 0xe6, 0x92, 0xe5, 0xaa, 0xee, 0xbf, 0x88, 0x69, 0x20, 0xbf,
-	0x38, 0xa6, 0xc1, 0x6a, 0xb9, 0x66, 0x7e, 0xad, 0xac, 0x4f, 0x73, 0x7f, 0x03, 0xfe, 0x77, 0x0e,
-	0xe6, 0xe2, 0x11, 0xb7, 0x09, 0x27, 0xdf, 0x72, 0x7e, 0x7e, 0x0c, 0x45, 0x83, 0xf6, 0x38, 0x09,
-	0x08, 0x5a, 0x4e, 0x27, 0x48, 0x15, 0x6a, 0x5b, 0xb8, 0xea, 0xfe, 0x0e, 0x4c, 0x60, 0x21, 0xc3,
-	0x0b, 0x2d, 0x42, 0xf9, 0x99, 0xd9, 0xa3, 0x5b, 0x11, 0x8e, 0x86, 0x06, 0xb4, 0x02, 0x55, 0xf1,
-	0xf2, 0x48, 0xcc, 0xcd, 0xb6, 0xf9, 0x9a, 0xca, 0xe2, 0x57, 0xf5, 0xb8, 0x11, 0x1f, 0xc3, 0xf9,
-	0x1d, 0xca, 0x95, 0x12, 0xd0, 0x29, 0x73, 0x1d, 0x9b, 0x51, 0x34, 0x07, 0x53, 0xe2, 0x0a, 0xf6,
-	0x99, 0x8c, 0x5b, 0xd4, 0x83, 0x37, 0x74, 0x16, 0xf2, 0x16, 0x3b, 0x08, 0x78, 0x14, 0x8f, 0xe8,
-	0x87, 0xf1, 0xe2, 0xe5, 0xe5, 0x21, 0x2f, 0x44, 0x0f, 0x19, 0x06, 0x8f, 0x3a, 0xe2, 0x7f, 0x68,
-	0x50, 0xdf, 0xa1, 0x3c, 0x3e, 0x22, 0xd9, 0x7b, 0x24, 0x70, 0x1b, 0xca, 0xcf, 0x9d, 0xfd, 0x8e,
-	0x18, 0xbf, 0xac, 0x96, 0x97, 0x1f, 0xcf, 0xa5, 0xcc, 0x4b, 0xa0, 0x97, 0x9e, 0xfb, 0x0f, 0x0c,
-	0xdd, 0x01, 0x30, 0x08, 0x27, 0xc1, 0xe6, 0x82, 0xdc, 0xdc, 0xc8, 0x26, 0x48, 0x2f, 0x1b, 0xc1,
-	0x13, 0xc3, 0x4f, 0x01, 0xb5, 0x29, 0x17, 0x23, 0x51, 0xae, 0xd0, 0x97, 0x7d, 0xca, 0xf8, 0x68,
-	0x6b, 0x6b, 0x93, 0x27, 0x61, 0x2e, 0xd9, 0xb9, 0xd8, 0x86, 0xf3, 0xb1, 0xd8, 0xa7, 0xae, 0xcb,
-	0x0d, 0x28, 0x87, 0xaa, 0x22, 0xa0, 0x25, 0x29, 0x2a, 0x4a, 0x4a, 0x54, 0x60, 0x0b, 0x2e, 0x3e,
-	0x76, 0x0d, 0xc2, 0xe9, 0xe8, 0x71, 0xbe, 0x91, 0x41, 0x8f, 0x39, 0x5c, 0xda, 0x19, 0x1e, 0xef,
-	0xe7, 0x26, 0xe3, 0xef, 0x71, 0xc4, 0xb8, 0x70, 0xca, 0x4f, 0x14, 0x4e, 0xf8, 0xaf, 0x9a, 0x64,
-	0x2c, 0xe4, 0x32, 0x9d, 0xb1, 0x8f, 0x39, 0x8c, 0xf0, 0x6f, 0x24, 0xef, 0xc3, 0x0c, 0x4f, 0x5d,
-	0x94, 0x3b, 0x50, 0x0e, 0x7b, 0x3a, 0xe0, 0x7d, 0xb2, 0x7a, 0x29, 0xa9, 0xa6, 0xc6, 0x7f, 0xd7,
-	0x54, 0x23, 0x8c, 0x56, 0x69, 0x42, 0x23, 0x7c, 0xd4, 0xaa, 0xbd, 0x81, 0xa5, 0xd8, 0x30, 0xf9,
-	0x80, 0xa6, 0xba, 0x09, 0xc5, 0xe8, 0x2c, 0xc9, 0xd4, 0xef, 0xd2, 0x11, 0xff, 0x45, 0x83, 0x73,
-	0x6d, 0xca, 0xd5, 0x78, 0xf9, 0x04, 0x9b, 0xea, 0x8d, 0x6c, 0xfb, 0x30, 0xc1, 0x53, 0xd7, 0xe4,
-	0x27, 0x50, 0x52, 0x33, 0xf6, 0xc4, 0x2d, 0x35, 0x1d, 0x4c, 0x59, 0xfc, 0x37, 0x0d, 0x2e, 0xf8,
-	0x1d, 0x35, 0x52, 0xa1, 0x4f, 0xb9, 0xa1, 0x1e, 0xc2, 0x9c, 0x4e, 0xc5, 0xaa, 0x10, 0x43, 0xf7,
-	0x8f, 0xa8, 0xcd, 0x55, 0xd6, 0xb7, 0x00, 0xa4, 0xfe, 0xa1, 0xc2, 0x28, 0xb3, 0xaf, 0x6c, 0xd6,
-	0x54, 0x35, 0x42, 0xef, 0x6d, 0xda, 0xed, 0x11, 0x8f, 0xea, 0x65, 0xae, 0x2c, 0x18, 0x43, 0x73,
-	0x18, 0x52, 0xa9, 0x8a, 0xfb, 0xaf, 0x5c, 0x6a, 0x33, 0x55, 0x12, 0xfc, 0x1a, 0xea, 0xbe, 0xcf,
-	0x63, 0xf7, 0x81, 0xd9, 0xa3, 0xed, 0xbe, 0x65, 0x11, 0x6f, 0xa0, 0xa0, 0x17, 0xa0, 0xec, 0x78,
-	0xe6, 0x81, 0x69, 0x77, 0xc2, 0xba, 0x95, 0x7c, 0xc3, 0xae, 0x21, 0x16, 0xc5, 0xa7, 0xbd, 0xe3,
-	0x12, 0x7e, 0x18, 0x70, 0x57, 0x12, 0x86, 0x3d, 0xc2, 0x0f, 0x65, 0xa9, 0x55, 0x45, 0x73, 0xa6,
-	0x2b, 0x7e, 0x03, 0x46, 0x7e, 0x29, 0xc8, 0x67, 0xfc, 0x04, 0x96, 0x1e, 0xf6, 0xa9, 0x37, 0xb8,
-	0x7b, 0x44, 0xcc, 0x1e, 0xd9, 0xef, 0x25, 0x06, 0x80, 0x42, 0x60, 0x42, 0x4d, 0x68, 0xbe, 0xcc,
-	0x11, 0x06, 0x21, 0x24, 0xc2, 0x45, 0xf9, 0x9b, 0x2a, 0x02, 0x2f, 0x7e, 0x53, 0xe1, 0x6d, 0x68,
-	0x8c, 0x0b, 0x1d, 0xf4, 0xa2, 0x9f, 0xa0, 0x96, 0x48, 0x30, 0x17, 0x49, 0xf0, 0x16, 0xd4, 0x64,
-	0x14, 0x51, 0x99, 0x3d, 0x87, 0x99, 0x42, 0x47, 0x9c, 0xa4, 0x34, 0xf8, 0xd7, 0x30, 0x9f, 0xb2,
-	0xf1, 0xe4, 0xc8, 0xf1, 0xda, 0xe6, 0xe3, 0xb5, 0xdd, 0xfc, 0x0f, 0x82, 0x8a, 0xb8, 0x05, 0x6d,
-	0xea, 0x1d, 0x99, 0x5d, 0x8a, 0x0e, 0xa1, 0x12, 0x91, 0x54, 0x68, 0x4e, 0xf5, 0xc6, 0x7d, 0xcb,
-	0xe5, 0x83, 0x1d, 0xca, 0xf7, 0x88, 0x47, 0x2c, 0x56, 0x5f, 0x50, 0xf6, 0x14, 0xfd, 0x85, 0x57,
-	0x7e, 0xf7, 0xbf, 0xcf, 0xff, 0x98, 0x6b, 0xe0, 0xf9, 0x56, 0x97, 0x78, 0x9e, 0x49, 0xbd, 0xd6,
-	0xd1, 0xf7, 0x5a, 0x03, 0xe2, 0xd9, 0x2d, 0x3b, 0x70, 0xbd, 0xad, 0xad, 0xa3, 0xb7, 0x80, 0x92,
-	0x12, 0x6a, 0x2c, 0x20, 0x8e, 0x00, 0x8e, 0x91, 0x5d, 0xf8, 0x3b, 0x12, 0xf7, 0x2a, 0x6e, 0x26,
-	0x70, 0xbd, 0xf8, 0x0e, 0x01, 0xff, 0x02, 0x2a, 0x11, 0x89, 0x82, 0xea, 0xc3, 0x2f, 0xef, 0xa8,
-	0x26, 0x1a, 0x1e, 0x36, 0x45, 0xd3, 0xe0, 0x65, 0x09, 0xba, 0x84, 0x6b, 0x09, 0x50, 0xe6, 0x7b,
-	0x0b, 0x30, 0x0e, 0xb3, 0x71, 0x7d, 0x82, 0x42, 0x95, 0x97, 0xaa, 0x5b, 0xb2, 0x21, 0xaf, 0x49,
-	0xc8, 0x26, 0x5e, 0x48, 0x40, 0xf6, 0xc3, 0x60, 0x02, 0x75, 0x00, 0xb3, 0xdb, 0xb4, 0x47, 0x23,
-	0xa8, 0xa1, 0x7e, 0xf7, 0xed, 0xf1, 0x4f, 0x8e, 0xc2, 0x1e, 0x96, 0xc2, 0xb4, 0xdc, 0x5e, 0x08,
-	0xbb, 0x25, 0xc6, 0xe1, 0x78, 0x68, 0x23, 0x44, 0x12, 0xd0, 0x2e, 0x9c, 0x19, 0x51, 0x48, 0x63,
-	0x99, 0xbd, 0x1c, 0x61, 0x36, 0x4d, 0x52, 0x65, 0xb4, 0x93, 0xd0, 0x46, 0xc2, 0x55, 0x20, 0x3a,
-	0x92, 0xcf, 0xf0, 0x27, 0x5b, 0x94, 0xcf, 0x91, 0x51, 0x10, 0x2b, 0xee, 0xe8, 0x5d, 0xc6, 0xab,
-	0x12, 0xed, 0x0a, 0x5e, 0x4c, 0xe3, 0x53, 0x79, 0x0b, 0xc0, 0x57, 0x8a, 0xd3, 0x10, 0x73, 0x84,
-	0xd3, 0x53, 0xc1, 0xae, 0x4b, 0xd8, 0x15, 0x7c, 0x79, 0x0c, 0xa7, 0x51, 0xe4, 0xb7, 0x8a, 0xd7,
-	0x10, 0xf9, 0x83, 0x79, 0x1d, 0x0f, 0x6f, 0xc4, 0x90, 0x04, 0xfc, 0x6b, 0xc9, 0xad, 0xb2, 0x64,
-	0x72, 0x7b, 0x35, 0xf5, 0xd6, 0x26, 0x18, 0x5e, 0x93, 0xe8, 0x18, 0x2f, 0x25, 0xd1, 0x23, 0x28,
-	0xfe, 0xad, 0x85, 0xa1, 0x16, 0x40, 0xf3, 0x91, 0x8a, 0xc6, 0x3f, 0xcf, 0xf5, 0x7a, 0xda, 0xd2,
-	0xc4, 0xfb, 0xc3, 0x42, 0x67, 0xff, 0xd6, 0x56, 0x63, 0x9f, 0x7e, 0xb4, 0x18, 0x27, 0xf8, 0x14,
-	0x90, 0xd7, 0x25, 0xe4, 0x32, 0x6e, 0x8c, 0xa1, 0x37, 0x82, 0xfa, 0x06, 0xaa, 0x3e, 0x8b, 0x0a,
-	0xf5, 0x83, 0xc9, 0x1d, 0x0f, 0x6e, 0x44, 0x81, 0x82, 0xa6, 0xde, 0x09, 0xb3, 0xff, 0x3a, 0xa8,
-	0x1d, 0x7f, 0x9d, 0x9e, 0x0f, 0x41, 0x82, 0xae, 0x1a, 0xd1, 0x2c, 0x28, 0xf2, 0x57, 0x8c, 0x34,
-	0x31, 0x93, 0x79, 0xe6, 0xac, 0x6f, 0x41, 0x2c, 0x98, 0xc0, 0xfe, 0x93, 0x06, 0xf3, 0x63, 0xd5,
-	0x0d, 0x5a, 0x4b, 0xa6, 0x91, 0x2e, 0x80, 0x32, 0x13, 0xfa, 0x81, 0x4c, 0xa8, 0x85, 0xd7, 0x33,
-	0x12, 0x1a, 0x09, 0x2b, 0x52, 0xfb, 0xbd, 0x06, 0xe7, 0x53, 0x44, 0x15, 0xc2, 0xf1, 0xa4, 0xd2,
-	0x14, 0x57, 0x66, 0x3a, 0x2d, 0x99, 0xce, 0x75, 0xbc, 0x32, 0x26, 0x9d, 0x58, 0x40, 0x91, 0xc8,
-	0x9f, 0x35, 0x98, 0x4b, 0x97, 0x41, 0x28, 0x6c, 0x85, 0x4c, 0x05, 0x56, 0xbf, 0x36, 0xc9, 0x2d,
-	0x68, 0x99, 0x4d, 0x99, 0xda, 0x77, 0xf1, 0x6a, 0x22, 0xb5, 0x97, 0xa9, 0x1b, 0x45, 0x76, 0x7f,
-	0xd0, 0xe0, 0x5c, 0x42, 0x25, 0xa1, 0x66, 0x0c, 0x31, 0x45, 0x79, 0xd5, 0xaf, 0x64, 0x78, 0x04,
-	0xe9, 0xdc, 0x90, 0xe9, 0xac, 0x62, 0x9c, 0x9e, 0x4e, 0x74, 0xcf, 0x6d, 0x6d, 0xfd, 0xde, 0xad,
-	0x7f, 0xbe, 0x6b, 0x68, 0xff, 0x7d, 0xd7, 0xd0, 0x3e, 0x7b, 0xd7, 0xd0, 0x9e, 0x5e, 0x3f, 0x30,
-	0xf9, 0x61, 0x7f, 0x7f, 0xa3, 0xeb, 0x58, 0x2d, 0xdd, 0x61, 0x94, 0x73, 0xf2, 0xa0, 0xe7, 0x1c,
-	0xb7, 0xb6, 0xfc, 0x50, 0x37, 0x76, 0x9c, 0x56, 0xf0, 0x9f, 0xb0, 0xfd, 0x29, 0xf9, 0xff, 0xad,
-	0xef, 0x7f, 0x15, 0x00, 0x00, 0xff, 0xff, 0x7c, 0x88, 0x2b, 0xc5, 0x5c, 0x1b, 0x00, 0x00,
+	// 1850 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x59, 0x4b, 0x6f, 0x1b, 0xc9,
+	0x11, 0xce, 0x90, 0xa2, 0x44, 0x16, 0x45, 0x49, 0xdb, 0xf6, 0x7a, 0x29, 0xea, 0x61, 0xba, 0xfd,
+	0x92, 0x95, 0x88, 0xdc, 0x28, 0x48, 0x16, 0xd8, 0x20, 0x07, 0xef, 0xda, 0x2b, 0x68, 0x91, 0x87,
+	0x42, 0xda, 0x87, 0x0d, 0x02, 0x10, 0x43, 0x4e, 0x5b, 0x1a, 0x9b, 0x9c, 0x99, 0x9d, 0x6e, 0xca,
+	0xa6, 0x9c, 0x07, 0x90, 0x43, 0x92, 0x7b, 0x2e, 0x41, 0x0c, 0x24, 0xf9, 0x0d, 0xc9, 0x9f, 0xc8,
+	0x31, 0x40, 0xfe, 0x40, 0x60, 0x04, 0xf9, 0x0f, 0x39, 0x04, 0x08, 0xaa, 0x1f, 0xc3, 0x19, 0xce,
+	0x90, 0x14, 0x1d, 0x23, 0xf1, 0x6d, 0xa6, 0xaa, 0xba, 0xbe, 0xaf, 0xab, 0xaa, 0x7b, 0x3e, 0x4a,
+	0xb0, 0xd9, 0x77, 0xbb, 0x4d, 0x3b, 0x70, 0x9b, 0x7c, 0xc4, 0x3b, 0x61, 0xd0, 0xeb, 0xd8, 0x81,
+	0xdb, 0x08, 0x42, 0x5f, 0xf8, 0x64, 0x39, 0x0c, 0x7a, 0x76, 0xe0, 0xd6, 0xde, 0xc7, 0x90, 0x9e,
+	0x3f, 0x18, 0xf8, 0x5e, 0xb3, 0x6b, 0x73, 0xa6, 0xdc, 0x09, 0xb3, 0x63, 0x0b, 0x5b, 0x9b, 0xab,
+	0x68, 0x16, 0xa3, 0x80, 0xf1, 0xa6, 0xb0, 0xf9, 0xb3, 0x98, 0x67, 0x7b, 0xec, 0x09, 0x19, 0xf7,
+	0x87, 0x61, 0x8f, 0xc5, 0xbc, 0x35, 0x43, 0x04, 0x57, 0x25, 0x99, 0xd4, 0xb6, 0x4f, 0x7d, 0xff,
+	0xb4, 0xcf, 0xa4, 0xdb, 0xf6, 0x3c, 0x5f, 0xd8, 0xc2, 0xf5, 0x3d, 0xae, 0xbd, 0x5b, 0xda, 0x2b,
+	0xdf, 0xba, 0xc3, 0x27, 0x4d, 0x36, 0x08, 0xc4, 0x48, 0x39, 0xe9, 0xab, 0x25, 0x58, 0xfd, 0xc2,
+	0x0e, 0xbd, 0xef, 0xfb, 0x0e, 0x3b, 0xf6, 0x9e, 0xf8, 0xe4, 0x00, 0x4a, 0x9e, 0xef, 0xb0, 0x0e,
+	0x12, 0xa9, 0x5a, 0x75, 0x6b, 0x6f, 0xed, 0x70, 0xa3, 0xa1, 0x76, 0xda, 0xc0, 0xa0, 0x47, 0xa3,
+	0x80, 0xb5, 0x8a, 0x9e, 0x7e, 0x22, 0x1f, 0xc0, 0x8a, 0x0c, 0x77, 0x9d, 0x6a, 0xae, 0x6e, 0xed,
+	0x95, 0x5a, 0xcb, 0xf8, 0x7a, 0xec, 0x90, 0xeb, 0x50, 0x76, 0x3d, 0xc1, 0x42, 0xcf, 0xee, 0x77,
+	0xdc, 0xa0, 0x9a, 0x97, 0x4e, 0x30, 0xa6, 0xe3, 0x00, 0x03, 0xd8, 0x8b, 0x71, 0xc0, 0x92, 0x0a,
+	0x30, 0xa6, 0xe3, 0x80, 0xdc, 0x84, 0x4a, 0x94, 0x21, 0xf0, 0x43, 0x51, 0x2d, 0xc8, 0x90, 0x55,
+	0x63, 0x3c, 0xf1, 0x43, 0x81, 0x41, 0x51, 0x16, 0x19, 0xb4, 0xac, 0x82, 0x8c, 0xd1, 0x04, 0xb9,
+	0x0e, 0xf3, 0x84, 0x2b, 0x46, 0x6a, 0x5f, 0x2b, 0x3a, 0x93, 0x36, 0xca, 0x9d, 0x20, 0x61, 0x13,
+	0xe4, 0x3a, 0xd5, 0xa2, 0x26, 0xac, 0x4d, 0xc7, 0x0e, 0xb9, 0x0f, 0x15, 0xd3, 0x97, 0xce, 0x90,
+	0x33, 0xa7, 0x5a, 0xaa, 0x5b, 0x7b, 0xe5, 0xc3, 0xed, 0x86, 0xec, 0x59, 0xa3, 0xa5, 0x7d, 0x8f,
+	0xb9, 0x7d, 0xca, 0x7e, 0x70, 0xce, 0xc2, 0x73, 0x97, 0x3d, 0x6f, 0xad, 0x86, 0x91, 0x99, 0x39,
+	0xe4, 0x43, 0x28, 0x04, 0x8c, 0x85, 0xbc, 0x0a, 0xf5, 0xfc, 0x5e, 0xf9, 0xb0, 0x66, 0x0a, 0x8b,
+	0x1d, 0x68, 0xb1, 0x53, 0x97, 0x0b, 0x16, 0x32, 0xe7, 0x84, 0xb1, 0xb0, 0xa5, 0x02, 0x49, 0x13,
+	0x80, 0x33, 0xe6, 0x74, 0xd4, 0xb2, 0xb2, 0x5c, 0x16, 0xf5, 0xa3, 0xcd, 0x74, 0x70, 0x89, 0xeb,
+	0x27, 0x4e, 0xae, 0x42, 0x81, 0x0b, 0x5b, 0xb0, 0xea, 0xaa, 0xdc, 0x80, 0x7a, 0x21, 0x04, 0x96,
+	0x3c, 0x7b, 0xc0, 0xaa, 0x15, 0x69, 0x94, 0xcf, 0xe4, 0x06, 0xac, 0x86, 0xac, 0x6f, 0x0b, 0xa6,
+	0x93, 0xaf, 0xd5, 0xad, 0xbd, 0x4a, 0xab, 0xac, 0x6c, 0x32, 0x19, 0xfd, 0xb7, 0x05, 0xeb, 0x66,
+	0x3a, 0xda, 0x23, 0x2e, 0x07, 0xc4, 0xa4, 0xb2, 0x62, 0xa9, 0xb6, 0xa0, 0x24, 0x7c, 0x61, 0xf7,
+	0x3b, 0x03, 0x36, 0x90, 0x73, 0xb0, 0xd4, 0x2a, 0x4a, 0xc3, 0xf7, 0xd8, 0x80, 0x6c, 0x42, 0x11,
+	0xcb, 0x25, 0x7d, 0x79, 0xe9, 0x5b, 0xc1, 0x77, 0x74, 0xdd, 0x85, 0x75, 0xb5, 0x2e, 0x08, 0xfd,
+	0x1e, 0xe3, 0xdc, 0x0f, 0xe5, 0x1c, 0x2c, 0xb5, 0xd6, 0xa4, 0xf9, 0xc4, 0x58, 0xc9, 0x6d, 0x58,
+	0x93, 0x39, 0xc6, 0x71, 0x05, 0x19, 0x57, 0x41, 0xeb, 0x38, 0x2c, 0xca, 0xd7, 0xb5, 0x3d, 0xe7,
+	0xb9, 0xeb, 0x88, 0x33, 0x39, 0x0f, 0x26, 0xdf, 0x27, 0xc6, 0x1a, 0xe5, 0x1b, 0xc7, 0xad, 0x8c,
+	0xf3, 0x45, 0x61, 0xf4, 0x97, 0x16, 0x90, 0x74, 0x6f, 0x16, 0x3d, 0x23, 0xf7, 0xa1, 0x2c, 0xc3,
+	0x1d, 0x26, 0x6c, 0xb7, 0x2f, 0xeb, 0x53, 0x3e, 0xac, 0x4f, 0xef, 0xfd, 0x03, 0x19, 0xd7, 0x02,
+	0x5c, 0xa4, 0x9e, 0xe9, 0xbf, 0x72, 0x50, 0x9d, 0x16, 0x48, 0xd6, 0x20, 0xe7, 0x3a, 0xba, 0x1f,
+	0x39, 0x37, 0x75, 0xf4, 0x72, 0xf3, 0x8e, 0x5e, 0x7e, 0xfe, 0xd1, 0x5b, 0xba, 0xcc, 0xd1, 0x2b,
+	0x64, 0x1c, 0xbd, 0x1d, 0x80, 0x9e, 0xef, 0x79, 0x1d, 0x35, 0x93, 0xd8, 0x8c, 0x42, 0xab, 0x84,
+	0x96, 0xb6, 0x9c, 0xcb, 0x1a, 0x14, 0x9d, 0x61, 0x28, 0xaf, 0x2b, 0xdd, 0x81, 0xe8, 0x1d, 0x97,
+	0xca, 0xbb, 0xae, 0xe7, 0x0f, 0x3d, 0x21, 0xcf, 0x63, 0xa5, 0x55, 0x42, 0xcb, 0xa7, 0x68, 0x20,
+	0x75, 0x58, 0x95, 0x6e, 0xd7, 0xe9, 0xf4, 0x5d, 0x2e, 0xaa, 0xa5, 0x7a, 0x1e, 0x77, 0x81, 0xb6,
+	0x63, 0xe7, 0xbb, 0x2e, 0x97, 0xd8, 0x4f, 0xdc, 0x3e, 0xd3, 0x09, 0x40, 0x25, 0x40, 0x8b, 0x4a,
+	0x70, 0x07, 0xd6, 0xa5, 0x5b, 0x4d, 0x0c, 0x77, 0x2f, 0x58, 0xb5, 0x2c, 0x63, 0x2a, 0x68, 0x7e,
+	0x84, 0xd6, 0xb6, 0x7b, 0xc1, 0xe8, 0x6f, 0x2d, 0x28, 0x9a, 0x93, 0x96, 0xaa, 0xf5, 0x9b, 0xdf,
+	0x7f, 0x97, 0xaa, 0x71, 0xb2, 0x7c, 0x85, 0x89, 0xf2, 0xd1, 0xe7, 0x70, 0xe5, 0x88, 0x09, 0x73,
+	0x77, 0xb7, 0x18, 0x0f, 0x7c, 0x8f, 0x33, 0x72, 0x0d, 0x96, 0x71, 0xc1, 0x90, 0x4b, 0xa2, 0x85,
+	0x96, 0x7e, 0x23, 0x1b, 0x90, 0x1f, 0xf0, 0x53, 0x4d, 0x14, 0x1f, 0xc9, 0xb7, 0x90, 0xe5, 0x13,
+	0x3f, 0x1c, 0xa8, 0x16, 0xe4, 0xe5, 0x68, 0x5e, 0x8d, 0x8f, 0x66, 0x94, 0x3c, 0x1e, 0x48, 0x3f,
+	0x87, 0xcd, 0x23, 0x26, 0x92, 0xd3, 0xc8, 0x5b, 0xec, 0xcb, 0x21, 0xe3, 0x62, 0xc1, 0xe3, 0x41,
+	0x5f, 0x40, 0x2d, 0x2b, 0xd7, 0xc2, 0x7b, 0xf9, 0x10, 0x0a, 0x98, 0x93, 0x57, 0xf3, 0xf3, 0x2f,
+	0x57, 0x19, 0x48, 0x0f, 0x60, 0xeb, 0x01, 0xeb, 0x33, 0xc1, 0xc6, 0x6e, 0xe4, 0x67, 0xf6, 0x31,
+	0xd1, 0x6b, 0xca, 0x81, 0xb4, 0x99, 0xc0, 0x51, 0x88, 0x47, 0xc5, 0x26, 0xc0, 0x9a, 0x35, 0x01,
+	0xb9, 0xf9, 0x13, 0x90, 0x4f, 0x4f, 0x00, 0xf5, 0xe0, 0x4a, 0x02, 0x74, 0xe1, 0xb2, 0x1c, 0x40,
+	0x29, 0xfa, 0x82, 0xe8, 0x06, 0xa7, 0x3f, 0x20, 0x45, 0xf3, 0x01, 0xc1, 0x2b, 0xef, 0xfd, 0xc7,
+	0x81, 0x63, 0x0b, 0x36, 0xb9, 0xd1, 0xff, 0xed, 0xe8, 0xd3, 0x67, 0xf0, 0xc1, 0xd1, 0x78, 0xe3,
+	0x78, 0xa0, 0xdf, 0x60, 0xf3, 0x77, 0x92, 0x33, 0x91, 0xde, 0xb8, 0x9e, 0x84, 0x3f, 0x5a, 0xb2,
+	0xb7, 0x0f, 0x6c, 0x61, 0xc7, 0xb7, 0xfc, 0x0e, 0x89, 0x18, 0xfa, 0x33, 0x39, 0x08, 0x63, 0x86,
+	0x0b, 0xd7, 0xe2, 0x3b, 0x50, 0x42, 0x3d, 0xd9, 0xc1, 0x1d, 0xeb, 0x41, 0x98, 0xff, 0x11, 0x2a,
+	0x3a, 0x1a, 0x90, 0xfe, 0x39, 0x1a, 0x8c, 0xc9, 0x2a, 0xcd, 0xf9, 0xfe, 0xfc, 0x5f, 0xab, 0xf6,
+	0x12, 0x76, 0x12, 0x97, 0xcb, 0x7f, 0x31, 0x4b, 0x8b, 0xdf, 0x2f, 0x7f, 0xb0, 0xe0, 0xbd, 0x36,
+	0x13, 0x9f, 0xfb, 0xdd, 0x77, 0x75, 0xa8, 0x5e, 0xca, 0xb1, 0x8f, 0x08, 0x2e, 0x5c, 0x93, 0x6f,
+	0x43, 0xf1, 0xa9, 0xdf, 0x5d, 0x6c, 0xa4, 0x56, 0x9e, 0x2a, 0x38, 0xfa, 0x27, 0x0b, 0xae, 0xaa,
+	0x89, 0x9a, 0xa8, 0xd0, 0xbb, 0x3c, 0x50, 0xc7, 0x70, 0xad, 0xc5, 0xd0, 0xfb, 0xc8, 0xe6, 0xcf,
+	0x1e, 0x9e, 0x33, 0x4f, 0x18, 0xd6, 0x4d, 0xad, 0x57, 0x18, 0x1a, 0x25, 0x7b, 0xbc, 0x70, 0xd4,
+	0x8f, 0x83, 0x71, 0xb0, 0x54, 0x30, 0xf2, 0x91, 0xfe, 0xde, 0x82, 0xfa, 0x38, 0x97, 0xf9, 0xfd,
+	0xf0, 0xf0, 0x45, 0xc0, 0x3c, 0xce, 0xde, 0xec, 0x63, 0x3a, 0xfd, 0x52, 0x3e, 0x84, 0xc2, 0x10,
+	0x7f, 0x99, 0xe8, 0x36, 0xcd, 0xfe, 0xd5, 0xa2, 0x42, 0xe9, 0x05, 0xd4, 0x14, 0xbf, 0xc7, 0xc1,
+	0x67, 0x6e, 0x9f, 0xb5, 0x87, 0x83, 0x81, 0x1d, 0x8e, 0x0c, 0xb3, 0x2d, 0x28, 0xf9, 0xa1, 0x7b,
+	0xea, 0x7a, 0xe3, 0x4f, 0x5f, 0x51, 0x19, 0x8e, 0x1d, 0x74, 0x4a, 0x71, 0x15, 0xd8, 0xe2, 0x4c,
+	0x33, 0x29, 0xa2, 0xe1, 0xc4, 0x16, 0x67, 0xb2, 0xbf, 0xa6, 0x8d, 0x39, 0x37, 0xc0, 0x9f, 0x14,
+	0xb1, 0xcf, 0x80, 0x7c, 0xa6, 0x5f, 0xc0, 0xce, 0x0f, 0x87, 0x2c, 0x1c, 0xdd, 0x3f, 0xb7, 0xdd,
+	0xbe, 0xdd, 0xed, 0xa7, 0x6e, 0x1d, 0x83, 0x20, 0x85, 0x9b, 0xa5, 0xb4, 0x23, 0x1a, 0x50, 0xb3,
+	0x45, 0x4e, 0x59, 0xb5, 0x18, 0xbc, 0x14, 0x1c, 0x0f, 0x60, 0x77, 0x5a, 0x6a, 0x7d, 0x00, 0x14,
+	0x41, 0x2b, 0x45, 0x30, 0x17, 0x23, 0xf8, 0x11, 0x54, 0x65, 0x16, 0xac, 0xcc, 0x89, 0xcf, 0x5d,
+	0xd4, 0x45, 0x97, 0x29, 0x0d, 0xfd, 0x31, 0x6c, 0x66, 0x2c, 0xbc, 0x3c, 0x72, 0xb2, 0xb6, 0xf9,
+	0x64, 0x6d, 0xf7, 0xef, 0x43, 0xd1, 0x8c, 0x05, 0x59, 0x55, 0xc2, 0x15, 0xdf, 0x37, 0xbe, 0x42,
+	0xca, 0xb0, 0xa2, 0xcf, 0xd9, 0x86, 0x85, 0x2e, 0xb3, 0xeb, 0x8d, 0x1c, 0xbe, 0x19, 0xad, 0xb7,
+	0x91, 0x3f, 0xfc, 0x27, 0x81, 0x32, 0xbe, 0xb6, 0x71, 0x1a, 0x7a, 0x8c, 0x9c, 0x41, 0x39, 0xa6,
+	0x32, 0xc9, 0xb5, 0x86, 0xfa, 0x83, 0x42, 0xc3, 0xfc, 0x41, 0xa1, 0xf1, 0x70, 0x10, 0x88, 0x51,
+	0x6d, 0xcb, 0x8c, 0x65, 0x86, 0x24, 0xa5, 0xb7, 0x7e, 0xf1, 0xb7, 0x7f, 0xfc, 0x26, 0xb7, 0x4b,
+	0x37, 0x9b, 0x3d, 0x3b, 0x0c, 0x5d, 0x16, 0x36, 0xcf, 0xbf, 0xde, 0x1c, 0xd9, 0xa1, 0xd7, 0xf4,
+	0x74, 0xe8, 0xc7, 0xd6, 0x3e, 0xf9, 0xb5, 0x05, 0x24, 0xad, 0x05, 0xc9, 0x8d, 0x58, 0xe6, 0x6c,
+	0xcd, 0x59, 0xa3, 0xb3, 0x42, 0x34, 0x87, 0xaf, 0x4a, 0x0e, 0xb7, 0x69, 0x3d, 0xc5, 0x21, 0x4c,
+	0xae, 0x40, 0x2a, 0xcf, 0xa0, 0x1c, 0xd3, 0x5d, 0xa4, 0x36, 0x56, 0x0e, 0x93, 0x0a, 0x70, 0xbc,
+	0xf1, 0x0c, 0xa1, 0x46, 0x6f, 0x4a, 0xd0, 0x1d, 0x5a, 0x4d, 0x81, 0x72, 0x15, 0x8d, 0x60, 0x02,
+	0xd6, 0x92, 0x9a, 0x8b, 0xec, 0x98, 0x9c, 0x99, 0x5a, 0x6c, 0x36, 0xe4, 0x1d, 0x09, 0x59, 0xa7,
+	0x5b, 0x29, 0xc8, 0x61, 0x94, 0x0c, 0x51, 0x5f, 0xc2, 0x9a, 0x92, 0xbf, 0x11, 0xea, 0x4d, 0x93,
+	0x76, 0x86, 0x2c, 0xae, 0x6d, 0x37, 0xa2, 0xbf, 0x3c, 0x61, 0xf3, 0xdb, 0xee, 0x20, 0xe8, 0x5f,
+	0x06, 0xdc, 0x89, 0xb0, 0x10, 0x3c, 0x80, 0xf5, 0x09, 0x79, 0x37, 0x75, 0xb0, 0xae, 0xc7, 0x7a,
+	0x9b, 0xa5, 0x07, 0x67, 0x0c, 0x17, 0xca, 0x5a, 0x0c, 0x45, 0x44, 0x5f, 0x76, 0xd4, 0x4c, 0x7d,
+	0xa2, 0xa3, 0x13, 0x77, 0x4b, 0xa2, 0xbc, 0x93, 0x97, 0x03, 0xbd, 0x2b, 0xd1, 0x6e, 0xd0, 0xed,
+	0xac, 0x8e, 0x9a, 0x68, 0x04, 0x7c, 0x61, 0xba, 0x1a, 0x61, 0x4e, 0x74, 0x75, 0x21, 0xd8, 0x7d,
+	0x09, 0x7b, 0x8b, 0x5e, 0x9f, 0xd2, 0xd5, 0x38, 0xf2, 0xcf, 0x4d, 0x67, 0x23, 0xe4, 0xb7, 0xd0,
+	0xd9, 0xe9, 0x04, 0x9c, 0x04, 0x16, 0x12, 0xb8, 0x90, 0xdd, 0x35, 0x96, 0x99, 0xdd, 0xbd, 0x9d,
+	0x79, 0x72, 0x53, 0x3d, 0xde, 0x93, 0xe8, 0x94, 0xee, 0xa4, 0xd1, 0x63, 0x28, 0xea, 0xe4, 0xc2,
+	0x58, 0xd3, 0x90, 0xcd, 0x58, 0x4d, 0x93, 0x32, 0xa3, 0x56, 0xcb, 0x72, 0xcd, 0x1d, 0x63, 0x1e,
+	0x05, 0xab, 0x93, 0x5b, 0x49, 0x48, 0x18, 0xb2, 0x9d, 0x6c, 0xf1, 0x02, 0x90, 0xf7, 0x24, 0xe4,
+	0x4d, 0xba, 0x3b, 0xa5, 0xc1, 0x31, 0xd4, 0x9f, 0x42, 0x45, 0xf5, 0xd1, 0xa0, 0xbe, 0x85, 0xf6,
+	0x4e, 0x87, 0x77, 0xe2, 0x50, 0x7a, 0xb0, 0x8f, 0x22, 0xfe, 0x6f, 0xa3, 0xb9, 0xd3, 0x8f, 0xd4,
+	0xd3, 0x31, 0x08, 0x22, 0xff, 0x04, 0xd6, 0x27, 0xd4, 0x17, 0xd9, 0x35, 0x10, 0xd9, 0xb2, 0x6c,
+	0xce, 0xae, 0x67, 0x7d, 0x13, 0x12, 0xe9, 0x10, 0xfd, 0x77, 0x16, 0x6c, 0x4e, 0x15, 0x6c, 0x64,
+	0x2f, 0x4d, 0x24, 0x5b, 0xd3, 0xcd, 0xa1, 0xf4, 0x4d, 0x49, 0xa9, 0x49, 0xf7, 0x67, 0x50, 0x9a,
+	0x48, 0xac, 0xbf, 0x9d, 0x57, 0x32, 0xd4, 0x1a, 0xa1, 0x49, 0x5a, 0x59, 0x52, 0x6e, 0x0e, 0xa1,
+	0xa6, 0x24, 0x74, 0x8f, 0xde, 0x9a, 0x42, 0x28, 0x91, 0x12, 0xa9, 0xbc, 0xb2, 0xe0, 0x5a, 0xb6,
+	0xc2, 0x22, 0xd1, 0x40, 0xcc, 0x14, 0x77, 0xb5, 0x3b, 0xf3, 0xc2, 0x34, 0xb5, 0x43, 0x49, 0xed,
+	0x6b, 0xf4, 0x6e, 0x8a, 0xda, 0x97, 0x99, 0x0b, 0x91, 0xdd, 0xaf, 0x2c, 0x78, 0x2f, 0x25, 0xc0,
+	0x48, 0x3d, 0x81, 0x98, 0x21, 0xea, 0x6a, 0x37, 0x66, 0x44, 0x68, 0x3a, 0x07, 0x92, 0xce, 0x5d,
+	0x4a, 0xb3, 0xe9, 0xc4, 0xd7, 0x7c, 0x6c, 0xed, 0x7f, 0xf2, 0xd1, 0x5f, 0x5e, 0xef, 0x5a, 0x7f,
+	0x7d, 0xbd, 0x6b, 0xfd, 0xfd, 0xf5, 0xae, 0xf5, 0xa3, 0x7b, 0xa7, 0xae, 0x38, 0x1b, 0x76, 0x1b,
+	0x3d, 0x7f, 0xd0, 0x6c, 0xf9, 0x9c, 0x09, 0x61, 0x7f, 0xd6, 0xf7, 0x9f, 0x37, 0x3f, 0x55, 0xa9,
+	0x0e, 0x8e, 0xfc, 0xa6, 0xfe, 0x1f, 0x50, 0x77, 0x59, 0xb6, 0xea, 0x1b, 0xff, 0x09, 0x00, 0x00,
+	0xff, 0xff, 0x64, 0x85, 0x39, 0xcb, 0x9e, 0x1a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -2209,43 +2109,43 @@ const _ = grpc.SupportPackageIsVersion4
 type YarnServiceClient interface {
 	// Getter YarnNode ...
 	// 查看自身调度服务信息
-	GetNodeInfo(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
+	GetNodeInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
 	// 查看自身调度服务的 peer注册信息
-	GetRegisteredPeers(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredPeersResponse, error)
+	GetRegisteredPeers(ctx context.Context, in *GetRegisteredPeersRequest, opts ...grpc.CallOption) (*GetRegisteredPeersResponse, error)
 	// about seed
 	// 新增种子节点信息
 	SetSeedNode(ctx context.Context, in *SetSeedNodeRequest, opts ...grpc.CallOption) (*SetSeedNodeResponse, error)
 	// 修改种子节点信息
 	UpdateSeedNode(ctx context.Context, in *UpdateSeedNodeRequest, opts ...grpc.CallOption) (*SetSeedNodeResponse, error)
 	// 删除种子节点信息
-	DeleteSeedNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	DeleteSeedNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询种子节点列表
-	GetSeedNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error)
+	GetSeedNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error)
 	// about dataNode
 	// 新增数据服务信息
 	SetDataNode(ctx context.Context, in *SetDataNodeRequest, opts ...grpc.CallOption) (*SetDataNodeResponse, error)
 	// 修改数据服务信息
 	UpdateDataNode(ctx context.Context, in *UpdateDataNodeRequest, opts ...grpc.CallOption) (*SetDataNodeResponse, error)
 	// 删除数据服务信息
-	DeleteDataNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	DeleteDataNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询数据服务列表
-	GetDataNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
+	GetDataNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
 	// about jobNode
 	// 新增计算服务信息
 	SetJobNode(ctx context.Context, in *SetJobNodeRequest, opts ...grpc.CallOption) (*SetJobNodeResponse, error)
 	// 修改计算服务信息
 	UpdateJobNode(ctx context.Context, in *UpdateJobNodeRequest, opts ...grpc.CallOption) (*SetJobNodeResponse, error)
 	// 删除计算服务信息
-	DeleteJobNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	DeleteJobNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询计算服务列表
-	GetJobNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
+	GetJobNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
 	// about report
 	// 上报任务事件
-	ReportTaskEvent(ctx context.Context, in *ReportTaskEventRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	ReportTaskEvent(ctx context.Context, in *ReportTaskEventRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 上报资源使用实况
-	ReportTaskResourceExpense(ctx context.Context, in *ReportTaskResourceExpenseRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	ReportTaskResourceExpense(ctx context.Context, in *ReportTaskResourceExpenseRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 上报 成功上传的原始文件Id
-	ReportUpFileSummary(ctx context.Context, in *ReportUpFileSummaryRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error)
+	ReportUpFileSummary(ctx context.Context, in *ReportUpFileSummaryRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询可用数据服务资源目标 ip:port 信息
 	QueryAvailableDataNode(ctx context.Context, in *QueryAvailableDataNodeRequest, opts ...grpc.CallOption) (*QueryAvailableDataNodeResponse, error)
 	// 查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径
@@ -2260,7 +2160,7 @@ func NewYarnServiceClient(cc *grpc.ClientConn) YarnServiceClient {
 	return &yarnServiceClient{cc}
 }
 
-func (c *yarnServiceClient) GetNodeInfo(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetNodeInfoResponse, error) {
+func (c *yarnServiceClient) GetNodeInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetNodeInfoResponse, error) {
 	out := new(GetNodeInfoResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetNodeInfo", in, out, opts...)
 	if err != nil {
@@ -2269,7 +2169,7 @@ func (c *yarnServiceClient) GetNodeInfo(ctx context.Context, in *EmptyGetParams,
 	return out, nil
 }
 
-func (c *yarnServiceClient) GetRegisteredPeers(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredPeersResponse, error) {
+func (c *yarnServiceClient) GetRegisteredPeers(ctx context.Context, in *GetRegisteredPeersRequest, opts ...grpc.CallOption) (*GetRegisteredPeersResponse, error) {
 	out := new(GetRegisteredPeersResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetRegisteredPeers", in, out, opts...)
 	if err != nil {
@@ -2296,8 +2196,8 @@ func (c *yarnServiceClient) UpdateSeedNode(ctx context.Context, in *UpdateSeedNo
 	return out, nil
 }
 
-func (c *yarnServiceClient) DeleteSeedNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
-	out := new(SimpleResponseCode)
+func (c *yarnServiceClient) DeleteSeedNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+	out := new(common.SimpleResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/DeleteSeedNode", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -2305,7 +2205,7 @@ func (c *yarnServiceClient) DeleteSeedNode(ctx context.Context, in *DeleteRegist
 	return out, nil
 }
 
-func (c *yarnServiceClient) GetSeedNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error) {
+func (c *yarnServiceClient) GetSeedNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error) {
 	out := new(GetSeedNodeListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetSeedNodeList", in, out, opts...)
 	if err != nil {
@@ -2332,8 +2232,8 @@ func (c *yarnServiceClient) UpdateDataNode(ctx context.Context, in *UpdateDataNo
 	return out, nil
 }
 
-func (c *yarnServiceClient) DeleteDataNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
-	out := new(SimpleResponseCode)
+func (c *yarnServiceClient) DeleteDataNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+	out := new(common.SimpleResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/DeleteDataNode", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -2341,7 +2241,7 @@ func (c *yarnServiceClient) DeleteDataNode(ctx context.Context, in *DeleteRegist
 	return out, nil
 }
 
-func (c *yarnServiceClient) GetDataNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
+func (c *yarnServiceClient) GetDataNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
 	out := new(GetRegisteredNodeListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetDataNodeList", in, out, opts...)
 	if err != nil {
@@ -2368,8 +2268,8 @@ func (c *yarnServiceClient) UpdateJobNode(ctx context.Context, in *UpdateJobNode
 	return out, nil
 }
 
-func (c *yarnServiceClient) DeleteJobNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
-	out := new(SimpleResponseCode)
+func (c *yarnServiceClient) DeleteJobNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+	out := new(common.SimpleResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/DeleteJobNode", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -2377,7 +2277,7 @@ func (c *yarnServiceClient) DeleteJobNode(ctx context.Context, in *DeleteRegiste
 	return out, nil
 }
 
-func (c *yarnServiceClient) GetJobNodeList(ctx context.Context, in *EmptyGetParams, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
+func (c *yarnServiceClient) GetJobNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
 	out := new(GetRegisteredNodeListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetJobNodeList", in, out, opts...)
 	if err != nil {
@@ -2386,8 +2286,8 @@ func (c *yarnServiceClient) GetJobNodeList(ctx context.Context, in *EmptyGetPara
 	return out, nil
 }
 
-func (c *yarnServiceClient) ReportTaskEvent(ctx context.Context, in *ReportTaskEventRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
-	out := new(SimpleResponseCode)
+func (c *yarnServiceClient) ReportTaskEvent(ctx context.Context, in *ReportTaskEventRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+	out := new(common.SimpleResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/ReportTaskEvent", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -2395,8 +2295,8 @@ func (c *yarnServiceClient) ReportTaskEvent(ctx context.Context, in *ReportTaskE
 	return out, nil
 }
 
-func (c *yarnServiceClient) ReportTaskResourceExpense(ctx context.Context, in *ReportTaskResourceExpenseRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
-	out := new(SimpleResponseCode)
+func (c *yarnServiceClient) ReportTaskResourceExpense(ctx context.Context, in *ReportTaskResourceExpenseRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+	out := new(common.SimpleResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/ReportTaskResourceExpense", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -2404,8 +2304,8 @@ func (c *yarnServiceClient) ReportTaskResourceExpense(ctx context.Context, in *R
 	return out, nil
 }
 
-func (c *yarnServiceClient) ReportUpFileSummary(ctx context.Context, in *ReportUpFileSummaryRequest, opts ...grpc.CallOption) (*SimpleResponseCode, error) {
-	out := new(SimpleResponseCode)
+func (c *yarnServiceClient) ReportUpFileSummary(ctx context.Context, in *ReportUpFileSummaryRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+	out := new(common.SimpleResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/ReportUpFileSummary", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -2435,43 +2335,43 @@ func (c *yarnServiceClient) QueryFilePosition(ctx context.Context, in *QueryFile
 type YarnServiceServer interface {
 	// Getter YarnNode ...
 	// 查看自身调度服务信息
-	GetNodeInfo(context.Context, *EmptyGetParams) (*GetNodeInfoResponse, error)
+	GetNodeInfo(context.Context, *emptypb.Empty) (*GetNodeInfoResponse, error)
 	// 查看自身调度服务的 peer注册信息
-	GetRegisteredPeers(context.Context, *EmptyGetParams) (*GetRegisteredPeersResponse, error)
+	GetRegisteredPeers(context.Context, *GetRegisteredPeersRequest) (*GetRegisteredPeersResponse, error)
 	// about seed
 	// 新增种子节点信息
 	SetSeedNode(context.Context, *SetSeedNodeRequest) (*SetSeedNodeResponse, error)
 	// 修改种子节点信息
 	UpdateSeedNode(context.Context, *UpdateSeedNodeRequest) (*SetSeedNodeResponse, error)
 	// 删除种子节点信息
-	DeleteSeedNode(context.Context, *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error)
+	DeleteSeedNode(context.Context, *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error)
 	// 查询种子节点列表
-	GetSeedNodeList(context.Context, *EmptyGetParams) (*GetSeedNodeListResponse, error)
+	GetSeedNodeList(context.Context, *emptypb.Empty) (*GetSeedNodeListResponse, error)
 	// about dataNode
 	// 新增数据服务信息
 	SetDataNode(context.Context, *SetDataNodeRequest) (*SetDataNodeResponse, error)
 	// 修改数据服务信息
 	UpdateDataNode(context.Context, *UpdateDataNodeRequest) (*SetDataNodeResponse, error)
 	// 删除数据服务信息
-	DeleteDataNode(context.Context, *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error)
+	DeleteDataNode(context.Context, *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error)
 	// 查询数据服务列表
-	GetDataNodeList(context.Context, *EmptyGetParams) (*GetRegisteredNodeListResponse, error)
+	GetDataNodeList(context.Context, *emptypb.Empty) (*GetRegisteredNodeListResponse, error)
 	// about jobNode
 	// 新增计算服务信息
 	SetJobNode(context.Context, *SetJobNodeRequest) (*SetJobNodeResponse, error)
 	// 修改计算服务信息
 	UpdateJobNode(context.Context, *UpdateJobNodeRequest) (*SetJobNodeResponse, error)
 	// 删除计算服务信息
-	DeleteJobNode(context.Context, *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error)
+	DeleteJobNode(context.Context, *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error)
 	// 查询计算服务列表
-	GetJobNodeList(context.Context, *EmptyGetParams) (*GetRegisteredNodeListResponse, error)
+	GetJobNodeList(context.Context, *emptypb.Empty) (*GetRegisteredNodeListResponse, error)
 	// about report
 	// 上报任务事件
-	ReportTaskEvent(context.Context, *ReportTaskEventRequest) (*SimpleResponseCode, error)
+	ReportTaskEvent(context.Context, *ReportTaskEventRequest) (*common.SimpleResponse, error)
 	// 上报资源使用实况
-	ReportTaskResourceExpense(context.Context, *ReportTaskResourceExpenseRequest) (*SimpleResponseCode, error)
+	ReportTaskResourceExpense(context.Context, *ReportTaskResourceExpenseRequest) (*common.SimpleResponse, error)
 	// 上报 成功上传的原始文件Id
-	ReportUpFileSummary(context.Context, *ReportUpFileSummaryRequest) (*SimpleResponseCode, error)
+	ReportUpFileSummary(context.Context, *ReportUpFileSummaryRequest) (*common.SimpleResponse, error)
 	// 查询可用数据服务资源目标 ip:port 信息
 	QueryAvailableDataNode(context.Context, *QueryAvailableDataNodeRequest) (*QueryAvailableDataNodeResponse, error)
 	// 查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径
@@ -2482,10 +2382,10 @@ type YarnServiceServer interface {
 type UnimplementedYarnServiceServer struct {
 }
 
-func (*UnimplementedYarnServiceServer) GetNodeInfo(ctx context.Context, req *EmptyGetParams) (*GetNodeInfoResponse, error) {
+func (*UnimplementedYarnServiceServer) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*GetNodeInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNodeInfo not implemented")
 }
-func (*UnimplementedYarnServiceServer) GetRegisteredPeers(ctx context.Context, req *EmptyGetParams) (*GetRegisteredPeersResponse, error) {
+func (*UnimplementedYarnServiceServer) GetRegisteredPeers(ctx context.Context, req *GetRegisteredPeersRequest) (*GetRegisteredPeersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRegisteredPeers not implemented")
 }
 func (*UnimplementedYarnServiceServer) SetSeedNode(ctx context.Context, req *SetSeedNodeRequest) (*SetSeedNodeResponse, error) {
@@ -2494,10 +2394,10 @@ func (*UnimplementedYarnServiceServer) SetSeedNode(ctx context.Context, req *Set
 func (*UnimplementedYarnServiceServer) UpdateSeedNode(ctx context.Context, req *UpdateSeedNodeRequest) (*SetSeedNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateSeedNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) DeleteSeedNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error) {
+func (*UnimplementedYarnServiceServer) DeleteSeedNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSeedNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) GetSeedNodeList(ctx context.Context, req *EmptyGetParams) (*GetSeedNodeListResponse, error) {
+func (*UnimplementedYarnServiceServer) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*GetSeedNodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSeedNodeList not implemented")
 }
 func (*UnimplementedYarnServiceServer) SetDataNode(ctx context.Context, req *SetDataNodeRequest) (*SetDataNodeResponse, error) {
@@ -2506,10 +2406,10 @@ func (*UnimplementedYarnServiceServer) SetDataNode(ctx context.Context, req *Set
 func (*UnimplementedYarnServiceServer) UpdateDataNode(ctx context.Context, req *UpdateDataNodeRequest) (*SetDataNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateDataNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) DeleteDataNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error) {
+func (*UnimplementedYarnServiceServer) DeleteDataNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDataNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) GetDataNodeList(ctx context.Context, req *EmptyGetParams) (*GetRegisteredNodeListResponse, error) {
+func (*UnimplementedYarnServiceServer) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*GetRegisteredNodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDataNodeList not implemented")
 }
 func (*UnimplementedYarnServiceServer) SetJobNode(ctx context.Context, req *SetJobNodeRequest) (*SetJobNodeResponse, error) {
@@ -2518,19 +2418,19 @@ func (*UnimplementedYarnServiceServer) SetJobNode(ctx context.Context, req *SetJ
 func (*UnimplementedYarnServiceServer) UpdateJobNode(ctx context.Context, req *UpdateJobNodeRequest) (*SetJobNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateJobNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) DeleteJobNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*SimpleResponseCode, error) {
+func (*UnimplementedYarnServiceServer) DeleteJobNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteJobNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) GetJobNodeList(ctx context.Context, req *EmptyGetParams) (*GetRegisteredNodeListResponse, error) {
+func (*UnimplementedYarnServiceServer) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*GetRegisteredNodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJobNodeList not implemented")
 }
-func (*UnimplementedYarnServiceServer) ReportTaskEvent(ctx context.Context, req *ReportTaskEventRequest) (*SimpleResponseCode, error) {
+func (*UnimplementedYarnServiceServer) ReportTaskEvent(ctx context.Context, req *ReportTaskEventRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportTaskEvent not implemented")
 }
-func (*UnimplementedYarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *ReportTaskResourceExpenseRequest) (*SimpleResponseCode, error) {
+func (*UnimplementedYarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *ReportTaskResourceExpenseRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportTaskResourceExpense not implemented")
 }
-func (*UnimplementedYarnServiceServer) ReportUpFileSummary(ctx context.Context, req *ReportUpFileSummaryRequest) (*SimpleResponseCode, error) {
+func (*UnimplementedYarnServiceServer) ReportUpFileSummary(ctx context.Context, req *ReportUpFileSummaryRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportUpFileSummary not implemented")
 }
 func (*UnimplementedYarnServiceServer) QueryAvailableDataNode(ctx context.Context, req *QueryAvailableDataNodeRequest) (*QueryAvailableDataNodeResponse, error) {
@@ -2545,7 +2445,7 @@ func RegisterYarnServiceServer(s *grpc.Server, srv YarnServiceServer) {
 }
 
 func _YarnService_GetNodeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyGetParams)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2557,13 +2457,13 @@ func _YarnService_GetNodeInfo_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/rpcapi.YarnService/GetNodeInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetNodeInfo(ctx, req.(*EmptyGetParams))
+		return srv.(YarnServiceServer).GetNodeInfo(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _YarnService_GetRegisteredPeers_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyGetParams)
+	in := new(GetRegisteredPeersRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2575,7 +2475,7 @@ func _YarnService_GetRegisteredPeers_Handler(srv interface{}, ctx context.Contex
 		FullMethod: "/rpcapi.YarnService/GetRegisteredPeers",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetRegisteredPeers(ctx, req.(*EmptyGetParams))
+		return srv.(YarnServiceServer).GetRegisteredPeers(ctx, req.(*GetRegisteredPeersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2635,7 +2535,7 @@ func _YarnService_DeleteSeedNode_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _YarnService_GetSeedNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyGetParams)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2647,7 +2547,7 @@ func _YarnService_GetSeedNodeList_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/rpcapi.YarnService/GetSeedNodeList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetSeedNodeList(ctx, req.(*EmptyGetParams))
+		return srv.(YarnServiceServer).GetSeedNodeList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2707,7 +2607,7 @@ func _YarnService_DeleteDataNode_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _YarnService_GetDataNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyGetParams)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2719,7 +2619,7 @@ func _YarnService_GetDataNodeList_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/rpcapi.YarnService/GetDataNodeList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetDataNodeList(ctx, req.(*EmptyGetParams))
+		return srv.(YarnServiceServer).GetDataNodeList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2779,7 +2679,7 @@ func _YarnService_DeleteJobNode_Handler(srv interface{}, ctx context.Context, de
 }
 
 func _YarnService_GetJobNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(EmptyGetParams)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2791,7 +2691,7 @@ func _YarnService_GetJobNodeList_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/rpcapi.YarnService/GetJobNodeList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetJobNodeList(ctx, req.(*EmptyGetParams))
+		return srv.(YarnServiceServer).GetJobNodeList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2995,6 +2895,11 @@ func (m *YarnNodeInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if m.RelatePeers != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.RelatePeers))
+		i--
+		dAtA[i] = 0x70
+	}
 	if len(m.Name) > 0 {
 		i -= len(m.Name)
 		copy(dAtA[i:], m.Name)
@@ -3098,12 +3003,10 @@ func (m *YarnNodeInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.NodeType) > 0 {
-		i -= len(m.NodeType)
-		copy(dAtA[i:], m.NodeType)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.NodeType)))
+	if m.NodeType != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.NodeType))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -3208,12 +3111,10 @@ func (m *YarnRegisteredPeer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.NodeType) > 0 {
-		i -= len(m.NodeType)
-		copy(dAtA[i:], m.NodeType)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.NodeType)))
+	if m.NodeType != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.NodeType))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -3241,6 +3142,35 @@ func (m *YarnRegisteredPeerDetail) MarshalToSizedBuffer(dAtA []byte) (int, error
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.FileTotalSize != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.FileTotalSize))
+		i--
+		dAtA[i] = 0x58
+	}
+	if m.FileCount != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.FileCount))
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.TaskIdList) > 0 {
+		for iNdEx := len(m.TaskIdList) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.TaskIdList[iNdEx])
+			copy(dAtA[i:], m.TaskIdList[iNdEx])
+			i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.TaskIdList[iNdEx])))
+			i--
+			dAtA[i] = 0x4a
+		}
+	}
+	if m.TaskCount != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.TaskCount))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.Duration != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.Duration))
+		i--
+		dAtA[i] = 0x38
 	}
 	if m.ConnState != 0 {
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.ConnState))
@@ -3312,19 +3242,26 @@ func (m *SeedPeer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.ConnState != 0 {
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.ConnState))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x28
 	}
 	if len(m.InternalPort) > 0 {
 		i -= len(m.InternalPort)
 		copy(dAtA[i:], m.InternalPort)
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalPort)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.InternalIp) > 0 {
 		i -= len(m.InternalIp)
 		copy(dAtA[i:], m.InternalIp)
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.NodeId) > 0 {
+		i -= len(m.NodeId)
+		copy(dAtA[i:], m.NodeId)
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.NodeId)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -3334,266 +3271,6 @@ func (m *SeedPeer) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.Id)))
 		i--
 		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *YarnRegisteredJobNode) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *YarnRegisteredJobNode) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *YarnRegisteredJobNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.Task != nil {
-		{
-			size, err := m.Task.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintSysRpcApi(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x4a
-	}
-	if m.Duration != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.Duration))
-		i--
-		dAtA[i] = 0x40
-	}
-	if m.Information != nil {
-		{
-			size, err := m.Information.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintSysRpcApi(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	if len(m.ExternalPort) > 0 {
-		i -= len(m.ExternalPort)
-		copy(dAtA[i:], m.ExternalPort)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
-		i--
-		dAtA[i] = 0x32
-	}
-	if len(m.InternalPort) > 0 {
-		i -= len(m.InternalPort)
-		copy(dAtA[i:], m.InternalPort)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalPort)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.ExternalIp) > 0 {
-		i -= len(m.ExternalIp)
-		copy(dAtA[i:], m.ExternalIp)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.InternalIp) > 0 {
-		i -= len(m.InternalIp)
-		copy(dAtA[i:], m.InternalIp)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalIp)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Id) > 0 {
-		i -= len(m.Id)
-		copy(dAtA[i:], m.Id)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.Id)))
-		i--
-		dAtA[i] = 0x12
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *YarnRegisteredJobNodeTaskIds) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *YarnRegisteredJobNodeTaskIds) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *YarnRegisteredJobNodeTaskIds) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.TaskIds) > 0 {
-		for iNdEx := len(m.TaskIds) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.TaskIds[iNdEx])
-			copy(dAtA[i:], m.TaskIds[iNdEx])
-			i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.TaskIds[iNdEx])))
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if m.Count != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.Count))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *YarnRegisteredDataNode) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *YarnRegisteredDataNode) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *YarnRegisteredDataNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.Delta != nil {
-		{
-			size, err := m.Delta.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintSysRpcApi(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x4a
-	}
-	if m.Duration != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.Duration))
-		i--
-		dAtA[i] = 0x40
-	}
-	if m.Information != nil {
-		{
-			size, err := m.Information.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintSysRpcApi(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x3a
-	}
-	if len(m.ExternalPort) > 0 {
-		i -= len(m.ExternalPort)
-		copy(dAtA[i:], m.ExternalPort)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.ExternalPort)))
-		i--
-		dAtA[i] = 0x32
-	}
-	if len(m.InternalPort) > 0 {
-		i -= len(m.InternalPort)
-		copy(dAtA[i:], m.InternalPort)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalPort)))
-		i--
-		dAtA[i] = 0x2a
-	}
-	if len(m.ExternalIp) > 0 {
-		i -= len(m.ExternalIp)
-		copy(dAtA[i:], m.ExternalIp)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.ExternalIp)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.InternalIp) > 0 {
-		i -= len(m.InternalIp)
-		copy(dAtA[i:], m.InternalIp)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalIp)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Id) > 0 {
-		i -= len(m.Id)
-		copy(dAtA[i:], m.Id)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.Id)))
-		i--
-		dAtA[i] = 0x12
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *YarnRegisteredDataNodeDelta) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *YarnRegisteredDataNodeDelta) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *YarnRegisteredDataNodeDelta) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.FileTotalSize != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.FileTotalSize))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.FileCount != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.FileCount))
-		i--
-		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -3649,6 +3326,38 @@ func (m *GetNodeInfoResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *GetRegisteredPeersRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GetRegisteredPeersRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GetRegisteredPeersRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.NodeType != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.NodeType))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *GetRegisteredPeersResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -3673,24 +3382,10 @@ func (m *GetRegisteredPeersResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.DataNodes) > 0 {
-		for iNdEx := len(m.DataNodes) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.Nodes) > 0 {
+		for iNdEx := len(m.Nodes) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.DataNodes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintSysRpcApi(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x22
-		}
-	}
-	if len(m.JobNodes) > 0 {
-		for iNdEx := len(m.JobNodes) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.JobNodes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.Nodes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -3712,6 +3407,40 @@ func (m *GetRegisteredPeersResponse) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.Status))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *DeleteRegisteredNodeRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DeleteRegisteredNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DeleteRegisteredNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.Id) > 0 {
+		i -= len(m.Id)
+		copy(dAtA[i:], m.Id)
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.Id)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -3745,12 +3474,19 @@ func (m *SetSeedNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.InternalPort)
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalPort)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 	}
 	if len(m.InternalIp) > 0 {
 		i -= len(m.InternalIp)
 		copy(dAtA[i:], m.InternalIp)
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.NodeId) > 0 {
+		i -= len(m.NodeId)
+		copy(dAtA[i:], m.NodeId)
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.NodeId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -3837,12 +3573,19 @@ func (m *UpdateSeedNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.InternalPort)
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalPort)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.InternalIp) > 0 {
 		i -= len(m.InternalIp)
 		copy(dAtA[i:], m.InternalIp)
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.InternalIp)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.NodeId) > 0 {
+		i -= len(m.NodeId)
+		copy(dAtA[i:], m.NodeId)
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.NodeId)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -3880,10 +3623,10 @@ func (m *GetSeedNodeListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.SeedPeers) > 0 {
-		for iNdEx := len(m.SeedPeers) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.Nodes) > 0 {
+		for iNdEx := len(m.Nodes) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.SeedPeers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.Nodes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -4361,6 +4104,30 @@ func (m *ReportTaskResourceExpenseRequest) MarshalToSizedBuffer(dAtA []byte) (in
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if m.Usage != nil {
+		{
+			size, err := m.Usage.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintSysRpcApi(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.NodeId) > 0 {
+		i -= len(m.NodeId)
+		copy(dAtA[i:], m.NodeId)
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.NodeId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.NodeType != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.NodeType))
+		i--
+		dAtA[i] = 0x8
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -4598,9 +4365,8 @@ func (m *YarnNodeInfo) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.NodeType)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
+	if m.NodeType != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.NodeType))
 	}
 	l = len(m.NodeId)
 	if l > 0 {
@@ -4654,6 +4420,9 @@ func (m *YarnNodeInfo) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
+	if m.RelatePeers != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.RelatePeers))
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -4700,9 +4469,8 @@ func (m *YarnRegisteredPeer) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.NodeType)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
+	if m.NodeType != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.NodeType))
 	}
 	if m.NodeDetail != nil {
 		l = m.NodeDetail.Size()
@@ -4743,6 +4511,24 @@ func (m *YarnRegisteredPeerDetail) Size() (n int) {
 	if m.ConnState != 0 {
 		n += 1 + sovSysRpcApi(uint64(m.ConnState))
 	}
+	if m.Duration != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.Duration))
+	}
+	if m.TaskCount != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.TaskCount))
+	}
+	if len(m.TaskIdList) > 0 {
+		for _, s := range m.TaskIdList {
+			l = len(s)
+			n += 1 + l + sovSysRpcApi(uint64(l))
+		}
+	}
+	if m.FileCount != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.FileCount))
+	}
+	if m.FileTotalSize != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.FileTotalSize))
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -4759,6 +4545,10 @@ func (m *SeedPeer) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
+	l = len(m.NodeId)
+	if l > 0 {
+		n += 1 + l + sovSysRpcApi(uint64(l))
+	}
 	l = len(m.InternalIp)
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
@@ -4769,131 +4559,6 @@ func (m *SeedPeer) Size() (n int) {
 	}
 	if m.ConnState != 0 {
 		n += 1 + sovSysRpcApi(uint64(m.ConnState))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *YarnRegisteredJobNode) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Id)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.InternalIp)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.ExternalIp)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.InternalPort)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.ExternalPort)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	if m.Information != nil {
-		l = m.Information.Size()
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	if m.Duration != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.Duration))
-	}
-	if m.Task != nil {
-		l = m.Task.Size()
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *YarnRegisteredJobNodeTaskIds) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Count != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.Count))
-	}
-	if len(m.TaskIds) > 0 {
-		for _, s := range m.TaskIds {
-			l = len(s)
-			n += 1 + l + sovSysRpcApi(uint64(l))
-		}
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *YarnRegisteredDataNode) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Id)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.InternalIp)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.ExternalIp)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.InternalPort)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	l = len(m.ExternalPort)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	if m.Information != nil {
-		l = m.Information.Size()
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	if m.Duration != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.Duration))
-	}
-	if m.Delta != nil {
-		l = m.Delta.Size()
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *YarnRegisteredDataNodeDelta) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.FileCount != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.FileCount))
-	}
-	if m.FileTotalSize != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.FileTotalSize))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -4924,6 +4589,21 @@ func (m *GetNodeInfoResponse) Size() (n int) {
 	return n
 }
 
+func (m *GetRegisteredPeersRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.NodeType != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.NodeType))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
 func (m *GetRegisteredPeersResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -4937,17 +4617,27 @@ func (m *GetRegisteredPeersResponse) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
-	if len(m.JobNodes) > 0 {
-		for _, e := range m.JobNodes {
+	if len(m.Nodes) > 0 {
+		for _, e := range m.Nodes {
 			l = e.Size()
 			n += 1 + l + sovSysRpcApi(uint64(l))
 		}
 	}
-	if len(m.DataNodes) > 0 {
-		for _, e := range m.DataNodes {
-			l = e.Size()
-			n += 1 + l + sovSysRpcApi(uint64(l))
-		}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *DeleteRegisteredNodeRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Id)
+	if l > 0 {
+		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -4961,6 +4651,10 @@ func (m *SetSeedNodeRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.NodeId)
+	if l > 0 {
+		n += 1 + l + sovSysRpcApi(uint64(l))
+	}
 	l = len(m.InternalIp)
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
@@ -5008,6 +4702,10 @@ func (m *UpdateSeedNodeRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
+	l = len(m.NodeId)
+	if l > 0 {
+		n += 1 + l + sovSysRpcApi(uint64(l))
+	}
 	l = len(m.InternalIp)
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
@@ -5035,8 +4733,8 @@ func (m *GetSeedNodeListResponse) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
-	if len(m.SeedPeers) > 0 {
-		for _, e := range m.SeedPeers {
+	if len(m.Nodes) > 0 {
+		for _, e := range m.Nodes {
 			l = e.Size()
 			n += 1 + l + sovSysRpcApi(uint64(l))
 		}
@@ -5260,6 +4958,17 @@ func (m *ReportTaskResourceExpenseRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.NodeType != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.NodeType))
+	}
+	l = len(m.NodeId)
+	if l > 0 {
+		n += 1 + l + sovSysRpcApi(uint64(l))
+	}
+	if m.Usage != nil {
+		l = m.Usage.Size()
+		n += 1 + l + sovSysRpcApi(uint64(l))
+	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
 	}
@@ -5409,10 +5118,10 @@ func (m *YarnNodeInfo) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
 			}
-			var stringLen uint64
+			m.NodeType = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSysRpcApi
@@ -5422,24 +5131,11 @@ func (m *YarnNodeInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.NodeType |= NodeType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.NodeType = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
@@ -5694,7 +5390,7 @@ func (m *YarnNodeInfo) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.ResourceUsed == nil {
-				m.ResourceUsed = &ResourceUsedDetailShow{}
+				m.ResourceUsed = &types.ResourceUsageOverview{}
 			}
 			if err := m.ResourceUsed.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -5832,6 +5528,25 @@ func (m *YarnNodeInfo) Unmarshal(dAtA []byte) error {
 			}
 			m.Name = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 14:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field RelatePeers", wireType)
+			}
+			m.RelatePeers = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.RelatePeers |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
@@ -6081,10 +5796,10 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
 			}
-			var stringLen uint64
+			m.NodeType = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSysRpcApi
@@ -6094,24 +5809,11 @@ func (m *YarnRegisteredPeer) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.NodeType |= NodeType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.NodeType = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeDetail", wireType)
@@ -6378,6 +6080,114 @@ func (m *YarnRegisteredPeerDetail) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
+			}
+			m.Duration = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Duration |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskCount", wireType)
+			}
+			m.TaskCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TaskCount |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TaskIdList", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TaskIdList = append(m.TaskIdList, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FileCount", wireType)
+			}
+			m.FileCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FileCount |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FileTotalSize", wireType)
+			}
+			m.FileTotalSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FileTotalSize |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
@@ -6463,6 +6273,38 @@ func (m *SeedPeer) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
 			}
 			var stringLen uint64
@@ -6493,7 +6335,7 @@ func (m *SeedPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalIp = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
 			}
@@ -6525,7 +6367,7 @@ func (m *SeedPeer) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalPort = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ConnState", wireType)
 			}
@@ -6540,801 +6382,6 @@ func (m *SeedPeer) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.ConnState |= int32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *YarnRegisteredJobNode) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSysRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: YarnRegisteredJobNode: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: YarnRegisteredJobNode: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Id = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.InternalIp = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ExternalIp = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.InternalPort = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ExternalPort = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Information == nil {
-				m.Information = &ResourceUsedDetailShow{}
-			}
-			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
-			}
-			m.Duration = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Duration |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Task", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Task == nil {
-				m.Task = &YarnRegisteredJobNodeTaskIds{}
-			}
-			if err := m.Task.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *YarnRegisteredJobNodeTaskIds) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSysRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: YarnRegisteredJobNodeTaskIds: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: YarnRegisteredJobNodeTaskIds: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Count", wireType)
-			}
-			m.Count = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Count |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TaskIds", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TaskIds = append(m.TaskIds, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *YarnRegisteredDataNode) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSysRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: YarnRegisteredDataNode: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: YarnRegisteredDataNode: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Id = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.InternalIp = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExternalIp", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ExternalIp = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.InternalPort = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExternalPort", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ExternalPort = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Information == nil {
-				m.Information = &ResourceUsedDetailShow{}
-			}
-			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Duration", wireType)
-			}
-			m.Duration = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Duration |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Delta", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Delta == nil {
-				m.Delta = &YarnRegisteredDataNodeDelta{}
-			}
-			if err := m.Delta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *YarnRegisteredDataNodeDelta) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSysRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: YarnRegisteredDataNodeDelta: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: YarnRegisteredDataNodeDelta: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileCount", wireType)
-			}
-			m.FileCount = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.FileCount |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileTotalSize", wireType)
-			}
-			m.FileTotalSize = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.FileTotalSize |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -7499,6 +6546,76 @@ func (m *GetNodeInfoResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *GetRegisteredPeersRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowSysRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GetRegisteredPeersRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GetRegisteredPeersRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
+			}
+			m.NodeType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NodeType |= NodeType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *GetRegisteredPeersResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -7581,7 +6698,7 @@ func (m *GetRegisteredPeersResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field JobNodes", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Nodes", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7608,16 +6725,67 @@ func (m *GetRegisteredPeersResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.JobNodes = append(m.JobNodes, &YarnRegisteredJobNode{})
-			if err := m.JobNodes[len(m.JobNodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Nodes = append(m.Nodes, &YarnRegisteredPeer{})
+			if err := m.Nodes[len(m.Nodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DataNodes", wireType)
+		default:
+			iNdEx = preIndex
+			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
 			}
-			var msglen int
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DeleteRegisteredNodeRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowSysRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DeleteRegisteredNodeRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DeleteRegisteredNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSysRpcApi
@@ -7627,25 +6795,23 @@ func (m *GetRegisteredPeersResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthSysRpcApi
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthSysRpcApi
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.DataNodes = append(m.DataNodes, &YarnRegisteredDataNode{})
-			if err := m.DataNodes[len(m.DataNodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Id = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -7700,6 +6866,38 @@ func (m *SetSeedNodeRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
 			}
 			var stringLen uint64
@@ -7730,7 +6928,7 @@ func (m *SetSeedNodeRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalIp = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
 			}
@@ -7985,6 +7183,38 @@ func (m *UpdateSeedNodeRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalIp", wireType)
 			}
 			var stringLen uint64
@@ -8015,7 +7245,7 @@ func (m *UpdateSeedNodeRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.InternalIp = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InternalPort", wireType)
 			}
@@ -8151,7 +7381,7 @@ func (m *GetSeedNodeListResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SeedPeers", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Nodes", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -8178,8 +7408,8 @@ func (m *GetSeedNodeListResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.SeedPeers = append(m.SeedPeers, &SeedPeer{})
-			if err := m.SeedPeers[len(m.SeedPeers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Nodes = append(m.Nodes, &SeedPeer{})
+			if err := m.Nodes[len(m.Nodes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -9456,7 +8686,7 @@ func (m *ReportTaskEventRequest) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.TaskEvent == nil {
-				m.TaskEvent = &TaskEventDeclare{}
+				m.TaskEvent = &types.TaskEvent{}
 			}
 			if err := m.TaskEvent.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -9513,6 +8743,93 @@ func (m *ReportTaskResourceExpenseRequest) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: ReportTaskResourceExpenseRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
+			}
+			m.NodeType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NodeType |= NodeType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Usage", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowSysRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthSysRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Usage == nil {
+				m.Usage = &types.ResourceUsageOverview{}
+			}
+			if err := m.Usage.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipSysRpcApi(dAtA[iNdEx:])

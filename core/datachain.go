@@ -6,6 +6,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -170,13 +172,13 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // TODO 本地存储event事件
-func (dc *DataChain) StoreTaskEvent(event *types.TaskEventInfo) error {
+func (dc *DataChain) StoreTaskEvent(event *libTypes.TaskEvent) error {
 	// todo:
 	return nil
 }
 
 // TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentity(identity *types.NodeAlias) error {return nil}
+func (dc *DataChain) StoreIdentity(identity *apipb.Organization) error {return nil}
 func (dc *DataChain) DelIdentity() error {return nil}
 
 func (dc *DataChain) GetYarnName() (string, error) {
@@ -189,7 +191,7 @@ func (dc *DataChain) GetIdentityId() (string, error) {
 	return "", nil
 }
 
-func (dc *DataChain) GetIdentity() (*types.NodeAlias, error) {
+func (dc *DataChain) GetIdentity() (*apipb.Organization, error) {
 	// todo: implements by datacenter
 	return nil, nil
 }
@@ -222,8 +224,8 @@ func (dc *DataChain) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray
 	return nil, nil
 }
 // TODO 未完成 ...
-func (dc *DataChain) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
-	return types.NONCONNECTED, nil
+func (dc *DataChain) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error) {
+	return types.NonConnected, nil
 }
 
 func (dc *DataChain) DeleteSeedNode(id string) error {
@@ -231,30 +233,30 @@ func (dc *DataChain) DeleteSeedNode(id string) error {
 	return nil
 }
 
-func (dc *DataChain) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
+func (dc *DataChain) GetSeedNode(id string) (*pb.SeedPeer, error) {
 	return rawdb.ReadSeedNode(dc.db, id)
 }
 
-func (dc *DataChain) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
+func (dc *DataChain) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return rawdb.ReadAllSeedNodes(dc.db)
 }
 // TODO 未完成 ...
-func (dc *DataChain) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+func (dc *DataChain) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
 	// todo: need to establish conn to registered node. heartbeat detection
-	return types.NONCONNECTED, nil
+	return types.NonConnected, nil
 }
 
-func (dc *DataChain) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+func (dc *DataChain) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
 	rawdb.DeleteRegisterNode(dc.db, typ, id)
 	return nil
 }
 
-func (dc *DataChain) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
+func (dc *DataChain) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
 	return rawdb.ReadRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataChain) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+func (dc *DataChain) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
 	return rawdb.ReadAllRegisterNodes(dc.db, typ)
 }
 

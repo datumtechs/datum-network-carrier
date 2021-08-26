@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -326,8 +327,8 @@ func (t *TwoPC) validateOrganizationIdentity(identityInfo *pb.TaskOrganizationId
 	if nil != err {
 		return ctypes.ErrOrganizationIdentity
 	}
-	has, err := t.dataCenter.HasIdentity(&types.NodeAlias{
-		Name:       string(identityInfo.Name),
+	has, err := t.dataCenter.HasIdentity(&apipb.Organization{
+		NodeName:       string(identityInfo.Name),
 		NodeId:     string(identityInfo.NodeId),
 		IdentityId: string(identityInfo.IdentityId),
 	})

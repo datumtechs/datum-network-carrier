@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
+	"sync"
 	"time"
 )
 
@@ -17,10 +18,11 @@ const (
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
 	dataCenter iface.ForResourceDB // Low level persistent database to store final content.
-	//eventCh                chan *types.TaskEventInfo
+	//eventCh                chan *libTypes.TaskEvent
 	slotUnit *types.Slot
 	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue     []*types.RemoteResourceTable
+	remoteTableQueueMu sync.RWMutex
 	mockIdentityIdsFile  string
 	mockIdentityIdsCache map[string]struct{}
 }
@@ -28,7 +30,7 @@ type Manager struct {
 func NewResourceManager(dataCenter iface.ForResourceDB, mockIdentityIdsFile string) *Manager {
 	m := &Manager{
 		dataCenter: dataCenter,
-		//eventCh:          make(chan *types.TaskEventInfo, 0),
+		//eventCh:          make(chan *libTypes.TaskEvent, 0),
 		//localTables:      make(map[string]*types.LocalResourceTable),
 		//localTableQueue:  make([]*types.LocalResourceTable, 0),
 		remoteTableQueue:    make([]*types.RemoteResourceTable, 0),
@@ -209,7 +211,11 @@ func (m *Manager) CleanLocalResourceTables() error {
 //func (m *Manager) CleanRemoteResourceTables() {
 //	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
 //}
-func (m *Manager) GetRemoteResouceTables() []*types.RemoteResourceTable { return m.remoteTableQueue }
+func (m *Manager) GetRemoteResourceTables() []*types.RemoteResourceTable {
+	m.remoteTableQueueMu.RLock()
+	defer m.remoteTableQueueMu.RUnlock()
+	return m.remoteTableQueue
+}
 func (m *Manager) refreshOrgResourceTable() error {
 	resources, err := m.dataCenter.GetResourceList()
 	if nil != err {
@@ -221,6 +227,9 @@ func (m *Manager) refreshOrgResourceTable() error {
 	for i, r := range resources {
 		remoteResourceArr[i] = types.NewOrgResourceFromResource(r)
 	}
+
+	m.remoteTableQueueMu.Lock()
+	defer m.remoteTableQueueMu.Unlock()
 
 	m.remoteTableQueue = remoteResourceArr
 

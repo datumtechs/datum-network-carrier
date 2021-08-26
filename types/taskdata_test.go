@@ -8,7 +8,7 @@ import (
 )
 
 var testTaskdata = NewTask(&types.TaskData{
-	Identity:             "",
+	IdentityId:             "",
 	NodeId:               "",
 	NodeName:             "",
 	DataId:               "",
@@ -19,7 +19,7 @@ var testTaskdata = NewTask(&types.TaskData{
 	EventCount:           0,
 	Desc:                 "",
 	PartnerList:          nil,
-	EventDataList:        nil,
+	TaskEventList:        nil,
 })
 
 func TestTaskDataEncode(t *testing.T) {

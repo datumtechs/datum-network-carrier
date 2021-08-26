@@ -18,7 +18,7 @@ import (
 const pubsubMessageTimeout = 30 * time.Second
 
 // subHandler represents handler for a given subscription.
-type subHandler func(context.Context, proto.Message) error
+type subHandler func(context.Context, peer.ID, proto.Message) error
 
 // noopValidator is a no-op that only decodes the message, but does not check its contents.
 func (s *Service) noopValidator(_ context.Context, _ peer.ID, msg *pubsub.Message) pubsub.ValidationResult {
@@ -36,8 +36,38 @@ func (s *Service) registerSubscribers() {
 	s.subscribe(
 		p2p.GossipTestDataTopicFormat,
 		s.validateGossipTestData,
-		s.gossipTestDataSubscriber)
-	//TODO: more subscribe to be register...
+		s.gossipTestDataSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcPrepareMsgTopicFormat,
+		s.validatePrepareMessagePubSub,
+		s.prepareMessageSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcPrepareVoteTopicFormat,
+		s.validatePrepareVotePubSub,
+		s.prepareVoteSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcConfirmMsgTopicFormat,
+		s.validateConfirmMessagePubSub,
+		s.confirmMessageSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcConfirmVoteTopicFormat,
+		s.validateConfirmVotePubSub,
+		s.confirmVoteSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcCommitMsgTopicFormat,
+		s.validateCommitMessagePubSub,
+		s.commitMessageSubscriber,
+	)
+	s.subscribe(
+		p2p.TwoPcTaskResultMsgTopicFormat,
+		s.validateTaskResultMessagePubSub,
+		s.taskResultMessageSubscriber,
+	)
 }
 
 // subscribe to a given topic with a given validator and subscription handler.
@@ -90,7 +120,7 @@ func (s *Service) subscribeWithBase(topic string, validator pubsub.ValidatorEx, 
 			return
 		}
 
-		if err := handle(ctx, msg.ValidatorData.(proto.Message)); err != nil {
+		if err := handle(ctx, msg.ReceivedFrom, msg.ValidatorData.(proto.Message)); err != nil {
 			log.WithError(err).Debug("Could not handle p2p pubsub")
 			messageFailedProcessingCounter.WithLabelValues(topic).Inc()
 			return

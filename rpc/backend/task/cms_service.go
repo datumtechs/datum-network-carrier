@@ -5,13 +5,19 @@ import (
 	"errors"
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
 
-func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.EmptyGetParams) (*pb.GetTaskDetailListResponse, error) {
+func (svr *TaskServiceServer) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apipb.SimpleResponse, error) {
+	return nil, nil
+}
+
+func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTaskDetailListResponse, error) {
 	tasks, err := svr.B.GetTaskDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
@@ -20,8 +26,9 @@ func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *pb.Emp
 	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
 	for i, task := range tasks {
 		t := &pb.GetTaskDetailResponse{
-			Information: types.ConvertTaskDetailShowToPB(task),
-			Role: task.Role,
+			Information: task,
+			//TODO: 待确认
+			//Role: task.Role,
 		}
 		arr[i] = t
 	}
@@ -44,7 +51,7 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
-		TaskEventList: types.ConvertTaskEventArrToPB(events),
+		TaskEventList: events,
 	}, nil
 }
 
@@ -60,14 +67,11 @@ func (svr *TaskServiceServer) GetTaskEventListByTaskIds (ctx context.Context, re
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
-		TaskEventList: types.ConvertTaskEventArrToPB(events),
+		TaskEventList: events,
 	}, nil
 }
 
 func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
-	if req == nil || req.Owner == nil {
-		return nil, errors.New("required owner")
-	}
 	if req.OperationCost == nil {
 		return nil, errors.New("required operationCost")
 	}
@@ -90,7 +94,7 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
 	// add  dataSuppliers
-	dataSuppliers := make([]*libTypes.TaskMetadataSupplierData, len(req.DataSupplier))
+	dataSuppliers := make([]*libTypes.TaskDataSupplier, len(req.DataSupplier))
 	for i, v := range req.DataSupplier {
 
 		metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
@@ -101,36 +105,37 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
 		}
 
-		colTmp := make(map[uint32]*libTypes.ColumnMeta, len(metaData.MetaData.ColumnMetas))
-		for _, col := range metaData.MetaData.ColumnMetas {
-			colTmp[col.Cindex] = col
+		colTmp := make(map[uint32]*libTypes.MetadataColumn, len(metaData.Information.MetadataColumnList))
+		for _, col := range metaData.Information.MetadataColumnList {
+			colTmp[col.CIndex] = col
 		}
 
-		columnArr := make([]*libTypes.ColumnMeta, len(v.MetaDataInfo.ColumnIndexList))
+		columnArr := make([]*libTypes.MetadataColumn, len(v.MetaDataInfo.ColumnIndexList))
 		for j, colIndex := range v.MetaDataInfo.ColumnIndexList {
 			if col, ok := colTmp[uint32(colIndex)]; ok {
-				columnArr[j] = &libTypes.ColumnMeta{
-					Cindex:   col.Cindex,
-					Ctype:    col.Ctype,
-					Cname:    col.Cname,
-					Csize:    col.Csize,
-					Ccomment: col.Ccomment,
-				}
+				columnArr[j] = col
+				/*columnArr[j] = &libTypes.MetadataColumn{
+					CIndex:   col.CIndex,
+					CType:    col.CType,
+					CName:    col.CName,
+					CSize:    col.CSize,
+					CComment: col.CComment,
+				}*/
 			} else {
 				return nil, fmt.Errorf("not found column of metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
 					v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId, colIndex)
 			}
 		}
 
-		dataSuppliers[i] = &libTypes.TaskMetadataSupplierData{
-			Organization: &libTypes.OrganizationData{
+		dataSuppliers[i] = &libTypes.TaskDataSupplier{
+			MemberInfo: &apipb.TaskOrganization{
 				PartyId:  v.MemberInfo.PartyId,
-				NodeName: v.MemberInfo.Name,
+				NodeName: v.MemberInfo.NodeName,
 				NodeId:   v.MemberInfo.NodeId,
-				Identity: v.MemberInfo.IdentityId,
+				IdentityId: v.MemberInfo.IdentityId,
 			},
-			MetaId:     v.MetaDataInfo.MetaDataId,
-			MetaName:   metaData.MetaData.MetaDataSummary.TableName,
+			MetadataId:     v.MetaDataInfo.MetaDataId,
+			MetadataName:   metaData.Information.MetaDataSummary.TableName,
 			ColumnList: columnArr,
 		}
 	}
@@ -141,33 +146,33 @@ func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.Pu
 	taskMsg.Data.SetMetadataSupplierArr(dataSuppliers)
 
 	// add receivers
-	receivers := make([]*libTypes.TaskResultReceiverData, len(req.Receivers))
-	for i, v := range req.Receivers {
-
-		providers := make([]*libTypes.OrganizationData, len(v.Providers))
-		for j, val := range v.Providers {
-			providers[j] = &libTypes.OrganizationData{
-				PartyId:  val.PartyId,
-				NodeName: val.Name,
-				NodeId:   val.NodeId,
-				Identity: val.IdentityId,
-			}
-		}
-
-		receivers[i] = &libTypes.TaskResultReceiverData{
-			Receiver: &libTypes.OrganizationData{
-				PartyId:  v.MemberInfo.PartyId,
-				NodeName: v.MemberInfo.Name,
-				NodeId:   v.MemberInfo.NodeId,
-				Identity: v.MemberInfo.IdentityId,
-			},
-			Provider: providers,
-		}
-	}
+	receivers := req.Receivers
+	//receivers := make([]*libTypes.TaskResultReceiver, len(req.Receivers))
+	//for i, v := range req.Receivers {
+	//	providers := make([]*apipb.TaskOrganization, len(v.Providers))
+	//	for j, val := range v.Providers {
+	//		providers[j] = val
+	//		/*providers[j] = &apipb.OrganizationData{
+	//			PartyId:  val.PartyId,
+	//			NodeName: val.Name,
+	//			NodeId:   val.NodeId,
+	//			Identity: val.IdentityId,
+	//		}*/
+	//	}
+	//	receivers[i] = &libTypes.TaskResultReceiver{
+	//		Receiver: &apipb.TaskOrganization{
+	//			PartyId:  v.MemberInfo.PartyId,
+	//			NodeName: v.MemberInfo.Name,
+	//			NodeId:   v.MemberInfo.NodeId,
+	//			Identity: v.MemberInfo.IdentityId,
+	//		},
+	//		Providers: providers,
+	//	}
+	//}*/
 	taskMsg.Data.SetReceivers(receivers)
 
 	// add empty powerSuppliers
-	taskMsg.Data.TaskData().ResourceSupplier = make([]*libTypes.TaskResourceSupplierData, 0)
+	taskMsg.Data.TaskData().PowerSupplier = make([]*libTypes.TaskPowerSupplier, 0)
 
 	// add taskId
 	taskId := taskMsg.SetTaskId()

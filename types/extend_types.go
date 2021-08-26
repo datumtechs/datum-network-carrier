@@ -1,70 +1,72 @@
 package types
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *Task, role string) *TaskDetailShow {
+func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow {
 	taskData := input.TaskData()
-	detailShow := &TaskDetailShow{
+	detailShow := &pb.TaskDetailShow{
 		TaskId:   taskData.GetTaskId(),
 		TaskName: taskData.GetTaskName(),
-		Role:     role,
-		Owner: &TaskNodeAlias{
+		//TODO: 需要确认部分
+		//Role:     role,
+		Owner: &apipb.TaskOrganization{
 			PartyId:    taskData.GetPartyId(),
-			Name:       taskData.GetNodeName(),
+			NodeName:       taskData.GetNodeName(),
 			NodeId:     taskData.GetNodeId(),
-			IdentityId: taskData.GetIdentity(),
+			IdentityId: taskData.GetIdentityId(),
 		},
-		AlgoSupplier: &TaskNodeAlias{
+		AlgoSupplier: &apipb.TaskOrganization{
 			PartyId:    taskData.GetPartyId(),
-			Name:       taskData.GetNodeName(),
+			NodeName:       taskData.GetNodeName(),
 			NodeId:     taskData.GetNodeId(),
-			IdentityId: taskData.GetIdentity(),
+			IdentityId: taskData.GetIdentityId(),
 		},
-		DataSupplier:  make([]*TaskDataSupplierShow, 0, len(taskData.GetMetadataSupplier())),
-		PowerSupplier: make([]*TaskPowerSupplierShow, 0, len(taskData.GetResourceSupplier())),
-		Receivers:     make([]*TaskNodeAlias, 0, len(taskData.GetReceivers())),
+		DataSupplier:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSupplier())),
+		PowerSupplier: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSupplier())),
+		Receivers:     make([]*apipb.TaskOrganization, 0, len(taskData.GetReceivers())),
 		CreateAt:      taskData.GetCreateAt(),
 		StartAt:       taskData.GetStartAt(),
 		EndAt:         taskData.GetEndAt(),
 		State:         taskData.GetState(),
-		OperationCost: &TaskOperationCost{
-			Processor: uint64(taskData.GetTaskResource().GetCostProcessor()),
-			Mem:       taskData.GetTaskResource().GetCostMem(),
-			Bandwidth: taskData.GetTaskResource().GetCostBandwidth(),
-			Duration:  taskData.GetTaskResource().GetDuration(),
+		OperationCost: &apipb.TaskResourceCostDeclare{
+			CostProcessor: taskData.GetOperationCost().GetCostProcessor(),
+			CostMem:       taskData.GetOperationCost().GetCostMem(),
+			CostBandwidth: taskData.GetOperationCost().GetCostBandwidth(),
+			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
 	}
 	// DataSupplier
-	for _, metadataSupplier := range taskData.GetMetadataSupplier() {
-		dataSupplier := &TaskDataSupplierShow{
-			MemberInfo: &TaskNodeAlias{
-				PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
-				Name:       metadataSupplier.GetOrganization().GetNodeName(),
-				NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
-				IdentityId: metadataSupplier.GetOrganization().GetIdentity(),
+	for _, metadataSupplier := range taskData.GetDataSupplier() {
+		dataSupplier := &pb.TaskDataSupplierShow{
+			MemberInfo: &apipb.TaskOrganization{
+				PartyId:    metadataSupplier.GetMemberInfo().GetPartyId(),
+				NodeName:       metadataSupplier.GetMemberInfo().GetNodeName(),
+				NodeId:     metadataSupplier.GetMemberInfo().GetNodeId(),
+				IdentityId: metadataSupplier.GetMemberInfo().GetIdentityId(),
 			},
-			MetaDataId:   metadataSupplier.GetMetaId(),
-			MetaDataName: metadataSupplier.GetMetaName(),
+			MetadataId:   metadataSupplier.GetMetadataId(),
+			MetadataName: metadataSupplier.GetMetadataName(),
 		}
 		detailShow.DataSupplier = append(detailShow.DataSupplier, dataSupplier)
 	}
 	// powerSupplier
-	for _, data := range taskData.GetResourceSupplier() {
-		detailShow.PowerSupplier = append(detailShow.PowerSupplier, &TaskPowerSupplierShow{
-			MemberInfo: &TaskNodeAlias{
+	for _, data := range taskData.GetPowerSupplier() {
+		detailShow.PowerSupplier = append(detailShow.PowerSupplier, &pb.TaskPowerSupplierShow{
+			MemberInfo: &apipb.TaskOrganization{
 				PartyId:    data.GetOrganization().GetPartyId(),
-				Name:       data.GetOrganization().GetNodeName(),
+				NodeName:       data.GetOrganization().GetNodeName(),
 				NodeId:     data.GetOrganization().GetNodeId(),
-				IdentityId: data.GetOrganization().GetIdentity(),
+				IdentityId: data.GetOrganization().GetIdentityId(),
 			},
-			ResourceUsage: &ResourceUsage{
+			PowerInfo: &libTypes.ResourceUsageOverview{
 				TotalMem:       data.GetResourceUsedOverview().GetTotalMem(),
 				UsedMem:        data.GetResourceUsedOverview().GetUsedMem(),
-				TotalProcessor: uint64(data.GetResourceUsedOverview().GetTotalProcessor()),
-				UsedProcessor:  uint64(data.GetResourceUsedOverview().GetUsedProcessor()),
+				TotalProcessor: data.GetResourceUsedOverview().GetTotalProcessor(),
+				UsedProcessor:  data.GetResourceUsedOverview().GetUsedProcessor(),
 				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
 				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
 			},
@@ -72,43 +74,41 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *TaskDetailShow {
 	}
 	// Receivers
 	for _, receiver := range taskData.GetReceivers() {
-		detailShow.Receivers = append(detailShow.Receivers, &TaskNodeAlias{
+		detailShow.Receivers = append(detailShow.Receivers, &apipb.TaskOrganization{
 			PartyId:    receiver.GetReceiver().GetPartyId(),
-			Name:       receiver.GetReceiver().GetNodeName(),
+			NodeName:       receiver.GetReceiver().GetNodeName(),
 			NodeId:     receiver.GetReceiver().GetNodeId(),
-			IdentityId: receiver.GetReceiver().GetIdentity(),
+			IdentityId: receiver.GetReceiver().GetIdentityId(),
 		})
 	}
 	return detailShow
 }
 
-func NewTaskEventFromAPIEvent(input []*api.TaskEvent) []*TaskEvent {
-	result := make([]*TaskEvent, 0, len(input))
+func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*pb.TaskEventShow {
+	result := make([]*pb.TaskEventShow, 0, len(input))
 	for _, event := range input {
-		result = append(result, &TaskEvent{
+		result = append(result, &pb.TaskEventShow{
 			TaskId:   event.GetTaskId(),
 			Type:     event.GetType(),
 			CreateAt: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner: &NodeAlias{
-				Name:       event.GetOwner().GetName(),
-				NodeId:     event.GetOwner().GetNodeId(),
-				IdentityId: event.GetOwner().GetIdentityId(),
+			Owner:    &apipb.Organization{
+				IdentityId: event.GetIdentityId(),
 			},
 		})
 	}
 	return result
 }
 
-func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo {
-	orgMetaDataInfo := &OrgMetaDataInfo{
-		Owner: &NodeAlias{
-			Name:       input.data.GetNodeName(),
+func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailResponse {
+	response := &pb.GetMetaDataDetailResponse{
+		Owner: &apipb.Organization{
+			NodeName:   input.data.GetNodeName(),
 			NodeId:     input.data.GetNodeId(),
-			IdentityId: input.data.GetIdentity(),
+			IdentityId: input.data.GetIdentityId(),
 		},
-		MetaData: &MetaDataInfo{
-			MetaDataSummary: &MetaDataSummary{
+		Information: &libTypes.MetadataDetail{
+			MetaDataSummary: &libTypes.MetaDataSummary{
 				MetaDataId: input.data.GetDataId(),
 				OriginId:   input.data.GetOriginId(),
 				TableName:  input.data.GetTableName(),
@@ -116,28 +116,19 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *OrgMetaDataInfo {
 				FilePath:   input.data.GetFilePath(),
 				Rows:       uint32(input.data.GetRows()),
 				Columns:    uint32(input.data.GetColumns()),
-				Size:       uint32(input.data.GetSize_()),
+				Size_:      uint32(input.data.GetSize_()),
 				FileType:   input.data.GetFileType(),
-				HasTitle:   input.data.GetHasTitleRow(),
+				HasTitle:   input.data.GetHasTitle(),
 				State:      input.data.GetState(),
 			},
-			ColumnMetas: make([]*libtypes.ColumnMeta, 0, len(input.data.GetColumnMetaList())),
+			MetadataColumnList: input.data.GetMetadataColumnList(),
 		},
 	}
-	for _, columnMeta := range input.data.GetColumnMetaList() {
-		orgMetaDataInfo.MetaData.ColumnMetas = append(orgMetaDataInfo.MetaData.ColumnMetas, &libtypes.ColumnMeta{
-			Cindex:   columnMeta.GetCindex(),
-			Cname:    columnMeta.GetCname(),
-			Ctype:    columnMeta.GetCtype(),
-			Csize:    columnMeta.GetCsize(),
-			Ccomment: columnMeta.GetCcomment(),
-		})
-	}
-	return orgMetaDataInfo
+	return response
 }
 
-func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*OrgMetaDataInfo {
-	result := make([]*OrgMetaDataInfo, 0, input.Len())
+func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMetaDataDetailResponse {
+	result := make([]*pb.GetMetaDataDetailResponse, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue
@@ -149,7 +140,7 @@ func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*OrgMetaDat
 
 func NewOrgResourceFromResource(input *Resource) *RemoteResourceTable {
 	return &RemoteResourceTable{
-		identityId: input.data.Identity,
+		identityId: input.data.IdentityId,
 		total: &resource{
 			mem:       input.data.TotalMem,
 			processor: input.data.TotalProcessor,
@@ -162,10 +153,11 @@ func NewOrgResourceFromResource(input *Resource) *RemoteResourceTable {
 		},
 	}
 }
-func NewOrgResourceArrayFromResourceArray(input ResourceArray) []*RemoteResourceTable {
-	result := make([]*RemoteResourceTable, input.Len())
-	for i, resource := range input {
-		result[i] = NewOrgResourceFromResource(resource)
-	}
-	return result
-}
+
+//func NewOrgResourceArrayFromResourceArray(input ResourceArray) []*RemoteResourceTable {
+//	result := make([]*RemoteResourceTable, input.Len())
+//	for i, resource := range input {
+//		result[i] = NewOrgResourceFromResource(resource)
+//	}
+//	return result
+//}

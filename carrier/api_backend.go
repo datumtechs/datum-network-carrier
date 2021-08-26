@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -24,13 +26,13 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 }
 
 // system (the yarn node self info)
-func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
-	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
+func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
+	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed to get all `job nodes`, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
-	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed to get all `data nodes, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
@@ -38,36 +40,30 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	jobsLen := len(jobNodes)
 	datasLen := len(dataNodes)
 	length := jobsLen + datasLen
-	registerNodes := make([]*types.RegisteredNodeDetail, length)
+	registerNodes := make([]*pb.YarnRegisteredPeer, length)
 	if len(jobNodes) != 0 {
 		for i, v := range jobNodes {
-			n := &types.RegisteredNodeDetail{
-				NodeType: types.PREFIX_TYPE_JOBNODE.String(),
-			}
-			n.RegisteredNodeInfo = &types.RegisteredNodeInfo{
-				Id:           v.Id,
-				InternalIp:   v.InternalIp,
-				InternalPort: v.InternalPort,
-				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.ExternalPort,
-				ConnState:    v.ConnState,
+			n := &pb.YarnRegisteredPeer{
+				NodeType:   pb.NodeType_JobNode,
+				NodeDetail: v,
 			}
 			registerNodes[i] = n
 		}
 	}
 	if len(dataNodes) != 0 {
 		for i, v := range dataNodes {
-			n := &types.RegisteredNodeDetail{
-				NodeType: types.PREFIX_TYPE_DATANODE.String(),
+			n := &pb.YarnRegisteredPeer{
+				NodeType:   pb.NodeType_DataNode,
+				NodeDetail: v,
 			}
-			n.RegisteredNodeInfo = &types.RegisteredNodeInfo{
+			/*n.RegisteredNodeInfo = &pb.YarnRegisteredPeerDetail{
 				Id:           v.Id,
 				InternalIp:   v.InternalIp,
 				InternalPort: v.InternalPort,
 				ExternalIp:   v.ExternalIp,
 				ExternalPort: v.ExternalPort,
 				ConnState:    v.ConnState,
-			}
+			}*/
 			registerNodes[jobsLen+i] = n
 		}
 	}
@@ -83,89 +79,90 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*types.YarnNodeInfo, error) {
 	if nil != identity {
 		identityId = identity.IdentityId
 		nodeId = identity.NodeId
-		nodeName = identity.Name
+		nodeName = identity.NodeName
 	}
 
 	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
-	return &types.YarnNodeInfo{
-		NodeType:     types.PREFIX_TYPE_YARNNODE.String(),
+	return &pb.YarnNodeInfo{
+		NodeType:     pb.NodeType_YarnNode,
 		NodeId:       nodeId,
-		InternalIp:   "",                             //
-		ExternalIp:   "",                             //
-		InternalPort: "",                             //
-		ExternalPort: "",                             //
-		IdentityType: types.IdentityTypeDID.String(), // 默认先是 DID
+		InternalIp:   "",                               //
+		ExternalIp:   "",                               //
+		InternalPort: "",                               //
+		ExternalPort: "",                               //
+		IdentityType: types.IDENTITY_TYPE_DID.String(), // 默认先是 DID
 		IdentityId:   identityId,
 		Name:         nodeName,
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
-		State:        types.YarnStateActive.String(),
+		State:        types.YARN_STATE_ACTIVE.String(),
 	}, nil
 }
 
-func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
+func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, error) {
 	// all dataNodes on yarnNode
-	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_DATANODE)
+	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
 		return nil, err
 	}
-	// all jobNodes on yarnNode
-	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(types.PREFIX_TYPE_JOBNODE)
-	if nil != err {
-		return nil, err
-	}
-	jns := make([]*types.YarnRegisteredJobNode, len(jobNodes))
-	for i, v := range jobNodes {
 
+	// all jobNodes on yarnNode
+	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
+	if nil != err {
+		return nil, err
+	}
+
+	result := make([]*pb.YarnRegisteredPeer, 0)
+
+	// 处理计算节点
+	for _, v := range jobNodes {
 		var duration uint64
 		node, has := s.carrier.resourceClientSet.QueryJobNodeClient(v.Id)
 		if has {
 			duration = uint64(node.RunningDuration())
 		}
-
-		n := &types.YarnRegisteredJobNode{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			ExternalIp:   v.ExternalIp,
-			InternalPort: v.InternalPort,
-			ExternalPort: v.ExternalPort,
-			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: duration, // ms
+		v.TaskCount, _ = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
+		v.TaskIdList, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
+		v.Duration = duration
+		registeredPeer := &pb.YarnRegisteredPeer{
+			NodeType:   pb.NodeType_JobNode,
+			NodeDetail: v,
 		}
-
-		n.Task.Count, _ = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
-		n.Task.TaskIds, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
-		jns[i] = n
+		result = append(result, registeredPeer)
 	}
-	dns := make([]*types.YarnRegisteredDataNode, len(jobNodes))
-	for i, v := range dataNodes {
 
+	// 处理数据节点
+	for _, v := range dataNodes {
 		var duration uint64
 		node, has := s.carrier.resourceClientSet.QueryDataNodeClient(v.Id)
 		if has {
 			duration = uint64(node.RunningDuration())
 		}
-
-		n := &types.YarnRegisteredDataNode{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			ExternalIp:   v.ExternalIp,
-			InternalPort: v.InternalPort,
-			ExternalPort: v.ExternalPort,
-			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: duration, // ms
+		v.Duration = duration // ms
+		v.FileCount = 0
+		v.FileTotalSize = 0
+		registeredPeer := &pb.YarnRegisteredPeer{
+			NodeType:   pb.NodeType_DataNode,
+			NodeDetail: v,
 		}
-		n.Delta.FileCount = 0
-		n.Delta.FileTotalSize = 0
-		dns[i] = n
+		result = append(result, registeredPeer)
+		//n := &types.YarnRegisteredDataNode{
+		//	Id:           v.Id,
+		//	InternalIp:   v.InternalIp,
+		//	ExternalIp:   v.ExternalIp,
+		//	InternalPort: v.InternalPort,
+		//	ExternalPort: v.ExternalPort,
+		//	//ResourceUsage:  &types.ResourceUsage{},
+		//	Duration: duration, // ms
+		//}
+		//n.Delta.FileCount = 0
+		//n.Delta.FileTotalSize = 0
+		//dns[i] = n
 	}
-	return &types.YarnRegisteredNodeDetail{
-		JobNodes:  jns,
-		DataNodes: dns,
-	}, nil
+	return result, nil
 }
 
-func (s *CarrierAPIBackend) SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error) {
+func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error) {
 	//TODO: current node need to connect with seed node.(delay processing)
 	return s.carrier.carrierDB.SetSeedNode(seed)
 }
@@ -174,77 +171,77 @@ func (s *CarrierAPIBackend) DeleteSeedNode(id string) error {
 	return s.carrier.carrierDB.DeleteSeedNode(id)
 }
 
-func (s *CarrierAPIBackend) GetSeedNode(id string) (*types.SeedNodeInfo, error) {
+func (s *CarrierAPIBackend) GetSeedNode(id string) (*pb.SeedPeer, error) {
 	return s.carrier.carrierDB.GetSeedNode(id)
 }
 
-func (s *CarrierAPIBackend) GetSeedNodeList() ([]*types.SeedNodeInfo, error) {
+func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return s.carrier.carrierDB.GetSeedNodeList()
 }
 
-func (s *CarrierAPIBackend) SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
 	switch typ {
-	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
-		return types.NONCONNECTED, errors.New("invalid nodeType")
+		return types.NonConnected, errors.New("invalid nodeType")
 	}
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 	}
 
-	if typ == types.PREFIX_TYPE_DATANODE {
+	if typ == pb.PrefixTypeDataNode {
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
 		// add data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 	}
-	node.ConnState = types.CONNECTED
+	node.ConnState = types.Connected.Int32()
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
-		return types.NONCONNECTED, fmt.Errorf("Store registerNode to db failed, %s", err)
+		return types.NonConnected, fmt.Errorf("Store registerNode to db failed, %s", err)
 	}
-	return types.CONNECTED, nil
+	return types.Connected, nil
 }
 
-func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error) {
+func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
 
 	switch typ {
-	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
-		return types.NONCONNECTED, errors.New("invalid nodeType")
+		return types.NonConnected, errors.New("invalid nodeType")
 	}
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 
 		// 算力已发布的jobNode不可以直接删除
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
 
 		if nil != resourceTable {
 			log.Debugf("still have the published computing power information on old jobNode on UpdateRegisterNode, %s", resourceTable.String())
-			return types.NONCONNECTED, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+			return types.NonConnected, fmt.Errorf("still have the published computing power information on old jobNode failed, input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
 				node.Id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
 		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
 		if runningTaskCount > 0 {
-			return types.NONCONNECTED, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
+			return types.NonConnected, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
 		}
 
 		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(node.Id); ok {
@@ -256,21 +253,21 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 		// generate new client
 		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new jobNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
 
 	}
 
-	if typ == types.PREFIX_TYPE_DATANODE {
+	if typ == pb.PrefixTypeDataNode {
 
 		// 先校验 dataNode 上是否已被 使用
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
 		}
 		if dataNodeTable.IsNotEmpty() && dataNodeTable.IsUsed() {
-			return types.NONCONNECTED, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
+			return types.NonConnected, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
 				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
 		}
 
@@ -282,44 +279,44 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ types.RegisteredNodeType, nod
 
 		// remove old data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.Id); rawdb.IsNoDBNotFoundErr(err) {
-			return types.NONCONNECTED, fmt.Errorf("remove disk summary of old dataNode, %s", err)
+			return types.NonConnected, fmt.Errorf("remove disk summary of old dataNode, %s", err)
 		}
 
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("connect new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
 		// add new data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
 		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
-			return types.NONCONNECTED, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
+			return types.NonConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 
 	}
 
 	// remove  old jobNode from db
 	if err := s.carrier.carrierDB.DeleteRegisterNode(typ, node.Id); nil != err {
-		return types.NONCONNECTED, fmt.Errorf("remove old registerNode from db failed, %s", err)
+		return types.NonConnected, fmt.Errorf("remove old registerNode from db failed, %s", err)
 	}
 
 	// add new node to db
-	node.ConnState = types.CONNECTED
+	node.ConnState = types.Connected.Int32()
 	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
-		return types.NONCONNECTED, fmt.Errorf("Store new registerNode to db failed, %s", err)
+		return types.NonConnected, fmt.Errorf("Store new registerNode to db failed, %s", err)
 	}
-	return types.CONNECTED, nil
+	return types.Connected, nil
 }
 
-func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id string) error {
+func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
 	switch typ {
-	case types.PREFIX_TYPE_DATANODE, types.PREFIX_TYPE_JOBNODE:
+	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
 		return errors.New("invalid nodeType")
 	}
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 
 		// 算力已发布的jobNode不可以直接删除
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(id)
@@ -348,7 +345,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 		}
 	}
 
-	if typ == types.PREFIX_TYPE_DATANODE {
+	if typ == pb.PrefixTypeDataNode {
 
 		// 先校验 dataNode 上是否已被 使用
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
@@ -372,28 +369,28 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ types.RegisteredNodeType, id 
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
 }
 
-func (s *CarrierAPIBackend) GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error) {
+func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
 	return s.carrier.carrierDB.GetRegisterNode(typ, id)
 }
 
-func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
 	nodeList, err := s.carrier.carrierDB.GetRegisterNodeList(typ)
 	if nil != err {
 		return nil, err
 	}
 
 	// 需要处理 计算服务 信息
-	if typ == types.PREFIX_TYPE_JOBNODE {
+	if typ == pb.PrefixTypeJobNode {
 		for i, jobNode := range nodeList {
 
 			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(jobNode.Id)
 			if !ok {
-				jobNode.ConnState = types.NONCONNECTED
+				jobNode.ConnState = types.NonConnected.Int32()
 			}
 			if !client.IsConnected() {
-				jobNode.ConnState = types.NONCONNECTED
+				jobNode.ConnState = types.NonConnected.Int32()
 			} else {
-				jobNode.ConnState = types.CONNECTED
+				jobNode.ConnState = types.Connected.Int32()
 			}
 
 			table, err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
@@ -401,14 +398,14 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 				continue
 			}
 			if nil != table {
-				jobNode.ConnState = types.ENABLE_POWER
+				jobNode.ConnState = types.EnablePower.Int32()
 			}
 			taskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(jobNode.Id)
 			if nil != err {
 				continue
 			}
 			if taskCount > 0 {
-				jobNode.ConnState = types.BUSY_POWER
+				jobNode.ConnState = types.BusyPower.Int32()
 			}
 			nodeList[i] = jobNode
 		}
@@ -417,13 +414,13 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ types.RegisteredNodeType) ([
 	return nodeList, nil
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *types.TaskEventInfo) error {
+func (s *CarrierAPIBackend) SendTaskEvent(event *libTypes.TaskEvent) error {
 	// return s.carrier.resourceManager.SendTaskEvent(evengine)
 	return s.carrier.taskManager.SendTaskEvent(event)
 }
 
 // metadata api
-func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error) {
+func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*pb.GetMetaDataDetailResponse, error) {
 	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
 	if metadata == nil {
 		return nil, errors.New("not found metadata by special Id")
@@ -432,18 +429,18 @@ func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*t
 }
 
 // GetMetaDataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error) {
+func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*pb.GetMetaDataDetailResponse, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
 	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
 }
 
-func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error) {
+func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error) {
 	log.WithField("identityId", identityId).Debug("Invoke: GetMetaDataDetailListByOwner executing...")
 	metadataList, err := s.GetMetaDataDetailList()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*types.OrgMetaDataInfo, 0)
+	result := make([]*pb.GetMetaDataDetailResponse, 0)
 	for _, metadata := range metadataList {
 		if metadata.Owner.IdentityId == identityId {
 			result = append(result, metadata)
@@ -454,30 +451,30 @@ func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*
 }
 
 // power api
-func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error) {
+func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error) {
 	log.Debug("Invoke: GetPowerTotalDetailList executing...")
 	resourceList, err := s.carrier.carrierDB.GetResourceList()
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Query all org's power list, len: {%d}", len(resourceList))
-	powerList := make([]*types.OrgPowerDetail, 0, resourceList.Len())
+	powerList := make([]*pb.GetPowerTotalDetailResponse, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
-		powerList = append(powerList, &types.OrgPowerDetail{
-			Owner: &types.NodeAlias{
-				Name:       resource.GetNodeName(),
+		powerList = append(powerList, &pb.GetPowerTotalDetailResponse{
+			Owner: &apipb.Organization{
+				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
-				IdentityId: resource.GetIdentity(),
+				IdentityId: resource.GetIdentityId(),
 			},
-			PowerDetail: &types.PowerTotalDetail{
+			Power: &libTypes.PowerTotalDetail{
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
-				Tasks:            make([]*types.PowerTask, 0),
-				ResourceUsage: &types.ResourceUsage{
+				Tasks:            make([]*libTypes.PowerTask, 0),
+				Information: &libTypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
-					TotalProcessor: resource.GetTotalProcessor(),
-					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalProcessor: uint32(resource.GetTotalProcessor()),
+					UsedProcessor:  uint32(resource.GetUsedProcessor()),
 					TotalBandwidth: resource.GetTotalBandWidth(),
 					UsedBandwidth:  resource.GetUsedBandWidth(),
 				},
@@ -488,7 +485,7 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*types.OrgPowerDetail, 
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail, error) {
+func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDetailResponse, error) {
 	log.Debug("Invoke:GetPowerSingleDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.GetLocalResourceList()
@@ -511,7 +508,6 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 	}
 	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
 		slotUnit.String())
-
 
 	// 收集 本地所有的 jonNode 上的 powerUsed 数组
 	validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
@@ -549,8 +545,8 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 		return 0
 	}
 
-	buildPowerTaskList := func(jobNodeId string) []*types.PowerTask {
-		powerTaskList := make([]*types.PowerTask, 0)
+	buildPowerTaskList := func(jobNodeId string) []*libTypes.PowerTask {
+		powerTaskList := make([]*libTypes.PowerTask, 0)
 
 		// 逐个 处理 jobNodeId 上的 task 信息
 		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
@@ -563,53 +559,53 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 				}
 
 				// 封装任务 摘要 ...
-				powerTask := &types.PowerTask{
+				powerTask := &libTypes.PowerTask{
 					TaskId:   taskId,
 					TaskName: task.TaskData().TaskName,
-					Owner: &types.NodeAlias{
-						Name:       task.TaskData().GetNodeName(),
+					Owner: &apipb.Organization{
+						NodeName:   task.TaskData().GetNodeName(),
 						NodeId:     task.TaskData().GetNodeId(),
-						IdentityId: task.TaskData().GetIdentity(),
+						IdentityId: task.TaskData().GetIdentityId(),
 					},
-					Patners:   make([]*types.NodeAlias, 0),
-					Receivers: make([]*types.NodeAlias, 0),
-					OperationCost: &types.TaskOperationCost{
-						Processor: uint64(task.TaskData().GetTaskResource().GetCostProcessor()),
-						Mem:       uint64(task.TaskData().GetTaskResource().GetCostMem()),
-						Bandwidth: uint64(task.TaskData().GetTaskResource().GetCostBandwidth()),
-						Duration:  uint64(task.TaskData().GetTaskResource().GetDuration()),
+					Patners:   make([]*apipb.Organization, 0),
+					Receivers: make([]*apipb.Organization, 0),
+					OperationCost: &apipb.TaskResourceCostDeclare{
+						CostProcessor: task.TaskData().GetOperationCost().GetCostProcessor(),
+						CostMem:       task.TaskData().GetOperationCost().GetCostMem(),
+						CostBandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
+						Duration:      task.TaskData().GetOperationCost().GetDuration(),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
 					CreateAt:       task.TaskData().CreateAt,
 				}
 				// 组装 数据参与方
-				for _, dataSupplier := range task.TaskData().MetadataSupplier {
+				for _, dataSupplier := range task.TaskData().DataSupplier {
 					// 协作方, 需要过滤掉自己
-					if task.TaskData().GetNodeId() != dataSupplier.Organization.Identity {
-						powerTask.Patners = append(powerTask.Patners, &types.NodeAlias{
-							Name:       dataSupplier.Organization.GetNodeName(),
-							NodeId:     dataSupplier.Organization.GetNodeId(),
-							IdentityId: dataSupplier.Organization.GetIdentity(),
+					if task.TaskData().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
+						powerTask.Patners = append(powerTask.Patners, &apipb.Organization{
+							NodeName:   dataSupplier.MemberInfo.GetNodeName(),
+							NodeId:     dataSupplier.MemberInfo.GetNodeId(),
+							IdentityId: dataSupplier.MemberInfo.GetIdentityId(),
 						})
 					}
 
 				}
 				// 组装结果接收方
 				for _, receiver := range task.TaskData().Receivers {
-					powerTask.Receivers = append(powerTask.Receivers, &types.NodeAlias{
-						Name:       receiver.Receiver.GetNodeName(),
+					powerTask.Receivers = append(powerTask.Receivers, &apipb.Organization{
+						NodeName:   receiver.Receiver.GetNodeName(),
 						NodeId:     receiver.Receiver.GetNodeId(),
-						IdentityId: receiver.Receiver.GetIdentity(),
+						IdentityId: receiver.Receiver.GetIdentityId(),
 					})
 				}
 
 				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
-				powerTask.OperationSpend = &types.TaskOperationCost{
-					Processor: slotUnit.Processor * slotCount,
-					Mem:       slotUnit.Mem * slotCount,
-					Bandwidth: slotUnit.Bandwidth * slotCount,
-					Duration:  task.TaskData().GetTaskResource().GetDuration(),
+				powerTask.OperationSpend = &apipb.TaskResourceCostDeclare{
+					CostProcessor: uint32(slotUnit.Processor * slotCount),
+					CostMem:       slotUnit.Mem * slotCount,
+					CostBandwidth: slotUnit.Bandwidth * slotCount,
+					Duration:      task.TaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
 			}
@@ -624,25 +620,25 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 
 	resourceList := machineList.To()
 	// 逐个处理当前
-	result := make([]*types.NodePowerDetail, len(resourceList))
+	result := make([]*pb.GetPowerSingleDetailResponse, len(resourceList))
 	for i, resource := range resourceList {
-		nodePowerDetail := &types.NodePowerDetail{
-			Owner: &types.NodeAlias{
-				Name:       resource.GetNodeName(),
+		nodePowerDetail := &pb.GetPowerSingleDetailResponse{
+			Owner: &apipb.Organization{
+				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
-				IdentityId: resource.GetIdentity(),
+				IdentityId: resource.GetIdentityId(),
 			},
-			PowerDetail: &types.PowerSingleDetail{
+			Power: &libTypes.PowerSingleDetail{
 				JobNodeId:        resource.GetJobNodeId(),
 				PowerId:          resource.DataId,
 				TotalTaskCount:   uint32(taskCount(resource.GetJobNodeId())),
 				CurrentTaskCount: uint32(taskCount(resource.GetJobNodeId())),
-				Tasks:            make([]*types.PowerTask, 0),
-				ResourceUsage: &types.ResourceUsage{
+				Tasks:            make([]*libTypes.PowerTask, 0),
+				Information: &libTypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
-					TotalProcessor: resource.GetTotalProcessor(),
-					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalProcessor: uint32(resource.GetTotalProcessor()),
+					UsedProcessor:  uint32(resource.GetUsedProcessor()),
 					TotalBandwidth: resource.GetTotalBandWidth(),
 					UsedBandwidth:  resource.GetUsedBandWidth(),
 				},
@@ -650,7 +646,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*types.NodePowerDetail
 			},
 		}
 		powerTaskArray := buildPowerTaskList(resource.GetJobNodeId())
-		nodePowerDetail.PowerDetail.Tasks = powerTaskArray
+		nodePowerDetail.Power.Tasks = powerTaskArray
 		result[i] = nodePowerDetail
 	}
 	return result, nil
@@ -672,9 +668,9 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 		return nil, err
 	}
 	return types.NewIdentity(&libTypes.IdentityData{
-		Identity: nodeAlias.IdentityId,
-		NodeId:   nodeAlias.NodeId,
-		NodeName: nodeAlias.Name,
+		IdentityId: nodeAlias.IdentityId,
+		NodeId:     nodeAlias.NodeId,
+		NodeName:   nodeAlias.NodeName,
 	}), err
 }
 
@@ -683,7 +679,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 }
 
 // task api
-func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
 
@@ -701,36 +697,36 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *types.TaskDetailShow {
+	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
 		// task 发起方
-		if task.TaskData().GetIdentity() == localIdentityId {
+		if task.TaskData().GetIdentityId() == localIdentityId {
 			return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleOwner.String())
 		}
 
 		// task 参与方
-		for _, dataSupplier := range task.TaskData().MetadataSupplier {
-			if dataSupplier.Organization.Identity == localIdentityId {
+		for _, dataSupplier := range task.TaskData().DataSupplier {
+			if dataSupplier.MemberInfo.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleDataSupplier.String())
 			}
 		}
 
 		// 算力提供方
-		for _, powerSupplier := range task.TaskData().ResourceSupplier {
-			if powerSupplier.Organization.Identity == localIdentityId {
+		for _, powerSupplier := range task.TaskData().PowerSupplier {
+			if powerSupplier.Organization.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, types.TaskRolePowerSupplier.String())
 			}
 		}
 
 		// 数据接收方
 		for _, receiver := range task.TaskData().Receivers {
-			if receiver.Receiver.Identity == localIdentityId {
+			if receiver.Receiver.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, types.TaskRoleReceiver.String())
 			}
 		}
 		return nil
 	}
 
-	result := make([]*types.TaskDetailShow, 0)
+	result := make([]*pb.TaskDetailShow, 0)
 	for _, task := range localTaskArray {
 		if taskView := makeTaskViewFn(task); nil != taskView {
 			result = append(result, taskView)
@@ -746,7 +742,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskDetailShow, error)
 	return result, err
 }
 
-func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error) {
 
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
@@ -759,15 +755,15 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 		return nil, err
 	}
 
-	evenList := make([]*types.TaskEvent, len(localEventList))
+	evenList := make([]*pb.TaskEventShow, len(localEventList))
 	for i, e := range localEventList {
-		evenList[i] = &types.TaskEvent{
+		evenList[i] = &pb.TaskEventShow{
 			TaskId:   e.TaskId,
 			Type:     e.Type,
-			CreateAt: e.CreateTime,
+			CreateAt: e.CreateAt,
 			Content:  e.Content,
-			Owner: &types.NodeAlias{
-				Name:       identity.Name,
+			Owner: &apipb.Organization{
+				NodeName:   identity.NodeName,
 				NodeId:     identity.NodeId,
 				IdentityId: identity.IdentityId,
 			},
@@ -782,14 +778,14 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*types.TaskEvent,
 	return evenList, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*types.TaskEvent, error) {
+func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error) {
 
 	identity, err := s.carrier.carrierDB.GetIdentity()
 	if nil != err {
 		return nil, err
 	}
 
-	evenList := make([]*types.TaskEvent, 0)
+	evenList := make([]*pb.TaskEventShow, 0)
 
 	// 先查出 task 在本地的 eventList
 	for _, taskId := range taskIds {
@@ -801,13 +797,13 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*type
 			continue
 		}
 		for _, e := range localEventList {
-			evenList = append(evenList, &types.TaskEvent{
+			evenList = append(evenList, &pb.TaskEventShow{
 				TaskId:   e.TaskId,
 				Type:     e.Type,
-				CreateAt: e.CreateTime,
+				CreateAt: e.CreateAt,
 				Content:  e.Content,
-				Owner: &types.NodeAlias{
-					Name:       identity.Name,
+				Owner: &apipb.Organization{
+					NodeName:   identity.NodeName,
 					NodeId:     identity.NodeId,
 					IdentityId: identity.IdentityId,
 				},
@@ -871,7 +867,7 @@ func utilLocalTaskPowerUsedArrString(used []*types.LocalTaskPowerUsed) string {
 		arr[i] = u.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }
@@ -882,7 +878,7 @@ func utilLocalTaskPowerUsedMapString(taskPowerUsedMap map[string][]*types.LocalT
 		arr = append(arr, fmt.Sprintf(`{"%s": %s}`, jobNodeId, utilLocalTaskPowerUsedArrString(useds)))
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return "[]"
 }

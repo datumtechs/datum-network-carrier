@@ -4,8 +4,10 @@ package rawdb
 
 import (
 	"bytes"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
 	"strings"
@@ -16,8 +18,8 @@ const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
 // ReadLocalIdentity retrieves the identity of local.
-func ReadLocalIdentity(db DatabaseReader) (*types.NodeAlias, error) {
-	var blob libtypes.OrganizationData
+func ReadLocalIdentity(db DatabaseReader) (*apipb.Organization, error) {
+	var blob apipb.Organization
 	enc, err := db.Get(localIdentityKey)
 	if nil != err {
 		return nil, err
@@ -25,19 +27,19 @@ func ReadLocalIdentity(db DatabaseReader) (*types.NodeAlias, error) {
 	if err := blob.Unmarshal(enc); nil != err {
 		return nil, err
 	}
-	return &types.NodeAlias{
-		Name:       blob.GetNodeName(),
+	return &apipb.Organization{
+		NodeName:       blob.GetNodeName(),
 		NodeId:     blob.GetNodeId(),
-		IdentityId: blob.GetIdentity(),
+		IdentityId: blob.GetIdentityId(),
 	}, nil
 }
 
 // WriteLocalIdentity stores the local identity.
-func WriteLocalIdentity(db DatabaseWriter, localIdentity *types.NodeAlias) {
-	pb := &libtypes.OrganizationData{
+func WriteLocalIdentity(db DatabaseWriter, localIdentity *apipb.Organization) {
+	pb := &apipb.TaskOrganization{
 		PartyId:              "",
-		Identity:             localIdentity.GetNodeIdentityId(),
-		NodeId:               localIdentity.GetNodeIdStr(),
+		IdentityId:           localIdentity.GetIdentityId(),
+		NodeId:               localIdentity.GetNodeId(),
 		NodeName:             localIdentity.GetNodeName(),
 	}
 	enc, _ := pb.Marshal()
@@ -240,7 +242,7 @@ func DeleteYarnName(db DatabaseDeleter) {
 }
 
 // ReadSeedNode retrieves the seed node with the corresponding nodeId.
-func ReadSeedNode(db DatabaseReader, nodeId string) (*types.SeedNodeInfo, error) {
+func ReadSeedNode(db DatabaseReader, nodeId string) (*pb.SeedPeer, error) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
 		return nil, err
@@ -251,11 +253,11 @@ func ReadSeedNode(db DatabaseReader, nodeId string) (*types.SeedNodeInfo, error)
 	}
 	for _, seed := range seedNodes.GetSeedNodeList() {
 		if strings.EqualFold(seed.Id, nodeId) {
-			return &types.SeedNodeInfo{
+			return &pb.SeedPeer{
 				Id:           seed.Id,
 				InternalIp:   seed.InternalIp,
 				InternalPort: seed.InternalPort,
-				ConnState:    types.NodeConnStatus(seed.ConnState),
+				ConnState:    seed.ConnState,
 			}, nil
 		}
 	}
@@ -264,7 +266,7 @@ func ReadSeedNode(db DatabaseReader, nodeId string) (*types.SeedNodeInfo, error)
 
 // ReadAllSeedNodes retrieves all the seed nodes in the database.
 // All returned seed nodes are sorted in reverse.
-func ReadAllSeedNodes(db DatabaseReader) ([]*types.SeedNodeInfo, error) {
+func ReadAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
 		return nil, err
@@ -273,13 +275,13 @@ func ReadAllSeedNodes(db DatabaseReader) ([]*types.SeedNodeInfo, error) {
 	if err := seedNodes.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	var nodes []*types.SeedNodeInfo
+	var nodes []*pb.SeedPeer
 	for _, seed := range seedNodes.SeedNodeList {
-		nodes = append(nodes, &types.SeedNodeInfo{
+		nodes = append(nodes, &pb.SeedPeer{
 			Id:           seed.Id,
 			InternalIp:   seed.InternalIp,
 			InternalPort: seed.InternalPort,
-			ConnState:    types.NodeConnStatus(seed.ConnState),
+			ConnState:    seed.ConnState,
 		})
 	}
 	return nodes, nil
@@ -287,7 +289,7 @@ func ReadAllSeedNodes(db DatabaseReader) ([]*types.SeedNodeInfo, error) {
 
 // WriteSeedNodes serializes the seed node into the database. If the cumulated
 // seed node exceeds the limitation, the oldest will be dropped.
-func WriteSeedNodes(db KeyValueStore, seedNode *types.SeedNodeInfo) {
+func WriteSeedNodes(db KeyValueStore, seedNode *pb.SeedPeer) {
 	blob, err := db.Get(seedNodeKey)
 	if err != nil {
 		log.Warn("Failed to load old seed nodes", "error", err)
@@ -359,19 +361,19 @@ func DeleteSeedNodes(db DatabaseDeleter) {
 	}
 }
 
-func registryNodeKey(nodeType types.RegisteredNodeType) []byte {
+func registryNodeKey(nodeType pb.RegisteredNodeType) []byte {
 	var key []byte
-	if nodeType == types.PREFIX_TYPE_JOBNODE {
+	if nodeType == pb.PrefixTypeJobNode {
 		key = calcNodeKey
 	}
-	if nodeType == types.PREFIX_TYPE_DATANODE {
+	if nodeType == pb.PrefixTypeDataNode {
 		key = dataNodeKey
 	}
 	return key
 }
 
 // ReadRegisterNode retrieves the register node with the corresponding nodeId.
-func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, nodeId string) (*types.RegisteredNodeInfo, error) {
+func ReadRegisterNode(db DatabaseReader, nodeType pb.RegisteredNodeType, nodeId string) (*pb.YarnRegisteredPeerDetail, error) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		return nil, err
@@ -383,13 +385,13 @@ func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, node
 	lis := registeredNodes.GetRegisteredNodeList()
 	for _, registered := range lis {
 		if strings.EqualFold(registered.Id, nodeId) {
-			return &types.RegisteredNodeInfo{
+			return &pb.YarnRegisteredPeerDetail{
 				Id:           registered.Id,
 				InternalIp:   registered.InternalIp,
 				InternalPort: registered.InternalPort,
 				ExternalIp:   registered.ExternalIp,
 				ExternalPort: registered.ExternalPort,
-				ConnState:    types.NodeConnStatus(registered.ConnState),
+				ConnState:    registered.ConnState,
 			}, nil
 		}
 	}
@@ -398,7 +400,7 @@ func ReadRegisterNode(db DatabaseReader, nodeType types.RegisteredNodeType, node
 
 // ReadAllRegisterNodes retrieves all the registered nodes in the database.
 // All returned registered nodes are sorted in reverse.
-func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error) {
+func ReadAllRegisterNodes(db DatabaseReader, nodeType pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		return nil, err
@@ -407,15 +409,15 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) 
 	if err := registeredNodes.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	var nodes []*types.RegisteredNodeInfo
+	var nodes []*pb.YarnRegisteredPeerDetail
 	for _, registered := range registeredNodes.GetRegisteredNodeList() {
-		nodes = append(nodes, &types.RegisteredNodeInfo{
+		nodes = append(nodes, &pb.YarnRegisteredPeerDetail{
 			Id:           registered.Id,
 			InternalIp:   registered.InternalIp,
 			InternalPort: registered.InternalPort,
 			ExternalIp:   registered.ExternalIp,
 			ExternalPort: registered.ExternalPort,
-			ConnState:    types.NodeConnStatus(registered.ConnState),
+			ConnState:    registered.ConnState,
 		})
 	}
 	return nodes, nil
@@ -423,7 +425,7 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType types.RegisteredNodeType) 
 
 // WriteRegisterNodes serializes the registered node into the database. If the cumulated
 // registered node exceeds the limitation, the oldest will be dropped.
-func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, registeredNode *types.RegisteredNodeInfo) {
+func WriteRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		log.Warnf("Failed to load old registered nodes, err: {%s}",  err)
@@ -462,7 +464,7 @@ func WriteRegisterNodes(db KeyValueStore, nodeType types.RegisteredNodeType, reg
 	}
 }
 
-func DeleteRegisterNode(db KeyValueStore, nodeType types.RegisteredNodeType, id string) {
+func DeleteRegisterNode(db KeyValueStore, nodeType pb.RegisteredNodeType, id string) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
 		log.Warnf("Failed to load old registered nodes, err: {%s}", err)
@@ -489,14 +491,14 @@ func DeleteRegisterNode(db KeyValueStore, nodeType types.RegisteredNodeType, id 
 }
 
 // DeleteRegisterNodes deletes all the registered nodes from the database.
-func DeleteRegisterNodes(db DatabaseDeleter, nodeType types.RegisteredNodeType) {
+func DeleteRegisterNodes(db DatabaseDeleter, nodeType pb.RegisteredNodeType) {
 	if err := db.Delete(registryNodeKey(nodeType)); err != nil {
 		log.WithError(err).Fatal("Failed to delete registered node")
 	}
 }
 
 // ReadTaskEvent retrieves the evengine of task with the corresponding taskId.
-func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, error) {
+func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libTypes.TaskEvent, error) {
 	blob, err := db.Get(taskEventKey(taskId))
 	if err != nil {
 		return nil, err
@@ -505,15 +507,15 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, er
 	if err := events.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	resEvent := make([]*types.TaskEventInfo, 0)
+	resEvent := make([]*libTypes.TaskEvent, 0)
 	for _, e := range events.GetTaskEventList() {
 		if strings.EqualFold(e.GetTaskId(), taskId) {
-			resEvent = append(resEvent, &types.TaskEventInfo{
-				Type:       e.GetEventType(),
-				Identity:   e.GetIdentity(),
+			resEvent = append(resEvent, &libTypes.TaskEvent{
+				Type:       e.GetType(),
+				IdentityId:   e.GetIdentityId(),
 				TaskId:     e.GetTaskId(),
-				Content:    e.GetEventContent(),
-				CreateTime: e.GetEventAt(),
+				Content:    e.GetContent(),
+				CreateAt: e.GetCreateAt(),
 			})
 		}
 	}
@@ -521,11 +523,11 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*types.TaskEventInfo, er
 }
 
 // ReadAllTaskEvent retrieves the task event with all.
-func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
+func ReadAllTaskEvents(db KeyValueStore) ( []*libTypes.TaskEvent, error) {
 	prefix := taskEventPrefix
 	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
-	result := make([]*types.TaskEventInfo, 0)
+	result := make([]*libTypes.TaskEvent, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
@@ -538,13 +540,7 @@ func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
 				continue
 			}
 			for _, e := range events.GetTaskEventList() {
-				result = append(result, &types.TaskEventInfo{
-					Type:       e.GetEventType(),
-					Identity:   e.GetIdentity(),
-					TaskId:     e.GetTaskId(),
-					Content:    e.GetEventContent(),
-					CreateTime: e.GetEventAt(),
-				})
+				result = append(result, e)
 			}
 		}
 	}
@@ -552,7 +548,7 @@ func ReadAllTaskEvents(db KeyValueStore) ( []*types.TaskEventInfo, error) {
 }
 
 // WriteTaskEvent serializes the task evengine into the database.
-func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
+func WriteTaskEvent(db KeyValueStore, taskEvent *libTypes.TaskEvent) {
 	blob, err := db.Get(taskEventKey(taskEvent.TaskId))
 	if err != nil {
 		log.WithError(err).Warn("Failed to load old task events")
@@ -571,13 +567,7 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *types.TaskEventInfo) {
 	//		return
 	//	}
 	//}
-	array.TaskEventList = append(array.TaskEventList, &libtypes.EventData{
-		TaskId:               taskEvent.TaskId,
-		EventType:            taskEvent.Type,
-		EventAt:              taskEvent.CreateTime,
-		EventContent:         taskEvent.Content,
-		Identity:             taskEvent.Identity,
-	})
+	array.TaskEventList = append(array.TaskEventList, taskEvent)
 
 	data, err := array.Marshal()
 	if err != nil {
@@ -622,7 +612,7 @@ func ReadLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResourc
 		log.WithError(err).Fatal("Failed to read local resource")
 		return nil, err
 	}
-	localResource := new(libtypes.LocalResourceData)
+	localResource := new(libTypes.LocalResourceData)
 	if err := localResource.Unmarshal(blob); err != nil {
 		log.WithError(err).Fatal("Failed to unmarshal local resource")
 		return nil, err
@@ -642,7 +632,7 @@ func ReadAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
 			if err != nil {
 				continue
 			}
-			localResource := new(libtypes.LocalResourceData)
+			localResource := new(libTypes.LocalResourceData)
 			if err := localResource.Unmarshal(blob); err != nil {
 				continue
 			}
