@@ -98,66 +98,67 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	}, nil
 }
 
-func (s *CarrierAPIBackend) GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error) {
+func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, error) {
 	// all dataNodes on yarnNode
 	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
 		return nil, err
 	}
+
 	// all jobNodes on yarnNode
 	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
 	if nil != err {
 		return nil, err
 	}
-	jns := make([]*types.YarnRegisteredJobNode, len(jobNodes))
-	for i, v := range jobNodes {
 
+	result := make([]*pb.YarnRegisteredPeer, 0)
+
+	// 处理计算节点
+	for _, v := range jobNodes {
 		var duration uint64
 		node, has := s.carrier.resourceClientSet.QueryJobNodeClient(v.Id)
 		if has {
 			duration = uint64(node.RunningDuration())
 		}
-
-		n := &types.YarnRegisteredJobNode{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			ExternalIp:   v.ExternalIp,
-			InternalPort: v.InternalPort,
-			ExternalPort: v.ExternalPort,
-			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: duration, // ms
+		v.TaskCount, _ = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
+		v.TaskIdList, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
+		v.Duration = duration
+		registeredPeer := &pb.YarnRegisteredPeer{
+			NodeType:            pb.NodeType_JobNode,
+			NodeDetail:          v,
 		}
-
-		n.Task.Count, _ = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
-		n.Task.TaskIds, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
-		jns[i] = n
+		result = append(result, registeredPeer)
 	}
-	dns := make([]*types.YarnRegisteredDataNode, len(jobNodes))
-	for i, v := range dataNodes {
 
+	// 处理数据节点
+	for _, v := range dataNodes {
 		var duration uint64
 		node, has := s.carrier.resourceClientSet.QueryDataNodeClient(v.Id)
 		if has {
 			duration = uint64(node.RunningDuration())
 		}
-
-		n := &types.YarnRegisteredDataNode{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			ExternalIp:   v.ExternalIp,
-			InternalPort: v.InternalPort,
-			ExternalPort: v.ExternalPort,
-			//ResourceUsage:  &types.ResourceUsage{},
-			Duration: duration, // ms
+		v.Duration = duration // ms
+		v.FileCount = 0
+		v.FileTotalSize = 0
+		registeredPeer := &pb.YarnRegisteredPeer{
+			NodeType:            pb.NodeType_DataNode,
+			NodeDetail:          v,
 		}
-		n.Delta.FileCount = 0
-		n.Delta.FileTotalSize = 0
-		dns[i] = n
+		result = append(result, registeredPeer)
+		//n := &types.YarnRegisteredDataNode{
+		//	Id:           v.Id,
+		//	InternalIp:   v.InternalIp,
+		//	ExternalIp:   v.ExternalIp,
+		//	InternalPort: v.InternalPort,
+		//	ExternalPort: v.ExternalPort,
+		//	//ResourceUsage:  &types.ResourceUsage{},
+		//	Duration: duration, // ms
+		//}
+		//n.Delta.FileCount = 0
+		//n.Delta.FileTotalSize = 0
+		//dns[i] = n
 	}
-	return &types.YarnRegisteredNodeDetail{
-		JobNodes:  jns,
-		DataNodes: dns,
-	}, nil
+	return result, nil
 }
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error) {

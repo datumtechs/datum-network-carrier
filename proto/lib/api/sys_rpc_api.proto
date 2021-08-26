@@ -57,12 +57,17 @@ message YarnRegisteredPeer {
 }
 
 message YarnRegisteredPeerDetail {
-    string id            = 1;                            // 计算or数据服务的唯一Id
-    string internal_ip   = 2;                   // 计算or数据服务的内网 ip, 给 管理台用
-    string external_ip   = 3;                   // 计算or数据服务的外网 ip, 给 多方协作任务用
-    string internal_port = 4;                 // 计算or数据服务的内网 port, 给 管理台用
-    string external_port = 5;                 // 计算or数据服务的外网 port, 给 多方协作任务用
-    int32  conn_state    = 6;                    // 计算or数据服务的状态 (-1: 未被调度服务连接上; 0: 连接上; 1: 算力启用<计算服务>; 2: 算力被占用<计算服务算力正在被任务占用>)
+    string          id              = 1;                            // 计算or数据服务的唯一Id
+    string          internal_ip     = 2;                   // 计算or数据服务的内网 ip, 给 管理台用
+    string          external_ip     = 3;                   // 计算or数据服务的外网 ip, 给 多方协作任务用
+    string          internal_port   = 4;                 // 计算or数据服务的内网 port, 给 管理台用
+    string          external_port   = 5;                 // 计算or数据服务的外网 port, 给 多方协作任务用
+    int32           conn_state      = 6;                    // 计算or数据服务的状态 (-1: 未被调度服务连接上; 0: 连接上; 1: 算力启用<计算服务>; 2: 算力被占用<计算服务算力正在被任务占用>)
+    uint64          duration        = 7;
+    uint32          task_count      = 8;
+    repeated string task_id_list    = 9;
+    uint32          file_count      = 10;
+    uint32          file_total_size = 11;
 }
 
 message SeedPeer {

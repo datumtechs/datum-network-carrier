@@ -68,31 +68,32 @@ func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Ge
 		log.WithError(err).Error("RPC-API:GetRegisteredPeers failed")
 		return nil, ErrGetRegisteredPeers
 	}
-	jobNodes := make([]*pb.YarnRegisteredPeerDetail, len(registerNodes.JobNodes))
-	for i, v := range registerNodes.JobNodes {
-		node := &pb.YarnRegisteredPeerDetail{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			ExternalIp:   v.ExternalIp,
-			InternalPort: v.InternalPort,
-			ExternalPort: v.ExternalPort,
-			//TODO: 数据结构调整导致必须注释的
-			/*Information: &pb.ResourceUsedDetailShow{
-				TotalMem:       v.ResourceUsage.TotalMem,
-				UsedMem:        v.ResourceUsage.UsedMem,
-				TotalProcessor: v.ResourceUsage.TotalProcessor,
-				UsedProcessor:  v.ResourceUsage.UsedProcessor,
-				TotalBandwidth: v.ResourceUsage.TotalBandwidth,
-				UsedBandwidth:  v.ResourceUsage.UsedBandwidth,
-			},
-			Duration: v.Duration,
-			Task: &pb.YarnRegisteredJobNodeTaskIds{
-				Count:   v.Task.Count,
-				TaskIds: v.Task.TaskIds,
-			},*/
-		}
-		jobNodes[i] = node
-	}
+
+	//jobNodes := make([]*pb.YarnRegisteredPeerDetail, len(registerNodes.JobNodes))
+	//for i, v := range registerNodes.JobNodes {
+	//	node := &pb.YarnRegisteredPeerDetail{
+	//		Id:           v.Id,
+	//		InternalIp:   v.InternalIp,
+	//		ExternalIp:   v.ExternalIp,
+	//		InternalPort: v.InternalPort,
+	//		ExternalPort: v.ExternalPort,
+	//		//TODO: 数据结构调整导致必须注释的
+	//		/*Information: &pb.ResourceUsedDetailShow{
+	//			TotalMem:       v.ResourceUsage.TotalMem,
+	//			UsedMem:        v.ResourceUsage.UsedMem,
+	//			TotalProcessor: v.ResourceUsage.TotalProcessor,
+	//			UsedProcessor:  v.ResourceUsage.UsedProcessor,
+	//			TotalBandwidth: v.ResourceUsage.TotalBandwidth,
+	//			UsedBandwidth:  v.ResourceUsage.UsedBandwidth,
+	//		},
+	//		Duration: v.Duration,
+	//		Task: &pb.YarnRegisteredJobNodeTaskIds{
+	//			Count:   v.Task.Count,
+	//			TaskIds: v.Task.TaskIds,
+	//		},*/
+	//	}
+	//	jobNodes[i] = node
+	//}
 
 	//TODO: 数据结构调整导致必须注释的
 	/*dataNodes := make([]*pb.YarnRegisteredDataNode, len(registerNodes.DataNodes))
@@ -119,11 +120,11 @@ func (svr *YarnServiceServer) GetRegisteredPeers(ctx context.Context, req *pb.Ge
 		}
 		dataNodes[i] = node
 	}*/
-	log.Debugf("RPC-API:GetRegisteredPeers succeed, jobNode len: {%d}, dataNode len: {%d}", len(jobNodes), len(jobNodes))
+	log.Debugf("RPC-API:GetRegisteredPeers succeed, node len: {%d}", len(registerNodes))
 	return &pb.GetRegisteredPeersResponse{
 		Status:    0,
 		Msg:       backend.OK,
-		//TODO: 数据结构调整导致返回缺失
+		Nodes: registerNodes,
 	}, nil
 }
 
