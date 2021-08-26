@@ -6,6 +6,7 @@ import (
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 	"time"
@@ -20,7 +21,7 @@ type Manager struct {
 	// internal resource node set (Fighter node grpc client set)
 	resourceClientSet *grpclient.InternalResourceClientSet
 
-	eventCh chan *types.TaskEventInfo
+	eventCh chan *libTypes.TaskEvent
 	quit    chan struct{}
 	// send the validated taskMsgs to scheduler
 	localTaskMsgCh chan<- types.TaskMsgs
@@ -46,7 +47,7 @@ func NewTaskManager(
 		resourceClientSet:  resourceClientSet,
 		parser:             newTaskParser(),
 		validator:          newTaskValidator(),
-		eventCh:            make(chan *types.TaskEventInfo, 10),
+		eventCh:            make(chan *libTypes.TaskEvent, 10),
 		localTaskMsgCh:     localTaskMsgCh,
 		doneScheduleTaskCh: doneScheduleTaskCh,
 		runningTaskCache:   make(map[string]*types.DoneScheduleTaskChWrap, 0),
@@ -108,7 +109,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to parse taskMsg")))
 
-			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to parse taskMsg"); nil != e {
+			if e := m.storeErrTaskMsg(errtask, events, "failed to parse taskMsg"); nil != e {
 				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
 			}
 		}
@@ -121,7 +122,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to validate taskMsg")))
 
-			if e := m.storeErrTaskMsg(errtask, types.ConvertTaskEventArrToDataCenter(events), "failed to validate taskMsg"); nil != e {
+			if e := m.storeErrTaskMsg(errtask, events, "failed to validate taskMsg"); nil != e {
 				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
 			}
 		}
@@ -134,13 +135,13 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 	return nil
 }
 
-func (m *Manager) SendTaskEvent(event *types.TaskEventInfo) error {
+func (m *Manager) SendTaskEvent(event *libTypes.TaskEvent) error {
 	identityId, err := m.dataCenter.GetIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
 		return fmt.Errorf("query local identityId failed, %s", err)
 	}
-	event.Identity = identityId
+	event.IdentityId = identityId
 	m.sendTaskEvent(event)
 	return nil
 }

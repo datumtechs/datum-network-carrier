@@ -5,8 +5,8 @@ type DataStatus string
 func (r DataStatus) String() string { return string(r) }
 
 const (
-	DataStatusNormal  DataStatus = "N"
-	DataStatusDeleted DataStatus = "D"
+	DATA_STATUS_NORMAL  DataStatus = "N"
+	DATA_STATUS_DELETED DataStatus = "D"
 )
 
 type YarnState string
@@ -15,10 +15,10 @@ func (y YarnState) String() string { return string(y) }
 
 // 调度服务自身的状态信息 (active: 活跃; leave: 离开网络; join: 加入网络 unuseful: 不可用)
 const (
-	YarnStateActive   YarnState = "active"
-	YarnStateLeave    YarnState = "leave"
-	YarnStateJoin     YarnState = "join"
-	YarnStateUnuseful YarnState = "unuseful"
+	YARN_STATE_ACTIVE   YarnState = "active"
+	YARN_STATE_LEAVE    YarnState = "leave"
+	YARN_STATE_JOIN     YarnState = "join"
+	YARN_STATE_UNUSEFUL YarnState = "unuseful"
 )
 
 type PowerState string
@@ -58,8 +58,8 @@ type IdentityType string
 func (i IdentityType) String() string { return string(i) }
 
 const (
-	IdentityTypeCA  IdentityType = "CA"
-	IdentityTypeDID IdentityType = "DID"
+	IDENTITY_TYPE_CA  IdentityType = "CA"
+	IDENTITY_TYPE_DID IdentityType = "DID"
 )
 
 type RoleInTask string

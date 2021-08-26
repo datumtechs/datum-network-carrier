@@ -74,8 +74,8 @@ func (c *DataNodeClient) connecting() error {
 		return nil
 	}
 	c.connMu.Lock()
+	defer c.connMu.Unlock()
 	conn, err := dialContext(c.ctx, c.addr)
-	c.connMu.Unlock()
 	if err != nil {
 		log.WithError(err).WithField("id", c.nodeId).WithField("adrr", c.addr).Error("Connect GRPC server(for datanode) failed")
 		return err
@@ -91,6 +91,8 @@ func (c *DataNodeClient) GetClientConn() *grpc.ClientConn {
 }
 
 func (c *DataNodeClient) ConnStatus() connectivity.State {
+	c.connMu.RLock()
+	defer c.connMu.RUnlock()
 	if c.conn == nil {
 		return connectivity.Shutdown
 	}

@@ -8,6 +8,6 @@ type TaskTree struct {
 
 
 type taskExt struct {
-	*types.ConsensuResult
+	*types.ConsensusResult
 	CreateAt  uint64
 }

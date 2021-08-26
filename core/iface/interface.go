@@ -1,20 +1,22 @@
 package iface
 
 import (
-	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type LocalStoreCarrierDB interface {
 	GetYarnName() (string, error)
-	SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error)
+	SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error)
 	DeleteSeedNode(id string) error
-	GetSeedNode(id string) (*types.SeedNodeInfo, error)
-	GetSeedNodeList() ([]*types.SeedNodeInfo, error)
-	SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
-	DeleteRegisterNode(typ types.RegisteredNodeType, id string) error
-	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
-	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
+	GetSeedNode(id string) (*pb.SeedPeer, error)
+	GetSeedNodeList() ([]*pb.SeedPeer, error)
+	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error)
+	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
+	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
+	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
 
 	InsertLocalResource(resource *types.LocalResource) error
 	RemoveLocalResource(jobNodeId string) error
@@ -94,19 +96,19 @@ type ResourceCarrierDB interface {
 
 type IdentityCarrierDB interface {
 	InsertIdentity(identity *types.Identity) error
-	StoreIdentity(identity *types.NodeAlias) error
+	StoreIdentity(identity *apipb.Organization) error
 	RemoveIdentity() error
 	GetIdentityId() (string, error)
-	GetIdentity() (*types.NodeAlias, error)
+	GetIdentity() (*apipb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
 	GetIdentityList() (types.IdentityArray, error)
 	//GetIdentityListByIds(identityIds []string) (types.IdentityArray, error)
-	HasIdentity(identity *types.NodeAlias) (bool, error)
+	HasIdentity(identity *apipb.Organization) (bool, error)
 }
 
 type TaskCarrierDB interface {
-	StoreTaskEvent(event *types.TaskEventInfo) error
-	GetTaskEventList(taskId string) ([]*types.TaskEventInfo, error)
+	StoreTaskEvent(event *libTypes.TaskEvent) error
+	GetTaskEventList(taskId string) ([]*libTypes.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
@@ -122,8 +124,8 @@ type TaskCarrierDB interface {
 	InsertTask(task *types.Task) error
 	GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
 	GetRunningTaskCountOnOrg() uint32
-	GetTaskEventListByTaskId(taskId string) ([]*api.TaskEvent, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*api.TaskEvent, error)
+	GetTaskEventListByTaskId(taskId string) ([]*libTypes.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*libTypes.TaskEvent, error)
 }
 
 type ForConsensusDB interface {

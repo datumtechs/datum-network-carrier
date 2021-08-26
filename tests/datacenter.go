@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -37,7 +38,7 @@ func serverObj() *core.DataCenter {
 func InsertData() {
 	dc := serverObj()
 	identities := types.NewIdentity(&libTypes.IdentityData{
-		Identity:   Identity,
+		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
@@ -62,26 +63,26 @@ func InsertData() {
 func InsertMetaData() {
 	dc := serverObj()
 	metadata := types.NewMetadata(&libTypes.MetaData{
-		Identity:    Identity,
-		NodeId:      NodeId,
-		DataId:      DataId,
-		DataStatus:  DataStatus,
-		OriginId:    OriginId,
-		TableName:   "test_table1",
-		FilePath:    "/c/c",
-		Desc:        "desc",
-		Rows:        1,
-		Columns:     2,
-		Size_:       3,
-		FileType:    "csv",
-		State:       Status,
-		HasTitleRow: false,
-		ColumnMetaList: []*libTypes.ColumnMeta{
+		IdentityId: Identity,
+		NodeId:     NodeId,
+		DataId:     DataId,
+		DataStatus: DataStatus,
+		OriginId:   OriginId,
+		TableName:  "test_table1",
+		FilePath:   "/c/c",
+		Desc:       "desc",
+		Rows:       1,
+		Columns:    2,
+		Size_:      3,
+		FileType:   "csv",
+		State:      Status,
+		HasTitle:   false,
+		MetadataColumnList: []*libTypes.MetadataColumn{
 			{
-				Cindex: 2,
-				Cname:  "cname",
-				Ctype:  "ctype",
-				Csize:  10,
+				CIndex: 2,
+				CName:  "cname",
+				CType:  "ctype",
+				CSize:  10,
 			},
 		},
 	})
@@ -101,7 +102,7 @@ func InsertMetaData() {
 func InsertResource() {
 	dc := serverObj()
 	resource := types.NewResource(&libTypes.ResourceData{
-		Identity:       Identity,
+		IdentityId:     Identity,
 		NodeId:         NodeId,
 		NodeName:       NodeName,
 		DataId:         DataId,
@@ -130,7 +131,7 @@ func InsertResource() {
 func InsertTask() {
 	dc := serverObj()
 	taskdata := types.NewTask(&libTypes.TaskData{
-		Identity:   Identity,
+		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
@@ -143,47 +144,47 @@ func InsertTask() {
 		Desc:       "",
 		CreateAt:   uint64(timeutils.UnixMsec()),
 		EndAt:      uint64(timeutils.UnixMsec()),
-		AlgoSupplier: &libTypes.OrganizationData{
-			PartyId:    "",
+		AlgoSupplier: &apipb.TaskOrganization{
+			PartyId:  "",
 			NodeId:   Identity,
 			NodeName: NodeName,
-			Identity: Identity,
+			IdentityId: Identity,
 		},
-		TaskResource: &libTypes.TaskResourceData{
+		OperationCost: &apipb.TaskResourceCostDeclare{
 			CostMem:       12,
 			CostBandwidth: 120,
 			CostProcessor: 8,
 		},
-		MetadataSupplier: []*libTypes.TaskMetadataSupplierData{
+		DataSupplier: []*libTypes.TaskDataSupplier{
 			{
-				Organization: &libTypes.OrganizationData{
-					PartyId:   "",
-					NodeId:   Identity,
-					NodeName: NodeName,
-					Identity: Identity,
+				MemberInfo: &apipb.TaskOrganization{
+					PartyId:    "",
+					NodeId:     Identity,
+					NodeName:   NodeName,
+					IdentityId: Identity,
 				},
-				MetaId:   DataId,
-				MetaName: "meta1",
-				ColumnList: []*libTypes.ColumnMeta{
+				MetadataId:   DataId,
+				MetadataName: "meta1",
+				ColumnList: []*libTypes.MetadataColumn{
 					{
-						Cindex:   2,
-						Cname:    "cname",
-						Ctype:    "ctype",
-						Csize:    10,
-						Ccomment: "this test",
+						CIndex:   2,
+						CName:    "cname",
+						CType:    "ctype",
+						CSize:    10,
+						CComment: "this test",
 					},
 				},
 			},
 		},
-		ResourceSupplier: []*libTypes.TaskResourceSupplierData{
+		PowerSupplier: []*libTypes.TaskPowerSupplier{
 			{
-				Organization: &libTypes.OrganizationData{
-					PartyId:   "",
-					NodeId:   Identity,
-					NodeName: NodeName,
-					Identity: Identity,
+				Organization: &apipb.TaskOrganization{
+					PartyId:    "",
+					NodeId:     Identity,
+					NodeName:   NodeName,
+					IdentityId: Identity,
 				},
-				ResourceUsedOverview: &libTypes.ResourceUsedOverview{
+				ResourceUsedOverview: &libTypes.ResourceUsageOverview{
 					TotalMem:       12,
 					UsedMem:        8,
 					TotalProcessor: 8,
@@ -193,39 +194,39 @@ func InsertTask() {
 				},
 			},
 		},
-		Receivers: []*libTypes.TaskResultReceiverData{
+		Receivers: []*libTypes.TaskResultReceiver{
 			{
-				Receiver: &libTypes.OrganizationData{
-					PartyId:   "",
-					NodeId:   Identity,
-					NodeName: NodeName,
-					Identity: Identity,
+				Receiver: &apipb.TaskOrganization{
+					PartyId:    "",
+					NodeId:     Identity,
+					NodeName:   NodeName,
+					IdentityId: Identity,
 				},
-				Provider: []*libTypes.OrganizationData{
+				Providers: []*apipb.TaskOrganization{
 					{
-						PartyId:   "",
-						NodeId:   Identity,
-						NodeName: NodeName,
-						Identity: Identity,
+						PartyId:    "",
+						NodeId:     Identity,
+						NodeName:   NodeName,
+						IdentityId: Identity,
 					},
 				},
 			},
 		},
-		PartnerList: []*libTypes.OrganizationData{
+		PartnerList: []*apipb.TaskOrganization{
 			{
-				PartyId:   "",
-				NodeId:   Identity,
-				NodeName: NodeName,
-				Identity: Identity,
+				PartyId:    "",
+				NodeId:     Identity,
+				NodeName:   NodeName,
+				IdentityId: Identity,
 			},
 		},
-		EventDataList: []*libTypes.EventData{
+		TaskEventList: []*libTypes.TaskEvent{
 			{
-				TaskId:       "123456",
-				EventType:    "1-evengine-eventType",
-				EventAt:      0,
-				EventContent: "1-evengine-eventContent",
-				Identity:     Identity,
+				TaskId:     "123456",
+				Type:       "1-evengine-eventType",
+				CreateAt:   0,
+				Content:    "1-evengine-eventContent",
+				IdentityId: Identity,
 			},
 		},
 	})
@@ -245,7 +246,7 @@ func InsertTask() {
 func RevokeIdentity() {
 	dc := serverObj()
 	identities := types.NewIdentity(&libTypes.IdentityData{
-		Identity:   Identity,
+		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
@@ -287,7 +288,7 @@ func GetData() {
 		fmt.Println("err", err)
 	}
 	fmt.Println("GetMetadataByDataId result is:")
-	fmt.Println(types.MetaDataTojson(MetaDataByDataId))
+	fmt.Println(types.MetaDataToJson(MetaDataByDataId))
 	// endregion
 
 	// region GetResourceListByNodeId
@@ -309,7 +310,7 @@ func GetData() {
 	// endregion
 
 	// region HasIdentity
-	result, err := dc.HasIdentity(&types.NodeAlias{
+	result, err := dc.HasIdentity(&apipb.Organization{
 		Name:       NodeName,
 		NodeId:     NodeId,
 		IdentityId: Identity})

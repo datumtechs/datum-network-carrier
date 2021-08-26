@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
@@ -23,27 +24,86 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// 元数据的使用方式类型枚举
+type MetaDataUsageType int32
+
+const (
+	MetaDataUsageType_Usage_Unknown MetaDataUsageType = 0
+	MetaDataUsageType_Period        MetaDataUsageType = 1
+	MetaDataUsageType_Times         MetaDataUsageType = 2
+)
+
+var MetaDataUsageType_name = map[int32]string{
+	0: "Usage_Unknown",
+	1: "Period",
+	2: "Times",
+}
+
+var MetaDataUsageType_value = map[string]int32{
+	"Usage_Unknown": 0,
+	"Period":        1,
+	"Times":         2,
+}
+
+func (x MetaDataUsageType) String() string {
+	return proto.EnumName(MetaDataUsageType_name, int32(x))
+}
+
+func (MetaDataUsageType) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_33d0259ee189cec4, []int{0}
+}
+
+type AuditMetaDataOption int32
+
+const (
+	AuditMetaDataOption_Audit_Pending AuditMetaDataOption = 0
+	AuditMetaDataOption_Audit_Passed  AuditMetaDataOption = 1
+	AuditMetaDataOption_Audit_Refused AuditMetaDataOption = 2
+)
+
+var AuditMetaDataOption_name = map[int32]string{
+	0: "Audit_Pending",
+	1: "Audit_Passed",
+	2: "Audit_Refused",
+}
+
+var AuditMetaDataOption_value = map[string]int32{
+	"Audit_Pending": 0,
+	"Audit_Passed":  1,
+	"Audit_Refused": 2,
+}
+
+func (x AuditMetaDataOption) String() string {
+	return proto.EnumName(AuditMetaDataOption_name, int32(x))
+}
+
+func (AuditMetaDataOption) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_33d0259ee189cec4, []int{1}
+}
+
 // MetaData body data struct.
 type MetaData struct {
-	Identity             string        `protobuf:"bytes,1,opt,name=identity,proto3" json:"identity,omitempty"`
-	NodeId               string        `protobuf:"bytes,2,opt,name=nodeId,proto3" json:"nodeId,omitempty"`
-	NodeName             string        `protobuf:"bytes,3,opt,name=nodeName,proto3" json:"nodeName,omitempty"`
-	DataId               string        `protobuf:"bytes,4,opt,name=dataId,proto3" json:"dataId,omitempty"`
-	DataStatus           string        `protobuf:"bytes,5,opt,name=dataStatus,proto3" json:"dataStatus,omitempty"`
-	OriginId             string        `protobuf:"bytes,6,opt,name=originId,proto3" json:"originId,omitempty"`
-	TableName            string        `protobuf:"bytes,7,opt,name=tableName,proto3" json:"tableName,omitempty"`
-	FilePath             string        `protobuf:"bytes,8,opt,name=filePath,proto3" json:"filePath,omitempty"`
-	Desc                 string        `protobuf:"bytes,9,opt,name=desc,proto3" json:"desc,omitempty"`
-	Rows                 uint64        `protobuf:"varint,10,opt,name=rows,proto3" json:"rows,omitempty"`
-	Columns              uint64        `protobuf:"varint,11,opt,name=columns,proto3" json:"columns,omitempty"`
-	Size_                uint64        `protobuf:"varint,12,opt,name=size,proto3" json:"size,omitempty"`
-	FileType             string        `protobuf:"bytes,13,opt,name=fileType,proto3" json:"fileType,omitempty"`
-	State                string        `protobuf:"bytes,14,opt,name=state,proto3" json:"state,omitempty"`
-	HasTitleRow          bool          `protobuf:"varint,15,opt,name=hasTitleRow,proto3" json:"hasTitleRow,omitempty"`
-	ColumnMetaList       []*ColumnMeta `protobuf:"bytes,16,rep,name=columnMetaList,proto3" json:"columnMetaList,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	NodeId     string `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	NodeName   string `protobuf:"bytes,3,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
+	DataId     string `protobuf:"bytes,4,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	DataStatus string `protobuf:"bytes,5,opt,name=data_status,json=dataStatus,proto3" json:"data_status,omitempty"`
+	OriginId   string `protobuf:"bytes,6,opt,name=origin_id,json=originId,proto3" json:"origin_id,omitempty"`
+	TableName  string `protobuf:"bytes,7,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
+	FilePath   string `protobuf:"bytes,8,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	Desc       string `protobuf:"bytes,9,opt,name=desc,proto3" json:"desc,omitempty"`
+	Rows       uint64 `protobuf:"varint,10,opt,name=rows,proto3" json:"rows,omitempty"`
+	Columns    uint64 `protobuf:"varint,11,opt,name=columns,proto3" json:"columns,omitempty"`
+	Size_      uint64 `protobuf:"varint,12,opt,name=size,proto3" json:"size,omitempty"`
+	FileType   string `protobuf:"bytes,13,opt,name=file_type,json=fileType,proto3" json:"file_type,omitempty"`
+	// 元数据的状态 (create: 还未发布的新表; release: 已发布的表; revoke: 已撤销的表)
+	State                string            `protobuf:"bytes,14,opt,name=state,proto3" json:"state,omitempty"`
+	HasTitle             bool              `protobuf:"varint,15,opt,name=has_title,json=hasTitle,proto3" json:"has_title,omitempty"`
+	MetadataColumnList   []*MetadataColumn `protobuf:"bytes,16,rep,name=metadata_column_list,json=metadataColumnList,proto3" json:"metadata_column_list,omitempty"`
+	Industry             string            `protobuf:"bytes,17,opt,name=industry,proto3" json:"industry,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
 }
 
 func (m *MetaData) Reset()         { *m = MetaData{} }
@@ -79,9 +139,9 @@ func (m *MetaData) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MetaData proto.InternalMessageInfo
 
-func (m *MetaData) GetIdentity() string {
+func (m *MetaData) GetIdentityId() string {
 	if m != nil {
-		return m.Identity
+		return m.IdentityId
 	}
 	return ""
 }
@@ -177,44 +237,51 @@ func (m *MetaData) GetState() string {
 	return ""
 }
 
-func (m *MetaData) GetHasTitleRow() bool {
+func (m *MetaData) GetHasTitle() bool {
 	if m != nil {
-		return m.HasTitleRow
+		return m.HasTitle
 	}
 	return false
 }
 
-func (m *MetaData) GetColumnMetaList() []*ColumnMeta {
+func (m *MetaData) GetMetadataColumnList() []*MetadataColumn {
 	if m != nil {
-		return m.ColumnMetaList
+		return m.MetadataColumnList
 	}
 	return nil
 }
 
-type ColumnMeta struct {
-	Cindex uint32 `protobuf:"varint,1,opt,name=cindex,proto3" json:"cindex,omitempty"`
-	Cname  string `protobuf:"bytes,2,opt,name=cname,proto3" json:"cname,omitempty"`
-	Ctype  string `protobuf:"bytes,3,opt,name=ctype,proto3" json:"ctype,omitempty"`
+func (m *MetaData) GetIndustry() string {
+	if m != nil {
+		return m.Industry
+	}
+	return ""
+}
+
+type MetadataColumn struct {
+	CIndex uint32 `protobuf:"varint,1,opt,name=c_index,json=cIndex,proto3" json:"c_index,omitempty"`
+	CName  string `protobuf:"bytes,2,opt,name=c_name,json=cName,proto3" json:"c_name,omitempty"`
+	CType  string `protobuf:"bytes,3,opt,name=c_type,json=cType,proto3" json:"c_type,omitempty"`
 	// unit: byte
-	Csize                uint32   `protobuf:"varint,4,opt,name=csize,proto3" json:"csize,omitempty"`
-	Ccomment             string   `protobuf:"bytes,5,opt,name=ccomment,proto3" json:"ccomment,omitempty"`
+	CSize                uint32   `protobuf:"varint,4,opt,name=c_size,json=cSize,proto3" json:"c_size,omitempty"`
+	CComment             string   `protobuf:"bytes,5,opt,name=c_comment,json=cComment,proto3" json:"c_comment,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ColumnMeta) Reset()         { *m = ColumnMeta{} }
-func (m *ColumnMeta) String() string { return proto.CompactTextString(m) }
-func (*ColumnMeta) ProtoMessage()    {}
-func (*ColumnMeta) Descriptor() ([]byte, []int) {
+func (m *MetadataColumn) Reset()         { *m = MetadataColumn{} }
+func (m *MetadataColumn) String() string { return proto.CompactTextString(m) }
+func (*MetadataColumn) ProtoMessage()    {}
+func (*MetadataColumn) Descriptor() ([]byte, []int) {
 	return fileDescriptor_33d0259ee189cec4, []int{1}
 }
-func (m *ColumnMeta) XXX_Unmarshal(b []byte) error {
+func (m *MetadataColumn) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *ColumnMeta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataColumn) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_ColumnMeta.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataColumn.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -224,90 +291,460 @@ func (m *ColumnMeta) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *ColumnMeta) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ColumnMeta.Merge(m, src)
+func (m *MetadataColumn) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataColumn.Merge(m, src)
 }
-func (m *ColumnMeta) XXX_Size() int {
+func (m *MetadataColumn) XXX_Size() int {
 	return m.Size()
 }
-func (m *ColumnMeta) XXX_DiscardUnknown() {
-	xxx_messageInfo_ColumnMeta.DiscardUnknown(m)
+func (m *MetadataColumn) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataColumn.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ColumnMeta proto.InternalMessageInfo
+var xxx_messageInfo_MetadataColumn proto.InternalMessageInfo
 
-func (m *ColumnMeta) GetCindex() uint32 {
+func (m *MetadataColumn) GetCIndex() uint32 {
 	if m != nil {
-		return m.Cindex
+		return m.CIndex
 	}
 	return 0
 }
 
-func (m *ColumnMeta) GetCname() string {
+func (m *MetadataColumn) GetCName() string {
 	if m != nil {
-		return m.Cname
+		return m.CName
 	}
 	return ""
 }
 
-func (m *ColumnMeta) GetCtype() string {
+func (m *MetadataColumn) GetCType() string {
 	if m != nil {
-		return m.Ctype
+		return m.CType
 	}
 	return ""
 }
 
-func (m *ColumnMeta) GetCsize() uint32 {
+func (m *MetadataColumn) GetCSize() uint32 {
 	if m != nil {
-		return m.Csize
+		return m.CSize
 	}
 	return 0
 }
 
-func (m *ColumnMeta) GetCcomment() string {
+func (m *MetadataColumn) GetCComment() string {
 	if m != nil {
-		return m.Ccomment
+		return m.CComment
 	}
 	return ""
+}
+
+// =============================== For API =========================
+// 元数据的摘要内容 (不包含详细 列描述)
+type MetaDataSummary struct {
+	MetaDataId           string   `protobuf:"bytes,1,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
+	OriginId             string   `protobuf:"bytes,2,opt,name=origin_id,json=originId,proto3" json:"origin_id,omitempty"`
+	TableName            string   `protobuf:"bytes,3,opt,name=table_name,json=tableName,proto3" json:"table_name,omitempty"`
+	Desc                 string   `protobuf:"bytes,4,opt,name=desc,proto3" json:"desc,omitempty"`
+	FilePath             string   `protobuf:"bytes,5,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
+	Rows                 uint32   `protobuf:"varint,6,opt,name=rows,proto3" json:"rows,omitempty"`
+	Columns              uint32   `protobuf:"varint,7,opt,name=columns,proto3" json:"columns,omitempty"`
+	Size_                uint32   `protobuf:"varint,8,opt,name=size,proto3" json:"size,omitempty"`
+	FileType             string   `protobuf:"bytes,9,opt,name=file_type,json=fileType,proto3" json:"file_type,omitempty"`
+	HasTitle             bool     `protobuf:"varint,10,opt,name=has_title,json=hasTitle,proto3" json:"has_title,omitempty"`
+	Industry             string   `protobuf:"bytes,11,opt,name=industry,proto3" json:"industry,omitempty"`
+	State                string   `protobuf:"bytes,12,opt,name=state,proto3" json:"state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *MetaDataSummary) Reset()         { *m = MetaDataSummary{} }
+func (m *MetaDataSummary) String() string { return proto.CompactTextString(m) }
+func (*MetaDataSummary) ProtoMessage()    {}
+func (*MetaDataSummary) Descriptor() ([]byte, []int) {
+	return fileDescriptor_33d0259ee189cec4, []int{2}
+}
+func (m *MetaDataSummary) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MetaDataSummary) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MetaDataSummary.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MetaDataSummary) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetaDataSummary.Merge(m, src)
+}
+func (m *MetaDataSummary) XXX_Size() int {
+	return m.Size()
+}
+func (m *MetaDataSummary) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetaDataSummary.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MetaDataSummary proto.InternalMessageInfo
+
+func (m *MetaDataSummary) GetMetaDataId() string {
+	if m != nil {
+		return m.MetaDataId
+	}
+	return ""
+}
+
+func (m *MetaDataSummary) GetOriginId() string {
+	if m != nil {
+		return m.OriginId
+	}
+	return ""
+}
+
+func (m *MetaDataSummary) GetTableName() string {
+	if m != nil {
+		return m.TableName
+	}
+	return ""
+}
+
+func (m *MetaDataSummary) GetDesc() string {
+	if m != nil {
+		return m.Desc
+	}
+	return ""
+}
+
+func (m *MetaDataSummary) GetFilePath() string {
+	if m != nil {
+		return m.FilePath
+	}
+	return ""
+}
+
+func (m *MetaDataSummary) GetRows() uint32 {
+	if m != nil {
+		return m.Rows
+	}
+	return 0
+}
+
+func (m *MetaDataSummary) GetColumns() uint32 {
+	if m != nil {
+		return m.Columns
+	}
+	return 0
+}
+
+func (m *MetaDataSummary) GetSize_() uint32 {
+	if m != nil {
+		return m.Size_
+	}
+	return 0
+}
+
+func (m *MetaDataSummary) GetFileType() string {
+	if m != nil {
+		return m.FileType
+	}
+	return ""
+}
+
+func (m *MetaDataSummary) GetHasTitle() bool {
+	if m != nil {
+		return m.HasTitle
+	}
+	return false
+}
+
+func (m *MetaDataSummary) GetIndustry() string {
+	if m != nil {
+		return m.Industry
+	}
+	return ""
+}
+
+func (m *MetaDataSummary) GetState() string {
+	if m != nil {
+		return m.State
+	}
+	return ""
+}
+
+// 元数据的详情信息
+type MetadataDetail struct {
+	MetaDataSummary      *MetaDataSummary  `protobuf:"bytes,1,opt,name=meta_data_summary,json=metaDataSummary,proto3" json:"meta_data_summary,omitempty"`
+	MetadataColumnList   []*MetadataColumn `protobuf:"bytes,2,rep,name=metadata_column_list,json=metadataColumnList,proto3" json:"metadata_column_list,omitempty"`
+	TotalTaskCount       uint32            `protobuf:"varint,3,opt,name=total_task_count,json=totalTaskCount,proto3" json:"total_task_count,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *MetadataDetail) Reset()         { *m = MetadataDetail{} }
+func (m *MetadataDetail) String() string { return proto.CompactTextString(m) }
+func (*MetadataDetail) ProtoMessage()    {}
+func (*MetadataDetail) Descriptor() ([]byte, []int) {
+	return fileDescriptor_33d0259ee189cec4, []int{3}
+}
+func (m *MetadataDetail) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MetadataDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MetadataDetail.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MetadataDetail) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataDetail.Merge(m, src)
+}
+func (m *MetadataDetail) XXX_Size() int {
+	return m.Size()
+}
+func (m *MetadataDetail) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataDetail.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MetadataDetail proto.InternalMessageInfo
+
+func (m *MetadataDetail) GetMetaDataSummary() *MetaDataSummary {
+	if m != nil {
+		return m.MetaDataSummary
+	}
+	return nil
+}
+
+func (m *MetadataDetail) GetMetadataColumnList() []*MetadataColumn {
+	if m != nil {
+		return m.MetadataColumnList
+	}
+	return nil
+}
+
+func (m *MetadataDetail) GetTotalTaskCount() uint32 {
+	if m != nil {
+		return m.TotalTaskCount
+	}
+	return 0
+}
+
+// 元数据的使用方式定义
+type MetaDataUsage struct {
+	UsageType            MetaDataUsageType `protobuf:"varint,1,opt,name=usage_type,json=usageType,proto3,enum=types.MetaDataUsageType" json:"usage_type,omitempty"`
+	StartAt              uint64            `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt                uint64            `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	Times                uint32            `protobuf:"varint,4,opt,name=times,proto3" json:"times,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *MetaDataUsage) Reset()         { *m = MetaDataUsage{} }
+func (m *MetaDataUsage) String() string { return proto.CompactTextString(m) }
+func (*MetaDataUsage) ProtoMessage()    {}
+func (*MetaDataUsage) Descriptor() ([]byte, []int) {
+	return fileDescriptor_33d0259ee189cec4, []int{4}
+}
+func (m *MetaDataUsage) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MetaDataUsage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MetaDataUsage.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MetaDataUsage) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetaDataUsage.Merge(m, src)
+}
+func (m *MetaDataUsage) XXX_Size() int {
+	return m.Size()
+}
+func (m *MetaDataUsage) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetaDataUsage.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MetaDataUsage proto.InternalMessageInfo
+
+func (m *MetaDataUsage) GetUsageType() MetaDataUsageType {
+	if m != nil {
+		return m.UsageType
+	}
+	return MetaDataUsageType_Usage_Unknown
+}
+
+func (m *MetaDataUsage) GetStartAt() uint64 {
+	if m != nil {
+		return m.StartAt
+	}
+	return 0
+}
+
+func (m *MetaDataUsage) GetEndAt() uint64 {
+	if m != nil {
+		return m.EndAt
+	}
+	return 0
+}
+
+func (m *MetaDataUsage) GetTimes() uint32 {
+	if m != nil {
+		return m.Times
+	}
+	return 0
+}
+
+// 元数据使用授权
+type MetaDataAuthority struct {
+	Owner                *common.Organization `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	MetaDataId           string               `protobuf:"bytes,2,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
+	Usage                *MetaDataUsage       `protobuf:"bytes,3,opt,name=usage,proto3" json:"usage,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
+	XXX_unrecognized     []byte               `json:"-"`
+	XXX_sizecache        int32                `json:"-"`
+}
+
+func (m *MetaDataAuthority) Reset()         { *m = MetaDataAuthority{} }
+func (m *MetaDataAuthority) String() string { return proto.CompactTextString(m) }
+func (*MetaDataAuthority) ProtoMessage()    {}
+func (*MetaDataAuthority) Descriptor() ([]byte, []int) {
+	return fileDescriptor_33d0259ee189cec4, []int{5}
+}
+func (m *MetaDataAuthority) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MetaDataAuthority) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MetaDataAuthority.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MetaDataAuthority) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetaDataAuthority.Merge(m, src)
+}
+func (m *MetaDataAuthority) XXX_Size() int {
+	return m.Size()
+}
+func (m *MetaDataAuthority) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetaDataAuthority.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MetaDataAuthority proto.InternalMessageInfo
+
+func (m *MetaDataAuthority) GetOwner() *common.Organization {
+	if m != nil {
+		return m.Owner
+	}
+	return nil
+}
+
+func (m *MetaDataAuthority) GetMetaDataId() string {
+	if m != nil {
+		return m.MetaDataId
+	}
+	return ""
+}
+
+func (m *MetaDataAuthority) GetUsage() *MetaDataUsage {
+	if m != nil {
+		return m.Usage
+	}
+	return nil
 }
 
 func init() {
+	proto.RegisterEnum("types.MetaDataUsageType", MetaDataUsageType_name, MetaDataUsageType_value)
+	proto.RegisterEnum("types.AuditMetaDataOption", AuditMetaDataOption_name, AuditMetaDataOption_value)
 	proto.RegisterType((*MetaData)(nil), "types.MetaData")
-	proto.RegisterType((*ColumnMeta)(nil), "types.ColumnMeta")
+	proto.RegisterType((*MetadataColumn)(nil), "types.MetadataColumn")
+	proto.RegisterType((*MetaDataSummary)(nil), "types.MetaDataSummary")
+	proto.RegisterType((*MetadataDetail)(nil), "types.MetadataDetail")
+	proto.RegisterType((*MetaDataUsage)(nil), "types.MetaDataUsage")
+	proto.RegisterType((*MetaDataAuthority)(nil), "types.MetaDataAuthority")
 }
 
 func init() { proto.RegisterFile("lib/types/metadata.proto", fileDescriptor_33d0259ee189cec4) }
 
 var fileDescriptor_33d0259ee189cec4 = []byte{
-	// 433 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x92, 0xcf, 0x8a, 0x13, 0x41,
-	0x10, 0xc6, 0x19, 0xf3, 0x67, 0x93, 0x8e, 0xbb, 0x6a, 0x23, 0x52, 0x2c, 0x12, 0x86, 0xf5, 0x12,
-	0x10, 0x33, 0xa0, 0xa7, 0xbd, 0xba, 0xa2, 0x04, 0x54, 0x64, 0xdc, 0x93, 0xb7, 0x9e, 0xe9, 0xda,
-	0xa4, 0x61, 0x66, 0x3a, 0x4c, 0x57, 0x88, 0xf1, 0xe8, 0xd3, 0x79, 0x11, 0x7c, 0x04, 0xc9, 0x93,
-	0x48, 0x55, 0x67, 0x92, 0xc5, 0x5b, 0xfd, 0xbe, 0xaa, 0xaf, 0x6b, 0x7a, 0xbe, 0x56, 0x50, 0xb9,
-	0x22, 0xa3, 0xdd, 0x1a, 0x43, 0x56, 0x23, 0x19, 0x6b, 0xc8, 0xcc, 0xd7, 0xad, 0x27, 0xaf, 0x07,
-	0xa2, 0x5e, 0xbe, 0x68, 0x71, 0xed, 0x43, 0x26, 0x5a, 0xb1, 0xb9, 0xcb, 0x96, 0x7e, 0xe9, 0x05,
-	0xa4, 0x8a, 0xb3, 0x57, 0xbf, 0x7b, 0x6a, 0xf4, 0x09, 0xc9, 0xbc, 0x33, 0x64, 0xf4, 0xa5, 0x1a,
-	0x39, 0x8b, 0x0d, 0x39, 0xda, 0x41, 0x92, 0x26, 0xb3, 0x71, 0x7e, 0x64, 0xfd, 0x4c, 0x0d, 0x1b,
-	0x6f, 0x71, 0x61, 0xe1, 0x81, 0x74, 0x0e, 0xc4, 0x1e, 0xae, 0x3e, 0x9b, 0x1a, 0xa1, 0x17, 0x3d,
-	0x1d, 0xb3, 0x87, 0x3f, 0x6b, 0x61, 0xa1, 0x1f, 0x3d, 0x91, 0xf4, 0x54, 0x29, 0xae, 0xbe, 0x92,
-	0xa1, 0x4d, 0x80, 0x81, 0xf4, 0xee, 0x29, 0x7c, 0xa6, 0x6f, 0xdd, 0xd2, 0x35, 0x0b, 0x0b, 0xc3,
-	0x78, 0x66, 0xc7, 0xfa, 0xb9, 0x1a, 0x93, 0x29, 0xaa, 0xb8, 0xf0, 0x4c, 0x9a, 0x27, 0x81, 0x9d,
-	0x77, 0xae, 0xc2, 0x2f, 0x86, 0x56, 0x30, 0x8a, 0xce, 0x8e, 0xb5, 0x56, 0x7d, 0x8b, 0xa1, 0x84,
-	0xb1, 0xe8, 0x52, 0xb3, 0xd6, 0xfa, 0x6d, 0x00, 0x95, 0x26, 0xb3, 0x7e, 0x2e, 0xb5, 0x06, 0x75,
-	0x56, 0xfa, 0x6a, 0x53, 0x37, 0x01, 0x26, 0x22, 0x77, 0xc8, 0xd3, 0xc1, 0xfd, 0x40, 0x78, 0x18,
-	0xa7, 0xb9, 0xee, 0x36, 0xde, 0xee, 0xd6, 0x08, 0xe7, 0xa7, 0x8d, 0xcc, 0xfa, 0xa9, 0x1a, 0x04,
-	0x32, 0x84, 0x70, 0x21, 0x8d, 0x08, 0x3a, 0x55, 0x93, 0x95, 0x09, 0xb7, 0x8e, 0x2a, 0xcc, 0xfd,
-	0x16, 0x1e, 0xa5, 0xc9, 0x6c, 0x94, 0xdf, 0x97, 0xf4, 0xb5, 0xba, 0x88, 0x2b, 0x39, 0x99, 0x8f,
-	0x2e, 0x10, 0x3c, 0x4e, 0x7b, 0xb3, 0xc9, 0xeb, 0x27, 0x73, 0x49, 0x76, 0x7e, 0x73, 0x6c, 0xe6,
-	0xff, 0x0d, 0x5e, 0xfd, 0x4c, 0x94, 0x3a, 0xb5, 0x39, 0x81, 0xd2, 0x35, 0x16, 0xbf, 0x4b, 0x9e,
-	0xe7, 0xf9, 0x81, 0xf8, 0xcb, 0xca, 0x86, 0xff, 0x60, 0x0c, 0x33, 0x82, 0xa8, 0xbc, 0xe1, 0x10,
-	0x64, 0x04, 0x51, 0xe5, 0xda, 0x7d, 0x39, 0x22, 0x02, 0xdf, 0xbb, 0x2c, 0x7d, 0x5d, 0x63, 0x43,
-	0x87, 0x04, 0x8f, 0xfc, 0xf6, 0xfa, 0xd7, 0x7e, 0x9a, 0xfc, 0xd9, 0x4f, 0x93, 0xbf, 0xfb, 0x69,
-	0xf2, 0xed, 0xe5, 0xd2, 0xd1, 0x6a, 0x53, 0xcc, 0x4b, 0x5f, 0x67, 0xb9, 0x0f, 0x48, 0x64, 0xde,
-	0x57, 0x7e, 0x9b, 0xdd, 0x98, 0xb6, 0x75, 0xd8, 0xbe, 0xfa, 0xe0, 0xb3, 0xe3, 0x53, 0x2e, 0x86,
-	0xf2, 0x2c, 0xdf, 0xfc, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x3e, 0xe9, 0x34, 0x89, 0xde, 0x02, 0x00,
-	0x00,
+	// 870 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x95, 0xcd, 0x6e, 0x23, 0x45,
+	0x10, 0xc7, 0x77, 0x6c, 0x8f, 0x3f, 0xda, 0x71, 0xe2, 0x34, 0x09, 0x0c, 0x59, 0x11, 0x2c, 0x73,
+	0xb1, 0x82, 0xb0, 0x51, 0x38, 0x20, 0x0e, 0x1c, 0xb2, 0x59, 0xb1, 0xb2, 0x44, 0xd8, 0x68, 0x92,
+	0xbd, 0x70, 0x19, 0xb5, 0x67, 0x3a, 0x76, 0x2b, 0x9e, 0x6e, 0x6b, 0xba, 0x46, 0xc1, 0x79, 0x05,
+	0x2e, 0x48, 0x3c, 0x14, 0x9c, 0x10, 0x8f, 0x80, 0xf2, 0x22, 0xa0, 0xaa, 0x9e, 0x89, 0xbf, 0x00,
+	0x69, 0x6f, 0x5d, 0xff, 0xaa, 0xee, 0xfa, 0xfa, 0x69, 0x86, 0x05, 0x73, 0x35, 0x19, 0xc1, 0x72,
+	0x21, 0xed, 0x28, 0x95, 0x20, 0x12, 0x01, 0x62, 0xb8, 0xc8, 0x0c, 0x18, 0xee, 0x93, 0x7a, 0x72,
+	0x8c, 0x01, 0xb1, 0x49, 0x53, 0xa3, 0x47, 0x13, 0x61, 0xa5, 0xf3, 0x9e, 0x7c, 0x96, 0xc9, 0x85,
+	0xb1, 0x23, 0x32, 0x26, 0xf9, 0xdd, 0x68, 0x6a, 0xa6, 0x86, 0x0c, 0x3a, 0xb9, 0xa0, 0xfe, 0xdf,
+	0x55, 0xd6, 0xbc, 0x92, 0x20, 0x5e, 0x0b, 0x10, 0xfc, 0x53, 0xd6, 0x56, 0x89, 0xd4, 0xa0, 0x60,
+	0x19, 0xa9, 0x24, 0xf0, 0x7a, 0xde, 0xa0, 0x15, 0xb2, 0x52, 0x1a, 0x27, 0xfc, 0x23, 0xd6, 0xd0,
+	0x26, 0x91, 0xe8, 0xac, 0x90, 0xb3, 0x8e, 0xe6, 0x38, 0xe1, 0x2f, 0x59, 0x8b, 0x1c, 0x5a, 0xa4,
+	0x32, 0xa8, 0x92, 0xab, 0x89, 0xc2, 0x0f, 0x22, 0x95, 0x78, 0x0b, 0x8b, 0xc6, 0x5b, 0x35, 0x77,
+	0x0b, 0xcd, 0x71, 0x82, 0xf9, 0xc8, 0x61, 0x41, 0x40, 0x6e, 0x03, 0xdf, 0xe5, 0x43, 0xe9, 0x86,
+	0x14, 0x7c, 0xd6, 0x64, 0x6a, 0xaa, 0x34, 0xde, 0xad, 0xbb, 0x67, 0x9d, 0x30, 0x4e, 0xf8, 0x27,
+	0x8c, 0x81, 0x98, 0xcc, 0x8b, 0xa4, 0x0d, 0xf2, 0xb6, 0x48, 0xa1, 0xac, 0x2f, 0x59, 0xeb, 0x4e,
+	0xcd, 0x65, 0xb4, 0x10, 0x30, 0x0b, 0x9a, 0xee, 0x2e, 0x0a, 0xd7, 0x02, 0x66, 0x9c, 0xb3, 0x5a,
+	0x22, 0x6d, 0x1c, 0xb4, 0x48, 0xa7, 0x33, 0x6a, 0x99, 0x79, 0xb0, 0x01, 0xeb, 0x79, 0x83, 0x5a,
+	0x48, 0x67, 0x1e, 0xb0, 0x46, 0x6c, 0xe6, 0x79, 0xaa, 0x6d, 0xd0, 0x26, 0xb9, 0x34, 0x31, 0xda,
+	0xaa, 0x47, 0x19, 0xec, 0xb9, 0x68, 0x3c, 0x3f, 0xa7, 0xc4, 0xb5, 0x04, 0x9d, 0x55, 0xca, 0xdb,
+	0xe5, 0x42, 0xf2, 0x23, 0xe6, 0x63, 0x9f, 0x32, 0xd8, 0x27, 0x87, 0x33, 0xf0, 0xca, 0x4c, 0xd8,
+	0x08, 0x14, 0xcc, 0x65, 0x70, 0xd0, 0xf3, 0x06, 0xcd, 0xb0, 0x39, 0x13, 0xf6, 0x16, 0x6d, 0xfe,
+	0x86, 0x1d, 0x95, 0x1b, 0x8f, 0x5c, 0xde, 0x68, 0xae, 0x2c, 0x04, 0xdd, 0x5e, 0x75, 0xd0, 0x3e,
+	0x3f, 0x1e, 0xd2, 0xfa, 0x87, 0x57, 0x45, 0xc8, 0x25, 0x45, 0x84, 0x3c, 0xdd, 0xb0, 0xbf, 0x57,
+	0x16, 0xf8, 0x09, 0x6b, 0x2a, 0x9d, 0xe4, 0x16, 0xb2, 0x65, 0x70, 0xe8, 0xea, 0x2a, 0xed, 0xfe,
+	0xcf, 0x1e, 0xdb, 0xdf, 0x7c, 0x02, 0x17, 0x16, 0x47, 0x4a, 0x27, 0xf2, 0x27, 0x62, 0xa0, 0x13,
+	0xd6, 0xe3, 0x31, 0x5a, 0xfc, 0x98, 0xd5, 0x63, 0x37, 0x6e, 0xb7, 0x7e, 0x3f, 0xa6, 0x51, 0x93,
+	0x4c, 0x4d, 0x57, 0x0b, 0x99, 0x3a, 0x26, 0x99, 0x86, 0x54, 0xa3, 0x57, 0xfc, 0xf8, 0xa6, 0x98,
+	0x52, 0x1c, 0x21, 0xae, 0x52, 0x43, 0xb1, 0xf3, 0x66, 0x7c, 0xe9, 0xec, 0xfe, 0x1f, 0x15, 0x76,
+	0x50, 0xf2, 0x78, 0x93, 0xa7, 0xa9, 0xc8, 0x96, 0xbc, 0xc7, 0xf6, 0xb0, 0xa7, 0xa8, 0x84, 0xa8,
+	0xe0, 0x32, 0x2d, 0xc2, 0x1c, 0x7e, 0x2b, 0x4e, 0x2a, 0xff, 0xcb, 0x49, 0x75, 0x9b, 0x93, 0x12,
+	0x85, 0xda, 0x1a, 0x0a, 0x1b, 0xec, 0xf8, 0xbb, 0xec, 0x10, 0x27, 0x75, 0x6a, 0x6a, 0x87, 0x93,
+	0x06, 0xc9, 0x3b, 0x9c, 0x34, 0x5d, 0xf4, 0x2e, 0x27, 0xad, 0x2d, 0x4e, 0x36, 0x88, 0x60, 0x5b,
+	0x44, 0xac, 0x2f, 0xb2, 0xbd, 0xb9, 0xc8, 0x15, 0x60, 0x7b, 0x6b, 0x80, 0xf5, 0x7f, 0x5b, 0x5b,
+	0xef, 0x6b, 0x09, 0x42, 0xcd, 0xf9, 0x2b, 0x76, 0xb8, 0x9a, 0xa7, 0x75, 0x43, 0xa6, 0xa1, 0xb6,
+	0xcf, 0x3f, 0x5c, 0x63, 0x6a, 0x6d, 0x05, 0xe1, 0x41, 0xba, 0xb5, 0x93, 0xff, 0x42, 0xb3, 0xf2,
+	0xbe, 0x68, 0x0e, 0x58, 0x17, 0x0c, 0x88, 0x79, 0x04, 0xc2, 0xde, 0x47, 0xb1, 0xc9, 0x35, 0xd0,
+	0x8e, 0x3a, 0xe1, 0x3e, 0xe9, 0xb7, 0xc2, 0xde, 0x5f, 0xa2, 0xda, 0xff, 0xc5, 0x63, 0x9d, 0xb2,
+	0xae, 0x77, 0x56, 0x4c, 0x25, 0xff, 0x9a, 0xb1, 0x1c, 0x0f, 0x6e, 0x90, 0xd8, 0xc1, 0xfe, 0x79,
+	0xb0, 0xd5, 0x01, 0x45, 0xe2, 0x60, 0xc3, 0x56, 0x5e, 0x1e, 0xf9, 0xc7, 0xac, 0x69, 0x41, 0x64,
+	0x10, 0x09, 0x20, 0x5c, 0x6a, 0x61, 0x83, 0xec, 0x0b, 0x40, 0x68, 0xa5, 0x4e, 0xd0, 0x51, 0x25,
+	0x87, 0x2f, 0x75, 0x72, 0x01, 0x38, 0x5c, 0x50, 0xa9, 0xb4, 0x25, 0xca, 0x64, 0xf4, 0x7f, 0xf5,
+	0xd8, 0x61, 0x99, 0xe8, 0x22, 0x87, 0x99, 0xc9, 0x14, 0x2c, 0xf9, 0x97, 0xcc, 0x37, 0x0f, 0x5a,
+	0x66, 0xc5, 0x4c, 0x4f, 0x86, 0x62, 0xa1, 0x86, 0xe5, 0x67, 0x78, 0xf8, 0x36, 0x9b, 0x0a, 0xad,
+	0x1e, 0x05, 0x28, 0xa3, 0x43, 0x17, 0xb8, 0x43, 0x78, 0x65, 0x87, 0xf0, 0x33, 0xe6, 0x53, 0xf9,
+	0x54, 0x55, 0xfb, 0xfc, 0xe8, 0xdf, 0xba, 0x0c, 0x5d, 0xc8, 0xd9, 0xb7, 0xab, 0xa2, 0x9e, 0xbb,
+	0xe7, 0x87, 0xac, 0x43, 0x46, 0xf4, 0x4e, 0xdf, 0x6b, 0xf3, 0xa0, 0xbb, 0x2f, 0x38, 0x63, 0xf5,
+	0x6b, 0x99, 0x29, 0x93, 0x74, 0x3d, 0xde, 0x62, 0xfe, 0x2d, 0xb6, 0xd4, 0xad, 0x9c, 0x5d, 0xb1,
+	0x0f, 0x2e, 0xf2, 0x44, 0x41, 0xf9, 0xc6, 0xdb, 0x05, 0x96, 0x8a, 0x0f, 0x90, 0x1c, 0x5d, 0x4b,
+	0x9d, 0x28, 0x3d, 0xed, 0xbe, 0xe0, 0x5d, 0xb6, 0x57, 0x48, 0xc2, 0x5a, 0x89, 0xcf, 0x3c, 0x07,
+	0x85, 0xf2, 0x2e, 0x47, 0xa9, 0xf2, 0xea, 0x9b, 0xdf, 0x9f, 0x4e, 0xbd, 0x3f, 0x9f, 0x4e, 0xbd,
+	0xbf, 0x9e, 0x4e, 0xbd, 0x1f, 0x3f, 0x9f, 0x2a, 0x98, 0xe5, 0x93, 0x61, 0x6c, 0xd2, 0x51, 0x68,
+	0xac, 0x04, 0x10, 0xdf, 0xcd, 0xcd, 0xc3, 0xe8, 0x52, 0x64, 0x99, 0x92, 0xd9, 0x17, 0x6f, 0xcc,
+	0xe8, 0xf9, 0x77, 0x37, 0xa9, 0xd3, 0xd0, 0xbe, 0xfa, 0x27, 0x00, 0x00, 0xff, 0xff, 0x83, 0xde,
+	0x40, 0x8b, 0x02, 0x07, 0x00, 0x00,
 }
 
 func (m *MetaData) Marshal() (dAtA []byte, err error) {
@@ -334,10 +771,19 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.ColumnMetaList) > 0 {
-		for iNdEx := len(m.ColumnMetaList) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.Industry) > 0 {
+		i -= len(m.Industry)
+		copy(dAtA[i:], m.Industry)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Industry)))
+		i--
+		dAtA[i] = 0x1
+		i--
+		dAtA[i] = 0x8a
+	}
+	if len(m.MetadataColumnList) > 0 {
+		for iNdEx := len(m.MetadataColumnList) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.ColumnMetaList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.MetadataColumnList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -350,9 +796,9 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x82
 		}
 	}
-	if m.HasTitleRow {
+	if m.HasTitle {
 		i--
-		if m.HasTitleRow {
+		if m.HasTitle {
 			dAtA[i] = 1
 		} else {
 			dAtA[i] = 0
@@ -445,17 +891,17 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Identity) > 0 {
-		i -= len(m.Identity)
-		copy(dAtA[i:], m.Identity)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Identity)))
+	if len(m.IdentityId) > 0 {
+		i -= len(m.IdentityId)
+		copy(dAtA[i:], m.IdentityId)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.IdentityId)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *ColumnMeta) Marshal() (dAtA []byte, err error) {
+func (m *MetadataColumn) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -465,12 +911,12 @@ func (m *ColumnMeta) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *ColumnMeta) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataColumn) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *ColumnMeta) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataColumn) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -479,36 +925,307 @@ func (m *ColumnMeta) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.Ccomment) > 0 {
-		i -= len(m.Ccomment)
-		copy(dAtA[i:], m.Ccomment)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Ccomment)))
+	if len(m.CComment) > 0 {
+		i -= len(m.CComment)
+		copy(dAtA[i:], m.CComment)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.CComment)))
 		i--
 		dAtA[i] = 0x2a
 	}
-	if m.Csize != 0 {
-		i = encodeVarintMetadata(dAtA, i, uint64(m.Csize))
+	if m.CSize != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.CSize))
 		i--
 		dAtA[i] = 0x20
 	}
-	if len(m.Ctype) > 0 {
-		i -= len(m.Ctype)
-		copy(dAtA[i:], m.Ctype)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Ctype)))
+	if len(m.CType) > 0 {
+		i -= len(m.CType)
+		copy(dAtA[i:], m.CType)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.CType)))
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Cname) > 0 {
-		i -= len(m.Cname)
-		copy(dAtA[i:], m.Cname)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Cname)))
+	if len(m.CName) > 0 {
+		i -= len(m.CName)
+		copy(dAtA[i:], m.CName)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.CName)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Cindex != 0 {
-		i = encodeVarintMetadata(dAtA, i, uint64(m.Cindex))
+	if m.CIndex != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.CIndex))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MetaDataSummary) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MetaDataSummary) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MetaDataSummary) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.State) > 0 {
+		i -= len(m.State)
+		copy(dAtA[i:], m.State)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.State)))
+		i--
+		dAtA[i] = 0x62
+	}
+	if len(m.Industry) > 0 {
+		i -= len(m.Industry)
+		copy(dAtA[i:], m.Industry)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Industry)))
+		i--
+		dAtA[i] = 0x5a
+	}
+	if m.HasTitle {
+		i--
+		if m.HasTitle {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x50
+	}
+	if len(m.FileType) > 0 {
+		i -= len(m.FileType)
+		copy(dAtA[i:], m.FileType)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.FileType)))
+		i--
+		dAtA[i] = 0x4a
+	}
+	if m.Size_ != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.Size_))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.Columns != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.Columns))
+		i--
+		dAtA[i] = 0x38
+	}
+	if m.Rows != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.Rows))
+		i--
+		dAtA[i] = 0x30
+	}
+	if len(m.FilePath) > 0 {
+		i -= len(m.FilePath)
+		copy(dAtA[i:], m.FilePath)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.FilePath)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.Desc) > 0 {
+		i -= len(m.Desc)
+		copy(dAtA[i:], m.Desc)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.Desc)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.TableName) > 0 {
+		i -= len(m.TableName)
+		copy(dAtA[i:], m.TableName)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.TableName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.OriginId) > 0 {
+		i -= len(m.OriginId)
+		copy(dAtA[i:], m.OriginId)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.OriginId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.MetaDataId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MetadataDetail) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MetadataDetail) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MetadataDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.TotalTaskCount != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.TotalTaskCount))
+		i--
+		dAtA[i] = 0x18
+	}
+	if len(m.MetadataColumnList) > 0 {
+		for iNdEx := len(m.MetadataColumnList) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.MetadataColumnList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintMetadata(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.MetaDataSummary != nil {
+		{
+			size, err := m.MetaDataSummary.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMetadata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MetaDataUsage) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MetaDataUsage) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MetaDataUsage) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Times != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.Times))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.EndAt != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.EndAt))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.StartAt != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.StartAt))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.UsageType != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.UsageType))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MetaDataAuthority) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MetaDataAuthority) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MetaDataAuthority) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.Usage != nil {
+		{
+			size, err := m.Usage.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMetadata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.MetaDataId) > 0 {
+		i -= len(m.MetaDataId)
+		copy(dAtA[i:], m.MetaDataId)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.MetaDataId)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMetadata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -530,7 +1247,7 @@ func (m *MetaData) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Identity)
+	l = len(m.IdentityId)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
@@ -583,14 +1300,18 @@ func (m *MetaData) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	if m.HasTitleRow {
+	if m.HasTitle {
 		n += 2
 	}
-	if len(m.ColumnMetaList) > 0 {
-		for _, e := range m.ColumnMetaList {
+	if len(m.MetadataColumnList) > 0 {
+		for _, e := range m.MetadataColumnList {
 			l = e.Size()
 			n += 2 + l + sovMetadata(uint64(l))
 		}
+	}
+	l = len(m.Industry)
+	if l > 0 {
+		n += 2 + l + sovMetadata(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -598,28 +1319,157 @@ func (m *MetaData) Size() (n int) {
 	return n
 }
 
-func (m *ColumnMeta) Size() (n int) {
+func (m *MetadataColumn) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Cindex != 0 {
-		n += 1 + sovMetadata(uint64(m.Cindex))
+	if m.CIndex != 0 {
+		n += 1 + sovMetadata(uint64(m.CIndex))
 	}
-	l = len(m.Cname)
+	l = len(m.CName)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	l = len(m.Ctype)
+	l = len(m.CType)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	if m.Csize != 0 {
-		n += 1 + sovMetadata(uint64(m.Csize))
+	if m.CSize != 0 {
+		n += 1 + sovMetadata(uint64(m.CSize))
 	}
-	l = len(m.Ccomment)
+	l = len(m.CComment)
 	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *MetaDataSummary) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.MetaDataId)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.OriginId)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.TableName)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.Desc)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.FilePath)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if m.Rows != 0 {
+		n += 1 + sovMetadata(uint64(m.Rows))
+	}
+	if m.Columns != 0 {
+		n += 1 + sovMetadata(uint64(m.Columns))
+	}
+	if m.Size_ != 0 {
+		n += 1 + sovMetadata(uint64(m.Size_))
+	}
+	l = len(m.FileType)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if m.HasTitle {
+		n += 2
+	}
+	l = len(m.Industry)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.State)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *MetadataDetail) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.MetaDataSummary != nil {
+		l = m.MetaDataSummary.Size()
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if len(m.MetadataColumnList) > 0 {
+		for _, e := range m.MetadataColumnList {
+			l = e.Size()
+			n += 1 + l + sovMetadata(uint64(l))
+		}
+	}
+	if m.TotalTaskCount != 0 {
+		n += 1 + sovMetadata(uint64(m.TotalTaskCount))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *MetaDataUsage) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UsageType != 0 {
+		n += 1 + sovMetadata(uint64(m.UsageType))
+	}
+	if m.StartAt != 0 {
+		n += 1 + sovMetadata(uint64(m.StartAt))
+	}
+	if m.EndAt != 0 {
+		n += 1 + sovMetadata(uint64(m.EndAt))
+	}
+	if m.Times != 0 {
+		n += 1 + sovMetadata(uint64(m.Times))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *MetaDataAuthority) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Owner != nil {
+		l = m.Owner.Size()
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	l = len(m.MetaDataId)
+	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if m.Usage != nil {
+		l = m.Usage.Size()
 		n += 1 + l + sovMetadata(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -665,7 +1515,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Identity", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field IdentityId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -693,7 +1543,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Identity = string(dAtA[iNdEx:postIndex])
+			m.IdentityId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -1074,7 +1924,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 15:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HasTitleRow", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field HasTitle", wireType)
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
@@ -1091,10 +1941,10 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-			m.HasTitleRow = bool(v != 0)
+			m.HasTitle = bool(v != 0)
 		case 16:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ColumnMetaList", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetadataColumnList", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1121,10 +1971,42 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ColumnMetaList = append(m.ColumnMetaList, &ColumnMeta{})
-			if err := m.ColumnMetaList[len(m.ColumnMetaList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.MetadataColumnList = append(m.MetadataColumnList, &MetadataColumn{})
+			if err := m.MetadataColumnList[len(m.MetadataColumnList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 17:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Industry", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Industry = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1148,7 +2030,7 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
+func (m *MetadataColumn) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1171,17 +2053,17 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: ColumnMeta: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataColumn: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ColumnMeta: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataColumn: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cindex", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CIndex", wireType)
 			}
-			m.Cindex = 0
+			m.CIndex = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMetadata
@@ -1191,14 +2073,14 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Cindex |= uint32(b&0x7F) << shift
+				m.CIndex |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Cname", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1226,11 +2108,11 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Cname = string(dAtA[iNdEx:postIndex])
+			m.CName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ctype", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CType", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1258,13 +2140,13 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Ctype = string(dAtA[iNdEx:postIndex])
+			m.CType = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Csize", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CSize", wireType)
 			}
-			m.Csize = 0
+			m.CSize = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMetadata
@@ -1274,14 +2156,14 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Csize |= uint32(b&0x7F) << shift
+				m.CSize |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Ccomment", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CComment", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1309,7 +2191,813 @@ func (m *ColumnMeta) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Ccomment = string(dAtA[iNdEx:postIndex])
+			m.CComment = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMetadata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MetaDataSummary) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMetadata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MetaDataSummary: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MetaDataSummary: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OriginId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OriginId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TableName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.TableName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Desc = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FilePath", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FilePath = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rows", wireType)
+			}
+			m.Rows = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Rows |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
+			}
+			m.Columns = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Columns |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Size_", wireType)
+			}
+			m.Size_ = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Size_ |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FileType", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FileType = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field HasTitle", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.HasTitle = bool(v != 0)
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Industry", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Industry = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.State = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMetadata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MetadataDetail) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMetadata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MetadataDetail: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MetadataDetail: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataSummary", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MetaDataSummary == nil {
+				m.MetaDataSummary = &MetaDataSummary{}
+			}
+			if err := m.MetaDataSummary.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetadataColumnList", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetadataColumnList = append(m.MetadataColumnList, &MetadataColumn{})
+			if err := m.MetadataColumnList[len(m.MetadataColumnList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalTaskCount", wireType)
+			}
+			m.TotalTaskCount = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalTaskCount |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMetadata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MetaDataUsage) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMetadata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MetaDataUsage: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MetaDataUsage: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsageType", wireType)
+			}
+			m.UsageType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UsageType |= MetaDataUsageType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StartAt", wireType)
+			}
+			m.StartAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StartAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EndAt", wireType)
+			}
+			m.EndAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.EndAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Times", wireType)
+			}
+			m.Times = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Times |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMetadata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MetaDataAuthority) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMetadata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MetaDataAuthority: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MetaDataAuthority: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Owner == nil {
+				m.Owner = &common.Organization{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.MetaDataId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Usage", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Usage == nil {
+				m.Usage = &MetaDataUsage{}
+			}
+			if err := m.Usage.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

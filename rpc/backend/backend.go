@@ -1,6 +1,8 @@
 package backend
 
 import (
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -8,39 +10,39 @@ type Backend interface {
 	SendMsg(msg types.Msg) error
 
 	// system (the yarn node self info)
-	GetNodeInfo() (*types.YarnNodeInfo, error)
-	GetRegisteredPeers() (*types.YarnRegisteredNodeDetail, error)
+	GetNodeInfo() (*pb.YarnNodeInfo, error)
+	GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, error)
 
 	// local node resource api
-	SetSeedNode(seed *types.SeedNodeInfo) (types.NodeConnStatus, error)
+	SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error)
 	DeleteSeedNode(id string) error
-	GetSeedNode(id string) (*types.SeedNodeInfo, error)
-	GetSeedNodeList() ([]*types.SeedNodeInfo, error)
-	SetRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
-	UpdateRegisterNode(typ types.RegisteredNodeType, node *types.RegisteredNodeInfo) (types.NodeConnStatus, error)
-	DeleteRegisterNode(typ types.RegisteredNodeType, id string) error
-	GetRegisterNode(typ types.RegisteredNodeType, id string) (*types.RegisteredNodeInfo, error)
-	GetRegisterNodeList(typ types.RegisteredNodeType) ([]*types.RegisteredNodeInfo, error)
+	GetSeedNode(id string) (*pb.SeedPeer, error)
+	GetSeedNodeList() ([]*pb.SeedPeer, error)
+	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error)
+	UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error)
+	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
+	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
+	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
 
-	SendTaskEvent(event *types.TaskEventInfo) error
+	SendTaskEvent(event *libTypes.TaskEvent) error
 
 	// metadata api
-	GetMetaDataDetail(identityId, metaDataId string) (*types.OrgMetaDataInfo, error)
-	GetMetaDataDetailList() ([]*types.OrgMetaDataInfo, error)
-	GetMetaDataDetailListByOwner(identityId string) ([]*types.OrgMetaDataInfo, error)
+	GetMetaDataDetail(identityId, metaDataId string) (*pb.GetMetaDataDetailResponse, error)
+	GetMetaDataDetailList() ([]*pb.GetMetaDataDetailResponse, error)
+	GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error)
 
 	// power api
-	GetPowerTotalDetailList() ([]*types.OrgPowerDetail, error)
-	GetPowerSingleDetailList() ([]*types.NodePowerDetail, error)
+	GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error)
+	GetPowerSingleDetailList() ([]*pb.GetPowerSingleDetailResponse, error)
 
 	// identity api
 	GetNodeIdentity() (*types.Identity, error)
 	GetIdentityList() ([]*types.Identity, error)
 
 	// task api
-	GetTaskDetailList() ([]*types.TaskDetailShow, error)
-	GetTaskEventList(taskId string) ([]*types.TaskEvent, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*types.TaskEvent, error)
+	GetTaskDetailList() ([]*pb.TaskDetailShow, error)
+	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
 
 	// about DataResourceTable
 	//StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error

@@ -3,7 +3,7 @@ package rawdb
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
@@ -13,8 +13,8 @@ import (
 
 func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	data01 := &libtypes.TaskData{
-		Identity:             "identity",
+	data01 := &libTypes.TaskData{
+		IdentityId:             "identity",
 		NodeId:               "nodeid",
 		NodeName:             "nodename",
 		DataId:               "taskId",
@@ -60,7 +60,7 @@ func TestLocalTask(t *testing.T) {
 func TestSeedNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	seedNodeInfo := &types.SeedNodeInfo{
+	seedNodeInfo := &pb.SeedPeer{
 		Id:           "id",
 		InternalIp:   "internalIp",
 		InternalPort: "9999",
@@ -93,7 +93,7 @@ func TestSeedNode(t *testing.T) {
 func TestRegisteredNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
-	registered := &types.RegisteredNodeInfo{
+	registered := &pb.YarnRegisteredPeerDetail{
 		Id:           "id",
 		InternalIp:   "internalIp",
 		InternalPort: "9999",
@@ -101,53 +101,53 @@ func TestRegisteredNode(t *testing.T) {
 		ExternalPort: "999",
 		ConnState:    1,
 	}
-	WriteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE, registered)
+	WriteRegisterNodes(database, pb.PrefixTypeJobNode, registered)
 
 	// get seed
-	r, _ := ReadRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
+	r, _ := ReadRegisterNode(database, pb.PrefixTypeJobNode, "id")
 	t.Logf("registered info : %v", r)
 	assert.Assert(t, strings.EqualFold("id", r.Id))
 
 	// read all
-	registeredNodes, _ := ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ := ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 1)
 
 	// delete
-	DeleteRegisterNode(database, types.PREFIX_TYPE_JOBNODE, "id")
+	DeleteRegisterNode(database, pb.PrefixTypeJobNode, "id")
 
-	registeredNodes, _ = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ = ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 
 	// delete
-	DeleteRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	DeleteRegisterNodes(database, pb.PrefixTypeJobNode)
 
-	registeredNodes, _ = ReadAllRegisterNodes(database, types.PREFIX_TYPE_JOBNODE)
+	registeredNodes, _ = ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 }
 
 func TestTaskEvent(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	taskEvent := &types.TaskEventInfo{
+	taskEvent := &libTypes.TaskEvent{
 		Type:       "taskEventType",
-		Identity:   "taskEventIdentity",
+		IdentityId:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent",
-		CreateTime: uint64(timeutils.UnixMsec()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent)
 
-	taskEvent2 := &types.TaskEventInfo{
+	taskEvent2 := &libTypes.TaskEvent{
 		Type:       "taskEventType-02",
-		Identity:   "taskEventIdentity",
+		IdentityId:   "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent-02",
-		CreateTime: uint64(timeutils.UnixMsec()),
+		CreateAt: uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent2)
 
 	revent, _ := ReadTaskEvent(database, "taskEventTaskId")
 	t.Logf("task evengine info : %v", len(revent))
-	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].Identity))
+	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].IdentityId))
 
 	// read all
 	taskEvents, _ := ReadAllTaskEvents(database)
@@ -162,7 +162,7 @@ func TestTaskEvent(t *testing.T) {
 
 func TestLocalIdentity(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	nodeAlias := &types.NodeAlias{
+	nodeAlias := &apipb.Organization{
 		Name:       "node-name",
 		NodeId:     "node-nodeId",
 		IdentityId: "node-identityId",
@@ -184,8 +184,8 @@ func TestLocalIdentity(t *testing.T) {
 
 func TestLocalResource(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localResource01 := &libtypes.LocalResourceData{
-		Identity:             "01-identity",
+	localResource01 := &libTypes.LocalResourceData{
+		IdentityId:             "01-identity",
 		NodeId:               "01-nodeId",
 		NodeName:             "01-nodename",
 		JobNodeId:            "01",
@@ -203,8 +203,8 @@ func TestLocalResource(t *testing.T) {
 	_ = b
 	WriteLocalResource(database, types.NewLocalResource(localResource01))
 
-	localResource02 := &libtypes.LocalResourceData{
-		Identity:             "01-identity",
+	localResource02 := &libTypes.LocalResourceData{
+		IdentityId:             "01-identity",
 		NodeId:               "01-nodeId",
 		NodeName:             "01-nodename",
 		JobNodeId:            "02",

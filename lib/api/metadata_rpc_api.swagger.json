@@ -46,6 +46,7 @@
     },
     "/carrier/v1/metadata/list": {
       "post": {
+        "summary": "查看全网元数据列表",
         "operationId": "MetaDataService_GetMetaDataDetailList",
         "responses": {
           "200": {
@@ -67,7 +68,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiEmptyGetParams"
+              "properties": {}
             }
           }
         ],
@@ -78,6 +79,7 @@
     },
     "/carrier/v1/metadata/listByOwner": {
       "post": {
+        "summary": "查看某个组织元数据列表",
         "operationId": "MetaDataService_GetMetaDataDetailListByOwner",
         "responses": {
           "200": {
@@ -149,7 +151,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+              "$ref": "#/definitions/protobufSimpleResponse"
             }
           },
           "default": {
@@ -188,8 +190,37 @@
         }
       }
     },
-    "rpcapiEmptyGetParams": {
-      "type": "object"
+    "protobufOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
+    "protobufSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
     },
     "rpcapiGetMetaDataDetailListByOwnerRequest": {
       "type": "object",
@@ -226,58 +257,73 @@
         "meta_data_id": {
           "type": "string"
         }
-      }
+      },
+      "title": "------------------------  metadata  ------------------------"
     },
     "rpcapiGetMetaDataDetailResponse": {
       "type": "object",
       "properties": {
         "owner": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          "$ref": "#/definitions/protobufOrganization"
         },
         "information": {
-          "$ref": "#/definitions/rpcapiMetaDataDetailShow"
+          "$ref": "#/definitions/typesMetadataDetail"
         }
       }
     },
-    "rpcapiMetaDataColumnDetail": {
+    "rpcapiPublishMetaDataRequest": {
       "type": "object",
       "properties": {
-        "cindex": {
+        "information": {
+          "$ref": "#/definitions/typesMetadataDetail"
+        }
+      }
+    },
+    "rpcapiPublishMetaDataResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
           "type": "integer",
-          "format": "int64"
+          "format": "int32"
         },
-        "cname": {
+        "msg": {
           "type": "string"
         },
-        "ctype": {
-          "type": "string"
-        },
-        "csize": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "ccomment": {
+        "meta_data_id": {
           "type": "string"
         }
-      },
-      "title": "源文件的列的描述详情"
+      }
     },
-    "rpcapiMetaDataDetailShow": {
+    "rpcapiRevokeMetaDataRequest": {
       "type": "object",
       "properties": {
-        "meta_data_summary": {
-          "$ref": "#/definitions/rpcapiMetaDataSummary"
+        "meta_data_id": {
+          "type": "string"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
         },
-        "column_meta": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiMetaDataColumnDetail"
+            "$ref": "#/definitions/protobufAny"
           }
         }
-      },
-      "title": "源文件的详情"
+      }
     },
-    "rpcapiMetaDataSummary": {
+    "typesMetaDataSummary": {
       "type": "object",
       "properties": {
         "meta_data_id": {
@@ -313,96 +359,56 @@
         "has_title": {
           "type": "boolean"
         },
+        "industry": {
+          "type": "string"
+        },
         "state": {
           "type": "string"
         }
       },
-      "title": "源数据的摘要内容 (不包含详细 列描述)"
+      "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"
     },
-    "rpcapiOrganizationIdentityInfo": {
+    "typesMetadataColumn": {
       "type": "object",
       "properties": {
-        "name": {
-          "type": "string"
-        },
-        "node_id": {
-          "type": "string"
-        },
-        "identity_id": {
-          "type": "string"
-        }
-      },
-      "title": "组织(节点)唯一标识抽象"
-    },
-    "rpcapiPublishMetaDataRequest": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
-        },
-        "information": {
-          "$ref": "#/definitions/rpcapiMetaDataDetailShow"
-        }
-      }
-    },
-    "rpcapiPublishMetaDataResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
+        "c_index": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
         },
-        "msg": {
+        "c_name": {
           "type": "string"
         },
-        "meta_data_id": {
+        "c_type": {
           "type": "string"
-        }
-      }
-    },
-    "rpcapiRevokeMetaDataRequest": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
         },
-        "meta_data_id": {
-          "type": "string"
-        }
-      }
-    },
-    "rpcapiSimpleResponseCode": {
-      "type": "object",
-      "properties": {
-        "status": {
+        "c_size": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64",
+          "title": "unit: byte"
         },
-        "msg": {
+        "c_comment": {
           "type": "string"
         }
       }
     },
-    "runtimeError": {
+    "typesMetadataDetail": {
       "type": "object",
       "properties": {
-        "error": {
-          "type": "string"
+        "meta_data_summary": {
+          "$ref": "#/definitions/typesMetaDataSummary"
         },
-        "code": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "message": {
-          "type": "string"
-        },
-        "details": {
+        "metadata_column_list": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufAny"
+            "$ref": "#/definitions/typesMetadataColumn"
           }
+        },
+        "total_task_count": {
+          "type": "integer",
+          "format": "int64"
         }
-      }
+      },
+      "title": "元数据的详情信息"
     }
   }
 }

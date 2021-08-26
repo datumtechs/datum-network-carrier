@@ -4,59 +4,21 @@ package api;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
-import "lib/center/api/base.proto";
+import "lib/common/base.proto";
+import "lib/types/metadata.proto";
 import "google/protobuf/empty.proto";
 
-// 元数据摘要
-message MetaDataSummary {
-  // 元数据Id
-    string meta_data_id = 1;
-  // 源文件Id
-    string origin_id = 2;
-  // 元数据名称 (表名)
-    string table_name = 3;
-  // 元数据的描述 (摘要)
-    string desc = 4;
-  // 源文件存放路径
-    string file_path = 5;
-  // 源文件的行数
-    uint32 rows = 6;
-  // 源文件的列数
-    uint32 columns = 7;
-  // 源文件的大小
-    uint64 size = 8;
-  // 源文件的类型 (目前只有 csv)
-    string file_type = 9;
-  // 源文件是否包含标题
-    bool has_title = 10;
-  // 元数据的状态 (create: 还未发布的新表; release: 已发布的表; revoke: 已撤销的表)
-    string state = 11;
-}
-
-// 源文件的列的描述详情
-message MetaDataColumnDetail {
-  // 列的索引
-    uint32 cindex = 1;
-  // 列名
-    string cname = 2;
-  // 列类型
-    string ctype = 3;
-  // 列大小(单位: byte)
-    uint32 csize = 4;
-  // 列描述
-    string ccomment = 5;
-}
 
 message MetaDataSaveRequest {
-    Organization                  owner        = 1;
-    MetaDataSummary               meta_summary = 2;
-    repeated MetaDataColumnDetail column_meta  = 3;
+    api.protobuf.Organization     owner        = 1;
+    types.MetaDataSummary         meta_summary = 2;
+    repeated types.MetadataColumn column_meta  = 3;
 }
 
 message RevokeMetaDataRequest {
   // 元数据拥有者
-    Organization owner        = 1;
-    string       meta_data_id = 2;
+    api.protobuf.Organization owner        = 1;
+    string                    meta_data_id = 2;
 }
 
 // 获取元数据摘要列表响应参数
@@ -67,9 +29,9 @@ message MetaDataSummaryListResponse {
 
 message MetaDataSummaryOwner {
   // 元数据的拥有者
-    Organization owner = 1;
+    api.protobuf.Organization owner = 1;
   // 元文件摘要主体
-    MetaDataSummary information = 2;
+    types.MetaDataSummary information = 2;
 }
 
 // 根据状态获取元数据摘要列表
@@ -83,9 +45,9 @@ message MetaDataSummaryByStateResponse {
 }
 
 message Metadata {
-    Organization                  owner        = 1;
-    MetaDataSummary               meta_summary = 2;
-    repeated MetaDataColumnDetail column_meta  = 3;
+    api.protobuf.Organization     owner                = 1;
+    types.MetaDataSummary         meta_summary         = 2;
+    repeated types.MetadataColumn metadata_column_list = 3;
 }
 
 message MetadataListRequest {
@@ -108,7 +70,7 @@ message MetadataByIdResponse {
 service MetaDataService {
 
   // 保存元数据
-  rpc MetaDataSave (MetaDataSaveRequest) returns (SimpleResponse);
+  rpc MetaDataSave (MetaDataSaveRequest) returns (api.protobuf.SimpleResponse);
 
   // 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
   rpc GetMetaDataSummaryList (google.protobuf.Empty) returns (MetaDataSummaryListResponse);
@@ -120,5 +82,5 @@ service MetaDataService {
   rpc GetMetadataById(MetadataByIdRequest) returns (MetadataByIdResponse);
 
   // 撤销元数据 (从底层网络撤销)
-  rpc RevokeMetaData (RevokeMetaDataRequest) returns (SimpleResponse);
+  rpc RevokeMetaData (RevokeMetaDataRequest) returns (api.protobuf.SimpleResponse);
 }
