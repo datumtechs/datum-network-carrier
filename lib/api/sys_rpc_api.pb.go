@@ -9,11 +9,11 @@ import (
 	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -2109,7 +2109,7 @@ const _ = grpc.SupportPackageIsVersion4
 type YarnServiceClient interface {
 	// Getter YarnNode ...
 	// 查看自身调度服务信息
-	GetNodeInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
+	GetNodeInfo(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetNodeInfoResponse, error)
 	// 查看自身调度服务的 peer注册信息
 	GetRegisteredPeers(ctx context.Context, in *GetRegisteredPeersRequest, opts ...grpc.CallOption) (*GetRegisteredPeersResponse, error)
 	// about seed
@@ -2120,7 +2120,7 @@ type YarnServiceClient interface {
 	// 删除种子节点信息
 	DeleteSeedNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询种子节点列表
-	GetSeedNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error)
+	GetSeedNodeList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error)
 	// about dataNode
 	// 新增数据服务信息
 	SetDataNode(ctx context.Context, in *SetDataNodeRequest, opts ...grpc.CallOption) (*SetDataNodeResponse, error)
@@ -2129,7 +2129,7 @@ type YarnServiceClient interface {
 	// 删除数据服务信息
 	DeleteDataNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询数据服务列表
-	GetDataNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
+	GetDataNodeList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
 	// about jobNode
 	// 新增计算服务信息
 	SetJobNode(ctx context.Context, in *SetJobNodeRequest, opts ...grpc.CallOption) (*SetJobNodeResponse, error)
@@ -2138,7 +2138,7 @@ type YarnServiceClient interface {
 	// 删除计算服务信息
 	DeleteJobNode(ctx context.Context, in *DeleteRegisteredNodeRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询计算服务列表
-	GetJobNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
+	GetJobNodeList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
 	// about report
 	// 上报任务事件
 	ReportTaskEvent(ctx context.Context, in *ReportTaskEventRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
@@ -2160,7 +2160,7 @@ func NewYarnServiceClient(cc *grpc.ClientConn) YarnServiceClient {
 	return &yarnServiceClient{cc}
 }
 
-func (c *yarnServiceClient) GetNodeInfo(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetNodeInfoResponse, error) {
+func (c *yarnServiceClient) GetNodeInfo(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetNodeInfoResponse, error) {
 	out := new(GetNodeInfoResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetNodeInfo", in, out, opts...)
 	if err != nil {
@@ -2205,7 +2205,7 @@ func (c *yarnServiceClient) DeleteSeedNode(ctx context.Context, in *DeleteRegist
 	return out, nil
 }
 
-func (c *yarnServiceClient) GetSeedNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error) {
+func (c *yarnServiceClient) GetSeedNodeList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetSeedNodeListResponse, error) {
 	out := new(GetSeedNodeListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetSeedNodeList", in, out, opts...)
 	if err != nil {
@@ -2241,7 +2241,7 @@ func (c *yarnServiceClient) DeleteDataNode(ctx context.Context, in *DeleteRegist
 	return out, nil
 }
 
-func (c *yarnServiceClient) GetDataNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
+func (c *yarnServiceClient) GetDataNodeList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
 	out := new(GetRegisteredNodeListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetDataNodeList", in, out, opts...)
 	if err != nil {
@@ -2277,7 +2277,7 @@ func (c *yarnServiceClient) DeleteJobNode(ctx context.Context, in *DeleteRegiste
 	return out, nil
 }
 
-func (c *yarnServiceClient) GetJobNodeList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
+func (c *yarnServiceClient) GetJobNodeList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error) {
 	out := new(GetRegisteredNodeListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.YarnService/GetJobNodeList", in, out, opts...)
 	if err != nil {
@@ -2335,7 +2335,7 @@ func (c *yarnServiceClient) QueryFilePosition(ctx context.Context, in *QueryFile
 type YarnServiceServer interface {
 	// Getter YarnNode ...
 	// 查看自身调度服务信息
-	GetNodeInfo(context.Context, *emptypb.Empty) (*GetNodeInfoResponse, error)
+	GetNodeInfo(context.Context, *empty.Empty) (*GetNodeInfoResponse, error)
 	// 查看自身调度服务的 peer注册信息
 	GetRegisteredPeers(context.Context, *GetRegisteredPeersRequest) (*GetRegisteredPeersResponse, error)
 	// about seed
@@ -2346,7 +2346,7 @@ type YarnServiceServer interface {
 	// 删除种子节点信息
 	DeleteSeedNode(context.Context, *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error)
 	// 查询种子节点列表
-	GetSeedNodeList(context.Context, *emptypb.Empty) (*GetSeedNodeListResponse, error)
+	GetSeedNodeList(context.Context, *empty.Empty) (*GetSeedNodeListResponse, error)
 	// about dataNode
 	// 新增数据服务信息
 	SetDataNode(context.Context, *SetDataNodeRequest) (*SetDataNodeResponse, error)
@@ -2355,7 +2355,7 @@ type YarnServiceServer interface {
 	// 删除数据服务信息
 	DeleteDataNode(context.Context, *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error)
 	// 查询数据服务列表
-	GetDataNodeList(context.Context, *emptypb.Empty) (*GetRegisteredNodeListResponse, error)
+	GetDataNodeList(context.Context, *empty.Empty) (*GetRegisteredNodeListResponse, error)
 	// about jobNode
 	// 新增计算服务信息
 	SetJobNode(context.Context, *SetJobNodeRequest) (*SetJobNodeResponse, error)
@@ -2364,7 +2364,7 @@ type YarnServiceServer interface {
 	// 删除计算服务信息
 	DeleteJobNode(context.Context, *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error)
 	// 查询计算服务列表
-	GetJobNodeList(context.Context, *emptypb.Empty) (*GetRegisteredNodeListResponse, error)
+	GetJobNodeList(context.Context, *empty.Empty) (*GetRegisteredNodeListResponse, error)
 	// about report
 	// 上报任务事件
 	ReportTaskEvent(context.Context, *ReportTaskEventRequest) (*common.SimpleResponse, error)
@@ -2382,7 +2382,7 @@ type YarnServiceServer interface {
 type UnimplementedYarnServiceServer struct {
 }
 
-func (*UnimplementedYarnServiceServer) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*GetNodeInfoResponse, error) {
+func (*UnimplementedYarnServiceServer) GetNodeInfo(ctx context.Context, req *empty.Empty) (*GetNodeInfoResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNodeInfo not implemented")
 }
 func (*UnimplementedYarnServiceServer) GetRegisteredPeers(ctx context.Context, req *GetRegisteredPeersRequest) (*GetRegisteredPeersResponse, error) {
@@ -2397,7 +2397,7 @@ func (*UnimplementedYarnServiceServer) UpdateSeedNode(ctx context.Context, req *
 func (*UnimplementedYarnServiceServer) DeleteSeedNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteSeedNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*GetSeedNodeListResponse, error) {
+func (*UnimplementedYarnServiceServer) GetSeedNodeList(ctx context.Context, req *empty.Empty) (*GetSeedNodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetSeedNodeList not implemented")
 }
 func (*UnimplementedYarnServiceServer) SetDataNode(ctx context.Context, req *SetDataNodeRequest) (*SetDataNodeResponse, error) {
@@ -2409,7 +2409,7 @@ func (*UnimplementedYarnServiceServer) UpdateDataNode(ctx context.Context, req *
 func (*UnimplementedYarnServiceServer) DeleteDataNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteDataNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*GetRegisteredNodeListResponse, error) {
+func (*UnimplementedYarnServiceServer) GetDataNodeList(ctx context.Context, req *empty.Empty) (*GetRegisteredNodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDataNodeList not implemented")
 }
 func (*UnimplementedYarnServiceServer) SetJobNode(ctx context.Context, req *SetJobNodeRequest) (*SetJobNodeResponse, error) {
@@ -2421,7 +2421,7 @@ func (*UnimplementedYarnServiceServer) UpdateJobNode(ctx context.Context, req *U
 func (*UnimplementedYarnServiceServer) DeleteJobNode(ctx context.Context, req *DeleteRegisteredNodeRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteJobNode not implemented")
 }
-func (*UnimplementedYarnServiceServer) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*GetRegisteredNodeListResponse, error) {
+func (*UnimplementedYarnServiceServer) GetJobNodeList(ctx context.Context, req *empty.Empty) (*GetRegisteredNodeListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetJobNodeList not implemented")
 }
 func (*UnimplementedYarnServiceServer) ReportTaskEvent(ctx context.Context, req *ReportTaskEventRequest) (*common.SimpleResponse, error) {
@@ -2445,7 +2445,7 @@ func RegisterYarnServiceServer(s *grpc.Server, srv YarnServiceServer) {
 }
 
 func _YarnService_GetNodeInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2457,7 +2457,7 @@ func _YarnService_GetNodeInfo_Handler(srv interface{}, ctx context.Context, dec 
 		FullMethod: "/rpcapi.YarnService/GetNodeInfo",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetNodeInfo(ctx, req.(*emptypb.Empty))
+		return srv.(YarnServiceServer).GetNodeInfo(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2535,7 +2535,7 @@ func _YarnService_DeleteSeedNode_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _YarnService_GetSeedNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2547,7 +2547,7 @@ func _YarnService_GetSeedNodeList_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/rpcapi.YarnService/GetSeedNodeList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetSeedNodeList(ctx, req.(*emptypb.Empty))
+		return srv.(YarnServiceServer).GetSeedNodeList(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2607,7 +2607,7 @@ func _YarnService_DeleteDataNode_Handler(srv interface{}, ctx context.Context, d
 }
 
 func _YarnService_GetDataNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2619,7 +2619,7 @@ func _YarnService_GetDataNodeList_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/rpcapi.YarnService/GetDataNodeList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetDataNodeList(ctx, req.(*emptypb.Empty))
+		return srv.(YarnServiceServer).GetDataNodeList(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -2679,7 +2679,7 @@ func _YarnService_DeleteJobNode_Handler(srv interface{}, ctx context.Context, de
 }
 
 func _YarnService_GetJobNodeList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -2691,7 +2691,7 @@ func _YarnService_GetJobNodeList_Handler(srv interface{}, ctx context.Context, d
 		FullMethod: "/rpcapi.YarnService/GetJobNodeList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(YarnServiceServer).GetJobNodeList(ctx, req.(*emptypb.Empty))
+		return srv.(YarnServiceServer).GetJobNodeList(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

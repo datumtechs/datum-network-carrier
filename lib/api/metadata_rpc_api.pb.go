@@ -9,11 +9,11 @@ import (
 	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
+	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
-	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -479,7 +479,7 @@ type MetaDataServiceClient interface {
 	// 查看单个元数据详情 (包含 列字段描述)
 	GetMetaDataDetail(ctx context.Context, in *GetMetaDataDetailRequest, opts ...grpc.CallOption) (*GetMetaDataDetailResponse, error)
 	// 查看全网元数据列表
-	GetMetaDataDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMetaDataDetailListResponse, error)
+	GetMetaDataDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetMetaDataDetailListResponse, error)
 	// 查看某个组织元数据列表
 	GetMetaDataDetailListByOwner(ctx context.Context, in *GetMetaDataDetailListByOwnerRequest, opts ...grpc.CallOption) (*GetMetaDataDetailListResponse, error)
 	// 发布元数据  (新增和编辑 都是发布新的元数据) <底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId>
@@ -505,7 +505,7 @@ func (c *metaDataServiceClient) GetMetaDataDetail(ctx context.Context, in *GetMe
 	return out, nil
 }
 
-func (c *metaDataServiceClient) GetMetaDataDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMetaDataDetailListResponse, error) {
+func (c *metaDataServiceClient) GetMetaDataDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetMetaDataDetailListResponse, error) {
 	out := new(GetMetaDataDetailListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.MetaDataService/GetMetaDataDetailList", in, out, opts...)
 	if err != nil {
@@ -546,7 +546,7 @@ type MetaDataServiceServer interface {
 	// 查看单个元数据详情 (包含 列字段描述)
 	GetMetaDataDetail(context.Context, *GetMetaDataDetailRequest) (*GetMetaDataDetailResponse, error)
 	// 查看全网元数据列表
-	GetMetaDataDetailList(context.Context, *emptypb.Empty) (*GetMetaDataDetailListResponse, error)
+	GetMetaDataDetailList(context.Context, *empty.Empty) (*GetMetaDataDetailListResponse, error)
 	// 查看某个组织元数据列表
 	GetMetaDataDetailListByOwner(context.Context, *GetMetaDataDetailListByOwnerRequest) (*GetMetaDataDetailListResponse, error)
 	// 发布元数据  (新增和编辑 都是发布新的元数据) <底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId>
@@ -562,7 +562,7 @@ type UnimplementedMetaDataServiceServer struct {
 func (*UnimplementedMetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *GetMetaDataDetailRequest) (*GetMetaDataDetailResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataDetail not implemented")
 }
-func (*UnimplementedMetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *emptypb.Empty) (*GetMetaDataDetailListResponse, error) {
+func (*UnimplementedMetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *empty.Empty) (*GetMetaDataDetailListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataDetailList not implemented")
 }
 func (*UnimplementedMetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *GetMetaDataDetailListByOwnerRequest) (*GetMetaDataDetailListResponse, error) {
@@ -598,7 +598,7 @@ func _MetaDataService_GetMetaDataDetail_Handler(srv interface{}, ctx context.Con
 }
 
 func _MetaDataService_GetMetaDataDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(emptypb.Empty)
+	in := new(empty.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -610,7 +610,7 @@ func _MetaDataService_GetMetaDataDetailList_Handler(srv interface{}, ctx context
 		FullMethod: "/rpcapi.MetaDataService/GetMetaDataDetailList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetaDataServiceServer).GetMetaDataDetailList(ctx, req.(*emptypb.Empty))
+		return srv.(MetaDataServiceServer).GetMetaDataDetailList(ctx, req.(*empty.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
