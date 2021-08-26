@@ -128,21 +128,21 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadataSummaryList() {
 		metadata := NewMetadata(&libTypes.MetaData{
-			IdentityId:         v.GetOwner().GetIdentityId(),
-			NodeId:             v.GetOwner().GetNodeId(),
-			NodeName:           v.GetOwner().GetNodeName(),
-			DataId:             v.GetInformation().GetMetaDataId(),
-			DataStatus:         DataStatusNormal.String(),
-			OriginId:           v.GetInformation().GetOriginId(),
-			TableName:          v.GetInformation().GetTableName(),
-			FilePath:           v.GetInformation().GetFilePath(),
-			Desc:               v.GetInformation().GetDesc(),
-			Rows:               uint64(v.GetInformation().GetRows()),
-			Columns:            uint64(v.GetInformation().GetColumns()),
-			Size_:              uint64(v.GetInformation().GetSize_()),
-			FileType:           v.GetInformation().GetFileType(),
-			State:              v.GetInformation().GetState(),
-			HasTitle:           v.GetInformation().GetHasTitle(),
+			IdentityId: v.GetOwner().GetIdentityId(),
+			NodeId:     v.GetOwner().GetNodeId(),
+			NodeName:   v.GetOwner().GetNodeName(),
+			DataId:     v.GetInformation().GetMetaDataId(),
+			DataStatus: DataStatusNormal.String(),
+			OriginId:   v.GetInformation().GetOriginId(),
+			TableName:  v.GetInformation().GetTableName(),
+			FilePath:   v.GetInformation().GetFilePath(),
+			Desc:       v.GetInformation().GetDesc(),
+			Rows:       uint64(v.GetInformation().GetRows()),
+			Columns:    uint64(v.GetInformation().GetColumns()),
+			Size_:      uint64(v.GetInformation().GetSize_()),
+			FileType:   v.GetInformation().GetFileType(),
+			State:      v.GetInformation().GetState(),
+			HasTitle:   v.GetInformation().GetHasTitle(),
 			MetadataColumnList: make([]*libTypes.MetadataColumn, 0),
 		})
 		metadataArray = append(metadataArray, metadata)
@@ -154,21 +154,21 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadataList() {
 		data := &libTypes.MetaData{
-			IdentityId:         v.GetOwner().GetIdentityId(),
-			NodeId:             v.GetOwner().GetNodeId(),
-			NodeName:           v.GetOwner().GetNodeName(),
-			DataId:             v.GetMetaSummary().GetMetaDataId(),
-			DataStatus:         DataStatusNormal.String(),
-			OriginId:           v.GetMetaSummary().GetOriginId(),
-			TableName:          v.GetMetaSummary().GetTableName(),
-			FilePath:           v.GetMetaSummary().GetFilePath(),
-			Desc:               v.GetMetaSummary().GetDesc(),
-			Rows:               uint64(v.GetMetaSummary().GetRows()),
-			Columns:            uint64(v.GetMetaSummary().GetColumns()),
-			Size_:              uint64(v.GetMetaSummary().GetSize_()),
-			FileType:           v.GetMetaSummary().GetFileType(),
-			State:              v.GetMetaSummary().GetState(),
-			HasTitle:           v.GetMetaSummary().GetHasTitle(),
+			IdentityId: v.GetOwner().GetIdentityId(),
+			NodeId:     v.GetOwner().GetNodeId(),
+			NodeName:   v.GetOwner().GetNodeName(),
+			DataId:     v.GetMetaSummary().GetMetaDataId(),
+			DataStatus: DataStatusNormal.String(),
+			OriginId:   v.GetMetaSummary().GetOriginId(),
+			TableName:  v.GetMetaSummary().GetTableName(),
+			FilePath:   v.GetMetaSummary().GetFilePath(),
+			Desc:       v.GetMetaSummary().GetDesc(),
+			Rows:       uint64(v.GetMetaSummary().GetRows()),
+			Columns:    uint64(v.GetMetaSummary().GetColumns()),
+			Size_:      uint64(v.GetMetaSummary().GetSize_()),
+			FileType:   v.GetMetaSummary().GetFileType(),
+			State:      v.GetMetaSummary().GetState(),
+			HasTitle:   v.GetMetaSummary().GetHasTitle(),
 			MetadataColumnList: v.GetMetadataColumnList(),
 		}
 		metadata := NewMetadata(data)
@@ -177,9 +177,9 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 	return metadataArray
 }
 
-func NewResourceArrayFromPowerListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
-	return nil
-}
+//func NewResourceArrayFromPowerListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
+//	return nil
+//}
 
 func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowerList()))
