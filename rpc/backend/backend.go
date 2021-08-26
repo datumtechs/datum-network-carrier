@@ -40,7 +40,7 @@ type Backend interface {
 	GetIdentityList() ([]*types.Identity, error)
 
 	// task api
-	GetTaskDetailList() ([]*types.TaskDetailShow, error)
+	GetTaskDetailList() ([]*pb.TaskDetailShow, error)
 	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
 

@@ -26,8 +26,9 @@ func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *emptyp
 	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
 	for i, task := range tasks {
 		t := &pb.GetTaskDetailResponse{
-			Information: types.ConvertTaskDetailShowToPB(task),
-			Role: task.Role,
+			Information: task,
+			//TODO: 待确认
+			//Role: task.Role,
 		}
 		arr[i] = t
 	}
