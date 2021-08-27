@@ -26,6 +26,17 @@ type Listener interface {
 	LocalNode() *enode.LocalNode
 }
 
+//
+func (s *Service) AddPeer(addr string) error {
+	allAddrs, err := peersFromStringAddrs([]string{addr})
+	if err != nil {
+		return err
+	}
+	s.connectWithAllPeers(allAddrs)
+	log.WithField("addr", addr).Debug("Invoke add peer done")
+	return nil
+}
+
 // RefreshENR uses an epoch to refresh the enr entry for our node
 // with the tracked committee ids for the epoch, allowing our node
 // to be dynamically discoverable by others given our tracked committee ids.
