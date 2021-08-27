@@ -9,11 +9,11 @@ import (
 	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -639,15 +639,15 @@ type AuthServiceClient interface {
 	// 数据授权审核
 	AuditMetaDataAuthority(ctx context.Context, in *AuditMetaDataAuthorityRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 获取数据授权申请列表
-	GetMetaDataAuthorityList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetMetaDataAuthorityListResponse, error)
+	GetMetaDataAuthorityList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMetaDataAuthorityListResponse, error)
 	// 申请准入网络
 	ApplyIdentityJoin(ctx context.Context, in *ApplyIdentityJoinRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 注销准入网络
-	RevokeIdentityJoin(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*common.SimpleResponse, error)
+	RevokeIdentityJoin(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查询自己组织的identity信息
-	GetNodeIdentity(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetNodeIdentityResponse, error)
+	GetNodeIdentity(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetNodeIdentityResponse, error)
 	// 查询全网全部已发布的 身份信息
-	GetIdentityList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetIdentityListResponse, error)
+	GetIdentityList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetIdentityListResponse, error)
 }
 
 type authServiceClient struct {
@@ -676,7 +676,7 @@ func (c *authServiceClient) AuditMetaDataAuthority(ctx context.Context, in *Audi
 	return out, nil
 }
 
-func (c *authServiceClient) GetMetaDataAuthorityList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetMetaDataAuthorityListResponse, error) {
+func (c *authServiceClient) GetMetaDataAuthorityList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetMetaDataAuthorityListResponse, error) {
 	out := new(GetMetaDataAuthorityListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.AuthService/GetMetaDataAuthorityList", in, out, opts...)
 	if err != nil {
@@ -694,7 +694,7 @@ func (c *authServiceClient) ApplyIdentityJoin(ctx context.Context, in *ApplyIden
 	return out, nil
 }
 
-func (c *authServiceClient) RevokeIdentityJoin(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+func (c *authServiceClient) RevokeIdentityJoin(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
 	out := new(common.SimpleResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.AuthService/RevokeIdentityJoin", in, out, opts...)
 	if err != nil {
@@ -703,7 +703,7 @@ func (c *authServiceClient) RevokeIdentityJoin(ctx context.Context, in *empty.Em
 	return out, nil
 }
 
-func (c *authServiceClient) GetNodeIdentity(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetNodeIdentityResponse, error) {
+func (c *authServiceClient) GetNodeIdentity(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetNodeIdentityResponse, error) {
 	out := new(GetNodeIdentityResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.AuthService/GetNodeIdentity", in, out, opts...)
 	if err != nil {
@@ -712,7 +712,7 @@ func (c *authServiceClient) GetNodeIdentity(ctx context.Context, in *empty.Empty
 	return out, nil
 }
 
-func (c *authServiceClient) GetIdentityList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetIdentityListResponse, error) {
+func (c *authServiceClient) GetIdentityList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetIdentityListResponse, error) {
 	out := new(GetIdentityListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.AuthService/GetIdentityList", in, out, opts...)
 	if err != nil {
@@ -728,15 +728,15 @@ type AuthServiceServer interface {
 	// 数据授权审核
 	AuditMetaDataAuthority(context.Context, *AuditMetaDataAuthorityRequest) (*common.SimpleResponse, error)
 	// 获取数据授权申请列表
-	GetMetaDataAuthorityList(context.Context, *empty.Empty) (*GetMetaDataAuthorityListResponse, error)
+	GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*GetMetaDataAuthorityListResponse, error)
 	// 申请准入网络
 	ApplyIdentityJoin(context.Context, *ApplyIdentityJoinRequest) (*common.SimpleResponse, error)
 	// 注销准入网络
-	RevokeIdentityJoin(context.Context, *empty.Empty) (*common.SimpleResponse, error)
+	RevokeIdentityJoin(context.Context, *emptypb.Empty) (*common.SimpleResponse, error)
 	// 查询自己组织的identity信息
-	GetNodeIdentity(context.Context, *empty.Empty) (*GetNodeIdentityResponse, error)
+	GetNodeIdentity(context.Context, *emptypb.Empty) (*GetNodeIdentityResponse, error)
 	// 查询全网全部已发布的 身份信息
-	GetIdentityList(context.Context, *empty.Empty) (*GetIdentityListResponse, error)
+	GetIdentityList(context.Context, *emptypb.Empty) (*GetIdentityListResponse, error)
 }
 
 // UnimplementedAuthServiceServer can be embedded to have forward compatible implementations.
@@ -749,19 +749,19 @@ func (*UnimplementedAuthServiceServer) ApplyMetaDataAuthority(ctx context.Contex
 func (*UnimplementedAuthServiceServer) AuditMetaDataAuthority(ctx context.Context, req *AuditMetaDataAuthorityRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuditMetaDataAuthority not implemented")
 }
-func (*UnimplementedAuthServiceServer) GetMetaDataAuthorityList(ctx context.Context, req *empty.Empty) (*GetMetaDataAuthorityListResponse, error) {
+func (*UnimplementedAuthServiceServer) GetMetaDataAuthorityList(ctx context.Context, req *emptypb.Empty) (*GetMetaDataAuthorityListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataAuthorityList not implemented")
 }
 func (*UnimplementedAuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *ApplyIdentityJoinRequest) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApplyIdentityJoin not implemented")
 }
-func (*UnimplementedAuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *empty.Empty) (*common.SimpleResponse, error) {
+func (*UnimplementedAuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (*common.SimpleResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RevokeIdentityJoin not implemented")
 }
-func (*UnimplementedAuthServiceServer) GetNodeIdentity(ctx context.Context, req *empty.Empty) (*GetNodeIdentityResponse, error) {
+func (*UnimplementedAuthServiceServer) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*GetNodeIdentityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNodeIdentity not implemented")
 }
-func (*UnimplementedAuthServiceServer) GetIdentityList(ctx context.Context, req *empty.Empty) (*GetIdentityListResponse, error) {
+func (*UnimplementedAuthServiceServer) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*GetIdentityListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetIdentityList not implemented")
 }
 
@@ -806,7 +806,7 @@ func _AuthService_AuditMetaDataAuthority_Handler(srv interface{}, ctx context.Co
 }
 
 func _AuthService_GetMetaDataAuthorityList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -818,7 +818,7 @@ func _AuthService_GetMetaDataAuthorityList_Handler(srv interface{}, ctx context.
 		FullMethod: "/rpcapi.AuthService/GetMetaDataAuthorityList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetMetaDataAuthorityList(ctx, req.(*empty.Empty))
+		return srv.(AuthServiceServer).GetMetaDataAuthorityList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -842,7 +842,7 @@ func _AuthService_ApplyIdentityJoin_Handler(srv interface{}, ctx context.Context
 }
 
 func _AuthService_RevokeIdentityJoin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -854,13 +854,13 @@ func _AuthService_RevokeIdentityJoin_Handler(srv interface{}, ctx context.Contex
 		FullMethod: "/rpcapi.AuthService/RevokeIdentityJoin",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).RevokeIdentityJoin(ctx, req.(*empty.Empty))
+		return srv.(AuthServiceServer).RevokeIdentityJoin(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_GetNodeIdentity_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -872,13 +872,13 @@ func _AuthService_GetNodeIdentity_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/rpcapi.AuthService/GetNodeIdentity",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetNodeIdentity(ctx, req.(*empty.Empty))
+		return srv.(AuthServiceServer).GetNodeIdentity(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _AuthService_GetIdentityList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -890,7 +890,7 @@ func _AuthService_GetIdentityList_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/rpcapi.AuthService/GetIdentityList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AuthServiceServer).GetIdentityList(ctx, req.(*empty.Empty))
+		return srv.(AuthServiceServer).GetIdentityList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

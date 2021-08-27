@@ -31,6 +31,13 @@ service Debug {
     };
   }
 
+  // Add a new peer with the specified
+  rpc AddPeer(PeerRequest) returns (DebugPeerAddResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/debug/add"
+    };
+  }
+
   // Returns all the related data for every peer tracked by the host node(count).
   rpc GetPeerCount(google.protobuf.Empty) returns (DebugPeerCountResponse) {
     option (google.api.http) = {
@@ -50,6 +57,10 @@ message LoggingLevelRequest {
     TRACE = 2;
   }
     Level level = 1;
+}
+
+message DebugPeerAddResponse {
+    string message = 1;
 }
 
 message DebugPeerCountResponse {

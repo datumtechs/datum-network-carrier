@@ -1,7 +1,7 @@
 package debug
 
 import (
-	"context"
+	context "context"
 	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/golang/protobuf/ptypes/empty"
@@ -11,6 +11,16 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+// AddPeer uses the specified peerID to connect to the network.
+func (ds *Server) AddPeer(_ context.Context, request *rpcpb.PeerRequest) (*rpcpb.DebugPeerAddResponse, error) {
+	response := &rpcpb.DebugPeerAddResponse{}
+	err := ds.PeerManager.AddPeer(request.GetPeerId())
+	if err != nil {
+		response.Message = err.Error()
+	}
+	return response, err
+}
 
 // GetPeer returns the data known about the peer defined by the provided peer id.
 func (ds *Server) GetPeer(_ context.Context, peerReq *rpcpb.PeerRequest) (*rpcpb.DebugPeerResponse, error) {
