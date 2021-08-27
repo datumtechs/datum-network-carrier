@@ -6,7 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 )
 
-func (svr *MetaDataServiceServer) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
+func (svr *Server) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
 	metadataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:GetMetaDataDetailListByOwner failed, identityId: {%s}", req.IdentityId)

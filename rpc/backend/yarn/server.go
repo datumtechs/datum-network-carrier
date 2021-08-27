@@ -21,6 +21,6 @@ var (
 	ErrGetNodeInfo                = &backend.RpcBizErr{Msg: "Failed to get yarn node information"}
 )
 
-type YarnServiceServer struct {
+type Server struct {
 	B backend.Backend
 }
