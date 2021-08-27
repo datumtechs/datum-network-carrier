@@ -114,11 +114,11 @@ func (s *Service) Start() error {
 	s.grpcServer = grpc.NewServer(opts...)
 
 	// init server instance and register server.
-	pb.RegisterYarnServiceServer(s.grpcServer, &yarn.YarnServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterMetaDataServiceServer(s.grpcServer, &metadata.MetaDataServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterPowerServiceServer(s.grpcServer, &power.PowerServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterAuthServiceServer(s.grpcServer, &auth.AuthServiceServer{ B: s.cfg.BackendAPI })
-	pb.RegisterTaskServiceServer(s.grpcServer, &task.TaskServiceServer{ B: s.cfg.BackendAPI })
+	pb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{ B: s.cfg.BackendAPI })
+	pb.RegisterMetaDataServiceServer(s.grpcServer, &metadata.Server{ B: s.cfg.BackendAPI })
+	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
+	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
+	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
 
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")

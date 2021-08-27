@@ -8,6 +8,6 @@ var (
 	ErrSendTaskMsg          = &backend.RpcBizErr{Msg: "Failed to send taskMsg"}
 )
 
-type TaskServiceServer struct {
+type Server struct {
 	B backend.Backend
 }

@@ -9,6 +9,6 @@ var (
 	ErrGetIdentityList       = &backend.RpcBizErr{Msg: "Failed to get all identityInfo list"}
 )
 
-type AuthServiceServer struct {
+type Server struct {
 	B backend.Backend
 }
