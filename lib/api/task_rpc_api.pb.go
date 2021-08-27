@@ -9,11 +9,11 @@ import (
 	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -1139,7 +1139,7 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type TaskServiceClient interface {
 	// 查看全部任务详情列表
-	GetTaskDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetTaskDetailListResponse, error)
+	GetTaskDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetTaskDetailListResponse, error)
 	// 查看某个任务的全部事件列表
 	GetTaskEventList(ctx context.Context, in *GetTaskEventListRequest, opts ...grpc.CallOption) (*GetTaskEventListResponse, error)
 	// 查看某个任务的全部事件列表
@@ -1158,7 +1158,7 @@ func NewTaskServiceClient(cc *grpc.ClientConn) TaskServiceClient {
 	return &taskServiceClient{cc}
 }
 
-func (c *taskServiceClient) GetTaskDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetTaskDetailListResponse, error) {
+func (c *taskServiceClient) GetTaskDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetTaskDetailListResponse, error) {
 	out := new(GetTaskDetailListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.TaskService/GetTaskDetailList", in, out, opts...)
 	if err != nil {
@@ -1206,7 +1206,7 @@ func (c *taskServiceClient) TerminateTask(ctx context.Context, in *TerminateTask
 // TaskServiceServer is the server API for TaskService service.
 type TaskServiceServer interface {
 	// 查看全部任务详情列表
-	GetTaskDetailList(context.Context, *empty.Empty) (*GetTaskDetailListResponse, error)
+	GetTaskDetailList(context.Context, *emptypb.Empty) (*GetTaskDetailListResponse, error)
 	// 查看某个任务的全部事件列表
 	GetTaskEventList(context.Context, *GetTaskEventListRequest) (*GetTaskEventListResponse, error)
 	// 查看某个任务的全部事件列表
@@ -1221,7 +1221,7 @@ type TaskServiceServer interface {
 type UnimplementedTaskServiceServer struct {
 }
 
-func (*UnimplementedTaskServiceServer) GetTaskDetailList(ctx context.Context, req *empty.Empty) (*GetTaskDetailListResponse, error) {
+func (*UnimplementedTaskServiceServer) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*GetTaskDetailListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTaskDetailList not implemented")
 }
 func (*UnimplementedTaskServiceServer) GetTaskEventList(ctx context.Context, req *GetTaskEventListRequest) (*GetTaskEventListResponse, error) {
@@ -1242,7 +1242,7 @@ func RegisterTaskServiceServer(s *grpc.Server, srv TaskServiceServer) {
 }
 
 func _TaskService_GetTaskDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1254,7 +1254,7 @@ func _TaskService_GetTaskDetailList_Handler(srv interface{}, ctx context.Context
 		FullMethod: "/rpcapi.TaskService/GetTaskDetailList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TaskServiceServer).GetTaskDetailList(ctx, req.(*empty.Empty))
+		return srv.(TaskServiceServer).GetTaskDetailList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }

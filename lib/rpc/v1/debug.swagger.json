@@ -11,6 +11,37 @@
     "application/json"
   ],
   "paths": {
+    "/carrier/v1/debug/add": {
+      "get": {
+        "summary": "Add a new peer with the specified",
+        "operationId": "Debug_AddPeer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DebugPeerAddResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "peer_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Debug"
+        ]
+      }
+    },
     "/carrier/v1/debug/logging": {
       "post": {
         "summary": "SetLoggingLevel sets the log-level of the beacon node programmatically.",
@@ -200,6 +231,14 @@
       ],
       "default": "DISCONNECTED",
       "description": "ConnectionState states the current status of the peer."
+    },
+    "v1DebugPeerAddResponse": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
     },
     "v1DebugPeerCountResponse": {
       "type": "object",
