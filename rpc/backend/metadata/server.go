@@ -9,6 +9,6 @@ var (
 	ErrSendMetaDataMsg       = &backend.RpcBizErr{Msg: "Failed to send metaDataMsg"}
 )
 
-type MetaDataServiceServer struct {
+type Server struct {
 	B backend.Backend
 }

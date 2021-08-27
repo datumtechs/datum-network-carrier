@@ -13,7 +13,7 @@ import (
 	"strings"
 )
 
-func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*apipb.SimpleResponse, error) {
 
 	identity, err := svr.B.GetNodeIdentity()
 	if rawdb.IsNoDBNotFoundErr(err) {
@@ -58,7 +58,7 @@ func (svr *AuthServiceServer) ApplyIdentityJoin(ctx context.Context, req *pb.App
 	}, nil
 }
 
-func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (*apipb.SimpleResponse, error) {
+func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (*apipb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
@@ -80,7 +80,7 @@ func (svr *AuthServiceServer) RevokeIdentityJoin(ctx context.Context, req *empty
 	}, nil
 }
 
-func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb.GetNodeIdentityResponse, error) {
+func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb.GetNodeIdentityResponse, error) {
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetNodeIdentity failed")
@@ -97,7 +97,7 @@ func (svr *AuthServiceServer) GetNodeIdentity(ctx context.Context, req *emptypb.
 	}, nil
 }
 
-func (svr *AuthServiceServer) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb.GetIdentityListResponse, error) {
+func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb.GetIdentityListResponse, error) {
 	identityList, err := svr.B.GetIdentityList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetIdentityList failed")
@@ -121,16 +121,16 @@ func (svr *AuthServiceServer) GetIdentityList(ctx context.Context, req *emptypb.
 }
 
 // 数据授权申请
-func (svr *AuthServiceServer) ApplyMetaDataAuthority(context.Context, *pb.ApplyMetaDataAuthorityRequest) (*pb.ApplyMetaDataAuthorityResponse, error) {
+func (svr *Server) ApplyMetaDataAuthority(context.Context, *pb.ApplyMetaDataAuthorityRequest) (*pb.ApplyMetaDataAuthorityResponse, error) {
 	return nil, nil
 }
 
 // 数据授权审核
-func (svr *AuthServiceServer) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*apipb.SimpleResponse, error){
+func (svr *Server) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*apipb.SimpleResponse, error){
 	return nil, nil
 }
 
 // 获取数据授权申请列表
-func (svr *AuthServiceServer)  GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetaDataAuthorityListResponse, error){
+func (svr *Server)  GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetaDataAuthorityListResponse, error){
 	return nil, nil
 }

@@ -13,11 +13,11 @@ import (
 	"strings"
 )
 
-func (svr *TaskServiceServer) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apipb.SimpleResponse, error) {
 	return nil, nil
 }
 
-func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTaskDetailListResponse, error) {
+func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTaskDetailListResponse, error) {
 	tasks, err := svr.B.GetTaskDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
@@ -40,7 +40,7 @@ func (svr *TaskServiceServer) GetTaskDetailList(ctx context.Context, req *emptyp
 	}, nil
 }
 
-func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventListRequest) (*pb.GetTaskEventListResponse, error) {
+func (svr *Server) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventListRequest) (*pb.GetTaskEventListResponse, error) {
 
 	events, err := svr.B.GetTaskEventList(req.TaskId)
 	if nil != err {
@@ -56,7 +56,7 @@ func (svr *TaskServiceServer) GetTaskEventList(ctx context.Context, req *pb.GetT
 }
 
 
-func (svr *TaskServiceServer) GetTaskEventListByTaskIds (ctx context.Context, req *pb.GetTaskEventListByTaskIdsRequest) (*pb.GetTaskEventListResponse, error) {
+func (svr *Server) GetTaskEventListByTaskIds (ctx context.Context, req *pb.GetTaskEventListByTaskIdsRequest) (*pb.GetTaskEventListResponse, error) {
 
 	events, err := svr.B.GetTaskEventListByTaskIds(req.TaskIds)
 	if nil != err {
@@ -71,7 +71,7 @@ func (svr *TaskServiceServer) GetTaskEventListByTaskIds (ctx context.Context, re
 	}, nil
 }
 
-func (svr *TaskServiceServer) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
+func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
 	if req.OperationCost == nil {
 		return nil, errors.New("required operationCost")
 	}
