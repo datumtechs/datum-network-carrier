@@ -55,6 +55,45 @@ func FetchTaskPeerInfo(peerInfo *pb.TaskPeerInfo) *PrepareVoteResource {
 		PartyId: string(peerInfo.PartyId),
 	}
 }
+func ConvertTaskPeerInfoArr(resourceArr []*PrepareVoteResource) []*pb.TaskPeerInfo {
+
+	arr := make([]*pb.TaskPeerInfo, len(resourceArr))
+
+	for i, resource := range resourceArr {
+		var peerInfo *pb.TaskPeerInfo
+		if nil == resource {
+			peerInfo = &pb.TaskPeerInfo{}
+		} else {
+			peerInfo = &pb.TaskPeerInfo{
+				Ip:      []byte(resource.Ip),
+				Port:    []byte(resource.Port),
+				PartyId: []byte(resource.PartyId),
+			}
+		}
+
+		arr[i] = peerInfo
+	}
+	return arr
+}
+func FetchTaskPeerInfoArr(peerInfoArr []*pb.TaskPeerInfo) []*PrepareVoteResource {
+
+	arr := make([]*PrepareVoteResource, len(peerInfoArr))
+
+	for i, peerInfo := range peerInfoArr {
+		var resource *PrepareVoteResource
+		if nil == peerInfo {
+			resource = &PrepareVoteResource{}
+		} else {
+			resource = &PrepareVoteResource{
+				Ip:      string(peerInfo.Ip),
+				Port:    string(peerInfo.Port),
+				PartyId: string(peerInfo.PartyId),
+			}
+		}
+		arr[i] = resource
+	}
+	return arr
+}
 
 type PrepareMsg struct {
 	ProposalId  common.Hash
@@ -107,7 +146,7 @@ func FetchPrepareVote(vote *pb.PrepareVote) *PrepareVote {
 		ProposalId: common.BytesToHash(vote.ProposalId),
 		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
 		Owner: &apipb.TaskOrganization{
-			NodeName:       string(vote.Owner.Name),
+			NodeName:   string(vote.Owner.Name),
 			NodeId:     string(vote.Owner.NodeId),
 			IdentityId: string(vote.Owner.IdentityId),
 			PartyId:    string(vote.Owner.PartyId),
@@ -156,7 +195,7 @@ func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 		TaskRole:    TaskRoleFromBytes(msg.TaskRole),
 		TaskPartyId: string(msg.TaskPartyId),
 		Owner: &apipb.TaskOrganization{
-			NodeName:       string(msg.Owner.Name),
+			NodeName:   string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
 			PartyId:    string(msg.Owner.PartyId),
@@ -201,7 +240,7 @@ func FetchConfirmVote(vote *pb.ConfirmVote) *ConfirmVote {
 		ProposalId: common.BytesToHash(vote.ProposalId),
 		TaskRole:   TaskRoleFromBytes(vote.TaskRole),
 		Owner: &apipb.TaskOrganization{
-			NodeName:       string(vote.Owner.Name),
+			NodeName:   string(vote.Owner.Name),
 			NodeId:     string(vote.Owner.NodeId),
 			IdentityId: string(vote.Owner.IdentityId),
 			PartyId:    string(vote.Owner.PartyId),
@@ -247,7 +286,7 @@ func FetchCommitMsg(msg *pb.CommitMsg) *CommitMsg {
 		TaskRole:    TaskRoleFromBytes(msg.TaskRole),
 		TaskPartyId: string(msg.TaskPartyId),
 		Owner: &apipb.TaskOrganization{
-			NodeName:       string(msg.Owner.Name),
+			NodeName:   string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
 			PartyId:    string(msg.Owner.PartyId),
@@ -267,11 +306,10 @@ type TaskResultMsg struct {
 	Sign          []byte
 }
 
-func (msg *TaskResultMsg)String() string {
+func (msg *TaskResultMsg) String() string {
 	return fmt.Sprintf(`{"proposalId": %s, "taskRole": %s, "owner": %s, "taskId": %s, "createAt": %d, "sign": %v}`,
-		msg.ProposalId.String(), msg.TaskRole.String(),msg.Owner.String(), msg.TaskId, msg.CreateAt, msg.Sign)
+		msg.ProposalId.String(), msg.TaskRole.String(), msg.Owner.String(), msg.TaskId, msg.CreateAt, msg.Sign)
 }
-
 
 func ConvertTaskResultMsg(msg *TaskResultMsg) *pb.TaskResultMsg {
 	return &pb.TaskResultMsg{
@@ -295,7 +333,7 @@ func FetchTaskResultMsg(msg *pb.TaskResultMsg) *TaskResultMsg {
 		ProposalId: common.BytesToHash(msg.ProposalId),
 		TaskRole:   TaskRoleFromBytes(msg.TaskRole),
 		Owner: &apipb.TaskOrganization{
-			NodeName:       string(msg.Owner.Name),
+			NodeName:   string(msg.Owner.Name),
 			NodeId:     string(msg.Owner.NodeId),
 			IdentityId: string(msg.Owner.IdentityId),
 			PartyId:    string(msg.Owner.PartyId),

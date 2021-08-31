@@ -12,10 +12,18 @@ import (
 	"time"
 )
 
+type Scheduler interface {
+	Start() error
+	Stop() error
+	Error () error
+	Name() string
+}
+
 type Manager struct {
-	dataCenter  core.CarrierDB
+	//dataCenter  core.CarrierDB
 	eventEngine *ev.EventEngine
 	resourceMng *resource.Manager
+	scheduler   *Scheduler
 	parser      *TaskParser
 	validator   *TaskValidator
 	// internal resource node set (Fighter node grpc client set)
@@ -41,7 +49,6 @@ func NewTaskManager(
 ) *Manager {
 
 	m := &Manager{
-		dataCenter:         dataCenter,
 		eventEngine:        eventEngine,
 		resourceMng:        resourceMng,
 		resourceClientSet:  resourceClientSet,
