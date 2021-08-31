@@ -9,11 +9,11 @@ import (
 	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -516,9 +516,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PowerServiceClient interface {
 	// 查看全网各个组织的总算力详情列表
-	GetPowerTotalDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetPowerTotalDetailListResponse, error)
+	GetPowerTotalDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerTotalDetailListResponse, error)
 	// 查看本组织的各个单算力详情列表
-	GetPowerSingleDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetPowerSingleDetailListResponse, error)
+	GetPowerSingleDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerSingleDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(ctx context.Context, in *PublishPowerRequest, opts ...grpc.CallOption) (*PublishPowerResponse, error)
 	// 停用算力 (撤销算力)
@@ -533,7 +533,7 @@ func NewPowerServiceClient(cc *grpc.ClientConn) PowerServiceClient {
 	return &powerServiceClient{cc}
 }
 
-func (c *powerServiceClient) GetPowerTotalDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetPowerTotalDetailListResponse, error) {
+func (c *powerServiceClient) GetPowerTotalDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerTotalDetailListResponse, error) {
 	out := new(GetPowerTotalDetailListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerTotalDetailList", in, out, opts...)
 	if err != nil {
@@ -542,7 +542,7 @@ func (c *powerServiceClient) GetPowerTotalDetailList(ctx context.Context, in *em
 	return out, nil
 }
 
-func (c *powerServiceClient) GetPowerSingleDetailList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetPowerSingleDetailListResponse, error) {
+func (c *powerServiceClient) GetPowerSingleDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerSingleDetailListResponse, error) {
 	out := new(GetPowerSingleDetailListResponse)
 	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerSingleDetailList", in, out, opts...)
 	if err != nil {
@@ -572,9 +572,9 @@ func (c *powerServiceClient) RevokePower(ctx context.Context, in *RevokePowerReq
 // PowerServiceServer is the server API for PowerService service.
 type PowerServiceServer interface {
 	// 查看全网各个组织的总算力详情列表
-	GetPowerTotalDetailList(context.Context, *empty.Empty) (*GetPowerTotalDetailListResponse, error)
+	GetPowerTotalDetailList(context.Context, *emptypb.Empty) (*GetPowerTotalDetailListResponse, error)
 	// 查看本组织的各个单算力详情列表
-	GetPowerSingleDetailList(context.Context, *empty.Empty) (*GetPowerSingleDetailListResponse, error)
+	GetPowerSingleDetailList(context.Context, *emptypb.Empty) (*GetPowerSingleDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(context.Context, *PublishPowerRequest) (*PublishPowerResponse, error)
 	// 停用算力 (撤销算力)
@@ -585,10 +585,10 @@ type PowerServiceServer interface {
 type UnimplementedPowerServiceServer struct {
 }
 
-func (*UnimplementedPowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *empty.Empty) (*GetPowerTotalDetailListResponse, error) {
+func (*UnimplementedPowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *emptypb.Empty) (*GetPowerTotalDetailListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalDetailList not implemented")
 }
-func (*UnimplementedPowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *empty.Empty) (*GetPowerSingleDetailListResponse, error) {
+func (*UnimplementedPowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *emptypb.Empty) (*GetPowerSingleDetailListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSingleDetailList not implemented")
 }
 func (*UnimplementedPowerServiceServer) PublishPower(ctx context.Context, req *PublishPowerRequest) (*PublishPowerResponse, error) {
@@ -603,7 +603,7 @@ func RegisterPowerServiceServer(s *grpc.Server, srv PowerServiceServer) {
 }
 
 func _PowerService_GetPowerTotalDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -615,13 +615,13 @@ func _PowerService_GetPowerTotalDetailList_Handler(srv interface{}, ctx context.
 		FullMethod: "/rpcapi.PowerService/GetPowerTotalDetailList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowerServiceServer).GetPowerTotalDetailList(ctx, req.(*empty.Empty))
+		return srv.(PowerServiceServer).GetPowerTotalDetailList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _PowerService_GetPowerSingleDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -633,7 +633,7 @@ func _PowerService_GetPowerSingleDetailList_Handler(srv interface{}, ctx context
 		FullMethod: "/rpcapi.PowerService/GetPowerSingleDetailList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowerServiceServer).GetPowerSingleDetailList(ctx, req.(*empty.Empty))
+		return srv.(PowerServiceServer).GetPowerSingleDetailList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
