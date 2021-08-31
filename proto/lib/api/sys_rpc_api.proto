@@ -243,8 +243,8 @@ message ReportUpFileSummaryRequest {
 
 // 查询可用数据服务资源目标 ip:port 信息 req
 message QueryAvailableDataNodeRequest {
-  uint64                file_size = 1;       // 要被上传的目标文件 大小 (单位: byte)
-  types.OriginFileType  file_type = 2;       // 要被上传的目标文件  类型 (默认: 1 "csv")
+  uint64                              file_size = 1;       // 要被上传的目标文件 大小 (单位: byte)
+  api.protobuf.OriginFileType         file_type = 2;       // 要被上传的目标文件  类型 (默认: 1 "csv")
 }
 // 查询可用数据服务资源目标 ip:port 信息 resp
 message QueryAvailableDataNodeResponse {

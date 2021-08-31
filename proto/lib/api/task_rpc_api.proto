@@ -23,7 +23,7 @@ message TaskDetailShow {
   uint64                                 create_at = 8;                       // 任务发起时间 (单位: ms)
   uint64                                 start_at = 9;                        // 任务启动时间 (单位: ms)
   uint64                                 end_at = 10;                         // 任务结束时间 (单位: ms)
-  types.TaskState                        state = 11;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
+  api.protobuf.TaskState                 state = 11;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
   api.protobuf.TaskResourceCostDeclare   operation_cost = 12;                 // 任务所需资源声明
   string                                 desc = 13;                           // 任务描述 (非必须)
 }
@@ -53,7 +53,7 @@ message TaskEventShow {
 // 查看本组织参与过的全部任务详情列表
 message GetTaskDetailResponse {
   TaskDetailShow            information = 1;                  // 任务(展示)详情
-  types.TaskRole            role = 2;                         // 我在任务中的角色 (0: 未知角色; 1: 任务发起方; 2: 数据提供方: 3: 算力提供方; 4: 结果接收方; 5: 算法提供方)
+  api.protobuf.TaskRole     role = 2;                         // 我在任务中的角色 (0: 未知角色; 1: 任务发起方; 2: 数据提供方: 3: 算力提供方; 4: 结果接收方; 5: 算法提供方)
 }
 // 查看本组织参与过的全部任务详情列表 resp
 message GetTaskDetailListResponse {

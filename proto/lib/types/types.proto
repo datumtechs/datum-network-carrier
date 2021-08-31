@@ -45,15 +45,3 @@ message DataLookupEntry {
 }
 
 
-// the status of data, N means normal, D means deleted.
-enum DataStatus {
-  DataStatus_Unknown = 0;
-  DataStatus_Normal = 1;
-  DataStatus_Deleted = 2;
-}
-// Y : normal, N non-normal
-enum CommonStatus {
-  CommonStatus_Unknown = 0;
-  CommonStatus_Normal = 1;
-  CommonStatus_NonNormal = 2;
-}

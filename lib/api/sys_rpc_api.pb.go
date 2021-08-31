@@ -30,27 +30,31 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// 节点进程类型
 type NodeType int32
 
 const (
-	NodeType_SeedNode NodeType = 0
-	NodeType_JobNode  NodeType = 1
-	NodeType_DataNode NodeType = 2
-	NodeType_YarnNode NodeType = 3
+	NodeType_NodeType_Unknown  NodeType = 0
+	NodeType_NodeType_SeedNode NodeType = 1
+	NodeType_NodeType_JobNode  NodeType = 2
+	NodeType_NodeType_DataNode NodeType = 3
+	NodeType_NodeType_YarnNode NodeType = 4
 )
 
 var NodeType_name = map[int32]string{
-	0: "SeedNode",
-	1: "JobNode",
-	2: "DataNode",
-	3: "YarnNode",
+	0: "NodeType_Unknown",
+	1: "NodeType_SeedNode",
+	2: "NodeType_JobNode",
+	3: "NodeType_DataNode",
+	4: "NodeType_YarnNode",
 }
 
 var NodeType_value = map[string]int32{
-	"SeedNode": 0,
-	"JobNode":  1,
-	"DataNode": 2,
-	"YarnNode": 3,
+	"NodeType_Unknown":  0,
+	"NodeType_SeedNode": 1,
+	"NodeType_JobNode":  2,
+	"NodeType_DataNode": 3,
+	"NodeType_YarnNode": 4,
 }
 
 func (x NodeType) String() string {
@@ -59,6 +63,74 @@ func (x NodeType) String() string {
 
 func (NodeType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_9da989a22daaf207, []int{0}
+}
+
+// 调度服务节点的状态
+type YarnNodeState int32
+
+const (
+	YarnNodeState_State_Unknown  YarnNodeState = 0
+	YarnNodeState_State_Active   YarnNodeState = 1
+	YarnNodeState_State_Leave    YarnNodeState = 2
+	YarnNodeState_State_Join     YarnNodeState = 3
+	YarnNodeState_State_Unuseful YarnNodeState = 4
+)
+
+var YarnNodeState_name = map[int32]string{
+	0: "State_Unknown",
+	1: "State_Active",
+	2: "State_Leave",
+	3: "State_Join",
+	4: "State_Unuseful",
+}
+
+var YarnNodeState_value = map[string]int32{
+	"State_Unknown":  0,
+	"State_Active":   1,
+	"State_Leave":    2,
+	"State_Join":     3,
+	"State_Unuseful": 4,
+}
+
+func (x YarnNodeState) String() string {
+	return proto.EnumName(YarnNodeState_name, int32(x))
+}
+
+func (YarnNodeState) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_9da989a22daaf207, []int{1}
+}
+
+// 调度服务和 种子节点 or 计算服务 or 数据服务 的连接状态
+// 调度服务自身的状态信息 (0: 未被调度服务连接上; 1: 连接上; 2: 算力启用<计算服务>; 3: 算力被占用<计算服务算力正在被任务占用>)
+type ConnState int32
+
+const (
+	ConnState_ConnState_UnConnected ConnState = 0
+	ConnState_ConnState_Connected   ConnState = 1
+	ConnState_ConnState_Enabled     ConnState = 2
+	ConnState_ConnState_Occupied    ConnState = 3
+)
+
+var ConnState_name = map[int32]string{
+	0: "ConnState_UnConnected",
+	1: "ConnState_Connected",
+	2: "ConnState_Enabled",
+	3: "ConnState_Occupied",
+}
+
+var ConnState_value = map[string]int32{
+	"ConnState_UnConnected": 0,
+	"ConnState_Connected":   1,
+	"ConnState_Enabled":     2,
+	"ConnState_Occupied":    3,
+}
+
+func (x ConnState) String() string {
+	return proto.EnumName(ConnState_name, int32(x))
+}
+
+func (ConnState) EnumDescriptor() ([]byte, []int) {
+	return fileDescriptor_9da989a22daaf207, []int{2}
 }
 
 // 调度服务的信息
@@ -74,7 +146,7 @@ type YarnNodeInfo struct {
 	ResourceUsed         *types.ResourceUsageOverview `protobuf:"bytes,9,opt,name=resource_used,json=resourceUsed,proto3" json:"resource_used,omitempty"`
 	Peers                []*YarnRegisteredPeer        `protobuf:"bytes,10,rep,name=peers,proto3" json:"peers,omitempty"`
 	SeedPeers            []*SeedPeer                  `protobuf:"bytes,11,rep,name=seed_peers,json=seedPeers,proto3" json:"seed_peers,omitempty"`
-	State                string                       `protobuf:"bytes,12,opt,name=state,proto3" json:"state,omitempty"`
+	State                YarnNodeState                `protobuf:"varint,12,opt,name=state,proto3,enum=rpcapi.YarnNodeState" json:"state,omitempty"`
 	Name                 string                       `protobuf:"bytes,13,opt,name=name,proto3" json:"name,omitempty"`
 	RelatePeers          uint32                       `protobuf:"varint,14,opt,name=relate_peers,json=relatePeers,proto3" json:"relate_peers,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
@@ -119,7 +191,7 @@ func (m *YarnNodeInfo) GetNodeType() NodeType {
 	if m != nil {
 		return m.NodeType
 	}
-	return NodeType_SeedNode
+	return NodeType_NodeType_Unknown
 }
 
 func (m *YarnNodeInfo) GetNodeId() string {
@@ -192,11 +264,11 @@ func (m *YarnNodeInfo) GetSeedPeers() []*SeedPeer {
 	return nil
 }
 
-func (m *YarnNodeInfo) GetState() string {
+func (m *YarnNodeInfo) GetState() YarnNodeState {
 	if m != nil {
 		return m.State
 	}
-	return ""
+	return YarnNodeState_State_Unknown
 }
 
 func (m *YarnNodeInfo) GetName() string {
@@ -209,102 +281,6 @@ func (m *YarnNodeInfo) GetName() string {
 func (m *YarnNodeInfo) GetRelatePeers() uint32 {
 	if m != nil {
 		return m.RelatePeers
-	}
-	return 0
-}
-
-// 调度服务的系统资源信息
-type YarnNodeSysInfo struct {
-	Name                 string   `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
-	TotalMem             uint64   `protobuf:"varint,2,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
-	UsedMem              uint64   `protobuf:"varint,3,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
-	TotalProcessor       uint64   `protobuf:"varint,4,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
-	UsedProcessor        uint64   `protobuf:"varint,5,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
-	TotalBandwidth       uint64   `protobuf:"varint,6,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
-	UsedBandwidth        uint64   `protobuf:"varint,7,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *YarnNodeSysInfo) Reset()         { *m = YarnNodeSysInfo{} }
-func (m *YarnNodeSysInfo) String() string { return proto.CompactTextString(m) }
-func (*YarnNodeSysInfo) ProtoMessage()    {}
-func (*YarnNodeSysInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{1}
-}
-func (m *YarnNodeSysInfo) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *YarnNodeSysInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_YarnNodeSysInfo.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *YarnNodeSysInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_YarnNodeSysInfo.Merge(m, src)
-}
-func (m *YarnNodeSysInfo) XXX_Size() int {
-	return m.Size()
-}
-func (m *YarnNodeSysInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_YarnNodeSysInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_YarnNodeSysInfo proto.InternalMessageInfo
-
-func (m *YarnNodeSysInfo) GetName() string {
-	if m != nil {
-		return m.Name
-	}
-	return ""
-}
-
-func (m *YarnNodeSysInfo) GetTotalMem() uint64 {
-	if m != nil {
-		return m.TotalMem
-	}
-	return 0
-}
-
-func (m *YarnNodeSysInfo) GetUsedMem() uint64 {
-	if m != nil {
-		return m.UsedMem
-	}
-	return 0
-}
-
-func (m *YarnNodeSysInfo) GetTotalProcessor() uint64 {
-	if m != nil {
-		return m.TotalProcessor
-	}
-	return 0
-}
-
-func (m *YarnNodeSysInfo) GetUsedProcessor() uint64 {
-	if m != nil {
-		return m.UsedProcessor
-	}
-	return 0
-}
-
-func (m *YarnNodeSysInfo) GetTotalBandwidth() uint64 {
-	if m != nil {
-		return m.TotalBandwidth
-	}
-	return 0
-}
-
-func (m *YarnNodeSysInfo) GetUsedBandwidth() uint64 {
-	if m != nil {
-		return m.UsedBandwidth
 	}
 	return 0
 }
@@ -322,7 +298,7 @@ func (m *YarnRegisteredPeer) Reset()         { *m = YarnRegisteredPeer{} }
 func (m *YarnRegisteredPeer) String() string { return proto.CompactTextString(m) }
 func (*YarnRegisteredPeer) ProtoMessage()    {}
 func (*YarnRegisteredPeer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{2}
+	return fileDescriptor_9da989a22daaf207, []int{1}
 }
 func (m *YarnRegisteredPeer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -355,7 +331,7 @@ func (m *YarnRegisteredPeer) GetNodeType() NodeType {
 	if m != nil {
 		return m.NodeType
 	}
-	return NodeType_SeedNode
+	return NodeType_NodeType_Unknown
 }
 
 func (m *YarnRegisteredPeer) GetNodeDetail() *YarnRegisteredPeerDetail {
@@ -366,27 +342,27 @@ func (m *YarnRegisteredPeer) GetNodeDetail() *YarnRegisteredPeerDetail {
 }
 
 type YarnRegisteredPeerDetail struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	ExternalIp           string   `protobuf:"bytes,3,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
-	InternalPort         string   `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ExternalPort         string   `protobuf:"bytes,5,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
-	ConnState            int32    `protobuf:"varint,6,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
-	Duration             uint64   `protobuf:"varint,7,opt,name=duration,proto3" json:"duration,omitempty"`
-	TaskCount            uint32   `protobuf:"varint,8,opt,name=task_count,json=taskCount,proto3" json:"task_count,omitempty"`
-	TaskIdList           []string `protobuf:"bytes,9,rep,name=task_id_list,json=taskIdList,proto3" json:"task_id_list,omitempty"`
-	FileCount            uint32   `protobuf:"varint,10,opt,name=file_count,json=fileCount,proto3" json:"file_count,omitempty"`
-	FileTotalSize        uint32   `protobuf:"varint,11,opt,name=file_total_size,json=fileTotalSize,proto3" json:"file_total_size,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Id                   string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	InternalIp           string    `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	ExternalIp           string    `protobuf:"bytes,3,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
+	InternalPort         string    `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ExternalPort         string    `protobuf:"bytes,5,opt,name=external_port,json=externalPort,proto3" json:"external_port,omitempty"`
+	ConnState            ConnState `protobuf:"varint,6,opt,name=conn_state,json=connState,proto3,enum=rpcapi.ConnState" json:"conn_state,omitempty"`
+	Duration             uint64    `protobuf:"varint,7,opt,name=duration,proto3" json:"duration,omitempty"`
+	TaskCount            uint32    `protobuf:"varint,8,opt,name=task_count,json=taskCount,proto3" json:"task_count,omitempty"`
+	TaskIdList           []string  `protobuf:"bytes,9,rep,name=task_id_list,json=taskIdList,proto3" json:"task_id_list,omitempty"`
+	FileCount            uint32    `protobuf:"varint,10,opt,name=file_count,json=fileCount,proto3" json:"file_count,omitempty"`
+	FileTotalSize        uint32    `protobuf:"varint,11,opt,name=file_total_size,json=fileTotalSize,proto3" json:"file_total_size,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
 }
 
 func (m *YarnRegisteredPeerDetail) Reset()         { *m = YarnRegisteredPeerDetail{} }
 func (m *YarnRegisteredPeerDetail) String() string { return proto.CompactTextString(m) }
 func (*YarnRegisteredPeerDetail) ProtoMessage()    {}
 func (*YarnRegisteredPeerDetail) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{3}
+	return fileDescriptor_9da989a22daaf207, []int{2}
 }
 func (m *YarnRegisteredPeerDetail) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -450,11 +426,11 @@ func (m *YarnRegisteredPeerDetail) GetExternalPort() string {
 	return ""
 }
 
-func (m *YarnRegisteredPeerDetail) GetConnState() int32 {
+func (m *YarnRegisteredPeerDetail) GetConnState() ConnState {
 	if m != nil {
 		return m.ConnState
 	}
-	return 0
+	return ConnState_ConnState_UnConnected
 }
 
 func (m *YarnRegisteredPeerDetail) GetDuration() uint64 {
@@ -493,21 +469,21 @@ func (m *YarnRegisteredPeerDetail) GetFileTotalSize() uint32 {
 }
 
 type SeedPeer struct {
-	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	NodeId               string   `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
-	InternalPort         string   `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
-	ConnState            int32    `protobuf:"varint,5,opt,name=conn_state,json=connState,proto3" json:"conn_state,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Id                   string    `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	NodeId               string    `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	InternalIp           string    `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
+	InternalPort         string    `protobuf:"bytes,4,opt,name=internal_port,json=internalPort,proto3" json:"internal_port,omitempty"`
+	ConnState            ConnState `protobuf:"varint,5,opt,name=conn_state,json=connState,proto3,enum=rpcapi.ConnState" json:"conn_state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
+	XXX_unrecognized     []byte    `json:"-"`
+	XXX_sizecache        int32     `json:"-"`
 }
 
 func (m *SeedPeer) Reset()         { *m = SeedPeer{} }
 func (m *SeedPeer) String() string { return proto.CompactTextString(m) }
 func (*SeedPeer) ProtoMessage()    {}
 func (*SeedPeer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{4}
+	return fileDescriptor_9da989a22daaf207, []int{3}
 }
 func (m *SeedPeer) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -564,13 +540,14 @@ func (m *SeedPeer) GetInternalPort() string {
 	return ""
 }
 
-func (m *SeedPeer) GetConnState() int32 {
+func (m *SeedPeer) GetConnState() ConnState {
 	if m != nil {
 		return m.ConnState
 	}
-	return 0
+	return ConnState_ConnState_UnConnected
 }
 
+// 查看自身调度服务信息 resp
 type GetNodeInfoResponse struct {
 	Status               int32         `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string        `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -584,7 +561,7 @@ func (m *GetNodeInfoResponse) Reset()         { *m = GetNodeInfoResponse{} }
 func (m *GetNodeInfoResponse) String() string { return proto.CompactTextString(m) }
 func (*GetNodeInfoResponse) ProtoMessage()    {}
 func (*GetNodeInfoResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{5}
+	return fileDescriptor_9da989a22daaf207, []int{4}
 }
 func (m *GetNodeInfoResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -634,6 +611,7 @@ func (m *GetNodeInfoResponse) GetInformation() *YarnNodeInfo {
 	return nil
 }
 
+// 查看自身调度服务的 peer注册信息 req
 type GetRegisteredPeersRequest struct {
 	NodeType             NodeType `protobuf:"varint,1,opt,name=node_type,json=nodeType,proto3,enum=rpcapi.NodeType" json:"node_type,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -645,7 +623,7 @@ func (m *GetRegisteredPeersRequest) Reset()         { *m = GetRegisteredPeersReq
 func (m *GetRegisteredPeersRequest) String() string { return proto.CompactTextString(m) }
 func (*GetRegisteredPeersRequest) ProtoMessage()    {}
 func (*GetRegisteredPeersRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{6}
+	return fileDescriptor_9da989a22daaf207, []int{5}
 }
 func (m *GetRegisteredPeersRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -678,9 +656,10 @@ func (m *GetRegisteredPeersRequest) GetNodeType() NodeType {
 	if m != nil {
 		return m.NodeType
 	}
-	return NodeType_SeedNode
+	return NodeType_NodeType_Unknown
 }
 
+// 查看自身调度服务的 peer注册信息 resp
 type GetRegisteredPeersResponse struct {
 	Status               int32                 `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -694,7 +673,7 @@ func (m *GetRegisteredPeersResponse) Reset()         { *m = GetRegisteredPeersRe
 func (m *GetRegisteredPeersResponse) String() string { return proto.CompactTextString(m) }
 func (*GetRegisteredPeersResponse) ProtoMessage()    {}
 func (*GetRegisteredPeersResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{7}
+	return fileDescriptor_9da989a22daaf207, []int{6}
 }
 func (m *GetRegisteredPeersResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -744,6 +723,7 @@ func (m *GetRegisteredPeersResponse) GetNodes() []*YarnRegisteredPeer {
 	return nil
 }
 
+// 删除种子or计算or数据服务node信息 req
 type DeleteRegisteredNodeRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -755,7 +735,7 @@ func (m *DeleteRegisteredNodeRequest) Reset()         { *m = DeleteRegisteredNod
 func (m *DeleteRegisteredNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*DeleteRegisteredNodeRequest) ProtoMessage()    {}
 func (*DeleteRegisteredNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{8}
+	return fileDescriptor_9da989a22daaf207, []int{7}
 }
 func (m *DeleteRegisteredNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -791,6 +771,7 @@ func (m *DeleteRegisteredNodeRequest) GetId() string {
 	return ""
 }
 
+// 新增种子节点信息 req
 type SetSeedNodeRequest struct {
 	NodeId               string   `protobuf:"bytes,1,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
 	InternalIp           string   `protobuf:"bytes,2,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
@@ -804,7 +785,7 @@ func (m *SetSeedNodeRequest) Reset()         { *m = SetSeedNodeRequest{} }
 func (m *SetSeedNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*SetSeedNodeRequest) ProtoMessage()    {}
 func (*SetSeedNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{9}
+	return fileDescriptor_9da989a22daaf207, []int{8}
 }
 func (m *SetSeedNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -854,10 +835,11 @@ func (m *SetSeedNodeRequest) GetInternalPort() string {
 	return ""
 }
 
+// 新增|修改 种子节点信息 resp
 type SetSeedNodeResponse struct {
 	Status               int32     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	SeedPeer             *SeedPeer `protobuf:"bytes,3,opt,name=seed_peer,json=seedPeer,proto3" json:"seed_peer,omitempty"`
+	Node                 *SeedPeer `protobuf:"bytes,3,opt,name=node,proto3" json:"node,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}  `json:"-"`
 	XXX_unrecognized     []byte    `json:"-"`
 	XXX_sizecache        int32     `json:"-"`
@@ -867,7 +849,7 @@ func (m *SetSeedNodeResponse) Reset()         { *m = SetSeedNodeResponse{} }
 func (m *SetSeedNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*SetSeedNodeResponse) ProtoMessage()    {}
 func (*SetSeedNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{10}
+	return fileDescriptor_9da989a22daaf207, []int{9}
 }
 func (m *SetSeedNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -910,13 +892,14 @@ func (m *SetSeedNodeResponse) GetMsg() string {
 	return ""
 }
 
-func (m *SetSeedNodeResponse) GetSeedPeer() *SeedPeer {
+func (m *SetSeedNodeResponse) GetNode() *SeedPeer {
 	if m != nil {
-		return m.SeedPeer
+		return m.Node
 	}
 	return nil
 }
 
+// 修改种子节点信息 req
 type UpdateSeedNodeRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	NodeId               string   `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
@@ -931,7 +914,7 @@ func (m *UpdateSeedNodeRequest) Reset()         { *m = UpdateSeedNodeRequest{} }
 func (m *UpdateSeedNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSeedNodeRequest) ProtoMessage()    {}
 func (*UpdateSeedNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{11}
+	return fileDescriptor_9da989a22daaf207, []int{10}
 }
 func (m *UpdateSeedNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -988,6 +971,7 @@ func (m *UpdateSeedNodeRequest) GetInternalPort() string {
 	return ""
 }
 
+// 查询种子节点列表 resp
 type GetSeedNodeListResponse struct {
 	Status               int32       `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string      `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -1001,7 +985,7 @@ func (m *GetSeedNodeListResponse) Reset()         { *m = GetSeedNodeListResponse
 func (m *GetSeedNodeListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetSeedNodeListResponse) ProtoMessage()    {}
 func (*GetSeedNodeListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{12}
+	return fileDescriptor_9da989a22daaf207, []int{11}
 }
 func (m *GetSeedNodeListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1051,6 +1035,7 @@ func (m *GetSeedNodeListResponse) GetNodes() []*SeedPeer {
 	return nil
 }
 
+// 新增数据服务信息 req
 type SetDataNodeRequest struct {
 	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
 	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
@@ -1065,7 +1050,7 @@ func (m *SetDataNodeRequest) Reset()         { *m = SetDataNodeRequest{} }
 func (m *SetDataNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*SetDataNodeRequest) ProtoMessage()    {}
 func (*SetDataNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{13}
+	return fileDescriptor_9da989a22daaf207, []int{12}
 }
 func (m *SetDataNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1122,10 +1107,11 @@ func (m *SetDataNodeRequest) GetExternalPort() string {
 	return ""
 }
 
+// 新增|修改 数据服务信息 resp
 type SetDataNodeResponse struct {
 	Status               int32                     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	DataNode             *YarnRegisteredPeerDetail `protobuf:"bytes,3,opt,name=data_node,json=dataNode,proto3" json:"data_node,omitempty"`
+	Node                 *YarnRegisteredPeerDetail `protobuf:"bytes,3,opt,name=node,proto3" json:"node,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
 	XXX_unrecognized     []byte                    `json:"-"`
 	XXX_sizecache        int32                     `json:"-"`
@@ -1135,7 +1121,7 @@ func (m *SetDataNodeResponse) Reset()         { *m = SetDataNodeResponse{} }
 func (m *SetDataNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*SetDataNodeResponse) ProtoMessage()    {}
 func (*SetDataNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{14}
+	return fileDescriptor_9da989a22daaf207, []int{13}
 }
 func (m *SetDataNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1178,13 +1164,14 @@ func (m *SetDataNodeResponse) GetMsg() string {
 	return ""
 }
 
-func (m *SetDataNodeResponse) GetDataNode() *YarnRegisteredPeerDetail {
+func (m *SetDataNodeResponse) GetNode() *YarnRegisteredPeerDetail {
 	if m != nil {
-		return m.DataNode
+		return m.Node
 	}
 	return nil
 }
 
+// 修改数据服务信息 req
 type UpdateDataNodeRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
@@ -1200,7 +1187,7 @@ func (m *UpdateDataNodeRequest) Reset()         { *m = UpdateDataNodeRequest{} }
 func (m *UpdateDataNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateDataNodeRequest) ProtoMessage()    {}
 func (*UpdateDataNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{15}
+	return fileDescriptor_9da989a22daaf207, []int{14}
 }
 func (m *UpdateDataNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1264,6 +1251,7 @@ func (m *UpdateDataNodeRequest) GetExternalPort() string {
 	return ""
 }
 
+// 查询数据 or 计算 服务列表 resp
 type GetRegisteredNodeListResponse struct {
 	Status               int32                 `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -1277,7 +1265,7 @@ func (m *GetRegisteredNodeListResponse) Reset()         { *m = GetRegisteredNode
 func (m *GetRegisteredNodeListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetRegisteredNodeListResponse) ProtoMessage()    {}
 func (*GetRegisteredNodeListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{16}
+	return fileDescriptor_9da989a22daaf207, []int{15}
 }
 func (m *GetRegisteredNodeListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1327,6 +1315,7 @@ func (m *GetRegisteredNodeListResponse) GetNodes() []*YarnRegisteredPeer {
 	return nil
 }
 
+// 新增计算服务信息 req
 type SetJobNodeRequest struct {
 	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
 	ExternalIp           string   `protobuf:"bytes,4,opt,name=external_ip,json=externalIp,proto3" json:"external_ip,omitempty"`
@@ -1341,7 +1330,7 @@ func (m *SetJobNodeRequest) Reset()         { *m = SetJobNodeRequest{} }
 func (m *SetJobNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*SetJobNodeRequest) ProtoMessage()    {}
 func (*SetJobNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{17}
+	return fileDescriptor_9da989a22daaf207, []int{16}
 }
 func (m *SetJobNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1398,10 +1387,11 @@ func (m *SetJobNodeRequest) GetExternalPort() string {
 	return ""
 }
 
+// 新增|修改 计算服务信息 resp
 type SetJobNodeResponse struct {
 	Status               int32                     `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                    `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	JobNode              *YarnRegisteredPeerDetail `protobuf:"bytes,3,opt,name=job_node,json=jobNode,proto3" json:"job_node,omitempty"`
+	Node                 *YarnRegisteredPeerDetail `protobuf:"bytes,3,opt,name=node,proto3" json:"node,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                  `json:"-"`
 	XXX_unrecognized     []byte                    `json:"-"`
 	XXX_sizecache        int32                     `json:"-"`
@@ -1411,7 +1401,7 @@ func (m *SetJobNodeResponse) Reset()         { *m = SetJobNodeResponse{} }
 func (m *SetJobNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*SetJobNodeResponse) ProtoMessage()    {}
 func (*SetJobNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{18}
+	return fileDescriptor_9da989a22daaf207, []int{17}
 }
 func (m *SetJobNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1454,13 +1444,14 @@ func (m *SetJobNodeResponse) GetMsg() string {
 	return ""
 }
 
-func (m *SetJobNodeResponse) GetJobNode() *YarnRegisteredPeerDetail {
+func (m *SetJobNodeResponse) GetNode() *YarnRegisteredPeerDetail {
 	if m != nil {
-		return m.JobNode
+		return m.Node
 	}
 	return nil
 }
 
+// 修改计算服务信息 req
 type UpdateJobNodeRequest struct {
 	Id                   string   `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	InternalIp           string   `protobuf:"bytes,3,opt,name=internal_ip,json=internalIp,proto3" json:"internal_ip,omitempty"`
@@ -1476,7 +1467,7 @@ func (m *UpdateJobNodeRequest) Reset()         { *m = UpdateJobNodeRequest{} }
 func (m *UpdateJobNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateJobNodeRequest) ProtoMessage()    {}
 func (*UpdateJobNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{19}
+	return fileDescriptor_9da989a22daaf207, []int{18}
 }
 func (m *UpdateJobNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1540,6 +1531,7 @@ func (m *UpdateJobNodeRequest) GetExternalPort() string {
 	return ""
 }
 
+// 数据/计算服务 上报任务事件 req
 type ReportTaskEventRequest struct {
 	TaskEvent            *types.TaskEvent `protobuf:"bytes,1,opt,name=task_event,json=taskEvent,proto3" json:"task_event,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}         `json:"-"`
@@ -1551,7 +1543,7 @@ func (m *ReportTaskEventRequest) Reset()         { *m = ReportTaskEventRequest{}
 func (m *ReportTaskEventRequest) String() string { return proto.CompactTextString(m) }
 func (*ReportTaskEventRequest) ProtoMessage()    {}
 func (*ReportTaskEventRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{20}
+	return fileDescriptor_9da989a22daaf207, []int{19}
 }
 func (m *ReportTaskEventRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1587,7 +1579,7 @@ func (m *ReportTaskEventRequest) GetTaskEvent() *types.TaskEvent {
 	return nil
 }
 
-// 节点的资源使用实况上报请求
+// 数据/计算服务 上报资源使用实况 req
 type ReportTaskResourceExpenseRequest struct {
 	NodeType             NodeType                     `protobuf:"varint,1,opt,name=node_type,json=nodeType,proto3,enum=rpcapi.NodeType" json:"node_type,omitempty"`
 	NodeId               string                       `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
@@ -1601,7 +1593,7 @@ func (m *ReportTaskResourceExpenseRequest) Reset()         { *m = ReportTaskReso
 func (m *ReportTaskResourceExpenseRequest) String() string { return proto.CompactTextString(m) }
 func (*ReportTaskResourceExpenseRequest) ProtoMessage()    {}
 func (*ReportTaskResourceExpenseRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{21}
+	return fileDescriptor_9da989a22daaf207, []int{20}
 }
 func (m *ReportTaskResourceExpenseRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1634,7 +1626,7 @@ func (m *ReportTaskResourceExpenseRequest) GetNodeType() NodeType {
 	if m != nil {
 		return m.NodeType
 	}
-	return NodeType_SeedNode
+	return NodeType_NodeType_Unknown
 }
 
 func (m *ReportTaskResourceExpenseRequest) GetNodeId() string {
@@ -1651,6 +1643,7 @@ func (m *ReportTaskResourceExpenseRequest) GetUsage() *types.ResourceUsageOvervi
 	return nil
 }
 
+// 上报 成功上传的原始文件Id req
 type ReportUpFileSummaryRequest struct {
 	OriginId             string   `protobuf:"bytes,1,opt,name=origin_id,json=originId,proto3" json:"origin_id,omitempty"`
 	FilePath             string   `protobuf:"bytes,2,opt,name=file_path,json=filePath,proto3" json:"file_path,omitempty"`
@@ -1665,7 +1658,7 @@ func (m *ReportUpFileSummaryRequest) Reset()         { *m = ReportUpFileSummaryR
 func (m *ReportUpFileSummaryRequest) String() string { return proto.CompactTextString(m) }
 func (*ReportUpFileSummaryRequest) ProtoMessage()    {}
 func (*ReportUpFileSummaryRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{22}
+	return fileDescriptor_9da989a22daaf207, []int{21}
 }
 func (m *ReportUpFileSummaryRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1722,19 +1715,20 @@ func (m *ReportUpFileSummaryRequest) GetPort() string {
 	return ""
 }
 
+// 查询可用数据服务资源目标 ip:port 信息 req
 type QueryAvailableDataNodeRequest struct {
-	FileSize             uint64   `protobuf:"varint,1,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
-	FileType             string   `protobuf:"bytes,2,opt,name=file_type,json=fileType,proto3" json:"file_type,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	FileSize             uint64                `protobuf:"varint,1,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
+	FileType             common.OriginFileType `protobuf:"varint,2,opt,name=file_type,json=fileType,proto3,enum=api.protobuf.OriginFileType" json:"file_type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *QueryAvailableDataNodeRequest) Reset()         { *m = QueryAvailableDataNodeRequest{} }
 func (m *QueryAvailableDataNodeRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryAvailableDataNodeRequest) ProtoMessage()    {}
 func (*QueryAvailableDataNodeRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{23}
+	return fileDescriptor_9da989a22daaf207, []int{22}
 }
 func (m *QueryAvailableDataNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1770,13 +1764,14 @@ func (m *QueryAvailableDataNodeRequest) GetFileSize() uint64 {
 	return 0
 }
 
-func (m *QueryAvailableDataNodeRequest) GetFileType() string {
+func (m *QueryAvailableDataNodeRequest) GetFileType() common.OriginFileType {
 	if m != nil {
 		return m.FileType
 	}
-	return ""
+	return common.OriginFileType_FileType_Unknown
 }
 
+// 查询可用数据服务资源目标 ip:port 信息 resp
 type QueryAvailableDataNodeResponse struct {
 	Ip                   string   `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
 	Port                 string   `protobuf:"bytes,2,opt,name=port,proto3" json:"port,omitempty"`
@@ -1789,7 +1784,7 @@ func (m *QueryAvailableDataNodeResponse) Reset()         { *m = QueryAvailableDa
 func (m *QueryAvailableDataNodeResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryAvailableDataNodeResponse) ProtoMessage()    {}
 func (*QueryAvailableDataNodeResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{24}
+	return fileDescriptor_9da989a22daaf207, []int{23}
 }
 func (m *QueryAvailableDataNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1832,6 +1827,7 @@ func (m *QueryAvailableDataNodeResponse) GetPort() string {
 	return ""
 }
 
+// 查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 req
 type QueryFilePositionRequest struct {
 	OriginId             string   `protobuf:"bytes,1,opt,name=origin_id,json=originId,proto3" json:"origin_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -1843,7 +1839,7 @@ func (m *QueryFilePositionRequest) Reset()         { *m = QueryFilePositionReque
 func (m *QueryFilePositionRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryFilePositionRequest) ProtoMessage()    {}
 func (*QueryFilePositionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{25}
+	return fileDescriptor_9da989a22daaf207, []int{24}
 }
 func (m *QueryFilePositionRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1879,6 +1875,7 @@ func (m *QueryFilePositionRequest) GetOriginId() string {
 	return ""
 }
 
+// 查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 resp
 type QueryFilePositionResponse struct {
 	Ip                   string   `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
 	Port                 string   `protobuf:"bytes,2,opt,name=port,proto3" json:"port,omitempty"`
@@ -1892,7 +1889,7 @@ func (m *QueryFilePositionResponse) Reset()         { *m = QueryFilePositionResp
 func (m *QueryFilePositionResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryFilePositionResponse) ProtoMessage()    {}
 func (*QueryFilePositionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9da989a22daaf207, []int{26}
+	return fileDescriptor_9da989a22daaf207, []int{25}
 }
 func (m *QueryFilePositionResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1944,8 +1941,9 @@ func (m *QueryFilePositionResponse) GetFilePath() string {
 
 func init() {
 	proto.RegisterEnum("rpcapi.NodeType", NodeType_name, NodeType_value)
+	proto.RegisterEnum("rpcapi.YarnNodeState", YarnNodeState_name, YarnNodeState_value)
+	proto.RegisterEnum("rpcapi.ConnState", ConnState_name, ConnState_value)
 	proto.RegisterType((*YarnNodeInfo)(nil), "rpcapi.YarnNodeInfo")
-	proto.RegisterType((*YarnNodeSysInfo)(nil), "rpcapi.YarnNodeSysInfo")
 	proto.RegisterType((*YarnRegisteredPeer)(nil), "rpcapi.YarnRegisteredPeer")
 	proto.RegisterType((*YarnRegisteredPeerDetail)(nil), "rpcapi.YarnRegisteredPeerDetail")
 	proto.RegisterType((*SeedPeer)(nil), "rpcapi.SeedPeer")
@@ -1976,123 +1974,124 @@ func init() {
 func init() { proto.RegisterFile("lib/api/sys_rpc_api.proto", fileDescriptor_9da989a22daaf207) }
 
 var fileDescriptor_9da989a22daaf207 = []byte{
-	// 1850 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x59, 0x4b, 0x6f, 0x1b, 0xc9,
-	0x11, 0xce, 0x90, 0xa2, 0x44, 0x16, 0x45, 0x49, 0xdb, 0xf6, 0x7a, 0x29, 0xea, 0x61, 0xba, 0xfd,
-	0x92, 0x95, 0x88, 0xdc, 0x28, 0x48, 0x16, 0xd8, 0x20, 0x07, 0xef, 0xda, 0x2b, 0x68, 0x91, 0x87,
-	0x42, 0xda, 0x87, 0x0d, 0x02, 0x10, 0x43, 0x4e, 0x5b, 0x1a, 0x9b, 0x9c, 0x99, 0x9d, 0x6e, 0xca,
-	0xa6, 0x9c, 0x07, 0x90, 0x43, 0x92, 0x7b, 0x2e, 0x41, 0x0c, 0x24, 0xf9, 0x0d, 0xc9, 0x9f, 0xc8,
-	0x31, 0x40, 0xfe, 0x40, 0x60, 0x04, 0xf9, 0x0f, 0x39, 0x04, 0x08, 0xaa, 0x1f, 0xc3, 0x19, 0xce,
-	0x90, 0x14, 0x1d, 0x23, 0xf1, 0x6d, 0xa6, 0xaa, 0xba, 0xbe, 0xaf, 0xab, 0xaa, 0x7b, 0x3e, 0x4a,
-	0xb0, 0xd9, 0x77, 0xbb, 0x4d, 0x3b, 0x70, 0x9b, 0x7c, 0xc4, 0x3b, 0x61, 0xd0, 0xeb, 0xd8, 0x81,
-	0xdb, 0x08, 0x42, 0x5f, 0xf8, 0x64, 0x39, 0x0c, 0x7a, 0x76, 0xe0, 0xd6, 0xde, 0xc7, 0x90, 0x9e,
-	0x3f, 0x18, 0xf8, 0x5e, 0xb3, 0x6b, 0x73, 0xa6, 0xdc, 0x09, 0xb3, 0x63, 0x0b, 0x5b, 0x9b, 0xab,
-	0x68, 0x16, 0xa3, 0x80, 0xf1, 0xa6, 0xb0, 0xf9, 0xb3, 0x98, 0x67, 0x7b, 0xec, 0x09, 0x19, 0xf7,
-	0x87, 0x61, 0x8f, 0xc5, 0xbc, 0x35, 0x43, 0x04, 0x57, 0x25, 0x99, 0xd4, 0xb6, 0x4f, 0x7d, 0xff,
-	0xb4, 0xcf, 0xa4, 0xdb, 0xf6, 0x3c, 0x5f, 0xd8, 0xc2, 0xf5, 0x3d, 0xae, 0xbd, 0x5b, 0xda, 0x2b,
-	0xdf, 0xba, 0xc3, 0x27, 0x4d, 0x36, 0x08, 0xc4, 0x48, 0x39, 0xe9, 0xab, 0x25, 0x58, 0xfd, 0xc2,
-	0x0e, 0xbd, 0xef, 0xfb, 0x0e, 0x3b, 0xf6, 0x9e, 0xf8, 0xe4, 0x00, 0x4a, 0x9e, 0xef, 0xb0, 0x0e,
-	0x12, 0xa9, 0x5a, 0x75, 0x6b, 0x6f, 0xed, 0x70, 0xa3, 0xa1, 0x76, 0xda, 0xc0, 0xa0, 0x47, 0xa3,
-	0x80, 0xb5, 0x8a, 0x9e, 0x7e, 0x22, 0x1f, 0xc0, 0x8a, 0x0c, 0x77, 0x9d, 0x6a, 0xae, 0x6e, 0xed,
-	0x95, 0x5a, 0xcb, 0xf8, 0x7a, 0xec, 0x90, 0xeb, 0x50, 0x76, 0x3d, 0xc1, 0x42, 0xcf, 0xee, 0x77,
-	0xdc, 0xa0, 0x9a, 0x97, 0x4e, 0x30, 0xa6, 0xe3, 0x00, 0x03, 0xd8, 0x8b, 0x71, 0xc0, 0x92, 0x0a,
-	0x30, 0xa6, 0xe3, 0x80, 0xdc, 0x84, 0x4a, 0x94, 0x21, 0xf0, 0x43, 0x51, 0x2d, 0xc8, 0x90, 0x55,
-	0x63, 0x3c, 0xf1, 0x43, 0x81, 0x41, 0x51, 0x16, 0x19, 0xb4, 0xac, 0x82, 0x8c, 0xd1, 0x04, 0xb9,
-	0x0e, 0xf3, 0x84, 0x2b, 0x46, 0x6a, 0x5f, 0x2b, 0x3a, 0x93, 0x36, 0xca, 0x9d, 0x20, 0x61, 0x13,
-	0xe4, 0x3a, 0xd5, 0xa2, 0x26, 0xac, 0x4d, 0xc7, 0x0e, 0xb9, 0x0f, 0x15, 0xd3, 0x97, 0xce, 0x90,
-	0x33, 0xa7, 0x5a, 0xaa, 0x5b, 0x7b, 0xe5, 0xc3, 0xed, 0x86, 0xec, 0x59, 0xa3, 0xa5, 0x7d, 0x8f,
-	0xb9, 0x7d, 0xca, 0x7e, 0x70, 0xce, 0xc2, 0x73, 0x97, 0x3d, 0x6f, 0xad, 0x86, 0x91, 0x99, 0x39,
-	0xe4, 0x43, 0x28, 0x04, 0x8c, 0x85, 0xbc, 0x0a, 0xf5, 0xfc, 0x5e, 0xf9, 0xb0, 0x66, 0x0a, 0x8b,
-	0x1d, 0x68, 0xb1, 0x53, 0x97, 0x0b, 0x16, 0x32, 0xe7, 0x84, 0xb1, 0xb0, 0xa5, 0x02, 0x49, 0x13,
-	0x80, 0x33, 0xe6, 0x74, 0xd4, 0xb2, 0xb2, 0x5c, 0x16, 0xf5, 0xa3, 0xcd, 0x74, 0x70, 0x89, 0xeb,
-	0x27, 0x4e, 0xae, 0x42, 0x81, 0x0b, 0x5b, 0xb0, 0xea, 0xaa, 0xdc, 0x80, 0x7a, 0x21, 0x04, 0x96,
-	0x3c, 0x7b, 0xc0, 0xaa, 0x15, 0x69, 0x94, 0xcf, 0xe4, 0x06, 0xac, 0x86, 0xac, 0x6f, 0x0b, 0xa6,
-	0x93, 0xaf, 0xd5, 0xad, 0xbd, 0x4a, 0xab, 0xac, 0x6c, 0x32, 0x19, 0xfd, 0xb7, 0x05, 0xeb, 0x66,
-	0x3a, 0xda, 0x23, 0x2e, 0x07, 0xc4, 0xa4, 0xb2, 0x62, 0xa9, 0xb6, 0xa0, 0x24, 0x7c, 0x61, 0xf7,
-	0x3b, 0x03, 0x36, 0x90, 0x73, 0xb0, 0xd4, 0x2a, 0x4a, 0xc3, 0xf7, 0xd8, 0x80, 0x6c, 0x42, 0x11,
-	0xcb, 0x25, 0x7d, 0x79, 0xe9, 0x5b, 0xc1, 0x77, 0x74, 0xdd, 0x85, 0x75, 0xb5, 0x2e, 0x08, 0xfd,
-	0x1e, 0xe3, 0xdc, 0x0f, 0xe5, 0x1c, 0x2c, 0xb5, 0xd6, 0xa4, 0xf9, 0xc4, 0x58, 0xc9, 0x6d, 0x58,
-	0x93, 0x39, 0xc6, 0x71, 0x05, 0x19, 0x57, 0x41, 0xeb, 0x38, 0x2c, 0xca, 0xd7, 0xb5, 0x3d, 0xe7,
-	0xb9, 0xeb, 0x88, 0x33, 0x39, 0x0f, 0x26, 0xdf, 0x27, 0xc6, 0x1a, 0xe5, 0x1b, 0xc7, 0xad, 0x8c,
-	0xf3, 0x45, 0x61, 0xf4, 0x97, 0x16, 0x90, 0x74, 0x6f, 0x16, 0x3d, 0x23, 0xf7, 0xa1, 0x2c, 0xc3,
-	0x1d, 0x26, 0x6c, 0xb7, 0x2f, 0xeb, 0x53, 0x3e, 0xac, 0x4f, 0xef, 0xfd, 0x03, 0x19, 0xd7, 0x02,
-	0x5c, 0xa4, 0x9e, 0xe9, 0xbf, 0x72, 0x50, 0x9d, 0x16, 0x48, 0xd6, 0x20, 0xe7, 0x3a, 0xba, 0x1f,
-	0x39, 0x37, 0x75, 0xf4, 0x72, 0xf3, 0x8e, 0x5e, 0x7e, 0xfe, 0xd1, 0x5b, 0xba, 0xcc, 0xd1, 0x2b,
-	0x64, 0x1c, 0xbd, 0x1d, 0x80, 0x9e, 0xef, 0x79, 0x1d, 0x35, 0x93, 0xd8, 0x8c, 0x42, 0xab, 0x84,
-	0x96, 0xb6, 0x9c, 0xcb, 0x1a, 0x14, 0x9d, 0x61, 0x28, 0xaf, 0x2b, 0xdd, 0x81, 0xe8, 0x1d, 0x97,
-	0xca, 0xbb, 0xae, 0xe7, 0x0f, 0x3d, 0x21, 0xcf, 0x63, 0xa5, 0x55, 0x42, 0xcb, 0xa7, 0x68, 0x20,
-	0x75, 0x58, 0x95, 0x6e, 0xd7, 0xe9, 0xf4, 0x5d, 0x2e, 0xaa, 0xa5, 0x7a, 0x1e, 0x77, 0x81, 0xb6,
-	0x63, 0xe7, 0xbb, 0x2e, 0x97, 0xd8, 0x4f, 0xdc, 0x3e, 0xd3, 0x09, 0x40, 0x25, 0x40, 0x8b, 0x4a,
-	0x70, 0x07, 0xd6, 0xa5, 0x5b, 0x4d, 0x0c, 0x77, 0x2f, 0x58, 0xb5, 0x2c, 0x63, 0x2a, 0x68, 0x7e,
-	0x84, 0xd6, 0xb6, 0x7b, 0xc1, 0xe8, 0x6f, 0x2d, 0x28, 0x9a, 0x93, 0x96, 0xaa, 0xf5, 0x9b, 0xdf,
-	0x7f, 0x97, 0xaa, 0x71, 0xb2, 0x7c, 0x85, 0x89, 0xf2, 0xd1, 0xe7, 0x70, 0xe5, 0x88, 0x09, 0x73,
-	0x77, 0xb7, 0x18, 0x0f, 0x7c, 0x8f, 0x33, 0x72, 0x0d, 0x96, 0x71, 0xc1, 0x90, 0x4b, 0xa2, 0x85,
-	0x96, 0x7e, 0x23, 0x1b, 0x90, 0x1f, 0xf0, 0x53, 0x4d, 0x14, 0x1f, 0xc9, 0xb7, 0x90, 0xe5, 0x13,
-	0x3f, 0x1c, 0xa8, 0x16, 0xe4, 0xe5, 0x68, 0x5e, 0x8d, 0x8f, 0x66, 0x94, 0x3c, 0x1e, 0x48, 0x3f,
-	0x87, 0xcd, 0x23, 0x26, 0x92, 0xd3, 0xc8, 0x5b, 0xec, 0xcb, 0x21, 0xe3, 0x62, 0xc1, 0xe3, 0x41,
-	0x5f, 0x40, 0x2d, 0x2b, 0xd7, 0xc2, 0x7b, 0xf9, 0x10, 0x0a, 0x98, 0x93, 0x57, 0xf3, 0xf3, 0x2f,
-	0x57, 0x19, 0x48, 0x0f, 0x60, 0xeb, 0x01, 0xeb, 0x33, 0xc1, 0xc6, 0x6e, 0xe4, 0x67, 0xf6, 0x31,
-	0xd1, 0x6b, 0xca, 0x81, 0xb4, 0x99, 0xc0, 0x51, 0x88, 0x47, 0xc5, 0x26, 0xc0, 0x9a, 0x35, 0x01,
-	0xb9, 0xf9, 0x13, 0x90, 0x4f, 0x4f, 0x00, 0xf5, 0xe0, 0x4a, 0x02, 0x74, 0xe1, 0xb2, 0x1c, 0x40,
-	0x29, 0xfa, 0x82, 0xe8, 0x06, 0xa7, 0x3f, 0x20, 0x45, 0xf3, 0x01, 0xc1, 0x2b, 0xef, 0xfd, 0xc7,
-	0x81, 0x63, 0x0b, 0x36, 0xb9, 0xd1, 0xff, 0xed, 0xe8, 0xd3, 0x67, 0xf0, 0xc1, 0xd1, 0x78, 0xe3,
-	0x78, 0xa0, 0xdf, 0x60, 0xf3, 0x77, 0x92, 0x33, 0x91, 0xde, 0xb8, 0x9e, 0x84, 0x3f, 0x5a, 0xb2,
-	0xb7, 0x0f, 0x6c, 0x61, 0xc7, 0xb7, 0xfc, 0x0e, 0x89, 0x18, 0xfa, 0x33, 0x39, 0x08, 0x63, 0x86,
-	0x0b, 0xd7, 0xe2, 0x3b, 0x50, 0x42, 0x3d, 0xd9, 0xc1, 0x1d, 0xeb, 0x41, 0x98, 0xff, 0x11, 0x2a,
-	0x3a, 0x1a, 0x90, 0xfe, 0x39, 0x1a, 0x8c, 0xc9, 0x2a, 0xcd, 0xf9, 0xfe, 0xfc, 0x5f, 0xab, 0xf6,
-	0x12, 0x76, 0x12, 0x97, 0xcb, 0x7f, 0x31, 0x4b, 0x8b, 0xdf, 0x2f, 0x7f, 0xb0, 0xe0, 0xbd, 0x36,
-	0x13, 0x9f, 0xfb, 0xdd, 0x77, 0x75, 0xa8, 0x5e, 0xca, 0xb1, 0x8f, 0x08, 0x2e, 0x5c, 0x93, 0x6f,
-	0x43, 0xf1, 0xa9, 0xdf, 0x5d, 0x6c, 0xa4, 0x56, 0x9e, 0x2a, 0x38, 0xfa, 0x27, 0x0b, 0xae, 0xaa,
-	0x89, 0x9a, 0xa8, 0xd0, 0xbb, 0x3c, 0x50, 0xc7, 0x70, 0xad, 0xc5, 0xd0, 0xfb, 0xc8, 0xe6, 0xcf,
-	0x1e, 0x9e, 0x33, 0x4f, 0x18, 0xd6, 0x4d, 0xad, 0x57, 0x18, 0x1a, 0x25, 0x7b, 0xbc, 0x70, 0xd4,
-	0x8f, 0x83, 0x71, 0xb0, 0x54, 0x30, 0xf2, 0x91, 0xfe, 0xde, 0x82, 0xfa, 0x38, 0x97, 0xf9, 0xfd,
-	0xf0, 0xf0, 0x45, 0xc0, 0x3c, 0xce, 0xde, 0xec, 0x63, 0x3a, 0xfd, 0x52, 0x3e, 0x84, 0xc2, 0x10,
-	0x7f, 0x99, 0xe8, 0x36, 0xcd, 0xfe, 0xd5, 0xa2, 0x42, 0xe9, 0x05, 0xd4, 0x14, 0xbf, 0xc7, 0xc1,
-	0x67, 0x6e, 0x9f, 0xb5, 0x87, 0x83, 0x81, 0x1d, 0x8e, 0x0c, 0xb3, 0x2d, 0x28, 0xf9, 0xa1, 0x7b,
-	0xea, 0x7a, 0xe3, 0x4f, 0x5f, 0x51, 0x19, 0x8e, 0x1d, 0x74, 0x4a, 0x71, 0x15, 0xd8, 0xe2, 0x4c,
-	0x33, 0x29, 0xa2, 0xe1, 0xc4, 0x16, 0x67, 0xb2, 0xbf, 0xa6, 0x8d, 0x39, 0x37, 0xc0, 0x9f, 0x14,
-	0xb1, 0xcf, 0x80, 0x7c, 0xa6, 0x5f, 0xc0, 0xce, 0x0f, 0x87, 0x2c, 0x1c, 0xdd, 0x3f, 0xb7, 0xdd,
-	0xbe, 0xdd, 0xed, 0xa7, 0x6e, 0x1d, 0x83, 0x20, 0x85, 0x9b, 0xa5, 0xb4, 0x23, 0x1a, 0x50, 0xb3,
-	0x45, 0x4e, 0x59, 0xb5, 0x18, 0xbc, 0x14, 0x1c, 0x0f, 0x60, 0x77, 0x5a, 0x6a, 0x7d, 0x00, 0x14,
-	0x41, 0x2b, 0x45, 0x30, 0x17, 0x23, 0xf8, 0x11, 0x54, 0x65, 0x16, 0xac, 0xcc, 0x89, 0xcf, 0x5d,
-	0xd4, 0x45, 0x97, 0x29, 0x0d, 0xfd, 0x31, 0x6c, 0x66, 0x2c, 0xbc, 0x3c, 0x72, 0xb2, 0xb6, 0xf9,
-	0x64, 0x6d, 0xf7, 0xef, 0x43, 0xd1, 0x8c, 0x05, 0x59, 0x55, 0xc2, 0x15, 0xdf, 0x37, 0xbe, 0x42,
-	0xca, 0xb0, 0xa2, 0xcf, 0xd9, 0x86, 0x85, 0x2e, 0xb3, 0xeb, 0x8d, 0x1c, 0xbe, 0x19, 0xad, 0xb7,
-	0x91, 0x3f, 0xfc, 0x27, 0x81, 0x32, 0xbe, 0xb6, 0x71, 0x1a, 0x7a, 0x8c, 0x9c, 0x41, 0x39, 0xa6,
-	0x32, 0xc9, 0xb5, 0x86, 0xfa, 0x83, 0x42, 0xc3, 0xfc, 0x41, 0xa1, 0xf1, 0x70, 0x10, 0x88, 0x51,
-	0x6d, 0xcb, 0x8c, 0x65, 0x86, 0x24, 0xa5, 0xb7, 0x7e, 0xf1, 0xb7, 0x7f, 0xfc, 0x26, 0xb7, 0x4b,
-	0x37, 0x9b, 0x3d, 0x3b, 0x0c, 0x5d, 0x16, 0x36, 0xcf, 0xbf, 0xde, 0x1c, 0xd9, 0xa1, 0xd7, 0xf4,
-	0x74, 0xe8, 0xc7, 0xd6, 0x3e, 0xf9, 0xb5, 0x05, 0x24, 0xad, 0x05, 0xc9, 0x8d, 0x58, 0xe6, 0x6c,
-	0xcd, 0x59, 0xa3, 0xb3, 0x42, 0x34, 0x87, 0xaf, 0x4a, 0x0e, 0xb7, 0x69, 0x3d, 0xc5, 0x21, 0x4c,
-	0xae, 0x40, 0x2a, 0xcf, 0xa0, 0x1c, 0xd3, 0x5d, 0xa4, 0x36, 0x56, 0x0e, 0x93, 0x0a, 0x70, 0xbc,
-	0xf1, 0x0c, 0xa1, 0x46, 0x6f, 0x4a, 0xd0, 0x1d, 0x5a, 0x4d, 0x81, 0x72, 0x15, 0x8d, 0x60, 0x02,
-	0xd6, 0x92, 0x9a, 0x8b, 0xec, 0x98, 0x9c, 0x99, 0x5a, 0x6c, 0x36, 0xe4, 0x1d, 0x09, 0x59, 0xa7,
-	0x5b, 0x29, 0xc8, 0x61, 0x94, 0x0c, 0x51, 0x5f, 0xc2, 0x9a, 0x92, 0xbf, 0x11, 0xea, 0x4d, 0x93,
-	0x76, 0x86, 0x2c, 0xae, 0x6d, 0x37, 0xa2, 0xbf, 0x3c, 0x61, 0xf3, 0xdb, 0xee, 0x20, 0xe8, 0x5f,
-	0x06, 0xdc, 0x89, 0xb0, 0x10, 0x3c, 0x80, 0xf5, 0x09, 0x79, 0x37, 0x75, 0xb0, 0xae, 0xc7, 0x7a,
-	0x9b, 0xa5, 0x07, 0x67, 0x0c, 0x17, 0xca, 0x5a, 0x0c, 0x45, 0x44, 0x5f, 0x76, 0xd4, 0x4c, 0x7d,
-	0xa2, 0xa3, 0x13, 0x77, 0x4b, 0xa2, 0xbc, 0x93, 0x97, 0x03, 0xbd, 0x2b, 0xd1, 0x6e, 0xd0, 0xed,
-	0xac, 0x8e, 0x9a, 0x68, 0x04, 0x7c, 0x61, 0xba, 0x1a, 0x61, 0x4e, 0x74, 0x75, 0x21, 0xd8, 0x7d,
-	0x09, 0x7b, 0x8b, 0x5e, 0x9f, 0xd2, 0xd5, 0x38, 0xf2, 0xcf, 0x4d, 0x67, 0x23, 0xe4, 0xb7, 0xd0,
-	0xd9, 0xe9, 0x04, 0x9c, 0x04, 0x16, 0x12, 0xb8, 0x90, 0xdd, 0x35, 0x96, 0x99, 0xdd, 0xbd, 0x9d,
-	0x79, 0x72, 0x53, 0x3d, 0xde, 0x93, 0xe8, 0x94, 0xee, 0xa4, 0xd1, 0x63, 0x28, 0xea, 0xe4, 0xc2,
-	0x58, 0xd3, 0x90, 0xcd, 0x58, 0x4d, 0x93, 0x32, 0xa3, 0x56, 0xcb, 0x72, 0xcd, 0x1d, 0x63, 0x1e,
-	0x05, 0xab, 0x93, 0x5b, 0x49, 0x48, 0x18, 0xb2, 0x9d, 0x6c, 0xf1, 0x02, 0x90, 0xf7, 0x24, 0xe4,
-	0x4d, 0xba, 0x3b, 0xa5, 0xc1, 0x31, 0xd4, 0x9f, 0x42, 0x45, 0xf5, 0xd1, 0xa0, 0xbe, 0x85, 0xf6,
-	0x4e, 0x87, 0x77, 0xe2, 0x50, 0x7a, 0xb0, 0x8f, 0x22, 0xfe, 0x6f, 0xa3, 0xb9, 0xd3, 0x8f, 0xd4,
-	0xd3, 0x31, 0x08, 0x22, 0xff, 0x04, 0xd6, 0x27, 0xd4, 0x17, 0xd9, 0x35, 0x10, 0xd9, 0xb2, 0x6c,
-	0xce, 0xae, 0x67, 0x7d, 0x13, 0x12, 0xe9, 0x10, 0xfd, 0x77, 0x16, 0x6c, 0x4e, 0x15, 0x6c, 0x64,
-	0x2f, 0x4d, 0x24, 0x5b, 0xd3, 0xcd, 0xa1, 0xf4, 0x4d, 0x49, 0xa9, 0x49, 0xf7, 0x67, 0x50, 0x9a,
-	0x48, 0xac, 0xbf, 0x9d, 0x57, 0x32, 0xd4, 0x1a, 0xa1, 0x49, 0x5a, 0x59, 0x52, 0x6e, 0x0e, 0xa1,
-	0xa6, 0x24, 0x74, 0x8f, 0xde, 0x9a, 0x42, 0x28, 0x91, 0x12, 0xa9, 0xbc, 0xb2, 0xe0, 0x5a, 0xb6,
-	0xc2, 0x22, 0xd1, 0x40, 0xcc, 0x14, 0x77, 0xb5, 0x3b, 0xf3, 0xc2, 0x34, 0xb5, 0x43, 0x49, 0xed,
-	0x6b, 0xf4, 0x6e, 0x8a, 0xda, 0x97, 0x99, 0x0b, 0x91, 0xdd, 0xaf, 0x2c, 0x78, 0x2f, 0x25, 0xc0,
-	0x48, 0x3d, 0x81, 0x98, 0x21, 0xea, 0x6a, 0x37, 0x66, 0x44, 0x68, 0x3a, 0x07, 0x92, 0xce, 0x5d,
-	0x4a, 0xb3, 0xe9, 0xc4, 0xd7, 0x7c, 0x6c, 0xed, 0x7f, 0xf2, 0xd1, 0x5f, 0x5e, 0xef, 0x5a, 0x7f,
-	0x7d, 0xbd, 0x6b, 0xfd, 0xfd, 0xf5, 0xae, 0xf5, 0xa3, 0x7b, 0xa7, 0xae, 0x38, 0x1b, 0x76, 0x1b,
-	0x3d, 0x7f, 0xd0, 0x6c, 0xf9, 0x9c, 0x09, 0x61, 0x7f, 0xd6, 0xf7, 0x9f, 0x37, 0x3f, 0x55, 0xa9,
-	0x0e, 0x8e, 0xfc, 0xa6, 0xfe, 0x1f, 0x50, 0x77, 0x59, 0xb6, 0xea, 0x1b, 0xff, 0x09, 0x00, 0x00,
-	0xff, 0xff, 0x64, 0x85, 0x39, 0xcb, 0x9e, 0x1a, 0x00, 0x00,
+	// 1870 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x59, 0x4f, 0x6f, 0xdb, 0xc8,
+	0x15, 0x5f, 0x4a, 0xb6, 0xd7, 0x7a, 0xb2, 0x1c, 0x79, 0x12, 0x3b, 0xb4, 0xfc, 0x27, 0xca, 0x24,
+	0x9b, 0x38, 0xde, 0x46, 0x4c, 0xdd, 0x3f, 0x8b, 0xee, 0x2d, 0x4d, 0xb2, 0x86, 0x83, 0x45, 0x93,
+	0xd2, 0xf1, 0xa1, 0x45, 0x01, 0x81, 0x16, 0xc7, 0xce, 0xd4, 0x12, 0xc9, 0xe5, 0x0c, 0xed, 0xc8,
+	0x69, 0x51, 0xa0, 0x87, 0xb6, 0x87, 0xde, 0x7a, 0x6b, 0x81, 0xb6, 0xf7, 0xde, 0xb6, 0x5f, 0xa2,
+	0xc7, 0x02, 0xfd, 0x02, 0x45, 0x50, 0xf4, 0x73, 0x14, 0x33, 0xc3, 0xe1, 0x1f, 0x91, 0x92, 0xec,
+	0x34, 0xc8, 0xe6, 0x36, 0x7a, 0xef, 0xf1, 0xfd, 0x7e, 0xf3, 0xde, 0x9b, 0xe1, 0x8f, 0x36, 0xac,
+	0xf6, 0xe9, 0xa1, 0xe5, 0x04, 0xd4, 0x62, 0x43, 0xd6, 0x0d, 0x83, 0x5e, 0xd7, 0x09, 0x68, 0x27,
+	0x08, 0x7d, 0xee, 0xa3, 0xb9, 0x30, 0xe8, 0x39, 0x01, 0x6d, 0x2d, 0x8b, 0x90, 0x9e, 0x3f, 0x18,
+	0xf8, 0x9e, 0x75, 0xe8, 0x30, 0xa2, 0xdc, 0x39, 0xb3, 0xeb, 0x70, 0x27, 0x36, 0x9b, 0xc2, 0xcc,
+	0x87, 0x01, 0x61, 0x16, 0x77, 0xd8, 0x49, 0xc6, 0xb3, 0x9e, 0x7a, 0x42, 0xc2, 0xfc, 0x28, 0xec,
+	0x91, 0x8c, 0xb7, 0xa5, 0x89, 0x88, 0xa7, 0xf2, 0x4c, 0x5a, 0xeb, 0xc7, 0xbe, 0x7f, 0xdc, 0x27,
+	0xd2, 0xed, 0x78, 0x9e, 0xcf, 0x1d, 0x4e, 0x7d, 0x8f, 0xc5, 0xde, 0xb5, 0xd8, 0x2b, 0x7f, 0x1d,
+	0x46, 0x47, 0x16, 0x19, 0x04, 0x7c, 0xa8, 0x9c, 0xf8, 0xeb, 0x19, 0x58, 0xf8, 0x89, 0x13, 0x7a,
+	0x3f, 0xf2, 0x5d, 0xb2, 0xe7, 0x1d, 0xf9, 0xe8, 0x3e, 0xd4, 0x3c, 0xdf, 0x25, 0x5d, 0x41, 0xc4,
+	0x34, 0xda, 0xc6, 0xd6, 0xe2, 0x4e, 0xb3, 0xa3, 0x76, 0xda, 0x11, 0x41, 0x2f, 0x86, 0x01, 0xb1,
+	0xe7, 0xbd, 0x78, 0x85, 0xae, 0xc3, 0xc7, 0x32, 0x9c, 0xba, 0x66, 0xa5, 0x6d, 0x6c, 0xd5, 0xec,
+	0x39, 0xf1, 0x73, 0xcf, 0x45, 0x37, 0xa0, 0x4e, 0x3d, 0x4e, 0x42, 0xcf, 0xe9, 0x77, 0x69, 0x60,
+	0x56, 0xa5, 0x13, 0xb4, 0x69, 0x2f, 0x10, 0x01, 0xe4, 0x55, 0x1a, 0x30, 0xa3, 0x02, 0xb4, 0x69,
+	0x2f, 0x40, 0xb7, 0xa0, 0x91, 0x64, 0x08, 0xfc, 0x90, 0x9b, 0xb3, 0x32, 0x64, 0x41, 0x1b, 0x9f,
+	0xfb, 0x21, 0x17, 0x41, 0x49, 0x16, 0x19, 0x34, 0xa7, 0x82, 0xb4, 0x51, 0x07, 0x51, 0x97, 0x78,
+	0x9c, 0xf2, 0xa1, 0xda, 0xd7, 0xc7, 0x71, 0xa6, 0xd8, 0x28, 0x77, 0x22, 0x08, 0xeb, 0x20, 0xea,
+	0x9a, 0xf3, 0x31, 0xe1, 0xd8, 0xb4, 0xe7, 0xa2, 0x87, 0xd0, 0xd0, 0x7d, 0xe9, 0x46, 0x8c, 0xb8,
+	0x66, 0xad, 0x6d, 0x6c, 0xd5, 0x77, 0xd6, 0x3b, 0xb2, 0x67, 0x1d, 0x3b, 0xf6, 0x1d, 0x30, 0xe7,
+	0x98, 0x3c, 0x3b, 0x25, 0xe1, 0x29, 0x25, 0x67, 0xf6, 0x42, 0x98, 0x98, 0x89, 0x8b, 0x1e, 0xc0,
+	0x6c, 0x40, 0x48, 0xc8, 0x4c, 0x68, 0x57, 0xb7, 0xea, 0x3b, 0x2d, 0x5d, 0x58, 0xd1, 0x01, 0x9b,
+	0x1c, 0x53, 0xc6, 0x49, 0x48, 0xdc, 0xe7, 0x84, 0x84, 0xb6, 0x0a, 0x44, 0x16, 0x00, 0x23, 0xc4,
+	0xed, 0xaa, 0xc7, 0xea, 0xf2, 0xb1, 0xa4, 0x1f, 0xfb, 0x24, 0x0e, 0xae, 0xb1, 0x78, 0xc5, 0xd0,
+	0xa7, 0x30, 0xcb, 0xb8, 0xc3, 0x89, 0xb9, 0x20, 0x7b, 0xb7, 0x9c, 0x85, 0x10, 0xfd, 0xdb, 0x17,
+	0x4e, 0x5b, 0xc5, 0x20, 0x04, 0x33, 0x9e, 0x33, 0x20, 0x66, 0x43, 0x6e, 0x56, 0xae, 0xd1, 0x4d,
+	0x58, 0x08, 0x49, 0xdf, 0xe1, 0x24, 0xc6, 0x5c, 0x6c, 0x1b, 0x5b, 0x0d, 0xbb, 0xae, 0x6c, 0x12,
+	0x03, 0xff, 0xc6, 0x00, 0x54, 0xa4, 0x7c, 0xd9, 0xd1, 0x79, 0x08, 0x75, 0x19, 0xee, 0x12, 0xee,
+	0xd0, 0xbe, 0x1c, 0x9f, 0xfa, 0x4e, 0x7b, 0x7c, 0x49, 0x1e, 0xcb, 0x38, 0x1b, 0xc4, 0x43, 0x6a,
+	0x8d, 0x7f, 0x5f, 0x05, 0x73, 0x5c, 0x20, 0x5a, 0x84, 0x0a, 0x75, 0x25, 0x8f, 0x9a, 0x5d, 0xa1,
+	0x85, 0x89, 0xac, 0x4c, 0x9b, 0xc8, 0xea, 0xf4, 0x89, 0x9c, 0xb9, 0xc8, 0x44, 0xce, 0x96, 0x4c,
+	0xe4, 0x03, 0x80, 0x9e, 0xef, 0x79, 0x5d, 0xd5, 0xaa, 0x39, 0x59, 0xab, 0x25, 0xbd, 0xf5, 0x47,
+	0xbe, 0xe7, 0xa9, 0x36, 0xd5, 0x7a, 0x7a, 0x89, 0x5a, 0x30, 0xef, 0x46, 0xa1, 0x3c, 0xd8, 0x72,
+	0x7c, 0x67, 0xec, 0xe4, 0x37, 0xda, 0x00, 0x90, 0xb7, 0x42, 0xcf, 0x8f, 0x3c, 0x2e, 0x27, 0xb7,
+	0x61, 0xd7, 0x84, 0xe5, 0x91, 0x30, 0xa0, 0x36, 0x2c, 0x48, 0x37, 0x75, 0xbb, 0x7d, 0xca, 0xb8,
+	0x59, 0x6b, 0x57, 0xc5, 0xc6, 0x84, 0x6d, 0xcf, 0xfd, 0x92, 0x32, 0x2e, 0x12, 0x1c, 0xd1, 0x3e,
+	0x89, 0x13, 0x80, 0x4a, 0x20, 0x2c, 0x2a, 0xc1, 0x1d, 0xb8, 0x22, 0xdd, 0xdc, 0xe7, 0x4e, 0xbf,
+	0xcb, 0xe8, 0x39, 0x31, 0xeb, 0x32, 0xa6, 0x21, 0xcc, 0x2f, 0x84, 0x75, 0x9f, 0x9e, 0x13, 0xfc,
+	0x37, 0x03, 0xe6, 0xf5, 0x4c, 0x16, 0xca, 0xff, 0xf6, 0x37, 0xc5, 0x85, 0xca, 0x9e, 0xaf, 0xe8,
+	0xec, 0xf4, 0x8a, 0xe2, 0x33, 0xb8, 0xba, 0x4b, 0xb8, 0xbe, 0xf8, 0x6c, 0xc2, 0x02, 0xdf, 0x63,
+	0x04, 0xad, 0xc0, 0x9c, 0xc8, 0x11, 0x31, 0xc9, 0x7d, 0xd6, 0x8e, 0x7f, 0xa1, 0x26, 0x54, 0x07,
+	0xec, 0x38, 0xe6, 0x2e, 0x96, 0xe8, 0xfb, 0x82, 0xf8, 0x91, 0x1f, 0x0e, 0x54, 0x57, 0xaa, 0x72,
+	0x80, 0xaf, 0x8d, 0x1e, 0x38, 0x99, 0x3c, 0x1b, 0x88, 0x9f, 0xc2, 0xea, 0x2e, 0xe1, 0xf9, 0x99,
+	0x65, 0x36, 0xf9, 0x2a, 0x22, 0x8c, 0x5f, 0xf2, 0x10, 0xe1, 0x57, 0xd0, 0x2a, 0xcb, 0x75, 0xe9,
+	0xbd, 0x3c, 0x80, 0x59, 0x91, 0x93, 0x99, 0xd5, 0xe9, 0x37, 0x93, 0x0c, 0xc4, 0xf7, 0x61, 0xed,
+	0x31, 0xe9, 0x13, 0x4e, 0x52, 0xb7, 0xe0, 0xa7, 0xf7, 0x31, 0xd2, 0x7e, 0xcc, 0x00, 0xed, 0x13,
+	0x2e, 0xa6, 0x23, 0x1b, 0x95, 0x19, 0x0a, 0x63, 0xd2, 0x50, 0x54, 0xa6, 0x0f, 0x45, 0xb5, 0x38,
+	0x14, 0x98, 0xc0, 0xd5, 0x1c, 0xe8, 0xa5, 0xcb, 0x72, 0x1b, 0x66, 0x04, 0xa1, 0xb8, 0xb7, 0xc5,
+	0x8b, 0x57, 0x7a, 0xc5, 0x7d, 0xb8, 0x7c, 0x10, 0xb8, 0x0e, 0x27, 0xa3, 0xfb, 0x7b, 0xbf, 0x87,
+	0x00, 0x9f, 0xc0, 0xf5, 0xdd, 0x74, 0xbf, 0xe2, 0x68, 0xbf, 0xc5, 0x9e, 0xef, 0xe4, 0x47, 0xa1,
+	0xb8, 0xe9, 0x78, 0x00, 0xfe, 0x6a, 0xc8, 0x96, 0x3e, 0x76, 0xb8, 0x93, 0xdd, 0xf2, 0x07, 0xf4,
+	0xe2, 0xc7, 0x91, 0xec, 0x7f, 0xca, 0xf0, 0xd2, 0xb5, 0xf8, 0x6e, 0xae, 0xff, 0xd3, 0x5f, 0x4e,
+	0x6a, 0x1e, 0xfe, 0x9e, 0xcc, 0xc3, 0x68, 0x71, 0xa6, 0xbc, 0x93, 0xbe, 0xd1, 0x62, 0xbd, 0x86,
+	0x8d, 0xdc, 0x55, 0xf2, 0x7f, 0x8c, 0xd0, 0xe5, 0x6f, 0x93, 0xbf, 0x18, 0xb0, 0xb4, 0x4f, 0xf8,
+	0x53, 0xff, 0xf0, 0x43, 0x9d, 0x25, 0x2e, 0xa7, 0x3d, 0x21, 0xf8, 0x9e, 0x46, 0xe9, 0x6b, 0x03,
+	0xae, 0xa9, 0x51, 0x1a, 0x29, 0xcd, 0x87, 0x3c, 0x49, 0x7b, 0xb0, 0x62, 0x13, 0xe1, 0x7d, 0xe1,
+	0xb0, 0x93, 0x27, 0xa7, 0xc4, 0xe3, 0x9a, 0xb5, 0x15, 0x2b, 0x15, 0x22, 0x8c, 0x92, 0xbd, 0xb8,
+	0x60, 0x94, 0x80, 0x4e, 0x83, 0xa5, 0x76, 0x91, 0x4b, 0xfc, 0x67, 0x03, 0xda, 0x69, 0x2e, 0xad,
+	0xb1, 0x9f, 0xbc, 0x0a, 0x88, 0xc7, 0xc8, 0xdb, 0xbd, 0x33, 0xc7, 0x5f, 0xc2, 0x3b, 0x30, 0x1b,
+	0x09, 0xf5, 0x1e, 0xf7, 0x68, 0xb2, 0xb2, 0x57, 0xa1, 0xf8, 0x1c, 0x5a, 0x8a, 0xdf, 0x41, 0xf0,
+	0x05, 0xed, 0x93, 0xfd, 0x68, 0x30, 0x70, 0xc2, 0xa1, 0x66, 0xb6, 0x06, 0x35, 0x3f, 0xa4, 0xc7,
+	0xd4, 0x4b, 0xdf, 0x70, 0xf3, 0xca, 0xb0, 0xe7, 0x0a, 0xa7, 0x94, 0x55, 0x81, 0xc3, 0x5f, 0xc6,
+	0x4c, 0xe6, 0x85, 0xe1, 0xb9, 0xc3, 0x5f, 0xca, 0xfe, 0xea, 0x36, 0x56, 0x68, 0x20, 0xa4, 0x7a,
+	0xe6, 0xda, 0x97, 0x6b, 0x7c, 0x06, 0x1b, 0x3f, 0x8e, 0x48, 0x38, 0x7c, 0x78, 0xea, 0xd0, 0xbe,
+	0x73, 0xd8, 0x2f, 0x5c, 0x37, 0x1a, 0x41, 0x4a, 0x36, 0x43, 0xa9, 0x46, 0x61, 0x10, 0x6a, 0x0d,
+	0xfd, 0x20, 0x76, 0xca, 0xaa, 0x55, 0x64, 0xd5, 0xd6, 0x3b, 0xc9, 0x47, 0xe5, 0x61, 0x74, 0xd4,
+	0x79, 0x26, 0x99, 0x8a, 0x6d, 0xa9, 0x0a, 0x1e, 0xc5, 0x2b, 0xfc, 0x18, 0x36, 0xc7, 0x01, 0xc7,
+	0xe7, 0x42, 0xd1, 0x37, 0x0a, 0xf4, 0x2b, 0x19, 0xfa, 0x9f, 0x81, 0x29, 0xb3, 0x08, 0x80, 0xe7,
+	0x3e, 0xa3, 0x42, 0x1c, 0x5d, 0xa4, 0x70, 0xf8, 0x67, 0xb0, 0x5a, 0xf2, 0xe0, 0xc5, 0x91, 0xf3,
+	0x95, 0xaf, 0xe6, 0x2b, 0xbf, 0xfd, 0x1a, 0xe6, 0xf5, 0xd0, 0xa0, 0x6b, 0xd0, 0xd4, 0xeb, 0xee,
+	0x81, 0x77, 0xe2, 0xf9, 0x67, 0x5e, 0xf3, 0x23, 0xb4, 0x0c, 0x4b, 0x89, 0x55, 0xbf, 0x6c, 0x9b,
+	0x46, 0x2e, 0x38, 0x3e, 0xad, 0xcd, 0x4a, 0x2e, 0x58, 0x97, 0xa9, 0x59, 0xcd, 0x99, 0xb5, 0x54,
+	0x6c, 0xce, 0x6c, 0x53, 0x68, 0xe4, 0xbe, 0xd4, 0xd0, 0x12, 0x34, 0xe4, 0x22, 0x03, 0xdf, 0x84,
+	0x05, 0x65, 0x7a, 0xd8, 0xe3, 0xf4, 0x54, 0x20, 0x5f, 0x81, 0xba, 0xb2, 0x7c, 0x49, 0x9c, 0x53,
+	0x01, 0xba, 0x08, 0xa0, 0x0c, 0x4f, 0x7d, 0xea, 0x35, 0xab, 0x08, 0xc1, 0xa2, 0xce, 0x12, 0x31,
+	0x72, 0x14, 0xf5, 0x9b, 0x33, 0xdb, 0x1e, 0xd4, 0x12, 0x5d, 0x8c, 0x56, 0x61, 0x39, 0xf9, 0xd1,
+	0x3d, 0xf0, 0xc4, 0x9a, 0xf4, 0x38, 0x71, 0x9b, 0x1f, 0xa1, 0xeb, 0x70, 0x35, 0x75, 0xa5, 0x0e,
+	0x43, 0x6c, 0x21, 0x75, 0x3c, 0xf1, 0xc4, 0x1c, 0xb8, 0xcd, 0x0a, 0x5a, 0x01, 0x94, 0x9a, 0x9f,
+	0xf5, 0x7a, 0x51, 0x40, 0x89, 0xdb, 0xac, 0xee, 0xfc, 0x17, 0x41, 0x5d, 0xec, 0x6d, 0x5f, 0x1c,
+	0xa0, 0x1e, 0x41, 0x2f, 0xa1, 0x9e, 0xd1, 0xdf, 0x68, 0xa5, 0xa3, 0xfe, 0x4e, 0x91, 0x8e, 0xdf,
+	0x93, 0x41, 0xc0, 0x87, 0xad, 0x35, 0x7d, 0x92, 0x4b, 0xc4, 0x3a, 0xbe, 0xfd, 0xeb, 0x7f, 0xfd,
+	0xe7, 0x0f, 0x95, 0x4d, 0xbc, 0x6a, 0xf5, 0x9c, 0x30, 0xa4, 0x24, 0xb4, 0x4e, 0xbf, 0x6d, 0x0d,
+	0x9d, 0xd0, 0xb3, 0xbc, 0x38, 0xf4, 0x73, 0x63, 0x1b, 0xfd, 0xce, 0x00, 0x54, 0x54, 0xc9, 0xe8,
+	0x66, 0x26, 0x73, 0xb9, 0x1a, 0x6f, 0xe1, 0x49, 0x21, 0x31, 0x87, 0x4f, 0x25, 0x87, 0x4f, 0x70,
+	0xbb, 0xc0, 0x21, 0xcc, 0x3f, 0x21, 0xa8, 0x9c, 0x40, 0x3d, 0xa3, 0x48, 0x51, 0x2b, 0x15, 0x57,
+	0xa3, 0xda, 0x38, 0xdd, 0x78, 0x89, 0x84, 0xc5, 0xb7, 0x24, 0xe8, 0x06, 0x36, 0x0b, 0xa0, 0x4c,
+	0x45, 0x0b, 0x30, 0x0e, 0x8b, 0x79, 0x59, 0x8a, 0x36, 0x74, 0xce, 0x52, 0xb9, 0x3a, 0x19, 0xf2,
+	0x8e, 0x84, 0x6c, 0xe3, 0xb5, 0x02, 0x64, 0x94, 0x24, 0x13, 0xa8, 0xaf, 0x61, 0x51, 0x7d, 0x18,
+	0x24, 0xa8, 0xb7, 0x74, 0xda, 0x09, 0x1f, 0x0c, 0xad, 0x91, 0xbb, 0x67, 0x9f, 0x0e, 0x82, 0xfe,
+	0x45, 0xc0, 0xdd, 0x04, 0x4b, 0x80, 0x07, 0x70, 0x65, 0x44, 0x01, 0x8f, 0x1d, 0xac, 0x1b, 0x99,
+	0xde, 0x96, 0x49, 0xe6, 0x09, 0xc3, 0xc5, 0x08, 0x91, 0x1f, 0xce, 0x02, 0xd1, 0x97, 0x1d, 0xd5,
+	0x27, 0x3b, 0xd7, 0xd1, 0x91, 0xeb, 0x38, 0x57, 0xde, 0xd1, 0x1b, 0x13, 0xdf, 0x95, 0x68, 0x37,
+	0xf1, 0x7a, 0x59, 0x47, 0x75, 0xb4, 0x00, 0x7c, 0xa5, 0xbb, 0x9a, 0x60, 0x8e, 0x74, 0xf5, 0x52,
+	0xb0, 0xdb, 0x12, 0xf6, 0x36, 0xbe, 0x31, 0xa6, 0xab, 0x59, 0xe4, 0x5f, 0xe9, 0xce, 0x26, 0xc8,
+	0xef, 0xa0, 0xb3, 0xe3, 0x09, 0xb8, 0x39, 0x2c, 0x41, 0xe0, 0x5c, 0x76, 0x57, 0x5b, 0x26, 0x76,
+	0xf7, 0x93, 0xd2, 0x93, 0x5b, 0xe8, 0xf1, 0x96, 0x44, 0xc7, 0x78, 0xa3, 0x88, 0x9e, 0x41, 0x51,
+	0x27, 0x17, 0x52, 0xfd, 0x87, 0x56, 0x33, 0x35, 0xcd, 0x2b, 0xb3, 0x56, 0xab, 0xcc, 0x35, 0x75,
+	0x8c, 0x59, 0x12, 0xac, 0x4e, 0x6e, 0x23, 0xa7, 0xfa, 0xd0, 0x7a, 0xbe, 0xc5, 0x97, 0x80, 0xbc,
+	0x27, 0x21, 0x6f, 0xe1, 0xcd, 0x31, 0x0d, 0xce, 0xa0, 0xfe, 0x12, 0x1a, 0xaa, 0x8f, 0x1a, 0xf5,
+	0x1d, 0xb4, 0x77, 0x3c, 0xbc, 0x9b, 0x85, 0x8a, 0x07, 0x7b, 0x37, 0xe1, 0xff, 0x2e, 0x9a, 0x3b,
+	0xfe, 0x48, 0xfd, 0x3c, 0x05, 0x11, 0xc8, 0xbf, 0x80, 0x2b, 0x23, 0x82, 0x15, 0x6d, 0x6a, 0x88,
+	0x72, 0x25, 0x3b, 0x65, 0xd7, 0x93, 0xde, 0x09, 0xb9, 0x74, 0x02, 0xfd, 0x8f, 0x06, 0xac, 0x8e,
+	0xd5, 0xb8, 0x68, 0xab, 0x48, 0xa4, 0x5c, 0x06, 0x4f, 0xa1, 0xf4, 0x3d, 0x49, 0xc9, 0xc2, 0xdb,
+	0x13, 0x28, 0x8d, 0x24, 0x8e, 0xdf, 0x9d, 0x57, 0x4b, 0x04, 0x2e, 0xc2, 0x79, 0x5a, 0x65, 0xea,
+	0x77, 0x0a, 0x21, 0x4b, 0x12, 0xba, 0x87, 0x6f, 0x8f, 0x21, 0x94, 0x4b, 0x29, 0xa8, 0xfc, 0xc9,
+	0x80, 0x95, 0x72, 0xd9, 0x89, 0x92, 0x81, 0x98, 0xa8, 0x87, 0x5b, 0x77, 0xa6, 0x85, 0xc5, 0xd4,
+	0x76, 0x24, 0xb5, 0x6f, 0xe1, 0xbb, 0x05, 0x6a, 0x5f, 0x95, 0x3e, 0x28, 0xd8, 0xfd, 0xd6, 0x80,
+	0xa5, 0x82, 0x2a, 0x45, 0xed, 0x1c, 0x62, 0x89, 0xd2, 0x6d, 0xdd, 0x9c, 0x10, 0x11, 0xd3, 0xb9,
+	0x2f, 0xe9, 0xdc, 0xc5, 0xb8, 0x9c, 0x4e, 0xf6, 0x99, 0xcf, 0x8d, 0xed, 0x1f, 0x7e, 0xf6, 0x8f,
+	0x37, 0x9b, 0xc6, 0x3f, 0xdf, 0x6c, 0x1a, 0xff, 0x7e, 0xb3, 0x69, 0xfc, 0xf4, 0xde, 0x31, 0xe5,
+	0x2f, 0xa3, 0xc3, 0x4e, 0xcf, 0x1f, 0x58, 0xb6, 0xcf, 0x08, 0xe7, 0xce, 0x17, 0x7d, 0xff, 0xcc,
+	0x7a, 0xa4, 0x52, 0xdd, 0xdf, 0xf5, 0xad, 0xf8, 0x5f, 0x4b, 0x87, 0x73, 0xb2, 0x55, 0xdf, 0xf9,
+	0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xdb, 0xbf, 0xbc, 0xf3, 0xf5, 0x1a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -2140,9 +2139,9 @@ type YarnServiceClient interface {
 	// 查询计算服务列表
 	GetJobNodeList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*GetRegisteredNodeListResponse, error)
 	// about report
-	// 上报任务事件
+	// 数据/计算服务 上报任务事件
 	ReportTaskEvent(ctx context.Context, in *ReportTaskEventRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
-	// 上报资源使用实况
+	// 数据/计算服务 上报资源使用实况
 	ReportTaskResourceExpense(ctx context.Context, in *ReportTaskResourceExpenseRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 上报 成功上传的原始文件Id
 	ReportUpFileSummary(ctx context.Context, in *ReportUpFileSummaryRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
@@ -2366,9 +2365,9 @@ type YarnServiceServer interface {
 	// 查询计算服务列表
 	GetJobNodeList(context.Context, *empty.Empty) (*GetRegisteredNodeListResponse, error)
 	// about report
-	// 上报任务事件
+	// 数据/计算服务 上报任务事件
 	ReportTaskEvent(context.Context, *ReportTaskEventRequest) (*common.SimpleResponse, error)
-	// 上报资源使用实况
+	// 数据/计算服务 上报资源使用实况
 	ReportTaskResourceExpense(context.Context, *ReportTaskResourceExpenseRequest) (*common.SimpleResponse, error)
 	// 上报 成功上传的原始文件Id
 	ReportUpFileSummary(context.Context, *ReportUpFileSummaryRequest) (*common.SimpleResponse, error)
@@ -2907,12 +2906,10 @@ func (m *YarnNodeInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x6a
 	}
-	if len(m.State) > 0 {
-		i -= len(m.State)
-		copy(dAtA[i:], m.State)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.State)))
+	if m.State != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.State))
 		i--
-		dAtA[i] = 0x62
+		dAtA[i] = 0x60
 	}
 	if len(m.SeedPeers) > 0 {
 		for iNdEx := len(m.SeedPeers) - 1; iNdEx >= 0; iNdEx-- {
@@ -3007,70 +3004,6 @@ func (m *YarnNodeInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.NodeType))
 		i--
 		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *YarnNodeSysInfo) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *YarnNodeSysInfo) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *YarnNodeSysInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if m.UsedBandwidth != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.UsedBandwidth))
-		i--
-		dAtA[i] = 0x38
-	}
-	if m.TotalBandwidth != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.TotalBandwidth))
-		i--
-		dAtA[i] = 0x30
-	}
-	if m.UsedProcessor != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.UsedProcessor))
-		i--
-		dAtA[i] = 0x28
-	}
-	if m.TotalProcessor != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.TotalProcessor))
-		i--
-		dAtA[i] = 0x20
-	}
-	if m.UsedMem != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.UsedMem))
-		i--
-		dAtA[i] = 0x18
-	}
-	if m.TotalMem != 0 {
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.TotalMem))
-		i--
-		dAtA[i] = 0x10
-	}
-	if len(m.Name) > 0 {
-		i -= len(m.Name)
-		copy(dAtA[i:], m.Name)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.Name)))
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -3517,9 +3450,9 @@ func (m *SetSeedNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.SeedPeer != nil {
+	if m.Node != nil {
 		{
-			size, err := m.SeedPeer.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.Node.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -3731,9 +3664,9 @@ func (m *SetDataNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.DataNode != nil {
+	if m.Node != nil {
 		{
-			size, err := m.DataNode.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.Node.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -3952,9 +3885,9 @@ func (m *SetJobNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.JobNode != nil {
+	if m.Node != nil {
 		{
-			size, err := m.JobNode.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.Node.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -4210,12 +4143,10 @@ func (m *QueryAvailableDataNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, 
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.FileType) > 0 {
-		i -= len(m.FileType)
-		copy(dAtA[i:], m.FileType)
-		i = encodeVarintSysRpcApi(dAtA, i, uint64(len(m.FileType)))
+	if m.FileType != 0 {
+		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.FileType))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x10
 	}
 	if m.FileSize != 0 {
 		i = encodeVarintSysRpcApi(dAtA, i, uint64(m.FileSize))
@@ -4412,9 +4343,8 @@ func (m *YarnNodeInfo) Size() (n int) {
 			n += 1 + l + sovSysRpcApi(uint64(l))
 		}
 	}
-	l = len(m.State)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
+	if m.State != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.State))
 	}
 	l = len(m.Name)
 	if l > 0 {
@@ -4422,40 +4352,6 @@ func (m *YarnNodeInfo) Size() (n int) {
 	}
 	if m.RelatePeers != 0 {
 		n += 1 + sovSysRpcApi(uint64(m.RelatePeers))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *YarnNodeSysInfo) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Name)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
-	}
-	if m.TotalMem != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.TotalMem))
-	}
-	if m.UsedMem != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.UsedMem))
-	}
-	if m.TotalProcessor != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.TotalProcessor))
-	}
-	if m.UsedProcessor != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.UsedProcessor))
-	}
-	if m.TotalBandwidth != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.TotalBandwidth))
-	}
-	if m.UsedBandwidth != 0 {
-		n += 1 + sovSysRpcApi(uint64(m.UsedBandwidth))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -4682,8 +4578,8 @@ func (m *SetSeedNodeResponse) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
-	if m.SeedPeer != nil {
-		l = m.SeedPeer.Size()
+	if m.Node != nil {
+		l = m.Node.Size()
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -4786,8 +4682,8 @@ func (m *SetDataNodeResponse) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
-	if m.DataNode != nil {
-		l = m.DataNode.Size()
+	if m.Node != nil {
+		l = m.Node.Size()
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -4894,8 +4790,8 @@ func (m *SetJobNodeResponse) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
-	if m.JobNode != nil {
-		l = m.JobNode.Size()
+	if m.Node != nil {
+		l = m.Node.Size()
 		n += 1 + l + sovSysRpcApi(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -5012,9 +4908,8 @@ func (m *QueryAvailableDataNodeRequest) Size() (n int) {
 	if m.FileSize != 0 {
 		n += 1 + sovSysRpcApi(uint64(m.FileSize))
 	}
-	l = len(m.FileType)
-	if l > 0 {
-		n += 1 + l + sovSysRpcApi(uint64(l))
+	if m.FileType != 0 {
+		n += 1 + sovSysRpcApi(uint64(m.FileType))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -5465,10 +5360,10 @@ func (m *YarnNodeInfo) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 12:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
-			var stringLen uint64
+			m.State = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSysRpcApi
@@ -5478,24 +5373,11 @@ func (m *YarnNodeInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.State |= YarnNodeState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.State = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 13:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
@@ -5543,203 +5425,6 @@ func (m *YarnNodeInfo) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.RelatePeers |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSysRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *YarnNodeSysInfo) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSysRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: YarnNodeSysInfo: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: YarnNodeSysInfo: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Name = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TotalMem", wireType)
-			}
-			m.TotalMem = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.TotalMem |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UsedMem", wireType)
-			}
-			m.UsedMem = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.UsedMem |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TotalProcessor", wireType)
-			}
-			m.TotalProcessor = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.TotalProcessor |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UsedProcessor", wireType)
-			}
-			m.UsedProcessor = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.UsedProcessor |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TotalBandwidth", wireType)
-			}
-			m.TotalBandwidth = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.TotalBandwidth |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 7:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UsedBandwidth", wireType)
-			}
-			m.UsedBandwidth = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSysRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.UsedBandwidth |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -6075,7 +5760,7 @@ func (m *YarnRegisteredPeerDetail) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ConnState |= int32(b&0x7F) << shift
+				m.ConnState |= ConnState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -6381,7 +6066,7 @@ func (m *SeedPeer) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ConnState |= int32(b&0x7F) << shift
+				m.ConnState |= ConnState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -7064,7 +6749,7 @@ func (m *SetSeedNodeResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SeedPeer", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7091,10 +6776,10 @@ func (m *SetSeedNodeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.SeedPeer == nil {
-				m.SeedPeer = &SeedPeer{}
+			if m.Node == nil {
+				m.Node = &SeedPeer{}
 			}
-			if err := m.SeedPeer.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Node.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -7696,7 +7381,7 @@ func (m *SetDataNodeResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DataNode", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -7723,10 +7408,10 @@ func (m *SetDataNodeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.DataNode == nil {
-				m.DataNode = &YarnRegisteredPeerDetail{}
+			if m.Node == nil {
+				m.Node = &YarnRegisteredPeerDetail{}
 			}
-			if err := m.DataNode.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Node.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -8360,7 +8045,7 @@ func (m *SetJobNodeResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field JobNode", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Node", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -8387,10 +8072,10 @@ func (m *SetJobNodeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.JobNode == nil {
-				m.JobNode = &YarnRegisteredPeerDetail{}
+			if m.Node == nil {
+				m.Node = &YarnRegisteredPeerDetail{}
 			}
-			if err := m.JobNode.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Node.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -9080,10 +8765,10 @@ func (m *QueryAvailableDataNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 2:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FileType", wireType)
 			}
-			var stringLen uint64
+			m.FileType = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSysRpcApi
@@ -9093,24 +8778,11 @@ func (m *QueryAvailableDataNodeRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.FileType |= common.OriginFileType(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSysRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.FileType = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipSysRpcApi(dAtA[iNdEx:])

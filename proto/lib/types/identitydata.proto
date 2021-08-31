@@ -14,9 +14,9 @@ message IdentityData {
   string node_name = 3;
   string data_id = 4;
   // N means normal, D means deleted
-  DataStatus data_status = 5;
+  api.protobuf.DataStatus data_status = 5;
   // Y : normal, N non-normal
-  CommonStatus status = 6;
+  api.protobuf.CommonStatus status = 6;
   // json format for credential
   string credential = 7;
 }

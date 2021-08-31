@@ -39,4 +39,63 @@ enum UserType {
   User_LAT = 3;
 }
 
+// the status of data, N means normal, D means deleted.
+enum DataStatus {
+  DataStatus_Unknown = 0;
+  DataStatus_Normal = 1;
+  DataStatus_Deleted = 2;
+}
+// Y : normal, N non-normal
+enum CommonStatus {
+  CommonStatus_Unknown = 0;
+  CommonStatus_Normal = 1;
+  CommonStatus_NonNormal = 2;
+}
 
+enum AuditMetaDataOption {
+  Audit_Pending = 0;          // 等待审核中
+  Audit_Passed = 1;           // 审核通过
+  Audit_Refused = 2;          // 审核拒绝
+}
+
+//原始文件类型
+enum OriginFileType {
+  FileType_Unknown = 0;   // 未知
+  FileType_CSV = 1;       // csv, 目前只支持这个.
+}
+
+// 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
+enum MetaDataState {
+  MetaDataState_Unknown = 0;
+  MetaDataState_Created = 1;
+  MetaDataState_Released = 2;
+  MetaDataState_Revoked = 3;
+}
+
+
+// 元数据的使用方式类型枚举
+enum MetaDataUsageType {
+  Usage_Unknown = 0;        // 未定义类型
+  Usage_Period = 1;         // 依照时间段来使用
+  Usage_Times = 2;          // 依照次数来使用
+}
+
+
+// 本组织在task中的角色
+enum TaskRole {
+  TaskRole_Unknown = 0;                   // 未知的任务角色
+  TaskRole_sender = 1;                    // 任务发起方
+  TaskRole_dataSupplier = 2;              // 数据提供方
+  TaskRole_powerSupplier = 3;             // 算力提供方
+  TaskRole_receiver = 4;                  // 结果接收方
+  TaskRole_algoSupplier = 5;              // 算法提供方
+}
+
+// task的状态
+enum TaskState {
+  TaskState_Unknown = 0;                  // 未知
+  TaskState_Pending = 1;                  // 等在中
+  TaskState_Running = 2;                  // 计算中
+  TaskState_failed = 3;                   // 失败
+  TaskState_succeed = 4;                  // 成功
+}

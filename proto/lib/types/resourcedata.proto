@@ -15,7 +15,7 @@ message ResourceData {
   string node_name = 3;                           // 算力所属的组织的 组织名称
   string data_id = 4;                             // powerId
   // the status of data, N means normal, D means deleted.
-  DataStatus  data_status = 5;                    // the status of data, N means normal, D means deleted.
+  api.protobuf.DataStatus  data_status = 5;       // the status of data, N means normal, D means deleted.
   // resource status, eg: create/release/revoke
   PowerState state = 6;                           // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
   // unit: byte
@@ -40,7 +40,7 @@ message LocalResourceData {
   string job_node_id = 4;                         // 算力对应的内部计算服务的jobNodeId
   string data_id = 5;                             // 算力的powerId
   // the status of data, N means normal, D means deleted.
-  DataStatus  data_status = 6;                    // the status of data, N means normal, D means deleted.
+  api.protobuf.DataStatus  data_status = 6;       // the status of data, N means normal, D means deleted.
   // resource status, eg: create/release/revoke
   PowerState state = 7;                           // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
   // unit: byte
