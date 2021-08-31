@@ -108,16 +108,16 @@ func (s *Service) Start() error {
 
 	// for testing
 	runutil.RunEvery(s.ctx, 5*time.Second, func() {
-		err := s.cfg.P2P.Broadcast(s.ctx, &libp2ppb.SignedGossipTestData{
-			Data:                 &libp2ppb.GossipTestData{
-				Data:                 []byte("data"),
-				Count:                11,
-				Step:                 12,
-			},
-			Signature:            []byte("signature"),
-		})
-		if err != nil {
-			log.WithError(err).Error("Broadcast message failed")
+		sendPeer, _ := peer.Decode("16Uiu2HAmKXKJ9QhxtEaAe1eJwKK5Rs6xYjudJW9nWjR8qtjsTvdY")
+		if s.cfg.P2P.PeerID() == sendPeer {
+			err := s.cfg.P2P.Broadcast(s.ctx, &libp2ppb.GossipTestData{
+				Data:  []byte("data"),
+				Count: 11,
+				Step:  12,
+			})
+			if err != nil {
+				log.WithError(err).Error("Broadcast message failed")
+			}
 		}
 	})
 
@@ -198,6 +198,7 @@ func (s *Service) registerHandlers() {
 
 	// Register respective rpc handlers at state initialized evengine.
 	s.registerRPCHandlers()
+	s.registerSubscribers()
 
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := s.cfg.StateNotifier.StateFeed().Subscribe(stateChannel)
@@ -213,7 +214,7 @@ func (s *Service) registerHandlers() {
 					return
 				}
 				startTime := data.StartTime
-				log.WithField("starttime", startTime).Debug("Received state initialized evengine")
+				log.WithField("startTime", startTime).Debug("Received state initialized engine")
 
 				// Wait for chainstart in separate routine.
 				go func() {

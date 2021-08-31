@@ -8,7 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"math"
 	"reflect"
-	"strings"
 	"time"
 )
 
@@ -79,26 +78,28 @@ func peerScoringParams() (*pubsub.PeerScoreParams, *pubsub.PeerScoreThresholds) 
 }
 
 func (s *Service) topicScoreParams(topic string) (*pubsub.TopicScoreParams, error) {
-	activeValidators, err := s.retrieveActiveValidators()
+	/*activeValidators, err := s.retrieveActiveValidators()
 	if err != nil {
 		return nil, err
-	}
-	switch {
-	case strings.Contains(topic, "carrier_block"):
-		return defaultBlockTopicParams(), nil
-	case strings.Contains(topic, "beacon_aggregate_and_proof"):
-		return defaultAggregateTopicParams(activeValidators)
-	case strings.Contains(topic, "beacon_attestation"):
-		return defaultAggregateSubnetTopicParams(activeValidators)
-	case strings.Contains(topic, "voluntary_exit"):
+	}*/
+	//todo: 需要明确默认的topicParams相关参数
+	/*switch {
+	case strings.Contains(topic, "gossip_test_data"):
 		return defaultVoluntaryExitTopicParams(), nil
-	case strings.Contains(topic, "proposer_slashing"):
-		return defaultProposerSlashingTopicParams(), nil
-	case strings.Contains(topic, "attester_slashing"):
-		return defaultAttesterSlashingTopicParams(), nil
+	case strings.Contains(topic, "prepare_vote"):
+		return defaultVoluntaryExitTopicParams(), nil
+	case strings.Contains(topic, "confirm_message"):
+		return defaultVoluntaryExitTopicParams(), nil
+	case strings.Contains(topic, "confirm_vote"):
+		return defaultVoluntaryExitTopicParams(), nil
+	case strings.Contains(topic, "commit_message"):
+		return defaultVoluntaryExitTopicParams(), nil
+	case strings.Contains(topic, "task_result_message"):
+		return defaultVoluntaryExitTopicParams(), nil
 	default:
 		return nil, errors.Errorf("unrecognized topic provided for parameter registration: %s", topic)
-	}
+	}*/
+	return nil, nil
 }
 
 func (s *Service) retrieveActiveValidators() (uint64, error) {

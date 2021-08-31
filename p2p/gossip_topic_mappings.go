@@ -9,7 +9,7 @@ import (
 
 // GossipTopicMappings represent the protocol ID to protobuf message type map for easy lookup.
 var GossipTopicMappings = map[string]proto.Message{
-	GossipTestDataTopicFormat:     &librpcpb.SignedGossipTestData{},
+	GossipTestDataTopicFormat:     &librpcpb.GossipTestData{},
 	TwoPcPrepareMsgTopicFormat:    &twopb.PrepareMsg{},
 	TwoPcPrepareVoteTopicFormat:   &twopb.PrepareVote{},
 	TwoPcConfirmMsgTopicFormat:    &twopb.ConfirmMsg{},
