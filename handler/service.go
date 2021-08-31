@@ -8,6 +8,7 @@ import (
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -106,21 +107,19 @@ func (s *Service) Start() error {
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 
 	// for testing
-	/*runutil.RunEvery(s.ctx, 10*time.Second, func() {
-		peerId := s.cfg.P2P.Peers().Active()
-		//target, _ := peer.Decode("16Uiu2HAm7pq7heDZwmrmWt9rXV8C1t5ENmyPKtToZAV6pioc1CrW")
-		for _, id := range peerId {
-			// 16Uiu2HAm7pq7heDZwmrmWt9rXV8C1t5ENmyPKtToZAV6pioc1CrW
-			log.Infof("send to %s", id.String())
-			SendGossipTestDataByRangeRequest(s.ctx, s.cfg.P2P,
-				id,
-				&libp2ppb.GossipTestData{
-					Data:                 []byte(fmt.Sprintf("rand.Uint64(%d)", rand.Uint64())),
-					Count:                uint64(rand.Int63n(100)),
-					Step:                 uint64(rand.Int63n(100)),
-				})
+	runutil.RunEvery(s.ctx, 5*time.Second, func() {
+		err := s.cfg.P2P.Broadcast(s.ctx, &libp2ppb.SignedGossipTestData{
+			Data:                 &libp2ppb.GossipTestData{
+				Data:                 []byte("data"),
+				Count:                11,
+				Step:                 12,
+			},
+			Signature:            []byte("signature"),
+		})
+		if err != nil {
+			log.WithError(err).Error("Broadcast message failed")
 		}
-	})*/
+	})
 
 	log.Info("Starting handler service")
 	return nil
