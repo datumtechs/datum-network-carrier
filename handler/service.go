@@ -8,12 +8,14 @@ import (
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	"math/rand"
 	"sync"
 	"time"
 )
@@ -106,21 +108,19 @@ func (s *Service) Start() error {
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
 
 	// for testing
-	/*runutil.RunEvery(s.ctx, 10*time.Second, func() {
-		peerId := s.cfg.P2P.Peers().Active()
-		//target, _ := peer.Decode("16Uiu2HAm7pq7heDZwmrmWt9rXV8C1t5ENmyPKtToZAV6pioc1CrW")
-		for _, id := range peerId {
-			// 16Uiu2HAm7pq7heDZwmrmWt9rXV8C1t5ENmyPKtToZAV6pioc1CrW
-			log.Infof("send to %s", id.String())
-			SendGossipTestDataByRangeRequest(s.ctx, s.cfg.P2P,
-				id,
-				&libp2ppb.GossipTestData{
-					Data:                 []byte(fmt.Sprintf("rand.Uint64(%d)", rand.Uint64())),
-					Count:                uint64(rand.Int63n(100)),
-					Step:                 uint64(rand.Int63n(100)),
-				})
+	runutil.RunEvery(s.ctx, 5*time.Second, func() {
+		sendPeer, _ := peer.Decode("16Uiu2HAmKXKJ9QhxtEaAe1eJwKK5Rs6xYjudJW9nWjR8qtjsTvdY")
+		if s.cfg.P2P.PeerID() == sendPeer {
+			err := s.cfg.P2P.Broadcast(s.ctx, &libp2ppb.GossipTestData{
+				Data:  []byte("data"),
+				Count: rand.Uint64(),
+				Step:  rand.Uint64(),
+			})
+			if err != nil {
+				log.WithError(err).Error("Broadcast message failed")
+			}
 		}
-	})*/
+	})
 
 	log.Info("Starting handler service")
 	return nil
@@ -199,6 +199,7 @@ func (s *Service) registerHandlers() {
 
 	// Register respective rpc handlers at state initialized evengine.
 	s.registerRPCHandlers()
+	s.registerSubscribers()
 
 	stateChannel := make(chan *feed.Event, 1)
 	stateSub := s.cfg.StateNotifier.StateFeed().Subscribe(stateChannel)
@@ -214,7 +215,7 @@ func (s *Service) registerHandlers() {
 					return
 				}
 				startTime := data.StartTime
-				log.WithField("starttime", startTime).Debug("Received state initialized evengine")
+				log.WithField("startTime", startTime).Debug("Received state initialized engine")
 
 				// Wait for chainstart in separate routine.
 				go func() {

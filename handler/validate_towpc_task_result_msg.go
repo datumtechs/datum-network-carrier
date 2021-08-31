@@ -30,6 +30,7 @@ func (s *Service) validateTaskResultMessagePubSub(ctx context.Context, pid peer.
 
 	message, ok := m.(*pb.TaskResultMsg)
 	if !ok {
+		log.Errorf("Invalid message type in the validateTaskResultMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject
 	}
 

@@ -22,17 +22,20 @@ func (s *Service) validateGossipTestData(ctx context.Context, pid peer.ID, msg *
 		return pubsub.ValidationReject
 	}
 
-	gossip, ok := m.(*librpcpb.SignedGossipTestData)
+	gossip, ok := m.(*librpcpb.GossipTestData)
 	if !ok {
+		log.Errorf("Invalid message type in the validateGossipTestData, typ: %T", m)
 		return pubsub.ValidationReject
 	}
 
 	if gossip.Data == nil {
 		return pubsub.ValidationReject
 	}
-	if s.hasSeenGossipTestData(string(gossip.Data.GetData())) {
+	if s.hasSeenGossipTestData(string(gossip.GetData())) {
 		return pubsub.ValidationIgnore
 	}
+
+	msg.ValidatorData = gossip // Used in downstream subscriber
 
 	//TODO: more checking conditions...
 	return pubsub.ValidationAccept

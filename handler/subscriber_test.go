@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/gogo/protobuf/proto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"reflect"
@@ -31,7 +32,7 @@ func TestSubscribe_ReceivesValidMessage(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	r.subscribe(topic, r.noopValidator, func(_ context.Context, msg proto.Message) error {
+	r.subscribe(topic, r.noopValidator, func(_ context.Context, pid peer.ID, msg proto.Message) error {
 		m, ok := msg.(*libp2ppb.SignedGossipTestData)
 		assert.Equal(t, true, ok, "Object is not of type *pb.GossipTestData")
 		if m.GetData().Step == 0 || m.GetData().Step != 55 {
@@ -40,7 +41,7 @@ func TestSubscribe_ReceivesValidMessage(t *testing.T) {
 		wg.Done()
 		return nil
 	})
-	r.markForChainStart()
+	//r.markForChainStart()
 
 	p2pService.ReceivePubSub(topic, &libp2ppb.SignedGossipTestData{
 		Data:                 &libp2ppb.GossipTestData{Step: 55},
@@ -68,7 +69,7 @@ func TestSubscribe_HandlesPanic(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 
-	r.subscribe(topic, r.noopValidator, func(_ context.Context, msg proto.Message) error {
+	r.subscribe(topic, r.noopValidator, func(_ context.Context, peerId peer.ID, msg proto.Message) error {
 		defer wg.Done()
 		panic("bad")
 	})
