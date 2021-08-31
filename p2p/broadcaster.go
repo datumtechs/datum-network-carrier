@@ -21,7 +21,7 @@ func (s *Service) Broadcast(ctx context.Context, msg proto.Message) error {
 	defer span.End()
 
 	//twoSlots := time.Duration(2*params.CarrierChainConfig().SecondsPerSlot) * time.Second
-	ctx, cancel := context.WithTimeout(ctx, 2 * time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5 * time.Second)
 	defer cancel()
 
 	forkDigest, err := s.forkDigest()
