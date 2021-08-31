@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	twopb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/gogo/protobuf/proto"
 	"reflect"
@@ -8,13 +9,13 @@ import (
 
 // GossipTopicMappings represent the protocol ID to protobuf message type map for easy lookup.
 var GossipTopicMappings = map[string]proto.Message{
-	GossipTestDataTopicFormat:              &librpcpb.SignedGossipTestData{},
-	//BlockSubnetTopicFormat:             &pb.SignedBeaconBlock{},
-	//AttestationSubnetTopicFormat:       &pb.Attestation{},
-	//ExitSubnetTopicFormat:              &pb.SignedVoluntaryExit{},
-	//ProposerSlashingSubnetTopicFormat:  &pb.ProposerSlashing{},
-	//AttesterSlashingSubnetTopicFormat:  &pb.AttesterSlashing{},
-	//AggregateAndProofSubnetTopicFormat: &pb.SignedAggregateAttestationAndProof{},
+	GossipTestDataTopicFormat:     &librpcpb.GossipTestData{},
+	TwoPcPrepareMsgTopicFormat:    &twopb.PrepareMsg{},
+	TwoPcPrepareVoteTopicFormat:   &twopb.PrepareVote{},
+	TwoPcConfirmMsgTopicFormat:    &twopb.ConfirmMsg{},
+	TwoPcConfirmVoteTopicFormat:   &twopb.ConfirmVote{},
+	TwoPcCommitMsgTopicFormat:     &twopb.CommitMsg{},
+	TwoPcTaskResultMsgTopicFormat: &twopb.TaskResultMsg{},
 }
 
 // GossipTypeMapping is the inverse of GossipTopicMappings so that an arbitrary protobuf message

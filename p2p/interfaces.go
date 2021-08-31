@@ -68,6 +68,7 @@ type PubSubProvider interface {
 
 // PeerManager abstracts some peer management methods from libp2p
 type PeerManager interface {
+	AddPeer(string) error
 	Disconnect(peer.ID) error
 	PeerID() peer.ID
 	NodeId() string

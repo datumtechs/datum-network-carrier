@@ -12,7 +12,7 @@ import (
 )
 
 func (s *Service) gossipTestDataSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
-	ve, ok := msg.(*rpcpb.SignedGossipTestData)
+	ve, ok := msg.(*rpcpb.GossipTestData)
 	if !ok {
 		return fmt.Errorf("wrong type, expected: *ethpb.SignedVoluntaryExit got: %T", msg)
 	}
@@ -20,7 +20,7 @@ func (s *Service) gossipTestDataSubscriber(ctx context.Context, pid peer.ID, msg
 	if ve.Data == nil {
 		return errors.New("data can't be nil")
 	}
-	//TODO: do cache, callback...
+	log.WithField("peer", pid).Debug("Receive gossip message")
 	return nil
 }
 

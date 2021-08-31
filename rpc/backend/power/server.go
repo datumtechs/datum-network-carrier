@@ -9,6 +9,6 @@ var (
 	ErrSendPowerMsg       = &backend.RpcBizErr{Msg: "Failed to send powerMsg"}
 )
 
-type PowerServiceServer struct {
+type Server struct {
 	B backend.Backend
 }
