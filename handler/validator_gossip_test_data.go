@@ -24,7 +24,7 @@ func (s *Service) validateGossipTestData(ctx context.Context, pid peer.ID, msg *
 
 	gossip, ok := m.(*librpcpb.GossipTestData)
 	if !ok {
-		log.Error("Message type not mismatch, expected")
+		log.Errorf("Invalid message type in the validateGossipTestData, typ: %T", m)
 		return pubsub.ValidationReject
 	}
 
