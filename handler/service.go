@@ -15,6 +15,7 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
+	"math/rand"
 	"sync"
 	"time"
 )
@@ -112,8 +113,8 @@ func (s *Service) Start() error {
 		if s.cfg.P2P.PeerID() == sendPeer {
 			err := s.cfg.P2P.Broadcast(s.ctx, &libp2ppb.GossipTestData{
 				Data:  []byte("data"),
-				Count: 11,
-				Step:  12,
+				Count: rand.Uint64(),
+				Step:  rand.Uint64(),
 			})
 			if err != nil {
 				log.WithError(err).Error("Broadcast message failed")
