@@ -11,7 +11,7 @@ import (
 "path/filepath"
 )
 
-//go:generate go run scripts/protofmt.go .
+// go:generate go run scripts/protofmt.go .
 
 // First generate extensions using standard proto compiler.
 //go:generate protoc -I ../ -I . --gogofast_out=Mgoogle/protobuf/descriptor.proto=github.com/gogo/protobuf/protoc-gen-gogo/descriptor,paths=source_relative:ext ext.proto

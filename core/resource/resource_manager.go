@@ -3,7 +3,7 @@ package resource
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
-	"github.com/RosettaFlow/Carrier-Go/core/iface"
+	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
@@ -17,7 +17,7 @@ const (
 
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
-	dataCenter iface.ForResourceDB // Low level persistent database to store final content.
+	dataCenter  core.CarrierDB // Low level persistent database to store final content.
 	//eventCh                chan *libTypes.TaskEvent
 	slotUnit *types.Slot
 	//remoteTables     map[string]*types.RemoteResourceTable
@@ -27,7 +27,7 @@ type Manager struct {
 	mockIdentityIdsCache map[string]struct{}
 }
 
-func NewResourceManager(dataCenter iface.ForResourceDB, mockIdentityIdsFile string) *Manager {
+func NewResourceManager(dataCenter core.CarrierDB, mockIdentityIdsFile string) *Manager {
 	m := &Manager{
 		dataCenter: dataCenter,
 		//eventCh:          make(chan *libTypes.TaskEvent, 0),
@@ -177,40 +177,6 @@ func (m *Manager) CleanLocalResourceTables() error {
 	return nil
 }
 
-//func (m *Manager) AddRemoteResourceTable(table *types.RemoteResourceTable) {
-//	m.remoteTableQueue = append(m.remoteTableQueue, table)
-//}
-//func (m *Manager) UpdateRemoteResouceTable(table *types.RemoteResourceTable) {
-//	for i := 0; i < len(m.remoteTableQueue); i++ {
-//		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
-//			m.remoteTableQueue[i] = table
-//		}
-//	}
-//}
-//func (m *Manager) AddOrUpdateRemoteResouceTable(table *types.RemoteResourceTable) {
-//	var has bool
-//	for i := 0; i < len(m.remoteTableQueue); i++ {
-//		if m.remoteTableQueue[i].GetIdentityId() == table.GetIdentityId() {
-//			m.remoteTableQueue[i] = table
-//			has = true
-//		}
-//	}
-//	if has {
-//		return
-//	}
-//	m.remoteTableQueue = append(m.remoteTableQueue, table)
-//}
-//func (m *Manager) DelRemoteResourceTable(identityId string) {
-//	for i := 0; i < len(m.remoteTableQueue); i++ {
-//		if m.remoteTableQueue[i].GetIdentityId() == identityId {
-//			m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
-//			i--
-//		}
-//	}
-//}
-//func (m *Manager) CleanRemoteResourceTables() {
-//	m.remoteTableQueue = make([]*types.RemoteResourceTable, 0)
-//}
 func (m *Manager) GetRemoteResourceTables() []*types.RemoteResourceTable {
 	m.remoteTableQueueMu.RLock()
 	defer m.remoteTableQueueMu.RUnlock()

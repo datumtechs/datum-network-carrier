@@ -30,7 +30,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-//  ------------------------  metadata  ------------------------
+// 查询单个组织的单个元数据详情 req
 type GetMetaDataDetailRequest struct {
 	IdentityId           string   `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
 	MetadataId           string   `protobuf:"bytes,2,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
@@ -86,6 +86,7 @@ func (m *GetMetaDataDetailRequest) GetMetadataId() string {
 	return ""
 }
 
+// 查询单个组织的单个元数据详情 resp
 type GetMetaDataDetailResponse struct {
 	Owner                *common.Organization  `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	Information          *types.MetadataDetail `protobuf:"bytes,2,opt,name=information,proto3" json:"information,omitempty"`
@@ -141,6 +142,7 @@ func (m *GetMetaDataDetailResponse) GetInformation() *types.MetadataDetail {
 	return nil
 }
 
+// 数据上架 req
 type PublishMetaDataRequest struct {
 	Information          *types.MetadataDetail `protobuf:"bytes,1,opt,name=information,proto3" json:"information,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
@@ -188,6 +190,7 @@ func (m *PublishMetaDataRequest) GetInformation() *types.MetadataDetail {
 	return nil
 }
 
+// 数据上架 resp
 type PublishMetaDataResponse struct {
 	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -251,6 +254,7 @@ func (m *PublishMetaDataResponse) GetMetaDataId() string {
 	return ""
 }
 
+// 数据下架 req
 type RevokeMetaDataRequest struct {
 	MetaDataId           string   `protobuf:"bytes,1,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -298,6 +302,7 @@ func (m *RevokeMetaDataRequest) GetMetaDataId() string {
 	return ""
 }
 
+// 查看 全网元数据列表 or 某个组织元数据列表 resp
 type GetMetaDataDetailListResponse struct {
 	Status               int32                        `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                       `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -361,6 +366,7 @@ func (m *GetMetaDataDetailListResponse) GetMetaDataList() []*GetMetaDataDetailRe
 	return nil
 }
 
+// 查看某个组织元数据列表 req
 type GetMetaDataDetailListByOwnerRequest struct {
 	IdentityId           string   `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
