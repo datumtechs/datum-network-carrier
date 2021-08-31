@@ -10,6 +10,8 @@ import (
 	"time"
 )
 
+const DefaultGrpcRequestTimeout = 2 * time.Second
+
 // Client defines typed wrapper for the CenterData GRPC API.
 type GrpcClient struct {
 	c *grpc.ClientConn
@@ -118,13 +120,13 @@ func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.PowerListRe
 // ************************************** Identity module *******************************************************
 
 func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*apipb.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*apipb.SimpleResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.RevokeIdentityJoin(ctx, request)
 }
@@ -133,6 +135,29 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.Identity
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	return gc.identityService.GetIdentityList(ctx, request)
+}
+
+// 存储元数据鉴权申请记录
+func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.SaveMetadataAuthorityRequest) (*apipb.SimpleResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
+	defer cancel()
+	return gc.identityService.SaveMetadataAuthority(ctx, request)
+}
+
+// 数据授权审核，规则：
+// 1、授权后，可以将审核结果绑定到原有申请记录之上
+func (gc *GrpcClient) AuditMetadataAuthority(ctx context.Context, request *api.AuditMetadataAuthorityRequest) (*apipb.SimpleResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
+	defer cancel()
+	return gc.identityService.AuditMetadataAuthority(ctx, request)
+}
+
+// 获取数据授权申请列表
+// 规则：参数存在时根据条件获取，参数不存在时全量返回
+func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api.MetadataAuthorityListRequest) (*api.MetadataAuthorityListResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
+	defer cancel()
+	return gc.identityService.GetMetadataAuthorityList(ctx, request)
 }
 
 // ************************************** Task module *******************************************************

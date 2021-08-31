@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
+func (svr *Server) GetMetaDataDetail(ctx context.Context, req *pb.GetMetaDataDetailRequest) (*pb.GetMetaDataDetailResponse, error) {
 	if req.IdentityId == "" {
 		return nil, errors.New("required identity")
 	}
@@ -26,7 +26,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetail(ctx context.Context, req *pb
 	return metaDataDetail, nil
 }
 
-func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetMetaDataDetailListResponse, error) {
+func (svr *Server) GetMetaDataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetMetaDataDetailListResponse, error) {
 	metaDataList, err := svr.B.GetMetaDataDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetMetaDataDetailList failed")
@@ -44,7 +44,7 @@ func (svr *MetaDataServiceServer) GetMetaDataDetailList(ctx context.Context, req
 	}, nil
 }
 
-func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
+func (svr *Server) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataRequest) (*pb.PublishMetaDataResponse, error) {
 	if req.Information == nil {
 		return nil, errors.New("required information")
 	}
@@ -85,7 +85,7 @@ func (svr *MetaDataServiceServer) PublishMetaData(ctx context.Context, req *pb.P
 	}, nil
 }
 
-func (svr *MetaDataServiceServer) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) RevokeMetaData(ctx context.Context, req *pb.RevokeMetaDataRequest) (*apipb.SimpleResponse, error) {
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	//metaDataRevokeMsg.CreateAt = uint64(timeutils.UnixMsec())
 

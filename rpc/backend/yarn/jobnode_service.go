@@ -8,7 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 )
 
-func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*apipb.SimpleResponse, error) {
 	log.Debugf("RPC-API:ReportTaskEvent, req: {%v}", req)
 	err := svr.B.SendTaskEvent(&libTypes.TaskEvent{
 		Type:       req.TaskEvent.Type,
@@ -24,6 +24,6 @@ func (svr *YarnServiceServer) ReportTaskEvent(ctx context.Context, req *pb.Repor
 	return &apipb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
-func (svr *YarnServiceServer) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) ReportTaskResourceExpense(ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*apipb.SimpleResponse, error) {
 	return nil, nil
 }

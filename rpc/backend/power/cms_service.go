@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetPowerTotalDetailListResponse, error) {
+func (svr *Server) GetPowerTotalDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetPowerTotalDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerTotalDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetPowerTotalDetailList failed")
@@ -34,7 +34,7 @@ func (svr *PowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req 
 	}, nil
 }
 
-func (svr *PowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetPowerSingleDetailListResponse, error) {
+func (svr *Server) GetPowerSingleDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetPowerSingleDetailListResponse, error) {
 	powerList, err := svr.B.GetPowerSingleDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetPowerSingleDetailList failed")
@@ -86,7 +86,7 @@ func utilGetPowerSingleDetailResponseArrString(resp []*pb.GetPowerSingleDetailRe
 	return "[]"
 }
 
-func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
+func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
 	if req == nil {
 		return nil, errors.New("required owner")
 	}
@@ -125,7 +125,7 @@ func (svr *PowerServiceServer) PublishPower(ctx context.Context, req *pb.Publish
 	}, nil
 }
 
-func (svr *PowerServiceServer) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*apipb.SimpleResponse, error) {
 	if req == nil {
 		return nil, errors.New("required owner")
 	}
