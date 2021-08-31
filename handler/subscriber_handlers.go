@@ -20,7 +20,7 @@ func (s *Service) gossipTestDataSubscriber(ctx context.Context, pid peer.ID, msg
 	if ve.Data == nil {
 		return errors.New("data can't be nil")
 	}
-	//TODO: do cache, callback...
+	log.WithField("peer", pid).Debug("Receive gossip message")
 	return nil
 }
 
