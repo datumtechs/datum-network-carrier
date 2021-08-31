@@ -25,47 +25,36 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type TaskData struct {
-	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	NodeId     string `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	NodeName   string `protobuf:"bytes,3,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
-	DataId     string `protobuf:"bytes,4,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	DataStatus string `protobuf:"bytes,5,opt,name=data_status,json=dataStatus,proto3" json:"data_status,omitempty"`
-	TaskId     string `protobuf:"bytes,6,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	TaskName   string `protobuf:"bytes,7,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
-	// success/failed/running/pending/waiting
-	State      string `protobuf:"bytes,8,opt,name=state,proto3" json:"state,omitempty"`
-	Reason     string `protobuf:"bytes,9,opt,name=reason,proto3" json:"reason,omitempty"`
-	EventCount uint32 `protobuf:"varint,10,opt,name=event_count,json=eventCount,proto3" json:"event_count,omitempty"`
-	Desc       string `protobuf:"bytes,11,opt,name=desc,proto3" json:"desc,omitempty"`
-	CreateAt   uint64 `protobuf:"varint,12,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	EndAt      uint64 `protobuf:"varint,13,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
-	StartAt    uint64 `protobuf:"varint,14,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
-	PartyId    string `protobuf:"bytes,15,opt,name=party_id,json=partyId,proto3" json:"party_id,omitempty"`
-	// 算法提供者信息
-	AlgoSupplier  *common.TaskOrganization        `protobuf:"bytes,20,opt,name=algo_supplier,json=algoSupplier,proto3" json:"algo_supplier,omitempty"`
-	OperationCost *common.TaskResourceCostDeclare `protobuf:"bytes,21,opt,name=operation_cost,json=operationCost,proto3" json:"operation_cost,omitempty"`
-	// 数据提供方组信息
-	DataSupplier []*TaskDataSupplier `protobuf:"bytes,22,rep,name=data_supplier,json=dataSupplier,proto3" json:"data_supplier,omitempty"`
-	// 算力提供方组织
-	PowerSupplier []*TaskPowerSupplier `protobuf:"bytes,23,rep,name=power_supplier,json=powerSupplier,proto3" json:"power_supplier,omitempty"`
-	// 结果接收方组织
-	Receivers []*TaskResultReceiver `protobuf:"bytes,24,rep,name=receivers,proto3" json:"receivers,omitempty"`
-	// 任务参与方
-	PartnerList           []*common.TaskOrganization `protobuf:"bytes,25,rep,name=partner_list,json=partnerList,proto3" json:"partner_list,omitempty"`
-	TaskEventList         []*TaskEvent               `protobuf:"bytes,26,rep,name=task_event_list,json=taskEventList,proto3" json:"task_event_list,omitempty"`
-	CalculateContractCode string                     `protobuf:"bytes,27,opt,name=calculate_contract_code,json=calculateContractCode,proto3" json:"calculate_contract_code,omitempty"`
-	DataSplitContractCode string                     `protobuf:"bytes,28,opt,name=data_split_contract_code,json=dataSplitContractCode,proto3" json:"data_split_contract_code,omitempty"`
-	ContractExtraParams   string                     `protobuf:"bytes,29,opt,name=contract_extra_params,json=contractExtraParams,proto3" json:"contract_extra_params,omitempty"`
+	IdentityId            string                          `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
+	NodeId                string                          `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
+	NodeName              string                          `protobuf:"bytes,3,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
+	DataId                string                          `protobuf:"bytes,4,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	DataStatus            common.DataStatus               `protobuf:"varint,5,opt,name=data_status,json=dataStatus,proto3,enum=api.protobuf.DataStatus" json:"data_status,omitempty"`
+	TaskId                string                          `protobuf:"bytes,6,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	TaskName              string                          `protobuf:"bytes,7,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
+	State                 common.TaskState                `protobuf:"varint,8,opt,name=state,proto3,enum=api.protobuf.TaskState" json:"state,omitempty"`
+	Reason                string                          `protobuf:"bytes,9,opt,name=reason,proto3" json:"reason,omitempty"`
+	EventCount            uint32                          `protobuf:"varint,10,opt,name=event_count,json=eventCount,proto3" json:"event_count,omitempty"`
+	Desc                  string                          `protobuf:"bytes,11,opt,name=desc,proto3" json:"desc,omitempty"`
+	CreateAt              uint64                          `protobuf:"varint,12,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
+	EndAt                 uint64                          `protobuf:"varint,13,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	StartAt               uint64                          `protobuf:"varint,14,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	PartyId               string                          `protobuf:"bytes,15,opt,name=party_id,json=partyId,proto3" json:"party_id,omitempty"`
+	AlgoSupplier          *common.TaskOrganization        `protobuf:"bytes,20,opt,name=algo_supplier,json=algoSupplier,proto3" json:"algo_supplier,omitempty"`
+	OperationCost         *common.TaskResourceCostDeclare `protobuf:"bytes,21,opt,name=operation_cost,json=operationCost,proto3" json:"operation_cost,omitempty"`
+	DataSupplier          []*TaskDataSupplier             `protobuf:"bytes,22,rep,name=data_supplier,json=dataSupplier,proto3" json:"data_supplier,omitempty"`
+	PowerSupplier         []*TaskPowerSupplier            `protobuf:"bytes,23,rep,name=power_supplier,json=powerSupplier,proto3" json:"power_supplier,omitempty"`
+	Receivers             []*common.TaskOrganization      `protobuf:"bytes,24,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	TaskEventList         []*TaskEvent                    `protobuf:"bytes,25,rep,name=task_event_list,json=taskEventList,proto3" json:"task_event_list,omitempty"`
+	CalculateContractCode string                          `protobuf:"bytes,26,opt,name=calculate_contract_code,json=calculateContractCode,proto3" json:"calculate_contract_code,omitempty"`
+	DataSplitContractCode string                          `protobuf:"bytes,27,opt,name=data_split_contract_code,json=dataSplitContractCode,proto3" json:"data_split_contract_code,omitempty"`
+	ContractExtraParams   string                          `protobuf:"bytes,28,opt,name=contract_extra_params,json=contractExtraParams,proto3" json:"contract_extra_params,omitempty"`
 	// v2.0
-	// 发起任务的用户的信息 (task是属于用户的)
-	User string `protobuf:"bytes,30,opt,name=user,proto3" json:"user,omitempty"`
-	// 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-	UserType common.UserType `protobuf:"varint,31,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
-	// 任务发起方
-	Sender               *common.TaskOrganization `protobuf:"bytes,32,opt,name=sender,proto3" json:"sender,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
-	XXX_unrecognized     []byte                   `json:"-"`
-	XXX_sizecache        int32                    `json:"-"`
+	User                 string          `protobuf:"bytes,29,opt,name=user,proto3" json:"user,omitempty"`
+	UserType             common.UserType `protobuf:"varint,30,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
+	XXX_unrecognized     []byte          `json:"-"`
+	XXX_sizecache        int32           `json:"-"`
 }
 
 func (m *TaskData) Reset()         { *m = TaskData{} }
@@ -129,11 +118,11 @@ func (m *TaskData) GetDataId() string {
 	return ""
 }
 
-func (m *TaskData) GetDataStatus() string {
+func (m *TaskData) GetDataStatus() common.DataStatus {
 	if m != nil {
 		return m.DataStatus
 	}
-	return ""
+	return common.DataStatus_DataStatus_Unknown
 }
 
 func (m *TaskData) GetTaskId() string {
@@ -150,11 +139,11 @@ func (m *TaskData) GetTaskName() string {
 	return ""
 }
 
-func (m *TaskData) GetState() string {
+func (m *TaskData) GetState() common.TaskState {
 	if m != nil {
 		return m.State
 	}
-	return ""
+	return common.TaskState_TaskState_Unknown
 }
 
 func (m *TaskData) GetReason() string {
@@ -234,16 +223,9 @@ func (m *TaskData) GetPowerSupplier() []*TaskPowerSupplier {
 	return nil
 }
 
-func (m *TaskData) GetReceivers() []*TaskResultReceiver {
+func (m *TaskData) GetReceivers() []*common.TaskOrganization {
 	if m != nil {
 		return m.Receivers
-	}
-	return nil
-}
-
-func (m *TaskData) GetPartnerList() []*common.TaskOrganization {
-	if m != nil {
-		return m.PartnerList
 	}
 	return nil
 }
@@ -287,39 +269,30 @@ func (m *TaskData) GetUserType() common.UserType {
 	if m != nil {
 		return m.UserType
 	}
-	return common.UserType_Unknown
-}
-
-func (m *TaskData) GetSender() *common.TaskOrganization {
-	if m != nil {
-		return m.Sender
-	}
-	return nil
+	return common.UserType_User_Unknown
 }
 
 // 定义：任务详细信息
 type TaskDetail struct {
-	TaskId        string                          `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
-	TaskName      string                          `protobuf:"bytes,2,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
-	User          string                          `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
-	UserType      common.UserType                 `protobuf:"varint,4,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
-	Sender        *common.TaskOrganization        `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
-	AlgoSupplier  *common.TaskOrganization        `protobuf:"bytes,6,opt,name=algo_supplier,json=algoSupplier,proto3" json:"algo_supplier,omitempty"`
-	DataSupplier  []*TaskDataSupplier             `protobuf:"bytes,7,rep,name=data_supplier,json=dataSupplier,proto3" json:"data_supplier,omitempty"`
-	PowerSupplier []*TaskPowerSupplier            `protobuf:"bytes,8,rep,name=power_supplier,json=powerSupplier,proto3" json:"power_supplier,omitempty"`
-	Receivers     []*TaskResultReceiver           `protobuf:"bytes,9,rep,name=receivers,proto3" json:"receivers,omitempty"`
-	CreateAt      uint64                          `protobuf:"varint,10,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	StartAt       uint64                          `protobuf:"varint,11,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
-	EndAt         uint64                          `protobuf:"varint,12,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
-	State         string                          `protobuf:"bytes,13,opt,name=state,proto3" json:"state,omitempty"`
-	OperationCost *common.TaskResourceCostDeclare `protobuf:"bytes,14,opt,name=operation_cost,json=operationCost,proto3" json:"operation_cost,omitempty"`
-	// 任务描述
-	Desc string `protobuf:"bytes,21,opt,name=desc,proto3" json:"desc,omitempty"`
-	// 事件列表
-	TaskEventList        []*TaskEvent `protobuf:"bytes,22,rep,name=task_event_list,json=taskEventList,proto3" json:"task_event_list,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
-	XXX_unrecognized     []byte       `json:"-"`
-	XXX_sizecache        int32        `json:"-"`
+	TaskId               string                          `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
+	TaskName             string                          `protobuf:"bytes,2,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
+	User                 string                          `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
+	UserType             common.UserType                 `protobuf:"varint,4,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	Sender               *common.TaskOrganization        `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
+	AlgoSupplier         *common.TaskOrganization        `protobuf:"bytes,6,opt,name=algo_supplier,json=algoSupplier,proto3" json:"algo_supplier,omitempty"`
+	DataSupplier         []*TaskDataSupplier             `protobuf:"bytes,7,rep,name=data_supplier,json=dataSupplier,proto3" json:"data_supplier,omitempty"`
+	PowerSupplier        []*TaskPowerSupplier            `protobuf:"bytes,8,rep,name=power_supplier,json=powerSupplier,proto3" json:"power_supplier,omitempty"`
+	Receivers            []*common.TaskOrganization      `protobuf:"bytes,9,rep,name=receivers,proto3" json:"receivers,omitempty"`
+	CreateAt             uint64                          `protobuf:"varint,10,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
+	StartAt              uint64                          `protobuf:"varint,11,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
+	EndAt                uint64                          `protobuf:"varint,12,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
+	State                common.TaskState                `protobuf:"varint,13,opt,name=state,proto3,enum=api.protobuf.TaskState" json:"state,omitempty"`
+	OperationCost        *common.TaskResourceCostDeclare `protobuf:"bytes,14,opt,name=operation_cost,json=operationCost,proto3" json:"operation_cost,omitempty"`
+	Desc                 string                          `protobuf:"bytes,15,opt,name=desc,proto3" json:"desc,omitempty"`
+	TaskEventList        []*TaskEvent                    `protobuf:"bytes,16,rep,name=task_event_list,json=taskEventList,proto3" json:"task_event_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
+	XXX_unrecognized     []byte                          `json:"-"`
+	XXX_sizecache        int32                           `json:"-"`
 }
 
 func (m *TaskDetail) Reset()         { *m = TaskDetail{} }
@@ -380,7 +353,7 @@ func (m *TaskDetail) GetUserType() common.UserType {
 	if m != nil {
 		return m.UserType
 	}
-	return common.UserType_Unknown
+	return common.UserType_User_Unknown
 }
 
 func (m *TaskDetail) GetSender() *common.TaskOrganization {
@@ -411,7 +384,7 @@ func (m *TaskDetail) GetPowerSupplier() []*TaskPowerSupplier {
 	return nil
 }
 
-func (m *TaskDetail) GetReceivers() []*TaskResultReceiver {
+func (m *TaskDetail) GetReceivers() []*common.TaskOrganization {
 	if m != nil {
 		return m.Receivers
 	}
@@ -439,11 +412,11 @@ func (m *TaskDetail) GetEndAt() uint64 {
 	return 0
 }
 
-func (m *TaskDetail) GetState() string {
+func (m *TaskDetail) GetState() common.TaskState {
 	if m != nil {
 		return m.State
 	}
-	return ""
+	return common.TaskState_TaskState_Unknown
 }
 
 func (m *TaskDetail) GetOperationCost() *common.TaskResourceCostDeclare {
@@ -525,64 +498,6 @@ func (m *TaskPowerSupplier) GetResourceUsedOverview() *ResourceUsageOverview {
 	return nil
 }
 
-// 定义：任务结果接收详细信息
-type TaskResultReceiver struct {
-	// 任务接收方组织信息
-	Receiver *common.TaskOrganization `protobuf:"bytes,1,opt,name=receiver,proto3" json:"receiver,omitempty"`
-	// 提供结果的组织方信息（列表）
-	Providers            []*common.TaskOrganization `protobuf:"bytes,2,rep,name=providers,proto3" json:"providers,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
-	XXX_unrecognized     []byte                     `json:"-"`
-	XXX_sizecache        int32                      `json:"-"`
-}
-
-func (m *TaskResultReceiver) Reset()         { *m = TaskResultReceiver{} }
-func (m *TaskResultReceiver) String() string { return proto.CompactTextString(m) }
-func (*TaskResultReceiver) ProtoMessage()    {}
-func (*TaskResultReceiver) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2293d9334aae6da1, []int{3}
-}
-func (m *TaskResultReceiver) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *TaskResultReceiver) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_TaskResultReceiver.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *TaskResultReceiver) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_TaskResultReceiver.Merge(m, src)
-}
-func (m *TaskResultReceiver) XXX_Size() int {
-	return m.Size()
-}
-func (m *TaskResultReceiver) XXX_DiscardUnknown() {
-	xxx_messageInfo_TaskResultReceiver.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_TaskResultReceiver proto.InternalMessageInfo
-
-func (m *TaskResultReceiver) GetReceiver() *common.TaskOrganization {
-	if m != nil {
-		return m.Receiver
-	}
-	return nil
-}
-
-func (m *TaskResultReceiver) GetProviders() []*common.TaskOrganization {
-	if m != nil {
-		return m.Providers
-	}
-	return nil
-}
-
 // 任务数据提供方基本信息
 type TaskDataSupplier struct {
 	MemberInfo           *common.TaskOrganization `protobuf:"bytes,1,opt,name=member_info,json=memberInfo,proto3" json:"member_info,omitempty"`
@@ -598,7 +513,7 @@ func (m *TaskDataSupplier) Reset()         { *m = TaskDataSupplier{} }
 func (m *TaskDataSupplier) String() string { return proto.CompactTextString(m) }
 func (*TaskDataSupplier) ProtoMessage()    {}
 func (*TaskDataSupplier) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2293d9334aae6da1, []int{4}
+	return fileDescriptor_2293d9334aae6da1, []int{3}
 }
 func (m *TaskDataSupplier) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -671,7 +586,7 @@ func (m *TaskEvent) Reset()         { *m = TaskEvent{} }
 func (m *TaskEvent) String() string { return proto.CompactTextString(m) }
 func (*TaskEvent) ProtoMessage()    {}
 func (*TaskEvent) Descriptor() ([]byte, []int) {
-	return fileDescriptor_2293d9334aae6da1, []int{5}
+	return fileDescriptor_2293d9334aae6da1, []int{4}
 }
 func (m *TaskEvent) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -739,7 +654,6 @@ func init() {
 	proto.RegisterType((*TaskData)(nil), "types.TaskData")
 	proto.RegisterType((*TaskDetail)(nil), "types.TaskDetail")
 	proto.RegisterType((*TaskPowerSupplier)(nil), "types.TaskPowerSupplier")
-	proto.RegisterType((*TaskResultReceiver)(nil), "types.TaskResultReceiver")
 	proto.RegisterType((*TaskDataSupplier)(nil), "types.TaskDataSupplier")
 	proto.RegisterType((*TaskEvent)(nil), "types.TaskEvent")
 }
@@ -747,74 +661,71 @@ func init() {
 func init() { proto.RegisterFile("lib/types/taskdata.proto", fileDescriptor_2293d9334aae6da1) }
 
 var fileDescriptor_2293d9334aae6da1 = []byte{
-	// 1058 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x5d, 0x6e, 0xdb, 0x46,
-	0x10, 0x06, 0x6d, 0xeb, 0x6f, 0x24, 0x39, 0xe9, 0xd6, 0xb2, 0xd7, 0x8e, 0xeb, 0x08, 0x0e, 0x0a,
-	0x08, 0x28, 0x2a, 0x01, 0x0e, 0xe0, 0xb4, 0x45, 0x80, 0xc0, 0x51, 0xd2, 0x42, 0x40, 0xda, 0x04,
-	0x4c, 0xf2, 0xd2, 0x17, 0x62, 0x45, 0x8e, 0x55, 0x22, 0x14, 0x97, 0xd8, 0x5d, 0xda, 0x75, 0xcf,
-	0x50, 0x14, 0xbd, 0x47, 0x4f, 0xd1, 0xb7, 0x3e, 0xb6, 0x37, 0x28, 0x7c, 0x92, 0x62, 0x87, 0xa4,
-	0x44, 0x49, 0x09, 0x2a, 0xc7, 0x4f, 0xe2, 0xcc, 0x37, 0xdf, 0xce, 0xee, 0xec, 0x37, 0xa3, 0x05,
-	0x1e, 0x85, 0xe3, 0x81, 0xb9, 0x4a, 0x50, 0x0f, 0x8c, 0xd0, 0xef, 0x02, 0x61, 0x44, 0x3f, 0x51,
-	0xd2, 0x48, 0x56, 0x21, 0xef, 0x41, 0xc7, 0x06, 0xf8, 0x72, 0x3a, 0x95, 0xf1, 0x60, 0x2c, 0x34,
-	0x66, 0xe8, 0x82, 0x7b, 0x4e, 0x3a, 0x78, 0xa0, 0x30, 0x91, 0x7a, 0x40, 0xc6, 0x38, 0x3d, 0x1f,
-	0x4c, 0xe4, 0x44, 0x92, 0x41, 0x5f, 0x79, 0x50, 0x29, 0xe7, 0x14, 0x8d, 0x28, 0xd1, 0x0f, 0xe7,
-	0x48, 0x18, 0x60, 0x6c, 0x42, 0x73, 0xf5, 0x7e, 0x54, 0xa1, 0x96, 0xa9, 0xf2, 0x71, 0x8e, 0x1e,
-	0xff, 0xda, 0x80, 0xfa, 0x1b, 0xa1, 0xdf, 0x3d, 0x13, 0x46, 0xb0, 0xfb, 0xd0, 0x2c, 0x16, 0xf0,
-	0xc2, 0x80, 0x3b, 0x5d, 0xa7, 0xd7, 0x70, 0xa1, 0x70, 0x8d, 0x02, 0xb6, 0x07, 0xb5, 0x58, 0x06,
-	0x68, 0xc1, 0x0d, 0x02, 0xab, 0xd6, 0x1c, 0x05, 0xec, 0x1e, 0x34, 0x08, 0x88, 0xc5, 0x14, 0xf9,
-	0x26, 0x41, 0x75, 0xeb, 0xf8, 0x41, 0x4c, 0xd1, 0xb2, 0x6c, 0x46, 0xcb, 0xda, 0xca, 0x58, 0xd6,
-	0x1c, 0x05, 0x36, 0x1f, 0x01, 0xda, 0x08, 0x93, 0x6a, 0x5e, 0xc9, 0xf2, 0x59, 0xd7, 0x6b, 0xf2,
-	0x58, 0xa6, 0xad, 0xaf, 0x65, 0x56, 0x33, 0xa6, 0x35, 0xb3, 0x7c, 0x04, 0x50, 0xbe, 0x5a, 0x96,
-	0xcf, 0x3a, 0x28, 0xdf, 0x0e, 0x54, 0xec, 0x8a, 0xc8, 0xeb, 0x04, 0x64, 0x06, 0xdb, 0x85, 0xaa,
-	0x42, 0xa1, 0x65, 0xcc, 0x1b, 0xd9, 0x52, 0x99, 0x65, 0x37, 0x81, 0x17, 0x18, 0x1b, 0xcf, 0x97,
-	0x69, 0x6c, 0x38, 0x74, 0x9d, 0x5e, 0xdb, 0x05, 0x72, 0x0d, 0xad, 0x87, 0x31, 0xd8, 0x0a, 0x50,
-	0xfb, 0xbc, 0x49, 0x34, 0xfa, 0xb6, 0xf9, 0x7d, 0x85, 0xc2, 0xa0, 0x27, 0x0c, 0x6f, 0x75, 0x9d,
-	0xde, 0x96, 0x5b, 0xcf, 0x1c, 0x67, 0x86, 0x75, 0xa0, 0x8a, 0x71, 0x60, 0x91, 0x36, 0x21, 0x15,
-	0x8c, 0x83, 0x33, 0xc3, 0xf6, 0xa1, 0xae, 0x8d, 0x50, 0xc6, 0x02, 0xdb, 0x04, 0xd4, 0xc8, 0xce,
-	0xa0, 0x44, 0xa8, 0xac, 0xea, 0x77, 0x28, 0x4d, 0x8d, 0xec, 0x51, 0xc0, 0x86, 0xd0, 0x16, 0xd1,
-	0x44, 0x7a, 0x3a, 0x4d, 0x92, 0x28, 0x44, 0xc5, 0x77, 0xba, 0x4e, 0xaf, 0x79, 0x72, 0xd4, 0x17,
-	0x49, 0xd8, 0x2f, 0x14, 0xd3, 0xb7, 0x57, 0xf8, 0x52, 0x4d, 0x44, 0x1c, 0xfe, 0x22, 0x4c, 0x28,
-	0x63, 0xb7, 0x65, 0x49, 0xaf, 0x73, 0x0e, 0x7b, 0x01, 0xdb, 0x32, 0x41, 0x45, 0x90, 0xe7, 0x4b,
-	0x6d, 0x78, 0x87, 0x56, 0xf9, 0x7c, 0x75, 0x15, 0x37, 0xd7, 0xc8, 0x50, 0x6a, 0xf3, 0x0c, 0xfd,
-	0x48, 0x28, 0x74, 0xdb, 0x33, 0xb2, 0xf5, 0xb2, 0xc7, 0xd0, 0xce, 0xae, 0xad, 0xd8, 0xd2, 0x6e,
-	0x77, 0xb3, 0xd7, 0x3c, 0xd9, 0xeb, 0x93, 0xca, 0xfa, 0x85, 0x9c, 0x8a, 0xec, 0x6e, 0x2b, 0x28,
-	0x59, 0xec, 0x09, 0x6c, 0x27, 0xf2, 0x12, 0xd5, 0x9c, 0xbe, 0x47, 0x74, 0x5e, 0xa2, 0xbf, 0xb2,
-	0x01, 0x33, 0x7e, 0x3b, 0x29, 0x9b, 0xec, 0x11, 0x34, 0x14, 0xfa, 0x18, 0x5e, 0xa0, 0xd2, 0x9c,
-	0x13, 0x77, 0xbf, 0xc4, 0x75, 0x51, 0xa7, 0x91, 0x71, 0xf3, 0x08, 0x77, 0x1e, 0xcb, 0xce, 0xa0,
-	0x65, 0xab, 0x1a, 0xa3, 0xf2, 0xa2, 0x50, 0x1b, 0xbe, 0x4f, 0xdc, 0xff, 0xab, 0x64, 0x33, 0xe7,
-	0xbc, 0x08, 0xb5, 0x61, 0x5f, 0xc1, 0x1d, 0xd2, 0x5d, 0xa6, 0x18, 0x5a, 0xe5, 0x80, 0x56, 0xb9,
-	0x5b, 0xda, 0xc1, 0x73, 0x0b, 0xba, 0x6d, 0x53, 0x7c, 0x12, 0xf3, 0x14, 0xf6, 0x7c, 0x11, 0xf9,
-	0x69, 0x64, 0x45, 0xe3, 0xcb, 0xd8, 0x28, 0xe1, 0x5b, 0xcd, 0x05, 0xc8, 0xef, 0xd1, 0x8d, 0x77,
-	0x66, 0xf0, 0x30, 0x47, 0x87, 0x32, 0x40, 0xf6, 0x08, 0x78, 0x56, 0xec, 0x24, 0x0a, 0xcd, 0x12,
-	0xf1, 0x30, 0x23, 0x52, 0x79, 0x2d, 0xbc, 0x40, 0x3c, 0x81, 0xce, 0x2c, 0x1a, 0x7f, 0x36, 0x4a,
-	0x78, 0x89, 0x50, 0x62, 0xaa, 0xf9, 0x67, 0xc4, 0xfa, 0xb4, 0x00, 0x9f, 0x5b, 0xec, 0x15, 0x41,
-	0x56, 0xea, 0xa9, 0x46, 0xc5, 0x8f, 0x32, 0xa9, 0xdb, 0x6f, 0xf6, 0x10, 0x1a, 0xf6, 0xd7, 0xb3,
-	0xe7, 0xe3, 0xf7, 0xbb, 0x4e, 0x6f, 0xfb, 0x64, 0x77, 0xb1, 0x64, 0x6f, 0x35, 0xaa, 0x37, 0x57,
-	0x09, 0xba, 0xf5, 0x34, 0xff, 0x62, 0xa7, 0x50, 0xd5, 0x18, 0x07, 0xa8, 0x78, 0x77, 0x2d, 0xb9,
-	0xe6, 0xd1, 0xc7, 0x7f, 0x56, 0x00, 0x48, 0x3f, 0x68, 0x44, 0x18, 0x95, 0xfb, 0xdf, 0xf9, 0x70,
-	0xff, 0x6f, 0x2c, 0xf5, 0x7f, 0x71, 0x8a, 0xcd, 0x0f, 0x9d, 0x62, 0xeb, 0xc6, 0xa7, 0xa8, 0xdc,
-	0xe4, 0x14, 0xab, 0x3d, 0x5b, 0xfd, 0x88, 0x9e, 0x5d, 0xe9, 0xb2, 0xda, 0xed, 0xba, 0xac, 0x7e,
-	0x8b, 0x2e, 0x6b, 0xdc, 0xa0, 0xcb, 0x16, 0x46, 0x23, 0x2c, 0x8d, 0xc6, 0xf2, 0x0c, 0x6c, 0x2e,
-	0xce, 0xc0, 0xf9, 0xd4, 0x6c, 0x95, 0xa7, 0xe6, 0x6c, 0x98, 0xb7, 0xcb, 0xc3, 0x7c, 0x75, 0xa0,
-	0x6d, 0xdf, 0x62, 0xa0, 0x15, 0x13, 0xbe, 0x53, 0x9a, 0xf0, 0xef, 0xe9, 0xf4, 0xdd, 0xb5, 0x3a,
-	0xfd, 0xf8, 0x0f, 0x07, 0x3e, 0x59, 0x29, 0x2f, 0x7b, 0x0a, 0x2d, 0x59, 0xba, 0x6c, 0xd2, 0xf3,
-	0x1a, 0x92, 0x28, 0x73, 0x98, 0x0b, 0xbb, 0xc5, 0x5f, 0xb8, 0x97, 0x6a, 0x0c, 0x3c, 0x79, 0x81,
-	0xea, 0x22, 0xc4, 0x4b, 0x6a, 0x81, 0xe6, 0xc9, 0x61, 0xbe, 0xb5, 0xe2, 0xc8, 0x6f, 0xb5, 0x98,
-	0xe0, 0xcb, 0x3c, 0xc6, 0xdd, 0x51, 0x33, 0x37, 0x06, 0x85, 0xf7, 0xf8, 0x37, 0x07, 0xd8, 0xea,
-	0x85, 0xb2, 0x6f, 0xa0, 0x5e, 0x5c, 0xe9, 0x9a, 0x5b, 0x9d, 0xc5, 0xb3, 0xc7, 0xd0, 0x48, 0x94,
-	0xbc, 0x08, 0x03, 0x2b, 0x9d, 0x8d, 0xb5, 0x86, 0xec, 0x9c, 0x70, 0xfc, 0x8f, 0x03, 0x77, 0x97,
-	0xc5, 0xcd, 0x9e, 0x40, 0x73, 0x8a, 0xd3, 0x31, 0x2a, 0x2f, 0x8c, 0xcf, 0xe5, 0x9a, 0x3b, 0x82,
-	0x8c, 0x32, 0x8a, 0xcf, 0xa5, 0xfd, 0x97, 0x2f, 0x5e, 0x4d, 0xf3, 0xd7, 0x0b, 0x14, 0xae, 0x51,
-	0xc0, 0x1e, 0x40, 0x7b, 0x16, 0x50, 0x7a, 0xc5, 0xb4, 0x0a, 0x27, 0x4d, 0x96, 0x53, 0x68, 0xfa,
-	0x32, 0x4a, 0xa7, 0x71, 0x26, 0x88, 0x2d, 0x3a, 0x5b, 0x27, 0xaf, 0xfa, 0xf7, 0x79, 0xe4, 0x90,
-	0x22, 0x5c, 0xc8, 0x22, 0x49, 0x12, 0xbf, 0x3b, 0xd0, 0x98, 0xe9, 0xc5, 0xca, 0x8d, 0xc6, 0x50,
-	0x36, 0xd2, 0xe8, 0xbb, 0x3c, 0xe9, 0x36, 0x16, 0x26, 0xdd, 0xd2, 0x9b, 0x6c, 0x73, 0xe5, 0x4d,
-	0xc6, 0xa1, 0x66, 0x47, 0x39, 0xc6, 0x26, 0x7f, 0x5d, 0x15, 0xe6, 0x62, 0x27, 0x56, 0x16, 0x3b,
-	0xf1, 0xe9, 0xd7, 0x7f, 0x5d, 0x1f, 0x39, 0x7f, 0x5f, 0x1f, 0x39, 0xff, 0x5e, 0x1f, 0x39, 0x3f,
-	0x7e, 0x31, 0x09, 0xcd, 0x4f, 0xe9, 0xb8, 0xef, 0xcb, 0xe9, 0xc0, 0x95, 0x1a, 0x8d, 0x11, 0xdf,
-	0x46, 0xf2, 0x72, 0x30, 0x14, 0x4a, 0x85, 0xa8, 0xbe, 0xfc, 0x4e, 0x0e, 0x66, 0xcf, 0xc8, 0x71,
-	0x95, 0x4a, 0xfe, 0xf0, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x15, 0x09, 0x92, 0xf5, 0x06, 0x0b,
-	0x00, 0x00,
+	// 1012 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xdb, 0x6e, 0xdb, 0x46,
+	0x13, 0x06, 0x6d, 0xeb, 0x34, 0x92, 0x6c, 0xff, 0xfb, 0x47, 0xf6, 0xc6, 0x71, 0x5d, 0xc1, 0x41,
+	0x01, 0x01, 0x45, 0x24, 0xc0, 0x01, 0xdc, 0x06, 0x08, 0x10, 0x24, 0x4a, 0x5a, 0x08, 0x48, 0x9b,
+	0x80, 0x49, 0x6e, 0x7a, 0x23, 0xac, 0xc8, 0xb1, 0x4a, 0x84, 0xe2, 0x12, 0xbb, 0x4b, 0xbb, 0xee,
+	0x53, 0xf4, 0x3d, 0xfa, 0x22, 0xed, 0x5d, 0xfb, 0x04, 0x2d, 0xfc, 0x24, 0xc5, 0xce, 0x92, 0x14,
+	0x65, 0x25, 0x88, 0x5b, 0x5f, 0x69, 0x67, 0xbe, 0xf9, 0x76, 0x86, 0x73, 0xd2, 0x02, 0x8f, 0xa3,
+	0xd9, 0xc8, 0x5c, 0xa6, 0xa8, 0x47, 0x46, 0xe8, 0xf7, 0xa1, 0x30, 0x62, 0x98, 0x2a, 0x69, 0x24,
+	0xab, 0x91, 0xf6, 0xa0, 0x67, 0x0d, 0x02, 0xb9, 0x58, 0xc8, 0x64, 0x34, 0x13, 0x1a, 0x1d, 0xba,
+	0xa2, 0x5e, 0x92, 0x0e, 0xee, 0x2b, 0x4c, 0xa5, 0x1e, 0x91, 0x30, 0xcb, 0xce, 0x46, 0x73, 0x39,
+	0x97, 0x24, 0xd0, 0x29, 0x37, 0xaa, 0xf8, 0x5c, 0xa0, 0x11, 0x15, 0xfa, 0xe1, 0x12, 0x89, 0x42,
+	0x4c, 0x4c, 0x64, 0x2e, 0x3f, 0x8c, 0x2a, 0xd4, 0x32, 0x53, 0x01, 0x2e, 0xd1, 0xe3, 0xdf, 0x9b,
+	0xd0, 0x7c, 0x2b, 0xf4, 0xfb, 0xe7, 0xc2, 0x08, 0xf6, 0x39, 0xb4, 0x8b, 0x0b, 0xa6, 0x51, 0xc8,
+	0xbd, 0xbe, 0x37, 0x68, 0xf9, 0x50, 0xa8, 0x26, 0x21, 0xdb, 0x87, 0x46, 0x22, 0x43, 0xb4, 0xe0,
+	0x06, 0x81, 0x75, 0x2b, 0x4e, 0x42, 0x76, 0x0f, 0x5a, 0x04, 0x24, 0x62, 0x81, 0x7c, 0x93, 0xa0,
+	0xa6, 0x55, 0x7c, 0x2f, 0x16, 0x68, 0x59, 0xd6, 0xa3, 0x65, 0x6d, 0x39, 0x96, 0x15, 0x27, 0x21,
+	0x7b, 0x04, 0x6d, 0x02, 0xb4, 0x11, 0x26, 0xd3, 0xbc, 0xd6, 0xf7, 0x06, 0xdb, 0x27, 0x7c, 0x28,
+	0xd2, 0x68, 0x58, 0xe4, 0x62, 0x68, 0x03, 0x7b, 0x43, 0xb8, 0x0f, 0x61, 0x79, 0xb6, 0x77, 0xda,
+	0xcc, 0xdb, 0x3b, 0xeb, 0xee, 0x4e, 0x2b, 0xba, 0x48, 0x08, 0xa0, 0x48, 0x1a, 0x2e, 0x12, 0xab,
+	0xa0, 0x48, 0x1e, 0x40, 0xcd, 0xfa, 0x42, 0xde, 0x24, 0x57, 0xfb, 0xab, 0xae, 0x6c, 0x1e, 0xec,
+	0xf5, 0xe8, 0x3b, 0x2b, 0xb6, 0x07, 0x75, 0x85, 0x42, 0xcb, 0x84, 0xb7, 0x9c, 0x0f, 0x27, 0xd9,
+	0x3c, 0xe1, 0x39, 0x26, 0x66, 0x1a, 0xc8, 0x2c, 0x31, 0x1c, 0xfa, 0xde, 0xa0, 0xeb, 0x03, 0xa9,
+	0xc6, 0x56, 0xc3, 0x18, 0x6c, 0x85, 0xa8, 0x03, 0xde, 0x26, 0x1a, 0x9d, 0x6d, 0x60, 0x81, 0x42,
+	0x61, 0x70, 0x2a, 0x0c, 0xef, 0xf4, 0xbd, 0xc1, 0x96, 0xdf, 0x74, 0x8a, 0xa7, 0x86, 0xf5, 0xa0,
+	0x8e, 0x49, 0x68, 0x91, 0x2e, 0x21, 0x35, 0x4c, 0xc2, 0xa7, 0x86, 0xdd, 0x85, 0xa6, 0x36, 0x42,
+	0x19, 0x0b, 0x6c, 0x13, 0xd0, 0x20, 0xd9, 0x41, 0xa9, 0x50, 0xae, 0x50, 0x3b, 0xe4, 0xa6, 0x41,
+	0xf2, 0x24, 0x64, 0x63, 0xe8, 0x8a, 0x78, 0x2e, 0xa7, 0x3a, 0x4b, 0xd3, 0x38, 0x42, 0xc5, 0xef,
+	0xf4, 0xbd, 0x41, 0xfb, 0xe4, 0x68, 0xfd, 0x6b, 0x5f, 0xa9, 0xb9, 0x48, 0xa2, 0x9f, 0x85, 0x89,
+	0x64, 0xe2, 0x77, 0x2c, 0xe9, 0x4d, 0xce, 0x61, 0x2f, 0x61, 0x5b, 0xa6, 0xa8, 0x08, 0x9a, 0x06,
+	0x52, 0x1b, 0xde, 0xa3, 0x5b, 0xbe, 0x58, 0xbf, 0xc5, 0xcf, 0xdb, 0x6a, 0x2c, 0xb5, 0x79, 0x8e,
+	0x41, 0x2c, 0x14, 0xfa, 0xdd, 0x92, 0x6c, 0xb5, 0xec, 0x31, 0x74, 0x5d, 0xa5, 0x8b, 0x90, 0xf6,
+	0xfa, 0x9b, 0x83, 0xf6, 0xc9, 0xfe, 0x90, 0x1a, 0x73, 0x58, 0x74, 0x60, 0xe1, 0xdd, 0xef, 0x84,
+	0x15, 0x89, 0x3d, 0x81, 0xed, 0x54, 0x5e, 0xa0, 0x5a, 0xd2, 0xf7, 0x89, 0xce, 0x2b, 0xf4, 0xd7,
+	0xd6, 0xa0, 0xe4, 0x77, 0xd3, 0xaa, 0xc8, 0x1e, 0x43, 0x4b, 0x61, 0x80, 0xd1, 0x39, 0x2a, 0xcd,
+	0x39, 0x71, 0x3f, 0x95, 0x8d, 0x25, 0x81, 0x7d, 0x0d, 0x3b, 0xd4, 0x52, 0xae, 0xe6, 0x71, 0xa4,
+	0x0d, 0xbf, 0x4b, 0x77, 0xec, 0x56, 0xfc, 0xbf, 0xb0, 0xa0, 0xdf, 0x35, 0xc5, 0xf1, 0x65, 0xa4,
+	0x0d, 0x3b, 0x85, 0xfd, 0x40, 0xc4, 0x41, 0x16, 0xdb, 0xb2, 0x07, 0x32, 0x31, 0x4a, 0x04, 0xb6,
+	0x6b, 0x42, 0xe4, 0x07, 0x54, 0xb3, 0x5e, 0x09, 0x8f, 0x73, 0x74, 0x2c, 0x43, 0x64, 0x5f, 0x01,
+	0x77, 0xe9, 0x4a, 0xe3, 0xc8, 0x5c, 0x23, 0xde, 0x73, 0x44, 0x4a, 0x90, 0x85, 0x57, 0x88, 0x27,
+	0xd0, 0x2b, 0xad, 0xf1, 0x27, 0xa3, 0xc4, 0x34, 0x15, 0x4a, 0x2c, 0x34, 0x3f, 0x24, 0xd6, 0xff,
+	0x0b, 0xf0, 0x85, 0xc5, 0x5e, 0x13, 0x64, 0x9b, 0x35, 0xd3, 0xa8, 0xf8, 0x67, 0xae, 0x59, 0xed,
+	0x99, 0x3d, 0x84, 0x96, 0xfd, 0x9d, 0xda, 0xef, 0xe3, 0x47, 0x34, 0x2c, 0x7b, 0xab, 0x09, 0x7b,
+	0xa7, 0x51, 0xbd, 0xbd, 0x4c, 0xd1, 0x6f, 0x66, 0xf9, 0xe9, 0xf8, 0xaf, 0x1a, 0x00, 0x55, 0x12,
+	0x8d, 0x88, 0xe2, 0xea, 0x88, 0x7a, 0x1f, 0x1f, 0xd1, 0x8d, 0x6b, 0x23, 0x5a, 0x44, 0xb3, 0xf9,
+	0xb1, 0x68, 0xb6, 0x6e, 0x16, 0x0d, 0x3b, 0x85, 0xba, 0xc6, 0x24, 0x44, 0x45, 0x7b, 0xe5, 0xd3,
+	0x05, 0xcf, 0xad, 0xd7, 0xa7, 0xa7, 0xfe, 0x1f, 0xa6, 0x67, 0xad, 0xdf, 0x1b, 0xb7, 0xeb, 0xf7,
+	0xe6, 0x2d, 0xfa, 0xbd, 0xf5, 0x6f, 0xfb, 0x7d, 0x65, 0x53, 0xc1, 0xb5, 0x4d, 0x55, 0x5d, 0x49,
+	0xed, 0xd5, 0x95, 0xb4, 0x5c, 0x62, 0x9d, 0xea, 0x12, 0x2b, 0x97, 0x6e, 0xf7, 0x46, 0x4b, 0x77,
+	0x7d, 0xf1, 0x6c, 0xdf, 0x62, 0xf1, 0x14, 0x9b, 0x78, 0xa7, 0xb2, 0x89, 0x3f, 0x30, 0xcf, 0xbb,
+	0x37, 0x9a, 0xe7, 0xe3, 0x5f, 0x3d, 0xf8, 0xdf, 0x5a, 0xf2, 0xd9, 0x33, 0xe8, 0xc8, 0x4a, 0x2a,
+	0xa9, 0xdb, 0x6f, 0xd0, 0x30, 0x55, 0x0e, 0xf3, 0x61, 0xaf, 0xf8, 0x77, 0x9e, 0x66, 0x1a, 0xc3,
+	0xa9, 0x3c, 0x47, 0x75, 0x1e, 0xe1, 0x05, 0x0d, 0x48, 0xfb, 0xe4, 0x30, 0x0f, 0xad, 0xf8, 0xe4,
+	0x77, 0x5a, 0xcc, 0xf1, 0x55, 0x6e, 0xe3, 0xdf, 0x51, 0xa5, 0x1a, 0xc3, 0x42, 0x7b, 0xfc, 0xa7,
+	0x07, 0xbb, 0xd7, 0x3b, 0x8d, 0x3d, 0x81, 0xf6, 0x02, 0x17, 0x33, 0x54, 0xd3, 0x28, 0x39, 0x93,
+	0x37, 0x8c, 0x15, 0x1c, 0x65, 0x92, 0x9c, 0x49, 0xfb, 0xe7, 0x57, 0xbc, 0x3f, 0x96, 0xef, 0x00,
+	0x28, 0x54, 0x93, 0x90, 0xdd, 0x87, 0x6e, 0x69, 0x50, 0x79, 0x0f, 0x74, 0x0a, 0x25, 0x8d, 0xf9,
+	0x29, 0xb4, 0x03, 0x19, 0x67, 0x8b, 0xc4, 0xe5, 0x7f, 0x8b, 0xf2, 0xdf, 0xcb, 0x3f, 0xf2, 0xbb,
+	0xdc, 0x72, 0x4c, 0x16, 0x3e, 0x38, 0x4b, 0xaa, 0xc0, 0x2f, 0x1e, 0xb4, 0xca, 0xf2, 0xd8, 0xea,
+	0xd2, 0x4e, 0x70, 0xfb, 0x85, 0xce, 0xd5, 0xb5, 0xb3, 0xb1, 0xb2, 0x76, 0xae, 0xbd, 0x6e, 0x36,
+	0xd7, 0x5e, 0x37, 0x1c, 0x1a, 0x76, 0x3f, 0x62, 0x62, 0xf2, 0x77, 0x4a, 0x21, 0xae, 0x4e, 0x44,
+	0x6d, 0x75, 0x22, 0x9e, 0x3d, 0xfa, 0xed, 0xea, 0xc8, 0xfb, 0xe3, 0xea, 0xc8, 0xfb, 0xfb, 0xea,
+	0xc8, 0xfb, 0xe1, 0xcb, 0x79, 0x64, 0x7e, 0xcc, 0x66, 0xc3, 0x40, 0x2e, 0x46, 0xbe, 0xd4, 0x68,
+	0x8c, 0xf8, 0x26, 0x96, 0x17, 0xa3, 0xb1, 0x50, 0x2a, 0x42, 0xf5, 0xe0, 0x5b, 0x39, 0x2a, 0x1f,
+	0x64, 0xb3, 0x3a, 0xa5, 0xfc, 0xe1, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x1d, 0x70, 0x3d, 0xe8,
+	0x50, 0x0a, 0x00, 0x00,
 }
 
 func (m *TaskData) Marshal() (dAtA []byte, err error) {
@@ -841,26 +752,12 @@ func (m *TaskData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.Sender != nil {
-		{
-			size, err := m.Sender.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTaskdata(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x2
-		i--
-		dAtA[i] = 0x82
-	}
 	if m.UserType != 0 {
 		i = encodeVarintTaskdata(dAtA, i, uint64(m.UserType))
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xf8
+		dAtA[i] = 0xf0
 	}
 	if len(m.User) > 0 {
 		i -= len(m.User)
@@ -869,7 +766,7 @@ func (m *TaskData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xf2
+		dAtA[i] = 0xea
 	}
 	if len(m.ContractExtraParams) > 0 {
 		i -= len(m.ContractExtraParams)
@@ -878,7 +775,7 @@ func (m *TaskData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xea
+		dAtA[i] = 0xe2
 	}
 	if len(m.DataSplitContractCode) > 0 {
 		i -= len(m.DataSplitContractCode)
@@ -887,7 +784,7 @@ func (m *TaskData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xe2
+		dAtA[i] = 0xda
 	}
 	if len(m.CalculateContractCode) > 0 {
 		i -= len(m.CalculateContractCode)
@@ -896,28 +793,12 @@ func (m *TaskData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1
 		i--
-		dAtA[i] = 0xda
+		dAtA[i] = 0xd2
 	}
 	if len(m.TaskEventList) > 0 {
 		for iNdEx := len(m.TaskEventList) - 1; iNdEx >= 0; iNdEx-- {
 			{
 				size, err := m.TaskEventList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTaskdata(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x1
-			i--
-			dAtA[i] = 0xd2
-		}
-	}
-	if len(m.PartnerList) > 0 {
-		for iNdEx := len(m.PartnerList) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.PartnerList[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -1047,12 +928,10 @@ func (m *TaskData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x4a
 	}
-	if len(m.State) > 0 {
-		i -= len(m.State)
-		copy(dAtA[i:], m.State)
-		i = encodeVarintTaskdata(dAtA, i, uint64(len(m.State)))
+	if m.State != 0 {
+		i = encodeVarintTaskdata(dAtA, i, uint64(m.State))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x40
 	}
 	if len(m.TaskName) > 0 {
 		i -= len(m.TaskName)
@@ -1068,12 +947,10 @@ func (m *TaskData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x32
 	}
-	if len(m.DataStatus) > 0 {
-		i -= len(m.DataStatus)
-		copy(dAtA[i:], m.DataStatus)
-		i = encodeVarintTaskdata(dAtA, i, uint64(len(m.DataStatus)))
+	if m.DataStatus != 0 {
+		i = encodeVarintTaskdata(dAtA, i, uint64(m.DataStatus))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x28
 	}
 	if len(m.DataId) > 0 {
 		i -= len(m.DataId)
@@ -1143,7 +1020,7 @@ func (m *TaskDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i--
 			dAtA[i] = 0x1
 			i--
-			dAtA[i] = 0xb2
+			dAtA[i] = 0x82
 		}
 	}
 	if len(m.Desc) > 0 {
@@ -1151,9 +1028,7 @@ func (m *TaskDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Desc)
 		i = encodeVarintTaskdata(dAtA, i, uint64(len(m.Desc)))
 		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0xaa
+		dAtA[i] = 0x7a
 	}
 	if m.OperationCost != nil {
 		{
@@ -1167,12 +1042,10 @@ func (m *TaskDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x72
 	}
-	if len(m.State) > 0 {
-		i -= len(m.State)
-		copy(dAtA[i:], m.State)
-		i = encodeVarintTaskdata(dAtA, i, uint64(len(m.State)))
+	if m.State != 0 {
+		i = encodeVarintTaskdata(dAtA, i, uint64(m.State))
 		i--
-		dAtA[i] = 0x6a
+		dAtA[i] = 0x68
 	}
 	if m.EndAt != 0 {
 		i = encodeVarintTaskdata(dAtA, i, uint64(m.EndAt))
@@ -1323,59 +1196,6 @@ func (m *TaskPowerSupplier) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Organization != nil {
 		{
 			size, err := m.Organization.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTaskdata(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *TaskResultReceiver) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *TaskResultReceiver) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *TaskResultReceiver) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.Providers) > 0 {
-		for iNdEx := len(m.Providers) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Providers[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintTaskdata(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if m.Receiver != nil {
-		{
-			size, err := m.Receiver.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1548,9 +1368,8 @@ func (m *TaskData) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTaskdata(uint64(l))
 	}
-	l = len(m.DataStatus)
-	if l > 0 {
-		n += 1 + l + sovTaskdata(uint64(l))
+	if m.DataStatus != 0 {
+		n += 1 + sovTaskdata(uint64(m.DataStatus))
 	}
 	l = len(m.TaskId)
 	if l > 0 {
@@ -1560,9 +1379,8 @@ func (m *TaskData) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTaskdata(uint64(l))
 	}
-	l = len(m.State)
-	if l > 0 {
-		n += 1 + l + sovTaskdata(uint64(l))
+	if m.State != 0 {
+		n += 1 + sovTaskdata(uint64(m.State))
 	}
 	l = len(m.Reason)
 	if l > 0 {
@@ -1614,12 +1432,6 @@ func (m *TaskData) Size() (n int) {
 			n += 2 + l + sovTaskdata(uint64(l))
 		}
 	}
-	if len(m.PartnerList) > 0 {
-		for _, e := range m.PartnerList {
-			l = e.Size()
-			n += 2 + l + sovTaskdata(uint64(l))
-		}
-	}
 	if len(m.TaskEventList) > 0 {
 		for _, e := range m.TaskEventList {
 			l = e.Size()
@@ -1644,10 +1456,6 @@ func (m *TaskData) Size() (n int) {
 	}
 	if m.UserType != 0 {
 		n += 2 + sovTaskdata(uint64(m.UserType))
-	}
-	if m.Sender != nil {
-		l = m.Sender.Size()
-		n += 2 + l + sovTaskdata(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1711,9 +1519,8 @@ func (m *TaskDetail) Size() (n int) {
 	if m.EndAt != 0 {
 		n += 1 + sovTaskdata(uint64(m.EndAt))
 	}
-	l = len(m.State)
-	if l > 0 {
-		n += 1 + l + sovTaskdata(uint64(l))
+	if m.State != 0 {
+		n += 1 + sovTaskdata(uint64(m.State))
 	}
 	if m.OperationCost != nil {
 		l = m.OperationCost.Size()
@@ -1721,7 +1528,7 @@ func (m *TaskDetail) Size() (n int) {
 	}
 	l = len(m.Desc)
 	if l > 0 {
-		n += 2 + l + sovTaskdata(uint64(l))
+		n += 1 + l + sovTaskdata(uint64(l))
 	}
 	if len(m.TaskEventList) > 0 {
 		for _, e := range m.TaskEventList {
@@ -1748,28 +1555,6 @@ func (m *TaskPowerSupplier) Size() (n int) {
 	if m.ResourceUsedOverview != nil {
 		l = m.ResourceUsedOverview.Size()
 		n += 1 + l + sovTaskdata(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
-func (m *TaskResultReceiver) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Receiver != nil {
-		l = m.Receiver.Size()
-		n += 1 + l + sovTaskdata(uint64(l))
-	}
-	if len(m.Providers) > 0 {
-		for _, e := range m.Providers {
-			l = e.Size()
-			n += 1 + l + sovTaskdata(uint64(l))
-		}
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -2002,10 +1787,10 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 			m.DataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataStatus", wireType)
 			}
-			var stringLen uint64
+			m.DataStatus = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTaskdata
@@ -2015,24 +1800,11 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.DataStatus |= common.DataStatus(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.DataStatus = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TaskId", wireType)
@@ -2098,10 +1870,10 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 			m.TaskName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 8:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
-			var stringLen uint64
+			m.State = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTaskdata
@@ -2111,24 +1883,11 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.State |= common.TaskState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.State = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 9:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Reason", wireType)
@@ -2470,46 +2229,12 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Receivers = append(m.Receivers, &TaskResultReceiver{})
+			m.Receivers = append(m.Receivers, &common.TaskOrganization{})
 			if err := m.Receivers[len(m.Receivers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 25:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PartnerList", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTaskdata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PartnerList = append(m.PartnerList, &common.TaskOrganization{})
-			if err := m.PartnerList[len(m.PartnerList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 26:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TaskEventList", wireType)
 			}
@@ -2543,7 +2268,7 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 27:
+		case 26:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CalculateContractCode", wireType)
 			}
@@ -2575,7 +2300,7 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 			}
 			m.CalculateContractCode = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 28:
+		case 27:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataSplitContractCode", wireType)
 			}
@@ -2607,7 +2332,7 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 			}
 			m.DataSplitContractCode = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 29:
+		case 28:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ContractExtraParams", wireType)
 			}
@@ -2639,7 +2364,7 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 			}
 			m.ContractExtraParams = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 30:
+		case 29:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
 			}
@@ -2671,7 +2396,7 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 			}
 			m.User = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 31:
+		case 30:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
 			}
@@ -2690,42 +2415,6 @@ func (m *TaskData) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 32:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTaskdata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Sender == nil {
-				m.Sender = &common.TaskOrganization{}
-			}
-			if err := m.Sender.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTaskdata(dAtA[iNdEx:])
@@ -3061,7 +2750,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Receivers = append(m.Receivers, &TaskResultReceiver{})
+			m.Receivers = append(m.Receivers, &common.TaskOrganization{})
 			if err := m.Receivers[len(m.Receivers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -3124,10 +2813,10 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 13:
-			if wireType != 2 {
+			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
-			var stringLen uint64
+			m.State = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTaskdata
@@ -3137,24 +2826,11 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.State |= common.TaskState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.State = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 14:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OperationCost", wireType)
@@ -3191,7 +2867,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 21:
+		case 15:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
 			}
@@ -3223,7 +2899,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 			}
 			m.Desc = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 22:
+		case 16:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TaskEventList", wireType)
 			}
@@ -3377,127 +3053,6 @@ func (m *TaskPowerSupplier) Unmarshal(dAtA []byte) error {
 				m.ResourceUsedOverview = &ResourceUsageOverview{}
 			}
 			if err := m.ResourceUsedOverview.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipTaskdata(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *TaskResultReceiver) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowTaskdata
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: TaskResultReceiver: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: TaskResultReceiver: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Receiver", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTaskdata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Receiver == nil {
-				m.Receiver = &common.TaskOrganization{}
-			}
-			if err := m.Receiver.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Providers", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTaskdata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTaskdata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Providers = append(m.Providers, &common.TaskOrganization{})
-			if err := m.Providers[len(m.Providers)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

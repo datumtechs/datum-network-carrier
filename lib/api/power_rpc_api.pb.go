@@ -30,10 +30,10 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-//  ------------------------  power  ------------------------
+// 单个组织的总算力信息
 type GetPowerTotalDetailResponse struct {
 	Owner                *common.Organization    `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	Power                *types.PowerTotalDetail `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
+	Power                *types.PowerUsageDetail `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
 	XXX_unrecognized     []byte                  `json:"-"`
 	XXX_sizecache        int32                   `json:"-"`
@@ -79,13 +79,14 @@ func (m *GetPowerTotalDetailResponse) GetOwner() *common.Organization {
 	return nil
 }
 
-func (m *GetPowerTotalDetailResponse) GetPower() *types.PowerTotalDetail {
+func (m *GetPowerTotalDetailResponse) GetPower() *types.PowerUsageDetail {
 	if m != nil {
 		return m.Power
 	}
 	return nil
 }
 
+// 全网各个组织的总算力列表 resp
 type GetPowerTotalDetailListResponse struct {
 	Status               int32                          `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                         `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -149,66 +150,22 @@ func (m *GetPowerTotalDetailListResponse) GetPowerList() []*GetPowerTotalDetailR
 	return nil
 }
 
-type PublishPowerRequest struct {
-	JobNodeId            string   `protobuf:"bytes,1,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *PublishPowerRequest) Reset()         { *m = PublishPowerRequest{} }
-func (m *PublishPowerRequest) String() string { return proto.CompactTextString(m) }
-func (*PublishPowerRequest) ProtoMessage()    {}
-func (*PublishPowerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e5594bc2f9a3f125, []int{2}
-}
-func (m *PublishPowerRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *PublishPowerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_PublishPowerRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *PublishPowerRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PublishPowerRequest.Merge(m, src)
-}
-func (m *PublishPowerRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *PublishPowerRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_PublishPowerRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_PublishPowerRequest proto.InternalMessageInfo
-
-func (m *PublishPowerRequest) GetJobNodeId() string {
-	if m != nil {
-		return m.JobNodeId
-	}
-	return ""
-}
-
+// 单个组织的单个算力信息
 type GetPowerSingleDetailResponse struct {
-	Owner                *common.Organization     `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	Power                *types.PowerSingleDetail `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
-	XXX_unrecognized     []byte                   `json:"-"`
-	XXX_sizecache        int32                    `json:"-"`
+	Owner                *common.Organization    `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	Power                *types.PowerUsageDetail `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
+	JobNodeId            string                  `protobuf:"bytes,3,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
+	PowerId              string                  `protobuf:"bytes,4,opt,name=power_id,json=powerId,proto3" json:"power_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
+	XXX_unrecognized     []byte                  `json:"-"`
+	XXX_sizecache        int32                   `json:"-"`
 }
 
 func (m *GetPowerSingleDetailResponse) Reset()         { *m = GetPowerSingleDetailResponse{} }
 func (m *GetPowerSingleDetailResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleDetailResponse) ProtoMessage()    {}
 func (*GetPowerSingleDetailResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e5594bc2f9a3f125, []int{3}
+	return fileDescriptor_e5594bc2f9a3f125, []int{2}
 }
 func (m *GetPowerSingleDetailResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -244,13 +201,28 @@ func (m *GetPowerSingleDetailResponse) GetOwner() *common.Organization {
 	return nil
 }
 
-func (m *GetPowerSingleDetailResponse) GetPower() *types.PowerSingleDetail {
+func (m *GetPowerSingleDetailResponse) GetPower() *types.PowerUsageDetail {
 	if m != nil {
 		return m.Power
 	}
 	return nil
 }
 
+func (m *GetPowerSingleDetailResponse) GetJobNodeId() string {
+	if m != nil {
+		return m.JobNodeId
+	}
+	return ""
+}
+
+func (m *GetPowerSingleDetailResponse) GetPowerId() string {
+	if m != nil {
+		return m.PowerId
+	}
+	return ""
+}
+
+// 单个组织的多个算力信息列表 resp
 type GetPowerSingleDetailListResponse struct {
 	Status               int32                           `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                          `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -264,7 +236,7 @@ func (m *GetPowerSingleDetailListResponse) Reset()         { *m = GetPowerSingle
 func (m *GetPowerSingleDetailListResponse) String() string { return proto.CompactTextString(m) }
 func (*GetPowerSingleDetailListResponse) ProtoMessage()    {}
 func (*GetPowerSingleDetailListResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_e5594bc2f9a3f125, []int{4}
+	return fileDescriptor_e5594bc2f9a3f125, []int{3}
 }
 func (m *GetPowerSingleDetailListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -314,6 +286,55 @@ func (m *GetPowerSingleDetailListResponse) GetPowerList() []*GetPowerSingleDetai
 	return nil
 }
 
+// 启用算力 req
+type PublishPowerRequest struct {
+	JobNodeId            string   `protobuf:"bytes,1,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PublishPowerRequest) Reset()         { *m = PublishPowerRequest{} }
+func (m *PublishPowerRequest) String() string { return proto.CompactTextString(m) }
+func (*PublishPowerRequest) ProtoMessage()    {}
+func (*PublishPowerRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_e5594bc2f9a3f125, []int{4}
+}
+func (m *PublishPowerRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *PublishPowerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_PublishPowerRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *PublishPowerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PublishPowerRequest.Merge(m, src)
+}
+func (m *PublishPowerRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *PublishPowerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PublishPowerRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PublishPowerRequest proto.InternalMessageInfo
+
+func (m *PublishPowerRequest) GetJobNodeId() string {
+	if m != nil {
+		return m.JobNodeId
+	}
+	return ""
+}
+
+// 启用算力 resp
 type PublishPowerResponse struct {
 	Status               int32    `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string   `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -377,6 +398,7 @@ func (m *PublishPowerResponse) GetPowerId() string {
 	return ""
 }
 
+// 停用算力 req
 type RevokePowerRequest struct {
 	PowerId              string   `protobuf:"bytes,1,opt,name=power_id,json=powerId,proto3" json:"power_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -427,9 +449,9 @@ func (m *RevokePowerRequest) GetPowerId() string {
 func init() {
 	proto.RegisterType((*GetPowerTotalDetailResponse)(nil), "rpcapi.GetPowerTotalDetailResponse")
 	proto.RegisterType((*GetPowerTotalDetailListResponse)(nil), "rpcapi.GetPowerTotalDetailListResponse")
-	proto.RegisterType((*PublishPowerRequest)(nil), "rpcapi.PublishPowerRequest")
 	proto.RegisterType((*GetPowerSingleDetailResponse)(nil), "rpcapi.GetPowerSingleDetailResponse")
 	proto.RegisterType((*GetPowerSingleDetailListResponse)(nil), "rpcapi.GetPowerSingleDetailListResponse")
+	proto.RegisterType((*PublishPowerRequest)(nil), "rpcapi.PublishPowerRequest")
 	proto.RegisterType((*PublishPowerResponse)(nil), "rpcapi.PublishPowerResponse")
 	proto.RegisterType((*RevokePowerRequest)(nil), "rpcapi.RevokePowerRequest")
 }
@@ -437,47 +459,48 @@ func init() {
 func init() { proto.RegisterFile("lib/api/power_rpc_api.proto", fileDescriptor_e5594bc2f9a3f125) }
 
 var fileDescriptor_e5594bc2f9a3f125 = []byte{
-	// 634 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x94, 0x41, 0x4f, 0xd4, 0x4e,
-	0x18, 0xc6, 0x33, 0x6c, 0xe0, 0xff, 0xdf, 0x59, 0x0e, 0xa6, 0x2a, 0x94, 0xee, 0xba, 0xae, 0x85,
-	0x08, 0x92, 0xd0, 0x2a, 0xc6, 0x98, 0x70, 0x04, 0x95, 0x90, 0x18, 0x25, 0xc5, 0x93, 0x1e, 0x36,
-	0xd3, 0xf6, 0x65, 0x19, 0xe8, 0x76, 0xc6, 0x99, 0x29, 0x04, 0x0f, 0xc6, 0x90, 0x78, 0x36, 0xc6,
-	0x2f, 0xe5, 0xd1, 0xc4, 0x2f, 0x60, 0x88, 0x9f, 0xc2, 0x93, 0xe9, 0x4c, 0x17, 0x5b, 0xb7, 0x6c,
-	0xa2, 0xde, 0x76, 0xe6, 0x7d, 0xdf, 0xf9, 0x3d, 0xf3, 0x3c, 0x3b, 0xc5, 0xed, 0x84, 0x86, 0x3e,
-	0xe1, 0xd4, 0xe7, 0xec, 0x04, 0x44, 0x5f, 0xf0, 0xa8, 0x4f, 0x38, 0xf5, 0xb8, 0x60, 0x8a, 0x59,
-	0x33, 0x82, 0x47, 0x84, 0x53, 0xe7, 0x7a, 0xde, 0x14, 0xb1, 0xe1, 0x90, 0xa5, 0x7e, 0x48, 0x24,
-	0x98, 0x72, 0x65, 0x3b, 0x26, 0x8a, 0x14, 0xdb, 0x9d, 0x7c, 0x5b, 0x9d, 0x72, 0x90, 0xbe, 0x00,
-	0xc9, 0x32, 0x11, 0x41, 0xa9, 0xea, 0x8c, 0x80, 0x8a, 0xc8, 0xa3, 0x2a, 0xcf, 0xe9, 0x0c, 0x18,
-	0x1b, 0x24, 0xa0, 0xcb, 0x24, 0x4d, 0x99, 0x22, 0x8a, 0xb2, 0x54, 0x16, 0xd5, 0x76, 0x51, 0xd5,
-	0xab, 0x30, 0xdb, 0xf7, 0x61, 0xc8, 0xd5, 0xa9, 0x29, 0xba, 0x6f, 0x71, 0x7b, 0x1b, 0xd4, 0x6e,
-	0x7e, 0x89, 0x17, 0x4c, 0x91, 0xe4, 0x11, 0x28, 0x42, 0x93, 0x00, 0x24, 0x67, 0xa9, 0x04, 0xeb,
-	0x2e, 0x9e, 0x66, 0x27, 0x29, 0x08, 0x1b, 0xf5, 0xd0, 0x4a, 0x6b, 0xdd, 0xf1, 0x2e, 0xa0, 0x61,
-	0xb6, 0xef, 0x3d, 0x17, 0x03, 0x92, 0xd2, 0x37, 0x9a, 0x16, 0x98, 0x46, 0x6b, 0x0d, 0x4f, 0x6b,
-	0x4b, 0xec, 0x29, 0x3d, 0x31, 0xef, 0xe9, 0x1b, 0x79, 0x63, 0x04, 0xd3, 0xe5, 0x7e, 0x40, 0xf8,
-	0x66, 0x8d, 0x80, 0xa7, 0x54, 0xaa, 0x0b, 0x11, 0x73, 0x78, 0x46, 0x2a, 0xa2, 0x32, 0xa9, 0x55,
-	0x4c, 0x07, 0xc5, 0xca, 0xba, 0x82, 0x1b, 0x43, 0x39, 0xd0, 0xa0, 0x66, 0x90, 0xff, 0xb4, 0x36,
-	0x31, 0x36, 0x79, 0x24, 0x54, 0x2a, 0xbb, 0xd1, 0x6b, 0xac, 0xb4, 0xd6, 0x17, 0x3d, 0x93, 0x86,
-	0x37, 0xe1, 0x9e, 0x41, 0x53, 0x8f, 0xe5, 0x54, 0xf7, 0x01, 0xbe, 0xba, 0x9b, 0x85, 0x09, 0x95,
-	0x07, 0xba, 0x3b, 0x80, 0xd7, 0x19, 0x48, 0x65, 0x75, 0x71, 0xeb, 0x90, 0x85, 0xfd, 0x94, 0xc5,
-	0xd0, 0xa7, 0xb1, 0x56, 0xd2, 0x0c, 0x9a, 0x87, 0x2c, 0x7c, 0xc6, 0x62, 0xd8, 0x89, 0xdd, 0x77,
-	0x08, 0x77, 0x46, 0x84, 0x3d, 0x9a, 0x0e, 0x12, 0xf8, 0x67, 0x2b, 0xbd, 0xaa, 0x95, 0x76, 0xd9,
-	0xca, 0x0a, 0xa2, 0xf0, 0xf2, 0x23, 0xc2, 0xbd, 0x3a, 0x09, 0x7f, 0x69, 0xe6, 0x56, 0x8d, 0x99,
-	0x4b, 0xbf, 0x9b, 0x59, 0x77, 0xd5, 0xb2, 0x9b, 0xaf, 0xf0, 0xb5, 0xaa, 0x9b, 0x7f, 0x2c, 0x63,
-	0x01, 0xff, 0x6f, 0x64, 0xd0, 0xd8, 0x6e, 0xe8, 0xed, 0xff, 0xf4, 0x7a, 0x27, 0x76, 0x7d, 0x6c,
-	0x05, 0x70, 0xcc, 0x8e, 0xa0, 0x92, 0x54, 0x79, 0x00, 0x55, 0x06, 0xd6, 0x7f, 0x34, 0xf0, 0xac,
-	0x91, 0x0d, 0xe2, 0x98, 0x46, 0x60, 0x9d, 0x21, 0x3c, 0x7f, 0xc9, 0xdf, 0xcf, 0x9a, 0xf3, 0xcc,
-	0xc3, 0xf9, 0x15, 0xd2, 0xe3, 0xfc, 0xe1, 0x38, 0xcb, 0x13, 0xfe, 0x50, 0x65, 0xab, 0xdd, 0xdb,
-	0x67, 0x5f, 0xbf, 0x7f, 0x9a, 0xea, 0xb9, 0x6d, 0x3f, 0x22, 0x42, 0x50, 0x10, 0xfe, 0xf1, 0x3d,
-	0xf3, 0xbd, 0xf0, 0x55, 0x3e, 0x92, 0x37, 0x6f, 0xa0, 0x55, 0xeb, 0x3d, 0xc2, 0xf6, 0x65, 0xb9,
-	0x5d, 0xaa, 0x62, 0x65, 0x52, 0x12, 0x15, 0x19, 0xcb, 0x5a, 0xc6, 0x2d, 0xb7, 0x33, 0x2e, 0x43,
-	0xea, 0x99, 0x91, 0x0e, 0x86, 0x67, 0xcb, 0x59, 0x59, 0xed, 0x11, 0xa2, 0xe6, 0x3d, 0x38, 0x9d,
-	0xfa, 0x62, 0xc1, 0x5c, 0xd2, 0xcc, 0xae, 0xbb, 0x30, 0xce, 0xe4, 0xa6, 0x3f, 0x07, 0x26, 0xb8,
-	0x55, 0xca, 0xcf, 0x72, 0x46, 0x47, 0x8e, 0x87, 0xea, 0x74, 0xaa, 0xcf, 0x65, 0x8f, 0x0e, 0x79,
-	0x02, 0x17, 0xb8, 0x45, 0x8d, 0xbb, 0xe1, 0xda, 0xe3, 0x38, 0xa1, 0xcf, 0xda, 0x40, 0xab, 0x9b,
-	0x0f, 0x3f, 0x9f, 0x77, 0xd1, 0x97, 0xf3, 0x2e, 0xfa, 0x76, 0xde, 0x45, 0x2f, 0xef, 0x0c, 0xa8,
-	0x3a, 0xc8, 0x42, 0x2f, 0x62, 0x43, 0x3f, 0x60, 0x12, 0x94, 0x22, 0x4f, 0x12, 0x76, 0xe2, 0x6f,
-	0x99, 0x03, 0xd6, 0xb6, 0x99, 0x5f, 0x7c, 0x71, 0xc3, 0x19, 0x8d, 0xbd, 0xff, 0x33, 0x00, 0x00,
-	0xff, 0xff, 0xa0, 0x0d, 0xf2, 0x54, 0xf4, 0x05, 0x00, 0x00,
+	// 642 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x94, 0x41, 0x4f, 0xd4, 0x40,
+	0x14, 0xc7, 0x33, 0xac, 0xa0, 0xcc, 0x72, 0x30, 0xa3, 0x42, 0xe9, 0xae, 0xeb, 0x5a, 0x88, 0x20,
+	0x09, 0xad, 0x62, 0x8c, 0x09, 0x47, 0x50, 0x09, 0x89, 0x51, 0x52, 0xf4, 0xa2, 0x87, 0xcd, 0xb4,
+	0x7d, 0x94, 0x81, 0x6e, 0xa7, 0xce, 0x4c, 0x21, 0x78, 0xf0, 0x40, 0xe2, 0xd9, 0x18, 0xbf, 0x8d,
+	0x9f, 0xc0, 0xa3, 0x89, 0x5f, 0xc0, 0x10, 0x3f, 0x85, 0x27, 0xd3, 0x99, 0x2e, 0xb6, 0xec, 0x42,
+	0xa2, 0x07, 0x6f, 0x9d, 0x79, 0xef, 0xcd, 0xef, 0xff, 0xde, 0x7f, 0xa6, 0xb8, 0x95, 0xb0, 0xc0,
+	0xa3, 0x19, 0xf3, 0x32, 0x7e, 0x08, 0xa2, 0x27, 0xb2, 0xb0, 0x47, 0x33, 0xe6, 0x66, 0x82, 0x2b,
+	0x4e, 0x26, 0x44, 0x16, 0xd2, 0x8c, 0xd9, 0x37, 0x8a, 0xa4, 0x90, 0xf7, 0xfb, 0x3c, 0xf5, 0x02,
+	0x2a, 0xc1, 0x84, 0x6b, 0xdb, 0x11, 0x55, 0xb4, 0xdc, 0x6e, 0x17, 0xdb, 0xea, 0x28, 0x03, 0xe9,
+	0x09, 0x90, 0x3c, 0x17, 0x21, 0x54, 0xa2, 0xf6, 0x00, 0xa8, 0xa8, 0xdc, 0xaf, 0xf3, 0xec, 0x76,
+	0xcc, 0x79, 0x9c, 0x80, 0x0e, 0xd3, 0x34, 0xe5, 0x8a, 0x2a, 0xc6, 0x53, 0x59, 0x46, 0x5b, 0x65,
+	0x54, 0xaf, 0x82, 0x7c, 0xc7, 0x83, 0x7e, 0xa6, 0x8e, 0x4c, 0xd0, 0x79, 0x8f, 0x5b, 0x1b, 0xa0,
+	0xb6, 0x8a, 0x26, 0x5e, 0x72, 0x45, 0x93, 0xc7, 0xa0, 0x28, 0x4b, 0x7c, 0x90, 0x19, 0x4f, 0x25,
+	0x90, 0x7b, 0x78, 0x9c, 0x1f, 0xa6, 0x20, 0x2c, 0xd4, 0x45, 0x8b, 0xcd, 0x15, 0xdb, 0x3d, 0x85,
+	0x06, 0xf9, 0x8e, 0xfb, 0x42, 0xc4, 0x34, 0x65, 0xef, 0x34, 0xcd, 0x37, 0x89, 0x64, 0x19, 0x8f,
+	0xeb, 0x91, 0x58, 0x63, 0xba, 0x62, 0xc6, 0xd5, 0x1d, 0xb9, 0x9a, 0xf0, 0x4a, 0xd2, 0x18, 0x4a,
+	0x82, 0xc9, 0x72, 0x3e, 0x22, 0x7c, 0x6b, 0x84, 0x80, 0x67, 0x4c, 0xaa, 0x53, 0x11, 0xd3, 0x78,
+	0x42, 0x2a, 0xaa, 0x72, 0xa9, 0x55, 0x8c, 0xfb, 0xe5, 0x8a, 0x5c, 0xc5, 0x8d, 0xbe, 0x8c, 0x35,
+	0x68, 0xd2, 0x2f, 0x3e, 0xc9, 0x1a, 0xc6, 0xc6, 0x8f, 0x84, 0x49, 0x65, 0x35, 0xba, 0x8d, 0xc5,
+	0xe6, 0xca, 0x9c, 0x6b, 0xdc, 0x70, 0x2f, 0xe8, 0xd3, 0x9f, 0xd4, 0x65, 0x05, 0xd5, 0xf9, 0x82,
+	0x70, 0x7b, 0x90, 0xba, 0xcd, 0xd2, 0x38, 0x81, 0xff, 0x3c, 0x13, 0xd2, 0xc1, 0xcd, 0x3d, 0x1e,
+	0xf4, 0x52, 0x1e, 0x41, 0x8f, 0x45, 0x56, 0x43, 0xf7, 0x37, 0xb9, 0xc7, 0x83, 0xe7, 0x3c, 0x82,
+	0xcd, 0x88, 0xcc, 0xe2, 0x2b, 0xa6, 0x4b, 0x16, 0x59, 0x97, 0x74, 0xf0, 0xb2, 0x5e, 0x6f, 0x46,
+	0xce, 0x27, 0x84, 0xbb, 0xa3, 0xc4, 0xff, 0xe3, 0x3c, 0xd7, 0x47, 0xcc, 0x73, 0xfe, 0xec, 0x3c,
+	0x47, 0x0d, 0xa9, 0x3a, 0xd0, 0x87, 0xf8, 0xda, 0x56, 0x1e, 0x24, 0x4c, 0xee, 0xea, 0x74, 0x1f,
+	0xde, 0xe6, 0x20, 0xd5, 0xd9, 0x2e, 0xd1, 0x99, 0x2e, 0x9d, 0x37, 0xf8, 0x7a, 0xbd, 0xec, 0xaf,
+	0xd5, 0x57, 0xe7, 0xd4, 0xa8, 0xcf, 0xc9, 0xc3, 0xc4, 0x87, 0x03, 0xbe, 0x0f, 0x35, 0x49, 0xd5,
+	0x02, 0x54, 0x2b, 0x58, 0xf9, 0xd5, 0xc0, 0x53, 0xa6, 0x5b, 0x10, 0x07, 0x2c, 0x04, 0x72, 0x8c,
+	0xf0, 0xcc, 0x39, 0x17, 0x97, 0x4c, 0xbb, 0xe6, 0xc9, 0xfd, 0xb9, 0x15, 0x4f, 0x8a, 0x27, 0x67,
+	0x2f, 0x5c, 0x70, 0x15, 0xab, 0x0e, 0x39, 0x77, 0x8e, 0xbf, 0xff, 0xfc, 0x3c, 0xd6, 0x75, 0x5a,
+	0x5e, 0x48, 0x85, 0x60, 0x20, 0xbc, 0x83, 0xfb, 0xe6, 0x4f, 0xe3, 0xa9, 0xa2, 0xa4, 0x48, 0x5e,
+	0x45, 0x4b, 0xe4, 0x03, 0xc2, 0xd6, 0x79, 0x76, 0x9f, 0xab, 0x62, 0xf1, 0x22, 0x03, 0x6b, 0x32,
+	0x16, 0xb4, 0x8c, 0xdb, 0x4e, 0x7b, 0x58, 0x86, 0xd4, 0x35, 0x03, 0x1d, 0x1c, 0x4f, 0x55, 0xbd,
+	0x22, 0xad, 0x01, 0x62, 0x84, 0xf1, 0x76, 0x7b, 0x74, 0xb0, 0x64, 0xce, 0x6b, 0x66, 0xc7, 0x99,
+	0x1d, 0x66, 0x66, 0x26, 0xbf, 0x00, 0x26, 0xb8, 0x59, 0xf1, 0x8f, 0xd8, 0x83, 0x23, 0x87, 0x4d,
+	0xb5, 0xdb, 0xf5, 0xf7, 0xb9, 0xcd, 0xfa, 0x59, 0x02, 0xa7, 0xb8, 0x39, 0x8d, 0xbb, 0xe9, 0x58,
+	0xc3, 0x38, 0xa1, 0xcf, 0x5a, 0x45, 0x4b, 0x6b, 0x8f, 0xbe, 0x9e, 0x74, 0xd0, 0xb7, 0x93, 0x0e,
+	0xfa, 0x71, 0xd2, 0x41, 0xaf, 0xef, 0xc6, 0x4c, 0xed, 0xe6, 0x81, 0x1b, 0xf2, 0xbe, 0xe7, 0x73,
+	0x09, 0x4a, 0xd1, 0xa7, 0x09, 0x3f, 0xf4, 0xd6, 0xcd, 0x01, 0xcb, 0x1b, 0xdc, 0x2b, 0xff, 0xd5,
+	0xc1, 0x84, 0xc6, 0x3e, 0xf8, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x87, 0x5d, 0x79, 0xc9, 0x2e, 0x06,
+	0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -492,9 +515,9 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PowerServiceClient interface {
-	// 查看各个节点的总算力详情列表
+	// 查看全网各个组织的总算力详情列表
 	GetPowerTotalDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerTotalDetailListResponse, error)
-	// 查看某个节点各个单算力详情列表
+	// 查看本组织的各个单算力详情列表
 	GetPowerSingleDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerSingleDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(ctx context.Context, in *PublishPowerRequest, opts ...grpc.CallOption) (*PublishPowerResponse, error)
@@ -548,9 +571,9 @@ func (c *powerServiceClient) RevokePower(ctx context.Context, in *RevokePowerReq
 
 // PowerServiceServer is the server API for PowerService service.
 type PowerServiceServer interface {
-	// 查看各个节点的总算力详情列表
+	// 查看全网各个组织的总算力详情列表
 	GetPowerTotalDetailList(context.Context, *emptypb.Empty) (*GetPowerTotalDetailListResponse, error)
-	// 查看某个节点各个单算力详情列表
+	// 查看本组织的各个单算力详情列表
 	GetPowerSingleDetailList(context.Context, *emptypb.Empty) (*GetPowerSingleDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(context.Context, *PublishPowerRequest) (*PublishPowerResponse, error)
@@ -780,40 +803,6 @@ func (m *GetPowerTotalDetailListResponse) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *PublishPowerRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *PublishPowerRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *PublishPowerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.XXX_unrecognized != nil {
-		i -= len(m.XXX_unrecognized)
-		copy(dAtA[i:], m.XXX_unrecognized)
-	}
-	if len(m.JobNodeId) > 0 {
-		i -= len(m.JobNodeId)
-		copy(dAtA[i:], m.JobNodeId)
-		i = encodeVarintPowerRpcApi(dAtA, i, uint64(len(m.JobNodeId)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *GetPowerSingleDetailResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -837,6 +826,20 @@ func (m *GetPowerSingleDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	if m.XXX_unrecognized != nil {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.PowerId) > 0 {
+		i -= len(m.PowerId)
+		copy(dAtA[i:], m.PowerId)
+		i = encodeVarintPowerRpcApi(dAtA, i, uint64(len(m.PowerId)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.JobNodeId) > 0 {
+		i -= len(m.JobNodeId)
+		copy(dAtA[i:], m.JobNodeId)
+		i = encodeVarintPowerRpcApi(dAtA, i, uint64(len(m.JobNodeId)))
+		i--
+		dAtA[i] = 0x1a
 	}
 	if m.Power != nil {
 		{
@@ -914,6 +917,40 @@ func (m *GetPowerSingleDetailListResponse) MarshalToSizedBuffer(dAtA []byte) (in
 		i = encodeVarintPowerRpcApi(dAtA, i, uint64(m.Status))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *PublishPowerRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *PublishPowerRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *PublishPowerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if len(m.JobNodeId) > 0 {
+		i -= len(m.JobNodeId)
+		copy(dAtA[i:], m.JobNodeId)
+		i = encodeVarintPowerRpcApi(dAtA, i, uint64(len(m.JobNodeId)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1054,22 +1091,6 @@ func (m *GetPowerTotalDetailListResponse) Size() (n int) {
 	return n
 }
 
-func (m *PublishPowerRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.JobNodeId)
-	if l > 0 {
-		n += 1 + l + sovPowerRpcApi(uint64(l))
-	}
-	if m.XXX_unrecognized != nil {
-		n += len(m.XXX_unrecognized)
-	}
-	return n
-}
-
 func (m *GetPowerSingleDetailResponse) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1082,6 +1103,14 @@ func (m *GetPowerSingleDetailResponse) Size() (n int) {
 	}
 	if m.Power != nil {
 		l = m.Power.Size()
+		n += 1 + l + sovPowerRpcApi(uint64(l))
+	}
+	l = len(m.JobNodeId)
+	if l > 0 {
+		n += 1 + l + sovPowerRpcApi(uint64(l))
+	}
+	l = len(m.PowerId)
+	if l > 0 {
 		n += 1 + l + sovPowerRpcApi(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
@@ -1108,6 +1137,22 @@ func (m *GetPowerSingleDetailListResponse) Size() (n int) {
 			l = e.Size()
 			n += 1 + l + sovPowerRpcApi(uint64(l))
 		}
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *PublishPowerRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.JobNodeId)
+	if l > 0 {
+		n += 1 + l + sovPowerRpcApi(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1255,7 +1300,7 @@ func (m *GetPowerTotalDetailResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Power == nil {
-				m.Power = &types.PowerTotalDetail{}
+				m.Power = &types.PowerUsageDetail{}
 			}
 			if err := m.Power.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1419,89 +1464,6 @@ func (m *GetPowerTotalDetailListResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *PublishPowerRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPowerRpcApi
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: PublishPowerRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PublishPowerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPowerRpcApi
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPowerRpcApi
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPowerRpcApi
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.JobNodeId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPowerRpcApi(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPowerRpcApi
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *GetPowerSingleDetailResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -1597,11 +1559,75 @@ func (m *GetPowerSingleDetailResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Power == nil {
-				m.Power = &types.PowerSingleDetail{}
+				m.Power = &types.PowerUsageDetail{}
 			}
 			if err := m.Power.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPowerRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPowerRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPowerRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.JobNodeId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PowerId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPowerRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPowerRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPowerRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PowerId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1738,6 +1764,89 @@ func (m *GetPowerSingleDetailListResponse) Unmarshal(dAtA []byte) error {
 			if err := m.PowerList[len(m.PowerList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPowerRpcApi(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthPowerRpcApi
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *PublishPowerRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPowerRpcApi
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: PublishPowerRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: PublishPowerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPowerRpcApi
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthPowerRpcApi
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthPowerRpcApi
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.JobNodeId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

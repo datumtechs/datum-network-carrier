@@ -9,75 +9,75 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc";
 
 // 2pc prepare 阶段信息
 message PrepareMsg {
-    bytes                        proposal_id   = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Idbytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
-    bytes                        task_role     = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
-    bytes                        task_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
-    TaskOrganizationIdentityInfo owner         = 4;                  // PrepareMsg 发起人信息, 也是task 发起者
-    bytes                        taskInfo      = 5 [(gogoproto.moretags) = "ssz-max:\"16777216\""];               // 任务 types.TaskData serial by pb.
-    uint64                       create_at     = 6;              // proposal 创建的时间
-    bytes                        sign          = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 任务发起者签名
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Idbytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];      // The role information of the current recipient of the task
+  bytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];                // The role information of the current recipient of the task
+  bytes                        task_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  TaskOrganizationIdentityInfo owner = 4;                  // PrepareMsg 发起人信息, 也是task 发起者
+  bytes                        taskInfo = 5 [(gogoproto.moretags) = "ssz-max:\"16777216\""];           // 任务 types.TaskData serial by pb.
+  uint64                       create_at = 6;              // proposal 创建的时间
+  bytes                        sign = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 任务发起者签名
 }
 
 // 2pc prepareVote
 message PrepareVote {
-    bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
-    bytes                        task_role   = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];              // The role information of the current recipient of the task
-    TaskOrganizationIdentityInfo owner       = 3;                  // PrepareVote 投票人信息
-    bytes                        vote_option = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];            // PrepareVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
-    TaskPeerInfo                 peer_info   = 5;              // 投票yes时, 对任务提供的自身资源 ip:port
-    uint64                       create_at   = 6;              // vote 创建的时间
-    bytes                        sign        = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 投票发起者签名
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
+  bytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];               // The role information of the current recipient of the task
+  TaskOrganizationIdentityInfo owner = 3;                  // PrepareVote 投票人信息
+  bytes                        vote_option = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];              // PrepareVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
+  TaskPeerInfo                 peer_info = 5;              // 投票yes时, 对任务提供的自身资源 ip:port
+  uint64                       create_at = 6;              // vote 创建的时间
+  bytes                        sign = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 投票发起者签名
 }
 
 // 2pc confirm 阶段信息
 message ConfirmMsg {
-    bytes                        proposal_id   = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
-    bytes                        task_role     = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];
-    bytes                        task_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
-    TaskOrganizationIdentityInfo owner         = 4;                  // ConfirmMsg 发起者信息 <其实也就是 任务发起方的信息, 提案发起者的信息>
-    ConfirmTaskPeerInfo          peer_desc     = 5;              // task 各个参与方的 内部资源信息 (对外的ip:port, 做任务用的)
-    uint64                       create_at     = 6;              // ConfirmMsg 创建的时间
-    bytes                        sign          = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // ConfirmMsg 发起者签名
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
+  bytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];
+  bytes                        task_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  TaskOrganizationIdentityInfo owner = 4;                  // ConfirmMsg 发起者信息 <其实也就是 任务发起方的信息, 提案发起者的信息>
+  ConfirmTaskPeerInfo          peer_desc = 5;              // task 各个参与方的 内部资源信息 (对外的ip:port, 做任务用的)
+  uint64                       create_at = 6;              // ConfirmMsg 创建的时间
+  bytes                        sign = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // ConfirmMsg 发起者签名
 }
 
 // On ConfirmMsg, the task partners peerInfo
 message ConfirmTaskPeerInfo {
-    TaskPeerInfo          owner_peer_info                = 1;                          // task 发起方的 资源信息
-    repeated TaskPeerInfo data_supplier_peer_info_list   = 2;             // 数据参与方的 资源信息
-    repeated TaskPeerInfo power_supplier_peer_info_list  = 3;            // 算力参与方的 资源信息
-    repeated TaskPeerInfo result_receiver_peer_info_list = 4;           // 结果接收方的 资源信息
+  TaskPeerInfo          owner_peer_info = 1;                          // task 发起方的 资源信息
+  repeated TaskPeerInfo data_supplier_peer_info_list = 2;             // 数据参与方的 资源信息
+  repeated TaskPeerInfo power_supplier_peer_info_list = 3;            // 算力参与方的 资源信息
+  repeated TaskPeerInfo result_receiver_peer_info_list = 4;           // 结果接收方的 资源信息
 }
 
 // 2pc confirmVote
 message ConfirmVote {
 
-    bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
-    bytes                        task_role   = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];              // The role information of the current recipient of the task
-    TaskOrganizationIdentityInfo owner       = 3;                  // ConfirmVote 投票人信息
-    bytes                        vote_option = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];            // ConfirmVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
-    uint64                       create_at   = 5;              // vote 创建的时间
-    bytes                        sign        = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 投票发起者签名
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
+  bytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];                // The role information of the current recipient of the task
+  TaskOrganizationIdentityInfo owner = 3;                  // ConfirmVote 投票人信息
+  bytes                        vote_option = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];              // ConfirmVote 投票意见 (yes: 同意; no: 否决; abstention: 弃权)
+  uint64                       create_at = 5;              // vote 创建的时间
+  bytes                        sign = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 投票发起者签名
 
 }
 // 触发任务执行消息
 message CommitMsg {
-    bytes                        proposal_id   = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
-    bytes                        task_role     = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];
-    bytes                        task_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
-    TaskOrganizationIdentityInfo owner         = 4;                  // 提案人信息
-    uint64                       create_at     = 5;              // CommitMsg 创建的时间
-    bytes                        sign          = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // CommitMsg 发起者签名
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];            // 2pc 提案Id
+  bytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];
+  bytes                        task_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  TaskOrganizationIdentityInfo owner = 4;                  // 提案人信息
+  uint64                       create_at = 5;              // CommitMsg 创建的时间
+  bytes                        sign = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // CommitMsg 发起者签名
 }
 
 // 参与方反馈 各自对某个task的执行结果 (发给发起方)
 message TaskResultMsg {
-    bytes                        proposal_id     = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];                // 2pc 提案Id
-    bytes                        task_role       = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];                  // The role information of the current recipient of the task
-    bytes                        task_id         = 3 [(gogoproto.moretags) = "ssz-max:\"128\""];                    // 提案中对应的任务Id
-    TaskOrganizationIdentityInfo owner           = 4;            // taskResultMsg 发起者信息 (任务的参与方)
-    repeated TaskEvent           task_event_list = 5;            // 任务在该参与方上产生的event
-    uint64                       create_at       = 6;                  // TaskResultMsg 创建的时间
-    bytes                        sign            = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                       // TaskResultMsg 发起者签名
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];                // 2pc 提案Id
+  bytes                        task_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];                    // The role information of the current recipient of the task
+  bytes                        task_id = 3 [(gogoproto.moretags) = "ssz-max:\"128\""];                     // 提案中对应的任务Id
+  TaskOrganizationIdentityInfo owner = 4;            // taskResultMsg 发起者信息 (任务的参与方)
+  repeated TaskEvent           task_event_list = 5;            // 任务在该参与方上产生的event
+  uint64                       create_at = 6;                  // TaskResultMsg 创建的时间
+  bytes                        sign = 7 [(gogoproto.moretags) = "ssz-max:\"1024\""];                       // TaskResultMsg 发起者签名
 
 }
 
@@ -99,48 +99,48 @@ message TaskResultMsg {
 //}
 
 message DataSupplierOption {
-    TaskOrganizationIdentityInfo member_info       = 1;
-    bytes                        meta_data_id      = 2 [(gogoproto.moretags) = "ssz-max:\"64\""];
-    repeated uint64              column_index_list = 3;
+  TaskOrganizationIdentityInfo member_info = 1;
+  bytes                        meta_data_id = 2 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  repeated uint64              column_index_list = 3;
 }
 
 message PowerSupplierOption {
-    TaskOrganizationIdentityInfo member_info = 1;
+  TaskOrganizationIdentityInfo member_info = 1;
 }
 
 message ReceiverOption {
-    TaskOrganizationIdentityInfo          member_info = 1;
-    repeated TaskOrganizationIdentityInfo providers   = 2;
+  TaskOrganizationIdentityInfo          member_info = 1;
+  repeated TaskOrganizationIdentityInfo providers = 2;
 }
 
 
 // 任务的所需操作成本 (定义任务的大小)
 message TaskOperationCost {
-    uint64 cost_mem       = 1;               // 任务所需的内存 (单位: byte)
-    uint64 cost_processor = 2;         // 任务所需的核数 (单位: 个)
-    uint64 cost_bandwidth = 3;         // 任务所需的带宽 (单位: bps)
-    uint64 duration       = 4;               // 任务所需的运行时长 (单位: ms)
+  uint64 cost_mem = 1;               // 任务所需的内存 (单位: byte)
+  uint64 cost_processor = 2;         // 任务所需的核数 (单位: 个)
+  uint64 cost_bandwidth = 3;         // 任务所需的带宽 (单位: bps)
+  uint64 duration = 4;               // 任务所需的运行时长 (单位: ms)
 }
 
 message TaskPeerInfo {
-    bytes ip       = 1 [(gogoproto.moretags) = "ssz-max:\"64\""];
-    bytes port     = 2 [(gogoproto.moretags) = "ssz-max:\"64\""];
-    bytes party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  bytes ip = 1 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  bytes port = 2 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  bytes party_id = 3 [(gogoproto.moretags) = "ssz-max:\"64\""];
 }
 
 // 组织(节点)唯一标识抽象
 message TaskOrganizationIdentityInfo  {
-    bytes name        = 1 [(gogoproto.moretags) = "ssz-max:\"64\""];                           // 组织名称
-    bytes node_id     = 2 [(gogoproto.moretags) = "ssz-max:\"1024\""];                        // 组织中调度服务的 nodeId
-    bytes identity_id = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                    // 组织的身份标识Id
-    bytes party_id    = 4 [(gogoproto.moretags) = "ssz-max:\"64\""];
+  bytes name = 1 [(gogoproto.moretags) = "ssz-max:\"64\""];                             // 组织名称
+  bytes node_id = 2 [(gogoproto.moretags) = "ssz-max:\"1024\""];                        // 组织中调度服务的 nodeId
+  bytes identity_id = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                    // 组织的身份标识Id
+  bytes party_id = 4 [(gogoproto.moretags) = "ssz-max:\"64\""];
 }
 
 
 message TaskEvent {
-    bytes  type        = 1 [(gogoproto.moretags) = "ssz-max:\"32\""];                        // 事件类型码
-    bytes  task_id     = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];                     // 事件对应的任务id
-    bytes  identity_id = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                 // 产生事件的节点身份
-    bytes  content     = 4 [(gogoproto.moretags) = "ssz-max:\"2048\""];                     // 事件内容
-    uint64 create_at   = 5;                   // 事件产生时间
+  bytes  type = 1 [(gogoproto.moretags) = "ssz-max:\"32\""];                          // 事件类型码
+  bytes  task_id = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];                      // 事件对应的任务id
+  bytes  identity_id = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                 // 产生事件的节点身份
+  bytes  content = 4 [(gogoproto.moretags) = "ssz-max:\"2048\""];                     // 事件内容
+  uint64 create_at = 5;                   // 事件产生时间
 }
