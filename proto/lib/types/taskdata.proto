@@ -9,6 +9,7 @@ import "lib/types/metadata.proto";
 import "lib/types/identitydata.proto";
 import "lib/types/resourcedata.proto";
 
+
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 message TaskData {
@@ -16,10 +17,10 @@ message TaskData {
   string                                      node_id = 2;                                // 任务发起方的 组织的 p2p公钥
   string                                      node_name = 3;                              // 任务发起方的 组织的名称
   string                                      data_id = 4;                                //
-  DataStatus                                  data_status = 5;                            // the status of data, N means normal, D means deleted.
+  api.protobuf.DataStatus                     data_status = 5;                            // the status of data, N means normal, D means deleted.
   string                                      task_id = 6;                                // 任务Id
   string                                      task_name = 7;                              // 任务名称
-  TaskState                                   state = 8;                                  // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
+  api.protobuf.TaskState                      state = 8;                                  // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
   string                                      reason = 9;                                 // 任务失败原因
   uint32                                      event_count = 10;                           // 任务的事件个数
   string                                      desc = 11;                                  // 任务描述(非必须)
@@ -55,7 +56,7 @@ message TaskDetail {
   uint64                                          create_at = 10;                      // 任务的发起时间戳 (单位: ms)
   uint64                                          start_at = 11;                       // 任务的开始执行时间戳 (单位: ms)
   uint64                                          end_at = 12;                         // 任务的终止<成功or失败>时间戳 (单位: ms)
-  TaskState                                       state = 13;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
+  api.protobuf.TaskState                          state = 13;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
   api.protobuf.TaskResourceCostDeclare            operation_cost = 14;                 // 任务所需资源声明
   string                                          desc = 15;                           // 任务描述 (非必须)
   repeated TaskEvent                              task_event_list = 16;                // 任务所产生的所有事件列表
@@ -94,21 +95,3 @@ message TaskEvent {
   uint64 create_at = 5;                   // 事件产生时间戳 (单位: ms)
 }
 
-// 本组织在task中的角色
-enum TaskRole {
-  TaskRole_Unknown = 0;                   // 未知的任务角色
-  TaskRole_sender = 1;                    // 任务发起方
-  TaskRole_dataSupplier = 2;              // 数据提供方
-  TaskRole_powerSupplier = 3;             // 算力提供方
-  TaskRole_receiver = 4;                  // 结果接收方
-  TaskRole_algoSupplier = 5;              // 算法提供方
-}
-
-// task的状态
-enum TaskState {
-  TaskState_Unknown = 0;                  // 未知
-  TaskState_Pending = 1;                  // 等在中
-  TaskState_Running = 2;                  // 计算中
-  TaskState_failed = 3;                   // 失败
-  TaskState_succeed = 4;                  // 成功
-}

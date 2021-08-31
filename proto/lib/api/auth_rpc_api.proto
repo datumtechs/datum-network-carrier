@@ -47,7 +47,7 @@ message ApplyMetaDataAuthorityResponse {
 // 组织对用户的数据授权申请做审核 req
 message AuditMetaDataAuthorityRequest {
   string                    meta_data_auth_id = 1;                  // 元数据授权申请Id
-  types.AuditMetaDataOption audit = 2;                              // 审核意见
+  api.protobuf.AuditMetaDataOption audit = 2;                       // 审核意见
 }
 // 组织对用户的数据授权申请做审核 resp
 message AuditMetaDataAuthorityResponse {
@@ -55,7 +55,7 @@ message AuditMetaDataAuthorityResponse {
   int32 status = 1;
   // the message for response
   string msg = 2;
-  types.AuditMetaDataOption audit = 3;                              // 审核结果 (回显)
+  api.protobuf.AuditMetaDataOption audit = 3;                              // 审核结果 (回显)
 }
 
 // 当前组织的某个用户对单个元数据的授权申请及审核结果详情
@@ -64,7 +64,7 @@ message GetMetaDataAuthority {
   string                    user = 2;                            // 发起任务的用户的信息 (task是属于用户的)
   api.protobuf.UserType     user_type = 3;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
   types.MetaDataAuthority   auth = 4;                            // 元数据使用授权信息
-  types.AuditMetaDataOption audit = 5;                           // 审核结果
+  api.protobuf.AuditMetaDataOption audit = 5;                    // 审核结果
   uint64                    apply_at = 6;                        // 发起授权申请的时间 (单位: ms)
   uint64                    audit_at = 7;                        // 审核授权申请的时间 (单位: ms)
 }
