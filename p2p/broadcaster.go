@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/gogo/protobuf/proto"
 	"github.com/pkg/errors"
 	"go.opencensus.io/trace"
@@ -21,8 +20,8 @@ func (s *Service) Broadcast(ctx context.Context, msg proto.Message) error {
 	ctx, span := trace.StartSpan(ctx, "p2p.Broadcast")
 	defer span.End()
 
-	twoSlots := time.Duration(2*params.CarrierChainConfig().SecondsPerSlot) * time.Second
-	ctx, cancel := context.WithTimeout(ctx, twoSlots)
+	//twoSlots := time.Duration(2*params.CarrierChainConfig().SecondsPerSlot) * time.Second
+	ctx, cancel := context.WithTimeout(ctx, 5 * time.Second)
 	defer cancel()
 
 	forkDigest, err := s.forkDigest()
