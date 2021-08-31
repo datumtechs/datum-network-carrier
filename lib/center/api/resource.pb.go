@@ -9,10 +9,10 @@ import (
 	common "github.com/RosettaFlow/Carrier-Go/lib/common"
 	types "github.com/RosettaFlow/Carrier-Go/lib/types"
 	proto "github.com/gogo/protobuf/proto"
-	empty "github.com/golang/protobuf/ptypes/empty"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	emptypb "google.golang.org/protobuf/types/known/emptypb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
@@ -743,7 +743,7 @@ type ResourceServiceClient interface {
 	// 查看指定节点的总算力摘要
 	GetPowerSummaryByIdentityId(ctx context.Context, in *PowerSummaryByIdentityRequest, opts ...grpc.CallOption) (*PowerTotalSummaryResponse, error)
 	// 查看各个组织的总算力摘要列表
-	GetPowerTotalSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error)
+	GetPowerTotalSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error)
 }
 
 type resourceServiceClient struct {
@@ -799,7 +799,7 @@ func (c *resourceServiceClient) GetPowerSummaryByIdentityId(ctx context.Context,
 	return out, nil
 }
 
-func (c *resourceServiceClient) GetPowerTotalSummaryList(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error) {
+func (c *resourceServiceClient) GetPowerTotalSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PowerTotalSummaryListResponse, error) {
 	out := new(PowerTotalSummaryListResponse)
 	err := c.cc.Invoke(ctx, "/api.ResourceService/GetPowerTotalSummaryList", in, out, opts...)
 	if err != nil {
@@ -821,7 +821,7 @@ type ResourceServiceServer interface {
 	// 查看指定节点的总算力摘要
 	GetPowerSummaryByIdentityId(context.Context, *PowerSummaryByIdentityRequest) (*PowerTotalSummaryResponse, error)
 	// 查看各个组织的总算力摘要列表
-	GetPowerTotalSummaryList(context.Context, *empty.Empty) (*PowerTotalSummaryListResponse, error)
+	GetPowerTotalSummaryList(context.Context, *emptypb.Empty) (*PowerTotalSummaryListResponse, error)
 }
 
 // UnimplementedResourceServiceServer can be embedded to have forward compatible implementations.
@@ -843,7 +843,7 @@ func (*UnimplementedResourceServiceServer) GetPowerList(ctx context.Context, req
 func (*UnimplementedResourceServiceServer) GetPowerSummaryByIdentityId(ctx context.Context, req *PowerSummaryByIdentityRequest) (*PowerTotalSummaryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSummaryByIdentityId not implemented")
 }
-func (*UnimplementedResourceServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *empty.Empty) (*PowerTotalSummaryListResponse, error) {
+func (*UnimplementedResourceServiceServer) GetPowerTotalSummaryList(ctx context.Context, req *emptypb.Empty) (*PowerTotalSummaryListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalSummaryList not implemented")
 }
 
@@ -942,7 +942,7 @@ func _ResourceService_GetPowerSummaryByIdentityId_Handler(srv interface{}, ctx c
 }
 
 func _ResourceService_GetPowerTotalSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(empty.Empty)
+	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -954,7 +954,7 @@ func _ResourceService_GetPowerTotalSummaryList_Handler(srv interface{}, ctx cont
 		FullMethod: "/api.ResourceService/GetPowerTotalSummaryList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ResourceServiceServer).GetPowerTotalSummaryList(ctx, req.(*empty.Empty))
+		return srv.(ResourceServiceServer).GetPowerTotalSummaryList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
