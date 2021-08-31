@@ -35,6 +35,7 @@ func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID,
 
 	message, ok := m.(*pb.PrepareMsg)
 	if !ok {
+		log.Errorf("Invalid message type in the validatePrepareMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject
 	}
 
