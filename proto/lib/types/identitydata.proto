@@ -9,14 +9,14 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 // IdentityData represents the stored data structure.
 message IdentityData {
-    string identity_id = 1;
-    string node_id     = 2;
-    string node_name   = 3;
-    string data_id     = 4;
+  string identity_id = 1;
+  string node_id = 2;
+  string node_name = 3;
+  string data_id = 4;
   // N means normal, D means deleted
-    string data_status = 5;
+  DataStatus data_status = 5;
   // Y : normal, N non-normal
-    string status = 6;
+  CommonStatus status = 6;
   // json format for credential
-    string credential = 7;
+  string credential = 7;
 }
