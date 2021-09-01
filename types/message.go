@@ -269,9 +269,9 @@ func (msg *MetaDataMsg) ToDataCenter() *Metadata {
 		HasTitle:           msg.HasTitle(),
 		MetadataColumnList: msg.ColumnMetas(),
 		// the status of data, N means normal, D means deleted.
-		DataStatus: DATA_STATUS_NORMAL.String(),
+		DataStatus: 	    apipb.DataStatus_DataStatus_Normal,
 		// metaData status, eg: create/release/revoke
-		State: MetaDataStateRelease.String(),
+		State:              apipb.MetaDataState_MetaDataState_Released,
 	})
 }
 func (msg *MetaDataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -304,9 +304,9 @@ func (msg *MetaDataMsg) FilePath() string                     { return msg.Data.
 func (msg *MetaDataMsg) Rows() uint32                         { return msg.Data.Information.MetaDataSummary.Rows }
 func (msg *MetaDataMsg) Columns() uint32                      { return msg.Data.Information.MetaDataSummary.Columns }
 func (msg *MetaDataMsg) Size() uint32                         { return msg.Data.Information.MetaDataSummary.Size_ }
-func (msg *MetaDataMsg) FileType() string                     { return msg.Data.Information.MetaDataSummary.FileType }
+func (msg *MetaDataMsg) FileType() apipb.OriginFileType       { return msg.Data.Information.MetaDataSummary.FileType }
 func (msg *MetaDataMsg) HasTitle() bool                       { return msg.Data.Information.MetaDataSummary.HasTitle }
-func (msg *MetaDataMsg) State() string                        { return msg.Data.Information.MetaDataSummary.State }
+func (msg *MetaDataMsg) State() apipb.MetaDataState           { return msg.Data.Information.MetaDataSummary.State }
 func (msg *MetaDataMsg) ColumnMetas() []*types.MetadataColumn { return msg.Data.Information.ColumnMetas }
 func (msg *MetaDataMsg) CreateAt() uint64                     { return msg.Data.CreateAt }
 func (msg *MetaDataMsg) SetMetaDataId() string {
@@ -339,9 +339,9 @@ func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
 		NodeName:   msg.NodeName,
 		DataId:     msg.MetaDataId,
 		// the status of data, N means normal, D means deleted.
-		DataStatus: DATA_STATUS_DELETED.String(),
+		DataStatus: apipb.DataStatus_DataStatus_Deleted,
 		// metaData status, eg: create/release/revoke
-		State: MetaDataStateRevoke.String(),
+		State: apipb.MetaDataState_MetaDataState_Revoked,
 	})
 }
 func (msg *MetaDataRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -452,8 +452,8 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			NodeId:     req.Sender.NodeId,
 			NodeName:   req.Sender.NodeName,
 			DataId:     "",
-			DataStatus: DATA_STATUS_NORMAL.String(),
-			State:      TaskStatePending.String(),
+			DataStatus: apipb.DataStatus_DataStatus_Normal,
+			State:      apipb.TaskState_TaskState_Pending,
 			Reason:     "",
 			EventCount: 0,
 			Desc:       "",
@@ -468,8 +468,8 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 				NodeName: req.Owner.Name,
 			},*/
 			OperationCost:         req.OperationCost,
-			CalculateContractCode: req.CalculateContractcode,
-			DataSplitContractCode: req.DatasplitContractcode,
+			CalculateContractCode: req.CalculateContractCode,
+			DataSplitContractCode: req.DataSplitContractCode,
 			ContractExtraParams:   req.ContractExtraParams,
 		}),
 	}
@@ -489,7 +489,7 @@ func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libTypes.TaskPowerSupp
 
 	for i := range task.TaskData().Receivers {
 		receiver := task.TaskData().Receivers[i]
-		receiver.Providers = privors
+		//receiver.Providers = privors
 		task.TaskData().Receivers[i] = receiver
 	}
 
@@ -552,7 +552,8 @@ func (msg *TaskMsg) TaskResourceSupplierDatas() []*libTypes.TaskPowerSupplier {
 }
 func (msg *TaskMsg) GetPowerPartyIds() []string { return msg.PowerPartyIds }
 func (msg *TaskMsg) GetReceivers() []*apipb.TaskOrganization {
-	receivers := make([]*apipb.TaskOrganization, len(msg.Data.data.Receivers))
+	return msg.Data.data.Receivers
+	/*receivers := make([]*apipb.TaskOrganization, len(msg.Data.data.Receivers))
 	for i, v := range msg.Data.data.Receivers {
 		receivers[i] = &apipb.TaskOrganization{
 			PartyId:    v.Receiver.PartyId,
@@ -561,11 +562,11 @@ func (msg *TaskMsg) GetReceivers() []*apipb.TaskOrganization {
 			IdentityId: v.Receiver.IdentityId,
 		}
 	}
-	return receivers
+	return receivers*/
 }
-func (msg *TaskMsg) TaskResultReceiverDatas() []*libTypes.TaskResultReceiver {
+/*func (msg *TaskMsg) TaskResultReceiverDatas() []*libTypes.TaskResultReceiver {
 	return msg.Data.data.Receivers
-}
+}*/
 func (msg *TaskMsg) CalculateContractCode() string                 { return msg.Data.data.CalculateContractCode }
 func (msg *TaskMsg) DataSplitContractCode() string                 { return msg.Data.data.DataSplitContractCode }
 func (msg *TaskMsg) ContractExtraParams() string                   { return msg.Data.data.ContractExtraParams }
