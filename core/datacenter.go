@@ -124,11 +124,11 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // on yarn node api
-func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error) {
+func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteSeedNodes(dc.db, seed)
-	return types.NonConnected, nil
+	return pb.ConnState_ConnState_UnConnected, nil
 }
 
 func (dc *DataCenter) DeleteSeedNode(id string) error {
@@ -150,11 +150,11 @@ func (dc *DataCenter) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return rawdb.ReadAllSeedNodes(dc.db)
 }
 
-func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
+func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
-	return types.NodeConnStatus(node.ConnState), nil
+	return pb.ConnState(node.ConnState), nil
 }
 
 func (dc *DataCenter) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {

@@ -81,7 +81,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	if len( req.DataSupplier) == 0 {
 		return nil, errors.New("required partners")
 	}
-	if "" == req.CalculateContractcode {
+	if "" == req.CalculateContractCode {
 		return nil, errors.New("required CalculateContractCode")
 	}
 
