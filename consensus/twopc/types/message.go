@@ -16,7 +16,7 @@ import (
 )
 
 type taskOption struct {
-	Role                  types.TaskRole           `json:"role"` // The role information of the current recipient of the task
+	Role                  apipb.TaskRole           `json:"role"` // The role information of the current recipient of the task
 	TaskId                string                   `json:"taskId"`
 	TaskName              string                   `json:"taskName"`
 	Owner                 *apipb.Organization         `json:"owner"`
@@ -88,7 +88,7 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 
 type PrepareVote struct {
 	ProposalID  common.Hash      `json:"proposalId"`
-	Role        types.TaskRole   `json:"role"` // The role information of the current recipient of the task
+	Role        apipb.TaskRole   `json:"role"` // The role information of the current recipient of the task
 	Owner       *apipb.Organization `json:"owner"`
 	VoteOption  types.VoteOption `json:"voteOption"`
 	PeerInfo    *taskPeerInfo    `json:"peerInfo"`
@@ -145,7 +145,7 @@ var (
 type ProposalState struct {
 	ProposalId         common.Hash
 	TaskDir            types.ProposalTaskDir
-	TaskRole           types.TaskRole
+	TaskRole           apipb.TaskRole
 	SelfIdentity       *apipb.TaskOrganization
 	TaskId             string
 	PeriodNum          ProposalStatePeriod
@@ -160,7 +160,7 @@ type ProposalState struct {
 var EmptyProposalState = new(ProposalState)
 
 func NewProposalState(proposalId common.Hash, taskId string,
-	TaskDir types.ProposalTaskDir, taskRole types.TaskRole, selfIdentity *apipb.TaskOrganization, startTime uint64) *ProposalState {
+	TaskDir types.ProposalTaskDir, taskRole apipb.TaskRole, selfIdentity *apipb.TaskOrganization, startTime uint64) *ProposalState {
 
 	return &ProposalState{
 		ProposalId:       proposalId,
