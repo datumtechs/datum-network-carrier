@@ -82,7 +82,7 @@ type DoneScheduleTaskChWrap struct {
 }
 type ConsensusScheduleTask struct {
 	TaskDir          ProposalTaskDir
-	TaskState        TaskState
+	TaskState        apipb.TaskState
 	SchedTask        *Task
 	SelfVotePeerInfo *PrepareVoteResource
 	Resources        *pb.ConfirmTaskPeerInfo

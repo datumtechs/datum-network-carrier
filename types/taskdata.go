@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
@@ -74,7 +75,7 @@ func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskDataSupplier) {
 func (m *Task) SetResourceSupplierArr(arr []*libTypes.TaskPowerSupplier) {
 	m.data.PowerSupplier = arr
 }
-func (m *Task) SetReceivers(arr []*libTypes.TaskResultReceiver) {
+func (m *Task) SetReceivers(arr []*apipb.TaskOrganization) {
 	m.data.Receivers = arr
 }
 
