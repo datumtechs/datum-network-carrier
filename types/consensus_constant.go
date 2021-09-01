@@ -64,64 +64,64 @@ func VoteOptionFromBytes(option []byte) VoteOption {
 
 
 
-type TaskRole uint8
-
-func (t TaskRole) Bytes() []byte { return []byte{byte(t)} }
-func (t TaskRole) String() string {
-	switch t {
-	case DataSupplier:
-		return "DataSupplier"
-	case PowerSupplier:
-		return "PowerSupplier"
-	case ResultSupplier:
-		return "ResultSupplier"
-	case TaskOwner:
-		return "TaskOwner"
-	default:
-		return "TaskRoleUnknown"
-	}
-}
-
-const (
-	TaskRoleUnknown TaskRole = 0x00
-	DataSupplier    TaskRole = 0x01
-	PowerSupplier   TaskRole = 0x02
-	ResultSupplier  TaskRole = 0x03
-	TaskOwner       TaskRole = 0x04
-)
-
-func TaskRoleFromUint8(role uint8) TaskRole {
-	switch role {
-	case 0x01:
-		return DataSupplier
-	case 0x02:
-		return PowerSupplier
-	case 0x03:
-		return ResultSupplier
-	case 0x04:
-		return TaskOwner
-	default:
-		return TaskRoleUnknown
-	}
-}
-
-func TaskRoleFromStr(role string) TaskRole {
-	switch role {
-	case "DataSupplier":
-		return DataSupplier
-	case "PowerSupplier":
-		return PowerSupplier
-	case "ResultSupplier":
-		return ResultSupplier
-	case "TaskOwner":
-		return TaskOwner
-	default:
-		return TaskRoleUnknown
-	}
-}
-func TaskRoleFromBytes(role []byte) TaskRole {
-	if len(role) != 1 {
-		return TaskRoleUnknown
-	}
-	return TaskRoleFromUint8(role[0])
-}
+//type TaskRole uint8
+//
+//func (t TaskRole) Bytes() []byte { return []byte{byte(t)} }
+//func (t TaskRole) String() string {
+//	switch t {
+//	case DataSupplier:
+//		return "DataSupplier"
+//	case PowerSupplier:
+//		return "PowerSupplier"
+//	case ResultSupplier:
+//		return "ResultSupplier"
+//	case TaskOwner:
+//		return "TaskOwner"
+//	default:
+//		return "TaskRoleUnknown"
+//	}
+//}
+//
+//const (
+//	TaskRoleUnknown TaskRole = 0x00
+//	DataSupplier    TaskRole = 0x01
+//	PowerSupplier   TaskRole = 0x02
+//	ResultSupplier  TaskRole = 0x03
+//	TaskOwner       TaskRole = 0x04
+//)
+//
+//func TaskRoleFromUint8(role uint8) TaskRole {
+//	switch role {
+//	case 0x01:
+//		return DataSupplier
+//	case 0x02:
+//		return PowerSupplier
+//	case 0x03:
+//		return ResultSupplier
+//	case 0x04:
+//		return TaskOwner
+//	default:
+//		return TaskRoleUnknown
+//	}
+//}
+//
+//func TaskRoleFromStr(role string) TaskRole {
+//	switch role {
+//	case "DataSupplier":
+//		return DataSupplier
+//	case "PowerSupplier":
+//		return PowerSupplier
+//	case "ResultSupplier":
+//		return ResultSupplier
+//	case "TaskOwner":
+//		return TaskOwner
+//	default:
+//		return TaskRoleUnknown
+//	}
+//}
+//func TaskRoleFromBytes(role []byte) TaskRole {
+//	if len(role) != 1 {
+//		return TaskRoleUnknown
+//	}
+//	return TaskRoleFromUint8(role[0])
+//}
