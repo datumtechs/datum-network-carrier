@@ -257,7 +257,7 @@ func ReadSeedNode(db DatabaseReader, nodeId string) (*pb.SeedPeer, error) {
 				Id:           seed.Id,
 				InternalIp:   seed.InternalIp,
 				InternalPort: seed.InternalPort,
-				ConnState:    seed.ConnState,
+				ConnState:    pb.ConnState(seed.ConnState),
 			}, nil
 		}
 	}
@@ -281,7 +281,7 @@ func ReadAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
 			Id:           seed.Id,
 			InternalIp:   seed.InternalIp,
 			InternalPort: seed.InternalPort,
-			ConnState:    seed.ConnState,
+			ConnState:    pb.ConnState(seed.ConnState),
 		})
 	}
 	return nodes, nil
@@ -391,7 +391,7 @@ func ReadRegisterNode(db DatabaseReader, nodeType pb.RegisteredNodeType, nodeId 
 				InternalPort: registered.InternalPort,
 				ExternalIp:   registered.ExternalIp,
 				ExternalPort: registered.ExternalPort,
-				ConnState:    registered.ConnState,
+				ConnState:    pb.ConnState(registered.ConnState),
 			}, nil
 		}
 	}
@@ -417,7 +417,7 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType pb.RegisteredNodeType) ([]
 			InternalPort: registered.InternalPort,
 			ExternalIp:   registered.ExternalIp,
 			ExternalPort: registered.ExternalPort,
-			ConnState:    registered.ConnState,
+			ConnState:    pb.ConnState(registered.ConnState),
 		})
 	}
 	return nodes, nil
