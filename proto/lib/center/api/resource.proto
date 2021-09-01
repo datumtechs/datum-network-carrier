@@ -13,75 +13,75 @@ import "google/protobuf/empty.proto";
 // 算力的基本仨元素
 message PurePower {
   // 系统的总内存
-    uint64 mem = 1;
+  uint64 mem = 1;
   // 系统的总内核数
-    uint32 processor = 2;
+  uint32 processor = 2;
   // 系统的总带宽数
-    uint64 bandwidth = 3;
+  uint64 bandwidth = 3;
 }
 
 // 发布算力请求参数
 message PublishPowerRequest {
   // 算力的拥有者
-    api.protobuf.Organization owner = 1;
+  api.protobuf.Organization owner = 1;
   // 算力ID
-    string power_id = 2;
+  string power_id = 2;
   // 发布的算力信息
-    PurePower information = 3;
+  PurePower information = 3;
 }
 
 message PublishPowerResponse {
-    int32  status = 1;
-    string msg    = 2;
+  int32  status = 1;
+  string msg = 2;
   // 算力id
-    string power_id = 3;
+  string power_id = 3;
 }
 
 message RevokePowerRequest {
   // 算力的拥有者
-    api.protobuf.Organization owner = 1;
+  api.protobuf.Organization owner = 1;
   // 算力id
-    string power_id = 2;
+  string power_id = 2;
 }
 
 //  总算力摘要
 message PowerTotalSummary {
   // 算力实况
-    types.ResourceUsageOverview information = 1;
+  types.ResourceUsageOverview information = 1;
   // 算力上总共执行的任务数 (已完成的和正在执行的)
-    uint32 total_task_count = 2;
+  uint32 total_task_count = 2;
   // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
-    types.PowerState state = 3;
+  api.protobuf.PowerState state = 3;
 }
 
 message PowerTotalSummaryResponse {
   // 算力拥有者信息
-    api.protobuf.Organization owner = 1;
+  api.protobuf.Organization owner = 1;
   // 算力总摘要
-    PowerTotalSummary power = 2;
+  PowerTotalSummary power = 2;
 }
 
 message PowerTotalSummaryListResponse {
   // 全网的算力总摘要列表
-    repeated PowerTotalSummaryResponse power_list = 1;
+  repeated PowerTotalSummaryResponse power_list = 1;
 }
 
 message PowerSummaryByIdentityRequest {
   // 身份ID
-    string identity_id = 1;
+  string identity_id = 1;
 }
 
 message PowerListRequest {
-    uint64 last_update_time = 1;
+  uint64 last_update_time = 1;
 }
 
 message PowerListResponse {
-    repeated types.Power power_list       = 1;
-    uint64               last_update_time = 2;
+  repeated types.Power power_list = 1;
+  uint64               last_update_time = 2;
 }
 
 message SyncPowerRequest {
-    types.Power power = 1;
+  types.Power power = 1;
 }
 
 // 资源（算力）接口定义
