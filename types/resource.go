@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"strings"
@@ -50,14 +51,14 @@ func (m *Resource) Hash() common.Hash {
 func (m *Resource) GetIdentityId() string { return m.data.IdentityId }
 func (m *Resource) GetNodeId() string { return m.data.NodeId }
 func (m *Resource) GetNodeName() string { return m.data.NodeName }
-func (m *Resource) GetDataStatus() string { return m.data.DataStatus }
-func (m *Resource) GetState() string { return m.data.State }
+func (m *Resource) GetDataStatus() apipb.DataStatus { return m.data.DataStatus }
+func (m *Resource) GetState() libTypes.PowerState { return m.data.State }
 func (m *Resource) GetTotalMem() uint64 { return m.data.TotalMem }
 func (m *Resource) GetUsedMem() uint64 { return m.data.UsedMem }
-func (m *Resource) GetTotalProcessor() uint64 { return m.data.TotalProcessor }
-func (m *Resource) GetUsedProcessor() uint64 { return m.data.UsedProcessor }
-func (m *Resource) GetTotalBandWidth() uint64 { return m.data.TotalBandWidth }
-func (m *Resource) GetUsedBandWidth() uint64 { return m.data.UsedBandWidth }
+func (m *Resource) GetTotalProcessor() uint64 { return uint64(m.data.TotalProcessor) }
+func (m *Resource) GetUsedProcessor() uint64 { return uint64(m.data.UsedProcessor) }
+func (m *Resource) GetTotalBandWidth() uint64 { return m.data.TotalBandwidth }
+func (m *Resource) GetUsedBandWidth() uint64 { return m.data.UsedBandwidth }
 func (m *Resource) String() string {
 	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "state": %s, "totalMem": %d, "usedMem": %d, "totalProcessor": %d, "usedProcessor": %d, "totalBandWidth": %d, "usedBandWidth": %d}`)
 	return m.data.String()
