@@ -126,7 +126,7 @@ func (svr *Server) ApplyMetaDataAuthority(context.Context, *pb.ApplyMetaDataAuth
 }
 
 // 数据授权审核
-func (svr *Server) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*apipb.SimpleResponse, error){
+func (svr *Server) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*pb.AuditMetaDataAuthorityResponse, error){
 	return nil, nil
 }
 

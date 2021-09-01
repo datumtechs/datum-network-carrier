@@ -1,16 +1,16 @@
 package types
 
-type NodeConnStatus int32
-//type RegisteredNodeType string
-
-func (status NodeConnStatus) Int32() int32    { return int32(status) }
-
-const (
-	Connected    NodeConnStatus = 0 // 连接上就是未启用算力
-	NonConnected NodeConnStatus = -1
-	EnablePower  NodeConnStatus = 1 // 启用算力
-	BusyPower    NodeConnStatus = 2 // 算力被占用(有任务在执行 ...)
-)
+//type NodeConnStatus int32
+////type RegisteredNodeType string
+//
+//func (status NodeConnStatus) Int32() int32    { return int32(status) }
+//
+//const (
+//	Connected    NodeConnStatus = 0 // 连接上就是未启用算力
+//	NonConnected NodeConnStatus = -1
+//	EnablePower  NodeConnStatus = 1 // 启用算力
+//	BusyPower    NodeConnStatus = 2 // 算力被占用(有任务在执行 ...)
+//)
 
 
 //type SeedNodeInfo struct {

@@ -224,8 +224,8 @@ func (dc *DataChain) GetTaskDataListByNodeId(nodeId string) (types.TaskDataArray
 	return nil, nil
 }
 // TODO 未完成 ...
-func (dc *DataChain) SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error) {
-	return types.NonConnected, nil
+func (dc *DataChain) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
+	return  pb.ConnState_ConnState_UnConnected, nil
 }
 
 func (dc *DataChain) DeleteSeedNode(id string) error {
@@ -241,10 +241,10 @@ func (dc *DataChain) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return rawdb.ReadAllSeedNodes(dc.db)
 }
 // TODO 未完成 ...
-func (dc *DataChain) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error) {
+func (dc *DataChain) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
 	// todo: need to establish conn to registered node. heartbeat detection
-	return types.NonConnected, nil
+	return  pb.ConnState_ConnState_UnConnected, nil
 }
 
 func (dc *DataChain) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {

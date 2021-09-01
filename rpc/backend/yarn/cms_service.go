@@ -6,7 +6,6 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
@@ -132,7 +131,7 @@ func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) 
 	seedNode := &pb.SeedPeer{
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ConnState:    types.NonConnected.Int32(),
+		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	seedNode.SeedNodeId()
 	status, err := svr.B.SetSeedNode(seedNode)
@@ -142,15 +141,15 @@ func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) 
 		return nil, ErrSetSeedNodeInfo
 	}
 	log.Debugf("RPC-API:SetSeedNode succeed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d}",
-		seedNode.Id, req.InternalIp, req.InternalPort, status.Int32())
+		seedNode.Id, req.InternalIp, req.InternalPort, status)
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		SeedPeer: &pb.SeedPeer{
+		Node: &pb.SeedPeer{
 			Id:           seedNode.Id,
 			InternalIp:   seedNode.InternalIp,
 			InternalPort: seedNode.InternalPort,
-			ConnState:    status.Int32(),
+			ConnState:    status,
 		},
 	}, nil
 }
@@ -160,7 +159,7 @@ func (svr *Server) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeReq
 		Id:           req.Id,
 		InternalIp:   req.InternalIp,
 		InternalPort: req.InternalPort,
-		ConnState:    types.NonConnected.Int32(),
+		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	svr.B.DeleteSeedNode(seedNode.Id)
 	status, err := svr.B.SetSeedNode(seedNode)
@@ -170,15 +169,15 @@ func (svr *Server) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeReq
 		return nil, ErrSetSeedNodeInfo
 	}
 	log.Debugf("RPC-API:UpdateSeedNode succeed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d}",
-		req.Id, req.InternalIp, req.InternalPort, status.Int32())
+		req.Id, req.InternalIp, req.InternalPort, status)
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		SeedPeer: &pb.SeedPeer{
+		Node: &pb.SeedPeer{
 			Id:           seedNode.Id,
 			InternalIp:   seedNode.InternalIp,
 			InternalPort: seedNode.InternalPort,
-			ConnState:    status.Int32(),
+			ConnState:    status,
 		},
 	}, nil
 }
@@ -222,7 +221,7 @@ func (svr *Server) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) 
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NonConnected.Int32(),
+		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	node.SetDataNodeId()
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeDataNode, node)
@@ -232,17 +231,17 @@ func (svr *Server) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) 
 		return nil, ErrSetDataNodeInfo
 	}
 	log.Debugf("RPC-API:SetDataNode succeed, dataNodeId:{%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStatus: {%d}",
-		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
+		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
 	return &pb.SetDataNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		DataNode: &pb.YarnRegisteredPeerDetail{
+		Node: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.ExternalPort,
-			ConnState:    status.Int32(),
+			ConnState:    status,
 		},
 	}, nil
 }
@@ -254,7 +253,7 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeReq
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NonConnected.Int32(),
+		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	// delete and insert.
 	//svr.B.DeleteRegisterNode(types.PrefixTypeDataNode, node.Id)
@@ -266,17 +265,17 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeReq
 		return nil, ErrSetDataNodeInfo
 	}
 	log.Debugf("RPC-API:UpdateDataNode succeed, dataNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStatus: {%d}",
-		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
+		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
 	return &pb.SetDataNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		DataNode: &pb.YarnRegisteredPeerDetail{
+		Node: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.ExternalPort,
-			ConnState:    status.Int32(),
+			ConnState:    status,
 		},
 	}, nil
 }
@@ -325,7 +324,7 @@ func (svr *Server) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NonConnected.Int32(),
+		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	node.SetJobNodeId()
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeJobNode, node)
@@ -336,17 +335,17 @@ func (svr *Server) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*
 	}
 
 	log.Debugf("RPC-API:SetJobNode succeed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStats: {%d}",
-		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
+		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
 	return &pb.SetJobNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		JobNode: &pb.YarnRegisteredPeerDetail{
+		Node: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.ExternalPort,
-			ConnState:    status.Int32(),
+			ConnState:    status,
 		},
 	}, nil
 }
@@ -358,7 +357,7 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeReque
 		InternalPort: req.InternalPort,
 		ExternalIp:   req.ExternalIp,
 		ExternalPort: req.ExternalPort,
-		ConnState:    types.NonConnected.Int32(),
+		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	//svr.B.DeleteRegisterNode(types.PrefixTypeJobNode, node.Id)
 	//status, err := svr.B.SetRegisterNode(types.PrefixTypeJobNode, node)
@@ -370,17 +369,17 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeReque
 	}
 
 	log.Debugf("RPC-API:UpdateJobNode succeed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStats: {%d}",
-		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status.Int32())
+		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
 	return &pb.SetJobNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		JobNode: &pb.YarnRegisteredPeerDetail{
+		Node: &pb.YarnRegisteredPeerDetail{
 			Id:           node.Id,
 			InternalIp:   node.InternalIp,
 			InternalPort: node.InternalPort,
 			ExternalIp:   node.ExternalIp,
 			ExternalPort: node.ExternalPort,
-			ConnState:    status.Int32(),
+			ConnState:    status,
 		},
 	}, nil
 }
