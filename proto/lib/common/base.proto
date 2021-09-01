@@ -81,14 +81,22 @@ enum MetaDataUsageType {
 }
 
 
+// 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
+enum PowerState {
+  PowerState_Unknown = 0;
+  PowerState_Created = 1;
+  PowerState_Released = 2;
+  PowerState_Revoked = 3;
+}
+
 // 本组织在task中的角色
 enum TaskRole {
   TaskRole_Unknown = 0;                   // 未知的任务角色
-  TaskRole_sender = 1;                    // 任务发起方
-  TaskRole_dataSupplier = 2;              // 数据提供方
-  TaskRole_powerSupplier = 3;             // 算力提供方
-  TaskRole_receiver = 4;                  // 结果接收方
-  TaskRole_algoSupplier = 5;              // 算法提供方
+  TaskRole_Sender = 1;                    // 任务发起方
+  TaskRole_DataSupplier = 2;              // 数据提供方
+  TaskRole_PowerSupplier = 3;             // 算力提供方
+  TaskRole_Receiver = 4;                  // 结果接收方
+  TaskRole_AlgoSupplier = 5;              // 算法提供方
 }
 
 // task的状态
@@ -96,6 +104,6 @@ enum TaskState {
   TaskState_Unknown = 0;                  // 未知
   TaskState_Pending = 1;                  // 等在中
   TaskState_Running = 2;                  // 计算中
-  TaskState_failed = 3;                   // 失败
-  TaskState_succeed = 4;                  // 成功
+  TaskState_Failed = 3;                   // 失败
+  TaskState_Succeed = 4;                  // 成功
 }

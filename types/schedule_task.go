@@ -112,7 +112,6 @@ const (
 type TaskConsResult struct {
 	TaskId string
 	Status TaskConsStatus
-	Done   bool
 	Err    error
 }
 
@@ -159,23 +158,23 @@ func (res *ConsensusResult) String() string {
 // 需要被 进行共识的 local task (已经调度好的, 还未共识的)
 type NeedConsensusTask struct {
 	task     *Task
-	need     bool
-	resource *PrepareVoteResource
-	resultCh chan *ConsensusResult
+	supply   bool                 // 当前task持有者是否提供 内部资源
+	resource *PrepareVoteResource // 当前task持有者所提供的 内部资源
+	resultCh chan *TaskConsResult
 }
 
-func NewNeedConsensusTask(task *Task, need bool, resource *PrepareVoteResource) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task, supply bool, resource *PrepareVoteResource) *NeedConsensusTask {
 	return &NeedConsensusTask{
 		task:     task,
-		need:     need,
+		supply:   supply,
 		resource: resource,
-		resultCh: make(chan *ConsensusResult),
+		resultCh: make(chan *TaskConsResult),
 	}
 }
-func (nct *NeedConsensusTask) Task() *Task                     { return nct.task }
-func (nct *NeedConsensusTask) Need() bool                      { return nct.need }
-func (nct *NeedConsensusTask) Resource() *PrepareVoteResource  { return nct.resource }
-func (nct *NeedConsensusTask) ResultCh() chan *ConsensusResult { return nct.resultCh }
+func (nct *NeedConsensusTask) Task() *Task                    { return nct.task }
+func (nct *NeedConsensusTask) IsSupply() bool                 { return nct.supply }
+func (nct *NeedConsensusTask) Resource() *PrepareVoteResource { return nct.resource }
+func (nct *NeedConsensusTask) ResultCh() chan *TaskConsResult { return nct.resultCh }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
@@ -185,13 +184,13 @@ func (nct *NeedConsensusTask) String() string {
 	if nil != nct.resource {
 		resourceStr = nct.resource.String()
 	}
-	return fmt.Sprintf(`{"task": %s, "need": %v, "selfResource": %v, "resultCh": %p}`,
-		taskStr, nct.need, resourceStr, nct.resultCh)
+	return fmt.Sprintf(`{"task": %s, "supply": %v, "selfResource": %v, "resultCh": %p}`,
+		taskStr, nct.supply, resourceStr, nct.resultCh)
 }
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
 type NeedReplayScheduleTask struct {
-	selfTaskRole TaskRole
+	selfTaskRole apipb.TaskRole
 	selfPartyId  string
 	task         *Task
 	resultCh     chan *ReplayScheduleResult

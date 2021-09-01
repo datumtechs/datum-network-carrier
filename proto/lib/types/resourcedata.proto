@@ -17,7 +17,7 @@ message ResourceData {
   // the status of data, N means normal, D means deleted.
   api.protobuf.DataStatus  data_status = 5;       // the status of data, N means normal, D means deleted.
   // resource status, eg: create/release/revoke
-  PowerState state = 6;                           // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
+  api.protobuf.PowerState state = 6;              // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
   // unit: byte
   uint64 total_mem = 7;                           // 算力总内存 (单位: byte)
   // unit: byte
@@ -42,13 +42,13 @@ message LocalResourceData {
   // the status of data, N means normal, D means deleted.
   api.protobuf.DataStatus  data_status = 6;       // the status of data, N means normal, D means deleted.
   // resource status, eg: create/release/revoke
-  PowerState state = 7;                           // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
+  api.protobuf.PowerState state = 7;              // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
   // unit: byte
   uint64 total_mem = 8;                           // 算力总内存 (单位: byte)
   // unit: byte
   uint64 used_mem = 9;                            // 算力已使用内存 (单位: byte)
   // number of cpu cores.
-  uint32 total_processor = 10;                     // 算力总内核数 (单位: 个)
+  uint32 total_processor = 10;                    // 算力总内核数 (单位: 个)
   uint32 used_processor = 11;                     // 算力已使用内核数 (单位: 个)
   // unit: byte
   uint64 total_bandwidth = 12;                    // 算力总带宽数 (单位: bps)
@@ -68,7 +68,7 @@ message Power {
   // 算力实况
   ResourceUsageOverview information = 3;
   // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
-  PowerState state = 4;
+  api.protobuf.PowerState state = 4;
 }
 
 //// 单个算力详情（对应到具体某一台服务器）
@@ -92,11 +92,11 @@ message Power {
 
 // 算力及算力上的task信息的公共抽象
 message PowerUsageDetail {
-  ResourceUsageOverview information = 1;                 // 算力实况
-  uint32                total_task_count = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
-  uint32                current_task_count = 3;          // 算力上正在执行的任务数
-  repeated PowerTask    tasks = 4;                       // 算力上正在执行的任务详情信息
-  PowerState            state = 5;                       // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
+  ResourceUsageOverview             information = 1;                  // 算力实况
+  uint32                            total_task_count = 2;             // 算力上总共执行的任务数 (已完成的和正在执行的)
+  uint32                            current_task_count = 3;           // 算力上正在执行的任务数
+  repeated PowerTask                tasks = 4;                        // 算力上正在执行的任务详情信息
+  api.protobuf.PowerState           state = 5;                        // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
 }
 
 // 算力上的任务信息
@@ -132,10 +132,3 @@ message ResourceUsageOverview {
 }
 
 
-// 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
-enum PowerState {
-  PowerState_Unknown = 0;
-  PowerState_Created = 1;
-  PowerState_Released = 2;
-  PowerState_Revoked = 3;
-}
