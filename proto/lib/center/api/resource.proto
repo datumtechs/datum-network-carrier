@@ -51,7 +51,7 @@ message PowerTotalSummary {
   // 算力上总共执行的任务数 (已完成的和正在执行的)
     uint32 total_task_count = 2;
   // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
-    string state = 3;
+    types.PowerState state = 3;
 }
 
 message PowerTotalSummaryResponse {

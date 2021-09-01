@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/gogo/protobuf/proto"
@@ -20,7 +21,8 @@ func (s *Service) gossipTestDataSubscriber(ctx context.Context, pid peer.ID, msg
 	if ve.Data == nil {
 		return errors.New("data can't be nil")
 	}
-	log.WithField("peer", pid).Debug("Receive gossip message")
+	h := hashutil.Hash([]byte(msg.String()))
+	log.WithField("peer", pid).WithField("msgID", common.Bytes2Hex(h[:20])).Debug("Receive gossip message")
 	return nil
 }
 
