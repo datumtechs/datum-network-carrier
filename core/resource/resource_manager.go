@@ -20,9 +20,8 @@ type Manager struct {
 	dataCenter  core.CarrierDB // Low level persistent database to store final content.
 	//eventCh                chan *libTypes.TaskEvent
 	slotUnit *types.Slot
-	//remoteTables     map[string]*types.RemoteResourceTable
 	remoteTableQueue     []*types.RemoteResourceTable
-	remoteTableQueueMu sync.RWMutex
+	remoteTableQueueMu  sync.RWMutex
 	mockIdentityIdsFile  string
 	mockIdentityIdsCache map[string]struct{}
 }
@@ -30,9 +29,6 @@ type Manager struct {
 func NewResourceManager(dataCenter core.CarrierDB, mockIdentityIdsFile string) *Manager {
 	m := &Manager{
 		dataCenter: dataCenter,
-		//eventCh:          make(chan *libTypes.TaskEvent, 0),
-		//localTables:      make(map[string]*types.LocalResourceTable),
-		//localTableQueue:  make([]*types.LocalResourceTable, 0),
 		remoteTableQueue:    make([]*types.RemoteResourceTable, 0),
 		slotUnit:            types.DefaultSlotUnit, // TODO for test
 		mockIdentityIdsFile: mockIdentityIdsFile,   //TODO for test
