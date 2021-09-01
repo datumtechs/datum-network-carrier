@@ -27,7 +27,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow 
 		},
 		DataSupplier:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSupplier())),
 		PowerSupplier: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSupplier())),
-		Receivers:     make([]*apipb.TaskOrganization, 0, len(taskData.GetReceivers())),
+		Receivers:     taskData.GetReceivers(),
 		CreateAt:      taskData.GetCreateAt(),
 		StartAt:       taskData.GetStartAt(),
 		EndAt:         taskData.GetEndAt(),
@@ -70,15 +70,6 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow 
 				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
 				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
 			},
-		})
-	}
-	// Receivers
-	for _, receiver := range taskData.GetReceivers() {
-		detailShow.Receivers = append(detailShow.Receivers, &apipb.TaskOrganization{
-			PartyId:    receiver.GetReceiver().GetPartyId(),
-			NodeName:       receiver.GetReceiver().GetNodeName(),
-			NodeId:     receiver.GetReceiver().GetNodeId(),
-			IdentityId: receiver.GetReceiver().GetIdentityId(),
 		})
 	}
 	return detailShow
@@ -143,13 +134,13 @@ func NewOrgResourceFromResource(input *Resource) *RemoteResourceTable {
 		identityId: input.data.IdentityId,
 		total: &resource{
 			mem:       input.data.TotalMem,
-			processor: input.data.TotalProcessor,
-			bandwidth: input.data.TotalBandWidth,
+			processor: uint64(input.data.TotalProcessor),
+			bandwidth: uint64(input.data.TotalBandwidth),
 		},
 		used: &resource{
 			mem:       input.data.UsedMem,
-			processor: input.data.UsedProcessor,
-			bandwidth: input.data.UsedBandWidth,
+			processor: uint64(input.data.UsedProcessor),
+			bandwidth: input.data.UsedBandwidth,
 		},
 	}
 }
