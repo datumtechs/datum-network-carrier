@@ -134,8 +134,8 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		pubsub.WithNoAuthor(),
 		pubsub.WithMessageIdFn(msgIDFunction),
 		pubsub.WithSubscriptionFilter(s),
-		pubsub.WithPeerOutboundQueueSize(1),
-		pubsub.WithValidateQueueSize(1),
+		pubsub.WithPeerOutboundQueueSize(256),
+		pubsub.WithValidateQueueSize(256),
 		pubsub.WithPeerScore(peerScoringParams()),
 		pubsub.WithPeerScoreInspect(s.peerInspector, time.Minute),
 	}

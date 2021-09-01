@@ -58,7 +58,7 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 		Information: &api.PurePower{
 			Mem:       resource.data.GetTotalMem(),
 			Processor: uint32(resource.data.GetTotalProcessor()),
-			Bandwidth: resource.data.GetTotalBandWidth(),
+			Bandwidth: resource.data.GetTotalBandwidth(),
 		},
 	}
 	return request
@@ -84,10 +84,10 @@ func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 			Information: &libTypes.ResourceUsageOverview{
 				TotalMem:       resource.data.TotalMem,
 				TotalProcessor: uint32(resource.data.TotalProcessor),
-				TotalBandwidth: resource.data.TotalBandWidth,
+				TotalBandwidth: resource.data.TotalBandwidth,
 				UsedMem:        resource.data.UsedMem,
 				UsedProcessor:  uint32(resource.data.UsedProcessor),
-				UsedBandwidth:  resource.data.UsedBandWidth,
+				UsedBandwidth:  resource.data.UsedBandwidth,
 			},
 			State: resource.data.State,
 		},
@@ -132,7 +132,7 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetNodeName(),
 			DataId:     v.GetInformation().GetMetaDataId(),
-			DataStatus: DATA_STATUS_NORMAL.String(),
+			DataStatus: apipb.DataStatus_DataStatus_Normal,
 			OriginId:   v.GetInformation().GetOriginId(),
 			TableName:  v.GetInformation().GetTableName(),
 			FilePath:   v.GetInformation().GetFilePath(),
@@ -158,7 +158,7 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetNodeName(),
 			DataId:     v.GetMetaSummary().GetMetaDataId(),
-			DataStatus: DATA_STATUS_NORMAL.String(),
+			DataStatus: apipb.DataStatus_DataStatus_Normal,
 			OriginId:   v.GetMetaSummary().GetOriginId(),
 			TableName:  v.GetMetaSummary().GetTableName(),
 			FilePath:   v.GetMetaSummary().GetFilePath(),
@@ -189,14 +189,14 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 			NodeId:         v.GetOwner().GetNodeId(),
 			NodeName:       v.GetOwner().GetNodeName(),
 			DataId:         "", // todo: to be determined
-			DataStatus:     DATA_STATUS_NORMAL.String(),
+			DataStatus:     apipb.DataStatus_DataStatus_Normal,
 			State:          v.GetPower().GetState(),
 			TotalMem:       v.GetPower().GetInformation().GetTotalMem(),
-			TotalProcessor: uint64(v.GetPower().GetInformation().GetTotalProcessor()),
-			TotalBandWidth: v.GetPower().GetInformation().GetTotalBandwidth(),
+			TotalProcessor: v.GetPower().GetInformation().GetTotalProcessor(),
+			TotalBandwidth: v.GetPower().GetInformation().GetTotalBandwidth(),
 			UsedMem:        v.GetPower().GetInformation().GetUsedMem(),
-			UsedProcessor:  uint64(v.GetPower().GetInformation().GetUsedProcessor()),
-			UsedBandWidth:  v.GetPower().GetInformation().GetUsedBandwidth(),
+			UsedProcessor:  v.GetPower().GetInformation().GetUsedProcessor(),
+			UsedBandwidth:  v.GetPower().GetInformation().GetUsedBandwidth(),
 		})
 		resourceArray = append(resourceArray, resource)
 	}
@@ -210,14 +210,14 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 		NodeId:         response.GetOwner().GetNodeId(),
 		NodeName:       response.GetOwner().GetNodeName(),
 		DataId:         "", // todo: to be determined
-		DataStatus:     DATA_STATUS_NORMAL.String(),
+		DataStatus:     apipb.DataStatus_DataStatus_Normal,
 		State:          response.GetPower().GetState(),
 		TotalMem:       response.GetPower().GetInformation().GetTotalMem(),
-		TotalProcessor: uint64(response.GetPower().GetInformation().GetTotalProcessor()),
-		TotalBandWidth: response.GetPower().GetInformation().GetTotalBandwidth(),
+		TotalProcessor: response.GetPower().GetInformation().GetTotalProcessor(),
+		TotalBandwidth: response.GetPower().GetInformation().GetTotalBandwidth(),
 		UsedMem:        response.GetPower().GetInformation().GetUsedMem(),
-		UsedProcessor:  uint64(response.GetPower().GetInformation().GetUsedProcessor()),
-		UsedBandWidth:  response.GetPower().GetInformation().GetUsedBandwidth(),
+		UsedProcessor:  response.GetPower().GetInformation().GetUsedProcessor(),
+		UsedBandwidth:  response.GetPower().GetInformation().GetUsedBandwidth(),
 	})
 	resourceArray = append(resourceArray, resource)
 	return resourceArray
@@ -232,7 +232,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			NodeId:        v.GetSender().GetNodeId(),
 			NodeName:      v.GetSender().GetNodeName(),
 			DataId:        v.GetTaskId(),
-			DataStatus:    DATA_STATUS_NORMAL.String(),
+			DataStatus:    apipb.DataStatus_DataStatus_Normal,
 			TaskId:        v.GetTaskId(),
 			TaskName:      v.GetTaskName(),
 			State:         v.GetState(),
@@ -245,7 +245,6 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			DataSupplier:  v.GetDataSupplier(),
 			PowerSupplier: v.GetPowerSupplier(),
 			Receivers:     v.GetReceivers(),
-			PartnerList:   make([]*apipb.TaskOrganization, 0, len(v.GetDataSupplier())),
 			TaskEventList: nil,
 		})
 		taskArray = append(taskArray, task)
@@ -266,7 +265,7 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 		NodeId:             response.GetMetadata().GetOwner().GetNodeId(),
 		NodeName:           response.GetMetadata().GetOwner().GetNodeName(),
 		DataId:             metadataSummary.GetMetaDataId(),
-		DataStatus:         "Y",
+		DataStatus:         apipb.DataStatus_DataStatus_Normal,
 		OriginId:           metadataSummary.GetOriginId(),
 		TableName:          metadataSummary.GetTableName(),
 		FilePath:           metadataSummary.GetFilePath(),
@@ -293,7 +292,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse
 			NodeId:     organization.GetNodeId(),
 			NodeName:   organization.GetNodeName(),
 			DataId:     organization.GetIdentityId(),
-			DataStatus: "Y",
+			DataStatus: apipb.DataStatus_DataStatus_Normal,
 		}))
 	}
 	// todo: need more fields
