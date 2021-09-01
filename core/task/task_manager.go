@@ -20,7 +20,6 @@ type Scheduler interface {
 }
 
 type Manager struct {
-	//dataCenter  core.CarrierDB
 	eventEngine *ev.EventEngine
 	resourceMng *resource.Manager
 	scheduler   *Scheduler
