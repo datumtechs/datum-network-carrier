@@ -9,11 +9,11 @@ import (
 
 type LocalStoreCarrierDB interface {
 	GetYarnName() (string, error)
-	SetSeedNode(seed *pb.SeedPeer) (types.NodeConnStatus, error)
+	SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 	DeleteSeedNode(id string) error
 	GetSeedNode(id string) (*pb.SeedPeer, error)
 	GetSeedNodeList() ([]*pb.SeedPeer, error)
-	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (types.NodeConnStatus, error)
+	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
 	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
 	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
 	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)

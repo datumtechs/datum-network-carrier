@@ -277,8 +277,8 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 	usedBandwidth := m.slotUnit.Bandwidth * needSlotCount
 
 	jobNodeResource.GetData().UsedMem += usedMem
-	jobNodeResource.GetData().UsedProcessor += usedProcessor
-	jobNodeResource.GetData().UsedBandWidth += usedBandwidth
+	jobNodeResource.GetData().UsedProcessor += uint32(usedProcessor)
+	jobNodeResource.GetData().UsedBandwidth += usedBandwidth
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
@@ -353,8 +353,8 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 	usedBandwidth := m.slotUnit.Bandwidth * freeSlotUnitCount
 
 	jobNodeResource.GetData().UsedMem -= usedMem
-	jobNodeResource.GetData().UsedProcessor -= usedProcessor
-	jobNodeResource.GetData().UsedBandWidth -= usedBandwidth
+	jobNodeResource.GetData().UsedProcessor -= uint32(usedProcessor)
+	jobNodeResource.GetData().UsedBandwidth -= usedBandwidth
 
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
 		log.Errorf("Failed to update local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%s}, err: {%s}",

@@ -298,8 +298,8 @@ func (t *TwoPC) driveTask(
 	pid peer.ID,
 	proposalId common.Hash,
 	taskDir types.ProposalTaskDir,
-	taskState types.TaskState,
-	taskRole  types.TaskRole,
+	taskState apipb.TaskState,
+	taskRole  apipb.TaskRole,
 	selfIdentity *apipb.TaskOrganization,
 	task *types.Task,
 	) {
@@ -506,8 +506,8 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 	for i := 0; i < len(task.TaskData().Receivers); i++ {
 		receiver := task.TaskData().Receivers[i]
 		wg.Add(1)
-		go sendConfirmMsgFn(&wg, proposalId, types.ResultSupplier, receiver.Receiver.PartyId,
-			receiver.Receiver.IdentityId, receiver.Receiver.NodeId, task.TaskId(), peerDesc, errCh)
+		go sendConfirmMsgFn(&wg, proposalId, types.ResultSupplier, receiver.PartyId,
+			receiver.IdentityId, receiver.NodeId, task.TaskId(), peerDesc, errCh)
 	}
 
 	wg.Wait()
