@@ -9,7 +9,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/core/scheduler"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
@@ -83,16 +82,17 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		resourceManager: resourceMng,
 		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
 		taskManager:     taskManager,
-		scheduler: scheduler.NewSchedulerStarveFIFO(
-			resourceClientSet,
-			eventEngine,
-			resourceMng,
-			config.CarrierDB,
-			localTaskMsgCh,
-			needConsensusTaskCh,
-			replayScheduleTaskCh,
-			doneScheduleTaskCh,
-		),
+		//TODO: 需要补充
+		//scheduler: scheduler.NewSchedulerStarveFIFO(
+		//	resourceClientSet,
+		//	eventEngine,
+		//	resourceMng,
+		//	config.CarrierDB,
+		//	localTaskMsgCh,
+		//	needConsensusTaskCh,
+		//	replayScheduleTaskCh,
+		//	doneScheduleTaskCh,
+		//),
 		resourceClientSet: resourceClientSet,
 	}
 	

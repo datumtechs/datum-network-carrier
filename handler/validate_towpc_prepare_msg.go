@@ -39,13 +39,13 @@ func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID,
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenPrepareMsg(message.ProposalId, message.TaskPartyId) {
+	if s.hasSeenPrepareMsg(message.MsgOption.ProposalId, message.MsgOption.MyPartyId) {
 		return pubsub.ValidationIgnore
 	}
 
 	// validate prepareMsg
 	if err := s.validatePrepareMsg(pid, message); err != nil {
-		log.WithError(err).Errorf("Failed to call `validatePrepareMsg`, proposalId: {%s}", common.BytesToHash(message.ProposalId).String())
+		log.WithError(err).Errorf("Failed to call `validatePrepareMsg`, proposalId: {%s}", common.BytesToHash(message.MsgOption.ProposalId).String())
 		return pubsub.ValidationIgnore
 	}
 
