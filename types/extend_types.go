@@ -6,7 +6,7 @@ import (
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow {
+func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDetailShow {
 	taskData := input.TaskData()
 	detailShow := &pb.TaskDetailShow{
 		TaskId:   taskData.GetTaskId(),
