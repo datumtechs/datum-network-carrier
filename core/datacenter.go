@@ -15,7 +15,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
-	"strings"
 	"sync"
 	"sync/atomic"
 )
@@ -380,64 +379,6 @@ func (dc *DataCenter) GetIdentity() (*apipb.Organization, error) {
 		return nil, err
 	}
 	return identity, nil
-}
-
-// about identity on datacenter
-func (dc *DataCenter) HasIdentity(identity *apipb.Organization) (bool, error) {
-	dc.serviceMu.RLock()
-	defer dc.serviceMu.RUnlock()
-	responses, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{
-		LastUpdateTime: uint64(timeutils.Now().Second()),
-	})
-	if err != nil {
-		return false, err
-	}
-	for _, organization := range responses.IdentityList {
-		if strings.EqualFold(organization.IdentityId, identity.IdentityId) {
-			return true, nil
-		}
-	}
-	return false, nil
-}
-
-func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	response, err := dc.client.SaveIdentity(dc.ctx, types.NewSaveIdentityRequest(identity))
-	if err != nil {
-		//log.WithError(err).WithField("hash", identity.Hash()).Errorf("InsertIdentity failed")
-		return err
-	}
-	if response.Status != 0 {
-		return fmt.Errorf("insert indentity error: %s", response.Msg)
-	}
-	return nil
-}
-
-func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
-	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityJoinRequest{
-		Member: &apipb.Organization{
-			NodeName:       identity.Name(),
-			NodeId:     identity.NodeId(),
-			IdentityId: identity.IdentityId(),
-		},
-	})
-	if err != nil {
-		return err
-	}
-	if response.GetStatus() != 0 {
-		return fmt.Errorf("revokeIdeneity err: %s", response.GetMsg())
-	}
-	return nil
-}
-
-func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
-	dc.serviceMu.RLock()
-	defer dc.serviceMu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{LastUpdateTime: uint64(timeutils.UnixMsec())})
-	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
 //func (dc *DataCenter) GetIdentityListByIds(identityIds []string) (types.IdentityArray, error) {

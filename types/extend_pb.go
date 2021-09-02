@@ -298,3 +298,21 @@ func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse
 	// todo: need more fields
 	return result
 }
+
+func NewMetadataAuthArrayFromResponse(responseList []*api.MetaDataAuthorityResponse) MetadataAuthArray {
+	if responseList == nil {
+		return nil
+	}
+	var result MetadataAuthArray
+	for _, auth := range responseList {
+		result = append(result, NewMedataAuth(&libTypes.AuthRecordData{
+			AuthRecordId:         auth.MetaDataAuthId,
+			User:                 auth.User,
+			UserType:             auth.UserType,
+			DataRecord:           auth.Auth,
+			AuditResult:          auth.Audit,
+			AuditSuggest:         "",
+		}))
+	}
+	return result
+}
