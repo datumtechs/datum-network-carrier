@@ -422,7 +422,7 @@ func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 //	if nil != err {
 //		return err
 //	}
-//	task.TaskData().State = state
+//	task.TaskPB().State = state
 //	rawdb.DeleteLocalTask(dc.db, taskId)
 //	rawdb.WriteLocalTask(dc.db, task)
 //	return nil

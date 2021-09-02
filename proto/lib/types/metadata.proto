@@ -10,7 +10,7 @@ import "repos/protobuf/gogoproto/gogo.proto";
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 // MetaData body data struct.
-message MetaData {
+message MetadataPB {
   string                      identity_id = 1;                // 元数据所属的组织的 身份标识
   string                      node_id = 2;                    // 元数据所属的组织的 p2p公钥
   string                      node_name = 3;                  // 元数据所属的组织的 组织名称

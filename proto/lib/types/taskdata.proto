@@ -12,7 +12,7 @@ import "lib/types/resourcedata.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
-message TaskData {
+message TaskPB {
   string                                      identity_id = 1;                            // 任务发起方的 组织的 身份标识
   string                                      node_id = 2;                                // 任务发起方的 组织的 p2p公钥
   string                                      node_name = 3;                              // 任务发起方的 组织的名称

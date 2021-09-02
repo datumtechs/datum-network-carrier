@@ -37,7 +37,7 @@ func serverObj() *core.DataCenter {
 
 func InsertData() {
 	dc := serverObj()
-	identities := types.NewIdentity(&libTypes.IdentityData{
+	identities := types.NewIdentity(&libTypes.IdentityPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
@@ -62,7 +62,7 @@ func InsertData() {
 
 func InsertMetaData() {
 	dc := serverObj()
-	metadata := types.NewMetadata(&libTypes.MetaData{
+	metadata := types.NewMetadata(&libTypes.MetadataPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		DataId:     DataId,
@@ -101,7 +101,7 @@ func InsertMetaData() {
 
 func InsertResource() {
 	dc := serverObj()
-	resource := types.NewResource(&libTypes.ResourceData{
+	resource := types.NewResource(&libTypes.ResourcePB{
 		IdentityId:     Identity,
 		NodeId:         NodeId,
 		NodeName:       NodeName,
@@ -130,7 +130,7 @@ func InsertResource() {
 
 func InsertTask() {
 	dc := serverObj()
-	taskdata := types.NewTask(&libTypes.TaskData{
+	taskdata := types.NewTask(&libTypes.TaskPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
@@ -245,7 +245,7 @@ func InsertTask() {
 
 func RevokeIdentity() {
 	dc := serverObj()
-	identities := types.NewIdentity(&libTypes.IdentityData{
+	identities := types.NewIdentity(&libTypes.IdentityPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,

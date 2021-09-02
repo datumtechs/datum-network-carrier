@@ -65,7 +65,7 @@ type IdentityMsgs []*IdentityMsg
 type IdentityRevokeMsgs []*IdentityRevokeMsg
 
 func (msg *IdentityMsg) ToDataCenter() *Identity {
-	return NewIdentity(&libTypes.IdentityData{
+	return NewIdentity(&libTypes.IdentityPB{
 		NodeName:   msg.NodeName,
 		NodeId:     msg.NodeId,
 		IdentityId: msg.IdentityId,
@@ -253,7 +253,7 @@ type MetaDataMsgs []*MetaDataMsg
 type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
 func (msg *MetaDataMsg) ToDataCenter() *Metadata {
-	return NewMetadata(&libTypes.MetaData{
+	return NewMetadata(&libTypes.MetadataPB{
 		IdentityId:         msg.OwnerIdentityId(),
 		NodeId:             msg.OwnerNodeId(),
 		NodeName:           msg.OwnerName(),
@@ -333,7 +333,7 @@ func (msg *MetaDataMsg) HashByCreateTime() common.Hash {
 }
 
 func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
-	return NewMetadata(&libTypes.MetaData{
+	return NewMetadata(&libTypes.MetadataPB{
 		IdentityId: msg.IdentityId,
 		NodeId:     msg.NodeId,
 		NodeName:   msg.NodeName,
@@ -443,7 +443,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 	return &TaskMsg{
 		TaskId:        "",
 		PowerPartyIds: req.PowerPartyIds,
-		Data: NewTask(&libTypes.TaskData{
+		Data: NewTask(&libTypes.TaskPB{
 
 			TaskId:     "",
 			TaskName:   req.TaskName,
@@ -520,8 +520,8 @@ func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.data.PartyId }
 func (msg *TaskMsg) TaskName() string        { return msg.Data.data.TaskName }
 
 func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {
-	partners := make([]*apipb.TaskOrganization, len(msg.Data.data.DataSupplier))
-	for i, v := range msg.Data.data.DataSupplier {
+	partners := make([]*apipb.TaskOrganization, len(msg.Data.data.DataSuppliers))
+	for i, v := range msg.Data.data.DataSuppliers {
 		partners[i] = &apipb.TaskOrganization{
 			PartyId:    v.MemberInfo.PartyId,
 			NodeName:   v.MemberInfo.NodeName,
@@ -532,12 +532,12 @@ func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {
 	return partners
 }
 func (msg *TaskMsg) TaskMetadataSupplierDatas() []*libTypes.TaskDataSupplier {
-	return msg.Data.data.DataSupplier
+	return msg.Data.data.DataSuppliers
 }
 
 func (msg *TaskMsg) TaskResourceSuppliers() []*apipb.TaskOrganization {
-	powers := make([]*apipb.TaskOrganization, len(msg.Data.data.PowerSupplier))
-	for i, v := range msg.Data.data.PowerSupplier {
+	powers := make([]*apipb.TaskOrganization, len(msg.Data.data.PowerSuppliers))
+	for i, v := range msg.Data.data.PowerSuppliers {
 		powers[i] = &apipb.TaskOrganization{
 			PartyId:    v.Organization.PartyId,
 			NodeName:   v.Organization.NodeName,
@@ -548,7 +548,7 @@ func (msg *TaskMsg) TaskResourceSuppliers() []*apipb.TaskOrganization {
 	return powers
 }
 func (msg *TaskMsg) TaskResourceSupplierDatas() []*libTypes.TaskPowerSupplier {
-	return msg.Data.data.PowerSupplier
+	return msg.Data.data.PowerSuppliers
 }
 func (msg *TaskMsg) GetPowerPartyIds() []string { return msg.PowerPartyIds }
 func (msg *TaskMsg) GetReceivers() []*apipb.TaskOrganization {
@@ -593,7 +593,7 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 		msg.Data.TaskData().IdentityId,
 		msg.Data.TaskData().PartyId,
 		msg.Data.TaskData().TaskName,
-		//msg.Data.TaskData().CreateAt,
+		//msg.Data.TaskPB().CreateAt,
 		uint64(timeutils.UnixMsec()),
 	})
 }
@@ -607,7 +607,7 @@ func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.data.CreateAt < s[j].Da
 
 //type TaskSupplier struct {
 //	*TaskNodeAlias
-//	MetaData *SupplierMetaData `json:"metaData"`
+//	MetadataPB *SupplierMetaData `json:"metaData"`
 //}
 
 //type SupplierMetaData struct {
