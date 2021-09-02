@@ -52,7 +52,7 @@ func (m *Resource) GetIdentityId() string { return m.data.IdentityId }
 func (m *Resource) GetNodeId() string { return m.data.NodeId }
 func (m *Resource) GetNodeName() string { return m.data.NodeName }
 func (m *Resource) GetDataStatus() apipb.DataStatus { return m.data.DataStatus }
-func (m *Resource) GetState() libTypes.PowerState { return m.data.State }
+func (m *Resource) GetState() apipb.PowerState { return m.data.State }
 func (m *Resource) GetTotalMem() uint64 { return m.data.TotalMem }
 func (m *Resource) GetUsedMem() uint64 { return m.data.UsedMem }
 func (m *Resource) GetTotalProcessor() uint64 { return uint64(m.data.TotalProcessor) }
