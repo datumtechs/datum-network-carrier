@@ -111,8 +111,8 @@ func NewTaskDetail(task *Task) *libTypes.TaskDetail {
 		TaskId:        task.data.GetTaskId(),
 		TaskName:      task.data.GetTaskName(),
 		AlgoSupplier:  task.data.GetAlgoSupplier(),
-		DataSupplier:  task.data.GetDataSupplier(),
-		PowerSupplier: task.data.GetPowerSupplier(),
+		DataSuppliers:  task.data.GetDataSuppliers(),
+		PowerSuppliers: task.data.GetPowerSuppliers(),
 		Receivers:     task.data.GetReceivers(),
 		CreateAt:      task.data.GetCreateAt(),
 		StartAt:       task.data.GetStartAt(),
@@ -127,7 +127,7 @@ func NewTaskDetail(task *Task) *libTypes.TaskDetail {
 func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadataSummaryList() {
-		metadata := NewMetadata(&libTypes.MetaData{
+		metadata := NewMetadata(&libTypes.MetadataPB{
 			IdentityId: v.GetOwner().GetIdentityId(),
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetNodeName(),
@@ -153,7 +153,7 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadataList() {
-		data := &libTypes.MetaData{
+		data := &libTypes.MetadataPB{
 			IdentityId: v.GetOwner().GetIdentityId(),
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetNodeName(),
@@ -184,7 +184,7 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowerList()))
 	for _, v := range response.GetPowerList() {
-		resource := NewResource(&libTypes.ResourceData{
+		resource := NewResource(&libTypes.ResourcePB{
 			IdentityId:     v.GetOwner().GetIdentityId(),
 			NodeId:         v.GetOwner().GetNodeId(),
 			NodeName:       v.GetOwner().GetNodeName(),
@@ -205,7 +205,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 
 func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0)
-	resource := NewResource(&libTypes.ResourceData{
+	resource := NewResource(&libTypes.ResourcePB{
 		IdentityId:     response.GetOwner().GetIdentityId(),
 		NodeId:         response.GetOwner().GetNodeId(),
 		NodeName:       response.GetOwner().GetNodeName(),
@@ -226,7 +226,7 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 	taskArray := make(TaskDataArray, 0, len(response.GetTaskList()))
 	for _, v := range response.GetTaskList() {
-		task := NewTask(&libTypes.TaskData{
+		task := NewTask(&libTypes.TaskPB{
 			// TODO: 任务的所有者标识明确
 			IdentityId:    v.GetSender().GetIdentityId(),
 			NodeId:        v.GetSender().GetNodeId(),
@@ -242,8 +242,8 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			EndAt:         v.GetEndAt(),
 			AlgoSupplier:  v.GetAlgoSupplier(),
 			OperationCost: v.GetOperationCost(),
-			DataSupplier:  v.GetDataSupplier(),
-			PowerSupplier: v.GetPowerSupplier(),
+			DataSuppliers:  v.GetDataSuppliers(),
+			PowerSuppliers: v.GetPowerSuppliers(),
 			Receivers:     v.GetReceivers(),
 			TaskEventList: nil,
 		})
@@ -260,7 +260,7 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 	if metadataSummary == nil {
 		return nil
 	}
-	metadata := &libTypes.MetaData{
+	metadata := &libTypes.MetadataPB{
 		IdentityId:         response.GetMetadata().GetOwner().GetIdentityId(),
 		NodeId:             response.GetMetadata().GetOwner().GetNodeId(),
 		NodeName:           response.GetMetadata().GetOwner().GetNodeName(),
@@ -287,7 +287,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse
 	}
 	var result IdentityArray
 	for _, organization := range response.GetIdentityList() {
-		result = append(result, NewIdentity(&libTypes.IdentityData{
+		result = append(result, NewIdentity(&libTypes.IdentityPB{
 			IdentityId: organization.GetIdentityId(),
 			NodeId:     organization.GetNodeId(),
 			NodeName:   organization.GetNodeName(),

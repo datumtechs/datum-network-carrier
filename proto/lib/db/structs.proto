@@ -48,7 +48,7 @@ message StringArrayPB {
 }
 
 message TaskArrayPB {
-    repeated types.TaskData task_list = 1;
+    repeated types.TaskPB task_list = 1;
 }
 
 message TaskEventArrayPB {

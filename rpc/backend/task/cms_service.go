@@ -172,7 +172,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	taskMsg.Data.SetReceivers(receivers)
 
 	// add empty powerSuppliers
-	taskMsg.Data.TaskData().PowerSupplier = make([]*libTypes.TaskPowerSupplier, 0)
+	taskMsg.Data.TaskData().PowerSuppliers = make([]*libTypes.TaskPowerSupplier, 0)
 
 	// add taskId
 	taskId := taskMsg.SetTaskId()
