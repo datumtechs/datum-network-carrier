@@ -83,7 +83,7 @@ message TaskDataSupplier {
   api.protobuf.TaskOrganization member_info = 1;                                // 身份信息
   string                        metadata_id = 2;                                // 元数据Id
   string                        metadata_name = 3;                              // 元数据名称
-  repeated MetadataColumn       column_list = 4;
+  repeated types.MetadataColumn       column_list = 4;
 }
 
 // 任务事件定义
