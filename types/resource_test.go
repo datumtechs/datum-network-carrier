@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var resource_test = NewResource(&types.ResourceData{
+var resource_test = NewResource(&types.ResourcePB{
 	IdentityId:             "identity",
 	NodeId:               "nodeId",
 	NodeName:             "nodeName",

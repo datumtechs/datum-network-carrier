@@ -16,10 +16,10 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 // MetaData body data struct.
 message BlockData {
   types.HeaderPb              header = 1;
-  repeated types.MetaData     metadata = 2;
-  repeated types.ResourceData resourcedata = 3;
-  repeated types.IdentityData identitydata = 4;
-  repeated types.TaskData     taskdata = 5;
+  repeated types.MetadataPB     metadata = 2;
+  repeated types.ResourcePB resourcedata = 3;
+  repeated types.IdentityPB identitydata = 4;
+  repeated types.TaskPB     taskdata = 5;
 
   //
   uint64 receivedAt = 6;
@@ -27,10 +27,10 @@ message BlockData {
 }
 
 message BodyData {
-  repeated types.MetaData     metadata = 1;
-  repeated types.ResourceData resourcedata = 2;
-  repeated types.IdentityData identitydata = 3;
-  repeated types.TaskData     taskdata = 4;
+  repeated types.MetadataPB     metadata = 1;
+  repeated types.ResourcePB resourcedata = 2;
+  repeated types.IdentityPB identitydata = 3;
+  repeated types.TaskPB     taskdata = 4;
   bytes                       extraData = 5;
 }
 

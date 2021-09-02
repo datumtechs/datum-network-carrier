@@ -581,9 +581,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					CreateAt:       task.TaskData().CreateAt,
 				}
 				// 组装 数据参与方
-				//for _, dataSupplier := range task.TaskData().DataSupplier {
+				//for _, dataSupplier := range task.TaskPB().DataSupplier {
 				//	// 协作方, 需要过滤掉自己
-				//	if task.TaskData().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
+				//	if task.TaskPB().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
 				//		powerTask.Patners = append(powerTask.Patners, &apipb.Organization{
 				//			NodeName:   dataSupplier.MemberInfo.GetNodeName(),
 				//			NodeId:     dataSupplier.MemberInfo.GetNodeId(),
@@ -669,7 +669,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	if nil != err {
 		return nil, err
 	}
-	return types.NewIdentity(&libTypes.IdentityData{
+	return types.NewIdentity(&libTypes.IdentityPB{
 		IdentityId: nodeAlias.IdentityId,
 		NodeId:     nodeAlias.NodeId,
 		NodeName:   nodeAlias.NodeName,
@@ -706,14 +706,14 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 		}
 
 		// task 参与方
-		for _, dataSupplier := range task.TaskData().DataSupplier {
+		for _, dataSupplier := range task.TaskData().DataSuppliers {
 			if dataSupplier.MemberInfo.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_DataSupplier)
 			}
 		}
 
 		// 算力提供方
-		for _, powerSupplier := range task.TaskData().PowerSupplier {
+		for _, powerSupplier := range task.TaskData().PowerSuppliers {
 			if powerSupplier.Organization.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_PowerSupplier)
 			}
