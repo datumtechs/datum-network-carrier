@@ -11,7 +11,7 @@ import (
 
 func TestRunningTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	task := types.NewTask(&libtypes.TaskData{
+	task := types.NewTask(&libtypes.TaskPB{
 		Identity:             "identity-task",
 		NodeId:               "nodeId-task",
 		NodeName:             "nodeName",

@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var identities = NewIdentity(&types.IdentityData{
+var identities = NewIdentity(&types.IdentityPB{
 	IdentityId: "",
 	NodeId:     "",
 	NodeName:   "",

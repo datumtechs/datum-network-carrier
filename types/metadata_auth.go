@@ -66,7 +66,7 @@ func (s MetadataAuthArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewMetadataAuthArray(metaData []*libTypes.MetaData) MetadataArray {
+func NewMetadataAuthArray(metaData []*libTypes.MetadataPB) MetadataArray {
 	var s MetadataArray
 	for _, v := range metaData {
 		s = append(s, NewMetadata(v))

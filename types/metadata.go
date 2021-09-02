@@ -10,19 +10,19 @@ import (
 )
 
 type Metadata struct {
-	data *libTypes.MetaData
+	data *libTypes.MetadataPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewMetadata(data *libTypes.MetaData) *Metadata {
+func NewMetadata(data *libTypes.MetadataPB) *Metadata {
 	return &Metadata{data: data}
 }
 
 func NewMetadataWithoutParam() *Metadata {
-	return &Metadata{data: new(libTypes.MetaData)}
+	return &Metadata{data: new(libTypes.MetadataPB)}
 }
 
 func (m *Metadata) EncodePb(w io.Writer) error {
@@ -43,7 +43,7 @@ func MetaDataToJson(meta *Metadata) string {
 
 func (m *Metadata) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libTypes.MetaData)
+		m.data = new(libTypes.MetadataPB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -60,7 +60,7 @@ func (m *Metadata) Hash() common.Hash {
 	return v
 }
 
-func (m *Metadata) MetadataData() *libTypes.MetaData { return m.data }
+func (m *Metadata) MetadataData() *libTypes.MetadataPB { return m.data }
 // MetadataArray is a Transaction slice type for basic sorting.
 type MetadataArray []*Metadata
 
@@ -76,7 +76,7 @@ func (s MetadataArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewMetadataArray(metaData []*libTypes.MetaData) MetadataArray {
+func NewMetadataArray(metaData []*libTypes.MetadataPB) MetadataArray {
 	var s MetadataArray
 	for _, v := range metaData {
 		s = append(s, NewMetadata(v))
@@ -84,8 +84,8 @@ func NewMetadataArray(metaData []*libTypes.MetaData) MetadataArray {
 	return s
 }
 
-func (s MetadataArray) To() []*libTypes.MetaData {
-	arr := make([]*libTypes.MetaData, 0, s.Len())
+func (s MetadataArray) To() []*libTypes.MetadataPB {
+	arr := make([]*libTypes.MetadataPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}
