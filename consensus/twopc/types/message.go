@@ -16,18 +16,18 @@ import (
 )
 
 type taskOption struct {
-	Role                  apipb.TaskRole           `json:"role"` // The role information of the current recipient of the task
-	TaskId                string                   `json:"taskId"`
-	TaskName              string                   `json:"taskName"`
-	Owner                 *apipb.Organization         `json:"owner"`
-	AlgoSupplier          *apipb.Organization         `json:"algoSupplier"`
-	DataSupplier          []*dataSupplierOption    `json:"dataSupplier"`
-	PowerSupplier         []*powerSupplierOption   `json:"powerSupplier"`
-	Receivers             []*receiverOption        `json:"receivers"`
-	OperationCost         *TaskOperationCost `json:"operationCost"`
-	CalculateContractCode string                   `json:"calculateContractCode"`
-	DataSplitContractCode string                   `json:"dataSplitContractCode"`
-	CreateAt              uint64                   `json:"createat"`
+	Role                  apipb.TaskRole         `json:"role"` // The role information of the current recipient of the task
+	TaskId                string                 `json:"taskId"`
+	TaskName              string                 `json:"taskName"`
+	Owner                 *apipb.Organization    `json:"owner"`
+	AlgoSupplier          *apipb.Organization    `json:"algoSupplier"`
+	DataSupplier          []*dataSupplierOption  `json:"dataSupplier"`
+	PowerSupplier         []*powerSupplierOption `json:"powerSupplier"`
+	Receivers             []*receiverOption      `json:"receivers"`
+	OperationCost         *TaskOperationCost     `json:"operationCost"`
+	CalculateContractCode string                 `json:"calculateContractCode"`
+	DataSplitContractCode string                 `json:"dataSplitContractCode"`
+	CreateAt              uint64                 `json:"createat"`
 }
 
 func (t *taskOption) Hash() common.Hash {
@@ -47,8 +47,8 @@ func (cost *TaskOperationCost) String() string {
 
 type dataSupplierOption struct {
 	MemberInfo      *apipb.Organization `json:"memberInfo"`
-	MetaDataId      string           `json:"metaDataId"`
-	ColumnIndexList []uint64         `json:"columnIndexList"`
+	MetaDataId      string              `json:"metaDataId"`
+	ColumnIndexList []uint64            `json:"columnIndexList"`
 }
 type powerSupplierOption struct {
 	MemberInfo *apipb.Organization `json:"memberInfo"`
@@ -87,14 +87,14 @@ func (msg *PrepareMsg) MsgHash() common.Hash {
 }
 
 type PrepareVote struct {
-	ProposalID  common.Hash      `json:"proposalId"`
-	Role        apipb.TaskRole   `json:"role"` // The role information of the current recipient of the task
+	ProposalID  common.Hash         `json:"proposalId"`
+	Role        apipb.TaskRole      `json:"role"` // The role information of the current recipient of the task
 	Owner       *apipb.Organization `json:"owner"`
-	VoteOption  types.VoteOption `json:"voteOption"`
-	PeerInfo    *taskPeerInfo    `json:"peerInfo"`
-	CreateAt    uint64           `json:"createAt"`
-	Sign        types.MsgSign    `json:"sign"`
-	messageHash atomic.Value     `rlp:"-"`
+	VoteOption  types.VoteOption    `json:"voteOption"`
+	PeerInfo    *taskPeerInfo       `json:"peerInfo"`
+	CreateAt    uint64              `json:"createAt"`
+	Sign        types.MsgSign       `json:"sign"`
+	messageHash atomic.Value        `rlp:"-"`
 }
 
 func (msg *PrepareVote) String() string {
@@ -138,36 +138,27 @@ var (
 	ProposalDeadlineDuration = uint64(60 * (time.Second.Milliseconds()))
 )
 
-//type ConfirmEpoch uint64
-//
-//func (c ConfirmEpoch) Uint64() uint64 { return uint64(c) }
-
-type ProposalState struct {
-	ProposalId         common.Hash
-	TaskDir            types.ProposalTaskDir
-	TaskRole           apipb.TaskRole
-	SelfIdentity       *apipb.TaskOrganization
-	TaskId             string
-	PeriodNum          ProposalStatePeriod
+type orgProposalState struct {
 	PrePeriodStartTime uint64
 	PeriodStartTime    uint64 // the timestemp
-	// Clear `ProposalState` ,
-	// when the current time is greater than the `DeadlineDuration` createAt of proposalState
-	DeadlineDuration uint64
-	CreateAt         uint64
+	DeadlineDuration   uint64 // Clear `ProposalState` , when the current time is greater than the `DeadlineDuration` createAt of proposalState
+	CreateAt           uint64
+	TaskId             string
+	TaskPartyId        string
+	TaskRole           apipb.TaskRole
+	PeriodNum          ProposalStatePeriod
 }
 
-var EmptyProposalState = new(ProposalState)
+func newOrgProposalState(
+	taskId string,
+	taskRole apipb.TaskRole,
+	taskPartyId string,
+	startTime uint64) *orgProposalState {
 
-func NewProposalState(proposalId common.Hash, taskId string,
-	TaskDir types.ProposalTaskDir, taskRole apipb.TaskRole, selfIdentity *apipb.TaskOrganization, startTime uint64) *ProposalState {
-
-	return &ProposalState{
-		ProposalId:       proposalId,
+	return &orgProposalState{
 		TaskId:           taskId,
-		TaskDir:          TaskDir,
 		TaskRole:         taskRole,
-		SelfIdentity:     selfIdentity,
+		TaskPartyId:      taskPartyId,
 		PeriodNum:        PeriodPrepare,
 		PeriodStartTime:  startTime,
 		DeadlineDuration: ProposalDeadlineDuration,
@@ -175,6 +166,20 @@ func NewProposalState(proposalId common.Hash, taskId string,
 	}
 }
 
+type ProposalState struct {
+	proposalId common.Hash
+	states     []*orgProposalState
+	partyCache map[string]int // partyId -> states index
+}
+
+var EmptyProposalState = new(ProposalState)
+
+func NewProposalState() *ProposalState {
+	return &ProposalState{
+		states:     make([]*orgProposalState, 0),
+		partyCache: make(map[string]int, 0),
+	}
+}
 func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.ProposalId }
 func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate.PeriodNum }
 
@@ -183,7 +188,7 @@ func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate
 //}
 func (pstate *ProposalState) GetPeriod() string {
 
-	switch pstate.PeriodNum  {
+	switch pstate.PeriodNum {
 	case PeriodPrepare:
 		return "PeriodPrepare"
 	case PeriodConfirm:
@@ -196,14 +201,14 @@ func (pstate *ProposalState) GetPeriod() string {
 		return "PeriodUnknown"
 	}
 }
-func (pstate *ProposalState) IsPreparePeriod() bool          { return pstate.PeriodNum == PeriodPrepare }
-func (pstate *ProposalState) IsConfirmPeriod() bool          { return pstate.PeriodNum == PeriodConfirm }
-func (pstate *ProposalState) IsCommitPeriod() bool           { return pstate.PeriodNum == PeriodCommit }
-func (pstate *ProposalState) IsFinishedPeriod() bool         { return pstate.PeriodNum == PeriodFinished }
-func (pstate *ProposalState) IsNotPreparePeriod() bool       { return !pstate.IsPreparePeriod() }
-func (pstate *ProposalState) IsNotConfirmPeriod() bool       { return !pstate.IsConfirmPeriod() }
-func (pstate *ProposalState) IsNotCommitPeriod() bool        { return !pstate.IsCommitPeriod() }
-func (pstate *ProposalState) IsNotFinishedPeriod() bool      { return !pstate.IsFinishedPeriod() }
+func (pstate *ProposalState) IsPreparePeriod() bool     { return pstate.PeriodNum == PeriodPrepare }
+func (pstate *ProposalState) IsConfirmPeriod() bool     { return pstate.PeriodNum == PeriodConfirm }
+func (pstate *ProposalState) IsCommitPeriod() bool      { return pstate.PeriodNum == PeriodCommit }
+func (pstate *ProposalState) IsFinishedPeriod() bool    { return pstate.PeriodNum == PeriodFinished }
+func (pstate *ProposalState) IsNotPreparePeriod() bool  { return !pstate.IsPreparePeriod() }
+func (pstate *ProposalState) IsNotConfirmPeriod() bool  { return !pstate.IsConfirmPeriod() }
+func (pstate *ProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCommitPeriod() }
+func (pstate *ProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
 func (pstate *ProposalState) IsDeadline() bool {
 	now := uint64(timeutils.UnixMsec())
 	return (now - pstate.CreateAt) >= ProposalDeadlineDuration

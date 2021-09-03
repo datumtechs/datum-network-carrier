@@ -120,7 +120,7 @@ func NewTaskConsResult(taskId string, status TaskConsStatus, err error) *TaskCon
 	return &TaskConsResult{
 		TaskId: taskId,
 		Status: status,
-		Err: err,
+		Err:    err,
 	}
 }
 func (res *TaskConsResult) String() string {
@@ -162,28 +162,29 @@ type ConsensusResult struct {
 }
 
 func (res *ConsensusResult) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "status": %s, "done": %v, "err": %s}`, res.TaskId, res.Status.String(), res.Done, res.Err)
+	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
 }
 
 // ================================================= V2.0 =================================================
 
 // 需要被 进行共识的 local task (已经调度好的, 还未共识的)
 type NeedConsensusTask struct {
-	task     *Task
+	task *Task
 	//supply   bool                 // 当前task持有者是否提供 内部资源
 	//resource *PrepareVoteResource // 当前task持有者所提供的 内部资源
 	resultCh chan *TaskConsResult
 }
 
-func NewNeedConsensusTask(task *Task/*, supply bool, resource *PrepareVoteResource*/) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task /*, supply bool, resource *PrepareVoteResource*/) *NeedConsensusTask {
 	return &NeedConsensusTask{
-		task:     task,
+		task: task,
 		//supply:   supply,
 		//resource: resource,
 		resultCh: make(chan *TaskConsResult),
 	}
 }
-func (nct *NeedConsensusTask) Task() *Task                    { return nct.task }
+func (nct *NeedConsensusTask) Task() *Task { return nct.task }
+
 //func (nct *NeedConsensusTask) IsSupply() bool                 { return nct.supply }
 //func (nct *NeedConsensusTask) Resource() *PrepareVoteResource { return nct.resource }
 func (nct *NeedConsensusTask) ResultCh() chan *TaskConsResult { return nct.resultCh }
@@ -205,9 +206,8 @@ func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
 	close(nct.resultCh)
 }
 func (nct *NeedConsensusTask) ReceiveResult() *TaskConsResult {
-	return <- nct.resultCh
+	return <-nct.resultCh
 }
-
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
 type NeedReplayScheduleTask struct {
@@ -283,7 +283,7 @@ func (rsr *ReplayScheduleResult) String() string {
 // 需要被执行的 task (local 和 remote, 已经被共识完成的, 可以下发 fighter 去执行的)
 type NeedExecuteTask struct {
 	proposalId   common.Hash
-	selfTaskRole TaskRole
+	selfTaskRole apipb.TaskRole
 	selfIdentity *apipb.TaskOrganization
 	task         *Task
 	selfResource *PrepareVoteResource
@@ -292,7 +292,7 @@ type NeedExecuteTask struct {
 
 func NewNeedExecuteTask(
 	proposalId common.Hash,
-	selfTaskRole TaskRole,
+	selfTaskRole apipb.TaskRole,
 	selfIdentity *apipb.TaskOrganization,
 	task *Task,
 	selfResource *PrepareVoteResource,
@@ -308,7 +308,7 @@ func NewNeedExecuteTask(
 	}
 }
 func (net *NeedExecuteTask) ProposalId() common.Hash                   { return net.proposalId }
-func (net *NeedExecuteTask) TaskRole() TaskRole                        { return net.selfTaskRole }
+func (net *NeedExecuteTask) TaskRole() apipb.TaskRole                  { return net.selfTaskRole }
 func (net *NeedExecuteTask) TaskOrganization() *apipb.TaskOrganization { return net.selfIdentity }
 func (net *NeedExecuteTask) Task() *Task                               { return net.task }
 func (net *NeedExecuteTask) SelfResource() *PrepareVoteResource        { return net.selfResource }
@@ -388,15 +388,15 @@ func ConfirmTaskPeerInfoString(resources *pb.ConfirmTaskPeerInfo) string {
 }
 
 
-func IsSameTaskOrgByte (org1, org2 *pb.TaskOrganizationIdentityInfo) bool {
-	if bytes.Compare(org1.GetPartyId(), org2.GetPartyId())  == 0 && bytes.Compare(org1.GetIdentityId(), org2.GetIdentityId()) == 0 {
+func IsSameTaskOrgByte(org1, org2 *pb.TaskOrganizationIdentityInfo) bool {
+	if bytes.Compare(org1.GetPartyId(), org2.GetPartyId()) == 0 && bytes.Compare(org1.GetIdentityId(), org2.GetIdentityId()) == 0 {
 		return true
 	}
 	return false
 }
 
-func IsSameTaskOrg (org1, org2 *apipb.TaskOrganization) bool {
-	if org1.GetPartyId() == org2.GetPartyId()  &&  org1.GetIdentityId() == org2.GetIdentityId() {
+func IsSameTaskOrg(org1, org2 *apipb.TaskOrganization) bool {
+	if org1.GetPartyId() == org2.GetPartyId() && org1.GetIdentityId() == org2.GetIdentityId() {
 		return true
 	}
 	return false

@@ -11,6 +11,8 @@ import (
 
 type state struct {
 
+
+
 	// Proposal being processed (proposalId -> proposalState)
 	runningProposals map[common.Hash]*ctypes.ProposalState
 	selfPeerInfoCache map[common.Hash]*types.PrepareVoteResource
@@ -125,11 +127,11 @@ func (s *state) GetProposalStates() map[common.Hash]*ctypes.ProposalState {
 			ProposalId:         proposalState.ProposalId,
 			TaskDir:            proposalState.TaskDir,
 			TaskRole:           proposalState.TaskRole,
-			SelfIdentity:       &apipb.TaskOrganization{
-				PartyId:    proposalState.SelfIdentity.PartyId,
-				NodeName:       proposalState.SelfIdentity.NodeName,
-				NodeId:     proposalState.SelfIdentity.NodeId,
-				IdentityId: proposalState.SelfIdentity.IdentityId,
+			TaskOrg:       &apipb.TaskOrganization{
+				PartyId:    proposalState.TaskOrg.PartyId,
+				NodeName:       proposalState.TaskOrg.NodeName,
+				NodeId:     proposalState.TaskOrg.NodeId,
+				IdentityId: proposalState.TaskOrg.IdentityId,
 			},
 			TaskId:             proposalState.TaskId,
 			PeriodNum:          proposalState.PeriodNum,
