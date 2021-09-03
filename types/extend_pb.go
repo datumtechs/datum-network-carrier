@@ -29,7 +29,7 @@ func NewMetaDataSaveRequest(metadata *Metadata) *api.MetaDataSaveRequest {
 			IdentityId: metadata.data.GetIdentityId(),
 		},
 	}
-	for _, column := range metadata.data.MetadataColumnList {
+	for _, column := range metadata.data.MetadataColumns {
 		request.ColumnMeta = append(request.ColumnMeta, column)
 	}
 	return request
@@ -119,14 +119,14 @@ func NewTaskDetail(task *Task) *libTypes.TaskDetail {
 		EndAt:         task.data.GetEndAt(),
 		State:         task.data.GetState(),
 		OperationCost: task.data.GetOperationCost(),
-		TaskEventList: task.data.GetTaskEventList(),
+		TaskEvents: task.data.GetTaskEvents(),
 	}
 	return request
 }
 
 func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) MetadataArray {
 	var metadataArray MetadataArray
-	for _, v := range response.GetMetadataSummaryList() {
+	for _, v := range response.GetMetadataSummaries() {
 		metadata := NewMetadata(&libTypes.MetadataPB{
 			IdentityId: v.GetOwner().GetIdentityId(),
 			NodeId:     v.GetOwner().GetNodeId(),
@@ -143,7 +143,7 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 			FileType:   v.GetInformation().GetFileType(),
 			State:      v.GetInformation().GetState(),
 			HasTitle:   v.GetInformation().GetHasTitle(),
-			MetadataColumnList: make([]*libTypes.MetadataColumn, 0),
+			MetadataColumns: make([]*libTypes.MetadataColumn, 0),
 		})
 		metadataArray = append(metadataArray, metadata)
 	}
@@ -152,7 +152,7 @@ func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) Met
 
 func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) MetadataArray {
 	var metadataArray MetadataArray
-	for _, v := range response.GetMetadataList() {
+	for _, v := range response.GetMetadatas() {
 		data := &libTypes.MetadataPB{
 			IdentityId: v.GetOwner().GetIdentityId(),
 			NodeId:     v.GetOwner().GetNodeId(),
@@ -169,7 +169,7 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 			FileType:   v.GetMetaSummary().GetFileType(),
 			State:      v.GetMetaSummary().GetState(),
 			HasTitle:   v.GetMetaSummary().GetHasTitle(),
-			MetadataColumnList: v.GetMetadataColumnList(),
+			MetadataColumns: v.GetMetadataColumns(),
 		}
 		metadata := NewMetadata(data)
 		metadataArray = append(metadataArray, metadata)
@@ -182,8 +182,8 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 //}
 
 func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
-	resourceArray := make(ResourceArray, 0, len(response.GetPowerList()))
-	for _, v := range response.GetPowerList() {
+	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
+	for _, v := range response.GetPowers() {
 		resource := NewResource(&libTypes.ResourcePB{
 			IdentityId:     v.GetOwner().GetIdentityId(),
 			NodeId:         v.GetOwner().GetNodeId(),
@@ -224,8 +224,8 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 }
 
 func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
-	taskArray := make(TaskDataArray, 0, len(response.GetTaskList()))
-	for _, v := range response.GetTaskList() {
+	taskArray := make(TaskDataArray, 0, len(response.GetTaskDetails()))
+	for _, v := range response.GetTaskDetails() {
 		task := NewTask(&libTypes.TaskPB{
 			// TODO: 任务的所有者标识明确
 			IdentityId:    v.GetSender().GetIdentityId(),
@@ -245,7 +245,7 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			DataSuppliers:  v.GetDataSuppliers(),
 			PowerSuppliers: v.GetPowerSuppliers(),
 			Receivers:     v.GetReceivers(),
-			TaskEventList: nil,
+			TaskEvents: nil,
 		})
 		taskArray = append(taskArray, task)
 	}
@@ -276,7 +276,7 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 		FileType:           metadataSummary.GetFileType(),
 		State:              metadataSummary.GetState(),
 		HasTitle:           metadataSummary.GetHasTitle(),
-		MetadataColumnList: response.GetMetadata().GetMetadataColumnList(),
+		MetadataColumns: response.GetMetadata().GetMetadataColumns(),
 	}
 	return NewMetadata(metadata)
 }
@@ -286,7 +286,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse
 		return nil
 	}
 	var result IdentityArray
-	for _, organization := range response.GetIdentityList() {
+	for _, organization := range response.GetIdentities() {
 		result = append(result, NewIdentity(&libTypes.IdentityPB{
 			IdentityId: organization.GetIdentityId(),
 			NodeId:     organization.GetNodeId(),
