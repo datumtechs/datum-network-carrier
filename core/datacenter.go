@@ -493,7 +493,7 @@ func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	log.Debugf("GetLocalTask, taskId: {%s}", taskId)
+	//log.Debugf("GetLocalTask, taskId: {%s}", taskId)
 	return rawdb.ReadLocalTask(dc.db, taskId)
 }
 

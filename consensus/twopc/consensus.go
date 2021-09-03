@@ -333,7 +333,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	result := replaySchedTask.RecvResult()
 
 
-	log.Debugf("Received the reschedule task result from `scheduler.replaySchedule()`, the result: %s", result.String())
+	log.Debugf("Received the reschedule task result from `schedule.replaySchedule()`, the result: %s", result.String())
 
 	// set myself peerInfo cache
 	t.state.StoreSelfPeerInfo(proposal.ProposalId, result.Resource)

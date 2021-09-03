@@ -56,7 +56,7 @@ func (m *Manager) Start() error {
 	if nil != err {
 		log.Warnf("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
 	} else {
-		m.SetSlotUnit(slotUnit.Mem, slotUnit.Processor, slotUnit.Bandwidth)
+		m.SetSlotUnit(slotUnit.Mem, slotUnit.Bandwidth, slotUnit.Processor)
 	}
 
 	// store slotUnit
@@ -109,7 +109,7 @@ func (m *Manager) Stop() error {
 	return nil
 }
 
-func (m *Manager) SetSlotUnit(mem, p, b uint64) {
+func (m *Manager) SetSlotUnit(mem, b uint64, p uint32) {
 	//m.slotUnit = &types.Slot{
 	//	Mem:       mem,
 	//	Processor: p,
@@ -194,37 +194,6 @@ func (m *Manager) refreshOrgResourceTable() error {
 	defer m.remoteTableQueueMu.Unlock()
 
 	m.remoteTableQueue = remoteResourceArr
-
-	//tmpMap := make(map[string]int, len(resources))
-	//tmpArr := make([]*types.Resource, len(resources))
-	//for i, r := range resources {
-	//	tmpMap[r.GetIdentityId()] = i
-	//	tmpArr[i] = r
-	//}
-	//
-	//for i := 0; i < len(m.remoteTableQueue); i++ {
-	//
-	//	resource := m.remoteTableQueue[i]
-	//
-	//	// If has, update
-	//	if index, ok := tmpMap[resource.GetIdentityId()]; ok {
-	//		r := tmpArr[index]
-	//		m.remoteTableQueue[i] = types.NewOrgResourceFromResource(r)
-	//		delete(tmpMap, resource.GetIdentityId())
-	//	} else {
-	//		// If no has, delete
-	//		m.remoteTableQueue = append(m.remoteTableQueue[:i], m.remoteTableQueue[i+1:]...)
-	//		i--
-	//	}
-	//}
-	//// If is new one, add
-	//if len(tmpMap) != 0 {
-	//	for _, r := range tmpArr {
-	//		if _, ok := tmpMap[r.GetIdentityId()]; ok {
-	//			m.remoteTableQueue = append(m.remoteTableQueue, types.NewOrgResourceFromResource(r))
-	//		}
-	//	}
-	//}
 	return nil
 }
 
@@ -273,7 +242,7 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 
 	// 更新 本地 jobNodeResource 的资源使用信息
 	usedMem := m.slotUnit.Mem * needSlotCount
-	usedProcessor := m.slotUnit.Processor * needSlotCount
+	usedProcessor := m.slotUnit.Processor * uint32(needSlotCount)
 	usedBandwidth := m.slotUnit.Bandwidth * needSlotCount
 
 	jobNodeResource.GetData().UsedMem += usedMem
@@ -349,7 +318,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 
 	// 更新 本地 jobNodeResource 的资源使用信息
 	usedMem := m.slotUnit.Mem * freeSlotUnitCount
-	usedProcessor := m.slotUnit.Processor * freeSlotUnitCount
+	usedProcessor := m.slotUnit.Processor * uint32(freeSlotUnitCount)
 	usedBandwidth := m.slotUnit.Bandwidth * freeSlotUnitCount
 
 	jobNodeResource.GetData().UsedMem -= usedMem
@@ -396,7 +365,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId string, option Re
 	}
 	if option.IsRemoveLocalTask() {
 		log.Debugf("start remove local task  %s, taskId: {%s}", logdesc, taskId)
-		// 因为在 scheduler 那边已经对 task 做了 StoreLocalTask
+		// 因为在 schedule 那边已经对 task 做了 StoreLocalTask
 		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
 			log.Errorf("Failed to remove local task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
 		}
@@ -415,3 +384,7 @@ func (m *Manager) IsMockIdentityId (identityId string) bool {
 	}
 	return false
 }
+
+
+/// ======================  v 2.0
+func (m *Manager) GetDB() core.CarrierDB { return m.dataCenter }

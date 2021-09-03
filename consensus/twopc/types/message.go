@@ -35,7 +35,7 @@ func (t *taskOption) Hash() common.Hash {
 }
 
 type TaskOperationCost struct {
-	Processor uint64 `json:"processor"`
+	Processor uint32 `json:"processor"`
 	Mem       uint64 `json:"mem"`
 	Bandwidth uint64 `json:"bandwidth"`
 	Duration  uint64 `json:"duration"`
