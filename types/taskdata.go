@@ -67,7 +67,7 @@ func (m *Task) SetEventList(eventList []*libTypes.TaskEvent) {
 			IdentityId: ev.IdentityId,
 		}
 	}*/
-	m.data.TaskEventList = eventList
+	m.data.TaskEvents = eventList
 }
 func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskDataSupplier) {
 	m.data.DataSuppliers = arr

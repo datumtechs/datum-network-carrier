@@ -578,7 +578,7 @@ func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libTypes.TaskE
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
 		TaskId: taskId,
 	})
-	return taskEventResponse.TaskEventList, err
+	return taskEventResponse.TaskEvents, err
 }
 
 func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libTypes.TaskEvent, error) {
@@ -593,7 +593,7 @@ func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libTypes.T
 		if nil != err {
 			return nil, err
 		}
-		eventList = append(eventList, taskEventResponse.TaskEventList...)
+		eventList = append(eventList, taskEventResponse.TaskEvents...)
 	}
 	return eventList, nil
 }
