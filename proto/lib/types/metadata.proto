@@ -26,7 +26,7 @@ message MetadataPB {
   api.protobuf.OriginFileType file_type = 13;                 // 源文件的类型 (目前只有 csv)
   api.protobuf.MetaDataState  state = 14;                     // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
   bool                        has_title = 15;                 // 元数据对应原始文件是否有标题行 (true: 包含; false: 不包含)
-  repeated MetadataColumn     metadata_column_list = 16;      // 元数据对应原始文件对外暴露的列描述列表
+  repeated MetadataColumn     metadata_columns = 16;      // 元数据对应原始文件对外暴露的列描述列表
   string                      industry = 17;                  // 元数据所属的行业
 }
 
@@ -69,7 +69,7 @@ message MetaDataSummary {
 // 元数据的详情信息
 message MetadataDetail {
   MetaDataSummary         meta_data_summary = 1;            // 元数据摘要
-  repeated MetadataColumn metadata_column_list = 2;         // 元数据对应原始文件对外暴露的列描述列表
+  repeated MetadataColumn metadata_columns = 2;         // 元数据对应原始文件对外暴露的列描述列表
   uint32                  total_task_count = 3;             // 该元数据参与过得任务数 (已完成的和正在执行的)
 }
 

@@ -112,7 +112,7 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailRespon
 				HasTitle:   input.data.GetHasTitle(),
 				State:      input.data.GetState(),
 			},
-			MetadataColumnList: input.data.GetMetadataColumnList(),
+			MetadataColumns: input.data.GetMetadataColumns(),
 		},
 	}
 	return response
