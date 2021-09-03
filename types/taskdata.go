@@ -10,20 +10,20 @@ import (
 )
 
 type Task struct {
-	data *libTypes.TaskData
+	data *libTypes.TaskPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewTask(data *libTypes.TaskData) *Task {
+func NewTask(data *libTypes.TaskPB) *Task {
 	return &Task{data: data}
 }
 
 func (m *Task) EncodePb(w io.Writer) error {
 	if m.data == nil {
-		m.data = new(libTypes.TaskData)
+		m.data = new(libTypes.TaskPB)
 	}
 	data, err := m.data.Marshal()
 	if err == nil {
@@ -52,7 +52,7 @@ func (m *Task) TaskId() string {
 	return m.data.TaskId
 }
 
-func (m *Task) TaskData() *libTypes.TaskData {
+func (m *Task) TaskData() *libTypes.TaskPB {
 	return m.data
 }
 
@@ -77,7 +77,7 @@ func (m *Task) SetEventList(eventList []*libTypes.TaskEvent) {
 			IdentityId: ev.IdentityId,
 		}
 	}*/
-	m.data.TaskEventList = eventList
+	m.data.TaskEvents = eventList
 }
 func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskDataSupplier) {
 	m.data.DataSuppliers = arr
@@ -104,7 +104,7 @@ func (s TaskDataArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewTaskDataArray(metaData []*libTypes.TaskData) TaskDataArray {
+func NewTaskDataArray(metaData []*libTypes.TaskPB) TaskDataArray {
 	var s TaskDataArray
 	for _, v := range metaData {
 		s = append(s, NewTask(v))
@@ -112,8 +112,8 @@ func NewTaskDataArray(metaData []*libTypes.TaskData) TaskDataArray {
 	return s
 }
 
-func (s TaskDataArray) To() []*libTypes.TaskData {
-	arr := make([]*libTypes.TaskData, 0, s.Len())
+func (s TaskDataArray) To() []*libTypes.TaskPB {
+	arr := make([]*libTypes.TaskPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

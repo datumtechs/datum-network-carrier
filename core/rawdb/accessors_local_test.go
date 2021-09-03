@@ -13,7 +13,7 @@ import (
 
 func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	data01 := &libTypes.TaskData{
+	data01 := &libTypes.TaskPB{
 		IdentityId:             "identity",
 		NodeId:               "nodeid",
 		NodeName:             "nodename",
@@ -184,7 +184,7 @@ func TestLocalIdentity(t *testing.T) {
 
 func TestLocalResource(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localResource01 := &libTypes.LocalResourceData{
+	localResource01 := &libTypes.LocalResourcePB{
 		IdentityId:             "01-identity",
 		NodeId:               "01-nodeId",
 		NodeName:             "01-nodename",
@@ -203,7 +203,7 @@ func TestLocalResource(t *testing.T) {
 	_ = b
 	WriteLocalResource(database, types.NewLocalResource(localResource01))
 
-	localResource02 := &libTypes.LocalResourceData{
+	localResource02 := &libTypes.LocalResourcePB{
 		IdentityId:             "01-identity",
 		NodeId:               "01-nodeId",
 		NodeName:             "01-nodename",

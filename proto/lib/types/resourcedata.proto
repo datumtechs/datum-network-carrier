@@ -9,7 +9,7 @@ import "repos/protobuf/gogoproto/gogo.proto";
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 // 单个组织的总算力信息
-message ResourceData {
+message ResourcePB {
   string identity_id = 1;                         // 算力所属的组织的 身份标识
   string node_id = 2;                             // 算力所属的组织的 p2p公钥
   string node_name = 3;                           // 算力所属的组织的 组织名称
@@ -33,7 +33,7 @@ message ResourceData {
 }
 
 // 单个组织中的单台服务的算力信息
-message LocalResourceData {
+message LocalResourcePB {
   string identity_id = 1;                         // 算力所属的组织的 身份标识
   string node_id = 2;                             // 算力所属的组织的 p2p公钥
   string node_name = 3;                           // 算力所属的组织的 组织名称

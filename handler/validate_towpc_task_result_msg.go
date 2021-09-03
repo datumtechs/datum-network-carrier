@@ -34,13 +34,13 @@ func (s *Service) validateTaskResultMessagePubSub(ctx context.Context, pid peer.
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenTaskResultMsg(message.ProposalId) {
+	if s.hasSeenTaskResultMsg(message.MsgOption.ProposalId) {
 		return pubsub.ValidationIgnore
 	}
 
 	// validate TaskResultMsg
 	if err := s.validateTaskResultMsg(pid, message); err != nil {
-		log.WithError(err).Errorf("Failed to call `validateTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(message.ProposalId).String(), string(message.TaskId))
+		log.WithError(err).Errorf("Failed to call `validateTaskResultMsg`, proposalId: {%s}", common.BytesToHash(message.MsgOption.ProposalId).String())
 		return pubsub.ValidationIgnore
 	}
 

@@ -12,7 +12,7 @@ import "lib/types/resourcedata.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
-message TaskData {
+message TaskPB {
   string                                      identity_id = 1;                            // 任务发起方的 组织的 身份标识
   string                                      node_id = 2;                                // 任务发起方的 组织的 p2p公钥
   string                                      node_name = 3;                              // 任务发起方的 组织的名称
@@ -30,10 +30,10 @@ message TaskData {
   string                                      party_id = 15;                              // 任务发起方的 partyId
   api.protobuf.TaskOrganization               algo_supplier = 20;                         // 任务的算法提供者信息
   api.protobuf.TaskResourceCostDeclare        operation_cost = 21;                        // 任务的初始资源声明
-  repeated TaskDataSupplier                   data_suppliers = 22;                        // 任务的数据提供方组信息 (可包含发起方和参与方)
-  repeated TaskPowerSupplier                  power_suppliers = 23;                       // 任务的算力提供方组织信息 (可包含发起方和参与方)
+  repeated TaskDataSupplier                   data_suppliers = 22;                         // 任务的数据提供方组信息 (可包含发起方和参与方)
+  repeated TaskPowerSupplier                  power_suppliers = 23;                        // 任务的算力提供方组织信息 (可包含发起方和参与方)
   repeated api.protobuf.TaskOrganization      receivers = 24;                             // 任务的结果接收方组织信息 (可包含发起方和参与方)
-  repeated TaskEvent                          task_event_list = 25;                       // 任务的所有产生事件列表
+  repeated TaskEvent                          task_events = 25;                       // 任务的所有产生事件列表
   string                                      calculate_contract_code = 26;               // 任务的计算合约代码
   string                                      data_split_contract_code = 27;              // 任务的数据分片合约代码
   string                                      contract_extra_params = 28;                 // 任务的合约调用的额外可变入参 (json 字符串, 根据算法来)
@@ -50,8 +50,8 @@ message TaskDetail {
   api.protobuf.UserType                           user_type = 4;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
   api.protobuf.TaskOrganization                   sender = 5;                          // 任务发起方
   api.protobuf.TaskOrganization                   algo_supplier = 6;                   // 算法提供方 (目前就是和 任务发起方是同一个 ...)
-  repeated TaskDataSupplier                       data_suppliers = 7;                  // 数据提供方
-  repeated TaskPowerSupplier                      power_suppliers = 8;                 // 算力提供方
+  repeated TaskDataSupplier                       data_suppliers = 7;                   // 数据提供方
+  repeated TaskPowerSupplier                      power_suppliers = 8;                  // 算力提供方
   repeated api.protobuf.TaskOrganization          receivers = 9;                       // 任务结果方
   uint64                                          create_at = 10;                      // 任务的发起时间戳 (单位: ms)
   uint64                                          start_at = 11;                       // 任务的开始执行时间戳 (单位: ms)
@@ -59,7 +59,7 @@ message TaskDetail {
   api.protobuf.TaskState                          state = 13;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
   api.protobuf.TaskResourceCostDeclare            operation_cost = 14;                 // 任务所需资源声明
   string                                          desc = 15;                           // 任务描述 (非必须)
-  repeated TaskEvent                              task_event_list = 16;                // 任务所产生的所有事件列表
+  repeated TaskEvent                              task_events = 16;                // 任务所产生的所有事件列表
 }
 
 // 任务算力提供方信息
@@ -80,10 +80,10 @@ message TaskPowerSupplier {
 
 // 任务数据提供方基本信息
 message TaskDataSupplier {
-  api.protobuf.TaskOrganization member_info = 1;                                // 身份信息
-  string                        metadata_id = 2;                                // 元数据Id
-  string                        metadata_name = 3;                              // 元数据名称
-  repeated MetadataColumn       column_list = 4;
+  api.protobuf.TaskOrganization       member_info = 1;                                // 身份信息
+  string                              metadata_id = 2;                                // 元数据Id
+  string                              metadata_name = 3;                              // 元数据名称
+  repeated types.MetadataColumn       columns = 4;
 }
 
 // 任务事件定义

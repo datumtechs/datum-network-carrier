@@ -612,7 +612,7 @@ func ReadLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResourc
 		log.WithError(err).Fatal("Failed to read local resource")
 		return nil, err
 	}
-	localResource := new(libTypes.LocalResourceData)
+	localResource := new(libTypes.LocalResourcePB)
 	if err := localResource.Unmarshal(blob); err != nil {
 		log.WithError(err).Fatal("Failed to unmarshal local resource")
 		return nil, err
@@ -632,7 +632,7 @@ func ReadAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
 			if err != nil {
 				continue
 			}
-			localResource := new(libTypes.LocalResourceData)
+			localResource := new(libTypes.LocalResourcePB)
 			if err := localResource.Unmarshal(blob); err != nil {
 				continue
 			}

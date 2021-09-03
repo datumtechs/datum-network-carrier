@@ -3,13 +3,14 @@ syntax = "proto3";
 package types;
 
 import "lib/common/base.proto";
+import "lib/common/data.proto";
 import "repos/protobuf/gogoproto/gogo.proto";
 
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 // MetaData body data struct.
-message MetaData {
+message MetadataPB {
   string                      identity_id = 1;                // 元数据所属的组织的 身份标识
   string                      node_id = 2;                    // 元数据所属的组织的 p2p公钥
   string                      node_name = 3;                  // 元数据所属的组织的 组织名称
@@ -25,7 +26,7 @@ message MetaData {
   api.protobuf.OriginFileType file_type = 13;                 // 源文件的类型 (目前只有 csv)
   api.protobuf.MetaDataState  state = 14;                     // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
   bool                        has_title = 15;                 // 元数据对应原始文件是否有标题行 (true: 包含; false: 不包含)
-  repeated MetadataColumn     metadata_column_list = 16;      // 元数据对应原始文件对外暴露的列描述列表
+  repeated MetadataColumn     metadata_columns = 16;      // 元数据对应原始文件对外暴露的列描述列表
   string                      industry = 17;                  // 元数据所属的行业
 }
 
@@ -36,6 +37,16 @@ message MetadataColumn {
   string c_type = 3;            // 列的数据类型
   uint32 c_size = 4;            // 列的大小 (单位: byte)
   string c_comment = 5;         // 列的描述
+}
+
+// 元数据申请记录实体
+message AuthRecordData {
+  string auth_record_id                           = 1;  // 申请记录ID
+  string user                                     = 2;  // 申请人地址
+  api.protobuf.UserType user_type                 = 3;  // 申请人类型
+  MetaDataAuthority data_record                   = 4;  // 申请的数据
+  api.protobuf.AuditMetaDataOption audit_result   = 5;  // 审核结果
+  string audit_suggest                            = 6;  // 审核意见
 }
 
 // =============================== For API =========================
@@ -58,11 +69,9 @@ message MetaDataSummary {
 // 元数据的详情信息
 message MetadataDetail {
   MetaDataSummary         meta_data_summary = 1;            // 元数据摘要
-  repeated MetadataColumn metadata_column_list = 2;         // 元数据对应原始文件对外暴露的列描述列表
+  repeated MetadataColumn metadata_columns = 2;         // 元数据对应原始文件对外暴露的列描述列表
   uint32                  total_task_count = 3;             // 该元数据参与过得任务数 (已完成的和正在执行的)
 }
-
-
 
 // 元数据的使用方式定义
 message MetaDataUsage {

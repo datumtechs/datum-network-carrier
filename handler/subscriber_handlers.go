@@ -32,11 +32,11 @@ func (s *Service) prepareMessageSubscriber(ctx context.Context, pid peer.ID, msg
 		return fmt.Errorf("wrong type, expected: *pb.PrepareMsg got: %T", msg)
 	}
 
-	s.setPrepareMsgSeen(message.ProposalId, message.TaskPartyId)
+	s.setPrepareMsgSeen(message.MsgOption.ProposalId, message.MsgOption.MyPartyId)
 
 	// handle prepareMsg
 	if err := s.onPrepareMsg(pid, message); err != nil {
-		log.WithError(err).Errorf("Failed to call `onPrepareMsg`, proposalId: {%s}", common.BytesToHash(message.ProposalId).String())
+		log.WithError(err).Errorf("Failed to call `onPrepareMsg`, proposalId: {%s}", common.BytesToHash(message.MsgOption.ProposalId).String())
 		return err
 	}
 	return nil
@@ -48,11 +48,11 @@ func (s *Service) prepareVoteSubscriber(ctx context.Context, pid peer.ID, msg pr
 		return fmt.Errorf("wrong type, expected: *pb.PrepareVote got: %T", msg)
 	}
 
-	s.setPrepareVoteSeen(m.ProposalId)
+	s.setPrepareVoteSeen(m.MsgOption.ProposalId)
 
 	// handle prepareVote
 	if err := s.onPrepareVote(pid, m); err != nil {
-		log.WithError(err).Errorf("Failed to call `onPrepareVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+		log.WithError(err).Errorf("Failed to call `onPrepareVote`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
 		return err
 	}
 	return nil
@@ -64,11 +64,11 @@ func (s *Service) confirmMessageSubscriber(ctx context.Context, pid peer.ID, msg
 		return fmt.Errorf("wrong type, expected: *pb.ConfirmMsg got: %T", msg)
 	}
 
-	s.setCommitMsgSeen(m.ProposalId, m.TaskPartyId)
+	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.MyPartyId)
 
 	// handle ConfirmMsg
 	if err := s.onConfirmMsg(pid, m); err != nil {
-		log.WithError(err).Errorf("Failed to call `onConfirmMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+		log.WithError(err).Errorf("Failed to call `onConfirmMsg`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
 		return err
 	}
 	return nil
@@ -80,11 +80,11 @@ func (s *Service) confirmVoteSubscriber(ctx context.Context, pid peer.ID, msg pr
 		return fmt.Errorf("wrong type, expected: *pb.ConfirmVote got: %T", msg)
 	}
 
-	s.setConfirmVoteSeen(m.ProposalId)
+	s.setConfirmVoteSeen(m.MsgOption.ProposalId)
 
 	// handle ConfirmVote
 	if err := s.onConfirmVote(pid, m); err != nil {
-		log.WithError(err).Errorf("Failed to call `onConfirmVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+		log.WithError(err).Errorf("Failed to call `onConfirmVote`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
 		return err
 	}
 	return nil
@@ -96,11 +96,11 @@ func (s *Service) commitMessageSubscriber(ctx context.Context, pid peer.ID, msg 
 		return fmt.Errorf("wrong type, expected: *pb.CommitMsg got: %T", msg)
 	}
 
-	s.setCommitMsgSeen(m.ProposalId, m.TaskPartyId)
+	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.MyPartyId)
 
 	// handle CommitMsg
 	if err := s.onCommitMsg(pid, m); err != nil {
-		log.WithError(err).Errorf("Failed to call `onCommitMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+		log.WithError(err).Errorf("Failed to call `onCommitMsg`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
 		return err
 	}
 	return nil
@@ -112,11 +112,11 @@ func (s *Service) taskResultMessageSubscriber(ctx context.Context, pid peer.ID, 
 		return fmt.Errorf("wrong type, expected: *pb.TaskResultMsg got: %T", msg)
 	}
 
-	s.setTaskResultMsgSeen(m.ProposalId)
+	s.setTaskResultMsgSeen(m.MsgOption.ProposalId)
 
 	// handle TaskResultMsg
 	if err := s.onTaskResultMsg(pid, m); err != nil {
-		log.WithError(err).Warnf("Warning to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
+		log.WithError(err).Warnf("Warning to call `onTaskResultMsg`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
 		return err
 	}
 	return nil

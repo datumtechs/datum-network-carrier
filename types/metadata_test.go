@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-var metadata = NewMetadata(&types.MetaData{
+var metadata = NewMetadata(&types.MetadataPB{
 	IdentityId: "Identity",
 	NodeId:     "nodeId",
 	DataId:     "dataId",

@@ -24,7 +24,7 @@ message RevokeMetaDataRequest {
 // 获取元数据摘要列表响应参数
 message MetaDataSummaryListResponse {
   // 摘要信息列表
-    repeated MetaDataSummaryOwner metadata_summary_list = 1;
+    repeated MetaDataSummaryOwner metadata_summaries = 1;
 }
 
 message MetaDataSummaryOwner {
@@ -41,13 +41,13 @@ message MetaDataSummaryByStateRequest {
 
 // 根据状态查询元数据摘要列表响应参数
 message MetaDataSummaryByStateResponse {
-    repeated MetaDataSummaryOwner meta_list = 1;
+    repeated MetaDataSummaryOwner metadata = 1;
 }
 
 message Metadata {
     api.protobuf.Organization     owner                = 1;
     types.MetaDataSummary         meta_summary         = 2;
-    repeated types.MetadataColumn metadata_column_list = 3;
+    repeated types.MetadataColumn metadata_columns = 3;
 }
 
 message MetadataListRequest {
@@ -55,7 +55,7 @@ message MetadataListRequest {
 }
 
 message MetadataListResponse {
-    repeated Metadata metadata_list    = 1;
+    repeated Metadata metadatas    = 1;
     uint64            last_update_time = 2;
 }
 

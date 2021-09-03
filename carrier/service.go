@@ -85,15 +85,14 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 	)
 
 	s := &Service{
-		ctx:               ctx,
-		cancel:            cancel,
-		config:            config,
-		carrierDB:         config.CarrierDB,
-		mempool:           pool,
-		resourceManager:   resourceMng,
-		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager),
-		taskManager:       taskManager,
-		scheduler:         scheduler,
+		ctx:             ctx,
+		cancel:          cancel,
+		config:          config,
+		carrierDB:       config.CarrierDB,
+		mempool:         pool,
+		resourceManager: resourceMng,
+		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
+		taskManager:     taskManager,
 		resourceClientSet: resourceClientSet,
 	}
 
