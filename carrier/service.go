@@ -9,7 +9,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	"github.com/RosettaFlow/Carrier-Go/core/scheduler"
+	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
@@ -65,8 +65,18 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
 
+	scheduler := schedule.NewSchedulerStarveFIFO(
+		resourceClientSet,
+		eventEngine,
+		resourceMng,
+		localTaskMsgCh,
+		needConsensusTaskCh,
+		replayScheduleTaskCh,
+		doneScheduleTaskCh,
+	)
+
 	taskManager := task.NewTaskManager(
-		config.CarrierDB,
+		scheduler,
 		eventEngine,
 		resourceMng,
 		resourceClientSet,
@@ -75,27 +85,18 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 	)
 
 	s := &Service{
-		ctx:             ctx,
-		cancel:          cancel,
-		config:          config,
-		carrierDB:       config.CarrierDB,
-		mempool:         pool,
-		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
-		taskManager:     taskManager,
-		scheduler: scheduler.NewSchedulerStarveFIFO(
-			resourceClientSet,
-			eventEngine,
-			resourceMng,
-			config.CarrierDB,
-			localTaskMsgCh,
-			needConsensusTaskCh,
-			replayScheduleTaskCh,
-			doneScheduleTaskCh,
-		),
+		ctx:               ctx,
+		cancel:            cancel,
+		config:            config,
+		carrierDB:         config.CarrierDB,
+		mempool:           pool,
+		resourceManager:   resourceMng,
+		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager),
+		taskManager:       taskManager,
+		scheduler:         scheduler,
 		resourceClientSet: resourceClientSet,
 	}
-	
+
 	// read config from p2p config.
 	NodeId, _ := p2p.HexID(nodeId)
 
@@ -163,7 +164,7 @@ func (s *Service) Start() error {
 	}
 	if nil != s.scheduler {
 		if err := s.scheduler.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the scheduler, err: %v", err)
+			log.WithError(err).Errorf("Failed to start the schedule, err: %v", err)
 		}
 	}
 
@@ -198,7 +199,7 @@ func (s *Service) Stop() error {
 	}
 	if nil != s.scheduler {
 		if err := s.scheduler.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the scheduler, err: %v", err)
+			log.WithError(err).Errorf("Failed to stop the schedule, err: %v", err)
 		}
 	}
 

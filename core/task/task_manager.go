@@ -2,27 +2,37 @@ package task
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 	"time"
 )
 
+const (
+	defaultScheduleTaskInterval = 2 * time.Second
+	taskMonitorInterval         = 30 * time.Second
+)
+
 type Scheduler interface {
 	Start() error
 	Stop() error
-	Error () error
+	Error() error
 	Name() string
+	AddTask(task *types.Task)
+	RemoveTask(taskId string) error
+	TrySchedule() (*types.NeedConsensusTask, error)
+	ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult
 }
 
 type Manager struct {
+	scheduler   Scheduler
 	eventEngine *ev.EventEngine
 	resourceMng *resource.Manager
-	scheduler   *Scheduler
 	parser      *TaskParser
 	validator   *TaskValidator
 	// internal resource node set (Fighter node grpc client set)
@@ -39,7 +49,7 @@ type Manager struct {
 }
 
 func NewTaskManager(
-	dataCenter core.CarrierDB,
+	scheduler Scheduler,
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	resourceClientSet *grpclient.InternalResourceClientSet,
@@ -48,6 +58,7 @@ func NewTaskManager(
 ) *Manager {
 
 	m := &Manager{
+		scheduler:          scheduler,
 		eventEngine:        eventEngine,
 		resourceMng:        resourceMng,
 		resourceClientSet:  resourceClientSet,
@@ -74,7 +85,8 @@ func (m *Manager) Stop() error {
 
 func (m *Manager) loop() {
 
-	taskMonitorTicker := time.NewTicker(30*time.Second)
+	taskMonitorTicker := time.NewTicker(taskMonitorInterval)
+	taskTicker := time.NewTicker(defaultScheduleTaskInterval)
 
 	for {
 		select {
@@ -93,8 +105,12 @@ func (m *Manager) loop() {
 			m.addRunningTaskCache(task)
 			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId())
 
-		case <- taskMonitorTicker.C:
+		case <-taskMonitorTicker.C:
 			m.expireTaskMonitor()
+
+			// 定时调度 队列中的任务信息
+		case <-taskTicker.C:
+			m.scheduler.TrySchedule()
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")
@@ -107,6 +123,8 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 	if len(msgs) == 0 {
 		return fmt.Errorf("Receive some empty task msgs")
 	}
+
+
 
 	if errTasks, err := m.parser.ParseTask(msgs); nil != err {
 		for _, errtask := range errTasks {
@@ -134,6 +152,31 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 		}
 		return err
 	}
+
+	for _, msg := range msgs {
+		task := msg.Data
+		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
+			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.TaskData().TaskId, err)
+
+			log.Errorf("failed to call StoreLocalTask on SchedulerStarveFIFO with schedule task, err: {%s}", e.Error())
+
+			task.TaskData().EndAt = uint64(timeutils.UnixMsec())
+			task.TaskData().Reason = e.Error()
+			task.TaskData().State = apipb.TaskState_TaskState_Failed
+
+			identityId, _ := sche.dataCenter.GetIdentityId()
+			event := sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type, task.Data.TaskData().TaskId, identityId, e.Error())
+			task.Data.TaskData().EventCount = 1
+			task.Data.TaskData().TaskEventList = []*libTypes.TaskEvent{event}
+
+			if err = sche.dataCenter.InsertTask(task.Data); nil != err {
+				log.Errorf("Failed to save task to datacenter, taskId: {%s}", task.Data.TaskData().TaskId)
+				continue
+			}
+		}
+	}
+
+
 	// transfer `taskMsgs` to Scheduler
 	go func() {
 		m.sendTaskMsgsToScheduler(msgs)

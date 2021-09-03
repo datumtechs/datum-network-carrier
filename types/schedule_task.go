@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
@@ -37,13 +38,13 @@ func (wrap *ConsensusTaskWrap) String() string {
 }
 
 type ReplayScheduleTaskWrap struct {
-	Role     TaskRole
+	Role     apipb.TaskRole
 	PartyId  string
 	Task     *Task
 	ResultCh chan *ScheduleResult
 }
 
-func NewReplayScheduleTaskWrap(role TaskRole, partyId string, task *Task) *ReplayScheduleTaskWrap {
+func NewReplayScheduleTaskWrap(role apipb.TaskRole, partyId string, task *Task) *ReplayScheduleTaskWrap {
 	return &ReplayScheduleTaskWrap{
 		Role:     role,
 		PartyId:  partyId,
@@ -75,7 +76,7 @@ func (wrap *ReplayScheduleTaskWrap) String() string {
 
 type DoneScheduleTaskChWrap struct {
 	ProposalId   common.Hash
-	SelfTaskRole TaskRole
+	SelfTaskRole apipb.TaskRole
 	SelfIdentity *apipb.TaskOrganization
 	Task         *ConsensusScheduleTask
 	ResultCh     chan *TaskResultMsgWrap
@@ -158,34 +159,35 @@ func (res *ConsensusResult) String() string {
 // 需要被 进行共识的 local task (已经调度好的, 还未共识的)
 type NeedConsensusTask struct {
 	task     *Task
-	supply   bool                 // 当前task持有者是否提供 内部资源
-	resource *PrepareVoteResource // 当前task持有者所提供的 内部资源
+	//supply   bool                 // 当前task持有者是否提供 内部资源
+	//resource *PrepareVoteResource // 当前task持有者所提供的 内部资源
 	resultCh chan *TaskConsResult
 }
 
-func NewNeedConsensusTask(task *Task, supply bool, resource *PrepareVoteResource) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task/*, supply bool, resource *PrepareVoteResource*/) *NeedConsensusTask {
 	return &NeedConsensusTask{
 		task:     task,
-		supply:   supply,
-		resource: resource,
+		//supply:   supply,
+		//resource: resource,
 		resultCh: make(chan *TaskConsResult),
 	}
 }
 func (nct *NeedConsensusTask) Task() *Task                    { return nct.task }
-func (nct *NeedConsensusTask) IsSupply() bool                 { return nct.supply }
-func (nct *NeedConsensusTask) Resource() *PrepareVoteResource { return nct.resource }
+//func (nct *NeedConsensusTask) IsSupply() bool                 { return nct.supply }
+//func (nct *NeedConsensusTask) Resource() *PrepareVoteResource { return nct.resource }
 func (nct *NeedConsensusTask) ResultCh() chan *TaskConsResult { return nct.resultCh }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
 		taskStr = nct.task.TaskData().String()
 	}
-	resourceStr := "{}"
-	if nil != nct.resource {
-		resourceStr = nct.resource.String()
-	}
-	return fmt.Sprintf(`{"task": %s, "supply": %v, "selfResource": %v, "resultCh": %p}`,
-		taskStr, nct.supply, resourceStr, nct.resultCh)
+	//resourceStr := "{}"
+	//if nil != nct.resource {
+	//	resourceStr = nct.resource.String()
+	//}
+	//return fmt.Sprintf(`{"task": %s, "supply": %v, "selfResource": %v, "resultCh": %p}`,
+	//	taskStr, nct.supply, resourceStr, nct.resultCh)
+	return fmt.Sprintf(`{"task": %s, "resultCh": %p}`, taskStr, nct.resultCh)
 }
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
@@ -196,7 +198,7 @@ type NeedReplayScheduleTask struct {
 	resultCh     chan *ReplayScheduleResult
 }
 
-func NewNeedReplayScheduleTask(role TaskRole, partyId string, task *Task) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role apipb.TaskRole, partyId string, task *Task) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
 		selfTaskRole: role,
 		selfPartyId:  partyId,
@@ -217,7 +219,7 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) RecvResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) SelfTaskRole() TaskRole               { return nrst.selfTaskRole }
+func (nrst *NeedReplayScheduleTask) SelfTaskRole() apipb.TaskRole         { return nrst.selfTaskRole }
 func (nrst *NeedReplayScheduleTask) SelfPartyId() string                  { return nrst.selfPartyId }
 func (nrst *NeedReplayScheduleTask) Task() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) ResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
@@ -364,4 +366,19 @@ func ConfirmTaskPeerInfoString(resources *pb.ConfirmTaskPeerInfo) string {
 
 	return fmt.Sprintf(`{"ownerPeerInfo": %s, "dataSupplierPeerInfoList": %s, "powerSupplierPeerInfoList": %s, "resultReceiverPeerInfoList": %s}`,
 		ownerPeerInfoStr, dataSupplierListStr, powerSupplierListStr, receiverListStr)
+}
+
+
+func IsSameTaskOrgByte (org1, org2 *pb.TaskOrganizationIdentityInfo) bool {
+	if bytes.Compare(org1.GetPartyId(), org2.GetPartyId())  == 0 && bytes.Compare(org1.GetIdentityId(), org2.GetIdentityId()) == 0 {
+		return true
+	}
+	return false
+}
+
+func IsSameTaskOrg (org1, org2 *apipb.TaskOrganization) bool {
+	if org1.GetPartyId() == org2.GetPartyId()  &&  org1.GetIdentityId() == org2.GetIdentityId() {
+		return true
+	}
+	return false
 }

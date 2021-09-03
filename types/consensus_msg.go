@@ -32,7 +32,15 @@ type PrepareVoteResource struct {
 	PartyId string
 }
 
-func (resource PrepareVoteResource) String() string {
+func NewPrepareVoteResource(id, ip, port, partyId string) *PrepareVoteResource {
+	return &PrepareVoteResource{
+		Id: id,
+		Ip: ip,
+		Port: port,
+		PartyId: partyId,
+	}
+}
+func (resource *PrepareVoteResource) String() string {
 	return fmt.Sprintf(`{"id": %s, "ip": %s, "port": %s, "partyId": %s}`, resource.Id, resource.Ip, resource.Port, resource.PartyId)
 }
 func ConvertTaskPeerInfo(peerInfo *PrepareVoteResource) *pb.TaskPeerInfo {

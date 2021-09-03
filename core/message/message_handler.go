@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/event"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -278,8 +279,8 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			power.JobNodeId,
 			power.PowerId,
 			types.GetDefaultResoueceMem(),
-			types.GetDefaultResoueceProcessor(),
 			types.GetDefaultResoueceBandwidth(),
+			types.GetDefaultResoueceProcessor(),
 		)
 		resourceTable.SetSlotUnit(slotUnit)
 
@@ -306,9 +307,9 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			JobNodeId: power.JobNodeId,
 			DataId:    power.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.DATA_STATUS_NORMAL.String(),
+			DataStatus: apipb.DataStatus_DataStatus_Normal,
 			// resource status, eg: create/release/revoke
-			State: types.PowerStateRelease.String(),
+			State: apipb.PowerState_PowerState_Released,
 			// unit: byte
 			TotalMem: types.GetDefaultResoueceMem(), // todo 使用 默认的资源大小
 			// unit: byte
@@ -317,8 +318,8 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
-			TotalBandWidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
-			UsedBandWidth:  0,
+			TotalBandwidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
+			UsedBandwidth:  0,
 		})); nil != err {
 			log.Errorf("Failed to store power to local on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)
@@ -334,9 +335,9 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			NodeName: identity.NodeName,
 			DataId:   power.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.DATA_STATUS_NORMAL.String(),
+			DataStatus: apipb.DataStatus_DataStatus_Normal,
 			// resource status, eg: create/release/revoke
-			State: types.PowerStateRelease.String(),
+			State: apipb.PowerState_PowerState_Released,
 			// unit: byte
 			TotalMem: types.GetDefaultResoueceMem(), // todo 使用 默认的资源大小
 			// unit: byte
@@ -345,8 +346,8 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
-			TotalBandWidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
-			UsedBandWidth:  0,
+			TotalBandwidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
+			UsedBandwidth:  0,
 		})); nil != err {
 			log.Errorf("Failed to store power to dataCenter on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.PowerId, power.JobNodeId, err)
@@ -411,9 +412,9 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgs(powerRevokeMsgs types.PowerRev
 			NodeName: identity.NodeName,
 			DataId:   revoke.PowerId,
 			// the status of data, N means normal, D means deleted.
-			DataStatus: types.DATA_STATUS_DELETED.String(),
+			DataStatus: apipb.DataStatus_DataStatus_Deleted,
 			// resource status, eg: create/release/revoke
-			State: types.PowerStateRevoke.String(),
+			State: apipb.PowerState_PowerState_Revoked,
 		})); nil != err {
 			log.Errorf("Failed to remove dataCenter resource on MessageHandler with revoke, jobNodeId: {%s}, err: {%s}",
 				revoke.PowerId, jobNodeId, err)

@@ -448,16 +448,16 @@ func (s *state) GetTaskResulterConfirmTotalVoteCount(proposalId common.Hash) uin
 // about prepareVote
 type prepareVoteState struct {
 	votes      []*types.PrepareVote
-	yesVotes   map[types.TaskRole]uint32
-	voteStatus map[types.TaskRole]uint32
+	yesVotes   map[apipb.TaskRole]uint32
+	voteStatus map[apipb.TaskRole]uint32
 	lock       sync.Mutex
 }
 
 func newPrepareVoteState() *prepareVoteState {
 	return &prepareVoteState{
 		votes:      make([]*types.PrepareVote, 0),
-		yesVotes:   make(map[types.TaskRole]uint32, 0),
-		voteStatus: make(map[types.TaskRole]uint32, 0),
+		yesVotes:   make(map[apipb.TaskRole]uint32, 0),
+		voteStatus: make(map[apipb.TaskRole]uint32, 0),
 	}
 }
 
