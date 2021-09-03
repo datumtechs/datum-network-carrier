@@ -20,7 +20,7 @@ message TaskListRequest {
 
 message TaskListResponse {
   // 任务摘要列表
-    repeated types.TaskDetail task_list = 1;
+    repeated types.TaskDetail task_details = 1;
 }
 
 // 任务详情请求参数
@@ -39,7 +39,7 @@ message TaskEventResponse {
   // 错误信息
     string msg = 2;
   // 事件列表
-    repeated types.TaskEvent task_event_list = 3;
+    repeated types.TaskEvent task_events = 3;
 }
 
 // TaskService defines the interface to interact with the central data service.

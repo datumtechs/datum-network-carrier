@@ -20,7 +20,7 @@ func (dc *DataCenter) HasIdentity(identity *apipb.Organization) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	for _, organization := range responses.IdentityList {
+	for _, organization := range responses.Identities {
 		if strings.EqualFold(organization.IdentityId, identity.IdentityId) {
 			return true, nil
 		}
@@ -119,5 +119,5 @@ func (dc *DataCenter) GetMetadataAuthorityList(identityId string, lastUpdate uin
 	if response.GetStatus() != 0 {
 		return nil, errors.New(response.GetMsg())
 	}
-	return types.NewMetadataAuthArrayFromResponse(response.GetList()), nil
+	return types.NewMetadataAuthArrayFromResponse(response.GetAuthorities()), nil
 }
