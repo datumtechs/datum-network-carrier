@@ -56,43 +56,33 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
 	localTaskMsgCh, needConsensusTaskCh, replayScheduleTaskCh, doneScheduleTaskCh :=
-		make(chan types.TaskMsgs, 27),
-		make(chan *types.ConsensusTaskWrap, 100),
+		make(chan types.TaskDataArray, 27),
+		make(chan *types.NeedConsensusTask, 100),
 		make(chan *types.ReplayScheduleTaskWrap, 100),
 		make(chan *types.DoneScheduleTaskChWrap, 10)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
-
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
-
-	scheduler := schedule.NewSchedulerStarveFIFO(
-		resourceClientSet,
-		eventEngine,
-		resourceMng,
-		localTaskMsgCh,
-		needConsensusTaskCh,
-		replayScheduleTaskCh,
-		doneScheduleTaskCh,
-	)
-
+	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng)
 	taskManager := task.NewTaskManager(
 		scheduler,
 		eventEngine,
 		resourceMng,
 		resourceClientSet,
 		localTaskMsgCh,
+		needConsensusTaskCh,
 		doneScheduleTaskCh,
 	)
 
 	s := &Service{
-		ctx:             ctx,
-		cancel:          cancel,
-		config:          config,
-		carrierDB:       config.CarrierDB,
-		mempool:         pool,
-		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
-		taskManager:     taskManager,
+		ctx:               ctx,
+		cancel:            cancel,
+		config:            config,
+		carrierDB:         config.CarrierDB,
+		mempool:           pool,
+		resourceManager:   resourceMng,
+		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager),
+		taskManager:       taskManager,
 		resourceClientSet: resourceClientSet,
 	}
 

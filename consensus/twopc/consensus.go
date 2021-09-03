@@ -33,7 +33,7 @@ type TwoPC struct {
 	resourceMng *resource.Manager
 
 	// fetch tasks scheduled from `Scheduler`
-	schedTaskCh <-chan *types.ConsensusTaskWrap
+	needConsensusTaskCh chan *types.NeedConsensusTask
 	// send remote task to `Scheduler` to replay
 	replayTaskCh chan<- *types.ReplayScheduleTaskWrap
 	// send has consensused remote tasks to taskManager
@@ -45,8 +45,8 @@ type TwoPC struct {
 	// The task processing  that received someone else (taskId -> task)
 	recvTaskCache map[string]*types.Task
 
-	taskResultCh   chan *types.ConsensusResult
-	taskResultChs  map[string]chan<- *types.ConsensusResult
+	taskResultBusCh   chan *types.TaskConsResult
+	taskResultChSet  map[string]chan<- *types.TaskConsResult
 	taskResultLock sync.Mutex
 	sendTaskLock   sync.RWMutex
 	recvTaskLock   sync.RWMutex
@@ -59,27 +59,27 @@ func New(
 	dataCenter iface.ForResourceDB,
 	resourceMng *resource.Manager,
 	p2p p2p.P2P,
-	schedTaskCh chan *types.ConsensusTaskWrap,
+	needConsensusTaskCh chan *types.NeedConsensusTask,
 	replayTaskCh chan *types.ReplayScheduleTaskWrap,
 	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
 ) *TwoPC {
 	return &TwoPC{
-		config:             conf,
-		p2p:                p2p,
-		peerSet:            ctypes.NewPeerSet(10), // TODO 暂时写死的
-		state:              newState(),
-		dataCenter:         dataCenter,
-		resourceMng:        resourceMng,
-		schedTaskCh:        schedTaskCh,
-		replayTaskCh:       replayTaskCh,
-		doneScheduleTaskCh: doneScheduleTaskCh,
-		asyncCallCh:        make(chan func(), conf.PeerMsgQueueSize),
-		quit:               make(chan struct{}),
-		sendTaskCache:          make(map[string]*types.Task),
-		recvTaskCache:          make(map[string]*types.Task),
+		config:              conf,
+		p2p:                 p2p,
+		peerSet:             ctypes.NewPeerSet(10), // TODO 暂时写死的
+		state:               newState(),
+		dataCenter:          dataCenter,
+		resourceMng:         resourceMng,
+		needConsensusTaskCh: needConsensusTaskCh,
+		replayTaskCh:        replayTaskCh,
+		doneScheduleTaskCh:  doneScheduleTaskCh,
+		asyncCallCh:         make(chan func(), conf.PeerMsgQueueSize),
+		quit:                make(chan struct{}),
+		sendTaskCache:       make(map[string]*types.Task),
+		recvTaskCache:       make(map[string]*types.Task),
 
-		taskResultCh:  make(chan *types.ConsensusResult, 100),
-		taskResultChs: make(map[string]chan<- *types.ConsensusResult, 100),
+		taskResultBusCh:  make(chan *types.TaskConsResult, 100),
+		taskResultChSet: make(map[string]chan<- *types.TaskConsResult, 100),
 
 		Errs: make([]error, 0),
 	}
@@ -98,36 +98,30 @@ func (t *TwoPC) loop() {
 	refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal)
 	for {
 		select {
-		case taskWrap := <-t.schedTaskCh:
+		case nonConsTask := <-t.needConsensusTaskCh:
 			// Start a goroutine to process a new schedTask
 			go func() {
 
-				log.Debugf("Start consensus task on 2pc consensus engine, taskId: {%s}", taskWrap.Task.TaskId())
+				log.Debugf("Start consensus task on 2pc consensus engine, taskId: {%s}", nonConsTask.Task().TaskId())
 
-				if err := t.OnPrepare(taskWrap.Task); nil != err {
-					log.Errorf("Failed to call `OnPrepare()` on 2pc consensus engine, taskId: {%s}, err: {%s}", taskWrap.Task.TaskId(), err)
-					taskWrap.SendResult(&types.ConsensusResult{
-						TaskConsResult: &types.TaskConsResult{
-							TaskId: taskWrap.Task.TaskId(),
-							Status: types.TaskConsensusInterrupt,
-							Done:   false,
-							Err:    fmt.Errorf("failed to OnPrepare 2pc, %s", err),
-						},
-					})
+				if err := t.OnPrepare(nonConsTask.Task()); nil != err {
+					log.Errorf("Failed to call `OnPrepare()` on 2pc consensus engine, taskId: {%s}, err: {%s}", nonConsTask.Task().TaskId(), err)
+					nonConsTask.SendResult(types.NewTaskConsResult(nonConsTask.Task().TaskId(), types.TaskConsensusInterrupt, err))
 					return
 				}
-				if err := t.OnHandle(taskWrap.Task, taskWrap.OwnerDataResource, taskWrap.ResultCh); nil != err {
-					log.Errorf("Failed to call `OnHandle()` on 2pc consensus engine, taskId: {%s}, err: {%s}", taskWrap.Task.TaskId(), err)
+
+				if err := t.OnHandle(nonConsTask.Task(), nonConsTask.ResultCh()); nil != err {
+					log.Errorf("Failed to call `OnHandle()` on 2pc consensus engine, taskId: {%s}, err: {%s}", nonConsTask.Task().TaskId(), err)
 				}
 			}()
 		case fn := <-t.asyncCallCh:
 			fn()
 
-		case res := <-t.taskResultCh:
+		case res := <-t.taskResultBusCh:
 			if nil == res {
 				return
 			}
-			t.sendConsensusTaskResultToSched(res)
+			t.replyConsensusTaskResult(res)
 
 		//case <-cleanExpireProposalTimer.C:
 		//	t.cleanExpireProposal()
@@ -203,7 +197,7 @@ func (t *TwoPC) OnPrepare(task *types.Task) error {
 
 	return nil
 }
-func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteResource, result chan<- *types.ConsensusResult) error {
+func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error {
 
 	if t.isConsensusTask(task.TaskId()) {
 		return ctypes.ErrPrososalTaskIsProcessed
@@ -226,7 +220,7 @@ func (t *TwoPC) OnHandle(task *types.Task, selfPeerResource *types.PrepareVoteRe
 		types.TaskOwner,
 		&apipb.TaskOrganization{
 			PartyId:    task.TaskData().PartyId,
-			NodeName:       task.TaskData().IdentityId,
+			NodeName:   task.TaskData().IdentityId,
 			NodeId:     task.TaskData().NodeId,
 			IdentityId: task.TaskData().NodeName,
 		},
@@ -303,7 +297,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		types.TaskRoleFromBytes(prepareMsg.TaskRole),
 		&apipb.TaskOrganization{
 			PartyId:    string(prepareMsg.TaskPartyId),
-			NodeName:       self.NodeName,
+			NodeName:   self.NodeName,
 			NodeId:     self.NodeId,
 			IdentityId: self.IdentityId,
 		},
@@ -332,7 +326,6 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	t.sendReplaySchedTaskToScheduler(replaySchedTask)
 	result := replaySchedTask.RecvResult()
 
-
 	log.Debugf("Received the reschedule task result from `schedule.replaySchedule()`, the result: %s", result.String())
 
 	// set myself peerInfo cache
@@ -342,7 +335,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		ProposalId: proposal.ProposalId,
 		TaskRole:   types.TaskRoleFromBytes(prepareMsg.TaskRole),
 		Owner: &apipb.TaskOrganization{
-			NodeName:       self.NodeName,
+			NodeName:   self.NodeName,
 			NodeId:     self.NodeId,
 			IdentityId: self.IdentityId,
 			PartyId:    msg.TaskPartyId,
@@ -768,10 +761,10 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 					// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 					t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOwner,
 						&apipb.TaskOrganization{
-							PartyId:  task.TaskData().PartyId,
+							PartyId:    task.TaskData().PartyId,
 							IdentityId: task.TaskData().IdentityId,
-							NodeId:   task.TaskData().NodeId,
-							NodeName: task.TaskData().NodeName,
+							NodeId:     task.TaskData().NodeId,
+							NodeName:   task.TaskData().NodeName,
 						}, task)
 				}
 
@@ -780,7 +773,6 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 				t.delProposalStateAndTask(voteMsg.ProposalId)
 
 			}()
-
 
 		} else {
 
@@ -863,11 +855,11 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	go func() {
 
 		t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole,
-			&apipb.TaskOrganization {
-				PartyId:  msg.TaskPartyId,
+			&apipb.TaskOrganization{
+				PartyId:    msg.TaskPartyId,
 				IdentityId: self.IdentityId,
-				NodeId:   self.NodeId,
-				NodeName: self.NodeName,
+				NodeId:     self.NodeId,
+				NodeName:   self.NodeName,
 			}, task)
 
 		// 最后清除 各类 proposal 相关的数据 ...

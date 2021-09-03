@@ -77,29 +77,29 @@ func (t *TwoPC) GetRecvTask(taskId string) *types.Task {
 	return task
 }
 
-func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.ConsensusResult) {
+func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
-	t.taskResultChs[taskId] = resultCh
+	t.taskResultChSet[taskId] = resultCh
 	t.taskResultLock.Unlock()
 }
 func (t *TwoPC) removeTaskResultCh(taskId string) {
 	t.taskResultLock.Lock()
 	log.Debugf("RemoveTaskResultCh taskId: {%s}", taskId)
-	delete(t.taskResultChs, taskId)
+	delete(t.taskResultChSet, taskId)
 	t.taskResultLock.Unlock()
 }
-func (t *TwoPC) collectTaskResultWillSendToSched(result *types.ConsensusResult) {
-	t.taskResultCh <- result
+func (t *TwoPC) collectTaskResultWillSendToSched(result *types.TaskConsResult) {
+	t.taskResultBusCh <- result
 }
-func (t *TwoPC) sendConsensusTaskResultToSched (result *types.ConsensusResult) {
+func (t *TwoPC) replyConsensusTaskResult (result *types.TaskConsResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
-	if ch, ok := t.taskResultChs[result.TaskId]; ok {
+	if ch, ok := t.taskResultChSet[result.TaskId]; ok {
 		log.Debugf("Start SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
 		ch <- result
 		close(ch)
-		delete(t.taskResultChs, result.TaskId)
+		delete(t.taskResultChSet, result.TaskId)
 	}
 	t.taskResultLock.Unlock()
 }

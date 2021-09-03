@@ -41,7 +41,8 @@ type Manager struct {
 	eventCh chan *libTypes.TaskEvent
 	quit    chan struct{}
 	// send the validated taskMsgs to scheduler
-	localTaskMsgCh chan<- types.TaskMsgs
+	localTasksCh        chan types.TaskDataArray
+	needConsensusTaskCh chan *types.NeedConsensusTask
 	// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者 发给 dataCenter
 	doneScheduleTaskCh   chan *types.DoneScheduleTaskChWrap
 	runningTaskCache     map[string]*types.DoneScheduleTaskChWrap
@@ -53,22 +54,24 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	resourceClientSet *grpclient.InternalResourceClientSet,
-	localTaskMsgCh chan types.TaskMsgs,
+	localTasksCh chan types.TaskDataArray,
+	needConsensusTaskCh chan *types.NeedConsensusTask,
 	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
 ) *Manager {
 
 	m := &Manager{
-		scheduler:          scheduler,
-		eventEngine:        eventEngine,
-		resourceMng:        resourceMng,
-		resourceClientSet:  resourceClientSet,
-		parser:             newTaskParser(),
-		validator:          newTaskValidator(),
-		eventCh:            make(chan *libTypes.TaskEvent, 10),
-		localTaskMsgCh:     localTaskMsgCh,
-		doneScheduleTaskCh: doneScheduleTaskCh,
-		runningTaskCache:   make(map[string]*types.DoneScheduleTaskChWrap, 0),
-		quit:               make(chan struct{}),
+		scheduler:           scheduler,
+		eventEngine:         eventEngine,
+		resourceMng:         resourceMng,
+		resourceClientSet:   resourceClientSet,
+		parser:              newTaskParser(),
+		validator:           newTaskValidator(),
+		eventCh:             make(chan *libTypes.TaskEvent, 10),
+		localTasksCh:        localTasksCh,
+		needConsensusTaskCh: needConsensusTaskCh,
+		doneScheduleTaskCh:  doneScheduleTaskCh,
+		runningTaskCache:    make(map[string]*types.DoneScheduleTaskChWrap, 0),
+		quit:                make(chan struct{}),
 	}
 	return m
 }
@@ -108,6 +111,12 @@ func (m *Manager) loop() {
 		case <-taskMonitorTicker.C:
 			m.expireTaskMonitor()
 
+		case tasks := <-m.localTasksCh:
+
+			for _, task := range tasks {
+				m.scheduler.AddTask(task)
+				m.scheduler.TrySchedule()
+			}
 			// 定时调度 队列中的任务信息
 		case <-taskTicker.C:
 			m.scheduler.TrySchedule()
@@ -124,62 +133,69 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 		return fmt.Errorf("Receive some empty task msgs")
 	}
 
+	nonParsedMsgs, parsedMsgs, err := m.parser.ParseTask(msgs)
+	if nil != err {
+		for _, badMsg := range nonParsedMsgs {
+			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to parse local taskMsg"))}
 
-
-	if errTasks, err := m.parser.ParseTask(msgs); nil != err {
-		for _, errtask := range errTasks {
-
-			events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
-			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to parse taskMsg")))
-
-			if e := m.storeErrTaskMsg(errtask, events, "failed to parse taskMsg"); nil != e {
-				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
+			if e := m.storeBadTask(badMsg.Data, events, "failed to parse taskMsg"); nil != e {
+				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.TaskId())
 			}
 		}
-		return err
+
+		if len(nonParsedMsgs) == len(msgs) {
+			return err
+		}
 	}
 
-	if errTasks, err := m.validator.validateTaskMsg(msgs); nil != err {
-		for _, errtask := range errTasks {
-			events, _ := m.dataCenter.GetTaskEventList(errtask.TaskId)
-			events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				errtask.TaskId, errtask.OwnerIdentityId(), fmt.Sprintf("failed to validate taskMsg")))
+	nonValidatedMsgs, validatedMsgs, err := m.validator.validateTaskMsg(parsedMsgs)
+	if nil != err {
 
-			if e := m.storeErrTaskMsg(errtask, events, "failed to validate taskMsg"); nil != e {
-				log.Error("Failed to store the err taskMsg on taskManager", "taskId", errtask.TaskId)
+		for _, badMsg := range nonValidatedMsgs {
+			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to validate local taskMsg"))}
+
+			if e := m.storeBadTask(badMsg.Data, events, "failed to validate taskMsg"); nil != e {
+				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.TaskId())
 			}
 		}
-		return err
+
+		if len(nonValidatedMsgs) == len(parsedMsgs) {
+			return err
+		}
 	}
 
-	for _, msg := range msgs {
+	taskArr := make(types.TaskDataArray, 0)
+
+	for _, msg := range validatedMsgs {
 		task := msg.Data
 		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
-			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.TaskData().TaskId, err)
 
+			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.TaskData().TaskId, err)
 			log.Errorf("failed to call StoreLocalTask on SchedulerStarveFIFO with schedule task, err: {%s}", e.Error())
+
+			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type, task.TaskId(), task.TaskData().GetIdentityId(), e.Error())}
 
 			task.TaskData().EndAt = uint64(timeutils.UnixMsec())
 			task.TaskData().Reason = e.Error()
 			task.TaskData().State = apipb.TaskState_TaskState_Failed
+			task.TaskData().EventCount = uint32(len(events))
+			task.TaskData().TaskEvents = events
 
-			identityId, _ := sche.dataCenter.GetIdentityId()
-			event := sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type, task.Data.TaskData().TaskId, identityId, e.Error())
-			task.Data.TaskData().EventCount = 1
-			task.Data.TaskData().TaskEventList = []*libTypes.TaskEvent{event}
-
-			if err = sche.dataCenter.InsertTask(task.Data); nil != err {
-				log.Errorf("Failed to save task to datacenter, taskId: {%s}", task.Data.TaskData().TaskId)
+			if err = m.resourceMng.GetDB().InsertTask(task); nil != err {
+				log.Errorf("Failed to save task to datacenter, taskId: {%s}", task.TaskId())
 				continue
 			}
+		} else {
+			taskArr = append(taskArr, task)
 		}
-	}
 
+	}
 
 	// transfer `taskMsgs` to Scheduler
 	go func() {
-		m.sendTaskMsgsToScheduler(msgs)
+		m.sendTaskMsgsToScheduler(taskArr)
 	}()
 	return nil
 }
