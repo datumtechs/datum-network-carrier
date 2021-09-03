@@ -297,13 +297,13 @@ func (msg *MetaDataMsg) OwnerIdentityId() string { return msg.Data.IdentityId }
 func (msg *MetaDataMsg) MetaDataSummary() *libTypes.MetaDataSummary {
 	return msg.Data.Information.MetaDataSummary
 }
-func (msg *MetaDataMsg) OriginId() string                     { return msg.Data.Information.MetaDataSummary.OriginId }
-func (msg *MetaDataMsg) TableName() string                    { return msg.Data.Information.MetaDataSummary.TableName }
-func (msg *MetaDataMsg) Desc() string                         { return msg.Data.Information.MetaDataSummary.Desc }
-func (msg *MetaDataMsg) FilePath() string                     { return msg.Data.Information.MetaDataSummary.FilePath }
-func (msg *MetaDataMsg) Rows() uint32                         { return msg.Data.Information.MetaDataSummary.Rows }
-func (msg *MetaDataMsg) Columns() uint32                      { return msg.Data.Information.MetaDataSummary.Columns }
-func (msg *MetaDataMsg) Size() uint32                         { return msg.Data.Information.MetaDataSummary.Size_ }
+func (msg *MetaDataMsg) OriginId() string  { return msg.Data.Information.MetaDataSummary.OriginId }
+func (msg *MetaDataMsg) TableName() string { return msg.Data.Information.MetaDataSummary.TableName }
+func (msg *MetaDataMsg) Desc() string      { return msg.Data.Information.MetaDataSummary.Desc }
+func (msg *MetaDataMsg) FilePath() string  { return msg.Data.Information.MetaDataSummary.FilePath }
+func (msg *MetaDataMsg) Rows() uint32      { return msg.Data.Information.MetaDataSummary.Rows }
+func (msg *MetaDataMsg) Columns() uint32   { return msg.Data.Information.MetaDataSummary.Columns }
+func (msg *MetaDataMsg) Size() uint32      { return msg.Data.Information.MetaDataSummary.Size_ }
 func (msg *MetaDataMsg) FileType() apipb.OriginFileType {
 	return msg.Data.Information.MetaDataSummary.FileType
 }
@@ -488,6 +488,7 @@ func (msg *TaskMsg) OwnerName() string       { return msg.Data.TaskData().GetNod
 func (msg *TaskMsg) OwnerNodeId() string     { return msg.Data.TaskData().GetNodeId() }
 func (msg *TaskMsg) OwnerIdentityId() string { return msg.Data.TaskData().GetIdentityId() }
 func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.TaskData().GetPartyId() }
+func (msg *TaskMsg) TaskId() string          { return msg.Data.TaskData().GetTaskId() }
 func (msg *TaskMsg) TaskName() string        { return msg.Data.TaskData().GetTaskName() }
 
 func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {

@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -207,23 +208,24 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 	log.Debugf("Finished sendTaskResultMsgToConsensus, taskId: {%s}", taskId)
 }
 
-func (m *Manager) sendTaskMsgsToScheduler(msgs types.TaskMsgs) {
+func (m *Manager) sendTaskMsgsToScheduler(tasks types.TaskDataArray) {
 	m.localTaskMsgCh <- msgs
 }
 func (m *Manager) sendTaskEvent(event *libTypes.TaskEvent) {
 	m.eventCh <- event
 }
 
-func (m *Manager) storeErrTaskMsg(msg *types.TaskMsg, events []*libTypes.TaskEvent, reason string) error {
-	msg.Data.TaskData().TaskEventList = events
-	msg.Data.TaskData().EventCount = uint32(len(events))
-	msg.Data.TaskData().Reason = reason
-	msg.Data.TaskData().EndAt = uint64(timeutils.UnixMsec())
-	return m.dataCenter.InsertTask(msg.Data)
+func (m *Manager) storeBadTask(task *types.Task, events []*libTypes.TaskEvent, reason string) error {
+	task.TaskData().TaskEvents = events
+	task.TaskData().EventCount = uint32(len(events))
+	task.TaskData().State = apipb.TaskState_TaskState_Failed
+	task.TaskData().Reason = reason
+	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
+	return m.resourceMng.GetDB().InsertTask(task)
 }
 
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libTypes.TaskEvent, state string) *types.Task {
-	task.TaskData().TaskEventList = eventList
+	task.TaskData().TaskEvents = eventList
 	task.TaskData().EventCount = uint32(len(eventList))
 	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
 	task.TaskData().State = state

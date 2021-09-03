@@ -47,7 +47,7 @@ type SchedulerStarveFIFO struct {
 	queueMutex  sync.Mutex
 
 	// fetch local task from taskManager`
-	localTaskMsgCh chan types.TaskMsgs
+	//localTaskMsgCh chan types.TaskMsgs
 	//// send local task scheduled to `Consensus`
 	//needConsensusTaskCh chan<- *types.ConsensusTaskWrap
 	//// receive remote task to replay from `Consensus`
@@ -64,11 +64,6 @@ func NewSchedulerStarveFIFO(
 	internalNodeSet *grpclient.InternalResourceClientSet,
 	eventEngine *evengine.EventEngine,
 	mng *resource.Manager,
-	//dataCenter iface.ForResourceDB,
-	localTaskMsgCh chan types.TaskMsgs,
-	needConsensusTaskCh chan *types.ConsensusTaskWrap,
-	replayScheduleTaskCh chan *types.ReplayScheduleTaskWrap,
-	doneSchedTaskCh chan *types.DoneScheduleTaskChWrap,
 ) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
@@ -77,7 +72,7 @@ func NewSchedulerStarveFIFO(
 		queue:                new(types.TaskBullets),
 		starveQueue:          new(types.TaskBullets),
 		schedulings: 		  make(map[string]*types.TaskBullet),
-		localTaskMsgCh:       localTaskMsgCh,
+		//localTaskMsgCh:       localTaskMsgCh,
 
 		//dataCenter:           dataCenter,
 		eventEngine:          eventEngine,

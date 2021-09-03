@@ -116,6 +116,17 @@ type TaskConsResult struct {
 	Err    error
 }
 
+func NewTaskConsResult(taskId string, status TaskConsStatus, err error) *TaskConsResult {
+	return &TaskConsResult{
+		TaskId: taskId,
+		Status: status,
+		Err: err,
+	}
+}
+func (res *TaskConsResult) String() string {
+	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
+}
+
 type TaskSchedStatus bool
 
 func (status TaskSchedStatus) String() string {
@@ -189,6 +200,14 @@ func (nct *NeedConsensusTask) String() string {
 	//	taskStr, nct.supply, resourceStr, nct.resultCh)
 	return fmt.Sprintf(`{"task": %s, "resultCh": %p}`, taskStr, nct.resultCh)
 }
+func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
+	nct.resultCh <- result
+	close(nct.resultCh)
+}
+func (nct *NeedConsensusTask) ReceiveResult() *TaskConsResult {
+	return <- nct.resultCh
+}
+
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
 type NeedReplayScheduleTask struct {
