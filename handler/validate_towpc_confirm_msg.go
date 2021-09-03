@@ -34,13 +34,13 @@ func (s *Service) validateConfirmMessagePubSub(ctx context.Context, pid peer.ID,
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenConfirmMsg(message.ProposalId, message.TaskPartyId) {
+	if s.hasSeenConfirmMsg(message.MsgOption.ProposalId, message.MsgOption.MyPartyId) {
 		return pubsub.ValidationIgnore
 	}
 
 	// validate ConfirmMsg
 	if err := s.validateConfirmMsg(pid, message); err != nil {
-		log.WithError(err).Errorf("Failed to call `validateConfirmMsg`, proposalId: {%s}", common.BytesToHash(message.ProposalId).String())
+		log.WithError(err).Errorf("Failed to call `validateConfirmMsg`, proposalId: {%s}", common.BytesToHash(message.MsgOption.ProposalId).String())
 		return pubsub.ValidationIgnore
 	}
 

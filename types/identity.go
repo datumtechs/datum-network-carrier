@@ -11,14 +11,14 @@ import (
 )
 
 type Identity struct {
-	data *libTypes.IdentityData
+	data *libTypes.IdentityPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewIdentity(data *libTypes.IdentityData) *Identity {
+func NewIdentity(data *libTypes.IdentityPB) *Identity {
 	return &Identity{data: data}
 }
 
@@ -41,7 +41,7 @@ func IdentityDataTojson(identity *Identity) string {
 
 func (m *Identity) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libTypes.IdentityData)
+		m.data = new(libTypes.IdentityPB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -91,7 +91,7 @@ func (s IdentityArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewIdentityArray(metaData []*libTypes.IdentityData) IdentityArray {
+func NewIdentityArray(metaData []*libTypes.IdentityPB) IdentityArray {
 	var s IdentityArray
 	for _, v := range metaData {
 		s = append(s, NewIdentity(v))
@@ -99,8 +99,8 @@ func NewIdentityArray(metaData []*libTypes.IdentityData) IdentityArray {
 	return s
 }
 
-func (s IdentityArray) To() []*libTypes.IdentityData {
-	arr := make([]*libTypes.IdentityData, 0, s.Len())
+func (s IdentityArray) To() []*libTypes.IdentityPB {
+	arr := make([]*libTypes.IdentityPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

@@ -51,7 +51,7 @@ func WriteDataLookupEntries(db DatabaseWriter, block *libtypes.BlockData) {
 }
 
 // writeMetadata save detailed data separately for metadata.
-func writeMetadata(db DatabaseWriter, number uint64, index uint64, metadata *libtypes.MetaData) {
+func writeMetadata(db DatabaseWriter, number uint64, index uint64, metadata *libtypes.MetadataPB) {
 	// todo: need to update, the param is wrong.
 	WriteMetadataHash(db, number, index, common.Hash{})
 	WriteMetadataId(db, metadata.NodeId, common.Hash{}, metadata.DataId)
@@ -84,7 +84,7 @@ func DeleteDataLookupEntry(db DatabaseDeleter, dataId string) {
 
 // ReadMetadata retrieves a specific metadata from the database, along with
 // its added positional metadata.
-func ReadMetadata(db DatabaseReader, dataId string) (*libtypes.MetaData, common.Hash, uint64, uint64, string, string) {
+func ReadMetadata(db DatabaseReader, dataId string) (*libtypes.MetadataPB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""
@@ -102,7 +102,7 @@ func ReadMetadata(db DatabaseReader, dataId string) (*libtypes.MetaData, common.
 
 // ReadResource retrieves a specific resource from the database, along with
 // its added positional metadata.
-func ReadResource(db DatabaseReader, dataId string) (*libtypes.ResourceData, common.Hash, uint64, uint64, string, string) {
+func ReadResource(db DatabaseReader, dataId string) (*libtypes.ResourcePB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""
@@ -120,7 +120,7 @@ func ReadResource(db DatabaseReader, dataId string) (*libtypes.ResourceData, com
 
 // ReadIdentity retrieves a specific identity from the database, along with
 // its added positional metadata.
-func ReadIdentity(db DatabaseReader, dataId string) (*libtypes.IdentityData, common.Hash, uint64, uint64, string, string) {
+func ReadIdentity(db DatabaseReader, dataId string) (*libtypes.IdentityPB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""
@@ -138,7 +138,7 @@ func ReadIdentity(db DatabaseReader, dataId string) (*libtypes.IdentityData, com
 
 // ReadIdentity retrieves a specific taskData from the database, along with
 // its added positional metadata.
-func ReadTask(db DatabaseReader, dataId string) (*libtypes.TaskData, common.Hash, uint64, uint64, string, string) {
+func ReadTask(db DatabaseReader, dataId string) (*libtypes.TaskPB, common.Hash, uint64, uint64, string, string) {
 	blockHash, blockNumber, index, nodeId, typ := ReadDataLookupEntry(db, common.HexToHash(dataId))
 	if blockHash == (common.Hash{}) {
 		return nil, common.Hash{}, 0, 0, "", ""

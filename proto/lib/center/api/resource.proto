@@ -63,7 +63,7 @@ message PowerTotalSummaryResponse {
 
 message PowerTotalSummaryListResponse {
   // 全网的算力总摘要列表
-  repeated PowerTotalSummaryResponse power_list = 1;
+  repeated PowerTotalSummaryResponse powers = 1;
 }
 
 message PowerSummaryByIdentityRequest {
@@ -76,7 +76,7 @@ message PowerListRequest {
 }
 
 message PowerListResponse {
-  repeated types.Power power_list = 1;
+  repeated types.Power powers           = 1;
   uint64               last_update_time = 2;
 }
 

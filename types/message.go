@@ -65,7 +65,7 @@ type IdentityMsgs []*IdentityMsg
 type IdentityRevokeMsgs []*IdentityRevokeMsg
 
 func (msg *IdentityMsg) ToDataCenter() *Identity {
-	return NewIdentity(&libTypes.IdentityData{
+	return NewIdentity(&libTypes.IdentityPB{
 		NodeName:   msg.NodeName,
 		NodeId:     msg.NodeId,
 		IdentityId: msg.IdentityId,
@@ -204,7 +204,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 	return &MetaDataMsg{
 		Data: &metadataData{
 			Information: struct {
-				MetaDataSummary *libTypes.MetaDataSummary           `json:"metaDataSummary"`
+				MetaDataSummary *libTypes.MetaDataSummary  `json:"metaDataSummary"`
 				ColumnMetas     []*libTypes.MetadataColumn `json:"columnMetas"`
 			}{
 				MetaDataSummary: &libTypes.MetaDataSummary{
@@ -215,7 +215,7 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 					FilePath:   req.Information.MetaDataSummary.FilePath,
 					Rows:       req.Information.MetaDataSummary.Rows,
 					Columns:    req.Information.MetaDataSummary.Columns,
-					Size_:       req.Information.MetaDataSummary.Size_,
+					Size_:      req.Information.MetaDataSummary.Size_,
 					FileType:   req.Information.MetaDataSummary.FileType,
 					HasTitle:   req.Information.MetaDataSummary.HasTitle,
 					State:      req.Information.MetaDataSummary.State,
@@ -230,8 +230,8 @@ func NewMetaDataMessageFromRequest(req *pb.PublishMetaDataRequest) *MetaDataMsg 
 type metadataData struct {
 	*apipb.Organization
 	Information struct {
-		MetaDataSummary *libTypes.MetaDataSummary        `json:"metaDataSummary"`
-		ColumnMetas     []*types.MetadataColumn `json:"columnMetas"`
+		MetaDataSummary *libTypes.MetaDataSummary `json:"metaDataSummary"`
+		ColumnMetas     []*types.MetadataColumn   `json:"columnMetas"`
 	} `json:"information"`
 	CreateAt uint64 `json:"createAt"`
 }
@@ -253,25 +253,25 @@ type MetaDataMsgs []*MetaDataMsg
 type MetaDataRevokeMsgs []*MetaDataRevokeMsg
 
 func (msg *MetaDataMsg) ToDataCenter() *Metadata {
-	return NewMetadata(&libTypes.MetaData{
-		IdentityId:         msg.OwnerIdentityId(),
-		NodeId:             msg.OwnerNodeId(),
-		NodeName:           msg.OwnerName(),
-		DataId:             msg.MetaDataId,
-		OriginId:           msg.OriginId(),
-		TableName:          msg.TableName(),
-		FilePath:           msg.FilePath(),
-		FileType:           msg.FileType(),
-		Desc:               msg.Desc(),
-		Rows:               uint64(msg.Rows()),
-		Columns:            uint64(msg.Columns()),
-		Size_:              uint64(msg.Size()),
-		HasTitle:           msg.HasTitle(),
-		MetadataColumnList: msg.ColumnMetas(),
+	return NewMetadata(&libTypes.MetadataPB{
+		IdentityId:      msg.OwnerIdentityId(),
+		NodeId:          msg.OwnerNodeId(),
+		NodeName:        msg.OwnerName(),
+		DataId:          msg.MetaDataId,
+		OriginId:        msg.OriginId(),
+		TableName:       msg.TableName(),
+		FilePath:        msg.FilePath(),
+		FileType:        msg.FileType(),
+		Desc:            msg.Desc(),
+		Rows:            uint64(msg.Rows()),
+		Columns:         uint64(msg.Columns()),
+		Size_:           uint64(msg.Size()),
+		HasTitle:        msg.HasTitle(),
+		MetadataColumns: msg.ColumnMetas(),
 		// the status of data, N means normal, D means deleted.
-		DataStatus: 	    apipb.DataStatus_DataStatus_Normal,
+		DataStatus: apipb.DataStatus_DataStatus_Normal,
 		// metaData status, eg: create/release/revoke
-		State:              apipb.MetaDataState_MetaDataState_Released,
+		State: apipb.MetaDataState_MetaDataState_Released,
 	})
 }
 func (msg *MetaDataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -286,7 +286,7 @@ func (msg *MetaDataMsg) String() string {
 func (msg *MetaDataMsg) MsgType() string { return MSG_METADATA }
 func (msg *MetaDataMsg) Owner() *apipb.Organization {
 	return &apipb.Organization{
-		NodeName:       msg.Data.NodeName,
+		NodeName:   msg.Data.NodeName,
 		NodeId:     msg.Data.NodeId,
 		IdentityId: msg.Data.IdentityId,
 	}
@@ -304,7 +304,9 @@ func (msg *MetaDataMsg) FilePath() string                     { return msg.Data.
 func (msg *MetaDataMsg) Rows() uint32                         { return msg.Data.Information.MetaDataSummary.Rows }
 func (msg *MetaDataMsg) Columns() uint32                      { return msg.Data.Information.MetaDataSummary.Columns }
 func (msg *MetaDataMsg) Size() uint32                         { return msg.Data.Information.MetaDataSummary.Size_ }
-func (msg *MetaDataMsg) FileType() apipb.OriginFileType       { return msg.Data.Information.MetaDataSummary.FileType }
+func (msg *MetaDataMsg) FileType() apipb.OriginFileType {
+	return msg.Data.Information.MetaDataSummary.FileType
+}
 func (msg *MetaDataMsg) HasTitle() bool                       { return msg.Data.Information.MetaDataSummary.HasTitle }
 func (msg *MetaDataMsg) State() apipb.MetaDataState           { return msg.Data.Information.MetaDataSummary.State }
 func (msg *MetaDataMsg) ColumnMetas() []*types.MetadataColumn { return msg.Data.Information.ColumnMetas }
@@ -333,7 +335,7 @@ func (msg *MetaDataMsg) HashByCreateTime() common.Hash {
 }
 
 func (msg *MetaDataRevokeMsg) ToDataCenter() *Metadata {
-	return NewMetadata(&libTypes.MetaData{
+	return NewMetadata(&libTypes.MetadataPB{
 		IdentityId: msg.IdentityId,
 		NodeId:     msg.NodeId,
 		NodeName:   msg.NodeName,
@@ -365,10 +367,10 @@ func (s MetaDataMsgs) Less(i, j int) bool { return s[i].Data.CreateAt < s[j].Dat
 // ------------------- task -------------------
 
 type TaskBullet struct {
-	TaskId      string
-	Starve      bool
-	Term        uint32
-	Resched     uint32
+	TaskId  string
+	Starve  bool
+	Term    uint32
+	Resched uint32
 }
 
 func NewTaskBullet(taskId string) *TaskBullet {
@@ -418,7 +420,6 @@ func (h *TaskBullets) DecreaseTerm() {
 	}
 }
 
-
 type TaskMsg struct {
 	Data          *Task
 	PowerPartyIds []string `json:"powerPartyIds"`
@@ -430,7 +431,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 
 	return &TaskMsg{
 		PowerPartyIds: req.PowerPartyIds,
-		Data: NewTask(&libTypes.TaskData{
+		Data: NewTask(&libTypes.TaskPB{
 
 			TaskId:     "",
 			TaskName:   req.TaskName,
@@ -490,8 +491,10 @@ func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.TaskData().GetPar
 func (msg *TaskMsg) TaskName() string        { return msg.Data.TaskData().GetTaskName() }
 
 func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {
+
 	partners := make([]*apipb.TaskOrganization, len(msg.Data.TaskData().GetDataSuppliers()))
 	for i, v := range msg.Data.TaskData().GetDataSuppliers() {
+
 		partners[i] = &apipb.TaskOrganization{
 			PartyId:    v.GetMemberInfo().GetPartyId(),
 			NodeName:   v.GetMemberInfo().GetNodeName(),
@@ -502,6 +505,7 @@ func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {
 	return partners
 }
 func (msg *TaskMsg) TaskMetadataSupplierDatas() []*libTypes.TaskDataSupplier {
+
 	return msg.Data.TaskData().GetDataSuppliers()
 }
 
@@ -525,11 +529,17 @@ func (msg *TaskMsg) GetReceivers() []*apipb.TaskOrganization {
 	return msg.Data.TaskData().GetReceivers()
 }
 
-func (msg *TaskMsg) CalculateContractCode() string                 { return msg.Data.TaskData().GetCalculateContractCode() }
-func (msg *TaskMsg) DataSplitContractCode() string                 { return msg.Data.TaskData().GetDataSplitContractCode() }
-func (msg *TaskMsg) ContractExtraParams() string                   { return msg.Data.TaskData().GetContractExtraParams() }
-func (msg *TaskMsg) OperationCost() *apipb.TaskResourceCostDeclare { return msg.Data.TaskData().GetOperationCost() }
-func (msg *TaskMsg) CreateAt() uint64                              { return msg.Data.TaskData().GetCreateAt() }
+func (msg *TaskMsg) CalculateContractCode() string {
+	return msg.Data.TaskData().GetCalculateContractCode()
+}
+func (msg *TaskMsg) DataSplitContractCode() string {
+	return msg.Data.TaskData().GetDataSplitContractCode()
+}
+func (msg *TaskMsg) ContractExtraParams() string { return msg.Data.TaskData().GetContractExtraParams() }
+func (msg *TaskMsg) OperationCost() *apipb.TaskResourceCostDeclare {
+	return msg.Data.TaskData().GetOperationCost()
+}
+func (msg *TaskMsg) CreateAt() uint64 { return msg.Data.TaskData().GetCreateAt() }
 func (msg *TaskMsg) SetTaskId() string {
 	if "" != msg.Data.TaskId() {
 		return msg.Data.TaskId()
@@ -560,12 +570,14 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 func (s TaskMsgs) Len() int { return len(s) }
 
 // Swap swaps the i'th and the j'th element in s.
-func (s TaskMsgs) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
-func (s TaskMsgs) Less(i, j int) bool { return s[i].Data.TaskData().GetCreateAt() < s[j].Data.TaskData().GetCreateAt() }
+func (s TaskMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s TaskMsgs) Less(i, j int) bool {
+	return s[i].Data.TaskData().GetCreateAt() < s[j].Data.TaskData().GetCreateAt()
+}
 
 //type TaskSupplier struct {
 //	*TaskNodeAlias
-//	MetaData *SupplierMetaData `json:"metaData"`
+//	MetadataPB *SupplierMetaData `json:"metaData"`
 //}
 
 //type SupplierMetaData struct {

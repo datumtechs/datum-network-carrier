@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-var testTaskdata = NewTask(&types.TaskData{
+var testTaskdata = NewTask(&types.TaskPB{
 	IdentityId:             "",
 	NodeId:               "",
 	NodeName:             "",

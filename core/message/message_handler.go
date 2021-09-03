@@ -315,7 +315,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
+			TotalProcessor: uint32(types.GetDefaultResoueceProcessor()), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
 			TotalBandwidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
@@ -343,7 +343,7 @@ func (m *MessageHandler) BroadcastPowerMsgs(powerMsgs types.PowerMsgs) error {
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
+			TotalProcessor: uint32(types.GetDefaultResoueceProcessor()), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
 			TotalBandwidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小

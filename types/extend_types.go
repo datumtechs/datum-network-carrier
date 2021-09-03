@@ -6,7 +6,7 @@ import (
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow {
+func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDetailShow {
 	taskData := input.TaskData()
 	detailShow := &pb.TaskDetailShow{
 		TaskId:   taskData.GetTaskId(),
@@ -25,8 +25,8 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow 
 			NodeId:     taskData.GetNodeId(),
 			IdentityId: taskData.GetIdentityId(),
 		},
-		DataSupplier:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSupplier())),
-		PowerSupplier: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSupplier())),
+		DataSupplier:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
+		PowerSupplier: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
 		Receivers:     taskData.GetReceivers(),
 		CreateAt:      taskData.GetCreateAt(),
 		StartAt:       taskData.GetStartAt(),
@@ -40,7 +40,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow 
 		},
 	}
 	// DataSupplier
-	for _, metadataSupplier := range taskData.GetDataSupplier() {
+	for _, metadataSupplier := range taskData.GetDataSuppliers() {
 		dataSupplier := &pb.TaskDataSupplierShow{
 			MemberInfo: &apipb.TaskOrganization{
 				PartyId:    metadataSupplier.GetMemberInfo().GetPartyId(),
@@ -54,7 +54,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role string) *pb.TaskDetailShow 
 		detailShow.DataSupplier = append(detailShow.DataSupplier, dataSupplier)
 	}
 	// powerSupplier
-	for _, data := range taskData.GetPowerSupplier() {
+	for _, data := range taskData.GetPowerSuppliers() {
 		detailShow.PowerSupplier = append(detailShow.PowerSupplier, &pb.TaskPowerSupplierShow{
 			MemberInfo: &apipb.TaskOrganization{
 				PartyId:    data.GetOrganization().GetPartyId(),
@@ -112,7 +112,7 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailRespon
 				HasTitle:   input.data.GetHasTitle(),
 				State:      input.data.GetState(),
 			},
-			MetadataColumnList: input.data.GetMetadataColumnList(),
+			MetadataColumns: input.data.GetMetadataColumns(),
 		},
 	}
 	return response

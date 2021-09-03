@@ -51,15 +51,15 @@ func (svr *Server) PublishMetaData(ctx context.Context, req *pb.PublishMetaDataR
 	if req.Information.MetaDataSummary == nil {
 		return nil, errors.New("required metadata summary")
 	}
-	if req.Information.MetadataColumnList == nil {
+	if req.Information.MetadataColumns == nil {
 		return nil, errors.New("required columnMeta of information")
 	}
 
 	metaDataMsg := types.NewMetaDataMessageFromRequest(req)
 	//metaDataMsg.Data.CreateAt = uint64(timeutils.UnixMsec())
 
-	ColumnMetas := make([]*libtypes.MetadataColumn, len(req.Information.MetadataColumnList))
-	for i, v := range req.Information.MetadataColumnList {
+	ColumnMetas := make([]*libtypes.MetadataColumn, len(req.Information.MetadataColumns))
+	for i, v := range req.Information.MetadataColumns {
 		ColumnMeta := &libtypes.MetadataColumn{
 			CIndex:   v.CIndex,
 			CName:    v.CName,

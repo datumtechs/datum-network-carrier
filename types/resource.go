@@ -11,14 +11,14 @@ import (
 )
 
 type Resource struct {
-	data *libTypes.ResourceData
+	data *libTypes.ResourcePB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewResource(data *libTypes.ResourceData) *Resource {
+func NewResource(data *libTypes.ResourcePB) *Resource {
 	return &Resource{data: data}
 }
 func (m *Resource) EncodePb(w io.Writer) error {
@@ -31,7 +31,7 @@ func (m *Resource) EncodePb(w io.Writer) error {
 
 func (m *Resource) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libTypes.ResourceData)
+		m.data = new(libTypes.ResourcePB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -52,7 +52,7 @@ func (m *Resource) GetIdentityId() string { return m.data.IdentityId }
 func (m *Resource) GetNodeId() string { return m.data.NodeId }
 func (m *Resource) GetNodeName() string { return m.data.NodeName }
 func (m *Resource) GetDataStatus() apipb.DataStatus { return m.data.DataStatus }
-func (m *Resource) GetState() libTypes.PowerState { return m.data.State }
+func (m *Resource) GetState() apipb.PowerState { return m.data.State }
 func (m *Resource) GetTotalMem() uint64 { return m.data.TotalMem }
 func (m *Resource) GetUsedMem() uint64 { return m.data.UsedMem }
 func (m *Resource) GetTotalProcessor() uint64 { return uint64(m.data.TotalProcessor) }
@@ -80,7 +80,7 @@ func (s ResourceArray) GetPb(i int) []byte {
 }
 
 
-func NewResourceArray(metaData []*libTypes.ResourceData) ResourceArray {
+func NewResourceArray(metaData []*libTypes.ResourcePB) ResourceArray {
 	var s ResourceArray
 	for _, v := range metaData {
 		s = append(s, NewResource(v))
@@ -88,8 +88,8 @@ func NewResourceArray(metaData []*libTypes.ResourceData) ResourceArray {
 	return s
 }
 
-func (s ResourceArray) To() []*libTypes.ResourceData {
-	arr := make([]*libTypes.ResourceData, 0, s.Len())
+func (s ResourceArray) To() []*libTypes.ResourcePB {
+	arr := make([]*libTypes.ResourcePB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}
@@ -109,18 +109,18 @@ func  (s ResourceArray) String () string {
 
 // 新增 local Resource
 type LocalResource struct {
-	data *libTypes.LocalResourceData
+	data *libTypes.LocalResourcePB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewLocalResource(data *libTypes.LocalResourceData) *LocalResource {
+func NewLocalResource(data *libTypes.LocalResourcePB) *LocalResource {
 	return &LocalResource{data: data}
 }
-func (m *LocalResource) GetData() *libTypes.LocalResourceData { return m.data }
-func (m *LocalResource) GetIdentityId() string { return m.data.IdentityId }
+func (m *LocalResource) GetData() *libTypes.LocalResourcePB { return m.data }
+func (m *LocalResource) GetIdentityId() string              { return m.data.IdentityId }
 func (m *LocalResource) GetJobNodeId() string { return m.data.JobNodeId }
 func (m *LocalResource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()
@@ -132,7 +132,7 @@ func (m *LocalResource) EncodePb(w io.Writer) error {
 
 func (m *LocalResource) DecodePb(data []byte) error {
 	if m.data == nil {
-		m.data = new(libTypes.LocalResourceData)
+		m.data = new(libTypes.LocalResourcePB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -165,7 +165,7 @@ func (s LocalResourceArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewLocalResourceArray(metaData []*libTypes.LocalResourceData) LocalResourceArray {
+func NewLocalResourceArray(metaData []*libTypes.LocalResourcePB) LocalResourceArray {
 	var s LocalResourceArray
 	for _, v := range metaData {
 		s = append(s, NewLocalResource(v))
@@ -173,8 +173,8 @@ func NewLocalResourceArray(metaData []*libTypes.LocalResourceData) LocalResource
 	return s
 }
 
-func (s LocalResourceArray) To() []*libTypes.LocalResourceData {
-	arr := make([]*libTypes.LocalResourceData, 0, s.Len())
+func (s LocalResourceArray) To() []*libTypes.LocalResourcePB {
+	arr := make([]*libTypes.LocalResourcePB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

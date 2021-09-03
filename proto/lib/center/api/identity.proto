@@ -25,7 +25,7 @@ message IdentityListRequest {
 }
 
 message IdentityListResponse {
-  repeated api.protobuf.Organization identity_list = 1;
+  repeated api.protobuf.Organization identities = 1;
   // 数据的最后更新点（秒级时间戳）
   uint64 last_update_time = 2;
 }
@@ -45,7 +45,7 @@ message AuditMetadataAuthorityRequest {
 
 message MetadataAuthorityListRequest {
   string identity_id = 1;   // 组织标识
-  uint64 last_update = 2;   // 最后同步事件（秒级时间戳）
+  uint64 last_update = 2;   // 最后同步时间（秒级时间戳）
 }
 
 message MetaDataAuthorityResponse {
@@ -61,7 +61,7 @@ message MetaDataAuthorityResponse {
 message MetadataAuthorityListResponse {
   int32                              status = 1;                       // 响应码
   string                             msg = 2;                          // 错误信息
-  repeated MetaDataAuthorityResponse list = 3;                         // 数据授权信息列表
+  repeated MetaDataAuthorityResponse authorities = 3;                         // 数据授权信息列表
 }
 
 // 身份信息服务
