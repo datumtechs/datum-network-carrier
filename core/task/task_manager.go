@@ -41,12 +41,12 @@ type Manager struct {
 	eventCh chan *libTypes.TaskEvent
 	quit    chan struct{}
 	// send the validated taskMsgs to scheduler
-	localTasksCh        chan types.TaskDataArray
-	needConsensusTaskCh chan *types.NeedConsensusTask
-	// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者 发给 dataCenter
-	doneScheduleTaskCh   chan *types.DoneScheduleTaskChWrap
-	runningTaskCache     map[string]*types.DoneScheduleTaskChWrap
-	runningTaskCacheLock sync.RWMutex
+	localTasksCh             chan types.TaskDataArray
+	needConsensusTaskCh      chan *types.NeedConsensusTask
+	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
+	needExecuteTaskCh        chan *types.NeedExecuteTask
+	runningTaskCache         map[string]*types.DoneScheduleTaskChWrap
+	runningTaskCacheLock     sync.RWMutex
 }
 
 func NewTaskManager(
@@ -56,22 +56,24 @@ func NewTaskManager(
 	resourceClientSet *grpclient.InternalResourceClientSet,
 	localTasksCh chan types.TaskDataArray,
 	needConsensusTaskCh chan *types.NeedConsensusTask,
-	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
+	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
+	needExecuteTaskCh chan *types.NeedExecuteTask,
 ) *Manager {
 
 	m := &Manager{
-		scheduler:           scheduler,
-		eventEngine:         eventEngine,
-		resourceMng:         resourceMng,
-		resourceClientSet:   resourceClientSet,
-		parser:              newTaskParser(),
-		validator:           newTaskValidator(),
-		eventCh:             make(chan *libTypes.TaskEvent, 10),
-		localTasksCh:        localTasksCh,
-		needConsensusTaskCh: needConsensusTaskCh,
-		doneScheduleTaskCh:  doneScheduleTaskCh,
-		runningTaskCache:    make(map[string]*types.DoneScheduleTaskChWrap, 0),
-		quit:                make(chan struct{}),
+		scheduler:                scheduler,
+		eventEngine:              eventEngine,
+		resourceMng:              resourceMng,
+		resourceClientSet:        resourceClientSet,
+		parser:                   newTaskParser(),
+		validator:                newTaskValidator(),
+		eventCh:                  make(chan *libTypes.TaskEvent, 10),
+		localTasksCh:             localTasksCh,
+		needConsensusTaskCh:      needConsensusTaskCh,
+		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
+		needExecuteTaskCh:        needExecuteTaskCh,
+		runningTaskCache:         make(map[string]*types.DoneScheduleTaskChWrap, 0),
+		quit:                     make(chan struct{}),
 	}
 	return m
 }
@@ -201,7 +203,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 }
 
 func (m *Manager) SendTaskEvent(event *libTypes.TaskEvent) error {
-	identityId, err := m.dataCenter.GetIdentityId()
+	identityId, err := m.resourceMng.GetDB().GetIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
 		return fmt.Errorf("query local identityId failed, %s", err)

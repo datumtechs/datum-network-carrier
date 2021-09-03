@@ -247,7 +247,7 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 		}
 		eventList = append(eventList, &libTypes.TaskEvent{
 			Type: evengine.TaskProposalStateDeadline.Type,
-			IdentityId: proposalState.SelfIdentity.IdentityId,
+			IdentityId: proposalState.TaskOrg.IdentityId,
 			TaskId: proposalState.TaskId,
 			Content: fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 			CreateAt: uint64(timeutils.UnixMsec()),
@@ -258,10 +258,10 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 				TaskRole: proposalState.TaskRole.Bytes(),
 				TaskId: []byte(proposalState.TaskId),
 				Owner: &pb.TaskOrganizationIdentityInfo{
-					PartyId: []byte(proposalState.SelfIdentity.PartyId),
-					Name: []byte(proposalState.SelfIdentity.NodeName),
-					NodeId: []byte(proposalState.SelfIdentity.NodeId),
-					IdentityId: []byte(proposalState.SelfIdentity.IdentityId),
+					PartyId: []byte(proposalState.TaskOrg.PartyId),
+					Name: []byte(proposalState.TaskOrg.NodeName),
+					NodeId: []byte(proposalState.TaskOrg.NodeId),
+					IdentityId: []byte(proposalState.TaskOrg.IdentityId),
 				},
 				TaskEventList: types.ConvertTaskEventArr(eventList),
 				CreateAt: uint64(timeutils.UnixMsec()),

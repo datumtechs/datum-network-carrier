@@ -1,7 +1,6 @@
 package twopc
 
 import (
-	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
@@ -35,21 +34,22 @@ type TwoPC struct {
 	// fetch tasks scheduled from `Scheduler`
 	needConsensusTaskCh chan *types.NeedConsensusTask
 	// send remote task to `Scheduler` to replay
-	replayTaskCh chan<- *types.ReplayScheduleTaskWrap
+	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	// send has consensused remote tasks to taskManager
-	doneScheduleTaskCh chan<- *types.DoneScheduleTaskChWrap
-	asyncCallCh        chan func()
-	quit               chan struct{}
-	// The task being processed by myself  (taskId -> task)
-	sendTaskCache map[string]*types.Task
-	// The task processing  that received someone else (taskId -> task)
-	recvTaskCache map[string]*types.Task
+	needExecuteTaskCh chan *types.NeedExecuteTask
+	asyncCallCh       chan func()
+	quit              chan struct{}
+	proposalTaskCache map[string]*types.ProposalTask
+	//// The task being processed by myself  (taskId -> task)
+	//sendTaskCache map[string]*types.Task
+	//// The task processing  that received someone else (taskId -> task)
+	//recvTaskCache map[string]*types.Task
 
-	taskResultBusCh   chan *types.TaskConsResult
-	taskResultChSet  map[string]chan<- *types.TaskConsResult
-	taskResultLock sync.Mutex
-	sendTaskLock   sync.RWMutex
-	recvTaskLock   sync.RWMutex
+	taskResultBusCh chan *types.TaskConsResult
+	taskResultChSet map[string]chan<- *types.TaskConsResult
+	taskResultLock  sync.Mutex
+	sendTaskLock    sync.RWMutex
+	recvTaskLock    sync.RWMutex
 
 	Errs []error
 }
@@ -60,28 +60,27 @@ func New(
 	resourceMng *resource.Manager,
 	p2p p2p.P2P,
 	needConsensusTaskCh chan *types.NeedConsensusTask,
-	replayTaskCh chan *types.ReplayScheduleTaskWrap,
-	doneScheduleTaskCh chan *types.DoneScheduleTaskChWrap,
+	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
+	needExecuteTaskCh chan *types.NeedExecuteTask,
 ) *TwoPC {
 	return &TwoPC{
-		config:              conf,
-		p2p:                 p2p,
-		peerSet:             ctypes.NewPeerSet(10), // TODO 暂时写死的
-		state:               newState(),
-		dataCenter:          dataCenter,
-		resourceMng:         resourceMng,
-		needConsensusTaskCh: needConsensusTaskCh,
-		replayTaskCh:        replayTaskCh,
-		doneScheduleTaskCh:  doneScheduleTaskCh,
-		asyncCallCh:         make(chan func(), conf.PeerMsgQueueSize),
-		quit:                make(chan struct{}),
-		sendTaskCache:       make(map[string]*types.Task),
-		recvTaskCache:       make(map[string]*types.Task),
-
-		taskResultBusCh:  make(chan *types.TaskConsResult, 100),
-		taskResultChSet: make(map[string]chan<- *types.TaskConsResult, 100),
-
-		Errs: make([]error, 0),
+		config:                   conf,
+		p2p:                      p2p,
+		peerSet:                  ctypes.NewPeerSet(10), // TODO 暂时写死的
+		state:                    newState(),
+		dataCenter:               dataCenter,
+		resourceMng:              resourceMng,
+		needConsensusTaskCh:      needConsensusTaskCh,
+		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
+		needExecuteTaskCh:        needExecuteTaskCh,
+		asyncCallCh:              make(chan func(), conf.PeerMsgQueueSize),
+		quit:                     make(chan struct{}),
+		proposalTaskCache:        make(map[string]*types.ProposalTask),
+		//sendTaskCache:            make(map[string]*types.Task),
+		//recvTaskCache:            make(map[string]*types.Task),
+		taskResultBusCh:          make(chan *types.TaskConsResult, 100),
+		taskResultChSet:          make(map[string]chan<- *types.TaskConsResult, 100),
+		Errs:                     make([]error, 0),
 	}
 }
 
@@ -122,9 +121,6 @@ func (t *TwoPC) loop() {
 				return
 			}
 			t.replyConsensusTaskResult(res)
-
-		//case <-cleanExpireProposalTimer.C:
-		//	t.cleanExpireProposal()
 
 		case <-refreshProposalStateTicker.C:
 			go t.refreshProposalState()

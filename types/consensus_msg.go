@@ -352,3 +352,4 @@ func FetchTaskResultMsg(msg *pb.TaskResultMsg) *TaskResultMsg {
 		Sign:          msg.Sign,
 	}
 }
+
