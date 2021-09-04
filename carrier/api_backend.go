@@ -680,6 +680,10 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 	return s.carrier.carrierDB.GetIdentityList()
 }
 
+func (s *CarrierAPIBackend) GetMetaDataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
+	return s.carrier.carrierDB.GetMetadataAuthorityList(identityId, lastUpdate)
+}
+
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 	// the task is executing.
