@@ -34,9 +34,9 @@ type PrepareVoteResource struct {
 
 func NewPrepareVoteResource(id, ip, port, partyId string) *PrepareVoteResource {
 	return &PrepareVoteResource{
-		Id: id,
-		Ip: ip,
-		Port: port,
+		Id:      id,
+		Ip:      ip,
+		Port:    port,
 		PartyId: partyId,
 	}
 }
@@ -103,14 +103,30 @@ func FetchTaskPeerInfoArr(peerInfoArr []*pb.TaskPeerInfo) []*PrepareVoteResource
 	return arr
 }
 
+/**
+message MsgOption {
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];                 // 提案Id
+  bytes                        sender_role = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];                   // 我在task中的角色
+  bytes                        sender_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"32\""];               // 我在task中的partyId
+  bytes                        receiver_role = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];                 // 你在task中的角色
+  bytes                        receiver_party_id = 5 [(gogoproto.moretags) = "ssz-max:\"32\""];             // 你在task中的partyId
+  TaskOrganizationIdentityInfo msg_owner = 6 [(gogoproto.moretags) = "ssz-max:\"16777216\""];                                                           // 消息发起人信息
+}
+*/
+type MsgOption struct {
+	ProposalId      common.Hash
+	SenderRole      apipb.TaskRole
+	SenderPartyId   string
+	ReceiverRole    apipb.TaskRole
+	ReceiverPartyId string
+	Owner           *apipb.TaskOrganization
+}
+
 type PrepareMsg struct {
-	ProposalId  common.Hash
-	TaskRole    TaskRole
-	TaskPartyId string
-	Owner       *apipb.TaskOrganization
-	TaskInfo    *Task
-	CreateAt    uint64
-	Sign        []byte
+	MsgOption MsgOption
+	TaskInfo  *Task
+	CreateAt  uint64
+	Sign      []byte
 }
 
 func (msg *PrepareMsg) String() string {
@@ -119,10 +135,7 @@ func (msg *PrepareMsg) String() string {
 }
 
 type PrepareVote struct {
-	ProposalId common.Hash
-	PartyId    string
-	TaskRole   apipb.TaskRole
-	Owner      *apipb.Organization
+	MsgOption MsgOption
 	VoteOption VoteOption
 	PeerInfo   *PrepareVoteResource
 	CreateAt   uint64
@@ -136,13 +149,17 @@ func (vote *PrepareVote) String() string {
 
 func ConvertPrepareVote(vote *PrepareVote) *pb.PrepareVote {
 	return &pb.PrepareVote{
-		ProposalId: vote.ProposalId.Bytes(),
-		TaskRole:   vote.TaskRole.Bytes(),
-		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(vote.Owner.NodeName),
-			NodeId:     []byte(vote.Owner.NodeId),
-			IdentityId: []byte(vote.Owner.IdentityId),
-			PartyId:    []byte(vote.Owner.PartyId),
+
+		MsgOption: &pb.MsgOption{
+			ProposalId: vote.ProposalId.Bytes(),
+			MyRole:     vote.TaskRole.Bytes(),
+			MyPartyId:  []byte(vote.PartyId),
+			Owner: &pb.TaskOrganizationIdentityInfo{
+				Name:       []byte(vote.Owner.NodeName),
+				NodeId:     []byte(vote.Owner.NodeId),
+				IdentityId: []byte(vote.Owner.IdentityId),
+				PartyId:    []byte(vote.Owner.PartyId),
+			},
 		},
 		VoteOption: vote.VoteOption.Bytes(),
 		PeerInfo:   ConvertTaskPeerInfo(vote.PeerInfo),
@@ -168,10 +185,7 @@ func FetchPrepareVote(vote *pb.PrepareVote) *PrepareVote {
 }
 
 type ConfirmMsg struct {
-	ProposalId  common.Hash
-	TaskRole    TaskRole
-	TaskPartyId string
-	Owner       *apipb.TaskOrganization
+	MsgOption MsgOption
 	PeerDesc    *pb.ConfirmTaskPeerInfo
 	CreateAt    uint64
 	Sign        []byte
@@ -216,10 +230,7 @@ func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 }
 
 type ConfirmVote struct {
-	ProposalId common.Hash
-	PartyId    string
-	TaskRole   apipb.TaskRole
-	Owner      *apipb.TaskOrganization
+	MsgOption MsgOption
 	VoteOption VoteOption
 	CreateAt   uint64
 	Sign       []byte
@@ -262,10 +273,7 @@ func FetchConfirmVote(vote *pb.ConfirmVote) *ConfirmVote {
 }
 
 type CommitMsg struct {
-	ProposalId  common.Hash
-	TaskRole    TaskRole
-	TaskPartyId string
-	Owner       *apipb.TaskOrganization
+	MsgOption MsgOption
 	CreateAt    uint64
 	Sign        []byte
 }
@@ -307,10 +315,7 @@ func FetchCommitMsg(msg *pb.CommitMsg) *CommitMsg {
 }
 
 type TaskResultMsg struct {
-	ProposalId    common.Hash
-	TaskRole      TaskRole
-	Owner         *apipb.TaskOrganization
-	TaskId        string
+	MsgOption MsgOption
 	TaskEventList []*libTypes.TaskEvent
 	CreateAt      uint64
 	Sign          []byte
@@ -354,4 +359,3 @@ func FetchTaskResultMsg(msg *pb.TaskResultMsg) *TaskResultMsg {
 		Sign:          msg.Sign,
 	}
 }
-

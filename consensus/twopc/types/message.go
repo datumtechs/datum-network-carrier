@@ -1,116 +1,108 @@
 package types
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"time"
-
-	"github.com/RosettaFlow/Carrier-Go/consensus/twopc/utils"
-	"github.com/RosettaFlow/Carrier-Go/types"
-	"sync/atomic"
 )
 
-type taskOption struct {
-	Role                  apipb.TaskRole         `json:"role"` // The role information of the current recipient of the task
-	TaskId                string                 `json:"taskId"`
-	TaskName              string                 `json:"taskName"`
-	Owner                 *apipb.Organization    `json:"owner"`
-	AlgoSupplier          *apipb.Organization    `json:"algoSupplier"`
-	DataSupplier          []*dataSupplierOption  `json:"dataSupplier"`
-	PowerSupplier         []*powerSupplierOption `json:"powerSupplier"`
-	Receivers             []*receiverOption      `json:"receivers"`
-	OperationCost         *TaskOperationCost     `json:"operationCost"`
-	CalculateContractCode string                 `json:"calculateContractCode"`
-	DataSplitContractCode string                 `json:"dataSplitContractCode"`
-	CreateAt              uint64                 `json:"createat"`
-}
-
-func (t *taskOption) Hash() common.Hash {
-	return rlputil.RlpHash(t)
-}
-
-type TaskOperationCost struct {
-	Processor uint32 `json:"processor"`
-	Mem       uint64 `json:"mem"`
-	Bandwidth uint64 `json:"bandwidth"`
-	Duration  uint64 `json:"duration"`
-}
-
-func (cost *TaskOperationCost) String() string {
-	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
-}
-
-type dataSupplierOption struct {
-	MemberInfo      *apipb.Organization `json:"memberInfo"`
-	MetaDataId      string              `json:"metaDataId"`
-	ColumnIndexList []uint64            `json:"columnIndexList"`
-}
-type powerSupplierOption struct {
-	MemberInfo *apipb.Organization `json:"memberInfo"`
-}
-type receiverOption struct {
-	MemberInfo *apipb.Organization   `json:"memberInfo"`
-	Providers  []*apipb.Organization `json:"providers"`
-}
-
-type taskPeerInfo struct {
-	// Used to connect when running task, internal network resuorce of org.
-	Ip   string `json:"ip"`
-	Port string `json:"port"`
-}
-
-type PrepareMsg struct {
-	ProposalID  common.Hash   `json:"proposalId"`
-	TaskOption  *taskOption   `json:"taskOption"`
-	CreateAt    uint64        `json:"createAt"`
-	Sign        types.MsgSign `json:"sign"`
-	messageHash atomic.Value  `rlp:"-"`
-}
-
-func (msg *PrepareMsg) String() string {
-	b, _ := json.Marshal(msg)
-	return string(b)
-}
-func (msg *PrepareMsg) MsgHash() common.Hash {
-	if mhash := msg.messageHash.Load(); mhash != nil {
-		return mhash.(common.Hash)
-	}
-	v := utils.BuildHash(PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(),
-		msg.TaskOption.Hash().Bytes(), msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
-	msg.messageHash.Store(v)
-	return v
-}
-
-type PrepareVote struct {
-	ProposalID  common.Hash         `json:"proposalId"`
-	Role        apipb.TaskRole      `json:"role"` // The role information of the current recipient of the task
-	Owner       *apipb.Organization `json:"owner"`
-	VoteOption  types.VoteOption    `json:"voteOption"`
-	PeerInfo    *taskPeerInfo       `json:"peerInfo"`
-	CreateAt    uint64              `json:"createAt"`
-	Sign        types.MsgSign       `json:"sign"`
-	messageHash atomic.Value        `rlp:"-"`
-}
-
-func (msg *PrepareVote) String() string {
-	b, _ := json.Marshal(msg)
-	return string(b)
-}
-
-func (msg *PrepareVote) MsgHash() common.Hash {
-	if mhash := msg.messageHash.Load(); mhash != nil {
-		return mhash.(common.Hash)
-	}
-	v := utils.BuildHash(PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), /*msg.VoteNodeID.Bytes(), */ // TODO 编码 NodeAlias
-		msg.VoteOption.Bytes(), msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
-	msg.messageHash.Store(v)
-	return v
-}
+//type taskOption struct {
+//	Role                  apipb.TaskRole         `json:"role"` // The role information of the current recipient of the task
+//	TaskId                string                 `json:"taskId"`
+//	TaskName              string                 `json:"taskName"`
+//	Owner                 *apipb.Organization    `json:"owner"`
+//	AlgoSupplier          *apipb.Organization    `json:"algoSupplier"`
+//	DataSupplier          []*dataSupplierOption  `json:"dataSupplier"`
+//	PowerSupplier         []*powerSupplierOption `json:"powerSupplier"`
+//	Receivers             []*receiverOption      `json:"receivers"`
+//	OperationCost         *TaskOperationCost     `json:"operationCost"`
+//	CalculateContractCode string                 `json:"calculateContractCode"`
+//	DataSplitContractCode string                 `json:"dataSplitContractCode"`
+//	CreateAt              uint64                 `json:"createat"`
+//}
+//
+//func (t *taskOption) Hash() common.Hash {
+//	return rlputil.RlpHash(t)
+//}
+//
+//type TaskOperationCost struct {
+//	Processor uint32 `json:"processor"`
+//	Mem       uint64 `json:"mem"`
+//	Bandwidth uint64 `json:"bandwidth"`
+//	Duration  uint64 `json:"duration"`
+//}
+//
+//func (cost *TaskOperationCost) String() string {
+//	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
+//}
+//
+//type dataSupplierOption struct {
+//	MemberInfo      *apipb.Organization `json:"memberInfo"`
+//	MetaDataId      string              `json:"metaDataId"`
+//	ColumnIndexList []uint64            `json:"columnIndexList"`
+//}
+//type powerSupplierOption struct {
+//	MemberInfo *apipb.Organization `json:"memberInfo"`
+//}
+//type receiverOption struct {
+//	MemberInfo *apipb.Organization   `json:"memberInfo"`
+//	Providers  []*apipb.Organization `json:"providers"`
+//}
+//
+//type taskPeerInfo struct {
+//	// Used to connect when running task, internal network resuorce of org.
+//	Ip   string `json:"ip"`
+//	Port string `json:"port"`
+//}
+//
+//type PrepareMsg struct {
+//	ProposalID  common.Hash   `json:"proposalId"`
+//	TaskOption  *taskOption   `json:"taskOption"`
+//	CreateAt    uint64        `json:"createAt"`
+//	Sign        types.MsgSign `json:"sign"`
+//	messageHash atomic.Value  `rlp:"-"`
+//}
+//
+//func (msg *PrepareMsg) String() string {
+//	b, _ := json.Marshal(msg)
+//	return string(b)
+//}
+//func (msg *PrepareMsg) MsgHash() common.Hash {
+//	if mhash := msg.messageHash.Load(); mhash != nil {
+//		return mhash.(common.Hash)
+//	}
+//	v := utils.BuildHash(PrepareProposalMsg, utils.MergeBytes(msg.ProposalID.Bytes(),
+//		msg.TaskOption.Hash().Bytes(), msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
+//	msg.messageHash.Store(v)
+//	return v
+//}
+//
+//type PrepareVote struct {
+//	ProposalID  common.Hash         `json:"proposalId"`
+//	Role        apipb.TaskRole      `json:"role"` // The role information of the current recipient of the task
+//	Owner       *apipb.Organization `json:"owner"`
+//	VoteOption  types.VoteOption    `json:"voteOption"`
+//	PeerInfo    *taskPeerInfo       `json:"peerInfo"`
+//	CreateAt    uint64              `json:"createAt"`
+//	Sign        types.MsgSign       `json:"sign"`
+//	messageHash atomic.Value        `rlp:"-"`
+//}
+//
+//func (msg *PrepareVote) String() string {
+//	b, _ := json.Marshal(msg)
+//	return string(b)
+//}
+//
+//func (msg *PrepareVote) MsgHash() common.Hash {
+//	if mhash := msg.messageHash.Load(); mhash != nil {
+//		return mhash.(common.Hash)
+//	}
+//	v := utils.BuildHash(PrepareVoteMsg, utils.MergeBytes(msg.ProposalID.Bytes(), /*msg.VoteNodeID.Bytes(), */ // TODO 编码 NodeAlias
+//		msg.VoteOption.Bytes(), msg.Sign.Bytes(), bytesutil.Uint64ToBytes(msg.CreateAt)))
+//	msg.messageHash.Store(v)
+//	return v
+//}
 
 type ProposalStatePeriod uint32
 
@@ -203,9 +195,6 @@ func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate
 
 func (pstate *orgProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate.PeriodNum }
 
-//func (pstate *ProposalState) CurrPeriodDuration() uint64 {
-//	return pstate.PeriodStartTime - pstate.PeriodEndTime
-//}
 func (pstate *orgProposalState) GetPeriod() string {
 
 	switch pstate.PeriodNum {
