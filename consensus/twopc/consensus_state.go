@@ -4,44 +4,41 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
 
 type state struct {
 
-
-
 	// Proposal being processed (proposalId -> proposalState)
-	runningProposals map[common.Hash]*ctypes.ProposalState
-	selfPeerInfoCache map[common.Hash]*types.PrepareVoteResource
+	proposalSet map[common.Hash]*ctypes.ProposalState
+	//selfPeerInfoCache map[common.Hash]*types.PrepareVoteResource
 	//Proposal Vote State for self Org
-	selfVoteState *ctypes.VoteState
+	//selfVoteState *ctypes.VoteState
 	// About the voting state of prepareMsg for proposal
 	prepareVotes map[common.Hash]*prepareVoteState
 	// About the voting state of confirmMsg for proposal
 	confirmVotes map[common.Hash]*confirmVoteState
-	// cache
-	proposalPeerInfoCache map[common.Hash]*pb.ConfirmTaskPeerInfo
+	//// cache
+	//proposalPeerInfoCache map[common.Hash]*pb.ConfirmTaskPeerInfo
 	// the global empty proposalState
 	empty *ctypes.ProposalState
 
 	proposalsLock         sync.RWMutex
-	selfPeerInfoCacheLock sync.RWMutex
+	//selfPeerInfoCacheLock sync.RWMutex
 	prepareVotesLock      sync.RWMutex
 	confirmVotesLock      sync.RWMutex
-	confirmPeerInfoLock   sync.RWMutex
+	//confirmPeerInfoLock   sync.RWMutex
 }
 
 func newState() *state {
 	return &state{
-		runningProposals:      make(map[common.Hash]*ctypes.ProposalState, 0),
-		selfPeerInfoCache:     make(map[common.Hash]*types.PrepareVoteResource, 0),
-		selfVoteState:         ctypes.NewVoteState(),
+		proposalSet:           make(map[common.Hash]*ctypes.ProposalState, 0),
+		//selfPeerInfoCache:     make(map[common.Hash]*types.PrepareVoteResource, 0),
+		//selfVoteState:         ctypes.NewVoteState(),
 		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
-		proposalPeerInfoCache: make(map[common.Hash]*pb.ConfirmTaskPeerInfo, 0),
+		//proposalPeerInfoCache: make(map[common.Hash]*pb.ConfirmTaskPeerInfo, 0),
 		empty:                 ctypes.EmptyProposalState,
 	}
 }
@@ -52,7 +49,7 @@ func (s *state) HasProposal(proposalId common.Hash) bool {
 	s.proposalsLock.RLock()
 	defer s.proposalsLock.RUnlock()
 
-	if _, ok := s.runningProposals[proposalId]; ok {
+	if _, ok := s.proposalSet[proposalId]; ok {
 		return true
 	}
 	return false
@@ -62,39 +59,39 @@ func (s *state) HasNotProposal(proposalId common.Hash) bool {
 	return !s.HasProposal(proposalId)
 }
 
-func (s *state) IsRecvTaskOnProposalState(proposalId common.Hash) bool {
-	s.proposalsLock.RLock()
-	defer s.proposalsLock.RUnlock()
-
-	proposalState, ok := s.runningProposals[proposalId]
-	if !ok {
-		return false
-	}
-	if proposalState.TaskDir == types.RecvTaskDir {
-		return true
-	}
-	return false
-}
-
-func (s *state) IsSendTaskOnProposalState(proposalId common.Hash) bool {
-	s.proposalsLock.RLock()
-	defer s.proposalsLock.RUnlock()
-
-	proposalState, ok := s.runningProposals[proposalId]
-	if !ok {
-		return false
-	}
-	if proposalState.TaskDir == types.SendTaskDir {
-		return true
-	}
-	return false
-}
+//func (s *state) IsRecvTaskOnProposalState(proposalId common.Hash) bool {
+//	s.proposalsLock.RLock()
+//	defer s.proposalsLock.RUnlock()
+//
+//	proposalState, ok := s.proposalSet[proposalId]
+//	if !ok {
+//		return false
+//	}
+//	if proposalState.TaskDir == types.RecvTaskDir {
+//		return true
+//	}
+//	return false
+//}
+//
+//func (s *state) IsSendTaskOnProposalState(proposalId common.Hash) bool {
+//	s.proposalsLock.RLock()
+//	defer s.proposalsLock.RUnlock()
+//
+//	proposalState, ok := s.proposalSet[proposalId]
+//	if !ok {
+//		return false
+//	}
+//	if proposalState.TaskDir == types.SendTaskDir {
+//		return true
+//	}
+//	return false
+//}
 
 func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
 	s.proposalsLock.RLock()
 	defer s.proposalsLock.RUnlock()
 
-	proposalState, ok := s.runningProposals[proposalId]
+	proposalState, ok := s.proposalSet[proposalId]
 	if !ok {
 		return s.empty
 	}
@@ -102,48 +99,48 @@ func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
 }
 func (s *state) AddProposalState(proposalState *ctypes.ProposalState) {
 	s.proposalsLock.Lock()
-	s.runningProposals[proposalState.ProposalId] = proposalState
+	s.proposalSet[proposalState.GetProposalId()] = proposalState
 	s.proposalsLock.Unlock()
 }
 func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
 	s.proposalsLock.Lock()
-	if _, ok := s.runningProposals[proposalState.ProposalId]; ok {
-		s.runningProposals[proposalState.ProposalId] = proposalState
+	if _, ok := s.proposalSet[proposalState.GetProposalId()]; ok {
+		s.proposalSet[proposalState.GetProposalId()] = proposalState
 	}
 	s.proposalsLock.Unlock()
 }
 func (s *state) DelProposalState(proposalId common.Hash) {
 	s.proposalsLock.Lock()
-	delete(s.runningProposals, proposalId)
+	delete(s.proposalSet, proposalId)
 	s.proposalsLock.Unlock()
 }
 
-func (s *state) GetProposalStates() map[common.Hash]*ctypes.ProposalState {
-	s.proposalsLock.RLock()
-	proposals := s.runningProposals
-	proposalMap := make(map[common.Hash]*ctypes.ProposalState, len(proposals))
-	for hash, proposalState := range proposals {
-		proposalMap[hash] = &ctypes.ProposalState{
-			ProposalId:         proposalState.ProposalId,
-			TaskDir:            proposalState.TaskDir,
-			TaskRole:           proposalState.TaskRole,
-			TaskOrg:       &apipb.TaskOrganization{
-				PartyId:    proposalState.TaskOrg.PartyId,
-				NodeName:       proposalState.TaskOrg.NodeName,
-				NodeId:     proposalState.TaskOrg.NodeId,
-				IdentityId: proposalState.TaskOrg.IdentityId,
-			},
-			TaskId:             proposalState.TaskId,
-			PeriodNum:          proposalState.PeriodNum,
-			PrePeriodStartTime: proposalState.PrePeriodStartTime,
-			PeriodStartTime:    proposalState.PeriodStartTime,
-			DeadlineDuration:   proposalState.DeadlineDuration,
-			CreateAt:           proposalState.CreateAt,
-		}
-	}
-	s.proposalsLock.RUnlock()
-	return proposalMap
-}
+//func (s *state) GetProposalStates() map[common.Hash]*ctypes.ProposalState {
+//	s.proposalsLock.RLock()
+//	proposals := s.proposalSet
+//	proposalMap := make(map[common.Hash]*ctypes.ProposalState, len(proposals))
+//	for hash, proposalState := range proposals {
+//		proposalMap[hash] = &ctypes.ProposalState{
+//			ProposalId: proposalState.ProposalId,
+//			TaskDir:    proposalState.TaskDir,
+//			TaskRole:   proposalState.TaskRole,
+//			TaskOrg: &apipb.TaskOrganization{
+//				PartyId:    proposalState.TaskOrg.PartyId,
+//				NodeName:   proposalState.TaskOrg.NodeName,
+//				NodeId:     proposalState.TaskOrg.NodeId,
+//				IdentityId: proposalState.TaskOrg.IdentityId,
+//			},
+//			TaskId:             proposalState.TaskId,
+//			PeriodNum:          proposalState.PeriodNum,
+//			PrePeriodStartTime: proposalState.PrePeriodStartTime,
+//			PeriodStartTime:    proposalState.PeriodStartTime,
+//			DeadlineDuration:   proposalState.DeadlineDuration,
+//			CreateAt:           proposalState.CreateAt,
+//		}
+//	}
+//	s.proposalsLock.RUnlock()
+//	return proposalMap
+//}
 
 func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
 	s.proposalsLock.Lock()
@@ -151,12 +148,12 @@ func (s *state) ChangeToConfirm(proposalId common.Hash, startTime uint64) {
 
 	log.Debugf("Start to call `ChangeToConfirm`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
 
-	proposalState, ok := s.runningProposals[proposalId]
+	proposalState, ok := s.proposalSet[proposalId]
 	if !ok {
 		return
 	}
 	proposalState.ChangeToConfirm(startTime)
-	s.runningProposals[proposalId] = proposalState
+	s.proposalSet[proposalId] = proposalState
 }
 
 func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
@@ -165,105 +162,49 @@ func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
 
 	log.Debugf("Start to call `ChangeToCommit`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
 
-	proposalState, ok := s.runningProposals[proposalId]
+	proposalState, ok := s.proposalSet[proposalId]
 	if !ok {
 		return
 	}
 	proposalState.ChangeToCommit(startTime)
-	s.runningProposals[proposalId] = proposalState
+	s.proposalSet[proposalId] = proposalState
 }
 
-//func (s *state) ChangeToFinished(proposalId common.Hash, startTime uint64) {
-//	s.proposalsLock.Lock()
-//	defer s.proposalsLock.Unlock()
-//
-//	log.Debugf("Start to call `ChangeToFinished`, proposalId: {%s}, startTime: {%d}", proposalId.String(), startTime)
-//
-//	proposalState, ok := s.runningProposals[proposalId]
-//	if !ok {
-//		return
-//	}
-//	proposalState.ChangeToFinished(startTime)
-//	s.runningProposals[proposalId] = proposalState
+//func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *pb.ConfirmTaskPeerInfo) {
+//	s.confirmPeerInfoLock.Lock()
+//	s.proposalPeerInfoCache[proposalId] = peerDesc
+//	s.confirmPeerInfoLock.Unlock()
 //}
-
-// 作为发起方时, 自己给当前 proposal 提供的资源信息 ... [根据 metaDataId 锁定的 dataNode资源]
-func (s *state) StoreSelfPeerInfo(proposalId common.Hash, peerInfo *types.PrepareVoteResource) {
-	log.Debugf("Start Store selfPeerInfo, proposalId: {%s}, peerInfo: {%s}", proposalId.String(), peerInfo.String())
-	s.selfPeerInfoCacheLock.Lock()
-	s.selfPeerInfoCache[proposalId] = peerInfo
-	s.selfPeerInfoCacheLock.Unlock()
-}
-func (s *state) GetSelfPeerInfo(proposalId common.Hash) *types.PrepareVoteResource {
-	s.selfPeerInfoCacheLock.RLock()
-	r := s.selfPeerInfoCache[proposalId]
-	s.selfPeerInfoCacheLock.RUnlock()
-	return r
-}
-
-func (s *state) RemoveSelfPeerInfo(proposalId common.Hash) {
-	s.selfPeerInfoCacheLock.Lock()
-	delete(s.selfPeerInfoCache, proposalId)
-	s.selfPeerInfoCacheLock.Unlock()
-}
-
-func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *pb.ConfirmTaskPeerInfo) {
-	s.confirmPeerInfoLock.Lock()
-	s.proposalPeerInfoCache[proposalId] = peerDesc
-	s.confirmPeerInfoLock.Unlock()
-}
-func (s *state) GetConfirmTaskPeerInfo(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
-	s.confirmPeerInfoLock.RLock()
-	peer := s.proposalPeerInfoCache[proposalId]
-	s.confirmPeerInfoLock.RUnlock()
-	return peer
-}
-
-func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
-	s.confirmPeerInfoLock.Lock()
-	delete(s.proposalPeerInfoCache, proposalId)
-	s.confirmPeerInfoLock.Unlock()
-}
-
-func (s *state) StorePrepareVoteState(vote *types.PrepareVote) {
-	s.selfVoteState.StorePrepareVote(vote)
-}
-func (s *state) StoreConfirmVoteState(vote *types.ConfirmVote) {
-	s.selfVoteState.StoreConfirmVote(vote)
-}
-
-func (s *state) HasPrepareVoteState(proposalId common.Hash) bool {
-	return s.selfVoteState.HasPrepareVote(proposalId)
-}
-func (s *state) HasConfirmVoteState(proposalId common.Hash) bool {
-	return s.selfVoteState.HasConfirmVote(proposalId)
-}
-
-func (s *state) RemovePrepareVoteState(proposalId common.Hash) {
-	s.selfVoteState.RemovePrepareVote(proposalId)
-}
-func (s *state) RemoveConfirmVoteState(proposalId common.Hash) {
-	s.selfVoteState.RemoveConfirmVote(proposalId)
-}
+//func (s *state) GetConfirmTaskPeerInfo(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+//	s.confirmPeerInfoLock.RLock()
+//	peer := s.proposalPeerInfoCache[proposalId]
+//	s.confirmPeerInfoLock.RUnlock()
+//	return peer
+//}
+//
+//func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
+//	s.confirmPeerInfoLock.Lock()
+//	delete(s.proposalPeerInfoCache, proposalId)
+//	s.confirmPeerInfoLock.Unlock()
+//}
 func (s *state) CleanProposalState(proposalId common.Hash) {
 	s.DelProposalState(proposalId)
-	s.RemovePrepareVoteState(proposalId)
-	s.RemoveConfirmVoteState(proposalId)
+	//s.RemovePrepareVoteState(proposalId)
+	//s.RemoveConfirmVoteState(proposalId)
 	s.CleanPrepareVoteState(proposalId)
 	s.CleanConfirmVoteState(proposalId)
-	s.RemoveSelfPeerInfo(proposalId)
-	s.RemoveConfirmTaskPeerInfo(proposalId)
+	//s.RemoveConfirmTaskPeerInfo(proposalId)
 }
 
 // ---------------- PrepareVote ----------------
-func (s *state) HasPrepareVoting(identityId string, proposalId common.Hash) bool {
+func (s *state) HasPrepareVoting(proposalId common.Hash, org *apipb.TaskOrganization) bool {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
 	if !ok {
 		return false
 	}
-	return pvs.hasPrepareVoting(identityId)
+	return pvs.hasPrepareVoting(org.PartyId, org.IdentityId)
 }
 func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 	s.prepareVotesLock.Lock()
@@ -294,7 +235,7 @@ func (s *state) CleanPrepareVoteState(proposalId common.Hash) {
 func (s *state) GetTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	return s.GetTaskDataSupplierPrepareYesVoteCount(proposalId) +
 		s.GetTaskPowerSupplierPrepareYesVoteCount(proposalId) +
-		s.GetTaskResulterPrepareYesVoteCount(proposalId)
+		s.GetTaskReceiverPrepareYesVoteCount(proposalId)
 }
 func (s *state) GetTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -303,7 +244,7 @@ func (s *state) GetTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) u
 	if !ok {
 		return 0
 	}
-	return pvs.voteYesCount(types.DataSupplier)
+	return pvs.voteYesCount(apipb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -312,22 +253,22 @@ func (s *state) GetTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) 
 	if !ok {
 		return 0
 	}
-	return pvs.voteYesCount(types.PowerSupplier)
+	return pvs.voteYesCount(apipb.TaskRole_TaskRole_PowerSupplier)
 }
-func (s *state) GetTaskResulterPrepareYesVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskReceiverPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
 	if !ok {
 		return 0
 	}
-	return pvs.voteYesCount(types.ResultSupplier)
+	return pvs.voteYesCount(apipb.TaskRole_TaskRole_Receiver)
 }
 
 func (s *state) GetTaskPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	return s.GetTaskDataSupplierPrepareTotalVoteCount(proposalId) +
 		s.GetTaskPowerSupplierPrepareTotalVoteCount(proposalId) +
-		s.GetTaskResulterPrepareTotalVoteCount(proposalId)
+		s.GetTaskReceiverPrepareTotalVoteCount(proposalId)
 }
 func (s *state) GetTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -336,7 +277,7 @@ func (s *state) GetTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash)
 	if !ok {
 		return 0
 	}
-	return pvs.voteTotalCount(types.DataSupplier)
+	return pvs.voteTotalCount(apipb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -345,16 +286,16 @@ func (s *state) GetTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash
 	if !ok {
 		return 0
 	}
-	return pvs.voteTotalCount(types.PowerSupplier)
+	return pvs.voteTotalCount(apipb.TaskRole_TaskRole_PowerSupplier)
 }
-func (s *state) GetTaskResulterPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
 	if !ok {
 		return 0
 	}
-	return pvs.voteTotalCount(types.ResultSupplier)
+	return pvs.voteTotalCount(apipb.TaskRole_TaskRole_Receiver)
 }
 
 // ---------------- ConfirmVote ----------------
@@ -385,7 +326,7 @@ func (s *state) CleanConfirmVoteState(proposalId common.Hash) {
 func (s *state) GetTaskConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	return s.GetTaskDataSupplierConfirmYesVoteCount(proposalId) +
 		s.GetTaskPowerSupplierConfirmYesVoteCount(proposalId) +
-		s.GetTaskResulterConfirmYesVoteCount(proposalId)
+		s.GetTaskReceiverConfirmYesVoteCount(proposalId)
 }
 func (s *state) GetTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -394,7 +335,7 @@ func (s *state) GetTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) u
 	if !ok {
 		return 0
 	}
-	return cvs.voteYesCount(types.DataSupplier)
+	return cvs.voteYesCount(apipb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -403,21 +344,21 @@ func (s *state) GetTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) 
 	if !ok {
 		return 0
 	}
-	return cvs.voteYesCount(types.PowerSupplier)
+	return cvs.voteYesCount(apipb.TaskRole_TaskRole_PowerSupplier)
 }
-func (s *state) GetTaskResulterConfirmYesVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskReceiverConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
 	cvs, ok := s.confirmVotes[proposalId]
 	s.confirmVotesLock.RUnlock()
 	if !ok {
 		return 0
 	}
-	return cvs.voteYesCount(types.ResultSupplier)
+	return cvs.voteYesCount(apipb.TaskRole_TaskRole_Receiver)
 }
 func (s *state) GetTaskConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	return s.GetTaskDataSupplierConfirmTotalVoteCount(proposalId) +
 		s.GetTaskPowerSupplierConfirmTotalVoteCount(proposalId) +
-		s.GetTaskResulterConfirmTotalVoteCount(proposalId)
+		s.GetTaskReceiverConfirmTotalVoteCount(proposalId)
 }
 func (s *state) GetTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -426,7 +367,7 @@ func (s *state) GetTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash)
 	if !ok {
 		return 0
 	}
-	return cvs.voteTotalCount(types.DataSupplier)
+	return cvs.voteTotalCount(apipb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -435,29 +376,29 @@ func (s *state) GetTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash
 	if !ok {
 		return 0
 	}
-	return cvs.voteTotalCount(types.PowerSupplier)
+	return cvs.voteTotalCount(apipb.TaskRole_TaskRole_PowerSupplier)
 }
-func (s *state) GetTaskResulterConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskReceiverConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
 	cvs, ok := s.confirmVotes[proposalId]
 	s.confirmVotesLock.RUnlock()
 	if !ok {
 		return 0
 	}
-	return cvs.voteTotalCount(types.ResultSupplier)
+	return cvs.voteTotalCount(apipb.TaskRole_TaskRole_Receiver)
 }
 
 // about prepareVote
 type prepareVoteState struct {
-	votes      []*types.PrepareVote
+	votes      map[string]*types.PrepareVote // partyId -> vote
 	yesVotes   map[apipb.TaskRole]uint32
-	voteStatus map[apipb.TaskRole]uint32
+	voteStatus map[apipb.TaskRole]uint32 // total vote count
 	lock       sync.Mutex
 }
 
 func newPrepareVoteState() *prepareVoteState {
 	return &prepareVoteState{
-		votes:      make([]*types.PrepareVote, 0),
+		votes:      make(map[string]*types.PrepareVote, 0),
 		yesVotes:   make(map[apipb.TaskRole]uint32, 0),
 		voteStatus: make(map[apipb.TaskRole]uint32, 0),
 	}
@@ -467,7 +408,10 @@ func (st *prepareVoteState) addVote(vote *types.PrepareVote) {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
-	st.votes = append(st.votes, vote)
+	if _, ok := st.votes[vote.PartyId]; ok {
+		return
+	}
+	st.votes[vote.PartyId] = vote
 	if count, ok := st.yesVotes[vote.TaskRole]; ok {
 		if vote.VoteOption == types.Yes {
 			st.yesVotes[vote.TaskRole] = count + 1
@@ -484,8 +428,16 @@ func (st *prepareVoteState) addVote(vote *types.PrepareVote) {
 		st.voteStatus[vote.TaskRole] = 1
 	}
 }
-func (st *prepareVoteState) getVotes() []*types.PrepareVote { return st.votes }
-func (st *prepareVoteState) voteTotalCount(role types.TaskRole) uint32 {
+
+func (st *prepareVoteState) getVote(partId string) *types.PrepareVote { return st.votes[partId] }
+func (st *prepareVoteState) getVotes() []*types.PrepareVote {
+	arr := make([]*types.PrepareVote, 0, len(st.votes))
+	for _, vote := range st.votes {
+		arr = append(arr, vote)
+	}
+	return arr
+}
+func (st *prepareVoteState) voteTotalCount(role apipb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -495,7 +447,7 @@ func (st *prepareVoteState) voteTotalCount(role types.TaskRole) uint32 {
 		return 0
 	}
 }
-func (st *prepareVoteState) voteYesCount(role types.TaskRole) uint32 {
+func (st *prepareVoteState) voteYesCount(role apipb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -505,9 +457,9 @@ func (st *prepareVoteState) voteYesCount(role types.TaskRole) uint32 {
 		return 0
 	}
 }
-func (st *prepareVoteState) hasPrepareVoting(identityId string) bool {
-	for _, vote := range st.votes {
-		if vote.Owner.IdentityId == identityId {
+func (st *prepareVoteState) hasPrepareVoting(partyId, identityId string) bool {
+	if vote, ok := st.votes[partyId]; ok {
+		if vote.PartyId == partyId && vote.Owner.IdentityId == identityId {
 			return true
 		}
 	}
@@ -516,17 +468,17 @@ func (st *prepareVoteState) hasPrepareVoting(identityId string) bool {
 
 // about confirmVote
 type confirmVoteState struct {
-	votes      []*types.ConfirmVote
-	yesVotes   map[types.TaskRole]uint32
-	voteStatus map[types.TaskRole]uint32
+	votes      map[string]*types.ConfirmVote // partyId -> vote
+	yesVotes   map[apipb.TaskRole]uint32
+	voteStatus map[apipb.TaskRole]uint32
 	lock       sync.Mutex
 }
 
 func newConfirmVoteState() *confirmVoteState {
 	return &confirmVoteState{
-		votes:      make([]*types.ConfirmVote, 0),
-		yesVotes:   make(map[types.TaskRole]uint32, 0),
-		voteStatus: make(map[types.TaskRole]uint32, 0),
+		votes:      make(map[string]*types.ConfirmVote, 0),
+		yesVotes:   make(map[apipb.TaskRole]uint32, 0),
+		voteStatus: make(map[apipb.TaskRole]uint32, 0),
 	}
 }
 
@@ -534,7 +486,11 @@ func (st *confirmVoteState) addVote(vote *types.ConfirmVote) {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
-	st.votes = append(st.votes, vote)
+	if _, ok := st.votes[vote.PartyId]; ok {
+		return
+	}
+
+	st.votes[vote.PartyId] = vote
 	if count, ok := st.yesVotes[vote.TaskRole]; ok {
 		if vote.VoteOption == types.Yes {
 			st.yesVotes[vote.TaskRole] = count + 1
@@ -551,7 +507,7 @@ func (st *confirmVoteState) addVote(vote *types.ConfirmVote) {
 		st.voteStatus[vote.TaskRole] = 1
 	}
 }
-func (st *confirmVoteState) voteYesCount(role types.TaskRole) uint32 {
+func (st *confirmVoteState) voteYesCount(role apipb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -561,7 +517,7 @@ func (st *confirmVoteState) voteYesCount(role types.TaskRole) uint32 {
 		return 0
 	}
 }
-func (st *confirmVoteState) voteTotalCount(role types.TaskRole) uint32 {
+func (st *confirmVoteState) voteTotalCount(role apipb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 

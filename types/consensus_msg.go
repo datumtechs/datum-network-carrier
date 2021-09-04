@@ -120,8 +120,9 @@ func (msg *PrepareMsg) String() string {
 
 type PrepareVote struct {
 	ProposalId common.Hash
-	TaskRole   TaskRole
-	Owner      *apipb.TaskOrganization
+	PartyId    string
+	TaskRole   apipb.TaskRole
+	Owner      *apipb.Organization
 	VoteOption VoteOption
 	PeerInfo   *PrepareVoteResource
 	CreateAt   uint64
@@ -216,7 +217,8 @@ func FetchConfirmMsg(msg *pb.ConfirmMsg) *ConfirmMsg {
 
 type ConfirmVote struct {
 	ProposalId common.Hash
-	TaskRole   TaskRole
+	PartyId    string
+	TaskRole   apipb.TaskRole
 	Owner      *apipb.TaskOrganization
 	VoteOption VoteOption
 	CreateAt   uint64
