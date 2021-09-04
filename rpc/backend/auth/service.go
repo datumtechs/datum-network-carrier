@@ -90,7 +90,7 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 		Status: 0,
 		Msg:    backend.OK,
 		Owner: &apipb.Organization{
-			NodeName:       identity.Name(),
+			NodeName:   identity.Name(),
 			NodeId:     identity.NodeId(),
 			IdentityId: identity.IdentityId(),
 		},
@@ -106,7 +106,7 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 	arr := make([]*apipb.Organization, len(identityList))
 	for i, identity := range identityList {
 		iden := &apipb.Organization{
-			NodeName:       identity.Name(),
+			NodeName:   identity.Name(),
 			NodeId:     identity.NodeId(),
 			IdentityId: identity.IdentityId(),
 		}
@@ -120,17 +120,40 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 	}, nil
 }
 
-// 数据授权申请
+// 数据授权申请（）
 func (svr *Server) ApplyMetaDataAuthority(context.Context, *pb.ApplyMetaDataAuthorityRequest) (*pb.ApplyMetaDataAuthorityResponse, error) {
 	return nil, nil
 }
 
-// 数据授权审核
-func (svr *Server) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*pb.AuditMetaDataAuthorityResponse, error){
+// 数据授权审核（管理台调用）
+func (svr *Server) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*pb.AuditMetaDataAuthorityResponse, error) {
 	return nil, nil
 }
 
-// 获取数据授权申请列表
-func (svr *Server)  GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetaDataAuthorityListResponse, error){
-	return nil, nil
+// 获取数据授权申请列表（展示地方调用）
+func (svr *Server) GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetaDataAuthorityListResponse, error) {
+	authorityList, err := svr.B.GetMetaDataAuthorityList("", uint64(timeutils.UnixMsec()))
+	if nil != err {
+		log.WithError(err).Error("RPC-API:GetMetaDataAuthorityList failed")
+		return nil, ErrGetAuthorityList
+	}
+	arr := make([]*pb.GetMetaDataAuthority, len(authorityList))
+	for i, auth := range authorityList {
+		data := &pb.GetMetaDataAuthority{
+			MetaDataAuthId: auth.Data().AuthRecordId,
+			User:           auth.Data().User,
+			UserType:       auth.Data().UserType,
+			Auth:           auth.Data().DataRecord,
+			Audit:          auth.Data().AuditResult,
+			ApplyAt:        auth.Data().ApplyAt,
+			AuditAt:        auth.Data().AuditAt,
+		}
+		arr[i] = data
+	}
+	log.Debugf("Query all authority list, len: {%d}", len(authorityList))
+	return &pb.GetMetaDataAuthorityListResponse{
+		Status: 0,
+		Msg:    backend.OK,
+		List:   arr,
+	}, nil
 }
