@@ -449,7 +449,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			}
 		}
 	case types.ResultSupplier:
-		if resulterCount == t.state.GetTaskResulterPrepareTotalVoteCount(voteMsg.ProposalId) {
+		if resulterCount == t.state.GetTaskReceiverPrepareTotalVoteCount(voteMsg.ProposalId) {
 			return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
 				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
@@ -695,7 +695,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			}
 		}
 	case types.ResultSupplier:
-		if resulterCount == t.state.GetTaskResulterConfirmTotalVoteCount(voteMsg.ProposalId) {
+		if resulterCount == t.state.GetTaskReceiverConfirmTotalVoteCount(voteMsg.ProposalId) {
 			return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
 				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)

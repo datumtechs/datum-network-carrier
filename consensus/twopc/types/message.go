@@ -166,27 +166,47 @@ func newOrgProposalState(
 	}
 }
 
+/**
+func (s *state) StoreSelfPeerInfo(proposalId common.Hash, peerInfo *types.PrepareVoteResource) {
+	log.Debugf("Start Store selfPeerInfo, proposalId: {%s}, peerInfo: {%s}", proposalId.String(), peerInfo.String())
+	s.selfPeerInfoCacheLock.Lock()
+	s.selfPeerInfoCache[proposalId] = peerInfo
+	s.selfPeerInfoCacheLock.Unlock()
+}
+func (s *state) GetSelfPeerInfo(proposalId common.Hash) *types.PrepareVoteResource {
+	s.selfPeerInfoCacheLock.RLock()
+	r := s.selfPeerInfoCache[proposalId]
+	s.selfPeerInfoCacheLock.RUnlock()
+	return r
+}
+
+func (s *state) RemoveSelfPeerInfo(proposalId common.Hash) {
+	s.selfPeerInfoCacheLock.Lock()
+	delete(s.selfPeerInfoCache, proposalId)
+	s.selfPeerInfoCacheLock.Unlock()
+}
+*/
 type ProposalState struct {
 	proposalId common.Hash
-	states     []*orgProposalState
-	partyCache map[string]int // partyId -> states index
+	stateCache map[string]*orgProposalState // partyId -> states
 }
 
 var EmptyProposalState = new(ProposalState)
 
-func NewProposalState() *ProposalState {
+func NewProposalState(proposalId common.Hash) *ProposalState {
 	return &ProposalState{
-		states:     make([]*orgProposalState, 0),
-		partyCache: make(map[string]int, 0),
+		proposalId: proposalId,
+		stateCache: make(map[string]*orgProposalState, 0),
 	}
 }
-func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.ProposalId }
-func (pstate *ProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate.PeriodNum }
+func (pstate *ProposalState) GetProposalId() common.Hash         { return pstate.proposalId }
+
+func (pstate *orgProposalState) CurrPeriodNum() ProposalStatePeriod { return pstate.PeriodNum }
 
 //func (pstate *ProposalState) CurrPeriodDuration() uint64 {
 //	return pstate.PeriodStartTime - pstate.PeriodEndTime
 //}
-func (pstate *ProposalState) GetPeriod() string {
+func (pstate *orgProposalState) GetPeriod() string {
 
 	switch pstate.PeriodNum {
 	case PeriodPrepare:
@@ -201,31 +221,19 @@ func (pstate *ProposalState) GetPeriod() string {
 		return "PeriodUnknown"
 	}
 }
-func (pstate *ProposalState) IsPreparePeriod() bool     { return pstate.PeriodNum == PeriodPrepare }
-func (pstate *ProposalState) IsConfirmPeriod() bool     { return pstate.PeriodNum == PeriodConfirm }
-func (pstate *ProposalState) IsCommitPeriod() bool      { return pstate.PeriodNum == PeriodCommit }
-func (pstate *ProposalState) IsFinishedPeriod() bool    { return pstate.PeriodNum == PeriodFinished }
-func (pstate *ProposalState) IsNotPreparePeriod() bool  { return !pstate.IsPreparePeriod() }
-func (pstate *ProposalState) IsNotConfirmPeriod() bool  { return !pstate.IsConfirmPeriod() }
-func (pstate *ProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCommitPeriod() }
-func (pstate *ProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
-func (pstate *ProposalState) IsDeadline() bool {
+func (pstate *orgProposalState) IsPreparePeriod() bool     { return pstate.PeriodNum == PeriodPrepare }
+func (pstate *orgProposalState) IsConfirmPeriod() bool     { return pstate.PeriodNum == PeriodConfirm }
+func (pstate *orgProposalState) IsCommitPeriod() bool      { return pstate.PeriodNum == PeriodCommit }
+func (pstate *orgProposalState) IsFinishedPeriod() bool    { return pstate.PeriodNum == PeriodFinished }
+func (pstate *orgProposalState) IsNotPreparePeriod() bool  { return !pstate.IsPreparePeriod() }
+func (pstate *orgProposalState) IsNotConfirmPeriod() bool  { return !pstate.IsConfirmPeriod() }
+func (pstate *orgProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCommitPeriod() }
+func (pstate *orgProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
+func (pstate *orgProposalState) IsDeadline() bool {
 	now := uint64(timeutils.UnixMsec())
 	return (now - pstate.CreateAt) >= ProposalDeadlineDuration
 }
 
-//func (pstate *ProposalState) IsFirstConfirmEpoch() bool {
-//	if pstate.ConfirmEpoch == ConfirmEpochFirst {
-//		return true
-//	}
-//	return false
-//}
-//func (pstate *ProposalState) IsSecondConfirmEpoch() bool {
-//	if pstate.ConfirmEpoch == ConfirmEpochSecond {
-//		return true
-//	}
-//	return false
-//}
 func (pstate *ProposalState) IsEmpty() bool {
 	if pstate == EmptyProposalState {
 		return true
@@ -234,7 +242,7 @@ func (pstate *ProposalState) IsEmpty() bool {
 }
 
 //func (pstate *ProposalState) GetConfirmEpoch() ConfirmEpoch { return pstate.ConfirmEpoch }
-func (pstate *ProposalState) IsPrepareTimeout() bool {
+func (pstate *orgProposalState) IsPrepareTimeout() bool {
 
 	if !pstate.IsPreparePeriod() {
 		return true
@@ -249,7 +257,7 @@ func (pstate *ProposalState) IsPrepareTimeout() bool {
 	}
 	return false
 }
-func (pstate *ProposalState) IsConfirmTimeout() bool {
+func (pstate *orgProposalState) IsConfirmTimeout() bool {
 
 	if pstate.IsPreparePeriod() {
 		return false
@@ -273,7 +281,7 @@ func (pstate *ProposalState) IsConfirmTimeout() bool {
 	return false
 }
 
-func (pstate *ProposalState) IsCommitTimeout() bool {
+func (pstate *orgProposalState) IsCommitTimeout() bool {
 	if pstate.IsPreparePeriod() {
 		return false
 	}
@@ -294,7 +302,7 @@ func (pstate *ProposalState) IsCommitTimeout() bool {
 	return false
 }
 
-func (pstate *ProposalState) ChangeToConfirm(startTime uint64) {
+func (pstate *orgProposalState) ChangeToConfirm(startTime uint64) {
 	if pstate.PeriodNum == PeriodPrepare {
 		pstate.PrePeriodStartTime = pstate.PeriodStartTime
 		pstate.PeriodStartTime = startTime
@@ -303,7 +311,7 @@ func (pstate *ProposalState) ChangeToConfirm(startTime uint64) {
 	//pstate.ConfirmEpoch = ConfirmEpochFirst
 }
 
-func (pstate *ProposalState) ChangeToCommit(startTime uint64) {
+func (pstate *orgProposalState) ChangeToCommit(startTime uint64) {
 	if pstate.PeriodNum == PeriodConfirm {
 		pstate.PrePeriodStartTime = pstate.PeriodStartTime
 		pstate.PeriodStartTime = startTime
@@ -311,7 +319,7 @@ func (pstate *ProposalState) ChangeToCommit(startTime uint64) {
 	}
 	//pstate.ConfirmEpoch = ConfirmEpochUnknown
 }
-func (pstate *ProposalState) ChangeToFinished(startTime uint64) {
+func (pstate *orgProposalState) ChangeToFinished(startTime uint64) {
 	if pstate.PeriodNum == PeriodCommit {
 		pstate.PrePeriodStartTime = pstate.PeriodStartTime
 		pstate.PeriodStartTime = startTime
