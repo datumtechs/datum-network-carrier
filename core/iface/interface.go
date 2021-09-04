@@ -104,6 +104,9 @@ type IdentityCarrierDB interface {
 	GetIdentityList() (types.IdentityArray, error)
 	//GetIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	HasIdentity(identity *apipb.Organization) (bool, error)
+
+	// v2.0
+	GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
 }
 
 type TaskCarrierDB interface {

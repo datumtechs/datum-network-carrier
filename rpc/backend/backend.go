@@ -38,6 +38,8 @@ type Backend interface {
 	// identity api
 	GetNodeIdentity() (*types.Identity, error)
 	GetIdentityList() ([]*types.Identity, error)
+	GetMetaDataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
+
 
 	// task api
 	GetTaskDetailList() ([]*pb.TaskDetailShow, error)
