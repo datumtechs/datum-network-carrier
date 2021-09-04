@@ -167,6 +167,8 @@ func (s *Service) wrapAndReportValidation(topic string, v pubsub.ValidatorEx) (s
 			messageFailedValidationCounter.WithLabelValues(topic).Inc()
 			return pubsub.ValidationReject
 		}
+		//TODO: 调试点，查看收到的消息渠道
+		log.WithField("peer", pid).WithField("msgFrom", msg.ReceivedFrom).Debug("Fix:Receive Gossip Message")
 		b := v(ctx, pid, msg)
 		if b == pubsub.ValidationReject {
 			messageFailedValidationCounter.WithLabelValues(topic).Inc()
