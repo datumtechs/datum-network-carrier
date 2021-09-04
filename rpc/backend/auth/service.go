@@ -120,17 +120,17 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 	}, nil
 }
 
-// 数据授权申请
+// 数据授权申请（）
 func (svr *Server) ApplyMetaDataAuthority(context.Context, *pb.ApplyMetaDataAuthorityRequest) (*pb.ApplyMetaDataAuthorityResponse, error) {
 	return nil, nil
 }
 
-// 数据授权审核
+// 数据授权审核（管理台调用）
 func (svr *Server) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*pb.AuditMetaDataAuthorityResponse, error){
 	return nil, nil
 }
 
-// 获取数据授权申请列表
+// 获取数据授权申请列表（展示地方调用）
 func (svr *Server)  GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetaDataAuthorityListResponse, error){
 	return nil, nil
 }
