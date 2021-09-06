@@ -12,6 +12,8 @@ message Organization  {
   string node_id = 2;
   // the identity for org
   string identity_id = 3;
+  // the status for organization(deleted/normal)
+  CommonStatus status = 4;
 }
 
 // 任务下的组织信息
