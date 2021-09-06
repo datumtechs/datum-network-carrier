@@ -5,7 +5,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -28,7 +27,7 @@ type TwoPC struct {
 	p2p         p2p.P2P
 	peerSet     *ctypes.PeerSet
 	state       *state
-	dataCenter  iface.ForResourceDB
+	//resourceMng.GetDB()  iface.ForResourceDB
 	resourceMng *resource.Manager
 
 	// fetch tasks scheduled from `Scheduler`
@@ -39,24 +38,18 @@ type TwoPC struct {
 	needExecuteTaskCh chan *types.NeedExecuteTask
 	asyncCallCh       chan func()
 	quit              chan struct{}
-	proposalTaskCache map[string]*types.ProposalTask
-	//// The task being processed by myself  (taskId -> task)
-	//sendTaskCache map[string]*types.Task
-	//// The task processing  that received someone else (taskId -> task)
-	//recvTaskCache map[string]*types.Task
+	proposalTaskCache map[string]*types.ProposalTask // (taskId -> task)
 
-	taskResultBusCh chan *types.TaskConsResult
-	taskResultChSet map[string]chan<- *types.TaskConsResult
-	taskResultLock  sync.Mutex
-	sendTaskLock    sync.RWMutex
-	recvTaskLock    sync.RWMutex
+	taskResultBusCh  chan *types.TaskConsResult
+	taskResultChSet  map[string]chan<- *types.TaskConsResult
+	taskResultLock   sync.Mutex
+	proposalTaskLock sync.RWMutex
 
 	Errs []error
 }
 
 func New(
 	conf *Config,
-	dataCenter iface.ForResourceDB,
 	resourceMng *resource.Manager,
 	p2p p2p.P2P,
 	needConsensusTaskCh chan *types.NeedConsensusTask,
@@ -68,7 +61,6 @@ func New(
 		p2p:                      p2p,
 		peerSet:                  ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:                    newState(),
-		dataCenter:               dataCenter,
 		resourceMng:              resourceMng,
 		needConsensusTaskCh:      needConsensusTaskCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
@@ -78,9 +70,9 @@ func New(
 		proposalTaskCache:        make(map[string]*types.ProposalTask),
 		//sendTaskCache:            make(map[string]*types.Task),
 		//recvTaskCache:            make(map[string]*types.Task),
-		taskResultBusCh:          make(chan *types.TaskConsResult, 100),
-		taskResultChSet:          make(map[string]chan<- *types.TaskConsResult, 100),
-		Errs:                     make([]error, 0),
+		taskResultBusCh: make(chan *types.TaskConsResult, 100),
+		taskResultChSet: make(map[string]chan<- *types.TaskConsResult, 100),
+		Errs:            make([]error, 0),
 	}
 }
 
@@ -120,7 +112,7 @@ func (t *TwoPC) loop() {
 			if nil == res {
 				return
 			}
-			t.replyConsensusTaskResult(res)
+			t.handleTaskConsensusResult(res)
 
 		case <-refreshProposalStateTicker.C:
 			go t.refreshProposalState()
@@ -195,12 +187,11 @@ func (t *TwoPC) OnPrepare(task *types.Task) error {
 }
 func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error {
 
-	if t.isConsensusTask(task.TaskId()) {
+	if t.isProposalTask(task.TaskId()) {
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
-
 	now := uint64(timeutils.UnixMsec())
-	proposalHash := rlputil.RlpHash([]interface{}{
+	proposalId := rlputil.RlpHash([]interface{}{
 		t.config.Option.NodeID,
 		now,
 		task.TaskId(),
@@ -208,48 +199,25 @@ func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		task.TaskData().CreateAt,
 		uint64(time.Now().Nanosecond()),
 	})
+	proposalState := ctypes.NewProposalState(proposalId)
+	proposalState.StoreOrgProposalState(task.TaskId(), apipb.TaskRole_TaskRole_Sender, task.TaskSender().GetPartyId(), now)
 
-	proposalState := ctypes.NewProposalState(
-		proposalHash,
-		task.TaskId(),
-		types.SendTaskDir,
-		types.TaskOwner,
-		&apipb.TaskOrganization{
-			PartyId:    task.TaskData().PartyId,
-			NodeName:   task.TaskData().IdentityId,
-			NodeId:     task.TaskData().NodeId,
-			IdentityId: task.TaskData().NodeName,
-		},
-		now)
+	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalId, task.TaskId())
 
-	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalHash, task.TaskId())
-
-	// add proposal
-	t.addProposalState(proposalState)
-	// add task
-	// task 不论是 发起方 还是 参与方, 都应该是  一抵达, 就保存本地..
-	t.addSendTask(task)
-	// add ResultCh
+	// add some local cache
+	t.storeProposalState(proposalState)
+	t.addProposalTask(types.NewProposalTask(proposalId, task, now))
 	t.addTaskResultCh(task.TaskId(), result)
-	// set myself peerInfo cache
-	t.state.StoreSelfPeerInfo(proposalHash, selfPeerResource)
 
 	// Start handle task ...
 	go func() {
 
-		if err := t.sendPrepareMsg(proposalHash, task, now); nil != err {
-			log.Errorf("Failed to call `SendTwoPcPrepareMsg`, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: \n%s", proposalHash, task.TaskId(), err)
+		if err := t.sendPrepareMsg(proposalId, task, now); nil != err {
+			log.Errorf("Failed to call `SendTwoPcPrepareMsg`, consensus epoch finished, proposalId: {%s}, taskId: {%s}, err: \n%s", proposalId, task.TaskId(), err)
 			// Send consensus result to Scheduler
-			t.collectTaskResultWillSendToSched(&types.ConsensusResult{
-				TaskConsResult: &types.TaskConsResult{
-					TaskId: task.TaskId(),
-					Status: types.TaskConsensusInterrupt,
-					Done:   false,
-					Err:    errors.New("failed to call `SendTwoPcPrepareMsg`"),
-				},
-			})
+			t.replyTaskConsensusResult(types.NewTaskConsResult(task.TaskId(), types.TaskConsensusInterrupt, errors.New("failed to call `SendTwoPcPrepareMsg`")))
 			// clean some invalid data
-			t.delProposalStateAndTask(proposalHash)
+			t.delProposalStateAndTask(proposalId)
 		}
 	}()
 	return nil
@@ -279,7 +247,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrPrepareVotehadVoted
 	}
 
-	self, err := t.dataCenter.GetIdentity()
+	self, err := t.resourceMng.GetDB().GetIdentity()
 	if nil != err {
 		log.Errorf("Failed to call onPrepareMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposal.TaskId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
@@ -299,7 +267,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		},
 		proposal.CreateAt)
 
-	t.addProposalState(proposalState)
+	t.storeProposalState(proposalState)
 
 	task := proposal.Task
 	// 将接受到的 task 保存本地
@@ -377,10 +345,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 // (on Publisher)
 func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
 
-	voteMsg, err := fetchPrepareVote(prepareVote)
-	if nil != err {
-		return err
-	}
+	voteMsg := fetchPrepareVote(prepareVote)
 
 	log.Debugf("Received remote prepareVote, remote pid: {%s}, prepareVote: %s", pid, voteMsg.String())
 
@@ -495,7 +460,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 					log.Errorf("Failed to call `SendTwoPcConfirmMsg` proposalId: {%s}, taskId: {%s}, err: \n%s",
 						proposalState.ProposalId.String(), task.TaskId(), err)
 					// Send consensus result
-					t.collectTaskResultWillSendToSched(&types.ConsensusResult{
+					t.replyTaskConsensusResult(&types.ConsensusResult{
 						TaskConsResult: &types.TaskConsResult{
 							TaskId: task.TaskId(),
 							Status: types.TaskConsensusInterrupt,
@@ -518,7 +483,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 				log.Debugf("PrepareVoting failed on consensus's prepare epoch, the `YES` vote count is no enough, `YES` vote count: {%d}, need total count: {%d}",
 					yesVoteCount, totalVoteCount)
 
-				t.collectTaskResultWillSendToSched(&types.ConsensusResult{
+				t.replyTaskConsensusResult(&types.ConsensusResult{
 					TaskConsResult: &types.TaskConsResult{
 						TaskId: task.TaskId(),
 						Status: types.TaskConsensusInterrupt,
@@ -537,10 +502,8 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 // (on Subscriber)
 func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
 
-	msg, err := fetchConfirmMsg(confirmMsg)
-	if nil != err {
-		return err
-	}
+	msg := fetchConfirmMsg(confirmMsg)
+
 
 	log.Debugf("Received remote confirmMsg, remote pid: {%s}, confirmMsg: %s", pid, msg.String())
 
@@ -574,7 +537,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		return ctypes.ErrProposalTaskNotFound
 	}
 
-	self, err := t.dataCenter.GetIdentity()
+	self, err := t.resourceMng.GetDB().GetIdentity()
 	if nil != err {
 		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
@@ -624,10 +587,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 // (on Publisher)
 func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 
-	voteMsg, err := fetchConfirmVote(confirmVote)
-	if nil != err {
-		return err
-	}
+	voteMsg := fetchConfirmVote(confirmVote)
 
 	log.Debugf("Received remote confirmVote, remote pid: {%s}, comfirmVote: %s", pid, voteMsg.String())
 
@@ -742,7 +702,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 						proposalState.ProposalId.String(), task.TaskId(), err)
 
 					// Send consensus result
-					t.collectTaskResultWillSendToSched(&types.ConsensusResult{
+					t.replyTaskConsensusResult(&types.ConsensusResult{
 						TaskConsResult: &types.TaskConsResult{
 							TaskId: task.TaskId(),
 							Status: types.TaskConsensusInterrupt,
@@ -778,7 +738,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 				log.Debugf("ConfirmVoting failed on consensus's confirm epoch, the `YES` vote count is no enough, `YES` vote count: {%d}, need total count: {%d}",
 					yesVoteCount, totalVoteCount)
 
-				t.collectTaskResultWillSendToSched(&types.ConsensusResult{
+				t.replyTaskConsensusResult(&types.ConsensusResult{
 					TaskConsResult: &types.TaskConsResult{
 						TaskId: task.TaskId(),
 						Status: types.TaskConsensusInterrupt,
@@ -792,7 +752,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 			// 共识 未达成. 删除本地 资源
 			//// If the vote is not reached, we will clear the local `proposalState` related cache
-			//// and end the task as a failure, and publish the task information to the datacenter.
+			//// and end the task as a failure, and publish the task information to the resourceMng.GetDB().
 			//t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateFailed, types.TaskOwner, task)
 			//// clean some invalid data
 			//t.delProposalStateAndTask(voteMsg.ProposalId)
@@ -804,10 +764,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 // (on Subscriber)
 func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 
-	msg, err := fetchCommitMsg(cimmitMsg)
-	if nil != err {
-		return err
-	}
+	msg := fetchCommitMsg(cimmitMsg)
 
 	log.Debugf("Received remote commitMsg, remote pid: {%s}, commitMsg: %s", pid, msg.String())
 
@@ -836,7 +793,7 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 		return ctypes.ErrProposalTaskNotFound
 	}
 
-	self, err := t.dataCenter.GetIdentity()
+	self, err := t.resourceMng.GetDB().GetIdentity()
 	if nil != err {
 		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
 		// clean some data
@@ -877,14 +834,11 @@ func (t *TwoPC) sendTaskResultMsg(pid peer.ID, msg *types.TaskResultMsgWrap) err
 
 // (on Publisher)
 func (t *TwoPC) onTaskResultMsg(pid peer.ID, taskResultMsg *types.TaskResultMsgWrap) error {
-	msg, err := fetchTaskResultMsg(taskResultMsg)
-	if nil != err {
-		return err
-	}
+	msg := fetchTaskResultMsg(taskResultMsg)
 
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
-	has, err := t.dataCenter.HasLocalTaskExecute(msg.TaskId)
+	has, err := t.resourceMng.GetDB().HasLocalTaskExecute(msg.TaskId)
 	if nil != err {
 		log.Errorf("Failed to query local task executing status on `onTaskResultMsg`, taskId: {%s}, err: {%s}",
 			msg.TaskId, err)

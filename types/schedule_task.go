@@ -16,6 +16,14 @@ type ProposalTask struct {
 	CreateAt uint64
 }
 
+func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *ProposalTask {
+	return &ProposalTask{
+		ProposalId: proposalId,
+		Task:       task,
+		CreateAt:   createAt,
+	}
+}
+
 type ConsensusTaskWrap struct {
 	Task              *Task
 	OwnerDataResource *PrepareVoteResource
@@ -99,6 +107,8 @@ func (t TaskConsStatus) String() string {
 		return "TaskConsensusInterrupt"
 	case TaskRunningInterrupt:
 		return "TaskRunningInterrupt"
+	case TaskConsensusRefused:
+		return "TaskConsensusRefused"
 	default:
 		return "UnknownTaskResultStatus"
 	}
@@ -107,6 +117,7 @@ func (t TaskConsStatus) String() string {
 const (
 	TaskSucceed            TaskConsStatus = 0x0000
 	TaskConsensusInterrupt TaskConsStatus = 0x0001
+	TaskConsensusRefused   TaskConsStatus = 0x0010  // has  some org refused this task
 	TaskRunningInterrupt   TaskConsStatus = 0x0100
 )
 
@@ -386,7 +397,6 @@ func ConfirmTaskPeerInfoString(resources *pb.ConfirmTaskPeerInfo) string {
 	return fmt.Sprintf(`{"ownerPeerInfo": %s, "dataSupplierPeerInfoList": %s, "powerSupplierPeerInfoList": %s, "resultReceiverPeerInfoList": %s}`,
 		ownerPeerInfoStr, dataSupplierListStr, powerSupplierListStr, receiverListStr)
 }
-
 
 func IsSameTaskOrgByte(org1, org2 *pb.TaskOrganizationIdentityInfo) bool {
 	if bytes.Compare(org1.GetPartyId(), org2.GetPartyId()) == 0 && bytes.Compare(org1.GetIdentityId(), org2.GetIdentityId()) == 0 {
