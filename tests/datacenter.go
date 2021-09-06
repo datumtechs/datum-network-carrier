@@ -42,8 +42,8 @@ func InsertData() {
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
-		DataStatus: DataStatus,
-		Status:     Status,
+		DataStatus: apipb.DataStatus_DataStatus_Normal,
+		Status:     apipb.CommonStatus_CommonStatus_Normal,
 		Credential: "",
 	})
 	merr := dc.InsertIdentity(identities)
@@ -66,7 +66,7 @@ func InsertMetaData() {
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		DataId:     DataId,
-		DataStatus: DataStatus,
+		DataStatus: apipb.DataStatus_DataStatus_Normal,
 		OriginId:   OriginId,
 		TableName:  "test_table1",
 		FilePath:   "/c/c",
@@ -74,10 +74,10 @@ func InsertMetaData() {
 		Rows:       1,
 		Columns:    2,
 		Size_:      3,
-		FileType:   "csv",
-		State:      Status,
+		FileType:   apipb.OriginFileType_FileType_CSV,
+		State:      apipb.MetaDataState_MetaDataState_Released,
 		HasTitle:   false,
-		MetadataColumnList: []*libTypes.MetadataColumn{
+		MetadataColumns: []*libTypes.MetadataColumn{
 			{
 				CIndex: 2,
 				CName:  "cname",
@@ -106,12 +106,12 @@ func InsertResource() {
 		NodeId:         NodeId,
 		NodeName:       NodeName,
 		DataId:         DataId,
-		DataStatus:     DataStatus,
-		State:          Status,
+		DataStatus:     apipb.DataStatus_DataStatus_Normal,
+		State:          apipb.PowerState_PowerState_Released,
 		TotalMem:       1,
 		UsedMem:        2,
 		TotalProcessor: 0,
-		TotalBandWidth: 1,
+		TotalBandwidth: 1,
 	})
 
 	terr := dc.InsertResource(resource)
@@ -135,19 +135,19 @@ func InsertTask() {
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
-		DataStatus: DataStatus,
+		DataStatus: apipb.DataStatus_DataStatus_Normal,
 		TaskId:     TaskId,
 		TaskName:   "task001",
-		State:      Status,
+		State:      apipb.TaskState_TaskState_Succeed,
 		Reason:     "",
 		EventCount: 0,
 		Desc:       "",
 		CreateAt:   uint64(timeutils.UnixMsec()),
 		EndAt:      uint64(timeutils.UnixMsec()),
 		AlgoSupplier: &apipb.TaskOrganization{
-			PartyId:  "",
-			NodeId:   Identity,
-			NodeName: NodeName,
+			PartyId:    "",
+			NodeId:     Identity,
+			NodeName:   NodeName,
 			IdentityId: Identity,
 		},
 		OperationCost: &apipb.TaskResourceCostDeclare{
@@ -155,7 +155,7 @@ func InsertTask() {
 			CostBandwidth: 120,
 			CostProcessor: 8,
 		},
-		DataSupplier: []*libTypes.TaskDataSupplier{
+		DataSuppliers: []*libTypes.TaskDataSupplier{
 			{
 				MemberInfo: &apipb.TaskOrganization{
 					PartyId:    "",
@@ -165,7 +165,7 @@ func InsertTask() {
 				},
 				MetadataId:   DataId,
 				MetadataName: "meta1",
-				ColumnList: []*libTypes.MetadataColumn{
+				Columns: []*libTypes.MetadataColumn{
 					{
 						CIndex:   2,
 						CName:    "cname",
@@ -176,7 +176,7 @@ func InsertTask() {
 				},
 			},
 		},
-		PowerSupplier: []*libTypes.TaskPowerSupplier{
+		PowerSuppliers: []*libTypes.TaskPowerSupplier{
 			{
 				Organization: &apipb.TaskOrganization{
 					PartyId:    "",
@@ -194,33 +194,7 @@ func InsertTask() {
 				},
 			},
 		},
-		Receivers: []*libTypes.TaskResultReceiver{
-			{
-				Receiver: &apipb.TaskOrganization{
-					PartyId:    "",
-					NodeId:     Identity,
-					NodeName:   NodeName,
-					IdentityId: Identity,
-				},
-				Providers: []*apipb.TaskOrganization{
-					{
-						PartyId:    "",
-						NodeId:     Identity,
-						NodeName:   NodeName,
-						IdentityId: Identity,
-					},
-				},
-			},
-		},
-		PartnerList: []*apipb.TaskOrganization{
-			{
-				PartyId:    "",
-				NodeId:     Identity,
-				NodeName:   NodeName,
-				IdentityId: Identity,
-			},
-		},
-		TaskEventList: []*libTypes.TaskEvent{
+		TaskEvents: []*libTypes.TaskEvent{
 			{
 				TaskId:     "123456",
 				Type:       "1-evengine-eventType",
@@ -250,8 +224,8 @@ func RevokeIdentity() {
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
-		DataStatus: DataStatus,
-		Status:     Status,
+		DataStatus: apipb.DataStatus_DataStatus_Normal,
+		Status:     apipb.CommonStatus_CommonStatus_Normal,
 		Credential: "",
 	})
 	result := dc.RevokeIdentity(identities)
@@ -311,7 +285,7 @@ func GetData() {
 
 	// region HasIdentity
 	result, err := dc.HasIdentity(&apipb.Organization{
-		Name:       NodeName,
+		NodeName:   NodeName,
 		NodeId:     NodeId,
 		IdentityId: Identity})
 	if nil != err {

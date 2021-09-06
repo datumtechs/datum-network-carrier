@@ -12,6 +12,8 @@ message Organization  {
   string node_id = 2;
   // the identity for org
   string identity_id = 3;
+  // the status for organization(deleted/normal)
+  CommonStatus status = 4;
 }
 
 // 任务下的组织信息
@@ -45,6 +47,7 @@ enum DataStatus {
   DataStatus_Normal = 1;
   DataStatus_Deleted = 2;
 }
+
 // Y : normal, N non-normal
 enum CommonStatus {
   CommonStatus_Unknown = 0;
@@ -72,14 +75,12 @@ enum MetaDataState {
   MetaDataState_Revoked = 3;
 }
 
-
 // 元数据的使用方式类型枚举
 enum MetaDataUsageType {
   Usage_Unknown = 0;        // 未定义类型
   Usage_Period = 1;         // 依照时间段来使用
   Usage_Times = 2;          // 依照次数来使用
 }
-
 
 // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
 enum PowerState {

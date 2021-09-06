@@ -20,8 +20,8 @@ message MetadataPB {
   string                      table_name = 7;                 // 元数据的名称 (对外的表名)
   string                      file_path = 8;                  // 元数据对应的原始文件存储的路径
   string                      desc = 9;                       // 元数据的摘要(描述)
-  uint64                      rows = 10;                      // 元数据对应原始文件的总行数
-  uint64                      columns = 11;                   // 元数据对应原始文件的总列数
+  uint32                      rows = 10;                      // 元数据对应原始文件的总行数
+  uint32                      columns = 11;                   // 元数据对应原始文件的总列数
   uint64                      size = 12;                      // 元数据对应原始文件的总大小 (单位: byte)
   api.protobuf.OriginFileType file_type = 13;                 // 源文件的类型 (目前只有 csv)
   api.protobuf.MetaDataState  state = 14;                     // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
@@ -61,7 +61,7 @@ message MetaDataSummary {
   string                        file_path = 5;              // 源文件存放路径
   uint32                        rows = 6;                   // 源文件的行数
   uint32                        columns = 7;                // 源文件的列数
-  uint32                        size = 8;                   // 源文件的大小 (单位: byte)
+  uint64                        size = 8;                   // 源文件的大小 (单位: byte)
   api.protobuf.OriginFileType   file_type = 9;              // 源文件的类型 (目前只有 csv)
   bool                          has_title = 10;             // 源文件是否包含标题 (true: 包含; false: 不包含)
   string                        industry = 11;              // 元数据所属行业
