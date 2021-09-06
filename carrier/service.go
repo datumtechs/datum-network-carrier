@@ -95,7 +95,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		//),
 		resourceClientSet: resourceClientSet,
 	}
-	
+
 	// read config from p2p config.
 	NodeId, _ := p2p.HexID(nodeId)
 
