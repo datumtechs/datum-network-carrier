@@ -53,7 +53,7 @@ message MetaDataAuthorityResponse {
   string                            user = 2;                             // 发起任务的用户的信息 (task是属于用户的)
   api.protobuf.UserType             user_type = 3;                        // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
   types.MetaDataAuthority           auth = 4;                             // 元数据使用授权信息
-  api.protobuf.AuditMetaDataOption    audit = 5;                          // 审核结果
+  api.protobuf.AuditMetaDataOption  audit = 5;                            // 审核结果
   uint64                            apply_at = 6;                         // 发起授权申请的时间 (单位: ms)
   uint64                            audit_at = 7;                         // 审核授权申请的时间 (单位: ms)
 }
