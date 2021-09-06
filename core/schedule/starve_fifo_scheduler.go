@@ -4,7 +4,7 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
-	towTypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -145,7 +145,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	}
 
 
-	cost := &towTypes.TaskOperationCost{
+	cost := &ctypes.TaskOperationCost{
 		Mem:       task.TaskData().GetOperationCost().GetCostMem(),
 		Processor: task.TaskData().GetOperationCost().GetCostProcessor(),
 		Bandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
@@ -172,7 +172,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	// Set elected powers into task info, and restore into local db.
 	task = types.ConvertTaskMsgToTaskWithPowers(task, powers)
 	// restore task by power
-	if err := sche.dataCenter.StoreLocalTask(task); nil != err {
+	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.TaskId(), err)
 
 		repushFn(bullet)
@@ -182,7 +182,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 }
 func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
 
-	cost := &towTypes.TaskOperationCost{
+	cost := &ctypes.TaskOperationCost{
 		Mem:       task.TaskData().GetOperationCost().GetCostMem(),
 		Processor: task.TaskData().GetOperationCost().GetCostProcessor(),
 		Bandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
@@ -192,7 +192,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 	log.Debugf("Call SchedulerStarveFIFO.ReplaySchedule() start, taskId: {%s}, myTaskRole: {%s}, myPartyId: {%s}, taskCost: {%s}",
 		task.TaskId(), myTaskRole.String(), myPartyId, cost.String())
 
-	selfIdentityId, err := sche.dataCenter.GetIdentityId()
+	selfIdentityId, err := sche.resourceMng.GetDB().GetIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query self identityInfo on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, err: {%s}", task.TaskId(), err)
 		return types.NewReplayScheduleResult(task.TaskId(), err, nil)
@@ -263,7 +263,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 
 
 		// 获取 metaData 所在的dataNode 资源
-		dataResourceDiskUsed, err := sche.dataCenter.QueryDataResourceDiskUsed(metaDataId)
+		dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metaDataId)
 		if nil != err {
 			log.Errorf("failed query internal data node by metaDataId on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, metaDataId: {%s}",
 				task.TaskId(), metaDataId)
@@ -271,7 +271,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 			return types.NewReplayScheduleResult(task.TaskId(), err, nil)
 		}
 
-		dataNode, err := sche.dataCenter.GetRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
+		dataNode, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
 			log.Errorf("failed query internal data node by metaDataId on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, metaDataId: {%s}",
 				task.TaskId(), metaDataId)
@@ -311,7 +311,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
 	case apipb.TaskRole_TaskRole_Receiver:
 
-		dataResourceTables, err := sche.dataCenter.QueryDataResourceTables()
+		dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()
 		if nil != err {
 			log.Errorf("Failed to election internal data resource on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, err: {%s}",
 				task.TaskId(), err)
@@ -322,7 +322,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 		log.Debugf("QueryDataResourceTables on replaySchedule by taskRole is the resuler on SchedulerStarveFIFO.ReplaySchedule(), dataResourceTables: %s", utilDataResourceArrString(dataResourceTables))
 
 		resource := dataResourceTables[len(dataResourceTables)-1]
-		dataNode, err := sche.dataCenter.GetRegisterNode(pb.PrefixTypeDataNode, resource.GetNodeId())
+		dataNode, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeDataNode, resource.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query internal data node resource on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, dataNodeId: {%s}, err: {%s}",
 				task.TaskId(), resource.GetNodeId(), err)
