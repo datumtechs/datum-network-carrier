@@ -129,12 +129,12 @@ func WriteRunningTask(db KeyValueStore, task *types.Task) {
 
 	}
 	for _, s := range array.GetTaskList() {
-		if strings.EqualFold(s.TaskId, task.TaskId()) {
+		if strings.EqualFold(s.TaskId, task.GetTaskId()) {
 			log.WithFields(logrus.Fields{ "id": s.TaskId }).Info("Skip duplicated task")
 			return
 		}
 	}
-	array.TaskList = append(array.TaskList, task.TaskData())
+	array.TaskList = append(array.TaskList, task.GetTaskData())
 	data, err := array.Marshal()
 	if err != nil {
 		log.WithError(err).Fatal("Failed to encode running task")

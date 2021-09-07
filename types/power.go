@@ -43,7 +43,7 @@ package types
 //}
 
 //type PowerTask struct {
-//	TaskId         string             `json:"taskId"`
+//	GetTaskId         string             `json:"taskId"`
 //	TaskName       string             `json:"taskName"`
 //	Owner          *NodeAlias         `json:"owner"`
 //	Patners        []*NodeAlias       `json:"patners"`
@@ -55,7 +55,7 @@ package types
 
 //func ConvertPowerTaskToPB(task *PowerTask) *libTypes.PowerTask {
 //	return &libTypes.PowerTask{
-//		TaskId:         task.TaskId,
+//		GetTaskId:         task.GetTaskId,
 //		TaskName:       task.TaskName,
 //		Owner:          ConvertNodeAliasToPB(task.Owner),
 //		Patners:        ConvertNodeAliasArrToPB(task.Patners),
@@ -67,7 +67,7 @@ package types
 //}
 //func ConvertPowerTaskFromPB(task *libTypes.PowerTask) *PowerTask {
 //	return &PowerTask{
-//		TaskId:         task.TaskId,
+//		GetTaskId:         task.GetTaskId,
 //		TaskName:       task.TaskName,
 //		Owner:          ConvertNodeAliasFromPB(task.Owner),
 //		Patners:        ConvertNodeAliasArrFromPB(task.Patners),
@@ -83,7 +83,7 @@ package types
 //	arr := make([]*libTypes.PowerTask, len(tasks))
 //	for i, task := range tasks {
 //		t := &libTypes.PowerTask{
-//			TaskId:         task.TaskId,
+//			GetTaskId:         task.GetTaskId,
 //			TaskName:       task.TaskName,
 //			Owner:          ConvertNodeAliasToPB(task.Owner),
 //			Patners:        ConvertNodeAliasArrToPB(task.Patners),
@@ -100,7 +100,7 @@ package types
 //	arr := make([]*PowerTask, len(tasks))
 //	for i, task := range tasks {
 //		t := &PowerTask{
-//			TaskId:         task.TaskId,
+//			GetTaskId:         task.GetTaskId,
 //			TaskName:       task.TaskName,
 //			Owner:          ConvertNodeAliasFromPB(task.Owner),
 //			Patners:        ConvertNodeAliasArrFromPB(task.Patners),

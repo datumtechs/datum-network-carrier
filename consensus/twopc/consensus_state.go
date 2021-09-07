@@ -21,8 +21,7 @@ type state struct {
 	confirmVotes map[common.Hash]*confirmVoteState
 	//// cache
 	//proposalPeerInfoCache map[common.Hash]*pb.ConfirmTaskPeerInfo
-	// the global empty proposalState
-	empty *ctypes.ProposalState
+
 
 	proposalsLock         sync.RWMutex
 	//selfPeerInfoCacheLock sync.RWMutex
@@ -38,38 +37,35 @@ func newState() *state {
 		//selfVoteState:         ctypes.NewVoteState(),
 		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
-		//proposalPeerInfoCache: make(map[common.Hash]*pb.ConfirmTaskPeerInfo, 0),
-		empty:                 ctypes.EmptyProposalState,
+
 	}
 }
 
-func (s *state) EmptyInfo() *ctypes.ProposalState { return s.empty }
+func (s *state) IsEmpty() bool { return nil == s }
+func (s *state) IsNotEmpty() bool { return !s.IsEmpty() }
 
-func (s *state) HasProposal(proposalId common.Hash) bool {
+func (s *state) HasOrgProposal(proposalId common.Hash, partyId string) bool {
 	s.proposalsLock.RLock()
 	defer s.proposalsLock.RUnlock()
 
-	if _, ok := s.proposalSet[proposalId]; ok {
-		return true
+	if st, ok := s.proposalSet[proposalId]; ok {
+		if _, has := st.GetOrgProposalState(partyId); has {
+			return true
+		}
 	}
 	return false
 }
-
-func (s *state) HasNotProposal(proposalId common.Hash) bool {
-	return !s.HasProposal(proposalId)
+func (s *state) HasNotOrgProposal(proposalId common.Hash, partyId string) bool {
+	return !s.HasOrgProposal(proposalId, partyId)
 }
 
 func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
 	s.proposalsLock.RLock()
-	defer s.proposalsLock.RUnlock()
-
-	proposalState, ok := s.proposalSet[proposalId]
-	if !ok {
-		return s.empty
-	}
+	proposalState := s.proposalSet[proposalId]
+	s.proposalsLock.RUnlock()
 	return proposalState
 }
-func (s *state) AddProposalState(proposalState *ctypes.ProposalState) {
+func (s *state) StoreProposalState(proposalState *ctypes.ProposalState) {
 	s.proposalsLock.Lock()
 	s.proposalSet[proposalState.GetProposalId()] = proposalState
 	s.proposalsLock.Unlock()
@@ -81,7 +77,7 @@ func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
 	}
 	s.proposalsLock.Unlock()
 }
-func (s *state) DelProposalState(proposalId common.Hash) {
+func (s *state) RemoveProposalState(proposalId common.Hash) {
 	s.proposalsLock.Lock()
 	delete(s.proposalSet, proposalId)
 	s.proposalsLock.Unlock()
@@ -116,8 +112,8 @@ func (s *state) ChangeToCommit(proposalId common.Hash, startTime uint64) {
 }
 
 func (s *state) CleanProposalState(proposalId common.Hash) {
-	s.DelProposalState(proposalId)
-	s.CleanPrepareVoteState(proposalId)
+	s.RemoveProposalState(proposalId)
+	s.RemovePrepareVoteState(proposalId)
 	s.CleanConfirmVoteState(proposalId)
 }
 
@@ -142,6 +138,21 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 	s.prepareVotesLock.Unlock()
 }
 
+func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role apipb.TaskRole) {
+	s.prepareVotesLock.Lock()
+	pvs, ok := s.prepareVotes[proposalId]
+	if !ok {
+		return
+	}
+	pvs.removeVote(partyId, role)
+	if pvs.isNotEmptyVote() {
+		s.prepareVotes[proposalId] = pvs
+	} else {
+		delete(s.prepareVotes, proposalId)
+	}
+	s.prepareVotesLock.Unlock()
+}
+
 func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
@@ -151,12 +162,23 @@ func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
 	}
 	return pvs.getVotes()
 }
+func (s *state)  HasPrepareVoteState (proposalId common.Hash, partyId, identityId string) bool {
+	s.prepareVotesLock.RLock()
+	pvs, ok := s.prepareVotes[proposalId]
+	s.prepareVotesLock.RUnlock()
+	if ok {
+		return pvs.hasPrepareVoting(partyId, identityId)
+	}
+	return false
+}
 
-func (s *state) CleanPrepareVoteState(proposalId common.Hash) {
+
+func (s *state) RemovePrepareVoteState(proposalId common.Hash) {
 	s.prepareVotesLock.Lock()
 	delete(s.prepareVotes, proposalId)
 	s.prepareVotesLock.Unlock()
 }
+
 func (s *state) GetTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	return s.GetTaskDataSupplierPrepareYesVoteCount(proposalId) +
 		s.GetTaskPowerSupplierPrepareYesVoteCount(proposalId) +
@@ -224,25 +246,41 @@ func (s *state) GetTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uin
 }
 
 // ---------------- ConfirmVote ----------------
-func (s *state) HasConfirmVoting(identityId string, proposalId common.Hash) bool {
-	s.confirmVotesLock.RLock()
-	cvs, ok := s.confirmVotes[proposalId]
-	s.confirmVotesLock.RUnlock()
+func (s *state) HasConfirmVoting(proposalId common.Hash, org *apipb.TaskOrganization) bool {
+	s.prepareVotesLock.RLock()
+	pvs, ok := s.prepareVotes[proposalId]
+	s.prepareVotesLock.RUnlock()
 	if !ok {
 		return false
 	}
-	return cvs.hasConfirmVoting(identityId)
+	return pvs.hasPrepareVoting(org.PartyId, org.IdentityId)
 }
 func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	s.confirmVotesLock.Lock()
-	cvs, ok := s.confirmVotes[vote.ProposalId]
+	cvs, ok := s.confirmVotes[vote.MsgOption.ProposalId]
 	if !ok {
 		cvs = newConfirmVoteState()
 	}
 	cvs.addVote(vote)
-	s.confirmVotes[vote.ProposalId] = cvs
+	s.confirmVotes[vote.MsgOption.ProposalId] = cvs
 	s.confirmVotesLock.Unlock()
 }
+
+func (s *state) RemoveConfirmVote(proposalId common.Hash, partyId string, role apipb.TaskRole) {
+	s.confirmVotesLock.Lock()
+	cvs, ok := s.confirmVotes[proposalId]
+	if !ok {
+		return
+	}
+	cvs.removeVote(partyId, role)
+	if cvs.isNotEmptyVote() {
+		s.confirmVotes[proposalId] = cvs
+	} else {
+		delete(s.confirmVotes, proposalId)
+	}
+	s.confirmVotesLock.Unlock()
+}
+
 func (s *state) CleanConfirmVoteState(proposalId common.Hash) {
 	s.confirmVotesLock.Lock()
 	delete(s.confirmVotes, proposalId)
@@ -333,27 +371,51 @@ func (st *prepareVoteState) addVote(vote *types.PrepareVote) {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
-	if _, ok := st.votes[vote.PartyId]; ok {
+	if _, ok := st.votes[vote.MsgOption.SenderPartyId]; ok {
 		return
 	}
-	st.votes[vote.PartyId] = vote
-	if count, ok := st.yesVotes[vote.TaskRole]; ok {
+	st.votes[vote.MsgOption.SenderPartyId] = vote
+	if count, ok := st.yesVotes[vote.MsgOption.SenderRole]; ok {
 		if vote.VoteOption == types.Yes {
-			st.yesVotes[vote.TaskRole] = count + 1
+			st.yesVotes[vote.MsgOption.SenderRole] = count + 1
 		}
 	} else {
 		if vote.VoteOption == types.Yes {
-			st.yesVotes[vote.TaskRole] = 1
+			st.yesVotes[vote.MsgOption.SenderRole] = 1
 		}
 	}
 
-	if count, ok := st.voteStatus[vote.TaskRole]; ok {
-		st.voteStatus[vote.TaskRole] = count + 1
+	if count, ok := st.voteStatus[vote.MsgOption.SenderRole]; ok {
+		st.voteStatus[vote.MsgOption.SenderRole] = count + 1
 	} else {
-		st.voteStatus[vote.TaskRole] = 1
+		st.voteStatus[vote.MsgOption.SenderRole] = 1
 	}
 }
+func (st *prepareVoteState) removeVote(partyId string, role apipb.TaskRole) {
+	st.lock.Lock()
+	defer st.lock.Unlock()
 
+	vote, ok := st.votes[partyId]
+	if !ok {
+		return
+	}
+
+	delete(st.votes, partyId)
+
+	if count, ok := st.yesVotes[role]; ok {
+		if vote.VoteOption == types.Yes && count != 0 {
+			st.yesVotes[role] = count - 1
+		}
+	}
+
+	if count, ok := st.voteStatus[role]; ok {
+		if count != 0 {
+			st.voteStatus[role] = count - 1
+		}
+	}
+}
+func (st *prepareVoteState) isEmptyVote() bool { return len(st.votes) == 0 }
+func (st *prepareVoteState) isNotEmptyVote() bool { return !st.isEmptyVote() }
 func (st *prepareVoteState) getVote(partId string) *types.PrepareVote { return st.votes[partId] }
 func (st *prepareVoteState) getVotes() []*types.PrepareVote {
 	arr := make([]*types.PrepareVote, 0, len(st.votes))
@@ -384,7 +446,7 @@ func (st *prepareVoteState) voteYesCount(role apipb.TaskRole) uint32 {
 }
 func (st *prepareVoteState) hasPrepareVoting(partyId, identityId string) bool {
 	if vote, ok := st.votes[partyId]; ok {
-		if vote.PartyId == partyId && vote.Owner.IdentityId == identityId {
+		if vote.MsgOption.SenderPartyId == partyId && vote.MsgOption.Owner.GetIdentityId() == identityId {
 			return true
 		}
 	}
@@ -411,27 +473,54 @@ func (st *confirmVoteState) addVote(vote *types.ConfirmVote) {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
-	if _, ok := st.votes[vote.PartyId]; ok {
+	if _, ok := st.votes[vote.MsgOption.SenderPartyId]; ok {
 		return
 	}
 
-	st.votes[vote.PartyId] = vote
-	if count, ok := st.yesVotes[vote.TaskRole]; ok {
+	st.votes[vote.MsgOption.SenderPartyId] = vote
+	if count, ok := st.yesVotes[vote.MsgOption.SenderRole]; ok {
 		if vote.VoteOption == types.Yes {
-			st.yesVotes[vote.TaskRole] = count + 1
+			st.yesVotes[vote.MsgOption.SenderRole] = count + 1
 		}
 	} else {
 		if vote.VoteOption == types.Yes {
-			st.yesVotes[vote.TaskRole] = 1
+			st.yesVotes[vote.MsgOption.SenderRole] = 1
 		}
 	}
 
-	if count, ok := st.voteStatus[vote.TaskRole]; ok {
-		st.voteStatus[vote.TaskRole] = count + 1
+	if count, ok := st.voteStatus[vote.MsgOption.SenderRole]; ok {
+		st.voteStatus[vote.MsgOption.SenderRole] = count + 1
 	} else {
-		st.voteStatus[vote.TaskRole] = 1
+		st.voteStatus[vote.MsgOption.SenderRole] = 1
 	}
 }
+
+func (st *confirmVoteState) removeVote(partyId string, role apipb.TaskRole) {
+	st.lock.Lock()
+	defer st.lock.Unlock()
+
+	vote, ok := st.votes[partyId]
+	if !ok {
+		return
+	}
+
+	delete(st.votes, partyId)
+
+	if count, ok := st.yesVotes[role]; ok {
+		if vote.VoteOption == types.Yes && count != 0 {
+			st.yesVotes[role] = count - 1
+		}
+	}
+
+	if count, ok := st.voteStatus[role]; ok {
+		if count != 0 {
+			st.voteStatus[role] = count - 1
+		}
+	}
+}
+func (st *confirmVoteState) isEmptyVote() bool { return len(st.votes) == 0 }
+func (st *confirmVoteState) isNotEmptyVote() bool { return !st.isEmptyVote() }
+
 func (st *confirmVoteState) voteYesCount(role apipb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
@@ -452,11 +541,11 @@ func (st *confirmVoteState) voteTotalCount(role apipb.TaskRole) uint32 {
 		return 0
 	}
 }
-func (st *confirmVoteState) hasConfirmVoting(identityId string) bool {
-	for _, vote := range st.votes {
-		if vote.Owner.IdentityId == identityId {
-			return true
-		}
+func (st *confirmVoteState) hasConfirmVoting(partyId, identityId string) bool {
+		if vote, ok := st.votes[partyId]; ok {
+		if vote.MsgOption.SenderPartyId == partyId && vote.MsgOption.Owner.GetIdentityId() == identityId {
+		return true
 	}
-	return false
+	}
+		return false
 }

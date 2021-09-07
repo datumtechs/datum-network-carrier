@@ -7,7 +7,7 @@ import (
 )
 
 func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDetailShow {
-	taskData := input.TaskData()
+	taskData := input.GetTaskData()
 	detailShow := &pb.TaskDetailShow{
 		TaskId:   taskData.GetTaskId(),
 		TaskName: taskData.GetTaskName(),

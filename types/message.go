@@ -473,28 +473,28 @@ func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
 func (msg *TaskMsg) String() string {
 	return fmt.Sprintf(`{"taskId": %s, "powerPartyIds": %s, "task": %s}`,
-		msg.Data.TaskId(), "["+strings.Join(msg.PowerPartyIds, ",")+"]", msg.Data.TaskData().String())
+		msg.Data.GetTaskId(), "["+strings.Join(msg.PowerPartyIds, ",")+"]", msg.Data.GetTaskData().String())
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 func (msg *TaskMsg) Owner() *apipb.TaskOrganization {
 	return &apipb.TaskOrganization{
-		PartyId:    msg.Data.TaskData().GetPartyId(),
-		NodeName:   msg.Data.TaskData().GetNodeName(),
-		NodeId:     msg.Data.TaskData().GetNodeId(),
-		IdentityId: msg.Data.TaskData().GetIdentityId(),
+		PartyId:    msg.Data.GetTaskData().GetPartyId(),
+		NodeName:   msg.Data.GetTaskData().GetNodeName(),
+		NodeId:     msg.Data.GetTaskData().GetNodeId(),
+		IdentityId: msg.Data.GetTaskData().GetIdentityId(),
 	}
 }
-func (msg *TaskMsg) OwnerName() string       { return msg.Data.TaskData().GetNodeName() }
-func (msg *TaskMsg) OwnerNodeId() string     { return msg.Data.TaskData().GetNodeId() }
-func (msg *TaskMsg) OwnerIdentityId() string { return msg.Data.TaskData().GetIdentityId() }
-func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.TaskData().GetPartyId() }
-func (msg *TaskMsg) TaskId() string          { return msg.Data.TaskData().GetTaskId() }
-func (msg *TaskMsg) TaskName() string        { return msg.Data.TaskData().GetTaskName() }
+func (msg *TaskMsg) OwnerName() string       { return msg.Data.GetTaskData().GetNodeName() }
+func (msg *TaskMsg) OwnerNodeId() string     { return msg.Data.GetTaskData().GetNodeId() }
+func (msg *TaskMsg) OwnerIdentityId() string { return msg.Data.GetTaskData().GetIdentityId() }
+func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.GetTaskData().GetPartyId() }
+func (msg *TaskMsg) TaskId() string          { return msg.Data.GetTaskData().GetTaskId() }
+func (msg *TaskMsg) TaskName() string        { return msg.Data.GetTaskData().GetTaskName() }
 
 func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {
 
-	partners := make([]*apipb.TaskOrganization, len(msg.Data.TaskData().GetDataSuppliers()))
-	for i, v := range msg.Data.TaskData().GetDataSuppliers() {
+	partners := make([]*apipb.TaskOrganization, len(msg.Data.GetTaskData().GetDataSuppliers()))
+	for i, v := range msg.Data.GetTaskData().GetDataSuppliers() {
 
 		partners[i] = &apipb.TaskOrganization{
 			PartyId:    v.GetMemberInfo().GetPartyId(),
@@ -507,12 +507,12 @@ func (msg *TaskMsg) TaskMetadataSuppliers() []*apipb.TaskOrganization {
 }
 func (msg *TaskMsg) TaskMetadataSupplierDatas() []*libTypes.TaskDataSupplier {
 
-	return msg.Data.TaskData().GetDataSuppliers()
+	return msg.Data.GetTaskData().GetDataSuppliers()
 }
 
 func (msg *TaskMsg) TaskResourceSuppliers() []*apipb.TaskOrganization {
-	powers := make([]*apipb.TaskOrganization, len(msg.Data.TaskData().GetPowerSuppliers()))
-	for i, v := range msg.Data.TaskData().GetPowerSuppliers() {
+	powers := make([]*apipb.TaskOrganization, len(msg.Data.GetTaskData().GetPowerSuppliers()))
+	for i, v := range msg.Data.GetTaskData().GetPowerSuppliers() {
 		powers[i] = &apipb.TaskOrganization{
 			PartyId:    v.GetOrganization().GetPartyId(),
 			NodeName:   v.GetOrganization().GetNodeName(),
@@ -523,46 +523,46 @@ func (msg *TaskMsg) TaskResourceSuppliers() []*apipb.TaskOrganization {
 	return powers
 }
 func (msg *TaskMsg) TaskResourceSupplierDatas() []*libTypes.TaskPowerSupplier {
-	return msg.Data.TaskData().GetPowerSuppliers()
+	return msg.Data.GetTaskData().GetPowerSuppliers()
 }
 func (msg *TaskMsg) GetPowerPartyIds() []string { return msg.PowerPartyIds }
 func (msg *TaskMsg) GetReceivers() []*apipb.TaskOrganization {
-	return msg.Data.TaskData().GetReceivers()
+	return msg.Data.GetTaskData().GetReceivers()
 }
 
 func (msg *TaskMsg) CalculateContractCode() string {
-	return msg.Data.TaskData().GetCalculateContractCode()
+	return msg.Data.GetTaskData().GetCalculateContractCode()
 }
 func (msg *TaskMsg) DataSplitContractCode() string {
-	return msg.Data.TaskData().GetDataSplitContractCode()
+	return msg.Data.GetTaskData().GetDataSplitContractCode()
 }
-func (msg *TaskMsg) ContractExtraParams() string { return msg.Data.TaskData().GetContractExtraParams() }
+func (msg *TaskMsg) ContractExtraParams() string { return msg.Data.GetTaskData().GetContractExtraParams() }
 func (msg *TaskMsg) OperationCost() *apipb.TaskResourceCostDeclare {
-	return msg.Data.TaskData().GetOperationCost()
+	return msg.Data.GetTaskData().GetOperationCost()
 }
-func (msg *TaskMsg) CreateAt() uint64 { return msg.Data.TaskData().GetCreateAt() }
+func (msg *TaskMsg) CreateAt() uint64 { return msg.Data.GetTaskData().GetCreateAt() }
 func (msg *TaskMsg) SetTaskId() string {
-	if "" != msg.Data.TaskId() {
-		return msg.Data.TaskId()
+	if "" != msg.Data.GetTaskId() {
+		return msg.Data.GetTaskId()
 	}
-	msg.Data.TaskData().TaskId = PREFIX_TASK_ID + msg.HashByCreateTime().Hex()
-	return msg.Data.TaskId()
+	msg.Data.GetTaskData().TaskId = PREFIX_TASK_ID + msg.HashByCreateTime().Hex()
+	return msg.Data.GetTaskId()
 }
 func (msg *TaskMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlputil.RlpHash(msg.Data.TaskData())
+	v := rlputil.RlpHash(msg.Data.GetTaskData())
 	msg.hash.Store(v)
 	return v
 }
 
 func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	return rlputil.RlpHash([]interface{}{
-		msg.Data.TaskData().GetIdentityId(),
-		msg.Data.TaskData().GetPartyId(),
-		msg.Data.TaskData().GetTaskName(),
-		//msg.Data.TaskData().CreateAt,
+		msg.Data.GetTaskData().GetIdentityId(),
+		msg.Data.GetTaskData().GetPartyId(),
+		msg.Data.GetTaskData().GetTaskName(),
+		//msg.Data.GetTaskData().CreateAt,
 		uint64(timeutils.UnixMsec()),
 	})
 }
@@ -573,7 +573,7 @@ func (s TaskMsgs) Len() int { return len(s) }
 // Swap swaps the i'th and the j'th element in s.
 func (s TaskMsgs) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s TaskMsgs) Less(i, j int) bool {
-	return s[i].Data.TaskData().GetCreateAt() < s[j].Data.TaskData().GetCreateAt()
+	return s[i].Data.GetTaskData().GetCreateAt() < s[j].Data.GetTaskData().GetCreateAt()
 }
 
 //type TaskSupplier struct {

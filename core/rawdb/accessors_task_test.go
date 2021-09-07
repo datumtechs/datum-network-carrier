@@ -30,7 +30,7 @@ func TestRunningTask(t *testing.T) {
 
 	rtask := ReadRunningTask(database, "taskID-01")
 	t.Logf("running task info : %v", rtask)
-	assert.Assert(t, strings.EqualFold("taskID-01", rtask.TaskId()))
+	assert.Assert(t, strings.EqualFold("taskID-01", rtask.GetTaskId()))
 
 	// read all
 	taskList := ReadAllRunningTask(database)

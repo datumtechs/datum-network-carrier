@@ -174,19 +174,19 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 		task := msg.Data
 		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 
-			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.TaskData().TaskId, err)
+			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.GetTaskData().TaskId, err)
 			log.Errorf("failed to call StoreLocalTask on SchedulerStarveFIFO with schedule task, err: {%s}", e.Error())
 
-			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type, task.TaskId(), task.TaskData().GetIdentityId(), e.Error())}
+			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), e.Error())}
 
-			task.TaskData().EndAt = uint64(timeutils.UnixMsec())
-			task.TaskData().Reason = e.Error()
-			task.TaskData().State = apipb.TaskState_TaskState_Failed
-			task.TaskData().EventCount = uint32(len(events))
-			task.TaskData().TaskEvents = events
+			task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
+			task.GetTaskData().Reason = e.Error()
+			task.GetTaskData().State = apipb.TaskState_TaskState_Failed
+			task.GetTaskData().EventCount = uint32(len(events))
+			task.GetTaskData().TaskEvents = events
 
 			if err = m.resourceMng.GetDB().InsertTask(task); nil != err {
-				log.Errorf("Failed to save task to datacenter, taskId: {%s}", task.TaskId())
+				log.Errorf("Failed to save task to datacenter, taskId: {%s}", task.GetTaskId())
 				continue
 			}
 		} else {

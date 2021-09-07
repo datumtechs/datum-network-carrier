@@ -327,24 +327,24 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.ReplayScheduleTaskWrap) {
 
 	cost := &towTypes.TaskOperationCost{
-		Mem:       replayScheduleTask.Task.TaskData().OperationCost.CostMem,
-		Processor: uint64(replayScheduleTask.Task.TaskData().OperationCost.CostProcessor),
-		Bandwidth: replayScheduleTask.Task.TaskData().OperationCost.CostBandwidth,
+		Mem:       replayScheduleTask.Task.GetTaskData().OperationCost.CostMem,
+		Processor: uint64(replayScheduleTask.Task.GetTaskData().OperationCost.CostProcessor),
+		Bandwidth: replayScheduleTask.Task.GetTaskData().OperationCost.CostBandwidth,
 	}
 
 	log.Debugf("Call replaySchedule start, taskId: {%s}, taskRole: {%s}, partyId: {%s}, taskCost: {%s}",
-		replayScheduleTask.Task.TaskId(), replayScheduleTask.Role.String(), replayScheduleTask.PartyId, cost.String())
+		replayScheduleTask.Task.GetTaskId(), replayScheduleTask.Role.String(), replayScheduleTask.PartyId, cost.String())
 
 	selfIdentityId, err := sche.resourceMng.GetDB().GetIdentityId()
 	if nil != err {
-		log.Errorf("Failed to query self identityInfo, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
-		replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(), err)
+		log.Errorf("Failed to query self identityInfo, taskId: {%s}, err: {%s}", replayScheduleTask.Task.GetTaskId(), err)
+		replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(), err)
 		return
 	}
 	// 任务的 重演者 不应该是 任务的发起者
-	if selfIdentityId == replayScheduleTask.Task.TaskData().IdentityId {
-		log.Errorf("failed to validate task, self cannot be task owner, taskId: {%s}", replayScheduleTask.Task.TaskId())
-		replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(), fmt.Errorf("task ower can not replay schedule task"))
+	if selfIdentityId == replayScheduleTask.Task.GetTaskData().IdentityId {
+		log.Errorf("failed to validate task, self cannot be task owner, taskId: {%s}", replayScheduleTask.Task.GetTaskId())
+		replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(), fmt.Errorf("task ower can not replay schedule task"))
 		return
 	}
 
@@ -353,8 +353,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 	// 如果 当前参与方为 DataSupplier   [重新 演算 选 powers]
 	case types.DataSupplier:
 
-		powerPartyIds := make([]string, len(replayScheduleTask.Task.TaskData().PowerSupplier))
-		for i, power := range replayScheduleTask.Task.TaskData().PowerSupplier {
+		powerPartyIds := make([]string, len(replayScheduleTask.Task.GetTaskData().PowerSupplier))
+		for i, power := range replayScheduleTask.Task.GetTaskData().PowerSupplier {
 			powerPartyIds[i] = power.Organization.PartyId
 		}
 
@@ -362,7 +362,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		// 选出 关于自己 metaDataId 所在的 dataNode
 		var metaDataId string
 
-		for _, dataSupplier := range replayScheduleTask.Task.TaskData().DataSupplier {
+		for _, dataSupplier := range replayScheduleTask.Task.GetTaskData().DataSupplier {
 			dataIdentityIdCache[dataSupplier.MemberInfo.IdentityId] = struct{}{}
 
 			// 取出 自己的 disk used 信息, identity 和 partyId 都一致, 才是同一个人 ..
@@ -370,24 +370,24 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 				metaDataId = dataSupplier.MetadataId
 			}
 		}
-		for _, receiver := range replayScheduleTask.Task.TaskData().Receivers {
+		for _, receiver := range replayScheduleTask.Task.GetTaskData().Receivers {
 			dataIdentityIdCache[receiver.Receiver.IdentityId] = struct{}{}
 		}
 		// mock election power orgs
 		powers, err := sche.electionConputeOrg(powerPartyIds, dataIdentityIdCache, cost)
 		if nil != err {
-			log.Errorf("Failed to election powers org on replaySchedule task, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(), fmt.Errorf("failed to election power org on replay schedule task, %s", err))
+			log.Errorf("Failed to election powers org on replaySchedule task, taskId: {%s}, err: {%s}", replayScheduleTask.Task.GetTaskId(), err)
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(), fmt.Errorf("failed to election power org on replay schedule task, %s", err))
 			return
 		}
 
-		log.Debugf("Succeed to election powers org on replaySchedule(), taskId {%s}, powers: %s", replayScheduleTask.Task.TaskId(), utilOrgPowerArrString(powers))
+		log.Debugf("Succeed to election powers org on replaySchedule(), taskId {%s}, powers: %s", replayScheduleTask.Task.GetTaskId(), utilOrgPowerArrString(powers))
 
 		// compare powerSuppliers of task And powerSuppliers of election
-		if len(powers) != len(replayScheduleTask.Task.TaskData().PowerSupplier) {
+		if len(powers) != len(replayScheduleTask.Task.GetTaskData().PowerSupplier) {
 			log.Errorf("reschedule powers len and task powers len is not match on replay schedule task, taskId: {%s}, reschedule power len: {%d}, task powers len: {%d}",
-				replayScheduleTask.Task.TaskId(), len(powers), len(replayScheduleTask.Task.TaskData().PowerSupplier))
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+				replayScheduleTask.Task.GetTaskId(), len(powers), len(replayScheduleTask.Task.GetTaskData().PowerSupplier))
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("reschedule powers len and task powers len is not match on replay schedule task"))
 			return
 		}
@@ -397,11 +397,11 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		for _, power := range powers {
 			tmp[power.Organization.IdentityId] = struct{}{}
 		}
-		for _, power := range replayScheduleTask.Task.TaskData().PowerSupplier {
+		for _, power := range replayScheduleTask.Task.GetTaskData().PowerSupplier {
 			if _, ok := tmp[power.Organization.IdentityId]; !ok {
 				log.Errorf("task power identityId not found on reschedule powers on replay schedule task, taskId: {%s}, task power identityId: {%s}",
-					replayScheduleTask.Task.TaskId(), power.Organization.IdentityId)
-				replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+					replayScheduleTask.Task.GetTaskId(), power.Organization.IdentityId)
+				replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 					fmt.Errorf("task power identityId not found on reschedule powers on replay schedule task"))
 				return
 			}
@@ -410,23 +410,23 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		// 获取 metaData 所在的dataNode 资源
 		dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metaDataId)
 		if nil != err {
-			log.Errorf("failed query internal data node by metaDataId, taskId: {%s}, metaDataId: {%s}", replayScheduleTask.Task.TaskId(), metaDataId)
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+			log.Errorf("failed query internal data node by metaDataId, taskId: {%s}, metaDataId: {%s}", replayScheduleTask.Task.GetTaskId(), metaDataId)
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"))
 			return
 		}
 		dataNode, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
-			log.Errorf("failed query internal data node by metaDataId, taskId: {%s}, metaDataId: {%s}", replayScheduleTask.Task.TaskId(), metaDataId)
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+			log.Errorf("failed query internal data node by metaDataId, taskId: {%s}, metaDataId: {%s}", replayScheduleTask.Task.GetTaskId(), metaDataId)
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("failed query internal data node by metaDataId on replay schedule task"))
 			return
 		}
 
-		log.Debugf("Succeed dataSupplier dataNode on replaySchedule(), taskId: {%s}, dataNode: %s", replayScheduleTask.Task.TaskId(), dataNode.String())
+		log.Debugf("Succeed dataSupplier dataNode on replaySchedule(), taskId: {%s}, dataNode: %s", replayScheduleTask.Task.GetTaskId(), dataNode.String())
 
 		replayScheduleTask.SendResult(&types.ScheduleResult{
-			TaskId: replayScheduleTask.Task.TaskId(),
+			TaskId: replayScheduleTask.Task.GetTaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
 				Id:      dataNode.Id,
@@ -441,25 +441,25 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Bandwidth, cost.Processor)
 		jobNode, err := sche.electionComputeNode(needSlotCount)
 		if nil != err {
-			log.Errorf("Failed to election internal power resource, taskId: {%s}, err: {%s}", replayScheduleTask.Task.TaskId(), err)
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+			log.Errorf("Failed to election internal power resource, taskId: {%s}, err: {%s}", replayScheduleTask.Task.GetTaskId(), err)
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("failed to replay sched myself local power on replay schedule task"))
 			return
 		}
 
-		log.Debugf("Succeed powerSupplier jobNode on replaySchedule(), taskId: {%s}, jobNode: %s", replayScheduleTask.Task.TaskId(), jobNode.String())
+		log.Debugf("Succeed powerSupplier jobNode on replaySchedule(), taskId: {%s}, jobNode: %s", replayScheduleTask.Task.GetTaskId(), jobNode.String())
 
 		if err := sche.resourceMng.LockLocalResourceWithTask(jobNode.Id, needSlotCount,
 			replayScheduleTask.Task); nil != err {
 			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s}, err: {%s}",
-				jobNode.Id, replayScheduleTask.Task.TaskId(), err)
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+				jobNode.Id, replayScheduleTask.Task.GetTaskId(), err)
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("failed to lock localresource, {%s}", err))
 			return
 		}
 
 		replayScheduleTask.SendResult(&types.ScheduleResult{
-			TaskId: replayScheduleTask.Task.TaskId(),
+			TaskId: replayScheduleTask.Task.GetTaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
 				Id:      jobNode.Id,
@@ -477,8 +477,8 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()
 		if nil != err {
 			log.Errorf("Failed to election internal data resource with replay schedule task, taskId: {%s}, err: {%s}",
-				replayScheduleTask.Task.TaskId(), err)
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+				replayScheduleTask.Task.GetTaskId(), err)
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("failed to election internal data resource with replay schedule task, %s", err))
 			return
 		}
@@ -489,16 +489,16 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 		resourceInfo, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeDataNode, resource.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query internal data node resource,taskId: {%s}, dataNodeId: {%s}, err: {%s}",
-				replayScheduleTask.Task.TaskId(), resource.GetNodeId(), err)
-			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.TaskId(),
+				replayScheduleTask.Task.GetTaskId(), resource.GetNodeId(), err)
+			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("failed to query internal data node resource, %s", err))
 			return
 		}
 
-		log.Debugf("Succeed resultReceiver dataNode on replaySchedule(), taskId: {%s}, dataNode: %s", replayScheduleTask.Task.TaskId(), resourceInfo.String())
+		log.Debugf("Succeed resultReceiver dataNode on replaySchedule(), taskId: {%s}, dataNode: %s", replayScheduleTask.Task.GetTaskId(), resourceInfo.String())
 
 		replayScheduleTask.SendResult(&types.ScheduleResult{
-			TaskId: replayScheduleTask.Task.TaskId(),
+			TaskId: replayScheduleTask.Task.GetTaskId(),
 			Status: types.TaskSchedOk,
 			Resource: &types.PrepareVoteResource{
 				Id:      resourceInfo.Id,
