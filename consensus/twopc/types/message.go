@@ -209,6 +209,7 @@ func (pstate *OrgProposalState) CurrPeriodNum() ProposalStatePeriod {
 	return pstate.PeriodNum
 }
 
+func (pstate *OrgProposalState) GetTaskId() string { return pstate.TaskId }
 func (pstate *OrgProposalState) GetPeriod() string {
 
 	switch pstate.PeriodNum {

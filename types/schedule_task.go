@@ -404,6 +404,7 @@ func IsSameTaskOrgByte(org1, org2 *pb.TaskOrganizationIdentityInfo) bool {
 	}
 	return false
 }
+func IsNotSameTaskOrgByte(org1, org2 *pb.TaskOrganizationIdentityInfo) bool { return !IsSameTaskOrgByte(org1, org2) }
 
 func IsSameTaskOrg(org1, org2 *apipb.TaskOrganization) bool {
 	if org1.GetPartyId() == org2.GetPartyId() && org1.GetIdentityId() == org2.GetIdentityId() {
@@ -411,3 +412,4 @@ func IsSameTaskOrg(org1, org2 *apipb.TaskOrganization) bool {
 	}
 	return false
 }
+func IsNotSameTaskOrg(org1, org2 *apipb.TaskOrganization) bool { return !IsSameTaskOrg(org1, org2) }
