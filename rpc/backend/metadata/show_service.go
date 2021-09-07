@@ -6,20 +6,20 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 )
 
-func (svr *Server) GetMetaDataDetailListByOwner(ctx context.Context, req *pb.GetMetaDataDetailListByOwnerRequest) (*pb.GetMetaDataDetailListResponse, error) {
-	metadataList, err := svr.B.GetMetaDataDetailListByOwner(req.IdentityId)
+func (svr *Server) GetMetadataDetailListByOwner(ctx context.Context, req *pb.GetMetadataDetailListByOwnerRequest) (*pb.GetMetadataDetailListResponse, error) {
+	metadataList, err := svr.B.GetMetadataDetailListByOwner(req.IdentityId)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:GetMetaDataDetailListByOwner failed, identityId: {%s}", req.IdentityId)
-		return nil, ErrGetMetaDataDetailList
+		log.WithError(err).Errorf("RPC-API:GetMetadataDetailListByOwner failed, identityId: {%s}", req.IdentityId)
+		return nil, ErrGetMetadataDetailList
 	}
-	respList := make([]*pb.GetMetaDataDetailResponse, len(metadataList))
+	respList := make([]*pb.GetMetadataDetailResponse, len(metadataList))
 	for i, metadata := range metadataList {
 		respList[i] = metadata
 	}
-	log.Debugf("RPC-API:GetMetaDataDetailListByOwner succeed, identityId: {%s}, metadataList len: {%d}", req.IdentityId, len(respList))
-	return &pb.GetMetaDataDetailListResponse{
+	log.Debugf("RPC-API:GetMetadataDetailListByOwner succeed, identityId: {%s}, metadataList len: {%d}", req.IdentityId, len(respList))
+	return &pb.GetMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
-		MetaDataList: respList,
+		MetadataList: respList,
 	}, nil
 }

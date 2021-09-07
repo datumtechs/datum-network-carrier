@@ -15,8 +15,8 @@ var (
 	ErrPowerMsgConvert       = errors.New("convert power msg failed")
 	ErrPowerRevokeMsgConvert = errors.New("convert power revokeMsg failed")
 
-	ErrMetaDataMsgConvert       = errors.New("convert metadata msg failed")
-	ErrMetaDataRevokeMsgConvert = errors.New("convert metadata revokeMsg failed")
+	ErrMetadataMsgConvert       = errors.New("convert metadata msg failed")
+	ErrMetadataRevokeMsgConvert = errors.New("convert metadata revokeMsg failed")
 
 	ErrTaskMsgConvert = errors.New("convert task msg failed")
 
@@ -33,7 +33,7 @@ type Mempool struct {
 	msgFeed event.Feed
 	scope   event.SubscriptionScope
 
-	//metaDataMsgQueue *MetaDataMsgList
+	//metaDataMsgQueue *MetadataMsgList
 	//powerMsgQueue    *PowerMsgList
 	//taskMsgQueue     *TaskMsgList
 	//all *msgLookup
@@ -43,7 +43,7 @@ func NewMempool(cfg *MempoolConfig) *Mempool {
 	return &Mempool{
 		cfg: cfg,
 		//all:               newMsgLookup(),
-		//metaDataMsgQueue: newMetaDataMsgList(),
+		//metaDataMsgQueue: newMetadataMsgList(),
 		//powerMsgQueue:    newPowerMsgList(),
 		//taskMsgQueue:     newTaskMsgList(),
 	}
@@ -109,29 +109,29 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			Data: &types.PowerRevokeMsgEvent{Msgs: types.PowerRevokeMsgs{powerRevoke}},
 		})
 
-	case *types.MetaDataMsg:
-		metaData, ok := msg.(*types.MetaDataMsg)
+	case *types.MetadataMsg:
+		metaData, ok := msg.(*types.MetadataMsg)
 		if !ok {
-			return ErrMetaDataMsgConvert
+			return ErrMetadataMsgConvert
 		}
 
 		//pool.metaDataMsgQueue.put(metaData)
 		// We've directly injected a replacement metaDataMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyMetadata,
-			Data: &types.MetaDataMsgEvent{Msgs: types.MetaDataMsgs{metaData}},
+			Data: &types.MetadataMsgEvent{Msgs: types.MetadataMsgs{metaData}},
 		})
 
-	case *types.MetaDataRevokeMsg:
-		metaDataRevoke, ok := msg.(*types.MetaDataRevokeMsg)
+	case *types.MetadataRevokeMsg:
+		metaDataRevoke, ok := msg.(*types.MetadataRevokeMsg)
 		if !ok {
-			return ErrMetaDataRevokeMsgConvert
+			return ErrMetadataRevokeMsgConvert
 		}
 
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeMetadata,
-			Data: &types.MetaDataRevokeMsgEvent{Msgs: types.MetaDataRevokeMsgs{metaDataRevoke}},
+			Data: &types.MetadataRevokeMsgEvent{Msgs: types.MetadataRevokeMsgs{metaDataRevoke}},
 		})
 
 	case *types.TaskMsg:
@@ -156,7 +156,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 type msgLookup struct {
 
 	// metaDataId -> Msg
-	allMateDataMsg map[string]*types.MetaDataMsg
+	allMateDataMsg map[string]*types.MetadataMsg
 	// powerId -> Msg
 	allPowerMsg map[string]*types.PowerMsg
 	//allTaskMsg     map[string]*types.TaskMsg
@@ -168,14 +168,14 @@ type msgLookup struct {
 
 func newMsgLookup() *msgLookup {
 	return &msgLookup{
-		allMateDataMsg: make(map[string]*types.MetaDataMsg),
+		allMateDataMsg: make(map[string]*types.MetadataMsg),
 		allPowerMsg:    make(map[string]*types.PowerMsg),
 		//allTaskMsg:     make(map[string]*types.TaskMsg),
 	}
 }
 
-// RangeMetaDataMsg calls f on each key and value present in the map.
-func (lookup *msgLookup) rangeMetaDataMsg(f func(metaDataId string, msg *types.MetaDataMsg) bool) {
+// RangeMetadataMsg calls f on each key and value present in the map.
+func (lookup *msgLookup) rangeMetadataMsg(f func(metaDataId string, msg *types.MetadataMsg) bool) {
 	lookup.metaDataMsgLock.RLock()
 	defer lookup.metaDataMsgLock.RUnlock()
 
@@ -211,7 +211,7 @@ func (lookup *msgLookup) rangePowerMsg(f func(powerId string, msg *types.PowerMs
 //}
 
 // Get returns a metaDataMsg if it exists in the lookup, or nil if not found.
-func (lookup *msgLookup) getMetaDataMsg(metaDataId string) *types.MetaDataMsg {
+func (lookup *msgLookup) getMetadataMsg(metaDataId string) *types.MetadataMsg {
 	lookup.metaDataMsgLock.RLock()
 	defer lookup.metaDataMsgLock.RUnlock()
 
@@ -259,11 +259,11 @@ func (lookup *msgLookup) powerMsgCount() int {
 //}
 
 // Add adds a metaDataMsg to the lookup.
-func (lookup *msgLookup) addMetaDataMsg(msg *types.MetaDataMsg) {
+func (lookup *msgLookup) addMetadataMsg(msg *types.MetadataMsg) {
 	lookup.metaDataMsgLock.RLock()
 	defer lookup.metaDataMsgLock.RUnlock()
 
-	lookup.allMateDataMsg[msg.MetaDataId] = msg
+	lookup.allMateDataMsg[msg.MetadataId] = msg
 }
 
 // Add adds a powerMsg to the lookup.
@@ -283,7 +283,7 @@ func (lookup *msgLookup) addPowerMsg(msg *types.PowerMsg) {
 //}
 
 // Remove removes a metaDataMsg from the lookup.
-func (lookup *msgLookup) removeMetaDataMsg(metaDataId string) {
+func (lookup *msgLookup) removeMetadataMsg(metaDataId string) {
 	lookup.metaDataMsgLock.RLock()
 	delete(lookup.allMateDataMsg, metaDataId)
 	lookup.metaDataMsgLock.RUnlock()
@@ -304,7 +304,7 @@ func (lookup *msgLookup) removePowerMsg(powerId string) {
 //}
 
 // Extract removes a metaDataMsg from the lookup, and return.
-func (lookup *msgLookup) extractMetaDataMsg(metaDataId string) (*types.MetaDataMsg, bool) {
+func (lookup *msgLookup) extractMetadataMsg(metaDataId string) (*types.MetadataMsg, bool) {
 	lookup.metaDataMsgLock.RLock()
 	defer lookup.metaDataMsgLock.RUnlock()
 	metaDataMsg, ok := lookup.allMateDataMsg[metaDataId]

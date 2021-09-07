@@ -13,7 +13,7 @@ import "google/protobuf/any.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
-// MetaData body data struct.
+// Metadata body data struct.
 message BlockData {
   types.HeaderPb              header = 1;
   repeated types.MetadataPB     metadata = 2;

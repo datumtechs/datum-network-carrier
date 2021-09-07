@@ -180,7 +180,7 @@ func (dc *DataCenter) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.Yarn
 func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	response, err := dc.client.SaveMetaData(dc.ctx, types.NewMetaDataSaveRequest(metadata))
+	response, err := dc.client.SaveMetadata(dc.ctx, types.NewMetadataSaveRequest(metadata))
 	if err != nil {
 		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("InsertMetadata failed")
 		return err
@@ -194,7 +194,7 @@ func (dc *DataCenter) InsertMetadata(metadata *types.Metadata) error {
 func (dc *DataCenter) RevokeMetadata(metadata *types.Metadata) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	response, err := dc.client.RevokeMetaData(dc.ctx, types.NewMetaDataRevokeRequest(metadata))
+	response, err := dc.client.RevokeMetadata(dc.ctx, types.NewMetadataRevokeRequest(metadata))
 	if err != nil {
 		log.WithError(err).WithField("hash", metadata.Hash()).Errorf("RevokeMetadata failed")
 		return err
@@ -218,7 +218,7 @@ func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.MetadataListRequest{
-		LastUpdateTime:      uint64( timeutils.Now().Unix()),
+		LastUpdated:      uint64( timeutils.Now().Unix()),
 	})
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
@@ -268,20 +268,20 @@ func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, err
 	return rawdb.QueryLocalResourceIdByPowerId(dc.db, powerId)
 }
 
-//func (dc *DataCenter)  StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error {
+//func (dc *DataCenter)  StoreLocalResourceIdByMetadataId(metaDataId, dataNodeId string) error {
 //	dc.mu.RLock()
 //	defer dc.mu.RUnlock()
-//	return rawdb.StoreLocalResourceIdByMetaDataId(dc.db, metaDataId, dataNodeId)
+//	return rawdb.StoreLocalResourceIdByMetadataId(dc.db, metaDataId, dataNodeId)
 //}
-//func (dc *DataCenter)  RemoveLocalResourceIdByMetaDataId(metaDataId string) error {
+//func (dc *DataCenter)  RemoveLocalResourceIdByMetadataId(metaDataId string) error {
 //	dc.mu.RLock()
 //	defer dc.mu.RUnlock()
-//	return rawdb.RemoveLocalResourceIdByMetaDataId(dc.db, metaDataId)
+//	return rawdb.RemoveLocalResourceIdByMetadataId(dc.db, metaDataId)
 //}
-//func (dc *DataCenter)  QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error) {
+//func (dc *DataCenter)  QueryLocalResourceIdByMetadataId(metaDataId string) (string, error) {
 //	dc.mu.RLock()
 //	defer dc.mu.RUnlock()
-//	return rawdb.QueryLocalResourceIdByMetaDataId(dc.db, metaDataId)
+//	return rawdb.QueryLocalResourceIdByMetadataId(dc.db, metaDataId)
 //}
 
 // about power on datacenter
@@ -551,9 +551,9 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 func (dc *DataCenter) GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdateTime: uint64(timeutils.UnixMsec())})
+	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdated: uint64(timeutils.UnixMsec())})
 	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.TaskListByIdentityRequest{
-		LastUpdateTime: uint64(timeutils.UnixMsec()),
+		LastUpdated: uint64(timeutils.UnixMsec()),
 		IdentityId: identityId,
 	})
 	return types.NewTaskArrayFromResponse(taskListResponse), err

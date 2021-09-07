@@ -6,11 +6,11 @@ import (
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-// NewMetaDataSaveRequest converts Metadata object to MetaDataSaveRequest object.
-func NewMetaDataSaveRequest(metadata *Metadata) *api.MetaDataSaveRequest {
-	request := &api.MetaDataSaveRequest{
-		MetaSummary: &libTypes.MetaDataSummary{
-			MetaDataId: metadata.data.DataId,
+// NewMetadataSaveRequest converts Metadata object to MetadataSaveRequest object.
+func NewMetadataSaveRequest(metadata *Metadata) *api.MetadataSaveRequest {
+	request := &api.MetadataSaveRequest{
+		MetaSummary: &libTypes.MetadataSummary{
+			MetadataId: metadata.data.DataId,
 			OriginId:   metadata.data.OriginId,
 			TableName:  metadata.data.TableName,
 			Desc:       metadata.data.Desc,
@@ -35,14 +35,14 @@ func NewMetaDataSaveRequest(metadata *Metadata) *api.MetaDataSaveRequest {
 	return request
 }
 
-func NewMetaDataRevokeRequest(metadata *Metadata) *api.RevokeMetaDataRequest {
-	request := &api.RevokeMetaDataRequest{
+func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
+	request := &api.RevokeMetadataRequest{
 		Owner: &apipb.Organization{
 			IdentityId: metadata.MetadataData().IdentityId,
 			NodeId:     metadata.MetadataData().NodeId,
 			NodeName:   metadata.MetadataData().NodeName,
 		},
-		MetaDataId: metadata.MetadataData().DataId,
+		MetadataId: metadata.MetadataData().DataId,
 	}
 	return request
 }
@@ -81,7 +81,7 @@ func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 		Power: &libTypes.Power{
 			JobNodeId: resource.data.JobNodeId,
 			PowerId:   resource.data.DataId,
-			Information: &libTypes.ResourceUsageOverview{
+			UsageOverview: &libTypes.ResourceUsageOverview{
 				TotalMem:       resource.data.TotalMem,
 				TotalProcessor: uint32(resource.data.TotalProcessor),
 				TotalBandwidth: resource.data.TotalBandwidth,
@@ -124,14 +124,14 @@ func NewTaskDetail(task *Task) *libTypes.TaskDetail {
 	return request
 }
 
-func NewMetadataArrayFromResponse(response *api.MetaDataSummaryListResponse) MetadataArray {
+func NewMetadataArrayFromResponse(response *api.MetadataSummaryListResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadataSummaries() {
 		metadata := NewMetadata(&libTypes.MetadataPB{
 			IdentityId: v.GetOwner().GetIdentityId(),
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetNodeName(),
-			DataId:     v.GetInformation().GetMetaDataId(),
+			DataId:     v.GetInformation().GetMetadataId(),
 			DataStatus: apipb.DataStatus_DataStatus_Normal,
 			OriginId:   v.GetInformation().GetOriginId(),
 			TableName:  v.GetInformation().GetTableName(),
@@ -157,7 +157,7 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 			IdentityId: v.GetOwner().GetIdentityId(),
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetNodeName(),
-			DataId:     v.GetMetaSummary().GetMetaDataId(),
+			DataId:     v.GetMetaSummary().GetMetadataId(),
 			DataStatus: apipb.DataStatus_DataStatus_Normal,
 			OriginId:   v.GetMetaSummary().GetOriginId(),
 			TableName:  v.GetMetaSummary().GetTableName(),
@@ -190,13 +190,13 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 			NodeName:       v.GetOwner().GetNodeName(),
 			DataId:         "", // todo: to be determined
 			DataStatus:     apipb.DataStatus_DataStatus_Normal,
-			State:          v.GetPower().GetState(),
-			TotalMem:       v.GetPower().GetInformation().GetTotalMem(),
-			TotalProcessor: v.GetPower().GetInformation().GetTotalProcessor(),
-			TotalBandwidth: v.GetPower().GetInformation().GetTotalBandwidth(),
-			UsedMem:        v.GetPower().GetInformation().GetUsedMem(),
-			UsedProcessor:  v.GetPower().GetInformation().GetUsedProcessor(),
-			UsedBandwidth:  v.GetPower().GetInformation().GetUsedBandwidth(),
+			State:          v.GetPowerTotalSummary().GetState(),
+			TotalMem:       v.GetPowerTotalSummary().GetInformation().GetTotalMem(),
+			TotalProcessor: v.GetPowerTotalSummary().GetInformation().GetTotalProcessor(),
+			TotalBandwidth: v.GetPowerTotalSummary().GetInformation().GetTotalBandwidth(),
+			UsedMem:        v.GetPowerTotalSummary().GetInformation().GetUsedMem(),
+			UsedProcessor:  v.GetPowerTotalSummary().GetInformation().GetUsedProcessor(),
+			UsedBandwidth:  v.GetPowerTotalSummary().GetInformation().GetUsedBandwidth(),
 		})
 		resourceArray = append(resourceArray, resource)
 	}
@@ -211,13 +211,13 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 		NodeName:       response.GetOwner().GetNodeName(),
 		DataId:         "", // todo: to be determined
 		DataStatus:     apipb.DataStatus_DataStatus_Normal,
-		State:          response.GetPower().GetState(),
-		TotalMem:       response.GetPower().GetInformation().GetTotalMem(),
-		TotalProcessor: response.GetPower().GetInformation().GetTotalProcessor(),
-		TotalBandwidth: response.GetPower().GetInformation().GetTotalBandwidth(),
-		UsedMem:        response.GetPower().GetInformation().GetUsedMem(),
-		UsedProcessor:  response.GetPower().GetInformation().GetUsedProcessor(),
-		UsedBandwidth:  response.GetPower().GetInformation().GetUsedBandwidth(),
+		State:          response.GetPowerTotalSummary().GetState(),
+		TotalMem:       response.GetPowerTotalSummary().GetInformation().GetTotalMem(),
+		TotalProcessor: response.GetPowerTotalSummary().GetInformation().GetTotalProcessor(),
+		TotalBandwidth: response.GetPowerTotalSummary().GetInformation().GetTotalBandwidth(),
+		UsedMem:        response.GetPowerTotalSummary().GetInformation().GetUsedMem(),
+		UsedProcessor:  response.GetPowerTotalSummary().GetInformation().GetUsedProcessor(),
+		UsedBandwidth:  response.GetPowerTotalSummary().GetInformation().GetUsedBandwidth(),
 	})
 	resourceArray = append(resourceArray, resource)
 	return resourceArray
@@ -264,7 +264,7 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 		IdentityId:         response.GetMetadata().GetOwner().GetIdentityId(),
 		NodeId:             response.GetMetadata().GetOwner().GetNodeId(),
 		NodeName:           response.GetMetadata().GetOwner().GetNodeName(),
-		DataId:             metadataSummary.GetMetaDataId(),
+		DataId:             metadataSummary.GetMetadataId(),
 		DataStatus:         apipb.DataStatus_DataStatus_Normal,
 		OriginId:           metadataSummary.GetOriginId(),
 		TableName:          metadataSummary.GetTableName(),
@@ -299,14 +299,14 @@ func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse
 	return result
 }
 
-func NewMetadataAuthArrayFromResponse(responseList []*api.MetaDataAuthorityDetail) MetadataAuthArray {
+func NewMetadataAuthArrayFromResponse(responseList []*api.MetadataAuthorityDetail) MetadataAuthArray {
 	if responseList == nil {
 		return nil
 	}
 	var result MetadataAuthArray
 	for _, auth := range responseList {
 		result = append(result, NewMedataAuth(&libTypes.AuthRecordPB{
-			AuthRecordId:         auth.MetaDataAuthId,
+			AuthRecordId:         auth.MetadataAuthId,
 			User:                 auth.User,
 			UserType:             auth.UserType,
 			DataRecord:           auth.Auth,

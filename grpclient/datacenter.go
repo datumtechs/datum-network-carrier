@@ -17,7 +17,7 @@ type GrpcClient struct {
 	c *grpc.ClientConn
 
 	// grpc service
-	metadataService api.MetaDataServiceClient
+	metadataService api.MetadataServiceClient
 	resourceService api.ResourceServiceClient
 	identityService api.IdentityServiceClient
 	taskService 	api.TaskServiceClient
@@ -33,7 +33,7 @@ func NewGrpcClient(ctx context.Context, addr string) (*GrpcClient, error) {
 	}
 	return &GrpcClient{
 		c: conn,
-		metadataService: api.NewMetaDataServiceClient(conn),
+		metadataService: api.NewMetadataServiceClient(conn),
 		resourceService: api.NewResourceServiceClient(conn),
 		identityService: api.NewIdentityServiceClient(conn),
 		taskService:     api.NewTaskServiceClient(conn),
@@ -48,17 +48,17 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 	return gc.c
 }
 
-// MetaDataSave saves new metadata to database.
-func (gc *GrpcClient) SaveMetaData(ctx context.Context, request *api.MetaDataSaveRequest) (*apipb.SimpleResponse, error) {
+// MetadataSave saves new metadata to database.
+func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.MetadataSaveRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	return gc.metadataService.MetaDataSave(ctx, request)
+	return gc.metadataService.MetadataSave(ctx, request)
 }
 
-func (gc *GrpcClient) GetMetaDataSummaryList(ctx context.Context) (*api.MetaDataSummaryListResponse, error) {
+func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context) (*api.MetadataSummaryListResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
-	return gc.metadataService.GetMetaDataSummaryList(ctx, &emptypb.Empty{})
+	return gc.metadataService.GetMetadataSummaryList(ctx, &emptypb.Empty{})
 }
 
 func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.MetadataListRequest) (*api.MetadataListResponse, error) {
@@ -73,10 +73,10 @@ func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.Metadata
 	return gc.metadataService.GetMetadataById(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeMetaData(ctx context.Context, request *api.RevokeMetaDataRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	return gc.metadataService.RevokeMetaData(ctx, request)
+	return gc.metadataService.RevokeMetadata(ctx, request)
 }
 
 // ************************************** Resource module *******************************************************

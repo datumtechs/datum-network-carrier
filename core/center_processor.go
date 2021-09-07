@@ -22,7 +22,7 @@ func NewCenterProcessor(config *params.DataCenterConfig, bc *DataCenter) *Center
 
 func (p *CenterProcessor) Process(block *types.Block, config *params.DataCenterConfig) error {
 	for _, metadata := range block.Metadatas() {
-		response, err := p.bc.client.SaveMetaData(p.bc.ctx, types.NewMetaDataSaveRequest(metadata))
+		response, err := p.bc.client.SaveMetadata(p.bc.ctx, types.NewMetadataSaveRequest(metadata))
 		if err != nil {
 			log.WithError(err).WithField("hash", metadata.Hash()).Errorf("save metadata failed")
 			return err

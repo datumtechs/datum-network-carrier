@@ -27,9 +27,9 @@ type LocalStoreCarrierDB interface {
 	RemoveLocalResourceIdByPowerId(powerId string) error
 	QueryLocalResourceIdByPowerId(powerId string) (string, error)
 	//// metaDataId -> dataNodeId
-	//StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error
-	//RemoveLocalResourceIdByMetaDataId(metaDataId string) error
-	//QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error)
+	//StoreLocalResourceIdByMetadataId(metaDataId, dataNodeId string) error
+	//RemoveLocalResourceIdByMetadataId(metaDataId string) error
+	//QueryLocalResourceIdByMetadataId(metaDataId string) (string, error)
 
 	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
