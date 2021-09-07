@@ -97,12 +97,12 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	dataSuppliers := make([]*libTypes.TaskDataSupplier, len(req.DataSupplier))
 	for i, v := range req.DataSupplier {
 
-		metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+		metaData, err := svr.B.GetMetaDataDetail(v.Organization.IdentityId, v.MetaDataInfo.MetaDataId)
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
-				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+				v.Organization.IdentityId, v.MetaDataInfo.MetaDataId)
 			return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}",
-				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+				v.Organization.IdentityId, v.MetaDataInfo.MetaDataId)
 		}
 
 		colTmp := make(map[uint32]*libTypes.MetadataColumn, len(metaData.Information.MetadataColumns))
@@ -123,16 +123,16 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				}*/
 			} else {
 				return nil, fmt.Errorf("not found column of metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
-					v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId, colIndex)
+					v.Organization.IdentityId, v.MetaDataInfo.MetaDataId, colIndex)
 			}
 		}
 
 		dataSuppliers[i] = &libTypes.TaskDataSupplier{
-			MemberInfo: &apipb.TaskOrganization{
-				PartyId:  v.MemberInfo.PartyId,
-				NodeName: v.MemberInfo.NodeName,
-				NodeId:   v.MemberInfo.NodeId,
-				IdentityId: v.MemberInfo.IdentityId,
+			Organization: &apipb.TaskOrganization{
+				PartyId:  v.Organization.PartyId,
+				NodeName: v.Organization.NodeName,
+				NodeId:   v.Organization.NodeId,
+				IdentityId: v.Organization.IdentityId,
 			},
 			MetadataId:     v.MetaDataInfo.MetaDataId,
 			MetadataName:   metaData.Information.MetaDataSummary.TableName,
