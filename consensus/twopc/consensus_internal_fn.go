@@ -48,6 +48,29 @@ func (t *TwoPC) removeProposalTask(taskId string) {
 	delete(t.proposalTaskCache, taskId)
 	t.proposalTaskLock.Unlock()
 }
+func (t *TwoPC) hasProposalTask(taskId string) bool {
+	t.proposalTaskLock.RLock()
+	_, ok := t.proposalTaskCache[taskId]
+	t.proposalTaskLock.RUnlock()
+	if ok {
+		return true
+	}
+	return false
+}
+
+func (t *TwoPC) getProposalTask(taskId string) (*types.ProposalTask, bool) {
+	t.proposalTaskLock.RLock()
+	task, ok := t.proposalTaskCache[taskId]
+	t.proposalTaskLock.RUnlock()
+	return task, ok
+}
+
+func (t *TwoPC) mustGetProposalTask(taskId string) *types.ProposalTask {
+	t.proposalTaskLock.RLock()
+	task, _ := t.getProposalTask(taskId)
+	t.proposalTaskLock.RUnlock()
+	return task
+}
 
 func (t *TwoPC) hasPrepareVoting(proposalId common.Hash, org *apipb.TaskOrganization) bool {
 	return t.state.HasPrepareVoting(proposalId, org)
@@ -546,6 +569,14 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	return nil
 }
 
+func (t *TwoPC) sendPrepareVote(pid peer.ID, sender, receiver *apipb.TaskOrganization, req *pb.PrepareVote) error {
+	if types.IsNotSameTaskOrg(sender, receiver) {
+		return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
+	} else {
+		return t.sendLocalPrepareVote(pid, req)
+	}
+}
+
 func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
 
 	peers := t.makeConfirmTaskPeerDesc(proposalId)
@@ -628,6 +659,14 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTi
 			strings.Join(errStrs, "\n"))
 	}
 	return nil
+}
+
+func (t *TwoPC) sendConfirmVote(pid peer.ID, sender, receiver *apipb.TaskOrganization, req *pb.ConfirmVote) error {
+	if types.IsNotSameTaskOrg(sender, receiver) {
+		return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
+	} else {
+		return t.sendLocalConfirmVote(pid, req)
+	}
 }
 
 func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
@@ -740,4 +779,145 @@ func verifyPartyRole(partyId string, role apipb.TaskRole, task *types.Task) bool
 		}
 	}
 	return false
+}
+
+func fetchOrgByPartyRole(partyId string, role apipb.TaskRole, task *types.Task) *apipb.TaskOrganization {
+
+	switch role {
+	case apipb.TaskRole_TaskRole_Sender:
+		if partyId == task.GetTaskSender().GetPartyId() {
+			return task.GetTaskSender()
+		}
+	case apipb.TaskRole_TaskRole_DataSupplier:
+		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+			if partyId == dataSupplier.GetMemberInfo().GetPartyId() {
+				return dataSupplier.GetMemberInfo()
+			}
+		}
+	case apipb.TaskRole_TaskRole_PowerSupplier:
+		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+			if partyId == powerSupplier.GetOrganization().GetPartyId() {
+				return powerSupplier.GetOrganization()
+			}
+		}
+	case apipb.TaskRole_TaskRole_Receiver:
+		for _, receiver := range task.GetTaskData().GetReceivers() {
+			if partyId == receiver.GetPartyId() {
+				return receiver
+			}
+		}
+	}
+	return nil
+}
+
+func (t *TwoPC) isIncludeSenderParty(partyId, identityId string, role apipb.TaskRole, task *types.Task) bool {
+	if t.getIncludeSenderPartyCount(partyId, identityId, role, task) != 0 {
+		return true
+	}
+	return false
+}
+
+func (t *TwoPC) getIncludeSenderPartyCount(partyId, identityId string, role apipb.TaskRole, task *types.Task) uint32 {
+
+	var count int
+	switch role {
+	case apipb.TaskRole_TaskRole_DataSupplier:
+		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+			if partyId == dataSupplier.GetMemberInfo().GetPartyId() && identityId == dataSupplier.GetMemberInfo().GetIdentityId() {
+				count++
+			}
+		}
+	case apipb.TaskRole_TaskRole_PowerSupplier:
+		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+			if partyId == powerSupplier.GetOrganization().GetPartyId() && identityId == powerSupplier.GetOrganization().GetIdentityId() {
+				count++
+			}
+		}
+	case apipb.TaskRole_TaskRole_Receiver:
+		for _, receiver := range task.GetTaskData().GetReceivers() {
+			if partyId == receiver.GetPartyId() && identityId == receiver.GetIdentityId() {
+				count++
+			}
+		}
+	}
+	return uint32(count)
+}
+func (t *TwoPC) getNeedVotingCount(role apipb.TaskRole, task *types.Task) uint32 {
+	sender := task.GetTaskSender()
+	includeCount := t.getIncludeSenderPartyCount(sender.GetPartyId(), sender.GetIdentityId(), role, task)
+	switch role {
+	case apipb.TaskRole_TaskRole_DataSupplier:
+		return uint32(len(task.GetTaskData().GetDataSuppliers())) - includeCount
+	case apipb.TaskRole_TaskRole_PowerSupplier:
+		return uint32(len(task.GetTaskData().GetPowerSuppliers())) - includeCount
+	case apipb.TaskRole_TaskRole_Receiver:
+		return uint32(len(task.GetTaskData().GetReceivers())) - includeCount
+	}
+	return 0
+}
+
+func (t *TwoPC) verifyVoteRole(proposalId common.Hash, partyId, identityId string, role apipb.TaskRole, task *types.Task) (bool, error) {
+	var identityValid bool
+	switch role {
+	case apipb.TaskRole_TaskRole_DataSupplier:
+
+		dataSupplierCount := len(task.GetTaskData().GetDataSuppliers())
+		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
+
+		if (uint32(dataSupplierCount) - includeCount) == t.getTaskDataSupplierPrepareTotalVoteCount(proposalId) {
+			return false, fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(),
+				identityId, partyId)
+		}
+
+		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+			// identity + partyId
+			if dataSupplier.GetMemberInfo().GetIdentityId() == identityId && dataSupplier.GetMemberInfo().GetPartyId() == partyId {
+				identityValid = true
+				break
+			}
+		}
+	case apipb.TaskRole_TaskRole_PowerSupplier:
+
+		powerSupplierCount := len(task.GetTaskData().GetPowerSuppliers())
+		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
+
+		if (uint32(powerSupplierCount) - includeCount) == t.getTaskPowerSupplierPrepareTotalVoteCount(proposalId) {
+			return false, fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(),
+				identityId, partyId)
+		}
+
+		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+			// identity + partyId
+			if powerSupplier.GetOrganization().GetIdentityId() == identityId && powerSupplier.GetOrganization().GetPartyId() == partyId {
+				identityValid = true
+				break
+			}
+		}
+	case apipb.TaskRole_TaskRole_Receiver:
+
+		receiverCount := len(task.GetTaskData().GetReceivers())
+		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
+
+		if (uint32(receiverCount) - includeCount) == t.getTaskReceiverPrepareTotalVoteCount(proposalId) {
+			return false, fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(),
+				identityId, partyId)
+		}
+
+		for _, receiver := range task.GetTaskData().GetReceivers() {
+			// identity + partyId
+			if receiver.GetIdentityId() == identityId && receiver.GetPartyId() == partyId {
+				identityValid = true
+				break
+			}
+		}
+	default:
+		return false, fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrMsgOwnerNodeIdInvalid, task.GetTaskData().GetTaskId(), role.String(),
+			identityId, partyId)
+
+	}
+	return identityValid, nil
 }
