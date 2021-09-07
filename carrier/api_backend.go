@@ -564,21 +564,21 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				// 封装任务 摘要 ...
 				powerTask := &libTypes.PowerTask{
 					TaskId:   taskId,
-					TaskName: task.GetTaskData().TaskName,
+					TaskName: task.TaskData().TaskName,
 					Owner: &apipb.Organization{
-						NodeName:   task.GetTaskData().GetNodeName(),
-						NodeId:     task.GetTaskData().GetNodeId(),
-						IdentityId: task.GetTaskData().GetIdentityId(),
+						NodeName:   task.TaskData().GetNodeName(),
+						NodeId:     task.TaskData().GetNodeId(),
+						IdentityId: task.TaskData().GetIdentityId(),
 					},
 					Receivers: make([]*apipb.Organization, 0),
 					OperationCost: &apipb.TaskResourceCostDeclare{
-						CostProcessor: task.GetTaskData().GetOperationCost().GetCostProcessor(),
-						CostMem:       task.GetTaskData().GetOperationCost().GetCostMem(),
-						CostBandwidth: task.GetTaskData().GetOperationCost().GetCostBandwidth(),
-						Duration:      task.GetTaskData().GetOperationCost().GetDuration(),
+						CostProcessor: task.TaskData().GetOperationCost().GetCostProcessor(),
+						CostMem:       task.TaskData().GetOperationCost().GetCostMem(),
+						CostBandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
+						Duration:      task.TaskData().GetOperationCost().GetDuration(),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
-					CreateAt:       task.GetTaskData().CreateAt,
+					CreateAt:       task.TaskData().CreateAt,
 				}
 				// 组装 数据参与方
 				//for _, dataSupplier := range task.TaskPB().DataSupplier {
@@ -593,7 +593,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				//
 				//}
 				// 组装结果接收方
-				for _, receiver := range task.GetTaskData().Receivers {
+				for _, receiver := range task.TaskData().Receivers {
 					powerTask.Receivers = append(powerTask.Receivers, &apipb.Organization{
 						NodeName:   receiver.GetNodeName(),
 						NodeId:     receiver.GetNodeId(),
@@ -607,7 +607,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					CostProcessor: uint32(slotUnit.Processor * slotCount),
 					CostMem:       slotUnit.Mem * slotCount,
 					CostBandwidth: slotUnit.Bandwidth * slotCount,
-					Duration:      task.GetTaskData().GetOperationCost().GetDuration(),
+					Duration:      task.TaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
 			}
@@ -705,26 +705,26 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 
 	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
 		// task 发起方
-		if task.GetTaskData().GetIdentityId() == localIdentityId {
+		if task.TaskData().GetIdentityId() == localIdentityId {
 			return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_Sender)
 		}
 
 		// task 参与方
-		for _, dataSupplier := range task.GetTaskData().DataSuppliers {
-			if dataSupplier.MemberInfo.IdentityId == localIdentityId {
+		for _, dataSupplier := range task.TaskData().DataSuppliers {
+			if dataSupplier.Organization.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_DataSupplier)
 			}
 		}
 
 		// 算力提供方
-		for _, powerSupplier := range task.GetTaskData().PowerSuppliers {
+		for _, powerSupplier := range task.TaskData().PowerSuppliers {
 			if powerSupplier.Organization.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_PowerSupplier)
 			}
 		}
 
 		// 数据接收方
-		for _, receiver := range task.GetTaskData().Receivers {
+		for _, receiver := range task.TaskData().Receivers {
 			if receiver.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_Receiver)
 			}

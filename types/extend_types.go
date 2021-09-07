@@ -42,11 +42,11 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 	// DataSupplier
 	for _, metadataSupplier := range taskData.GetDataSuppliers() {
 		dataSupplier := &pb.TaskDataSupplierShow{
-			MemberInfo: &apipb.TaskOrganization{
-				PartyId:    metadataSupplier.GetMemberInfo().GetPartyId(),
-				NodeName:       metadataSupplier.GetMemberInfo().GetNodeName(),
-				NodeId:     metadataSupplier.GetMemberInfo().GetNodeId(),
-				IdentityId: metadataSupplier.GetMemberInfo().GetIdentityId(),
+			Organization: &apipb.TaskOrganization{
+				PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
+				NodeName:   metadataSupplier.GetOrganization().GetNodeName(),
+				NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
+				IdentityId: metadataSupplier.GetOrganization().GetIdentityId(),
 			},
 			MetadataId:   metadataSupplier.GetMetadataId(),
 			MetadataName: metadataSupplier.GetMetadataName(),
@@ -56,9 +56,9 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 	// powerSupplier
 	for _, data := range taskData.GetPowerSuppliers() {
 		detailShow.PowerSupplier = append(detailShow.PowerSupplier, &pb.TaskPowerSupplierShow{
-			MemberInfo: &apipb.TaskOrganization{
+			Organization: &apipb.TaskOrganization{
 				PartyId:    data.GetOrganization().GetPartyId(),
-				NodeName:       data.GetOrganization().GetNodeName(),
+				NodeName:   data.GetOrganization().GetNodeName(),
 				NodeId:     data.GetOrganization().GetNodeId(),
 				IdentityId: data.GetOrganization().GetIdentityId(),
 			},

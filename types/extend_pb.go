@@ -299,7 +299,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse
 	return result
 }
 
-func NewMetadataAuthArrayFromResponse(responseList []*api.MetaDataAuthority) MetadataAuthArray {
+func NewMetadataAuthArrayFromResponse(responseList []*api.MetaDataAuthorityDetail) MetadataAuthArray {
 	if responseList == nil {
 		return nil
 	}
