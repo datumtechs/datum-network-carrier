@@ -162,7 +162,7 @@ func (msg *PrepareMsg) String() string {
 }
 func (msg *PrepareMsg) StringWithTask() string {
 	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "createAt": %d, "sign": %v}`,
-		msg.MsgOption.String(), msg.TaskInfo.TaskData().String(), msg.CreateAt, msg.Sign)
+		msg.MsgOption.String(), msg.TaskInfo.GetTaskData().String(), msg.CreateAt, msg.Sign)
 }
 
 type PrepareVote struct {

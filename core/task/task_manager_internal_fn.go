@@ -18,11 +18,11 @@ import (
 
 func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error {
 
-	task.Task.SchedTask.TaskData().State = types.TaskStateRunning.String()
-	task.Task.SchedTask.TaskData().StartAt = uint64(timeutils.UnixMsec())
+	task.Task.SchedTask.GetTaskData().State = types.TaskStateRunning.String()
+	task.Task.SchedTask.GetTaskData().StartAt = uint64(timeutils.UnixMsec())
 	if err := m.dataCenter.StoreLocalTask(task.Task.SchedTask); nil != err {
 		log.Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), types.TaskStateRunning.String(), err)
+			task.Task.SchedTask.GetTaskId(), types.TaskStateRunning.String(), err)
 	}
 	// update local cache
 	m.addRunningTaskCache(task)
@@ -35,7 +35,7 @@ func (m *Manager) driveTaskForExecute(task *types.DoneScheduleTaskChWrap) error 
 	case types.PowerSupplier:
 		return m.executeTaskOnJobNode(task)
 	default:
-		log.Errorf("Faided to driveTaskForExecute(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.Task.SchedTask.TaskId(), task.SelfTaskRole.String())
+		log.Errorf("Faided to driveTaskForExecute(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.Task.SchedTask.GetTaskId(), task.SelfTaskRole.String())
 		return errors.New("Unknown resource node type")
 	}
 }
@@ -49,13 +49,13 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
 	if !has {
 		log.Errorf("Failed to query internal data node, taskId: {%s}, dataNodeId: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId)
+			task.Task.SchedTask.GetTaskId(), dataNodeId)
 		return errors.New("data node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.Errorf("Failed to connect internal data node, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
-				task.Task.SchedTask.TaskId(), dataNodeId, err)
+				task.Task.SchedTask.GetTaskId(), dataNodeId, err)
 			return err
 		}
 	}
@@ -63,25 +63,25 @@ func (m *Manager) executeTaskOnDataNode(task *types.DoneScheduleTaskChWrap) erro
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
 		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, err)
+			task.Task.SchedTask.GetTaskId(), dataNodeId, err)
 		return err
 	}
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
 		log.Errorf("Falied to call publish schedTask to `data-Fighter` node to executing, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, err)
+			task.Task.SchedTask.GetTaskId(), dataNodeId, err)
 		return err
 	}
 	if !resp.Ok {
 		log.Errorf("Falied to executing task from `data-Fighter` node response, taskId: {%s}, dataNodeId: {%s}, resp: {%s}",
-			task.Task.SchedTask.TaskId(), dataNodeId, resp.String())
+			task.Task.SchedTask.GetTaskId(), dataNodeId, resp.String())
 		return nil
 	}
 
 
 	log.Infof("Success to publish schedTask to `data-Fighter` node to executing,  taskId: {%s}, dataNodeId: {%s}",
-		task.Task.SchedTask.TaskId(), dataNodeId)
+		task.Task.SchedTask.GetTaskId(), dataNodeId)
 	return nil
 }
 
@@ -96,13 +96,13 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
 	if !has {
 		log.Errorf("Failed to query internal job node, taskId: {%s}, jobNodeId: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId)
+			task.Task.SchedTask.GetTaskId(), jobNodeId)
 		return errors.New("job node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.Errorf("Failed to connect internal job node, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
-				task.Task.SchedTask.TaskId(), jobNodeId, err)
+				task.Task.SchedTask.GetTaskId(), jobNodeId, err)
 			return err
 		}
 	}
@@ -110,25 +110,25 @@ func (m *Manager) executeTaskOnJobNode(task *types.DoneScheduleTaskChWrap) error
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
 		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId, err)
+			task.Task.SchedTask.GetTaskId(), jobNodeId, err)
 		return err
 	}
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
 		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId, err)
+			task.Task.SchedTask.GetTaskId(), jobNodeId, err)
 		return err
 	}
 	if !resp.Ok {
 		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}",
-			task.Task.SchedTask.TaskId(), jobNodeId)
+			task.Task.SchedTask.GetTaskId(), jobNodeId)
 		return nil
 	}
 
 
 	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}",
-		task.Task.SchedTask.TaskId(), jobNodeId)
+		task.Task.SchedTask.GetTaskId(), jobNodeId)
 	return nil
 }
 
@@ -140,9 +140,9 @@ func (m *Manager) publishFinishedTaskToDataCenter(taskId string) {
 
 	time.Sleep(2*time.Second)  // todo 故意等待小段时间 防止 onTaskResultMsg 因为 网络延迟, 而没收集全 其他 peer 的 eventList
 
-	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
+	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
+		log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.GetTaskId(), err)
 		return
 	}
 	var isFailed bool
@@ -164,7 +164,7 @@ func (m *Manager) publishFinishedTaskToDataCenter(taskId string) {
 	finalTask := m.convertScheduleTaskToTask(taskWrap.Task.SchedTask, eventList, taskState)
 
 	if err := m.dataCenter.InsertTask(finalTask); nil != err {
-		log.Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
+		log.Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.GetTaskId(), err)
 		return
 	}
 
@@ -172,7 +172,7 @@ func (m *Manager) publishFinishedTaskToDataCenter(taskId string) {
 	close(taskWrap.ResultCh)
 
 	if err := m.dataCenter.RemoveLocalTaskExecuteStatus(taskId); nil != err {
-		log.Errorf("Failed to remove task executing status on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.TaskId(), err)
+		log.Errorf("Failed to remove task executing status on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", taskWrap.Task.SchedTask.GetTaskId(), err)
 		return
 	}
 	// clean local task cache
@@ -203,7 +203,7 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId string) {
 	close(taskWrap.ResultCh)
 
 	// clean local task cache
-	m.removeRunningTaskCache(taskWrap.Task.SchedTask.TaskId())
+	m.removeRunningTaskCache(taskWrap.Task.SchedTask.GetTaskId())
 
 	log.Debugf("Finished sendTaskResultMsgToConsensus, taskId: {%s}", taskId)
 }
@@ -216,19 +216,19 @@ func (m *Manager) sendTaskEvent(event *libTypes.TaskEvent) {
 }
 
 func (m *Manager) storeBadTask(task *types.Task, events []*libTypes.TaskEvent, reason string) error {
-	task.TaskData().TaskEvents = events
-	task.TaskData().EventCount = uint32(len(events))
-	task.TaskData().State = apipb.TaskState_TaskState_Failed
-	task.TaskData().Reason = reason
-	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
+	task.GetTaskData().TaskEvents = events
+	task.GetTaskData().EventCount = uint32(len(events))
+	task.GetTaskData().State = apipb.TaskState_TaskState_Failed
+	task.GetTaskData().Reason = reason
+	task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libTypes.TaskEvent, state string) *types.Task {
-	task.TaskData().TaskEvents = eventList
-	task.TaskData().EventCount = uint32(len(eventList))
-	task.TaskData().EndAt = uint64(timeutils.UnixMsec())
-	task.TaskData().State = state
+	task.GetTaskData().TaskEvents = eventList
+	task.GetTaskData().EventCount = uint32(len(eventList))
+	task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
+	task.GetTaskData().State = state
 	return task
 }
 
@@ -301,10 +301,10 @@ func (m *Manager) makeTaskReadyGoReq(task *types.DoneScheduleTaskChWrap) (*commo
 	if nil != err {
 		return nil, err
 	}
-	log.Debugf("Succeed make contractCfg, taskId:{%s}, contractCfg: %s", task.Task.SchedTask.TaskId(), contractExtraParams)
+	log.Debugf("Succeed make contractCfg, taskId:{%s}, contractCfg: %s", task.Task.SchedTask.GetTaskId(), contractExtraParams)
 	return &common.TaskReadyGoReq{
-		TaskId:     task.Task.SchedTask.TaskId(),
-		ContractId: task.Task.SchedTask.TaskData().CalculateContractCode,
+		TaskId:     task.Task.SchedTask.GetTaskId(),
+		ContractId: task.Task.SchedTask.GetTaskData().CalculateContractCode,
 		//DataId: "",
 		PartyId: task.SelfIdentity.PartyId,
 		//EnvId: "",
@@ -327,7 +327,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 		var find bool
 
-		for _, dataSupplier := range task.Task.SchedTask.TaskData().DataSupplier {
+		for _, dataSupplier := range task.Task.SchedTask.GetTaskData().DataSupplier {
 			if partyId == dataSupplier.MemberInfo.PartyId {
 
 				metaData, err := m.dataCenter.GetMetadataByDataId(dataSupplier.MetadataId)
@@ -347,7 +347,7 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 
 		if !find {
 			return "", fmt.Errorf("can not find the dataSupplier for find originFilePath, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
-				task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId)
+				task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId)
 		}
 	}
 
@@ -364,11 +364,11 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	}
 
 	var dynamicParameter map[string]interface{}
-	log.Debugf("Start json Unmarshal the `ContractExtraParams`, taskId: {%s}, ContractExtraParams: %s", task.Task.SchedTask.TaskId(), task.Task.SchedTask.TaskData().ContractExtraParams)
-	if "" != task.Task.SchedTask.TaskData().ContractExtraParams {
-		if err := json.Unmarshal([]byte(task.Task.SchedTask.TaskData().ContractExtraParams), &dynamicParameter); nil != err {
+	log.Debugf("Start json Unmarshal the `ContractExtraParams`, taskId: {%s}, ContractExtraParams: %s", task.Task.SchedTask.GetTaskId(), task.Task.SchedTask.GetTaskData().ContractExtraParams)
+	if "" != task.Task.SchedTask.GetTaskData().ContractExtraParams {
+		if err := json.Unmarshal([]byte(task.Task.SchedTask.GetTaskData().ContractExtraParams), &dynamicParameter); nil != err {
 			return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
-				task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId, err)
+				task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId, err)
 		}
 	}
 	req.DynamicParameter = dynamicParameter
@@ -376,14 +376,14 @@ func (m *Manager) makeContractParams(task *types.DoneScheduleTaskChWrap) (string
 	b, err := json.Marshal(req)
 	if nil != err {
 		return "", fmt.Errorf("can not json Marshal the `FighterTaskReadyGoReqContractCfg`, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
-			task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId, err)
+			task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, task.SelfIdentity.PartyId, err)
 	}
 	return string(b), nil
 }
 
 func (m *Manager) addRunningTaskCache(task *types.DoneScheduleTaskChWrap) {
 	m.runningTaskCacheLock.Lock()
-	m.runningTaskCache[task.Task.SchedTask.TaskId()] = task
+	m.runningTaskCache[task.Task.SchedTask.GetTaskId()] = task
 	m.runningTaskCacheLock.Unlock()
 }
 
@@ -421,16 +421,16 @@ func (m *Manager) makeTaskResultByEventList(taskWrap *types.DoneScheduleTaskChWr
 		return nil
 	}
 
-	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.TaskId())
+	eventList, err := m.dataCenter.GetTaskEventList(taskWrap.Task.SchedTask.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to make TaskResultMsg with query task eventList, taskId {%s}, err {%s}", taskWrap.Task.SchedTask.TaskId(), err)
+		log.Errorf("Failed to make TaskResultMsg with query task eventList, taskId {%s}, err {%s}", taskWrap.Task.SchedTask.GetTaskId(), err)
 		return nil
 	}
 	return &types.TaskResultMsgWrap{
 		TaskResultMsg: &pb.TaskResultMsg{
 			ProposalId: taskWrap.ProposalId.Bytes(),
 			TaskRole:   taskWrap.SelfTaskRole.Bytes(),
-			TaskId:     []byte(taskWrap.Task.SchedTask.TaskId()),
+			TaskId:     []byte(taskWrap.Task.SchedTask.GetTaskId()),
 			Owner: &pb.TaskOrganizationIdentityInfo{
 				PartyId:    []byte(taskWrap.SelfIdentity.PartyId),
 				Name:       []byte(taskWrap.SelfIdentity.NodeName),
@@ -458,9 +458,9 @@ func (m *Manager) handleEvent(event *libTypes.TaskEvent) error {
 			// 先 缓存下 最终休止符 event
 			m.dataCenter.StoreTaskEvent(event)
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "",types.TaskStateFailed)
+				m.storeTaskFinalEvent(task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, "",types.TaskStateFailed)
 			} else {
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "",types.TaskStateSuccess)
+				m.storeTaskFinalEvent(task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, "",types.TaskStateSuccess)
 			}
 
 			if task.Task.TaskDir == types.RecvTaskDir {
@@ -497,41 +497,41 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 
-			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "", task.Task.TaskState)
+			m.storeTaskFinalEvent(task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, "", task.Task.TaskState)
 			m.publishFinishedTaskToDataCenter(taskId)
 
 		case types.TaskStateRunning:
 
 			if err := m.driveTaskForExecute(task); nil != err {
-				log.Errorf("Failed to execute task on taskOnwer node, taskId:{%s}, %s", task.Task.SchedTask.TaskId(), err)
+				log.Errorf("Failed to execute task on taskOnwer node, taskId:{%s}, %s", task.Task.SchedTask.GetTaskId(), err)
 
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
+				m.storeTaskFinalEvent(task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
 				m.publishFinishedTaskToDataCenter(taskId)
 			}
 			// TODO 而执行最终[成功]的 根据 Fighter 上报的 event 在 handleEvent() 里面处理
 		default:
 			log.Errorf("Failed to handle unknown task state, taskId: {%s}, taskRole: {%s}, taskState: {%s}",
-				task.Task.SchedTask.TaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
+				task.Task.SchedTask.GetTaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
 		}
 
 	default:
 		switch task.Task.TaskState {
 		case types.TaskStateFailed, types.TaskStateSuccess:
 			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者..  (里面有解锁 本地资源 ...)
-			m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, "", task.Task.TaskState)
+			m.storeTaskFinalEvent(task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, "", task.Task.TaskState)
 			m.sendTaskResultMsgToConsensus(taskId)
 		case types.TaskStateRunning:
 
 			if err := m.driveTaskForExecute(task); nil != err {
-				log.Errorf("Failed to execute task on %s node, taskId: {%s}, %s", task.SelfTaskRole.String(), task.Task.SchedTask.TaskId(), err)
+				log.Errorf("Failed to execute task on %s node, taskId: {%s}, %s", task.SelfTaskRole.String(), task.Task.SchedTask.GetTaskId(), err)
 
 				// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者.. (里面有解锁 本地资源 ...)
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), task.SelfIdentity.IdentityId, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
+				m.storeTaskFinalEvent(task.Task.SchedTask.GetTaskId(), task.SelfIdentity.IdentityId, fmt.Sprintf("failed to execute task"),types.TaskStateFailed)
 				m.sendTaskResultMsgToConsensus(taskId)
 			}
 		default:
 			log.Errorf("Failed to handle unknown task state, taskId: {%s}, taskRole: {%s}, taskState: {%s}",
-				task.Task.SchedTask.TaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
+				task.Task.SchedTask.GetTaskId(), task.SelfTaskRole.String(), task.Task.TaskState.String())
 		}
 	}
 }
@@ -539,16 +539,16 @@ func (m *Manager) handleDoneScheduleTask(taskId string) {
 func (m *Manager) expireTaskMonitor () {
 
 	for taskId, task := range m.runningTaskCache {
-		if task.Task.SchedTask.TaskData().State == types.TaskStateRunning.String() && task.Task.SchedTask.TaskData().StartAt != 0 {
+		if task.Task.SchedTask.GetTaskData().State == types.TaskStateRunning.String() && task.Task.SchedTask.GetTaskData().StartAt != 0 {
 
 			// the task has running expire
-			duration := uint64(timeutils.UnixMsec()) - task.Task.SchedTask.TaskData().StartAt
-			if duration >= task.Task.SchedTask.TaskData().OperationCost.Duration {
+			duration := uint64(timeutils.UnixMsec()) - task.Task.SchedTask.GetTaskData().StartAt
+			if duration >= task.Task.SchedTask.GetTaskData().OperationCost.Duration {
 				log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
-					taskId, duration, task.Task.SchedTask.TaskData().OperationCost.Duration)
+					taskId, duration, task.Task.SchedTask.GetTaskData().OperationCost.Duration)
 
 				identityId, _ := m.dataCenter.GetIdentityId()
-				m.storeTaskFinalEvent(task.Task.SchedTask.TaskId(), identityId, fmt.Sprintf("task running expire"),types.TaskStateFailed)
+				m.storeTaskFinalEvent(task.Task.SchedTask.GetTaskId(), identityId, fmt.Sprintf("task running expire"),types.TaskStateFailed)
 				switch task.SelfTaskRole {
 				case types.TaskOwner:
 					m.publishFinishedTaskToDataCenter(taskId)

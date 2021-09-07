@@ -202,7 +202,7 @@ func (nct *NeedConsensusTask) ResultCh() chan *TaskConsResult { return nct.resul
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
-		taskStr = nct.task.TaskData().String()
+		taskStr = nct.task.GetTaskData().String()
 	}
 	//resourceStr := "{}"
 	//if nil != nct.resource {
@@ -256,7 +256,7 @@ func (nrst *NeedReplayScheduleTask) ResultCh() chan *ReplayScheduleResult { retu
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"
 	if nil != nrst.task {
-		taskStr = nrst.task.TaskData().String()
+		taskStr = nrst.task.GetTaskData().String()
 	}
 	return fmt.Sprintf(`{"selfTaskRole": %s, "selfPartyId": %s, "task": %s, "resultCh": %p}`,
 		nrst.selfTaskRole.String(), nrst.selfPartyId, taskStr, nrst.resultCh)
@@ -275,9 +275,9 @@ func NewReplayScheduleResult(taskId string, err error, resource *PrepareVoteReso
 		resource: resource,
 	}
 }
-func (rsr *ReplayScheduleResult) TaskId() string                 { return rsr.taskId }
-func (rsr *ReplayScheduleResult) Err() error                     { return rsr.err }
-func (rsr *ReplayScheduleResult) Resource() *PrepareVoteResource { return rsr.resource }
+func (rsr *ReplayScheduleResult) GetTaskId() string { return rsr.taskId }
+func (rsr *ReplayScheduleResult) GetErr() error        { return rsr.err }
+func (rsr *ReplayScheduleResult) GetResource() *PrepareVoteResource { return rsr.resource }
 func (rsr *ReplayScheduleResult) String() string {
 	errStr := "nil"
 	if nil != rsr.err {
@@ -327,7 +327,7 @@ func (net *NeedExecuteTask) Resources() *pb.ConfirmTaskPeerInfo        { return 
 func (net *NeedExecuteTask) String() string {
 	taskStr := "{}"
 	if nil != net.task {
-		taskStr = net.task.TaskData().String()
+		taskStr = net.task.GetTaskData().String()
 	}
 	identityStr := "{}"
 	if nil != net.selfIdentity {

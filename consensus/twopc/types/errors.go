@@ -7,6 +7,8 @@ var (
 	ErrConsensusMsgInvalid = errors.New("The consensus msg is invalid")
 	ErrMsgTaskDirInvalid = errors.New("The task dir of msg is wrong")
 
+
+
 	// Task
 	ErrProposalTaskNotFound = errors.New("The task of proposal not found")
 

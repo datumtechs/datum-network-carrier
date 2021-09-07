@@ -11,7 +11,7 @@ import (
 
 //type taskOption struct {
 //	Role                  apipb.TaskRole         `json:"role"` // The role information of the current recipient of the task
-//	TaskId                string                 `json:"taskId"`
+//	GetTaskId                string                 `json:"taskId"`
 //	TaskName              string                 `json:"taskName"`
 //	Owner                 *apipb.Organization    `json:"owner"`
 //	AlgoSupplier          *apipb.Organization    `json:"algoSupplier"`
@@ -148,7 +148,8 @@ func NewOrgProposalState(
 	taskId string,
 	taskRole apipb.TaskRole,
 	taskPartyId string,
-	startTime uint64) *OrgProposalState {
+	startTime uint64,
+) *OrgProposalState {
 
 	return &OrgProposalState{
 		TaskId:           taskId,
@@ -177,21 +178,20 @@ func NewProposalState(proposalId common.Hash) *ProposalState {
 	}
 }
 func (pstate *ProposalState) GetProposalId() common.Hash { return pstate.proposalId }
-func (pstate *ProposalState) GetTaskId() string { return pstate.taskId }
+func (pstate *ProposalState) GetTaskId() string          { return pstate.taskId }
 
-func (pstate *ProposalState) StoreOrgProposalState(
-	taskId string,
-	taskRole apipb.TaskRole,
-	taskPartyId string,
-	startTime uint64) {
-
-	state := NewOrgProposalState(taskId, taskRole, taskPartyId, startTime)
+func (pstate *ProposalState) StoreOrgProposalState(orgState *OrgProposalState) {
 
 	pstate.lock.Lock()
-	_, ok := pstate.stateCache[taskPartyId]
+	_, ok := pstate.stateCache[orgState.TaskPartyId]
 	if !ok {
-		pstate.stateCache[taskPartyId] = state
+		pstate.stateCache[orgState.TaskPartyId] = orgState
 	}
+	pstate.lock.Unlock()
+}
+func (pstate *ProposalState) RemoveOrgProposalState(partyId string) {
+	pstate.lock.Lock()
+	delete(pstate.stateCache, partyId)
 	pstate.lock.Unlock()
 }
 func (pstate *ProposalState) MustGetOrgProposalState(partyId string) *OrgProposalState {
@@ -199,7 +199,9 @@ func (pstate *ProposalState) MustGetOrgProposalState(partyId string) *OrgProposa
 	return state
 }
 func (pstate *ProposalState) GetOrgProposalState(partyId string) (*OrgProposalState, bool) {
+	pstate.lock.RLock()
 	state, ok := pstate.stateCache[partyId]
+	pstate.lock.RUnlock()
 	return state, ok
 }
 
@@ -235,12 +237,9 @@ func (pstate *OrgProposalState) IsDeadline() bool {
 	return (now - pstate.CreateAt) >= ProposalDeadlineDuration
 }
 
-func (pstate *ProposalState) IsEmpty() bool {
-	if pstate == EmptyProposalState {
-		return true
-	}
-	return false
-}
+func (pstate *ProposalState) IsEmpty() bool { return nil == pstate }
+func (pstate *ProposalState) IsNotEmpty() bool { return !pstate.IsEmpty() }
+
 
 func (pstate *OrgProposalState) IsPrepareTimeout() bool {
 

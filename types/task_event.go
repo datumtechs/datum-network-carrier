@@ -1,7 +1,7 @@
 package types
 
 //type TaskEvent struct {
-//	TaskId   string     `json:"taskId"`
+//	GetTaskId   string     `json:"taskId"`
 //	Type     string     `json:"type"`
 //	CreateAt uint64     `json:"createAt"`
 //	Content  string     `json:"content"`
@@ -10,7 +10,7 @@ package types
 //func ConvertTaskEventToPB (event *TaskEvent) *pb.TaskEventShow {
 //	return &pb.TaskEventShow{
 //		Type:     event.Type,
-//		TaskId:   event.TaskId,
+//		GetTaskId:   event.GetTaskId,
 //		Owner:    ConvertNodeAliasToPB(event.Owner),
 //		Content:  event.Content,
 //		CreateAt: event.CreateAt,
@@ -20,7 +20,7 @@ package types
 //func ConvertTaskEventFromPB (event *pb.TaskEventShow) *TaskEvent {
 //	return &TaskEvent{
 //		Type:     event.Type,
-//		TaskId:   event.TaskId,
+//		GetTaskId:   event.GetTaskId,
 //		Owner:    ConvertNodeAliasFromPB(event.Owner),
 //		Content:  event.Content,
 //		CreateAt: event.CreateAt,
@@ -34,7 +34,7 @@ package types
 //	for i, event := range events {
 //		e := &pb.TaskEventShow{
 //			Type:     event.Type,
-//			TaskId:   event.TaskId,
+//			GetTaskId:   event.GetTaskId,
 //			Owner:    ConvertNodeAliasToPB(event.Owner),
 //			Content:  event.Content,
 //			CreateAt: event.CreateAt,
@@ -50,7 +50,7 @@ package types
 //	for i, event := range events {
 //		e := &TaskEvent{
 //			Type:     event.Type,
-//			TaskId:   event.TaskId,
+//			GetTaskId:   event.GetTaskId,
 //			Owner:    ConvertNodeAliasFromPB(event.Owner),
 //			Content:  event.Content,
 //			CreateAt: event.CreateAt,

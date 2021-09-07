@@ -34,7 +34,7 @@ func (t *TwoPC) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap
 	//	types.TaskRoleFromBytes(prepareMsg.TaskRole) == types.TaskRoleUnknown {
 	//	return ctypes.ErrPrososalTaskRoleIsUnknown
 	//}
-	//taskId := string(prepareMsg.TaskOption.TaskId)
+	//taskId := string(prepareMsg.TaskOption.GetTaskId)
 	//
 	//if t.isProcessingTask(taskId) {
 	//	return ctypes.ErrPrososalTaskIsProcessed
@@ -124,7 +124,7 @@ func (t *TwoPC) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap
 // With publisher
 func (t *TwoPC) validatePrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
 	proposalId := common.BytesToHash(prepareVote.ProposalId)
-	if t.state.HasNotProposal(proposalId) {
+	if t.state.HasNotOrgProposal(proposalId) {
 		return fmt.Errorf("%s validatePrepareVote", ctypes.ErrProposalNotFound)
 	}
 	// (On publisher)
@@ -177,7 +177,7 @@ func (t *TwoPC) validatePrepareVote(pid peer.ID, prepareVote *types.PrepareVoteW
 func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
 
 	proposalId := common.BytesToHash(confirmMsg.ProposalId)
-	if t.state.HasNotProposal(proposalId) {
+	if t.state.HasNotOrgProposal(proposalId) {
 		return fmt.Errorf("%s validateConfirmMsg", ctypes.ErrProposalNotFound)
 	}
 
@@ -226,7 +226,7 @@ func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap
 // With publisher
 func (t *TwoPC) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 	proposalId := common.BytesToHash(confirmVote.ProposalId)
-	if t.state.HasNotProposal(proposalId) {
+	if t.state.HasNotOrgProposal(proposalId) {
 		return fmt.Errorf("%s validateConfirmVote", ctypes.ErrProposalNotFound)
 	}
 
@@ -277,7 +277,7 @@ func (t *TwoPC) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteW
 func (t *TwoPC) validateCommitMsg(pid peer.ID, commitMsg *types.CommitMsgWrap) error {
 
 	proposalId := common.BytesToHash(commitMsg.ProposalId)
-	if t.state.HasNotProposal(proposalId) {
+	if t.state.HasNotOrgProposal(proposalId) {
 		return fmt.Errorf("%s validateCommitMsg", ctypes.ErrProposalNotFound)
 	}
 

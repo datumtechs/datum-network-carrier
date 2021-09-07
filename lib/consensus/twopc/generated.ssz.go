@@ -2573,7 +2573,7 @@ func (t *TaskResultMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.TaskRole)
 
-	// Offset (2) 'TaskId'
+	// Offset (2) 'GetTaskId'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.TaskId)
 
@@ -2612,7 +2612,7 @@ func (t *TaskResultMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, t.TaskRole...)
 
-	// Field (2) 'TaskId'
+	// Field (2) 'GetTaskId'
 	if len(t.TaskId) > 128 {
 		err = ssz.ErrBytesLength
 		return
@@ -2677,7 +2677,7 @@ func (t *TaskResultMsg) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'TaskId'
+	// Offset (2) 'GetTaskId'
 	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
 		return ssz.ErrOffset
 	}
@@ -2724,7 +2724,7 @@ func (t *TaskResultMsg) UnmarshalSSZ(buf []byte) error {
 		t.TaskRole = append(t.TaskRole, buf...)
 	}
 
-	// Field (2) 'TaskId'
+	// Field (2) 'GetTaskId'
 	{
 		buf = tail[o2:o3]
 		if len(buf) > 128 {
@@ -2793,7 +2793,7 @@ func (t *TaskResultMsg) SizeSSZ() (size int) {
 	// Field (1) 'TaskRole'
 	size += len(t.TaskRole)
 
-	// Field (2) 'TaskId'
+	// Field (2) 'GetTaskId'
 	size += len(t.TaskId)
 
 	// Field (3) 'Owner'
@@ -2837,7 +2837,7 @@ func (t *TaskResultMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(t.TaskRole)
 
-	// Field (2) 'TaskId'
+	// Field (2) 'GetTaskId'
 	if len(t.TaskId) > 128 {
 		err = ssz.ErrBytesLength
 		return
@@ -2893,7 +2893,7 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.Type)
 
-	// Offset (1) 'TaskId'
+	// Offset (1) 'GetTaskId'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.TaskId)
 
@@ -2915,7 +2915,7 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, t.Type...)
 
-	// Field (1) 'TaskId'
+	// Field (1) 'GetTaskId'
 	if len(t.TaskId) > 128 {
 		err = ssz.ErrBytesLength
 		return
@@ -2959,7 +2959,7 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'TaskId'
+	// Offset (1) 'GetTaskId'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
@@ -2989,7 +2989,7 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 		t.Type = append(t.Type, buf...)
 	}
 
-	// Field (1) 'TaskId'
+	// Field (1) 'GetTaskId'
 	{
 		buf = tail[o1:o2]
 		if len(buf) > 128 {
@@ -3034,7 +3034,7 @@ func (t *TaskEvent) SizeSSZ() (size int) {
 	// Field (0) 'Type'
 	size += len(t.Type)
 
-	// Field (1) 'TaskId'
+	// Field (1) 'GetTaskId'
 	size += len(t.TaskId)
 
 	// Field (2) 'IdentityId'
@@ -3062,7 +3062,7 @@ func (t *TaskEvent) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(t.Type)
 
-	// Field (1) 'TaskId'
+	// Field (1) 'GetTaskId'
 	if len(t.TaskId) > 128 {
 		err = ssz.ErrBytesLength
 		return

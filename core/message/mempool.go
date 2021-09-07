@@ -279,7 +279,7 @@ func (lookup *msgLookup) addPowerMsg(msg *types.PowerMsg) {
 //	lookup.taskMsgLock.RLock()
 //	defer lookup.taskMsgLock.RUnlock()
 //
-//	lookup.allTaskMsg[msg.TaskId] = msg
+//	lookup.allTaskMsg[msg.GetTaskId] = msg
 //}
 
 // Remove removes a metaDataMsg from the lookup.

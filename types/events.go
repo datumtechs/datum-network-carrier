@@ -112,7 +112,7 @@ func FetchTaskEventArr(events []*twopb.TaskEvent) []*libTypes.TaskEvent {
 
 //func ConvertTaskEventToDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
 //	return &libTypes.TaskEvent{
-//		TaskId:     event.TaskId,
+//		GetTaskId:     event.GetTaskId,
 //		Type:       event.Type,
 //		IdentityId: event.IdentityId,
 //		Content:    event.Content,
@@ -122,7 +122,7 @@ func FetchTaskEventArr(events []*twopb.TaskEvent) []*libTypes.TaskEvent {
 
 //func FetchTaskEventFromDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
 //	return &libTypes.TaskEvent{
-//		TaskId:     event.TaskId,
+//		GetTaskId:     event.GetTaskId,
 //		Type:       event.Type,
 //		IdentityId: event.IdentityId,
 //		Content:    event.Content,

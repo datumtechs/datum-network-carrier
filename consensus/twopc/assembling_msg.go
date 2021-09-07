@@ -45,7 +45,7 @@ func makePrepareMsg(
 		return nil, err
 	}
 	return &pb.PrepareMsg{
-		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.TaskSender()),
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		TaskInfo:  bys.Bytes(),
 		CreateAt:  startTime,
 		Sign:      nil,
@@ -63,7 +63,7 @@ func makePrepareVote(
 ) *pb.PrepareVote {
 
 	return &pb.PrepareVote{
-		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.TaskSender()),
+		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		VoteOption: voteOption.Bytes(),
 		PeerInfo:   types.ConvertTaskPeerInfo(peerInfo),
 		CreateAt:   startTime,
@@ -81,7 +81,7 @@ func makeConfirmMsg(
 ) *pb.ConfirmMsg {
 
 	msg := &pb.ConfirmMsg{
-		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.TaskSender()),
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		Peers:     peers,
 		CreateAt:  startTime,
 		Sign:      nil,
@@ -101,7 +101,7 @@ func makeConfirmVote(
 ) *pb.ConfirmVote {
 
 	return &pb.ConfirmVote{
-		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.TaskSender()),
+		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		VoteOption: voteOption.Bytes(),
 		CreateAt:   startTime,
 		Sign:       nil,
@@ -117,7 +117,7 @@ func makeCommitMsg(
 ) *pb.CommitMsg {
 
 	msg := &pb.CommitMsg{
-		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.TaskSender()),
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		CreateAt:  startTime,
 		Sign:      nil,
 	}
@@ -133,7 +133,7 @@ func makeTaskResultMsg(
 	startTime uint64,
 ) *pb.TaskResultMsg {
 	return &pb.TaskResultMsg{
-		MsgOption:     makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.TaskSender()),
+		MsgOption:     makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		TaskEventList: types.ConvertTaskEventArr(events),
 		CreateAt:      startTime,
 		Sign:          nil,

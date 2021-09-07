@@ -200,30 +200,30 @@ func (m *Manager) refreshOrgResourceTable() error {
 // TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
 func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint64, task *types.Task) error {
 
-	log.Infof("Start lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.TaskId(), jobNodeId, needSlotCount)
+	log.Infof("Start lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), jobNodeId, needSlotCount)
 
 	// Lock local resource (jobNode)
 	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {
 		log.Errorf("Failed to lock internal power resource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
-			task.TaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to lock internal power resource, {%s}", err)
 	}
 
-	if err := m.dataCenter.StoreJobNodeRunningTaskId(jobNodeId, task.TaskId()); nil != err {
+	if err := m.dataCenter.StoreJobNodeRunningTaskId(jobNodeId, task.GetTaskId()); nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 
 		log.Errorf("Failed to store local taskId and jobNodeId index, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
-			task.TaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to store local taskId and jobNodeId index, {%s}", err)
 	}
-	if err := m.dataCenter.StoreLocalTaskPowerUsed(types.NewLocalTaskPowerUsed(task.TaskId(), jobNodeId, needSlotCount)); nil != err {
+	if err := m.dataCenter.StoreLocalTaskPowerUsed(types.NewLocalTaskPowerUsed(task.GetTaskId(), jobNodeId, needSlotCount)); nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
-		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.TaskId())
+		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.GetTaskId())
 
 		log.Errorf("Failed to store local taskId use jobNode slot, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
-			task.TaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to store local taskId use jobNode slot, {%s}", err)
 	}
 
@@ -232,11 +232,11 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 	if nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
-		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.TaskId())
-		m.dataCenter.RemoveLocalTaskPowerUsed(task.TaskId())
+		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.GetTaskId())
+		m.dataCenter.RemoveLocalTaskPowerUsed(task.GetTaskId())
 
 		log.Errorf("Failed to query local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
-			task.TaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to query local jobNodeResource, {%s}", err)
 	}
 
@@ -251,22 +251,22 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
-		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.TaskId())
-		m.dataCenter.RemoveLocalTaskPowerUsed(task.TaskId())
+		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.GetTaskId())
+		m.dataCenter.RemoveLocalTaskPowerUsed(task.GetTaskId())
 
 		log.Errorf("Failed to update local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
-			task.TaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to update local jobNodeResource, {%s}", err)
 	}
 
 	// 还需要 将资源使用实况 实时上报给  dataCenter  [添加资源使用情况]
 	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
 		log.Errorf("Failed to sync jobNodeResource to dataCenter, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%s}, err: {%s}",
-			task.TaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed tosync jobNodeResource to dataCenter, {%s}", err)
 	}
 
-	log.Infof("Finished lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.TaskId(), jobNodeId, needSlotCount)
+	log.Infof("Finished lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), jobNodeId, needSlotCount)
 	return nil
 }
 
