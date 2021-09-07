@@ -33,9 +33,9 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 		EndAt:         taskData.GetEndAt(),
 		State:         taskData.GetState(),
 		OperationCost: &apipb.TaskResourceCostDeclare{
-			CostProcessor: taskData.GetOperationCost().GetCostProcessor(),
-			CostMem:       taskData.GetOperationCost().GetCostMem(),
-			CostBandwidth: taskData.GetOperationCost().GetCostBandwidth(),
+			Processor: taskData.GetOperationCost().GetProcessor(),
+			Memory:       taskData.GetOperationCost().GetMemory(),
+			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
 			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
 	}

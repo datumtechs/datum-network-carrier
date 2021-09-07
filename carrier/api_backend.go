@@ -572,9 +572,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					},
 					Receivers: make([]*apipb.Organization, 0),
 					OperationCost: &apipb.TaskResourceCostDeclare{
-						CostProcessor: task.TaskData().GetOperationCost().GetCostProcessor(),
-						CostMem:       task.TaskData().GetOperationCost().GetCostMem(),
-						CostBandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
+						Processor: task.TaskData().GetOperationCost().GetProcessor(),
+						Memory:       task.TaskData().GetOperationCost().GetMemory(),
+						Bandwidth: task.TaskData().GetOperationCost().GetBandwidth(),
 						Duration:      task.TaskData().GetOperationCost().GetDuration(),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
@@ -604,9 +604,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
 				powerTask.OperationSpend = &apipb.TaskResourceCostDeclare{
-					CostProcessor: uint32(slotUnit.Processor * slotCount),
-					CostMem:       slotUnit.Mem * slotCount,
-					CostBandwidth: slotUnit.Bandwidth * slotCount,
+					Processor: uint32(slotUnit.Processor * slotCount),
+					Memory:       slotUnit.Mem * slotCount,
+					Bandwidth: slotUnit.Bandwidth * slotCount,
 					Duration:      task.TaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
