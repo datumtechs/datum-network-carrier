@@ -27,9 +27,9 @@ type Backend interface {
 	SendTaskEvent(event *libTypes.TaskEvent) error
 
 	// metadata api
-	GetMetaDataDetail(identityId, metaDataId string) (*pb.GetMetaDataDetailResponse, error)
-	GetMetaDataDetailList() ([]*pb.GetMetaDataDetailResponse, error)
-	GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error)
+	GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error)
+	GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error)
+	GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error)
 
 	// power api
 	GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error)
@@ -38,7 +38,7 @@ type Backend interface {
 	// identity api
 	GetNodeIdentity() (*types.Identity, error)
 	GetIdentityList() ([]*types.Identity, error)
-	GetMetaDataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
+	GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
 
 
 	// task api

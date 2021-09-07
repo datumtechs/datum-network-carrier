@@ -8,7 +8,7 @@ import (
 
 func TestInsertData(t *testing.T) {
 	//InsertData()
-	//InsertMetaData()
+	//InsertMetadata()
 	//InsertResource()
 	//InsertTask()
 	//RevokeIdentity()
