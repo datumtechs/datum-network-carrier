@@ -31,14 +31,14 @@ package types
 //	PowerStateRevoke  PowerState = "revoke"
 //)
 //
-//type MetaDataState string
+//type MetadataState string
 //
-//func (m MetaDataState) String() string { return string(m) }
+//func (m MetadataState) String() string { return string(m) }
 //
 //const (
-//	MetaDataStateCreate  MetaDataState = "create"
-//	MetaDataStateRelease MetaDataState = "release"
-//	MetaDataStateRevoke  MetaDataState = "revoke"
+//	MetadataStateCreate  MetadataState = "create"
+//	MetadataStateRelease MetadataState = "release"
+//	MetadataStateRevoke  MetadataState = "revoke"
 //)
 //
 //type TaskState string

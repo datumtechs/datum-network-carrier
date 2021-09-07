@@ -91,16 +91,16 @@ func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*pb.TaskEventShow {
 	return result
 }
 
-func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailResponse {
-	response := &pb.GetMetaDataDetailResponse{
+func NewOrgMetadataInfoFromMetadata(input *Metadata) *pb.GetMetadataDetailResponse {
+	response := &pb.GetMetadataDetailResponse{
 		Owner: &apipb.Organization{
 			NodeName:   input.data.GetNodeName(),
 			NodeId:     input.data.GetNodeId(),
 			IdentityId: input.data.GetIdentityId(),
 		},
 		Information: &libTypes.MetadataDetail{
-			MetaDataSummary: &libTypes.MetaDataSummary{
-				MetaDataId: input.data.GetDataId(),
+			MetadataSummary: &libTypes.MetadataSummary{
+				MetadataId: input.data.GetDataId(),
 				OriginId:   input.data.GetOriginId(),
 				TableName:  input.data.GetTableName(),
 				Desc:       input.data.GetDesc(),
@@ -118,13 +118,13 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailRespon
 	return response
 }
 
-func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMetaDataDetailResponse {
-	result := make([]*pb.GetMetaDataDetailResponse, 0, input.Len())
+func NewOrgMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMetadataDetailResponse {
+	result := make([]*pb.GetMetadataDetailResponse, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue
 		}
-		result = append(result, NewOrgMetaDataInfoFromMetadata(metadata))
+		result = append(result, NewOrgMetadataInfoFromMetadata(metadata))
 	}
 	return result
 }

@@ -66,7 +66,7 @@ message Power {
   // 算力id
   string power_id = 2;
   // 算力实况
-  ResourceUsageOverview information = 3;
+  ResourceUsageOverview usage_overview = 3;
   // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
   api.protobuf.PowerState state = 4;
 }

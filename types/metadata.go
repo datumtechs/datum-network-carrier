@@ -33,7 +33,7 @@ func (m *Metadata) EncodePb(w io.Writer) error {
 	return err
 }
 
-func MetaDataToJson(meta *Metadata) string {
+func MetadataToJson(meta *Metadata) string {
 	result, err := json.Marshal(meta.data)
 	if err != nil {
 		panic("Convert To json fail")

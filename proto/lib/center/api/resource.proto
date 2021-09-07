@@ -58,7 +58,7 @@ message PowerTotalSummaryResponse {
   // 算力拥有者信息
   api.protobuf.Organization owner = 1;
   // 算力总摘要
-  PowerTotalSummary power = 2;
+  PowerTotalSummary power_total_summary = 2;
 }
 
 message PowerTotalSummaryListResponse {
@@ -72,12 +72,12 @@ message PowerSummaryByIdentityRequest {
 }
 
 message PowerListRequest {
-  uint64 last_update_time = 1;
+  uint64 last_updated = 1;
 }
 
 message PowerListResponse {
   repeated types.Power powers           = 1;
-  uint64               last_update_time = 2;
+  uint64               last_updated = 2;
 }
 
 message SyncPowerRequest {

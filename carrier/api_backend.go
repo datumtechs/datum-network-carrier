@@ -423,27 +423,27 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *libTypes.TaskEvent) error {
 }
 
 // metadata api
-func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*pb.GetMetaDataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error) {
 	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
 	if metadata == nil {
 		return nil, errors.New("not found metadata by special Id")
 	}
-	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
+	return types.NewOrgMetadataInfoFromMetadata(metadata), err
 }
 
-// GetMetaDataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*pb.GetMetaDataDetailResponse, error) {
+// GetMetadataDetailList returns a list of all metadata details in the network.
+func (s *CarrierAPIBackend) GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
-	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
+	return types.NewOrgMetadataInfoArrayFromMetadataArray(metadataArray), err
 }
 
-func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error) {
-	log.WithField("identityId", identityId).Debug("Invoke: GetMetaDataDetailListByOwner executing...")
-	metadataList, err := s.GetMetaDataDetailList()
+func (s *CarrierAPIBackend) GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error) {
+	log.WithField("identityId", identityId).Debug("Invoke: GetMetadataDetailListByOwner executing...")
+	metadataList, err := s.GetMetadataDetailList()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*pb.GetMetaDataDetailResponse, 0)
+	result := make([]*pb.GetMetadataDetailResponse, 0)
 	for _, metadata := range metadataList {
 		if metadata.Owner.IdentityId == identityId {
 			result = append(result, metadata)
@@ -680,7 +680,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 	return s.carrier.carrierDB.GetIdentityList()
 }
 
-func (s *CarrierAPIBackend) GetMetaDataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
+func (s *CarrierAPIBackend) GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
 	return s.carrier.carrierDB.GetMetadataAuthorityList(identityId, lastUpdate)
 }
 

@@ -162,22 +162,22 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 
 //type TaskDataSupplierShow struct {
 //	MemberInfo   *TaskNodeAlias `json:"memberInfo"`
-//	MetaDataId   string         `json:"metaId"`
-//	MetaDataName string         `json:"metaName"`
+//	MetadataId   string         `json:"metaId"`
+//	MetadataName string         `json:"metaName"`
 //}
 
 //func ConvertTaskDataSupplierShowToPB(dataSupplier *TaskDataSupplierShow) *pb.TaskDataSupplierShow {
 //	return &pb.TaskDataSupplierShow{
 //		MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
-//		MetaDataId:   dataSupplier.MetaDataId,
-//		MetaDataName: dataSupplier.MetaDataName,
+//		MetadataId:   dataSupplier.MetadataId,
+//		MetadataName: dataSupplier.MetadataName,
 //	}
 //}
 //func ConvertTaskDataSupplierShowFromPB(dataSupplier *pb.TaskDataSupplierShow) *TaskDataSupplierShow {
 //	return &TaskDataSupplierShow{
 //		MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
-//		MetaDataId:   dataSupplier.MetaDataId,
-//		MetaDataName: dataSupplier.MetaDataName,
+//		MetadataId:   dataSupplier.MetadataId,
+//		MetadataName: dataSupplier.MetadataName,
 //	}
 //}
 //func ConvertTaskDataSupplierShowArrToPB(dataSuppliers []*TaskDataSupplierShow) []*pb.TaskDataSupplierShow {
@@ -186,8 +186,8 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 //
 //		supplier := &pb.TaskDataSupplierShow{
 //			MemberInfo:   ConvertTaskNodeAliasToPB(dataSupplier.MemberInfo),
-//			MetaDataId:   dataSupplier.MetaDataId,
-//			MetaDataName: dataSupplier.MetaDataName,
+//			MetadataId:   dataSupplier.MetadataId,
+//			MetadataName: dataSupplier.MetadataName,
 //		}
 //		arr[i] = supplier
 //	}
@@ -200,8 +200,8 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 //
 //		supplier := &TaskDataSupplierShow{
 //			MemberInfo:   ConvertTaskNodeAliasFromPB(dataSupplier.MemberInfo),
-//			MetaDataId:   dataSupplier.MetaDataId,
-//			MetaDataName: dataSupplier.MetaDataName,
+//			MetadataId:   dataSupplier.MetadataId,
+//			MetadataName: dataSupplier.MetadataName,
 //		}
 //		arr[i] = supplier
 //	}

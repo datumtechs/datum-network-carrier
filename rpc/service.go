@@ -115,7 +115,7 @@ func (s *Service) Start() error {
 
 	// init server instance and register server.
 	pb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{ B: s.cfg.BackendAPI })
-	pb.RegisterMetaDataServiceServer(s.grpcServer, &metadata.Server{ B: s.cfg.BackendAPI })
+	pb.RegisterMetadataServiceServer(s.grpcServer, &metadata.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
