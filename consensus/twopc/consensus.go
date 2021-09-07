@@ -356,7 +356,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 
 	sender := fetchOrgByPartyRole(voteMsg.MsgOption.SenderPartyId, voteMsg.MsgOption.SenderRole, proposalTask.Task)
 	if nil == sender {
-		log.Errorf("Failed to verify partyId and taskRole on task, proposalId: {%s}, taskId: {%s}", voteMsg.MsgOption.ProposalId.String(), proposalTask.GetTaskId())
+		log.Errorf("Failed to verify partyId and taskRole of task on onPrepareVote, proposalId: {%s}, taskId: {%s}", voteMsg.MsgOption.ProposalId.String(), proposalTask.GetTaskId())
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
@@ -367,7 +367,7 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			voteMsg.MsgOption.Owner.GetIdentityId(), voteMsg.MsgOption.ReceiverPartyId)
 	}
 
-	identityValid, err := t.verifyVoteRole(voteMsg.MsgOption.ProposalId, sender.GetPartyId(), sender.GetIdentityId(), voteMsg.MsgOption.SenderRole, proposalTask.Task)
+	identityValid, err := t.verifyPrepareVoteRole(voteMsg.MsgOption.ProposalId, sender.GetPartyId(), sender.GetIdentityId(), voteMsg.MsgOption.SenderRole, proposalTask.Task)
 	if nil != err {
 		return err
 	}
@@ -380,10 +380,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	// Store vote
 	t.storePrepareVote(voteMsg)
 
-	dataSupplierNeedCount := t.getNeedVotingCount(apipb.TaskRole_TaskRole_DataSupplier, proposalTask.Task)
-	powerSupplierNeedCount := t.getNeedVotingCount(apipb.TaskRole_TaskRole_PowerSupplier, proposalTask.Task)
-	receiverNeedCount := t.getNeedVotingCount(apipb.TaskRole_TaskRole_Receiver, proposalTask.Task)
-	totalNeedVoteCount := dataSupplierNeedCount + powerSupplierNeedCount + receiverNeedCount
+	totalNeedVoteCount := t.getNeedVotingCount(apipb.TaskRole_TaskRole_DataSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apipb.TaskRole_TaskRole_PowerSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apipb.TaskRole_TaskRole_Receiver, proposalTask.Task)
 	yesVoteCount := t.getTaskPrepareYesVoteCount(voteMsg.MsgOption.ProposalId)
 	totalVotedCount := t.getTaskPrepareTotalVoteCount(voteMsg.MsgOption.ProposalId)
 
@@ -517,91 +516,47 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		return ctypes.ErrProposalPrepareVoteTimeout
 	}
 
-	if t.state.IsRecvTaskOnProposalState(voteMsg.ProposalId) {
-		return ctypes.ErrMsgTaskDirInvalid
-	}
-	// find the task of proposal on sendTasks
-	task, ok := t.GetSendTaskWithOk(proposalState.TaskId)
+	// find the task of proposal on proposalTask
+	proposalTask, ok := t.getProposalTask(orgProposalState.GetTaskId())
 	if !ok {
-		return ctypes.ErrProposalTaskNotFound
-	}
-
-	// Voter voted repeatedly
-	if t.hasConfirmVoting(voteMsg.MsgOption.Owner.IdentityId, voteMsg.ProposalId) {
-		return ctypes.ErrPrepareVoteRepeatedly
-	}
-
-	dataSupplierCount := uint32(len(task.TaskData().DataSupplier) - 1)
-	powerSupplierCount := uint32(len(task.TaskData().PowerSupplier))
-	resulterCount := uint32(len(task.TaskData().Receivers))
-	taskMemCount := dataSupplierCount + powerSupplierCount + resulterCount
-
-	var identityValid bool
-	switch voteMsg.TaskRole {
-	case types.DataSupplier:
-		if dataSupplierCount == t.getTaskDataSupplierConfirmTotalVoteCount(voteMsg.MsgOption.ProposalId) {
-			return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
-				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
-				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
-		}
-		for _, dataSupplier := range task.TaskData().DataSupplier {
-
-			// identity + partyId
-			if dataSupplier.MemberInfo.IdentityId == voteMsg.Owner.IdentityId && dataSupplier.MemberInfo.PartyId == voteMsg.Owner.PartyId {
-				// TODO validate vote sign
-				identityValid = true
-				break
-			}
-		}
-	case types.PowerSupplier:
-		if powerSupplierCount == t.getTaskPowerSupplierConfirmTotalVoteCount(voteMsg.ProposalId) {
-			return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
-				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
-				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
-		}
-		for _, powerSupplier := range task.TaskData().PowerSupplier {
-
-			// identity + partyId
-			if powerSupplier.Organization.IdentityId == voteMsg.Owner.IdentityId && powerSupplier.Organization.PartyId == voteMsg.Owner.PartyId {
-				// TODO validate vote sign
-				identityValid = true
-				break
-			}
-		}
-	case types.ResultSupplier:
-		if resulterCount == t.getTaskReceiverConfirmTotalVoteCount(voteMsg.ProposalId) {
-			return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
-				ctypes.ErrVoteCountOverflow, task.TaskData().TaskId, voteMsg.TaskRole.String(),
-				voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
-		}
-		for _, resulter := range task.TaskData().Receivers {
-
-			// identity + partyId
-			if resulter.Receiver.IdentityId == voteMsg.Owner.IdentityId && resulter.Receiver.PartyId == voteMsg.Owner.PartyId {
-				// TODO validate vote sign
-				identityValid = true
-				break
-			}
-		}
-	default:
 		return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
-			ctypes.ErrMsgOwnerNodeIdInvalid, task.TaskData().TaskId, voteMsg.TaskRole.String(),
-			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
+			ctypes.ErrProposalTaskNotFound, proposalTask.GetTaskData().GetTaskId(), voteMsg.MsgOption.ReceiverRole.String(),
+			voteMsg.MsgOption.Owner.GetIdentityId(), voteMsg.MsgOption.ReceiverPartyId)
+	}
+
+	sender := fetchOrgByPartyRole(voteMsg.MsgOption.SenderPartyId, voteMsg.MsgOption.SenderRole, proposalTask.Task)
+	if nil == sender {
+		log.Errorf("Failed to verify partyId and taskRole of task on onConfirmVote, proposalId: {%s}, taskId: {%s}", voteMsg.MsgOption.ProposalId.String(), proposalTask.GetTaskId())
+		return ctypes.ErrConsensusMsgInvalid
+	}
+
+	// Voter <the vote sender> voted repeatedly
+	if t.hasConfirmVoting(voteMsg.MsgOption.ProposalId, sender) {
+		return ctypes.ErrConfirmVoteRepeatedly
+	}
+
+	identityValid, err := t.verifyConfirmVoteRole(voteMsg.MsgOption.ProposalId, sender.GetPartyId(), sender.GetIdentityId(), voteMsg.MsgOption.SenderRole, proposalTask.Task)
+	if nil != err {
+		return err
 	}
 	if !identityValid {
 		return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
-			ctypes.ErrProposalConfirmVoteVoteOwnerInvalid, task.TaskData().TaskId, voteMsg.TaskRole.String(),
-			voteMsg.Owner.IdentityId, voteMsg.Owner.PartyId)
+			ctypes.ErrProposalConfirmVoteVoteOwnerInvalid, proposalTask.GetTaskData().GetTaskId(), voteMsg.MsgOption.SenderRole.String(), sender.GetIdentityId(), sender.GetPartyId())
 	}
 
 	// Store vote
 	t.storeConfirmVote(voteMsg)
 
-	yesVoteCount := t.getTaskConfirmYesVoteCount(voteMsg.ProposalId)
-	totalVoteCount := t.getTaskConfirmTotalVoteCount(voteMsg.ProposalId)
-	// Change the propoState to `commitPeriod`
-	if taskMemCount == totalVoteCount {
-		if taskMemCount == yesVoteCount {
+	totalNeedVoteCount := t.getNeedVotingCount(apipb.TaskRole_TaskRole_DataSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apipb.TaskRole_TaskRole_PowerSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apipb.TaskRole_TaskRole_Receiver, proposalTask.Task)
+	yesVoteCount := t.getTaskConfirmYesVoteCount(voteMsg.MsgOption.ProposalId)
+	totalVotedCount := t.getTaskConfirmTotalVoteCount(voteMsg.MsgOption.ProposalId)
+
+	if totalNeedVoteCount == totalVotedCount {
+		// Change the proposalState to `confirmPeriod`
+		if totalNeedVoteCount == yesVoteCount {
+
 
 			now := uint64(timeutils.UnixMsec())
 
@@ -610,21 +565,13 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 			go func() {
 
-				if err := t.sendCommitMsg(voteMsg.ProposalId, task, now); nil != err {
+				if err := t.sendCommitMsg(voteMsg.MsgOption.ProposalId, proposalTask.Task, now); nil != err {
 
 					log.Errorf("Failed to call`SendTwoPcCommitMsg` proposalId: {%s}, taskId: {%s}, err: \n%s",
-						proposalState.ProposalId.String(), task.TaskId(), err)
+						voteMsg.MsgOption.ProposalId, proposalTask.GetTaskId(), err)
 
 					// Send consensus result
-					t.replyTaskConsensusResult(&types.ConsensusResult{
-						TaskConsResult: &types.TaskConsResult{
-							TaskId: task.TaskId(),
-							Status: types.TaskConsensusInterrupt,
-							Done:   false,
-							Err:    errors.New("failed to call `SendTwoPcCommitMsg`"),
-						},
-						//Resources:
-					})
+					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("failed to call `SendTwoPcCommitMsg`")))
 
 				} else {
 					// If sending `CommitMsg` is successful,
@@ -640,7 +587,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 
 				// 不成功, commitMsg 有失败的
 				// 成功,  commitMsg 全发出去之后，预示着 共识完成
-				t.removeProposalStateAndTask(voteMsg.ProposalId)
+				t.removeProposalStateAndTask(voteMsg.MsgOption.ProposalId)
 
 			}()
 
@@ -650,18 +597,10 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			go func() {
 
 				log.Debugf("ConfirmVoting failed on consensus's confirm epoch, the `YES` vote count is no enough, `YES` vote count: {%d}, need total count: {%d}",
-					yesVoteCount, totalVoteCount)
+					yesVoteCount, totalNeedVoteCount)
 
-				t.replyTaskConsensusResult(&types.ConsensusResult{
-					TaskConsResult: &types.TaskConsResult{
-						TaskId: task.TaskId(),
-						Status: types.TaskConsensusInterrupt,
-						Done:   false,
-						Err:    errors.New("The cofirmMsg voting result was not passed"),
-					},
-					//Resources:
-				})
-				t.removeProposalStateAndTask(voteMsg.ProposalId)
+				t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("The cofirmMsg voting result was not passed")))
+				t.removeProposalStateAndTask(voteMsg.MsgOption.ProposalId)
 			}()
 
 			// 共识 未达成. 删除本地 资源
