@@ -711,7 +711,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 
 		// task 参与方
 		for _, dataSupplier := range task.TaskData().DataSuppliers {
-			if dataSupplier.MemberInfo.IdentityId == localIdentityId {
+			if dataSupplier.Organization.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_DataSupplier)
 			}
 		}
