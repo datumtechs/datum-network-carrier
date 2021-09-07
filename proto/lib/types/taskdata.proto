@@ -80,7 +80,7 @@ message TaskPowerSupplier {
 
 // 任务数据提供方基本信息
 message TaskDataSupplier {
-  api.protobuf.TaskOrganization       member_info = 1;                                // 身份信息
+  api.protobuf.TaskOrganization       organization = 1;                                // 身份信息
   string                              metadata_id = 2;                                // 元数据Id
   string                              metadata_name = 3;                              // 元数据名称
   repeated types.MetadataColumn       columns = 4;
