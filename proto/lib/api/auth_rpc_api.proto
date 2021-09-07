@@ -31,54 +31,54 @@ message GetIdentityListResponse {
 }
 
 // 用户对元数据使用授权申请 req
-message ApplyMetaDataAuthorityRequest {
+message ApplyMetadataAuthorityRequest {
   string                  user = 1;                            // 发起任务的用户的信息 (task是属于用户的)
   api.protobuf.UserType   user_type = 2;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  types.MetaDataAuthority auth = 3;                            // 元数据使用授权信息
+  types.MetadataAuthority auth = 3;                            // 元数据使用授权信息
   bytes                   sign = 4;                            // 发起数据授权申请的账户的签名
 }
 // 用户对元数据使用授权申请 resp
-message ApplyMetaDataAuthorityResponse {
+message ApplyMetadataAuthorityResponse {
   int32  status = 1;                       // 响应码
   string msg = 2;                          // 错误信息
-  string meta_data_auth_id = 3;            // 元数据授权申请Id
+  string metadata_auth_id = 3;            // 元数据授权申请Id
 }
 
 // 组织对用户的数据授权申请做审核 req
-message AuditMetaDataAuthorityRequest {
-  string                    meta_data_auth_id = 1;                  // 元数据授权申请Id
-  api.protobuf.AuditMetaDataOption audit = 2;                       // 审核意见
+message AuditMetadataAuthorityRequest {
+  string                    metadata_auth_id = 1;                  // 元数据授权申请Id
+  api.protobuf.AuditMetadataOption audit = 2;                       // 审核意见
 }
 // 组织对用户的数据授权申请做审核 resp
-message AuditMetaDataAuthorityResponse {
+message AuditMetadataAuthorityResponse {
   // the code for response
   int32 status = 1;
   // the message for response
   string msg = 2;
-  api.protobuf.AuditMetaDataOption audit = 3;                              // 审核结果 (回显)
+  api.protobuf.AuditMetadataOption audit = 3;                              // 审核结果 (回显)
 }
 
 // 当前组织的某个用户对单个元数据的授权申请及审核结果详情
-message GetMetaDataAuthority {
-  string                    meta_data_auth_id = 1;               // 元数据授权申请Id
+message GetMetadataAuthority {
+  string                    metadata_auth_id = 1;               // 元数据授权申请Id
   string                    user = 2;                            // 发起任务的用户的信息 (task是属于用户的)
   api.protobuf.UserType     user_type = 3;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  types.MetaDataAuthority   auth = 4;                            // 元数据使用授权信息
-  api.protobuf.AuditMetaDataOption audit = 5;                    // 审核结果
+  types.MetadataAuthority   auth = 4;                            // 元数据使用授权信息
+  api.protobuf.AuditMetadataOption audit = 5;                    // 审核结果
   uint64                    apply_at = 6;                        // 发起授权申请的时间 (单位: ms)
   uint64                    audit_at = 7;                        // 审核授权申请的时间 (单位: ms)
 }
 // 当前组织的所有元数据的授权申请及审核结果详情列表 resp
-message GetMetaDataAuthorityListResponse {
+message GetMetadataAuthorityListResponse {
   int32                         status = 1;                       // 响应码
   string                        msg = 2;                          // 错误信息
-  repeated GetMetaDataAuthority list = 3;                         // 数据授权信息列表
+  repeated GetMetadataAuthority list = 3;                         // 数据授权信息列表
 }
 
 service AuthService {
 
   // 数据授权申请
-  rpc ApplyMetaDataAuthority(ApplyMetaDataAuthorityRequest) returns (ApplyMetaDataAuthorityResponse) {
+  rpc ApplyMetadataAuthority(ApplyMetadataAuthorityRequest) returns (ApplyMetadataAuthorityResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/applyMetaDataAuth"
       body: "*"
@@ -86,7 +86,7 @@ service AuthService {
   }
 
   // 数据授权审核
-  rpc AuditMetaDataAuthority(AuditMetaDataAuthorityRequest) returns (AuditMetaDataAuthorityResponse) {
+  rpc AuditMetadataAuthority(AuditMetadataAuthorityRequest) returns (AuditMetadataAuthorityResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/auditMetaDataAuth"
       body: "*"
@@ -94,7 +94,7 @@ service AuthService {
   }
 
   // 获取数据授权申请列表
-  rpc GetMetaDataAuthorityList(google.protobuf.Empty) returns (GetMetaDataAuthorityListResponse) {
+  rpc GetMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/metaDataAuthList"
       body: "*"
