@@ -151,9 +151,9 @@ func InsertTask() {
 			IdentityId: Identity,
 		},
 		OperationCost: &apipb.TaskResourceCostDeclare{
-			CostMem:       12,
-			CostBandwidth: 120,
-			CostProcessor: 8,
+			Memory:       12,
+			Bandwidth: 120,
+			Processor: 8,
 		},
 		DataSuppliers: []*libTypes.TaskDataSupplier{
 			{
