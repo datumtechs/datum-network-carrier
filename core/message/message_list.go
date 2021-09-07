@@ -86,29 +86,29 @@ func (lis *PowerMsgList) FirstElement() *types.PowerMsg {
 	return cache[len(cache)-1]
 }
 
-type MetaDataMsgList struct {
-	items  map[uint64]*types.MetaDataMsg
+type MetadataMsgList struct {
+	items  map[uint64]*types.MetadataMsg
 	prioty *timeHeap
-	cache  types.MetaDataMsgs // Cache of the metaDataMsgs already sorted
+	cache  types.MetadataMsgs // Cache of the metaDataMsgs already sorted
 }
 
-func newMetaDataMsgList() *MetaDataMsgList {
-	return &MetaDataMsgList{
-		items:  make(map[uint64]*types.MetaDataMsg),
+func newMetadataMsgList() *MetadataMsgList {
+	return &MetadataMsgList{
+		items:  make(map[uint64]*types.MetadataMsg),
 		prioty: new(timeHeap),
 	}
 }
 
-func (lis *MetaDataMsgList) put(msg *types.MetaDataMsg) {
+func (lis *MetadataMsgList) put(msg *types.MetadataMsg) {
 	heap.Push(lis.prioty, msg.CreateAt())
 	lis.items[msg.CreateAt()] = msg
 }
 
-func (lis *MetaDataMsgList) get(createAt uint64) *types.MetaDataMsg {
+func (lis *MetadataMsgList) get(createAt uint64) *types.MetadataMsg {
 	return lis.items[createAt]
 }
 
-func (lis *MetaDataMsgList) reheap() {
+func (lis *MetadataMsgList) reheap() {
 	*lis.prioty = make([]uint64, 0, len(lis.items))
 	for time := range lis.items {
 		*lis.prioty = append(*lis.prioty, time)
@@ -116,10 +116,10 @@ func (lis *MetaDataMsgList) reheap() {
 	heap.Init(lis.prioty)
 	lis.cache = nil
 }
-func (lis *MetaDataMsgList) flatten() types.MetaDataMsgs {
+func (lis *MetadataMsgList) flatten() types.MetadataMsgs {
 	// If the sorting was not cached yet, create and cache it
 	if lis.cache == nil {
-		lis.cache = make(types.MetaDataMsgs, 0, len(lis.items))
+		lis.cache = make(types.MetadataMsgs, 0, len(lis.items))
 		for _, msg := range lis.items {
 			lis.cache = append(lis.cache, msg)
 		}
@@ -128,23 +128,23 @@ func (lis *MetaDataMsgList) flatten() types.MetaDataMsgs {
 	return lis.cache
 }
 
-// Flatten returns the MetaDataMsgs sequence sorted by timestamp size order
-func (lis *MetaDataMsgList) Flatten() types.MetaDataMsgs {
+// Flatten returns the MetadataMsgs sequence sorted by timestamp size order
+func (lis *MetadataMsgList) Flatten() types.MetadataMsgs {
 	// Copy the cache to prevent accidental modifications
 	cache := lis.flatten()
-	txs := make(types.MetaDataMsgs, len(cache))
+	txs := make(types.MetadataMsgs, len(cache))
 	copy(txs, cache)
 	return txs
 }
 
 // LastElement returns the last element of the flat list
-func (lis *MetaDataMsgList) LastElement() *types.MetaDataMsg {
+func (lis *MetadataMsgList) LastElement() *types.MetadataMsg {
 	cache := lis.flatten()
 	return cache[len(cache)-1]
 }
 
 // FirstElement returns the first element of the flat list
-func (lis *MetaDataMsgList) FirstElement() *types.MetaDataMsg {
+func (lis *MetadataMsgList) FirstElement() *types.MetadataMsg {
 	cache := lis.flatten()
 	return cache[len(cache)-1]
 }

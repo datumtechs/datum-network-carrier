@@ -121,26 +121,26 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 }
 
 // 数据授权申请（）
-func (svr *Server) ApplyMetaDataAuthority(context.Context, *pb.ApplyMetaDataAuthorityRequest) (*pb.ApplyMetaDataAuthorityResponse, error) {
+func (svr *Server) ApplyMetadataAuthority(context.Context, *pb.ApplyMetadataAuthorityRequest) (*pb.ApplyMetadataAuthorityResponse, error) {
 	return nil, nil
 }
 
 // 数据授权审核（管理台调用）
-func (svr *Server) AuditMetaDataAuthority(context.Context, *pb.AuditMetaDataAuthorityRequest) (*pb.AuditMetaDataAuthorityResponse, error) {
+func (svr *Server) AuditMetadataAuthority(context.Context, *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
 	return nil, nil
 }
 
 // 获取数据授权申请列表（展示地方调用）
-func (svr *Server) GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetaDataAuthorityListResponse, error) {
-	authorityList, err := svr.B.GetMetaDataAuthorityList("", uint64(timeutils.UnixMsec()))
+func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
+	authorityList, err := svr.B.GetMetadataAuthorityList("", uint64(timeutils.UnixMsec()))
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetMetaDataAuthorityList failed")
+		log.WithError(err).Error("RPC-API:GetMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList
 	}
-	arr := make([]*pb.GetMetaDataAuthority, len(authorityList))
+	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
-		data := &pb.GetMetaDataAuthority{
-			MetaDataAuthId: auth.Data().AuthRecordId,
+		data := &pb.GetMetadataAuthority{
+			MetadataAuthId: auth.Data().AuthRecordId,
 			User:           auth.Data().User,
 			UserType:       auth.Data().UserType,
 			Auth:           auth.Data().DataRecord,
@@ -151,7 +151,7 @@ func (svr *Server) GetMetaDataAuthorityList(context.Context, *emptypb.Empty) (*p
 		arr[i] = data
 	}
 	log.Debugf("Query all authority list, len: {%d}", len(authorityList))
-	return &pb.GetMetaDataAuthorityListResponse{
+	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		List:   arr,

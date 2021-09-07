@@ -60,7 +60,7 @@ func InsertData() {
 	}
 }
 
-func InsertMetaData() {
+func InsertMetadata() {
 	dc := serverObj()
 	metadata := types.NewMetadata(&libTypes.MetadataPB{
 		IdentityId: Identity,
@@ -75,7 +75,7 @@ func InsertMetaData() {
 		Columns:    2,
 		Size_:      3,
 		FileType:   apipb.OriginFileType_FileType_CSV,
-		State:      apipb.MetaDataState_MetaDataState_Released,
+		State:      apipb.MetadataState_MetadataState_Released,
 		HasTitle:   false,
 		MetadataColumns: []*libTypes.MetadataColumn{
 			{
@@ -157,7 +157,7 @@ func InsertTask() {
 		},
 		DataSuppliers: []*libTypes.TaskDataSupplier{
 			{
-				MemberInfo: &apipb.TaskOrganization{
+				Organization: &apipb.TaskOrganization{
 					PartyId:    "",
 					NodeId:     Identity,
 					NodeName:   NodeName,
@@ -257,12 +257,12 @@ func GetData() {
 	//endregion
 
 	//region GetMetadataByDataId
-	MetaDataByDataId, err := dc.GetMetadataByDataId(DataId)
+	MetadataByDataId, err := dc.GetMetadataByDataId(DataId)
 	if nil != err {
 		fmt.Println("err", err)
 	}
 	fmt.Println("GetMetadataByDataId result is:")
-	fmt.Println(types.MetaDataToJson(MetaDataByDataId))
+	fmt.Println(types.MetadataToJson(MetadataByDataId))
 	// endregion
 
 	// region GetResourceListByNodeId

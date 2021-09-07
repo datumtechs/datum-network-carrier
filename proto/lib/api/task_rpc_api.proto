@@ -97,10 +97,10 @@ message PublishTaskDeclareRequest {
 // 任务数据供应者信息 (任务详情定义用)
 message TaskDataSupplierDeclare {
   api.protobuf.TaskOrganization organization = 1;                         // 身份信息
-  TaskMetaDataDeclare           meta_data_info = 2;                      // 任务使用的元数据信息
+  TaskMetadataDeclare           metadata_info = 2;                      // 任务使用的元数据信息
 }
-message TaskMetaDataDeclare {
-  string          meta_data_id = 1;                                 // 元数据id
+message TaskMetadataDeclare {
+  string          metadata_id = 1;                                 // 元数据id
   repeated uint64 column_index_list = 2;                            // 该任务使用原始数据的第几列
 }
 // 发布任务 resp

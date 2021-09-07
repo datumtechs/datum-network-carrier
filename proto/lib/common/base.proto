@@ -55,7 +55,7 @@ enum CommonStatus {
   CommonStatus_NonNormal = 2;
 }
 
-enum AuditMetaDataOption {
+enum AuditMetadataOption {
   Audit_Pending = 0;          // 等待审核中
   Audit_Passed = 1;           // 审核通过
   Audit_Refused = 2;          // 审核拒绝
@@ -68,15 +68,15 @@ enum OriginFileType {
 }
 
 // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
-enum MetaDataState {
-  MetaDataState_Unknown = 0;
-  MetaDataState_Created = 1;
-  MetaDataState_Released = 2;
-  MetaDataState_Revoked = 3;
+enum MetadataState {
+  MetadataState_Unknown = 0;
+  MetadataState_Created = 1;
+  MetadataState_Released = 2;
+  MetadataState_Revoked = 3;
 }
 
 // 元数据的使用方式类型枚举
-enum MetaDataUsageType {
+enum MetadataUsageType {
   Usage_Unknown = 0;        // 未定义类型
   Usage_Period = 1;         // 依照时间段来使用
   Usage_Times = 2;          // 依照次数来使用

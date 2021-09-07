@@ -15,7 +15,7 @@ func (dc *DataCenter) HasIdentity(identity *apipb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	responses, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{
-		LastUpdateTime: uint64(timeutils.Now().Second()),
+		LastUpdated: uint64(timeutils.Now().Second()),
 	})
 	if err != nil {
 		return false, err
@@ -64,7 +64,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{LastUpdateTime: uint64(timeutils.UnixMsec())})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{LastUpdated: uint64(timeutils.UnixMsec())})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
@@ -79,7 +79,7 @@ func (dc *DataCenter) SaveMetadataAuthority(request *types.MetadataAuth) error {
 		User:                 request.Data().User,
 		UserType:             request.Data().UserType,
 		Auth:                 request.Data().DataRecord,
-		MetaDataAuthId:       request.Data().AuthRecordId,
+		MetadataAuthId:       request.Data().AuthRecordId,
 	})
 	if err != nil {
 		return err
@@ -90,11 +90,11 @@ func (dc *DataCenter) SaveMetadataAuthority(request *types.MetadataAuth) error {
 	return errors.New(response.GetMsg())
 }
 
-func (dc *DataCenter) AuditMetadataAuthority(authId string, result apipb.AuditMetaDataOption) error {
+func (dc *DataCenter) AuditMetadataAuthority(authId string, result apipb.AuditMetadataOption) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.AuditMetadataAuthority(dc.ctx, &api.AuditMetadataAuthorityRequest{
-		MetaDataAuthId:       authId,
+		MetadataAuthId:       authId,
 		Audit:                result,
 	})
 	if err != nil {
@@ -111,7 +111,7 @@ func (dc *DataCenter) GetMetadataAuthorityList(identityId string, lastUpdate uin
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.MetadataAuthorityListRequest{
 		IdentityId:           identityId,
-		LastUpdate:           lastUpdate,
+		LastUpdated:           lastUpdate,
 	})
 	if err != nil {
 		return nil, err
