@@ -81,8 +81,8 @@ func GetResourceTaskIdsKey(jonNodeId string) []byte {
 func GetResourcePowerIdMapingKey(powerId string) []byte {
 	return append(resourcePowerIdMapingKeyPrefix, []byte(powerId)...)
 }
-//func GetResourceMetaDataIdMapingKey(powerId string) []byte {
-//	return append(resourceMetaDataIdMapingKeyPrefix, []byte(powerId)...)
+//func GetResourceMetadataIdMapingKey(powerId string) []byte {
+//	return append(resourceMetadataIdMapingKeyPrefix, []byte(powerId)...)
 //}
 
 func GetDataResourceDiskUsedKey(metaDataId string) []byte {

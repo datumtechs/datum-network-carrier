@@ -29,27 +29,27 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-type MetaDataSaveRequest struct {
+type MetadataSaveRequest struct {
 	Owner                *common.Organization    `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	MetaSummary          *types.MetaDataSummary  `protobuf:"bytes,2,opt,name=meta_summary,json=metaSummary,proto3" json:"meta_summary,omitempty"`
+	MetaSummary          *types.MetadataSummary  `protobuf:"bytes,2,opt,name=meta_summary,json=metaSummary,proto3" json:"meta_summary,omitempty"`
 	ColumnMeta           []*types.MetadataColumn `protobuf:"bytes,3,rep,name=column_meta,json=columnMeta,proto3" json:"column_meta,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
 	XXX_unrecognized     []byte                  `json:"-"`
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *MetaDataSaveRequest) Reset()         { *m = MetaDataSaveRequest{} }
-func (m *MetaDataSaveRequest) String() string { return proto.CompactTextString(m) }
-func (*MetaDataSaveRequest) ProtoMessage()    {}
-func (*MetaDataSaveRequest) Descriptor() ([]byte, []int) {
+func (m *MetadataSaveRequest) Reset()         { *m = MetadataSaveRequest{} }
+func (m *MetadataSaveRequest) String() string { return proto.CompactTextString(m) }
+func (*MetadataSaveRequest) ProtoMessage()    {}
+func (*MetadataSaveRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_95cdd10181701ff1, []int{0}
 }
-func (m *MetaDataSaveRequest) XXX_Unmarshal(b []byte) error {
+func (m *MetadataSaveRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaDataSaveRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataSaveRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaDataSaveRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataSaveRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -59,60 +59,60 @@ func (m *MetaDataSaveRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte,
 		return b[:n], nil
 	}
 }
-func (m *MetaDataSaveRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaDataSaveRequest.Merge(m, src)
+func (m *MetadataSaveRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataSaveRequest.Merge(m, src)
 }
-func (m *MetaDataSaveRequest) XXX_Size() int {
+func (m *MetadataSaveRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaDataSaveRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaDataSaveRequest.DiscardUnknown(m)
+func (m *MetadataSaveRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataSaveRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaDataSaveRequest proto.InternalMessageInfo
+var xxx_messageInfo_MetadataSaveRequest proto.InternalMessageInfo
 
-func (m *MetaDataSaveRequest) GetOwner() *common.Organization {
+func (m *MetadataSaveRequest) GetOwner() *common.Organization {
 	if m != nil {
 		return m.Owner
 	}
 	return nil
 }
 
-func (m *MetaDataSaveRequest) GetMetaSummary() *types.MetaDataSummary {
+func (m *MetadataSaveRequest) GetMetaSummary() *types.MetadataSummary {
 	if m != nil {
 		return m.MetaSummary
 	}
 	return nil
 }
 
-func (m *MetaDataSaveRequest) GetColumnMeta() []*types.MetadataColumn {
+func (m *MetadataSaveRequest) GetColumnMeta() []*types.MetadataColumn {
 	if m != nil {
 		return m.ColumnMeta
 	}
 	return nil
 }
 
-type RevokeMetaDataRequest struct {
+type RevokeMetadataRequest struct {
 	// 元数据拥有者
 	Owner                *common.Organization `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	MetaDataId           string               `protobuf:"bytes,2,opt,name=meta_data_id,json=metaDataId,proto3" json:"meta_data_id,omitempty"`
+	MetadataId           string               `protobuf:"bytes,2,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
 }
 
-func (m *RevokeMetaDataRequest) Reset()         { *m = RevokeMetaDataRequest{} }
-func (m *RevokeMetaDataRequest) String() string { return proto.CompactTextString(m) }
-func (*RevokeMetaDataRequest) ProtoMessage()    {}
-func (*RevokeMetaDataRequest) Descriptor() ([]byte, []int) {
+func (m *RevokeMetadataRequest) Reset()         { *m = RevokeMetadataRequest{} }
+func (m *RevokeMetadataRequest) String() string { return proto.CompactTextString(m) }
+func (*RevokeMetadataRequest) ProtoMessage()    {}
+func (*RevokeMetadataRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_95cdd10181701ff1, []int{1}
 }
-func (m *RevokeMetaDataRequest) XXX_Unmarshal(b []byte) error {
+func (m *RevokeMetadataRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *RevokeMetaDataRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *RevokeMetadataRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_RevokeMetaDataRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_RevokeMetadataRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -122,53 +122,53 @@ func (m *RevokeMetaDataRequest) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *RevokeMetaDataRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_RevokeMetaDataRequest.Merge(m, src)
+func (m *RevokeMetadataRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RevokeMetadataRequest.Merge(m, src)
 }
-func (m *RevokeMetaDataRequest) XXX_Size() int {
+func (m *RevokeMetadataRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *RevokeMetaDataRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_RevokeMetaDataRequest.DiscardUnknown(m)
+func (m *RevokeMetadataRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_RevokeMetadataRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_RevokeMetaDataRequest proto.InternalMessageInfo
+var xxx_messageInfo_RevokeMetadataRequest proto.InternalMessageInfo
 
-func (m *RevokeMetaDataRequest) GetOwner() *common.Organization {
+func (m *RevokeMetadataRequest) GetOwner() *common.Organization {
 	if m != nil {
 		return m.Owner
 	}
 	return nil
 }
 
-func (m *RevokeMetaDataRequest) GetMetaDataId() string {
+func (m *RevokeMetadataRequest) GetMetadataId() string {
 	if m != nil {
-		return m.MetaDataId
+		return m.MetadataId
 	}
 	return ""
 }
 
 // 获取元数据摘要列表响应参数
-type MetaDataSummaryListResponse struct {
+type MetadataSummaryListResponse struct {
 	// 摘要信息列表
-	MetadataSummaries    []*MetaDataSummaryOwner `protobuf:"bytes,1,rep,name=metadata_summaries,json=metadataSummaries,proto3" json:"metadata_summaries,omitempty"`
+	MetadataSummaries    []*MetadataSummaryOwner `protobuf:"bytes,1,rep,name=metadata_summaries,json=metadataSummaries,proto3" json:"metadata_summaries,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
 	XXX_unrecognized     []byte                  `json:"-"`
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *MetaDataSummaryListResponse) Reset()         { *m = MetaDataSummaryListResponse{} }
-func (m *MetaDataSummaryListResponse) String() string { return proto.CompactTextString(m) }
-func (*MetaDataSummaryListResponse) ProtoMessage()    {}
-func (*MetaDataSummaryListResponse) Descriptor() ([]byte, []int) {
+func (m *MetadataSummaryListResponse) Reset()         { *m = MetadataSummaryListResponse{} }
+func (m *MetadataSummaryListResponse) String() string { return proto.CompactTextString(m) }
+func (*MetadataSummaryListResponse) ProtoMessage()    {}
+func (*MetadataSummaryListResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_95cdd10181701ff1, []int{2}
 }
-func (m *MetaDataSummaryListResponse) XXX_Unmarshal(b []byte) error {
+func (m *MetadataSummaryListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaDataSummaryListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataSummaryListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaDataSummaryListResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataSummaryListResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -178,47 +178,47 @@ func (m *MetaDataSummaryListResponse) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *MetaDataSummaryListResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaDataSummaryListResponse.Merge(m, src)
+func (m *MetadataSummaryListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataSummaryListResponse.Merge(m, src)
 }
-func (m *MetaDataSummaryListResponse) XXX_Size() int {
+func (m *MetadataSummaryListResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaDataSummaryListResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaDataSummaryListResponse.DiscardUnknown(m)
+func (m *MetadataSummaryListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataSummaryListResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaDataSummaryListResponse proto.InternalMessageInfo
+var xxx_messageInfo_MetadataSummaryListResponse proto.InternalMessageInfo
 
-func (m *MetaDataSummaryListResponse) GetMetadataSummaries() []*MetaDataSummaryOwner {
+func (m *MetadataSummaryListResponse) GetMetadataSummaries() []*MetadataSummaryOwner {
 	if m != nil {
 		return m.MetadataSummaries
 	}
 	return nil
 }
 
-type MetaDataSummaryOwner struct {
+type MetadataSummaryOwner struct {
 	// 元数据的拥有者
 	Owner *common.Organization `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	// 元文件摘要主体
-	Information          *types.MetaDataSummary `protobuf:"bytes,2,opt,name=information,proto3" json:"information,omitempty"`
+	Information          *types.MetadataSummary `protobuf:"bytes,2,opt,name=information,proto3" json:"information,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
 	XXX_unrecognized     []byte                 `json:"-"`
 	XXX_sizecache        int32                  `json:"-"`
 }
 
-func (m *MetaDataSummaryOwner) Reset()         { *m = MetaDataSummaryOwner{} }
-func (m *MetaDataSummaryOwner) String() string { return proto.CompactTextString(m) }
-func (*MetaDataSummaryOwner) ProtoMessage()    {}
-func (*MetaDataSummaryOwner) Descriptor() ([]byte, []int) {
+func (m *MetadataSummaryOwner) Reset()         { *m = MetadataSummaryOwner{} }
+func (m *MetadataSummaryOwner) String() string { return proto.CompactTextString(m) }
+func (*MetadataSummaryOwner) ProtoMessage()    {}
+func (*MetadataSummaryOwner) Descriptor() ([]byte, []int) {
 	return fileDescriptor_95cdd10181701ff1, []int{3}
 }
-func (m *MetaDataSummaryOwner) XXX_Unmarshal(b []byte) error {
+func (m *MetadataSummaryOwner) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaDataSummaryOwner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataSummaryOwner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaDataSummaryOwner.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataSummaryOwner.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -228,26 +228,26 @@ func (m *MetaDataSummaryOwner) XXX_Marshal(b []byte, deterministic bool) ([]byte
 		return b[:n], nil
 	}
 }
-func (m *MetaDataSummaryOwner) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaDataSummaryOwner.Merge(m, src)
+func (m *MetadataSummaryOwner) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataSummaryOwner.Merge(m, src)
 }
-func (m *MetaDataSummaryOwner) XXX_Size() int {
+func (m *MetadataSummaryOwner) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaDataSummaryOwner) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaDataSummaryOwner.DiscardUnknown(m)
+func (m *MetadataSummaryOwner) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataSummaryOwner.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaDataSummaryOwner proto.InternalMessageInfo
+var xxx_messageInfo_MetadataSummaryOwner proto.InternalMessageInfo
 
-func (m *MetaDataSummaryOwner) GetOwner() *common.Organization {
+func (m *MetadataSummaryOwner) GetOwner() *common.Organization {
 	if m != nil {
 		return m.Owner
 	}
 	return nil
 }
 
-func (m *MetaDataSummaryOwner) GetInformation() *types.MetaDataSummary {
+func (m *MetadataSummaryOwner) GetInformation() *types.MetadataSummary {
 	if m != nil {
 		return m.Information
 	}
@@ -255,25 +255,25 @@ func (m *MetaDataSummaryOwner) GetInformation() *types.MetaDataSummary {
 }
 
 // 根据状态获取元数据摘要列表
-type MetaDataSummaryByStateRequest struct {
+type MetadataSummaryByStateRequest struct {
 	State                string   `protobuf:"bytes,1,opt,name=state,proto3" json:"state,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *MetaDataSummaryByStateRequest) Reset()         { *m = MetaDataSummaryByStateRequest{} }
-func (m *MetaDataSummaryByStateRequest) String() string { return proto.CompactTextString(m) }
-func (*MetaDataSummaryByStateRequest) ProtoMessage()    {}
-func (*MetaDataSummaryByStateRequest) Descriptor() ([]byte, []int) {
+func (m *MetadataSummaryByStateRequest) Reset()         { *m = MetadataSummaryByStateRequest{} }
+func (m *MetadataSummaryByStateRequest) String() string { return proto.CompactTextString(m) }
+func (*MetadataSummaryByStateRequest) ProtoMessage()    {}
+func (*MetadataSummaryByStateRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_95cdd10181701ff1, []int{4}
 }
-func (m *MetaDataSummaryByStateRequest) XXX_Unmarshal(b []byte) error {
+func (m *MetadataSummaryByStateRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaDataSummaryByStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataSummaryByStateRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaDataSummaryByStateRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataSummaryByStateRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -283,19 +283,19 @@ func (m *MetaDataSummaryByStateRequest) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *MetaDataSummaryByStateRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaDataSummaryByStateRequest.Merge(m, src)
+func (m *MetadataSummaryByStateRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataSummaryByStateRequest.Merge(m, src)
 }
-func (m *MetaDataSummaryByStateRequest) XXX_Size() int {
+func (m *MetadataSummaryByStateRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaDataSummaryByStateRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaDataSummaryByStateRequest.DiscardUnknown(m)
+func (m *MetadataSummaryByStateRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataSummaryByStateRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaDataSummaryByStateRequest proto.InternalMessageInfo
+var xxx_messageInfo_MetadataSummaryByStateRequest proto.InternalMessageInfo
 
-func (m *MetaDataSummaryByStateRequest) GetState() string {
+func (m *MetadataSummaryByStateRequest) GetState() string {
 	if m != nil {
 		return m.State
 	}
@@ -303,25 +303,25 @@ func (m *MetaDataSummaryByStateRequest) GetState() string {
 }
 
 // 根据状态查询元数据摘要列表响应参数
-type MetaDataSummaryByStateResponse struct {
-	Metadata             []*MetaDataSummaryOwner `protobuf:"bytes,1,rep,name=metadata,proto3" json:"metadata,omitempty"`
+type MetadataSummaryByStateResponse struct {
+	Metadata             []*MetadataSummaryOwner `protobuf:"bytes,1,rep,name=metadata,proto3" json:"metadata,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
 	XXX_unrecognized     []byte                  `json:"-"`
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *MetaDataSummaryByStateResponse) Reset()         { *m = MetaDataSummaryByStateResponse{} }
-func (m *MetaDataSummaryByStateResponse) String() string { return proto.CompactTextString(m) }
-func (*MetaDataSummaryByStateResponse) ProtoMessage()    {}
-func (*MetaDataSummaryByStateResponse) Descriptor() ([]byte, []int) {
+func (m *MetadataSummaryByStateResponse) Reset()         { *m = MetadataSummaryByStateResponse{} }
+func (m *MetadataSummaryByStateResponse) String() string { return proto.CompactTextString(m) }
+func (*MetadataSummaryByStateResponse) ProtoMessage()    {}
+func (*MetadataSummaryByStateResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_95cdd10181701ff1, []int{5}
 }
-func (m *MetaDataSummaryByStateResponse) XXX_Unmarshal(b []byte) error {
+func (m *MetadataSummaryByStateResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaDataSummaryByStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataSummaryByStateResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaDataSummaryByStateResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataSummaryByStateResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -331,19 +331,19 @@ func (m *MetaDataSummaryByStateResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MetaDataSummaryByStateResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaDataSummaryByStateResponse.Merge(m, src)
+func (m *MetadataSummaryByStateResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataSummaryByStateResponse.Merge(m, src)
 }
-func (m *MetaDataSummaryByStateResponse) XXX_Size() int {
+func (m *MetadataSummaryByStateResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaDataSummaryByStateResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaDataSummaryByStateResponse.DiscardUnknown(m)
+func (m *MetadataSummaryByStateResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataSummaryByStateResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaDataSummaryByStateResponse proto.InternalMessageInfo
+var xxx_messageInfo_MetadataSummaryByStateResponse proto.InternalMessageInfo
 
-func (m *MetaDataSummaryByStateResponse) GetMetadata() []*MetaDataSummaryOwner {
+func (m *MetadataSummaryByStateResponse) GetMetadata() []*MetadataSummaryOwner {
 	if m != nil {
 		return m.Metadata
 	}
@@ -352,7 +352,7 @@ func (m *MetaDataSummaryByStateResponse) GetMetadata() []*MetaDataSummaryOwner {
 
 type Metadata struct {
 	Owner                *common.Organization    `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
-	MetaSummary          *types.MetaDataSummary  `protobuf:"bytes,2,opt,name=meta_summary,json=metaSummary,proto3" json:"meta_summary,omitempty"`
+	MetaSummary          *types.MetadataSummary  `protobuf:"bytes,2,opt,name=meta_summary,json=metaSummary,proto3" json:"meta_summary,omitempty"`
 	MetadataColumns      []*types.MetadataColumn `protobuf:"bytes,3,rep,name=metadata_columns,json=metadataColumns,proto3" json:"metadata_columns,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
 	XXX_unrecognized     []byte                  `json:"-"`
@@ -399,7 +399,7 @@ func (m *Metadata) GetOwner() *common.Organization {
 	return nil
 }
 
-func (m *Metadata) GetMetaSummary() *types.MetaDataSummary {
+func (m *Metadata) GetMetaSummary() *types.MetadataSummary {
 	if m != nil {
 		return m.MetaSummary
 	}
@@ -414,7 +414,7 @@ func (m *Metadata) GetMetadataColumns() []*types.MetadataColumn {
 }
 
 type MetadataListRequest struct {
-	LastUpdateTime       uint64   `protobuf:"varint,1,opt,name=last_update_time,json=lastUpdateTime,proto3" json:"last_update_time,omitempty"`
+	LastUpdated          uint64   `protobuf:"varint,1,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -453,16 +453,16 @@ func (m *MetadataListRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MetadataListRequest proto.InternalMessageInfo
 
-func (m *MetadataListRequest) GetLastUpdateTime() uint64 {
+func (m *MetadataListRequest) GetLastUpdated() uint64 {
 	if m != nil {
-		return m.LastUpdateTime
+		return m.LastUpdated
 	}
 	return 0
 }
 
 type MetadataListResponse struct {
 	Metadatas            []*Metadata `protobuf:"bytes,1,rep,name=metadatas,proto3" json:"metadatas,omitempty"`
-	LastUpdateTime       uint64      `protobuf:"varint,2,opt,name=last_update_time,json=lastUpdateTime,proto3" json:"last_update_time,omitempty"`
+	LastUpdated          uint64      `protobuf:"varint,2,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}    `json:"-"`
 	XXX_unrecognized     []byte      `json:"-"`
 	XXX_sizecache        int32       `json:"-"`
@@ -508,9 +508,9 @@ func (m *MetadataListResponse) GetMetadatas() []*Metadata {
 	return nil
 }
 
-func (m *MetadataListResponse) GetLastUpdateTime() uint64 {
+func (m *MetadataListResponse) GetLastUpdated() uint64 {
 	if m != nil {
-		return m.LastUpdateTime
+		return m.LastUpdated
 	}
 	return 0
 }
@@ -610,12 +610,12 @@ func (m *MetadataByIdResponse) GetMetadata() *Metadata {
 }
 
 func init() {
-	proto.RegisterType((*MetaDataSaveRequest)(nil), "api.MetaDataSaveRequest")
-	proto.RegisterType((*RevokeMetaDataRequest)(nil), "api.RevokeMetaDataRequest")
-	proto.RegisterType((*MetaDataSummaryListResponse)(nil), "api.MetaDataSummaryListResponse")
-	proto.RegisterType((*MetaDataSummaryOwner)(nil), "api.MetaDataSummaryOwner")
-	proto.RegisterType((*MetaDataSummaryByStateRequest)(nil), "api.MetaDataSummaryByStateRequest")
-	proto.RegisterType((*MetaDataSummaryByStateResponse)(nil), "api.MetaDataSummaryByStateResponse")
+	proto.RegisterType((*MetadataSaveRequest)(nil), "api.MetadataSaveRequest")
+	proto.RegisterType((*RevokeMetadataRequest)(nil), "api.RevokeMetadataRequest")
+	proto.RegisterType((*MetadataSummaryListResponse)(nil), "api.MetadataSummaryListResponse")
+	proto.RegisterType((*MetadataSummaryOwner)(nil), "api.MetadataSummaryOwner")
+	proto.RegisterType((*MetadataSummaryByStateRequest)(nil), "api.MetadataSummaryByStateRequest")
+	proto.RegisterType((*MetadataSummaryByStateResponse)(nil), "api.MetadataSummaryByStateResponse")
 	proto.RegisterType((*Metadata)(nil), "api.Metadata")
 	proto.RegisterType((*MetadataListRequest)(nil), "api.MetadataListRequest")
 	proto.RegisterType((*MetadataListResponse)(nil), "api.MetadataListResponse")
@@ -626,49 +626,47 @@ func init() {
 func init() { proto.RegisterFile("lib/center/api/metadata.proto", fileDescriptor_95cdd10181701ff1) }
 
 var fileDescriptor_95cdd10181701ff1 = []byte{
-	// 658 bytes of a gzipped FileDescriptorProto
+	// 635 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x55, 0xdf, 0x4e, 0xd4, 0x4e,
-	0x14, 0x4e, 0xd9, 0x1f, 0xbf, 0xc0, 0x59, 0x04, 0xac, 0x40, 0x96, 0x22, 0xeb, 0xa6, 0x57, 0x18,
-	0x63, 0x4b, 0x30, 0x10, 0xbd, 0xf1, 0x0f, 0x28, 0x88, 0xd1, 0x90, 0xcc, 0x6a, 0x4c, 0xbc, 0xd9,
-	0xcc, 0x6e, 0x87, 0x75, 0xc2, 0x4e, 0xa7, 0x76, 0xa6, 0x90, 0xf5, 0xd2, 0x3b, 0x1f, 0x49, 0x9f,
-	0xc0, 0x4b, 0x1f, 0xc1, 0xec, 0x93, 0x98, 0xe9, 0x74, 0xda, 0x6d, 0xad, 0x90, 0x70, 0xe1, 0xe5,
-	0x9c, 0xbf, 0xdf, 0xf9, 0xce, 0xd7, 0x53, 0xd8, 0x1c, 0xd1, 0xbe, 0x3f, 0x20, 0xa1, 0x24, 0xb1,
-	0x8f, 0x23, 0xea, 0x33, 0x22, 0x71, 0x80, 0x25, 0xf6, 0xa2, 0x98, 0x4b, 0x6e, 0x37, 0x70, 0x44,
-	0x9d, 0xd5, 0x34, 0x86, 0x33, 0xc6, 0x43, 0xbf, 0x8f, 0x05, 0xd1, 0x3e, 0xa7, 0xa5, 0xcc, 0x72,
-	0x1c, 0x11, 0x51, 0xc9, 0x72, 0x36, 0x86, 0x9c, 0x0f, 0x47, 0xc4, 0x4f, 0x5f, 0xfd, 0xe4, 0xd4,
-	0x27, 0x2c, 0x92, 0x63, 0xed, 0x74, 0xbf, 0x5b, 0x70, 0xeb, 0x0d, 0x91, 0xf8, 0x39, 0x96, 0xb8,
-	0x8b, 0xcf, 0x09, 0x22, 0x9f, 0x12, 0x22, 0xa4, 0xbd, 0x0d, 0xb3, 0xfc, 0x22, 0x24, 0x71, 0xcb,
-	0xea, 0x58, 0x5b, 0xcd, 0x1d, 0xc7, 0xc3, 0x11, 0xf5, 0x4c, 0x05, 0xef, 0x24, 0x1e, 0xe2, 0x90,
-	0x7e, 0xc6, 0x92, 0xf2, 0x10, 0xe9, 0x40, 0xfb, 0x11, 0x2c, 0xa8, 0xc6, 0x3d, 0x91, 0x30, 0x86,
-	0xe3, 0x71, 0x6b, 0x26, 0x4d, 0x5c, 0xf3, 0x52, 0x4c, 0x5e, 0xde, 0x43, 0x7b, 0x51, 0x53, 0xc5,
-	0x66, 0x0f, 0x7b, 0x0f, 0x9a, 0x03, 0x3e, 0x4a, 0x58, 0xd8, 0x53, 0xd6, 0x56, 0xa3, 0xd3, 0xd8,
-	0x6a, 0xee, 0xac, 0x4e, 0x65, 0xaa, 0x69, 0x0e, 0xd2, 0x08, 0x04, 0x3a, 0x52, 0x59, 0xdd, 0x33,
-	0x58, 0x45, 0xe4, 0x9c, 0x9f, 0x11, 0x53, 0xfd, 0xfa, 0xe8, 0x3b, 0x19, 0x7a, 0xd5, 0xa9, 0x47,
-	0x83, 0x14, 0xfd, 0x3c, 0x02, 0x96, 0x15, 0x3e, 0x0e, 0xdc, 0x21, 0x6c, 0x54, 0x86, 0x78, 0x4d,
-	0x85, 0x44, 0x44, 0x44, 0x3c, 0x14, 0xc4, 0x7e, 0x09, 0xb6, 0xe1, 0x3d, 0xa3, 0x80, 0x12, 0xd1,
-	0xb2, 0xd2, 0x51, 0xd6, 0xd3, 0xfe, 0x95, 0xec, 0x13, 0xd5, 0x17, 0xdd, 0x34, 0x49, 0x5d, 0x93,
-	0xe3, 0x7e, 0xb1, 0x60, 0xa5, 0x2e, 0xf6, 0x1a, 0x53, 0x3d, 0x84, 0x26, 0x0d, 0x4f, 0x79, 0xcc,
-	0x52, 0xeb, 0x55, 0x2b, 0x99, 0x0a, 0x75, 0x77, 0x61, 0xb3, 0xe2, 0xdf, 0x1f, 0x77, 0x25, 0x96,
-	0xb9, 0x40, 0x56, 0x60, 0x56, 0xa8, 0x77, 0x0a, 0x66, 0x1e, 0xe9, 0x87, 0xfb, 0x1e, 0xda, 0x7f,
-	0x4b, 0xcb, 0x78, 0xda, 0x85, 0x39, 0x33, 0xf2, 0xd5, 0xec, 0xe4, 0xa1, 0xee, 0x37, 0x0b, 0xe6,
-	0x8c, 0x12, 0xfe, 0xad, 0x38, 0x9f, 0xc2, 0x72, 0xbe, 0x58, 0xad, 0x3d, 0x71, 0xb9, 0x42, 0x97,
-	0x58, 0xe9, 0x2d, 0xdc, 0x27, 0xfa, 0x13, 0x53, 0x26, 0x2d, 0x19, 0xcd, 0xe0, 0x16, 0x2c, 0x8f,
-	0xb0, 0x90, 0xbd, 0x24, 0x0a, 0xb0, 0x24, 0x3d, 0x49, 0x99, 0x26, 0xf3, 0x3f, 0xb4, 0xa8, 0xec,
-	0xef, 0x52, 0xf3, 0x5b, 0xca, 0x88, 0xcb, 0xb4, 0x20, 0x8a, 0x02, 0x19, 0x97, 0xf7, 0x60, 0xde,
-	0xf4, 0x32, 0x52, 0xbb, 0x91, 0x93, 0xa9, 0xac, 0xa8, 0xf0, 0xd7, 0xb6, 0x9b, 0xa9, 0x6d, 0xb7,
-	0x57, 0xe0, 0xdd, 0x1f, 0x1f, 0x07, 0x06, 0xef, 0x1d, 0x68, 0xe6, 0x44, 0xd0, 0x20, 0xdb, 0x3b,
-	0x18, 0xd3, 0x71, 0xe0, 0x3e, 0x2b, 0x60, 0xea, 0xbc, 0x0c, 0xe6, 0xdd, 0xd2, 0xca, 0xad, 0x3f,
-	0x51, 0xe6, 0xee, 0x9d, 0xaf, 0x0d, 0x58, 0xca, 0xb7, 0x41, 0xe2, 0x73, 0x3a, 0x20, 0xf6, 0x21,
-	0x2c, 0x4c, 0x5f, 0x28, 0xbb, 0x55, 0xd6, 0x4b, 0x71, 0xb4, 0x9c, 0xdb, 0x65, 0x21, 0x74, 0x29,
-	0x8b, 0x46, 0x85, 0xf2, 0x10, 0xac, 0x1d, 0x11, 0x59, 0xf3, 0x0d, 0xdb, 0x6b, 0x9e, 0x3e, 0x91,
-	0x45, 0xea, 0x0b, 0x75, 0x22, 0x9d, 0x4e, 0x9d, 0x32, 0x4b, 0x1b, 0x38, 0x84, 0xa5, 0xac, 0xa6,
-	0x59, 0xce, 0x14, 0xbc, 0xca, 0xc2, 0x9d, 0xf5, 0x1a, 0x4f, 0x6d, 0x1d, 0xc5, 0x5e, 0xa5, 0xce,
-	0xd4, 0x22, 0x2a, 0x75, 0x4a, 0x54, 0xbf, 0x82, 0xc5, 0xf2, 0x45, 0xb4, 0xf5, 0xc7, 0x51, 0x7b,
-	0x26, 0x2f, 0xe7, 0x6b, 0xff, 0xf1, 0x8f, 0x49, 0xdb, 0xfa, 0x39, 0x69, 0x5b, 0xbf, 0x26, 0x6d,
-	0xeb, 0xc3, 0xf6, 0x90, 0xca, 0x8f, 0x49, 0xdf, 0x1b, 0x70, 0xe6, 0x23, 0x2e, 0x88, 0x94, 0xf8,
-	0x70, 0xc4, 0x2f, 0xfc, 0x03, 0x1c, 0xc7, 0x94, 0xc4, 0xf7, 0x8f, 0xb8, 0x5f, 0xfe, 0x79, 0xf5,
-	0xff, 0x4f, 0x0b, 0x3f, 0xf8, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x10, 0xff, 0xc1, 0x56, 0xd5, 0x06,
-	0x00, 0x00,
+	0x14, 0x4e, 0xd9, 0x1f, 0xbf, 0xc0, 0x29, 0x8a, 0x56, 0x20, 0x4b, 0x91, 0x15, 0x7b, 0x85, 0x31,
+	0xb6, 0x04, 0x03, 0xc1, 0x1b, 0xa3, 0x10, 0x41, 0x8c, 0x86, 0x64, 0x88, 0x31, 0xf1, 0x66, 0x33,
+	0xbb, 0x1d, 0xd6, 0xd1, 0x4e, 0xa7, 0x76, 0xa6, 0x90, 0xf5, 0xd2, 0x3b, 0x1f, 0x49, 0x9f, 0xc0,
+	0x4b, 0x1f, 0xc1, 0xec, 0x93, 0x98, 0xce, 0x6c, 0xdb, 0x9d, 0x6e, 0x85, 0x84, 0x0b, 0x2f, 0xe7,
+	0x9c, 0xef, 0xfc, 0x99, 0xef, 0x7c, 0x73, 0x06, 0xd6, 0x23, 0xda, 0x0b, 0xfa, 0x24, 0x96, 0x24,
+	0x0d, 0x70, 0x42, 0x03, 0x46, 0x24, 0x0e, 0xb1, 0xc4, 0x7e, 0x92, 0x72, 0xc9, 0x9d, 0x16, 0x4e,
+	0xa8, 0xbb, 0xac, 0x30, 0x9c, 0x31, 0x1e, 0x07, 0x3d, 0x2c, 0x88, 0xf6, 0xb9, 0xed, 0xdc, 0x2c,
+	0x87, 0x09, 0x11, 0xb5, 0x28, 0x77, 0x6d, 0xc0, 0xf9, 0x20, 0x22, 0x81, 0x3a, 0xf5, 0xb2, 0xb3,
+	0x80, 0xb0, 0x44, 0x0e, 0xb5, 0xd3, 0xfb, 0x61, 0xc1, 0x9d, 0x37, 0x63, 0xfc, 0x29, 0x3e, 0x27,
+	0x88, 0x7c, 0xce, 0x88, 0x90, 0xce, 0x16, 0xcc, 0xf2, 0x8b, 0x98, 0xa4, 0x6d, 0x6b, 0xc3, 0xda,
+	0xb4, 0xb7, 0x5d, 0x1f, 0x27, 0xd4, 0x2f, 0x32, 0xf8, 0x27, 0xe9, 0x00, 0xc7, 0xf4, 0x0b, 0x96,
+	0x94, 0xc7, 0x48, 0x03, 0x9d, 0x27, 0xb0, 0x90, 0x17, 0xee, 0x8a, 0x8c, 0x31, 0x9c, 0x0e, 0xdb,
+	0x33, 0x2a, 0x70, 0xc5, 0x57, 0x3d, 0xf9, 0x65, 0x0d, 0xed, 0x45, 0x76, 0x8e, 0x1d, 0x1f, 0x9c,
+	0x5d, 0xb0, 0xfb, 0x3c, 0xca, 0x58, 0xdc, 0xcd, 0xad, 0xed, 0xd6, 0x46, 0x6b, 0xd3, 0xde, 0x5e,
+	0xae, 0x45, 0x1e, 0x28, 0x04, 0x02, 0x8d, 0xcc, 0xad, 0xde, 0x47, 0x58, 0x46, 0xe4, 0x9c, 0x7f,
+	0x22, 0x05, 0xe6, 0xfa, 0xdd, 0xdf, 0x03, 0xbb, 0xa0, 0xad, 0x4b, 0x43, 0xd5, 0xfc, 0x3c, 0x82,
+	0xc2, 0x74, 0x1c, 0x7a, 0x03, 0x58, 0xab, 0xdd, 0xe1, 0x35, 0x15, 0x12, 0x11, 0x91, 0xf0, 0x58,
+	0x10, 0xe7, 0x25, 0x38, 0x65, 0xbc, 0x66, 0x80, 0x12, 0xd1, 0xb6, 0xd4, 0x4d, 0x56, 0x55, 0xf9,
+	0x5a, 0xf4, 0x49, 0x5e, 0x16, 0xdd, 0x66, 0x86, 0x95, 0x12, 0xe1, 0x7d, 0xb5, 0x60, 0xa9, 0x09,
+	0x7b, 0x8d, 0x4b, 0xed, 0x81, 0x4d, 0xe3, 0x33, 0x9e, 0x32, 0x65, 0xbd, 0x6a, 0x22, 0x13, 0x50,
+	0x6f, 0x07, 0xd6, 0x6b, 0xfe, 0xfd, 0xe1, 0xa9, 0xc4, 0xb2, 0xd4, 0xc7, 0x12, 0xcc, 0x8a, 0xfc,
+	0xac, 0x9a, 0x99, 0x47, 0xfa, 0xe0, 0xbd, 0x83, 0xce, 0xdf, 0xc2, 0xc6, 0x3c, 0xed, 0xc0, 0x5c,
+	0x71, 0xe5, 0xab, 0xd9, 0x29, 0xa1, 0xde, 0x77, 0x0b, 0xe6, 0x0a, 0xc8, 0xbf, 0xd5, 0xe6, 0x33,
+	0xb8, 0x55, 0x0e, 0x56, 0x4b, 0x4f, 0x5c, 0x2e, 0xd0, 0x45, 0x66, 0x9c, 0x85, 0xb7, 0x57, 0xbd,
+	0x30, 0x2d, 0x19, 0xcd, 0xe0, 0x7d, 0x58, 0x88, 0xb0, 0x90, 0xdd, 0x2c, 0x09, 0xb1, 0x24, 0xa1,
+	0xba, 0xcc, 0x7f, 0xc8, 0xce, 0x6d, 0x6f, 0xb5, 0xc9, 0x3b, 0xab, 0x94, 0x60, 0x88, 0xed, 0x21,
+	0xcc, 0x17, 0x45, 0x0a, 0x8d, 0xdd, 0x30, 0x58, 0x44, 0x95, 0x7f, 0xaa, 0xce, 0xcc, 0x74, 0x9d,
+	0xdd, 0xaa, 0xc3, 0xfd, 0xe1, 0x71, 0x58, 0x74, 0x58, 0x7b, 0x13, 0xd6, 0xd4, 0x9b, 0x78, 0x5e,
+	0xf5, 0xa7, 0xe3, 0xc6, 0xfd, 0x3d, 0x30, 0x86, 0x6c, 0x4d, 0xb7, 0x57, 0xba, 0xb7, 0xbf, 0xb5,
+	0x60, 0xb1, 0xe4, 0x9f, 0xa4, 0xe7, 0xb4, 0x4f, 0x9c, 0x43, 0x58, 0x98, 0x5c, 0x49, 0x4e, 0xdb,
+	0x54, 0x48, 0xb5, 0xa5, 0xdc, 0xbb, 0xe6, 0xe8, 0x4f, 0x29, 0x4b, 0xa2, 0x4a, 0x6b, 0x08, 0x56,
+	0x8e, 0x88, 0x6c, 0x78, 0xb5, 0xce, 0x8a, 0xaf, 0x77, 0x62, 0x15, 0xfa, 0x22, 0xdf, 0x89, 0xee,
+	0x46, 0x93, 0x16, 0x0d, 0xea, 0x0f, 0x61, 0x71, 0x22, 0xa7, 0x4a, 0x66, 0xb6, 0x37, 0x31, 0x62,
+	0x77, 0xb5, 0xc1, 0xd3, 0x98, 0x27, 0x67, 0xaf, 0x96, 0x67, 0x62, 0x10, 0xb5, 0x3c, 0x06, 0xd5,
+	0xaf, 0xe0, 0xa6, 0xb9, 0x02, 0x1d, 0xfd, 0x1c, 0x1a, 0xf7, 0xe2, 0xe5, 0x7c, 0xed, 0x3f, 0xfd,
+	0x39, 0xea, 0x58, 0xbf, 0x46, 0x1d, 0xeb, 0xf7, 0xa8, 0x63, 0xbd, 0xdf, 0x1a, 0x50, 0xf9, 0x21,
+	0xeb, 0xf9, 0x7d, 0xce, 0x02, 0xc4, 0x05, 0x91, 0x12, 0x1f, 0x46, 0xfc, 0x22, 0x38, 0xc0, 0x69,
+	0x4a, 0x49, 0xfa, 0xe8, 0x88, 0x07, 0xe6, 0x6f, 0xd5, 0xfb, 0x5f, 0x25, 0x7e, 0xfc, 0x27, 0x00,
+	0x00, 0xff, 0xff, 0xd2, 0x32, 0x75, 0xcc, 0xc6, 0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -679,233 +677,233 @@ var _ grpc.ClientConn
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion4
 
-// MetaDataServiceClient is the client API for MetaDataService service.
+// MetadataServiceClient is the client API for MetadataService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type MetaDataServiceClient interface {
+type MetadataServiceClient interface {
 	// 保存元数据
-	MetaDataSave(ctx context.Context, in *MetaDataSaveRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
+	MetadataSave(ctx context.Context, in *MetadataSaveRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 	// 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
-	GetMetaDataSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MetaDataSummaryListResponse, error)
+	GetMetadataSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MetadataSummaryListResponse, error)
 	// 新增：元数据详细列表（用于将数据同步给管理台，考虑checkpoint同步点位）
 	GetMetadataList(ctx context.Context, in *MetadataListRequest, opts ...grpc.CallOption) (*MetadataListResponse, error)
 	// 新增，根据元数据ID查询元数据详情
 	GetMetadataById(ctx context.Context, in *MetadataByIdRequest, opts ...grpc.CallOption) (*MetadataByIdResponse, error)
 	// 撤销元数据 (从底层网络撤销)
-	RevokeMetaData(ctx context.Context, in *RevokeMetaDataRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
+	RevokeMetadata(ctx context.Context, in *RevokeMetadataRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error)
 }
 
-type metaDataServiceClient struct {
+type metadataServiceClient struct {
 	cc *grpc.ClientConn
 }
 
-func NewMetaDataServiceClient(cc *grpc.ClientConn) MetaDataServiceClient {
-	return &metaDataServiceClient{cc}
+func NewMetadataServiceClient(cc *grpc.ClientConn) MetadataServiceClient {
+	return &metadataServiceClient{cc}
 }
 
-func (c *metaDataServiceClient) MetaDataSave(ctx context.Context, in *MetaDataSaveRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+func (c *metadataServiceClient) MetadataSave(ctx context.Context, in *MetadataSaveRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
 	out := new(common.SimpleResponse)
-	err := c.cc.Invoke(ctx, "/api.MetaDataService/MetaDataSave", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.MetadataService/MetadataSave", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *metaDataServiceClient) GetMetaDataSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MetaDataSummaryListResponse, error) {
-	out := new(MetaDataSummaryListResponse)
-	err := c.cc.Invoke(ctx, "/api.MetaDataService/GetMetaDataSummaryList", in, out, opts...)
+func (c *metadataServiceClient) GetMetadataSummaryList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*MetadataSummaryListResponse, error) {
+	out := new(MetadataSummaryListResponse)
+	err := c.cc.Invoke(ctx, "/api.MetadataService/GetMetadataSummaryList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *metaDataServiceClient) GetMetadataList(ctx context.Context, in *MetadataListRequest, opts ...grpc.CallOption) (*MetadataListResponse, error) {
+func (c *metadataServiceClient) GetMetadataList(ctx context.Context, in *MetadataListRequest, opts ...grpc.CallOption) (*MetadataListResponse, error) {
 	out := new(MetadataListResponse)
-	err := c.cc.Invoke(ctx, "/api.MetaDataService/GetMetadataList", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.MetadataService/GetMetadataList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *metaDataServiceClient) GetMetadataById(ctx context.Context, in *MetadataByIdRequest, opts ...grpc.CallOption) (*MetadataByIdResponse, error) {
+func (c *metadataServiceClient) GetMetadataById(ctx context.Context, in *MetadataByIdRequest, opts ...grpc.CallOption) (*MetadataByIdResponse, error) {
 	out := new(MetadataByIdResponse)
-	err := c.cc.Invoke(ctx, "/api.MetaDataService/GetMetadataById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.MetadataService/GetMetadataById", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *metaDataServiceClient) RevokeMetaData(ctx context.Context, in *RevokeMetaDataRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
+func (c *metadataServiceClient) RevokeMetadata(ctx context.Context, in *RevokeMetadataRequest, opts ...grpc.CallOption) (*common.SimpleResponse, error) {
 	out := new(common.SimpleResponse)
-	err := c.cc.Invoke(ctx, "/api.MetaDataService/RevokeMetaData", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/api.MetadataService/RevokeMetadata", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// MetaDataServiceServer is the server API for MetaDataService service.
-type MetaDataServiceServer interface {
+// MetadataServiceServer is the server API for MetadataService service.
+type MetadataServiceServer interface {
 	// 保存元数据
-	MetaDataSave(context.Context, *MetaDataSaveRequest) (*common.SimpleResponse, error)
+	MetadataSave(context.Context, *MetadataSaveRequest) (*common.SimpleResponse, error)
 	// 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
-	GetMetaDataSummaryList(context.Context, *emptypb.Empty) (*MetaDataSummaryListResponse, error)
+	GetMetadataSummaryList(context.Context, *emptypb.Empty) (*MetadataSummaryListResponse, error)
 	// 新增：元数据详细列表（用于将数据同步给管理台，考虑checkpoint同步点位）
 	GetMetadataList(context.Context, *MetadataListRequest) (*MetadataListResponse, error)
 	// 新增，根据元数据ID查询元数据详情
 	GetMetadataById(context.Context, *MetadataByIdRequest) (*MetadataByIdResponse, error)
 	// 撤销元数据 (从底层网络撤销)
-	RevokeMetaData(context.Context, *RevokeMetaDataRequest) (*common.SimpleResponse, error)
+	RevokeMetadata(context.Context, *RevokeMetadataRequest) (*common.SimpleResponse, error)
 }
 
-// UnimplementedMetaDataServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedMetaDataServiceServer struct {
+// UnimplementedMetadataServiceServer can be embedded to have forward compatible implementations.
+type UnimplementedMetadataServiceServer struct {
 }
 
-func (*UnimplementedMetaDataServiceServer) MetaDataSave(ctx context.Context, req *MetaDataSaveRequest) (*common.SimpleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method MetaDataSave not implemented")
+func (*UnimplementedMetadataServiceServer) MetadataSave(ctx context.Context, req *MetadataSaveRequest) (*common.SimpleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MetadataSave not implemented")
 }
-func (*UnimplementedMetaDataServiceServer) GetMetaDataSummaryList(ctx context.Context, req *emptypb.Empty) (*MetaDataSummaryListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetMetaDataSummaryList not implemented")
+func (*UnimplementedMetadataServiceServer) GetMetadataSummaryList(ctx context.Context, req *emptypb.Empty) (*MetadataSummaryListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetMetadataSummaryList not implemented")
 }
-func (*UnimplementedMetaDataServiceServer) GetMetadataList(ctx context.Context, req *MetadataListRequest) (*MetadataListResponse, error) {
+func (*UnimplementedMetadataServiceServer) GetMetadataList(ctx context.Context, req *MetadataListRequest) (*MetadataListResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetadataList not implemented")
 }
-func (*UnimplementedMetaDataServiceServer) GetMetadataById(ctx context.Context, req *MetadataByIdRequest) (*MetadataByIdResponse, error) {
+func (*UnimplementedMetadataServiceServer) GetMetadataById(ctx context.Context, req *MetadataByIdRequest) (*MetadataByIdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetMetadataById not implemented")
 }
-func (*UnimplementedMetaDataServiceServer) RevokeMetaData(ctx context.Context, req *RevokeMetaDataRequest) (*common.SimpleResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RevokeMetaData not implemented")
+func (*UnimplementedMetadataServiceServer) RevokeMetadata(ctx context.Context, req *RevokeMetadataRequest) (*common.SimpleResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RevokeMetadata not implemented")
 }
 
-func RegisterMetaDataServiceServer(s *grpc.Server, srv MetaDataServiceServer) {
-	s.RegisterService(&_MetaDataService_serviceDesc, srv)
+func RegisterMetadataServiceServer(s *grpc.Server, srv MetadataServiceServer) {
+	s.RegisterService(&_MetadataService_serviceDesc, srv)
 }
 
-func _MetaDataService_MetaDataSave_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MetaDataSaveRequest)
+func _MetadataService_MetadataSave_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MetadataSaveRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetaDataServiceServer).MetaDataSave(ctx, in)
+		return srv.(MetadataServiceServer).MetadataSave(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.MetaDataService/MetaDataSave",
+		FullMethod: "/api.MetadataService/MetadataSave",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetaDataServiceServer).MetaDataSave(ctx, req.(*MetaDataSaveRequest))
+		return srv.(MetadataServiceServer).MetadataSave(ctx, req.(*MetadataSaveRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MetaDataService_GetMetaDataSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MetadataService_GetMetadataSummaryList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetaDataServiceServer).GetMetaDataSummaryList(ctx, in)
+		return srv.(MetadataServiceServer).GetMetadataSummaryList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.MetaDataService/GetMetaDataSummaryList",
+		FullMethod: "/api.MetadataService/GetMetadataSummaryList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetaDataServiceServer).GetMetaDataSummaryList(ctx, req.(*emptypb.Empty))
+		return srv.(MetadataServiceServer).GetMetadataSummaryList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MetaDataService_GetMetadataList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MetadataService_GetMetadataList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MetadataListRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetaDataServiceServer).GetMetadataList(ctx, in)
+		return srv.(MetadataServiceServer).GetMetadataList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.MetaDataService/GetMetadataList",
+		FullMethod: "/api.MetadataService/GetMetadataList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetaDataServiceServer).GetMetadataList(ctx, req.(*MetadataListRequest))
+		return srv.(MetadataServiceServer).GetMetadataList(ctx, req.(*MetadataListRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MetaDataService_GetMetadataById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _MetadataService_GetMetadataById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MetadataByIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetaDataServiceServer).GetMetadataById(ctx, in)
+		return srv.(MetadataServiceServer).GetMetadataById(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.MetaDataService/GetMetadataById",
+		FullMethod: "/api.MetadataService/GetMetadataById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetaDataServiceServer).GetMetadataById(ctx, req.(*MetadataByIdRequest))
+		return srv.(MetadataServiceServer).GetMetadataById(ctx, req.(*MetadataByIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _MetaDataService_RevokeMetaData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(RevokeMetaDataRequest)
+func _MetadataService_RevokeMetadata_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RevokeMetadataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MetaDataServiceServer).RevokeMetaData(ctx, in)
+		return srv.(MetadataServiceServer).RevokeMetadata(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/api.MetaDataService/RevokeMetaData",
+		FullMethod: "/api.MetadataService/RevokeMetadata",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MetaDataServiceServer).RevokeMetaData(ctx, req.(*RevokeMetaDataRequest))
+		return srv.(MetadataServiceServer).RevokeMetadata(ctx, req.(*RevokeMetadataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _MetaDataService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "api.MetaDataService",
-	HandlerType: (*MetaDataServiceServer)(nil),
+var _MetadataService_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "api.MetadataService",
+	HandlerType: (*MetadataServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "MetaDataSave",
-			Handler:    _MetaDataService_MetaDataSave_Handler,
+			MethodName: "MetadataSave",
+			Handler:    _MetadataService_MetadataSave_Handler,
 		},
 		{
-			MethodName: "GetMetaDataSummaryList",
-			Handler:    _MetaDataService_GetMetaDataSummaryList_Handler,
+			MethodName: "GetMetadataSummaryList",
+			Handler:    _MetadataService_GetMetadataSummaryList_Handler,
 		},
 		{
 			MethodName: "GetMetadataList",
-			Handler:    _MetaDataService_GetMetadataList_Handler,
+			Handler:    _MetadataService_GetMetadataList_Handler,
 		},
 		{
 			MethodName: "GetMetadataById",
-			Handler:    _MetaDataService_GetMetadataById_Handler,
+			Handler:    _MetadataService_GetMetadataById_Handler,
 		},
 		{
-			MethodName: "RevokeMetaData",
-			Handler:    _MetaDataService_RevokeMetaData_Handler,
+			MethodName: "RevokeMetadata",
+			Handler:    _MetadataService_RevokeMetadata_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "lib/center/api/metadata.proto",
 }
 
-func (m *MetaDataSaveRequest) Marshal() (dAtA []byte, err error) {
+func (m *MetadataSaveRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -915,12 +913,12 @@ func (m *MetaDataSaveRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaDataSaveRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataSaveRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaDataSaveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataSaveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -970,7 +968,7 @@ func (m *MetaDataSaveRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *RevokeMetaDataRequest) Marshal() (dAtA []byte, err error) {
+func (m *RevokeMetadataRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -980,12 +978,12 @@ func (m *RevokeMetaDataRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *RevokeMetaDataRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *RevokeMetadataRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *RevokeMetaDataRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *RevokeMetadataRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -994,10 +992,10 @@ func (m *RevokeMetaDataRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.MetaDataId) > 0 {
-		i -= len(m.MetaDataId)
-		copy(dAtA[i:], m.MetaDataId)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.MetaDataId)))
+	if len(m.MetadataId) > 0 {
+		i -= len(m.MetadataId)
+		copy(dAtA[i:], m.MetadataId)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.MetadataId)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -1016,7 +1014,7 @@ func (m *RevokeMetaDataRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaDataSummaryListResponse) Marshal() (dAtA []byte, err error) {
+func (m *MetadataSummaryListResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1026,12 +1024,12 @@ func (m *MetaDataSummaryListResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaDataSummaryListResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataSummaryListResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaDataSummaryListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataSummaryListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1057,7 +1055,7 @@ func (m *MetaDataSummaryListResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaDataSummaryOwner) Marshal() (dAtA []byte, err error) {
+func (m *MetadataSummaryOwner) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1067,12 +1065,12 @@ func (m *MetaDataSummaryOwner) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaDataSummaryOwner) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataSummaryOwner) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaDataSummaryOwner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataSummaryOwner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1108,7 +1106,7 @@ func (m *MetaDataSummaryOwner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaDataSummaryByStateRequest) Marshal() (dAtA []byte, err error) {
+func (m *MetadataSummaryByStateRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1118,12 +1116,12 @@ func (m *MetaDataSummaryByStateRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaDataSummaryByStateRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataSummaryByStateRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaDataSummaryByStateRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataSummaryByStateRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1142,7 +1140,7 @@ func (m *MetaDataSummaryByStateRequest) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaDataSummaryByStateResponse) Marshal() (dAtA []byte, err error) {
+func (m *MetadataSummaryByStateResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1152,12 +1150,12 @@ func (m *MetaDataSummaryByStateResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaDataSummaryByStateResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataSummaryByStateResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaDataSummaryByStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataSummaryByStateResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1272,8 +1270,8 @@ func (m *MetadataListRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.LastUpdateTime != 0 {
-		i = encodeVarintMetadata(dAtA, i, uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.LastUpdated))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -1304,8 +1302,8 @@ func (m *MetadataListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.LastUpdateTime != 0 {
-		i = encodeVarintMetadata(dAtA, i, uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.LastUpdated))
 		i--
 		dAtA[i] = 0x10
 	}
@@ -1410,7 +1408,7 @@ func encodeVarintMetadata(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *MetaDataSaveRequest) Size() (n int) {
+func (m *MetadataSaveRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1436,7 +1434,7 @@ func (m *MetaDataSaveRequest) Size() (n int) {
 	return n
 }
 
-func (m *RevokeMetaDataRequest) Size() (n int) {
+func (m *RevokeMetadataRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1446,7 +1444,7 @@ func (m *RevokeMetaDataRequest) Size() (n int) {
 		l = m.Owner.Size()
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	l = len(m.MetaDataId)
+	l = len(m.MetadataId)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
@@ -1456,7 +1454,7 @@ func (m *RevokeMetaDataRequest) Size() (n int) {
 	return n
 }
 
-func (m *MetaDataSummaryListResponse) Size() (n int) {
+func (m *MetadataSummaryListResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1474,7 +1472,7 @@ func (m *MetaDataSummaryListResponse) Size() (n int) {
 	return n
 }
 
-func (m *MetaDataSummaryOwner) Size() (n int) {
+func (m *MetadataSummaryOwner) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1494,7 +1492,7 @@ func (m *MetaDataSummaryOwner) Size() (n int) {
 	return n
 }
 
-func (m *MetaDataSummaryByStateRequest) Size() (n int) {
+func (m *MetadataSummaryByStateRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1510,7 +1508,7 @@ func (m *MetaDataSummaryByStateRequest) Size() (n int) {
 	return n
 }
 
-func (m *MetaDataSummaryByStateResponse) Size() (n int) {
+func (m *MetadataSummaryByStateResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1560,8 +1558,8 @@ func (m *MetadataListRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.LastUpdateTime != 0 {
-		n += 1 + sovMetadata(uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		n += 1 + sovMetadata(uint64(m.LastUpdated))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1581,8 +1579,8 @@ func (m *MetadataListResponse) Size() (n int) {
 			n += 1 + l + sovMetadata(uint64(l))
 		}
 	}
-	if m.LastUpdateTime != 0 {
-		n += 1 + sovMetadata(uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		n += 1 + sovMetadata(uint64(m.LastUpdated))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1628,7 +1626,7 @@ func sovMetadata(x uint64) (n int) {
 func sozMetadata(x uint64) (n int) {
 	return sovMetadata(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *MetaDataSaveRequest) Unmarshal(dAtA []byte) error {
+func (m *MetadataSaveRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1651,10 +1649,10 @@ func (m *MetaDataSaveRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaDataSaveRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataSaveRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaDataSaveRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataSaveRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1723,7 +1721,7 @@ func (m *MetaDataSaveRequest) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.MetaSummary == nil {
-				m.MetaSummary = &types.MetaDataSummary{}
+				m.MetaSummary = &types.MetadataSummary{}
 			}
 			if err := m.MetaSummary.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1785,7 +1783,7 @@ func (m *MetaDataSaveRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *RevokeMetaDataRequest) Unmarshal(dAtA []byte) error {
+func (m *RevokeMetadataRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1808,10 +1806,10 @@ func (m *RevokeMetaDataRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: RevokeMetaDataRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: RevokeMetadataRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: RevokeMetaDataRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: RevokeMetadataRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1852,7 +1850,7 @@ func (m *RevokeMetaDataRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetadataId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1880,7 +1878,7 @@ func (m *RevokeMetaDataRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetaDataId = string(dAtA[iNdEx:postIndex])
+			m.MetadataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1904,7 +1902,7 @@ func (m *RevokeMetaDataRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetaDataSummaryListResponse) Unmarshal(dAtA []byte) error {
+func (m *MetadataSummaryListResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1927,10 +1925,10 @@ func (m *MetaDataSummaryListResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaDataSummaryListResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataSummaryListResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaDataSummaryListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataSummaryListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1962,7 +1960,7 @@ func (m *MetaDataSummaryListResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetadataSummaries = append(m.MetadataSummaries, &MetaDataSummaryOwner{})
+			m.MetadataSummaries = append(m.MetadataSummaries, &MetadataSummaryOwner{})
 			if err := m.MetadataSummaries[len(m.MetadataSummaries)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1989,7 +1987,7 @@ func (m *MetaDataSummaryListResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetaDataSummaryOwner) Unmarshal(dAtA []byte) error {
+func (m *MetadataSummaryOwner) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2012,10 +2010,10 @@ func (m *MetaDataSummaryOwner) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaDataSummaryOwner: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataSummaryOwner: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaDataSummaryOwner: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataSummaryOwner: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2084,7 +2082,7 @@ func (m *MetaDataSummaryOwner) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Information == nil {
-				m.Information = &types.MetaDataSummary{}
+				m.Information = &types.MetadataSummary{}
 			}
 			if err := m.Information.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2112,7 +2110,7 @@ func (m *MetaDataSummaryOwner) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetaDataSummaryByStateRequest) Unmarshal(dAtA []byte) error {
+func (m *MetadataSummaryByStateRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2135,10 +2133,10 @@ func (m *MetaDataSummaryByStateRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaDataSummaryByStateRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataSummaryByStateRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaDataSummaryByStateRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataSummaryByStateRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2195,7 +2193,7 @@ func (m *MetaDataSummaryByStateRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetaDataSummaryByStateResponse) Unmarshal(dAtA []byte) error {
+func (m *MetadataSummaryByStateResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2218,10 +2216,10 @@ func (m *MetaDataSummaryByStateResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaDataSummaryByStateResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataSummaryByStateResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaDataSummaryByStateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataSummaryByStateResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2253,7 +2251,7 @@ func (m *MetaDataSummaryByStateResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Metadata = append(m.Metadata, &MetaDataSummaryOwner{})
+			m.Metadata = append(m.Metadata, &MetadataSummaryOwner{})
 			if err := m.Metadata[len(m.Metadata)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -2375,7 +2373,7 @@ func (m *Metadata) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.MetaSummary == nil {
-				m.MetaSummary = &types.MetaDataSummary{}
+				m.MetaSummary = &types.MetadataSummary{}
 			}
 			if err := m.MetaSummary.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2468,9 +2466,9 @@ func (m *MetadataListRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdateTime", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdated", wireType)
 			}
-			m.LastUpdateTime = 0
+			m.LastUpdated = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMetadata
@@ -2480,7 +2478,7 @@ func (m *MetadataListRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LastUpdateTime |= uint64(b&0x7F) << shift
+				m.LastUpdated |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2572,9 +2570,9 @@ func (m *MetadataListResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdateTime", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdated", wireType)
 			}
-			m.LastUpdateTime = 0
+			m.LastUpdated = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMetadata
@@ -2584,7 +2582,7 @@ func (m *MetadataListResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LastUpdateTime |= uint64(b&0x7F) << shift
+				m.LastUpdated |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}

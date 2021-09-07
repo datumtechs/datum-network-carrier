@@ -24,7 +24,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MetaData body data struct.
+// Metadata body data struct.
 type BlockData struct {
 	Header       *HeaderPb     `protobuf:"bytes,1,opt,name=header,proto3" json:"header,omitempty"`
 	Metadata     []*MetadataPB `protobuf:"bytes,2,rep,name=metadata,proto3" json:"metadata,omitempty"`
