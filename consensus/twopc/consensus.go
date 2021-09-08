@@ -36,7 +36,7 @@ type TwoPC struct {
 	needConsensusTaskCh chan *types.NeedConsensusTask
 	// send remote task to `Scheduler` to replay
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
-	// send has consensused remote tasks to taskManager
+	// send has was consensus remote tasks to taskManager
 	needExecuteTaskCh chan *types.NeedExecuteTask
 	asyncCallCh       chan func()
 	quit              chan struct{}
@@ -254,6 +254,12 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
+	// verify the receiver is myself ?
+	if identity.GetIdentityId() != receiver.GetIdentityId() {
+		log.Errorf("Failed to verify receiver identityId of prepareMsg, receiver is not me, my identityId: {%s}, receiver identityId: {%s}", identity.GetIdentityId(), receiver.GetIdentityId())
+		return ctypes.ErrConsensusMsgInvalid
+	}
+
 	org := &apipb.TaskOrganization{
 		PartyId:    msg.MsgOption.ReceiverPartyId,
 		NodeName:   identity.GetNodeName(),
@@ -272,7 +278,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 	// Send task to Scheduler to replay sched.
 	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.MsgOption.ReceiverRole, msg.MsgOption.ReceiverPartyId, proposal.Task)
 	t.sendNeedReplayScheduleTask(needReplayScheduleTask)
-	replayTaskResult := needReplayScheduleTask.RecvResult()
+	replayTaskResult := needReplayScheduleTask.ReceiveResult()
 
 	log.Debugf("Received the reschedule task result from `schedule.ReplaySchedule()`, the result: %s", replayTaskResult.String())
 
@@ -354,9 +360,22 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			voteMsg.MsgOption.Owner.GetIdentityId(), voteMsg.MsgOption.ReceiverPartyId)
 	}
 
+	identity, err := t.resourceMng.GetDB().GetIdentity()
+	if nil != err {
+		log.Errorf("Failed to call onPrepareVote with `GetIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
+		return fmt.Errorf("query local identity failed, %s", err)
+	}
+
 	sender := fetchOrgByPartyRole(voteMsg.MsgOption.SenderPartyId, voteMsg.MsgOption.SenderRole, proposalTask.Task)
-	if nil == sender {
+	receiver := fetchOrgByPartyRole(voteMsg.MsgOption.ReceiverPartyId, voteMsg.MsgOption.ReceiverRole, proposalTask.Task)
+	if nil == sender || nil == receiver {
 		log.Errorf("Failed to verify partyId and taskRole of task on onPrepareVote, proposalId: {%s}, taskId: {%s}", voteMsg.MsgOption.ProposalId.String(), proposalTask.GetTaskId())
+		return ctypes.ErrConsensusMsgInvalid
+	}
+
+	// verify the receiver is myself ?
+	if identity.GetIdentityId() != receiver.GetIdentityId() {
+		log.Errorf("Failed to verify receiver identityId of prepareVote, receiver is not me, my identityId: {%s}, receiver identityId: {%s}", identity.GetIdentityId(), receiver.GetIdentityId())
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
@@ -377,6 +396,13 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			sender.GetIdentityId(), sender.GetPartyId())
 	}
 
+	// verify resource of `YES` vote
+	if voteMsg.VoteOption == types.Yes && voteMsg.PeerInfoEmpty() {
+		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrProposalPrepareVoteResourceInvalid, proposalTask.GetTaskData().GetTaskId(), voteMsg.MsgOption.SenderRole.String(),
+			sender.GetIdentityId(), sender.GetPartyId())
+	}
+
 	// Store vote
 	t.storePrepareVote(voteMsg)
 
@@ -387,21 +413,23 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	totalVotedCount := t.getTaskPrepareTotalVoteCount(voteMsg.MsgOption.ProposalId)
 
 	if totalNeedVoteCount == totalVotedCount {
-		// Change the propoState to `confirmPeriod`
+		// Change the proposalState to `confirmPeriod`
 		if totalNeedVoteCount == yesVoteCount {
 
 			now := uint64(timeutils.UnixMsec())
 			// 修改状态
-			t.changeToConfirm(voteMsg.MsgOption.ProposalId, now)
+			t.changeToConfirm(voteMsg.MsgOption.ProposalId, voteMsg.MsgOption.ReceiverPartyId, now)
+
+			peers := t.makeConfirmTaskPeerDesc(voteMsg.MsgOption.ProposalId)
+			t.storeConfirmTaskPeerInfo(voteMsg.MsgOption.ProposalId, peers)
 
 			go func() {
 
-				if err := t.sendConfirmMsg(voteMsg.MsgOption.ProposalId, proposalTask.Task, now); nil != err {
+				if err := t.sendConfirmMsg(voteMsg.MsgOption.ProposalId, proposalTask.Task, peers, now); nil != err {
 					log.Errorf("Failed to call `SendTwoPcConfirmMsg` proposalId: {%s}, taskId: {%s}, err: \n%s",
 						voteMsg.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), err)
 					// Send consensus result
 					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("failed to call `SendTwoPcConfirmMsg`")))
-					// clean some invalid data
 					t.removeProposalStateAndTask(voteMsg.MsgOption.ProposalId)
 				}
 			}()
@@ -433,64 +461,89 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		return fmt.Errorf("%s onConfirmMsg", ctypes.ErrProposalNotFound)
 	}
 
-	orgSroposalState := t.mustGetOrgProposalState(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
+	orgProposalState := t.mustGetOrgProposalState(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
 
 	// 判断是第几轮 confirmMsg
 	// 只有 当前 state 是 prepare <定时任务还未更新 proposalState>
 	//和 confirm <定时任务还更新 proposalState> or <现在是第二epoch> 状态才可以处理 confirm 阶段的 Msg
 	// 收到第一epoch confirmMsg 时, 我应该是 prepare 阶段或者confirm 阶段,
 	// 收到第二epoch confirmMsg 时, 我应该是 confirm 阶段
-	if orgSroposalState.IsCommitPeriod() {
+	if orgProposalState.IsCommitPeriod() {
 		return ctypes.ErrProposalConfirmMsgTimeout
 	}
 
-	// 判断任务方向
-	if t.state.IsSendTaskOnProposalState(msg.ProposalId) {
-		return ctypes.ErrMsgTaskDirInvalid
-	}
-	// find the task of proposal on recvTasks
-	task, ok := t.GetRecvTaskWithOk(proposalState.TaskId)
+	// find the task of proposal on proposalTask
+	proposalTask, ok := t.getProposalTask(orgProposalState.GetTaskId())
 	if !ok {
-		return ctypes.ErrProposalTaskNotFound
+		return fmt.Errorf("%s, on the confirm msg [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrProposalTaskNotFound, proposalTask.GetTaskData().GetTaskId(), msg.MsgOption.ReceiverRole.String(),
+			msg.MsgOption.Owner.GetIdentityId(), msg.MsgOption.ReceiverPartyId)
 	}
 
-	self, err := t.resourceMng.GetDB().GetIdentity()
+	identity, err := t.resourceMng.GetDB().GetIdentity()
 	if nil != err {
-		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
-		// clean some data
-		t.removeProposalStateAndTask(proposalState.ProposalId)
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
+
+		log.Errorf("Failed to call onConfirmMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
-	vote := &types.ConfirmVote{
-		ProposalId: msg.ProposalId,
-		TaskRole:   msg.TaskRole,
-		Owner: &apipb.TaskOrganization{
-			PartyId:    msg.TaskPartyId,
-			NodeName:   self.NodeName,
-			NodeId:     self.NodeId,
-			IdentityId: self.IdentityId,
-		},
-		VoteOption: types.Yes,
-		CreateAt:   uint64(timeutils.UnixMsec()),
-		//Sign
+	sender := fetchOrgByPartyRole(msg.MsgOption.SenderPartyId, msg.MsgOption.SenderRole, proposalTask.Task)
+	receiver := fetchOrgByPartyRole(msg.MsgOption.ReceiverPartyId, msg.MsgOption.ReceiverRole, proposalTask.Task)
+	if nil == sender || nil == receiver {
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
+
+		log.Errorf("Failed to verify partyId and taskRole of task on onConfirmMsg, proposalId: {%s}, taskId: {%s}", msg.MsgOption.ProposalId.String(), proposalTask.GetTaskId())
+		return ctypes.ErrConsensusMsgInvalid
 	}
 
-	// 修改状态
-	t.changeToConfirm(msg.MsgOption.ProposalId, msg.CreateAt)
+	// verify the receiver is myself ?
+	if identity.GetIdentityId() != receiver.GetIdentityId() {
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
+
+		log.Errorf("Failed to verify receiver identityId of confirmMsg, receiver is not me, my identityId: {%s}, receiver identityId: {%s}", identity.GetIdentityId(), receiver.GetIdentityId())
+		return ctypes.ErrConsensusMsgInvalid
+	}
+
+	// verify peers resources
+	if msg.PeersEmpty() {
+		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
+
+		log.Errorf("Failed to verify peers resources of confirmMsg, receiver is not me, my identityId: {%s}, receiver identityId: {%s}", identity.GetIdentityId(), receiver.GetIdentityId())
+		return ctypes.ErrConfirmMsgIllegal
+	}
+
+	t.storeConfirmTaskPeerInfo(msg.MsgOption.ProposalId, msg.Peers)
+
+	vote := makeConfirmVote(
+		proposalTask.ProposalId,
+		msg.MsgOption.ReceiverRole,
+		msg.MsgOption.SenderRole,
+		msg.MsgOption.ReceiverPartyId,
+		msg.MsgOption.SenderPartyId,
+		proposalTask.Task,
+		types.Yes,
+		uint64(timeutils.UnixMsec()),
+		)
+
+	t.changeToConfirm(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId, msg.CreateAt)
 
 	go func() {
 
-		if err := handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, types.ConvertConfirmVote(vote)); nil != err {
+		if err := t.sendConfirmVote(pid, receiver, sender, vote); nil != err {
 			log.Errorf("failed to call `SendTwoPcConfirmVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}, err: \n%s",
-				proposalState.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid, err)
+				proposalTask.ProposalId.String(), proposalTask.GetTaskId(), msg.MsgOption.SenderPartyId, msg.MsgOption.SenderRole.String(), pid, err)
 
-			t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
+			t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
 			// clean some data
-			t.removeProposalStateAndTask(proposalState.ProposalId)
+			t.removeProposalStateAndTask(proposalTask.ProposalId)
 		} else {
 			log.Debugf("Succceed to call `SendTwoPcConfirmVote`, proposalId: {%s}, taskId: {%s}, taskRole:{%s}, other identityId: {%s}, other peerId: {%s}",
-				proposalState.ProposalId.String(), task.TaskId(), msg.TaskRole.String(), msg.Owner.IdentityId, pid)
+				proposalTask.ProposalId.String(), proposalTask.GetTaskId(), msg.MsgOption.SenderPartyId, msg.MsgOption.SenderRole.String(), pid)
 		}
 	}()
 
@@ -525,7 +578,8 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	}
 
 	sender := fetchOrgByPartyRole(voteMsg.MsgOption.SenderPartyId, voteMsg.MsgOption.SenderRole, proposalTask.Task)
-	if nil == sender {
+	receiver := fetchOrgByPartyRole(voteMsg.MsgOption.ReceiverPartyId, voteMsg.MsgOption.ReceiverRole, proposalTask.Task)
+	if nil == sender || nil == receiver {
 		log.Errorf("Failed to verify partyId and taskRole of task on onConfirmVote, proposalId: {%s}, taskId: {%s}", voteMsg.MsgOption.ProposalId.String(), proposalTask.GetTaskId())
 		return ctypes.ErrConsensusMsgInvalid
 	}
@@ -561,7 +615,7 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 			now := uint64(timeutils.UnixMsec())
 
 			// 修改状态
-			t.changeToCommit(voteMsg.MsgOption.ProposalId, now)
+			t.changeToCommit(voteMsg.MsgOption.ProposalId, voteMsg.MsgOption.ReceiverPartyId, now)
 
 			go func() {
 
@@ -574,15 +628,12 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("failed to call `SendTwoPcCommitMsg`")))
 
 				} else {
+					// Send consensus result
+					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusSucceed, nil))
+
 					// If sending `CommitMsg` is successful,
 					// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-					t.driveTask("", voteMsg.ProposalId, types.SendTaskDir, types.TaskStateRunning, types.TaskOwner,
-						&apipb.TaskOrganization{
-							PartyId:    task.TaskData().PartyId,
-							IdentityId: task.TaskData().IdentityId,
-							NodeId:     task.TaskData().NodeId,
-							NodeName:   task.TaskData().NodeName,
-						}, task)
+					t.driveTask("", voteMsg.MsgOption.ProposalId, voteMsg.MsgOption.ReceiverRole, receiver, proposalTask.Task)
 				}
 
 				// 不成功, commitMsg 有失败的
@@ -636,40 +687,50 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 		return ctypes.ErrProposalCommitMsgTimeout
 	}
 
-	// 判断任务方向
-	if t.state.IsSendTaskOnProposalState(msg.ProposalId) {
-		return ctypes.ErrMsgTaskDirInvalid
-	}
-	// find the task of proposal on recvTasks
-	task, ok := t.GetRecvTaskWithOk(proposalState.TaskId)
+	// find the task of proposal on proposalTask
+	proposalTask, ok := t.getProposalTask(orgProposalState.GetTaskId())
 	if !ok {
-		return ctypes.ErrProposalTaskNotFound
+		return fmt.Errorf("%s, on the commit msg [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
+			ctypes.ErrProposalTaskNotFound, proposalTask.GetTaskData().GetTaskId(), msg.MsgOption.ReceiverRole.String(),
+			msg.MsgOption.Owner.GetIdentityId(), msg.MsgOption.ReceiverPartyId)
 	}
 
-	self, err := t.resourceMng.GetDB().GetIdentity()
+	identity, err := t.resourceMng.GetDB().GetIdentity()
 	if nil != err {
-		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", task.TaskId(), resource.SetAllReleaseResourceOption())
-		// clean some data
-		t.removeProposalStateAndTask(proposalState.ProposalId)
+		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
+
+		log.Errorf("Failed to call onCommitMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
+	sender := fetchOrgByPartyRole(msg.MsgOption.SenderPartyId, msg.MsgOption.SenderRole, proposalTask.Task)
+	receiver := fetchOrgByPartyRole(msg.MsgOption.ReceiverPartyId, msg.MsgOption.ReceiverRole, proposalTask.Task)
+	if nil == sender || nil == receiver {
+		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
+
+		log.Errorf("Failed to verify partyId and taskRole of task on onCommitMsg, proposalId: {%s}, taskId: {%s}", msg.MsgOption.ProposalId.String(), proposalTask.GetTaskId())
+		return ctypes.ErrConsensusMsgInvalid
+	}
+
+	// verify the receiver is myself ?
+	if identity.GetIdentityId() != receiver.GetIdentityId() {
+		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", proposalTask.GetTaskId(), resource.SetAllReleaseResourceOption())
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
+
+		log.Errorf("Failed to verify receiver identityId of commitMsg, receiver is not me, my identityId: {%s}, receiver identityId: {%s}", identity.GetIdentityId(), receiver.GetIdentityId())
+		return ctypes.ErrConsensusMsgInvalid
+	}
+
 	// 修改状态
-	t.changeToCommit(msg.MsgOption.ProposalId, msg.CreateAt)
+	t.changeToCommit(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId, msg.CreateAt)
 	// If sending `CommitMsg` is successful,
 	// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 	go func() {
 
-		t.driveTask(pid, msg.ProposalId, types.RecvTaskDir, types.TaskStateRunning, msg.TaskRole,
-			&apipb.TaskOrganization{
-				PartyId:    msg.TaskPartyId,
-				IdentityId: self.IdentityId,
-				NodeId:     self.NodeId,
-				NodeName:   self.NodeName,
-			}, task)
-
-		// 最后清除 各类 proposal 相关的数据 ...
-		t.removeProposalStateAndTask(msg.ProposalId)
+		t.driveTask(pid, msg.MsgOption.ProposalId, msg.MsgOption.ReceiverRole, receiver, proposalTask.Task)
+		t.removeProposalStateAndTask(msg.MsgOption.ProposalId)
 	}()
 	// 最后留给 定时器 清除本地 proposalState 香瓜内心戏
 	return nil

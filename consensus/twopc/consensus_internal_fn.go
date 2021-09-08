@@ -146,11 +146,11 @@ func (t *TwoPC) getTaskReceiverConfirmTotalVoteCount(proposalId common.Hash) uin
 	return t.state.GetTaskReceiverConfirmTotalVoteCount(proposalId)
 }
 
-func (t *TwoPC) changeToConfirm(proposalId common.Hash, startTime uint64) {
-	t.state.ChangeToConfirm(proposalId, startTime)
+func (t *TwoPC) changeToConfirm(proposalId common.Hash, partyId string, startTime uint64) {
+	t.state.ChangeToConfirm(proposalId, partyId, startTime)
 }
-func (t *TwoPC) changeToCommit(proposalId common.Hash, startTime uint64) {
-	t.state.ChangeToCommit(proposalId, startTime)
+func (t *TwoPC) changeToCommit(proposalId common.Hash, partyId string, startTime uint64) {
+	t.state.ChangeToCommit(proposalId, partyId, startTime)
 }
 
 func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
@@ -182,6 +182,10 @@ func (t *TwoPC) handleTaskConsensusResult(result *types.TaskConsResult) {
 
 func (t *TwoPC) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
 	t.needReplayScheduleTaskCh <- task
+}
+
+func (t *TwoPC) sendNeedExecuteTask(task *types.NeedExecuteTask) {
+	t.needExecuteTaskCh <- task
 }
 
 func (t *TwoPC) storeProposalState(proposalState *ctypes.ProposalState) {
@@ -239,31 +243,29 @@ func (t *TwoPC) mustGetOrgProposalState(proposalId common.Hash, partyId string) 
 	return pstate.MustGetOrgProposalState(partyId)
 }
 
-func (t *TwoPC) sendTaskToTaskManagerForExecute(task *types.DoneScheduleTaskChWrap) {
-	t.doneScheduleTaskCh <- task
-}
-
 func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
 
+	var sender *pb.TaskPeerInfo
 	dataSuppliers, powerSuppliers, receivers := make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0)
 
 	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
-		if vote.TaskRole == types.DataSupplier && nil != vote.PeerInfo {
+
+		if vote.MsgOption.SenderRole == apipb.TaskRole_TaskRole_Sender && nil != vote.PeerInfo {
+			sender = types.ConvertTaskPeerInfo(vote.PeerInfo)
+		}
+
+		if vote.MsgOption.SenderRole == apipb.TaskRole_TaskRole_DataSupplier && nil != vote.PeerInfo {
 			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
 		}
-		if vote.TaskRole == types.PowerSupplier && nil != vote.PeerInfo {
+		if vote.MsgOption.SenderRole == apipb.TaskRole_TaskRole_PowerSupplier && nil != vote.PeerInfo {
 			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
 		}
-		if vote.TaskRole == types.ResultSupplier && nil != vote.PeerInfo {
+		if vote.MsgOption.SenderRole == apipb.TaskRole_TaskRole_Receiver && nil != vote.PeerInfo {
 			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.PeerInfo))
 		}
 	}
-	owner := t.state.GetSelfPeerInfo(proposalId)
-	if nil == owner {
-		return nil
-	}
 	return &pb.ConfirmTaskPeerInfo{
-		OwnerPeerInfo:              types.ConvertTaskPeerInfo(owner),
+		OwnerPeerInfo:              sender,
 		DataSupplierPeerInfoList:   dataSuppliers,
 		PowerSupplierPeerInfoList:  powerSuppliers,
 		ResultReceiverPeerInfoList: receivers,
@@ -323,18 +325,18 @@ func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
 
 	log.Debugf("Call handleInvalidProposal(), handle and clean proposalState and task, proposalId: {%s}, taskId: {%s}, taskDir: {%s}", proposalState.ProposalId, proposalState.TaskId, proposalState.TaskDir.String())
 
-	has, err := t.dataCenter.HasLocalTaskExecute(proposalState.TaskId)
+	has, err := t.resourceMng.GetDB().HasLocalTaskExecute(proposalState.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to query local task exec status with task on handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.TaskId, err)
+		log.Errorf("Failed to query local task exec status with task on handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.GetTaskId(), err)
 		// 最终 clean some data
-		t.removeProposalStateAndTask(proposalState.ProposalId)
+		t.removeProposalStateAndTask(proposalState.GetProposalId())
 		return
 	}
 
 	if has {
-		log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache of consensus, taskId: {%s}", proposalState.TaskId)
+		log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache of consensus, taskId: {%s}", proposalState.GetTaskId())
 		// 最终 clean some data
-		t.removeProposalStateAndTask(proposalState.ProposalId)
+		t.removeProposalStateAndTask(proposalState.GetProposalId())
 		return
 	}
 
@@ -413,74 +415,62 @@ func (t *TwoPC) storeTaskEvent(pid peer.ID, taskId string, events []*libTypes.Ta
 func (t *TwoPC) driveTask(
 	pid peer.ID,
 	proposalId common.Hash,
-	taskDir types.ProposalTaskDir,
-	taskState apipb.TaskState,
-	taskRole apipb.TaskRole,
+	selfTaskRole apipb.TaskRole,
 	selfIdentity *apipb.TaskOrganization,
 	task *types.Task,
 ) {
 
-	log.Debugf("Start to call `driveTask`, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
-		proposalId.String(), task.GetTaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId)
+	log.Debugf("Start to call `driveTask`, proposalId: {%s}, taskId: {%s}, taskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+		proposalId.String(), task.GetTaskId(), selfTaskRole.String(), selfIdentity.GetPartyId(), selfIdentity.GetIdentityId(), selfIdentity.GetNodeName())
 
-	selfVotePeerInfo := t.state.GetSelfPeerInfo(proposalId)
-	if nil == selfVotePeerInfo {
-		log.Errorf("Failed to find local cache about prepareVote myself internal resource, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
-			proposalId.String(), task.GetTaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId)
+	selfVote := t.getPrepareVote(proposalId, selfIdentity.GetPartyId())
+	if nil == selfVote {
+		log.Errorf("Failed to find local cache about prepareVote myself internal resource, proposalId: {%s},taskId: {%s}, taskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+			proposalId.String(), task.GetTaskId(), selfTaskRole.String(), selfIdentity.GetPartyId(), selfIdentity.GetIdentityId(), selfIdentity.GetNodeName())
 		return
 	}
 
-	confirmTaskPeerInfo := t.state.GetConfirmTaskPeerInfo(proposalId)
-	if nil == confirmTaskPeerInfo {
-		log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}",
-			proposalId.String(), task.GetTaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId)
+	peers, ok := t.getConfirmTaskPeerInfo(proposalId)
+	if !ok {
+		log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, taskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+			proposalId.String(), task.GetTaskId(), selfTaskRole.String(), selfIdentity.GetPartyId(), selfIdentity.GetIdentityId(), selfIdentity.GetNodeName())
 		return
 	}
 
-	// Store task exec status
-	if err := t.dataCenter.StoreLocalTaskExecuteStatus(task.GetTaskId()); nil != err {
-		log.Errorf("Failed to store local task about exec status, proposalId: {%s}, taskId: {%s}, taskDir: {%s}, taskState: {%s}, taskRole: {%s}, myselfIdentityId: {%s}, err: {%s}",
-			proposalId.String(), task.GetTaskId(), taskDir.String(), taskState.String(), taskRole.String(), selfIdentity.IdentityId, err)
-		return
-	}
+	//// Store task exec status
+	//if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatus(task.GetTaskId()); nil != err {
+	//	log.Errorf("Failed to store local task about exec status, proposalId: {%s}, taskId: {%s}, taskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, err: {%s}",
+	//		proposalId.String(), task.GetTaskId(), selfTaskRole.String(), selfIdentity.GetPartyId(), selfIdentity.GetIdentityId(), selfIdentity.GetNodeName(), err)
+	//	return
+	//}
 
 	// Send task to TaskManager to execute
-	taskWrap := &types.DoneScheduleTaskChWrap{
-		ProposalId:   proposalId,
-		SelfTaskRole: taskRole,
-		SelfIdentity: selfIdentity,
-		Task: &types.ConsensusScheduleTask{
-			TaskDir:   taskDir,
-			TaskState: taskState,
-			SchedTask: task,
-			SelfVotePeerInfo: &types.PrepareVoteResource{
-				Id:      selfVotePeerInfo.Id,
-				Ip:      selfVotePeerInfo.Ip,
-				Port:    selfVotePeerInfo.Port,
-				PartyId: selfVotePeerInfo.PartyId,
-			},
-			Resources: confirmTaskPeerInfo,
-		},
-		ResultCh: make(chan *types.TaskResultMsgWrap, 0),
-	}
-	// 发给 taskManager 去执行 task
-	t.sendTaskToTaskManagerForExecute(taskWrap)
-	go func() {
-		if taskDir == types.RecvTaskDir {
-			if taskResultWrap, ok := <-taskWrap.ResultCh; ok {
-				if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
-					log.Error(err)
-				}
-				t.resourceMng.ReleaseLocalResourceWithTask("on consensus.driveTask()", task.GetTaskId(), resource.SetAllReleaseResourceOption())
-				//// clean some data
-				//t.removeProposalStateAndTask(proposalId)
-			}
-		} else {
-			<-taskWrap.ResultCh // publish taskInfo to dataCenter done ..
-			//// clean local proposalState and task cache
-			//t.removeProposalStateAndTask(proposalId)
-		}
-	}()
+	t.sendNeedExecuteTask(types.NewNeedExecuteTask(
+		pid,
+		proposalId,
+		selfTaskRole,
+		selfIdentity,
+		task,
+		selfVote.PeerInfo,
+		peers,
+	))
+
+	//go func() {
+	//	if taskDir == types.RecvTaskDir {
+	//		if taskResultWrap, ok := <-taskWrap.ResultCh; ok {
+	//			if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
+	//				log.Error(err)
+	//			}
+	//			t.resourceMng.ReleaseLocalResourceWithTask("on consensus.driveTask()", task.GetTaskId(), resource.SetAllReleaseResourceOption())
+	//			//// clean some data
+	//			//t.removeProposalStateAndTask(proposalId)
+	//		}
+	//	} else {
+	//		<-taskWrap.ResultCh // publish taskInfo to dataCenter done ..
+	//		//// clean local proposalState and task cache
+	//		//t.removeProposalStateAndTask(proposalId)
+	//	}
+	//}()
 }
 
 func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
@@ -577,9 +567,8 @@ func (t *TwoPC) sendPrepareVote(pid peer.ID, sender, receiver *apipb.TaskOrganiz
 	}
 }
 
-func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
+func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *pb.ConfirmTaskPeerInfo, startTime uint64) error {
 
-	peers := t.makeConfirmTaskPeerDesc(proposalId)
 	sender := task.GetTaskSender()
 
 	sendConfirmMsgFn := func(wg *sync.WaitGroup, sender, receiver *apipb.TaskOrganization, senderRole, receiverRole apipb.TaskRole, errCh chan<- error) {
@@ -981,4 +970,32 @@ func (t *TwoPC) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityI
 
 	}
 	return identityValid, nil
+}
+
+func (t *TwoPC) getPrepareVote(proposalId common.Hash, partyId string) *types.PrepareVote {
+	return t.state.GetPrepareVote(proposalId, partyId)
+}
+
+func (t *TwoPC) getConfirmVote(proposalId common.Hash, partyId string) *types.ConfirmVote {
+	return t.state.GetConfirmVote(proposalId, partyId)
+}
+
+func (t *TwoPC) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *pb.ConfirmTaskPeerInfo) {
+	t.state.StoreConfirmTaskPeerInfo(proposalId, peers)
+}
+
+func (t *TwoPC) hasConfirmTaskPeerInfo(proposalId common.Hash) bool {
+	return t.state.HasConfirmTaskPeerInfo(proposalId)
+}
+
+func (t *TwoPC) getConfirmTaskPeerInfo(proposalId common.Hash) (*pb.ConfirmTaskPeerInfo, bool) {
+	return t.state.GetConfirmTaskPeerInfo(proposalId)
+}
+
+func (t *TwoPC) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+	return t.state.MustGetConfirmTaskPeerInfo(proposalId)
+}
+
+func (t *TwoPC) removeConfirmTaskPeerInfo(proposalId common.Hash) {
+	t.state.RemoveConfirmTaskPeerInfo(proposalId)
 }
