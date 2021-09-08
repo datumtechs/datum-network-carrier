@@ -45,7 +45,7 @@ type Manager struct {
 	needConsensusTaskCh      chan *types.NeedConsensusTask
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
-	runningTaskCache         map[string]*types.DoneScheduleTaskChWrap
+	runningTaskCache         map[string]*types.NeedExecuteTask // TODO z
 	runningTaskCacheLock     sync.RWMutex
 }
 
@@ -72,7 +72,7 @@ func NewTaskManager(
 		needConsensusTaskCh:      needConsensusTaskCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
-		runningTaskCache:         make(map[string]*types.DoneScheduleTaskChWrap, 0),
+		runningTaskCache:         make(map[string]*types.NeedExecuteTask, 0),
 		quit:                     make(chan struct{}),
 	}
 	return m
@@ -104,11 +104,11 @@ func (m *Manager) loop() {
 			}()
 
 		// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者直接存到 dataCenter
-		case task := <-m.doneScheduleTaskCh:
+		case task := <-m.needExecuteTaskCh:
 
 			// 添加本地缓存
 			m.addRunningTaskCache(task)
-			m.handleDoneScheduleTask(task.Task.SchedTask.TaskId())
+			m.handleNeedExecuteTask(task)
 
 		case <-taskMonitorTicker.C:
 			m.expireTaskMonitor()

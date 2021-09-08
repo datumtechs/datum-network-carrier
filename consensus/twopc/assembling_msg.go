@@ -96,7 +96,6 @@ func makeConfirmVote(
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	voteOption types.VoteOption,
-	peerInfo *types.PrepareVoteResource,
 	startTime uint64,
 ) *pb.ConfirmVote {
 

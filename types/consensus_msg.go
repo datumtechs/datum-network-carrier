@@ -173,6 +173,7 @@ type PrepareVote struct {
 	Sign       []byte
 }
 
+func (vote *PrepareVote) PeerInfoEmpty () bool { return nil == vote.PeerInfo }
 func (vote *PrepareVote) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "voteOption": %s, "peerInfo": %s, "createAt": %d, "sign": %v}`,
 		vote.MsgOption.String(), vote.VoteOption.String(), vote.PeerInfo.String(), vote.CreateAt, vote.Sign)
@@ -204,9 +205,28 @@ type ConfirmMsg struct {
 	Sign      []byte
 }
 
+func (msg *ConfirmMsg) PeersEmpty() bool {
+	if nil == msg.Peers {
+		return true
+	}
+	if nil == msg.Peers.GetOwnerPeerInfo() && len(msg.Peers.GetDataSupplierPeerInfoList()) == 0 &&
+		len(msg.Peers.GetPowerSupplierPeerInfoList()) == 0 && len(msg.Peers.GetResultReceiverPeerInfoList()) == 0 {
+		return true
+	}
+	return false
+}
+
 func (msg *ConfirmMsg) String() string {
-	return fmt.Sprintf(`{"msgOption": %s, "peerDesc": %s, "createAt": %d, "sign": %v}`,
-		msg.MsgOption.String(), msg.Peers.String(), msg.CreateAt, msg.Sign)
+
+	var peers string
+	if msg.PeersEmpty() {
+		peers = "{}"
+	} else {
+		peers = msg.Peers.String()
+	}
+
+	return fmt.Sprintf(`{"msgOption": %s, "peers": %s, "createAt": %d, "sign": %v}`,
+		msg.MsgOption.String(), peers, msg.CreateAt, msg.Sign)
 }
 
 func ConvertConfirmMsg(msg *ConfirmMsg) *pb.ConfirmMsg {
