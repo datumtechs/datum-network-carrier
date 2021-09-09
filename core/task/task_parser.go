@@ -10,6 +10,6 @@ func newTaskParser () *TaskParser {
 	return &TaskParser{}
 }
 
-func (tp *TaskParser) ParseTask(tasks types.TaskMsgs) (types.TaskMsgs, types.TaskMsgs, error) {
+func (tp *TaskParser) ParseTask(tasks types.TaskMsgArr) (types.TaskMsgArr, types.TaskMsgArr, error) {
 	return nil, nil, nil
 }

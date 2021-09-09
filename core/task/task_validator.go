@@ -10,6 +10,6 @@ func newTaskValidator () *TaskValidator {
 	return &TaskValidator{}
 }
 
-func (tv *TaskValidator) validateTaskMsg (tasks types.TaskMsgs) (types.TaskMsgs, types.TaskMsgs, error) {
+func (tv *TaskValidator) validateTaskMsg (tasks types.TaskMsgArr) (types.TaskMsgArr, types.TaskMsgArr, error) {
 	return nil, nil, nil
 }

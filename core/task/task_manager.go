@@ -45,7 +45,7 @@ type Manager struct {
 	needConsensusTaskCh      chan *types.NeedConsensusTask
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
-	runningTaskCache         map[string]*types.NeedExecuteTask // TODO z
+	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
 	runningTaskCacheLock     sync.RWMutex
 }
 
@@ -72,7 +72,7 @@ func NewTaskManager(
 		needConsensusTaskCh:      needConsensusTaskCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
-		runningTaskCache:         make(map[string]*types.NeedExecuteTask, 0),
+		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0),
 		quit:                     make(chan struct{}),
 	}
 	return m
@@ -107,7 +107,7 @@ func (m *Manager) loop() {
 		case task := <-m.needExecuteTaskCh:
 
 			// 添加本地缓存
-			m.addRunningTaskCache(task)
+			m.addNeedExecuteTaskCache(task)
 			m.handleNeedExecuteTask(task)
 
 		case <-taskMonitorTicker.C:
@@ -130,14 +130,14 @@ func (m *Manager) loop() {
 	}
 }
 
-func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
-	if len(msgs) == 0 {
-		return fmt.Errorf("Receive some empty task msgs")
+func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
+	if len(msgArr) == 0 {
+		return fmt.Errorf("Receive some empty task msgArr")
 	}
 
-	nonParsedMsgs, parsedMsgs, err := m.parser.ParseTask(msgs)
+	nonParsedMsgArr, parsedMsgArr, err := m.parser.ParseTask(msgArr)
 	if nil != err {
-		for _, badMsg := range nonParsedMsgs {
+		for _, badMsg := range nonParsedMsgArr {
 			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to parse local taskMsg"))}
 
@@ -146,15 +146,15 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 			}
 		}
 
-		if len(nonParsedMsgs) == len(msgs) {
+		if len(nonParsedMsgArr) == len(msgArr) {
 			return err
 		}
 	}
 
-	nonValidatedMsgs, validatedMsgs, err := m.validator.validateTaskMsg(parsedMsgs)
+	nonValidatedMsgArr, validatedMsgArr, err := m.validator.validateTaskMsg(parsedMsgArr)
 	if nil != err {
 
-		for _, badMsg := range nonValidatedMsgs {
+		for _, badMsg := range nonValidatedMsgArr {
 			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to validate local taskMsg"))}
 
@@ -163,14 +163,14 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 			}
 		}
 
-		if len(nonValidatedMsgs) == len(parsedMsgs) {
+		if len(nonValidatedMsgArr) == len(parsedMsgArr) {
 			return err
 		}
 	}
 
 	taskArr := make(types.TaskDataArray, 0)
 
-	for _, msg := range validatedMsgs {
+	for _, msg := range validatedMsgArr {
 		task := msg.Data
 		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 
@@ -197,7 +197,7 @@ func (m *Manager) SendTaskMsgs(msgs types.TaskMsgs) error {
 
 	// transfer `taskMsgs` to Scheduler
 	go func() {
-		m.sendTaskMsgsToScheduler(taskArr)
+		m.sendLocalTaskToScheduler(taskArr)
 	}()
 	return nil
 }

@@ -42,7 +42,7 @@ func (cost *TaskOperationCost) String() string {
 //
 //type dataSupplierOption struct {
 //	MemberInfo      *apipb.Organization `json:"memberInfo"`
-//	MetaDataId      string              `json:"metaDataId"`
+//	MetadataId      string              `json:"metadataId"`
 //	ColumnIndexList []uint64            `json:"columnIndexList"`
 //}
 //type powerSupplierOption struct {
