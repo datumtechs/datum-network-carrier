@@ -223,18 +223,18 @@ func (nct *NeedConsensusTask) ReceiveResult() *TaskConsResult {
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
 type NeedReplayScheduleTask struct {
-	selfTaskRole apipb.TaskRole
-	selfPartyId  string
-	task         *Task
-	resultCh     chan *ReplayScheduleResult
+	localTaskRole apipb.TaskRole
+	localPartyId  string
+	task          *Task
+	resultCh      chan *ReplayScheduleResult
 }
 
 func NewNeedReplayScheduleTask(role apipb.TaskRole, partyId string, task *Task) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
-		selfTaskRole: role,
-		selfPartyId:  partyId,
-		task:         task,
-		resultCh:     make(chan *ReplayScheduleResult),
+		localTaskRole: role,
+		localPartyId:  partyId,
+		task:          task,
+		resultCh:      make(chan *ReplayScheduleResult),
 	}
 }
 func (nrst *NeedReplayScheduleTask) SendFailedResult(taskId string, err error) {
@@ -250,17 +250,17 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetSelfTaskRole() apipb.TaskRole         { return nrst.selfTaskRole }
-func (nrst *NeedReplayScheduleTask) GetSelfPartyId() string                  { return nrst.selfPartyId }
-func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apipb.TaskRole { return nrst.localTaskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string          { return nrst.localPartyId }
+func (nrst *NeedReplayScheduleTask) GetTask() *Task                   { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"
 	if nil != nrst.task {
 		taskStr = nrst.task.GetTaskData().String()
 	}
-	return fmt.Sprintf(`{"taskRole": %s, "selfPartyId": %s, "task": %s, "resultCh": %p}`,
-		nrst.selfTaskRole.String(), nrst.selfPartyId, taskStr, nrst.resultCh)
+	return fmt.Sprintf(`{"taskRole": %s, "localPartyId": %s, "task": %s, "resultCh": %p}`,
+		nrst.localTaskRole.String(), nrst.localPartyId, taskStr, nrst.resultCh)
 }
 
 type ReplayScheduleResult struct {

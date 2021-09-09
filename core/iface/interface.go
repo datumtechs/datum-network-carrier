@@ -115,7 +115,6 @@ type TaskCarrierDB interface {
 	RemoveTaskEventList(taskId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
-	//UpdateLocalTaskState(taskId, state string) error // 任务的状态 (pending: 等在中; running: 计算中; failed: 失败; success: 成功)
 	GetLocalTask(taskId string) (*types.Task, error)
 	GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
 	GetLocalTaskList() (types.TaskDataArray, error)

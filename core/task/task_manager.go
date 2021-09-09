@@ -144,6 +144,22 @@ func (m *Manager) loop() {
 				log.Errorf("Failed to try schedule local task when taskTicker, err: {%s}", err)
 			}
 
+		case needReplayScheduleTask := <- m.needReplayScheduleTaskCh:
+
+			go func() {
+
+				if err := m.resourceMng.GetDB().StoreLocalTask(needReplayScheduleTask.GetTask()); nil != err {
+
+					log.Errorf("failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}, err: {%s}", needReplayScheduleTask.GetTask().GetTaskId(), err)
+
+					needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
+
+				} else {
+					result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask.GetTask())
+					needReplayScheduleTask.SendResult(result)
+				}
+			}()
+
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")
 			return
