@@ -601,6 +601,8 @@ func (m *Manager) expireTaskMonitor() {
 		return
 	}
 
+	m.runningTaskCacheLock.Lock()
+
 	for taskId, cache := range m.runningTaskCache {
 
 		for partyId, task := range cache {
@@ -609,10 +611,10 @@ func (m *Manager) expireTaskMonitor() {
 
 				// the task has running expire
 				duration := uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt()
+
 				if duration >= task.GetTask().GetTaskData().GetOperationCost().GetDuration() {
 					log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
 						taskId, duration, task.GetTask().GetTaskData().GetOperationCost().GetDuration())
-
 
 					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), identityId, fmt.Sprintf("task running expire"), apipb.TaskState_TaskState_Failed)
 					switch task.GetLocalTaskRole() {
@@ -635,6 +637,8 @@ func (m *Manager) expireTaskMonitor() {
 			}
 		}
 	}
+
+	m.runningTaskCacheLock.Unlock()
 }
 
 func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state apipb.TaskState) {

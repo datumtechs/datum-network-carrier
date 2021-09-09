@@ -62,14 +62,11 @@ func New(
 		peerSet:                  ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:                    newState(),
 		resourceMng:              resourceMng,
-		//needConsensusTaskCh:      needConsensusTaskCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		asyncCallCh:              make(chan func(), conf.PeerMsgQueueSize),
 		quit:                     make(chan struct{}),
 		proposalTaskCache:        make(map[string]*types.ProposalTask),
-		//sendTaskCache:            make(map[string]*types.GetTask),
-		//recvTaskCache:            make(map[string]*types.GetTask),
 		taskResultBusCh: make(chan *types.TaskConsResult, 100),
 		taskResultChSet: make(map[string]chan<- *types.TaskConsResult, 100),
 		Errs:            make([]error, 0),
@@ -89,22 +86,7 @@ func (t *TwoPC) loop() {
 	refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal)
 	for {
 		select {
-		//case nonConsTask := <-t.needConsensusTaskCh:
-		//	// Start a goroutine to process a new schedTask
-		//	go func() {
-		//
-		//		log.Debugf("Start consensus task on 2pc consensus engine, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
-		//
-		//		if err := t.OnPrepare(nonConsTask.GetTask()); nil != err {
-		//			log.Errorf("Failed to call `OnPrepare()` on 2pc consensus engine, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
-		//			nonConsTask.SendResult(types.NewTaskConsResult(nonConsTask.GetTask().GetTaskId(), types.TaskConsensusInterrupt, err))
-		//			return
-		//		}
-		//
-		//		if err := t.OnHandle(nonConsTask.GetTask(), nonConsTask.GetResultCh()); nil != err {
-		//			log.Errorf("Failed to call `OnHandle()` on 2pc consensus engine, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
-		//		}
-		//	}()
+
 		case fn := <-t.asyncCallCh:
 			fn()
 
@@ -115,7 +97,7 @@ func (t *TwoPC) loop() {
 			t.handleTaskConsensusResult(res)
 
 		case <-refreshProposalStateTicker.C:
-			//go t.refreshProposalState()
+			go t.refreshProposalState()
 
 		case <-t.quit:
 			log.Info("Stopped 2pc consensus engine ...")

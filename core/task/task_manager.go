@@ -48,7 +48,6 @@ type Manager struct {
 	quit    chan struct{}
 	// send the validated taskMsgs to scheduler
 	localTasksCh chan types.TaskDataArray
-	//needConsensusTaskCh      chan *types.NeedConsensusTask
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
@@ -63,7 +62,6 @@ func NewTaskManager(
 	resourceMng *resource.Manager,
 	resourceClientSet *grpclient.InternalResourceClientSet,
 	localTasksCh chan types.TaskDataArray,
-//needConsensusTaskCh chan *types.NeedConsensusTask,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 ) *Manager {
