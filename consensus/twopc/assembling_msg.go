@@ -123,21 +123,7 @@ func makeCommitMsg(
 	return msg
 }
 
-func makeTaskResultMsg(
-	proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
-	senderPartyId, receiverPartyId string,
-	task *types.Task,
-	events []*libTypes.TaskEvent,
-	startTime uint64,
-) *pb.TaskResultMsg {
-	return &pb.TaskResultMsg{
-		MsgOption:     makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
-		TaskEventList: types.ConvertTaskEventArr(events),
-		CreateAt:      startTime,
-		Sign:          nil,
-	}
-}
+
 
 func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 
@@ -202,21 +188,3 @@ func fetchCommitMsg(msg *types.CommitMsgWrap) *types.CommitMsg {
 	}
 }
 
-func fetchTaskResultMsg(msg *types.TaskResultMsgWrap) *types.TaskResultMsg {
-	taskEventList := make([]*libTypes.TaskEvent, len(msg.TaskEventList))
-	for index, value := range msg.TaskEventList {
-		taskEventList[index] = &libTypes.TaskEvent{
-			Type:       string(value.Type),
-			TaskId:     string(value.TaskId),
-			IdentityId: string(value.IdentityId),
-			Content:    string(value.Content),
-			CreateAt:   value.CreateAt,
-		}
-	}
-	return &types.TaskResultMsg{
-		MsgOption:     types.FetchMsgOption(msg.MsgOption),
-		TaskEventList: taskEventList,
-		CreateAt:      msg.CreateAt,
-		Sign:          msg.Sign,
-	}
-}

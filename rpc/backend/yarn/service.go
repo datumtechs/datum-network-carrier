@@ -86,9 +86,9 @@ func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegistered
 	//			UsedBandwidth:  v.ResourceUsage.UsedBandwidth,
 	//		},
 	//		Duration: v.Duration,
-	//		Task: &pb.YarnRegisteredJobNodeTaskIds{
-	//			Count:   v.Task.Count,
-	//			TaskIds: v.Task.TaskIds,
+	//		GetTask: &pb.YarnRegisteredJobNodeTaskIds{
+	//			Count:   v.GetTask.Count,
+	//			TaskIds: v.GetTask.TaskIds,
 	//		},*/
 	//	}
 	//	jobNodes[i] = node

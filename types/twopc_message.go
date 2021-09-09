@@ -275,50 +275,50 @@ func (msg *CommitMsgWrap) Hash() common.Hash {
 func (msg *CommitMsgWrap) Signature() []byte {return msg.Sign}
 
 
-// ------------------------------- About TaskResultMsg -------------------------------
-type TaskResultMsgWrap struct {
-	*pb.TaskResultMsg
-	// caches
-	sealHash atomic.Value `json:"-" rlp:"-"`
-	hash     atomic.Value `json:"-" rlp:"-"`
-}
-func (msg *TaskResultMsgWrap) String() string {
-	result, err := json.Marshal(msg)
-	if err != nil{
-		return "Failed to generate string"
-	}
-	return string(result)
-}
-func (msg *TaskResultMsgWrap) SealHash() common.Hash {
-	if sealHash := msg.sealHash.Load(); sealHash != nil {
-		return sealHash.(common.Hash)
-	}
-	v := msg._sealHash()
-	msg.sealHash.Store(v)
-	return v
-}
-func (msg *TaskResultMsgWrap) _sealHash() (hash common.Hash) {
-	hasher := sha3.NewKeccak256()
-	rlp.Encode(hasher, []interface{}{
-		msg.GetMsgOption().GetProposalId(),
-		msg.GetMsgOption().GetSenderRole(),
-		msg.GetMsgOption().GetReceiverRole(),
-		msg.GetMsgOption().GetSenderPartyId(),
-		msg.GetMsgOption().GetReceiverPartyId(),
-		msg.GetMsgOption().GetMsgOwner(),
-		msg.TaskEventList,
-		msg.CreateAt,
-	})
-
-	hasher.Sum(hash[:0])
-	return hash
-}
-func (msg *TaskResultMsgWrap) Hash() common.Hash {
-	if hash := msg.hash.Load(); hash != nil {
-		return hash.(common.Hash)
-	}
-	v := rlputil.RlpHash(msg)
-	msg.hash.Store(v)
-	return v
-}
-func (msg *TaskResultMsgWrap) Signature() []byte {return msg.Sign}
+//// ------------------------------- About TaskResultMsg -------------------------------
+//type TaskResultMsgWrap struct {
+//	*pb.TaskResultMsg
+//	// caches
+//	sealHash atomic.Value `json:"-" rlp:"-"`
+//	hash     atomic.Value `json:"-" rlp:"-"`
+//}
+//func (msg *TaskResultMsgWrap) String() string {
+//	result, err := json.Marshal(msg)
+//	if err != nil{
+//		return "Failed to generate string"
+//	}
+//	return string(result)
+//}
+//func (msg *TaskResultMsgWrap) SealHash() common.Hash {
+//	if sealHash := msg.sealHash.Load(); sealHash != nil {
+//		return sealHash.(common.Hash)
+//	}
+//	v := msg._sealHash()
+//	msg.sealHash.Store(v)
+//	return v
+//}
+//func (msg *TaskResultMsgWrap) _sealHash() (hash common.Hash) {
+//	hasher := sha3.NewKeccak256()
+//	rlp.Encode(hasher, []interface{}{
+//		msg.GetMsgOption().GetProposalId(),
+//		msg.GetMsgOption().GetSenderRole(),
+//		msg.GetMsgOption().GetReceiverRole(),
+//		msg.GetMsgOption().GetSenderPartyId(),
+//		msg.GetMsgOption().GetReceiverPartyId(),
+//		msg.GetMsgOption().GetMsgOwner(),
+//		msg.TaskEventList,
+//		msg.CreateAt,
+//	})
+//
+//	hasher.Sum(hash[:0])
+//	return hash
+//}
+//func (msg *TaskResultMsgWrap) Hash() common.Hash {
+//	if hash := msg.hash.Load(); hash != nil {
+//		return hash.(common.Hash)
+//	}
+//	v := rlputil.RlpHash(msg)
+//	msg.hash.Store(v)
+//	return v
+//}
+//func (msg *TaskResultMsgWrap) Signature() []byte {return msg.Sign}

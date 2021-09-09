@@ -76,7 +76,7 @@ func (s *Service) registerRPCHandlers() {
 	)
 
 	s.registerRPC(
-		p2p.RPCTwoPcTaskResultMsgTopic,
+		p2p.RPCTaskResultMsgTopic,
 		s.taskResultMsgRPCHandler,
 	)
 

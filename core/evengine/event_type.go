@@ -36,13 +36,13 @@ var IncEventType = errors.New("incorrect evengine type")
 // 系统码
 var (
 	// 任务最终成功
-	TaskExecuteSucceedEOF = NewEventType("0008000", "Task execute succeed EOF")
-	TaskExecuteFailedEOF  = NewEventType("0008001", "Task execute failed EOF")
+	TaskExecuteSucceedEOF = NewEventType("0008000", "GetTask execute succeed EOF")
+	TaskExecuteFailedEOF  = NewEventType("0008001", "GetTask execute failed EOF")
 )
 
 // 调度服务事件
 var (
-	TaskCreate                 = NewEventType("0100000", "Create Task")
+	TaskCreate                 = NewEventType("0100000", "Create GetTask")
 	TaskNeedRescheduled        = NewEventType("0100001", "The task need rescheduled")
 	TaskDiscarded              = NewEventType("0100002", "The task was discarded")
 	TaskStarted                = NewEventType("0100003", "The task was started")

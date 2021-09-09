@@ -119,7 +119,7 @@ func SendTwoPcTaskResultMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.
 	defer cancel()
 
 	// send request on the special topic.
-	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTwoPcTaskResultMsgTopic, pid)
+	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTaskResultMsgTopic, pid)
 	if err != nil {
 		return err
 	}
