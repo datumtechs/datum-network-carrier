@@ -4,19 +4,13 @@ import (
 	"context"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*apipb.SimpleResponse, error) {
 	log.Debugf("RPC-API:ReportTaskEvent, req: {%v}", req)
-	err := svr.B.SendTaskEvent(&libTypes.TaskEvent{
-		Type:       req.TaskEvent.Type,
-		IdentityId:   req.TaskEvent.IdentityId,
-		TaskId:     req.TaskEvent.TaskId,
-		Content:    req.TaskEvent.Content,
-		CreateAt: req.TaskEvent.CreateAt,
-	})
+	err := svr.B.SendTaskEvent(types.NewReportTaskEvent(req.PartyId, req.GetTaskEvent()))
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
 		return nil, ErrReportTaskEvent

@@ -204,8 +204,8 @@ func (m *Manager) sendTaskResultMsgToConsensus(taskId, partyId string) {
 func (m *Manager) sendLocalTaskToScheduler(tasks types.TaskDataArray) {
 	m.localTasksCh <- tasks
 }
-func (m *Manager) sendTaskEvent(event *libTypes.TaskEvent) {
-	m.eventCh <- event
+func (m *Manager) sendTaskEvent(reportEvent *types.ReportTaskEvent) {
+	m.eventCh <- reportEvent
 }
 
 func (m *Manager) storeBadTask(task *types.Task, events []*libTypes.TaskEvent, reason string) error {
@@ -474,16 +474,16 @@ func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *types.
 	}
 }
 
-func (m *Manager) handleEvent(event *libTypes.TaskEvent) error {
+func (m *Manager) handleTaskEvent(partyId string, event *libTypes.TaskEvent) error {
 	eventType := event.Type
 	if len(eventType) != ev.EventTypeCharLen {
 		return ev.IncEventType
 	}
 	// TODO need to validate the task that have been processing ? Maybe~
 	if event.Type == ev.TaskExecuteSucceedEOF.Type || event.Type == ev.TaskExecuteFailedEOF.Type {
-		if task, ok := m.queryNeedExecuteTaskCache(event.TaskId); ok {
+		if task, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), partyId); ok {
 
-			log.Debugf("Start handleEvent, `event is the end`, event: %s, current taskDir: {%s}", event.String(), task.Task.TaskDir.String())
+			log.Debugf("Start handleTaskEvent, `event is the end`, current partyId: {%s}, event: %s", partyId, event.String())
 
 			// 先 缓存下 最终休止符 event
 			m.resourceMng.GetDB().StoreTaskEvent(event)
@@ -494,19 +494,19 @@ func (m *Manager) handleEvent(event *libTypes.TaskEvent) error {
 			}
 
 			if task.GetTaskRole() == apipb.TaskRole_TaskRole_Sender {
-				m.sendTaskResultMsgToConsensus(event.TaskId)
+				m.sendTaskResultMsgToConsensus(event.GetTaskId(), partyId)
 			} else {
-				m.publishFinishedTaskToDataCenter(event.TaskId)
+				m.publishFinishedTaskToDataCenter(event.GetTaskId(), partyId)
 
 			}
 			return nil
 		} else {
-			return errors.New(fmt.Sprintf("Not found task cache, taskId: {%s}", event.TaskId))
+			return errors.New(fmt.Sprintf("Not found task cache, taskId: {%s}", event.GetTaskId()))
 		}
 
 	} else {
 
-		log.Debugf("Start handleEvent, `event is not the end`, event: %s", event.String())
+		log.Debugf("Start handleTaskEvent, `event is not the end`, event: %s", event.String())
 		// 不是休止符 event, 任务还在继续, 保存 event
 		return m.resourceMng.GetDB().StoreTaskEvent(event)
 	}

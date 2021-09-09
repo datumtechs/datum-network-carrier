@@ -86,16 +86,16 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	return &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_NodeType_YarnNode,
 		NodeId:       nodeId,
-		InternalIp:   "",                               //
-		ExternalIp:   "",                               //
-		InternalPort: "",                               //
-		ExternalPort: "",                               //
+		InternalIp:   "", //
+		ExternalIp:   "", //
+		InternalPort: "", //
+		ExternalPort: "", //
 		//TODO: 需要更改
 		//IdentityType: types.IDENTITY_TYPE_DID.String(), // 默认先是 DID
-		IdentityId:   identityId,
-		Name:         nodeName,
-		Peers:        registerNodes,
-		SeedPeers:    seedNodes,
+		IdentityId: identityId,
+		Name:       nodeName,
+		Peers:      registerNodes,
+		SeedPeers:  seedNodes,
 		//TODO: 需要更改
 		//State:        types.YARN_STATE_ACTIVE.String(),
 	}, nil
@@ -417,7 +417,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 	return nodeList, nil
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *libTypes.TaskEvent) error {
+func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	// return s.carrier.resourceManager.SendTaskEvent(evengine)
 	return s.carrier.taskManager.SendTaskEvent(event)
 }
@@ -528,15 +528,6 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 	log.Debugf("Invoke:GetPowerSingleDetailList, make validLocalTaskPowerUsedMap, validLocalTaskPowerUsedMap: %s",
 		utilLocalTaskPowerUsedMapString(validLocalTaskPowerUsedMap))
 
-	//// 收集 本地所有 计算资源的 powerUsed 数组
-	//validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
-	//for _, jobNode := range machineList {
-	//	// condition: jobNode
-	//	if usedArr, ok := localTaskPowerUsedTmp[jobNode.GetJobNodeId()]; ok {
-	//		validLocalTaskPowerUsedMap[jobNode.GetJobNodeId()] = usedArr
-	//	}
-	//}
-
 	readElement := func(jobNodeId string, taskId string) uint64 {
 		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
 			for _, powerUsed := range usedArr {
@@ -564,21 +555,21 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				// 封装任务 摘要 ...
 				powerTask := &libTypes.PowerTask{
 					TaskId:   taskId,
-					TaskName: task.TaskData().TaskName,
+					TaskName: task.GetTaskData().TaskName,
 					Owner: &apipb.Organization{
-						NodeName:   task.TaskData().GetNodeName(),
-						NodeId:     task.TaskData().GetNodeId(),
-						IdentityId: task.TaskData().GetIdentityId(),
+						NodeName:   task.GetTaskData().GetNodeName(),
+						NodeId:     task.GetTaskData().GetNodeId(),
+						IdentityId: task.GetTaskData().GetIdentityId(),
 					},
 					Receivers: make([]*apipb.Organization, 0),
 					OperationCost: &apipb.TaskResourceCostDeclare{
-						Processor: task.TaskData().GetOperationCost().GetProcessor(),
-						Memory:       task.TaskData().GetOperationCost().GetMemory(),
-						Bandwidth: task.TaskData().GetOperationCost().GetBandwidth(),
-						Duration:      task.TaskData().GetOperationCost().GetDuration(),
+						Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
+						Memory:    task.GetTaskData().GetOperationCost().GetMemory(),
+						Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
+						Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
-					CreateAt:       task.TaskData().CreateAt,
+					CreateAt:       task.GetTaskData().CreateAt,
 				}
 				// 组装 数据参与方
 				//for _, dataSupplier := range task.TaskPB().DataSupplier {
@@ -593,7 +584,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				//
 				//}
 				// 组装结果接收方
-				for _, receiver := range task.TaskData().Receivers {
+				for _, receiver := range task.GetTaskData().GetReceivers() {
 					powerTask.Receivers = append(powerTask.Receivers, &apipb.Organization{
 						NodeName:   receiver.GetNodeName(),
 						NodeId:     receiver.GetNodeId(),
@@ -604,10 +595,10 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
 				powerTask.OperationSpend = &apipb.TaskResourceCostDeclare{
-					Processor: uint32(slotUnit.Processor * slotCount),
-					Memory:       slotUnit.Mem * slotCount,
+					Processor: slotUnit.Processor * uint32(slotCount),
+					Memory:    slotUnit.Mem * slotCount,
 					Bandwidth: slotUnit.Bandwidth * slotCount,
-					Duration:      task.TaskData().GetOperationCost().GetDuration(),
+					Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
 			}
@@ -705,27 +696,27 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 
 	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
 		// task 发起方
-		if task.TaskData().GetIdentityId() == localIdentityId {
+		if task.GetTaskData().GetIdentityId() == localIdentityId {
 			return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_Sender)
 		}
 
 		// task 参与方
-		for _, dataSupplier := range task.TaskData().DataSuppliers {
-			if dataSupplier.Organization.IdentityId == localIdentityId {
+		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+			if dataSupplier.GetOrganization().GetIdentityId() == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_DataSupplier)
 			}
 		}
 
 		// 算力提供方
-		for _, powerSupplier := range task.TaskData().PowerSuppliers {
-			if powerSupplier.Organization.IdentityId == localIdentityId {
+		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+			if powerSupplier.GetOrganization().GetIdentityId() == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_PowerSupplier)
 			}
 		}
 
 		// 数据接收方
-		for _, receiver := range task.TaskData().Receivers {
-			if receiver.IdentityId == localIdentityId {
+		for _, receiver := range task.GetTaskData().GetReceivers() {
+			if receiver.GetIdentityId() == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_Receiver)
 			}
 		}

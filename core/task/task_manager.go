@@ -38,7 +38,7 @@ type Manager struct {
 	// internal resource node set (Fighter node grpc client set)
 	resourceClientSet *grpclient.InternalResourceClientSet
 
-	eventCh chan *libTypes.TaskEvent
+	eventCh chan *types.ReportTaskEvent
 	quit    chan struct{}
 	// send the validated taskMsgs to scheduler
 	localTasksCh             chan types.TaskDataArray
@@ -67,7 +67,7 @@ func NewTaskManager(
 		resourceClientSet:        resourceClientSet,
 		parser:                   newTaskParser(),
 		validator:                newTaskValidator(),
-		eventCh:                  make(chan *libTypes.TaskEvent, 10),
+		eventCh:                  make(chan *types.ReportTaskEvent, 10),
 		localTasksCh:             localTasksCh,
 		needConsensusTaskCh:      needConsensusTaskCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
@@ -98,8 +98,8 @@ func (m *Manager) loop() {
 		// 自己组织的 Fighter 上报过来的 event
 		case event := <-m.eventCh:
 			go func() {
-				if err := m.handleEvent(event); nil != err {
-					log.Error("Failed to call handleEvent() on TaskManager", "taskId", event.TaskId, "event", event.String())
+				if err := m.handleTaskEvent(event.GetPartyId(), event.GetEvent()); nil != err {
+					log.Error("Failed to call handleTaskEvent() on TaskManager", "taskId", event.GetEvent().GetTaskId(), "event", event.GetEvent().String())
 				}
 			}()
 
@@ -202,13 +202,13 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	return nil
 }
 
-func (m *Manager) SendTaskEvent(event *libTypes.TaskEvent) error {
+func (m *Manager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error {
 	identityId, err := m.resourceMng.GetDB().GetIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
 		return fmt.Errorf("query local identityId failed, %s", err)
 	}
-	event.IdentityId = identityId
-	m.sendTaskEvent(event)
+	reportEvent.GetEvent().IdentityId = identityId
+	m.sendTaskEvent(reportEvent)
 	return nil
 }
