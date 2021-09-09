@@ -64,7 +64,7 @@ func (s *Service) registerSubscribers() {
 		s.commitMessageSubscriber,
 	)
 	s.subscribe(
-		p2p.TwoPcTaskResultMsgTopicFormat,
+		p2p.TaskResultMsgTopicFormat,
 		s.validateTaskResultMessagePubSub,
 		s.taskResultMessageSubscriber,
 	)

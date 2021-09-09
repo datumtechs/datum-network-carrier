@@ -274,11 +274,7 @@ func (s *Service) validateCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 }
 
 func (s *Service) validateTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.ValidateConsensusMsg(pid, &types.TaskResultMsgWrap{TaskResultMsg: r})
+	return s.cfg.TaskManager.ValidateTaskResultMsg(pid, r)
 }
 
 
@@ -325,9 +321,5 @@ func (s *Service) onCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 }
 
 func (s *Service) onTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.OnConsensusMsg(pid, &types.TaskResultMsgWrap{TaskResultMsg: r})
+	return s.cfg.TaskManager.OnTaskResultMsg(pid, r)
 }

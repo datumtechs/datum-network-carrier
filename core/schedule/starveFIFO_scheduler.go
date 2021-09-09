@@ -192,7 +192,7 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 					bullet.UnschedTask.Data.TaskId(), bullet.Resched, ReschedMaxCount)
 				sche.eventEngine.StoreEvent(sche.eventEngine.GenerateEvent(evengine.TaskDiscarded.Type,
 					bullet.UnschedTask.Data.TaskId(), bullet.UnschedTask.Data.TaskData().IdentityId, fmt.Sprintf(
-						"Task rescheduled exceeds the expected threshold")))
+						"GetTask rescheduled exceeds the expected threshold")))
 
 				failedTask := &types.DoneScheduleTaskChWrap{
 					ProposalId:   common.Hash{},
@@ -214,11 +214,11 @@ func (sche *SchedulerStarveFIFO) trySchedule() error {
 			} else {
 				if bullet.Starve {
 					// 被丢弃掉的 task  也要清理掉  本地任务的资源, 并提交到数据中心 ...
-					log.Debugf("Task repush  into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+					log.Debugf("GetTask repush  into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
 						bullet.UnschedTask.Data.TaskId(), bullet.Resched, ReschedMaxCount)
 					heap.Push(sche.starveQueue, bullet)
 				} else {
-					log.Debugf("Task repush  into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+					log.Debugf("GetTask repush  into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
 						bullet.UnschedTask.Data.TaskId(), bullet.Resched, ReschedMaxCount)
 					heap.Push(sche.queue, bullet)
 				}
@@ -451,7 +451,7 @@ func (sche *SchedulerStarveFIFO) replaySchedule(replayScheduleTask *types.Replay
 
 		if err := sche.resourceMng.LockLocalResourceWithTask(jobNode.Id, needSlotCount,
 			replayScheduleTask.Task); nil != err {
-			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s}, err: {%s}",
+			log.Errorf("Failed to Lock LocalResource {%s} With GetTask {%s}, err: {%s}",
 				jobNode.Id, replayScheduleTask.Task.GetTaskId(), err)
 			replayScheduleTask.SendFailedResult(replayScheduleTask.Task.GetTaskId(),
 				fmt.Errorf("failed to lock localresource, {%s}", err))

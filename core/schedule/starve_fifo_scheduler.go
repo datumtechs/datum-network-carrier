@@ -32,11 +32,11 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 		return ErrRescheduleLargeThreshold
 	} else {
 		if bullet.Starve {
-			log.Debugf("Task repush  into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+			log.Debugf("GetTask repush  into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
 				bullet.TaskId, bullet.Resched, ReschedMaxCount)
 			heap.Push(sche.starveQueue, bullet)
 		} else {
-			log.Debugf("Task repush  into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+			log.Debugf("GetTask repush  into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
 				bullet.TaskId, bullet.Resched, ReschedMaxCount)
 			heap.Push(sche.queue, bullet)
 		}
@@ -109,10 +109,10 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() (*types.TaskBullet, error) {
 	return bullet, nil
 }
 
-func (sche *SchedulerStarveFIFO) AddTask(task *types.Task) {
+func (sche *SchedulerStarveFIFO) AddTask(task *types.Task) error {
 	bullet := types.NewTaskBullet(task.GetTaskId())
 	// todo 这里需要做一次 持久化
-	sche.pushTaskBullet(bullet)
+	return sche.pushTaskBullet(bullet)
 }
 
 func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {
@@ -125,7 +125,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	repushFn := func(bullet *types.TaskBullet) {
 
 		if err := sche.pushTaskBullet(bullet); err == ErrRescheduleLargeThreshold {
-
+//	todo 这里还没处理好呢 ...
 		}
 	}
 
@@ -300,7 +300,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 			task.GetTaskId(), jobNode.String())
 
 		if err := sche.resourceMng.LockLocalResourceWithTask(jobNode.Id, needSlotCount, task); nil != err {
-			log.Errorf("Failed to Lock LocalResource {%s} With Task {%s} on SchedulerStarveFIFO.ReplaySchedule(), err: {%s}",
+			log.Errorf("Failed to Lock LocalResource {%s} With GetTask {%s} on SchedulerStarveFIFO.ReplaySchedule(), err: {%s}",
 				jobNode.Id, task.GetTaskId(), err)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)

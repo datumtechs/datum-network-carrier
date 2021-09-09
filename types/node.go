@@ -34,7 +34,7 @@ package types
 //	ExternalPort  string         `json:"externalPort"`
 //	ResourceUsage *ResourceUsage `json:"resourceUsage"`
 //	Duration      uint64         `json:"duration"`
-//	Task          struct {
+//	GetTask          struct {
 //		Count   uint32   `json:"count"`
 //		TaskIds []string `json:"taskIds"`
 //	} `json:"task"`

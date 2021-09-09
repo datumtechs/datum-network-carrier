@@ -9,7 +9,7 @@ var (
 
 
 
-	// Task
+	// GetTask
 	ErrProposalTaskNotFound = errors.New("The task of proposal not found")
 
 	// Prepare

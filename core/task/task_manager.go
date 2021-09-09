@@ -3,12 +3,16 @@ package task
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
+
 	"sync"
 	"time"
 )
@@ -18,31 +22,33 @@ const (
 	taskMonitorInterval         = 30 * time.Second
 )
 
-type Scheduler interface {
-	Start() error
-	Stop() error
-	Error() error
-	Name() string
-	AddTask(task *types.Task)
-	RemoveTask(taskId string) error
-	TrySchedule() (*types.NeedConsensusTask, error)
-	ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult
-}
+//type Scheduler interface {
+//	Start() error
+//	Stop() error
+//	Error() error
+//	Name() string
+//	AddTask(task *types.Task) error
+//	RemoveTask(taskId string) error
+//	TrySchedule() (*types.NeedConsensusTask, error)
+//	ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult
+//}
 
 type Manager struct {
-	scheduler   Scheduler
-	eventEngine *ev.EventEngine
-	resourceMng *resource.Manager
-	parser      *TaskParser
-	validator   *TaskValidator
+	p2p             p2p.P2P
+	scheduler       schedule.Scheduler
+	consensusEngine consensus.Engine
+	eventEngine     *ev.EventEngine
+	resourceMng     *resource.Manager
+	parser          *TaskParser
+	validator       *TaskValidator
 	// internal resource node set (Fighter node grpc client set)
 	resourceClientSet *grpclient.InternalResourceClientSet
 
 	eventCh chan *types.ReportTaskEvent
 	quit    chan struct{}
 	// send the validated taskMsgs to scheduler
-	localTasksCh             chan types.TaskDataArray
-	needConsensusTaskCh      chan *types.NeedConsensusTask
+	localTasksCh chan types.TaskDataArray
+	//needConsensusTaskCh      chan *types.NeedConsensusTask
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
@@ -50,26 +56,30 @@ type Manager struct {
 }
 
 func NewTaskManager(
-	scheduler Scheduler,
+	p2p p2p.P2P,
+	scheduler schedule.Scheduler,
+	consensusEngine consensus.Engine,
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	resourceClientSet *grpclient.InternalResourceClientSet,
 	localTasksCh chan types.TaskDataArray,
-	needConsensusTaskCh chan *types.NeedConsensusTask,
+//needConsensusTaskCh chan *types.NeedConsensusTask,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 ) *Manager {
 
 	m := &Manager{
-		scheduler:                scheduler,
-		eventEngine:              eventEngine,
-		resourceMng:              resourceMng,
-		resourceClientSet:        resourceClientSet,
-		parser:                   newTaskParser(),
-		validator:                newTaskValidator(),
-		eventCh:                  make(chan *types.ReportTaskEvent, 10),
-		localTasksCh:             localTasksCh,
-		needConsensusTaskCh:      needConsensusTaskCh,
+		p2p:               p2p,
+		scheduler:         scheduler,
+		consensusEngine:   consensusEngine,
+		eventEngine:       eventEngine,
+		resourceMng:       resourceMng,
+		resourceClientSet: resourceClientSet,
+		parser:            newTaskParser(),
+		validator:         newTaskValidator(),
+		eventCh:           make(chan *types.ReportTaskEvent, 10),
+		localTasksCh:      localTasksCh,
+		//needConsensusTaskCh:      needConsensusTaskCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0),
@@ -116,12 +126,23 @@ func (m *Manager) loop() {
 		case tasks := <-m.localTasksCh:
 
 			for _, task := range tasks {
-				m.scheduler.AddTask(task)
-				m.scheduler.TrySchedule()
+				if err := m.scheduler.AddTask(task); nil != err {
+					log.Errorf("Failed to add local task into scheduler queue, err: {%s}", err)
+					continue
+				}
+
+				if err := m.tryScheduleTask(); nil != err {
+					log.Errorf("Failed to try schedule local task while received local tasks, err: {%s}", err)
+					continue
+				}
+
 			}
 			// 定时调度 队列中的任务信息
 		case <-taskTicker.C:
-			m.scheduler.TrySchedule()
+
+			if err := m.tryScheduleTask(); nil != err {
+				log.Errorf("Failed to try schedule local task when taskTicker, err: {%s}", err)
+			}
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")
