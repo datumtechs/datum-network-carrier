@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -25,78 +24,78 @@ func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *Propo
 	}
 }
 
-type ConsensusTaskWrap struct {
-	Task              *Task
-	OwnerDataResource *PrepareVoteResource
-	ResultCh          chan *ConsensusResult
-}
-
-func (wrap *ConsensusTaskWrap) SendResult(result *ConsensusResult) {
-	wrap.ResultCh <- result
-	close(wrap.ResultCh)
-}
-func (wrap *ConsensusTaskWrap) RecvResult() *ConsensusResult {
-	return <-wrap.ResultCh
-}
-func (wrap *ConsensusTaskWrap) String() string {
-	result, err := json.Marshal(wrap)
-	if err != nil {
-		return "Failed to generate string"
-	}
-	return string(result)
-}
-
-type ReplayScheduleTaskWrap struct {
-	Role     apipb.TaskRole
-	PartyId  string
-	Task     *Task
-	ResultCh chan *ScheduleResult
-}
-
-func NewReplayScheduleTaskWrap(role apipb.TaskRole, partyId string, task *Task) *ReplayScheduleTaskWrap {
-	return &ReplayScheduleTaskWrap{
-		Role:     role,
-		PartyId:  partyId,
-		Task:     task,
-		ResultCh: make(chan *ScheduleResult),
-	}
-}
-func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
-	wrap.SendResult(&ScheduleResult{
-		TaskId: taskId,
-		Status: TaskSchedFailed,
-		Err:    err,
-	})
-}
-func (wrap *ReplayScheduleTaskWrap) SendResult(result *ScheduleResult) {
-	wrap.ResultCh <- result
-	close(wrap.ResultCh)
-}
-func (wrap *ReplayScheduleTaskWrap) RecvResult() *ScheduleResult {
-	return <-wrap.ResultCh
-}
-func (wrap *ReplayScheduleTaskWrap) String() string {
-	result, err := json.Marshal(wrap)
-	if err != nil {
-		return "Failed to generate string"
-	}
-	return string(result)
-}
-
-type DoneScheduleTaskChWrap struct {
-	ProposalId   common.Hash
-	SelfTaskRole apipb.TaskRole
-	SelfIdentity *apipb.TaskOrganization
-	Task         *ConsensusScheduleTask
-	ResultCh     chan *TaskResultMsgWrap
-}
-type ConsensusScheduleTask struct {
-	TaskDir          ProposalTaskDir
-	TaskState        apipb.TaskState
-	SchedTask        *Task
-	SelfVotePeerInfo *PrepareVoteResource
-	Resources        *pb.ConfirmTaskPeerInfo
-}
+//type ConsensusTaskWrap struct {
+//	Task              *Task
+//	OwnerDataResource *PrepareVoteResource
+//	ResultCh          chan *ConsensusResult
+//}
+//
+//func (wrap *ConsensusTaskWrap) SendResult(result *ConsensusResult) {
+//	wrap.ResultCh <- result
+//	close(wrap.ResultCh)
+//}
+//func (wrap *ConsensusTaskWrap) RecvResult() *ConsensusResult {
+//	return <-wrap.ResultCh
+//}
+//func (wrap *ConsensusTaskWrap) String() string {
+//	result, err := json.Marshal(wrap)
+//	if err != nil {
+//		return "Failed to generate string"
+//	}
+//	return string(result)
+//}
+//
+//type ReplayScheduleTaskWrap struct {
+//	Role     apipb.TaskRole
+//	PartyId  string
+//	Task     *Task
+//	ResultCh chan *ScheduleResult
+//}
+//
+//func NewReplayScheduleTaskWrap(role apipb.TaskRole, partyId string, task *Task) *ReplayScheduleTaskWrap {
+//	return &ReplayScheduleTaskWrap{
+//		Role:     role,
+//		PartyId:  partyId,
+//		Task:     task,
+//		ResultCh: make(chan *ScheduleResult),
+//	}
+//}
+//func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
+//	wrap.SendResult(&ScheduleResult{
+//		TaskId: taskId,
+//		Status: TaskSchedFailed,
+//		Err:    err,
+//	})
+//}
+//func (wrap *ReplayScheduleTaskWrap) SendResult(result *ScheduleResult) {
+//	wrap.ResultCh <- result
+//	close(wrap.ResultCh)
+//}
+//func (wrap *ReplayScheduleTaskWrap) RecvResult() *ScheduleResult {
+//	return <-wrap.ResultCh
+//}
+//func (wrap *ReplayScheduleTaskWrap) String() string {
+//	result, err := json.Marshal(wrap)
+//	if err != nil {
+//		return "Failed to generate string"
+//	}
+//	return string(result)
+//}
+//
+//type DoneScheduleTaskChWrap struct {
+//	ProposalId   common.Hash
+//	SelfTaskRole apipb.TaskRole
+//	SelfIdentity *apipb.TaskOrganization
+//	Task         *ConsensusScheduleTask
+//	ResultCh     chan *TaskResultMsgWrap
+//}
+//type ConsensusScheduleTask struct {
+//	TaskDir          ProposalTaskDir
+//	TaskState        apipb.TaskState
+//	SchedTask        *Task
+//	SelfVotePeerInfo *PrepareVoteResource
+//	Resources        *pb.ConfirmTaskPeerInfo
+//}
 
 type TaskConsStatus uint16
 
@@ -139,43 +138,43 @@ func (res *TaskConsResult) String() string {
 	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
 }
 
-type TaskSchedStatus bool
-
-func (status TaskSchedStatus) String() string {
-	switch status {
-	case TaskSchedOk:
-		return "TaskSchedOk"
-	case TaskSchedFailed:
-		return "TaskSchedFailed"
-	default:
-		return "UnknownTaskSchedResult"
-	}
-}
-
-const (
-	TaskSchedOk     TaskSchedStatus = true
-	TaskSchedFailed TaskSchedStatus = false
-)
-
-type ScheduleResult struct {
-	TaskId   string
-	Status   TaskSchedStatus
-	Err      error
-	Resource *PrepareVoteResource
-}
-
-func (res *ScheduleResult) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s, "resource": %s}`,
-		res.TaskId, res.Status.String(), res.Err, res.Resource.String())
-}
-
-type ConsensusResult struct {
-	*TaskConsResult
-}
-
-func (res *ConsensusResult) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
-}
+//type TaskSchedStatus bool
+//
+//func (status TaskSchedStatus) String() string {
+//	switch status {
+//	case TaskSchedOk:
+//		return "TaskSchedOk"
+//	case TaskSchedFailed:
+//		return "TaskSchedFailed"
+//	default:
+//		return "UnknownTaskSchedResult"
+//	}
+//}
+//
+//const (
+//	TaskSchedOk     TaskSchedStatus = true
+//	TaskSchedFailed TaskSchedStatus = false
+//)
+//
+//type ScheduleResult struct {
+//	TaskId   string
+//	Status   TaskSchedStatus
+//	Err      error
+//	Resource *PrepareVoteResource
+//}
+//
+//func (res *ScheduleResult) String() string {
+//	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s, "resource": %s}`,
+//		res.TaskId, res.Status.String(), res.Err, res.Resource.String())
+//}
+//
+//type ConsensusResult struct {
+//	*TaskConsResult
+//}
+//
+//func (res *ConsensusResult) String() string {
+//	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
+//}
 
 // ================================================= V2.0 =================================================
 

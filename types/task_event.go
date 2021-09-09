@@ -1,5 +1,8 @@
 package types
 
+import (
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+)
 //type TaskEvent struct {
 //	GetTaskId   string     `json:"taskId"`
 //	Type     string     `json:"type"`
@@ -60,3 +63,18 @@ package types
 //
 //	return arr
 //}
+
+
+type ReportTaskEvent struct {
+	 PartyId   string
+	 Event     *libTypes.TaskEvent
+}
+
+func NewReportTaskEvent(partyId string, event *libTypes.TaskEvent) *ReportTaskEvent {
+	return &ReportTaskEvent{
+		PartyId: partyId,
+		Event: event,
+	}
+}
+func (rte *ReportTaskEvent) GetPartyId() string { return rte.PartyId }
+func (rte *ReportTaskEvent) GetEvent() *libTypes.TaskEvent { return rte.Event }
