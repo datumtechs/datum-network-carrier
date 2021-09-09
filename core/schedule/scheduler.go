@@ -13,5 +13,5 @@ type Scheduler interface {
 	AddTask(task *types.Task) error
 	RemoveTask(taskId string) error
 	TrySchedule() (*types.NeedConsensusTask, error)
-	ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult
+	ReplaySchedule(localPartyId string, localTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult
 }

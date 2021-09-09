@@ -1,113 +1,79 @@
 package schedule
 
 import (
-	"container/heap"
-	"errors"
 	"fmt"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	"github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"sync"
 )
+
+const (
+	ReschedMaxCount             = 8
+	StarveTerm                  = 3
+
+	electionOrgCondition        = 10000
+	electionLocalSeed           = 2
+	//taskComputeOrgCount         = 3
+)
+
 var (
+	ErrEnoughResourceOrgCountLessCalculateCount = fmt.Errorf("the enough resource org count is less calculate count")
+	ErrEnoughInternalResourceCount              = fmt.Errorf("has not enough internal resource count")
 	ErrRescheduleLargeThreshold = errors.New("The reschedule count of task bullet is large than max threshold")
 )
 
+type SchedulerStarveFIFO struct {
+	internalNodeSet *grpclient.InternalResourceClientSet
+	resourceMng     *resource.Manager
+	// the local task into this queue, first
+	queue *types.TaskBullets
+	// the very very starve local task by priority
+	starveQueue *types.TaskBullets
+	// the scheduling task, it is ejected from the queue (taskId -> taskBullet)
+	schedulings   map[string]*types.TaskBullet
+	queueMutex  sync.Mutex
 
-func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error {
-	sche.queueMutex.Lock()
-	defer sche.queueMutex.Unlock()
-	// The bullet is first into queue
-	old, ok := sche.schedulings[bullet.TaskId]
-	if !ok {
-		heap.Push(sche.queue, bullet)
-		return nil
+	//quit            chan struct{}
+	eventEngine     *evengine.EventEngine
+	//dataCenter      iface.ForResourceDB
+	err             error
+}
+
+func NewSchedulerStarveFIFO(
+	internalNodeSet *grpclient.InternalResourceClientSet,
+	eventEngine *evengine.EventEngine,
+	mng *resource.Manager,
+) *SchedulerStarveFIFO {
+
+	return &SchedulerStarveFIFO{
+		internalNodeSet:      internalNodeSet,
+		resourceMng:          mng,
+		queue:                new(types.TaskBullets),
+		starveQueue:          new(types.TaskBullets),
+		schedulings: 		  make(map[string]*types.TaskBullet),
+		eventEngine:          eventEngine,
+		//quit:                 make(chan struct{}),
 	}
+}
 
-	bullet = old
-	delete(sche.schedulings, bullet.TaskId)
-
-	if bullet.Resched >= ReschedMaxCount {
-		return ErrRescheduleLargeThreshold
-	} else {
-		if bullet.Starve {
-			log.Debugf("GetTask repush  into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
-				bullet.TaskId, bullet.Resched, ReschedMaxCount)
-			heap.Push(sche.starveQueue, bullet)
-		} else {
-			log.Debugf("GetTask repush  into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
-				bullet.TaskId, bullet.Resched, ReschedMaxCount)
-			heap.Push(sche.queue, bullet)
-		}
-	}
+func (sche *SchedulerStarveFIFO) Start() error {
+	//go sche.loop()
+	log.Info("Started SchedulerStarveFIFO ...")
 	return nil
 }
-
-func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
-	sche.queueMutex.Lock()
-	defer sche.queueMutex.Unlock()
-
-	// traversal the queue to remove task bullet, first.
-	i := 0
-	for {
-		if i == sche.queue.Len() {
-			break
-		}
-		bullet := (*(sche.queue))[i]
-
-		// When found the bullet with taskId, removed it from queue.
-		if bullet.TaskId == taskId {
-			heap.Remove(sche.queue, i)
-			delete(sche.schedulings, taskId)
-			return nil  // todo 这里需要做一次 持久化
-		}
-		(*(sche.queue))[i] = bullet
-		i++
-	}
-
-	// otherwise, traversal the starveQueue to remove task bullet, second.
-	i = 0
-	for {
-		if i == sche.starveQueue.Len() {
-			break
-		}
-		bullet := (*(sche.starveQueue))[i]
-
-		// When found the bullet with taskId, removed it from starveQueue.
-		if bullet.TaskId == taskId {
-			heap.Remove(sche.starveQueue, i)
-			delete(sche.schedulings, taskId)
-			return nil // todo 这里需要做一次 持久化
-		}
-		(*(sche.starveQueue))[i] = bullet
-		i++
-	}
+func (sche *SchedulerStarveFIFO) Stop() error {
+	//close(sche.quit)
 	return nil
 }
-
-func (sche *SchedulerStarveFIFO) popTaskBullet() (*types.TaskBullet, error) {
-	sche.queueMutex.Lock()
-	defer sche.queueMutex.Unlock()
-
-	var bullet *types.TaskBullet
-
-	if sche.starveQueue.Len() != 0 {
-		x := heap.Pop(sche.starveQueue)
-		bullet = x.(*types.TaskBullet)
-	} else {
-		if sche.queue.Len() != 0 {
-			x := heap.Pop(sche.queue)
-			bullet = x.(*types.TaskBullet)
-		} else {
-			return nil, nil
-		}
-	}
-	bullet.IncreaseResched()
-	sche.schedulings[bullet.TaskId] = bullet
-
-	return bullet, nil
-}
+func (sche *SchedulerStarveFIFO) Error() error { return sche.err }
+func (sche *SchedulerStarveFIFO) Name() string { return "SchedulerStarveFIFO" }
 
 func (sche *SchedulerStarveFIFO) AddTask(task *types.Task) error {
 	bullet := types.NewTaskBullet(task.GetTaskId())
@@ -121,11 +87,11 @@ func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {
 
 func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error) {
 
+	repushFn := func(task *types.Task) {
 
-	repushFn := func(bullet *types.TaskBullet) {
+		if err := sche.AddTask(task); err == ErrRescheduleLargeThreshold {
 
-		if err := sche.pushTaskBullet(bullet); err == ErrRescheduleLargeThreshold {
-//	todo 这里还没处理好呢 ...
+			// TODO 直接存到 数据中心去 ...
 		}
 	}
 
@@ -140,10 +106,9 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	if nil != err {
 		log.Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", bullet.TaskId, err)
 
-		repushFn(bullet)
+		repushFn(task)
 		return nil, err
 	}
-
 
 	cost := &ctypes.TaskOperationCost{
 		Mem:       task.GetTaskData().GetOperationCost().GetMemory(),
@@ -155,7 +120,6 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	log.Debugf("Call SchedulerStarveFIFO.TrySchedule() start, taskId: {%s}, partyId: {%s}, taskCost: {%s}",
 		task.GetTaskData().TaskId, task.GetTaskData().PartyId, cost.String())
 
-
 	// 获取 powerPartyIds 标签 TODO
 
 	// 【选出 其他组织的算力】
@@ -163,7 +127,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	if nil != err {
 		log.Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
 
-		repushFn(bullet)
+		repushFn(task)
 		return nil, err
 	}
 
@@ -175,12 +139,12 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
 
-		repushFn(bullet)
+		repushFn(task)
 		return nil, err
 	}
 	return types.NewNeedConsensusTask(task), nil
 }
-func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
+func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
 
 	cost := &ctypes.TaskOperationCost{
 		Mem:       task.GetTaskData().GetOperationCost().GetMemory(),
@@ -189,8 +153,8 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 		Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 	}
 
-	log.Debugf("Call SchedulerStarveFIFO.ReplaySchedule() start, taskId: {%s}, myTaskRole: {%s}, myPartyId: {%s}, taskCost: {%s}",
-		task.GetTaskId(), myTaskRole.String(), myPartyId, cost.String())
+	log.Debugf("Call SchedulerStarveFIFO.ReplaySchedule() start, taskId: {%s}, localTaskRole: {%s}, myPartyId: {%s}, taskCost: {%s}",
+		task.GetTaskId(), localTaskRole.String(), localPartyId, cost.String())
 
 	selfIdentityId, err := sche.resourceMng.GetDB().GetIdentityId()
 	if nil != err {
@@ -198,16 +162,15 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 		return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 	}
 
-
 	var result *types.ReplayScheduleResult
 
-	switch myTaskRole {
+	switch localTaskRole {
 
 	// 如果 当前参与方为 DataSupplier   [重新 演算 选 powers]
 	case apipb.TaskRole_TaskRole_DataSupplier:
 
 		var isSender bool
-		if myPartyId == task.GetTaskSender().GetPartyId() && selfIdentityId == task.GetTaskSender().GetIdentityId() {
+		if localPartyId == task.GetTaskSender().GetPartyId() && selfIdentityId == task.GetTaskSender().GetIdentityId() {
 			isSender = true
 		}
 
@@ -252,15 +215,13 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 
 		}
 
-
 		// 选出 关于自己 metaDataId 所在的 dataNode
 		var metaDataId string
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			if selfIdentityId == dataSupplier.GetOrganization().GetIdentityId() && myPartyId == dataSupplier.GetOrganization().GetPartyId() {
+			if selfIdentityId == dataSupplier.GetOrganization().GetIdentityId() && localPartyId == dataSupplier.GetOrganization().GetPartyId() {
 				metaDataId = dataSupplier.MetadataId
 			}
 		}
-
 
 		// 获取 metaData 所在的dataNode 资源
 		dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metaDataId)
@@ -282,7 +243,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 		log.Debugf("Succeed dataSupplier dataNode on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, dataNode: %s",
 			task.GetTaskId(), dataNode.String())
 
-		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, myPartyId))
+		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, localPartyId))
 
 	// 如果 当前参与方为 PowerSupplier  [选出自己的 内部 power 资源, 并锁定, todo 在最后 DoneXxxxWrap 中解锁]
 	case apipb.TaskRole_TaskRole_PowerSupplier:
@@ -306,7 +267,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(jobNode.Id, jobNode.ExternalIp, jobNode.ExternalPort, myPartyId))
+		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(jobNode.Id, jobNode.ExternalIp, jobNode.ExternalPort, localPartyId))
 
 	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
 	case apipb.TaskRole_TaskRole_Receiver:
@@ -333,10 +294,10 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 		log.Debugf("Succeed resultReceiver dataNode on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, dataNode: %s",
 			task.GetTaskId(), dataNode.String())
 
-		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, myPartyId))
+		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, localPartyId))
 
 	default:
-		result = types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("task role: {%s} can not replay schedule task", myTaskRole.String()), nil)
+		result = types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("task role: {%s} can not replay schedule task", localTaskRole.String()), nil)
 	}
 
 	return result
