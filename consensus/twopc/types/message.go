@@ -241,6 +241,11 @@ func (pstate *OrgProposalState) IsDeadline() bool {
 func (pstate *ProposalState) IsEmpty() bool { return nil == pstate }
 func (pstate *ProposalState) IsNotEmpty() bool { return !pstate.IsEmpty() }
 
+func (pstate *ProposalState) GetOrgProposalStates () map[string]*OrgProposalState {
+	return pstate.stateCache
+}
+
+
 
 func (pstate *OrgProposalState) IsPrepareTimeout() bool {
 
@@ -327,3 +332,4 @@ func (pstate *OrgProposalState) ChangeToFinished(startTime uint64) {
 	}
 	//pstate.ConfirmEpoch = ConfirmEpochUnknown
 }
+

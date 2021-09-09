@@ -4,10 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	"github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -270,136 +274,144 @@ func (t *TwoPC) makeConfirmTaskPeerDesc(proposalId common.Hash) *pb.ConfirmTaskP
 	}
 }
 
-//func (t *TwoPC) refreshProposalState() {
-//
-//	for id, proposalState := range t.state.GetProposalStates() {
-//
-//		if proposalState.IsDeadline() {
-//			log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, proposalId: {%s}, taskId: {%s}",
-//				id.String(), proposalState.TaskId)
-//			t.handleInvalidProposal(proposalState)
-//			continue
-//		}
-//
-//		switch proposalState.CurrPeriodNum() {
-//		case ctypes.PeriodPrepare:
-//			if proposalState.IsPrepareTimeout() {
-//				log.Debugf("Started refresh proposalState loop, the proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}",
-//					id.String(), proposalState.TaskId)
-//				proposalState.ChangeToConfirm(proposalState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
-//				t.state.UpdateProposalState(proposalState)
-//			}
-//		case ctypes.PeriodConfirm:
-//			if proposalState.IsConfirmTimeout() {
-//				log.Debugf("Started refresh proposalState loop, the proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}",
-//					id.String(), proposalState.TaskId)
-//				proposalState.ChangeToCommit(proposalState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
-//				t.state.UpdateProposalState(proposalState)
-//			}
-//		case ctypes.PeriodCommit:
-//			if proposalState.IsCommitTimeout() {
-//				log.Debugf("Started refresh proposalState loop, the proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}",
-//					id.String(), proposalState.TaskId)
-//				proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
-//				//t.state.UpdateProposalState(proposalState)
-//				t.handleInvalidProposal(proposalState)
-//			}
-//		case ctypes.PeriodFinished:
-//			//
-//			if proposalState.IsDeadline() {
-//				log.Debugf("Started refresh proposalState loop, the proposalState was finished but coming deadline now, proposalId: {%s}, taskId: {%s}",
-//					id.String(), proposalState.TaskId)
-//				t.handleInvalidProposal(proposalState)
-//			}
-//
-//		default:
-//			log.Errorf("Unknown the proposalState period, proposalId: {%s}, taskId: {%s}", id.String(), proposalState.TaskId)
-//			t.handleInvalidProposal(proposalState)
-//		}
-//	}
-//}
+func (t *TwoPC) refreshProposalState() {
 
-//func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
-//
-//	log.Debugf("Call handleInvalidProposal(), handle and clean proposalState and task, proposalId: {%s}, taskId: {%s}, taskDir: {%s}", proposalState.ProposalId, proposalState.TaskId, proposalState.TaskDir.String())
-//
-//	has, err := t.resourceMng.GetDB().HasLocalTaskExecute(proposalState.GetTaskId())
-//	if nil != err {
-//		log.Errorf("Failed to query local task exec status with task on handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.GetTaskId(), err)
-//		// 最终 clean some data
-//		t.removeProposalStateAndTask(proposalState.GetProposalId())
-//		return
-//	}
-//
-//	if has {
-//		log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache of consensus, taskId: {%s}", proposalState.GetTaskId())
-//		// 最终 clean some data
-//		t.removeProposalStateAndTask(proposalState.GetProposalId())
-//		return
-//	}
-//
-//	if proposalState.TaskDir == types.SendTaskDir {
-//		// Send consensus result to Scheduler
-//		t.replyTaskConsensusResult(&types.ConsensusResult{
-//			TaskConsResult: &types.TaskConsResult{
-//				TaskId: proposalState.TaskId,
-//				Status: types.TaskConsensusInterrupt,
-//				Done:   false,
-//				Err:    fmt.Errorf("the task proposalState coming deadline"),
-//			},
-//		})
-//
-//	} else {
-//
-//		task, ok := t.GetRecvTaskWithOk(proposalState.TaskId)
-//		if !ok {
-//			log.Errorf("Failed to query recvTaskInfo on consensus.handleInvalidProposal(), taskId: {%s}", proposalState.TaskId)
-//			return
-//		}
-//		eventList, err := t.dataCenter.GetTaskEventList(proposalState.TaskId)
-//		if nil != err {
-//			log.Errorf("Failed to GetTaskEventList() on consensus.handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.TaskId, err)
-//			eventList = make([]*libTypes.TaskEvent, 0)
-//		}
-//		eventList = append(eventList, &libTypes.TaskEvent{
-//			Type:       evengine.TaskProposalStateDeadline.Type,
-//			IdentityId: proposalState.TaskOrg.IdentityId,
-//			TaskId:     proposalState.TaskId,
-//			Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
-//			CreateAt:   uint64(timeutils.UnixMsec()),
-//		})
-//		taskResultWrap := &types.TaskResultMsgWrap{
-//			TaskResultMsg: &pb.TaskResultMsg{
-//				ProposalId: proposalState.ProposalId.Bytes(),
-//				TaskRole:   proposalState.TaskRole.Bytes(),
-//				TaskId:     []byte(proposalState.TaskId),
-//				Owner: &pb.TaskOrganizationIdentityInfo{
-//					PartyId:    []byte(proposalState.TaskOrg.PartyId),
-//					Name:       []byte(proposalState.TaskOrg.NodeName),
-//					NodeId:     []byte(proposalState.TaskOrg.NodeId),
-//					IdentityId: []byte(proposalState.TaskOrg.IdentityId),
-//				},
-//				TaskEventList: types.ConvertTaskEventArr(eventList),
-//				CreateAt:      uint64(timeutils.UnixMsec()),
-//				Sign:          nil,
-//			},
-//		}
-//
-//		// Send taskResultMsg to task Owner
-//		pid, err := p2p.HexPeerID(task.TaskData().NodeId)
-//		if nil == err {
-//			if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
-//				log.Error(err)
-//			}
-//		}
-//
-//		t.resourceMng.ReleaseLocalResourceWithTask("on consensus.handleInvalidProposal()", proposalState.TaskId, resource.SetAllReleaseResourceOption())
-//
-//	}
-//
-//	// 最终 clean some data
-//	t.removeProposalStateAndTask(proposalState.ProposalId)
-//}
+	t.state.proposalsLock.Lock()
+	defer t.state.proposalsLock.Unlock()
+
+	for proposalId, proposalState := range t.state.proposalSet {
+
+		opsCache := proposalState.GetOrgProposalStates()
+
+		for partyId, ops := range opsCache {
+			if ops.IsDeadline() {
+				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, proposalId: {%s}, partyId: {%s}, taskId: {%s}",
+					proposalId.String(), partyId, ops.GetTaskId())
+				t.handleInvalidProposal(proposalState)
+				continue
+			}
+
+			switch proposalState.CurrPeriodNum() {
+			case ctypes.PeriodPrepare:
+				if proposalState.IsPrepareTimeout() {
+					log.Debugf("Started refresh proposalState loop, the proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}",
+						proposalId.String(), proposalState.TaskId)
+					proposalState.ChangeToConfirm(proposalState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
+					t.state.UpdateProposalState(proposalState)
+				}
+			case ctypes.PeriodConfirm:
+				if proposalState.IsConfirmTimeout() {
+					log.Debugf("Started refresh proposalState loop, the proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}",
+						proposalId.String(), proposalState.TaskId)
+					proposalState.ChangeToCommit(proposalState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
+					t.state.UpdateProposalState(proposalState)
+				}
+			case ctypes.PeriodCommit:
+				if proposalState.IsCommitTimeout() {
+					log.Debugf("Started refresh proposalState loop, the proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}",
+						proposalId.String(), proposalState.TaskId)
+					proposalState.ChangeToFinished(proposalState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
+					//t.state.UpdateProposalState(proposalState)
+					t.handleInvalidProposal(proposalState)
+				}
+			case ctypes.PeriodFinished:
+				//
+				if proposalState.IsDeadline() {
+					log.Debugf("Started refresh proposalState loop, the proposalState was finished but coming deadline now, proposalId: {%s}, taskId: {%s}",
+						proposalId.String(), proposalState.TaskId)
+					t.handleInvalidProposal(proposalState)
+				}
+
+			default:
+				log.Errorf("Unknown the proposalState period, proposalId: {%s}, taskId: {%s}", proposalId.String(), proposalState.TaskId)
+				t.handleInvalidProposal(proposalState)
+			}
+		}
+
+	}
+}
+
+func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
+
+	log.Debugf("Call handleInvalidProposal(), handle and clean proposalState and task, proposalId: {%s}, taskId: {%s}, taskDir: {%s}", proposalState.ProposalId, proposalState.TaskId, proposalState.TaskDir.String())
+
+	has, err := t.resourceMng.GetDB().HasLocalTaskExecute(proposalState.GetTaskId())
+	if nil != err {
+		log.Errorf("Failed to query local task exec status with task on handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.GetTaskId(), err)
+		// 最终 clean some data
+		t.removeProposalStateAndTask(proposalState.GetProposalId())
+		return
+	}
+
+	if has {
+		log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache of consensus, taskId: {%s}", proposalState.GetTaskId())
+		// 最终 clean some data
+		t.removeProposalStateAndTask(proposalState.GetProposalId())
+		return
+	}
+
+	if proposalState.TaskDir == types.SendTaskDir {
+		// Send consensus result to Scheduler
+		t.replyTaskConsensusResult(&types.ConsensusResult{
+			TaskConsResult: &types.TaskConsResult{
+				TaskId: proposalState.TaskId,
+				Status: types.TaskConsensusInterrupt,
+				Done:   false,
+				Err:    fmt.Errorf("the task proposalState coming deadline"),
+			},
+		})
+
+	} else {
+
+		task, ok := t.GetRecvTaskWithOk(proposalState.TaskId)
+		if !ok {
+			log.Errorf("Failed to query recvTaskInfo on consensus.handleInvalidProposal(), taskId: {%s}", proposalState.TaskId)
+			return
+		}
+		eventList, err := t.dataCenter.GetTaskEventList(proposalState.TaskId)
+		if nil != err {
+			log.Errorf("Failed to GetTaskEventList() on consensus.handleInvalidProposal(), taskId: {%s}, err: {%s}", proposalState.TaskId, err)
+			eventList = make([]*libTypes.TaskEvent, 0)
+		}
+		eventList = append(eventList, &libTypes.TaskEvent{
+			Type:       evengine.TaskProposalStateDeadline.Type,
+			IdentityId: proposalState.TaskOrg.IdentityId,
+			TaskId:     proposalState.TaskId,
+			Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
+			CreateAt:   uint64(timeutils.UnixMsec()),
+		})
+		taskResultWrap := &types.TaskResultMsgWrap{
+			TaskResultMsg: &pb.TaskResultMsg{
+				ProposalId: proposalState.ProposalId.Bytes(),
+				TaskRole:   proposalState.TaskRole.Bytes(),
+				TaskId:     []byte(proposalState.TaskId),
+				Owner: &pb.TaskOrganizationIdentityInfo{
+					PartyId:    []byte(proposalState.TaskOrg.PartyId),
+					Name:       []byte(proposalState.TaskOrg.NodeName),
+					NodeId:     []byte(proposalState.TaskOrg.NodeId),
+					IdentityId: []byte(proposalState.TaskOrg.IdentityId),
+				},
+				TaskEventList: types.ConvertTaskEventArr(eventList),
+				CreateAt:      uint64(timeutils.UnixMsec()),
+				Sign:          nil,
+			},
+		}
+
+		// Send taskResultMsg to task Owner
+		pid, err := p2p.HexPeerID(task.TaskData().NodeId)
+		if nil == err {
+			if err := t.sendTaskResultMsg(pid, taskResultWrap); nil != err {
+				log.Error(err)
+			}
+		}
+
+		t.resourceMng.ReleaseLocalResourceWithTask("on consensus.handleInvalidProposal()", proposalState.TaskId, resource.SetAllReleaseResourceOption())
+
+	}
+
+	// 最终 clean some data
+	t.removeProposalStateAndTask(proposalState.ProposalId)
+}
 
 
 func (t *TwoPC) driveTask(
