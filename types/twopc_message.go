@@ -50,9 +50,12 @@ func (msg *PrepareMsgWrap) SealHash() common.Hash {
 func (msg *PrepareMsgWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
-		msg.ProposalId,
-		msg.TaskRole,
-		msg.Owner,
+		msg.GetMsgOption().GetProposalId(),
+		msg.GetMsgOption().GetSenderRole(),
+		msg.GetMsgOption().GetReceiverRole(),
+		msg.GetMsgOption().GetSenderPartyId(),
+		msg.GetMsgOption().GetReceiverPartyId(),
+		msg.GetMsgOption().GetMsgOwner(),
 		msg.TaskInfo,
 		msg.CreateAt,
 	})
@@ -96,9 +99,12 @@ func (msg *PrepareVoteWrap) SealHash() common.Hash {
 func (msg *PrepareVoteWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
-		msg.ProposalId,
-		msg.TaskRole,
-		msg.Owner,
+		msg.GetMsgOption().GetProposalId(),
+		msg.GetMsgOption().GetSenderRole(),
+		msg.GetMsgOption().GetReceiverRole(),
+		msg.GetMsgOption().GetSenderPartyId(),
+		msg.GetMsgOption().GetReceiverPartyId(),
+		msg.GetMsgOption().GetMsgOwner(),
 		msg.VoteOption,
 		msg.PeerInfo,
 		msg.CreateAt,
@@ -144,8 +150,12 @@ func (msg *ConfirmMsgWrap) SealHash() common.Hash {
 func (msg *ConfirmMsgWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
-		msg.ProposalId,
-		msg.Owner,
+		msg.GetMsgOption().GetProposalId(),
+		msg.GetMsgOption().GetSenderRole(),
+		msg.GetMsgOption().GetReceiverRole(),
+		msg.GetMsgOption().GetSenderPartyId(),
+		msg.GetMsgOption().GetReceiverPartyId(),
+		msg.GetMsgOption().GetMsgOwner(),
 		msg.CreateAt,
 	})
 
@@ -190,9 +200,12 @@ func (msg *ConfirmVoteWrap) SealHash() common.Hash {
 func (msg *ConfirmVoteWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
-		msg.ProposalId,
-		msg.TaskRole,
-		msg.Owner,
+		msg.GetMsgOption().GetProposalId(),
+		msg.GetMsgOption().GetSenderRole(),
+		msg.GetMsgOption().GetReceiverRole(),
+		msg.GetMsgOption().GetSenderPartyId(),
+		msg.GetMsgOption().GetReceiverPartyId(),
+		msg.GetMsgOption().GetMsgOwner(),
 		msg.VoteOption,
 		msg.CreateAt,
 	})
@@ -239,8 +252,12 @@ func (msg *CommitMsgWrap) SealHash() common.Hash {
 func (msg *CommitMsgWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
-		msg.ProposalId,
-		msg.Owner,
+		msg.GetMsgOption().GetProposalId(),
+		msg.GetMsgOption().GetSenderRole(),
+		msg.GetMsgOption().GetReceiverRole(),
+		msg.GetMsgOption().GetSenderPartyId(),
+		msg.GetMsgOption().GetReceiverPartyId(),
+		msg.GetMsgOption().GetMsgOwner(),
 		msg.CreateAt,
 	})
 
@@ -283,9 +300,12 @@ func (msg *TaskResultMsgWrap) SealHash() common.Hash {
 func (msg *TaskResultMsgWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	rlp.Encode(hasher, []interface{}{
-		msg.ProposalId,
-		msg.TaskRole,
-		msg.TaskId,
+		msg.GetMsgOption().GetProposalId(),
+		msg.GetMsgOption().GetSenderRole(),
+		msg.GetMsgOption().GetReceiverRole(),
+		msg.GetMsgOption().GetSenderPartyId(),
+		msg.GetMsgOption().GetReceiverPartyId(),
+		msg.GetMsgOption().GetMsgOwner(),
 		msg.TaskEventList,
 		msg.CreateAt,
 	})

@@ -146,9 +146,9 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 
 
 	cost := &ctypes.TaskOperationCost{
-		Mem:       task.GetTaskData().GetOperationCost().GetCostMem(),
-		Processor: task.GetTaskData().GetOperationCost().GetCostProcessor(),
-		Bandwidth: task.GetTaskData().GetOperationCost().GetCostBandwidth(),
+		Mem:       task.GetTaskData().GetOperationCost().GetMemory(),
+		Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
+		Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
 		Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 	}
 
@@ -183,9 +183,9 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
 
 	cost := &ctypes.TaskOperationCost{
-		Mem:       task.GetTaskData().GetOperationCost().GetCostMem(),
-		Processor: task.GetTaskData().GetOperationCost().GetCostProcessor(),
-		Bandwidth: task.GetTaskData().GetOperationCost().GetCostBandwidth(),
+		Mem:       task.GetTaskData().GetOperationCost().GetMemory(),
+		Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
+		Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
 		Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 	}
 
@@ -256,7 +256,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(myPartyId string, myTaskRole api
 		// 选出 关于自己 metaDataId 所在的 dataNode
 		var metaDataId string
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			if selfIdentityId == dataSupplier.GetMemberInfo().GetIdentityId() && myPartyId == dataSupplier.GetMemberInfo().GetPartyId() {
+			if selfIdentityId == dataSupplier.GetOrganization().GetIdentityId() && myPartyId == dataSupplier.GetOrganization().GetPartyId() {
 				metaDataId = dataSupplier.MetadataId
 			}
 		}
