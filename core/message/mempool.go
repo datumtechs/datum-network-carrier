@@ -94,7 +94,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement identityRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyPower,
-			Data: &types.PowerMsgEvent{Msgs: types.PowerMsgs{power}},
+			Data: &types.PowerMsgEvent{Msgs: types.PowerMsgArr{power}},
 		})
 
 	case *types.PowerRevokeMsg:
@@ -106,7 +106,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement powerRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokePower,
-			Data: &types.PowerRevokeMsgEvent{Msgs: types.PowerRevokeMsgs{powerRevoke}},
+			Data: &types.PowerRevokeMsgEvent{Msgs: types.PowerRevokeMsgArr{powerRevoke}},
 		})
 
 	case *types.MetadataMsg:
@@ -119,7 +119,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement metaDataMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyMetadata,
-			Data: &types.MetadataMsgEvent{Msgs: types.MetadataMsgs{metaData}},
+			Data: &types.MetadataMsgEvent{Msgs: types.MetadataMsgArr{metaData}},
 		})
 
 	case *types.MetadataRevokeMsg:
@@ -131,7 +131,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeMetadata,
-			Data: &types.MetadataRevokeMsgEvent{Msgs: types.MetadataRevokeMsgs{metaDataRevoke}},
+			Data: &types.MetadataRevokeMsgEvent{Msgs: types.MetadataRevokeMsgArr{metaDataRevoke}},
 		})
 
 	case *types.TaskMsg:
@@ -143,7 +143,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement taskMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyTask,
-			Data: &types.TaskMsgEvent{Msgs: types.TaskMsgs{task}},
+			Data: &types.TaskMsgEvent{Msgs: types.TaskMsgArr{task}},
 		})
 
 	default:

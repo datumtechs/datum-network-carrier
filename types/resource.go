@@ -80,9 +80,9 @@ func (s ResourceArray) GetPb(i int) []byte {
 }
 
 
-func NewResourceArray(metaData []*libTypes.ResourcePB) ResourceArray {
+func NewResourceArray(metadataArr []*libTypes.ResourcePB) ResourceArray {
 	var s ResourceArray
-	for _, v := range metaData {
+	for _, v := range metadataArr {
 		s = append(s, NewResource(v))
 	}
 	return s
@@ -165,9 +165,9 @@ func (s LocalResourceArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewLocalResourceArray(metaData []*libTypes.LocalResourcePB) LocalResourceArray {
+func NewLocalResourceArray(metadataArr []*libTypes.LocalResourcePB) LocalResourceArray {
 	var s LocalResourceArray
-	for _, v := range metaData {
+	for _, v := range metadataArr {
 		s = append(s, NewLocalResource(v))
 	}
 	return s

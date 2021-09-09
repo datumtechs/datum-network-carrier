@@ -47,7 +47,7 @@ type SchedulerStarveFIFO struct {
 	queueMutex  sync.Mutex
 
 	// fetch local task from taskManager`
-	//localTaskMsgCh chan types.TaskMsgs
+	//localTaskMsgCh chan types.TaskMsgArr
 	//// send local task scheduled to `Consensus`
 	//needConsensusTaskCh chan<- *types.ConsensusTaskWrap
 	//// receive remote task to replay from `Consensus`
