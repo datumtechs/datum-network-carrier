@@ -9,13 +9,13 @@ import (
 
 // GossipTopicMappings represent the protocol ID to protobuf message type map for easy lookup.
 var GossipTopicMappings = map[string]proto.Message{
-	GossipTestDataTopicFormat:     &librpcpb.GossipTestData{},
-	TwoPcPrepareMsgTopicFormat:    &twopb.PrepareMsg{},
-	TwoPcPrepareVoteTopicFormat:   &twopb.PrepareVote{},
-	TwoPcConfirmMsgTopicFormat:    &twopb.ConfirmMsg{},
-	TwoPcConfirmVoteTopicFormat:   &twopb.ConfirmVote{},
-	TwoPcCommitMsgTopicFormat:     &twopb.CommitMsg{},
-	TwoPcTaskResultMsgTopicFormat: &twopb.TaskResultMsg{},
+	GossipTestDataTopicFormat:   &librpcpb.GossipTestData{},
+	TwoPcPrepareMsgTopicFormat:  &twopb.PrepareMsg{},
+	TwoPcPrepareVoteTopicFormat: &twopb.PrepareVote{},
+	TwoPcConfirmMsgTopicFormat:  &twopb.ConfirmMsg{},
+	TwoPcConfirmVoteTopicFormat: &twopb.ConfirmVote{},
+	TwoPcCommitMsgTopicFormat:   &twopb.CommitMsg{},
+	TaskResultMsgTopicFormat:    &twopb.TaskResultMsg{},
 }
 
 // GossipTypeMapping is the inverse of GossipTopicMappings so that an arbitrary protobuf message

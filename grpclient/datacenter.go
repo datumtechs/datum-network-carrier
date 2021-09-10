@@ -160,7 +160,7 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api
 	return gc.identityService.GetMetadataAuthorityList(ctx, request)
 }
 
-// ************************************** Task module *******************************************************
+// ************************************** GetTask module *******************************************************
 
 func (gc *GrpcClient) SaveTask(ctx context.Context, request *libtypes.TaskDetail) (*apipb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)

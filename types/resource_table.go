@@ -16,7 +16,7 @@ var (
 	}
 	DefaultResouece = &resource{
 		mem:       1024 * 1024 * 1024 * multipleNumber,           // 8*gb     (byte)
-		processor: 2 * multipleNumber,                            // 18 cpu   (cpu)
+		processor: 2 * uint32(multipleNumber),                    // 18 cpu   (cpu)
 		bandwidth: 1024 * 1024 * multipleNumber * multipleNumber, // 64Mbps   (bps)   64Mbps÷8=8M/s，这相当于60兆宽带的下载速度，宽带应该是100兆
 	}
 
@@ -24,7 +24,7 @@ var (
 )
 
 func GetDefaultResoueceMem() uint64       { return DefaultResouece.mem }
-func GetDefaultResoueceProcessor() uint64 { return DefaultResouece.processor }
+func GetDefaultResoueceProcessor() uint32 { return DefaultResouece.processor }
 func GetDefaultResoueceBandwidth() uint64 { return DefaultResouece.bandwidth }
 
 type LocalResourceTable struct {
@@ -40,14 +40,14 @@ type localResourceTableRlp struct {
 	NodeId    string // node id
 	PowerId   string
 	Mem       uint64
-	Processor uint64
+	Processor uint32
 	Bandwidth uint64
 	Assign    bool   // Whether to assign the slot tag
 	SlotTotal uint32 // The total number of slots are allocated on the resource of this node
 	SlotUsed  uint32 // The number of slots that have been used on the resource of the node
 }
 
-func NewLocalResourceTable(nodeId, powerId string, mem, processor, bandwidth uint64) *LocalResourceTable {
+func NewLocalResourceTable(nodeId, powerId string, mem, bandwidth uint64, processor uint32) *LocalResourceTable {
 	return &LocalResourceTable{
 		nodeId:  nodeId,
 		powerId: powerId,
@@ -68,7 +68,7 @@ func (r *LocalResourceTable) String() string {
 func (r *LocalResourceTable) GetNodeId() string    { return r.nodeId }
 func (r *LocalResourceTable) GetPowerId() string   { return r.powerId }
 func (r *LocalResourceTable) GetMem() uint64       { return r.nodeResource.mem }
-func (r *LocalResourceTable) GetProcessor() uint64 { return r.nodeResource.processor }
+func (r *LocalResourceTable) GetProcessor() uint32 { return r.nodeResource.processor }
 func (r *LocalResourceTable) GetBandwidth() uint64 { return r.nodeResource.bandwidth }
 func (r *LocalResourceTable) GetAssign() bool      { return r.assign }
 func (r *LocalResourceTable) GetSlotTotal() uint32 { return r.slotTotal }
@@ -78,16 +78,16 @@ func (r *LocalResourceTable) SetSlotUnit(slot *Slot) {
 	processorCount := r.nodeResource.processor / slot.Processor
 	bandwidthCount := r.nodeResource.bandwidth / slot.Bandwidth
 
-	min := min3number(memCount, processorCount, bandwidthCount)
+	min := min3number(memCount, uint64(processorCount), bandwidthCount)
 
 	r.slotTotal = uint32(min)
 }
 
-func (r *LocalResourceTable) RemianSlot() uint32 { return r.slotTotal - r.slotUsed /*- r.slotLocked*/ }
+func (r *LocalResourceTable) RemainSlot() uint32 { return r.slotTotal - r.slotUsed }
 func (r *LocalResourceTable) UseSlot(count uint32) error {
 
-	if r.RemianSlot() < count {
-		return fmt.Errorf("Failed to lock local resource, slotRemain {%s} less than need lock count {%s}", r.RemianSlot(), count)
+	if r.RemainSlot() < count {
+		return fmt.Errorf("Failed to lock local resource, slotRemain {%s} less than need lock count {%s}", r.RemainSlot(), count)
 	}
 	r.slotUsed += count
 	r.assign = true
@@ -127,7 +127,7 @@ func (r *LocalResourceTable) GetUsedSlot() uint32  { return r.slotUsed }
 
 //func (r *LocalResourceTable) GetLockedSlot() uint32 { return r.slotLocked }
 func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
-	if r.RemianSlot() < slotCount {
+	if r.RemainSlot() < slotCount {
 		return false
 	}
 	return true
@@ -175,7 +175,7 @@ func min3number(a, b, c uint64) uint64 {
 
 type resource struct {
 	mem       uint64
-	processor uint64
+	processor uint32
 	bandwidth uint64
 }
 
@@ -196,14 +196,14 @@ type remoteResourceTableRlp struct {
 	// other org identityId
 	IdentityId     string
 	TotalMem       uint64
-	TotalProcessor uint64
+	TotalProcessor uint32
 	TotalBandwidth uint64
 	UsedMem        uint64
-	UsedProcessor  uint64
+	UsedProcessor  uint32
 	UsedBandwidth  uint64
 }
 
-func NewRemoteResourceTable(identityId string, mem, usedMem, processor, usedProcessor, bandwidth, usedBandwidth uint64) *RemoteResourceTable {
+func NewRemoteResourceTable(identityId string, mem, usedMem, bandwidth, usedBandwidth uint64, processor, usedProcessor uint32) *RemoteResourceTable {
 	return &RemoteResourceTable{
 		identityId: identityId,
 		total: &resource{
@@ -248,11 +248,11 @@ func (r *RemoteResourceTable) String() string {
 	return fmt.Sprintf(`{"identityId": "%s", "total": %s, "used": %s}`,
 		r.identityId, r.total.String(), r.used.String())
 }
-func (r *RemoteResourceTable) Remain() (uint64, uint64, uint64) {
-	return r.total.mem - r.used.mem, r.total.processor - r.used.processor, r.total.bandwidth - r.used.bandwidth
+func (r *RemoteResourceTable) Remain() (uint64, uint64, uint32) {
+	return r.total.mem - r.used.mem, r.total.bandwidth - r.used.bandwidth, r.total.processor - r.used.processor
 }
-func (r *RemoteResourceTable) IsEnough(mem, processor, bandwidth uint64) bool {
-	rMem, rProcessor, rBandwidth := r.Remain()
+func (r *RemoteResourceTable) IsEnough(mem, bandwidth uint64, processor uint32) bool {
+	rMem, rBandwidth, rProcessor := r.Remain()
 	if rMem < mem {
 		return false
 	}
@@ -266,10 +266,10 @@ func (r *RemoteResourceTable) IsEnough(mem, processor, bandwidth uint64) bool {
 }
 func (r *RemoteResourceTable) GetIdentityId() string     { return r.identityId }
 func (r *RemoteResourceTable) GetTotalMem() uint64       { return r.total.mem }
-func (r *RemoteResourceTable) GetTotalProcessor() uint64 { return r.total.processor }
+func (r *RemoteResourceTable) GetTotalProcessor() uint32 { return r.total.processor }
 func (r *RemoteResourceTable) GetTotalBandwidth() uint64 { return r.total.bandwidth }
 func (r *RemoteResourceTable) GetUsedMem() uint64        { return r.used.mem }
-func (r *RemoteResourceTable) GetUsedProcessor() uint64  { return r.used.processor }
+func (r *RemoteResourceTable) GetUsedProcessor() uint32  { return r.used.processor }
 func (r *RemoteResourceTable) GetUsedBandwidth() uint64  { return r.used.bandwidth }
 
 // 给本地 缓存用的

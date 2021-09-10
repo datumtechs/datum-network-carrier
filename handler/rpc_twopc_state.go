@@ -200,7 +200,7 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 
 	m, ok := msg.(*pb.TaskResultMsg)
 	if !ok {
-		//log.Errorf("Failed to convert `TaskResultMsg` from msg, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
+		//log.Errorf("Failed to convert `TaskResultMsg` from msg, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
 		return errors.New("message is not type *pb.TaskResultMsg")
 	}
 
@@ -208,7 +208,7 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 	if err := s.validateTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Errorf("Failed to call `validateTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
+		//log.WithError(err).Errorf("Failed to call `validateTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
 		return err
 	}
 
@@ -216,13 +216,13 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 	if err := s.onTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
 		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
 		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Warnf("Warning to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
+		//log.WithError(err).Warnf("Warning to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
 		return err
 	}
 
 	// response code
 	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		//log.WithError(err).Errorf("Could not write to stream for response, after to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.TaskId))
+		//log.WithError(err).Errorf("Could not write to stream for response, after to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
 		return err
 	}
 
@@ -274,11 +274,7 @@ func (s *Service) validateCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 }
 
 func (s *Service) validateTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.ValidateConsensusMsg(pid, &types.TaskResultMsgWrap{TaskResultMsg: r})
+	return s.cfg.TaskManager.ValidateTaskResultMsg(pid, r)
 }
 
 
@@ -325,9 +321,5 @@ func (s *Service) onCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 }
 
 func (s *Service) onTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.OnConsensusMsg(pid, &types.TaskResultMsgWrap{TaskResultMsg: r})
+	return s.cfg.TaskManager.OnTaskResultMsg(pid, r)
 }

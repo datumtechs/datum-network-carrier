@@ -32,7 +32,7 @@ func (s *Service) prepareMessageSubscriber(ctx context.Context, pid peer.ID, msg
 		return fmt.Errorf("wrong type, expected: *pb.PrepareMsg got: %T", msg)
 	}
 
-	s.setPrepareMsgSeen(message.MsgOption.ProposalId, message.MsgOption.MyPartyId)
+	s.setPrepareMsgSeen(message.MsgOption.ProposalId, message.MsgOption.GetSenderPartyId())
 
 	// handle prepareMsg
 	if err := s.onPrepareMsg(pid, message); err != nil {
@@ -64,7 +64,7 @@ func (s *Service) confirmMessageSubscriber(ctx context.Context, pid peer.ID, msg
 		return fmt.Errorf("wrong type, expected: *pb.ConfirmMsg got: %T", msg)
 	}
 
-	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.MyPartyId)
+	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.GetSenderPartyId())
 
 	// handle ConfirmMsg
 	if err := s.onConfirmMsg(pid, m); err != nil {
@@ -96,7 +96,7 @@ func (s *Service) commitMessageSubscriber(ctx context.Context, pid peer.ID, msg 
 		return fmt.Errorf("wrong type, expected: *pb.CommitMsg got: %T", msg)
 	}
 
-	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.MyPartyId)
+	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.GetSenderPartyId())
 
 	// handle CommitMsg
 	if err := s.onCommitMsg(pid, m); err != nil {

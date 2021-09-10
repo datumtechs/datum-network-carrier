@@ -560,10 +560,10 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *libTypes.TaskEvent) {
 		}
 	}
 	//for _, s := range array.GetTaskEventList() {
-	//	if strings.EqualFold(s.TaskId, taskEvent.TaskId) &&
+	//	if strings.EqualFold(s.GetTaskId, taskEvent.GetTaskId) &&
 	//		strings.EqualFold(s.Identity, taskEvent.Identity) &&
 	//		strings.EqualFold(s.EventContent, taskEvent.Content) {
-	//		log.WithFields(logrus.Fields{ "identity": s.Identity, "taskId": s.TaskId }).Info("Skip duplicated task evengine")
+	//		log.WithFields(logrus.Fields{ "identity": s.Identity, "taskId": s.GetTaskId }).Info("Skip duplicated task evengine")
 	//		return
 	//	}
 	//}
@@ -735,10 +735,10 @@ func WriteLocalTask(db KeyValueStore, task *types.Task) {
 	var duplicated bool = false
 	// Check whether there is duplicate data.
 	for i, s := range array.TaskList {
-		if strings.EqualFold(s.TaskId, task.TaskId()) {
+		if strings.EqualFold(s.TaskId, task.GetTaskId()) {
 			log.WithFields(logrus.Fields{ "taskId": s.TaskId }).Info("update duplicated local task")
 			//return
-			array.TaskList[i] = task.TaskData()
+			array.TaskList[i] = task.GetTaskData()
 			duplicated = true
 			break
 		}
@@ -746,7 +746,7 @@ func WriteLocalTask(db KeyValueStore, task *types.Task) {
 
 	// add new task
 	if !duplicated {
-		array.TaskList = append(array.TaskList, task.TaskData())
+		array.TaskList = append(array.TaskList, task.GetTaskData())
 	}
 
 	data, err := array.Marshal()

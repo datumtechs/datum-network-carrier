@@ -8,6 +8,7 @@ import (
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/core/task"
 	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/params"
@@ -46,6 +47,7 @@ type Config struct {
 	InitialSync   Checker
 	StateNotifier statefeed.Notifier
 	Engines       map[types.ConsensusEngineType]Engine
+	TaskManager   *task.Manager
 }
 
 // Service is responsible for handling all run time p2p related operations as the

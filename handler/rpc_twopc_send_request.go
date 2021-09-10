@@ -34,8 +34,6 @@ func SendTwoPcPrepareVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
-	//log.Debugf("======================================== vote partyId len: %d", len(req.PeerInfo.PartyId))
-
 	// send request on the special topic.
 	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTwoPcPrepareVoteTopic, pid)
 	if err != nil {
@@ -121,7 +119,7 @@ func SendTwoPcTaskResultMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.
 	defer cancel()
 
 	// send request on the special topic.
-	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTwoPcTaskResultMsgTopic, pid)
+	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTaskResultMsgTopic, pid)
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,34 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, startTime uint64) (*pb.PrepareMsg, error) {
+func makeMsgOption(proposalId common.Hash,
+	senderRole, receiverRole apipb.TaskRole,
+	senderPartyId, receiverPartyId string,
+	sender *apipb.TaskOrganization,
+) *pb.MsgOption {
+	return &pb.MsgOption{
+		ProposalId:      proposalId.Bytes(),
+		SenderRole:      uint64(senderRole),
+		SenderPartyId:   []byte(senderPartyId),
+		ReceiverRole:    uint64(receiverRole),
+		ReceiverPartyId: []byte(receiverPartyId),
+		MsgOwner: &pb.TaskOrganizationIdentityInfo{
+			Name:       []byte(sender.GetNodeName()),
+			NodeId:     []byte(sender.GetNodeId()),
+			IdentityId: []byte(sender.GetIdentityId()),
+			PartyId:    []byte(sender.GetPartyId()),
+		},
+	}
+}
+
+func makePrepareMsg(
+	proposalId common.Hash,
+	senderRole, receiverRole apipb.TaskRole,
+	senderPartyId, receiverPartyId string,
+	task *types.Task,
+	startTime uint64,
+) (*pb.PrepareMsg, error) {
+
 	// region receivers come from task.Receivers
 	bys := new(bytes.Buffer)
 	err := task.EncodePb(bys)
@@ -18,215 +45,146 @@ func makePrepareMsgWithoutTaskRole(proposalId common.Hash, task *types.Task, sta
 		return nil, err
 	}
 	return &pb.PrepareMsg{
-		ProposalId: proposalId.Bytes(),
-		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(task.TaskData().NodeName),
-			NodeId:     []byte(task.TaskData().NodeId),
-			IdentityId: []byte(task.TaskData().IdentityId),
-			PartyId:    []byte(task.TaskData().PartyId),
-		},
-		TaskInfo: bys.Bytes(),
-		CreateAt: startTime,
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		TaskInfo:  bys.Bytes(),
+		CreateAt:  startTime,
+		Sign:      nil,
 	}, nil
 }
 
-func makePrepareVote() *pb.PrepareVote {
+func makePrepareVote(
+	proposalId common.Hash,
+	senderRole, receiverRole apipb.TaskRole,
+	senderPartyId, receiverPartyId string,
+	task *types.Task,
+	voteOption types.VoteOption,
+	peerInfo *types.PrepareVoteResource,
+	startTime uint64,
+) *pb.PrepareVote {
 
-	// TODO 组装  PrepareVote
-	return nil
+	return &pb.PrepareVote{
+		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		VoteOption: voteOption.Bytes(),
+		PeerInfo:   types.ConvertTaskPeerInfo(peerInfo),
+		CreateAt:   startTime,
+		Sign:       nil,
+	}
 }
 
-func makeConfirmMsg(proposalId common.Hash, task *types.Task, startTime uint64) *pb.ConfirmMsg {
+func makeConfirmMsg(
+	proposalId common.Hash,
+	senderRole, receiverRole apipb.TaskRole,
+	senderPartyId, receiverPartyId string,
+	task *types.Task,
+	peers *pb.ConfirmTaskPeerInfo,
+	startTime uint64,
+) *pb.ConfirmMsg {
+
 	msg := &pb.ConfirmMsg{
-		ProposalId: proposalId.Bytes(),
-		TaskRole:   nil,
-		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(task.TaskData().NodeName),
-			NodeId:     []byte(task.TaskData().NodeId),
-			IdentityId: []byte(task.TaskData().IdentityId),
-			PartyId:    []byte(task.TaskData().PartyId),
-		},
-		PeerDesc: nil,
-		CreateAt: startTime,
-		Sign:     nil,
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		Peers:     peers,
+		CreateAt:  startTime,
+		Sign:      nil,
 	}
 
 	return msg
 }
 
-func makeConfirmVote() *pb.ConfirmVote {
+func makeConfirmVote(
+	proposalId common.Hash,
+	senderRole, receiverRole apipb.TaskRole,
+	senderPartyId, receiverPartyId string,
+	task *types.Task,
+	voteOption types.VoteOption,
+	startTime uint64,
+) *pb.ConfirmVote {
 
-	// TODO 组装  ConfirmVote
-	return nil
+	return &pb.ConfirmVote{
+		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		VoteOption: voteOption.Bytes(),
+		CreateAt:   startTime,
+		Sign:       nil,
+	}
 }
 
-func makeCommitMsg(proposalId common.Hash, task *types.Task, startTime uint64) *pb.CommitMsg {
+func makeCommitMsg(
+	proposalId common.Hash,
+	senderRole, receiverRole apipb.TaskRole,
+	senderPartyId, receiverPartyId string,
+	task *types.Task,
+	startTime uint64,
+) *pb.CommitMsg {
+
 	msg := &pb.CommitMsg{
-		ProposalId: proposalId.Bytes(),
-		TaskRole:   nil,
-		Owner: &pb.TaskOrganizationIdentityInfo{
-			Name:       []byte(task.TaskData().NodeName),
-			NodeId:     []byte(task.TaskData().NodeId),
-			IdentityId: []byte(task.TaskData().IdentityId),
-			PartyId:    []byte(task.TaskData().PartyId),
-		},
-		CreateAt: startTime,
-		Sign:     nil,
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		CreateAt:  startTime,
+		Sign:      nil,
 	}
 	return msg
 }
 
-func makeTaskResultMsg(startTime uint64) *pb.TaskResultMsg {
 
-	// 组装  TaskResultMsg
-	return nil
-}
 
-func fetchPrepareMsg(prepareMsg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
+func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 
-	if nil == prepareMsg || nil == prepareMsg.TaskInfo {
+	if nil == msg || nil == msg.TaskInfo {
 		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
 	}
 
-	task := types.NewTask(&libTypes.TaskData{})
-	err := task.DecodePb(prepareMsg.TaskInfo)
+	task := types.NewTask(&libTypes.TaskPB{})
+	err := task.DecodePb(msg.TaskInfo)
 	if err != nil {
 		return nil, err
 	}
 	return &types.PrepareMsg{
-			ProposalId:  common.BytesToHash(prepareMsg.ProposalId),
-			TaskRole:    types.TaskRoleFromBytes(prepareMsg.TaskRole),
-			TaskPartyId: string(prepareMsg.TaskPartyId),
-			Owner: &apipb.TaskOrganization{
-				NodeName:   string(prepareMsg.Owner.Name),
-				NodeId:     string(prepareMsg.Owner.NodeId),
-				IdentityId: string(prepareMsg.Owner.IdentityId),
-				PartyId:    string(prepareMsg.Owner.PartyId),
-			},
-			TaskInfo: task,
-			CreateAt: prepareMsg.CreateAt,
-			Sign:     prepareMsg.Sign,
+			MsgOption: types.FetchMsgOption(msg.MsgOption),
+			TaskInfo:  task,
+			CreateAt:  msg.CreateAt,
+			Sign:      msg.Sign,
 		},
 		nil
 }
-func fetchProposalFromPrepareMsg(prepareMsg *types.PrepareMsg) *types.ProposalTask {
+func fetchProposalFromPrepareMsg(msg *types.PrepareMsg) *types.ProposalTask {
 	return &types.ProposalTask{
-		ProposalId: prepareMsg.ProposalId,
-		Task:       prepareMsg.TaskInfo,
-		CreateAt:   prepareMsg.CreateAt,
+		ProposalId: msg.MsgOption.ProposalId,
+		Task:       msg.TaskInfo,
+		CreateAt:   msg.CreateAt,
 	}
 }
 
-func fetchPrepareVote(prepareVote *types.PrepareVoteWrap) (*types.PrepareVote, error) {
-	//log.Debugf("=============================== partyId Len: %d", len(prepareVote.PeerInfo.PartyId))
-	msg := &types.PrepareVote{
-		ProposalId: common.BytesToHash(prepareVote.ProposalId),
-		TaskRole:   types.TaskRoleFromBytes(prepareVote.TaskRole),
-		Owner: &apipb.TaskOrganization{
-			NodeName:       string(prepareVote.Owner.Name),
-			NodeId:     string(prepareVote.Owner.NodeId),
-			IdentityId: string(prepareVote.Owner.IdentityId),
-			PartyId:    string(prepareVote.Owner.PartyId),
-		},
-		VoteOption: types.VoteOptionFromBytes(prepareVote.VoteOption),
-		PeerInfo: &types.PrepareVoteResource{
-			Id:      "",
-			Ip:      string(prepareVote.PeerInfo.Ip),
-			Port:    string(prepareVote.PeerInfo.Port),
-			PartyId: string(prepareVote.PeerInfo.PartyId),
-		},
-		CreateAt: prepareVote.CreateAt,
-		Sign:     prepareVote.Sign,
+func fetchPrepareVote(vote *types.PrepareVoteWrap) *types.PrepareVote {
+	return &types.PrepareVote{
+		MsgOption:  types.FetchMsgOption(vote.MsgOption),
+		VoteOption: types.VoteOptionFromBytes(vote.VoteOption),
+		PeerInfo:   types.FetchTaskPeerInfo(vote.PeerInfo),
+		CreateAt:   vote.CreateAt,
+		Sign:       vote.Sign,
 	}
-
-	//if msg.VoteOption == types.Yes {
-	//	msg.PeerInfo = &types.PrepareVoteResource{
-	//		Id:      "",
-	//		Ip:      string(prepareVote.PeerInfo.Ip),
-	//		Port:    string(prepareVote.PeerInfo.Port),
-	//		PartyId: string(prepareVote.PeerInfo.PartyId),
-	//	}
-	//}
-
-	return msg, nil
 }
 
-func fetchConfirmMsg(confirmMsg *types.ConfirmMsgWrap) (*types.ConfirmMsg, error) {
-	msg := &types.ConfirmMsg{
-		ProposalId:  common.BytesToHash(confirmMsg.ProposalId),
-		TaskRole:    types.TaskRoleFromBytes(confirmMsg.TaskRole),
-		TaskPartyId: string(confirmMsg.TaskPartyId),
-		Owner: &apipb.TaskOrganization{
-			NodeName:       string(confirmMsg.Owner.Name),
-			NodeId:     string(confirmMsg.Owner.NodeId),
-			IdentityId: string(confirmMsg.Owner.IdentityId),
-			PartyId:    string(confirmMsg.Owner.PartyId),
-		},
-		PeerDesc: confirmMsg.PeerDesc,
-		CreateAt: confirmMsg.CreateAt,
-		Sign:     confirmMsg.Sign,
+func fetchConfirmMsg(msg *types.ConfirmMsgWrap) *types.ConfirmMsg {
+	return &types.ConfirmMsg{
+		MsgOption: types.FetchMsgOption(msg.MsgOption),
+		Peers:     msg.Peers,
+		CreateAt:  msg.CreateAt,
+		Sign:      msg.Sign,
 	}
-	return msg, nil
 }
 
-func fetchConfirmVote(confirmVote *types.ConfirmVoteWrap) (*types.ConfirmVote, error) {
-	msg := &types.ConfirmVote{
-		ProposalId: common.BytesToHash(confirmVote.ProposalId),
-		TaskRole:   types.TaskRoleFromBytes(confirmVote.TaskRole),
-		Owner: &apipb.TaskOrganization{
-			NodeName:       string(confirmVote.Owner.Name),
-			NodeId:     string(confirmVote.Owner.NodeId),
-			IdentityId: string(confirmVote.Owner.IdentityId),
-			PartyId:    string(confirmVote.Owner.PartyId),
-		},
-		VoteOption: types.VoteOptionFromBytes(confirmVote.VoteOption),
-		CreateAt:   confirmVote.CreateAt,
-		Sign:       confirmVote.Sign,
+func fetchConfirmVote(vote *types.ConfirmVoteWrap) *types.ConfirmVote {
+	return &types.ConfirmVote{
+		MsgOption:  types.FetchMsgOption(vote.MsgOption),
+		VoteOption: types.VoteOptionFromBytes(vote.VoteOption),
+		CreateAt:   vote.CreateAt,
+		Sign:       vote.Sign,
 	}
-	return msg, nil
 }
 
-func fetchCommitMsg(commitMsg *types.CommitMsgWrap) (*types.CommitMsg, error) {
-	msg := &types.CommitMsg{
-		ProposalId:  common.BytesToHash(commitMsg.ProposalId),
-		TaskRole:    types.TaskRoleFromBytes(commitMsg.TaskRole),
-		TaskPartyId: string(commitMsg.TaskPartyId),
-		Owner: &apipb.TaskOrganization{
-			NodeName:       string(commitMsg.Owner.Name),
-			NodeId:     string(commitMsg.Owner.NodeId),
-			IdentityId: string(commitMsg.Owner.IdentityId),
-			PartyId:    string(commitMsg.Owner.PartyId),
-		},
-		CreateAt: commitMsg.CreateAt,
-		Sign:     commitMsg.Sign,
+func fetchCommitMsg(msg *types.CommitMsgWrap) *types.CommitMsg {
+	return &types.CommitMsg{
+		MsgOption: types.FetchMsgOption(msg.MsgOption),
+		CreateAt:  msg.CreateAt,
+		Sign:      msg.Sign,
 	}
-	return msg, nil
 }
 
-func fetchTaskResultMsg(commitMsg *types.TaskResultMsgWrap) (*types.TaskResultMsg, error) {
-	taskEventList := make([]*libTypes.TaskEvent, len(commitMsg.TaskEventList))
-	for index, value := range commitMsg.TaskEventList {
-		taskEventList[index] = &libTypes.TaskEvent{
-			Type:       string(value.Type),
-			TaskId:     string(value.TaskId),
-			IdentityId:   string(value.IdentityId),
-			Content:    string(value.Content),
-			CreateAt: value.CreateAt,
-		}
-	}
-	msg := &types.TaskResultMsg{
-		ProposalId: common.BytesToHash(commitMsg.ProposalId),
-		TaskRole:   types.TaskRoleFromBytes(commitMsg.TaskRole),
-		Owner: &apipb.TaskOrganization{
-			NodeName:       string(commitMsg.Owner.Name),
-			NodeId:     string(commitMsg.Owner.NodeId),
-			IdentityId: string(commitMsg.Owner.IdentityId),
-			PartyId:    string(commitMsg.Owner.PartyId),
-		},
-		TaskId:        string(commitMsg.TaskId),
-		TaskEventList: taskEventList,
-		CreateAt:      commitMsg.CreateAt,
-		Sign:          commitMsg.Sign,
-	}
-	return msg, nil
-}
