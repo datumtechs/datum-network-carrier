@@ -281,32 +281,34 @@ func (m *MetadataColumn) GetCComment() string {
 }
 
 // 元数据申请记录实体
-type AuthRecordPB struct {
-	AuthRecordId         string                     `protobuf:"bytes,1,opt,name=auth_record_id,json=authRecordId,proto3" json:"auth_record_id,omitempty"`
-	User                 string                     `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType            `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
-	DataRecord           *MetadataAuthority         `protobuf:"bytes,4,opt,name=data_record,json=dataRecord,proto3" json:"data_record,omitempty"`
-	AuditResult          common.AuditMetadataOption `protobuf:"varint,5,opt,name=audit_result,json=auditResult,proto3,enum=api.protobuf.AuditMetadataOption" json:"audit_result,omitempty"`
-	AuditSuggest         string                     `protobuf:"bytes,6,opt,name=audit_suggest,json=auditSuggest,proto3" json:"audit_suggest,omitempty"`
-	ApplyAt              uint64                     `protobuf:"varint,7,opt,name=apply_at,json=applyAt,proto3" json:"apply_at,omitempty"`
-	AuditAt              uint64                     `protobuf:"varint,8,opt,name=audit_at,json=auditAt,proto3" json:"audit_at,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
-	XXX_unrecognized     []byte                     `json:"-"`
-	XXX_sizecache        int32                      `json:"-"`
+type MetadataAuthorityPB struct {
+	MetadataAuthId       string                        `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
+	User                 string                        `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	UserType             common.UserType               `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	Auth                 *MetadataAuthority            `protobuf:"bytes,4,opt,name=auth,proto3" json:"auth,omitempty"`
+	AuditOption          common.AuditMetadataOption    `protobuf:"varint,5,opt,name=audit_option,json=auditOption,proto3,enum=api.protobuf.AuditMetadataOption" json:"audit_option,omitempty"`
+	AuditSuggestion      string                        `protobuf:"bytes,6,opt,name=audit_suggestion,json=auditSuggestion,proto3" json:"audit_suggestion,omitempty"`
+	UsedQuo              *MetadataUsedQuo              `protobuf:"bytes,7,opt,name=used_quo,json=usedQuo,proto3" json:"used_quo,omitempty"`
+	ApplyAt              uint64                        `protobuf:"varint,8,opt,name=apply_at,json=applyAt,proto3" json:"apply_at,omitempty"`
+	AuditAt              uint64                        `protobuf:"varint,9,opt,name=audit_at,json=auditAt,proto3" json:"audit_at,omitempty"`
+	State                common.MetadataAuthorityState `protobuf:"varint,10,opt,name=state,proto3,enum=api.protobuf.MetadataAuthorityState" json:"state,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
 }
 
-func (m *AuthRecordPB) Reset()         { *m = AuthRecordPB{} }
-func (m *AuthRecordPB) String() string { return proto.CompactTextString(m) }
-func (*AuthRecordPB) ProtoMessage()    {}
-func (*AuthRecordPB) Descriptor() ([]byte, []int) {
+func (m *MetadataAuthorityPB) Reset()         { *m = MetadataAuthorityPB{} }
+func (m *MetadataAuthorityPB) String() string { return proto.CompactTextString(m) }
+func (*MetadataAuthorityPB) ProtoMessage()    {}
+func (*MetadataAuthorityPB) Descriptor() ([]byte, []int) {
 	return fileDescriptor_33d0259ee189cec4, []int{2}
 }
-func (m *AuthRecordPB) XXX_Unmarshal(b []byte) error {
+func (m *MetadataAuthorityPB) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *AuthRecordPB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataAuthorityPB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_AuthRecordPB.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataAuthorityPB.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -316,72 +318,86 @@ func (m *AuthRecordPB) XXX_Marshal(b []byte, deterministic bool) ([]byte, error)
 		return b[:n], nil
 	}
 }
-func (m *AuthRecordPB) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AuthRecordPB.Merge(m, src)
+func (m *MetadataAuthorityPB) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataAuthorityPB.Merge(m, src)
 }
-func (m *AuthRecordPB) XXX_Size() int {
+func (m *MetadataAuthorityPB) XXX_Size() int {
 	return m.Size()
 }
-func (m *AuthRecordPB) XXX_DiscardUnknown() {
-	xxx_messageInfo_AuthRecordPB.DiscardUnknown(m)
+func (m *MetadataAuthorityPB) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataAuthorityPB.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AuthRecordPB proto.InternalMessageInfo
+var xxx_messageInfo_MetadataAuthorityPB proto.InternalMessageInfo
 
-func (m *AuthRecordPB) GetAuthRecordId() string {
+func (m *MetadataAuthorityPB) GetMetadataAuthId() string {
 	if m != nil {
-		return m.AuthRecordId
+		return m.MetadataAuthId
 	}
 	return ""
 }
 
-func (m *AuthRecordPB) GetUser() string {
+func (m *MetadataAuthorityPB) GetUser() string {
 	if m != nil {
 		return m.User
 	}
 	return ""
 }
 
-func (m *AuthRecordPB) GetUserType() common.UserType {
+func (m *MetadataAuthorityPB) GetUserType() common.UserType {
 	if m != nil {
 		return m.UserType
 	}
 	return common.UserType_User_Unknown
 }
 
-func (m *AuthRecordPB) GetDataRecord() *MetadataAuthority {
+func (m *MetadataAuthorityPB) GetAuth() *MetadataAuthority {
 	if m != nil {
-		return m.DataRecord
+		return m.Auth
 	}
 	return nil
 }
 
-func (m *AuthRecordPB) GetAuditResult() common.AuditMetadataOption {
+func (m *MetadataAuthorityPB) GetAuditOption() common.AuditMetadataOption {
 	if m != nil {
-		return m.AuditResult
+		return m.AuditOption
 	}
 	return common.AuditMetadataOption_Audit_Pending
 }
 
-func (m *AuthRecordPB) GetAuditSuggest() string {
+func (m *MetadataAuthorityPB) GetAuditSuggestion() string {
 	if m != nil {
-		return m.AuditSuggest
+		return m.AuditSuggestion
 	}
 	return ""
 }
 
-func (m *AuthRecordPB) GetApplyAt() uint64 {
+func (m *MetadataAuthorityPB) GetUsedQuo() *MetadataUsedQuo {
+	if m != nil {
+		return m.UsedQuo
+	}
+	return nil
+}
+
+func (m *MetadataAuthorityPB) GetApplyAt() uint64 {
 	if m != nil {
 		return m.ApplyAt
 	}
 	return 0
 }
 
-func (m *AuthRecordPB) GetAuditAt() uint64 {
+func (m *MetadataAuthorityPB) GetAuditAt() uint64 {
 	if m != nil {
 		return m.AuditAt
 	}
 	return 0
+}
+
+func (m *MetadataAuthorityPB) GetState() common.MetadataAuthorityState {
+	if m != nil {
+		return m.State
+	}
+	return common.MetadataAuthorityState_MAState_Unknown
 }
 
 // =============================== For API =========================
@@ -586,7 +602,7 @@ func (m *MetadataDetail) GetTotalTaskCount() uint32 {
 }
 
 // 元数据的使用方式定义
-type MetadataUsage struct {
+type MetadataUsageRule struct {
 	UsageType            common.MetadataUsageType `protobuf:"varint,1,opt,name=usage_type,json=usageType,proto3,enum=api.protobuf.MetadataUsageType" json:"usage_type,omitempty"`
 	StartAt              uint64                   `protobuf:"varint,2,opt,name=start_at,json=startAt,proto3" json:"start_at,omitempty"`
 	EndAt                uint64                   `protobuf:"varint,3,opt,name=end_at,json=endAt,proto3" json:"end_at,omitempty"`
@@ -596,18 +612,18 @@ type MetadataUsage struct {
 	XXX_sizecache        int32                    `json:"-"`
 }
 
-func (m *MetadataUsage) Reset()         { *m = MetadataUsage{} }
-func (m *MetadataUsage) String() string { return proto.CompactTextString(m) }
-func (*MetadataUsage) ProtoMessage()    {}
-func (*MetadataUsage) Descriptor() ([]byte, []int) {
+func (m *MetadataUsageRule) Reset()         { *m = MetadataUsageRule{} }
+func (m *MetadataUsageRule) String() string { return proto.CompactTextString(m) }
+func (*MetadataUsageRule) ProtoMessage()    {}
+func (*MetadataUsageRule) Descriptor() ([]byte, []int) {
 	return fileDescriptor_33d0259ee189cec4, []int{5}
 }
-func (m *MetadataUsage) XXX_Unmarshal(b []byte) error {
+func (m *MetadataUsageRule) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetadataUsage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataUsageRule) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetadataUsage.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataUsageRule.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -617,40 +633,40 @@ func (m *MetadataUsage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error
 		return b[:n], nil
 	}
 }
-func (m *MetadataUsage) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetadataUsage.Merge(m, src)
+func (m *MetadataUsageRule) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataUsageRule.Merge(m, src)
 }
-func (m *MetadataUsage) XXX_Size() int {
+func (m *MetadataUsageRule) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetadataUsage) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetadataUsage.DiscardUnknown(m)
+func (m *MetadataUsageRule) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataUsageRule.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetadataUsage proto.InternalMessageInfo
+var xxx_messageInfo_MetadataUsageRule proto.InternalMessageInfo
 
-func (m *MetadataUsage) GetUsageType() common.MetadataUsageType {
+func (m *MetadataUsageRule) GetUsageType() common.MetadataUsageType {
 	if m != nil {
 		return m.UsageType
 	}
 	return common.MetadataUsageType_Usage_Unknown
 }
 
-func (m *MetadataUsage) GetStartAt() uint64 {
+func (m *MetadataUsageRule) GetStartAt() uint64 {
 	if m != nil {
 		return m.StartAt
 	}
 	return 0
 }
 
-func (m *MetadataUsage) GetEndAt() uint64 {
+func (m *MetadataUsageRule) GetEndAt() uint64 {
 	if m != nil {
 		return m.EndAt
 	}
 	return 0
 }
 
-func (m *MetadataUsage) GetTimes() uint32 {
+func (m *MetadataUsageRule) GetTimes() uint32 {
 	if m != nil {
 		return m.Times
 	}
@@ -661,7 +677,7 @@ func (m *MetadataUsage) GetTimes() uint32 {
 type MetadataAuthority struct {
 	Owner                *common.Organization `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	MetadataId           string               `protobuf:"bytes,2,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
-	Usage                *MetadataUsage       `protobuf:"bytes,3,opt,name=usage,proto3" json:"usage,omitempty"`
+	UsageRule            *MetadataUsageRule   `protobuf:"bytes,3,opt,name=usage_rule,json=usageRule,proto3" json:"usage_rule,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
 	XXX_unrecognized     []byte               `json:"-"`
 	XXX_sizecache        int32                `json:"-"`
@@ -714,88 +730,158 @@ func (m *MetadataAuthority) GetMetadataId() string {
 	return ""
 }
 
-func (m *MetadataAuthority) GetUsage() *MetadataUsage {
+func (m *MetadataAuthority) GetUsageRule() *MetadataUsageRule {
 	if m != nil {
-		return m.Usage
+		return m.UsageRule
 	}
 	return nil
+}
+
+// 对应授权信息中元数据的使用实况定义 (配合数据授权使用)
+type MetadataUsedQuo struct {
+	UsageType            common.MetadataUsageType `protobuf:"varint,1,opt,name=usage_type,json=usageType,proto3,enum=api.protobuf.MetadataUsageType" json:"usage_type,omitempty"`
+	Expire               bool                     `protobuf:"varint,2,opt,name=expire,proto3" json:"expire,omitempty"`
+	UsedTimes            uint32                   `protobuf:"varint,3,opt,name=used_times,json=usedTimes,proto3" json:"used_times,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
+	XXX_unrecognized     []byte                   `json:"-"`
+	XXX_sizecache        int32                    `json:"-"`
+}
+
+func (m *MetadataUsedQuo) Reset()         { *m = MetadataUsedQuo{} }
+func (m *MetadataUsedQuo) String() string { return proto.CompactTextString(m) }
+func (*MetadataUsedQuo) ProtoMessage()    {}
+func (*MetadataUsedQuo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_33d0259ee189cec4, []int{7}
+}
+func (m *MetadataUsedQuo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MetadataUsedQuo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MetadataUsedQuo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MetadataUsedQuo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataUsedQuo.Merge(m, src)
+}
+func (m *MetadataUsedQuo) XXX_Size() int {
+	return m.Size()
+}
+func (m *MetadataUsedQuo) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataUsedQuo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MetadataUsedQuo proto.InternalMessageInfo
+
+func (m *MetadataUsedQuo) GetUsageType() common.MetadataUsageType {
+	if m != nil {
+		return m.UsageType
+	}
+	return common.MetadataUsageType_Usage_Unknown
+}
+
+func (m *MetadataUsedQuo) GetExpire() bool {
+	if m != nil {
+		return m.Expire
+	}
+	return false
+}
+
+func (m *MetadataUsedQuo) GetUsedTimes() uint32 {
+	if m != nil {
+		return m.UsedTimes
+	}
+	return 0
 }
 
 func init() {
 	proto.RegisterType((*MetadataPB)(nil), "types.MetadataPB")
 	proto.RegisterType((*MetadataColumn)(nil), "types.MetadataColumn")
-	proto.RegisterType((*AuthRecordPB)(nil), "types.AuthRecordPB")
+	proto.RegisterType((*MetadataAuthorityPB)(nil), "types.MetadataAuthorityPB")
 	proto.RegisterType((*MetadataSummary)(nil), "types.MetadataSummary")
 	proto.RegisterType((*MetadataDetail)(nil), "types.MetadataDetail")
-	proto.RegisterType((*MetadataUsage)(nil), "types.MetadataUsage")
+	proto.RegisterType((*MetadataUsageRule)(nil), "types.MetadataUsageRule")
 	proto.RegisterType((*MetadataAuthority)(nil), "types.MetadataAuthority")
+	proto.RegisterType((*MetadataUsedQuo)(nil), "types.MetadataUsedQuo")
 }
 
 func init() { proto.RegisterFile("lib/types/metadata.proto", fileDescriptor_33d0259ee189cec4) }
 
 var fileDescriptor_33d0259ee189cec4 = []byte{
-	// 971 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x56, 0x41, 0x6f, 0xe3, 0x44,
-	0x14, 0x96, 0x93, 0x38, 0x89, 0xc7, 0x49, 0xb6, 0x3b, 0xda, 0x2e, 0xa6, 0x85, 0x6e, 0xc8, 0x72,
-	0x88, 0x40, 0x24, 0x90, 0x3d, 0xf5, 0x82, 0x48, 0x5b, 0x2d, 0xca, 0x01, 0xb6, 0x72, 0xbb, 0x17,
-	0x2e, 0xd6, 0xc4, 0x9e, 0x4d, 0x46, 0x6b, 0x7b, 0x2c, 0xcf, 0xb3, 0x4a, 0xf6, 0x17, 0x20, 0x71,
-	0xe3, 0xc2, 0xcf, 0xe1, 0xca, 0x0d, 0xae, 0xdc, 0x50, 0x7f, 0x09, 0x9a, 0x37, 0x76, 0x52, 0xa7,
-	0x05, 0xb1, 0xa7, 0xbc, 0xf7, 0xbd, 0xf7, 0x66, 0x9e, 0xdf, 0xfb, 0xbe, 0x51, 0x88, 0x17, 0x8b,
-	0xe5, 0x14, 0x36, 0x19, 0x57, 0xd3, 0x84, 0x03, 0x8b, 0x18, 0xb0, 0x49, 0x96, 0x4b, 0x90, 0xd4,
-	0x46, 0xf4, 0xe8, 0x50, 0x27, 0x84, 0x32, 0x49, 0x64, 0x3a, 0x5d, 0x32, 0xc5, 0x4d, 0xb4, 0x06,
-	0xef, 0x8a, 0x8e, 0x9e, 0xe7, 0x3c, 0x93, 0x6a, 0x8a, 0xce, 0xb2, 0x78, 0x33, 0x5d, 0xc9, 0x95,
-	0x44, 0x07, 0x2d, 0x93, 0x34, 0xfa, 0xa3, 0x45, 0xc8, 0x77, 0xe5, 0x65, 0x97, 0x67, 0xf4, 0x19,
-	0x71, 0x45, 0xc4, 0x53, 0x10, 0xb0, 0x09, 0x44, 0xe4, 0x59, 0x43, 0x6b, 0xec, 0xf8, 0xa4, 0x82,
-	0x16, 0x11, 0xfd, 0x80, 0x74, 0x52, 0x19, 0x71, 0x1d, 0x6c, 0x60, 0xb0, 0xad, 0xdd, 0x45, 0x44,
-	0x8f, 0x89, 0x83, 0x81, 0x94, 0x25, 0xdc, 0x6b, 0x62, 0xa8, 0xab, 0x81, 0xef, 0x59, 0xc2, 0x75,
-	0x95, 0xbe, 0x40, 0x57, 0xb5, 0x4c, 0x95, 0x76, 0x17, 0x11, 0x3d, 0x25, 0x2e, 0x06, 0x14, 0x30,
-	0x28, 0x94, 0x67, 0x0f, 0xad, 0xf1, 0x60, 0xe6, 0x4d, 0x58, 0x26, 0x26, 0x55, 0xdf, 0x93, 0x0b,
-	0x06, 0xec, 0x0a, 0xe3, 0x3e, 0x89, 0xb6, 0xb6, 0xbe, 0x50, 0xe6, 0x62, 0x25, 0x52, 0x7d, 0x6a,
-	0xdb, 0x5c, 0x68, 0x80, 0x45, 0x44, 0x3f, 0x26, 0x04, 0xd8, 0x32, 0x2e, 0xdb, 0xe9, 0x60, 0xd4,
-	0x41, 0x04, 0xfb, 0x39, 0x26, 0xce, 0x1b, 0x11, 0xf3, 0x20, 0x63, 0xb0, 0xf6, 0xba, 0xa6, 0x56,
-	0x03, 0x97, 0x0c, 0xd6, 0x94, 0x92, 0x56, 0xc4, 0x55, 0xe8, 0x39, 0x88, 0xa3, 0xad, 0xb1, 0x5c,
-	0xde, 0x28, 0x8f, 0x0c, 0xad, 0x71, 0xdf, 0x47, 0x9b, 0x7a, 0xa4, 0x13, 0xca, 0xb8, 0x48, 0x52,
-	0xe5, 0xb9, 0x08, 0x57, 0xae, 0xce, 0x56, 0xe2, 0x1d, 0xf7, 0x7a, 0x43, 0x6b, 0xdc, 0xf2, 0xd1,
-	0xa6, 0xa7, 0xe5, 0x95, 0x7a, 0x93, 0x5e, 0x1f, 0xbf, 0xf3, 0xa3, 0xfa, 0x77, 0xbe, 0xc2, 0xe6,
-	0x5f, 0x8a, 0x98, 0x5f, 0x6f, 0x32, 0x6e, 0x1a, 0xd2, 0x16, 0xfd, 0x8a, 0xd8, 0x7a, 0x3e, 0xdc,
-	0x1b, 0x60, 0xd9, 0x71, 0xbd, 0xac, 0xda, 0x9e, 0x1e, 0x0b, 0xf7, 0x4d, 0xa6, 0xfe, 0xc0, 0x35,
-	0x53, 0x01, 0x08, 0x88, 0xb9, 0xf7, 0x68, 0x68, 0x8d, 0xbb, 0x7e, 0x77, 0xcd, 0xd4, 0xb5, 0xf6,
-	0xe9, 0x37, 0xe4, 0xa0, 0xe2, 0x57, 0x50, 0x7d, 0xc1, 0xc1, 0xb0, 0x39, 0x76, 0x67, 0x87, 0x13,
-	0x24, 0xda, 0xf6, 0xcc, 0x73, 0x8c, 0xfa, 0x8f, 0x92, 0x9a, 0xaf, 0xe8, 0x11, 0xe9, 0x8a, 0x34,
-	0x2a, 0x14, 0xe4, 0x1b, 0xef, 0xb1, 0x19, 0x5f, 0xe5, 0x8f, 0x7e, 0xb6, 0xc8, 0xa0, 0x5e, 0xaf,
-	0xd7, 0x1f, 0x06, 0x22, 0x8d, 0xf8, 0x8f, 0xc8, 0xa8, 0xbe, 0xdf, 0x0e, 0x17, 0xda, 0xa3, 0x87,
-	0xa4, 0x1d, 0x9a, 0x15, 0x19, 0x32, 0xd9, 0x21, 0xae, 0x07, 0x61, 0x1c, 0x54, 0xb3, 0x84, 0x71,
-	0x0e, 0x08, 0xe3, 0x60, 0x5b, 0x78, 0x8a, 0x1d, 0x5e, 0xe9, 0xc9, 0x1e, 0x13, 0x27, 0x0c, 0x34,
-	0xfd, 0x79, 0x0a, 0xc8, 0x20, 0xc7, 0xef, 0x86, 0xe7, 0xc6, 0x1f, 0xfd, 0xd5, 0x20, 0xbd, 0x79,
-	0x01, 0x6b, 0x9f, 0x87, 0x32, 0x8f, 0x2e, 0xcf, 0xe8, 0xa7, 0x64, 0xc0, 0x0a, 0x58, 0x07, 0x39,
-	0x02, 0x3b, 0x92, 0xf7, 0xd8, 0x36, 0x6b, 0x11, 0xe9, 0x0d, 0x16, 0x8a, 0xe7, 0x65, 0x5b, 0x68,
-	0xd3, 0x17, 0xc4, 0xd1, 0xbf, 0xbb, 0xc6, 0x06, 0xb3, 0xa7, 0xf5, 0x55, 0xbc, 0x56, 0x3c, 0x37,
-	0xbb, 0x2b, 0x4a, 0x6b, 0x4b, 0x70, 0x73, 0x1d, 0x36, 0xee, 0xce, 0xbc, 0xbd, 0x31, 0xeb, 0x06,
-	0x65, 0x2e, 0x60, 0x63, 0x08, 0x6e, 0xba, 0xa0, 0x17, 0xa4, 0xc7, 0x8a, 0x48, 0x40, 0x90, 0x73,
-	0x55, 0xc4, 0x50, 0x8a, 0xe3, 0x93, 0xfa, 0x95, 0x73, 0x9d, 0x51, 0x9d, 0xf3, 0x2a, 0x03, 0x21,
-	0x53, 0xdf, 0xc5, 0x32, 0x1f, 0xab, 0xe8, 0x73, 0xd2, 0x37, 0xa7, 0xa8, 0x62, 0xb5, 0xe2, 0x0a,
-	0x4a, 0xa9, 0x98, 0xa3, 0xaf, 0x0c, 0x46, 0x3f, 0x24, 0x5d, 0x96, 0x65, 0xf1, 0x26, 0x60, 0x80,
-	0x62, 0x69, 0xf9, 0x1d, 0xf4, 0xe7, 0x26, 0x84, 0xf5, 0x0c, 0x50, 0x29, 0x3a, 0xa4, 0xfd, 0x39,
-	0x8c, 0x7e, 0x6a, 0x92, 0x47, 0x5b, 0xf6, 0x15, 0x49, 0xc2, 0xf2, 0x8d, 0x7e, 0x40, 0xb6, 0xdc,
-	0xda, 0x3d, 0x20, 0x15, 0x64, 0xde, 0x89, 0x9d, 0x6c, 0x1b, 0xff, 0x29, 0xdb, 0xe6, 0xbe, 0x6c,
-	0x2b, 0x65, 0xb6, 0xee, 0x28, 0xb3, 0x26, 0x65, 0xfb, 0xbe, 0x94, 0x51, 0xb6, 0xed, 0x87, 0x65,
-	0xdb, 0x79, 0x58, 0xb6, 0xdd, 0x7f, 0x93, 0xad, 0xf3, 0x5e, 0xb2, 0xad, 0x69, 0x90, 0xec, 0x69,
-	0xf0, 0xae, 0x82, 0xdc, 0xba, 0x82, 0x76, 0x7a, 0xef, 0xfd, 0x5f, 0xbd, 0x8f, 0x7e, 0xbb, 0x23,
-	0xba, 0x0b, 0x0e, 0x4c, 0xc4, 0x74, 0x7e, 0x47, 0xe5, 0xca, 0x6c, 0x07, 0xd7, 0xe1, 0xce, 0x9e,
-	0xee, 0xd1, 0xaf, 0xdc, 0xdd, 0x4e, 0xe6, 0xd5, 0x32, 0x1f, 0x7a, 0x28, 0x1a, 0xef, 0xf5, 0x50,
-	0x8c, 0xc9, 0x01, 0x48, 0x60, 0x71, 0x00, 0x4c, 0xbd, 0x0d, 0x42, 0x59, 0xa4, 0x80, 0x6b, 0xed,
-	0xfb, 0x03, 0xc4, 0xaf, 0x99, 0x7a, 0x7b, 0xae, 0xd1, 0xd1, 0xaf, 0x16, 0xe9, 0x57, 0xa7, 0xbd,
-	0x56, 0x6c, 0xc5, 0xe9, 0xd7, 0x84, 0x14, 0xda, 0x30, 0xb3, 0xb7, 0x70, 0x16, 0xcf, 0x1e, 0x9e,
-	0x05, 0x16, 0xe0, 0xf8, 0x9d, 0xa2, 0x32, 0x35, 0x73, 0x15, 0xb0, 0x1c, 0x99, 0xdb, 0x30, 0xcc,
-	0x45, 0x7f, 0x0e, 0xfa, 0x25, 0xe1, 0x69, 0xa4, 0x03, 0x4d, 0x0c, 0xd8, 0x3c, 0x8d, 0xe6, 0x40,
-	0x9f, 0x10, 0x1b, 0x44, 0xc2, 0x55, 0xf5, 0xbe, 0xa0, 0x33, 0xfa, 0xc5, 0x22, 0x8f, 0xef, 0x29,
-	0x95, 0x7e, 0x49, 0x6c, 0x79, 0x93, 0xf2, 0xbc, 0x9c, 0xe9, 0xd1, 0x3e, 0x29, 0x56, 0x2c, 0x15,
-	0xef, 0x18, 0xea, 0xd1, 0x24, 0xee, 0x4b, 0xa3, 0x71, 0x4f, 0x1a, 0x9f, 0x11, 0x1b, 0xbb, 0xc7,
-	0xa6, 0xdc, 0xd9, 0x93, 0xbd, 0x19, 0xe3, 0x47, 0xfa, 0x26, 0xe5, 0xec, 0xf4, 0xf7, 0xdb, 0x13,
-	0xeb, 0xcf, 0xdb, 0x13, 0xeb, 0xef, 0xdb, 0x13, 0xeb, 0x87, 0xcf, 0x57, 0x02, 0xd6, 0xc5, 0x72,
-	0x12, 0xca, 0x64, 0xea, 0x4b, 0xc5, 0x01, 0xd8, 0xcb, 0x58, 0xde, 0x4c, 0xcf, 0x59, 0x9e, 0x0b,
-	0x9e, 0x7f, 0xf1, 0xad, 0x9c, 0x6e, 0xff, 0x5b, 0x2c, 0xdb, 0xd8, 0xe5, 0x8b, 0x7f, 0x02, 0x00,
-	0x00, 0xff, 0xff, 0x4e, 0x11, 0xb7, 0x66, 0x6f, 0x08, 0x00, 0x00,
+	// 1046 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0xcd, 0x6e, 0x23, 0x45,
+	0x10, 0xd6, 0xc4, 0xff, 0xed, 0xc4, 0xc9, 0x36, 0x24, 0x0c, 0x09, 0x64, 0x8d, 0xe1, 0x60, 0x04,
+	0xd8, 0x6c, 0xf6, 0x80, 0xc2, 0x01, 0xe1, 0x24, 0x5a, 0xe4, 0x03, 0x6c, 0x98, 0x64, 0x2f, 0x5c,
+	0x46, 0xed, 0x99, 0x5e, 0xbb, 0xb5, 0x33, 0xd3, 0xc3, 0x74, 0xb7, 0xb2, 0xde, 0x27, 0x58, 0x89,
+	0x47, 0xe0, 0xc0, 0xa3, 0x70, 0xe5, 0x80, 0x04, 0x8f, 0x80, 0xf2, 0x24, 0xa8, 0xaa, 0x67, 0xc6,
+	0x1e, 0x27, 0x20, 0x56, 0x9c, 0x5c, 0xf5, 0x55, 0x55, 0x77, 0x75, 0xfd, 0x7c, 0x1e, 0xe2, 0x46,
+	0x62, 0x36, 0xd6, 0xcb, 0x94, 0xab, 0x71, 0xcc, 0x35, 0x0b, 0x99, 0x66, 0xa3, 0x34, 0x93, 0x5a,
+	0xd2, 0x06, 0xa2, 0x87, 0xfb, 0xe0, 0x10, 0xc8, 0x38, 0x96, 0xc9, 0x78, 0xc6, 0x14, 0xb7, 0xd6,
+	0x0a, 0xbc, 0x0a, 0x3a, 0xfc, 0x30, 0xe3, 0xa9, 0x54, 0x63, 0x54, 0x66, 0xe6, 0xf9, 0x78, 0x2e,
+	0xe7, 0x12, 0x15, 0x94, 0xac, 0xd3, 0xe0, 0x8f, 0x3a, 0x21, 0xdf, 0xe6, 0x97, 0x5d, 0x9e, 0xd1,
+	0x87, 0xa4, 0x2b, 0x42, 0x9e, 0x68, 0xa1, 0x97, 0xbe, 0x08, 0x5d, 0xa7, 0xef, 0x0c, 0x3b, 0x1e,
+	0x29, 0xa0, 0x69, 0x48, 0xdf, 0x21, 0xad, 0x44, 0x86, 0x1c, 0x8c, 0x5b, 0x68, 0x6c, 0x82, 0x3a,
+	0x0d, 0xe9, 0x11, 0xe9, 0xa0, 0x21, 0x61, 0x31, 0x77, 0x6b, 0x68, 0x6a, 0x03, 0xf0, 0x1d, 0x8b,
+	0x39, 0x44, 0xc1, 0x05, 0x10, 0x55, 0xb7, 0x51, 0xa0, 0x4e, 0x43, 0x7a, 0x4a, 0xba, 0x68, 0x50,
+	0x9a, 0x69, 0xa3, 0xdc, 0x46, 0xdf, 0x19, 0xf6, 0x4e, 0xdc, 0x11, 0x4b, 0xc5, 0xa8, 0xc8, 0x7b,
+	0x74, 0xc1, 0x34, 0xbb, 0x42, 0xbb, 0x47, 0xc2, 0x52, 0x86, 0x0b, 0x65, 0x26, 0xe6, 0x22, 0x81,
+	0x53, 0x9b, 0xf6, 0x42, 0x0b, 0x4c, 0x43, 0xfa, 0x3e, 0x21, 0x9a, 0xcd, 0xa2, 0x3c, 0x9d, 0x16,
+	0x5a, 0x3b, 0x88, 0x60, 0x3e, 0x47, 0xa4, 0xf3, 0x5c, 0x44, 0xdc, 0x4f, 0x99, 0x5e, 0xb8, 0x6d,
+	0x1b, 0x0b, 0xc0, 0x25, 0xd3, 0x0b, 0x4a, 0x49, 0x3d, 0xe4, 0x2a, 0x70, 0x3b, 0x88, 0xa3, 0x0c,
+	0x58, 0x26, 0x6f, 0x94, 0x4b, 0xfa, 0xce, 0x70, 0xc7, 0x43, 0x99, 0xba, 0xa4, 0x15, 0xc8, 0xc8,
+	0xc4, 0x89, 0x72, 0xbb, 0x08, 0x17, 0x2a, 0x78, 0x2b, 0xf1, 0x8a, 0xbb, 0xdb, 0x7d, 0x67, 0x58,
+	0xf7, 0x50, 0xa6, 0xa7, 0xf9, 0x95, 0xd0, 0x49, 0x77, 0x07, 0xdf, 0xf9, 0x5e, 0xf5, 0x9d, 0x4f,
+	0x31, 0xf9, 0x27, 0x22, 0xe2, 0xd7, 0xcb, 0x94, 0xdb, 0x84, 0x40, 0xa2, 0x8f, 0x48, 0x03, 0xea,
+	0xc3, 0xdd, 0x1e, 0x86, 0x1d, 0x55, 0xc3, 0x8a, 0xee, 0x41, 0x59, 0xb8, 0x67, 0x3d, 0xe1, 0x81,
+	0x0b, 0xa6, 0x7c, 0x2d, 0x74, 0xc4, 0xdd, 0xdd, 0xbe, 0x33, 0x6c, 0x7b, 0xed, 0x05, 0x53, 0xd7,
+	0xa0, 0xd3, 0xaf, 0xc9, 0x5e, 0x31, 0x5f, 0x7e, 0xf1, 0x82, 0xbd, 0x7e, 0x6d, 0xd8, 0x3d, 0xd9,
+	0x1f, 0xe1, 0xa0, 0x95, 0x67, 0x9e, 0xa3, 0xd5, 0xdb, 0x8d, 0x2b, 0xba, 0xa2, 0x87, 0xa4, 0x2d,
+	0x92, 0xd0, 0x28, 0x9d, 0x2d, 0xdd, 0x07, 0xb6, 0x7c, 0x85, 0x3e, 0xf8, 0xc9, 0x21, 0xbd, 0x6a,
+	0x3c, 0xb4, 0x3f, 0xf0, 0x45, 0x12, 0xf2, 0x97, 0x38, 0x51, 0x3b, 0x5e, 0x33, 0x98, 0x82, 0x46,
+	0xf7, 0x49, 0x33, 0xb0, 0x2d, 0xb2, 0xc3, 0xd4, 0x08, 0xb0, 0x3d, 0x08, 0x63, 0xa1, 0x6a, 0x39,
+	0x8c, 0x75, 0x40, 0x18, 0x0b, 0x5b, 0xc7, 0x53, 0x1a, 0xc1, 0x15, 0x54, 0xf6, 0x88, 0x74, 0x02,
+	0x1f, 0xc6, 0x9f, 0x27, 0x1a, 0x27, 0xa8, 0xe3, 0xb5, 0x83, 0x73, 0xab, 0x0f, 0x7e, 0xaf, 0x91,
+	0xb7, 0x8a, 0x6c, 0x26, 0x46, 0x2f, 0x64, 0x26, 0xf4, 0xf2, 0xf2, 0x8c, 0x0e, 0xd7, 0x6a, 0xc0,
+	0x8c, 0x5e, 0xac, 0xa6, 0xbd, 0x17, 0xaf, 0xb9, 0x4f, 0x43, 0x68, 0xa6, 0x51, 0x3c, 0xcb, 0x33,
+	0x44, 0x99, 0x3e, 0x26, 0x1d, 0xf8, 0x5d, 0xe5, 0xd8, 0x3b, 0x39, 0xa8, 0x76, 0xe5, 0x99, 0xe2,
+	0x99, 0x6d, 0xa3, 0xc9, 0x25, 0xfa, 0x29, 0xa9, 0xc3, 0x4d, 0x98, 0x7c, 0xf7, 0xc4, 0xdd, 0x28,
+	0x75, 0x99, 0x9c, 0x87, 0x5e, 0xf4, 0x82, 0x6c, 0x33, 0x13, 0x0a, 0xed, 0xcb, 0x54, 0x0b, 0x99,
+	0xe4, 0xab, 0xf1, 0x41, 0xf5, 0x96, 0x09, 0x78, 0x14, 0x27, 0x3c, 0x45, 0x47, 0xaf, 0x8b, 0x61,
+	0x56, 0xa1, 0x1f, 0x93, 0x3d, 0x7b, 0x8a, 0x32, 0xf3, 0x39, 0x57, 0x78, 0x92, 0xdd, 0x95, 0x5d,
+	0xc4, 0xaf, 0x4a, 0x98, 0x3e, 0x22, 0x90, 0x6a, 0xe8, 0xff, 0x68, 0x24, 0x2e, 0x4c, 0xf7, 0xe4,
+	0x60, 0x23, 0xc5, 0x67, 0x8a, 0x87, 0xdf, 0x1b, 0xe9, 0xb5, 0x8c, 0x15, 0xe8, 0xbb, 0xa4, 0xcd,
+	0xd2, 0x34, 0x5a, 0xfa, 0x4c, 0xe3, 0x16, 0xd5, 0xbd, 0x16, 0xea, 0x13, 0x8d, 0x26, 0xbc, 0x98,
+	0x69, 0x5c, 0x24, 0x30, 0x81, 0x3e, 0xd1, 0xf4, 0xcb, 0x62, 0x9c, 0x09, 0x3e, 0xe9, 0xa3, 0xfb,
+	0xc7, 0xb9, 0xac, 0xc7, 0xfa, 0x5c, 0x0f, 0x5e, 0xd7, 0xc8, 0x6e, 0x39, 0xf0, 0x26, 0x8e, 0x59,
+	0xb6, 0x04, 0xce, 0x2a, 0x5b, 0xb9, 0xe2, 0xac, 0x02, 0xb2, 0xd4, 0xb4, 0x62, 0x8a, 0xad, 0x7f,
+	0x65, 0x8a, 0xda, 0x26, 0x53, 0x14, 0x64, 0x50, 0x5f, 0x23, 0x83, 0x0a, 0x7b, 0x34, 0xee, 0xb2,
+	0x07, 0x32, 0x45, 0xf3, 0x7e, 0xa6, 0x68, 0xdd, 0xcf, 0x14, 0xed, 0x7f, 0x62, 0x8a, 0xce, 0x1b,
+	0x31, 0x45, 0x65, 0xed, 0xc9, 0xc6, 0xda, 0xaf, 0x2f, 0x6d, 0xb7, 0xba, 0xb4, 0x2b, 0x8a, 0xd9,
+	0xfe, 0xaf, 0x14, 0x33, 0xf8, 0x75, 0x6d, 0xcf, 0x2f, 0xb8, 0x66, 0x22, 0xa2, 0x93, 0xb5, 0xa5,
+	0x52, 0xb6, 0x3b, 0xd8, 0x8e, 0xbb, 0xa3, 0x94, 0xf7, 0x6e, 0xc5, 0x2c, 0x45, 0x33, 0xef, 0xe3,
+	0xa6, 0xad, 0x37, 0xe2, 0xa6, 0x21, 0xd9, 0xd3, 0x52, 0xb3, 0xc8, 0xd7, 0x4c, 0xbd, 0xf0, 0x03,
+	0x69, 0x12, 0x8d, 0x6d, 0xdd, 0xf1, 0x7a, 0x88, 0x5f, 0x33, 0xf5, 0xe2, 0x1c, 0xd0, 0xc1, 0xcf,
+	0x0e, 0x79, 0xb0, 0x9a, 0x6d, 0x36, 0xe7, 0x9e, 0x89, 0x38, 0xfd, 0x8a, 0x10, 0x03, 0x8a, 0xad,
+	0xbf, 0x83, 0xf5, 0x78, 0x78, 0x7f, 0x3d, 0x30, 0x08, 0x5b, 0xd0, 0x31, 0x85, 0x08, 0x93, 0xaf,
+	0x34, 0xcb, 0x70, 0xf2, 0xb7, 0xec, 0xe4, 0xa3, 0x3e, 0xd1, 0x40, 0x60, 0x3c, 0x09, 0xc1, 0x50,
+	0x43, 0x43, 0x83, 0x27, 0xe1, 0x44, 0xd3, 0xb7, 0x49, 0x43, 0x8b, 0x98, 0xab, 0x82, 0xd6, 0x50,
+	0x19, 0xfc, 0xb2, 0x96, 0x5d, 0xb9, 0x0c, 0xf4, 0x73, 0xd2, 0x90, 0x37, 0x09, 0xcf, 0xf2, 0xba,
+	0x1e, 0x6e, 0x0e, 0xc6, 0x9c, 0x25, 0xe2, 0x15, 0x43, 0x22, 0xb0, 0x8e, 0x9b, 0xeb, 0xb1, 0x75,
+	0x67, 0x3d, 0xbe, 0x28, 0x1e, 0x9c, 0x99, 0xc8, 0x6e, 0xc0, 0x5d, 0x76, 0x2a, 0xcb, 0x93, 0xbf,
+	0x14, 0xc4, 0xc1, 0x6b, 0x67, 0xb5, 0x8c, 0x39, 0x37, 0xfc, 0xef, 0xea, 0x1d, 0x90, 0x26, 0x7f,
+	0x99, 0x8a, 0xcc, 0xfe, 0x23, 0xb4, 0xbd, 0x5c, 0x83, 0x35, 0x45, 0x76, 0xb2, 0x85, 0xb2, 0xfd,
+	0x04, 0x0e, 0x0e, 0xaf, 0x01, 0x38, 0x3b, 0xfd, 0xed, 0xf6, 0xd8, 0xf9, 0xf3, 0xf6, 0xd8, 0xf9,
+	0xeb, 0xf6, 0xd8, 0xf9, 0xe1, 0x93, 0xb9, 0xd0, 0x0b, 0x33, 0x1b, 0x05, 0x32, 0x1e, 0x7b, 0x52,
+	0x71, 0xad, 0xd9, 0x93, 0x48, 0xde, 0x8c, 0xcf, 0x59, 0x96, 0x09, 0x9e, 0x7d, 0xf6, 0x8d, 0x1c,
+	0x97, 0x9f, 0x5a, 0xb3, 0x26, 0x26, 0xf6, 0xf8, 0xef, 0x00, 0x00, 0x00, 0xff, 0xff, 0x5b, 0xb9,
+	0x27, 0xd0, 0x7e, 0x09, 0x00, 0x00,
 }
 
 func (m *MetadataPB) Marshal() (dAtA []byte, err error) {
@@ -1004,7 +1090,7 @@ func (m *MetadataColumn) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *AuthRecordPB) Marshal() (dAtA []byte, err error) {
+func (m *MetadataAuthorityPB) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1014,12 +1100,12 @@ func (m *AuthRecordPB) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *AuthRecordPB) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataAuthorityPB) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *AuthRecordPB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataAuthorityPB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1028,31 +1114,48 @@ func (m *AuthRecordPB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
+	if m.State != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.State))
+		i--
+		dAtA[i] = 0x50
+	}
 	if m.AuditAt != 0 {
 		i = encodeVarintMetadata(dAtA, i, uint64(m.AuditAt))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x48
 	}
 	if m.ApplyAt != 0 {
 		i = encodeVarintMetadata(dAtA, i, uint64(m.ApplyAt))
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x40
 	}
-	if len(m.AuditSuggest) > 0 {
-		i -= len(m.AuditSuggest)
-		copy(dAtA[i:], m.AuditSuggest)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.AuditSuggest)))
+	if m.UsedQuo != nil {
+		{
+			size, err := m.UsedQuo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintMetadata(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.AuditSuggestion) > 0 {
+		i -= len(m.AuditSuggestion)
+		copy(dAtA[i:], m.AuditSuggestion)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.AuditSuggestion)))
 		i--
 		dAtA[i] = 0x32
 	}
-	if m.AuditResult != 0 {
-		i = encodeVarintMetadata(dAtA, i, uint64(m.AuditResult))
+	if m.AuditOption != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.AuditOption))
 		i--
 		dAtA[i] = 0x28
 	}
-	if m.DataRecord != nil {
+	if m.Auth != nil {
 		{
-			size, err := m.DataRecord.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.Auth.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1074,10 +1177,10 @@ func (m *AuthRecordPB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.AuthRecordId) > 0 {
-		i -= len(m.AuthRecordId)
-		copy(dAtA[i:], m.AuthRecordId)
-		i = encodeVarintMetadata(dAtA, i, uint64(len(m.AuthRecordId)))
+	if len(m.MetadataAuthId) > 0 {
+		i -= len(m.MetadataAuthId)
+		copy(dAtA[i:], m.MetadataAuthId)
+		i = encodeVarintMetadata(dAtA, i, uint64(len(m.MetadataAuthId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1246,7 +1349,7 @@ func (m *MetadataDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MetadataUsage) Marshal() (dAtA []byte, err error) {
+func (m *MetadataUsageRule) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1256,12 +1359,12 @@ func (m *MetadataUsage) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetadataUsage) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataUsageRule) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetadataUsage) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataUsageRule) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1317,9 +1420,9 @@ func (m *MetadataAuthority) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.Usage != nil {
+	if m.UsageRule != nil {
 		{
-			size, err := m.Usage.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.UsageRule.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1347,6 +1450,53 @@ func (m *MetadataAuthority) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		}
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MetadataUsedQuo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MetadataUsedQuo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MetadataUsedQuo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.XXX_unrecognized != nil {
+		i -= len(m.XXX_unrecognized)
+		copy(dAtA[i:], m.XXX_unrecognized)
+	}
+	if m.UsedTimes != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.UsedTimes))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Expire {
+		i--
+		if m.Expire {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.UsageType != 0 {
+		i = encodeVarintMetadata(dAtA, i, uint64(m.UsageType))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -1467,13 +1617,13 @@ func (m *MetadataColumn) Size() (n int) {
 	return n
 }
 
-func (m *AuthRecordPB) Size() (n int) {
+func (m *MetadataAuthorityPB) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.AuthRecordId)
+	l = len(m.MetadataAuthId)
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
@@ -1484,15 +1634,19 @@ func (m *AuthRecordPB) Size() (n int) {
 	if m.UserType != 0 {
 		n += 1 + sovMetadata(uint64(m.UserType))
 	}
-	if m.DataRecord != nil {
-		l = m.DataRecord.Size()
+	if m.Auth != nil {
+		l = m.Auth.Size()
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	if m.AuditResult != 0 {
-		n += 1 + sovMetadata(uint64(m.AuditResult))
+	if m.AuditOption != 0 {
+		n += 1 + sovMetadata(uint64(m.AuditOption))
 	}
-	l = len(m.AuditSuggest)
+	l = len(m.AuditSuggestion)
 	if l > 0 {
+		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if m.UsedQuo != nil {
+		l = m.UsedQuo.Size()
 		n += 1 + l + sovMetadata(uint64(l))
 	}
 	if m.ApplyAt != 0 {
@@ -1500,6 +1654,9 @@ func (m *AuthRecordPB) Size() (n int) {
 	}
 	if m.AuditAt != 0 {
 		n += 1 + sovMetadata(uint64(m.AuditAt))
+	}
+	if m.State != 0 {
+		n += 1 + sovMetadata(uint64(m.State))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1586,7 +1743,7 @@ func (m *MetadataDetail) Size() (n int) {
 	return n
 }
 
-func (m *MetadataUsage) Size() (n int) {
+func (m *MetadataUsageRule) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1624,9 +1781,30 @@ func (m *MetadataAuthority) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovMetadata(uint64(l))
 	}
-	if m.Usage != nil {
-		l = m.Usage.Size()
+	if m.UsageRule != nil {
+		l = m.UsageRule.Size()
 		n += 1 + l + sovMetadata(uint64(l))
+	}
+	if m.XXX_unrecognized != nil {
+		n += len(m.XXX_unrecognized)
+	}
+	return n
+}
+
+func (m *MetadataUsedQuo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UsageType != 0 {
+		n += 1 + sovMetadata(uint64(m.UsageType))
+	}
+	if m.Expire {
+		n += 2
+	}
+	if m.UsedTimes != 0 {
+		n += 1 + sovMetadata(uint64(m.UsedTimes))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -2332,7 +2510,7 @@ func (m *MetadataColumn) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
+func (m *MetadataAuthorityPB) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2355,15 +2533,15 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: AuthRecordPB: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataAuthorityPB: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: AuthRecordPB: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataAuthorityPB: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AuthRecordId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetadataAuthId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2391,7 +2569,7 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.AuthRecordId = string(dAtA[iNdEx:postIndex])
+			m.MetadataAuthId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -2446,7 +2624,7 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 			}
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field DataRecord", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Auth", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2473,18 +2651,18 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.DataRecord == nil {
-				m.DataRecord = &MetadataAuthority{}
+			if m.Auth == nil {
+				m.Auth = &MetadataAuthority{}
 			}
-			if err := m.DataRecord.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Auth.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 5:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AuditResult", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field AuditOption", wireType)
 			}
-			m.AuditResult = 0
+			m.AuditOption = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowMetadata
@@ -2494,14 +2672,14 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.AuditResult |= common.AuditMetadataOption(b&0x7F) << shift
+				m.AuditOption |= common.AuditMetadataOption(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AuditSuggest", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field AuditSuggestion", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2529,9 +2707,45 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.AuditSuggest = string(dAtA[iNdEx:postIndex])
+			m.AuditSuggestion = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsedQuo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.UsedQuo == nil {
+				m.UsedQuo = &MetadataUsedQuo{}
+			}
+			if err := m.UsedQuo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ApplyAt", wireType)
 			}
@@ -2550,7 +2764,7 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 8:
+		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AuditAt", wireType)
 			}
@@ -2565,6 +2779,25 @@ func (m *AuthRecordPB) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.AuditAt |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+			}
+			m.State = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.State |= common.MetadataAuthorityState(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -3089,7 +3322,7 @@ func (m *MetadataDetail) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetadataUsage) Unmarshal(dAtA []byte) error {
+func (m *MetadataUsageRule) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3112,10 +3345,10 @@ func (m *MetadataUsage) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetadataUsage: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataUsageRule: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetadataUsage: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataUsageRule: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3315,7 +3548,7 @@ func (m *MetadataAuthority) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Usage", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field UsageRule", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3342,13 +3575,122 @@ func (m *MetadataAuthority) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Usage == nil {
-				m.Usage = &MetadataUsage{}
+			if m.UsageRule == nil {
+				m.UsageRule = &MetadataUsageRule{}
 			}
-			if err := m.Usage.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.UsageRule.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipMetadata(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthMetadata
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.XXX_unrecognized = append(m.XXX_unrecognized, dAtA[iNdEx:iNdEx+skippy]...)
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MetadataUsedQuo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowMetadata
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MetadataUsedQuo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MetadataUsedQuo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsageType", wireType)
+			}
+			m.UsageType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UsageType |= common.MetadataUsageType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Expire", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Expire = bool(v != 0)
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UsedTimes", wireType)
+			}
+			m.UsedTimes = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowMetadata
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UsedTimes |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipMetadata(dAtA[iNdEx:])
