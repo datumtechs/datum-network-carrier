@@ -36,7 +36,7 @@ type Service struct {
 
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
-	TaskManager     *task.Manager
+	TaskManager     handler.TaskManager
 	scheduler       schedule.Scheduler
 	runError        error
 
