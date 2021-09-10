@@ -80,7 +80,7 @@ func NewTaskManager(
 		//needConsensusTaskCh:      needConsensusTaskCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
-		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0),
+		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask
 		quit:                     make(chan struct{}),
 	}
 	return m
@@ -114,9 +114,15 @@ func (m *Manager) loop() {
 		// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者直接存到 dataCenter
 		case task := <-m.needExecuteTaskCh:
 
-			// 添加本地缓存
-			m.addNeedExecuteTaskCache(task)
-			m.handleNeedExecuteTask(task)
+			if task.GetConsStatus() == types.TaskNeedExecute {
+				// add local cache first
+				m.addNeedExecuteTaskCache(task)
+				// to execute the task
+				m.handleNeedExecuteTask(task)
+			} else {
+				// send task result msg to remote peer, short circuit.
+				m.sendTaskResultMsgToRemotePeer(task)
+			}
 
 		case <-taskMonitorTicker.C:
 			m.expireTaskMonitor()

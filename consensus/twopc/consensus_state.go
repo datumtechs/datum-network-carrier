@@ -130,18 +130,21 @@ func (s *state) CleanProposalState(proposalId common.Hash) {
 	s.RemoveConfirmVoteState(proposalId)
 }
 
+
+
+
 // ---------------- PrepareVote ----------------
-func (s *state) HasPrepareVoting(proposalId common.Hash, org *apipb.TaskOrganization) bool {
+func (s *state) HasPrepareVoting (proposalId common.Hash, org *apipb.TaskOrganization) bool {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
 	if !ok {
 		return false
 	}
-	return pvs.hasPrepareVoting(org.PartyId, org.IdentityId)
+	return pvs.hasPrepareVoting (org.PartyId, org.IdentityId)
 }
 
-func (s *state) StorePrepareVote(vote *types.PrepareVote) {
+func (s *state) StorePrepareVote (vote *types.PrepareVote) {
 	s.prepareVotesLock.Lock()
 	pvs, ok := s.prepareVotes[vote.MsgOption.ProposalId]
 	if !ok {
@@ -152,7 +155,7 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 	s.prepareVotesLock.Unlock()
 }
 
-func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role apipb.TaskRole) {
+func (s *state) RemovePrepareVote (proposalId common.Hash, partyId string, role apipb.TaskRole) {
 	s.prepareVotesLock.Lock()
 	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
@@ -167,7 +170,7 @@ func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role a
 	s.prepareVotesLock.Unlock()
 }
 
-func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
+func (s *state) GetPrepareVoteArr (proposalId common.Hash) []*types.PrepareVote {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
@@ -177,14 +180,14 @@ func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
 	return pvs.getVotes()
 }
 
-func (s *state) GetPrepareVote(proposalId common.Hash, partyId string) *types.PrepareVote {
+func (s *state) GetPrepareVote (proposalId common.Hash, partyId string) *types.PrepareVote {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
 	if !ok {
 		return nil
 	}
-	return pvs.getVote(partyId)
+	return pvs.getVote (partyId)
 }
 
 func (s *state)  HasPrepareVoteState (proposalId common.Hash, partyId, identityId string) bool {
@@ -197,13 +200,13 @@ func (s *state)  HasPrepareVoteState (proposalId common.Hash, partyId, identityI
 	return false
 }
 
-func (s *state) RemovePrepareVoteState(proposalId common.Hash) {
+func (s *state) RemovePrepareVoteState (proposalId common.Hash) {
 	s.prepareVotesLock.Lock()
 	delete(s.prepareVotes, proposalId)
 	s.prepareVotesLock.Unlock()
 }
 
-func (s *state) GetTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
+func (s *state) GetTaskPrepareYesVoteCount (proposalId common.Hash) uint32 {
 	return s.GetTaskDataSupplierPrepareYesVoteCount(proposalId) +
 		s.GetTaskPowerSupplierPrepareYesVoteCount(proposalId) +
 		s.GetTaskReceiverPrepareYesVoteCount(proposalId)

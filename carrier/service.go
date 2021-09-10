@@ -63,6 +63,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		make(chan *types.NeedReplayScheduleTask, 100),
 		make(chan *types.NeedExecuteTask, 100)
 
+
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
 	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng)
@@ -78,6 +79,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		config.P2P,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
+		//needSendTaskResultMsgCh,
 	)
 	taskManager := task.NewTaskManager(
 		config.P2P,
