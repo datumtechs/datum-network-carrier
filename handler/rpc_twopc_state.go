@@ -273,9 +273,6 @@ func (s *Service) validateCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 	return engine.ValidateConsensusMsg(pid, &types.CommitMsgWrap{CommitMsg: r})
 }
 
-func (s *Service) validateTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
-	return s.cfg.TaskManager.ValidateTaskResultMsg(pid, r)
-}
 
 
 // ------------------------------------  some handle Fn  ------------------------------------
@@ -320,6 +317,3 @@ func (s *Service) onCommitMsg(pid peer.ID, r *pb.CommitMsg) error {
 	return engine.OnConsensusMsg(pid, &types.CommitMsgWrap{CommitMsg: r})
 }
 
-func (s *Service) onTaskResultMsg(pid peer.ID, r *pb.TaskResultMsg) error {
-	return s.cfg.TaskManager.OnTaskResultMsg(pid, r)
-}
