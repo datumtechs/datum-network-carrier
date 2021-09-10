@@ -434,7 +434,7 @@ func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	log.Debugf("GetLocalTask, taskId: {%s}", taskId)
+	//log.Debugf("GetLocalTask, taskId: {%s}", taskId)
 	return rawdb.ReadLocalTask(dc.db, taskId)
 }
 
@@ -476,7 +476,7 @@ func (dc *DataCenter) GetLocalTaskAndEventsListByIds(taskIds []string) (types.Ta
 		return nil, err
 	}
 	for i, task := range tasks {
-		list, err := rawdb.ReadTaskEvent(dc.db, task.TaskId())
+		list, err := rawdb.ReadTaskEvent(dc.db, task.GetTaskId())
 		if nil != err {
 			return nil, err
 		}
@@ -495,7 +495,7 @@ func (dc *DataCenter) GetLocalTaskAndEventsList() (types.TaskDataArray, error) {
 		return nil, err
 	}
 	for i, task := range tasks {
-		list, err := rawdb.ReadTaskEvent(dc.db, task.TaskId())
+		list, err := rawdb.ReadTaskEvent(dc.db, task.GetTaskId())
 		if nil != err {
 			return nil, err
 		}
@@ -539,11 +539,11 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.SaveTask(dc.ctx, types.NewTaskDetail(task))
 	if err != nil {
-		log.WithError(err).WithField("taskId", task.TaskId()).Errorf("InsertTask failed")
+		log.WithError(err).WithField("taskId", task.GetTaskId()).Errorf("InsertTask failed")
 		return err
 	}
 	if response.Status != 0 {
-		return fmt.Errorf("insert task, taskId: {%s},  error: %s", task.TaskId(), response.Msg)
+		return fmt.Errorf("insert task, taskId: {%s},  error: %s", task.GetTaskId(), response.Msg)
 	}
 	return nil
 }

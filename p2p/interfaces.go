@@ -33,7 +33,7 @@ type P2P interface {
 // Broadcaster broadcasts messages to peers over the p2p pubsub protocol.
 type Broadcaster interface {
 	Broadcast(ctx context.Context, message proto.Message) error
-	//BroadcastTask(ctx context.Context, task *libtypes.TaskData) error
+	//BroadcastTask(ctx context.Context, task *libtypes.GetTaskData) error
 }
 
 // SetStreamHandler configures p2p to handle streams of a certain topic ID.

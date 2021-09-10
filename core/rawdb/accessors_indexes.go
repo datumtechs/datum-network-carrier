@@ -148,7 +148,7 @@ func ReadTask(db DatabaseReader, dataId string) (*libtypes.TaskPB, common.Hash, 
 		log.WithField("number", blockNumber).
 			WithField("hash", blockHash).
 			WithField("index", index).
-			Fatal("Task referenced missing")
+			Fatal("GetTask referenced missing")
 		return nil, common.Hash{}, 0, 0, "", ""
 	}
 	return body.Taskdata[index], blockHash, blockNumber, index, nodeId, typ

@@ -7,7 +7,9 @@ var (
 	ErrConsensusMsgInvalid = errors.New("The consensus msg is invalid")
 	ErrMsgTaskDirInvalid = errors.New("The task dir of msg is wrong")
 
-	// Task
+
+
+	// GetTask
 	ErrProposalTaskNotFound = errors.New("The task of proposal not found")
 
 	// Prepare
@@ -77,6 +79,8 @@ var (
 
 	ErrProposalPrepareVoteOwnerInvalid     = errors.New("The owner of proposal's prepareVote is invalid")
 	ErrProposalConfirmVoteVoteOwnerInvalid = errors.New("The owner of proposal's confirmVote is invalid")
+
+	ErrProposalPrepareVoteResourceInvalid     = errors.New("The resource of proposal's prepareVote is invalid")
 
 	ErrVoteCountOverflow = errors.New("The vote count has overflow")
 )

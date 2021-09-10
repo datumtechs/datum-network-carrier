@@ -9,6 +9,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
+	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
@@ -35,8 +36,8 @@ type Service struct {
 
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
-	taskManager     *task.Manager
-	scheduler       core.Scheduler
+	TaskManager     *task.Manager
+	scheduler       schedule.Scheduler
 	runError        error
 
 	// internal resource node set (Fighter node grpc client set)
@@ -49,73 +50,66 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
-	nodeId := config.P2P.NodeId()
-	pool := message.NewMempool(&message.MempoolConfig{NodeId: nodeId})
+	nodeIdStr := config.P2P.NodeId()
+	// read config from p2p config.
+	nodeId, _ := p2p.HexID(nodeIdStr)
+
+	pool := message.NewMempool(&message.MempoolConfig{NodeId: nodeIdStr})
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
-	localTaskMsgCh, needConsensusTaskCh, replayScheduleTaskCh, doneScheduleTaskCh :=
-		make(chan types.TaskMsgs, 27),
-		make(chan *types.ConsensusTaskWrap, 100),
-		make(chan *types.ReplayScheduleTaskWrap, 100),
-		make(chan *types.DoneScheduleTaskChWrap, 10)
+	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh :=
+		make(chan types.TaskDataArray, 27),
+		make(chan *types.NeedReplayScheduleTask, 100),
+		make(chan *types.NeedExecuteTask, 100)
+
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
-
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
-
+	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng)
+	twopcEngine := twopc.New(
+		&twopc.Config{
+			Option: &twopc.OptionConfig{
+				NodePriKey: config.P2P.PirKey(),
+				NodeID:     nodeId,
+			},
+			PeerMsgQueueSize: 1024,
+		},
+		resourceMng,
+		config.P2P,
+		needReplayScheduleTaskCh,
+		needExecuteTaskCh,
+		//needSendTaskResultMsgCh,
+	)
 	taskManager := task.NewTaskManager(
-		config.CarrierDB,
+		config.P2P,
+		scheduler,
+		twopcEngine,
 		eventEngine,
 		resourceMng,
 		resourceClientSet,
 		localTaskMsgCh,
-		doneScheduleTaskCh,
+		needReplayScheduleTaskCh,
+		needExecuteTaskCh,
 	)
 
 	s := &Service{
-		ctx:             ctx,
-		cancel:          cancel,
-		config:          config,
-		carrierDB:       config.CarrierDB,
-		mempool:         pool,
-		resourceManager: resourceMng,
-		messageManager:  message.NewHandler(pool, config.CarrierDB, taskManager),
-		taskManager:     taskManager,
-		//TODO: 需要补充
-		//scheduler: scheduler.NewSchedulerStarveFIFO(
-		//	resourceClientSet,
-		//	eventEngine,
-		//	resourceMng,
-		//	config.CarrierDB,
-		//	localTaskMsgCh,
-		//	needConsensusTaskCh,
-		//	replayScheduleTaskCh,
-		//	doneScheduleTaskCh,
-		//),
+		ctx:               ctx,
+		cancel:            cancel,
+		config:            config,
+		carrierDB:         config.CarrierDB,
+		mempool:           pool,
+		resourceManager:   resourceMng,
+		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager),
+		TaskManager:       taskManager,
 		resourceClientSet: resourceClientSet,
 	}
 
-	// read config from p2p config.
-	NodeId, _ := p2p.HexID(nodeId)
+
 
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
-	s.Engines[types.TwopcTyp] = twopc.New(
-		&twopc.Config{
-			Option: &twopc.OptionConfig{
-				NodePriKey: s.config.P2P.PirKey(),
-				NodeID:     NodeId,
-			},
-			PeerMsgQueueSize: 1024,
-		},
-		s.carrierDB,
-		resourceMng,
-		s.config.P2P,
-		needConsensusTaskCh,
-		replayScheduleTaskCh,
-		doneScheduleTaskCh,
-	)
+	s.Engines[types.TwopcTyp] =  twopcEngine
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 
 	// load stored jobNode and dataNode
@@ -156,14 +150,14 @@ func (s *Service) Start() error {
 			log.WithError(err).Errorf("Failed to start the messageManager, err: %v", err)
 		}
 	}
-	if nil != s.taskManager {
-		if err := s.taskManager.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the taskManager, err: %v", err)
+	if nil != s.TaskManager {
+		if err := s.TaskManager.Start(); nil != err {
+			log.WithError(err).Errorf("Failed to start the TaskManager, err: %v", err)
 		}
 	}
 	if nil != s.scheduler {
 		if err := s.scheduler.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the scheduler, err: %v", err)
+			log.WithError(err).Errorf("Failed to start the schedule, err: %v", err)
 		}
 	}
 
@@ -191,14 +185,14 @@ func (s *Service) Stop() error {
 			log.WithError(err).Errorf("Failed to stop the messageManager, err: %v", err)
 		}
 	}
-	if nil != s.taskManager {
-		if err := s.taskManager.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the taskManager, err: %v", err)
+	if nil != s.TaskManager {
+		if err := s.TaskManager.Stop(); nil != err {
+			log.WithError(err).Errorf("Failed to stop the TaskManager, err: %v", err)
 		}
 	}
 	if nil != s.scheduler {
 		if err := s.scheduler.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the scheduler, err: %v", err)
+			log.WithError(err).Errorf("Failed to stop the schedule, err: %v", err)
 		}
 	}
 

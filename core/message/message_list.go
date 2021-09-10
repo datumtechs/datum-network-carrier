@@ -27,7 +27,7 @@ func (h *timeHeap) Pop() interface{} {
 type PowerMsgList struct {
 	items  map[uint64]*types.PowerMsg
 	prioty *timeHeap
-	cache  types.PowerMsgs // Cache of the powerMsgs already sorted
+	cache  types.PowerMsgArr // Cache of the powerMsgs already sorted
 }
 
 func newPowerMsgList() *PowerMsgList {
@@ -53,10 +53,10 @@ func (lis *PowerMsgList) reheap() {
 	heap.Init(lis.prioty)
 	lis.cache = nil
 }
-func (lis *PowerMsgList) flatten() types.PowerMsgs {
+func (lis *PowerMsgList) flatten() types.PowerMsgArr {
 	// If the sorting was not cached yet, create and cache it
 	if lis.cache == nil {
-		lis.cache = make(types.PowerMsgs, 0, len(lis.items))
+		lis.cache = make(types.PowerMsgArr, 0, len(lis.items))
 		for _, msg := range lis.items {
 			lis.cache = append(lis.cache, msg)
 		}
@@ -65,11 +65,11 @@ func (lis *PowerMsgList) flatten() types.PowerMsgs {
 	return lis.cache
 }
 
-// Flatten returns the PowerMsgs sequence sorted by timestamp size order
-func (lis *PowerMsgList) Flatten() types.PowerMsgs {
+// Flatten returns the PowerMsgArr sequence sorted by timestamp size order
+func (lis *PowerMsgList) Flatten() types.PowerMsgArr {
 	// Copy the cache to prevent accidental modifications
 	cache := lis.flatten()
-	txs := make(types.PowerMsgs, len(cache))
+	txs := make(types.PowerMsgArr, len(cache))
 	copy(txs, cache)
 	return txs
 }
@@ -89,7 +89,7 @@ func (lis *PowerMsgList) FirstElement() *types.PowerMsg {
 type MetadataMsgList struct {
 	items  map[uint64]*types.MetadataMsg
 	prioty *timeHeap
-	cache  types.MetadataMsgs // Cache of the metaDataMsgs already sorted
+	cache  types.MetadataMsgArr // Cache of the metaDataMsgs already sorted
 }
 
 func newMetadataMsgList() *MetadataMsgList {
@@ -116,10 +116,10 @@ func (lis *MetadataMsgList) reheap() {
 	heap.Init(lis.prioty)
 	lis.cache = nil
 }
-func (lis *MetadataMsgList) flatten() types.MetadataMsgs {
+func (lis *MetadataMsgList) flatten() types.MetadataMsgArr {
 	// If the sorting was not cached yet, create and cache it
 	if lis.cache == nil {
-		lis.cache = make(types.MetadataMsgs, 0, len(lis.items))
+		lis.cache = make(types.MetadataMsgArr, 0, len(lis.items))
 		for _, msg := range lis.items {
 			lis.cache = append(lis.cache, msg)
 		}
@@ -128,11 +128,11 @@ func (lis *MetadataMsgList) flatten() types.MetadataMsgs {
 	return lis.cache
 }
 
-// Flatten returns the MetadataMsgs sequence sorted by timestamp size order
-func (lis *MetadataMsgList) Flatten() types.MetadataMsgs {
+// Flatten returns the MetadataMsgArr sequence sorted by timestamp size order
+func (lis *MetadataMsgList) Flatten() types.MetadataMsgArr {
 	// Copy the cache to prevent accidental modifications
 	cache := lis.flatten()
-	txs := make(types.MetadataMsgs, len(cache))
+	txs := make(types.MetadataMsgArr, len(cache))
 	copy(txs, cache)
 	return txs
 }
@@ -152,7 +152,7 @@ func (lis *MetadataMsgList) FirstElement() *types.MetadataMsg {
 type TaskMsgList struct {
 	items  map[uint64]*types.TaskMsg
 	prioty *timeHeap
-	cache  types.TaskMsgs // Cache of the taskMsgs already sorted
+	cache  types.TaskMsgArr // Cache of the taskMsgs already sorted
 }
 
 func newTaskMsgList() *TaskMsgList {
@@ -179,10 +179,10 @@ func (lis *TaskMsgList) reheap() {
 	heap.Init(lis.prioty)
 	lis.cache = nil
 }
-func (lis *TaskMsgList) flatten() types.TaskMsgs {
+func (lis *TaskMsgList) flatten() types.TaskMsgArr {
 	// If the sorting was not cached yet, create and cache it
 	if lis.cache == nil {
-		lis.cache = make(types.TaskMsgs, 0, len(lis.items))
+		lis.cache = make(types.TaskMsgArr, 0, len(lis.items))
 		for _, msg := range lis.items {
 			lis.cache = append(lis.cache, msg)
 		}
@@ -191,11 +191,11 @@ func (lis *TaskMsgList) flatten() types.TaskMsgs {
 	return lis.cache
 }
 
-// Flatten returns the TaskMsgs sequence sorted by timestamp size order
-func (lis *TaskMsgList) Flatten() types.TaskMsgs {
+// Flatten returns the TaskMsgArr sequence sorted by timestamp size order
+func (lis *TaskMsgList) Flatten() types.TaskMsgArr {
 	// Copy the cache to prevent accidental modifications
 	cache := lis.flatten()
-	txs := make(types.TaskMsgs, len(cache))
+	txs := make(types.TaskMsgArr, len(cache))
 	copy(txs, cache)
 	return txs
 }

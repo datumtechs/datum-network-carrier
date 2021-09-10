@@ -258,6 +258,7 @@ func (b *CarrierNode) registerHandlerService() error {
 		P2P:           b.fetchP2P(),
 		StateNotifier: b,
 		Engines:       b.fetchBackend().Engines,
+		TaskManager:   b.fetchBackend().TaskManager,
 	})
 	return b.services.RegisterService(rs)
 }

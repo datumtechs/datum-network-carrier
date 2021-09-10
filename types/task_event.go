@@ -1,7 +1,10 @@
 package types
 
+import (
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+)
 //type TaskEvent struct {
-//	TaskId   string     `json:"taskId"`
+//	GetTaskId   string     `json:"taskId"`
 //	Type     string     `json:"type"`
 //	CreateAt uint64     `json:"createAt"`
 //	Content  string     `json:"content"`
@@ -10,7 +13,7 @@ package types
 //func ConvertTaskEventToPB (event *TaskEvent) *pb.TaskEventShow {
 //	return &pb.TaskEventShow{
 //		Type:     event.Type,
-//		TaskId:   event.TaskId,
+//		GetTaskId:   event.GetTaskId,
 //		Owner:    ConvertNodeAliasToPB(event.Owner),
 //		Content:  event.Content,
 //		CreateAt: event.CreateAt,
@@ -20,7 +23,7 @@ package types
 //func ConvertTaskEventFromPB (event *pb.TaskEventShow) *TaskEvent {
 //	return &TaskEvent{
 //		Type:     event.Type,
-//		TaskId:   event.TaskId,
+//		GetTaskId:   event.GetTaskId,
 //		Owner:    ConvertNodeAliasFromPB(event.Owner),
 //		Content:  event.Content,
 //		CreateAt: event.CreateAt,
@@ -34,7 +37,7 @@ package types
 //	for i, event := range events {
 //		e := &pb.TaskEventShow{
 //			Type:     event.Type,
-//			TaskId:   event.TaskId,
+//			GetTaskId:   event.GetTaskId,
 //			Owner:    ConvertNodeAliasToPB(event.Owner),
 //			Content:  event.Content,
 //			CreateAt: event.CreateAt,
@@ -50,7 +53,7 @@ package types
 //	for i, event := range events {
 //		e := &TaskEvent{
 //			Type:     event.Type,
-//			TaskId:   event.TaskId,
+//			GetTaskId:   event.GetTaskId,
 //			Owner:    ConvertNodeAliasFromPB(event.Owner),
 //			Content:  event.Content,
 //			CreateAt: event.CreateAt,
@@ -60,3 +63,18 @@ package types
 //
 //	return arr
 //}
+
+
+type ReportTaskEvent struct {
+	 PartyId   string
+	 Event     *libTypes.TaskEvent
+}
+
+func NewReportTaskEvent(partyId string, event *libTypes.TaskEvent) *ReportTaskEvent {
+	return &ReportTaskEvent{
+		PartyId: partyId,
+		Event: event,
+	}
+}
+func (rte *ReportTaskEvent) GetPartyId() string { return rte.PartyId }
+func (rte *ReportTaskEvent) GetEvent() *libTypes.TaskEvent { return rte.Event }

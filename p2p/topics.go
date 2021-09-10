@@ -14,8 +14,8 @@ const (
 	TwoPcConfirmVoteTopicFormat   = "/carrier/%x/confirm_vote"
 	// TwoPcCommitMsgTopicFormat is the topic format for the commit message of the 2pc consensus.
 	TwoPcCommitMsgTopicFormat     = "/carrier/%x/commit_message"
-	// TwoPcTaskResultMsgTopicFormat is the topic format for the task result message of the 2pc consensus.
-	TwoPcTaskResultMsgTopicFormat = "/carrier/%x/task_result_message"
+	// TaskResultMsgTopicFormat is the topic format for the task result message of the task manager.
+	TaskResultMsgTopicFormat = "/carrier/%x/task_result_message"
 
 	// AttestationSubnetTopicFormat is the topic format for the attestation subnet.
 	AttestationSubnetTopicFormat = "/carrier/%x/beacon_attestation_%d"

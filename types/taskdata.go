@@ -48,19 +48,29 @@ func (m *Task) Hash() common.Hash {
 	return v
 }
 
-func (m *Task) TaskId() string {
+func (m *Task) GetTaskId() string {
 	return m.data.TaskId
 }
 
-func (m *Task) TaskData() *libTypes.TaskPB {
+func (m *Task) GetTaskData() *libTypes.TaskPB {
 	return m.data
 }
+
+func (m *Task) GetTaskSender() *apipb.TaskOrganization {
+	return &apipb.TaskOrganization {
+		PartyId: m.data.GetPartyId(),
+		NodeName: m.data.GetNodeName(),
+		NodeId: m.data.GetNodeId(),
+		IdentityId: m.data.GetIdentityId(),
+	}
+}
+
 
 func (m *Task) SetEventList(eventList []*libTypes.TaskEvent) {
 	/*eventArr := make([]*libTypes.TaskEvent, len(eventList))
 	for i, ev := range eventList {
 		eventArr[i] = &libTypes.TaskEvent{
-			TaskId:     ev.TaskId,
+			GetTaskId:     ev.GetTaskId,
 			Type:       ev.Type,
 			CreateAt:   ev.CreateAt,
 			Content:    ev.Content,
@@ -111,7 +121,7 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 }
 
 //type TaskDetailShow struct {
-//	TaskId        string                   `json:"taskId"`
+//	GetTaskId        string                   `json:"taskId"`
 //	TaskName      string                   `json:"taskName"`
 //	Role          string                   `json:"role"`
 //	Owner         *TaskNodeAlias           `json:"owner"`
@@ -128,7 +138,7 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 
 //func ConvertTaskDetailShowToPB(task *TaskDetailShow) *pb.TaskDetailShow {
 //	return &pb.TaskDetailShow {
-//		TaskId:        task.TaskId,
+//		GetTaskId:        task.GetTaskId,
 //		TaskName:      task.TaskName,
 //		Owner:         ConvertTaskNodeAliasToPB(task.Owner),
 //		AlgoSupplier:  ConvertTaskNodeAliasToPB(task.AlgoSupplier),
@@ -145,7 +155,7 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 //}
 //func ConvertTaskDetailShowFromPB(task *pb.TaskDetailShow) *TaskDetailShow {
 //	return &TaskDetailShow{
-//		TaskId:        task.TaskId,
+//		GetTaskId:        task.GetTaskId,
 //		TaskName:      task.TaskName,
 //		Owner:         ConvertTaskNodeAliasFromPB(task.Owner),
 //		AlgoSupplier:  ConvertTaskNodeAliasFromPB(task.AlgoSupplier),

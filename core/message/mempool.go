@@ -32,20 +32,11 @@ type Mempool struct {
 
 	msgFeed event.Feed
 	scope   event.SubscriptionScope
-
-	//metaDataMsgQueue *MetadataMsgList
-	//powerMsgQueue    *PowerMsgList
-	//taskMsgQueue     *TaskMsgList
-	//all *msgLookup
 }
 
 func NewMempool(cfg *MempoolConfig) *Mempool {
 	return &Mempool{
 		cfg: cfg,
-		//all:               newMsgLookup(),
-		//metaDataMsgQueue: newMetadataMsgList(),
-		//powerMsgQueue:    newPowerMsgList(),
-		//taskMsgQueue:     newTaskMsgList(),
 	}
 }
 
@@ -64,7 +55,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		if !ok {
 			return ErrIdentityMsgConvert
 		}
-		// 先设置 本地节点的 nodeId
+		// set local nodeId first
 		identity.NodeId = pool.cfg.NodeId
 		// We've directly injected a replacement identityMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -90,11 +81,10 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			return ErrPowerMsgConvert
 		}
 
-		//pool.powerMsgQueue.put(power)
 		// We've directly injected a replacement identityRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyPower,
-			Data: &types.PowerMsgEvent{Msgs: types.PowerMsgs{power}},
+			Data: &types.PowerMsgEvent{Msgs: types.PowerMsgArr{power}},
 		})
 
 	case *types.PowerRevokeMsg:
@@ -106,7 +96,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement powerRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokePower,
-			Data: &types.PowerRevokeMsgEvent{Msgs: types.PowerRevokeMsgs{powerRevoke}},
+			Data: &types.PowerRevokeMsgEvent{Msgs: types.PowerRevokeMsgArr{powerRevoke}},
 		})
 
 	case *types.MetadataMsg:
@@ -115,11 +105,10 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			return ErrMetadataMsgConvert
 		}
 
-		//pool.metaDataMsgQueue.put(metaData)
 		// We've directly injected a replacement metaDataMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyMetadata,
-			Data: &types.MetadataMsgEvent{Msgs: types.MetadataMsgs{metaData}},
+			Data: &types.MetadataMsgEvent{Msgs: types.MetadataMsgArr{metaData}},
 		})
 
 	case *types.MetadataRevokeMsg:
@@ -131,7 +120,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeMetadata,
-			Data: &types.MetadataRevokeMsgEvent{Msgs: types.MetadataRevokeMsgs{metaDataRevoke}},
+			Data: &types.MetadataRevokeMsgEvent{Msgs: types.MetadataRevokeMsgArr{metaDataRevoke}},
 		})
 
 	case *types.TaskMsg:
@@ -143,7 +132,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		// We've directly injected a replacement taskMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyTask,
-			Data: &types.TaskMsgEvent{Msgs: types.TaskMsgs{task}},
+			Data: &types.TaskMsgEvent{Msgs: types.TaskMsgArr{task}},
 		})
 
 	default:
@@ -163,7 +152,8 @@ type msgLookup struct {
 
 	metaDataMsgLock sync.RWMutex
 	powerMsgLock    sync.RWMutex
-	//taskMsgLock     sync.RWMutex
+
+	// TODO 有些缓存需要持久化
 }
 
 func newMsgLookup() *msgLookup {
@@ -279,7 +269,7 @@ func (lookup *msgLookup) addPowerMsg(msg *types.PowerMsg) {
 //	lookup.taskMsgLock.RLock()
 //	defer lookup.taskMsgLock.RUnlock()
 //
-//	lookup.allTaskMsg[msg.TaskId] = msg
+//	lookup.allTaskMsg[msg.GetTaskId] = msg
 //}
 
 // Remove removes a metaDataMsg from the lookup.
