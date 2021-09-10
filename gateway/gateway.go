@@ -87,7 +87,7 @@ func (g *Gateway) Start() error {
 	)
 	handlers := []func(context.Context, *gwruntime.ServeMux, *grpc.ClientConn) error {
 		rpcapipb.RegisterAuthServiceHandler,
-		rpcapipb.RegisterMetaDataServiceHandler,
+		rpcapipb.RegisterMetadataServiceHandler,
 		rpcapipb.RegisterPowerServiceHandler,
 		rpcapipb.RegisterYarnServiceHandler,
 		rpcapipb.RegisterTaskServiceHandler,

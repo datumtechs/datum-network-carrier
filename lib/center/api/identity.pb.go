@@ -134,7 +134,7 @@ func (m *RevokeIdentityJoinRequest) GetMember() *common.Organization {
 
 type IdentityListRequest struct {
 	// 同步时间点，用于进行数据增量拉去
-	LastUpdateTime       uint64   `protobuf:"varint,1,opt,name=last_update_time,json=lastUpdateTime,proto3" json:"last_update_time,omitempty"`
+	LastUpdated          uint64   `protobuf:"varint,1,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -173,9 +173,9 @@ func (m *IdentityListRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_IdentityListRequest proto.InternalMessageInfo
 
-func (m *IdentityListRequest) GetLastUpdateTime() uint64 {
+func (m *IdentityListRequest) GetLastUpdated() uint64 {
 	if m != nil {
-		return m.LastUpdateTime
+		return m.LastUpdated
 	}
 	return 0
 }
@@ -183,7 +183,7 @@ func (m *IdentityListRequest) GetLastUpdateTime() uint64 {
 type IdentityListResponse struct {
 	Identities []*common.Organization `protobuf:"bytes,1,rep,name=identities,proto3" json:"identities,omitempty"`
 	// 数据的最后更新点（秒级时间戳）
-	LastUpdateTime       uint64   `protobuf:"varint,2,opt,name=last_update_time,json=lastUpdateTime,proto3" json:"last_update_time,omitempty"`
+	LastUpdated          uint64   `protobuf:"varint,2,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -229,9 +229,9 @@ func (m *IdentityListResponse) GetIdentities() []*common.Organization {
 	return nil
 }
 
-func (m *IdentityListResponse) GetLastUpdateTime() uint64 {
+func (m *IdentityListResponse) GetLastUpdated() uint64 {
 	if m != nil {
-		return m.LastUpdateTime
+		return m.LastUpdated
 	}
 	return 0
 }
@@ -240,8 +240,8 @@ func (m *IdentityListResponse) GetLastUpdateTime() uint64 {
 type SaveMetadataAuthorityRequest struct {
 	User                 string                   `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	UserType             common.UserType          `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
-	Auth                 *types.MetaDataAuthority `protobuf:"bytes,3,opt,name=auth,proto3" json:"auth,omitempty"`
-	MetaDataAuthId       string                   `protobuf:"bytes,4,opt,name=meta_data_auth_id,json=metaDataAuthId,proto3" json:"meta_data_auth_id,omitempty"`
+	Auth                 *types.MetadataAuthority `protobuf:"bytes,3,opt,name=auth,proto3" json:"auth,omitempty"`
+	MetadataAuthId       string                   `protobuf:"bytes,4,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
 	XXX_unrecognized     []byte                   `json:"-"`
 	XXX_sizecache        int32                    `json:"-"`
@@ -294,23 +294,23 @@ func (m *SaveMetadataAuthorityRequest) GetUserType() common.UserType {
 	return common.UserType_User_Unknown
 }
 
-func (m *SaveMetadataAuthorityRequest) GetAuth() *types.MetaDataAuthority {
+func (m *SaveMetadataAuthorityRequest) GetAuth() *types.MetadataAuthority {
 	if m != nil {
 		return m.Auth
 	}
 	return nil
 }
 
-func (m *SaveMetadataAuthorityRequest) GetMetaDataAuthId() string {
+func (m *SaveMetadataAuthorityRequest) GetMetadataAuthId() string {
 	if m != nil {
-		return m.MetaDataAuthId
+		return m.MetadataAuthId
 	}
 	return ""
 }
 
 type AuditMetadataAuthorityRequest struct {
-	MetaDataAuthId       string                     `protobuf:"bytes,1,opt,name=meta_data_auth_id,json=metaDataAuthId,proto3" json:"meta_data_auth_id,omitempty"`
-	Audit                common.AuditMetaDataOption `protobuf:"varint,2,opt,name=audit,proto3,enum=api.protobuf.AuditMetaDataOption" json:"audit,omitempty"`
+	MetadataAuthId       string                     `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
+	Audit                common.AuditMetadataOption `protobuf:"varint,2,opt,name=audit,proto3,enum=api.protobuf.AuditMetadataOption" json:"audit,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
 	XXX_unrecognized     []byte                     `json:"-"`
 	XXX_sizecache        int32                      `json:"-"`
@@ -349,23 +349,23 @@ func (m *AuditMetadataAuthorityRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_AuditMetadataAuthorityRequest proto.InternalMessageInfo
 
-func (m *AuditMetadataAuthorityRequest) GetMetaDataAuthId() string {
+func (m *AuditMetadataAuthorityRequest) GetMetadataAuthId() string {
 	if m != nil {
-		return m.MetaDataAuthId
+		return m.MetadataAuthId
 	}
 	return ""
 }
 
-func (m *AuditMetadataAuthorityRequest) GetAudit() common.AuditMetaDataOption {
+func (m *AuditMetadataAuthorityRequest) GetAudit() common.AuditMetadataOption {
 	if m != nil {
 		return m.Audit
 	}
-	return common.AuditMetaDataOption_Audit_Pending
+	return common.AuditMetadataOption_Audit_Pending
 }
 
 type MetadataAuthorityListRequest struct {
 	IdentityId           string   `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	LastUpdate           uint64   `protobuf:"varint,2,opt,name=last_update,json=lastUpdate,proto3" json:"last_update,omitempty"`
+	LastUpdated          uint64   `protobuf:"varint,2,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -411,19 +411,19 @@ func (m *MetadataAuthorityListRequest) GetIdentityId() string {
 	return ""
 }
 
-func (m *MetadataAuthorityListRequest) GetLastUpdate() uint64 {
+func (m *MetadataAuthorityListRequest) GetLastUpdated() uint64 {
 	if m != nil {
-		return m.LastUpdate
+		return m.LastUpdated
 	}
 	return 0
 }
 
-type MetaDataAuthorityResponse struct {
-	MetaDataAuthId       string                     `protobuf:"bytes,1,opt,name=meta_data_auth_id,json=metaDataAuthId,proto3" json:"meta_data_auth_id,omitempty"`
+type MetadataAuthorityDetail struct {
+	MetadataAuthId       string                     `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
 	User                 string                     `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
 	UserType             common.UserType            `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
-	Auth                 *types.MetaDataAuthority   `protobuf:"bytes,4,opt,name=auth,proto3" json:"auth,omitempty"`
-	Audit                common.AuditMetaDataOption `protobuf:"varint,5,opt,name=audit,proto3,enum=api.protobuf.AuditMetaDataOption" json:"audit,omitempty"`
+	Auth                 *types.MetadataAuthority   `protobuf:"bytes,4,opt,name=auth,proto3" json:"auth,omitempty"`
+	Audit                common.AuditMetadataOption `protobuf:"varint,5,opt,name=audit,proto3,enum=api.protobuf.AuditMetadataOption" json:"audit,omitempty"`
 	ApplyAt              uint64                     `protobuf:"varint,6,opt,name=apply_at,json=applyAt,proto3" json:"apply_at,omitempty"`
 	AuditAt              uint64                     `protobuf:"varint,7,opt,name=audit_at,json=auditAt,proto3" json:"audit_at,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
@@ -431,18 +431,18 @@ type MetaDataAuthorityResponse struct {
 	XXX_sizecache        int32                      `json:"-"`
 }
 
-func (m *MetaDataAuthorityResponse) Reset()         { *m = MetaDataAuthorityResponse{} }
-func (m *MetaDataAuthorityResponse) String() string { return proto.CompactTextString(m) }
-func (*MetaDataAuthorityResponse) ProtoMessage()    {}
-func (*MetaDataAuthorityResponse) Descriptor() ([]byte, []int) {
+func (m *MetadataAuthorityDetail) Reset()         { *m = MetadataAuthorityDetail{} }
+func (m *MetadataAuthorityDetail) String() string { return proto.CompactTextString(m) }
+func (*MetadataAuthorityDetail) ProtoMessage()    {}
+func (*MetadataAuthorityDetail) Descriptor() ([]byte, []int) {
 	return fileDescriptor_77fa157ad346cc0a, []int{7}
 }
-func (m *MetaDataAuthorityResponse) XXX_Unmarshal(b []byte) error {
+func (m *MetadataAuthorityDetail) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaDataAuthorityResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MetadataAuthorityDetail) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaDataAuthorityResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MetadataAuthorityDetail.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -452,61 +452,61 @@ func (m *MetaDataAuthorityResponse) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *MetaDataAuthorityResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaDataAuthorityResponse.Merge(m, src)
+func (m *MetadataAuthorityDetail) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MetadataAuthorityDetail.Merge(m, src)
 }
-func (m *MetaDataAuthorityResponse) XXX_Size() int {
+func (m *MetadataAuthorityDetail) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaDataAuthorityResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaDataAuthorityResponse.DiscardUnknown(m)
+func (m *MetadataAuthorityDetail) XXX_DiscardUnknown() {
+	xxx_messageInfo_MetadataAuthorityDetail.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaDataAuthorityResponse proto.InternalMessageInfo
+var xxx_messageInfo_MetadataAuthorityDetail proto.InternalMessageInfo
 
-func (m *MetaDataAuthorityResponse) GetMetaDataAuthId() string {
+func (m *MetadataAuthorityDetail) GetMetadataAuthId() string {
 	if m != nil {
-		return m.MetaDataAuthId
+		return m.MetadataAuthId
 	}
 	return ""
 }
 
-func (m *MetaDataAuthorityResponse) GetUser() string {
+func (m *MetadataAuthorityDetail) GetUser() string {
 	if m != nil {
 		return m.User
 	}
 	return ""
 }
 
-func (m *MetaDataAuthorityResponse) GetUserType() common.UserType {
+func (m *MetadataAuthorityDetail) GetUserType() common.UserType {
 	if m != nil {
 		return m.UserType
 	}
 	return common.UserType_User_Unknown
 }
 
-func (m *MetaDataAuthorityResponse) GetAuth() *types.MetaDataAuthority {
+func (m *MetadataAuthorityDetail) GetAuth() *types.MetadataAuthority {
 	if m != nil {
 		return m.Auth
 	}
 	return nil
 }
 
-func (m *MetaDataAuthorityResponse) GetAudit() common.AuditMetaDataOption {
+func (m *MetadataAuthorityDetail) GetAudit() common.AuditMetadataOption {
 	if m != nil {
 		return m.Audit
 	}
-	return common.AuditMetaDataOption_Audit_Pending
+	return common.AuditMetadataOption_Audit_Pending
 }
 
-func (m *MetaDataAuthorityResponse) GetApplyAt() uint64 {
+func (m *MetadataAuthorityDetail) GetApplyAt() uint64 {
 	if m != nil {
 		return m.ApplyAt
 	}
 	return 0
 }
 
-func (m *MetaDataAuthorityResponse) GetAuditAt() uint64 {
+func (m *MetadataAuthorityDetail) GetAuditAt() uint64 {
 	if m != nil {
 		return m.AuditAt
 	}
@@ -514,12 +514,12 @@ func (m *MetaDataAuthorityResponse) GetAuditAt() uint64 {
 }
 
 type MetadataAuthorityListResponse struct {
-	Status               int32                        `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
-	Msg                  string                       `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	Authorities          []*MetaDataAuthorityResponse `protobuf:"bytes,3,rep,name=authorities,proto3" json:"authorities,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                     `json:"-"`
-	XXX_unrecognized     []byte                       `json:"-"`
-	XXX_sizecache        int32                        `json:"-"`
+	Status               int32                      `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string                     `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	Authorities          []*MetadataAuthorityDetail `protobuf:"bytes,3,rep,name=authorities,proto3" json:"authorities,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                   `json:"-"`
+	XXX_unrecognized     []byte                     `json:"-"`
+	XXX_sizecache        int32                      `json:"-"`
 }
 
 func (m *MetadataAuthorityListResponse) Reset()         { *m = MetadataAuthorityListResponse{} }
@@ -569,7 +569,7 @@ func (m *MetadataAuthorityListResponse) GetMsg() string {
 	return ""
 }
 
-func (m *MetadataAuthorityListResponse) GetAuthorities() []*MetaDataAuthorityResponse {
+func (m *MetadataAuthorityListResponse) GetAuthorities() []*MetadataAuthorityDetail {
 	if m != nil {
 		return m.Authorities
 	}
@@ -584,60 +584,59 @@ func init() {
 	proto.RegisterType((*SaveMetadataAuthorityRequest)(nil), "api.SaveMetadataAuthorityRequest")
 	proto.RegisterType((*AuditMetadataAuthorityRequest)(nil), "api.AuditMetadataAuthorityRequest")
 	proto.RegisterType((*MetadataAuthorityListRequest)(nil), "api.MetadataAuthorityListRequest")
-	proto.RegisterType((*MetaDataAuthorityResponse)(nil), "api.MetaDataAuthorityResponse")
+	proto.RegisterType((*MetadataAuthorityDetail)(nil), "api.MetadataAuthorityDetail")
 	proto.RegisterType((*MetadataAuthorityListResponse)(nil), "api.MetadataAuthorityListResponse")
 }
 
 func init() { proto.RegisterFile("lib/center/api/identity.proto", fileDescriptor_77fa157ad346cc0a) }
 
 var fileDescriptor_77fa157ad346cc0a = []byte{
-	// 728 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0xc1, 0x6e, 0xd3, 0x4c,
-	0x10, 0x96, 0x93, 0x34, 0x6d, 0xa7, 0xbf, 0xda, 0xfe, 0x5b, 0x5a, 0x39, 0x21, 0x0d, 0xad, 0x4f,
-	0x45, 0x82, 0x18, 0xa5, 0x07, 0x24, 0x0e, 0x40, 0x00, 0xb5, 0x2a, 0x02, 0x55, 0x72, 0x5b, 0x09,
-	0xf5, 0x12, 0x36, 0xf1, 0x90, 0xae, 0xb0, 0xbd, 0xc6, 0xbb, 0x2e, 0x0a, 0xe2, 0xc6, 0x11, 0x89,
-	0x27, 0xe1, 0x21, 0x38, 0x72, 0xe4, 0x11, 0x50, 0x9f, 0x04, 0xed, 0x66, 0x9d, 0x3a, 0xaa, 0xd3,
-	0x50, 0x71, 0x8a, 0x77, 0x67, 0xf6, 0x9b, 0x99, 0xef, 0x9b, 0x99, 0xc0, 0x66, 0xc0, 0x7a, 0x6e,
-	0x1f, 0x23, 0x89, 0x89, 0x4b, 0x63, 0xe6, 0x32, 0x1f, 0x23, 0xc9, 0xe4, 0xb0, 0x15, 0x27, 0x5c,
-	0x72, 0x52, 0xa6, 0x31, 0xab, 0xaf, 0x6b, 0x1f, 0x1e, 0x86, 0x3c, 0x72, 0x7b, 0x54, 0xe0, 0xc8,
-	0x56, 0x6f, 0xa8, 0x6b, 0x39, 0x8c, 0x51, 0x8c, 0x5f, 0xf9, 0x54, 0x52, 0x63, 0xb5, 0x2f, 0xad,
-	0x21, 0x4a, 0x9a, 0xb3, 0xdc, 0x1e, 0x70, 0x3e, 0x08, 0xd0, 0xd5, 0xa7, 0x5e, 0xfa, 0xce, 0xc5,
-	0x30, 0xce, 0x02, 0x3a, 0x0c, 0xd6, 0x8e, 0xe8, 0x39, 0x1e, 0x18, 0x40, 0x0f, 0x3f, 0xa4, 0x28,
-	0x24, 0x69, 0x43, 0x35, 0xc4, 0xb0, 0x87, 0x89, 0x6d, 0x6d, 0x59, 0x3b, 0x4b, 0xed, 0x7a, 0x8b,
-	0xc6, 0xac, 0x95, 0x21, 0xb4, 0x0e, 0x93, 0x01, 0x8d, 0xd8, 0x27, 0x2a, 0x19, 0x8f, 0x3c, 0xe3,
-	0x49, 0x9a, 0x00, 0xfd, 0x04, 0x35, 0x10, 0x0d, 0xec, 0xd2, 0x96, 0xb5, 0xb3, 0xe8, 0xe5, 0x6e,
-	0x9c, 0x43, 0xa8, 0x79, 0x78, 0xce, 0xdf, 0x8f, 0x83, 0xbd, 0xe4, 0x2c, 0xfa, 0x87, 0x80, 0xce,
-	0x13, 0x58, 0xcb, 0xa0, 0x5e, 0x31, 0x21, 0x33, 0xa8, 0x1d, 0x58, 0x0d, 0xa8, 0x90, 0xdd, 0x34,
-	0xf6, 0xa9, 0xc4, 0xae, 0x64, 0x21, 0x6a, 0xd0, 0x8a, 0xb7, 0xac, 0xee, 0x4f, 0xf4, 0xf5, 0x31,
-	0x0b, 0xd1, 0xf9, 0x0c, 0xb7, 0x26, 0x01, 0x44, 0xcc, 0x23, 0x81, 0xe4, 0x11, 0x80, 0x61, 0x98,
-	0xa1, 0xb0, 0xad, 0xad, 0xf2, 0x8c, 0x84, 0x72, 0xde, 0x85, 0xd1, 0x4b, 0x85, 0xd1, 0x7f, 0x58,
-	0xd0, 0x50, 0xdc, 0xbf, 0x36, 0x72, 0x75, 0x52, 0x79, 0xc6, 0x93, 0x9c, 0x08, 0x04, 0x2a, 0xa9,
-	0x30, 0x8c, 0x2c, 0x7a, 0xfa, 0x9b, 0xec, 0xc2, 0xa2, 0xfa, 0xed, 0x2a, 0xa5, 0x35, 0xee, 0x72,
-	0x7b, 0x63, 0x32, 0xb3, 0x13, 0x81, 0xc9, 0xf1, 0x30, 0x46, 0x6f, 0x21, 0x35, 0x5f, 0xe4, 0x1e,
-	0x54, 0x68, 0x2a, 0xcf, 0xec, 0xb2, 0xa6, 0xd6, 0x6e, 0xe9, 0x36, 0x69, 0xa9, 0xb8, 0x2f, 0x26,
-	0xe2, 0x6a, 0x2f, 0x72, 0x17, 0xfe, 0x57, 0x1d, 0xd4, 0x55, 0x39, 0x75, 0xd5, 0x4d, 0x97, 0xf9,
-	0x76, 0x45, 0xe7, 0xb0, 0x1c, 0xe6, 0xde, 0x1c, 0xf8, 0xce, 0x17, 0x0b, 0x36, 0x3b, 0xa9, 0xcf,
-	0xe4, 0xd4, 0x1a, 0x0a, 0xc1, 0xac, 0x22, 0x30, 0xf2, 0x10, 0xe6, 0xa8, 0xc2, 0x32, 0x65, 0x6d,
-	0x4f, 0x96, 0x35, 0x0e, 0xa3, 0x5e, 0x1c, 0xc6, 0x9a, 0xf7, 0x91, 0xbf, 0xf3, 0x16, 0x1a, 0x57,
-	0xe2, 0xe7, 0x1b, 0xe2, 0x0e, 0x2c, 0x65, 0x03, 0x73, 0x19, 0x3d, 0xd3, 0x6c, 0x78, 0xe0, 0x2b,
-	0x87, 0x9c, 0x66, 0x46, 0x2e, 0xb8, 0x94, 0xcb, 0xf9, 0x5e, 0x82, 0xda, 0x55, 0xba, 0xb2, 0x76,
-	0xb9, 0x41, 0x8d, 0x99, 0xa4, 0xa5, 0x69, 0x92, 0x96, 0x6f, 0x28, 0x69, 0xe5, 0xaf, 0x24, 0x1d,
-	0x53, 0x3b, 0x77, 0x33, 0x6a, 0x49, 0x0d, 0x16, 0x68, 0x1c, 0x07, 0xc3, 0x2e, 0x95, 0x76, 0x55,
-	0xd3, 0x32, 0xaf, 0xcf, 0x9d, 0x91, 0x49, 0xf9, 0x28, 0xd3, 0xbc, 0x31, 0xa9, 0x73, 0x47, 0x3a,
-	0x5f, 0x2d, 0xd8, 0x9c, 0xa2, 0x88, 0xa1, 0x6c, 0x03, 0xaa, 0x42, 0x52, 0x99, 0x0a, 0xcd, 0xd3,
-	0x9c, 0x67, 0x4e, 0x64, 0x15, 0xca, 0xa1, 0x18, 0x18, 0x7a, 0xd4, 0x27, 0x79, 0x0a, 0x4b, 0xd4,
-	0x40, 0xa8, 0x61, 0x2c, 0xeb, 0x61, 0x6c, 0xea, 0x02, 0xa6, 0x2a, 0xe2, 0xe5, 0x9f, 0xb4, 0xbf,
-	0x55, 0x60, 0x25, 0x1b, 0xf3, 0x23, 0x4c, 0xce, 0x59, 0x1f, 0xc9, 0x1e, 0xac, 0xec, 0xa3, 0xcc,
-	0x0f, 0x3f, 0xb1, 0x35, 0x66, 0xc1, 0x42, 0xa9, 0xd7, 0x0a, 0x2c, 0xa6, 0x8e, 0x3d, 0xf8, 0x2f,
-	0xbf, 0x3e, 0x0d, 0x48, 0xc1, 0x46, 0xad, 0x37, 0x26, 0x39, 0x3f, 0x62, 0x61, 0x1c, 0xe0, 0x18,
-	0xc7, 0x03, 0x72, 0x75, 0x37, 0x92, 0x51, 0x99, 0x53, 0x97, 0xe6, 0x0c, 0xcc, 0x37, 0xb0, 0x5e,
-	0xb8, 0x5e, 0xc8, 0xf6, 0x38, 0xc9, 0x69, 0x63, 0x3b, 0x03, 0xf9, 0x14, 0x36, 0x8a, 0xa7, 0x9e,
-	0x38, 0xfa, 0xdd, 0xb5, 0x2b, 0x61, 0x06, 0x36, 0x05, 0x7b, 0x1f, 0x65, 0x61, 0xf7, 0x98, 0xc4,
-	0xaf, 0x9b, 0xf5, 0xba, 0x73, 0x9d, 0xcb, 0x28, 0xc4, 0xb3, 0xc7, 0x3f, 0x2f, 0x9a, 0xd6, 0xaf,
-	0x8b, 0xa6, 0xf5, 0xfb, 0xa2, 0x69, 0x9d, 0x3e, 0x18, 0x30, 0x79, 0x96, 0xf6, 0x5a, 0x7d, 0x1e,
-	0xba, 0x1e, 0x17, 0x28, 0x25, 0xdd, 0x0b, 0xf8, 0x47, 0xf7, 0x39, 0x4d, 0x12, 0x86, 0xc9, 0xfd,
-	0x7d, 0xee, 0x4e, 0xfe, 0x67, 0xf7, 0xaa, 0x3a, 0xf7, 0xdd, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff,
-	0x97, 0x28, 0x8c, 0x3e, 0xcc, 0x07, 0x00, 0x00,
+	// 709 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x55, 0xc1, 0x4e, 0xdb, 0x4c,
+	0x10, 0x96, 0x93, 0x10, 0x60, 0x82, 0x00, 0x2d, 0x3f, 0xfc, 0x26, 0x0d, 0x29, 0xf8, 0xc4, 0xa1,
+	0xb5, 0xab, 0x70, 0x68, 0xd5, 0x03, 0x52, 0xda, 0x0a, 0x44, 0xd5, 0x0a, 0xc9, 0x14, 0xa9, 0xe2,
+	0x12, 0xad, 0xe3, 0x69, 0x58, 0xd5, 0xf6, 0xba, 0xde, 0x35, 0x55, 0x7a, 0xec, 0xad, 0x97, 0xbe,
+	0x47, 0x9f, 0xa2, 0xd7, 0x1e, 0xfb, 0x08, 0x15, 0x4f, 0x52, 0x79, 0xb3, 0x0e, 0x8e, 0xe2, 0x10,
+	0x50, 0x4f, 0xf1, 0xee, 0xcc, 0x7c, 0xdf, 0xcc, 0x37, 0x3b, 0x13, 0xd8, 0x09, 0x98, 0xe7, 0xf4,
+	0x31, 0x92, 0x98, 0x38, 0x34, 0x66, 0x0e, 0xf3, 0x31, 0x92, 0x4c, 0x0e, 0xed, 0x38, 0xe1, 0x92,
+	0x93, 0x2a, 0x8d, 0x59, 0x73, 0x53, 0xf9, 0xf0, 0x30, 0xe4, 0x91, 0xe3, 0x51, 0x81, 0x23, 0x5b,
+	0xb3, 0x95, 0x5d, 0xcb, 0x61, 0x8c, 0x62, 0x1c, 0xe5, 0x53, 0x49, 0xb5, 0xd5, 0xbc, 0xb1, 0x86,
+	0x28, 0x69, 0xc1, 0xf2, 0x60, 0xc0, 0xf9, 0x20, 0x40, 0x47, 0x9d, 0xbc, 0xf4, 0x83, 0x83, 0x61,
+	0x9c, 0x13, 0x5a, 0x0c, 0x36, 0xce, 0xe8, 0x15, 0x9e, 0x68, 0x40, 0x17, 0x3f, 0xa5, 0x28, 0x24,
+	0xe9, 0x40, 0x3d, 0xc4, 0xd0, 0xc3, 0xc4, 0x34, 0x76, 0x8d, 0xfd, 0x46, 0xa7, 0x69, 0xd3, 0x98,
+	0xd9, 0x39, 0x82, 0x7d, 0x9a, 0x0c, 0x68, 0xc4, 0xbe, 0x50, 0xc9, 0x78, 0xe4, 0x6a, 0x4f, 0xd2,
+	0x06, 0xe8, 0x27, 0xa8, 0x80, 0x68, 0x60, 0x56, 0x76, 0x8d, 0xfd, 0x65, 0xb7, 0x70, 0x63, 0x9d,
+	0xc2, 0xb6, 0x8b, 0x57, 0xfc, 0xe3, 0x98, 0xec, 0x35, 0x67, 0xd1, 0x3f, 0x10, 0x5a, 0xcf, 0x60,
+	0x23, 0x87, 0x7a, 0xc3, 0x84, 0xcc, 0xa1, 0xf6, 0x60, 0x25, 0xa0, 0x42, 0xf6, 0xd2, 0xd8, 0xa7,
+	0x12, 0x7d, 0x05, 0x58, 0x73, 0x1b, 0xd9, 0xdd, 0xf9, 0xe8, 0xca, 0x4a, 0xe1, 0xbf, 0xc9, 0x48,
+	0x11, 0xf3, 0x48, 0x20, 0x79, 0x0e, 0xa0, 0xa5, 0x65, 0x28, 0x4c, 0x63, 0xb7, 0x3a, 0x27, 0x93,
+	0x82, 0xf7, 0x14, 0x6d, 0x65, 0x9a, 0xf6, 0xa7, 0x01, 0xad, 0x4c, 0xed, 0xb7, 0xba, 0x41, 0xdd,
+	0x54, 0x5e, 0xf2, 0xa4, 0x20, 0x3b, 0x81, 0x5a, 0x2a, 0xb4, 0x06, 0xcb, 0xae, 0xfa, 0x26, 0x07,
+	0xb0, 0x9c, 0xfd, 0xf6, 0xb2, 0xde, 0x2a, 0xd0, 0xd5, 0xce, 0xd6, 0x64, 0x4a, 0xe7, 0x02, 0x93,
+	0x77, 0xc3, 0x18, 0xdd, 0xa5, 0x54, 0x7f, 0x91, 0x47, 0x50, 0xa3, 0xa9, 0xbc, 0x34, 0xab, 0x4a,
+	0x4c, 0xd3, 0x56, 0x0f, 0xc3, 0x9e, 0xe6, 0x55, 0x5e, 0x64, 0x1f, 0xd6, 0xf3, 0x37, 0xd3, 0xcb,
+	0x2e, 0x7a, 0xcc, 0x37, 0x6b, 0x2a, 0x85, 0xd5, 0xb0, 0x10, 0x72, 0xe2, 0x5b, 0x5f, 0x0d, 0xd8,
+	0xe9, 0xa6, 0x3e, 0x93, 0x33, 0x4b, 0x28, 0xc3, 0x32, 0xca, 0xb0, 0xc8, 0x53, 0x58, 0xa0, 0x19,
+	0x94, 0x2e, 0x6a, 0x6f, 0xb2, 0xa8, 0x09, 0x96, 0xd3, 0x58, 0xc9, 0x3d, 0xf2, 0xb7, 0x3c, 0x68,
+	0x4d, 0xd1, 0x17, 0x1f, 0xc0, 0x43, 0x68, 0xe4, 0x03, 0x72, 0xc3, 0x9e, 0xb7, 0x6a, 0x78, 0xe2,
+	0xdf, 0xa5, 0x55, 0x3f, 0x2a, 0xf0, 0xff, 0x14, 0xc9, 0x2b, 0x94, 0x94, 0x05, 0xf7, 0x28, 0x31,
+	0xef, 0x67, 0x65, 0x56, 0x3f, 0xab, 0xf7, 0xec, 0x67, 0xed, 0x4e, 0xfd, 0x1c, 0x2b, 0xbb, 0x70,
+	0x3f, 0x65, 0xc9, 0x36, 0x2c, 0xd1, 0x38, 0x0e, 0x86, 0x3d, 0x2a, 0xcd, 0xba, 0x12, 0x65, 0x51,
+	0x9d, 0xbb, 0x23, 0x53, 0xe6, 0x93, 0x99, 0x16, 0xb5, 0x29, 0x3b, 0x77, 0xa5, 0xf5, 0xcd, 0x80,
+	0x9d, 0x19, 0x0d, 0xd1, 0x73, 0xb5, 0x05, 0x75, 0x21, 0xa9, 0x4c, 0x85, 0xd2, 0x69, 0xc1, 0xd5,
+	0x27, 0xb2, 0x0e, 0xd5, 0x50, 0x0c, 0xb4, 0x3c, 0xd9, 0x27, 0x39, 0x84, 0x06, 0xd5, 0x10, 0xd9,
+	0x08, 0x56, 0xd5, 0x08, 0xb6, 0x54, 0x01, 0x33, 0xda, 0xe1, 0x16, 0x03, 0x3a, 0xdf, 0x6b, 0xb0,
+	0x96, 0x8f, 0xf6, 0x19, 0x26, 0x57, 0xac, 0x8f, 0xe4, 0x08, 0xd6, 0x8e, 0x51, 0x16, 0x07, 0x9e,
+	0x98, 0x0a, 0xb1, 0x64, 0x7b, 0x34, 0xb7, 0x4b, 0x2c, 0xba, 0x8a, 0x23, 0x58, 0x29, 0xee, 0x4a,
+	0x0d, 0x52, 0xb2, 0x3e, 0x9b, 0xad, 0x49, 0xc5, 0xcf, 0x58, 0x18, 0x07, 0x38, 0xc6, 0x71, 0x81,
+	0x4c, 0x2f, 0x42, 0xd2, 0x56, 0x31, 0x33, 0x37, 0xe4, 0x1c, 0xcc, 0xf7, 0xb0, 0x59, 0xba, 0x59,
+	0xc8, 0xde, 0x38, 0xc9, 0x59, 0x23, 0x3b, 0x07, 0xf9, 0x02, 0xb6, 0xca, 0x27, 0x9e, 0x58, 0x2a,
+	0xee, 0xd6, 0x75, 0x30, 0x07, 0x9b, 0x82, 0x79, 0x8c, 0xb2, 0xf4, 0xed, 0xe8, 0xc4, 0x6f, 0x1b,
+	0xf4, 0xa6, 0x75, 0x9b, 0xcb, 0x88, 0xe2, 0xc5, 0xe1, 0xaf, 0xeb, 0xb6, 0xf1, 0xfb, 0xba, 0x6d,
+	0xfc, 0xb9, 0x6e, 0x1b, 0x17, 0x4f, 0x06, 0x4c, 0x5e, 0xa6, 0x9e, 0xdd, 0xe7, 0xa1, 0xe3, 0x72,
+	0x81, 0x52, 0xd2, 0xa3, 0x80, 0x7f, 0x76, 0x5e, 0xd2, 0x24, 0x61, 0x98, 0x3c, 0x3e, 0xe6, 0xce,
+	0xe4, 0x1f, 0xb4, 0x57, 0x57, 0xb9, 0x1f, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0xff, 0xf8, 0xcf,
+	0x4a, 0xb9, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1027,8 +1026,8 @@ func (m *IdentityListRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.LastUpdateTime != 0 {
-		i = encodeVarintIdentity(dAtA, i, uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		i = encodeVarintIdentity(dAtA, i, uint64(m.LastUpdated))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -1059,8 +1058,8 @@ func (m *IdentityListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.LastUpdateTime != 0 {
-		i = encodeVarintIdentity(dAtA, i, uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		i = encodeVarintIdentity(dAtA, i, uint64(m.LastUpdated))
 		i--
 		dAtA[i] = 0x10
 	}
@@ -1105,10 +1104,10 @@ func (m *SaveMetadataAuthorityRequest) MarshalToSizedBuffer(dAtA []byte) (int, e
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if len(m.MetaDataAuthId) > 0 {
-		i -= len(m.MetaDataAuthId)
-		copy(dAtA[i:], m.MetaDataAuthId)
-		i = encodeVarintIdentity(dAtA, i, uint64(len(m.MetaDataAuthId)))
+	if len(m.MetadataAuthId) > 0 {
+		i -= len(m.MetadataAuthId)
+		copy(dAtA[i:], m.MetadataAuthId)
+		i = encodeVarintIdentity(dAtA, i, uint64(len(m.MetadataAuthId)))
 		i--
 		dAtA[i] = 0x22
 	}
@@ -1168,10 +1167,10 @@ func (m *AuditMetadataAuthorityRequest) MarshalToSizedBuffer(dAtA []byte) (int, 
 		i--
 		dAtA[i] = 0x10
 	}
-	if len(m.MetaDataAuthId) > 0 {
-		i -= len(m.MetaDataAuthId)
-		copy(dAtA[i:], m.MetaDataAuthId)
-		i = encodeVarintIdentity(dAtA, i, uint64(len(m.MetaDataAuthId)))
+	if len(m.MetadataAuthId) > 0 {
+		i -= len(m.MetadataAuthId)
+		copy(dAtA[i:], m.MetadataAuthId)
+		i = encodeVarintIdentity(dAtA, i, uint64(len(m.MetadataAuthId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1202,8 +1201,8 @@ func (m *MetadataAuthorityListRequest) MarshalToSizedBuffer(dAtA []byte) (int, e
 		i -= len(m.XXX_unrecognized)
 		copy(dAtA[i:], m.XXX_unrecognized)
 	}
-	if m.LastUpdate != 0 {
-		i = encodeVarintIdentity(dAtA, i, uint64(m.LastUpdate))
+	if m.LastUpdated != 0 {
+		i = encodeVarintIdentity(dAtA, i, uint64(m.LastUpdated))
 		i--
 		dAtA[i] = 0x10
 	}
@@ -1217,7 +1216,7 @@ func (m *MetadataAuthorityListRequest) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaDataAuthorityResponse) Marshal() (dAtA []byte, err error) {
+func (m *MetadataAuthorityDetail) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1227,12 +1226,12 @@ func (m *MetaDataAuthorityResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaDataAuthorityResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MetadataAuthorityDetail) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaDataAuthorityResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MetadataAuthorityDetail) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1280,10 +1279,10 @@ func (m *MetaDataAuthorityResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.MetaDataAuthId) > 0 {
-		i -= len(m.MetaDataAuthId)
-		copy(dAtA[i:], m.MetaDataAuthId)
-		i = encodeVarintIdentity(dAtA, i, uint64(len(m.MetaDataAuthId)))
+	if len(m.MetadataAuthId) > 0 {
+		i -= len(m.MetadataAuthId)
+		copy(dAtA[i:], m.MetadataAuthId)
+		i = encodeVarintIdentity(dAtA, i, uint64(len(m.MetadataAuthId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1396,8 +1395,8 @@ func (m *IdentityListRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.LastUpdateTime != 0 {
-		n += 1 + sovIdentity(uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		n += 1 + sovIdentity(uint64(m.LastUpdated))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1417,8 +1416,8 @@ func (m *IdentityListResponse) Size() (n int) {
 			n += 1 + l + sovIdentity(uint64(l))
 		}
 	}
-	if m.LastUpdateTime != 0 {
-		n += 1 + sovIdentity(uint64(m.LastUpdateTime))
+	if m.LastUpdated != 0 {
+		n += 1 + sovIdentity(uint64(m.LastUpdated))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1443,7 +1442,7 @@ func (m *SaveMetadataAuthorityRequest) Size() (n int) {
 		l = m.Auth.Size()
 		n += 1 + l + sovIdentity(uint64(l))
 	}
-	l = len(m.MetaDataAuthId)
+	l = len(m.MetadataAuthId)
 	if l > 0 {
 		n += 1 + l + sovIdentity(uint64(l))
 	}
@@ -1459,7 +1458,7 @@ func (m *AuditMetadataAuthorityRequest) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.MetaDataAuthId)
+	l = len(m.MetadataAuthId)
 	if l > 0 {
 		n += 1 + l + sovIdentity(uint64(l))
 	}
@@ -1482,8 +1481,8 @@ func (m *MetadataAuthorityListRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovIdentity(uint64(l))
 	}
-	if m.LastUpdate != 0 {
-		n += 1 + sovIdentity(uint64(m.LastUpdate))
+	if m.LastUpdated != 0 {
+		n += 1 + sovIdentity(uint64(m.LastUpdated))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1491,13 +1490,13 @@ func (m *MetadataAuthorityListRequest) Size() (n int) {
 	return n
 }
 
-func (m *MetaDataAuthorityResponse) Size() (n int) {
+func (m *MetadataAuthorityDetail) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.MetaDataAuthId)
+	l = len(m.MetadataAuthId)
 	if l > 0 {
 		n += 1 + l + sovIdentity(uint64(l))
 	}
@@ -1795,9 +1794,9 @@ func (m *IdentityListRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdateTime", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdated", wireType)
 			}
-			m.LastUpdateTime = 0
+			m.LastUpdated = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowIdentity
@@ -1807,7 +1806,7 @@ func (m *IdentityListRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LastUpdateTime |= uint64(b&0x7F) << shift
+				m.LastUpdated |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1899,9 +1898,9 @@ func (m *IdentityListResponse) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdateTime", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdated", wireType)
 			}
-			m.LastUpdateTime = 0
+			m.LastUpdated = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowIdentity
@@ -1911,7 +1910,7 @@ func (m *IdentityListResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LastUpdateTime |= uint64(b&0x7F) << shift
+				m.LastUpdated |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2048,7 +2047,7 @@ func (m *SaveMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Auth == nil {
-				m.Auth = &types.MetaDataAuthority{}
+				m.Auth = &types.MetadataAuthority{}
 			}
 			if err := m.Auth.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2056,7 +2055,7 @@ func (m *SaveMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataAuthId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetadataAuthId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2084,7 +2083,7 @@ func (m *SaveMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetaDataAuthId = string(dAtA[iNdEx:postIndex])
+			m.MetadataAuthId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2139,7 +2138,7 @@ func (m *AuditMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataAuthId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetadataAuthId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2167,7 +2166,7 @@ func (m *AuditMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetaDataAuthId = string(dAtA[iNdEx:postIndex])
+			m.MetadataAuthId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
@@ -2183,7 +2182,7 @@ func (m *AuditMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Audit |= common.AuditMetaDataOption(b&0x7F) << shift
+				m.Audit |= common.AuditMetadataOption(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2273,9 +2272,9 @@ func (m *MetadataAuthorityListRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdate", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field LastUpdated", wireType)
 			}
-			m.LastUpdate = 0
+			m.LastUpdated = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowIdentity
@@ -2285,7 +2284,7 @@ func (m *MetadataAuthorityListRequest) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LastUpdate |= uint64(b&0x7F) << shift
+				m.LastUpdated |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2312,7 +2311,7 @@ func (m *MetadataAuthorityListRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetaDataAuthorityResponse) Unmarshal(dAtA []byte) error {
+func (m *MetadataAuthorityDetail) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2335,15 +2334,15 @@ func (m *MetaDataAuthorityResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaDataAuthorityResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MetadataAuthorityDetail: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaDataAuthorityResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MetadataAuthorityDetail: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MetaDataAuthId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetadataAuthId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2371,7 +2370,7 @@ func (m *MetaDataAuthorityResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MetaDataAuthId = string(dAtA[iNdEx:postIndex])
+			m.MetadataAuthId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -2454,7 +2453,7 @@ func (m *MetaDataAuthorityResponse) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if m.Auth == nil {
-				m.Auth = &types.MetaDataAuthority{}
+				m.Auth = &types.MetadataAuthority{}
 			}
 			if err := m.Auth.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2474,7 +2473,7 @@ func (m *MetaDataAuthorityResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.Audit |= common.AuditMetaDataOption(b&0x7F) << shift
+				m.Audit |= common.AuditMetadataOption(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -2648,7 +2647,7 @@ func (m *MetadataAuthorityListResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Authorities = append(m.Authorities, &MetaDataAuthorityResponse{})
+			m.Authorities = append(m.Authorities, &MetadataAuthorityDetail{})
 			if err := m.Authorities[len(m.Authorities)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}

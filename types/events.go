@@ -18,8 +18,8 @@ const (
 
 type IdentityMsgEvent struct{ Msg *IdentityMsg }
 type IdentityRevokeMsgEvent struct{ Msg *IdentityRevokeMsg }
-type MetaDataMsgEvent struct{ Msgs MetaDataMsgs }
-type MetaDataRevokeMsgEvent struct{ Msgs MetaDataRevokeMsgs }
+type MetadataMsgEvent struct{ Msgs MetadataMsgs }
+type MetadataRevokeMsgEvent struct{ Msgs MetadataRevokeMsgs }
 type PowerMsgEvent struct{ Msgs PowerMsgs }
 type PowerRevokeMsgEvent struct{ Msgs PowerRevokeMsgs }
 type TaskMsgEvent struct{ Msgs TaskMsgs }
@@ -38,14 +38,14 @@ func (msg *IdentityRevokeMsgEvent) String() string {
 	}
 	return string(result)
 }
-func (msg *MetaDataMsgEvent) String() string {
+func (msg *MetadataMsgEvent) String() string {
 	result, err := json.Marshal(msg)
 	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *MetaDataRevokeMsgEvent) String() string {
+func (msg *MetadataRevokeMsgEvent) String() string {
 	result, err := json.Marshal(msg)
 	if err != nil {
 		return "Failed to generate string"

@@ -27,9 +27,9 @@ type LocalStoreCarrierDB interface {
 	RemoveLocalResourceIdByPowerId(powerId string) error
 	QueryLocalResourceIdByPowerId(powerId string) (string, error)
 	//// metaDataId -> dataNodeId
-	//StoreLocalResourceIdByMetaDataId(metaDataId, dataNodeId string) error
-	//RemoveLocalResourceIdByMetaDataId(metaDataId string) error
-	//QueryLocalResourceIdByMetaDataId(metaDataId string) (string, error)
+	//StoreLocalResourceIdByMetadataId(metaDataId, dataNodeId string) error
+	//RemoveLocalResourceIdByMetadataId(metaDataId string) error
+	//QueryLocalResourceIdByMetadataId(metaDataId string) (string, error)
 
 	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
@@ -104,6 +104,9 @@ type IdentityCarrierDB interface {
 	GetIdentityList() (types.IdentityArray, error)
 	//GetIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	HasIdentity(identity *apipb.Organization) (bool, error)
+
+	// v2.0
+	GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
 }
 
 type TaskCarrierDB interface {
