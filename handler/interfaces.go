@@ -1,6 +1,7 @@
 package handler
 
 import (
+	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
@@ -28,4 +29,11 @@ type Engine interface {
 	ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnError() error
+}
+
+type  TaskManager interface {
+	Start() error
+	Stop() error
+	ValidateTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResultMsg) error
+	OnTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResultMsg) error
 }
