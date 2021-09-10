@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -44,6 +45,8 @@ type SchedulerStarveFIFO struct {
 	eventEngine     *evengine.EventEngine
 	//dataCenter      iface.ForResourceDB
 	err             error
+
+	// TODO 有些缓存需要持久化
 }
 
 func NewSchedulerStarveFIFO(
@@ -87,27 +90,17 @@ func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {
 
 func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error) {
 
-	repushFn := func(task *types.Task) {
-
-		if err := sche.AddTask(task); err == ErrRescheduleLargeThreshold {
-
-			// TODO 直接存到 数据中心去 ...
-		}
-	}
-
 	sche.increaseTaskTerm()
-	bullet, err := sche.popTaskBullet()
-	if nil != err {
-		log.Errorf("Failed to popTaskBullet on SchedulerStarveFIFO.TrySchedule(), err: {%s}", err)
-		return nil, err
-	}
+	bullet := sche.popTaskBullet()
 
 	task, err := sche.resourceMng.GetDB().GetLocalTask(bullet.TaskId)
 	if nil != err {
 		log.Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", bullet.TaskId, err)
 
-		repushFn(task)
-		return nil, err
+		if e := sche.repushTaskBullet(bullet.TaskId); nil != e {
+			err = e
+		}
+		return types.NewNeedConsensusTask(types.NewTask(&libTypes.TaskPB{TaskId: bullet.TaskId})), err
 	}
 
 	cost := &ctypes.TaskOperationCost{
@@ -126,9 +119,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	powers, err := sche.electionConputeOrg(nil, nil, cost)
 	if nil != err {
 		log.Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
-
-		repushFn(task)
-		return nil, err
+		//repushFn(task)
+		return types.NewNeedConsensusTask(task), err
 	}
 
 	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powers: %s", task.GetTaskId(), utilOrgPowerArrString(powers))
@@ -139,8 +131,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
 
-		repushFn(task)
-		return nil, err
+		//repushFn(task)
+		return types.NewNeedConsensusTask(task), err
 	}
 	return types.NewNeedConsensusTask(task), nil
 }

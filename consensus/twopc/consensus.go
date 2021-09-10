@@ -23,30 +23,22 @@ const (
 )
 
 type TwoPC struct {
-	config  *Config
-	p2p     p2p.P2P
-	peerSet *ctypes.PeerSet
-	state   *state
-	//resourceMng.GetDB()  iface.ForResourceDB
+	config      *Config
+	p2p         p2p.P2P
+	peerSet     *ctypes.PeerSet
+	state       *state
 	resourceMng *resource.Manager
-
-
 	// send remote task to `Scheduler` to replay
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	// send has was consensus remote tasks to taskManager
 	needExecuteTaskCh chan *types.NeedExecuteTask
-	// need send local task result msg to remote peer signal
-	//needSendTaskResultMsgCh chan struct{}
-
-
 	asyncCallCh       chan func()
 	quit              chan struct{}
 	proposalTaskCache map[string]*types.ProposalTask // (taskId -> task)
-
-	taskResultBusCh  chan *types.TaskConsResult
-	taskResultChSet  map[string]chan<- *types.TaskConsResult
-	taskResultLock   sync.Mutex
-	proposalTaskLock sync.RWMutex
+	taskResultBusCh   chan *types.TaskConsResult
+	taskResultChSet   map[string]chan<- *types.TaskConsResult
+	taskResultLock    sync.Mutex
+	proposalTaskLock  sync.RWMutex
 
 	Errs []error
 }
@@ -55,10 +47,10 @@ func New(
 	conf *Config,
 	resourceMng *resource.Manager,
 	p2p p2p.P2P,
-	//needConsensusTaskCh chan *types.NeedConsensusTask,
+//needConsensusTaskCh chan *types.NeedConsensusTask,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
-	//needSendTaskResultMsgCh chan struct{},
+//needSendTaskResultMsgCh chan struct{},
 ) *TwoPC {
 	return &TwoPC{
 		config:                   conf,
@@ -71,9 +63,9 @@ func New(
 		asyncCallCh:              make(chan func(), conf.PeerMsgQueueSize),
 		quit:                     make(chan struct{}),
 		proposalTaskCache:        make(map[string]*types.ProposalTask),
-		taskResultBusCh: make(chan *types.TaskConsResult, 100),
-		taskResultChSet: make(map[string]chan<- *types.TaskConsResult, 100),
-		Errs:            make([]error, 0),
+		taskResultBusCh:          make(chan *types.TaskConsResult, 100),
+		taskResultChSet:          make(map[string]chan<- *types.TaskConsResult, 100),
+		Errs:                     make([]error, 0),
 	}
 }
 
@@ -196,7 +188,6 @@ func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 	// add some local cache
 	t.storeProposalState(proposalState)
 	t.addProposalTask(types.NewProposalTask(proposalId, task, now))
-
 
 	// Start handle task ...
 	go func() {
@@ -519,7 +510,7 @@ func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		proposalTask.Task,
 		types.Yes,
 		uint64(timeutils.UnixMsec()),
-		)
+	)
 
 	t.changeToConfirm(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId, msg.CreateAt)
 
@@ -601,7 +592,6 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	if totalNeedVoteCount == totalVotedCount {
 		// Change the proposalState to `confirmPeriod`
 		if totalNeedVoteCount == yesVoteCount {
-
 
 			now := uint64(timeutils.UnixMsec())
 
@@ -726,5 +716,3 @@ func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 	// 最后留给 定时器 清除本地 proposalState 香瓜内心戏
 	return nil
 }
-
-

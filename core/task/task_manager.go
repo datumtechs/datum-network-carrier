@@ -2,13 +2,11 @@ package task
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -20,6 +18,7 @@ import (
 const (
 	defaultScheduleTaskInterval = 2 * time.Second
 	taskMonitorInterval         = 30 * time.Second
+	senderExecuteTaskExpire     = 6 * time.Second
 )
 
 //type Scheduler interface {
@@ -52,6 +51,8 @@ type Manager struct {
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
 	runningTaskCacheLock     sync.RWMutex
+
+	// TODO 有些缓存需要持久化
 }
 
 func NewTaskManager(
@@ -103,30 +104,16 @@ func (m *Manager) loop() {
 
 	for {
 		select {
-		// 自己组织的 Fighter 上报过来的 event
+
+		// handle reported event from fighter of self organization
 		case event := <-m.eventCh:
 			go func() {
 				if err := m.handleTaskEvent(event.GetPartyId(), event.GetEvent()); nil != err {
-					log.Error("Failed to call handleTaskEvent() on TaskManager", "taskId", event.GetEvent().GetTaskId(), "event", event.GetEvent().String())
+					log.Errorf("Failed to call handleTaskEvent() on TaskManager, taskId: {%s}, event: %s", event.GetEvent().GetTaskId(), event.GetEvent().String())
 				}
 			}()
 
-		// 接收 被调度好的 task, 准备发给自己的  Fighter-Py 或者直接存到 dataCenter
-		case task := <-m.needExecuteTaskCh:
-
-			if task.GetConsStatus() == types.TaskNeedExecute {
-				// add local cache first
-				m.addNeedExecuteTaskCache(task)
-				// to execute the task
-				m.handleNeedExecuteTask(task)
-			} else {
-				// send task result msg to remote peer, short circuit.
-				m.sendTaskResultMsgToRemotePeer(task)
-			}
-
-		case <-taskMonitorTicker.C:
-			m.expireTaskMonitor()
-
+		// To schedule local task while received some local task msg
 		case tasks := <-m.localTasksCh:
 
 			for _, task := range tasks {
@@ -141,13 +128,15 @@ func (m *Manager) loop() {
 				}
 
 			}
-			// 定时调度 队列中的任务信息
+
+		// To schedule local task interval
 		case <-taskTicker.C:
 
 			if err := m.tryScheduleTask(); nil != err {
 				log.Errorf("Failed to try schedule local task when taskTicker, err: {%s}", err)
 			}
 
+		// handle the task of need replay scheduling while received from remote peer on consensus epoch
 		case needReplayScheduleTask := <- m.needReplayScheduleTaskCh:
 
 			go func() {
@@ -163,6 +152,24 @@ func (m *Manager) loop() {
 					needReplayScheduleTask.SendResult(result)
 				}
 			}()
+
+		// handle task of need to executing, and send it to fighter of myself organization or send the task result msg to remote peer
+		case task := <-m.needExecuteTaskCh:
+
+			if task.GetConsStatus() == types.TaskNeedExecute {
+				// add local cache first
+				m.addNeedExecuteTaskCache(task)
+				// to execute the task
+				m.handleNeedExecuteTask(task)
+			} else {
+				// send task result msg to remote peer, short circuit.
+				m.sendTaskResultMsgToRemotePeer(task)
+			}
+
+		// handle the executing expire tasks
+		case <-taskMonitorTicker.C:
+
+			m.expireTaskMonitor()
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")
@@ -216,20 +223,12 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 
 			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.GetTaskData().TaskId, err)
-			log.Errorf("failed to call StoreLocalTask on SchedulerStarveFIFO with schedule task, err: {%s}", e.Error())
-
+			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task, err: {%s}", e.Error())
 			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), e.Error())}
-
-			task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
-			task.GetTaskData().Reason = e.Error()
-			task.GetTaskData().State = apipb.TaskState_TaskState_Failed
-			task.GetTaskData().EventCount = uint32(len(events))
-			task.GetTaskData().TaskEvents = events
-
-			if err = m.resourceMng.GetDB().InsertTask(task); nil != err {
-				log.Errorf("Failed to save task to datacenter, taskId: {%s}", task.GetTaskId())
-				continue
+			if e := m.storeBadTask(task, events, e.Error()); nil != e {
+				log.Errorf("Failed to sending the task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
 			}
+
 		} else {
 			taskArr = append(taskArr, task)
 		}

@@ -362,12 +362,6 @@ func (t *TwoPC) refreshProposalState () {
 	t.state.proposalsLock.Unlock()
 }
 
-func (t *TwoPC) handleInvalidProposal(proposalState *ctypes.ProposalState) {
-
-
-}
-
-
 func (t *TwoPC) driveTask(
 	pid peer.ID,
 	proposalId common.Hash,

@@ -42,6 +42,8 @@ type MessageHandler struct {
 
 	lockPower    sync.Mutex
 	lockMetadata sync.Mutex
+
+	// TODO 有些缓存需要持久化
 }
 
 func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.Manager) *MessageHandler {

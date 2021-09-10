@@ -32,20 +32,11 @@ type Mempool struct {
 
 	msgFeed event.Feed
 	scope   event.SubscriptionScope
-
-	//metaDataMsgQueue *MetadataMsgList
-	//powerMsgQueue    *PowerMsgList
-	//taskMsgQueue     *TaskMsgList
-	//all *msgLookup
 }
 
 func NewMempool(cfg *MempoolConfig) *Mempool {
 	return &Mempool{
 		cfg: cfg,
-		//all:               newMsgLookup(),
-		//metaDataMsgQueue: newMetadataMsgList(),
-		//powerMsgQueue:    newPowerMsgList(),
-		//taskMsgQueue:     newTaskMsgList(),
 	}
 }
 
@@ -64,7 +55,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		if !ok {
 			return ErrIdentityMsgConvert
 		}
-		// 先设置 本地节点的 nodeId
+		// set local nodeId first
 		identity.NodeId = pool.cfg.NodeId
 		// We've directly injected a replacement identityMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -90,7 +81,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			return ErrPowerMsgConvert
 		}
 
-		//pool.powerMsgQueue.put(power)
 		// We've directly injected a replacement identityRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyPower,
@@ -115,7 +105,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			return ErrMetadataMsgConvert
 		}
 
-		//pool.metaDataMsgQueue.put(metaData)
 		// We've directly injected a replacement metaDataMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyMetadata,
@@ -163,7 +152,8 @@ type msgLookup struct {
 
 	metaDataMsgLock sync.RWMutex
 	powerMsgLock    sync.RWMutex
-	//taskMsgLock     sync.RWMutex
+
+	// TODO 有些缓存需要持久化
 }
 
 func newMsgLookup() *msgLookup {
