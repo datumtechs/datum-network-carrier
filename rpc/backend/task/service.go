@@ -97,12 +97,12 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	dataSuppliers := make([]*libTypes.TaskDataSupplier, len(req.DataSupplier))
 	for i, v := range req.DataSupplier {
 
-		metaData, err := svr.B.GetMetaDataDetail(v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+		metaData, err := svr.B.GetMetadataDetail(v.Organization.IdentityId, v.MetadataInfo.MetadataId)
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
-				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+				v.Organization.IdentityId, v.MetadataInfo.MetadataId)
 			return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}",
-				v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId)
+				v.Organization.IdentityId, v.MetadataInfo.MetadataId)
 		}
 
 		colTmp := make(map[uint32]*libTypes.MetadataColumn, len(metaData.Information.MetadataColumns))
@@ -110,8 +110,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			colTmp[col.CIndex] = col
 		}
 
-		columnArr := make([]*libTypes.MetadataColumn, len(v.MetaDataInfo.ColumnIndexList))
-		for j, colIndex := range v.MetaDataInfo.ColumnIndexList {
+		columnArr := make([]*libTypes.MetadataColumn, len(v.MetadataInfo.ColumnIndexList))
+		for j, colIndex := range v.MetadataInfo.ColumnIndexList {
 			if col, ok := colTmp[uint32(colIndex)]; ok {
 				columnArr[j] = col
 				/*columnArr[j] = &libTypes.MetadataColumn{
@@ -123,19 +123,19 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				}*/
 			} else {
 				return nil, fmt.Errorf("not found column of metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
-					v.MemberInfo.IdentityId, v.MetaDataInfo.MetaDataId, colIndex)
+					v.Organization.IdentityId, v.MetadataInfo.MetadataId, colIndex)
 			}
 		}
 
 		dataSuppliers[i] = &libTypes.TaskDataSupplier{
-			MemberInfo: &apipb.TaskOrganization{
-				PartyId:  v.MemberInfo.PartyId,
-				NodeName: v.MemberInfo.NodeName,
-				NodeId:   v.MemberInfo.NodeId,
-				IdentityId: v.MemberInfo.IdentityId,
+			Organization: &apipb.TaskOrganization{
+				PartyId:  v.Organization.PartyId,
+				NodeName: v.Organization.NodeName,
+				NodeId:   v.Organization.NodeId,
+				IdentityId: v.Organization.IdentityId,
 			},
-			MetadataId:     v.MetaDataInfo.MetaDataId,
-			MetadataName:   metaData.Information.MetaDataSummary.TableName,
+			MetadataId:     v.MetadataInfo.MetadataId,
+			MetadataName:   metaData.Information.MetadataSummary.TableName,
 			Columns: columnArr,
 		}
 	}

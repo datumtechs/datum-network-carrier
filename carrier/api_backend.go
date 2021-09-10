@@ -423,27 +423,27 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *libTypes.TaskEvent) error {
 }
 
 // metadata api
-func (s *CarrierAPIBackend) GetMetaDataDetail(identityId, metaDataId string) (*pb.GetMetaDataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error) {
 	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
 	if metadata == nil {
 		return nil, errors.New("not found metadata by special Id")
 	}
-	return types.NewOrgMetaDataInfoFromMetadata(metadata), err
+	return types.NewOrgMetadataInfoFromMetadata(metadata), err
 }
 
-// GetMetaDataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetMetaDataDetailList() ([]*pb.GetMetaDataDetailResponse, error) {
+// GetMetadataDetailList returns a list of all metadata details in the network.
+func (s *CarrierAPIBackend) GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
-	return types.NewOrgMetaDataInfoArrayFromMetadataArray(metadataArray), err
+	return types.NewOrgMetadataInfoArrayFromMetadataArray(metadataArray), err
 }
 
-func (s *CarrierAPIBackend) GetMetaDataDetailListByOwner(identityId string) ([]*pb.GetMetaDataDetailResponse, error) {
-	log.WithField("identityId", identityId).Debug("Invoke: GetMetaDataDetailListByOwner executing...")
-	metadataList, err := s.GetMetaDataDetailList()
+func (s *CarrierAPIBackend) GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error) {
+	log.WithField("identityId", identityId).Debug("Invoke: GetMetadataDetailListByOwner executing...")
+	metadataList, err := s.GetMetadataDetailList()
 	if err != nil {
 		return nil, err
 	}
-	result := make([]*pb.GetMetaDataDetailResponse, 0)
+	result := make([]*pb.GetMetadataDetailResponse, 0)
 	for _, metadata := range metadataList {
 		if metadata.Owner.IdentityId == identityId {
 			result = append(result, metadata)
@@ -572,9 +572,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					},
 					Receivers: make([]*apipb.Organization, 0),
 					OperationCost: &apipb.TaskResourceCostDeclare{
-						CostProcessor: task.TaskData().GetOperationCost().GetCostProcessor(),
-						CostMem:       task.TaskData().GetOperationCost().GetCostMem(),
-						CostBandwidth: task.TaskData().GetOperationCost().GetCostBandwidth(),
+						Processor: task.TaskData().GetOperationCost().GetProcessor(),
+						Memory:       task.TaskData().GetOperationCost().GetMemory(),
+						Bandwidth: task.TaskData().GetOperationCost().GetBandwidth(),
 						Duration:      task.TaskData().GetOperationCost().GetDuration(),
 					},
 					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
@@ -604,9 +604,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
 				powerTask.OperationSpend = &apipb.TaskResourceCostDeclare{
-					CostProcessor: uint32(slotUnit.Processor * slotCount),
-					CostMem:       slotUnit.Mem * slotCount,
-					CostBandwidth: slotUnit.Bandwidth * slotCount,
+					Processor: uint32(slotUnit.Processor * slotCount),
+					Memory:       slotUnit.Mem * slotCount,
+					Bandwidth: slotUnit.Bandwidth * slotCount,
 					Duration:      task.TaskData().GetOperationCost().GetDuration(),
 				}
 				powerTaskList = append(powerTaskList, powerTask)
@@ -680,6 +680,10 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 	return s.carrier.carrierDB.GetIdentityList()
 }
 
+func (s *CarrierAPIBackend) GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
+	return s.carrier.carrierDB.GetMetadataAuthorityList(identityId, lastUpdate)
+}
+
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 	// the task is executing.
@@ -707,7 +711,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 
 		// task 参与方
 		for _, dataSupplier := range task.TaskData().DataSuppliers {
-			if dataSupplier.MemberInfo.IdentityId == localIdentityId {
+			if dataSupplier.Organization.IdentityId == localIdentityId {
 				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_DataSupplier)
 			}
 		}

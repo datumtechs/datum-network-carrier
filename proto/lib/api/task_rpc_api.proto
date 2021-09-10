@@ -30,14 +30,14 @@ message TaskDetailShow {
 
 // 定义：任务数据提供方（仅用于web页面交互使用）
 message TaskDataSupplierShow {
-  api.protobuf.TaskOrganization member_info = 1;                             // 身份信息
+  api.protobuf.TaskOrganization organization = 1;                             // 身份信息
   string                        metadata_id = 2;                             // 元数据Id
   string                        metadata_name = 3;                           // 元数据名称
 }
 
 // 定义：算力提供方（仅用于web页面交互使用）
 message TaskPowerSupplierShow {
-  api.protobuf.TaskOrganization member_info = 1;                         // 身份信息
+  api.protobuf.TaskOrganization organization = 1;                         // 身份信息
   types.ResourceUsageOverview   power_info = 2;                          // 算力使用情况
 }
 
@@ -96,11 +96,11 @@ message PublishTaskDeclareRequest {
 
 // 任务数据供应者信息 (任务详情定义用)
 message TaskDataSupplierDeclare {
-  api.protobuf.TaskOrganization member_info = 1;                         // 身份信息
-  TaskMetaDataDeclare           meta_data_info = 2;                      // 任务使用的元数据信息
+  api.protobuf.TaskOrganization organization = 1;                         // 身份信息
+  TaskMetadataDeclare           metadata_info = 2;                      // 任务使用的元数据信息
 }
-message TaskMetaDataDeclare {
-  string          meta_data_id = 1;                                 // 元数据id
+message TaskMetadataDeclare {
+  string          metadata_id = 1;                                 // 元数据id
   repeated uint64 column_index_list = 2;                            // 该任务使用原始数据的第几列
 }
 // 发布任务 resp

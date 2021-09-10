@@ -1174,8 +1174,8 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 }
 
 
-//func StoreLocalResourceIdByMetaDataId(db DatabaseWriter, metaDataId, resourceId string) error {
-//	key := GetResourceMetaDataIdMapingKey(metaDataId)
+//func StoreLocalResourceIdByMetadataId(db DatabaseWriter, metaDataId, resourceId string) error {
+//	key := GetResourceMetadataIdMapingKey(metaDataId)
 //	index, err := rlp.EncodeToBytes(resourceId)
 //	if nil != err {
 //		return err
@@ -1183,13 +1183,13 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 //	return db.Put(key, index)
 //}
 //
-//func RemoveLocalResourceIdByMetaDataId(db DatabaseDeleter, metaDataId string) error {
-//	key := GetResourceMetaDataIdMapingKey(metaDataId)
+//func RemoveLocalResourceIdByMetadataId(db DatabaseDeleter, metaDataId string) error {
+//	key := GetResourceMetadataIdMapingKey(metaDataId)
 //	return db.Delete(key)
 //}
 //
-//func QueryLocalResourceIdByMetaDataId(db DatabaseReader, metaDataId string) (string, error) {
-//	key := GetResourceMetaDataIdMapingKey(metaDataId)
+//func QueryLocalResourceIdByMetadataId(db DatabaseReader, metaDataId string) (string, error) {
+//	key := GetResourceMetadataIdMapingKey(metaDataId)
 //	has, err := db.Has(key)
 //	if IsNoDBNotFoundErr(err) {
 //		return "", err
@@ -1210,7 +1210,7 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 //}
 
 func StoreDataResourceDiskUsed(db DatabaseWriter, dataResourceDiskUsed *types.DataResourceDiskUsed) error {
-	key := GetDataResourceDiskUsedKey(dataResourceDiskUsed.GetMetaDataId())
+	key := GetDataResourceDiskUsedKey(dataResourceDiskUsed.GetMetadataId())
 	val, err := rlp.EncodeToBytes(dataResourceDiskUsed)
 	if nil != err {
 		return err

@@ -6,5 +6,5 @@ const (
 
 var (
 	ErrFetchRpcMetadataCtxStr = "Failed to fetch rpc metadata ctx"
-	ErrSendMetaDataMsgStr     = "Failed to send metaDataMsg"
+	ErrSendMetadataMsgStr     = "Failed to send metaDataMsg"
 )

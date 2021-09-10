@@ -33,20 +33,20 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 		EndAt:         taskData.GetEndAt(),
 		State:         taskData.GetState(),
 		OperationCost: &apipb.TaskResourceCostDeclare{
-			CostProcessor: taskData.GetOperationCost().GetCostProcessor(),
-			CostMem:       taskData.GetOperationCost().GetCostMem(),
-			CostBandwidth: taskData.GetOperationCost().GetCostBandwidth(),
+			Processor: taskData.GetOperationCost().GetProcessor(),
+			Memory:       taskData.GetOperationCost().GetMemory(),
+			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
 			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
 	}
 	// DataSupplier
 	for _, metadataSupplier := range taskData.GetDataSuppliers() {
 		dataSupplier := &pb.TaskDataSupplierShow{
-			MemberInfo: &apipb.TaskOrganization{
-				PartyId:    metadataSupplier.GetMemberInfo().GetPartyId(),
-				NodeName:       metadataSupplier.GetMemberInfo().GetNodeName(),
-				NodeId:     metadataSupplier.GetMemberInfo().GetNodeId(),
-				IdentityId: metadataSupplier.GetMemberInfo().GetIdentityId(),
+			Organization: &apipb.TaskOrganization{
+				PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
+				NodeName:   metadataSupplier.GetOrganization().GetNodeName(),
+				NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
+				IdentityId: metadataSupplier.GetOrganization().GetIdentityId(),
 			},
 			MetadataId:   metadataSupplier.GetMetadataId(),
 			MetadataName: metadataSupplier.GetMetadataName(),
@@ -56,9 +56,9 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 	// powerSupplier
 	for _, data := range taskData.GetPowerSuppliers() {
 		detailShow.PowerSupplier = append(detailShow.PowerSupplier, &pb.TaskPowerSupplierShow{
-			MemberInfo: &apipb.TaskOrganization{
+			Organization: &apipb.TaskOrganization{
 				PartyId:    data.GetOrganization().GetPartyId(),
-				NodeName:       data.GetOrganization().GetNodeName(),
+				NodeName:   data.GetOrganization().GetNodeName(),
 				NodeId:     data.GetOrganization().GetNodeId(),
 				IdentityId: data.GetOrganization().GetIdentityId(),
 			},
@@ -91,23 +91,23 @@ func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*pb.TaskEventShow {
 	return result
 }
 
-func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailResponse {
-	response := &pb.GetMetaDataDetailResponse{
+func NewOrgMetadataInfoFromMetadata(input *Metadata) *pb.GetMetadataDetailResponse {
+	response := &pb.GetMetadataDetailResponse{
 		Owner: &apipb.Organization{
 			NodeName:   input.data.GetNodeName(),
 			NodeId:     input.data.GetNodeId(),
 			IdentityId: input.data.GetIdentityId(),
 		},
 		Information: &libTypes.MetadataDetail{
-			MetaDataSummary: &libTypes.MetaDataSummary{
-				MetaDataId: input.data.GetDataId(),
+			MetadataSummary: &libTypes.MetadataSummary{
+				MetadataId: input.data.GetDataId(),
 				OriginId:   input.data.GetOriginId(),
 				TableName:  input.data.GetTableName(),
 				Desc:       input.data.GetDesc(),
 				FilePath:   input.data.GetFilePath(),
-				Rows:       uint32(input.data.GetRows()),
-				Columns:    uint32(input.data.GetColumns()),
-				Size_:      uint32(input.data.GetSize_()),
+				Rows:       input.data.GetRows(),
+				Columns:    input.data.GetColumns(),
+				Size_:      input.data.GetSize_(),
 				FileType:   input.data.GetFileType(),
 				HasTitle:   input.data.GetHasTitle(),
 				State:      input.data.GetState(),
@@ -118,13 +118,13 @@ func NewOrgMetaDataInfoFromMetadata(input *Metadata) *pb.GetMetaDataDetailRespon
 	return response
 }
 
-func NewOrgMetaDataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMetaDataDetailResponse {
-	result := make([]*pb.GetMetaDataDetailResponse, 0, input.Len())
+func NewOrgMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMetadataDetailResponse {
+	result := make([]*pb.GetMetadataDetailResponse, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue
 		}
-		result = append(result, NewOrgMetaDataInfoFromMetadata(metadata))
+		result = append(result, NewOrgMetadataInfoFromMetadata(metadata))
 	}
 	return result
 }
