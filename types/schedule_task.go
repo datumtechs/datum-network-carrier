@@ -105,10 +105,12 @@ func (t TaskConsStatus) String() string {
 		return "TaskConsensusSucceed"
 	case TaskConsensusInterrupt:
 		return "TaskConsensusInterrupt"
-	case TaskRunningInterrupt:
-		return "TaskRunningInterrupt"
 	case TaskConsensusRefused:
 		return "TaskConsensusRefused"
+	case TaskNeedExecute:
+		return "TaskNeedExecute"
+	case TaskExecutingInterrupt:
+		return "TaskExecutingInterrupt"
 	default:
 		return "UnknownTaskResultStatus"
 	}
@@ -118,7 +120,8 @@ const (
 	TaskConsensusSucceed   TaskConsStatus = 0x0000
 	TaskConsensusInterrupt TaskConsStatus = 0x0001
 	TaskConsensusRefused   TaskConsStatus = 0x0010 // has  some org refused this task
-	TaskRunningInterrupt   TaskConsStatus = 0x0100
+	TaskNeedExecute        TaskConsStatus = 0x0100
+	TaskExecutingInterrupt TaskConsStatus = 0x1000
 )
 
 type TaskConsResult struct {
@@ -159,6 +162,7 @@ func (res *TaskConsResult) String() string {
 //	TaskSchedFailed TaskSchedStatus = false
 //)
 //
+//
 //type ScheduleResult struct {
 //	TaskId   string
 //	Status   TaskSchedStatus
@@ -183,17 +187,13 @@ func (res *TaskConsResult) String() string {
 
 // 需要被 进行共识的 local task (已经调度好的, 还未共识的)
 type NeedConsensusTask struct {
-	task *Task
-	//supply   bool                 // 当前task持有者是否提供 内部资源
-	//resource *PrepareVoteResource // 当前task持有者所提供的 内部资源
+	task     *Task
 	resultCh chan *TaskConsResult
 }
 
-func NewNeedConsensusTask(task *Task /*, supply bool, resource *PrepareVoteResource*/) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task) *NeedConsensusTask {
 	return &NeedConsensusTask{
-		task: task,
-		//supply:   supply,
-		//resource: resource,
+		task:     task,
 		resultCh: make(chan *TaskConsResult),
 	}
 }
@@ -205,12 +205,6 @@ func (nct *NeedConsensusTask) String() string {
 	if nil != nct.task {
 		taskStr = nct.task.GetTaskData().String()
 	}
-	//resourceStr := "{}"
-	//if nil != nct.resource {
-	//	resourceStr = nct.resource.String()
-	//}
-	//return fmt.Sprintf(`{"task": %s, "supply": %v, "selfResource": %v, "resultCh": %p}`,
-	//	taskStr, nct.supply, resourceStr, nct.resultCh)
 	return fmt.Sprintf(`{"task": %s, "resultCh": %p}`, taskStr, nct.resultCh)
 }
 func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
@@ -250,9 +244,9 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apipb.TaskRole { return nrst.localTaskRole }
-func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string          { return nrst.localPartyId }
-func (nrst *NeedReplayScheduleTask) GetTask() *Task                   { return nrst.task }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apipb.TaskRole        { return nrst.localTaskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.localPartyId }
+func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"
@@ -301,6 +295,7 @@ type NeedExecuteTask struct {
 	remoteTaskRole         apipb.TaskRole
 	remoteTaskOrganization *apipb.TaskOrganization
 	task                   *Task
+	consStatus             TaskConsStatus
 	localResource          *PrepareVoteResource
 	resources              *pb.ConfirmTaskPeerInfo
 }
@@ -313,30 +308,37 @@ func NewNeedExecuteTask(
 	remoteTaskRole apipb.TaskRole,
 	remoteTaskOrganization *apipb.TaskOrganization,
 	task *Task,
+	consStatus TaskConsStatus,
 	localResource *PrepareVoteResource,
 	resources *pb.ConfirmTaskPeerInfo,
 ) *NeedExecuteTask {
 	return &NeedExecuteTask{
-		remotepid:             remotepid,
-		proposalId:            proposalId,
-		localTaskRole:         localTaskRole,
-		localTaskOrganization: localTaskOrganization,
+		remotepid:              remotepid,
+		proposalId:             proposalId,
+		localTaskRole:          localTaskRole,
+		localTaskOrganization:  localTaskOrganization,
 		remoteTaskRole:         remoteTaskRole,
 		remoteTaskOrganization: remoteTaskOrganization,
-		task:                  task,
-		localResource:         localResource,
-		resources:             resources,
+		task:                   task,
+		consStatus:             consStatus,
+		localResource:          localResource,
+		resources:              resources,
 	}
 }
-func (net *NeedExecuteTask) IsRemotePIDEmpty() bool    { return net.remotepid == "" }
-func (net *NeedExecuteTask) IsNotRemotePIDEmpty() bool { return !net.IsRemotePIDEmpty() }
-func (net *NeedExecuteTask) GetRemotePID() peer.ID     { return net.remotepid }
-func (net *NeedExecuteTask) GetProposalId() common.Hash                   { return net.proposalId }
-func (net *NeedExecuteTask) GetLocalTaskRole() apipb.TaskRole             { return net.localTaskRole }
-func (net *NeedExecuteTask) GetLocalTaskOrganization() *apipb.TaskOrganization { return net.localTaskOrganization }
-func (net *NeedExecuteTask) GetRemoteTaskRole() apipb.TaskRole             { return net.remoteTaskRole }
-func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apipb.TaskOrganization { return net.remoteTaskOrganization }
+func (net *NeedExecuteTask) IsRemotePIDEmpty() bool           { return net.remotepid == "" }
+func (net *NeedExecuteTask) IsNotRemotePIDEmpty() bool        { return !net.IsRemotePIDEmpty() }
+func (net *NeedExecuteTask) GetRemotePID() peer.ID            { return net.remotepid }
+func (net *NeedExecuteTask) GetProposalId() common.Hash       { return net.proposalId }
+func (net *NeedExecuteTask) GetLocalTaskRole() apipb.TaskRole { return net.localTaskRole }
+func (net *NeedExecuteTask) GetLocalTaskOrganization() *apipb.TaskOrganization {
+	return net.localTaskOrganization
+}
+func (net *NeedExecuteTask) GetRemoteTaskRole() apipb.TaskRole { return net.remoteTaskRole }
+func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apipb.TaskOrganization {
+	return net.remoteTaskOrganization
+}
 func (net *NeedExecuteTask) GetTask() *Task                         { return net.task }
+func (net *NeedExecuteTask) GetConsStatus() TaskConsStatus          { return net.consStatus }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *pb.ConfirmTaskPeerInfo  { return net.resources }
 func (net *NeedExecuteTask) String() string {

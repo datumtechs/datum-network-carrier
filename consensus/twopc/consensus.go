@@ -30,12 +30,15 @@ type TwoPC struct {
 	//resourceMng.GetDB()  iface.ForResourceDB
 	resourceMng *resource.Manager
 
-	// fetch tasks scheduled from `Scheduler`
-	//needConsensusTaskCh chan *types.NeedConsensusTask
+
 	// send remote task to `Scheduler` to replay
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	// send has was consensus remote tasks to taskManager
 	needExecuteTaskCh chan *types.NeedExecuteTask
+	// need send local task result msg to remote peer signal
+	//needSendTaskResultMsgCh chan struct{}
+
+
 	asyncCallCh       chan func()
 	quit              chan struct{}
 	proposalTaskCache map[string]*types.ProposalTask // (taskId -> task)
@@ -55,6 +58,7 @@ func New(
 	//needConsensusTaskCh chan *types.NeedConsensusTask,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
+	//needSendTaskResultMsgCh chan struct{},
 ) *TwoPC {
 	return &TwoPC{
 		config:                   conf,
@@ -184,8 +188,8 @@ func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		task.GetTaskData().CreateAt,
 		uint64(time.Now().Nanosecond()),
 	})
-	proposalState := ctypes.NewProposalState(proposalId)
-	proposalState.StoreOrgProposalState(ctypes.NewOrgProposalState(task.GetTaskId(), apipb.TaskRole_TaskRole_Sender, task.GetTaskSender().GetPartyId(), now))
+	proposalState := ctypes.NewProposalState(proposalId, task.GetTaskId(), task.GetTaskSender())
+	proposalState.StoreOrgProposalState(ctypes.NewOrgProposalState(task.GetTaskId(), apipb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now))
 
 	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalId, task.GetTaskId())
 
@@ -255,7 +259,11 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrPrepareVotehadVoted
 	}
 
-	t.storeOrgProposalState(msg.MsgOption.ProposalId, ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, msg.MsgOption.ReceiverPartyId, msg.CreateAt))
+	t.storeOrgProposalState(
+		msg.MsgOption.ProposalId,
+		msg.TaskInfo.GetTaskId(),
+		sender,
+		ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, receiver, msg.CreateAt))
 	t.addProposalTask(types.NewProposalTask(proposal.ProposalId, proposal.Task, proposal.CreateAt))
 
 	// Send task to Scheduler to replay sched.
