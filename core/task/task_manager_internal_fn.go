@@ -18,14 +18,14 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
 	"strconv"
-	"time"
 )
 
-
-func (m *Manager) tryScheduleTask () error {
+func (m *Manager) tryScheduleTask() error {
 	nonConsTask, err := m.scheduler.TrySchedule()
-	if nil != err {
+	if nil != err && err != schedule.ErrRescheduleLargeThreshold {
 		return err
+	} else if nil != err && err == schedule.ErrRescheduleLargeThreshold {
+		return m.storeFailedReScheduleTask(nonConsTask.GetTask().GetTaskId())
 	}
 
 	go func(nonConsTask *types.NeedConsensusTask) {
@@ -47,18 +47,40 @@ func (m *Manager) tryScheduleTask () error {
 
 		// Consensus failed, task needs to be suspended and rescheduled
 		if result.Status != types.TaskConsensusSucceed {
+
 			m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskFailedConsensus.Type,
 				nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(), result.GetErr().Error()))
 
 			// re push task into queue
 			if err := m.scheduler.AddTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
-
-				// TODO 直接存到 数据中心去 ...
+				m.storeFailedReScheduleTask(nonConsTask.GetTask().GetTaskId())
 			}
-
 		}
 
 	}(nonConsTask)
+	return nil
+}
+
+func (m *Manager) storeFailedReScheduleTask(taskId string) error {
+
+	task, err := m.resourceMng.GetDB().GetLocalTask(taskId)
+	if nil != err {
+		log.Errorf("Failed to query local task for sending datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
+		return err
+	}
+
+	events, err := m.resourceMng.GetDB().GetTaskEventList(task.GetTaskId())
+	if nil != err {
+		log.Errorf("Failed to query all task event list for sending datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
+		return err
+	}
+	events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+		taskId, task.GetTaskSender().GetIdentityId(), "overflow reschedule threshold"))
+
+	if err := m.storeBadTask(task, events, "overflow reschedule threshold"); nil != err {
+		log.Errorf("Failed to sending task to datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", taskId, err)
+		return err
+	}
 	return nil
 }
 
@@ -72,8 +94,6 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 	}
 	// update local cache
 	m.addNeedExecuteTaskCache(task)
-
-	//return fmt.Errorf("Mock task finished")
 
 	switch task.GetLocalTaskRole() {
 	case apipb.TaskRole_TaskRole_DataSupplier, apipb.TaskRole_TaskRole_Receiver:
@@ -176,9 +196,6 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 
 func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask) {
 
-
-	time.Sleep(2 * time.Second) // todo 故意等待小段时间 防止 onTaskResultMsg 因为 网络延迟, 而没收集全 其他 peer 的 eventList
-
 	eventList, err := m.resourceMng.GetDB().GetTaskEventList(task.GetTask().GetTaskId())
 	if nil != err {
 		log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", task.GetTask().GetTaskId(), err)
@@ -217,7 +234,6 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask) {
 }
 func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 
-
 	log.Debugf("Start sendTaskResultMsgToRemotePeer, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
@@ -229,7 +245,6 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 			return
 		}
 	}
-
 
 	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(task.GetTask().GetTaskId()); nil != err {
 		log.Errorf("Failed to remove task executing status on sendTaskResultMsgToRemotePeer, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
@@ -257,6 +272,10 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libTypes.TaskEvent, r
 	task.GetTaskData().State = apipb.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
 	task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
+
+	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())
+	m.resourceMng.GetDB().RemoveTaskEventList(task.GetTaskId())
+
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
@@ -594,7 +613,6 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 
 func (m *Manager) expireTaskMonitor() {
 
-
 	identityId, err := m.resourceMng.GetDB().GetIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query local identity on expireTaskMonitor(), err: {%s}", err)
@@ -610,7 +628,14 @@ func (m *Manager) expireTaskMonitor() {
 			if task.GetTask().GetTaskData().State == apipb.TaskState_TaskState_Running && task.GetTask().GetTaskData().GetStartAt() != 0 {
 
 				// the task has running expire
-				duration := uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt()
+				var duration uint64
+
+				switch task.GetLocalTaskRole() {
+				case apipb.TaskRole_TaskRole_Sender:
+					duration = uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt() + uint64(senderExecuteTaskExpire.Milliseconds())
+				default:
+					duration = uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt()
+				}
 
 				if duration >= task.GetTask().GetTaskData().GetOperationCost().GetDuration() {
 					log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
@@ -657,8 +682,6 @@ func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state ap
 	m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(evTyp, taskId, identityId, evMsg))
 }
 
-
-
 func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResultMsg) error {
 	msg := fetchTaskResultMsg(taskResultMsg)
 
@@ -675,10 +698,6 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResul
 			return fmt.Errorf("Received event failed, has invalid taskId: {%s}, right taskId: {%s}", event.GetTaskId(), taskId)
 		}
 	}
-
-
-
-
 
 	return nil
 }

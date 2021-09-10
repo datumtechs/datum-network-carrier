@@ -15,15 +15,22 @@ import (
 
 func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error {
 	sche.queueMutex.Lock()
-	defer sche.queueMutex.Unlock()
 	// The bullet is first into queue
-	old, ok := sche.schedulings[bullet.TaskId]
+	_, ok := sche.schedulings[bullet.TaskId]
+	sche.queueMutex.Unlock()
 	if !ok {
 		heap.Push(sche.queue, bullet)
 		return nil
 	}
+	return sche.repushTaskBullet(bullet.TaskId)
+}
 
-	bullet = old
+func (sche *SchedulerStarveFIFO) repushTaskBullet(taskId string) error {
+	sche.queueMutex.Lock()
+	defer sche.queueMutex.Unlock()
+
+	// The bullet is first into queue
+	bullet := sche.schedulings[taskId]
 	delete(sche.schedulings, bullet.TaskId)
 
 	if bullet.Resched >= ReschedMaxCount {
@@ -84,7 +91,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 	return nil
 }
 
-func (sche *SchedulerStarveFIFO) popTaskBullet() (*types.TaskBullet, error) {
+func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 	sche.queueMutex.Lock()
 	defer sche.queueMutex.Unlock()
 
@@ -98,13 +105,13 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() (*types.TaskBullet, error) {
 			x := heap.Pop(sche.queue)
 			bullet = x.(*types.TaskBullet)
 		} else {
-			return nil, nil
+			return nil
 		}
 	}
 	bullet.IncreaseResched()
 	sche.schedulings[bullet.TaskId] = bullet
 
-	return bullet, nil
+	return bullet
 }
 
 
