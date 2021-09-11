@@ -446,7 +446,7 @@ func (s *CarrierAPIBackend) GetMetadataDetailListByOwner(identityId string) ([]*
 	}
 	result := make([]*pb.GetMetadataDetailResponse, 0)
 	for _, metadata := range metadataList {
-		if metadata.Owner.IdentityId == identityId {
+		if metadata.GetOwner().GetIdentityId() == identityId {
 			result = append(result, metadata)
 		}
 	}
@@ -477,8 +477,8 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetail
 				Information: &libTypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
-					TotalProcessor: uint32(resource.GetTotalProcessor()),
-					UsedProcessor:  uint32(resource.GetUsedProcessor()),
+					TotalProcessor: resource.GetTotalProcessor(),
+					UsedProcessor:  resource.GetUsedProcessor(),
 					TotalBandwidth: resource.GetTotalBandwidth(),
 					UsedBandwidth:  resource.GetUsedBandwidth(),
 				},

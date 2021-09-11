@@ -17,15 +17,6 @@ func (svr *Server) GetPowerTotalDetailList(ctx context.Context, req *emptypb.Emp
 		log.WithError(err).Error("RPC-API:GetPowerTotalDetailList failed")
 		return nil, ErrGetTotalPowerList
 	}
-	//respList := make([]*pb.GetPowerTotalDetailResponse, len(powerList))
-	//
-	//for i, power := range powerList {
-	//	resp := &pb.GetPowerTotalDetailResponse{
-	//		Owner: power.Owner,
-	//		Power: power.Power,
-	//	}
-	//	respList[i] = resp
-	//}
 	log.Debugf("RPC-API:GetPowerTotalDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetPowerTotalDetailResponseArrString(powerList))
 	return &pb.GetPowerTotalDetailListResponse{
 		Status: 0,
@@ -40,24 +31,6 @@ func (svr *Server) GetPowerSingleDetailList(ctx context.Context, req *emptypb.Em
 		log.WithError(err).Error("RPC-API:GetPowerSingleDetailList failed")
 		return nil, ErrGetSinglePowerList
 	}
-	//respList := make([]*pb.GetPowerSingleDetailResponse, len(powerList))
-	//
-	//for i, power := range powerList {
-	//
-	//	resp := &pb.GetPowerSingleDetailResponse{
-	//		Owner:  types.ConvertNodeAliasToPB(power.Owner),
-	//		Power: &libtypes.PowerSingleDetail{
-	//			JobNodeId: power.PowerDetail.JobNodeId,
-	//			PowerId: power.PowerDetail.PowerId,
-	//			organization:types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
-	//			TotalTaskCount:power.PowerDetail.TotalTaskCount,
-	//			CurrentTaskCount: power.PowerDetail.CurrentTaskCount,
-	//			Tasks: types.ConvertPowerTaskArrToPB(power.PowerDetail.Tasks),
-	//			GetState: power.PowerDetail.GetState,
-	//		},
-	//	}
-	//	respList[i] = resp
-	//}
 	log.Debugf("RPC-API:GetPowerSingleDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetPowerSingleDetailResponseArrString(powerList))
 	return &pb.GetPowerSingleDetailListResponse{
 		Status: 0,
@@ -97,27 +70,16 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 		return nil, ErrSendPowerMsg
 	}
 
-	//if identity.IdentityId() != req.Owner.IdentityId {
-	//	return nil, errors.New("invalid identityId of req")
-	//}
-	//if identity.NodeId() != req.Owner.NodeId {
-	//	return nil, errors.New("invalid nodeId of req")
-	//}
-	//if identity.Name() != req.Owner.Name {
-	//	return nil, errors.New("invalid nodeName of req")
-	//}
-
-
 	powerMsg := types.NewPowerMessageFromRequest(req)
-	powerId := powerMsg.SetPowerId()
+	powerId := powerMsg.GenPowerId()
 
 
 	err = svr.B.SendMsg(powerMsg)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.JobNodeId, powerId)
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.GetJobNodeId(), powerId)
 		return nil, ErrSendPowerMsg
 	}
-	log.Debugf("RPC-API:PublishPower succeed, jobNodeId: {%s}, powerId: {%s}", req.JobNodeId, powerId)
+	log.Debugf("RPC-API:PublishPower succeed, jobNodeId: {%s}, powerId: {%s}", req.GetJobNodeId(), powerId)
 	return &pb.PublishPowerResponse{
 		Status:  0,
 		Msg:     backend.OK,
