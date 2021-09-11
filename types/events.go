@@ -2,7 +2,7 @@ package types
 
 import (
 	"encoding/json"
-	twopb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
@@ -74,8 +74,8 @@ func (msg *TaskMsgEvent) String() string {
 	return string(result)
 }
 
-func ConvertTaskEvent(event *libTypes.TaskEvent) *twopb.TaskEvent {
-	return &twopb.TaskEvent{
+func ConvertTaskEvent(event *libTypes.TaskEvent) *pb.TaskEvent {
+	return &pb.TaskEvent{
 		Type:       []byte(event.Type),
 		TaskId:     []byte(event.TaskId),
 		IdentityId: []byte(event.IdentityId),
@@ -84,7 +84,7 @@ func ConvertTaskEvent(event *libTypes.TaskEvent) *twopb.TaskEvent {
 	}
 }
 
-func FetchTaskEvent(event *twopb.TaskEvent) *libTypes.TaskEvent {
+func FetchTaskEvent(event *pb.TaskEvent) *libTypes.TaskEvent {
 	return &libTypes.TaskEvent{
 		Type:       string(event.Type),
 		TaskId:     string(event.TaskId),
@@ -94,15 +94,15 @@ func FetchTaskEvent(event *twopb.TaskEvent) *libTypes.TaskEvent {
 	}
 }
 
-func ConvertTaskEventArr(events []*libTypes.TaskEvent) []*twopb.TaskEvent {
-	arr := make([]*twopb.TaskEvent, len(events))
+func ConvertTaskEventArr(events []*libTypes.TaskEvent) []*pb.TaskEvent {
+	arr := make([]*pb.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = ConvertTaskEvent(ev)
 	}
 	return arr
 }
 
-func FetchTaskEventArr(events []*twopb.TaskEvent) []*libTypes.TaskEvent {
+func FetchTaskEventArr(events []*pb.TaskEvent) []*libTypes.TaskEvent {
 	arr := make([]*libTypes.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = FetchTaskEvent(ev)

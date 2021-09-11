@@ -3,13 +3,13 @@ package handler
 import (
 	"context"
 	"errors"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
 // SendTwoPcPrepareMsg sends 2pc prepareMsg to other peer.
-func SendTwoPcPrepareMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.PrepareMsg) error {
+func SendTwoPcPrepareMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *twopcpb.PrepareMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -30,7 +30,7 @@ func SendTwoPcPrepareMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, 
 }
 
 // SendTwoPcPrepareVote sends 2pc prepareVote to other peer.
-func SendTwoPcPrepareVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.PrepareVote) error {
+func SendTwoPcPrepareVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *twopcpb.PrepareVote) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -51,7 +51,7 @@ func SendTwoPcPrepareVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID
 }
 
 // SendTwoPcConfirmMsg sends 2pc ConfirmMsg to other peer.
-func SendTwoPcConfirmMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.ConfirmMsg) error {
+func SendTwoPcConfirmMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *twopcpb.ConfirmMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -72,7 +72,7 @@ func SendTwoPcConfirmMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID,
 }
 
 // SendTwoPcConfirmVote sends 2pc ConfirmVote to other peer.
-func SendTwoPcConfirmVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.ConfirmVote) error {
+func SendTwoPcConfirmVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *twopcpb.ConfirmVote) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -93,7 +93,7 @@ func SendTwoPcConfirmVote (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID
 }
 
 // SendTwoPcCommitMsg sends 2pc CommitMsg to other peer.
-func SendTwoPcCommitMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *pb.CommitMsg) error {
+func SendTwoPcCommitMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *twopcpb.CommitMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 

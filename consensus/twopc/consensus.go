@@ -7,7 +7,7 @@ import (
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -181,7 +181,11 @@ func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		uint64(time.Now().Nanosecond()),
 	})
 	proposalState := ctypes.NewProposalState(proposalId, task.GetTaskId(), task.GetTaskSender())
+	//orgProposalState := ctypes.NewOrgProposalState(task.GetTaskId(), apipb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now)
+	//orgProposalState.AddDeadlineDuration(task.GetTaskData().GetOperationCost().GetDuration())
+	//proposalState.StoreOrgProposalState(orgProposalState)
 	proposalState.StoreOrgProposalState(ctypes.NewOrgProposalState(task.GetTaskId(), apipb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now))
+
 
 	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalId, task.GetTaskId())
 
@@ -264,7 +268,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 
 	log.Debugf("Received the reschedule task result from `schedule.ReplaySchedule()`, the result: %s", replayTaskResult.String())
 
-	var vote *pb.PrepareVote
+	var vote *twopcpb.PrepareVote
 
 	if nil != replayTaskResult.GetErr() {
 		vote = makePrepareVote(

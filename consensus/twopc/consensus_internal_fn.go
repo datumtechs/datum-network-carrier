@@ -9,7 +9,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -245,10 +245,10 @@ func (t *TwoPC) mustGetOrgProposalState (proposalId common.Hash, partyId string)
 	return pstate.MustGetOrgProposalState(partyId)
 }
 
-func (t *TwoPC) makeConfirmTaskPeerDesc (proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+func (t *TwoPC) makeConfirmTaskPeerDesc (proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 
-	var sender *pb.TaskPeerInfo
-	dataSuppliers, powerSuppliers, receivers := make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0), make([]*pb.TaskPeerInfo, 0)
+	var sender *twopcpb.TaskPeerInfo
+	dataSuppliers, powerSuppliers, receivers := make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0)
 
 	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
 
@@ -266,7 +266,7 @@ func (t *TwoPC) makeConfirmTaskPeerDesc (proposalId common.Hash) *pb.ConfirmTask
 			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.PeerInfo))
 		}
 	}
-	return &pb.ConfirmTaskPeerInfo{
+	return &twopcpb.ConfirmTaskPeerInfo{
 		OwnerPeerInfo:              sender,
 		DataSupplierPeerInfoList:   dataSuppliers,
 		PowerSupplierPeerInfoList:  powerSuppliers,
@@ -495,7 +495,7 @@ func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	return nil
 }
 
-func (t *TwoPC) sendPrepareVote(pid peer.ID, sender, receiver *apipb.TaskOrganization, req *pb.PrepareVote) error {
+func (t *TwoPC) sendPrepareVote(pid peer.ID, sender, receiver *apipb.TaskOrganization, req *twopcpb.PrepareVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
 	} else {
@@ -503,7 +503,7 @@ func (t *TwoPC) sendPrepareVote(pid peer.ID, sender, receiver *apipb.TaskOrganiz
 	}
 }
 
-func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *pb.ConfirmTaskPeerInfo, startTime uint64) error {
+func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *twopcpb.ConfirmTaskPeerInfo, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -586,7 +586,7 @@ func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 	return nil
 }
 
-func (t *TwoPC) sendConfirmVote(pid peer.ID, sender, receiver *apipb.TaskOrganization, req *pb.ConfirmVote) error {
+func (t *TwoPC) sendConfirmVote(pid peer.ID, sender, receiver *apipb.TaskOrganization, req *twopcpb.ConfirmVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
 	} else {
@@ -916,7 +916,7 @@ func (t *TwoPC) getConfirmVote(proposalId common.Hash, partyId string) *types.Co
 	return t.state.GetConfirmVote(proposalId, partyId)
 }
 
-func (t *TwoPC) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *pb.ConfirmTaskPeerInfo) {
+func (t *TwoPC) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *twopcpb.ConfirmTaskPeerInfo) {
 	t.state.StoreConfirmTaskPeerInfo(proposalId, peers)
 }
 
@@ -924,11 +924,11 @@ func (t *TwoPC) hasConfirmTaskPeerInfo(proposalId common.Hash) bool {
 	return t.state.HasConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *TwoPC) getConfirmTaskPeerInfo(proposalId common.Hash) (*pb.ConfirmTaskPeerInfo, bool) {
+func (t *TwoPC) getConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
 	return t.state.GetConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *TwoPC) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+func (t *TwoPC) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 	return t.state.MustGetConfirmTaskPeerInfo(proposalId)
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"
@@ -33,7 +33,7 @@ func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID,
 		return pubsub.ValidationReject
 	}
 
-	message, ok := m.(*pb.PrepareMsg)
+	message, ok := m.(*twopcpb.PrepareMsg)
 	if !ok {
 		log.Errorf("Invalid message type in the validatePrepareMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject

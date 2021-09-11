@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+
 	rpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -27,9 +29,9 @@ func (s *Service) gossipTestDataSubscriber(ctx context.Context, pid peer.ID, msg
 }
 
 func (s *Service) prepareMessageSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
-	message, ok := msg.(*pb.PrepareMsg)
+	message, ok := msg.(*twopcpb.PrepareMsg)
 	if !ok {
-		return fmt.Errorf("wrong type, expected: *pb.PrepareMsg got: %T", msg)
+		return fmt.Errorf("wrong type, expected: *twopcpb.PrepareMsg got: %T", msg)
 	}
 
 	s.setPrepareMsgSeen(message.MsgOption.ProposalId, message.MsgOption.GetSenderPartyId())
@@ -43,9 +45,9 @@ func (s *Service) prepareMessageSubscriber(ctx context.Context, pid peer.ID, msg
 }
 
 func (s *Service) prepareVoteSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
-	m, ok := msg.(*pb.PrepareVote)
+	m, ok := msg.(*twopcpb.PrepareVote)
 	if !ok {
-		return fmt.Errorf("wrong type, expected: *pb.PrepareVote got: %T", msg)
+		return fmt.Errorf("wrong type, expected: *twopcpb.PrepareVote got: %T", msg)
 	}
 
 	s.setPrepareVoteSeen(m.MsgOption.ProposalId)
@@ -59,9 +61,9 @@ func (s *Service) prepareVoteSubscriber(ctx context.Context, pid peer.ID, msg pr
 }
 
 func (s *Service) confirmMessageSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
-	m, ok := msg.(*pb.ConfirmMsg)
+	m, ok := msg.(*twopcpb.ConfirmMsg)
 	if !ok {
-		return fmt.Errorf("wrong type, expected: *pb.ConfirmMsg got: %T", msg)
+		return fmt.Errorf("wrong type, expected: *twopcpb.ConfirmMsg got: %T", msg)
 	}
 
 	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.GetSenderPartyId())
@@ -75,9 +77,9 @@ func (s *Service) confirmMessageSubscriber(ctx context.Context, pid peer.ID, msg
 }
 
 func (s *Service) confirmVoteSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
-	m, ok := msg.(*pb.ConfirmVote)
+	m, ok := msg.(*twopcpb.ConfirmVote)
 	if !ok {
-		return fmt.Errorf("wrong type, expected: *pb.ConfirmVote got: %T", msg)
+		return fmt.Errorf("wrong type, expected: *twopcpb.ConfirmVote got: %T", msg)
 	}
 
 	s.setConfirmVoteSeen(m.MsgOption.ProposalId)
@@ -91,9 +93,9 @@ func (s *Service) confirmVoteSubscriber(ctx context.Context, pid peer.ID, msg pr
 }
 
 func (s *Service) commitMessageSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
-	m, ok := msg.(*pb.CommitMsg)
+	m, ok := msg.(*twopcpb.CommitMsg)
 	if !ok {
-		return fmt.Errorf("wrong type, expected: *pb.CommitMsg got: %T", msg)
+		return fmt.Errorf("wrong type, expected: *twopcpb.CommitMsg got: %T", msg)
 	}
 
 	s.setCommitMsgSeen(m.MsgOption.ProposalId, m.MsgOption.GetSenderPartyId())
@@ -107,9 +109,9 @@ func (s *Service) commitMessageSubscriber(ctx context.Context, pid peer.ID, msg 
 }
 
 func (s *Service) taskResultMessageSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
-	m, ok := msg.(*pb.TaskResultMsg)
+	m, ok := msg.(*taskmngpb.TaskResultMsg)
 	if !ok {
-		return fmt.Errorf("wrong type, expected: *pb.TaskResultMsg got: %T", msg)
+		return fmt.Errorf("wrong type, expected: *twopcpb.TaskResultMsg got: %T", msg)
 	}
 
 	s.setTaskResultMsgSeen(m.MsgOption.ProposalId)

@@ -11,8 +11,9 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
+	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -508,7 +509,7 @@ func (m *Manager) ForEachRunningTaskCache(f func(taskId string, task *types.Need
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *pb.TaskResultMsg {
+func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
 
 	if task.GetLocalTaskRole() == apipb.TaskRole_TaskRole_Sender {
 		log.Errorf("send task OR task owner can not make TaskResult Msg")
@@ -520,14 +521,14 @@ func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *pb.Tas
 		log.Errorf("Failed to make TaskResultMsg with query task eventList, taskId {%s}, err {%s}", task.GetTask().GetTaskId(), err)
 		return nil
 	}
-	return &pb.TaskResultMsg{
-		MsgOption: &pb.MsgOption{
+	return &taskmngpb.TaskResultMsg{
+		MsgOption: &msgcommonpb.MsgOption{
 			ProposalId:      task.GetProposalId().Bytes(),
 			SenderRole:      uint64(task.GetLocalTaskRole()),
 			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
 			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
 			ReceiverPartyId: []byte(task.GetRemoteTaskOrganization().GetPartyId()),
-			MsgOwner: &pb.TaskOrganizationIdentityInfo{
+			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
 				Name:       []byte(task.GetLocalTaskOrganization().GetNodeName()),
 				NodeId:     []byte(task.GetLocalTaskOrganization().GetNodeId()),
 				IdentityId: []byte(task.GetLocalTaskOrganization().GetIdentityId()),
@@ -684,7 +685,7 @@ func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state ap
 	m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(evTyp, taskId, identityId, evMsg))
 }
 
-func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResultMsg) error {
+func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 	msg := fetchTaskResultMsg(taskResultMsg)
 
 	log.Debugf("Received remote taskResultMsg on ValidateTaskResultMsg(), remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
@@ -703,7 +704,7 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResul
 
 	return nil
 }
-func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResultMsg) error {
+func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 
 	msg := fetchTaskResultMsg(taskResultMsg)
 
