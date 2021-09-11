@@ -22,15 +22,15 @@ func NewVoteState() *VoteState{
 }
 func (state *VoteState) StorePrepareVote(vote *types.PrepareVote) {
 	state.preparelock.Lock()
-	if _, ok := state.prepareVoteSate[vote.ProposalId]; !ok {
-		state.prepareVoteSate[vote.ProposalId] = vote
+	if _, ok := state.prepareVoteSate[vote.MsgOption.ProposalId]; !ok {
+		state.prepareVoteSate[vote.MsgOption.ProposalId] = vote
 	}
 	state.preparelock.Unlock()
 }
 func (state *VoteState) StoreConfirmVote(vote *types.ConfirmVote) {
 	state.confirmlock.Lock()
-	if _, ok := state.confirmVoteState[vote.ProposalId]; !ok {
-		state.confirmVoteState[vote.ProposalId] = vote
+	if _, ok := state.confirmVoteState[vote.MsgOption.ProposalId]; !ok {
+		state.confirmVoteState[vote.MsgOption.ProposalId] = vote
 	}
 	state.confirmlock.Unlock()
 }

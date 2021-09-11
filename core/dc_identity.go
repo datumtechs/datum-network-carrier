@@ -72,14 +72,14 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 func (dc *DataCenter) SaveMetadataAuthority(request *types.MetadataAuth) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	if request.Data().AuthRecordId == "" {
-		request.Data().AuthRecordId = request.Hash().Hex()
+	if request.Data().MetadataAuthId == "" {
+		request.Data().MetadataAuthId = request.Hash().Hex()
 	}
 	response, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.SaveMetadataAuthorityRequest{
 		User:                 request.Data().User,
 		UserType:             request.Data().UserType,
-		Auth:                 request.Data().DataRecord,
-		MetadataAuthId:       request.Data().AuthRecordId,
+		Auth:                 request.Data().Auth,
+		MetadataAuthId:       request.Data().MetadataAuthId,
 	})
 	if err != nil {
 		return err

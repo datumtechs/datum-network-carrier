@@ -140,11 +140,11 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
 		data := &pb.GetMetadataAuthority{
-			MetadataAuthId: auth.Data().AuthRecordId,
+			MetadataAuthId: auth.Data().MetadataAuthId,
 			User:           auth.Data().User,
 			UserType:       auth.Data().UserType,
-			Auth:           auth.Data().DataRecord,
-			Audit:          auth.Data().AuditResult,
+			Auth:           auth.Data().Auth,
+			AuditSuggestion: auth.Data().AuditSuggestion,
 			ApplyAt:        auth.Data().ApplyAt,
 			AuditAt:        auth.Data().AuditAt,
 		}
@@ -156,4 +156,9 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 		Msg:    backend.OK,
 		List:   arr,
 	}, nil
+}
+
+func (svr *Server) GetMetadataAuthorityListByUser(context.Context, *pb.GetMetadataAuthorityListByUserRequest) (*pb.GetMetadataAuthorityListResponse, error) {
+	// todo: missing implements
+	return nil, nil
 }
