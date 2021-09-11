@@ -119,11 +119,64 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 // for metadata authority apply
 
 func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMetadataAuthorityRequest) (*pb.ApplyMetadataAuthorityResponse, error) {
-	return nil, nil
+	if req.GetUser() == "" {
+		return nil, errors.New("required User")
+	}
+	if !verifyUserType(req.GetUserType()) {
+		return nil, errors.New("required right user type")
+	}
+	if req.GetAuth() == nil {
+		return nil, errors.New("required metadata authority")
+	}
+	if len(req.GetSign()) == 0 {
+		return nil, errors.New("required user sign")
+	}
+
+	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
+	metadataAuthId := metadataAuthorityMsg.GetMetadataAuthId()
+
+	err := svr.B.SendMsg(metadataAuthorityMsg)
+	if nil != err {
+		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed")
+		return nil, ErrSendMetadataAuthMsg
+	}
+	log.Debugf("RPC-API:ApplyMetadataAuthority succeed, userType: {%s}, user: {%s}, metadataOwner: {%s}, metadataId: {%s}, usageRule: {%s},  return metadataAuthId: {%s}",
+		req.GetUserType().String(), req.GetUser(), req.GetAuth().GetOwner().String(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().String(), metadataAuthId)
+	return &pb.ApplyMetadataAuthorityResponse{
+		Status:     0,
+		Msg:        backend.OK,
+		MetadataAuthId: metadataAuthId,
+	}, nil
 }
 
 func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMetadataAuthorityRequest) (*apipb.SimpleResponse, error) {
-	return nil, nil
+	if req.GetUser() == "" {
+		return nil, errors.New("required User")
+	}
+	if !verifyUserType(req.GetUserType()) {
+		return nil, errors.New("required right user type")
+	}
+	if req.GetMetadataAuthId() == "" {
+		return nil, errors.New("required metadataAuthId")
+	}
+	if len(req.GetSign()) == 0 {
+		return nil, errors.New("required user sign")
+	}
+
+	metadataAuthorityRevokeMsg := types.NewMetadataAuthorityRevokeMessageFromRequest(req)
+	metadataAuthId := metadataAuthorityRevokeMsg.GetMetadataAuthId()
+
+	err := svr.B.SendMsg(metadataAuthorityRevokeMsg)
+	if nil != err {
+		log.WithError(err).Error("RPC-API:RevokeMetadataAuthority failed")
+		return nil, ErrSendMetadataAuthMsg
+	}
+	log.Debugf("RPC-API:RevokeMetadataAuthority succeed, userType: {%s}, user: {%s}, metadataAuthId: {%s}",
+		req.GetUserType().String(), req.GetUser(), metadataAuthId)
+	return &apipb.SimpleResponse{
+		Status:     0,
+		Msg:        backend.OK,
+	}, nil
 }
 
 func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
@@ -160,4 +213,18 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.GetMetadataAuthorityListByUserRequest) (*pb.GetMetadataAuthorityListResponse, error) {
 	// todo: missing implements
 	return nil, nil
+}
+
+
+func verifyUserType (userType apipb.UserType) bool {
+	switch userType {
+	case apipb.UserType_User_ETH:
+		return true
+	case apipb.UserType_User_ATP:
+		return true
+	case apipb.UserType_User_LAT:
+		return true
+	default:
+		return false
+	}
 }

@@ -550,6 +550,7 @@ func (s MetadataAuthorityRevokeMsgArr) Len() int { return len(s) }
 func (s MetadataAuthorityRevokeMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s MetadataAuthorityRevokeMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
 
+
 // ------------------- task -------------------
 
 type TaskBullet struct {
