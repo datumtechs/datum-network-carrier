@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 )
@@ -94,7 +95,7 @@ func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *Propo
 //	TaskState        apipb.TaskState
 //	SchedTask        *GetTask
 //	SelfVotePeerInfo *PrepareVoteResource
-//	Resources        *pb.ConfirmTaskPeerInfo
+//	Resources        *twopcpb.ConfirmTaskPeerInfo
 //}
 
 type TaskConsStatus uint16
@@ -297,7 +298,7 @@ type NeedExecuteTask struct {
 	task                   *Task
 	consStatus             TaskConsStatus
 	localResource          *PrepareVoteResource
-	resources              *pb.ConfirmTaskPeerInfo
+	resources              *twopcpb.ConfirmTaskPeerInfo
 }
 
 func NewNeedExecuteTask(
@@ -310,7 +311,7 @@ func NewNeedExecuteTask(
 	task *Task,
 	consStatus TaskConsStatus,
 	localResource *PrepareVoteResource,
-	resources *pb.ConfirmTaskPeerInfo,
+	resources *twopcpb.ConfirmTaskPeerInfo,
 ) *NeedExecuteTask {
 	return &NeedExecuteTask{
 		remotepid:              remotepid,
@@ -339,8 +340,8 @@ func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apipb.TaskOrganization 
 }
 func (net *NeedExecuteTask) GetTask() *Task                         { return net.task }
 func (net *NeedExecuteTask) GetConsStatus() TaskConsStatus          { return net.consStatus }
-func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource { return net.localResource }
-func (net *NeedExecuteTask) GetResources() *pb.ConfirmTaskPeerInfo  { return net.resources }
+func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
+func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
 func (net *NeedExecuteTask) String() string {
 	taskStr := "{}"
 	if nil != net.task {
@@ -362,7 +363,7 @@ func (net *NeedExecuteTask) String() string {
 		net.remotepid, net.proposalId.String(), net.localTaskRole.String(), localIdentityStr, net.remoteTaskRole.String(), remoteIdentityStr, taskStr, localResourceStr, ConfirmTaskPeerInfoString(net.resources))
 }
 
-func ConfirmTaskPeerInfoString(resources *pb.ConfirmTaskPeerInfo) string {
+func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 	if nil == resources {
 		return "{}"
 	}
@@ -419,13 +420,13 @@ func ConfirmTaskPeerInfoString(resources *pb.ConfirmTaskPeerInfo) string {
 		ownerPeerInfoStr, dataSupplierListStr, powerSupplierListStr, receiverListStr)
 }
 
-func IsSameTaskOrgByte(org1, org2 *pb.TaskOrganizationIdentityInfo) bool {
+func IsSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) bool {
 	if bytes.Compare(org1.GetPartyId(), org2.GetPartyId()) == 0 && bytes.Compare(org1.GetIdentityId(), org2.GetIdentityId()) == 0 {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrgByte(org1, org2 *pb.TaskOrganizationIdentityInfo) bool {
+func IsNotSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) bool {
 	return !IsSameTaskOrgByte(org1, org2)
 }
 

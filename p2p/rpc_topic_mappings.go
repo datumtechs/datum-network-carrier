@@ -4,7 +4,8 @@ import (
 	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"reflect"
 
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	p2ppb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/pkg/errors"
 	types "github.com/prysmaticlabs/eth2-types"
@@ -53,7 +54,7 @@ var RPCTopicMappings = map[string]interface{}{
 	RPCTwoPcConfirmMsgTopic:       new(twopcpb.ConfirmMsg),
 	RPCTwoPcConfirmVoteTopic:      new(twopcpb.ConfirmVote),
 	RPCTwoPcCommitMsgTopic:        new(twopcpb.CommitMsg),
-	RPCTaskResultMsgTopic:         new(twopcpb.TaskResultMsg),
+	RPCTaskResultMsgTopic:         new(taskmngpb.TaskResultMsg),
 }
 
 // VerifyTopicMapping verifies that the topic and its accompanying

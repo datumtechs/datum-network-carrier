@@ -5,7 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/crypto/sha3"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/ethereum/go-ethereum/rlp"
 	"sync/atomic"
 )
@@ -27,7 +27,7 @@ func (dir ProposalTaskDir) String() string {
 
 // ------------------------------- About PrepareMsg -------------------------------
 type PrepareMsgWrap struct {
-	*pb.PrepareMsg
+	*twopcpb.PrepareMsg
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
@@ -76,7 +76,7 @@ func (msg *PrepareMsgWrap) Signature() []byte {return msg.Sign}
 
 // ------------------------------- About PrepareVote -------------------------------
 type PrepareVoteWrap struct {
-	*pb.PrepareVote
+	*twopcpb.PrepareVote
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
@@ -127,7 +127,7 @@ func (msg *PrepareVoteWrap) Signature() []byte {return msg.Sign}
 
 // ------------------------------- About ConfirmMsg -------------------------------
 type ConfirmMsgWrap struct {
-	*pb.ConfirmMsg
+	*twopcpb.ConfirmMsg
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
@@ -177,7 +177,7 @@ func (msg *ConfirmMsgWrap) Signature() []byte {return msg.Sign}
 
 // ------------------------------- About ConfirmVote -------------------------------
 type ConfirmVoteWrap struct {
-	*pb.ConfirmVote
+	*twopcpb.ConfirmVote
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
@@ -229,7 +229,7 @@ func (msg *ConfirmVoteWrap) Signature() []byte {return msg.Sign}
 
 // ------------------------------- About CommitMsg -------------------------------
 type CommitMsgWrap struct {
-	*pb.CommitMsg
+	*twopcpb.CommitMsg
 	// caches
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
@@ -277,7 +277,7 @@ func (msg *CommitMsgWrap) Signature() []byte {return msg.Sign}
 
 //// ------------------------------- About TaskResultMsg -------------------------------
 //type TaskResultMsgWrap struct {
-//	*pb.TaskResultMsg
+//	*twopcpb.TaskResultMsg
 //	// caches
 //	sealHash atomic.Value `json:"-" rlp:"-"`
 //	hash     atomic.Value `json:"-" rlp:"-"`

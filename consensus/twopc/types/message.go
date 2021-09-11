@@ -46,35 +46,6 @@ var (
 	ProposalDeadlineDuration = uint64(60 * (time.Second.Milliseconds()))
 )
 
-type OrgProposalState struct {
-	PrePeriodStartTime uint64
-	PeriodStartTime    uint64 // the timestemp
-	DeadlineDuration   uint64 // Clear `ProposalState` , when the current time is greater than the `DeadlineDuration` createAt of proposalState
-	CreateAt           uint64
-	TaskId             string
-	TaskRole           apipb.TaskRole
-	TaskOrg            *apipb.TaskOrganization
-	PeriodNum          ProposalStatePeriod
-}
-
-func NewOrgProposalState(
-	taskId string,
-	taskRole apipb.TaskRole,
-	taskOrg   *apipb.TaskOrganization,
-	startTime uint64,
-) *OrgProposalState {
-
-	return &OrgProposalState{
-		TaskId:           taskId,
-		TaskRole:         taskRole,
-		TaskOrg:          taskOrg,
-		PeriodNum:        PeriodPrepare,
-		PeriodStartTime:  startTime,
-		DeadlineDuration: ProposalDeadlineDuration,
-		CreateAt:         uint64(timeutils.UnixMsec()),
-	}
-}
-
 type ProposalState struct {
 	proposalId common.Hash
 	taskId     string
@@ -88,13 +59,13 @@ var EmptyProposalState = new(ProposalState)
 func NewProposalState(proposalId common.Hash, taskId string, sender *apipb.TaskOrganization) *ProposalState {
 	return &ProposalState{
 		proposalId: proposalId,
-		taskId: taskId,
+		taskId:     taskId,
 		taskSender: sender,
 		stateCache: make(map[string]*OrgProposalState, 0),
 	}
 }
-func (pstate *ProposalState) GetProposalId() common.Hash { return pstate.proposalId }
-func (pstate *ProposalState) GetTaskId() string          { return pstate.taskId }
+func (pstate *ProposalState) GetProposalId() common.Hash             { return pstate.proposalId }
+func (pstate *ProposalState) GetTaskId() string                      { return pstate.taskId }
 func (pstate *ProposalState) GetTaskSender() *apipb.TaskOrganization { return pstate.taskSender }
 
 func (pstate *ProposalState) StoreOrgProposalState(orgState *OrgProposalState) {
@@ -183,7 +154,6 @@ func (pstate *ProposalState) RefreshProposalState() {
 
 				delete(pstate.stateCache, partyId)
 
-
 			}
 
 		default:
@@ -193,6 +163,35 @@ func (pstate *ProposalState) RefreshProposalState() {
 
 	pstate.lock.Unlock()
 
+}
+
+type OrgProposalState struct {
+	PrePeriodStartTime uint64
+	PeriodStartTime    uint64 // the timestemp
+	DeadlineDuration   uint64 // Clear `ProposalState` , when the current time is greater than the `DeadlineDuration` createAt of proposalState
+	CreateAt           uint64
+	TaskId             string
+	TaskRole           apipb.TaskRole
+	TaskOrg            *apipb.TaskOrganization
+	PeriodNum          ProposalStatePeriod
+}
+
+func NewOrgProposalState(
+	taskId string,
+	taskRole apipb.TaskRole,
+	taskOrg *apipb.TaskOrganization,
+	startTime uint64,
+) *OrgProposalState {
+
+	return &OrgProposalState{
+		TaskId:           taskId,
+		TaskRole:         taskRole,
+		TaskOrg:          taskOrg,
+		PeriodNum:        PeriodPrepare,
+		PeriodStartTime:  startTime,
+		DeadlineDuration: ProposalDeadlineDuration,
+		CreateAt:         uint64(timeutils.UnixMsec()),
+	}
 }
 
 func (pstate *OrgProposalState) CurrPeriodNum() ProposalStatePeriod {
@@ -214,6 +213,13 @@ func (pstate *OrgProposalState) GetPeriod() string {
 	default:
 		return "PeriodUnknown"
 	}
+}
+
+func (pstate *OrgProposalState) SetDeadlineDuration(deadline uint64) {
+	pstate.DeadlineDuration = deadline
+}
+func (pstate *OrgProposalState) AddDeadlineDuration(duration uint64) {
+	pstate.DeadlineDuration += duration
 }
 func (pstate *OrgProposalState) IsPreparePeriod() bool     { return pstate.PeriodNum == PeriodPrepare }
 func (pstate *OrgProposalState) IsConfirmPeriod() bool     { return pstate.PeriodNum == PeriodConfirm }

@@ -182,7 +182,7 @@ func (m *IdentityListRequest) GetLastUpdated() uint64 {
 
 type IdentityListResponse struct {
 	Identities []*common.Organization `protobuf:"bytes,1,rep,name=identities,proto3" json:"identities,omitempty"`
-	// 数据的最后更新点（秒级时间戳）
+	// 数据的最后更新点（毫秒级时间戳）
 	LastUpdated          uint64   `protobuf:"varint,2,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

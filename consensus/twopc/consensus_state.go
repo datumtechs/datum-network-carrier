@@ -4,7 +4,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 )
@@ -18,7 +18,7 @@ type state struct {
 	// About the voting state of confirmMsg for proposal
 	confirmVotes map[common.Hash]*confirmVoteState
 	// cache
-	proposalPeerInfoCache map[common.Hash]*pb.ConfirmTaskPeerInfo
+	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo
 
 	proposalsLock       sync.RWMutex
 	prepareVotesLock    sync.RWMutex
@@ -33,7 +33,7 @@ func newState() *state {
 		proposalSet:           make(map[common.Hash]*ctypes.ProposalState, 0),
 		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
-		proposalPeerInfoCache: make(map[common.Hash]*pb.ConfirmTaskPeerInfo, 0),
+		proposalPeerInfoCache: make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
 	}
 }
 
@@ -608,7 +608,7 @@ func (st *confirmVoteState) hasConfirmVoting(partyId, identityId string) bool {
 	return false
 }
 
-func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *pb.ConfirmTaskPeerInfo) {
+func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
 	s.confirmPeerInfoLock.Lock()
 	_, ok := s.proposalPeerInfoCache[proposalId]
 	if !ok {
@@ -624,14 +624,14 @@ func (s *state) HasConfirmTaskPeerInfo(proposalId common.Hash) bool {
 	return ok
 }
 
-func (s *state) GetConfirmTaskPeerInfo(proposalId common.Hash) (*pb.ConfirmTaskPeerInfo, bool) {
+func (s *state) GetConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
 	s.confirmPeerInfoLock.RLock()
 	peers, ok := s.proposalPeerInfoCache[proposalId]
 	s.confirmPeerInfoLock.RUnlock()
 	return peers, ok
 }
 
-func (s *state) MustGetConfirmTaskPeerInfo(proposalId common.Hash) *pb.ConfirmTaskPeerInfo {
+func (s *state) MustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 	peers, _ := s.GetConfirmTaskPeerInfo(proposalId)
 	return peers
 }

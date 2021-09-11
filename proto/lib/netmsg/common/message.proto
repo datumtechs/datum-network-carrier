@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package common;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common";
+
+// 消息选项
+message MsgOption {
+  bytes                        proposal_id = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];                 // 提案Id
+  uint64                       sender_role = 2 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // 我在task中的角色
+  bytes                        sender_party_id = 3 [(gogoproto.moretags) = "ssz-max:\"32\""];               // 我在task中的partyId
+  uint64                       receiver_role = 4 [(gogoproto.moretags) = "ssz-size:\"8\""];                 // 你在task中的角色
+  bytes                        receiver_party_id = 5 [(gogoproto.moretags) = "ssz-max:\"32\""];             // 你在task中的partyId
+  TaskOrganizationIdentityInfo msg_owner = 6 [(gogoproto.moretags) = "ssz-max:\"16777216\""];                                                           // 消息发起人信息
+}
+
+// 组织(节点)唯一标识抽象
+message TaskOrganizationIdentityInfo  {
+  bytes name = 1 [(gogoproto.moretags) = "ssz-max:\"64\""];                             // 组织名称
+  bytes node_id = 2 [(gogoproto.moretags) = "ssz-max:\"1024\""];                        // 组织中调度服务的 nodeId
+  bytes identity_id = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                    // 组织的身份标识Id
+  bytes party_id = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];                         // 所在任务中的partyId
+}
+

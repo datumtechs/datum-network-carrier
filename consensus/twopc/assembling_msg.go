@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -14,14 +15,14 @@ func makeMsgOption(proposalId common.Hash,
 	senderRole, receiverRole apipb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	sender *apipb.TaskOrganization,
-) *pb.MsgOption {
-	return &pb.MsgOption{
+) *msgcommonpb.MsgOption {
+	return &msgcommonpb.MsgOption{
 		ProposalId:      proposalId.Bytes(),
 		SenderRole:      uint64(senderRole),
 		SenderPartyId:   []byte(senderPartyId),
 		ReceiverRole:    uint64(receiverRole),
 		ReceiverPartyId: []byte(receiverPartyId),
-		MsgOwner: &pb.TaskOrganizationIdentityInfo{
+		MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
 			Name:       []byte(sender.GetNodeName()),
 			NodeId:     []byte(sender.GetNodeId()),
 			IdentityId: []byte(sender.GetIdentityId()),
@@ -36,7 +37,7 @@ func makePrepareMsg(
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	startTime uint64,
-) (*pb.PrepareMsg, error) {
+) (*twopcpb.PrepareMsg, error) {
 
 	// region receivers come from task.Receivers
 	bys := new(bytes.Buffer)
@@ -44,7 +45,7 @@ func makePrepareMsg(
 	if err != nil {
 		return nil, err
 	}
-	return &pb.PrepareMsg{
+	return &twopcpb.PrepareMsg{
 		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		TaskInfo:  bys.Bytes(),
 		CreateAt:  startTime,
@@ -60,9 +61,9 @@ func makePrepareVote(
 	voteOption types.VoteOption,
 	peerInfo *types.PrepareVoteResource,
 	startTime uint64,
-) *pb.PrepareVote {
+) *twopcpb.PrepareVote {
 
-	return &pb.PrepareVote{
+	return &twopcpb.PrepareVote{
 		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		VoteOption: voteOption.Bytes(),
 		PeerInfo:   types.ConvertTaskPeerInfo(peerInfo),
@@ -76,11 +77,11 @@ func makeConfirmMsg(
 	senderRole, receiverRole apipb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
-	peers *pb.ConfirmTaskPeerInfo,
+	peers *twopcpb.ConfirmTaskPeerInfo,
 	startTime uint64,
-) *pb.ConfirmMsg {
+) *twopcpb.ConfirmMsg {
 
-	msg := &pb.ConfirmMsg{
+	msg := &twopcpb.ConfirmMsg{
 		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		Peers:     peers,
 		CreateAt:  startTime,
@@ -97,9 +98,9 @@ func makeConfirmVote(
 	task *types.Task,
 	voteOption types.VoteOption,
 	startTime uint64,
-) *pb.ConfirmVote {
+) *twopcpb.ConfirmVote {
 
-	return &pb.ConfirmVote{
+	return &twopcpb.ConfirmVote{
 		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		VoteOption: voteOption.Bytes(),
 		CreateAt:   startTime,
@@ -113,9 +114,9 @@ func makeCommitMsg(
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	startTime uint64,
-) *pb.CommitMsg {
+) *twopcpb.CommitMsg {
 
-	msg := &pb.CommitMsg{
+	msg := &twopcpb.CommitMsg{
 		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
 		CreateAt:  startTime,
 		Sign:      nil,

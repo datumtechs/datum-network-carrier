@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	taskmngcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"
@@ -28,7 +28,7 @@ func (s *Service) validateTaskResultMessagePubSub(ctx context.Context, pid peer.
 		return pubsub.ValidationReject
 	}
 
-	message, ok := m.(*pb.TaskResultMsg)
+	message, ok := m.(*taskmngcpb.TaskResultMsg)
 	if !ok {
 		log.Errorf("Invalid message type in the validateTaskResultMessagePubSub, typ: %T", m)
 		return pubsub.ValidationReject

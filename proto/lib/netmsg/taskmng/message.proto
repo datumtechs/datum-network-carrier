@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package taskmng;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+import "lib/netmsg/common/message.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng";
+
+// 参与方反馈 各自对某个task的执行结果 (发给发起方)
+message TaskResultMsg {
+  common.MsgOption             msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
+  repeated TaskEvent           task_event_list = 2 [(gogoproto.moretags) = "ssz-max:\"16777216\""];         // 任务在该参与方上产生的event
+  uint64                       create_at = 3 [(gogoproto.moretags) = "ssz-size:\"8\""];                     // TaskResultMsg 创建的时间戳 (单位: ms)
+  bytes                        sign = 4 [(gogoproto.moretags) = "ssz-max:\"1024\""];                        // TaskResultMsg 发起者签名
+}
+
+message TaskEvent {
+  bytes  type = 1 [(gogoproto.moretags) = "ssz-max:\"32\""];                            // 事件类型码
+  bytes  task_id = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];                        // 事件对应的任务id
+  bytes  identity_id = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 产生事件的节点身份
+  bytes  content = 4 [(gogoproto.moretags) = "ssz-max:\"2048\""];                       // 事件内容
+  uint64 create_at = 5 [(gogoproto.moretags) = "ssz-size:\"8\""];                       // 事件产生时间戳 (单位: ms)
+}
