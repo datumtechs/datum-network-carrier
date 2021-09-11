@@ -39,7 +39,7 @@ func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID,
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenPrepareMsg(message.MsgOption.ProposalId, message.MsgOption.MyPartyId) {
+	if s.hasSeenPrepareMsg(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId) {
 		return pubsub.ValidationIgnore
 	}
 

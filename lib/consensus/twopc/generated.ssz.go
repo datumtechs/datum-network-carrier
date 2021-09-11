@@ -6,6 +6,227 @@ import (
 	ssz "github.com/ferranbt/fastssz"
 )
 
+// MarshalSSZ ssz marshals the MsgOption object
+func (m *MsgOption) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(m)
+}
+
+// MarshalSSZTo ssz marshals the MsgOption object to a target array
+func (m *MsgOption) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(32)
+
+	// Offset (0) 'ProposalId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(m.ProposalId)
+
+	// Field (1) 'SenderRole'
+	dst = ssz.MarshalUint64(dst, m.SenderRole)
+
+	// Offset (2) 'SenderPartyId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(m.SenderPartyId)
+
+	// Field (3) 'ReceiverRole'
+	dst = ssz.MarshalUint64(dst, m.ReceiverRole)
+
+	// Offset (4) 'ReceiverPartyId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(m.ReceiverPartyId)
+
+	// Offset (5) 'MsgOwner'
+	dst = ssz.WriteOffset(dst, offset)
+	if m.MsgOwner == nil {
+		m.MsgOwner = new(TaskOrganizationIdentityInfo)
+	}
+	offset += m.MsgOwner.SizeSSZ()
+
+	// Field (0) 'ProposalId'
+	if len(m.ProposalId) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, m.ProposalId...)
+
+	// Field (2) 'SenderPartyId'
+	if len(m.SenderPartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, m.SenderPartyId...)
+
+	// Field (4) 'ReceiverPartyId'
+	if len(m.ReceiverPartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, m.ReceiverPartyId...)
+
+	// Field (5) 'MsgOwner'
+	if dst, err = m.MsgOwner.MarshalSSZTo(dst); err != nil {
+		return
+	}
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the MsgOption object
+func (m *MsgOption) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 32 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0, o2, o4, o5 uint64
+
+	// Offset (0) 'ProposalId'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	if o0 < 32 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Field (1) 'SenderRole'
+	m.SenderRole = ssz.UnmarshallUint64(buf[4:12])
+
+	// Offset (2) 'SenderPartyId'
+	if o2 = ssz.ReadOffset(buf[12:16]); o2 > size || o0 > o2 {
+		return ssz.ErrOffset
+	}
+
+	// Field (3) 'ReceiverRole'
+	m.ReceiverRole = ssz.UnmarshallUint64(buf[16:24])
+
+	// Offset (4) 'ReceiverPartyId'
+	if o4 = ssz.ReadOffset(buf[24:28]); o4 > size || o2 > o4 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (5) 'MsgOwner'
+	if o5 = ssz.ReadOffset(buf[28:32]); o5 > size || o4 > o5 {
+		return ssz.ErrOffset
+	}
+
+	// Field (0) 'ProposalId'
+	{
+		buf = tail[o0:o2]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(m.ProposalId) == 0 {
+			m.ProposalId = make([]byte, 0, len(buf))
+		}
+		m.ProposalId = append(m.ProposalId, buf...)
+	}
+
+	// Field (2) 'SenderPartyId'
+	{
+		buf = tail[o2:o4]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(m.SenderPartyId) == 0 {
+			m.SenderPartyId = make([]byte, 0, len(buf))
+		}
+		m.SenderPartyId = append(m.SenderPartyId, buf...)
+	}
+
+	// Field (4) 'ReceiverPartyId'
+	{
+		buf = tail[o4:o5]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(m.ReceiverPartyId) == 0 {
+			m.ReceiverPartyId = make([]byte, 0, len(buf))
+		}
+		m.ReceiverPartyId = append(m.ReceiverPartyId, buf...)
+	}
+
+	// Field (5) 'MsgOwner'
+	{
+		buf = tail[o5:]
+		if m.MsgOwner == nil {
+			m.MsgOwner = new(TaskOrganizationIdentityInfo)
+		}
+		if err = m.MsgOwner.UnmarshalSSZ(buf); err != nil {
+			return err
+		}
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the MsgOption object
+func (m *MsgOption) SizeSSZ() (size int) {
+	size = 32
+
+	// Field (0) 'ProposalId'
+	size += len(m.ProposalId)
+
+	// Field (2) 'SenderPartyId'
+	size += len(m.SenderPartyId)
+
+	// Field (4) 'ReceiverPartyId'
+	size += len(m.ReceiverPartyId)
+
+	// Field (5) 'MsgOwner'
+	if m.MsgOwner == nil {
+		m.MsgOwner = new(TaskOrganizationIdentityInfo)
+	}
+	size += m.MsgOwner.SizeSSZ()
+
+	return
+}
+
+// HashTreeRoot ssz hashes the MsgOption object
+func (m *MsgOption) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(m)
+}
+
+// HashTreeRootWith ssz hashes the MsgOption object with a hasher
+func (m *MsgOption) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'ProposalId'
+	if len(m.ProposalId) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(m.ProposalId)
+
+	// Field (1) 'SenderRole'
+	hh.PutUint64(m.SenderRole)
+
+	// Field (2) 'SenderPartyId'
+	if len(m.SenderPartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(m.SenderPartyId)
+
+	// Field (3) 'ReceiverRole'
+	hh.PutUint64(m.ReceiverRole)
+
+	// Field (4) 'ReceiverPartyId'
+	if len(m.ReceiverPartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(m.ReceiverPartyId)
+
+	// Field (5) 'MsgOwner'
+	if err = m.MsgOwner.HashTreeRootWith(hh); err != nil {
+		return
+	}
+
+	hh.Merkleize(indx)
+	return
+}
+
 // MarshalSSZ ssz marshals the PrepareMsg object
 func (p *PrepareMsg) MarshalSSZ() ([]byte, error) {
 	return ssz.MarshalSSZ(p)
@@ -14,72 +235,39 @@ func (p *PrepareMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PrepareMsg object to a target array
 func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(32)
+	offset := int(20)
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(p.ProposalId)
-
-	// Offset (1) 'TaskRole'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(p.TaskRole)
-
-	// Offset (2) 'TaskPartyId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(p.TaskPartyId)
-
-	// Offset (3) 'Owner'
-	dst = ssz.WriteOffset(dst, offset)
-	if p.Owner == nil {
-		p.Owner = new(TaskOrganizationIdentityInfo)
+	if p.MsgOption == nil {
+		p.MsgOption = new(MsgOption)
 	}
-	offset += p.Owner.SizeSSZ()
+	offset += p.MsgOption.SizeSSZ()
 
-	// Offset (4) 'TaskInfo'
+	// Offset (1) 'TaskInfo'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.TaskInfo)
 
-	// Field (5) 'CreateAt'
+	// Field (2) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, p.CreateAt)
 
-	// Offset (6) 'Sign'
+	// Offset (3) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.Sign)
 
-	// Field (0) 'ProposalId'
-	if len(p.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, p.ProposalId...)
-
-	// Field (1) 'TaskRole'
-	if len(p.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, p.TaskRole...)
-
-	// Field (2) 'TaskPartyId'
-	if len(p.TaskPartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, p.TaskPartyId...)
-
-	// Field (3) 'Owner'
-	if dst, err = p.Owner.MarshalSSZTo(dst); err != nil {
+	// Field (0) 'MsgOption'
+	if dst, err = p.MsgOption.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (4) 'TaskInfo'
+	// Field (1) 'TaskInfo'
 	if len(p.TaskInfo) > 16777216 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	dst = append(dst, p.TaskInfo...)
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	if len(p.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -93,100 +281,49 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 32 {
+	if size < 20 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3, o4, o6 uint64
+	var o0, o1, o3 uint64
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 32 {
+	if o0 < 20 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'TaskRole'
+	// Offset (1) 'TaskInfo'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'TaskPartyId'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+	// Field (2) 'CreateAt'
+	p.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+
+	// Offset (3) 'Sign'
+	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (3) 'Owner'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (4) 'TaskInfo'
-	if o4 = ssz.ReadOffset(buf[16:20]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
-	}
-
-	// Field (5) 'CreateAt'
-	p.CreateAt = ssz.UnmarshallUint64(buf[20:28])
-
-	// Offset (6) 'Sign'
-	if o6 = ssz.ReadOffset(buf[28:32]); o6 > size || o4 > o6 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'ProposalId'
+	// Field (0) 'MsgOption'
 	{
 		buf = tail[o0:o1]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
+		if p.MsgOption == nil {
+			p.MsgOption = new(MsgOption)
 		}
-		if cap(p.ProposalId) == 0 {
-			p.ProposalId = make([]byte, 0, len(buf))
-		}
-		p.ProposalId = append(p.ProposalId, buf...)
-	}
-
-	// Field (1) 'TaskRole'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 32 {
-			return ssz.ErrBytesLength
-		}
-		if cap(p.TaskRole) == 0 {
-			p.TaskRole = make([]byte, 0, len(buf))
-		}
-		p.TaskRole = append(p.TaskRole, buf...)
-	}
-
-	// Field (2) 'TaskPartyId'
-	{
-		buf = tail[o2:o3]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(p.TaskPartyId) == 0 {
-			p.TaskPartyId = make([]byte, 0, len(buf))
-		}
-		p.TaskPartyId = append(p.TaskPartyId, buf...)
-	}
-
-	// Field (3) 'Owner'
-	{
-		buf = tail[o3:o4]
-		if p.Owner == nil {
-			p.Owner = new(TaskOrganizationIdentityInfo)
-		}
-		if err = p.Owner.UnmarshalSSZ(buf); err != nil {
+		if err = p.MsgOption.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 
-	// Field (4) 'TaskInfo'
+	// Field (1) 'TaskInfo'
 	{
-		buf = tail[o4:o6]
+		buf = tail[o1:o3]
 		if len(buf) > 16777216 {
 			return ssz.ErrBytesLength
 		}
@@ -196,9 +333,9 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 		p.TaskInfo = append(p.TaskInfo, buf...)
 	}
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	{
-		buf = tail[o6:]
+		buf = tail[o3:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -212,27 +349,18 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the PrepareMsg object
 func (p *PrepareMsg) SizeSSZ() (size int) {
-	size = 32
+	size = 20
 
-	// Field (0) 'ProposalId'
-	size += len(p.ProposalId)
-
-	// Field (1) 'TaskRole'
-	size += len(p.TaskRole)
-
-	// Field (2) 'TaskPartyId'
-	size += len(p.TaskPartyId)
-
-	// Field (3) 'Owner'
-	if p.Owner == nil {
-		p.Owner = new(TaskOrganizationIdentityInfo)
+	// Field (0) 'MsgOption'
+	if p.MsgOption == nil {
+		p.MsgOption = new(MsgOption)
 	}
-	size += p.Owner.SizeSSZ()
+	size += p.MsgOption.SizeSSZ()
 
-	// Field (4) 'TaskInfo'
+	// Field (1) 'TaskInfo'
 	size += len(p.TaskInfo)
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	size += len(p.Sign)
 
 	return
@@ -247,756 +375,27 @@ func (p *PrepareMsg) HashTreeRoot() ([32]byte, error) {
 func (p *PrepareMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'ProposalId'
-	if len(p.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(p.ProposalId)
-
-	// Field (1) 'TaskRole'
-	if len(p.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(p.TaskRole)
-
-	// Field (2) 'TaskPartyId'
-	if len(p.TaskPartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(p.TaskPartyId)
-
-	// Field (3) 'Owner'
-	if err = p.Owner.HashTreeRootWith(hh); err != nil {
+	// Field (0) 'MsgOption'
+	if err = p.MsgOption.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (4) 'TaskInfo'
+	// Field (1) 'TaskInfo'
 	if len(p.TaskInfo) > 16777216 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(p.TaskInfo)
 
-	// Field (5) 'CreateAt'
+	// Field (2) 'CreateAt'
 	hh.PutUint64(p.CreateAt)
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	if len(p.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(p.Sign)
-
-	hh.Merkleize(indx)
-	return
-}
-
-// MarshalSSZ ssz marshals the TaskOrganizationIdentityInfo object
-func (t *TaskOrganizationIdentityInfo) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalSSZ(t)
-}
-
-// MarshalSSZTo ssz marshals the TaskOrganizationIdentityInfo object to a target array
-func (t *TaskOrganizationIdentityInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
-	dst = buf
-	offset := int(16)
-
-	// Offset (0) 'Name'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.Name)
-
-	// Offset (1) 'NodeId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.NodeId)
-
-	// Offset (2) 'IdentityId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.IdentityId)
-
-	// Offset (3) 'PartyId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.PartyId)
-
-	// Field (0) 'Name'
-	if len(t.Name) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.Name...)
-
-	// Field (1) 'NodeId'
-	if len(t.NodeId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.NodeId...)
-
-	// Field (2) 'IdentityId'
-	if len(t.IdentityId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.IdentityId...)
-
-	// Field (3) 'PartyId'
-	if len(t.PartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.PartyId...)
-
-	return
-}
-
-// UnmarshalSSZ ssz unmarshals the TaskOrganizationIdentityInfo object
-func (t *TaskOrganizationIdentityInfo) UnmarshalSSZ(buf []byte) error {
-	var err error
-	size := uint64(len(buf))
-	if size < 16 {
-		return ssz.ErrSize
-	}
-
-	tail := buf
-	var o0, o1, o2, o3 uint64
-
-	// Offset (0) 'Name'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 < 16 {
-		return ssz.ErrInvalidVariableOffset
-	}
-
-	// Offset (1) 'NodeId'
-	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (2) 'IdentityId'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (3) 'PartyId'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'Name'
-	{
-		buf = tail[o0:o1]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.Name) == 0 {
-			t.Name = make([]byte, 0, len(buf))
-		}
-		t.Name = append(t.Name, buf...)
-	}
-
-	// Field (1) 'NodeId'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.NodeId) == 0 {
-			t.NodeId = make([]byte, 0, len(buf))
-		}
-		t.NodeId = append(t.NodeId, buf...)
-	}
-
-	// Field (2) 'IdentityId'
-	{
-		buf = tail[o2:o3]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.IdentityId) == 0 {
-			t.IdentityId = make([]byte, 0, len(buf))
-		}
-		t.IdentityId = append(t.IdentityId, buf...)
-	}
-
-	// Field (3) 'PartyId'
-	{
-		buf = tail[o3:]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.PartyId) == 0 {
-			t.PartyId = make([]byte, 0, len(buf))
-		}
-		t.PartyId = append(t.PartyId, buf...)
-	}
-	return err
-}
-
-// SizeSSZ returns the ssz encoded size in bytes for the TaskOrganizationIdentityInfo object
-func (t *TaskOrganizationIdentityInfo) SizeSSZ() (size int) {
-	size = 16
-
-	// Field (0) 'Name'
-	size += len(t.Name)
-
-	// Field (1) 'NodeId'
-	size += len(t.NodeId)
-
-	// Field (2) 'IdentityId'
-	size += len(t.IdentityId)
-
-	// Field (3) 'PartyId'
-	size += len(t.PartyId)
-
-	return
-}
-
-// HashTreeRoot ssz hashes the TaskOrganizationIdentityInfo object
-func (t *TaskOrganizationIdentityInfo) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(t)
-}
-
-// HashTreeRootWith ssz hashes the TaskOrganizationIdentityInfo object with a hasher
-func (t *TaskOrganizationIdentityInfo) HashTreeRootWith(hh *ssz.Hasher) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'Name'
-	if len(t.Name) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.Name)
-
-	// Field (1) 'NodeId'
-	if len(t.NodeId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.NodeId)
-
-	// Field (2) 'IdentityId'
-	if len(t.IdentityId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.IdentityId)
-
-	// Field (3) 'PartyId'
-	if len(t.PartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.PartyId)
-
-	hh.Merkleize(indx)
-	return
-}
-
-// MarshalSSZ ssz marshals the DataSupplierOption object
-func (d *DataSupplierOption) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalSSZ(d)
-}
-
-// MarshalSSZTo ssz marshals the DataSupplierOption object to a target array
-func (d *DataSupplierOption) MarshalSSZTo(buf []byte) (dst []byte, err error) {
-	dst = buf
-	offset := int(12)
-
-	// Offset (0) 'MemberInfo'
-	dst = ssz.WriteOffset(dst, offset)
-	if d.MemberInfo == nil {
-		d.MemberInfo = new(TaskOrganizationIdentityInfo)
-	}
-	offset += d.MemberInfo.SizeSSZ()
-
-	// Offset (1) 'MetaDataId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(d.MetaDataId)
-
-	// Offset (2) 'ColumnIndexList'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(d.ColumnIndexList) * 8
-
-	// Field (0) 'MemberInfo'
-	if dst, err = d.MemberInfo.MarshalSSZTo(dst); err != nil {
-		return
-	}
-
-	// Field (1) 'MetaDataId'
-	if len(d.MetaDataId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, d.MetaDataId...)
-
-	// Field (2) 'ColumnIndexList'
-	if len(d.ColumnIndexList) > 1024 {
-		err = ssz.ErrListTooBig
-		return
-	}
-	for ii := 0; ii < len(d.ColumnIndexList); ii++ {
-		dst = ssz.MarshalUint64(dst, d.ColumnIndexList[ii])
-	}
-
-	return
-}
-
-// UnmarshalSSZ ssz unmarshals the DataSupplierOption object
-func (d *DataSupplierOption) UnmarshalSSZ(buf []byte) error {
-	var err error
-	size := uint64(len(buf))
-	if size < 12 {
-		return ssz.ErrSize
-	}
-
-	tail := buf
-	var o0, o1, o2 uint64
-
-	// Offset (0) 'MemberInfo'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 < 12 {
-		return ssz.ErrInvalidVariableOffset
-	}
-
-	// Offset (1) 'MetaDataId'
-	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (2) 'ColumnIndexList'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'MemberInfo'
-	{
-		buf = tail[o0:o1]
-		if d.MemberInfo == nil {
-			d.MemberInfo = new(TaskOrganizationIdentityInfo)
-		}
-		if err = d.MemberInfo.UnmarshalSSZ(buf); err != nil {
-			return err
-		}
-	}
-
-	// Field (1) 'MetaDataId'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(d.MetaDataId) == 0 {
-			d.MetaDataId = make([]byte, 0, len(buf))
-		}
-		d.MetaDataId = append(d.MetaDataId, buf...)
-	}
-
-	// Field (2) 'ColumnIndexList'
-	{
-		buf = tail[o2:]
-		num, err := ssz.DivideInt2(len(buf), 8, 1024)
-		if err != nil {
-			return err
-		}
-		d.ColumnIndexList = ssz.ExtendUint64(d.ColumnIndexList, num)
-		for ii := 0; ii < num; ii++ {
-			d.ColumnIndexList[ii] = ssz.UnmarshallUint64(buf[ii*8 : (ii+1)*8])
-		}
-	}
-	return err
-}
-
-// SizeSSZ returns the ssz encoded size in bytes for the DataSupplierOption object
-func (d *DataSupplierOption) SizeSSZ() (size int) {
-	size = 12
-
-	// Field (0) 'MemberInfo'
-	if d.MemberInfo == nil {
-		d.MemberInfo = new(TaskOrganizationIdentityInfo)
-	}
-	size += d.MemberInfo.SizeSSZ()
-
-	// Field (1) 'MetaDataId'
-	size += len(d.MetaDataId)
-
-	// Field (2) 'ColumnIndexList'
-	size += len(d.ColumnIndexList) * 8
-
-	return
-}
-
-// HashTreeRoot ssz hashes the DataSupplierOption object
-func (d *DataSupplierOption) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(d)
-}
-
-// HashTreeRootWith ssz hashes the DataSupplierOption object with a hasher
-func (d *DataSupplierOption) HashTreeRootWith(hh *ssz.Hasher) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'MemberInfo'
-	if err = d.MemberInfo.HashTreeRootWith(hh); err != nil {
-		return
-	}
-
-	// Field (1) 'MetaDataId'
-	if len(d.MetaDataId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(d.MetaDataId)
-
-	// Field (2) 'ColumnIndexList'
-	{
-		if len(d.ColumnIndexList) > 1024 {
-			err = ssz.ErrListTooBig
-			return
-		}
-		subIndx := hh.Index()
-		for _, i := range d.ColumnIndexList {
-			hh.AppendUint64(i)
-		}
-		hh.FillUpTo32()
-		numItems := uint64(len(d.ColumnIndexList))
-		hh.MerkleizeWithMixin(subIndx, numItems, ssz.CalculateLimit(1024, numItems, 8))
-	}
-
-	hh.Merkleize(indx)
-	return
-}
-
-// MarshalSSZ ssz marshals the PowerSupplierOption object
-func (p *PowerSupplierOption) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalSSZ(p)
-}
-
-// MarshalSSZTo ssz marshals the PowerSupplierOption object to a target array
-func (p *PowerSupplierOption) MarshalSSZTo(buf []byte) (dst []byte, err error) {
-	dst = buf
-	offset := int(4)
-
-	// Offset (0) 'MemberInfo'
-	dst = ssz.WriteOffset(dst, offset)
-	if p.MemberInfo == nil {
-		p.MemberInfo = new(TaskOrganizationIdentityInfo)
-	}
-	offset += p.MemberInfo.SizeSSZ()
-
-	// Field (0) 'MemberInfo'
-	if dst, err = p.MemberInfo.MarshalSSZTo(dst); err != nil {
-		return
-	}
-
-	return
-}
-
-// UnmarshalSSZ ssz unmarshals the PowerSupplierOption object
-func (p *PowerSupplierOption) UnmarshalSSZ(buf []byte) error {
-	var err error
-	size := uint64(len(buf))
-	if size < 4 {
-		return ssz.ErrSize
-	}
-
-	tail := buf
-	var o0 uint64
-
-	// Offset (0) 'MemberInfo'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 < 4 {
-		return ssz.ErrInvalidVariableOffset
-	}
-
-	// Field (0) 'MemberInfo'
-	{
-		buf = tail[o0:]
-		if p.MemberInfo == nil {
-			p.MemberInfo = new(TaskOrganizationIdentityInfo)
-		}
-		if err = p.MemberInfo.UnmarshalSSZ(buf); err != nil {
-			return err
-		}
-	}
-	return err
-}
-
-// SizeSSZ returns the ssz encoded size in bytes for the PowerSupplierOption object
-func (p *PowerSupplierOption) SizeSSZ() (size int) {
-	size = 4
-
-	// Field (0) 'MemberInfo'
-	if p.MemberInfo == nil {
-		p.MemberInfo = new(TaskOrganizationIdentityInfo)
-	}
-	size += p.MemberInfo.SizeSSZ()
-
-	return
-}
-
-// HashTreeRoot ssz hashes the PowerSupplierOption object
-func (p *PowerSupplierOption) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(p)
-}
-
-// HashTreeRootWith ssz hashes the PowerSupplierOption object with a hasher
-func (p *PowerSupplierOption) HashTreeRootWith(hh *ssz.Hasher) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'MemberInfo'
-	if err = p.MemberInfo.HashTreeRootWith(hh); err != nil {
-		return
-	}
-
-	hh.Merkleize(indx)
-	return
-}
-
-// MarshalSSZ ssz marshals the ReceiverOption object
-func (r *ReceiverOption) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalSSZ(r)
-}
-
-// MarshalSSZTo ssz marshals the ReceiverOption object to a target array
-func (r *ReceiverOption) MarshalSSZTo(buf []byte) (dst []byte, err error) {
-	dst = buf
-	offset := int(8)
-
-	// Offset (0) 'MemberInfo'
-	dst = ssz.WriteOffset(dst, offset)
-	if r.MemberInfo == nil {
-		r.MemberInfo = new(TaskOrganizationIdentityInfo)
-	}
-	offset += r.MemberInfo.SizeSSZ()
-
-	// Offset (1) 'Providers'
-	dst = ssz.WriteOffset(dst, offset)
-	for ii := 0; ii < len(r.Providers); ii++ {
-		offset += 4
-		offset += r.Providers[ii].SizeSSZ()
-	}
-
-	// Field (0) 'MemberInfo'
-	if dst, err = r.MemberInfo.MarshalSSZTo(dst); err != nil {
-		return
-	}
-
-	// Field (1) 'Providers'
-	if len(r.Providers) > 16777216 {
-		err = ssz.ErrListTooBig
-		return
-	}
-	{
-		offset = 4 * len(r.Providers)
-		for ii := 0; ii < len(r.Providers); ii++ {
-			dst = ssz.WriteOffset(dst, offset)
-			offset += r.Providers[ii].SizeSSZ()
-		}
-	}
-	for ii := 0; ii < len(r.Providers); ii++ {
-		if dst, err = r.Providers[ii].MarshalSSZTo(dst); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// UnmarshalSSZ ssz unmarshals the ReceiverOption object
-func (r *ReceiverOption) UnmarshalSSZ(buf []byte) error {
-	var err error
-	size := uint64(len(buf))
-	if size < 8 {
-		return ssz.ErrSize
-	}
-
-	tail := buf
-	var o0, o1 uint64
-
-	// Offset (0) 'MemberInfo'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 < 8 {
-		return ssz.ErrInvalidVariableOffset
-	}
-
-	// Offset (1) 'Providers'
-	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'MemberInfo'
-	{
-		buf = tail[o0:o1]
-		if r.MemberInfo == nil {
-			r.MemberInfo = new(TaskOrganizationIdentityInfo)
-		}
-		if err = r.MemberInfo.UnmarshalSSZ(buf); err != nil {
-			return err
-		}
-	}
-
-	// Field (1) 'Providers'
-	{
-		buf = tail[o1:]
-		num, err := ssz.DecodeDynamicLength(buf, 16777216)
-		if err != nil {
-			return err
-		}
-		r.Providers = make([]*TaskOrganizationIdentityInfo, num)
-		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
-			if r.Providers[indx] == nil {
-				r.Providers[indx] = new(TaskOrganizationIdentityInfo)
-			}
-			if err = r.Providers[indx].UnmarshalSSZ(buf); err != nil {
-				return err
-			}
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-	}
-	return err
-}
-
-// SizeSSZ returns the ssz encoded size in bytes for the ReceiverOption object
-func (r *ReceiverOption) SizeSSZ() (size int) {
-	size = 8
-
-	// Field (0) 'MemberInfo'
-	if r.MemberInfo == nil {
-		r.MemberInfo = new(TaskOrganizationIdentityInfo)
-	}
-	size += r.MemberInfo.SizeSSZ()
-
-	// Field (1) 'Providers'
-	for ii := 0; ii < len(r.Providers); ii++ {
-		size += 4
-		size += r.Providers[ii].SizeSSZ()
-	}
-
-	return
-}
-
-// HashTreeRoot ssz hashes the ReceiverOption object
-func (r *ReceiverOption) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(r)
-}
-
-// HashTreeRootWith ssz hashes the ReceiverOption object with a hasher
-func (r *ReceiverOption) HashTreeRootWith(hh *ssz.Hasher) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'MemberInfo'
-	if err = r.MemberInfo.HashTreeRootWith(hh); err != nil {
-		return
-	}
-
-	// Field (1) 'Providers'
-	{
-		subIndx := hh.Index()
-		num := uint64(len(r.Providers))
-		if num > 16777216 {
-			err = ssz.ErrIncorrectListSize
-			return
-		}
-		for i := uint64(0); i < num; i++ {
-			if err = r.Providers[i].HashTreeRootWith(hh); err != nil {
-				return
-			}
-		}
-		hh.MerkleizeWithMixin(subIndx, num, 16777216)
-	}
-
-	hh.Merkleize(indx)
-	return
-}
-
-// MarshalSSZ ssz marshals the TaskOperationCost object
-func (t *TaskOperationCost) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalSSZ(t)
-}
-
-// MarshalSSZTo ssz marshals the TaskOperationCost object to a target array
-func (t *TaskOperationCost) MarshalSSZTo(buf []byte) (dst []byte, err error) {
-	dst = buf
-
-	// Field (0) 'CostMem'
-	dst = ssz.MarshalUint64(dst, t.CostMem)
-
-	// Field (1) 'CostProcessor'
-	dst = ssz.MarshalUint64(dst, t.CostProcessor)
-
-	// Field (2) 'CostBandwidth'
-	dst = ssz.MarshalUint64(dst, t.CostBandwidth)
-
-	// Field (3) 'Duration'
-	dst = ssz.MarshalUint64(dst, t.Duration)
-
-	return
-}
-
-// UnmarshalSSZ ssz unmarshals the TaskOperationCost object
-func (t *TaskOperationCost) UnmarshalSSZ(buf []byte) error {
-	var err error
-	size := uint64(len(buf))
-	if size != 32 {
-		return ssz.ErrSize
-	}
-
-	// Field (0) 'CostMem'
-	t.CostMem = ssz.UnmarshallUint64(buf[0:8])
-
-	// Field (1) 'CostProcessor'
-	t.CostProcessor = ssz.UnmarshallUint64(buf[8:16])
-
-	// Field (2) 'CostBandwidth'
-	t.CostBandwidth = ssz.UnmarshallUint64(buf[16:24])
-
-	// Field (3) 'Duration'
-	t.Duration = ssz.UnmarshallUint64(buf[24:32])
-
-	return err
-}
-
-// SizeSSZ returns the ssz encoded size in bytes for the TaskOperationCost object
-func (t *TaskOperationCost) SizeSSZ() (size int) {
-	size = 32
-	return
-}
-
-// HashTreeRoot ssz hashes the TaskOperationCost object
-func (t *TaskOperationCost) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(t)
-}
-
-// HashTreeRootWith ssz hashes the TaskOperationCost object with a hasher
-func (t *TaskOperationCost) HashTreeRootWith(hh *ssz.Hasher) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'CostMem'
-	hh.PutUint64(t.CostMem)
-
-	// Field (1) 'CostProcessor'
-	hh.PutUint64(t.CostProcessor)
-
-	// Field (2) 'CostBandwidth'
-	hh.PutUint64(t.CostBandwidth)
-
-	// Field (3) 'Duration'
-	hh.PutUint64(t.Duration)
 
 	hh.Merkleize(indx)
 	return
@@ -1010,73 +409,51 @@ func (p *PrepareVote) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PrepareVote object to a target array
 func (p *PrepareVote) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(32)
+	offset := int(24)
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(p.ProposalId)
-
-	// Offset (1) 'TaskRole'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(p.TaskRole)
-
-	// Offset (2) 'Owner'
-	dst = ssz.WriteOffset(dst, offset)
-	if p.Owner == nil {
-		p.Owner = new(TaskOrganizationIdentityInfo)
+	if p.MsgOption == nil {
+		p.MsgOption = new(MsgOption)
 	}
-	offset += p.Owner.SizeSSZ()
+	offset += p.MsgOption.SizeSSZ()
 
-	// Offset (3) 'VoteOption'
+	// Offset (1) 'VoteOption'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.VoteOption)
 
-	// Offset (4) 'PeerInfo'
+	// Offset (2) 'PeerInfo'
 	dst = ssz.WriteOffset(dst, offset)
 	if p.PeerInfo == nil {
 		p.PeerInfo = new(TaskPeerInfo)
 	}
 	offset += p.PeerInfo.SizeSSZ()
 
-	// Field (5) 'CreateAt'
+	// Field (3) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, p.CreateAt)
 
-	// Offset (6) 'Sign'
+	// Offset (4) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.Sign)
 
-	// Field (0) 'ProposalId'
-	if len(p.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, p.ProposalId...)
-
-	// Field (1) 'TaskRole'
-	if len(p.TaskRole) > 128 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, p.TaskRole...)
-
-	// Field (2) 'Owner'
-	if dst, err = p.Owner.MarshalSSZTo(dst); err != nil {
+	// Field (0) 'MsgOption'
+	if dst, err = p.MsgOption.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	if len(p.VoteOption) > 32 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	dst = append(dst, p.VoteOption...)
 
-	// Field (4) 'PeerInfo'
+	// Field (2) 'PeerInfo'
 	if dst, err = p.PeerInfo.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (6) 'Sign'
+	// Field (4) 'Sign'
 	if len(p.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -1090,88 +467,54 @@ func (p *PrepareVote) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (p *PrepareVote) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 32 {
+	if size < 24 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3, o4, o6 uint64
+	var o0, o1, o2, o4 uint64
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 32 {
+	if o0 < 24 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'TaskRole'
+	// Offset (1) 'VoteOption'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'Owner'
+	// Offset (2) 'PeerInfo'
 	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (3) 'VoteOption'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
+	// Field (3) 'CreateAt'
+	p.CreateAt = ssz.UnmarshallUint64(buf[12:20])
+
+	// Offset (4) 'Sign'
+	if o4 = ssz.ReadOffset(buf[20:24]); o4 > size || o2 > o4 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (4) 'PeerInfo'
-	if o4 = ssz.ReadOffset(buf[16:20]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
-	}
-
-	// Field (5) 'CreateAt'
-	p.CreateAt = ssz.UnmarshallUint64(buf[20:28])
-
-	// Offset (6) 'Sign'
-	if o6 = ssz.ReadOffset(buf[28:32]); o6 > size || o4 > o6 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'ProposalId'
+	// Field (0) 'MsgOption'
 	{
 		buf = tail[o0:o1]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
+		if p.MsgOption == nil {
+			p.MsgOption = new(MsgOption)
 		}
-		if cap(p.ProposalId) == 0 {
-			p.ProposalId = make([]byte, 0, len(buf))
-		}
-		p.ProposalId = append(p.ProposalId, buf...)
-	}
-
-	// Field (1) 'TaskRole'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 128 {
-			return ssz.ErrBytesLength
-		}
-		if cap(p.TaskRole) == 0 {
-			p.TaskRole = make([]byte, 0, len(buf))
-		}
-		p.TaskRole = append(p.TaskRole, buf...)
-	}
-
-	// Field (2) 'Owner'
-	{
-		buf = tail[o2:o3]
-		if p.Owner == nil {
-			p.Owner = new(TaskOrganizationIdentityInfo)
-		}
-		if err = p.Owner.UnmarshalSSZ(buf); err != nil {
+		if err = p.MsgOption.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	{
-		buf = tail[o3:o4]
+		buf = tail[o1:o2]
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
@@ -1181,9 +524,9 @@ func (p *PrepareVote) UnmarshalSSZ(buf []byte) error {
 		p.VoteOption = append(p.VoteOption, buf...)
 	}
 
-	// Field (4) 'PeerInfo'
+	// Field (2) 'PeerInfo'
 	{
-		buf = tail[o4:o6]
+		buf = tail[o2:o4]
 		if p.PeerInfo == nil {
 			p.PeerInfo = new(TaskPeerInfo)
 		}
@@ -1192,9 +535,9 @@ func (p *PrepareVote) UnmarshalSSZ(buf []byte) error {
 		}
 	}
 
-	// Field (6) 'Sign'
+	// Field (4) 'Sign'
 	{
-		buf = tail[o6:]
+		buf = tail[o4:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -1208,30 +551,24 @@ func (p *PrepareVote) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the PrepareVote object
 func (p *PrepareVote) SizeSSZ() (size int) {
-	size = 32
+	size = 24
 
-	// Field (0) 'ProposalId'
-	size += len(p.ProposalId)
-
-	// Field (1) 'TaskRole'
-	size += len(p.TaskRole)
-
-	// Field (2) 'Owner'
-	if p.Owner == nil {
-		p.Owner = new(TaskOrganizationIdentityInfo)
+	// Field (0) 'MsgOption'
+	if p.MsgOption == nil {
+		p.MsgOption = new(MsgOption)
 	}
-	size += p.Owner.SizeSSZ()
+	size += p.MsgOption.SizeSSZ()
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	size += len(p.VoteOption)
 
-	// Field (4) 'PeerInfo'
+	// Field (2) 'PeerInfo'
 	if p.PeerInfo == nil {
 		p.PeerInfo = new(TaskPeerInfo)
 	}
 	size += p.PeerInfo.SizeSSZ()
 
-	// Field (6) 'Sign'
+	// Field (4) 'Sign'
 	size += len(p.Sign)
 
 	return
@@ -1246,210 +583,32 @@ func (p *PrepareVote) HashTreeRoot() ([32]byte, error) {
 func (p *PrepareVote) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'ProposalId'
-	if len(p.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(p.ProposalId)
-
-	// Field (1) 'TaskRole'
-	if len(p.TaskRole) > 128 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(p.TaskRole)
-
-	// Field (2) 'Owner'
-	if err = p.Owner.HashTreeRootWith(hh); err != nil {
+	// Field (0) 'MsgOption'
+	if err = p.MsgOption.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	if len(p.VoteOption) > 32 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(p.VoteOption)
 
-	// Field (4) 'PeerInfo'
+	// Field (2) 'PeerInfo'
 	if err = p.PeerInfo.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (5) 'CreateAt'
+	// Field (3) 'CreateAt'
 	hh.PutUint64(p.CreateAt)
 
-	// Field (6) 'Sign'
+	// Field (4) 'Sign'
 	if len(p.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(p.Sign)
-
-	hh.Merkleize(indx)
-	return
-}
-
-// MarshalSSZ ssz marshals the TaskPeerInfo object
-func (t *TaskPeerInfo) MarshalSSZ() ([]byte, error) {
-	return ssz.MarshalSSZ(t)
-}
-
-// MarshalSSZTo ssz marshals the TaskPeerInfo object to a target array
-func (t *TaskPeerInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
-	dst = buf
-	offset := int(12)
-
-	// Offset (0) 'Ip'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.Ip)
-
-	// Offset (1) 'Port'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.Port)
-
-	// Offset (2) 'PartyId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.PartyId)
-
-	// Field (0) 'Ip'
-	if len(t.Ip) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.Ip...)
-
-	// Field (1) 'Port'
-	if len(t.Port) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.Port...)
-
-	// Field (2) 'PartyId'
-	if len(t.PartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.PartyId...)
-
-	return
-}
-
-// UnmarshalSSZ ssz unmarshals the TaskPeerInfo object
-func (t *TaskPeerInfo) UnmarshalSSZ(buf []byte) error {
-	var err error
-	size := uint64(len(buf))
-	if size < 12 {
-		return ssz.ErrSize
-	}
-
-	tail := buf
-	var o0, o1, o2 uint64
-
-	// Offset (0) 'Ip'
-	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
-		return ssz.ErrOffset
-	}
-
-	if o0 < 12 {
-		return ssz.ErrInvalidVariableOffset
-	}
-
-	// Offset (1) 'Port'
-	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (2) 'PartyId'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'Ip'
-	{
-		buf = tail[o0:o1]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.Ip) == 0 {
-			t.Ip = make([]byte, 0, len(buf))
-		}
-		t.Ip = append(t.Ip, buf...)
-	}
-
-	// Field (1) 'Port'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.Port) == 0 {
-			t.Port = make([]byte, 0, len(buf))
-		}
-		t.Port = append(t.Port, buf...)
-	}
-
-	// Field (2) 'PartyId'
-	{
-		buf = tail[o2:]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.PartyId) == 0 {
-			t.PartyId = make([]byte, 0, len(buf))
-		}
-		t.PartyId = append(t.PartyId, buf...)
-	}
-	return err
-}
-
-// SizeSSZ returns the ssz encoded size in bytes for the TaskPeerInfo object
-func (t *TaskPeerInfo) SizeSSZ() (size int) {
-	size = 12
-
-	// Field (0) 'Ip'
-	size += len(t.Ip)
-
-	// Field (1) 'Port'
-	size += len(t.Port)
-
-	// Field (2) 'PartyId'
-	size += len(t.PartyId)
-
-	return
-}
-
-// HashTreeRoot ssz hashes the TaskPeerInfo object
-func (t *TaskPeerInfo) HashTreeRoot() ([32]byte, error) {
-	return ssz.HashWithDefaultHasher(t)
-}
-
-// HashTreeRootWith ssz hashes the TaskPeerInfo object with a hasher
-func (t *TaskPeerInfo) HashTreeRootWith(hh *ssz.Hasher) (err error) {
-	indx := hh.Index()
-
-	// Field (0) 'Ip'
-	if len(t.Ip) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.Ip)
-
-	// Field (1) 'Port'
-	if len(t.Port) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.Port)
-
-	// Field (2) 'PartyId'
-	if len(t.PartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.PartyId)
 
 	hh.Merkleize(indx)
 	return
@@ -1463,73 +622,40 @@ func (c *ConfirmMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ConfirmMsg object to a target array
 func (c *ConfirmMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(32)
+	offset := int(20)
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.ProposalId)
-
-	// Offset (1) 'TaskRole'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.TaskRole)
-
-	// Offset (2) 'TaskPartyId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.TaskPartyId)
-
-	// Offset (3) 'Owner'
-	dst = ssz.WriteOffset(dst, offset)
-	if c.Owner == nil {
-		c.Owner = new(TaskOrganizationIdentityInfo)
+	if c.MsgOption == nil {
+		c.MsgOption = new(MsgOption)
 	}
-	offset += c.Owner.SizeSSZ()
+	offset += c.MsgOption.SizeSSZ()
 
-	// Offset (4) 'PeerDesc'
+	// Offset (1) 'Peers'
 	dst = ssz.WriteOffset(dst, offset)
-	if c.PeerDesc == nil {
-		c.PeerDesc = new(ConfirmTaskPeerInfo)
+	if c.Peers == nil {
+		c.Peers = new(ConfirmTaskPeerInfo)
 	}
-	offset += c.PeerDesc.SizeSSZ()
+	offset += c.Peers.SizeSSZ()
 
-	// Field (5) 'CreateAt'
+	// Field (2) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
-	// Offset (6) 'Sign'
+	// Offset (3) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(c.Sign)
 
-	// Field (0) 'ProposalId'
-	if len(c.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.ProposalId...)
-
-	// Field (1) 'TaskRole'
-	if len(c.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.TaskRole...)
-
-	// Field (2) 'TaskPartyId'
-	if len(c.TaskPartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.TaskPartyId...)
-
-	// Field (3) 'Owner'
-	if dst, err = c.Owner.MarshalSSZTo(dst); err != nil {
+	// Field (0) 'MsgOption'
+	if dst, err = c.MsgOption.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (4) 'PeerDesc'
-	if dst, err = c.PeerDesc.MarshalSSZTo(dst); err != nil {
+	// Field (1) 'Peers'
+	if dst, err = c.Peers.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -1543,111 +669,60 @@ func (c *ConfirmMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (c *ConfirmMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 32 {
+	if size < 20 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3, o4, o6 uint64
+	var o0, o1, o3 uint64
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 32 {
+	if o0 < 20 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'TaskRole'
+	// Offset (1) 'Peers'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'TaskPartyId'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+	// Field (2) 'CreateAt'
+	c.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+
+	// Offset (3) 'Sign'
+	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (3) 'Owner'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (4) 'PeerDesc'
-	if o4 = ssz.ReadOffset(buf[16:20]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
-	}
-
-	// Field (5) 'CreateAt'
-	c.CreateAt = ssz.UnmarshallUint64(buf[20:28])
-
-	// Offset (6) 'Sign'
-	if o6 = ssz.ReadOffset(buf[28:32]); o6 > size || o4 > o6 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'ProposalId'
+	// Field (0) 'MsgOption'
 	{
 		buf = tail[o0:o1]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
+		if c.MsgOption == nil {
+			c.MsgOption = new(MsgOption)
 		}
-		if cap(c.ProposalId) == 0 {
-			c.ProposalId = make([]byte, 0, len(buf))
-		}
-		c.ProposalId = append(c.ProposalId, buf...)
-	}
-
-	// Field (1) 'TaskRole'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 32 {
-			return ssz.ErrBytesLength
-		}
-		if cap(c.TaskRole) == 0 {
-			c.TaskRole = make([]byte, 0, len(buf))
-		}
-		c.TaskRole = append(c.TaskRole, buf...)
-	}
-
-	// Field (2) 'TaskPartyId'
-	{
-		buf = tail[o2:o3]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(c.TaskPartyId) == 0 {
-			c.TaskPartyId = make([]byte, 0, len(buf))
-		}
-		c.TaskPartyId = append(c.TaskPartyId, buf...)
-	}
-
-	// Field (3) 'Owner'
-	{
-		buf = tail[o3:o4]
-		if c.Owner == nil {
-			c.Owner = new(TaskOrganizationIdentityInfo)
-		}
-		if err = c.Owner.UnmarshalSSZ(buf); err != nil {
+		if err = c.MsgOption.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 
-	// Field (4) 'PeerDesc'
+	// Field (1) 'Peers'
 	{
-		buf = tail[o4:o6]
-		if c.PeerDesc == nil {
-			c.PeerDesc = new(ConfirmTaskPeerInfo)
+		buf = tail[o1:o3]
+		if c.Peers == nil {
+			c.Peers = new(ConfirmTaskPeerInfo)
 		}
-		if err = c.PeerDesc.UnmarshalSSZ(buf); err != nil {
+		if err = c.Peers.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	{
-		buf = tail[o6:]
+		buf = tail[o3:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -1661,30 +736,21 @@ func (c *ConfirmMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the ConfirmMsg object
 func (c *ConfirmMsg) SizeSSZ() (size int) {
-	size = 32
+	size = 20
 
-	// Field (0) 'ProposalId'
-	size += len(c.ProposalId)
-
-	// Field (1) 'TaskRole'
-	size += len(c.TaskRole)
-
-	// Field (2) 'TaskPartyId'
-	size += len(c.TaskPartyId)
-
-	// Field (3) 'Owner'
-	if c.Owner == nil {
-		c.Owner = new(TaskOrganizationIdentityInfo)
+	// Field (0) 'MsgOption'
+	if c.MsgOption == nil {
+		c.MsgOption = new(MsgOption)
 	}
-	size += c.Owner.SizeSSZ()
+	size += c.MsgOption.SizeSSZ()
 
-	// Field (4) 'PeerDesc'
-	if c.PeerDesc == nil {
-		c.PeerDesc = new(ConfirmTaskPeerInfo)
+	// Field (1) 'Peers'
+	if c.Peers == nil {
+		c.Peers = new(ConfirmTaskPeerInfo)
 	}
-	size += c.PeerDesc.SizeSSZ()
+	size += c.Peers.SizeSSZ()
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	size += len(c.Sign)
 
 	return
@@ -1699,41 +765,20 @@ func (c *ConfirmMsg) HashTreeRoot() ([32]byte, error) {
 func (c *ConfirmMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'ProposalId'
-	if len(c.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.ProposalId)
-
-	// Field (1) 'TaskRole'
-	if len(c.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.TaskRole)
-
-	// Field (2) 'TaskPartyId'
-	if len(c.TaskPartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.TaskPartyId)
-
-	// Field (3) 'Owner'
-	if err = c.Owner.HashTreeRootWith(hh); err != nil {
+	// Field (0) 'MsgOption'
+	if err = c.MsgOption.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (4) 'PeerDesc'
-	if err = c.PeerDesc.HashTreeRootWith(hh); err != nil {
+	// Field (1) 'Peers'
+	if err = c.Peers.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (5) 'CreateAt'
+	// Field (2) 'CreateAt'
 	hh.PutUint64(c.CreateAt)
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -2063,61 +1108,39 @@ func (c *ConfirmVote) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ConfirmVote object to a target array
 func (c *ConfirmVote) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(28)
+	offset := int(20)
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.ProposalId)
-
-	// Offset (1) 'TaskRole'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.TaskRole)
-
-	// Offset (2) 'Owner'
-	dst = ssz.WriteOffset(dst, offset)
-	if c.Owner == nil {
-		c.Owner = new(TaskOrganizationIdentityInfo)
+	if c.MsgOption == nil {
+		c.MsgOption = new(MsgOption)
 	}
-	offset += c.Owner.SizeSSZ()
+	offset += c.MsgOption.SizeSSZ()
 
-	// Offset (3) 'VoteOption'
+	// Offset (1) 'VoteOption'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(c.VoteOption)
 
-	// Field (4) 'CreateAt'
+	// Field (2) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
-	// Offset (5) 'Sign'
+	// Offset (3) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(c.Sign)
 
-	// Field (0) 'ProposalId'
-	if len(c.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.ProposalId...)
-
-	// Field (1) 'TaskRole'
-	if len(c.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.TaskRole...)
-
-	// Field (2) 'Owner'
-	if dst, err = c.Owner.MarshalSSZTo(dst); err != nil {
+	// Field (0) 'MsgOption'
+	if dst, err = c.MsgOption.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	if len(c.VoteOption) > 32 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	dst = append(dst, c.VoteOption...)
 
-	// Field (5) 'Sign'
+	// Field (3) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -2131,83 +1154,49 @@ func (c *ConfirmVote) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (c *ConfirmVote) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 28 {
+	if size < 20 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3, o5 uint64
+	var o0, o1, o3 uint64
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 28 {
+	if o0 < 20 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'TaskRole'
+	// Offset (1) 'VoteOption'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'Owner'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+	// Field (2) 'CreateAt'
+	c.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+
+	// Offset (3) 'Sign'
+	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (3) 'VoteOption'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
-		return ssz.ErrOffset
-	}
-
-	// Field (4) 'CreateAt'
-	c.CreateAt = ssz.UnmarshallUint64(buf[16:24])
-
-	// Offset (5) 'Sign'
-	if o5 = ssz.ReadOffset(buf[24:28]); o5 > size || o3 > o5 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'ProposalId'
+	// Field (0) 'MsgOption'
 	{
 		buf = tail[o0:o1]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
+		if c.MsgOption == nil {
+			c.MsgOption = new(MsgOption)
 		}
-		if cap(c.ProposalId) == 0 {
-			c.ProposalId = make([]byte, 0, len(buf))
-		}
-		c.ProposalId = append(c.ProposalId, buf...)
-	}
-
-	// Field (1) 'TaskRole'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 32 {
-			return ssz.ErrBytesLength
-		}
-		if cap(c.TaskRole) == 0 {
-			c.TaskRole = make([]byte, 0, len(buf))
-		}
-		c.TaskRole = append(c.TaskRole, buf...)
-	}
-
-	// Field (2) 'Owner'
-	{
-		buf = tail[o2:o3]
-		if c.Owner == nil {
-			c.Owner = new(TaskOrganizationIdentityInfo)
-		}
-		if err = c.Owner.UnmarshalSSZ(buf); err != nil {
+		if err = c.MsgOption.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	{
-		buf = tail[o3:o5]
+		buf = tail[o1:o3]
 		if len(buf) > 32 {
 			return ssz.ErrBytesLength
 		}
@@ -2217,9 +1206,9 @@ func (c *ConfirmVote) UnmarshalSSZ(buf []byte) error {
 		c.VoteOption = append(c.VoteOption, buf...)
 	}
 
-	// Field (5) 'Sign'
+	// Field (3) 'Sign'
 	{
-		buf = tail[o5:]
+		buf = tail[o3:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -2233,24 +1222,18 @@ func (c *ConfirmVote) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the ConfirmVote object
 func (c *ConfirmVote) SizeSSZ() (size int) {
-	size = 28
+	size = 20
 
-	// Field (0) 'ProposalId'
-	size += len(c.ProposalId)
-
-	// Field (1) 'TaskRole'
-	size += len(c.TaskRole)
-
-	// Field (2) 'Owner'
-	if c.Owner == nil {
-		c.Owner = new(TaskOrganizationIdentityInfo)
+	// Field (0) 'MsgOption'
+	if c.MsgOption == nil {
+		c.MsgOption = new(MsgOption)
 	}
-	size += c.Owner.SizeSSZ()
+	size += c.MsgOption.SizeSSZ()
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	size += len(c.VoteOption)
 
-	// Field (5) 'Sign'
+	// Field (3) 'Sign'
 	size += len(c.Sign)
 
 	return
@@ -2265,36 +1248,22 @@ func (c *ConfirmVote) HashTreeRoot() ([32]byte, error) {
 func (c *ConfirmVote) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'ProposalId'
-	if len(c.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.ProposalId)
-
-	// Field (1) 'TaskRole'
-	if len(c.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.TaskRole)
-
-	// Field (2) 'Owner'
-	if err = c.Owner.HashTreeRootWith(hh); err != nil {
+	// Field (0) 'MsgOption'
+	if err = c.MsgOption.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (3) 'VoteOption'
+	// Field (1) 'VoteOption'
 	if len(c.VoteOption) > 32 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(c.VoteOption)
 
-	// Field (4) 'CreateAt'
+	// Field (2) 'CreateAt'
 	hh.PutUint64(c.CreateAt)
 
-	// Field (5) 'Sign'
+	// Field (3) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -2313,61 +1282,28 @@ func (c *CommitMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the CommitMsg object to a target array
 func (c *CommitMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(28)
+	offset := int(16)
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.ProposalId)
-
-	// Offset (1) 'TaskRole'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.TaskRole)
-
-	// Offset (2) 'TaskPartyId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(c.TaskPartyId)
-
-	// Offset (3) 'Owner'
-	dst = ssz.WriteOffset(dst, offset)
-	if c.Owner == nil {
-		c.Owner = new(TaskOrganizationIdentityInfo)
+	if c.MsgOption == nil {
+		c.MsgOption = new(MsgOption)
 	}
-	offset += c.Owner.SizeSSZ()
+	offset += c.MsgOption.SizeSSZ()
 
-	// Field (4) 'CreateAt'
+	// Field (1) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
-	// Offset (5) 'Sign'
+	// Offset (2) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(c.Sign)
 
-	// Field (0) 'ProposalId'
-	if len(c.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.ProposalId...)
-
-	// Field (1) 'TaskRole'
-	if len(c.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.TaskRole...)
-
-	// Field (2) 'TaskPartyId'
-	if len(c.TaskPartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, c.TaskPartyId...)
-
-	// Field (3) 'Owner'
-	if dst, err = c.Owner.MarshalSSZTo(dst); err != nil {
+	// Field (0) 'MsgOption'
+	if dst, err = c.MsgOption.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (5) 'Sign'
+	// Field (2) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -2381,95 +1317,44 @@ func (c *CommitMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (c *CommitMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 28 {
+	if size < 16 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3, o5 uint64
+	var o0, o2 uint64
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 28 {
+	if o0 < 16 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'TaskRole'
-	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
+	// Field (1) 'CreateAt'
+	c.CreateAt = ssz.UnmarshallUint64(buf[4:12])
+
+	// Offset (2) 'Sign'
+	if o2 = ssz.ReadOffset(buf[12:16]); o2 > size || o0 > o2 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'TaskPartyId'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (3) 'Owner'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
-		return ssz.ErrOffset
-	}
-
-	// Field (4) 'CreateAt'
-	c.CreateAt = ssz.UnmarshallUint64(buf[16:24])
-
-	// Offset (5) 'Sign'
-	if o5 = ssz.ReadOffset(buf[24:28]); o5 > size || o3 > o5 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'ProposalId'
+	// Field (0) 'MsgOption'
 	{
-		buf = tail[o0:o1]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
+		buf = tail[o0:o2]
+		if c.MsgOption == nil {
+			c.MsgOption = new(MsgOption)
 		}
-		if cap(c.ProposalId) == 0 {
-			c.ProposalId = make([]byte, 0, len(buf))
-		}
-		c.ProposalId = append(c.ProposalId, buf...)
-	}
-
-	// Field (1) 'TaskRole'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 32 {
-			return ssz.ErrBytesLength
-		}
-		if cap(c.TaskRole) == 0 {
-			c.TaskRole = make([]byte, 0, len(buf))
-		}
-		c.TaskRole = append(c.TaskRole, buf...)
-	}
-
-	// Field (2) 'TaskPartyId'
-	{
-		buf = tail[o2:o3]
-		if len(buf) > 64 {
-			return ssz.ErrBytesLength
-		}
-		if cap(c.TaskPartyId) == 0 {
-			c.TaskPartyId = make([]byte, 0, len(buf))
-		}
-		c.TaskPartyId = append(c.TaskPartyId, buf...)
-	}
-
-	// Field (3) 'Owner'
-	{
-		buf = tail[o3:o5]
-		if c.Owner == nil {
-			c.Owner = new(TaskOrganizationIdentityInfo)
-		}
-		if err = c.Owner.UnmarshalSSZ(buf); err != nil {
+		if err = c.MsgOption.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 
-	// Field (5) 'Sign'
+	// Field (2) 'Sign'
 	{
-		buf = tail[o5:]
+		buf = tail[o2:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -2483,24 +1368,15 @@ func (c *CommitMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the CommitMsg object
 func (c *CommitMsg) SizeSSZ() (size int) {
-	size = 28
+	size = 16
 
-	// Field (0) 'ProposalId'
-	size += len(c.ProposalId)
-
-	// Field (1) 'TaskRole'
-	size += len(c.TaskRole)
-
-	// Field (2) 'TaskPartyId'
-	size += len(c.TaskPartyId)
-
-	// Field (3) 'Owner'
-	if c.Owner == nil {
-		c.Owner = new(TaskOrganizationIdentityInfo)
+	// Field (0) 'MsgOption'
+	if c.MsgOption == nil {
+		c.MsgOption = new(MsgOption)
 	}
-	size += c.Owner.SizeSSZ()
+	size += c.MsgOption.SizeSSZ()
 
-	// Field (5) 'Sign'
+	// Field (2) 'Sign'
 	size += len(c.Sign)
 
 	return
@@ -2515,36 +1391,15 @@ func (c *CommitMsg) HashTreeRoot() ([32]byte, error) {
 func (c *CommitMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'ProposalId'
-	if len(c.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.ProposalId)
-
-	// Field (1) 'TaskRole'
-	if len(c.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.TaskRole)
-
-	// Field (2) 'TaskPartyId'
-	if len(c.TaskPartyId) > 64 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(c.TaskPartyId)
-
-	// Field (3) 'Owner'
-	if err = c.Owner.HashTreeRootWith(hh); err != nil {
+	// Field (0) 'MsgOption'
+	if err = c.MsgOption.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (4) 'CreateAt'
+	// Field (1) 'CreateAt'
 	hh.PutUint64(c.CreateAt)
 
-	// Field (5) 'Sign'
+	// Field (2) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -2563,68 +1418,35 @@ func (t *TaskResultMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the TaskResultMsg object to a target array
 func (t *TaskResultMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(32)
+	offset := int(20)
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.ProposalId)
-
-	// Offset (1) 'TaskRole'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.TaskRole)
-
-	// Offset (2) 'GetTaskId'
-	dst = ssz.WriteOffset(dst, offset)
-	offset += len(t.TaskId)
-
-	// Offset (3) 'Owner'
-	dst = ssz.WriteOffset(dst, offset)
-	if t.Owner == nil {
-		t.Owner = new(TaskOrganizationIdentityInfo)
+	if t.MsgOption == nil {
+		t.MsgOption = new(MsgOption)
 	}
-	offset += t.Owner.SizeSSZ()
+	offset += t.MsgOption.SizeSSZ()
 
-	// Offset (4) 'TaskEventList'
+	// Offset (1) 'TaskEventList'
 	dst = ssz.WriteOffset(dst, offset)
 	for ii := 0; ii < len(t.TaskEventList); ii++ {
 		offset += 4
 		offset += t.TaskEventList[ii].SizeSSZ()
 	}
 
-	// Field (5) 'CreateAt'
+	// Field (2) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, t.CreateAt)
 
-	// Offset (6) 'Sign'
+	// Offset (3) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.Sign)
 
-	// Field (0) 'ProposalId'
-	if len(t.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.ProposalId...)
-
-	// Field (1) 'TaskRole'
-	if len(t.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.TaskRole...)
-
-	// Field (2) 'GetTaskId'
-	if len(t.TaskId) > 128 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	dst = append(dst, t.TaskId...)
-
-	// Field (3) 'Owner'
-	if dst, err = t.Owner.MarshalSSZTo(dst); err != nil {
+	// Field (0) 'MsgOption'
+	if dst, err = t.MsgOption.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (4) 'TaskEventList'
+	// Field (1) 'TaskEventList'
 	if len(t.TaskEventList) > 16777216 {
 		err = ssz.ErrListTooBig
 		return
@@ -2642,7 +1464,7 @@ func (t *TaskResultMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		}
 	}
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	if len(t.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -2656,100 +1478,49 @@ func (t *TaskResultMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (t *TaskResultMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 32 {
+	if size < 20 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3, o4, o6 uint64
+	var o0, o1, o3 uint64
 
-	// Offset (0) 'ProposalId'
+	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 32 {
+	if o0 < 20 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'TaskRole'
+	// Offset (1) 'TaskEventList'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (2) 'GetTaskId'
-	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+	// Field (2) 'CreateAt'
+	t.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+
+	// Offset (3) 'Sign'
+	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
 		return ssz.ErrOffset
 	}
 
-	// Offset (3) 'Owner'
-	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
-		return ssz.ErrOffset
-	}
-
-	// Offset (4) 'TaskEventList'
-	if o4 = ssz.ReadOffset(buf[16:20]); o4 > size || o3 > o4 {
-		return ssz.ErrOffset
-	}
-
-	// Field (5) 'CreateAt'
-	t.CreateAt = ssz.UnmarshallUint64(buf[20:28])
-
-	// Offset (6) 'Sign'
-	if o6 = ssz.ReadOffset(buf[28:32]); o6 > size || o4 > o6 {
-		return ssz.ErrOffset
-	}
-
-	// Field (0) 'ProposalId'
+	// Field (0) 'MsgOption'
 	{
 		buf = tail[o0:o1]
-		if len(buf) > 1024 {
-			return ssz.ErrBytesLength
+		if t.MsgOption == nil {
+			t.MsgOption = new(MsgOption)
 		}
-		if cap(t.ProposalId) == 0 {
-			t.ProposalId = make([]byte, 0, len(buf))
-		}
-		t.ProposalId = append(t.ProposalId, buf...)
-	}
-
-	// Field (1) 'TaskRole'
-	{
-		buf = tail[o1:o2]
-		if len(buf) > 32 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.TaskRole) == 0 {
-			t.TaskRole = make([]byte, 0, len(buf))
-		}
-		t.TaskRole = append(t.TaskRole, buf...)
-	}
-
-	// Field (2) 'GetTaskId'
-	{
-		buf = tail[o2:o3]
-		if len(buf) > 128 {
-			return ssz.ErrBytesLength
-		}
-		if cap(t.TaskId) == 0 {
-			t.TaskId = make([]byte, 0, len(buf))
-		}
-		t.TaskId = append(t.TaskId, buf...)
-	}
-
-	// Field (3) 'Owner'
-	{
-		buf = tail[o3:o4]
-		if t.Owner == nil {
-			t.Owner = new(TaskOrganizationIdentityInfo)
-		}
-		if err = t.Owner.UnmarshalSSZ(buf); err != nil {
+		if err = t.MsgOption.UnmarshalSSZ(buf); err != nil {
 			return err
 		}
 	}
 
-	// Field (4) 'TaskEventList'
+	// Field (1) 'TaskEventList'
 	{
-		buf = tail[o4:o6]
+		buf = tail[o1:o3]
 		num, err := ssz.DecodeDynamicLength(buf, 16777216)
 		if err != nil {
 			return err
@@ -2769,9 +1540,9 @@ func (t *TaskResultMsg) UnmarshalSSZ(buf []byte) error {
 		}
 	}
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	{
-		buf = tail[o6:]
+		buf = tail[o3:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -2785,30 +1556,21 @@ func (t *TaskResultMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the TaskResultMsg object
 func (t *TaskResultMsg) SizeSSZ() (size int) {
-	size = 32
+	size = 20
 
-	// Field (0) 'ProposalId'
-	size += len(t.ProposalId)
-
-	// Field (1) 'TaskRole'
-	size += len(t.TaskRole)
-
-	// Field (2) 'GetTaskId'
-	size += len(t.TaskId)
-
-	// Field (3) 'Owner'
-	if t.Owner == nil {
-		t.Owner = new(TaskOrganizationIdentityInfo)
+	// Field (0) 'MsgOption'
+	if t.MsgOption == nil {
+		t.MsgOption = new(MsgOption)
 	}
-	size += t.Owner.SizeSSZ()
+	size += t.MsgOption.SizeSSZ()
 
-	// Field (4) 'TaskEventList'
+	// Field (1) 'TaskEventList'
 	for ii := 0; ii < len(t.TaskEventList); ii++ {
 		size += 4
 		size += t.TaskEventList[ii].SizeSSZ()
 	}
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	size += len(t.Sign)
 
 	return
@@ -2823,33 +1585,12 @@ func (t *TaskResultMsg) HashTreeRoot() ([32]byte, error) {
 func (t *TaskResultMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'ProposalId'
-	if len(t.ProposalId) > 1024 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.ProposalId)
-
-	// Field (1) 'TaskRole'
-	if len(t.TaskRole) > 32 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.TaskRole)
-
-	// Field (2) 'GetTaskId'
-	if len(t.TaskId) > 128 {
-		err = ssz.ErrBytesLength
-		return
-	}
-	hh.PutBytes(t.TaskId)
-
-	// Field (3) 'Owner'
-	if err = t.Owner.HashTreeRootWith(hh); err != nil {
+	// Field (0) 'MsgOption'
+	if err = t.MsgOption.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (4) 'TaskEventList'
+	// Field (1) 'TaskEventList'
 	{
 		subIndx := hh.Index()
 		num := uint64(len(t.TaskEventList))
@@ -2865,15 +1606,381 @@ func (t *TaskResultMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		hh.MerkleizeWithMixin(subIndx, num, 16777216)
 	}
 
-	// Field (5) 'CreateAt'
+	// Field (2) 'CreateAt'
 	hh.PutUint64(t.CreateAt)
 
-	// Field (6) 'Sign'
+	// Field (3) 'Sign'
 	if len(t.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(t.Sign)
+
+	hh.Merkleize(indx)
+	return
+}
+
+// MarshalSSZ ssz marshals the TaskPeerInfo object
+func (t *TaskPeerInfo) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(t)
+}
+
+// MarshalSSZTo ssz marshals the TaskPeerInfo object to a target array
+func (t *TaskPeerInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(12)
+
+	// Offset (0) 'Ip'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.Ip)
+
+	// Offset (1) 'Port'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.Port)
+
+	// Offset (2) 'PartyId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.PartyId)
+
+	// Field (0) 'Ip'
+	if len(t.Ip) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.Ip...)
+
+	// Field (1) 'Port'
+	if len(t.Port) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.Port...)
+
+	// Field (2) 'PartyId'
+	if len(t.PartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.PartyId...)
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the TaskPeerInfo object
+func (t *TaskPeerInfo) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 12 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0, o1, o2 uint64
+
+	// Offset (0) 'Ip'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	if o0 < 12 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Offset (1) 'Port'
+	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (2) 'PartyId'
+	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+		return ssz.ErrOffset
+	}
+
+	// Field (0) 'Ip'
+	{
+		buf = tail[o0:o1]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.Ip) == 0 {
+			t.Ip = make([]byte, 0, len(buf))
+		}
+		t.Ip = append(t.Ip, buf...)
+	}
+
+	// Field (1) 'Port'
+	{
+		buf = tail[o1:o2]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.Port) == 0 {
+			t.Port = make([]byte, 0, len(buf))
+		}
+		t.Port = append(t.Port, buf...)
+	}
+
+	// Field (2) 'PartyId'
+	{
+		buf = tail[o2:]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.PartyId) == 0 {
+			t.PartyId = make([]byte, 0, len(buf))
+		}
+		t.PartyId = append(t.PartyId, buf...)
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the TaskPeerInfo object
+func (t *TaskPeerInfo) SizeSSZ() (size int) {
+	size = 12
+
+	// Field (0) 'Ip'
+	size += len(t.Ip)
+
+	// Field (1) 'Port'
+	size += len(t.Port)
+
+	// Field (2) 'PartyId'
+	size += len(t.PartyId)
+
+	return
+}
+
+// HashTreeRoot ssz hashes the TaskPeerInfo object
+func (t *TaskPeerInfo) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(t)
+}
+
+// HashTreeRootWith ssz hashes the TaskPeerInfo object with a hasher
+func (t *TaskPeerInfo) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Ip'
+	if len(t.Ip) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.Ip)
+
+	// Field (1) 'Port'
+	if len(t.Port) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.Port)
+
+	// Field (2) 'PartyId'
+	if len(t.PartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.PartyId)
+
+	hh.Merkleize(indx)
+	return
+}
+
+// MarshalSSZ ssz marshals the TaskOrganizationIdentityInfo object
+func (t *TaskOrganizationIdentityInfo) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(t)
+}
+
+// MarshalSSZTo ssz marshals the TaskOrganizationIdentityInfo object to a target array
+func (t *TaskOrganizationIdentityInfo) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(16)
+
+	// Offset (0) 'Name'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.Name)
+
+	// Offset (1) 'NodeId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.NodeId)
+
+	// Offset (2) 'IdentityId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.IdentityId)
+
+	// Offset (3) 'PartyId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.PartyId)
+
+	// Field (0) 'Name'
+	if len(t.Name) > 64 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.Name...)
+
+	// Field (1) 'NodeId'
+	if len(t.NodeId) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.NodeId...)
+
+	// Field (2) 'IdentityId'
+	if len(t.IdentityId) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.IdentityId...)
+
+	// Field (3) 'PartyId'
+	if len(t.PartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.PartyId...)
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the TaskOrganizationIdentityInfo object
+func (t *TaskOrganizationIdentityInfo) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 16 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0, o1, o2, o3 uint64
+
+	// Offset (0) 'Name'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	if o0 < 16 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Offset (1) 'NodeId'
+	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (2) 'IdentityId'
+	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+		return ssz.ErrOffset
+	}
+
+	// Offset (3) 'PartyId'
+	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
+		return ssz.ErrOffset
+	}
+
+	// Field (0) 'Name'
+	{
+		buf = tail[o0:o1]
+		if len(buf) > 64 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.Name) == 0 {
+			t.Name = make([]byte, 0, len(buf))
+		}
+		t.Name = append(t.Name, buf...)
+	}
+
+	// Field (1) 'NodeId'
+	{
+		buf = tail[o1:o2]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.NodeId) == 0 {
+			t.NodeId = make([]byte, 0, len(buf))
+		}
+		t.NodeId = append(t.NodeId, buf...)
+	}
+
+	// Field (2) 'IdentityId'
+	{
+		buf = tail[o2:o3]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.IdentityId) == 0 {
+			t.IdentityId = make([]byte, 0, len(buf))
+		}
+		t.IdentityId = append(t.IdentityId, buf...)
+	}
+
+	// Field (3) 'PartyId'
+	{
+		buf = tail[o3:]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.PartyId) == 0 {
+			t.PartyId = make([]byte, 0, len(buf))
+		}
+		t.PartyId = append(t.PartyId, buf...)
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the TaskOrganizationIdentityInfo object
+func (t *TaskOrganizationIdentityInfo) SizeSSZ() (size int) {
+	size = 16
+
+	// Field (0) 'Name'
+	size += len(t.Name)
+
+	// Field (1) 'NodeId'
+	size += len(t.NodeId)
+
+	// Field (2) 'IdentityId'
+	size += len(t.IdentityId)
+
+	// Field (3) 'PartyId'
+	size += len(t.PartyId)
+
+	return
+}
+
+// HashTreeRoot ssz hashes the TaskOrganizationIdentityInfo object
+func (t *TaskOrganizationIdentityInfo) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(t)
+}
+
+// HashTreeRootWith ssz hashes the TaskOrganizationIdentityInfo object with a hasher
+func (t *TaskOrganizationIdentityInfo) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Name'
+	if len(t.Name) > 64 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.Name)
+
+	// Field (1) 'NodeId'
+	if len(t.NodeId) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.NodeId)
+
+	// Field (2) 'IdentityId'
+	if len(t.IdentityId) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.IdentityId)
+
+	// Field (3) 'PartyId'
+	if len(t.PartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.PartyId)
 
 	hh.Merkleize(indx)
 	return
@@ -2893,7 +2000,7 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.Type)
 
-	// Offset (1) 'GetTaskId'
+	// Offset (1) 'TaskId'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.TaskId)
 
@@ -2915,7 +2022,7 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, t.Type...)
 
-	// Field (1) 'GetTaskId'
+	// Field (1) 'TaskId'
 	if len(t.TaskId) > 128 {
 		err = ssz.ErrBytesLength
 		return
@@ -2959,7 +2066,7 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'GetTaskId'
+	// Offset (1) 'TaskId'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
@@ -2989,7 +2096,7 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 		t.Type = append(t.Type, buf...)
 	}
 
-	// Field (1) 'GetTaskId'
+	// Field (1) 'TaskId'
 	{
 		buf = tail[o1:o2]
 		if len(buf) > 128 {
@@ -3034,7 +2141,7 @@ func (t *TaskEvent) SizeSSZ() (size int) {
 	// Field (0) 'Type'
 	size += len(t.Type)
 
-	// Field (1) 'GetTaskId'
+	// Field (1) 'TaskId'
 	size += len(t.TaskId)
 
 	// Field (2) 'IdentityId'
@@ -3062,7 +2169,7 @@ func (t *TaskEvent) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(t.Type)
 
-	// Field (1) 'GetTaskId'
+	// Field (1) 'TaskId'
 	if len(t.TaskId) > 128 {
 		err = ssz.ErrBytesLength
 		return

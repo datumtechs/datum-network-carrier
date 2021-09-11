@@ -34,7 +34,7 @@ func (s *Service) validateCommitMessagePubSub(ctx context.Context, pid peer.ID, 
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenCommitMsg(message.MsgOption.ProposalId, message.MsgOption.MyPartyId) {
+	if s.hasSeenCommitMsg(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId) {
 		return pubsub.ValidationIgnore
 	}
 

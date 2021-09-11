@@ -134,12 +134,12 @@ func NewOrgResourceFromResource(input *Resource) *RemoteResourceTable {
 		identityId: input.data.IdentityId,
 		total: &resource{
 			mem:       input.data.TotalMem,
-			processor: uint64(input.data.TotalProcessor),
-			bandwidth: uint64(input.data.TotalBandwidth),
+			processor: input.data.TotalProcessor,
+			bandwidth: input.data.TotalBandwidth,
 		},
 		used: &resource{
 			mem:       input.data.UsedMem,
-			processor: uint64(input.data.UsedProcessor),
+			processor: input.data.UsedProcessor,
 			bandwidth: input.data.UsedBandwidth,
 		},
 	}
