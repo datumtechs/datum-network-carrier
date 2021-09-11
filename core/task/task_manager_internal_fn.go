@@ -617,7 +617,7 @@ func (m *Manager) expireTaskMonitor() {
 
 	identityId, err := m.resourceMng.GetDB().GetIdentityId()
 	if nil != err {
-		log.Errorf("Failed to query local identity on expireTaskMonitor(), err: {%s}", err)
+		//log.Warnf("Warned to query local identity on expireTaskMonitor(), err: {%s}", err)
 		return
 	}
 

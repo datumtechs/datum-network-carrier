@@ -16,7 +16,7 @@ func (c *Chaincons)Start() error {
 	return nil
 }
 func (c *Chaincons) Close() error {
-	log.Info("Closed chainCons consensus engine ...")
+	log.Info("Stopped chainCons consensus engine ...")
 	return nil
 }
 func (c *Chaincons)OnPrepare(task *types.Task) error {return nil}
