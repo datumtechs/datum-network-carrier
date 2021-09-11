@@ -10,14 +10,14 @@ import (
 )
 
 type MetadataAuth struct {
-	data *libTypes.AuthRecordPB
+	data *libTypes.MetadataAuthorityPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewMedataAuth(data *libTypes.AuthRecordPB) *MetadataAuth {
+func NewMedataAuth(data *libTypes.MetadataAuthorityPB) *MetadataAuth {
 	return &MetadataAuth{data: data}
 }
 
@@ -31,7 +31,7 @@ func (m *MetadataAuth) EncodePB(w io.Writer) error {
 
 func (m *MetadataAuth) DecodePB(data []byte) error {
 	if m.data == nil {
-		m.data = new(libTypes.AuthRecordPB)
+		m.data = new(libTypes.MetadataAuthorityPB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -50,7 +50,7 @@ func (m *MetadataAuth) Hash() common.Hash {
 
 func (m *MetadataAuth) User() string                   { return m.data.User }
 func (m *MetadataAuth) UserType() apipb.UserType       { return m.data.GetUserType() }
-func (m *MetadataAuth) Data() *libTypes.AuthRecordPB { return m.data }
+func (m *MetadataAuth) Data() *libTypes.MetadataAuthorityPB { return m.data }
 
 type MetadataAuthArray []*MetadataAuth
 
@@ -74,8 +74,8 @@ func NewMetadataAuthArray(metaData []*libTypes.MetadataPB) MetadataArray {
 	return s
 }
 
-func (s MetadataAuthArray) ToArray() []*libTypes.AuthRecordPB {
-	arr := make([]*libTypes.AuthRecordPB, 0, s.Len())
+func (s MetadataAuthArray) ToArray() []*libTypes.MetadataAuthorityPB {
+	arr := make([]*libTypes.MetadataAuthorityPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

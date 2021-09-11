@@ -31,7 +31,7 @@ type Engine interface {
 	OnError() error
 }
 
-type  TaskManager interface {
+type TaskManager interface {
 	Start() error
 	Stop() error
 	ValidateTaskResultMsg(pid peer.ID, taskResultMsg *pb.TaskResultMsg) error
