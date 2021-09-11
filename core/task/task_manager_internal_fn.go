@@ -26,6 +26,8 @@ func (m *Manager) tryScheduleTask() error {
 		return err
 	} else if nil != err && err == schedule.ErrRescheduleLargeThreshold {
 		return m.storeFailedReScheduleTask(nonConsTask.GetTask().GetTaskId())
+	} else if nil == err && nil == nonConsTask {
+		return nil
 	}
 
 	go func(nonConsTask *types.NeedConsensusTask) {
