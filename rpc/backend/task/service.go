@@ -175,7 +175,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	taskMsg.Data.GetTaskData().PowerSuppliers = make([]*libTypes.TaskPowerSupplier, 0)
 
 	// add taskId
-	taskId := taskMsg.SetTaskId()
+	taskId := taskMsg.GenTaskId()
 	taskMsg.Data.GetTaskData().TaskId = taskId
 
 	err = svr.B.SendMsg(taskMsg)
