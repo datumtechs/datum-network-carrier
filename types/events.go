@@ -11,6 +11,8 @@ const (
 	RevokeIdentity
 	ApplyMetadata
 	RevokeMetadata
+	ApplyMetadataAuth
+	RevokeMetadataAuth
 	ApplyPower
 	RevokePower
 	ApplyTask
@@ -20,6 +22,8 @@ type IdentityMsgEvent struct{ Msg *IdentityMsg }
 type IdentityRevokeMsgEvent struct{ Msg *IdentityRevokeMsg }
 type MetadataMsgEvent struct{ Msgs MetadataMsgArr }
 type MetadataRevokeMsgEvent struct{ Msgs MetadataRevokeMsgArr }
+type MetadataAuthMsgEvent struct{ Msgs MetadataAuthorityMsgArr }
+type MetadataAuthRevokeMsgEvent struct{ Msgs MetadataAuthorityRevokeMsgArr }
 type PowerMsgEvent struct{ Msgs PowerMsgArr }
 type PowerRevokeMsgEvent struct{ Msgs PowerRevokeMsgArr }
 type TaskMsgEvent struct{ Msgs TaskMsgArr }

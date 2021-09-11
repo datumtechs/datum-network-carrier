@@ -18,6 +18,9 @@ var (
 	ErrMetadataMsgConvert       = errors.New("convert metadata msg failed")
 	ErrMetadataRevokeMsgConvert = errors.New("convert metadata revokeMsg failed")
 
+	ErrMetadataAuthMsgConvert       = errors.New("convert metadata authority msg failed")
+	ErrMetadataAuthRevokeMsgConvert = errors.New("convert metadata authority revokeMsg failed")
+
 	ErrTaskMsgConvert = errors.New("convert task msg failed")
 
 	ErrUnknownMsgType = errors.New("Unknown msg type")
@@ -121,6 +124,31 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeMetadata,
 			Data: &types.MetadataRevokeMsgEvent{Msgs: types.MetadataRevokeMsgArr{metaDataRevoke}},
+		})
+
+	case *types.MetadataAuthorityMsg:
+		metadataAuthorityMsg, ok := msg.(*types.MetadataAuthorityMsg)
+		if !ok {
+			return ErrMetadataAuthMsgConvert
+		}
+
+		// We've directly injected a replacement metadata authority msg, notify subsystems
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.ApplyMetadataAuth,
+			Data: &types.MetadataAuthMsgEvent{Msgs: types.MetadataAuthorityMsgArr{metadataAuthorityMsg}},
+		})
+
+	case *types.MetadataAuthorityRevokeMsg:
+
+		metadataAuthorityRevokeMsg, ok := msg.(*types.MetadataAuthorityRevokeMsg)
+		if !ok {
+			return ErrMetadataAuthRevokeMsgConvert
+		}
+
+		// We've directly injected a replacement metadata authority rovkeMsg, notify subsystems
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.RevokeMetadataAuth,
+			Data: &types.MetadataAuthRevokeMsgEvent{Msgs: types.MetadataAuthorityRevokeMsgArr{metadataAuthorityRevokeMsg}},
 		})
 
 	case *types.TaskMsg:
