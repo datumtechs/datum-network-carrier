@@ -419,7 +419,9 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 
 func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	// return s.carrier.resourceManager.SendTaskEvent(evengine)
-	return s.carrier.TaskManager.SendTaskEvent(event)
+	//todo: missing SendTaskEvent
+	//return s.carrier.TaskManager.SendTaskEvent(event)
+	return nil
 }
 
 // metadata api

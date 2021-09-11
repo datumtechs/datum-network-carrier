@@ -299,7 +299,7 @@ func (msg *MetadataMsg) HasTitle() bool                       { return msg.Data.
 func (msg *MetadataMsg) State() apipb.MetadataState           { return msg.Data.Information.MetadataSummary.State }
 func (msg *MetadataMsg) ColumnMetas() []*types.MetadataColumn { return msg.Data.Information.ColumnMetas }
 func (msg *MetadataMsg) CreateAt() uint64                     { return msg.Data.CreateAt }
-func (msg *MetadataMsg) SetMetaDataId() string {
+func (msg *MetadataMsg) SetMetadataId() string {
 	if "" != msg.MetadataId {
 		return msg.MetadataId
 	}
