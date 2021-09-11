@@ -72,7 +72,7 @@ func (m *Task) SetEventList(eventList []*libTypes.TaskEvent) {
 		eventArr[i] = &libTypes.TaskEvent{
 			GetTaskId:     ev.GetTaskId,
 			Type:       ev.Type,
-			CreateAt:   ev.CreateAt,
+			GetCreateAt:   ev.GetCreateAt,
 			Content:    ev.Content,
 			IdentityId: ev.IdentityId,
 		}
@@ -129,10 +129,10 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 //	DataSupplier  []*TaskDataSupplierShow  `json:"dataSupplier"`
 //	PowerSupplier []*TaskPowerSupplierShow `json:"powerSupplier"`
 //	Receivers     []*TaskNodeAlias         `json:"receivers"`
-//	CreateAt      uint64                   `json:"createat"`
+//	GetCreateAt      uint64                   `json:"createat"`
 //	StartAt       uint64                   `json:"startAt"`
 //	EndAt         uint64                   `json:"endAt"`
-//	State         string                   `json:"state"`
+//	GetState         string                   `json:"state"`
 //	OperationCost *TaskOperationCost       `json:"operationCost"`
 //}
 
@@ -146,10 +146,10 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 //		PowerSupplier: ConvertTaskPowerSupplierShowArrToPB(task.PowerSupplier),
 //		//TODO: 结构问题，待确认
 //		//Receivers:     ConvertTaskNodeAliasArrToPB(task.Receivers),
-//		CreateAt:      task.CreateAt,
+//		GetCreateAt:      task.GetCreateAt,
 //		StartAt:       task.StartAt,
 //		EndAt:         task.EndAt,
-//		State:         task.State,
+//		GetState:         task.GetState,
 //		OperationCost: ConvertTaskOperationCostToPB(task.OperationCost),
 //	}
 //}
@@ -162,10 +162,10 @@ func (s TaskDataArray) To() []*libTypes.TaskPB {
 //		DataSupplier:  ConvertTaskDataSupplierShowArrFromPB(task.DataSupplier),
 //		PowerSupplier: ConvertTaskPowerSupplierShowArrFromPB(task.PowerSupplier),
 //		Receivers:     ConvertTaskNodeAliasArrFromPB(task.Receivers),
-//		CreateAt:      task.CreateAt,
+//		GetCreateAt:      task.GetCreateAt,
 //		StartAt:       task.StartAt,
 //		EndAt:         task.EndAt,
-//		State:         task.State,
+//		GetState:         task.GetState,
 //		OperationCost: ConvertTaskOperationCostFromPB(task.OperationCost),
 //	}
 //}

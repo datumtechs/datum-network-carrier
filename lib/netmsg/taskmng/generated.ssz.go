@@ -29,7 +29,7 @@ func (t *TaskResultMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		offset += t.TaskEventList[ii].SizeSSZ()
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	dst = ssz.MarshalUint64(dst, t.CreateAt)
 
 	// Offset (3) 'Sign'
@@ -94,7 +94,7 @@ func (t *TaskResultMsg) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	t.CreateAt = ssz.UnmarshallUint64(buf[8:16])
 
 	// Offset (3) 'Sign'
@@ -201,7 +201,7 @@ func (t *TaskResultMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		hh.MerkleizeWithMixin(subIndx, num, 16777216)
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	hh.PutUint64(t.CreateAt)
 
 	// Field (3) 'Sign'
@@ -241,7 +241,7 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.Content)
 
-	// Field (4) 'CreateAt'
+	// Field (4) 'GetCreateAt'
 	dst = ssz.MarshalUint64(dst, t.CreateAt)
 
 	// Field (0) 'Type'
@@ -310,7 +310,7 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Field (4) 'CreateAt'
+	// Field (4) 'GetCreateAt'
 	t.CreateAt = ssz.UnmarshallUint64(buf[16:24])
 
 	// Field (0) 'Type'
@@ -419,7 +419,7 @@ func (t *TaskEvent) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(t.Content)
 
-	// Field (4) 'CreateAt'
+	// Field (4) 'GetCreateAt'
 	hh.PutUint64(t.CreateAt)
 
 	hh.Merkleize(indx)

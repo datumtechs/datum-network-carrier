@@ -49,11 +49,11 @@ func (svr *Server) GetPowerSingleDetailList(ctx context.Context, req *emptypb.Em
 	//		Power: &libtypes.PowerSingleDetail{
 	//			JobNodeId: power.PowerDetail.JobNodeId,
 	//			PowerId: power.PowerDetail.PowerId,
-	//			Information:types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
+	//			organization:types.ConvertResourceUsageToPB(power.PowerDetail.ResourceUsage),
 	//			TotalTaskCount:power.PowerDetail.TotalTaskCount,
 	//			CurrentTaskCount: power.PowerDetail.CurrentTaskCount,
 	//			Tasks: types.ConvertPowerTaskArrToPB(power.PowerDetail.Tasks),
-	//			State: power.PowerDetail.State,
+	//			GetState: power.PowerDetail.GetState,
 	//		},
 	//	}
 	//	respList[i] = resp

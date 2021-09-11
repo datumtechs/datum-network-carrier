@@ -1996,7 +1996,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			}
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OriginId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetOriginId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2028,7 +2028,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TableName", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetTableName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2060,7 +2060,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 8:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FilePath", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetFilePath", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2092,7 +2092,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 9:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetDesc", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2124,7 +2124,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 10:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Rows", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetRows", wireType)
 			}
 			m.Rows = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2143,7 +2143,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			}
 		case 11:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetColumns", wireType)
 			}
 			m.Columns = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2181,7 +2181,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			}
 		case 13:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetFileType", wireType)
 			}
 			m.FileType = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2200,7 +2200,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			}
 		case 14:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetState", wireType)
 			}
 			m.State = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2219,7 +2219,7 @@ func (m *MetadataPB) Unmarshal(dAtA []byte) error {
 			}
 		case 15:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HasTitle", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetHasTitle", wireType)
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
@@ -2785,7 +2785,7 @@ func (m *MetadataAuthorityPB) Unmarshal(dAtA []byte) error {
 			}
 		case 10:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetState", wireType)
 			}
 			m.State = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2887,7 +2887,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OriginId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetOriginId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2919,7 +2919,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TableName", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetTableName", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2951,7 +2951,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetDesc", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2983,7 +2983,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FilePath", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetFilePath", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3015,7 +3015,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 6:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Rows", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetRows", wireType)
 			}
 			m.Rows = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3034,7 +3034,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			}
 		case 7:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetColumns", wireType)
 			}
 			m.Columns = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3072,7 +3072,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			}
 		case 9:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetFileType", wireType)
 			}
 			m.FileType = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3091,7 +3091,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			}
 		case 10:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field HasTitle", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetHasTitle", wireType)
 			}
 			var v int
 			for shift := uint(0); ; shift += 7 {
@@ -3143,7 +3143,7 @@ func (m *MetadataSummary) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 12:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetState", wireType)
 			}
 			m.State = 0
 			for shift := uint(0); ; shift += 7 {

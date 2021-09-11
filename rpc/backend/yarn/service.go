@@ -77,7 +77,7 @@ func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegistered
 	//		InternalPort: v.InternalPort,
 	//		ExternalPort: v.ExternalPort,
 	//		//TODO: 数据结构调整导致必须注释的
-	//		/*Information: &pb.ResourceUsedDetailShow{
+	//		/*organization: &pb.ResourceUsedDetailShow{
 	//			TotalMem:       v.ResourceUsage.TotalMem,
 	//			UsedMem:        v.ResourceUsage.UsedMem,
 	//			TotalProcessor: v.ResourceUsage.TotalProcessor,
@@ -103,7 +103,7 @@ func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegistered
 			ExternalIp:   v.ExternalIp,
 			InternalPort: v.InternalPort,
 			ExternalPort: v.ExternalPort,
-			Information: &pb.ResourceUsedDetailShow{
+			organization: &pb.ResourceUsedDetailShow{
 				TotalMem:       v.ResourceUsage.TotalMem,
 				UsedMem:        v.ResourceUsage.UsedMem,
 				TotalProcessor: v.ResourceUsage.TotalProcessor,

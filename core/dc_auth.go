@@ -4,11 +4,49 @@ import (
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 )
+
+
+// about identity on local
+func (dc *DataCenter) StoreIdentity(identity *apipb.Organization) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	rawdb.WriteLocalIdentity(dc.db, identity)
+	return nil
+}
+
+func (dc *DataCenter) RemoveIdentity() error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	rawdb.DeleteLocalIdentity(dc.db)
+	return nil
+}
+
+func (dc *DataCenter) GetIdentityId() (string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	identity, err := rawdb.ReadLocalIdentity(dc.db)
+	if nil != err {
+		return "", err
+	}
+	return identity.GetIdentityId(), nil
+}
+
+func (dc *DataCenter) GetIdentity() (*apipb.Organization, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	identity, err := rawdb.ReadLocalIdentity(dc.db)
+	if nil != err {
+		return nil, err
+	}
+	return identity, nil
+}
+
 
 // about identity on datacenter
 func (dc *DataCenter) HasIdentity(identity *apipb.Organization) (bool, error) {
@@ -121,3 +159,11 @@ func (dc *DataCenter) GetMetadataAuthorityList(identityId string, lastUpdate uin
 	}
 	return types.NewMetadataAuthArrayFromResponse(response.GetAuthorities()), nil
 }
+
+
+//func (dc *DataCenter) GetIdentityListByIds(identityIds []string) (types.IdentityArray, error) {
+//	dc.serviceMu.RLock()
+//	defer dc.mu.RUnlock()
+//
+//	return nil, nil
+//}

@@ -18,7 +18,7 @@ package types
 //	UsedBandwidth  uint64                `json:"usedBandwidth"`
 //	Peers          []*RegisteredNodeDetail `json:"peers"`
 //	SeedPeers      []*SeedNodeInfo         `json:"seedPeers"`
-//	State          string                `json:"state"`
+//	GetState          string                `json:"state"`
 //}
 
 //type YarnRegisteredNodeDetail struct {

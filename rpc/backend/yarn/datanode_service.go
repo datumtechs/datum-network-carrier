@@ -12,7 +12,7 @@ import (
 func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*apipb.SimpleResponse, error) {
 	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call GetRegisterNodeList() failed, req.OriginId: {%s}, req.FilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
+		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call GetRegisterNodeList() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.OriginId, req.FilePath, req.Ip, req.Port)
 		return nil, ErrGetDataNodeList
 	}
@@ -24,18 +24,18 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 		}
 	}
 	if "" == strings.Trim(resourceId, "") {
-		log.Errorf("RPC-API:ReportUpFileSummary failed, not found resourceId, req.OriginId: {%s}, req.FilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
+		log.Errorf("RPC-API:ReportUpFileSummary failed, not found resourceId, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.OriginId, req.FilePath, req.Ip, req.Port, resourceId)
 		return nil, ErrGetDataNodeList
 	}
 	err = svr.B.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(resourceId, req.OriginId, "", req.FilePath))
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call StoreDataResourceFileUpload() failed, req.OriginId: {%s}, req.FilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
+		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call StoreDataResourceFileUpload() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.OriginId, req.FilePath, req.Ip, req.Port, resourceId)
 		return nil, ErrReportUpFileSummary
 	}
 
-	log.Debugf("RPC-API:ReportUpFileSummary succeed, req.OriginId: {%s}, req.FilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
+	log.Debugf("RPC-API:ReportUpFileSummary succeed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 		req.OriginId, req.FilePath, req.Ip, req.Port, resourceId)
 
 	return &apipb.SimpleResponse{

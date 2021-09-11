@@ -124,7 +124,7 @@ func (s *Service) retrieveActiveValidators() (uint64, error) {
 	//	s.activeValidatorCount = activeVals
 	//	return activeVals, nil
 	//}
-	//bState, err := s.cfg.DB.State(s.ctx, rt)
+	//bState, err := s.cfg.DB.GetState(s.ctx, rt)
 	//if err != nil {
 	//	return 0, err
 	//}

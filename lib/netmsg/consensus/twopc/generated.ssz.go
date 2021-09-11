@@ -26,7 +26,7 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.TaskInfo)
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	dst = ssz.MarshalUint64(dst, p.CreateAt)
 
 	// Offset (3) 'Sign'
@@ -80,7 +80,7 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	p.CreateAt = ssz.UnmarshallUint64(buf[8:16])
 
 	// Offset (3) 'Sign'
@@ -165,7 +165,7 @@ func (p *PrepareMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(p.TaskInfo)
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	hh.PutUint64(p.CreateAt)
 
 	// Field (3) 'Sign'
@@ -207,7 +207,7 @@ func (p *PrepareVote) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	offset += p.PeerInfo.SizeSSZ()
 
-	// Field (3) 'CreateAt'
+	// Field (3) 'GetCreateAt'
 	dst = ssz.MarshalUint64(dst, p.CreateAt)
 
 	// Offset (4) 'Sign'
@@ -271,7 +271,7 @@ func (p *PrepareVote) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Field (3) 'CreateAt'
+	// Field (3) 'GetCreateAt'
 	p.CreateAt = ssz.UnmarshallUint64(buf[12:20])
 
 	// Offset (4) 'Sign'
@@ -378,7 +378,7 @@ func (p *PrepareVote) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 
-	// Field (3) 'CreateAt'
+	// Field (3) 'GetCreateAt'
 	hh.PutUint64(p.CreateAt)
 
 	// Field (4) 'Sign'
@@ -416,7 +416,7 @@ func (c *ConfirmMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	offset += c.Peers.SizeSSZ()
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
 	// Offset (3) 'Sign'
@@ -468,7 +468,7 @@ func (c *ConfirmMsg) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	c.CreateAt = ssz.UnmarshallUint64(buf[8:16])
 
 	// Offset (3) 'Sign'
@@ -553,7 +553,7 @@ func (c *ConfirmMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	hh.PutUint64(c.CreateAt)
 
 	// Field (3) 'Sign'
@@ -899,7 +899,7 @@ func (c *ConfirmVote) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(c.VoteOption)
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
 	// Offset (3) 'Sign'
@@ -953,7 +953,7 @@ func (c *ConfirmVote) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	c.CreateAt = ssz.UnmarshallUint64(buf[8:16])
 
 	// Offset (3) 'Sign'
@@ -1038,7 +1038,7 @@ func (c *ConfirmVote) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(c.VoteOption)
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'GetCreateAt'
 	hh.PutUint64(c.CreateAt)
 
 	// Field (3) 'Sign'
@@ -1069,7 +1069,7 @@ func (c *CommitMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	offset += c.MsgOption.SizeSSZ()
 
-	// Field (1) 'CreateAt'
+	// Field (1) 'GetCreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
 	// Offset (2) 'Sign'
@@ -1111,7 +1111,7 @@ func (c *CommitMsg) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Field (1) 'CreateAt'
+	// Field (1) 'GetCreateAt'
 	c.CreateAt = ssz.UnmarshallUint64(buf[4:12])
 
 	// Offset (2) 'Sign'
@@ -1174,7 +1174,7 @@ func (c *CommitMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 
-	// Field (1) 'CreateAt'
+	// Field (1) 'GetCreateAt'
 	hh.PutUint64(c.CreateAt)
 
 	// Field (2) 'Sign'

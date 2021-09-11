@@ -2956,7 +2956,7 @@ func (m *TaskDetailShow) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 8:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetCreateAt", wireType)
 			}
 			m.CreateAt = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3013,7 +3013,7 @@ func (m *TaskDetailShow) Unmarshal(dAtA []byte) error {
 			}
 		case 11:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetState", wireType)
 			}
 			m.State = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3068,7 +3068,7 @@ func (m *TaskDetailShow) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 13:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetDesc", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3557,7 +3557,7 @@ func (m *TaskEventShow) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 5:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetCreateAt", wireType)
 			}
 			m.CreateAt = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3627,7 +3627,7 @@ func (m *GetTaskDetailResponse) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Information", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field organization", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -4556,7 +4556,7 @@ func (m *PublishTaskDeclareRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 13:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetDesc", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {

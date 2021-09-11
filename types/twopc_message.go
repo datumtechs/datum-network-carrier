@@ -307,7 +307,7 @@ func (msg *CommitMsgWrap) Signature() []byte {return msg.Sign}
 //		msg.GetMsgOption().GetReceiverPartyId(),
 //		msg.GetMsgOption().GetMsgOwner(),
 //		msg.TaskEventList,
-//		msg.CreateAt,
+//		msg.GetCreateAt,
 //	})
 //
 //	hasher.Sum(hash[:0])

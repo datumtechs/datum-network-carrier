@@ -13,6 +13,8 @@ import (
 	"strings"
 )
 
+// for organization identity
+
 func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*apipb.SimpleResponse, error) {
 
 	identity, err := svr.B.GetNodeIdentity()
@@ -28,7 +30,6 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 		return nil, ErrSendIdentityMsg
 	}
 
-	identityMsg := new(types.IdentityMsg)
 	if req.Member == nil {
 		return nil, errors.New("Invalid Params, req.Member is nil")
 	}
@@ -38,12 +39,7 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 		return nil, errors.New("Invalid Params, req.Member.IdentityId or req.Member.Name is empty")
 	}
 
-	identityMsg.Organization = &apipb.Organization{}
-	identityMsg.NodeName = req.Member.NodeName
-	identityMsg.IdentityId = req.Member.IdentityId
-	//identityMsg.NodeId = req.Member.NodeId
-	identityMsg.CreateAt = uint64(timeutils.UnixMsec())
-
+	identityMsg := types.NewIdentityMessageFromRequest(req)
 	err = svr.B.SendMsg(identityMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
@@ -66,8 +62,7 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 		return nil, ErrSendIdentityRevokeMsg
 	}
 
-	identityRevokeMsg := new(types.IdentityRevokeMsg)
-	identityRevokeMsg.CreateAt = uint64(timeutils.UnixMsec())
+	identityRevokeMsg := types.NewIdentityRevokeMessage()
 	err = svr.B.SendMsg(identityRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")
@@ -120,17 +115,21 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 	}, nil
 }
 
-// 数据授权申请（）
-func (svr *Server) ApplyMetadataAuthority(context.Context, *pb.ApplyMetadataAuthorityRequest) (*pb.ApplyMetadataAuthorityResponse, error) {
+
+// for metadata authority apply
+
+func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMetadataAuthorityRequest) (*pb.ApplyMetadataAuthorityResponse, error) {
 	return nil, nil
 }
 
-// 数据授权审核（管理台调用）
-func (svr *Server) AuditMetadataAuthority(context.Context, *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
+func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMetadataAuthorityRequest) (*apipb.SimpleResponse, error) {
 	return nil, nil
 }
 
-// 获取数据授权申请列表（展示地方调用）
+func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
+	return nil, nil
+}
+
 func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
 	authorityList, err := svr.B.GetMetadataAuthorityList("", uint64(timeutils.UnixMsec()))
 	if nil != err {
@@ -158,7 +157,7 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 	}, nil
 }
 
-func (svr *Server) GetMetadataAuthorityListByUser(context.Context, *pb.GetMetadataAuthorityListByUserRequest) (*pb.GetMetadataAuthorityListResponse, error) {
+func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.GetMetadataAuthorityListByUserRequest) (*pb.GetMetadataAuthorityListResponse, error) {
 	// todo: missing implements
 	return nil, nil
 }
