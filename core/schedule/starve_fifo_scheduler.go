@@ -93,6 +93,10 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	sche.increaseTaskTerm()
 	bullet := sche.popTaskBullet()
 
+	if nil == bullet {
+		return nil, nil
+	}
+
 	task, err := sche.resourceMng.GetDB().GetLocalTask(bullet.TaskId)
 	if nil != err {
 		log.Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", bullet.TaskId, err)
