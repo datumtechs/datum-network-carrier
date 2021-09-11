@@ -9,7 +9,6 @@ import (
 	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"strings"
 )
 
 // CarrierAPIBackend implements rpc.Backend for Carrier
@@ -97,7 +96,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		Peers:      registerNodes,
 		SeedPeers:  seedNodes,
 		//TODO: 需要更改
-		//State:        types.YARN_STATE_ACTIVE.String(),
+		//GetState:        types.YARN_STATE_ACTIVE.String(),
 	}, nil
 }
 
@@ -860,24 +859,3 @@ func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceF
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-func utilLocalTaskPowerUsedArrString(used []*types.LocalTaskPowerUsed) string {
-	arr := make([]string, len(used))
-	for i, u := range used {
-		arr[i] = u.String()
-	}
-	if len(arr) != 0 {
-		return "[" + strings.Join(arr, ",") + "]"
-	}
-	return "[]"
-}
-
-func utilLocalTaskPowerUsedMapString(taskPowerUsedMap map[string][]*types.LocalTaskPowerUsed) string {
-	arr := make([]string, 0)
-	for jobNodeId, useds := range taskPowerUsedMap {
-		arr = append(arr, fmt.Sprintf(`{"%s": %s}`, jobNodeId, utilLocalTaskPowerUsedArrString(useds)))
-	}
-	if len(arr) != 0 {
-		return "[" + strings.Join(arr, ",") + "]"
-	}
-	return "[]"
-}

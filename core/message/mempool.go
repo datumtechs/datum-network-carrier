@@ -56,7 +56,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			return ErrIdentityMsgConvert
 		}
 		// set local nodeId first
-		identity.NodeId = pool.cfg.NodeId
+		identity.SetOwnerNodeId(pool.cfg.NodeId)
 		// We've directly injected a replacement identityMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyIdentity,

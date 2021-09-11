@@ -100,8 +100,8 @@ func newMetadataMsgList() *MetadataMsgList {
 }
 
 func (lis *MetadataMsgList) put(msg *types.MetadataMsg) {
-	heap.Push(lis.prioty, msg.CreateAt())
-	lis.items[msg.CreateAt()] = msg
+	heap.Push(lis.prioty, msg.GetCreateAt())
+	lis.items[msg.GetCreateAt()] = msg
 }
 
 func (lis *MetadataMsgList) get(createAt uint64) *types.MetadataMsg {

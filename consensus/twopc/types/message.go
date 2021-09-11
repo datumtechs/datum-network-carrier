@@ -28,7 +28,7 @@ const (
 	PeriodConfirm ProposalStatePeriod = 2
 	PeriodCommit  ProposalStatePeriod = 3
 	// The consensus message life cycle of `proposal` has reached its deadline,
-	// but at this time the `State` of `proposal` itself has not reached the `Deadline`.
+	// but at this time the `GetState` of `proposal` itself has not reached the `Deadline`.
 	PeriodFinished ProposalStatePeriod = 4
 
 	PrepareMsgVotingTimeout = 3 * time.Second // 3s

@@ -2472,7 +2472,7 @@ func (m *DownloadRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FilePath", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetFilePath", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2691,7 +2691,7 @@ func (m *FileInfo) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetFileType", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2755,7 +2755,7 @@ func (m *FileInfo) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetColumns", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3073,7 +3073,7 @@ func (m *UploadReply) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FilePath", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetFilePath", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3690,7 +3690,7 @@ func (m *GetStatusReply) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetState", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {

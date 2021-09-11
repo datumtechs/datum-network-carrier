@@ -6,7 +6,7 @@ import (
 //type TaskEvent struct {
 //	GetTaskId   string     `json:"taskId"`
 //	Type     string     `json:"type"`
-//	CreateAt uint64     `json:"createAt"`
+//	GetCreateAt uint64     `json:"createAt"`
 //	Content  string     `json:"content"`
 //	Owner    *NodeAlias `json:"owner"`
 //}
@@ -16,7 +16,7 @@ import (
 //		GetTaskId:   event.GetTaskId,
 //		Owner:    ConvertNodeAliasToPB(event.Owner),
 //		Content:  event.Content,
-//		CreateAt: event.CreateAt,
+//		GetCreateAt: event.GetCreateAt,
 //	}
 //}
 
@@ -26,7 +26,7 @@ import (
 //		GetTaskId:   event.GetTaskId,
 //		Owner:    ConvertNodeAliasFromPB(event.Owner),
 //		Content:  event.Content,
-//		CreateAt: event.CreateAt,
+//		GetCreateAt: event.GetCreateAt,
 //	}
 //}
 
@@ -40,7 +40,7 @@ import (
 //			GetTaskId:   event.GetTaskId,
 //			Owner:    ConvertNodeAliasToPB(event.Owner),
 //			Content:  event.Content,
-//			CreateAt: event.CreateAt,
+//			GetCreateAt: event.GetCreateAt,
 //		}
 //		arr[i] = e
 //	}
@@ -56,7 +56,7 @@ import (
 //			GetTaskId:   event.GetTaskId,
 //			Owner:    ConvertNodeAliasFromPB(event.Owner),
 //			Content:  event.Content,
-//			CreateAt: event.CreateAt,
+//			GetCreateAt: event.GetCreateAt,
 //		}
 //		arr[i] = e
 //	}

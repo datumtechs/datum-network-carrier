@@ -56,7 +56,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	}
 
 	metaDataMsg := types.NewMetadataMessageFromRequest(req)
-	//metaDataMsg.Data.CreateAt = uint64(timeutils.UnixMsec())
+	//metaDataMsg.Data.GetCreateAt = uint64(timeutils.UnixMsec())
 
 	ColumnMetas := make([]*libtypes.MetadataColumn, len(req.Information.MetadataColumns))
 	for i, v := range req.Information.MetadataColumns {
@@ -69,7 +69,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 		}
 		ColumnMetas[i] = ColumnMeta
 	}
-	metaDataMsg.Data.Information.ColumnMetas = ColumnMetas
+	metaDataMsg.ColumnMetas = ColumnMetas
 	metaDataId := metaDataMsg.SetMetadataId()
 
 	err := svr.B.SendMsg(metaDataMsg)
@@ -87,7 +87,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 
 func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apipb.SimpleResponse, error) {
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
-	//metaDataRevokeMsg.CreateAt = uint64(timeutils.UnixMsec())
+	//metaDataRevokeMsg.GetCreateAt = uint64(timeutils.UnixMsec())
 
 	err := svr.B.SendMsg(metaDataRevokeMsg)
 	if nil != err {

@@ -116,14 +116,14 @@ package types
 //		InternalPort string
 //		ExternalIp   string
 //		ExternalPort string
-//		CreateAt     uint64
+//		GetCreateAt     uint64
 //	}{
 //		Type:         typ,
 //		InternalIp:   node.InternalIp,
 //		InternalPort: node.InternalPort,
 //		ExternalIp:   node.ExternalIp,
 //		ExternalPort: node.ExternalPort,
-//		CreateAt:     uint64(timeutils.UnixMsec()),
+//		GetCreateAt:     uint64(timeutils.UnixMsec()),
 //	}
 //	rlp.Encode(hw, d)
 //	hw.Sum(h[:0])

@@ -5,7 +5,7 @@ package types
 //	NodeId        string         `json:"nodeId"` // The node host machine id
 //	PowerId       string         `json:"powerId"`
 //	ResourceUsage *ResourceUsage `json:"resourceUsage"`
-//	State         string         `json:"state"`
+//	GetState         string         `json:"state"`
 //}
 //
 //type NodeResourceUsagePowerRes struct {
@@ -29,7 +29,7 @@ package types
 //	CurrentTaskCount uint32         `json:"currentTaskCount"`
 //	Tasks            []*PowerTask   `json:"tasks"`
 //	ResourceUsage    *ResourceUsage `json:"resourceUsage"`
-//	State            string         `json:"state"`
+//	GetState            string         `json:"state"`
 //}
 
 //type PowerSingleDetail struct {
@@ -39,7 +39,7 @@ package types
 //	CurrentTaskCount uint32         `json:"currentTaskCount"`
 //	Tasks            []*PowerTask   `json:"tasks"`
 //	ResourceUsage    *ResourceUsage `json:"resourceUsage"`
-//	State            string         `json:"state"`
+//	GetState            string         `json:"state"`
 //}
 
 //type PowerTask struct {
@@ -50,7 +50,7 @@ package types
 //	Receivers      []*NodeAlias       `json:"receivers"`
 //	OperationCost  *TaskOperationCost `json:"operationCost"`
 //	OperationSpend *TaskOperationCost `json:"operationSpend"`
-//	CreateAt       uint64             `json:"createAt"`
+//	GetCreateAt       uint64             `json:"createAt"`
 //}
 
 //func ConvertPowerTaskToPB(task *PowerTask) *libTypes.PowerTask {
@@ -62,7 +62,7 @@ package types
 //		Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 //		OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
 //		OperationSpend: ConvertTaskOperationCostToPB(task.OperationSpend),
-//		CreateAt:       task.CreateAt,
+//		GetCreateAt:       task.GetCreateAt,
 //	}
 //}
 //func ConvertPowerTaskFromPB(task *libTypes.PowerTask) *PowerTask {
@@ -74,7 +74,7 @@ package types
 //		Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 //		OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
 //		OperationSpend: ConvertTaskOperationCostFromPB(task.OperationSpend),
-//		CreateAt:       task.CreateAt,
+//		GetCreateAt:       task.GetCreateAt,
 //	}
 //}
 
@@ -90,7 +90,7 @@ package types
 //			Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 //			OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
 //			OperationSpend: ConvertTaskOperationCostToPB(task.OperationSpend),
-//			CreateAt:       task.CreateAt,
+//			GetCreateAt:       task.GetCreateAt,
 //		}
 //		arr[i] = t
 //	}
@@ -107,7 +107,7 @@ package types
 //			Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 //			OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
 //			OperationSpend: ConvertTaskOperationCostFromPB(task.OperationSpend),
-//			CreateAt:       task.CreateAt,
+//			GetCreateAt:       task.GetCreateAt,
 //		}
 //		arr[i] = t
 //	}

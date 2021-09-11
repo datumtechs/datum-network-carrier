@@ -23,7 +23,7 @@ package twopc
 //	//// Now, we has not  proposalState (on subscriber)
 //	//
 //	//now := uint64(timeutils.UnixMsec())
-//	//if prepareMsg.CreateAt >= now {
+//	//if prepareMsg.GetCreateAt >= now {
 //	//	return ctypes.ErrProposalInTheFuture
 //	//}
 //	//
@@ -112,7 +112,7 @@ package twopc
 //	//}
 //	//
 //	//// validate task create time
-//	//if prepareMsg.TaskOption.CreateAt >= prepareMsg.CreateAt {
+//	//if prepareMsg.TaskOption.GetCreateAt >= prepareMsg.GetCreateAt {
 //	//	return ctypes.ErrProposalParamsInvalid
 //	//}
 //	return nil
@@ -137,12 +137,12 @@ package twopc
 //	}
 //
 //	// earlier vote is invalid vote
-//	if orgProposalState.PeriodStartTime >= vote.CreateAt {
+//	if orgProposalState.PeriodStartTime >= vote.GetCreateAt {
 //		return ctypes.ErrPrepareVoteIllegal
 //	}
 //
 //	now := uint64(timeutils.UnixMsec())
-//	if vote.CreateAt >= now {
+//	if vote.GetCreateAt >= now {
 //		return ctypes.ErrPrepareVoteInTheFuture
 //	}
 //
@@ -201,11 +201,11 @@ package twopc
 //	}*/
 //
 //	// earlier confirmMsg is invalid msg
-//	if proposalState.PeriodStartTime >= confirmMsg.CreateAt {
+//	if proposalState.PeriodStartTime >= confirmMsg.GetCreateAt {
 //		return ctypes.ErrConfirmMsgIllegal
 //	}
 //	now := uint64(timeutils.UnixMsec())
-//	if confirmMsg.CreateAt >= now {
+//	if confirmMsg.GetCreateAt >= now {
 //		return ctypes.ErrConfirmMsgInTheFuture
 //	}
 //
@@ -241,11 +241,11 @@ package twopc
 //	}
 //
 //	// earlier confirmVote is invalid vote
-//	if proposalState.PeriodStartTime >= confirmVote.CreateAt {
+//	if proposalState.PeriodStartTime >= confirmVote.GetCreateAt {
 //		return ctypes.ErrConfirmVoteIllegal
 //	}
 //	now := uint64(timeutils.UnixMsec())
-//	if confirmVote.CreateAt >= now {
+//	if confirmVote.GetCreateAt >= now {
 //		return ctypes.ErrConfirmVoteInTheFuture
 //	}
 //
@@ -291,11 +291,11 @@ package twopc
 //	}
 //
 //	// earlier commitMsg is invalid msg
-//	if proposalState.PeriodStartTime >= commitMsg.CreateAt {
+//	if proposalState.PeriodStartTime >= commitMsg.GetCreateAt {
 //		return ctypes.ErrCommitMsgIllegal
 //	}
 //	now := uint64(timeutils.UnixMsec())
-//	if commitMsg.CreateAt >= now {
+//	if commitMsg.GetCreateAt >= now {
 //		return ctypes.ErrCommitMsgInTheFuture
 //	}
 //

@@ -116,7 +116,7 @@ func FetchTaskEventArr(events []*pb.TaskEvent) []*libTypes.TaskEvent {
 //		Type:       event.Type,
 //		IdentityId: event.IdentityId,
 //		Content:    event.Content,
-//		CreateAt:   event.CreateAt,
+//		GetCreateAt:   event.GetCreateAt,
 //	}
 //}
 //
@@ -126,7 +126,7 @@ func FetchTaskEventArr(events []*pb.TaskEvent) []*libTypes.TaskEvent {
 //		Type:       event.Type,
 //		IdentityId: event.IdentityId,
 //		Content:    event.Content,
-//		CreateAt:   event.CreateAt,
+//		GetCreateAt:   event.GetCreateAt,
 //	}
 //}
 //
