@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
@@ -15,13 +16,15 @@ import (
 )
 
 const (
-	defaultPowerMsgsCacheSize    = 3
-	defaultMetaDataMsgsCacheSize = 3
-	defaultTaskMsgsCacheSize     = 5
+	defaultPowerMsgsCacheSize        = 3
+	defaultMetadataMsgsCacheSize     = 3
+	defaultMetadataAuthMsgsCacheSize = 3
+	defaultTaskMsgsCacheSize         = 5
 
-	defaultBroadcastPowerMsgInterval    = 30 * time.Second
-	defaultBroadcastMetaDataMsgInterval = 30 * time.Second
-	defaultBroadcastTaskMsgInterval     = 10 * time.Second
+	defaultBroadcastPowerMsgInterval        = 30 * time.Second
+	defaultBroadcastMetadataMsgInterval     = 30 * time.Second
+	defaultBroadcastMetadataAuthMsgInterval = 30 * time.Second
+	defaultBroadcastTaskMsgInterval         = 10 * time.Second
 )
 
 type MessageHandler struct {
@@ -31,26 +34,31 @@ type MessageHandler struct {
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
 
+	authManager *auth.AuthorityManager
+
 	msgChannel chan *feed.Event
 	quit       chan struct{}
 
 	msgSub event.Subscription
 
-	powerMsgCache    types.PowerMsgArr
-	metadataMsgCache types.MetadataMsgArr
-	taskMsgCache     types.TaskMsgArr
+	powerMsgCache        types.PowerMsgArr
+	metadataMsgCache     types.MetadataMsgArr
+	metadataAuthMsgCache types.MetadataAuthorityMsgArr
+	taskMsgCache         types.TaskMsgArr
 
-	lockPower    sync.Mutex
-	lockMetadata sync.Mutex
+	lockPower        sync.Mutex
+	lockMetadata     sync.Mutex
+	lockMetadataAuth sync.Mutex
 
 	// TODO 有些缓存需要持久化
 }
 
-func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.Manager) *MessageHandler {
+func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
 	m := &MessageHandler{
 		pool:        pool,
 		dataCenter:  dataCenter,
 		taskManager: taskManager,
+		authManager: authManager,
 		msgChannel:  make(chan *feed.Event, 5),
 		quit:        make(chan struct{}),
 	}
@@ -70,7 +78,8 @@ func (m *MessageHandler) Stop() error {
 
 func (m *MessageHandler) loop() {
 	powerTicker := time.NewTicker(defaultBroadcastPowerMsgInterval)
-	metaDataTicker := time.NewTicker(defaultBroadcastMetaDataMsgInterval)
+	metadataTicker := time.NewTicker(defaultBroadcastMetadataMsgInterval)
+	metadataAuthTicker := time.NewTicker(defaultBroadcastMetadataAuthMsgInterval)
 	taskTicker := time.NewTicker(defaultBroadcastTaskMsgInterval)
 
 	for {
@@ -101,15 +110,15 @@ func (m *MessageHandler) loop() {
 				eventMessage := event.Data.(*types.PowerRevokeMsgEvent)
 				tmp := make(map[string]int, len(eventMessage.Msgs))
 				for i, msg := range eventMessage.Msgs {
-					tmp[msg.PowerId] = i
+					tmp[msg.GetPowerId()] = i
 				}
 
 				// Remove local cache powerMsgs
 				m.lockPower.Lock()
 				for i := 0; i < len(m.powerMsgCache); i++ {
 					msg := m.powerMsgCache[i]
-					if _, ok := tmp[msg.PowerId]; ok {
-						delete(tmp, msg.PowerId)
+					if _, ok := tmp[msg.GetPowerId()]; ok {
+						delete(tmp, msg.GetPowerId())
 						m.powerMsgCache = append(m.powerMsgCache[:i], m.powerMsgCache[i+1:]...)
 						i--
 					}
@@ -131,7 +140,7 @@ func (m *MessageHandler) loop() {
 				eventMessage := event.Data.(*types.MetadataMsgEvent)
 				m.lockMetadata.Lock()
 				m.metadataMsgCache = append(m.metadataMsgCache, eventMessage.Msgs...)
-				if len(m.metadataMsgCache) >= defaultMetaDataMsgsCacheSize {
+				if len(m.metadataMsgCache) >= defaultMetadataMsgsCacheSize {
 					if err := m.BroadcastMetadataMsgArr(m.metadataMsgCache); nil != err {
 						log.Errorf("Failed to call `BroadcastMetadataMsgArr` on MessageHandler, %s", err)
 					}
@@ -142,32 +151,75 @@ func (m *MessageHandler) loop() {
 				eventMessage := event.Data.(*types.MetadataRevokeMsgEvent)
 				tmp := make(map[string]int, len(eventMessage.Msgs))
 				for i, msg := range eventMessage.Msgs {
-					tmp[msg.MetadataId] = i
+					tmp[msg.GetMetadataId()] = i
 				}
 
-				// Remove local cache metaDataMsgs
+				// Remove local cache metadataMsgs
 				m.lockMetadata.Lock()
 				for i := 0; i < len(m.metadataMsgCache); i++ {
 					msg := m.metadataMsgCache[i]
-					if _, ok := tmp[msg.MetadataId]; ok {
-						delete(tmp, msg.MetadataId)
+					if _, ok := tmp[msg.GetMetadataId()]; ok {
+						delete(tmp, msg.GetMetadataId())
 						m.metadataMsgCache = append(m.metadataMsgCache[:i], m.metadataMsgCache[i+1:]...)
 						i--
 					}
 				}
 				m.lockMetadata.Unlock()
 
-				// Revoke remote metaData
+				// Revoke remote metadata
 				if len(tmp) != 0 {
 					msgs, index := make(types.MetadataRevokeMsgArr, len(tmp)), 0
 					for _, i := range tmp {
 						msgs[index] = eventMessage.Msgs[i]
 						index++
 					}
-					if err := m.BroadcastMetaDataRevokeMsgArr(msgs); nil != err {
-						log.Errorf("Failed to call `BroadcastMetaDataRevokeMsgArr` on MessageHandler, %s", err)
+					if err := m.BroadcastMetadataRevokeMsgArr(msgs); nil != err {
+						log.Errorf("Failed to call `BroadcastMetadataRevokeMsgArr` on MessageHandler, %s", err)
 					}
 				}
+
+			case types.ApplyMetadataAuth:
+				eventMessage := event.Data.(*types.MetadataAuthMsgEvent)
+				m.lockMetadataAuth.Lock()
+				m.metadataAuthMsgCache = append(m.metadataAuthMsgCache, eventMessage.Msgs...)
+				if len(m.metadataAuthMsgCache) >= defaultMetadataAuthMsgsCacheSize {
+					if err := m.BroadcastMetadataAuthMsgArr(m.metadataAuthMsgCache); nil != err {
+						log.Errorf("Failed to call `BroadcastMetadataAuthMsgArr` on MessageHandler, %s", err)
+					}
+					m.metadataAuthMsgCache = make(types.MetadataAuthorityMsgArr, 0)
+				}
+				m.lockMetadataAuth.Unlock()
+			case types.RevokeMetadataAuth:
+				eventMessage := event.Data.(*types.MetadataAuthRevokeMsgEvent)
+				tmp := make(map[string]int, len(eventMessage.Msgs))
+				for i, msg := range eventMessage.Msgs {
+					tmp[msg.GetMetadataAuthId()] = i
+				}
+
+				// Remove local cache metadataAuthorityMsgs
+				m.lockMetadataAuth.Lock()
+				for i := 0; i < len(m.metadataAuthMsgCache); i++ {
+					msg := m.metadataAuthMsgCache[i]
+					if _, ok := tmp[msg.GetMetadataAuthId()]; ok {
+						delete(tmp, msg.GetMetadataAuthId())
+						m.metadataAuthMsgCache = append(m.metadataAuthMsgCache[:i], m.metadataAuthMsgCache[i+1:]...)
+						i--
+					}
+				}
+				m.lockMetadataAuth.Unlock()
+
+				// Revoke remote metadataAuthority
+				if len(tmp) != 0 {
+					msgs, index := make(types.MetadataAuthorityRevokeMsgArr, len(tmp)), 0
+					for _, i := range tmp {
+						msgs[index] = eventMessage.Msgs[i]
+						index++
+					}
+					if err := m.BroadcastMetadataAuthRevokeMsgArr(msgs); nil != err {
+						log.Errorf("Failed to call `BroadcastMetadataAuthRevokeMsgArr` on MessageHandler, %s", err)
+					}
+				}
+
 			case types.ApplyTask:
 				eventMessage := event.Data.(*types.TaskMsgEvent)
 				m.taskMsgCache = append(m.taskMsgCache, eventMessage.Msgs...)
@@ -187,13 +239,22 @@ func (m *MessageHandler) loop() {
 				m.powerMsgCache = make(types.PowerMsgArr, 0)
 			}
 
-		case <-metaDataTicker.C:
+		case <-metadataTicker.C:
 
 			if len(m.metadataMsgCache) > 0 {
 				if err := m.BroadcastMetadataMsgArr(m.metadataMsgCache); nil != err {
 					log.Errorf("Failed to call `BroadcastMetadataMsgArr` on MessageHandler with timer, %s", err)
 				}
 				m.metadataMsgCache = make(types.MetadataMsgArr, 0)
+			}
+
+		case <-metadataAuthTicker.C:
+
+			if len(m.metadataAuthMsgCache) > 0 {
+				if err := m.BroadcastMetadataAuthMsgArr(m.metadataAuthMsgCache); nil != err {
+					log.Errorf("Failed to call `BroadcastMetadataAuthMsgArr` on MessageHandler with timer, %s", err)
+				}
+				m.metadataAuthMsgCache = make(types.MetadataAuthorityMsgArr, 0)
 			}
 
 		case <-taskTicker.C:
@@ -250,8 +311,8 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 	// remove identity from dataCenter
 	if err := m.dataCenter.RevokeIdentity(
 		types.NewIdentity(&libtypes.IdentityPB{
-			NodeName: identity.GetNodeName(),
-			NodeId:   identity.GetNodeId(),
+			NodeName:   identity.GetNodeName(),
+			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
 		})); nil != err {
 		log.Errorf("Failed to remove org identity to remote on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
@@ -304,11 +365,11 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) err
 			continue
 		}
 		if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
-			IdentityId:  identity.GetIdentityId(),
-			NodeId:    identity.GetNodeId(),
-			NodeName:  identity.GetNodeName(),
-			JobNodeId: power.GetJobNodeId(),
-			DataId:    power.GetPowerId(),
+			IdentityId: identity.GetIdentityId(),
+			NodeId:     identity.GetNodeId(),
+			NodeName:   identity.GetNodeName(),
+			JobNodeId:  power.GetJobNodeId(),
+			DataId:     power.GetPowerId(),
 			// the status of data, N means normal, D means deleted.
 			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 			// resource status, eg: create/release/revoke
@@ -334,9 +395,9 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) err
 		// 发布到全网
 		if err := m.dataCenter.InsertResource(types.NewResource(&libtypes.ResourcePB{
 			IdentityId: identity.GetIdentityId(),
-			NodeId:   identity.GetNodeId(),
-			NodeName: identity.GetNodeName(),
-			DataId:   power.GetPowerId(),
+			NodeId:     identity.GetNodeId(),
+			NodeName:   identity.GetNodeName(),
+			DataId:     power.GetPowerId(),
 			// the status of data, N means normal, D means deleted.
 			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 			// resource status, eg: create/release/revoke
@@ -411,9 +472,9 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 		if err := m.dataCenter.RevokeResource(types.NewResource(&libtypes.ResourcePB{
 			IdentityId: identity.GetIdentityId(),
-			NodeId:   identity.GetNodeId(),
-			NodeName: identity.GetNodeName(),
-			DataId:   revoke.GetPowerId(),
+			NodeId:     identity.GetNodeId(),
+			NodeName:   identity.GetNodeName(),
+			DataId:     revoke.GetPowerId(),
 			// the status of data, N means normal, D means deleted.
 			DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 			// resource status, eg: create/release/revoke
@@ -500,7 +561,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 	return nil
 }
 
-func (m *MessageHandler) BroadcastMetaDataRevokeMsgArr(metadataRevokeMsgArr types.MetadataRevokeMsgArr) error {
+func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr types.MetadataRevokeMsgArr) error {
 	errs := make([]string, 0)
 	for _, revoke := range metadataRevokeMsgArr {
 		// 需要将 dataNode 的 disk 使用信息 加回来 ...
@@ -551,6 +612,127 @@ func (m *MessageHandler) BroadcastMetaDataRevokeMsgArr(metadataRevokeMsgArr type
 	if len(errs) != 0 {
 		return fmt.Errorf("broadcast metadataRevokeMsgArr errs: \n%s", strings.Join(errs, "\n"))
 	}
+	return nil
+}
+
+func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.MetadataAuthorityMsgArr) error {
+	//errs := make([]string, 0)
+	//for _, metadataAuth := range metadataAuthMsgArr {
+	//
+	//	// 维护本地 数据服务的 orginId  和 metaDataId 关系
+	//	dataResourceFileUpload, err := m.dataCenter.QueryDataResourceFileUpload(metadata.GetOriginId())
+	//	if nil != err {
+	//		log.Errorf("Failed to QueryDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to QueryDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), err))
+	//		continue
+	//	}
+	//	// 更新 fileupload 信息中的 metadataId
+	//	dataResourceFileUpload.SetMetadataId(metadata.GetMetadataId())
+	//	if err := m.dataCenter.StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
+	//		log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err))
+	//		continue
+	//	}
+	//	// 记录原始数据占用资源大小
+	//	dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
+	//	if nil != err {
+	//		log.Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err))
+	//		continue
+	//	}
+	//	dataResourceTable.UseDisk(metadata.GetSize())
+	//	if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
+	//		log.Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err))
+	//		continue
+	//	}
+	//	// 单独记录 metaData 的 GetSize 和所在 dataNodeId
+	//	if err := m.dataCenter.StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
+	//		metadata.MetadataId, dataResourceFileUpload.GetNodeId(), metadata.GetSize())); nil != err {
+	//		log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err))
+	//		continue
+	//	}
+	//
+	//	if err := m.dataCenter.InsertMetadata(metadata.ToDataCenter()); nil != err {
+	//		log.Errorf("Failed to store metaData to dataCenter on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to store metaData to dataCenter on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err))
+	//		continue
+	//	}
+	//
+	//	log.Debugf("broadcast metaData msg succeed, originId: {%s}, metadataId: {%s}", metadata.GetOriginId(), metadata.GetMetadataId())
+	//}
+	//if len(errs) != 0 {
+	//	return fmt.Errorf("broadcast metadataMsgs errs: \n%s", strings.Join(errs, "\n"))
+	//}
+
+	return nil
+}
+
+func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsgArr types.MetadataAuthorityRevokeMsgArr) error {
+	//errs := make([]string, 0)
+	//for _, revoke := range metadataRevokeMsgArr {
+	//	// 需要将 dataNode 的 disk 使用信息 加回来 ...
+	//	dataResourceDiskUsed, err := m.dataCenter.QueryDataResourceDiskUsed(revoke.GetMetadataId())
+	//	if nil != err {
+	//		log.Errorf("Failed to QueryDataResourceDiskUsed on MessageHandler with revoke, metadataId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to QueryDataResourceDiskUsed on MessageHandler with revoke, metadataId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), err))
+	//		continue
+	//	}
+	//	// 记录原始数据占用资源大小
+	//	dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceDiskUsed.GetNodeId())
+	//	if nil != err {
+	//		log.Errorf("Failed to QueryDataResourceTable on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to QueryDataResourceTable on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err))
+	//		continue
+	//	}
+	//	dataResourceTable.FreeDisk(dataResourceDiskUsed.GetDiskUsed())
+	//	if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
+	//		log.Errorf("Failed to StoreDataResourceTable on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to StoreDataResourceTable on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err))
+	//		continue
+	//	}
+	//
+	//	// 移除 metaData 的 GetSize 和所在 dataNodeId 的单条记录
+	//	if err := m.dataCenter.RemoveDataResourceDiskUsed(revoke.GetMetadataId()); nil != err {
+	//		log.Errorf("Failed to RemoveDataResourceDiskUsed on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to RemoveDataResourceDiskUsed on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err))
+	//		continue
+	//	}
+	//
+	//	if err := m.dataCenter.RevokeMetadata(revoke.ToDataCenter()); nil != err {
+	//		log.Errorf("Failed to store metaData to dataCenter on MessageHandler with revoke, metadataId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), err)
+	//		errs = append(errs, fmt.Sprintf("failed to store metaData to dataCenter on MessageHandler with revoke, metadataId: {%s}, err: {%s}",
+	//			revoke.GetMetadataId(), err))
+	//		continue
+	//	}
+	//	log.Debugf("revoke metaData msg succeed, metadataId: {%s}", revoke.GetMetadataId())
+	//}
+	//if len(errs) != 0 {
+	//	return fmt.Errorf("broadcast metadataRevokeMsgArr errs: \n%s", strings.Join(errs, "\n"))
+	//}
+
 	return nil
 }
 

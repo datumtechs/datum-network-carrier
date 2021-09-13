@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"errors"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -179,11 +178,13 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 }
 
 func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
+
+	//svr.B.AuditMetadataAuthority()
 	return nil, nil
 }
 
 func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
-	authorityList, err := svr.B.GetMetadataAuthorityList("", uint64(timeutils.UnixMsec()))
+	authorityList, err := svr.B.GetMetadataAuthorityList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList

@@ -672,9 +672,22 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 	return s.carrier.carrierDB.GetIdentityList()
 }
 
-func (s *CarrierAPIBackend) GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
-	return s.carrier.carrierDB.GetMetadataAuthorityList(identityId, lastUpdate)
+
+// for authority
+
+func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.MetadataAuthorityState, error) {
+	return s.carrier.authEngine.AuditMetadataAuthority(audit)
 }
+
+func (s *CarrierAPIBackend) GetMetadataAuthorityList() (types.MetadataAuthArray, error) {
+	return s.carrier.authEngine.GetMetadataAuthorityList()
+}
+
+func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
+
+	return nil, nil
+}
+
 
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
@@ -859,9 +872,3 @@ func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceF
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-
-// for authority
-
-func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.AuditMetadataAuth) error {
-	return s.carrier.authEngine.AuditMetadataAuthority(audit)
-}

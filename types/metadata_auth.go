@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 )
 
-type MetadataAuth struct {
+type MetadataAuthority struct {
 	data *libtypes.MetadataAuthorityPB
 
 	// caches
@@ -17,11 +17,11 @@ type MetadataAuth struct {
 	size atomic.Value
 }
 
-func NewMedataAuth(data *libtypes.MetadataAuthorityPB) *MetadataAuth {
-	return &MetadataAuth{data: data}
+func NewMetadataAuthority(data *libtypes.MetadataAuthorityPB) *MetadataAuthority {
+	return &MetadataAuthority{data: data}
 }
 
-func (m *MetadataAuth) EncodePB(w io.Writer) error {
+func (m *MetadataAuthority) EncodePB(w io.Writer) error {
 	data, err := m.data.Marshal()
 	if err == nil {
 		w.Write(data)
@@ -29,7 +29,7 @@ func (m *MetadataAuth) EncodePB(w io.Writer) error {
 	return err
 }
 
-func (m *MetadataAuth) DecodePB(data []byte) error {
+func (m *MetadataAuthority) DecodePB(data []byte) error {
 	if m.data == nil {
 		m.data = new(libtypes.MetadataAuthorityPB)
 	}
@@ -37,7 +37,7 @@ func (m *MetadataAuth) DecodePB(data []byte) error {
 	return m.data.Unmarshal(data)
 }
 
-func (m *MetadataAuth) Hash() common.Hash {
+func (m *MetadataAuthority) Hash() common.Hash {
 	if hash := m.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
@@ -48,11 +48,11 @@ func (m *MetadataAuth) Hash() common.Hash {
 	return v
 }
 
-func (m *MetadataAuth) User() string                        { return m.data.User }
-func (m *MetadataAuth) UserType() apicommonpb.UserType      { return m.data.GetUserType() }
-func (m *MetadataAuth) Data() *libtypes.MetadataAuthorityPB { return m.data }
+func (m *MetadataAuthority) User() string                        { return m.data.User }
+func (m *MetadataAuthority) UserType() apicommonpb.UserType      { return m.data.GetUserType() }
+func (m *MetadataAuthority) Data() *libtypes.MetadataAuthorityPB { return m.data }
 
-type MetadataAuthArray []*MetadataAuth
+type MetadataAuthArray []*MetadataAuthority
 
 // Len returns the length of s.
 func (s MetadataAuthArray) Len() int { return len(s) }
@@ -82,18 +82,32 @@ func (s MetadataAuthArray) ToArray() []*libtypes.MetadataAuthorityPB {
 	return arr
 }
 
+type MetadataAuthApply struct {
+	MetadataAuthId string
+	User           string
+	UserType       apicommonpb.UserType
+	Auth           *libtypes.MetadataAuthority
+}
 
+func NewMetadataAuthApply (metadataAuthId, user string, userType apicommonpb.UserType, apply *libtypes.MetadataAuthority) *MetadataAuthApply {
+	return &MetadataAuthApply{
+		MetadataAuthId: metadataAuthId,
+		User:           user,
+		UserType:       userType,
+		Auth:           apply,
+	}
+}
 
-type AuditMetadataAuth struct {
+type MetadataAuthAudit struct {
 	MetadataAuthId  string
 	AuditOption     apicommonpb.AuditMetadataOption
 	AuditSuggestion string
 }
 
-func NewAuditMetadataAuth (metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) *AuditMetadataAuth {
-	return &AuditMetadataAuth{
+func NewMetadataAuthAudit (metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) *MetadataAuthAudit {
+	return &MetadataAuthAudit{
 		MetadataAuthId:  metadataAuthId,
-		AuditOption: option,
+		AuditOption:     option,
 		AuditSuggestion: suggestion,
 	}
 }
