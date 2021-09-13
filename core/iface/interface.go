@@ -2,8 +2,8 @@ package iface
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -96,22 +96,22 @@ type ResourceCarrierDB interface {
 
 type IdentityCarrierDB interface {
 	InsertIdentity(identity *types.Identity) error
-	StoreIdentity(identity *apipb.Organization) error
+	StoreIdentity(identity *apicommonpb.Organization) error
 	RemoveIdentity() error
 	GetIdentityId() (string, error)
-	GetIdentity() (*apipb.Organization, error)
+	GetIdentity() (*apicommonpb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
 	GetIdentityList() (types.IdentityArray, error)
 	//GetIdentityListByIds(identityIds []string) (types.IdentityArray, error)
-	HasIdentity(identity *apipb.Organization) (bool, error)
+	HasIdentity(identity *apicommonpb.Organization) (bool, error)
 
 	// v2.0
 	GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
 }
 
 type TaskCarrierDB interface {
-	StoreTaskEvent(event *libTypes.TaskEvent) error
-	GetTaskEventList(taskId string) ([]*libTypes.TaskEvent, error)
+	StoreTaskEvent(event *libtypes.TaskEvent) error
+	GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
@@ -126,8 +126,8 @@ type TaskCarrierDB interface {
 	InsertTask(task *types.Task) error
 	GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
 	GetRunningTaskCountOnOrg() uint32
-	GetTaskEventListByTaskId(taskId string) ([]*libTypes.TaskEvent, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*libTypes.TaskEvent, error)
+	GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
+	GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 }
 
 type ForConsensusDB interface {

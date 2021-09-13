@@ -3,21 +3,21 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
 )
 
 type MetadataAuth struct {
-	data *libTypes.MetadataAuthorityPB
+	data *libtypes.MetadataAuthorityPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewMedataAuth(data *libTypes.MetadataAuthorityPB) *MetadataAuth {
+func NewMedataAuth(data *libtypes.MetadataAuthorityPB) *MetadataAuth {
 	return &MetadataAuth{data: data}
 }
 
@@ -31,7 +31,7 @@ func (m *MetadataAuth) EncodePB(w io.Writer) error {
 
 func (m *MetadataAuth) DecodePB(data []byte) error {
 	if m.data == nil {
-		m.data = new(libTypes.MetadataAuthorityPB)
+		m.data = new(libtypes.MetadataAuthorityPB)
 	}
 	m.size.Store(common.StorageSize(len(data)))
 	return m.data.Unmarshal(data)
@@ -48,9 +48,9 @@ func (m *MetadataAuth) Hash() common.Hash {
 	return v
 }
 
-func (m *MetadataAuth) User() string                   { return m.data.User }
-func (m *MetadataAuth) UserType() apipb.UserType       { return m.data.GetUserType() }
-func (m *MetadataAuth) Data() *libTypes.MetadataAuthorityPB { return m.data }
+func (m *MetadataAuth) User() string                        { return m.data.User }
+func (m *MetadataAuth) UserType() apicommonpb.UserType      { return m.data.GetUserType() }
+func (m *MetadataAuth) Data() *libtypes.MetadataAuthorityPB { return m.data }
 
 type MetadataAuthArray []*MetadataAuth
 
@@ -66,7 +66,7 @@ func (s MetadataAuthArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewMetadataAuthArray(metaData []*libTypes.MetadataPB) MetadataArray {
+func NewMetadataAuthArray(metaData []*libtypes.MetadataPB) MetadataArray {
 	var s MetadataArray
 	for _, v := range metaData {
 		s = append(s, NewMetadata(v))
@@ -74,10 +74,26 @@ func NewMetadataAuthArray(metaData []*libTypes.MetadataPB) MetadataArray {
 	return s
 }
 
-func (s MetadataAuthArray) ToArray() []*libTypes.MetadataAuthorityPB {
-	arr := make([]*libTypes.MetadataAuthorityPB, 0, s.Len())
+func (s MetadataAuthArray) ToArray() []*libtypes.MetadataAuthorityPB {
+	arr := make([]*libtypes.MetadataAuthorityPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}
 	return arr
+}
+
+
+
+type AuditMetadataAuth struct {
+	MetadataAuthId  string
+	AuditOption     apicommonpb.AuditMetadataOption
+	AuditSuggestion string
+}
+
+func NewAuditMetadataAuth (metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) *AuditMetadataAuth {
+	return &AuditMetadataAuth{
+		MetadataAuthId:  metadataAuthId,
+		AuditOption: option,
+		AuditSuggestion: suggestion,
+	}
 }

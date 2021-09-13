@@ -3,7 +3,7 @@ package twopc
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
@@ -126,7 +126,7 @@ func (s *state) CleanProposalState(proposalId common.Hash) {
 }
 
 // ---------------- PrepareVote ----------------
-func (s *state) HasPrepareVoting(proposalId common.Hash, org *apipb.TaskOrganization) bool {
+func (s *state) HasPrepareVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
@@ -147,7 +147,7 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 	s.prepareVotesLock.Unlock()
 }
 
-func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role apipb.TaskRole) {
+func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
 	s.prepareVotesLock.Lock()
 	pvs, ok := s.prepareVotes[proposalId]
 	if !ok {
@@ -210,7 +210,7 @@ func (s *state) GetTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) u
 	if !ok {
 		return 0
 	}
-	return pvs.voteYesCount(apipb.TaskRole_TaskRole_DataSupplier)
+	return pvs.voteYesCount(apicommonpb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -219,7 +219,7 @@ func (s *state) GetTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) 
 	if !ok {
 		return 0
 	}
-	return pvs.voteYesCount(apipb.TaskRole_TaskRole_PowerSupplier)
+	return pvs.voteYesCount(apicommonpb.TaskRole_TaskRole_PowerSupplier)
 }
 func (s *state) GetTaskReceiverPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -228,7 +228,7 @@ func (s *state) GetTaskReceiverPrepareYesVoteCount(proposalId common.Hash) uint3
 	if !ok {
 		return 0
 	}
-	return pvs.voteYesCount(apipb.TaskRole_TaskRole_Receiver)
+	return pvs.voteYesCount(apicommonpb.TaskRole_TaskRole_Receiver)
 }
 
 func (s *state) GetTaskPrepareTotalVoteCount(proposalId common.Hash) uint32 {
@@ -243,7 +243,7 @@ func (s *state) GetTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash)
 	if !ok {
 		return 0
 	}
-	return pvs.voteTotalCount(apipb.TaskRole_TaskRole_DataSupplier)
+	return pvs.voteTotalCount(apicommonpb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -252,7 +252,7 @@ func (s *state) GetTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash
 	if !ok {
 		return 0
 	}
-	return pvs.voteTotalCount(apipb.TaskRole_TaskRole_PowerSupplier)
+	return pvs.voteTotalCount(apicommonpb.TaskRole_TaskRole_PowerSupplier)
 }
 func (s *state) GetTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	s.prepareVotesLock.RLock()
@@ -261,11 +261,11 @@ func (s *state) GetTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uin
 	if !ok {
 		return 0
 	}
-	return pvs.voteTotalCount(apipb.TaskRole_TaskRole_Receiver)
+	return pvs.voteTotalCount(apicommonpb.TaskRole_TaskRole_Receiver)
 }
 
 // ---------------- ConfirmVote ----------------
-func (s *state) HasConfirmVoting(proposalId common.Hash, org *apipb.TaskOrganization) bool {
+func (s *state) HasConfirmVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
 	s.prepareVotesLock.RLock()
 	pvs, ok := s.prepareVotes[proposalId]
 	s.prepareVotesLock.RUnlock()
@@ -285,7 +285,7 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	s.confirmVotesLock.Unlock()
 }
 
-func (s *state) RemoveConfirmVote(proposalId common.Hash, partyId string, role apipb.TaskRole) {
+func (s *state) RemoveConfirmVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
 	s.confirmVotesLock.Lock()
 	cvs, ok := s.confirmVotes[proposalId]
 	if !ok {
@@ -348,7 +348,7 @@ func (s *state) GetTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) u
 	if !ok {
 		return 0
 	}
-	return cvs.voteYesCount(apipb.TaskRole_TaskRole_DataSupplier)
+	return cvs.voteYesCount(apicommonpb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -357,7 +357,7 @@ func (s *state) GetTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) 
 	if !ok {
 		return 0
 	}
-	return cvs.voteYesCount(apipb.TaskRole_TaskRole_PowerSupplier)
+	return cvs.voteYesCount(apicommonpb.TaskRole_TaskRole_PowerSupplier)
 }
 func (s *state) GetTaskReceiverConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -366,7 +366,7 @@ func (s *state) GetTaskReceiverConfirmYesVoteCount(proposalId common.Hash) uint3
 	if !ok {
 		return 0
 	}
-	return cvs.voteYesCount(apipb.TaskRole_TaskRole_Receiver)
+	return cvs.voteYesCount(apicommonpb.TaskRole_TaskRole_Receiver)
 }
 func (s *state) GetTaskConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	return s.GetTaskDataSupplierConfirmTotalVoteCount(proposalId) +
@@ -380,7 +380,7 @@ func (s *state) GetTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash)
 	if !ok {
 		return 0
 	}
-	return cvs.voteTotalCount(apipb.TaskRole_TaskRole_DataSupplier)
+	return cvs.voteTotalCount(apicommonpb.TaskRole_TaskRole_DataSupplier)
 }
 func (s *state) GetTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -389,7 +389,7 @@ func (s *state) GetTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash
 	if !ok {
 		return 0
 	}
-	return cvs.voteTotalCount(apipb.TaskRole_TaskRole_PowerSupplier)
+	return cvs.voteTotalCount(apicommonpb.TaskRole_TaskRole_PowerSupplier)
 }
 func (s *state) GetTaskReceiverConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	s.confirmVotesLock.RLock()
@@ -398,22 +398,22 @@ func (s *state) GetTaskReceiverConfirmTotalVoteCount(proposalId common.Hash) uin
 	if !ok {
 		return 0
 	}
-	return cvs.voteTotalCount(apipb.TaskRole_TaskRole_Receiver)
+	return cvs.voteTotalCount(apicommonpb.TaskRole_TaskRole_Receiver)
 }
 
 // about prepareVote
 type prepareVoteState struct {
 	votes      map[string]*types.PrepareVote // partyId -> vote
-	yesVotes   map[apipb.TaskRole]uint32
-	voteStatus map[apipb.TaskRole]uint32 // total vote count
+	yesVotes   map[apicommonpb.TaskRole]uint32
+	voteStatus map[apicommonpb.TaskRole]uint32 // total vote count
 	lock       sync.Mutex
 }
 
 func newPrepareVoteState() *prepareVoteState {
 	return &prepareVoteState{
 		votes:      make(map[string]*types.PrepareVote, 0),
-		yesVotes:   make(map[apipb.TaskRole]uint32, 0),
-		voteStatus: make(map[apipb.TaskRole]uint32, 0),
+		yesVotes:   make(map[apicommonpb.TaskRole]uint32, 0),
+		voteStatus: make(map[apicommonpb.TaskRole]uint32, 0),
 	}
 }
 
@@ -441,7 +441,7 @@ func (st *prepareVoteState) addVote(vote *types.PrepareVote) {
 		st.voteStatus[vote.MsgOption.SenderRole] = 1
 	}
 }
-func (st *prepareVoteState) removeVote(partyId string, role apipb.TaskRole) {
+func (st *prepareVoteState) removeVote(partyId string, role apicommonpb.TaskRole) {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -474,7 +474,7 @@ func (st *prepareVoteState) getVotes() []*types.PrepareVote {
 	}
 	return arr
 }
-func (st *prepareVoteState) voteTotalCount(role apipb.TaskRole) uint32 {
+func (st *prepareVoteState) voteTotalCount(role apicommonpb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -484,7 +484,7 @@ func (st *prepareVoteState) voteTotalCount(role apipb.TaskRole) uint32 {
 		return 0
 	}
 }
-func (st *prepareVoteState) voteYesCount(role apipb.TaskRole) uint32 {
+func (st *prepareVoteState) voteYesCount(role apicommonpb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -506,16 +506,16 @@ func (st *prepareVoteState) hasPrepareVoting(partyId, identityId string) bool {
 // about confirmVote
 type confirmVoteState struct {
 	votes      map[string]*types.ConfirmVote // partyId -> vote
-	yesVotes   map[apipb.TaskRole]uint32
-	voteStatus map[apipb.TaskRole]uint32
+	yesVotes   map[apicommonpb.TaskRole]uint32
+	voteStatus map[apicommonpb.TaskRole]uint32
 	lock       sync.Mutex
 }
 
 func newConfirmVoteState() *confirmVoteState {
 	return &confirmVoteState{
 		votes:      make(map[string]*types.ConfirmVote, 0),
-		yesVotes:   make(map[apipb.TaskRole]uint32, 0),
-		voteStatus: make(map[apipb.TaskRole]uint32, 0),
+		yesVotes:   make(map[apicommonpb.TaskRole]uint32, 0),
+		voteStatus: make(map[apicommonpb.TaskRole]uint32, 0),
 	}
 }
 
@@ -545,7 +545,7 @@ func (st *confirmVoteState) addVote(vote *types.ConfirmVote) {
 	}
 }
 
-func (st *confirmVoteState) removeVote(partyId string, role apipb.TaskRole) {
+func (st *confirmVoteState) removeVote(partyId string, role apicommonpb.TaskRole) {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -579,7 +579,7 @@ func (st *confirmVoteState) getVotes() []*types.ConfirmVote {
 	return arr
 }
 
-func (st *confirmVoteState) voteYesCount(role apipb.TaskRole) uint32 {
+func (st *confirmVoteState) voteYesCount(role apicommonpb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 
@@ -589,7 +589,7 @@ func (st *confirmVoteState) voteYesCount(role apipb.TaskRole) uint32 {
 		return 0
 	}
 }
-func (st *confirmVoteState) voteTotalCount(role apipb.TaskRole) uint32 {
+func (st *confirmVoteState) voteTotalCount(role apicommonpb.TaskRole) uint32 {
 	st.lock.Lock()
 	defer st.lock.Unlock()
 

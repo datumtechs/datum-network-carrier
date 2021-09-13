@@ -3,11 +3,11 @@ package types
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 type ConsensusEngineType string
@@ -107,11 +107,11 @@ func FetchTaskPeerInfoArr(peerInfoArr []*twopcpb.TaskPeerInfo) []*PrepareVoteRes
 
 type MsgOption struct {
 	ProposalId      common.Hash
-	SenderRole      apipb.TaskRole
+	SenderRole      apicommonpb.TaskRole
 	SenderPartyId   string
-	ReceiverRole    apipb.TaskRole
+	ReceiverRole    apicommonpb.TaskRole
 	ReceiverPartyId string
-	Owner           *apipb.TaskOrganization
+	Owner           *apicommonpb.TaskOrganization
 }
 
 func (option *MsgOption) String() string {
@@ -138,11 +138,11 @@ func ConvertMsgOption(option *MsgOption) *msgcommonpb.MsgOption {
 func FetchMsgOption(option *msgcommonpb.MsgOption) *MsgOption {
 	return &MsgOption{
 		ProposalId:      common.BytesToHash(option.ProposalId),
-		SenderRole:      apipb.TaskRole(option.GetSenderRole()),
+		SenderRole:      apicommonpb.TaskRole(option.GetSenderRole()),
 		SenderPartyId:   string(option.SenderPartyId),
-		ReceiverRole:    apipb.TaskRole(option.GetReceiverRole()),
+		ReceiverRole:    apicommonpb.TaskRole(option.GetReceiverRole()),
 		ReceiverPartyId: string(option.ReceiverPartyId),
-		Owner: &apipb.TaskOrganization{
+		Owner: &apicommonpb.TaskOrganization{
 			NodeName:   string(option.GetMsgOwner().GetName()),
 			NodeId:     string(option.GetMsgOwner().GetNodeId()),
 			IdentityId: string(option.GetMsgOwner().GetIdentityId()),
@@ -305,7 +305,7 @@ func FetchCommitMsg(msg *twopcpb.CommitMsg) *CommitMsg {
 
 type TaskResultMsg struct {
 	MsgOption     *MsgOption
-	TaskEventList []*libTypes.TaskEvent
+	TaskEventList []*libtypes.TaskEvent
 	CreateAt      uint64
 	Sign          []byte
 }

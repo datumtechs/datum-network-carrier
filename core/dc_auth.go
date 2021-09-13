@@ -6,14 +6,14 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 )
 
 
 // about identity on local
-func (dc *DataCenter) StoreIdentity(identity *apipb.Organization) error {
+func (dc *DataCenter) StoreIdentity(identity *apicommonpb.Organization) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteLocalIdentity(dc.db, identity)
@@ -37,7 +37,7 @@ func (dc *DataCenter) GetIdentityId() (string, error) {
 	return identity.GetIdentityId(), nil
 }
 
-func (dc *DataCenter) GetIdentity() (*apipb.Organization, error) {
+func (dc *DataCenter) GetIdentity() (*apicommonpb.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	identity, err := rawdb.ReadLocalIdentity(dc.db)
@@ -49,7 +49,7 @@ func (dc *DataCenter) GetIdentity() (*apipb.Organization, error) {
 
 
 // about identity on datacenter
-func (dc *DataCenter) HasIdentity(identity *apipb.Organization) (bool, error) {
+func (dc *DataCenter) HasIdentity(identity *apicommonpb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	responses, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{
@@ -84,7 +84,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityJoinRequest{
-		Member: &apipb.Organization{
+		Member: &apicommonpb.Organization{
 			NodeName:       identity.Name(),
 			NodeId:     identity.NodeId(),
 			IdentityId: identity.IdentityId(),
@@ -128,7 +128,7 @@ func (dc *DataCenter) SaveMetadataAuthority(request *types.MetadataAuth) error {
 	return errors.New(response.GetMsg())
 }
 
-func (dc *DataCenter) AuditMetadataAuthority(authId string, result apipb.AuditMetadataOption) error {
+func (dc *DataCenter) AuditMetadataAuthority(authId string, result apicommonpb.AuditMetadataOption) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.AuditMetadataAuthority(dc.ctx, &api.AuditMetadataAuthorityRequest{

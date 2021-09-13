@@ -7,8 +7,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	lru "github.com/hashicorp/golang-lru"
@@ -112,9 +112,9 @@ func (dc *DataChain) GetBodyPb(hash common.Hash) []byte {
 }
 
 // GetBody retrieves a block body (metadata/resource/identity/task) from database by hash, caching it if found.
-func (dc *DataChain) GetBody(hash common.Hash) *libTypes.BodyData {
+func (dc *DataChain) GetBody(hash common.Hash) *libtypes.BodyData {
 	if cached, ok := dc.bodyCache.Get(hash); ok {
-		body := cached.(*libTypes.BodyData)
+		body := cached.(*libtypes.BodyData)
 		return body
 	}
 	number := rawdb.ReadHeaderNumber(dc.db, hash)
@@ -172,14 +172,14 @@ func (dc *DataChain) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // TODO 本地存储event事件
-func (dc *DataChain) StoreTaskEvent(event *libTypes.TaskEvent) error {
+func (dc *DataChain) StoreTaskEvent(event *libtypes.TaskEvent) error {
 	// todo:
 	return nil
 }
 
 // TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentity(identity *apipb.Organization) error {return nil}
-func (dc *DataChain) DelIdentity() error {return nil}
+func (dc *DataChain) StoreIdentity(identity *apicommonpb.Organization) error {return nil}
+func (dc *DataChain) DelIdentity() error                                     {return nil}
 
 func (dc *DataChain) GetYarnName() (string, error) {
 	// todo: implements by datacenter
@@ -191,7 +191,7 @@ func (dc *DataChain) GetIdentityId() (string, error) {
 	return "", nil
 }
 
-func (dc *DataChain) GetIdentity() (*apipb.Organization, error) {
+func (dc *DataChain) GetIdentity() (*apicommonpb.Organization, error) {
 	// todo: implements by datacenter
 	return nil, nil
 }

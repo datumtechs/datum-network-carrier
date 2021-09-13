@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -37,13 +37,13 @@ func serverObj() *core.DataCenter {
 
 func InsertData() {
 	dc := serverObj()
-	identities := types.NewIdentity(&libTypes.IdentityPB{
+	identities := types.NewIdentity(&libtypes.IdentityPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
-		DataStatus: apipb.DataStatus_DataStatus_Normal,
-		Status:     apipb.CommonStatus_CommonStatus_Normal,
+		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+		Status:     apicommonpb.CommonStatus_CommonStatus_Normal,
 		Credential: "",
 	})
 	merr := dc.InsertIdentity(identities)
@@ -62,11 +62,11 @@ func InsertData() {
 
 func InsertMetadata() {
 	dc := serverObj()
-	metadata := types.NewMetadata(&libTypes.MetadataPB{
+	metadata := types.NewMetadata(&libtypes.MetadataPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		DataId:     DataId,
-		DataStatus: apipb.DataStatus_DataStatus_Normal,
+		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		OriginId:   OriginId,
 		TableName:  "test_table1",
 		FilePath:   "/c/c",
@@ -74,10 +74,10 @@ func InsertMetadata() {
 		Rows:       1,
 		Columns:    2,
 		Size_:      3,
-		FileType:   apipb.OriginFileType_FileType_CSV,
-		State:      apipb.MetadataState_MetadataState_Released,
+		FileType:   apicommonpb.OriginFileType_FileType_CSV,
+		State:      apicommonpb.MetadataState_MetadataState_Released,
 		HasTitle:   false,
-		MetadataColumns: []*libTypes.MetadataColumn{
+		MetadataColumns: []*libtypes.MetadataColumn{
 			{
 				CIndex: 2,
 				CName:  "cname",
@@ -101,13 +101,13 @@ func InsertMetadata() {
 
 func InsertResource() {
 	dc := serverObj()
-	resource := types.NewResource(&libTypes.ResourcePB{
+	resource := types.NewResource(&libtypes.ResourcePB{
 		IdentityId:     Identity,
 		NodeId:         NodeId,
 		NodeName:       NodeName,
 		DataId:         DataId,
-		DataStatus:     apipb.DataStatus_DataStatus_Normal,
-		State:          apipb.PowerState_PowerState_Released,
+		DataStatus:     apicommonpb.DataStatus_DataStatus_Normal,
+		State:          apicommonpb.PowerState_PowerState_Released,
 		TotalMem:       1,
 		UsedMem:        2,
 		TotalProcessor: 0,
@@ -130,34 +130,34 @@ func InsertResource() {
 
 func InsertTask() {
 	dc := serverObj()
-	taskdata := types.NewTask(&libTypes.TaskPB{
+	taskdata := types.NewTask(&libtypes.TaskPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
-		DataStatus: apipb.DataStatus_DataStatus_Normal,
+		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		TaskId:     TaskId,
 		TaskName:   "task001",
-		State:      apipb.TaskState_TaskState_Succeed,
+		State:      apicommonpb.TaskState_TaskState_Succeed,
 		Reason:     "",
 		EventCount: 0,
 		Desc:       "",
 		CreateAt:   uint64(timeutils.UnixMsec()),
 		EndAt:      uint64(timeutils.UnixMsec()),
-		AlgoSupplier: &apipb.TaskOrganization{
+		AlgoSupplier: &apicommonpb.TaskOrganization{
 			PartyId:    "",
 			NodeId:     Identity,
 			NodeName:   NodeName,
 			IdentityId: Identity,
 		},
-		OperationCost: &apipb.TaskResourceCostDeclare{
+		OperationCost: &apicommonpb.TaskResourceCostDeclare{
 			Memory:       12,
 			Bandwidth: 120,
 			Processor: 8,
 		},
-		DataSuppliers: []*libTypes.TaskDataSupplier{
+		DataSuppliers: []*libtypes.TaskDataSupplier{
 			{
-				Organization: &apipb.TaskOrganization{
+				Organization: &apicommonpb.TaskOrganization{
 					PartyId:    "",
 					NodeId:     Identity,
 					NodeName:   NodeName,
@@ -165,7 +165,7 @@ func InsertTask() {
 				},
 				MetadataId:   DataId,
 				MetadataName: "meta1",
-				Columns: []*libTypes.MetadataColumn{
+				Columns: []*libtypes.MetadataColumn{
 					{
 						CIndex:   2,
 						CName:    "cname",
@@ -176,15 +176,15 @@ func InsertTask() {
 				},
 			},
 		},
-		PowerSuppliers: []*libTypes.TaskPowerSupplier{
+		PowerSuppliers: []*libtypes.TaskPowerSupplier{
 			{
-				Organization: &apipb.TaskOrganization{
+				Organization: &apicommonpb.TaskOrganization{
 					PartyId:    "",
 					NodeId:     Identity,
 					NodeName:   NodeName,
 					IdentityId: Identity,
 				},
-				ResourceUsedOverview: &libTypes.ResourceUsageOverview{
+				ResourceUsedOverview: &libtypes.ResourceUsageOverview{
 					TotalMem:       12,
 					UsedMem:        8,
 					TotalProcessor: 8,
@@ -194,7 +194,7 @@ func InsertTask() {
 				},
 			},
 		},
-		TaskEvents: []*libTypes.TaskEvent{
+		TaskEvents: []*libtypes.TaskEvent{
 			{
 				TaskId:     "123456",
 				Type:       "1-evengine-eventType",
@@ -219,13 +219,13 @@ func InsertTask() {
 
 func RevokeIdentity() {
 	dc := serverObj()
-	identities := types.NewIdentity(&libTypes.IdentityPB{
+	identities := types.NewIdentity(&libtypes.IdentityPB{
 		IdentityId: Identity,
 		NodeId:     NodeId,
 		NodeName:   NodeName,
 		DataId:     DataId,
-		DataStatus: apipb.DataStatus_DataStatus_Normal,
-		Status:     apipb.CommonStatus_CommonStatus_Normal,
+		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+		Status:     apicommonpb.CommonStatus_CommonStatus_Normal,
 		Credential: "",
 	})
 	result := dc.RevokeIdentity(identities)
@@ -284,7 +284,7 @@ func GetData() {
 	// endregion
 
 	// region HasIdentity
-	result, err := dc.HasIdentity(&apipb.Organization{
+	result, err := dc.HasIdentity(&apicommonpb.Organization{
 		NodeName:   NodeName,
 		NodeId:     NodeId,
 		IdentityId: Identity})

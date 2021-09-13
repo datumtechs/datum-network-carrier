@@ -3,7 +3,7 @@ package types
 import (
 	"encoding/json"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 const (
@@ -78,7 +78,7 @@ func (msg *TaskMsgEvent) String() string {
 	return string(result)
 }
 
-func ConvertTaskEvent(event *libTypes.TaskEvent) *pb.TaskEvent {
+func ConvertTaskEvent(event *libtypes.TaskEvent) *pb.TaskEvent {
 	return &pb.TaskEvent{
 		Type:       []byte(event.Type),
 		TaskId:     []byte(event.TaskId),
@@ -88,8 +88,8 @@ func ConvertTaskEvent(event *libTypes.TaskEvent) *pb.TaskEvent {
 	}
 }
 
-func FetchTaskEvent(event *pb.TaskEvent) *libTypes.TaskEvent {
-	return &libTypes.TaskEvent{
+func FetchTaskEvent(event *pb.TaskEvent) *libtypes.TaskEvent {
+	return &libtypes.TaskEvent{
 		Type:       string(event.Type),
 		TaskId:     string(event.TaskId),
 		IdentityId: string(event.IdentityId),
@@ -98,7 +98,7 @@ func FetchTaskEvent(event *pb.TaskEvent) *libTypes.TaskEvent {
 	}
 }
 
-func ConvertTaskEventArr(events []*libTypes.TaskEvent) []*pb.TaskEvent {
+func ConvertTaskEventArr(events []*libtypes.TaskEvent) []*pb.TaskEvent {
 	arr := make([]*pb.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = ConvertTaskEvent(ev)
@@ -106,16 +106,16 @@ func ConvertTaskEventArr(events []*libTypes.TaskEvent) []*pb.TaskEvent {
 	return arr
 }
 
-func FetchTaskEventArr(events []*pb.TaskEvent) []*libTypes.TaskEvent {
-	arr := make([]*libTypes.TaskEvent, len(events))
+func FetchTaskEventArr(events []*pb.TaskEvent) []*libtypes.TaskEvent {
+	arr := make([]*libtypes.TaskEvent, len(events))
 	for i, ev := range events {
 		arr[i] = FetchTaskEvent(ev)
 	}
 	return arr
 }
 
-//func ConvertTaskEventToDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
-//	return &libTypes.TaskEvent{
+//func ConvertTaskEventToDataCenter(event *libtypes.TaskEvent) *libtypes.TaskEvent {
+//	return &libtypes.TaskEvent{
 //		GetTaskId:     event.GetTaskId,
 //		Type:       event.Type,
 //		IdentityId: event.IdentityId,
@@ -124,8 +124,8 @@ func FetchTaskEventArr(events []*pb.TaskEvent) []*libTypes.TaskEvent {
 //	}
 //}
 //
-//func FetchTaskEventFromDataCenter(event *libTypes.TaskEvent) *libTypes.TaskEvent {
-//	return &libTypes.TaskEvent{
+//func FetchTaskEventFromDataCenter(event *libtypes.TaskEvent) *libtypes.TaskEvent {
+//	return &libtypes.TaskEvent{
 //		GetTaskId:     event.GetTaskId,
 //		Type:       event.Type,
 //		IdentityId: event.IdentityId,
@@ -134,16 +134,16 @@ func FetchTaskEventArr(events []*pb.TaskEvent) []*libTypes.TaskEvent {
 //	}
 //}
 //
-//func ConvertTaskEventArrToDataCenter(events []*libTypes.TaskEvent) []*libTypes.TaskEvent {
-//	arr := make([]*libTypes.TaskEvent, len(events))
+//func ConvertTaskEventArrToDataCenter(events []*libtypes.TaskEvent) []*libtypes.TaskEvent {
+//	arr := make([]*libtypes.TaskEvent, len(events))
 //	for i, ev := range events {
 //		arr[i] = ConvertTaskEventToDataCenter(ev)
 //	}
 //	return arr
 //}
 //
-//func FetchTaskEventArrFromDataCenter(events []*libTypes.TaskEvent) []*libTypes.TaskEvent {
-//	arr := make([]*libTypes.TaskEvent, len(events))
+//func FetchTaskEventArrFromDataCenter(events []*libtypes.TaskEvent) []*libtypes.TaskEvent {
+//	arr := make([]*libtypes.TaskEvent, len(events))
 //	for i, ev := range events {
 //		arr[i] = FetchTaskEventFromDataCenter(ev)
 //	}

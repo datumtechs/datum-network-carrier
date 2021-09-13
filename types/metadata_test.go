@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"reflect"
 	"testing"
@@ -13,14 +13,14 @@ var metadata = NewMetadata(&types.MetadataPB{
 	IdentityId: "Identity",
 	NodeId:     "nodeId",
 	DataId:     "dataId",
-	DataStatus: apipb.DataStatus_DataStatus_Normal,
+	DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 	FilePath:   "/a/a",
 	Desc:       "desc",
 	Rows:       1,
 	Columns:    2,
 	Size_:      3,
-	FileType:   apipb.OriginFileType_FileType_CSV,
-	State:      apipb.MetadataState_MetadataState_Created,
+	FileType:   apicommonpb.OriginFileType_FileType_CSV,
+	State:      apicommonpb.MetadataState_MetadataState_Created,
 	HasTitle:   false,
 	MetadataColumns: []*types.MetadataColumn {
 		{

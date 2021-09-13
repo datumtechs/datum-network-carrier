@@ -5,15 +5,15 @@ import (
 	"errors"
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
 
-func (svr *Server) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apicommonpb.SimpleResponse, error) {
 	return nil, nil
 }
 
@@ -94,7 +94,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
 	// add  dataSuppliers
-	dataSuppliers := make([]*libTypes.TaskDataSupplier, len(req.DataSupplier))
+	dataSuppliers := make([]*libtypes.TaskDataSupplier, len(req.DataSupplier))
 	for i, v := range req.DataSupplier {
 
 		metaData, err := svr.B.GetMetadataDetail(v.Organization.IdentityId, v.MetadataInfo.MetadataId)
@@ -105,16 +105,16 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				v.Organization.IdentityId, v.MetadataInfo.MetadataId)
 		}
 
-		colTmp := make(map[uint32]*libTypes.MetadataColumn, len(metaData.Information.MetadataColumns))
+		colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metaData.Information.MetadataColumns))
 		for _, col := range metaData.Information.MetadataColumns {
 			colTmp[col.CIndex] = col
 		}
 
-		columnArr := make([]*libTypes.MetadataColumn, len(v.MetadataInfo.ColumnIndexList))
+		columnArr := make([]*libtypes.MetadataColumn, len(v.MetadataInfo.ColumnIndexList))
 		for j, colIndex := range v.MetadataInfo.ColumnIndexList {
 			if col, ok := colTmp[uint32(colIndex)]; ok {
 				columnArr[j] = col
-				/*columnArr[j] = &libTypes.MetadataColumn{
+				/*columnArr[j] = &libtypes.MetadataColumn{
 					CIndex:   col.CIndex,
 					CType:    col.CType,
 					CName:    col.CName,
@@ -127,8 +127,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			}
 		}
 
-		dataSuppliers[i] = &libTypes.TaskDataSupplier{
-			Organization: &apipb.TaskOrganization{
+		dataSuppliers[i] = &libtypes.TaskDataSupplier{
+			Organization: &apicommonpb.TaskOrganization{
 				PartyId:  v.Organization.PartyId,
 				NodeName: v.Organization.NodeName,
 				NodeId:   v.Organization.NodeId,
@@ -141,26 +141,26 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	}
 
 	//// TODO mock dataSuppliers
-	//dataSuppliers := make([]*libTypes.TaskMetadataSupplierData, 0)
+	//dataSuppliers := make([]*libtypes.TaskMetadataSupplierData, 0)
 
 	taskMsg.Data.SetMetadataSupplierArr(dataSuppliers)
 
 	// add receivers
 	receivers := req.Receivers
-	//receivers := make([]*libTypes.TaskResultReceiver, len(req.Receivers))
+	//receivers := make([]*libtypes.TaskResultReceiver, len(req.Receivers))
 	//for i, v := range req.Receivers {
-	//	providers := make([]*apipb.TaskOrganization, len(v.Providers))
+	//	providers := make([]*apicommonpb.TaskOrganization, len(v.Providers))
 	//	for j, val := range v.Providers {
 	//		providers[j] = val
-	//		/*providers[j] = &apipb.OrganizationData{
+	//		/*providers[j] = &apicommonpb.OrganizationData{
 	//			PartyId:  val.PartyId,
 	//			NodeName: val.Name,
 	//			NodeId:   val.NodeId,
 	//			Identity: val.IdentityId,
 	//		}*/
 	//	}
-	//	receivers[i] = &libTypes.TaskResultReceiver{
-	//		Receiver: &apipb.TaskOrganization{
+	//	receivers[i] = &libtypes.TaskResultReceiver{
+	//		Receiver: &apicommonpb.TaskOrganization{
 	//			PartyId:  v.MemberInfo.PartyId,
 	//			NodeName: v.MemberInfo.Name,
 	//			NodeId:   v.MemberInfo.NodeId,
@@ -172,7 +172,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	taskMsg.Data.SetReceivers(receivers)
 
 	// add empty powerSuppliers
-	taskMsg.Data.GetTaskData().PowerSuppliers = make([]*libTypes.TaskPowerSupplier, 0)
+	taskMsg.Data.GetTaskData().PowerSuppliers = make([]*libtypes.TaskPowerSupplier, 0)
 
 	// add taskId
 	taskId := taskMsg.GenTaskId()

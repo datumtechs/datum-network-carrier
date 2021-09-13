@@ -3,6 +3,7 @@ package carrier
 import (
 	"context"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
@@ -37,6 +38,7 @@ type Service struct {
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
 	TaskManager     handler.TaskManager
+	authEngine      *auth.AuthorityManager
 	scheduler       schedule.Scheduler
 	runError        error
 
@@ -62,7 +64,6 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		make(chan types.TaskDataArray, 27),
 		make(chan *types.NeedReplayScheduleTask, 100),
 		make(chan *types.NeedExecuteTask, 100)
-
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
@@ -102,14 +103,13 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		resourceManager:   resourceMng,
 		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager),
 		TaskManager:       taskManager,
+		authEngine:        auth.NewAuthorityManager(),
 		resourceClientSet: resourceClientSet,
 	}
 
-
-
 	s.APIBackend = &CarrierAPIBackend{carrier: s}
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
-	s.Engines[types.TwopcTyp] =  twopcEngine
+	s.Engines[types.TwopcTyp] = twopcEngine
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 
 	// load stored jobNode and dataNode

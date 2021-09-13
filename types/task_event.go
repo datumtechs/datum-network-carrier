@@ -1,7 +1,7 @@
 package types
 
 import (
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 //type TaskEvent struct {
 //	GetTaskId   string     `json:"taskId"`
@@ -31,7 +31,7 @@ import (
 //}
 
 
-//func ConvertTaskEventArrToPB (events []*libTypes.TaskEvent) []*pb.TaskEventShow {
+//func ConvertTaskEventArrToPB (events []*libtypes.TaskEvent) []*pb.TaskEventShow {
 //
 //	arr := make([]*pb.TaskEventShow, len(events))
 //	for i, event := range events {
@@ -67,14 +67,14 @@ import (
 
 type ReportTaskEvent struct {
 	 PartyId   string
-	 Event     *libTypes.TaskEvent
+	 Event     *libtypes.TaskEvent
 }
 
-func NewReportTaskEvent(partyId string, event *libTypes.TaskEvent) *ReportTaskEvent {
+func NewReportTaskEvent(partyId string, event *libtypes.TaskEvent) *ReportTaskEvent {
 	return &ReportTaskEvent{
 		PartyId: partyId,
 		Event: event,
 	}
 }
-func (rte *ReportTaskEvent) GetPartyId() string { return rte.PartyId }
-func (rte *ReportTaskEvent) GetEvent() *libTypes.TaskEvent { return rte.Event }
+func (rte *ReportTaskEvent) GetPartyId() string            { return rte.PartyId }
+func (rte *ReportTaskEvent) GetEvent() *libtypes.TaskEvent { return rte.Event }

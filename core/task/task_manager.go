@@ -7,7 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 
@@ -186,7 +186,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	nonParsedMsgArr, parsedMsgArr, err := m.parser.ParseTask(msgArr)
 	if nil != err {
 		for _, badMsg := range nonParsedMsgArr {
-			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to parse local taskMsg"))}
 
 			if e := m.storeBadTask(badMsg.Data, events, "failed to parse taskMsg"); nil != e {
@@ -203,7 +203,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	if nil != err {
 
 		for _, badMsg := range nonValidatedMsgArr {
-			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to validate local taskMsg"))}
 
 			if e := m.storeBadTask(badMsg.Data, events, "failed to validate taskMsg"); nil != e {
@@ -224,7 +224,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.GetTaskData().TaskId, err)
 			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task, err: {%s}", e.Error())
-			events := []*libTypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), e.Error())}
+			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), e.Error())}
 			if e := m.storeBadTask(task, events, e.Error()); nil != e {
 				log.Errorf("Failed to sending the task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
 			}

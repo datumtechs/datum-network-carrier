@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
@@ -182,14 +182,14 @@ func (svr *Server) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeReq
 	}, nil
 }
 
-func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
 	err := svr.B.DeleteSeedNode(req.Id)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:DeleteSeedNode failed, seedNodeId: {%s}", req.Id)
 		return nil, ErrDeleteSeedNodeInfo
 	}
 	log.Debugf("RPC-API:DeleteSeedNode succeed, seedNodeId: {%s}", req.Id)
-	return &apipb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
+	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetSeedNodeListResponse, error) {
@@ -280,13 +280,13 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeReq
 	}, nil
 }
 
-func (svr *Server) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
 	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeDataNode, req.Id); nil != err {
 		log.WithError(err).Errorf("RPC-API:DeleteDataNode failed, dataNodeId: {%s}", req.Id)
 		return nil, ErrDeleteDataNodeInfo
 	}
 	log.Debugf("RPC-API:DeleteDataNode succeed, dataNodeId: {%s}", req.Id)
-	return &apipb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
+	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetRegisteredNodeListResponse, error) {
@@ -384,13 +384,13 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeReque
 	}, nil
 }
 
-func (svr *Server) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
 	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeJobNode, req.Id); nil != err {
 		log.WithError(err).Errorf("RPC-API:DeleteJobNode failed, jobNodeId: {%s}", req.Id)
 		return nil, ErrDeleteJobNodeInfo
 	}
 	log.Debugf("RPC-API:DeleteJobNode succeed, jobNodeId: {%s}", req.Id)
-	return &apipb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
+	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetRegisteredNodeListResponse, error) {

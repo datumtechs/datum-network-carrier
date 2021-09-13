@@ -2,8 +2,8 @@ package types
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"reflect"
 	"testing"
 )
@@ -12,19 +12,19 @@ func newBlock() *Block {
 	metadatas := func() MetadataArray {
 		return MetadataArray{
 			&Metadata{
-				data: &libTypes.MetaData{
+				data: &libtypes.MetadataPB{
 					IdentityId: "identity",
 					NodeId:     "NodeId",
 					DataId:     "dataId",
-					DataStatus: "D",
+					DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 					FilePath:   "/a/b/c",
 					Desc:       "desc",
 					Rows:       10,
 					Columns:    100,
-					FileType:   "csv",
-					State:      "statue",
+					FileType:   apicommonpb.OriginFileType_FileType_CSV,
+					State:      apicommonpb.MetadataState_MetadataState_Unknown,
 					HasTitle:   true,
-					MetadataColumnList: []*libTypes.MetadataColumn{
+					MetadataColumns: []*libtypes.MetadataColumn{
 						{
 							CIndex: 0,
 							CName:  "cname",
@@ -39,17 +39,19 @@ func newBlock() *Block {
 	resources := func() ResourceArray {
 		return ResourceArray{
 			{
-				data: &libTypes.ResourceData{
+				data: &libtypes.ResourcePB{
 					IdentityId:     "resource-identity",
 					NodeId:         "resource-nodeId",
 					NodeName:       "resource-nodeName",
 					DataId:         "resource-dataId",
-					DataStatus:     "resource-dataStatus",
-					State:          "resource-state",
+					DataStatus:     apicommonpb.DataStatus_DataStatus_Deleted,
+					State:          apicommonpb.PowerState_PowerState_Unknown,
 					TotalMem:       100 * 1024,
 					UsedMem:        100 * 2014,
 					TotalProcessor: 0,
-					TotalBandWidth: 100 * 1024,
+					UsedProcessor: 0,
+					TotalBandwidth: 100 * 1024,
+					UsedBandwidth: 0,
 				},
 			},
 		}
@@ -57,13 +59,13 @@ func newBlock() *Block {
 	identities := func() IdentityArray {
 		return IdentityArray{
 			{
-				data: &libTypes.IdentityData{
+				data: &libtypes.IdentityPB{
 					IdentityId: "identity-identity",
 					NodeId:     "identity-nodeId",
 					NodeName:   "identity-nodeName",
 					DataId:     "identity-nodeId",
-					DataStatus: "identity-dataStatus",
-					Status:     "identity-status",
+					DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+					Status:     apicommonpb.CommonStatus_CommonStatus_NonNormal,
 					Credential: "{\"a\":\"b\"}",
 				},
 			},
@@ -72,25 +74,18 @@ func newBlock() *Block {
 	taskdatas := func() TaskDataArray {
 		return TaskDataArray{
 			{
-				data: &libTypes.TaskData{
+				data: &libtypes.TaskPB{
 					IdentityId: "task-identity",
 					NodeId:     "task-nodeId",
 					NodeName:   "task-nodeName",
 					DataId:     "task-dataId",
-					DataStatus: "task-dataStatus",
+					DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 					TaskId:     "task-taskId",
-					State:      "task-state",
+					State:      apicommonpb.TaskState_TaskState_Unknown,
 					Reason:     "task-reason",
 					EventCount: 1,
 					Desc:       "task-desc",
-					PartnerList: []*apipb.TaskOrganization{
-						{
-							IdentityId: "1-partner-identity",
-							NodeId:     "1-partner-nodeId",
-							NodeName:   "1-partner-nodeName",
-						},
-					},
-					TaskEventList: []*libTypes.TaskEvent{
+					TaskEvents: []*libtypes.TaskEvent{
 						{
 							TaskId: "1-evengine-taskId",
 						},

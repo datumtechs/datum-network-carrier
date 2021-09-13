@@ -6,8 +6,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -465,16 +465,16 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetail
 	powerList := make([]*pb.GetPowerTotalDetailResponse, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
 		powerList = append(powerList, &pb.GetPowerTotalDetailResponse{
-			Owner: &apipb.Organization{
+			Owner: &apicommonpb.Organization{
 				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
-			Power: &libTypes.PowerUsageDetail{
+			Power: &libtypes.PowerUsageDetail{
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
-				Tasks:            make([]*libTypes.PowerTask, 0),
-				Information: &libTypes.ResourceUsageOverview{
+				Tasks:            make([]*libtypes.PowerTask, 0),
+				Information: &libtypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: resource.GetTotalProcessor(),
@@ -540,8 +540,8 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 		return 0
 	}
 
-	buildPowerTaskList := func(jobNodeId string) []*libTypes.PowerTask {
-		powerTaskList := make([]*libTypes.PowerTask, 0)
+	buildPowerTaskList := func(jobNodeId string) []*libtypes.PowerTask {
+		powerTaskList := make([]*libtypes.PowerTask, 0)
 
 		// 逐个 处理 jobNodeId 上的 task 信息
 		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
@@ -554,16 +554,16 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				}
 
 				// 封装任务 摘要 ...
-				powerTask := &libTypes.PowerTask{
+				powerTask := &libtypes.PowerTask{
 					TaskId:   taskId,
 					TaskName: task.GetTaskData().TaskName,
-					Owner: &apipb.Organization{
+					Owner: &apicommonpb.Organization{
 						NodeName:   task.GetTaskData().GetNodeName(),
 						NodeId:     task.GetTaskData().GetNodeId(),
 						IdentityId: task.GetTaskData().GetIdentityId(),
 					},
-					Receivers: make([]*apipb.Organization, 0),
-					OperationCost: &apipb.TaskResourceCostDeclare{
+					Receivers: make([]*apicommonpb.Organization, 0),
+					OperationCost: &apicommonpb.TaskResourceCostDeclare{
 						Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
 						Memory:    task.GetTaskData().GetOperationCost().GetMemory(),
 						Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
@@ -576,7 +576,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				//for _, dataSupplier := range task.TaskPB().DataSupplier {
 				//	// 协作方, 需要过滤掉自己
 				//	if task.TaskPB().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
-				//		powerTask.Patners = append(powerTask.Patners, &apipb.Organization{
+				//		powerTask.Patners = append(powerTask.Patners, &apicommonpb.Organization{
 				//			NodeName:   dataSupplier.MemberInfo.GetNodeName(),
 				//			NodeId:     dataSupplier.MemberInfo.GetNodeId(),
 				//			IdentityId: dataSupplier.MemberInfo.GetIdentityId(),
@@ -586,7 +586,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				//}
 				// 组装结果接收方
 				for _, receiver := range task.GetTaskData().GetReceivers() {
-					powerTask.Receivers = append(powerTask.Receivers, &apipb.Organization{
+					powerTask.Receivers = append(powerTask.Receivers, &apicommonpb.Organization{
 						NodeName:   receiver.GetNodeName(),
 						NodeId:     receiver.GetNodeId(),
 						IdentityId: receiver.GetIdentityId(),
@@ -595,7 +595,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 
 				// 计算任务使用实况 ...
 				slotCount := readElement(jobNodeId, powerTask.TaskId)
-				powerTask.OperationSpend = &apipb.TaskResourceCostDeclare{
+				powerTask.OperationSpend = &apicommonpb.TaskResourceCostDeclare{
 					Processor: slotUnit.Processor * uint32(slotCount),
 					Memory:    slotUnit.Mem * slotCount,
 					Bandwidth: slotUnit.Bandwidth * slotCount,
@@ -617,18 +617,18 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 	result := make([]*pb.GetPowerSingleDetailResponse, len(resourceList))
 	for i, resource := range resourceList {
 		nodePowerDetail := &pb.GetPowerSingleDetailResponse{
-			Owner: &apipb.Organization{
+			Owner: &apicommonpb.Organization{
 				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
-			Power: &libTypes.PowerUsageDetail{
+			Power: &libtypes.PowerUsageDetail{
 				//JobNodeId:        resource.GetJobNodeId(),
 				//PowerId:          resource.DataId,
 				TotalTaskCount:   uint32(taskCount(resource.GetJobNodeId())),
 				CurrentTaskCount: uint32(taskCount(resource.GetJobNodeId())),
-				Tasks:            make([]*libTypes.PowerTask, 0),
-				Information: &libTypes.ResourceUsageOverview{
+				Tasks:            make([]*libtypes.PowerTask, 0),
+				Information: &libtypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
 					TotalProcessor: uint32(resource.GetTotalProcessor()),
@@ -661,7 +661,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	if nil != err {
 		return nil, err
 	}
-	return types.NewIdentity(&libTypes.IdentityPB{
+	return types.NewIdentity(&libtypes.IdentityPB{
 		IdentityId: nodeAlias.IdentityId,
 		NodeId:     nodeAlias.NodeId,
 		NodeName:   nodeAlias.NodeName,
@@ -698,27 +698,27 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
 		// task 发起方
 		if task.GetTaskData().GetIdentityId() == localIdentityId {
-			return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_Sender)
+			return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_Sender)
 		}
 
 		// task 参与方
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if dataSupplier.GetOrganization().GetIdentityId() == localIdentityId {
-				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_DataSupplier)
+				return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_DataSupplier)
 			}
 		}
 
 		// 算力提供方
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			if powerSupplier.GetOrganization().GetIdentityId() == localIdentityId {
-				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_PowerSupplier)
+				return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_PowerSupplier)
 			}
 		}
 
 		// 数据接收方
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			if receiver.GetIdentityId() == localIdentityId {
-				return types.NewTaskDetailShowFromTaskData(task, apipb.TaskRole_TaskRole_Receiver)
+				return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_Receiver)
 			}
 		}
 		return nil
@@ -760,7 +760,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 			Type:     e.Type,
 			CreateAt: e.CreateAt,
 			Content:  e.Content,
-			Owner: &apipb.Organization{
+			Owner: &apicommonpb.Organization{
 				NodeName:   identity.NodeName,
 				NodeId:     identity.NodeId,
 				IdentityId: identity.IdentityId,
@@ -800,7 +800,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 				Type:     e.Type,
 				CreateAt: e.CreateAt,
 				Content:  e.Content,
-				Owner: &apipb.Organization{
+				Owner: &apicommonpb.Organization{
 					NodeName:   identity.NodeName,
 					NodeId:     identity.NodeId,
 					IdentityId: identity.IdentityId,
@@ -859,3 +859,9 @@ func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceF
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
+
+// for authority
+
+func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.AuditMetadataAuth) error {
+	return s.carrier.authEngine.AuditMetadataAuthority(audit)
+}

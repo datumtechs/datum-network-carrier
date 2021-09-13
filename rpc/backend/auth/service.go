@@ -6,7 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -15,7 +15,7 @@ import (
 
 // for organization identity
 
-func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJoinRequest) (*apicommonpb.SimpleResponse, error) {
 
 	identity, err := svr.B.GetNodeIdentity()
 	if rawdb.IsNoDBNotFoundErr(err) {
@@ -48,13 +48,13 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 	}
 	log.Debugf("RPC-API:ApplyIdentityJoin succeed SendMsg, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 		req.Member.IdentityId, req.Member.NodeId, req.Member.NodeName)
-	return &apipb.SimpleResponse{
+	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil
 }
 
-func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (*apipb.SimpleResponse, error) {
+func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (*apicommonpb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
@@ -69,7 +69,7 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 		return nil, ErrSendIdentityRevokeMsg
 	}
 	log.Debug("RPC-API:RevokeIdentityJoin succeed SendMsg")
-	return &apipb.SimpleResponse{
+	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil
@@ -84,7 +84,7 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 	return &pb.GetNodeIdentityResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Owner: &apipb.Organization{
+		Owner: &apicommonpb.Organization{
 			NodeName:   identity.Name(),
 			NodeId:     identity.NodeId(),
 			IdentityId: identity.IdentityId(),
@@ -98,9 +98,9 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 		log.WithError(err).Error("RPC-API:GetIdentityList failed")
 		return nil, ErrGetIdentityList
 	}
-	arr := make([]*apipb.Organization, len(identityList))
+	arr := make([]*apicommonpb.Organization, len(identityList))
 	for i, identity := range identityList {
-		iden := &apipb.Organization{
+		iden := &apicommonpb.Organization{
 			NodeName:   identity.Name(),
 			NodeId:     identity.NodeId(),
 			IdentityId: identity.IdentityId(),
@@ -114,7 +114,6 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 		MemberList: arr,
 	}, nil
 }
-
 
 // for metadata authority apply
 
@@ -143,13 +142,13 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	log.Debugf("RPC-API:ApplyMetadataAuthority succeed, userType: {%s}, user: {%s}, metadataOwner: {%s}, metadataId: {%s}, usageRule: {%s},  return metadataAuthId: {%s}",
 		req.GetUserType().String(), req.GetUser(), req.GetAuth().GetOwner().String(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().String(), metadataAuthId)
 	return &pb.ApplyMetadataAuthorityResponse{
-		Status:     0,
-		Msg:        backend.OK,
+		Status:         0,
+		Msg:            backend.OK,
 		MetadataAuthId: metadataAuthId,
 	}, nil
 }
 
-func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMetadataAuthorityRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	if req.GetUser() == "" {
 		return nil, errors.New("required User")
 	}
@@ -173,9 +172,9 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	}
 	log.Debugf("RPC-API:RevokeMetadataAuthority succeed, userType: {%s}, user: {%s}, metadataAuthId: {%s}",
 		req.GetUserType().String(), req.GetUser(), metadataAuthId)
-	return &apipb.SimpleResponse{
-		Status:     0,
-		Msg:        backend.OK,
+	return &apicommonpb.SimpleResponse{
+		Status: 0,
+		Msg:    backend.OK,
 	}, nil
 }
 
@@ -192,13 +191,13 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
 		data := &pb.GetMetadataAuthority{
-			MetadataAuthId: auth.Data().MetadataAuthId,
-			User:           auth.Data().User,
-			UserType:       auth.Data().UserType,
-			Auth:           auth.Data().Auth,
+			MetadataAuthId:  auth.Data().MetadataAuthId,
+			User:            auth.Data().User,
+			UserType:        auth.Data().UserType,
+			Auth:            auth.Data().Auth,
 			AuditSuggestion: auth.Data().AuditSuggestion,
-			ApplyAt:        auth.Data().ApplyAt,
-			AuditAt:        auth.Data().AuditAt,
+			ApplyAt:         auth.Data().ApplyAt,
+			AuditAt:         auth.Data().AuditAt,
 		}
 		arr[i] = data
 	}
@@ -215,14 +214,13 @@ func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.G
 	return nil, nil
 }
 
-
-func verifyUserType (userType apipb.UserType) bool {
+func verifyUserType(userType apicommonpb.UserType) bool {
 	switch userType {
-	case apipb.UserType_User_ETH:
+	case apicommonpb.UserType_User_ETH:
 		return true
-	case apipb.UserType_User_ATP:
+	case apicommonpb.UserType_User_ATP:
 		return true
-	case apipb.UserType_User_LAT:
+	case apicommonpb.UserType_User_LAT:
 		return true
 	default:
 		return false

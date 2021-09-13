@@ -2,7 +2,7 @@ package evengine
 
 import (
 	"errors"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 type EventSysCode string
@@ -64,7 +64,7 @@ var ScheduleEvent = map[string]string{
 	TaskFailedConsensus.Type: TaskFailedConsensus.Msg,
 }
 
-func MakeScheduleEventInfo(event *libTypes.TaskEvent) (*libTypes.TaskEvent, error) {
+func MakeScheduleEventInfo(event *libtypes.TaskEvent) (*libtypes.TaskEvent, error) {
 	if _, ok := ScheduleEvent[event.Type]; ok {
 		event.Content = ScheduleEvent[event.Type]
 		return event, nil

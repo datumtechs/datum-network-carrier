@@ -10,11 +10,11 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/handler"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/pkg/errors"
@@ -89,19 +89,19 @@ func (m *Manager) storeFailedReScheduleTask(taskId string) error {
 
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
-	task.GetTask().GetTaskData().State = apipb.TaskState_TaskState_Running
+	task.GetTask().GetTaskData().State = apicommonpb.TaskState_TaskState_Running
 	task.GetTask().GetTaskData().StartAt = uint64(timeutils.UnixMsec())
 	if err := m.resourceMng.GetDB().StoreLocalTask(task.GetTask()); nil != err {
 		log.Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}, err: {%s}",
-			task.GetTask().GetTaskId(), apipb.TaskState_TaskState_Running.String(), err)
+			task.GetTask().GetTaskId(), apicommonpb.TaskState_TaskState_Running.String(), err)
 	}
 	// update local cache
 	m.addNeedExecuteTaskCache(task)
 
 	switch task.GetLocalTaskRole() {
-	case apipb.TaskRole_TaskRole_DataSupplier, apipb.TaskRole_TaskRole_Receiver:
+	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task)
-	case apipb.TaskRole_TaskRole_PowerSupplier:
+	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 		return m.executeTaskOnJobNode(task)
 	default:
 		log.Errorf("Faided to driveTaskForExecute(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTask().GetTaskId(), task.GetLocalTaskRole().String())
@@ -211,11 +211,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask) {
 			break
 		}
 	}
-	var taskState apipb.TaskState
+	var taskState apicommonpb.TaskState
 	if isFailed {
-		taskState = apipb.TaskState_TaskState_Failed
+		taskState = apicommonpb.TaskState_TaskState_Failed
 	} else {
-		taskState = apipb.TaskState_TaskState_Succeed
+		taskState = apicommonpb.TaskState_TaskState_Succeed
 	}
 
 	log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTask().GetTaskId(), taskState.String())
@@ -269,10 +269,10 @@ func (m *Manager) sendTaskEvent(reportEvent *types.ReportTaskEvent) {
 	m.eventCh <- reportEvent
 }
 
-func (m *Manager) storeBadTask(task *types.Task, events []*libTypes.TaskEvent, reason string) error {
+func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
 	task.GetTaskData().EventCount = uint32(len(events))
-	task.GetTaskData().State = apipb.TaskState_TaskState_Failed
+	task.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
 	task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
 
@@ -282,7 +282,7 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libTypes.TaskEvent, r
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
-func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libTypes.TaskEvent, state apipb.TaskState) *types.Task {
+func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libtypes.TaskEvent, state apicommonpb.TaskState) *types.Task {
 	task.GetTaskData().TaskEvents = eventList
 	task.GetTaskData().EventCount = uint32(len(eventList))
 	task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
@@ -381,7 +381,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 	var filePath string
 	var idColumnName string
 
-	if task.GetLocalTaskRole() == apipb.TaskRole_TaskRole_DataSupplier {
+	if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_DataSupplier {
 
 		var find bool
 
@@ -511,7 +511,7 @@ func (m *Manager) ForEachRunningTaskCache(f func(taskId string, task *types.Need
 
 func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
 
-	if task.GetLocalTaskRole() == apipb.TaskRole_TaskRole_Sender {
+	if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_Sender {
 		log.Errorf("send task OR task owner can not make TaskResult Msg")
 		return nil
 	}
@@ -541,7 +541,7 @@ func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *taskmn
 	}
 }
 
-func (m *Manager) handleTaskEvent(partyId string, event *libTypes.TaskEvent) error {
+func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) error {
 	eventType := event.Type
 	if len(eventType) != ev.EventTypeCharLen {
 		return ev.IncEventType
@@ -555,12 +555,12 @@ func (m *Manager) handleTaskEvent(partyId string, event *libTypes.TaskEvent) err
 			// 先 缓存下 最终休止符 event
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "", apipb.TaskState_TaskState_Failed)
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "", apicommonpb.TaskState_TaskState_Failed)
 			} else {
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "", apipb.TaskState_TaskState_Succeed)
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "", apicommonpb.TaskState_TaskState_Succeed)
 			}
 
-			if task.GetLocalTaskRole() == apipb.TaskRole_TaskRole_Sender {
+			if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_Sender {
 				m.publishFinishedTaskToDataCenter(task)
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), partyId)
 			} else {
@@ -592,11 +592,11 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 	}
 
 	switch task.GetLocalTaskRole() {
-	case apipb.TaskRole_TaskRole_Sender:
+	case apicommonpb.TaskRole_TaskRole_Sender:
 		if err := m.driveTaskForExecute(task); nil != err {
 			log.Errorf("Failed to execute task on taskOnwer node, taskId:{%s}, %s", task.GetTask().GetTaskId(), err)
 
-			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("failed to execute task"), apipb.TaskState_TaskState_Failed)
+			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("failed to execute task"), apicommonpb.TaskState_TaskState_Failed)
 			m.publishFinishedTaskToDataCenter(task)
 			m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 
@@ -607,7 +607,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 			log.Errorf("Failed to execute task on %s node, taskId: {%s}, %s", task.GetLocalTaskRole().String(), task.GetTask().GetTaskId(), err)
 
 			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者.. (里面有解锁 本地资源 ...)
-			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("failed to execute task"), apipb.TaskState_TaskState_Failed)
+			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("failed to execute task"), apicommonpb.TaskState_TaskState_Failed)
 			m.sendTaskResultMsgToRemotePeer(task)
 			m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 		}
@@ -628,13 +628,13 @@ func (m *Manager) expireTaskMonitor() {
 
 		for partyId, task := range cache {
 
-			if task.GetTask().GetTaskData().State == apipb.TaskState_TaskState_Running && task.GetTask().GetTaskData().GetStartAt() != 0 {
+			if task.GetTask().GetTaskData().State == apicommonpb.TaskState_TaskState_Running && task.GetTask().GetTaskData().GetStartAt() != 0 {
 
 				// the task has running expire
 				var duration uint64
 
 				switch task.GetLocalTaskRole() {
-				case apipb.TaskRole_TaskRole_Sender:
+				case apicommonpb.TaskRole_TaskRole_Sender:
 					duration = uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt() + uint64(senderExecuteTaskExpire.Milliseconds())
 				default:
 					duration = uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt()
@@ -644,9 +644,9 @@ func (m *Manager) expireTaskMonitor() {
 					log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
 						taskId, duration, task.GetTask().GetTaskData().GetOperationCost().GetDuration())
 
-					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), identityId, fmt.Sprintf("task running expire"), apipb.TaskState_TaskState_Failed)
+					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), identityId, fmt.Sprintf("task running expire"), apicommonpb.TaskState_TaskState_Failed)
 					switch task.GetLocalTaskRole() {
-					case apipb.TaskRole_TaskRole_Sender:
+					case apicommonpb.TaskRole_TaskRole_Sender:
 						m.publishFinishedTaskToDataCenter(task)
 
 					default:
@@ -669,10 +669,10 @@ func (m *Manager) expireTaskMonitor() {
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state apipb.TaskState) {
+func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state apicommonpb.TaskState) {
 	var evTyp string
 	var evMsg string
-	if state == apipb.TaskState_TaskState_Failed {
+	if state == apicommonpb.TaskState_TaskState_Failed {
 		evTyp = ev.TaskFailed.Type
 		evMsg = ev.TaskFailed.Msg
 	} else {

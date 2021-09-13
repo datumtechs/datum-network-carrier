@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -87,7 +87,7 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 	}, nil
 }
 
-func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*apicommonpb.SimpleResponse, error) {
 	if req == nil {
 		return nil, errors.New("required owner")
 	}
@@ -119,7 +119,7 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 		return nil, ErrSendPowerRevokeMsg
 	}
 	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.PowerId)
-	return &apipb.SimpleResponse{
+	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

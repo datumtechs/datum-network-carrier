@@ -1869,7 +1869,7 @@ func (m *TaskPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 8:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetState", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
 			m.State = 0
 			for shift := uint(0); ; shift += 7 {
@@ -1939,7 +1939,7 @@ func (m *TaskPB) Unmarshal(dAtA []byte) error {
 			}
 		case 11:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetDesc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1971,7 +1971,7 @@ func (m *TaskPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 12:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetCreateAt", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
 			}
 			m.CreateAt = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2755,7 +2755,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 10:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetCreateAt", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
 			}
 			m.CreateAt = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2812,7 +2812,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 			}
 		case 13:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetState", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
 			m.State = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2867,7 +2867,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 15:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetDesc", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Desc", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3207,7 +3207,7 @@ func (m *TaskDataSupplier) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetColumns", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Columns", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3420,7 +3420,7 @@ func (m *TaskEvent) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 5:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GetCreateAt", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
 			}
 			m.CreateAt = 0
 			for shift := uint(0); ; shift += 7 {

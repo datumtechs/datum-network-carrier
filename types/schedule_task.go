@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -47,13 +47,13 @@ func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *Propo
 //}
 //
 //type ReplayScheduleTaskWrap struct {
-//	Role     apipb.TaskRole
+//	Role     apicommonpb.TaskRole
 //	PartyId  string
 //	GetTask     *GetTask
 //	GetResultCh chan *ScheduleResult
 //}
 //
-//func NewReplayScheduleTaskWrap(role apipb.TaskRole, partyId string, task *GetTask) *ReplayScheduleTaskWrap {
+//func NewReplayScheduleTaskWrap(role apicommonpb.TaskRole, partyId string, task *GetTask) *ReplayScheduleTaskWrap {
 //	return &ReplayScheduleTaskWrap{
 //		Role:     role,
 //		PartyId:  partyId,
@@ -85,14 +85,14 @@ func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *Propo
 //
 //type DoneScheduleTaskChWrap struct {
 //	ProposalId   common.Hash
-//	SelfTaskRole apipb.TaskRole
-//	SelfIdentity *apipb.TaskOrganization
+//	SelfTaskRole apicommonpb.TaskRole
+//	SelfIdentity *apicommonpb.TaskOrganization
 //	GetTask         *ConsensusScheduleTask
 //	GetResultCh     chan *TaskResultMsgWrap
 //}
 //type ConsensusScheduleTask struct {
 //	TaskDir          ProposalTaskDir
-//	TaskState        apipb.TaskState
+//	TaskState        apicommonpb.TaskState
 //	SchedTask        *GetTask
 //	SelfVotePeerInfo *PrepareVoteResource
 //	Resources        *twopcpb.ConfirmTaskPeerInfo
@@ -218,13 +218,13 @@ func (nct *NeedConsensusTask) ReceiveResult() *TaskConsResult {
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
 type NeedReplayScheduleTask struct {
-	localTaskRole apipb.TaskRole
+	localTaskRole apicommonpb.TaskRole
 	localPartyId  string
 	task          *Task
 	resultCh      chan *ReplayScheduleResult
 }
 
-func NewNeedReplayScheduleTask(role apipb.TaskRole, partyId string, task *Task) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role apicommonpb.TaskRole, partyId string, task *Task) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
 		localTaskRole: role,
 		localPartyId:  partyId,
@@ -245,8 +245,8 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apipb.TaskRole        { return nrst.localTaskRole }
-func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.localPartyId }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apicommonpb.TaskRole { return nrst.localTaskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                { return nrst.localPartyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
@@ -291,10 +291,10 @@ func (rsr *ReplayScheduleResult) String() string {
 type NeedExecuteTask struct {
 	remotepid              peer.ID
 	proposalId             common.Hash
-	localTaskRole          apipb.TaskRole
-	localTaskOrganization  *apipb.TaskOrganization
-	remoteTaskRole         apipb.TaskRole
-	remoteTaskOrganization *apipb.TaskOrganization
+	localTaskRole          apicommonpb.TaskRole
+	localTaskOrganization  *apicommonpb.TaskOrganization
+	remoteTaskRole         apicommonpb.TaskRole
+	remoteTaskOrganization *apicommonpb.TaskOrganization
 	task                   *Task
 	consStatus             TaskConsStatus
 	localResource          *PrepareVoteResource
@@ -304,10 +304,10 @@ type NeedExecuteTask struct {
 func NewNeedExecuteTask(
 	remotepid peer.ID,
 	proposalId common.Hash,
-	localTaskRole apipb.TaskRole,
-	localTaskOrganization *apipb.TaskOrganization,
-	remoteTaskRole apipb.TaskRole,
-	remoteTaskOrganization *apipb.TaskOrganization,
+	localTaskRole apicommonpb.TaskRole,
+	localTaskOrganization *apicommonpb.TaskOrganization,
+	remoteTaskRole apicommonpb.TaskRole,
+	remoteTaskOrganization *apicommonpb.TaskOrganization,
 	task *Task,
 	consStatus TaskConsStatus,
 	localResource *PrepareVoteResource,
@@ -329,13 +329,13 @@ func NewNeedExecuteTask(
 func (net *NeedExecuteTask) IsRemotePIDEmpty() bool           { return net.remotepid == "" }
 func (net *NeedExecuteTask) IsNotRemotePIDEmpty() bool        { return !net.IsRemotePIDEmpty() }
 func (net *NeedExecuteTask) GetRemotePID() peer.ID            { return net.remotepid }
-func (net *NeedExecuteTask) GetProposalId() common.Hash       { return net.proposalId }
-func (net *NeedExecuteTask) GetLocalTaskRole() apipb.TaskRole { return net.localTaskRole }
-func (net *NeedExecuteTask) GetLocalTaskOrganization() *apipb.TaskOrganization {
+func (net *NeedExecuteTask) GetProposalId() common.Hash             { return net.proposalId }
+func (net *NeedExecuteTask) GetLocalTaskRole() apicommonpb.TaskRole { return net.localTaskRole }
+func (net *NeedExecuteTask) GetLocalTaskOrganization() *apicommonpb.TaskOrganization {
 	return net.localTaskOrganization
 }
-func (net *NeedExecuteTask) GetRemoteTaskRole() apipb.TaskRole { return net.remoteTaskRole }
-func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apipb.TaskOrganization {
+func (net *NeedExecuteTask) GetRemoteTaskRole() apicommonpb.TaskRole { return net.remoteTaskRole }
+func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apicommonpb.TaskOrganization {
 	return net.remoteTaskOrganization
 }
 func (net *NeedExecuteTask) GetTask() *Task                         { return net.task }
@@ -430,10 +430,10 @@ func IsNotSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) 
 	return !IsSameTaskOrgByte(org1, org2)
 }
 
-func IsSameTaskOrg(org1, org2 *apipb.TaskOrganization) bool {
+func IsSameTaskOrg(org1, org2 *apicommonpb.TaskOrganization) bool {
 	if org1.GetPartyId() == org2.GetPartyId() && org1.GetIdentityId() == org2.GetIdentityId() {
 		return true
 	}
 	return false
 }
-func IsNotSameTaskOrg(org1, org2 *apipb.TaskOrganization) bool { return !IsSameTaskOrg(org1, org2) }
+func IsNotSameTaskOrg(org1, org2 *apicommonpb.TaskOrganization) bool { return !IsSameTaskOrg(org1, org2) }

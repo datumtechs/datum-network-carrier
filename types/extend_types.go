@@ -2,24 +2,24 @@ package types
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDetailShow {
+func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *pb.TaskDetailShow {
 	taskData := input.GetTaskData()
 	detailShow := &pb.TaskDetailShow{
 		TaskId:   taskData.GetTaskId(),
 		TaskName: taskData.GetTaskName(),
 		//TODO: 需要确认部分
 		//Role:     role,
-		Owner: &apipb.TaskOrganization{
+		Owner: &apicommonpb.TaskOrganization{
 			PartyId:    taskData.GetPartyId(),
 			NodeName:       taskData.GetNodeName(),
 			NodeId:     taskData.GetNodeId(),
 			IdentityId: taskData.GetIdentityId(),
 		},
-		AlgoSupplier: &apipb.TaskOrganization{
+		AlgoSupplier: &apicommonpb.TaskOrganization{
 			PartyId:    taskData.GetPartyId(),
 			NodeName:       taskData.GetNodeName(),
 			NodeId:     taskData.GetNodeId(),
@@ -32,7 +32,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 		StartAt:       taskData.GetStartAt(),
 		EndAt:         taskData.GetEndAt(),
 		State:         taskData.GetState(),
-		OperationCost: &apipb.TaskResourceCostDeclare{
+		OperationCost: &apicommonpb.TaskResourceCostDeclare{
 			Processor: taskData.GetOperationCost().GetProcessor(),
 			Memory:       taskData.GetOperationCost().GetMemory(),
 			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
@@ -42,7 +42,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 	// DataSupplier
 	for _, metadataSupplier := range taskData.GetDataSuppliers() {
 		dataSupplier := &pb.TaskDataSupplierShow{
-			Organization: &apipb.TaskOrganization{
+			Organization: &apicommonpb.TaskOrganization{
 				PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
 				NodeName:   metadataSupplier.GetOrganization().GetNodeName(),
 				NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
@@ -56,13 +56,13 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 	// powerSupplier
 	for _, data := range taskData.GetPowerSuppliers() {
 		detailShow.PowerSupplier = append(detailShow.PowerSupplier, &pb.TaskPowerSupplierShow{
-			Organization: &apipb.TaskOrganization{
+			Organization: &apicommonpb.TaskOrganization{
 				PartyId:    data.GetOrganization().GetPartyId(),
 				NodeName:   data.GetOrganization().GetNodeName(),
 				NodeId:     data.GetOrganization().GetNodeId(),
 				IdentityId: data.GetOrganization().GetIdentityId(),
 			},
-			PowerInfo: &libTypes.ResourceUsageOverview{
+			PowerInfo: &libtypes.ResourceUsageOverview{
 				TotalMem:       data.GetResourceUsedOverview().GetTotalMem(),
 				UsedMem:        data.GetResourceUsedOverview().GetUsedMem(),
 				TotalProcessor: data.GetResourceUsedOverview().GetTotalProcessor(),
@@ -75,7 +75,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role apipb.TaskRole) *pb.TaskDet
 	return detailShow
 }
 
-func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*pb.TaskEventShow {
+func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 	result := make([]*pb.TaskEventShow, 0, len(input))
 	for _, event := range input {
 		result = append(result, &pb.TaskEventShow{
@@ -83,7 +83,7 @@ func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*pb.TaskEventShow {
 			Type:     event.GetType(),
 			CreateAt: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner:    &apipb.Organization{
+			Owner:    &apicommonpb.Organization{
 				IdentityId: event.GetIdentityId(),
 			},
 		})
@@ -93,13 +93,13 @@ func NewTaskEventFromAPIEvent(input []*libTypes.TaskEvent) []*pb.TaskEventShow {
 
 func NewOrgMetadataInfoFromMetadata(input *Metadata) *pb.GetMetadataDetailResponse {
 	response := &pb.GetMetadataDetailResponse{
-		Owner: &apipb.Organization{
+		Owner: &apicommonpb.Organization{
 			NodeName:   input.data.GetNodeName(),
 			NodeId:     input.data.GetNodeId(),
 			IdentityId: input.data.GetIdentityId(),
 		},
-		Information: &libTypes.MetadataDetail{
-			MetadataSummary: &libTypes.MetadataSummary{
+		Information: &libtypes.MetadataDetail{
+			MetadataSummary: &libtypes.MetadataSummary{
 				MetadataId: input.data.GetDataId(),
 				OriginId:   input.data.GetOriginId(),
 				TableName:  input.data.GetTableName(),
