@@ -3,13 +3,13 @@ package yarn
 import (
 	"context"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 )
 
-func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*apicommonpb.SimpleResponse, error) {
 	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call GetRegisterNodeList() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
@@ -38,7 +38,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 	log.Debugf("RPC-API:ReportUpFileSummary succeed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 		req.OriginId, req.FilePath, req.Ip, req.Port, resourceId)
 
-	return &apipb.SimpleResponse{
+	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

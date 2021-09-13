@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"sync"
 	"time"
 )
@@ -49,14 +49,14 @@ var (
 type ProposalState struct {
 	proposalId common.Hash
 	taskId     string
-	taskSender *apipb.TaskOrganization
+	taskSender *apicommonpb.TaskOrganization
 	stateCache map[string]*OrgProposalState // partyId -> states
 	lock       sync.RWMutex
 }
 
 var EmptyProposalState = new(ProposalState)
 
-func NewProposalState(proposalId common.Hash, taskId string, sender *apipb.TaskOrganization) *ProposalState {
+func NewProposalState(proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization) *ProposalState {
 	return &ProposalState{
 		proposalId: proposalId,
 		taskId:     taskId,
@@ -65,8 +65,8 @@ func NewProposalState(proposalId common.Hash, taskId string, sender *apipb.TaskO
 	}
 }
 func (pstate *ProposalState) GetProposalId() common.Hash             { return pstate.proposalId }
-func (pstate *ProposalState) GetTaskId() string                      { return pstate.taskId }
-func (pstate *ProposalState) GetTaskSender() *apipb.TaskOrganization { return pstate.taskSender }
+func (pstate *ProposalState) GetTaskId() string                            { return pstate.taskId }
+func (pstate *ProposalState) GetTaskSender() *apicommonpb.TaskOrganization { return pstate.taskSender }
 
 func (pstate *ProposalState) StoreOrgProposalState(orgState *OrgProposalState) {
 
@@ -171,15 +171,15 @@ type OrgProposalState struct {
 	DeadlineDuration   uint64 // Clear `ProposalState` , when the current time is greater than the `DeadlineDuration` createAt of proposalState
 	CreateAt           uint64
 	TaskId             string
-	TaskRole           apipb.TaskRole
-	TaskOrg            *apipb.TaskOrganization
+	TaskRole           apicommonpb.TaskRole
+	TaskOrg            *apicommonpb.TaskOrganization
 	PeriodNum          ProposalStatePeriod
 }
 
 func NewOrgProposalState(
 	taskId string,
-	taskRole apipb.TaskRole,
-	taskOrg *apipb.TaskOrganization,
+	taskRole apicommonpb.TaskRole,
+	taskOrg *apicommonpb.TaskOrganization,
 	startTime uint64,
 ) *OrgProposalState {
 

@@ -5,8 +5,8 @@ import (
 	"errors"
 	twopctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 
 	log "github.com/sirupsen/logrus"
@@ -184,7 +184,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	powerPartyIds []string,
 	dataIdentityIdCache map[string]struct{},
 	cost *twopctypes.TaskOperationCost,
-) ([]*libTypes.TaskPowerSupplier, error) {
+) ([]*libtypes.TaskPowerSupplier, error) {
 
 	calculateCount := len(powerPartyIds)
 	identityIds := make([]string, 0)
@@ -255,7 +255,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 
 	log.Debugf("GetResourceList by dataCenter on electionConputeOrg, resources: %s", resourceArr.String())
 
-	orgs := make([]*libTypes.TaskPowerSupplier, calculateCount)
+	orgs := make([]*libtypes.TaskPowerSupplier, calculateCount)
 	i := 0
 	for _, iden := range resourceArr {
 
@@ -264,15 +264,15 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 		}
 
 		if info, ok := identityInfoTmp[iden.GetIdentityId()]; ok {
-			orgs[i] = &libTypes.TaskPowerSupplier{
-				Organization: &apipb.TaskOrganization{
+			orgs[i] = &libtypes.TaskPowerSupplier{
+				Organization: &apicommonpb.TaskOrganization{
 					PartyId:    powerPartyIds[i],
 					NodeName:   info.Name(),
 					NodeId:     info.NodeId(),
 					IdentityId: info.IdentityId(),
 				},
 				// TODO 这里的 task 资源消耗是事先加上的 先在这里直接加上 写死的(任务定义的)
-				ResourceUsedOverview: &libTypes.ResourceUsageOverview{
+				ResourceUsedOverview: &libtypes.ResourceUsageOverview{
 					TotalMem:       iden.GetTotalMem(),
 					UsedMem:        cost.Mem,
 					TotalProcessor: uint32(iden.GetTotalProcessor()),
@@ -289,7 +289,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	return orgs, nil
 }
 
-func utilOrgPowerArrString(powers []*libTypes.TaskPowerSupplier) string {
+func utilOrgPowerArrString(powers []*libtypes.TaskPowerSupplier) string {
 	arr := make([]string, len(powers))
 	for i, power := range powers {
 		arr[i] = power.String()

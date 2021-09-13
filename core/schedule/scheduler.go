@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -13,5 +13,5 @@ type Scheduler interface {
 	AddTask(task *types.Task) error
 	RemoveTask(taskId string) error
 	TrySchedule() (*types.NeedConsensusTask, error)
-	ReplaySchedule(localPartyId string, localTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult
+	ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, task *types.Task) *types.ReplayScheduleResult
 }

@@ -6,8 +6,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/event"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 	"sync"
@@ -249,7 +249,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 
 	// remove identity from dataCenter
 	if err := m.dataCenter.RevokeIdentity(
-		types.NewIdentity(&libTypes.IdentityPB{
+		types.NewIdentity(&libtypes.IdentityPB{
 			NodeName: identity.GetNodeName(),
 			NodeId:   identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
@@ -303,16 +303,16 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) err
 				power.GetPowerId(), power.GetJobNodeId(), err))
 			continue
 		}
-		if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libTypes.LocalResourcePB{
+		if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
 			IdentityId:  identity.GetIdentityId(),
 			NodeId:    identity.GetNodeId(),
 			NodeName:  identity.GetNodeName(),
 			JobNodeId: power.GetJobNodeId(),
 			DataId:    power.GetPowerId(),
 			// the status of data, N means normal, D means deleted.
-			DataStatus: apipb.DataStatus_DataStatus_Normal,
+			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 			// resource status, eg: create/release/revoke
-			State: apipb.PowerState_PowerState_Released,
+			State: apicommonpb.PowerState_PowerState_Released,
 			// unit: byte
 			TotalMem: types.GetDefaultResoueceMem(), // todo 使用 默认的资源大小
 			// unit: byte
@@ -332,15 +332,15 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) err
 		}
 
 		// 发布到全网
-		if err := m.dataCenter.InsertResource(types.NewResource(&libTypes.ResourcePB{
+		if err := m.dataCenter.InsertResource(types.NewResource(&libtypes.ResourcePB{
 			IdentityId: identity.GetIdentityId(),
 			NodeId:   identity.GetNodeId(),
 			NodeName: identity.GetNodeName(),
 			DataId:   power.GetPowerId(),
 			// the status of data, N means normal, D means deleted.
-			DataStatus: apipb.DataStatus_DataStatus_Normal,
+			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 			// resource status, eg: create/release/revoke
-			State: apipb.PowerState_PowerState_Released,
+			State: apicommonpb.PowerState_PowerState_Released,
 			// unit: byte
 			TotalMem: types.GetDefaultResoueceMem(), // todo 使用 默认的资源大小
 			// unit: byte
@@ -409,15 +409,15 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 			continue
 		}
 
-		if err := m.dataCenter.RevokeResource(types.NewResource(&libTypes.ResourcePB{
+		if err := m.dataCenter.RevokeResource(types.NewResource(&libtypes.ResourcePB{
 			IdentityId: identity.GetIdentityId(),
 			NodeId:   identity.GetNodeId(),
 			NodeName: identity.GetNodeName(),
 			DataId:   revoke.GetPowerId(),
 			// the status of data, N means normal, D means deleted.
-			DataStatus: apipb.DataStatus_DataStatus_Deleted,
+			DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 			// resource status, eg: create/release/revoke
-			State: apipb.PowerState_PowerState_Revoked,
+			State: apicommonpb.PowerState_PowerState_Revoked,
 		})); nil != err {
 			log.Errorf("Failed to remove dataCenter resource on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)

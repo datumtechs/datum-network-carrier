@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -69,7 +69,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	}, nil
 }
 
-func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apipb.SimpleResponse, error) {
+func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
 
 	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	//metaDataRevokeMsg.GetCreateAt = uint64(timeutils.UnixMsec())
@@ -80,7 +80,7 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 		return nil, ErrSendMetadataRevokeMsg
 	}
 	log.Debugf("RPC-API:RevokeMetadata succeed, metadataId: {%s}", req.GetMetadataId())
-	return &apipb.SimpleResponse{
+	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

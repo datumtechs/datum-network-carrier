@@ -3,7 +3,7 @@ package grpclient
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -49,7 +49,7 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 }
 
 // MetadataSave saves new metadata to database.
-func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.MetadataSaveRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.MetadataSaveRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.metadataService.MetadataSave(ctx, request)
@@ -73,7 +73,7 @@ func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.Metadata
 	return gc.metadataService.GetMetadataById(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.metadataService.RevokeMetadata(ctx, request)
@@ -81,19 +81,19 @@ func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMet
 
 // ************************************** Resource module *******************************************************
 
-func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveResource(ctx context.Context, request *api.PublishPowerRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.PublishPower(ctx, request)
 }
 
-func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) SyncPower(ctx context.Context, request *api.SyncPowerRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.SyncPower(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePowerRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.RevokePower(ctx, request)
@@ -119,13 +119,13 @@ func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.PowerListRe
 
 // ************************************** Identity module *******************************************************
 
-func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentityRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.RevokeIdentityJoin(ctx, request)
@@ -138,7 +138,7 @@ func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.Identity
 }
 
 // 存储元数据鉴权申请记录
-func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.SaveMetadataAuthorityRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.SaveMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.SaveMetadataAuthority(ctx, request)
@@ -146,7 +146,7 @@ func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.Sa
 
 // 数据授权审核，规则：
 // 1、授权后，可以将审核结果绑定到原有申请记录之上
-func (gc *GrpcClient) AuditMetadataAuthority(ctx context.Context, request *api.AuditMetadataAuthorityRequest) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) AuditMetadataAuthority(ctx context.Context, request *api.AuditMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.AuditMetadataAuthority(ctx, request)
@@ -162,7 +162,7 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api
 
 // ************************************** GetTask module *******************************************************
 
-func (gc *GrpcClient) SaveTask(ctx context.Context, request *libtypes.TaskDetail) (*apipb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *libtypes.TaskDetail) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 	return gc.taskService.SaveTask(ctx, request)

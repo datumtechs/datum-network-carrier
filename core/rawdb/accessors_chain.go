@@ -7,7 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
 // ReadDataHash retrieves the hash assigned to a canonical block number
@@ -110,7 +110,7 @@ func ReadHeader(db DatabaseReader, hash common.Hash, number uint64) *types.Heade
 	if len(data) == 0 {
 		return nil
 	}
-	header := new(libTypes.HeaderPb)
+	header := new(libtypes.HeaderPb)
 	if err := header.Unmarshal(data); err != nil {
 		log.WithField("hash", hash).WithError(err).Fatal("Invalid block header ProtoBuf")
 		return nil
@@ -173,12 +173,12 @@ func HasBody(db DatabaseReader, hash common.Hash, number uint64) bool {
 }
 
 // ReadBody retrieves the block body corresponding to the hash.
-func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *libTypes.BodyData {
+func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *libtypes.BodyData {
 	data := ReadBodyPB(db, hash, number)
 	if len(data) == 0 {
 		return nil
 	}
-	body := new(libTypes.BodyData)
+	body := new(libtypes.BodyData)
 	if err := body.Unmarshal(data); err != nil {
 		log.WithField("hash", hash).WithError(err).Error("Invalid block body Protobuf")
 		return nil
@@ -187,7 +187,7 @@ func ReadBody(db DatabaseReader, hash common.Hash, number uint64) *libTypes.Body
 }
 
 // WriteBOdy store a block body into the database.
-func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *libTypes.BodyData) {
+func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *libtypes.BodyData) {
 	data, err := body.Marshal()
 	if err != nil {
 		log.WithError(err).Fatal("Failed to ProtoBuf encode body")
@@ -220,7 +220,7 @@ func ReadBlock(db DatabaseReader, hash common.Hash, number uint64) *types.Block 
 }
 
 // WriteBlock serializes a block into the database, header and body separately.
-func WriteBlock(db DatabaseWriter, block *libTypes.BlockData) {
+func WriteBlock(db DatabaseWriter, block *libtypes.BlockData) {
 	//WriteBody(db, block.Hash(), block.NumberU64(), block.Body())
 	//WriteHeader(db, &block.Header)
 }

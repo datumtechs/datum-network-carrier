@@ -3,27 +3,27 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
 )
 
 type Task struct {
-	data *libTypes.TaskPB
+	data *libtypes.TaskPB
 
 	// caches
 	hash atomic.Value
 	size atomic.Value
 }
 
-func NewTask(data *libTypes.TaskPB) *Task {
+func NewTask(data *libtypes.TaskPB) *Task {
 	return &Task{data: data}
 }
 
 func (m *Task) EncodePb(w io.Writer) error {
 	if m.data == nil {
-		m.data = new(libTypes.TaskPB)
+		m.data = new(libtypes.TaskPB)
 	}
 	data, err := m.data.Marshal()
 	if err == nil {
@@ -52,12 +52,12 @@ func (m *Task) GetTaskId() string {
 	return m.data.TaskId
 }
 
-func (m *Task) GetTaskData() *libTypes.TaskPB {
+func (m *Task) GetTaskData() *libtypes.TaskPB {
 	return m.data
 }
 
-func (m *Task) GetTaskSender() *apipb.TaskOrganization {
-	return &apipb.TaskOrganization {
+func (m *Task) GetTaskSender() *apicommonpb.TaskOrganization {
+	return &apicommonpb.TaskOrganization {
 		PartyId: m.data.GetPartyId(),
 		NodeName: m.data.GetNodeName(),
 		NodeId: m.data.GetNodeId(),
@@ -66,10 +66,10 @@ func (m *Task) GetTaskSender() *apipb.TaskOrganization {
 }
 
 
-func (m *Task) SetEventList(eventList []*libTypes.TaskEvent) {
-	/*eventArr := make([]*libTypes.TaskEvent, len(eventList))
+func (m *Task) SetEventList(eventList []*libtypes.TaskEvent) {
+	/*eventArr := make([]*libtypes.TaskEvent, len(eventList))
 	for i, ev := range eventList {
-		eventArr[i] = &libTypes.TaskEvent{
+		eventArr[i] = &libtypes.TaskEvent{
 			GetTaskId:     ev.GetTaskId,
 			Type:       ev.Type,
 			GetCreateAt:   ev.GetCreateAt,
@@ -79,13 +79,13 @@ func (m *Task) SetEventList(eventList []*libTypes.TaskEvent) {
 	}*/
 	m.data.TaskEvents = eventList
 }
-func (m *Task) SetMetadataSupplierArr(arr []*libTypes.TaskDataSupplier) {
+func (m *Task) SetMetadataSupplierArr(arr []*libtypes.TaskDataSupplier) {
 	m.data.DataSuppliers = arr
 }
-func (m *Task) SetResourceSupplierArr(arr []*libTypes.TaskPowerSupplier) {
+func (m *Task) SetResourceSupplierArr(arr []*libtypes.TaskPowerSupplier) {
 	m.data.PowerSuppliers = arr
 }
-func (m *Task) SetReceivers(arr []*apipb.TaskOrganization) {
+func (m *Task) SetReceivers(arr []*apicommonpb.TaskOrganization) {
 	m.data.Receivers = arr
 }
 
@@ -104,7 +104,7 @@ func (s TaskDataArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-func NewTaskDataArray(metaData []*libTypes.TaskPB) TaskDataArray {
+func NewTaskDataArray(metaData []*libtypes.TaskPB) TaskDataArray {
 	var s TaskDataArray
 	for _, v := range metaData {
 		s = append(s, NewTask(v))
@@ -112,8 +112,8 @@ func NewTaskDataArray(metaData []*libTypes.TaskPB) TaskDataArray {
 	return s
 }
 
-func (s TaskDataArray) To() []*libTypes.TaskPB {
-	arr := make([]*libTypes.TaskPB, 0, s.Len())
+func (s TaskDataArray) To() []*libtypes.TaskPB {
+	arr := make([]*libtypes.TaskPB, 0, s.Len())
 	for _, v := range s {
 		arr = append(arr, v.data)
 	}

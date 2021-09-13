@@ -2,17 +2,17 @@ package task
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 func makeMsgOption(proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	sender *apipb.TaskOrganization,
+	sender *apicommonpb.TaskOrganization,
 ) *msgcommonpb.MsgOption {
 	return &msgcommonpb.MsgOption{
 		ProposalId:      proposalId.Bytes(),
@@ -32,10 +32,10 @@ func makeMsgOption(proposalId common.Hash,
 
 func makeTaskResultMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
-	events []*libTypes.TaskEvent,
+	events []*libtypes.TaskEvent,
 	startTime uint64,
 ) *taskmngpb.TaskResultMsg {
 	return &taskmngpb.TaskResultMsg{
@@ -48,9 +48,9 @@ func makeTaskResultMsg(
 
 
 func fetchTaskResultMsg(msg *taskmngpb.TaskResultMsg) *types.TaskResultMsg {
-	taskEventList := make([]*libTypes.TaskEvent, len(msg.TaskEventList))
+	taskEventList := make([]*libtypes.TaskEvent, len(msg.TaskEventList))
 	for index, value := range msg.TaskEventList {
-		taskEventList[index] = &libTypes.TaskEvent{
+		taskEventList[index] = &libtypes.TaskEvent{
 			Type:       string(value.Type),
 			TaskId:     string(value.TaskId),
 			IdentityId: string(value.IdentityId),

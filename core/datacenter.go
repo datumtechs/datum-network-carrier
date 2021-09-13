@@ -7,7 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
@@ -321,7 +321,7 @@ func (dc *DataCenter)  HasLocalTaskExecute(taskId string) (bool, error)  {
 }
 
 
-func (dc *DataCenter) StoreTaskEvent(event *libTypes.TaskEvent) error {
+func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteTaskEvent(dc.db, event)
@@ -329,7 +329,7 @@ func (dc *DataCenter) StoreTaskEvent(event *libTypes.TaskEvent) error {
 	return nil
 }
 
-func (dc *DataCenter) GetTaskEventList(taskId string) ([]*libTypes.TaskEvent, error) {
+func (dc *DataCenter) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 

@@ -5,9 +5,9 @@ package rawdb
 import (
 	"bytes"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/sirupsen/logrus"
 	"strings"
@@ -18,8 +18,8 @@ const seedNodeToKeep = 50
 const registeredNodeToKeep = 50
 
 // ReadLocalIdentity retrieves the identity of local.
-func ReadLocalIdentity(db DatabaseReader) (*apipb.Organization, error) {
-	var blob apipb.Organization
+func ReadLocalIdentity(db DatabaseReader) (*apicommonpb.Organization, error) {
+	var blob apicommonpb.Organization
 	enc, err := db.Get(localIdentityKey)
 	if nil != err {
 		return nil, err
@@ -27,7 +27,7 @@ func ReadLocalIdentity(db DatabaseReader) (*apipb.Organization, error) {
 	if err := blob.Unmarshal(enc); nil != err {
 		return nil, err
 	}
-	return &apipb.Organization{
+	return &apicommonpb.Organization{
 		NodeName:       blob.GetNodeName(),
 		NodeId:     blob.GetNodeId(),
 		IdentityId: blob.GetIdentityId(),
@@ -35,8 +35,8 @@ func ReadLocalIdentity(db DatabaseReader) (*apipb.Organization, error) {
 }
 
 // WriteLocalIdentity stores the local identity.
-func WriteLocalIdentity(db DatabaseWriter, localIdentity *apipb.Organization) {
-	pb := &apipb.TaskOrganization{
+func WriteLocalIdentity(db DatabaseWriter, localIdentity *apicommonpb.Organization) {
+	pb := &apicommonpb.TaskOrganization{
 		PartyId:              "",
 		IdentityId:           localIdentity.GetIdentityId(),
 		NodeId:               localIdentity.GetNodeId(),
@@ -498,7 +498,7 @@ func DeleteRegisterNodes(db DatabaseDeleter, nodeType pb.RegisteredNodeType) {
 }
 
 // ReadTaskEvent retrieves the evengine of task with the corresponding taskId.
-func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libTypes.TaskEvent, error) {
+func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libtypes.TaskEvent, error) {
 	blob, err := db.Get(taskEventKey(taskId))
 	if err != nil {
 		return nil, err
@@ -507,10 +507,10 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libTypes.TaskEvent, err
 	if err := events.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	resEvent := make([]*libTypes.TaskEvent, 0)
+	resEvent := make([]*libtypes.TaskEvent, 0)
 	for _, e := range events.GetTaskEventList() {
 		if strings.EqualFold(e.GetTaskId(), taskId) {
-			resEvent = append(resEvent, &libTypes.TaskEvent{
+			resEvent = append(resEvent, &libtypes.TaskEvent{
 				Type:       e.GetType(),
 				IdentityId:   e.GetIdentityId(),
 				TaskId:     e.GetTaskId(),
@@ -523,11 +523,11 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libTypes.TaskEvent, err
 }
 
 // ReadAllTaskEvent retrieves the task event with all.
-func ReadAllTaskEvents(db KeyValueStore) ( []*libTypes.TaskEvent, error) {
+func ReadAllTaskEvents(db KeyValueStore) ( []*libtypes.TaskEvent, error) {
 	prefix := taskEventPrefix
 	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
-	result := make([]*libTypes.TaskEvent, 0)
+	result := make([]*libtypes.TaskEvent, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
@@ -548,7 +548,7 @@ func ReadAllTaskEvents(db KeyValueStore) ( []*libTypes.TaskEvent, error) {
 }
 
 // WriteTaskEvent serializes the task evengine into the database.
-func WriteTaskEvent(db KeyValueStore, taskEvent *libTypes.TaskEvent) {
+func WriteTaskEvent(db KeyValueStore, taskEvent *libtypes.TaskEvent) {
 	blob, err := db.Get(taskEventKey(taskEvent.TaskId))
 	if err != nil {
 		log.WithError(err).Warn("Failed to load old task events")
@@ -612,7 +612,7 @@ func ReadLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResourc
 		log.WithError(err).Fatal("Failed to read local resource")
 		return nil, err
 	}
-	localResource := new(libTypes.LocalResourcePB)
+	localResource := new(libtypes.LocalResourcePB)
 	if err := localResource.Unmarshal(blob); err != nil {
 		log.WithError(err).Fatal("Failed to unmarshal local resource")
 		return nil, err
@@ -632,7 +632,7 @@ func ReadAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
 			if err != nil {
 				continue
 			}
-			localResource := new(libTypes.LocalResourcePB)
+			localResource := new(libtypes.LocalResourcePB)
 			if err := localResource.Unmarshal(blob); err != nil {
 				continue
 			}

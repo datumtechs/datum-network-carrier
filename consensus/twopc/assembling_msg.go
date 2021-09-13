@@ -4,17 +4,17 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 func makeMsgOption(proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	sender *apipb.TaskOrganization,
+	sender *apicommonpb.TaskOrganization,
 ) *msgcommonpb.MsgOption {
 	return &msgcommonpb.MsgOption{
 		ProposalId:      proposalId.Bytes(),
@@ -33,7 +33,7 @@ func makeMsgOption(proposalId common.Hash,
 
 func makePrepareMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	startTime uint64,
@@ -55,7 +55,7 @@ func makePrepareMsg(
 
 func makePrepareVote(
 	proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	voteOption types.VoteOption,
@@ -74,7 +74,7 @@ func makePrepareVote(
 
 func makeConfirmMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	peers *twopcpb.ConfirmTaskPeerInfo,
@@ -93,7 +93,7 @@ func makeConfirmMsg(
 
 func makeConfirmVote(
 	proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	voteOption types.VoteOption,
@@ -110,7 +110,7 @@ func makeConfirmVote(
 
 func makeCommitMsg(
 	proposalId common.Hash,
-	senderRole, receiverRole apipb.TaskRole,
+	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	task *types.Task,
 	startTime uint64,
@@ -132,7 +132,7 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
 	}
 
-	task := types.NewTask(&libTypes.TaskPB{})
+	task := types.NewTask(&libtypes.TaskPB{})
 	err := task.DecodePb(msg.TaskInfo)
 	if err != nil {
 		return nil, err

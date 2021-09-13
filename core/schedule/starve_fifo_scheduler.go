@@ -7,8 +7,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -104,7 +104,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 		if e := sche.repushTaskBullet(bullet.TaskId); nil != e {
 			err = e
 		}
-		return types.NewNeedConsensusTask(types.NewTask(&libTypes.TaskPB{TaskId: bullet.TaskId})), err
+		return types.NewNeedConsensusTask(types.NewTask(&libtypes.TaskPB{TaskId: bullet.TaskId})), err
 	}
 
 	cost := &ctypes.TaskOperationCost{
@@ -140,7 +140,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	}
 	return types.NewNeedConsensusTask(task), nil
 }
-func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
+func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
 
 	cost := &ctypes.TaskOperationCost{
 		Mem:       task.GetTaskData().GetOperationCost().GetMemory(),
@@ -163,7 +163,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	switch localTaskRole {
 
 	// 如果 当前参与方为 DataSupplier   [重新 演算 选 powers]
-	case apipb.TaskRole_TaskRole_DataSupplier:
+	case apicommonpb.TaskRole_TaskRole_DataSupplier:
 
 		var isSender bool
 		if localPartyId == task.GetTaskSender().GetPartyId() && selfIdentityId == task.GetTaskSender().GetIdentityId() {
@@ -242,7 +242,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, localPartyId))
 
 	// 如果 当前参与方为 PowerSupplier  [选出自己的 内部 power 资源, 并锁定, todo 在最后 DoneXxxxWrap 中解锁]
-	case apipb.TaskRole_TaskRole_PowerSupplier:
+	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Bandwidth, cost.Processor)
 		jobNode, err := sche.electionComputeNode(needSlotCount)
@@ -266,7 +266,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(jobNode.Id, jobNode.ExternalIp, jobNode.ExternalPort, localPartyId))
 
 	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
-	case apipb.TaskRole_TaskRole_Receiver:
+	case apicommonpb.TaskRole_TaskRole_Receiver:
 
 		dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()
 		if nil != err {

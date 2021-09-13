@@ -6,7 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	apipb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -181,10 +181,10 @@ func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		uint64(time.Now().Nanosecond()),
 	})
 	proposalState := ctypes.NewProposalState(proposalId, task.GetTaskId(), task.GetTaskSender())
-	//orgProposalState := ctypes.NewOrgProposalState(task.GetTaskId(), apipb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now)
+	//orgProposalState := ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now)
 	//orgProposalState.AddDeadlineDuration(task.GetTaskData().GetOperationCost().GetDuration())
 	//proposalState.StoreOrgProposalState(orgProposalState)
-	proposalState.StoreOrgProposalState(ctypes.NewOrgProposalState(task.GetTaskId(), apipb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now))
+	proposalState.StoreOrgProposalState(ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now))
 
 
 	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalId, task.GetTaskId())
@@ -242,7 +242,7 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
-	org := &apipb.TaskOrganization{
+	org := &apicommonpb.TaskOrganization{
 		PartyId:    msg.MsgOption.ReceiverPartyId,
 		NodeName:   identity.GetNodeName(),
 		NodeId:     identity.GetNodeId(),
@@ -392,9 +392,9 @@ func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 	// Store vote
 	t.storePrepareVote(vote)
 
-	totalNeedVoteCount := t.getNeedVotingCount(apipb.TaskRole_TaskRole_DataSupplier, proposalTask.Task) +
-		t.getNeedVotingCount(apipb.TaskRole_TaskRole_PowerSupplier, proposalTask.Task) +
-		t.getNeedVotingCount(apipb.TaskRole_TaskRole_Receiver, proposalTask.Task)
+	totalNeedVoteCount := t.getNeedVotingCount(apicommonpb.TaskRole_TaskRole_DataSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apicommonpb.TaskRole_TaskRole_PowerSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apicommonpb.TaskRole_TaskRole_Receiver, proposalTask.Task)
 	yesVoteCount := t.getTaskPrepareYesVoteCount(vote.MsgOption.ProposalId)
 	totalVotedCount := t.getTaskPrepareTotalVoteCount(vote.MsgOption.ProposalId)
 
@@ -587,9 +587,9 @@ func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 	// Store vote
 	t.storeConfirmVote(vote)
 
-	totalNeedVoteCount := t.getNeedVotingCount(apipb.TaskRole_TaskRole_DataSupplier, proposalTask.Task) +
-		t.getNeedVotingCount(apipb.TaskRole_TaskRole_PowerSupplier, proposalTask.Task) +
-		t.getNeedVotingCount(apipb.TaskRole_TaskRole_Receiver, proposalTask.Task)
+	totalNeedVoteCount := t.getNeedVotingCount(apicommonpb.TaskRole_TaskRole_DataSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apicommonpb.TaskRole_TaskRole_PowerSupplier, proposalTask.Task) +
+		t.getNeedVotingCount(apicommonpb.TaskRole_TaskRole_Receiver, proposalTask.Task)
 	yesVoteCount := t.getTaskConfirmYesVoteCount(vote.MsgOption.ProposalId)
 	totalVotedCount := t.getTaskConfirmTotalVoteCount(vote.MsgOption.ProposalId)
 

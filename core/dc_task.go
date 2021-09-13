@@ -6,7 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -177,7 +177,7 @@ func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	return 0
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libTypes.TaskEvent, error) {
+func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
@@ -186,11 +186,11 @@ func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libTypes.TaskE
 	return taskEventResponse.TaskEvents, err
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libTypes.TaskEvent, error) {
+func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 
-	eventList := make([]*libTypes.TaskEvent, 0)
+	eventList := make([]*libtypes.TaskEvent, 0)
 	for _, taskId := range taskIds {
 		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
 			TaskId: taskId,

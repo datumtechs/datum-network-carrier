@@ -54,8 +54,9 @@ message RevokeMetadataAuthorityRequest {
 
 // 组织对用户的数据授权申请做审核 req
 message AuditMetadataAuthorityRequest {
-  string                    metadata_auth_id = 1;                  // 元数据授权申请Id
-  api.protobuf.AuditMetadataOption audit = 2;                      // 审核意见
+  string                            metadata_auth_id = 1;                   // 元数据授权申请Id
+  api.protobuf.AuditMetadataOption  audit = 2;                              // 审核结果
+  string                            suggestion = 3;                         // 审核意见 (允许""字符)
 }
 // 组织对用户的数据授权申请做审核 resp
 message AuditMetadataAuthorityResponse {

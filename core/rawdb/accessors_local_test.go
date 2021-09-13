@@ -3,7 +3,9 @@ package rawdb
 import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	libTypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
@@ -13,20 +15,20 @@ import (
 
 func TestLocalTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	data01 := &libTypes.TaskPB{
-		IdentityId:             "identity",
-		NodeId:               "nodeid",
-		NodeName:             "nodename",
-		DataId:               "taskId",
-		DataStatus:           "Y",
-		TaskId:               "taskID",
-		TaskName:             "taskName",
-		State:                "SUCCESS",
-		Reason:               "reason",
-		EventCount:           4,
-		Desc:                 "desc",
-		CreateAt:             uint64(timeutils.UnixMsec()),
-		EndAt:                uint64(timeutils.UnixMsec()),
+	data01 := &libtypes.TaskPB{
+		IdentityId: "identity",
+		NodeId:     "nodeid",
+		NodeName:   "nodename",
+		DataId:     "taskId",
+		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+		TaskId:     "taskID",
+		TaskName:   "taskName",
+		State:      apicommonpb.TaskState_TaskState_Unknown,
+		Reason:     "reason",
+		EventCount: 4,
+		Desc:       "desc",
+		CreateAt:   uint64(timeutils.UnixMsec()),
+		EndAt:      uint64(timeutils.UnixMsec()),
 	}
 	WriteLocalTask(database, types.NewTask(data01))
 
@@ -34,7 +36,7 @@ func TestLocalTask(t *testing.T) {
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.GetTaskId()))
 
 	// test update state
-	res.GetTaskData().State = "failed"
+	res.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
 	DeleteLocalTask(database, data01.TaskId)
 	WriteLocalTask(database, res)
 
@@ -127,21 +129,21 @@ func TestRegisteredNode(t *testing.T) {
 
 func TestTaskEvent(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	taskEvent := &libTypes.TaskEvent{
+	taskEvent := &libtypes.TaskEvent{
 		Type:       "taskEventType",
-		IdentityId:   "taskEventIdentity",
+		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent",
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt:   uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent)
 
-	taskEvent2 := &libTypes.TaskEvent{
+	taskEvent2 := &libtypes.TaskEvent{
 		Type:       "taskEventType-02",
-		IdentityId:   "taskEventIdentity",
+		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent-02",
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt:   uint64(timeutils.UnixMsec()),
 	}
 	WriteTaskEvent(database, taskEvent2)
 
@@ -162,8 +164,8 @@ func TestTaskEvent(t *testing.T) {
 
 func TestLocalIdentity(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	nodeAlias := &apipb.Organization{
-		Name:       "node-name",
+	nodeAlias := &apicommonpb.Organization{
+		NodeName:   "node-name",
 		NodeId:     "node-nodeId",
 		IdentityId: "node-identityId",
 	}
@@ -173,50 +175,50 @@ func TestLocalIdentity(t *testing.T) {
 	rnode, _ := ReadLocalIdentity(database)
 	assert.Equal(t, rnode.IdentityId, nodeAlias.IdentityId)
 	assert.Equal(t, rnode.NodeId, nodeAlias.NodeId)
-	assert.Equal(t, rnode.Name, nodeAlias.Name)
+	assert.Equal(t, rnode.NodeName, nodeAlias.NodeName)
 
 	DeleteLocalIdentity(database)
 	rnode, _ = ReadLocalIdentity(database)
 	assert.Equal(t, rnode.IdentityId, "")
 	assert.Equal(t, rnode.NodeId, "")
-	assert.Equal(t, rnode.Name, "")
+	assert.Equal(t, rnode.NodeName, "")
 }
 
 func TestLocalResource(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	localResource01 := &libTypes.LocalResourcePB{
-		IdentityId:             "01-identity",
-		NodeId:               "01-nodeId",
-		NodeName:             "01-nodename",
-		JobNodeId:            "01",
-		DataId:               "01-dataId",
-		DataStatus:           "y",
-		State:                "SUCCESS",
-		TotalMem:             111,
-		UsedMem:              222,
-		TotalProcessor:       11,
-		UsedProcessor:        33,
-		TotalBandWidth:       33,
-		UsedBandWidth:        44,
+	localResource01 := &libtypes.LocalResourcePB{
+		IdentityId:     "01-identity",
+		NodeId:         "01-nodeId",
+		NodeName:       "01-nodename",
+		JobNodeId:      "01",
+		DataId:         "01-dataId",
+		DataStatus:     apicommonpb.DataStatus_DataStatus_Deleted,
+		State:          apicommonpb.PowerState_PowerState_Created,
+		TotalMem:       111,
+		UsedMem:        222,
+		TotalProcessor: 11,
+		UsedProcessor:  33,
+		TotalBandwidth: 33,
+		UsedBandwidth:  44,
 	}
 	b, _ := localResource01.Marshal()
 	_ = b
 	WriteLocalResource(database, types.NewLocalResource(localResource01))
 
-	localResource02 := &libTypes.LocalResourcePB{
-		IdentityId:             "01-identity",
-		NodeId:               "01-nodeId",
-		NodeName:             "01-nodename",
-		JobNodeId:            "02",
-		DataId:               "01-dataId",
-		DataStatus:           "y",
-		State:                "SUCCESS",
-		TotalMem:             111,
-		UsedMem:              222,
-		TotalProcessor:       11,
-		UsedProcessor:        33,
-		TotalBandWidth:       33,
-		UsedBandWidth:        44,
+	localResource02 := &libtypes.LocalResourcePB{
+		IdentityId:     "01-identity",
+		NodeId:         "01-nodeId",
+		NodeName:       "01-nodename",
+		JobNodeId:      "02",
+		DataId:         "01-dataId",
+		DataStatus:     apicommonpb.DataStatus_DataStatus_Normal,
+		State:         apicommonpb.PowerState_PowerState_Created,
+		TotalMem:       111,
+		UsedMem:        222,
+		TotalProcessor: 11,
+		UsedProcessor:  33,
+		TotalBandwidth: 33,
+		UsedBandwidth:  44,
 	}
 	WriteLocalResource(database, types.NewLocalResource(localResource02))
 
