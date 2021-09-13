@@ -2,6 +2,7 @@ package backend
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -13,6 +14,7 @@ type Backend interface {
 	GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, error)
 
 	// local node resource api
+
 	SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 	DeleteSeedNode(id string) error
 	GetSeedNode(id string) (*pb.SeedPeer, error)
@@ -30,17 +32,24 @@ type Backend interface {
 	GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error)
 	GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error)
 
+	// metadataAuthority api
+
+	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.MetadataAuthorityState, error)
+	GetMetadataAuthorityList() (types.MetadataAuthArray, error)
+	GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error)
+
 	// power api
+
 	GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error)
 	GetPowerSingleDetailList() ([]*pb.GetPowerSingleDetailResponse, error)
 
 	// identity api
+
 	GetNodeIdentity() (*types.Identity, error)
 	GetIdentityList() ([]*types.Identity, error)
-	GetMetadataAuthorityList(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
-
 
 	// task api
+
 	GetTaskDetailList() ([]*pb.TaskDetailShow, error)
 	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
@@ -53,6 +62,7 @@ type Backend interface {
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
 
 	// about DataResourceFileUpload
+
 	StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error
 	StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error
 	//RemoveDataResourceFileUpload(originId string) error

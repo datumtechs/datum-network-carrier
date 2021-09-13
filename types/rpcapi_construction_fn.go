@@ -305,7 +305,7 @@ func NewMetadataAuthArrayFromResponse(responseList []*api.MetadataAuthorityDetai
 	}
 	var result MetadataAuthArray
 	for _, auth := range responseList {
-		result = append(result, NewMedataAuth(&libtypes.MetadataAuthorityPB{
+		result = append(result, NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
 			MetadataAuthId:       auth.MetadataAuthId,
 			User:                 auth.User,
 			UserType:             auth.UserType,

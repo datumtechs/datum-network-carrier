@@ -94,6 +94,8 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		needExecuteTaskCh,
 	)
 
+	authManager := auth.NewAuthorityManager()
+
 	s := &Service{
 		ctx:               ctx,
 		cancel:            cancel,
@@ -101,9 +103,9 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		carrierDB:         config.CarrierDB,
 		mempool:           pool,
 		resourceManager:   resourceMng,
-		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager),
+		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager, authManager),
 		TaskManager:       taskManager,
-		authEngine:        auth.NewAuthorityManager(),
+		authEngine:        authManager,
 		resourceClientSet: resourceClientSet,
 	}
 
