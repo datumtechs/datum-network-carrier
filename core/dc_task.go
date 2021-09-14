@@ -142,7 +142,7 @@ func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, e
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	response, err := dc.client.SaveTask(dc.ctx, types.NewTaskDetail(task))
+	response, err := dc.client.SaveTask(dc.ctx, types.NewSaveTaskRequest(task))
 	if err != nil {
 		log.WithError(err).WithField("taskId", task.GetTaskId()).Errorf("InsertTask failed")
 		return err
@@ -156,8 +156,8 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 func (dc *DataCenter) GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.TaskListRequest{LastUpdated: uint64(timeutils.UnixMsec())})
-	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.TaskListByIdentityRequest{
+	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{LastUpdated: uint64(timeutils.UnixMsec())})
+	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
 		LastUpdated: uint64(timeutils.UnixMsec()),
 		IdentityId: identityId,
 	})
@@ -180,7 +180,7 @@ func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
+	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
 		TaskId: taskId,
 	})
 	return taskEventResponse.TaskEvents, err
@@ -192,7 +192,7 @@ func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.T
 
 	eventList := make([]*libtypes.TaskEvent, 0)
 	for _, taskId := range taskIds {
-		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.TaskEventRequest{
+		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
 			TaskId: taskId,
 		})
 		if nil != err {

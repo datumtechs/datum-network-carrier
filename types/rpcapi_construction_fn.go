@@ -6,10 +6,10 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-// NewMetadataSaveRequest converts Metadata object to MetadataSaveRequest object.
-func NewMetadataSaveRequest(metadata *Metadata) *api.MetadataSaveRequest {
-	request := &api.MetadataSaveRequest{
-		MetaSummary: &libtypes.MetadataSummary{
+// NewMetadataSaveRequest converts Metadata object to SaveMetadataRequest object.
+func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
+	request := &api.SaveMetadataRequest{
+		/*MetaSummary: &libtypes.MetadataSummary{
 			MetadataId: metadata.data.DataId,
 			OriginId:   metadata.data.OriginId,
 			TableName:  metadata.data.TableName,
@@ -27,11 +27,12 @@ func NewMetadataSaveRequest(metadata *Metadata) *api.MetadataSaveRequest {
 			NodeName:   metadata.data.GetNodeName(),
 			NodeId:     metadata.data.GetNodeId(),
 			IdentityId: metadata.data.GetIdentityId(),
-		},
+		},*/
+		Metadata: metadata.MetadataData(),
 	}
-	for _, column := range metadata.data.MetadataColumns {
+	/*for _, column := range metadata.data.MetadataColumns {
 		request.ColumnMeta = append(request.ColumnMeta, column)
-	}
+	}*/
 	return request
 }
 
@@ -49,7 +50,7 @@ func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 
 func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 	request := &api.PublishPowerRequest{
-		Owner: &apicommonpb.Organization{
+		/*Owner: &apicommonpb.Organization{
 			NodeName:   resource.data.GetNodeName(),
 			NodeId:     resource.data.GetNodeId(),
 			IdentityId: resource.data.GetIdentityId(),
@@ -59,7 +60,8 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 			Mem:       resource.data.GetTotalMem(),
 			Processor: uint32(resource.data.GetTotalProcessor()),
 			Bandwidth: resource.data.GetTotalBandwidth(),
-		},
+		},*/
+		Power: resource.data,
 	}
 	return request
 }
@@ -78,7 +80,8 @@ func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
 
 func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 	return &api.SyncPowerRequest{
-		Power: &libtypes.Power{
+		Power: resource.GetData(),
+		/*Power: &libtypes.Power{
 			JobNodeId: resource.data.JobNodeId,
 			PowerId:   resource.data.DataId,
 			UsageOverview: &libtypes.ResourceUsageOverview{
@@ -90,7 +93,7 @@ func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 				UsedBandwidth:  resource.data.UsedBandwidth,
 			},
 			State: resource.data.State,
-		},
+		},*/
 	}
 }
 
@@ -106,25 +109,14 @@ func NewSaveIdentityRequest(identity *Identity) *api.SaveIdentityRequest {
 	return request
 }
 
-func NewTaskDetail(task *Task) *libtypes.TaskDetail {
-	request := &libtypes.TaskDetail{
-		TaskId:        task.data.GetTaskId(),
-		TaskName:      task.data.GetTaskName(),
-		AlgoSupplier:  task.data.GetAlgoSupplier(),
-		DataSuppliers:  task.data.GetDataSuppliers(),
-		PowerSuppliers: task.data.GetPowerSuppliers(),
-		Receivers:     task.data.GetReceivers(),
-		CreateAt:      task.data.GetCreateAt(),
-		StartAt:       task.data.GetStartAt(),
-		EndAt:         task.data.GetEndAt(),
-		State:         task.data.GetState(),
-		OperationCost: task.data.GetOperationCost(),
-		TaskEvents: task.data.GetTaskEvents(),
+func NewSaveTaskRequest(task *Task) *api.SaveTaskRequest {
+	request := &api.SaveTaskRequest{
+		Task: task.data,
 	}
 	return request
 }
 
-func NewMetadataArrayFromResponse(response *api.MetadataSummaryListResponse) MetadataArray {
+/*func NewMetadataArrayFromResponse(response *api.ListMetadataSummaryResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadataSummaries() {
 		metadata := NewMetadata(&libtypes.MetadataPB{
@@ -148,12 +140,12 @@ func NewMetadataArrayFromResponse(response *api.MetadataSummaryListResponse) Met
 		metadataArray = append(metadataArray, metadata)
 	}
 	return metadataArray
-}
+}*/
 
-func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) MetadataArray {
+func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) MetadataArray {
 	var metadataArray MetadataArray
-	for _, v := range response.GetMetadatas() {
-		data := &libtypes.MetadataPB{
+	for _, v := range response.GetMetadata() {
+		/*data := &libtypes.MetadataPB{
 			IdentityId: v.GetOwner().GetIdentityId(),
 			NodeId:     v.GetOwner().GetNodeId(),
 			NodeName:   v.GetOwner().GetNodeName(),
@@ -170,18 +162,18 @@ func NewMetadataArrayFromDetailListResponse(response *api.MetadataListResponse) 
 			State:      v.GetMetaSummary().GetState(),
 			HasTitle:   v.GetMetaSummary().GetHasTitle(),
 			MetadataColumns: v.GetMetadataColumns(),
-		}
-		metadata := NewMetadata(data)
+		}*/
+		metadata := NewMetadata(v)
 		metadataArray = append(metadataArray, metadata)
 	}
 	return metadataArray
 }
 
-//func NewResourceArrayFromPowerListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
+//func NewResourceArrayFromPowerListResponse(response *api.ListPowerSummaryResponse) ResourceArray {
 //	return nil
 //}
 
-func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalSummaryListResponse) ResourceArray {
+func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
 		resource := NewResource(&libtypes.ResourcePB{
@@ -190,20 +182,20 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.PowerTotalS
 			NodeName:       v.GetOwner().GetNodeName(),
 			DataId:         "", // todo: to be determined
 			DataStatus:     apicommonpb.DataStatus_DataStatus_Normal,
-			State:          v.GetPowerTotalSummary().GetState(),
-			TotalMem:       v.GetPowerTotalSummary().GetInformation().GetTotalMem(),
-			TotalProcessor: v.GetPowerTotalSummary().GetInformation().GetTotalProcessor(),
-			TotalBandwidth: v.GetPowerTotalSummary().GetInformation().GetTotalBandwidth(),
-			UsedMem:        v.GetPowerTotalSummary().GetInformation().GetUsedMem(),
-			UsedProcessor:  v.GetPowerTotalSummary().GetInformation().GetUsedProcessor(),
-			UsedBandwidth:  v.GetPowerTotalSummary().GetInformation().GetUsedBandwidth(),
+			State:          v.GetPowerSummary().GetState(),
+			TotalMem:       v.GetPowerSummary().GetInformation().GetTotalMem(),
+			TotalProcessor: v.GetPowerSummary().GetInformation().GetTotalProcessor(),
+			TotalBandwidth: v.GetPowerSummary().GetInformation().GetTotalBandwidth(),
+			UsedMem:        v.GetPowerSummary().GetInformation().GetUsedMem(),
+			UsedProcessor:  v.GetPowerSummary().GetInformation().GetUsedProcessor(),
+			UsedBandwidth:  v.GetPowerSummary().GetInformation().GetUsedBandwidth(),
 		})
 		resourceArray = append(resourceArray, resource)
 	}
 	return resourceArray
 }
 
-func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceArray {
+func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0)
 	resource := NewResource(&libtypes.ResourcePB{
 		IdentityId:     response.GetOwner().GetIdentityId(),
@@ -211,22 +203,22 @@ func NewResourceFromResponse(response *api.PowerTotalSummaryResponse) ResourceAr
 		NodeName:       response.GetOwner().GetNodeName(),
 		DataId:         "", // todo: to be determined
 		DataStatus:     apicommonpb.DataStatus_DataStatus_Normal,
-		State:          response.GetPowerTotalSummary().GetState(),
-		TotalMem:       response.GetPowerTotalSummary().GetInformation().GetTotalMem(),
-		TotalProcessor: response.GetPowerTotalSummary().GetInformation().GetTotalProcessor(),
-		TotalBandwidth: response.GetPowerTotalSummary().GetInformation().GetTotalBandwidth(),
-		UsedMem:        response.GetPowerTotalSummary().GetInformation().GetUsedMem(),
-		UsedProcessor:  response.GetPowerTotalSummary().GetInformation().GetUsedProcessor(),
-		UsedBandwidth:  response.GetPowerTotalSummary().GetInformation().GetUsedBandwidth(),
+		State:          response.GetPowerSummary().GetState(),
+		TotalMem:       response.GetPowerSummary().GetInformation().GetTotalMem(),
+		TotalProcessor: response.GetPowerSummary().GetInformation().GetTotalProcessor(),
+		TotalBandwidth: response.GetPowerSummary().GetInformation().GetTotalBandwidth(),
+		UsedMem:        response.GetPowerSummary().GetInformation().GetUsedMem(),
+		UsedProcessor:  response.GetPowerSummary().GetInformation().GetUsedProcessor(),
+		UsedBandwidth:  response.GetPowerSummary().GetInformation().GetUsedBandwidth(),
 	})
 	resourceArray = append(resourceArray, resource)
 	return resourceArray
 }
 
-func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
-	taskArray := make(TaskDataArray, 0, len(response.GetTaskDetails()))
-	for _, v := range response.GetTaskDetails() {
-		task := NewTask(&libtypes.TaskPB{
+func NewTaskArrayFromResponse(response *api.ListTaskResponse) TaskDataArray {
+	taskArray := make(TaskDataArray, 0, len(response.GetTasks()))
+	for _, v := range response.GetTasks() {
+		/*task := NewTask(&libtypes.TaskPB{
 			// TODO: 任务的所有者标识明确
 			IdentityId:    v.GetSender().GetIdentityId(),
 			NodeId:        v.GetSender().GetNodeId(),
@@ -246,21 +238,21 @@ func NewTaskArrayFromResponse(response *api.TaskListResponse) TaskDataArray {
 			PowerSuppliers: v.GetPowerSuppliers(),
 			Receivers:     v.GetReceivers(),
 			TaskEvents: nil,
-		})
-		taskArray = append(taskArray, task)
+		})*/
+		taskArray = append(taskArray, NewTask(v))
 	}
 	return taskArray
 }
 
-func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
+func NewMetadataFromResponse(response *api.FindMetadataByIdResponse) *Metadata {
 	if response == nil {
 		return nil
 	}
-	metadataSummary := response.GetMetadata().GetMetaSummary()
+	/*metadataSummary := response.GetMetadata().GetMetaSummary()
 	if metadataSummary == nil {
 		return nil
-	}
-	metadata := &libtypes.MetadataPB{
+	}*/
+	/*metadata := &libtypes.MetadataPB{
 		IdentityId: response.GetMetadata().GetOwner().GetIdentityId(),
 		NodeId:     response.GetMetadata().GetOwner().GetNodeId(),
 		NodeName:   response.GetMetadata().GetOwner().GetNodeName(),
@@ -277,11 +269,11 @@ func NewMetadataFromResponse(response *api.MetadataByIdResponse) *Metadata {
 		State:      metadataSummary.GetState(),
 		HasTitle:   metadataSummary.GetHasTitle(),
 		MetadataColumns: response.GetMetadata().GetMetadataColumns(),
-	}
-	return NewMetadata(metadata)
+	}*/
+	return NewMetadata(response.Metadata)
 }
 
-func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse) IdentityArray {
+func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse) IdentityArray {
 	if response == nil {
 		return nil
 	}
@@ -299,23 +291,13 @@ func NewIdentityArrayFromIdentityListResponse(response *api.IdentityListResponse
 	return result
 }
 
-func NewMetadataAuthArrayFromResponse(responseList []*api.MetadataAuthorityDetail) MetadataAuthArray {
+func NewMetadataAuthArrayFromResponse(responseList []*libtypes.MetadataAuthorityPB) MetadataAuthArray {
 	if responseList == nil {
 		return nil
 	}
 	var result MetadataAuthArray
 	for _, auth := range responseList {
-		result = append(result, NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
-			MetadataAuthId:       auth.MetadataAuthId,
-			User:                 auth.User,
-			UserType:             auth.UserType,
-			Auth:           	  auth.Auth,
-			AuditOption:          auth.Audit,
-			AuditSuggestion:      "",
-			ApplyAt: 			  auth.ApplyAt,
-			AuditAt: 			  auth.AuditAt,
-			// TODO: missing state
-		}))
+		result = append(result, NewMetadataAuthority(auth))
 	}
 	return result
 }
