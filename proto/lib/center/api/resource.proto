@@ -101,7 +101,7 @@ service ResourceService {
   rpc ListPower(ListPowerRequest) returns (ListPowerResponse);
 
   // 查看指定组织的总算力摘要
-  rpc GetPowerSummaryByIdentityId (PowerSummaryByIdentityRequest) returns (PowerSummaryResponse);
+  rpc GetPowerSummaryByIdentityId (ListPowerSummaryByIdentityRequest) returns (PowerSummaryResponse);
 
   // 查看各个组织的总算力摘要列表
   rpc ListPowerSummary (google.protobuf.Empty) returns (ListPowerSummaryResponse);
