@@ -11,23 +11,24 @@ import "lib/types/resourcedata.proto";
 import "google/protobuf/empty.proto";
 
 // 算力的基本仨元素
-message PurePower {
+/*message PurePower {
   // 系统的总内存
   uint64 mem = 1;
   // 系统的总内核数
   uint32 processor = 2;
   // 系统的总带宽数
   uint64 bandwidth = 3;
-}
+}*/
 
 // 发布算力请求参数
 message PublishPowerRequest {
-  // 算力的拥有者
+  /*// 算力的拥有者
   api.protobuf.Organization owner = 1;
   // 算力ID
   string power_id = 2;
   // 发布的算力信息
-  PurePower information = 3;
+  PurePower information = 3;*/
+  types.ResourcePB power = 1;
 }
 
 message PublishPowerResponse {
@@ -76,12 +77,12 @@ message PowerListRequest {
 }
 
 message PowerListResponse {
-  repeated types.Power powers           = 1;
-  uint64               last_updated = 2;
+  repeated types.ResourcePB powers  = 1;
+  uint64 last_updated               = 2;
 }
 
 message SyncPowerRequest {
-  types.Power power = 1;
+  types.ResourcePB power = 1;
 }
 
 // 资源（算力）接口定义
