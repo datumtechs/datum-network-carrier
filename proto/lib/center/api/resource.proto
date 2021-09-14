@@ -46,7 +46,7 @@ message RevokePowerRequest {
 }
 
 //  总算力摘要
-message PowerTotalSummary {
+message PowerSummary {
   // 算力实况
   types.ResourceUsageOverview information = 1;
   // 算力上总共执行的任务数 (已完成的和正在执行的)
@@ -55,28 +55,28 @@ message PowerTotalSummary {
   api.protobuf.PowerState state = 3;
 }
 
-message PowerTotalSummaryResponse {
+message PowerSummaryResponse {
   // 算力拥有者信息
   api.protobuf.Organization owner = 1;
   // 算力总摘要
-  PowerTotalSummary power_total_summary = 2;
+  PowerSummary power_summary = 2;
 }
 
-message PowerTotalSummaryListResponse {
+message ListPowerSummaryResponse {
   // 全网的算力总摘要列表
-  repeated PowerTotalSummaryResponse powers = 1;
+  repeated PowerSummaryResponse powers = 1;
 }
 
-message PowerSummaryByIdentityRequest {
+message ListPowerSummaryByIdentityRequest {
   // 身份ID
   string identity_id = 1;
 }
 
-message PowerListRequest {
+message ListPowerRequest {
   uint64 last_updated = 1;
 }
 
-message PowerListResponse {
+message ListPowerResponse {
   repeated types.ResourcePB powers  = 1;
   uint64 last_updated               = 2;
 }
@@ -98,12 +98,12 @@ service ResourceService {
   rpc RevokePower (RevokePowerRequest) returns (api.protobuf.SimpleResponse);
 
   // 新增，用于同步给管理台，获取所有算力资源信息
-  rpc GetPowerList(PowerListRequest) returns (PowerListResponse);
+  rpc ListPower(ListPowerRequest) returns (ListPowerResponse);
 
-  // 查看指定节点的总算力摘要
-  rpc GetPowerSummaryByIdentityId (PowerSummaryByIdentityRequest) returns (PowerTotalSummaryResponse);
+  // 查看指定组织的总算力摘要
+  rpc GetPowerSummaryByIdentityId (PowerSummaryByIdentityRequest) returns (PowerSummaryResponse);
 
   // 查看各个组织的总算力摘要列表
-  rpc GetPowerTotalSummaryList (google.protobuf.Empty) returns (PowerTotalSummaryListResponse);
+  rpc ListPowerSummary (google.protobuf.Empty) returns (ListPowerSummaryResponse);
 
 }
