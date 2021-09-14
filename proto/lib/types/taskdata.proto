@@ -43,24 +43,24 @@ message TaskPB {
 }
 
 // 定义：任务详细信息
-message TaskDetail {
-  string                                          task_id = 1;                         // 任务Id
-  string                                          task_name = 2;                       // 任务名称
-  string                                          user = 3;                            // 发起任务的用户的信息 (task是属于用户的)
-  api.protobuf.UserType                           user_type = 4;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  api.protobuf.TaskOrganization                   sender = 5;                          // 任务发起方
-  api.protobuf.TaskOrganization                   algo_supplier = 6;                   // 算法提供方 (目前就是和 任务发起方是同一个 ...)
-  repeated TaskDataSupplier                       data_suppliers = 7;                   // 数据提供方
-  repeated TaskPowerSupplier                      power_suppliers = 8;                  // 算力提供方
-  repeated api.protobuf.TaskOrganization          receivers = 9;                       // 任务结果方
-  uint64                                          create_at = 10;                      // 任务的发起时间戳 (单位: ms)
-  uint64                                          start_at = 11;                       // 任务的开始执行时间戳 (单位: ms)
-  uint64                                          end_at = 12;                         // 任务的终止<成功or失败>时间戳 (单位: ms)
-  api.protobuf.TaskState                          state = 13;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
-  api.protobuf.TaskResourceCostDeclare            operation_cost = 14;                 // 任务所需资源声明
-  string                                          desc = 15;                           // 任务描述 (非必须)
-  repeated TaskEvent                              task_events = 16;                // 任务所产生的所有事件列表
-}
+//message TaskDetail {
+//  string                                          task_id = 1;                         // 任务Id
+//  string                                          task_name = 2;                       // 任务名称
+//  string                                          user = 3;                            // 发起任务的用户的信息 (task是属于用户的)
+//  api.protobuf.UserType                           user_type = 4;                       // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+//  api.protobuf.TaskOrganization                   sender = 5;                          // 任务发起方
+//  api.protobuf.TaskOrganization                   algo_supplier = 6;                   // 算法提供方 (目前就是和 任务发起方是同一个 ...)
+//  repeated TaskDataSupplier                       data_suppliers = 7;                   // 数据提供方
+//  repeated TaskPowerSupplier                      power_suppliers = 8;                  // 算力提供方
+//  repeated api.protobuf.TaskOrganization          receivers = 9;                       // 任务结果方
+//  uint64                                          create_at = 10;                      // 任务的发起时间戳 (单位: ms)
+//  uint64                                          start_at = 11;                       // 任务的开始执行时间戳 (单位: ms)
+//  uint64                                          end_at = 12;                         // 任务的终止<成功or失败>时间戳 (单位: ms)
+//  api.protobuf.TaskState                          state = 13;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
+//  api.protobuf.TaskResourceCostDeclare            operation_cost = 14;                 // 任务所需资源声明
+//  string                                          desc = 15;                           // 任务描述 (非必须)
+//  repeated TaskEvent                              task_events = 16;                // 任务所产生的所有事件列表
+//}
 
 // 任务算力提供方信息
 message TaskPowerSupplier {
