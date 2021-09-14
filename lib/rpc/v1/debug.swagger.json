@@ -1,0 +1,385 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "lib/rpc/v1/debug.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/debug/logging": {
+      "post": {
+        "summary": "SetLoggingLevel sets the log-level of the beacon node programmatically.",
+        "operationId": "Debug_SetLoggingLevel",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "properties": {}
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "Debug"
+        ]
+      }
+    },
+    "/carrier/v1/debug/peer": {
+      "get": {
+        "summary": "Returns requested peer with specified peer id if it exists.",
+        "operationId": "Debug_GetPeer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DebugPeerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "peer_id",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Debug"
+        ]
+      }
+    },
+    "/carrier/v1/debug/peerCount": {
+      "get": {
+        "summary": "Returns all the related data for every peer tracked by the host node(count).",
+        "operationId": "Debug_GetPeerCount",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DebugPeerCountResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "Debug"
+        ]
+      }
+    },
+    "/carrier/v1/debug/peers": {
+      "get": {
+        "summary": "Returns all the related data for every peer tracked by the host node.",
+        "operationId": "Debug_ListPeers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DebugPeerResponses"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "Debug"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "DebugPeerResponsePeerInfo": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1MetaData",
+          "description": "Metadata of the peer, containing their bitfield\nand sequence number."
+        },
+        "protocols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of protocols the peer supports."
+        },
+        "fault_count": {
+          "type": "string",
+          "format": "uint64",
+          "description": "Number of times peer has been penalised."
+        },
+        "protocol_version": {
+          "type": "string",
+          "description": "Protocol Version peer is running."
+        },
+        "agent_version": {
+          "type": "string",
+          "description": "Agent Version peer is running."
+        },
+        "peer_latency": {
+          "type": "string",
+          "format": "uint64",
+          "description": "Latency of responses from peer(in ms)."
+        }
+      },
+      "description": "Peer related metadata that is useful for debugging."
+    },
+    "LoggingLevelRequestLevel": {
+      "type": "string",
+      "enum": [
+        "INFO",
+        "DEBUG",
+        "TRACE"
+      ],
+      "default": "INFO"
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1ConnectionState": {
+      "type": "string",
+      "enum": [
+        "DISCONNECTED",
+        "DISCONNECTING",
+        "CONNECTED",
+        "CONNECTING"
+      ],
+      "default": "DISCONNECTED",
+      "description": "ConnectionState states the current status of the peer."
+    },
+    "v1DebugPeerCountResponse": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "v1DebugPeerResponse": {
+      "type": "object",
+      "properties": {
+        "listening_addresses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Listening addresses know of the peer."
+        },
+        "direction": {
+          "$ref": "#/definitions/v1PeerDirection",
+          "description": "Direction of current connection."
+        },
+        "connection_state": {
+          "$ref": "#/definitions/v1ConnectionState",
+          "description": "Current connection between host and peer."
+        },
+        "peer_id": {
+          "type": "string",
+          "description": "Peer ID of peer."
+        },
+        "enr": {
+          "type": "string",
+          "description": "ENR of peer at the current moment."
+        },
+        "peer_info": {
+          "$ref": "#/definitions/DebugPeerResponsePeerInfo",
+          "description": "Peer Info of the peer containing all relevant metadata."
+        },
+        "peer_status": {
+          "$ref": "#/definitions/v1Status",
+          "description": "Peer Status of the peer."
+        },
+        "last_updated": {
+          "type": "string",
+          "format": "uint64",
+          "description": "Last know update time for peer status."
+        },
+        "score_info": {
+          "$ref": "#/definitions/v1ScoreInfo",
+          "description": "Score Info of the peer."
+        }
+      }
+    },
+    "v1DebugPeerResponses": {
+      "type": "object",
+      "properties": {
+        "responses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1DebugPeerResponse"
+          }
+        }
+      }
+    },
+    "v1MetaData": {
+      "type": "object",
+      "properties": {
+        "seq_number": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "attnets": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "Spec Definition:\nMetaData\n(\nseq_number: uint64\nattnets: Bitvector[ATTESTATION_SUBNET_COUNT]\n)"
+    },
+    "v1PeerDirection": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "INBOUND",
+        "OUTBOUND"
+      ],
+      "default": "UNKNOWN",
+      "description": "PeerDirection states the direction of the connection to a peer."
+    },
+    "v1ScoreInfo": {
+      "type": "object",
+      "properties": {
+        "overall_score": {
+          "type": "number",
+          "format": "float"
+        },
+        "processed_blocks": {
+          "type": "string",
+          "format": "uint64",
+          "description": "Amount of processed blocks provided by\nthe peer."
+        },
+        "block_provider_score": {
+          "type": "number",
+          "format": "float",
+          "description": "Related block provider score."
+        },
+        "topic_scores": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1TopicScoreSnapshot"
+          },
+          "description": "Relevant scores by particular topic."
+        },
+        "gossip_score": {
+          "type": "number",
+          "format": "float",
+          "description": "Gossip Score for peer."
+        },
+        "behaviour_penalty": {
+          "type": "number",
+          "format": "float",
+          "description": "Behaviour penalty of peer."
+        },
+        "validation_error": {
+          "type": "string",
+          "description": "Returns the current validation error(if it exists)."
+        }
+      },
+      "description": "The Scoring related information of the particular peer."
+    },
+    "v1Status": {
+      "type": "object",
+      "properties": {
+        "fork_digest": {
+          "type": "string",
+          "format": "byte"
+        },
+        "finalized_root": {
+          "type": "string",
+          "format": "byte"
+        },
+        "finalized_epoch": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "head_root": {
+          "type": "string",
+          "format": "byte"
+        },
+        "head_slot": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "v1TopicScoreSnapshot": {
+      "type": "object",
+      "properties": {
+        "time_in_mesh": {
+          "type": "string",
+          "format": "uint64",
+          "description": "Time a peer has spent in the gossip mesh."
+        },
+        "first_message_deliveries": {
+          "type": "number",
+          "format": "float",
+          "description": "This is the number of first message deliveries in the topic."
+        },
+        "mesh_message_deliveries": {
+          "type": "number",
+          "format": "float",
+          "description": "This is the number of message deliveries in the mesh, within the MeshMessageDeliveriesWindow of\nmessage validation.It effectively tracks first and near-first\ndeliveries, ie a message seen from a mesh peer before we have forwarded it to them."
+        },
+        "invalid_message_deliveries": {
+          "type": "number",
+          "format": "float",
+          "description": "This is the number of invalid messages in the topic from the peer."
+        }
+      }
+    }
+  }
+}

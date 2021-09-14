@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package types;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+message HeaderPb {
+    bytes  parentHash = 1;
+    uint64 version    = 2;
+    uint64 timestamp  = 3;
+    bytes  extra      = 4;
+}

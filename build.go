@@ -27,9 +27,14 @@ func main() {
 }
 
 func proto() {
+
+	// go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+	// go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+	// go get -u github.com/golang/protobuf/protoc-gen-go
 	pv := protobufVersion()
 	repo := "https://github.com/gogo/protobuf.git"
 	path := filepath.Join("repos", "protobuf")
+	apipath := filepath.Join("repos", "grpc-gateway")
 
 	runPrint(goCmd, "get", fmt.Sprintf("github.com/gogo/protobuf/protoc-gen-gogofast@%v", pv))
 	os.MkdirAll("repos", 0755)
@@ -39,6 +44,10 @@ func proto() {
 	} else {
 		runPrintInDir(path, "git", "fetch")
 	}
+	if _, err := os.Stat(apipath); err != nil {
+		runPrint("git", "clone", "-b", "v1.16.0", "https://github.com/grpc-ecosystem/grpc-gateway.git", apipath)
+	}
+
 	runPrintInDir(path, "git", "checkout", pv)
 
 	runPrint(goCmd, "generate", "proto/generate.go")

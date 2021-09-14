@@ -1,0 +1,454 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "lib/api/power_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/power/publish": {
+      "post": {
+        "summary": "启用算力 (发布算力)",
+        "operationId": "PowerService_PublishPower",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishPowerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishPowerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/revoke": {
+      "post": {
+        "summary": "停用算力 (撤销算力)",
+        "operationId": "PowerService_RevokePower",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiRevokePowerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/singleList": {
+      "post": {
+        "summary": "查看某个节点各个单算力详情列表",
+        "operationId": "PowerService_GetPowerSingleDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetPowerSingleDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/totalList": {
+      "post": {
+        "summary": "查看各个节点的总算力详情列表",
+        "operationId": "PowerService_GetPowerTotalDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetPowerTotalDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcapiEmptyGetParams": {
+      "type": "object"
+    },
+    "rpcapiGetPowerSingleDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "power_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetPowerSingleDetailResponse"
+          }
+        }
+      }
+    },
+    "rpcapiGetPowerSingleDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "power": {
+          "$ref": "#/definitions/rpcapiPowerSingleDetail"
+        }
+      }
+    },
+    "rpcapiGetPowerTotalDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "power_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetPowerTotalDetailResponse"
+          }
+        }
+      }
+    },
+    "rpcapiGetPowerTotalDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "power": {
+          "$ref": "#/definitions/rpcapiPowerTotalDetail"
+        }
+      }
+    },
+    "rpcapiOrganizationIdentityInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        }
+      },
+      "title": "组织(节点)唯一标识抽象"
+    },
+    "rpcapiPowerSingleDetail": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+        },
+        "job_node_id": {
+          "type": "string"
+        },
+        "power_id": {
+          "type": "string"
+        },
+        "total_task_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "current_task_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiPowerTask"
+          }
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "title": "单个算力详情"
+    },
+    "rpcapiPowerTask": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "patners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          }
+        },
+        "receivers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+          }
+        },
+        "operation_cost": {
+          "$ref": "#/definitions/rpcapiTaskOperationCostDeclare"
+        },
+        "operation_spend": {
+          "$ref": "#/definitions/rpcapiTaskOperationCostDeclare"
+        }
+      },
+      "title": "算力上的任务信息"
+    },
+    "rpcapiPowerTotalDetail": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+        },
+        "total_task_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "current_task_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiPowerTask"
+          }
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "title": "总算力详情"
+    },
+    "rpcapiPublishPowerRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "job_node_id": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiPurePower"
+        }
+      }
+    },
+    "rpcapiPublishPowerResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiPurePower": {
+      "type": "object",
+      "properties": {
+        "mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "算力的基本仨元素"
+    },
+    "rpcapiResourceUsedDetailShow": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "系统本身资源抽象"
+    },
+    "rpcapiRevokePowerRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiSimpleResponseCode": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiTaskOperationCostDeclare": {
+      "type": "object",
+      "properties": {
+        "cost_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "cost_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "cost_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "任务的所需操作成本 (定义任务的大小)"
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

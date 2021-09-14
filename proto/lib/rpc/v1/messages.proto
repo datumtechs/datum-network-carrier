@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package carrier.rpc.v1;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+
+message GossipTestData {
+    bytes  data  = 1 [(gogoproto.moretags) = "ssz-size:\"?,32\" ssz-max:\"16777216\""];
+    uint64 count = 2;
+    uint64 step  = 3;
+}
+
+message SignedGossipTestData {
+    GossipTestData data      = 1;
+    bytes          signature = 2;
+}

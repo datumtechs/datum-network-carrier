@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package types;
+
+import "repos/protobuf/gogoproto/gogo.proto";
+import "lib/types/metadata.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+message TaskData {
+    string identity   = 1;
+    string nodeId     = 2;
+    string nodeName   = 3;
+    string dataId     = 4;
+    string dataStatus = 5;
+    string taskId     = 6;
+    string taskName   = 7;
+  // success/failed/running/pending/waiting
+    string state      = 8;
+    string reason     = 9;
+    uint32 eventCount = 10;
+    string desc       = 11;
+    uint64 createAt   = 12;
+    uint64 endAt      = 13;
+    uint64 startAt    = 14;
+    string party_id   = 15;
+    // 算法提供者信息
+    OrganizationData algoSupplier = 20;
+    TaskResourceData taskResource = 21;
+    // 数据提供方组信息
+    repeated TaskMetadataSupplierData metadataSupplier = 22;
+    // 算力提供方组织
+    repeated TaskResourceSupplierData resourceSupplier = 23;
+    // 结果接收方组织
+    repeated TaskResultReceiverData receivers = 24;
+    // 任务参与方
+    repeated OrganizationData partnerList           = 25;
+    repeated EventData        eventDataList         = 26;
+    string                    CalculateContractCode = 27;
+    string                    DataSplitContractCode = 28;
+    string                    ContractExtraParams   = 29;
+}
+
+// 任务算力提供方基础信息
+message TaskResourceSupplierData {
+    // 身份信息
+    OrganizationData organization = 1;
+    // 算力使用情况
+    ResourceUsedOverview resourceUsedOverview = 2;
+}
+
+// 系统本身资源使用信息
+message ResourceUsedOverview {
+    // 服务系统的总内存
+    uint64 total_mem = 2;
+    // 服务系统的已用内存
+    uint64 used_mem = 3;
+    // 服务的总内核数
+    uint32 total_processor = 4;
+    // 服务的已用内核数
+    uint32 used_processor = 5;
+    // 服务的总带宽数
+    uint64 total_bandwidth = 6;
+    // 服务的已用带宽数
+    uint64 used_bandwidth = 7;
+}
+
+// 任务数据提供方基本信息
+message TaskMetadataSupplierData {
+    // 组织身份信息
+    OrganizationData organization = 1;
+    // 组织提供的元数据ID
+    string meta_id = 2;
+    // 组织提供的元数据名称
+    string meta_name = 3;
+    // 数据列
+    repeated ColumnMeta column_list = 4;
+}
+
+message TaskResourceData {
+    // 任务所需的内存 (单位: byte)
+    uint64 cost_mem = 1;
+    // 任务所需的核数 (单位: 个)
+    uint32 cost_processor = 2;
+    // 任务所需的带宽 (单位: bps)
+    uint64 cost_bandwidth = 3;
+    // 任务所需的运行时长 (单位: ms)
+    uint64 duration = 4;
+}
+
+message TaskResultReceiverData {
+    OrganizationData receiver = 1;
+    // 提供结果的节点信息
+    repeated OrganizationData provider = 2;
+}
+
+message OrganizationData {
+    string party_id = 1;
+    string identity = 2;
+    string nodeId   = 3;
+    string nodeName = 4;
+}
+
+message EventData {
+    string taskId       = 1;
+    string eventType    = 2;
+    uint64 eventAt      = 3;
+    string eventContent = 4;
+    string identity     = 5;
+}

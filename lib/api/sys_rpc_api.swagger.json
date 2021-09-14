@@ -1,0 +1,1238 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "lib/api/sys_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/yarn/dataNodeList": {
+      "post": {
+        "summary": "查询数据服务列表",
+        "operationId": "YarnService_GetDataNodeList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetRegisteredNodeListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/deleteDataNode": {
+      "post": {
+        "summary": "删除数据服务信息",
+        "operationId": "YarnService_DeleteDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiDeleteRegisteredNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/deleteJobNode": {
+      "post": {
+        "summary": "删除计算服务信息",
+        "operationId": "YarnService_DeleteJobNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiDeleteRegisteredNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/deleteSeed": {
+      "post": {
+        "summary": "删除种子节点信息",
+        "operationId": "YarnService_DeleteSeedNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiDeleteRegisteredNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/jobNodeList": {
+      "post": {
+        "summary": "查询计算服务列表",
+        "operationId": "YarnService_GetJobNodeList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetRegisteredNodeListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/nodeInfo": {
+      "post": {
+        "summary": "Getter YarnNode ...\n查看自身调度服务信息",
+        "operationId": "YarnService_GetNodeInfo",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetNodeInfoResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/queryAvailableDataNode": {
+      "post": {
+        "summary": "查询可用数据服务资源目标 ip:port 信息",
+        "operationId": "YarnService_QueryAvailableDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryAvailableDataNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryAvailableDataNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/queryFilePosition": {
+      "post": {
+        "summary": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径",
+        "operationId": "YarnService_QueryFilePosition",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryFilePositionResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiQueryFilePositionRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/registeredPeers": {
+      "post": {
+        "summary": "查看自身调度服务的 peer注册信息",
+        "operationId": "YarnService_GetRegisteredPeers",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetRegisteredPeersResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportTaskEvent": {
+      "post": {
+        "summary": "about report\n上报任务事件",
+        "operationId": "YarnService_ReportTaskEvent",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiReportTaskEventRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportTaskResourceExpense": {
+      "post": {
+        "summary": "上报资源使用实况",
+        "operationId": "YarnService_ReportTaskResourceExpense",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiReportTaskResourceExpenseRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportUpFileSummary": {
+      "post": {
+        "summary": "上报 成功上传的原始文件Id",
+        "operationId": "YarnService_ReportUpFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiReportUpFileSummaryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/seedList": {
+      "post": {
+        "summary": "查询种子节点列表",
+        "operationId": "YarnService_GetSeedNodeList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetSeedNodeListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/setDataNode": {
+      "post": {
+        "summary": "about dataNode\n新增数据服务信息",
+        "operationId": "YarnService_SetDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetDataNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetDataNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/setJobNode": {
+      "post": {
+        "summary": "about jobNode\n新增计算服务信息",
+        "operationId": "YarnService_SetJobNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetJobNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetJobNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/setSeed": {
+      "post": {
+        "summary": "about seed\n新增种子节点信息",
+        "operationId": "YarnService_SetSeedNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetSeedNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetSeedNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/updateDataNode": {
+      "post": {
+        "summary": "修改数据服务信息",
+        "operationId": "YarnService_UpdateDataNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetDataNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiUpdateDataNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/updateJobNode": {
+      "post": {
+        "summary": "修改计算服务信息",
+        "operationId": "YarnService_UpdateJobNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetJobNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiUpdateJobNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/updateSeed": {
+      "post": {
+        "summary": "修改种子节点信息",
+        "operationId": "YarnService_UpdateSeedNode",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSetSeedNodeResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiUpdateSeedNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcapiDeleteRegisteredNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiEmptyGetParams": {
+      "type": "object"
+    },
+    "rpcapiGetNodeInfoResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiYarnNodeInfo"
+        }
+      }
+    },
+    "rpcapiGetRegisteredNodeListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiYarnRegisteredPeer"
+          }
+        }
+      }
+    },
+    "rpcapiGetRegisteredPeersResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "job_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiYarnRegisteredJobNode"
+          }
+        },
+        "data_nodes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiYarnRegisteredDataNode"
+          }
+        }
+      }
+    },
+    "rpcapiGetSeedNodeListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "seed_peers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiSeedPeer"
+          }
+        }
+      }
+    },
+    "rpcapiQueryAvailableDataNodeRequest": {
+      "type": "object",
+      "properties": {
+        "file_size": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "file_type": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiQueryAvailableDataNodeResponse": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiQueryFilePositionRequest": {
+      "type": "object",
+      "properties": {
+        "origin_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiQueryFilePositionResponse": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiReportTaskEventRequest": {
+      "type": "object",
+      "properties": {
+        "task_event": {
+          "$ref": "#/definitions/rpcapiTaskEventDeclare"
+        }
+      }
+    },
+    "rpcapiReportTaskResourceExpenseRequest": {
+      "type": "object",
+      "title": "未定义"
+    },
+    "rpcapiReportUpFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "origin_id": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiResourceUsedDetailShow": {
+      "type": "object",
+      "properties": {
+        "total_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_mem": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_processor": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "total_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "used_bandwidth": {
+          "type": "string",
+          "format": "uint64"
+        }
+      },
+      "title": "系统本身资源抽象"
+    },
+    "rpcapiSeedPeer": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "conn_state": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "rpcapiSetDataNodeRequest": {
+      "type": "object",
+      "properties": {
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiSetDataNodeResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "data_node": {
+          "$ref": "#/definitions/rpcapiYarnRegisteredPeerDetail"
+        }
+      }
+    },
+    "rpcapiSetJobNodeRequest": {
+      "type": "object",
+      "properties": {
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiSetJobNodeResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "job_node": {
+          "$ref": "#/definitions/rpcapiYarnRegisteredPeerDetail"
+        }
+      }
+    },
+    "rpcapiSetSeedNodeRequest": {
+      "type": "object",
+      "properties": {
+        "internal_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiSetSeedNodeResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "seed_peer": {
+          "$ref": "#/definitions/rpcapiSeedPeer"
+        }
+      }
+    },
+    "rpcapiSimpleResponseCode": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiTaskEventDeclare": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "task_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "content": {
+          "type": "string"
+        },
+        "create_at": {
+          "type": "string",
+          "format": "uint64"
+        }
+      }
+    },
+    "rpcapiUpdateDataNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiUpdateJobNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiUpdateSeedNodeRequest": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiYarnNodeInfo": {
+      "type": "object",
+      "properties": {
+        "node_type": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        },
+        "identity_type": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        },
+        "resource_used": {
+          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+        },
+        "peers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiYarnRegisteredPeer"
+          }
+        },
+        "seed_peers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiSeedPeer"
+          }
+        },
+        "state": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "title": "调度服务的信息"
+    },
+    "rpcapiYarnRegisteredDataNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "delta": {
+          "$ref": "#/definitions/rpcapiYarnRegisteredDataNodeDelta"
+        }
+      }
+    },
+    "rpcapiYarnRegisteredDataNodeDelta": {
+      "type": "object",
+      "properties": {
+        "fileCount": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "fileTotalSize": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    },
+    "rpcapiYarnRegisteredJobNode": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiResourceUsedDetailShow"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "task": {
+          "$ref": "#/definitions/rpcapiYarnRegisteredJobNodeTaskIds"
+        }
+      },
+      "title": "调度服务上的 计算服务详情信息"
+    },
+    "rpcapiYarnRegisteredJobNodeTaskIds": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "task_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "rpcapiYarnRegisteredPeer": {
+      "type": "object",
+      "properties": {
+        "node_type": {
+          "type": "string"
+        },
+        "node_detail": {
+          "$ref": "#/definitions/rpcapiYarnRegisteredPeerDetail"
+        }
+      },
+      "title": "调度服务上被注册的资源节点信息"
+    },
+    "rpcapiYarnRegisteredPeerDetail": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "internal_ip": {
+          "type": "string"
+        },
+        "external_ip": {
+          "type": "string"
+        },
+        "internal_port": {
+          "type": "string"
+        },
+        "external_port": {
+          "type": "string"
+        },
+        "conn_state": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}

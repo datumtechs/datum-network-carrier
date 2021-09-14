@@ -1,0 +1,408 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "lib/api/metadata_rpc_api.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/carrier/v1/metadata/detail": {
+      "post": {
+        "summary": "查看单个元数据详情 (包含 列字段描述)",
+        "operationId": "MetaDataService_GetMetaDataDetail",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetaDataDetailResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetaDataDetailRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetaDataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/list": {
+      "post": {
+        "operationId": "MetaDataService_GetMetaDataDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetaDataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiEmptyGetParams"
+            }
+          }
+        ],
+        "tags": [
+          "MetaDataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/listByOwner": {
+      "post": {
+        "operationId": "MetaDataService_GetMetaDataDetailListByOwner",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetaDataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetaDataDetailListByOwnerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetaDataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/publish": {
+      "post": {
+        "summary": "发布元数据  (新增和编辑 都是发布新的元数据) \u003c底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId\u003e",
+        "operationId": "MetaDataService_PublishMetaData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishMetaDataResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiPublishMetaDataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetaDataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/revoke": {
+      "post": {
+        "summary": "撤销元数据 (从底层网络撤销)",
+        "operationId": "MetaDataService_RevokeMetaData",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiSimpleResponseCode"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiRevokeMetaDataRequest"
+            }
+          }
+        ],
+        "tags": [
+          "MetaDataService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "type_url": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcapiEmptyGetParams": {
+      "type": "object"
+    },
+    "rpcapiGetMetaDataDetailListByOwnerRequest": {
+      "type": "object",
+      "properties": {
+        "identity_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiGetMetaDataDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "meta_data_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetMetaDataDetailResponse"
+          }
+        }
+      }
+    },
+    "rpcapiGetMetaDataDetailRequest": {
+      "type": "object",
+      "properties": {
+        "identity_id": {
+          "type": "string"
+        },
+        "meta_data_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiGetMetaDataDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiMetaDataDetailShow"
+        }
+      }
+    },
+    "rpcapiMetaDataColumnDetail": {
+      "type": "object",
+      "properties": {
+        "cindex": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "cname": {
+          "type": "string"
+        },
+        "ctype": {
+          "type": "string"
+        },
+        "csize": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "ccomment": {
+          "type": "string"
+        }
+      },
+      "title": "源文件的列的描述详情"
+    },
+    "rpcapiMetaDataDetailShow": {
+      "type": "object",
+      "properties": {
+        "meta_data_summary": {
+          "$ref": "#/definitions/rpcapiMetaDataSummary"
+        },
+        "column_meta": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiMetaDataColumnDetail"
+          }
+        }
+      },
+      "title": "源文件的详情"
+    },
+    "rpcapiMetaDataSummary": {
+      "type": "object",
+      "properties": {
+        "meta_data_id": {
+          "type": "string"
+        },
+        "origin_id": {
+          "type": "string"
+        },
+        "table_name": {
+          "type": "string"
+        },
+        "desc": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        },
+        "rows": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "columns": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "size": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "file_type": {
+          "type": "string"
+        },
+        "has_title": {
+          "type": "boolean"
+        },
+        "state": {
+          "type": "string"
+        }
+      },
+      "title": "源数据的摘要内容 (不包含详细 列描述)"
+    },
+    "rpcapiOrganizationIdentityInfo": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "node_id": {
+          "type": "string"
+        },
+        "identity_id": {
+          "type": "string"
+        }
+      },
+      "title": "组织(节点)唯一标识抽象"
+    },
+    "rpcapiPublishMetaDataRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiMetaDataDetailShow"
+        }
+      }
+    },
+    "rpcapiPublishMetaDataResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "meta_data_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiRevokeMetaDataRequest": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/rpcapiOrganizationIdentityInfo"
+        },
+        "meta_data_id": {
+          "type": "string"
+        }
+      }
+    },
+    "rpcapiSimpleResponseCode": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        }
+      }
+    },
+    "runtimeError": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
