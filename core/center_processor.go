@@ -52,7 +52,7 @@ func (p *CenterProcessor) Process(block *types.Block, config *params.DataCenterC
 		}
 	}
 	for _, task := range block.TaskDatas() {
-		response, err := p.bc.client.SaveTask(p.bc.ctx, types.NewTaskDetail(task))
+		response, err := p.bc.client.SaveTask(p.bc.ctx, types.NewSaveTaskRequest(task))
 		if err != nil {
 			log.WithError(err).WithField("hash", task.Hash()).Errorf("save identity failed")
 			return err

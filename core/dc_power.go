@@ -102,7 +102,7 @@ func (dc *DataCenter) SyncPowerUsed (resource *types.LocalResource) error {
 func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByIdentityId(dc.ctx, &api.PowerSummaryByIdentityRequest{
+	powerTotalSummaryResponse, err := dc.client.GetPowerSummaryByIdentityId(dc.ctx, &api.GetPowerSummaryByIdentityRequest{
 		IdentityId: identityId,
 	})
 	return types.NewResourceFromResponse(powerTotalSummaryResponse), err

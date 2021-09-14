@@ -40,7 +40,7 @@ func (dc *DataCenter) RevokeMetadata(metadata *types.Metadata) error {
 func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.MetadataByIdRequest{
+	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.FindMetadataByIdRequest{
 		MetadataId: dataId,
 	})
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
@@ -49,7 +49,7 @@ func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error
 func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.MetadataListRequest{
+	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.ListMetadataRequest{
 		LastUpdated:      uint64( timeutils.Now().Unix()),
 	})
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
