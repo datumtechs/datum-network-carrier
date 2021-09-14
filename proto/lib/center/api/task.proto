@@ -13,32 +13,32 @@ message SaveTaskRequest {
   types.TaskPB task = 1;
 }
 
-message TaskListByIdentityRequest {
+message ListTaskByIdentityRequest {
     string identity_id      = 1;
     uint64 last_updated = 2;
 }
 
-message TaskListRequest {
+message ListTaskRequest {
     uint64 last_updated = 1;
 }
 
-message TaskListResponse {
+message ListTaskResponse {
     repeated types.TaskPB tasks = 1;
 }
 
-message DetailTaskRequest {
+message GetTaskDetailRequest {
     string task_id = 1;
 }
 
-message DetailTaskResponse {
+message GetTaskDetailResponse {
     types.TaskPB tasks = 1;
 }
 
-message TaskEventRequest {
+message ListTaskEventRequest {
     string task_id = 1;
 }
 
-message TaskEventResponse {
+message ListTaskEventResponse {
   // 错误码，0 成功，1 异常
     int32 status = 1;
   // 错误信息
@@ -54,15 +54,15 @@ service TaskService {
   rpc SaveTask(SaveTaskRequest) returns (api.protobuf.SimpleResponse);
 
   // 查询任务详情（任务ID、节点ID、参与方标识）
-  rpc GetDetailTask(DetailTaskRequest) returns (DetailTaskResponse);
+  rpc GetTaskDetail(GetTaskDetailRequest) returns (GetTaskDetailResponse);
 
   // 查询任务列表
-  rpc ListTask(TaskListRequest) returns (TaskListResponse);
+  rpc ListTask(ListTaskRequest) returns (ListTaskResponse);
 
   // 根据组织身份查询任务列表
-  rpc ListTaskByIdentity(TaskListByIdentityRequest) returns (TaskListResponse);
+  rpc ListTaskByIdentity(ListTaskByIdentityRequest) returns (ListTaskResponse);
 
   // 查询任务的事件列表
-  rpc ListTaskEvent(TaskEventRequest) returns (TaskEventResponse);
+  rpc ListTaskEvent(ListTaskEventRequest) returns (ListTaskEventResponse);
 
 }
