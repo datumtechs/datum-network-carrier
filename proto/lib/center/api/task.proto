@@ -9,6 +9,10 @@ import "lib/types/taskdata.proto";
 import "google/protobuf/empty.proto";
 import "lib/center/api/metadata.proto";
 
+message SaveTaskRequest {
+  types.TaskPB task = 1;
+}
+
 message TaskListByIdentityRequest {
     string identity_id      = 1;
     uint64 last_updated = 2;
@@ -19,14 +23,15 @@ message TaskListRequest {
 }
 
 message TaskListResponse {
-  // 任务摘要列表
-    repeated types.TaskDetail task_details = 1;
+    repeated types.TaskPB tasks = 1;
 }
 
-// 任务详情请求参数
 message DetailTaskRequest {
-  // 任务ID，必选参数
     string task_id = 1;
+}
+
+message DetailTaskResponse {
+    types.TaskPB tasks = 1;
 }
 
 message TaskEventRequest {
@@ -46,10 +51,10 @@ message TaskEventResponse {
 service TaskService {
 
   // 存储任务
-  rpc SaveTask(types.TaskDetail) returns (api.protobuf.SimpleResponse);
+  rpc SaveTask(SaveTaskRequest) returns (api.protobuf.SimpleResponse);
 
   // 查询任务详情（任务ID、节点ID、参与方标识）
-  rpc GetDetailTask(DetailTaskRequest) returns (types.TaskDetail);
+  rpc GetDetailTask(DetailTaskRequest) returns (DetailTaskResponse);
 
   // 查询任务列表
   rpc ListTask(TaskListRequest) returns (TaskListResponse);
