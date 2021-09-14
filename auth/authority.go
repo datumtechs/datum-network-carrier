@@ -2,6 +2,7 @@ package auth
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/auth/metadata"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -11,9 +12,9 @@ type AuthorityManager struct {
 }
 
 
-func NewAuthorityManager() *AuthorityManager {
+func NewAuthorityManager(resourceMng *resource.Manager) *AuthorityManager {
 	return &AuthorityManager{
-		metadataAuth: metadata.NewMetadataAuthority(),
+		metadataAuth: metadata.NewMetadataAuthority(resourceMng),
 	}
 }
 
@@ -51,3 +52,7 @@ func (am *AuthorityManager) GetMetadataAuthorityListByUser (userType apicommonpb
 	return nil, nil
 }
 
+
+func (am *AuthorityManager) verifyMetadataAuth (user, metadataId string, userType apicommonpb.UserType) bool {
+	return false
+}

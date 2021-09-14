@@ -128,7 +128,7 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 //	return errors.New(response.GetMsg())
 //}
 
-func (dc *DataCenter) InsertMetadataAuthority(metadataAuth types.MetadataAuthority) error {
+func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 
 	// TODO add
 
@@ -137,7 +137,7 @@ func (dc *DataCenter) InsertMetadataAuthority(metadataAuth types.MetadataAuthori
 	return nil
 }
 
-func (dc *DataCenter) RevokeMetadataAuthority(metadataAuth types.MetadataAuthority) error {
+func (dc *DataCenter) RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 
 	// todo  delete
 	return nil

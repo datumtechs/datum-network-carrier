@@ -15,7 +15,7 @@ package twopc
 //)
 //
 //// With subscriber
-//func (t *TwoPC) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
+//func (t *Twopc) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
 //	//proposalId := common.BytesToHash(prepareMsg.ProposalId)
 //	//if t.state.HasProposal(proposalId) {
 //	//	return ctypes.ErrProposalAlreadyProcessed
@@ -119,7 +119,7 @@ package twopc
 //}
 //
 //// With publisher
-//func (t *TwoPC) validatePrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
+//func (t *Twopc) validatePrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
 //
 //	vote := fetchPrepareVote(prepareVote)
 //
@@ -175,7 +175,7 @@ package twopc
 //}
 //
 //// With subscriber
-//func (t *TwoPC) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
+//func (t *Twopc) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
 //
 //	proposalId := common.BytesToHash(confirmMsg.ProposalId)
 //	if t.state.HasNotOrgProposal(proposalId) {
@@ -225,7 +225,7 @@ package twopc
 //}
 //
 //// With publisher
-//func (t *TwoPC) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
+//func (t *Twopc) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 //	proposalId := common.BytesToHash(confirmVote.ProposalId)
 //	if t.state.HasNotOrgProposal(proposalId) {
 //		return fmt.Errorf("%s validateConfirmVote", ctypes.ErrProposalNotFound)
@@ -275,7 +275,7 @@ package twopc
 //}
 //
 //// With subscriber
-//func (t *TwoPC) validateCommitMsg(pid peer.ID, commitMsg *types.CommitMsgWrap) error {
+//func (t *Twopc) validateCommitMsg(pid peer.ID, commitMsg *types.CommitMsgWrap) error {
 //
 //	proposalId := common.BytesToHash(commitMsg.ProposalId)
 //	if t.state.HasNotOrgProposal(proposalId) {
@@ -314,7 +314,7 @@ package twopc
 //	return nil
 //}
 //
-//func (t *TwoPC) validateOrganizationIdentity(identityInfo *apicommonpb.TaskOrganization) error {
+//func (t *Twopc) validateOrganizationIdentity(identityInfo *apicommonpb.TaskOrganization) error {
 //	if "" == identityInfo.GetNodeName() {
 //		return ctypes.ErrOrganizationIdentity
 //	}
@@ -337,7 +337,7 @@ package twopc
 //	return nil
 //}
 //
-//func (t *TwoPC) verifyMsgSigned(nodeId string, m []byte, sig []byte) (bool, error) {
+//func (t *Twopc) verifyMsgSigned(nodeId string, m []byte, sig []byte) (bool, error) {
 //	// Verify the signature
 //	if len(sig) < types.MsgSignLength {
 //		return false, ctypes.ErrMsgSignInvalid
@@ -363,7 +363,7 @@ package twopc
 //	return true, nil
 //}
 //
-//func (t *TwoPC) verifySelfSigned(m []byte, sig []byte) bool {
+//func (t *Twopc) verifySelfSigned(m []byte, sig []byte) bool {
 //	recPubKey, err := crypto.Ecrecover(m, sig)
 //	if err != nil {
 //		return false
@@ -383,7 +383,7 @@ package twopc
 ////	return vp.agency.VerifyHeader(header, nil)
 ////}
 //
-//func (t *TwoPC) validateRecvTask(task *types.Task) error {
+//func (t *Twopc) validateRecvTask(task *types.Task) error {
 //
 //	return nil
 //}

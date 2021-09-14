@@ -8,7 +8,7 @@ import (
 
 // EngineManager responsibles for processing the messages in the network.
 type EngineManager struct {
-	engine             *TwoPC
+	engine             *Twopc
 	peers              *types.PeerSet
 	//sendQueue          chan *types.MsgPackage
 	//quitSend           chan struct{}
