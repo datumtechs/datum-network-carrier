@@ -67,7 +67,7 @@ message ListPowerSummaryResponse {
   repeated PowerSummaryResponse powers = 1;
 }
 
-message ListPowerSummaryByIdentityRequest {
+message GetPowerSummaryByIdentityRequest {
   // 身份ID
   string identity_id = 1;
 }
@@ -101,7 +101,7 @@ service ResourceService {
   rpc ListPower(ListPowerRequest) returns (ListPowerResponse);
 
   // 查看指定组织的总算力摘要
-  rpc GetPowerSummaryByIdentityId (ListPowerSummaryByIdentityRequest) returns (PowerSummaryResponse);
+  rpc GetPowerSummaryByIdentityId (GetPowerSummaryByIdentityRequest) returns (PowerSummaryResponse);
 
   // 查看各个组织的总算力摘要列表
   rpc ListPowerSummary (google.protobuf.Empty) returns (ListPowerSummaryResponse);
