@@ -751,7 +751,7 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 		msg.Data.GetTaskData().GetIdentityId(),
 		msg.Data.GetTaskData().GetPartyId(),
 		msg.Data.GetTaskData().GetTaskName(),
-		//msg.Data.GetTaskData().GetCreateAt,
+		//msg.GetData.GetTaskData().GetCreateAt,
 		uint64(timeutils.UnixMsec()),
 	})
 }

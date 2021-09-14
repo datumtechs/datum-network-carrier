@@ -110,14 +110,14 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 //func (dc *DataCenter) SaveMetadataAuthority(request *types.MetadataAuthority) error {
 //	dc.serviceMu.RLock()
 //	defer dc.serviceMu.RUnlock()
-//	if request.Data().MetadataAuthId == "" {
-//		request.Data().MetadataAuthId = request.Hash().Hex()
+//	if request.GetData().MetadataAuthId == "" {
+//		request.GetData().MetadataAuthId = request.Hash().Hex()
 //	}
 //	response, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.SaveMetadataAuthorityRequest{
-//		User:                 request.Data().User,
-//		UserType:             request.Data().UserType,
-//		Auth:                 request.Data().Auth,
-//		MetadataAuthId:       request.Data().MetadataAuthId,
+//		GetUser:                 request.GetData().GetUser,
+//		GetUserType:             request.GetData().GetUserType,
+//		Auth:                 request.GetData().Auth,
+//		MetadataAuthId:       request.GetData().MetadataAuthId,
 //	})
 //	if err != nil {
 //		return err

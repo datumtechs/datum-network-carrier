@@ -209,7 +209,7 @@ func (m *GetIdentityListResponse) GetMemberList() []*common.Organization {
 // 发起用户对元数据使用授权申请 req
 type ApplyMetadataAuthorityRequest struct {
 	User                 string                   `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType          `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType             common.UserType          `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	Auth                 *types.MetadataAuthority `protobuf:"bytes,3,opt,name=auth,proto3" json:"auth,omitempty"`
 	Sign                 []byte                   `protobuf:"bytes,4,opt,name=sign,proto3" json:"sign,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                 `json:"-"`
@@ -345,7 +345,7 @@ func (m *ApplyMetadataAuthorityResponse) GetMetadataAuthId() string {
 // 撤销用户对元数据使用授权申请 req
 type RevokeMetadataAuthorityRequest struct {
 	User                 string          `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType             common.UserType `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	MetadataAuthId       string          `protobuf:"bytes,3,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
 	Sign                 []byte          `protobuf:"bytes,4,opt,name=sign,proto3" json:"sign,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
@@ -548,7 +548,7 @@ func (m *AuditMetadataAuthorityResponse) GetAudit() common.AuditMetadataOption {
 type GetMetadataAuthority struct {
 	MetadataAuthId       string                        `protobuf:"bytes,1,opt,name=metadata_auth_id,json=metadataAuthId,proto3" json:"metadata_auth_id,omitempty"`
 	User                 string                        `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType               `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType             common.UserType               `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	Auth                 *types.MetadataAuthority      `protobuf:"bytes,4,opt,name=auth,proto3" json:"auth,omitempty"`
 	AuditOption          common.AuditMetadataOption    `protobuf:"varint,5,opt,name=audit_option,json=auditOption,proto3,enum=api.protobuf.AuditMetadataOption" json:"audit_option,omitempty"`
 	AuditSuggestion      string                        `protobuf:"bytes,6,opt,name=audit_suggestion,json=auditSuggestion,proto3" json:"audit_suggestion,omitempty"`
@@ -731,7 +731,7 @@ func (m *GetMetadataAuthorityListResponse) GetList() []*GetMetadataAuthority {
 // 当前(用户)的所有元数据的授权申请及审核结果详情列表 req
 type GetMetadataAuthorityListByUserRequest struct {
 	User                 string          `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType             common.UserType `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
 	XXX_sizecache        int32           `json:"-"`
@@ -2518,7 +2518,7 @@ func (m *ApplyMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2550,7 +2550,7 @@ func (m *ApplyMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2824,7 +2824,7 @@ func (m *RevokeMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2856,7 +2856,7 @@ func (m *RevokeMetadataAuthorityRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3279,7 +3279,7 @@ func (m *GetMetadataAuthority) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3311,7 +3311,7 @@ func (m *GetMetadataAuthority) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {
@@ -3697,7 +3697,7 @@ func (m *GetMetadataAuthorityListByUserRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3729,7 +3729,7 @@ func (m *GetMetadataAuthorityListByUserRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {

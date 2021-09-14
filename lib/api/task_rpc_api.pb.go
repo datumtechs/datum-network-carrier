@@ -658,7 +658,7 @@ func (m *GetTaskEventListResponse) GetTaskEventList() []*TaskEventShow {
 type PublishTaskDeclareRequest struct {
 	TaskName              string                          `protobuf:"bytes,1,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
 	User                  string                          `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
-	UserType              common.UserType                 `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType              common.UserType                 `protobuf:"varint,3,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	Sender                *common.TaskOrganization        `protobuf:"bytes,4,opt,name=sender,proto3" json:"sender,omitempty"`
 	DataSupplier          []*TaskDataSupplierDeclare      `protobuf:"bytes,5,rep,name=data_supplier,json=dataSupplier,proto3" json:"data_supplier,omitempty"`
 	PowerPartyIds         []string                        `protobuf:"bytes,6,rep,name=power_party_ids,json=powerPartyIds,proto3" json:"power_party_ids,omitempty"`
@@ -976,7 +976,7 @@ func (m *PublishTaskDeclareResponse) GetTaskId() string {
 // 终止任务 req
 type TerminateTaskRequest struct {
 	User                 string          `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType             common.UserType `protobuf:"varint,2,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	TaskId               string          `protobuf:"bytes,3,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
 	Sign                 []byte          `protobuf:"bytes,12,opt,name=sign,proto3" json:"sign,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
@@ -4203,7 +4203,7 @@ func (m *PublishTaskDeclareRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4235,7 +4235,7 @@ func (m *PublishTaskDeclareRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {
@@ -5055,7 +5055,7 @@ func (m *TerminateTaskRequest) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5087,7 +5087,7 @@ func (m *TerminateTaskRequest) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {

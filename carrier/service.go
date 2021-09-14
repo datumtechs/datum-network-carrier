@@ -68,7 +68,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
 	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng)
-	authManager := auth.NewAuthorityManager(resourceMng)
+	authManager := auth.NewAuthorityManager(config.CarrierDB)
 	twopcEngine := twopc.New(
 		&twopc.Config{
 			Option: &twopc.OptionConfig{

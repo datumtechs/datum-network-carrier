@@ -51,7 +51,7 @@ type TaskPB struct {
 	ContractExtraParams   string                          `protobuf:"bytes,28,opt,name=contract_extra_params,json=contractExtraParams,proto3" json:"contract_extra_params,omitempty"`
 	// v2.0
 	User                 string          `protobuf:"bytes,29,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType `protobuf:"varint,30,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType             common.UserType `protobuf:"varint,30,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}        `json:"-"`
 	XXX_unrecognized     []byte          `json:"-"`
 	XXX_sizecache        int32           `json:"-"`
@@ -277,7 +277,7 @@ type TaskDetail struct {
 	TaskId               string                          `protobuf:"bytes,1,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty"`
 	TaskName             string                          `protobuf:"bytes,2,opt,name=task_name,json=taskName,proto3" json:"task_name,omitempty"`
 	User                 string                          `protobuf:"bytes,3,opt,name=user,proto3" json:"user,omitempty"`
-	UserType             common.UserType                 `protobuf:"varint,4,opt,name=user_type,json=userType,proto3,enum=api.protobuf.UserType" json:"user_type,omitempty"`
+	UserType             common.UserType                 `protobuf:"varint,4,opt,name=user_type,json=userType,proto3,enum=api.protobuf.GetUserType" json:"user_type,omitempty"`
 	Sender               *common.TaskOrganization        `protobuf:"bytes,5,opt,name=sender,proto3" json:"sender,omitempty"`
 	AlgoSupplier         *common.TaskOrganization        `protobuf:"bytes,6,opt,name=algo_supplier,json=algoSupplier,proto3" json:"algo_supplier,omitempty"`
 	DataSuppliers        []*TaskDataSupplier             `protobuf:"bytes,7,rep,name=data_suppliers,json=dataSuppliers,proto3" json:"data_suppliers,omitempty"`
@@ -2364,7 +2364,7 @@ func (m *TaskPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 29:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2396,7 +2396,7 @@ func (m *TaskPB) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 30:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {
@@ -2530,7 +2530,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field User", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUser", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -2562,7 +2562,7 @@ func (m *TaskDetail) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field UserType", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetUserType", wireType)
 			}
 			m.UserType = 0
 			for shift := uint(0); ; shift += 7 {

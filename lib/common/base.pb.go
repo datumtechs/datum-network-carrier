@@ -575,7 +575,7 @@ func (m *SimpleResponse) GetMsg() string {
 }
 
 func init() {
-	proto.RegisterEnum("api.protobuf.UserType", UserType_name, UserType_value)
+	proto.RegisterEnum("api.protobuf.GetUserType", UserType_name, UserType_value)
 	proto.RegisterEnum("api.protobuf.DataStatus", DataStatus_name, DataStatus_value)
 	proto.RegisterEnum("api.protobuf.CommonStatus", CommonStatus_name, CommonStatus_value)
 	proto.RegisterEnum("api.protobuf.AuditMetadataOption", AuditMetadataOption_name, AuditMetadataOption_value)

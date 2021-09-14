@@ -349,7 +349,7 @@ func (m *GossipTestData) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetData", wireType)
 			}
 			var byteLen int
 			for shift := uint(0); ; shift += 7 {
@@ -472,7 +472,7 @@ func (m *SignedGossipTestData) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Data", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field GetData", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
