@@ -82,7 +82,7 @@ message ListPowerResponse {
 }
 
 message SyncPowerRequest {
-  types.ResourcePB power = 1;
+  types.LocalResourcePB power = 1;
 }
 
 // 资源（算力）接口定义
