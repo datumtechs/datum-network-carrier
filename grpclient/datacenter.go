@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
@@ -49,28 +48,28 @@ func (gc *GrpcClient) GetClientConn() *grpc.ClientConn {
 }
 
 // MetadataSave saves new metadata to database.
-func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.MetadataSaveRequest) (*apicommonpb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.SaveMetadataRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	return gc.metadataService.MetadataSave(ctx, request)
+	return gc.metadataService.SaveMetadata(ctx, request)
 }
 
-func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context) (*api.MetadataSummaryListResponse, error) {
+func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context) (*api.ListMetadataSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 3*time.Second)
 	defer cancel()
-	return gc.metadataService.GetMetadataSummaryList(ctx, &emptypb.Empty{})
+	return gc.metadataService.ListMetadataSummary(ctx, &emptypb.Empty{})
 }
 
-func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.MetadataListRequest) (*api.MetadataListResponse, error) {
+func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.ListMetadataRequest) (*api.ListMetadataResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 600 * time.Second)
 	defer cancel()
-	return gc.metadataService.GetMetadataList(ctx, request)
+	return gc.metadataService.ListMetadata(ctx, request)
 }
 
-func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.MetadataByIdRequest) (*api.MetadataByIdResponse, error) {
+func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.FindMetadataByIdRequest) (*api.FindMetadataByIdResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	return gc.metadataService.GetMetadataById(ctx, request)
+	return gc.metadataService.FindMetadataById(ctx, request)
 }
 
 func (gc *GrpcClient) RevokeMetadata(ctx context.Context, request *api.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
@@ -99,22 +98,22 @@ func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePow
 	return gc.resourceService.RevokePower(ctx, request)
 }
 
-func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *api.PowerSummaryByIdentityRequest) (*api.PowerTotalSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *api.GetPowerSummaryByIdentityRequest) (*api.PowerSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
 	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request)
 }
 
-func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.PowerTotalSummaryListResponse, error) {
+func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.ListPowerSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
-	return gc.resourceService.GetPowerTotalSummaryList(ctx, &emptypb.Empty{})
+	return gc.resourceService.ListPowerSummary(ctx, &emptypb.Empty{})
 }
 
-func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.PowerListRequest) (*api.PowerListResponse, error) {
+func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.ListPowerRequest) (*api.ListPowerResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()
-	return gc.resourceService.GetPowerList(ctx, request)
+	return gc.resourceService.ListPower(ctx, request)
 }
 
 // ************************************** Identity module *******************************************************
@@ -125,20 +124,20 @@ func (gc *GrpcClient) SaveIdentity(ctx context.Context, request *api.SaveIdentit
 	return gc.identityService.SaveIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityJoinRequest) (*apicommonpb.SimpleResponse, error) {
+func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.RevokeIdentityRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
-	return gc.identityService.RevokeIdentityJoin(ctx, request)
+	return gc.identityService.RevokeIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.IdentityListRequest) (*api.IdentityListResponse, error) {
+func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.ListIdentityRequest) (*api.ListIdentityResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	return gc.identityService.GetIdentityList(ctx, request)
+	return gc.identityService.ListIdentity(ctx, request)
 }
 
 // 存储元数据鉴权申请记录
-func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.SaveMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.SaveMetadataAuthority(ctx, request)
@@ -146,47 +145,47 @@ func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.Sa
 
 // 数据授权审核，规则：
 // 1、授权后，可以将审核结果绑定到原有申请记录之上
-func (gc *GrpcClient) AuditMetadataAuthority(ctx context.Context, request *api.AuditMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
+func (gc *GrpcClient) AuditMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
-	return gc.identityService.AuditMetadataAuthority(ctx, request)
+	return gc.identityService.UpdateMetadataAuthority(ctx, request)
 }
 
 // 获取数据授权申请列表
 // 规则：参数存在时根据条件获取，参数不存在时全量返回
-func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api.MetadataAuthorityListRequest) (*api.MetadataAuthorityListResponse, error) {
+func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api.ListMetadataAuthorityRequest) (*api.ListMetadataAuthorityResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
-	return gc.identityService.GetMetadataAuthorityList(ctx, request)
+	return gc.identityService.ListMetadataAuthority(ctx, request)
 }
 
 // ************************************** GetTask module *******************************************************
 
-func (gc *GrpcClient) SaveTask(ctx context.Context, request *libtypes.TaskDetail) (*apicommonpb.SimpleResponse, error) {
+func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.SaveTaskRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
 	return gc.taskService.SaveTask(ctx, request)
 }
 
-func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.DetailTaskRequest) (*libtypes.TaskDetail, error) {
+func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.GetTaskDetailRequest) (*api.GetTaskDetailResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx,2*time.Second)
 	defer cancel()
-	return gc.taskService.GetDetailTask(ctx, request)
+	return gc.taskService.GetTaskDetail(ctx, request)
 }
 
-func (gc *GrpcClient) ListTask(ctx context.Context, request *api.TaskListRequest) (*api.TaskListResponse, error) {
+func (gc *GrpcClient) ListTask(ctx context.Context, request *api.ListTaskRequest) (*api.ListTaskResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	return gc.taskService.ListTask(ctx, request)
 }
 
-func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.TaskListByIdentityRequest) (*api.TaskListResponse, error) {
+func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.ListTaskByIdentityRequest) (*api.ListTaskResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return gc.taskService.ListTaskByIdentity(ctx, request)
 }
 
-func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.TaskEventRequest) (*api.TaskEventResponse, error) {
+func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.ListTaskEventRequest) (*api.ListTaskEventResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	return gc.taskService.ListTaskEvent(ctx, request)
