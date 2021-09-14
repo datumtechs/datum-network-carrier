@@ -180,17 +180,17 @@ func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		task.GetTaskData().CreateAt,
 		uint64(time.Now().Nanosecond()),
 	})
-	proposalState := ctypes.NewProposalState(proposalId, task.GetTaskId(), task.GetTaskSender())
-	//orgProposalState := ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now)
-	//orgProposalState.AddDeadlineDuration(task.GetTaskData().GetOperationCost().GetDuration())
-	//proposalState.StoreOrgProposalState(orgProposalState)
-	proposalState.StoreOrgProposalState(ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now))
-
 
 	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalId, task.GetTaskId())
 
 	// add some local cache
-	t.storeProposalState(proposalState)
+	t.storeOrgProposalState(
+		proposalId,
+		task.GetTaskId(),
+		task.GetTaskSender(),
+		ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now),
+		)
+
 	t.addProposalTask(types.NewProposalTask(proposalId, task, now))
 
 	// Start handle task ...
@@ -258,7 +258,9 @@ func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		msg.MsgOption.ProposalId,
 		msg.TaskInfo.GetTaskId(),
 		sender,
-		ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, receiver, msg.CreateAt))
+		ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, receiver, msg.CreateAt),
+		)
+
 	t.addProposalTask(types.NewProposalTask(proposal.ProposalId, proposal.Task, proposal.CreateAt))
 
 	// Send task to Scheduler to replay sched.
