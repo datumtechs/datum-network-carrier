@@ -379,25 +379,29 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	var filePath string
-	var idColumnName string
+	var indexColumnName string
+	var culcalteColumns []string
+
 
 	if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_DataSupplier {
 
 		var find bool
 
 		for _, dataSupplier := range task.GetTask().GetTaskData().GetDataSuppliers() {
-			if partyId == dataSupplier.GetOrganization().PartyId {
+			if partyId == dataSupplier.GetOrganization().GetPartyId() {
 
-				metaData, err := m.resourceMng.GetDB().GetMetadataByDataId(dataSupplier.MetadataId)
+				metaData, err := m.resourceMng.GetDB().GetMetadataByDataId(dataSupplier.GetMetadataId())
 				if nil != err {
 					return "", err
 				}
-				filePath = metaData.MetadataData().FilePath
+				filePath = metaData.MetadataData().GetFilePath()
 
-				// 目前只取 第一列 (对于 dataSupplier)
-				if len(dataSupplier.GetColumns()) != 0 {
-					idColumnName = dataSupplier.GetColumns()[0].CName
+				indexColumnName = dataSupplier.GetIndexColumn().GetCName()
+				culcalteColumns = make([]string, len(dataSupplier.GetCaculateColumns()))
+				for i, col := range dataSupplier.GetCaculateColumns() {
+					culcalteColumns[i] = col.GetCName()
 				}
+
 				find = true
 				break
 			}
@@ -414,10 +418,12 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 		PartyId: partyId,
 		DataParty: struct {
 			InputFile    string `json:"input_file"`
-			IdColumnName string `json:"id_column_name"`
+			IndexColumn string `json:"index_column"`
+			CalculateColumns []string  `json:"calculate_columns"`
 		}{
 			InputFile:    filePath,
-			IdColumnName: idColumnName, // 目前 默认只会用一列, 后面再拓展 .. 只有 dataSupplier 才有, powerSupplier 不会有
+			IndexColumn: indexColumnName, 			// only dataSupplier own, but power supplier never own
+			CalculateColumns: culcalteColumns,
 		},
 	}
 

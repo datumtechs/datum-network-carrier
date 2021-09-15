@@ -55,8 +55,7 @@ func (svr *Server) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventLis
 	}, nil
 }
 
-
-func (svr *Server) GetTaskEventListByTaskIds (ctx context.Context, req *pb.GetTaskEventListByTaskIdsRequest) (*pb.GetTaskEventListResponse, error) {
+func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTaskEventListByTaskIdsRequest) (*pb.GetTaskEventListResponse, error) {
 
 	events, err := svr.B.GetTaskEventListByTaskIds(req.TaskIds)
 	if nil != err {
@@ -72,16 +71,16 @@ func (svr *Server) GetTaskEventListByTaskIds (ctx context.Context, req *pb.GetTa
 }
 
 func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
-	if req.OperationCost == nil {
+	if req.GetOperationCost() == nil {
 		return nil, errors.New("required operationCost")
 	}
-	if len(req.Receivers) == 0 {
+	if len(req.GetReceivers()) == 0 {
 		return nil, errors.New("required receivers")
 	}
-	if len( req.DataSupplier) == 0 {
-		return nil, errors.New("required partners")
+	if len(req.GetDataSuppliers()) == 0 {
+		return nil, errors.New("required dataSuppliers")
 	}
-	if "" == req.CalculateContractCode {
+	if "" == req.GetCalculateContractCode() {
 		return nil, errors.New("required CalculateContractCode")
 	}
 
@@ -94,89 +93,58 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
 	// add  dataSuppliers
-	dataSuppliers := make([]*libtypes.TaskDataSupplier, len(req.DataSupplier))
-	for i, v := range req.DataSupplier {
+	dataSuppliers := make([]*libtypes.TaskDataSupplier, len(req.GetDataSuppliers()))
+	for i, v := range req.GetDataSuppliers() {
 
-		metaData, err := svr.B.GetMetadataDetail(v.Organization.IdentityId, v.MetadataInfo.MetadataId)
+		metaData, err := svr.B.GetMetadataDetail(v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
-				v.Organization.IdentityId, v.MetadataInfo.MetadataId)
+				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 			return nil, fmt.Errorf("failed to query metadata of partner, identityId: {%s}, metadataId: {%s}",
-				v.Organization.IdentityId, v.MetadataInfo.MetadataId)
+				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 		}
 
-		colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metaData.Information.MetadataColumns))
-		for _, col := range metaData.Information.MetadataColumns {
-			colTmp[col.CIndex] = col
+		colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metaData.GetInformation().GetMetadataColumns()))
+		for _, col := range metaData.GetInformation().GetMetadataColumns() {
+			colTmp[col.GetCIndex()] = col
 		}
 
-		columnArr := make([]*libtypes.MetadataColumn, len(v.MetadataInfo.ColumnIndexList))
-		for j, colIndex := range v.MetadataInfo.ColumnIndexList {
-			if col, ok := colTmp[uint32(colIndex)]; ok {
-				columnArr[j] = col
-				/*columnArr[j] = &libtypes.MetadataColumn{
-					CIndex:   col.CIndex,
-					CType:    col.CType,
-					CName:    col.CName,
-					CSize:    col.CSize,
-					CComment: col.CComment,
-				}*/
+		var indexColumn *libtypes.MetadataColumn
+
+		if col, ok := colTmp[v.GetMetadataInfo().GetIndexColumn()]; ok {
+			indexColumn = col
+		} else {
+			return nil, fmt.Errorf("not found indexColumn on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
+				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetIndexColumn())
+		}
+
+		caculateColumns := make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetCaculateColumns()))
+		for j, colIndex := range v.GetMetadataInfo().GetCaculateColumns() {
+			if col, ok := colTmp[colIndex]; ok {
+				caculateColumns[j] = col
 			} else {
-				return nil, fmt.Errorf("not found column of metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
-					v.Organization.IdentityId, v.MetadataInfo.MetadataId, colIndex)
+				return nil, fmt.Errorf("not found column on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
+					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), colIndex)
 			}
 		}
 
 		dataSuppliers[i] = &libtypes.TaskDataSupplier{
 			Organization: &apicommonpb.TaskOrganization{
-				PartyId:  v.Organization.PartyId,
-				NodeName: v.Organization.NodeName,
-				NodeId:   v.Organization.NodeId,
-				IdentityId: v.Organization.IdentityId,
+				PartyId:    v.GetOrganization().GetPartyId(),
+				NodeName:   v.GetOrganization().GetNodeName(),
+				NodeId:     v.GetOrganization().GetNodeId(),
+				IdentityId: v.GetOrganization().GetIdentityId(),
 			},
-			MetadataId:     v.MetadataInfo.MetadataId,
-			MetadataName:   metaData.Information.MetadataSummary.TableName,
-			Columns: columnArr,
+			MetadataId:      v.GetMetadataInfo().GetMetadataId(),
+			MetadataName:    metaData.GetInformation().GetMetadataSummary().GetTableName(),
+			IndexColumn:     indexColumn,
+			CaculateColumns: caculateColumns,
 		}
 	}
-
-	//// TODO mock dataSuppliers
-	//dataSuppliers := make([]*libtypes.TaskMetadataSupplierData, 0)
-
+	// add dataSuppliers
 	taskMsg.Data.SetMetadataSupplierArr(dataSuppliers)
-
-	// add receivers
-	receivers := req.Receivers
-	//receivers := make([]*libtypes.TaskResultReceiver, len(req.Receivers))
-	//for i, v := range req.Receivers {
-	//	providers := make([]*apicommonpb.TaskOrganization, len(v.Providers))
-	//	for j, val := range v.Providers {
-	//		providers[j] = val
-	//		/*providers[j] = &apicommonpb.OrganizationData{
-	//			PartyId:  val.PartyId,
-	//			NodeName: val.Name,
-	//			NodeId:   val.NodeId,
-	//			Identity: val.IdentityId,
-	//		}*/
-	//	}
-	//	receivers[i] = &libtypes.TaskResultReceiver{
-	//		Receiver: &apicommonpb.TaskOrganization{
-	//			PartyId:  v.MemberInfo.PartyId,
-	//			NodeName: v.MemberInfo.Name,
-	//			NodeId:   v.MemberInfo.NodeId,
-	//			Identity: v.MemberInfo.IdentityId,
-	//		},
-	//		Providers: providers,
-	//	}
-	//}*/
-	taskMsg.Data.SetReceivers(receivers)
-
-	// add empty powerSuppliers
-	taskMsg.Data.GetTaskData().PowerSuppliers = make([]*libtypes.TaskPowerSupplier, 0)
-
 	// add taskId
 	taskId := taskMsg.GenTaskId()
-	taskMsg.Data.GetTaskData().TaskId = taskId
 
 	err = svr.B.SendMsg(taskMsg)
 	if nil != err {
@@ -192,7 +160,6 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		TaskId: taskId,
 	}, nil
 }
-
 
 func utilTaskDetailResponseArrString(tasks []*pb.GetTaskDetailResponse) string {
 	arr := make([]string, len(tasks))
