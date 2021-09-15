@@ -159,6 +159,12 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api
 	return gc.identityService.ListMetadataAuthority(ctx, request)
 }
 
+func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *api.FindMetadataAuthorityRequest) (*api.FindMetadataAuthorityResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
+	defer cancel()
+	return gc.identityService.FindMetadataAuthority(ctx, request)
+}
+
 // ************************************** GetTask module *******************************************************
 
 func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.SaveTaskRequest) (*apicommonpb.SimpleResponse, error) {

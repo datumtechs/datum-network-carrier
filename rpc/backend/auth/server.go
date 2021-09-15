@@ -10,6 +10,7 @@ var (
 	ErrGetAuthorityList          = &backend.RpcBizErr{Msg: "Failed to get all authorityList list"}
 	ErrSendMetadataAuthMsg       = &backend.RpcBizErr{Msg: "Failed to send metadataAuthMsg"}
 	ErrSendMetadataAuthRevokeMsg = &backend.RpcBizErr{Msg: "Failed to send metadataAuthRevokeMsg"}
+	ErrAuditMetadataAuth         = &backend.RpcBizErr{Msg: "Failed to audit metadataAuth"}
 )
 
 type Server struct {

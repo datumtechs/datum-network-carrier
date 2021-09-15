@@ -675,7 +675,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 
 // for authority
 
-func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.MetadataAuthorityState, error) {
+func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error) {
 	return s.carrier.authEngine.AuditMetadataAuthority(audit)
 }
 
@@ -684,8 +684,7 @@ func (s *CarrierAPIBackend) GetMetadataAuthorityList() (types.MetadataAuthArray,
 }
 
 func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
-
-	return nil, nil
+	return s.carrier.authEngine.GetMetadataAuthorityListByUser(userType, user)
 }
 
 

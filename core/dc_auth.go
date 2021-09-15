@@ -47,6 +47,7 @@ func (dc *DataCenter) GetIdentity() (*apicommonpb.Organization, error) {
 	return identity, nil
 }
 
+
 // about identity on datacenter
 func (dc *DataCenter) HasIdentity(identity *apicommonpb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
@@ -83,6 +84,11 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityRequest{
+		/*Member: &apicommonpb.Organization{
+			NodeName:       identity.Name(),
+			NodeId:     identity.NodeId(),
+			IdentityId: identity.IdentityId(),
+		},*/
 		IdentityId: identity.IdentityId(),
 	})
 	if err != nil {
@@ -101,30 +107,27 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
-// InsertMetadataAuthority saves the metadataAuthority to the storage.
 func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	if metadataAuth.Data().MetadataAuthId == "" {
-		metadataAuth.Data().MetadataAuthId = metadataAuth.Hash().Hex()
-	}
-	response, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
-		MetadataAuthority: metadataAuth.Data(),
+	_, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
+		MetadataAuthority: metadataAuth.GetData(),
 	})
 	if err != nil {
 		return err
 	}
-	if response.GetStatus() == 0 {
-		return nil
-	}
-	return errors.New(response.GetMsg())
+	return nil
+}
+
+func (dc *DataCenter)  RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
+	return nil
 }
 
 func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.UpdateMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
-		MetadataAuthority: metadataAuth.Data(),
+		MetadataAuthority: metadataAuth.GetData(),
 	})
 	if err != nil {
 		return err
@@ -135,18 +138,14 @@ func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthor
 	return nil
 }
 
-// GetMetadataAuthority retrieves the data with the specified metadataAuthId from the data store.
 func (dc *DataCenter) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
-	dc.serviceMu.RLock()
-	defer dc.serviceMu.RUnlock()
-
-	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
+	response, err := dc.client.FindMetadataAuthority(dc.ctx, &api.FindMetadataAuthorityRequest{
 		MetadataAuthId: metadataAuthId,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return types.NewMetadataAuthority(response.GetMetadataAuthorities()[0]), nil
+	return types.NewMetadataAuthority(response.MetadataAuthority), nil
 }
 
 func (dc *DataCenter) GetMetadataAuthorityListByIds (metadataAuthIds []string) (types.MetadataAuthArray, error) {
