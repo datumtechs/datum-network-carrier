@@ -1,6 +1,8 @@
 package yarn
 
-import "github.com/RosettaFlow/Carrier-Go/rpc/backend"
+import (
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+)
 
 var (
 	ErrGetRegisteredPeers         = &backend.RpcBizErr{Msg: "Failed to get all registeredNodes"}
@@ -24,3 +26,4 @@ var (
 type Server struct {
 	B backend.Backend
 }
+
