@@ -41,8 +41,9 @@ message MetadataAuthorityRequest {
 }*/
 
 message ListMetadataAuthorityRequest {
-  string identity_id = 1;   // 组织标识
-  uint64 last_updated = 2;   // 最后同步时间（毫秒级时间戳）
+  string identity_id      = 1;   // 组织标识
+  uint64 last_updated     = 2;   // 最后同步时间（毫秒级时间戳）
+  string metadata_auth_id = 3;   // 数据记录
 }
 
 /*message MetadataAuthorityDetail {
