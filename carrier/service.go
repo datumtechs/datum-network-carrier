@@ -78,7 +78,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 			PeerMsgQueueSize: 1024,
 		},
 		resourceMng,
-		authManager,
+		/*authManager,*/
 		config.P2P,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
