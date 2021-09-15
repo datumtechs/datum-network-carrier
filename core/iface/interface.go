@@ -106,8 +106,9 @@ type IdentityCarrierDB interface {
 	HasIdentity(identity *apicommonpb.Organization) (bool, error)
 
 	// v2.0
-	InsertMetadataAuthority(metadataAuth types.MetadataAuthority) error
-	RevokeMetadataAuthority(metadataAuth types.MetadataAuthority) error
+	InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error
+	AuditMetadataAuthority(metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) error
+	RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error)
 	GetMetadataAuthorityListByIds (metadataAuthIds []string) (types.MetadataAuthArray, error)
 	GetMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
