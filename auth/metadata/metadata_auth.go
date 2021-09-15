@@ -155,4 +155,5 @@ func (ma *MetadataAuthority) VerifyMetadataAuth (user, metadataId string, userTy
 	//
 	//metadataAuth.
 
+	return false
 }

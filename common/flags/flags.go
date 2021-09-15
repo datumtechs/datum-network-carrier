@@ -70,7 +70,7 @@ var (
 	// DataDirFlag defines a path on disk.
 	DataDirFlag = &cli.StringFlag{
 		Name:  "datadir",
-		Usage: "GetData directory for the databases and keystore",
+		Usage: "Data directory for the databases and keystore",
 		Value: DefaultDataDir(),
 	}
 	// ClearDB prompts user to see if they want to remove any previously stored data at the data directory.

@@ -16,7 +16,7 @@ func (g *GossipTestData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
 	offset := int(20)
 
-	// Offset (0) 'GetData'
+	// Offset (0) 'Data'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(g.Data)
 
@@ -26,7 +26,7 @@ func (g *GossipTestData) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	// Field (2) 'Step'
 	dst = ssz.MarshalUint64(dst, g.Step)
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	if len(g.Data) > 16777216 {
 		err = ssz.ErrBytesLength
 		return
@@ -47,7 +47,7 @@ func (g *GossipTestData) UnmarshalSSZ(buf []byte) error {
 	tail := buf
 	var o0 uint64
 
-	// Offset (0) 'GetData'
+	// Offset (0) 'Data'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
@@ -62,7 +62,7 @@ func (g *GossipTestData) UnmarshalSSZ(buf []byte) error {
 	// Field (2) 'Step'
 	g.Step = ssz.UnmarshallUint64(buf[12:20])
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	{
 		buf = tail[o0:]
 		if len(buf) > 16777216 {
@@ -80,7 +80,7 @@ func (g *GossipTestData) UnmarshalSSZ(buf []byte) error {
 func (g *GossipTestData) SizeSSZ() (size int) {
 	size = 20
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	size += len(g.Data)
 
 	return
@@ -95,7 +95,7 @@ func (g *GossipTestData) HashTreeRoot() ([32]byte, error) {
 func (g *GossipTestData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	if len(g.Data) > 16777216 {
 		err = ssz.ErrBytesLength
 		return
@@ -122,7 +122,7 @@ func (s *SignedGossipTestData) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	dst = buf
 	offset := int(52)
 
-	// Offset (0) 'GetData'
+	// Offset (0) 'Data'
 	dst = ssz.WriteOffset(dst, offset)
 	if s.Data == nil {
 		s.Data = new(GossipTestData)
@@ -136,7 +136,7 @@ func (s *SignedGossipTestData) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	}
 	dst = append(dst, s.Signature...)
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	if dst, err = s.Data.MarshalSSZTo(dst); err != nil {
 		return
 	}
@@ -155,7 +155,7 @@ func (s *SignedGossipTestData) UnmarshalSSZ(buf []byte) error {
 	tail := buf
 	var o0 uint64
 
-	// Offset (0) 'GetData'
+	// Offset (0) 'Data'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
@@ -170,7 +170,7 @@ func (s *SignedGossipTestData) UnmarshalSSZ(buf []byte) error {
 	}
 	s.Signature = append(s.Signature, buf[4:52]...)
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	{
 		buf = tail[o0:]
 		if s.Data == nil {
@@ -187,7 +187,7 @@ func (s *SignedGossipTestData) UnmarshalSSZ(buf []byte) error {
 func (s *SignedGossipTestData) SizeSSZ() (size int) {
 	size = 52
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	if s.Data == nil {
 		s.Data = new(GossipTestData)
 	}
@@ -205,7 +205,7 @@ func (s *SignedGossipTestData) HashTreeRoot() ([32]byte, error) {
 func (s *SignedGossipTestData) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	indx := hh.Index()
 
-	// Field (0) 'GetData'
+	// Field (0) 'Data'
 	if err = s.Data.HashTreeRootWith(hh); err != nil {
 		return
 	}

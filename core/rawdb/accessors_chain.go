@@ -193,7 +193,7 @@ func WriteBody(db DatabaseWriter, hash common.Hash, number uint64, body *libtype
 		log.WithError(err).Fatal("Failed to ProtoBuf encode body")
 	}
 	WriteBodyPB(db, hash, number, data)
-	// todo: GetData analysis is required when storing the body.
+	// todo: Data analysis is required when storing the body.
 	// metadata/resource/identity/...
 }
 
