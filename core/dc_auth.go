@@ -52,7 +52,7 @@ func (dc *DataCenter) GetIdentity() (*apicommonpb.Organization, error) {
 func (dc *DataCenter) HasIdentity(identity *apicommonpb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	responses, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{
+	responses, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{
 		LastUpdated: uint64(timeutils.Now().Second()),
 	})
 	if err != nil {
@@ -83,12 +83,13 @@ func (dc *DataCenter) InsertIdentity(identity *types.Identity) error {
 func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityJoinRequest{
-		Member: &apicommonpb.Organization{
+	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityRequest{
+		/*Member: &apicommonpb.Organization{
 			NodeName:       identity.Name(),
 			NodeId:     identity.NodeId(),
 			IdentityId: identity.IdentityId(),
-		},
+		},*/
+		IdentityId: identity.IdentityId(),
 	})
 	if err != nil {
 		return err
@@ -102,7 +103,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.IdentityListRequest{LastUpdated: uint64(timeutils.UnixMsec())})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: uint64(timeutils.UnixMsec())})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
@@ -162,7 +163,7 @@ func (dc *DataCenter) RevokeMetadataAuthority(metadataAuth *types.MetadataAuthor
 //func (dc *DataCenter) StoreMetadataAuthorityAudit(metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) error {
 //	dc.serviceMu.RLock()
 //	defer dc.serviceMu.RUnlock()
-//	//response, err := dc.client.AuditMetadataAuthority(dc.ctx, &api.AuditMetadataAuthorityRequest{
+//	//response, err := dc.client.AuditMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
 //	//	MetadataAuthId:       metadataAuthId,
 //	//	Audit:                option,
 //	//})
@@ -188,7 +189,7 @@ func (dc *DataCenter) GetMetadataAuthorityListByIds (metadataAuthIds []string) (
 func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.MetadataAuthorityListRequest{
+	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
 		IdentityId:           identityId,
 		LastUpdated:           lastUpdate,
 	})
@@ -198,7 +199,7 @@ func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, la
 	if response.GetStatus() != 0 {
 		return nil, errors.New(response.GetMsg())
 	}
-	return types.NewMetadataAuthArrayFromResponse(response.GetAuthorities()), nil
+	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
 func (dc *DataCenter) GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string, lastUpdate uint64) (types.MetadataAuthArray, error) {

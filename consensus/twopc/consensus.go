@@ -2,7 +2,6 @@ package twopc
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
@@ -23,13 +22,12 @@ const (
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
 )
 
-type Twopc struct {
+type TwoPC struct {
 	config      *Config
 	p2p         p2p.P2P
 	peerSet     *ctypes.PeerSet
 	state       *state
 	resourceMng *resource.Manager
-	authEngine  *auth.AuthorityManager
 	// send remote task to `Scheduler` to replay
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	// send has was consensus remote tasks to taskManager
@@ -48,20 +46,18 @@ type Twopc struct {
 func New(
 	conf *Config,
 	resourceMng *resource.Manager,
-	authEngine *auth.AuthorityManager,
 	p2p p2p.P2P,
 //needConsensusTaskCh chan *types.NeedConsensusTask,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 //needSendTaskResultMsgCh chan struct{},
-) *Twopc {
-	return &Twopc{
+) *TwoPC {
+	return &TwoPC{
 		config:                   conf,
 		p2p:                      p2p,
 		peerSet:                  ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:                    newState(),
 		resourceMng:              resourceMng,
-		authEngine:               authEngine,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		asyncCallCh:              make(chan func(), conf.PeerMsgQueueSize),
@@ -73,16 +69,16 @@ func New(
 	}
 }
 
-func (t *Twopc) Start() error {
+func (t *TwoPC) Start() error {
 	go t.loop()
 	log.Info("Started 2pc consensus engine ...")
 	return nil
 }
-func (t *Twopc) Close() error {
+func (t *TwoPC) Close() error {
 	close(t.quit)
 	return nil
 }
-func (t *Twopc) loop() {
+func (t *TwoPC) loop() {
 	refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal)
 	for {
 		select {
@@ -106,7 +102,7 @@ func (t *Twopc) loop() {
 	}
 }
 
-func (t *Twopc) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
+func (t *TwoPC) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 	if nil == msg {
 		return fmt.Errorf("Failed to validate 2pc consensus msg, the msg is nil")
 	}
@@ -129,7 +125,7 @@ func (t *Twopc) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error 
 	return nil
 }
 
-func (t *Twopc) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
+func (t *TwoPC) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 
 	switch msg := msg.(type) {
 	case *types.PrepareMsgWrap:
@@ -150,7 +146,7 @@ func (t *Twopc) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 	}
 }
 
-func (t *Twopc) OnError() error {
+func (t *TwoPC) OnError() error {
 	if len(t.Errs) == 0 {
 		return nil
 	}
@@ -163,11 +159,11 @@ func (t *Twopc) OnError() error {
 	return fmt.Errorf("%s", strings.Join(errStrs, "\n"))
 }
 
-func (t *Twopc) OnPrepare(task *types.Task) error {
+func (t *TwoPC) OnPrepare(task *types.Task) error {
 
 	return nil
 }
-func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error {
+func (t *TwoPC) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error {
 
 	t.addTaskResultCh(task.GetTaskId(), result)
 
@@ -184,16 +180,17 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		task.GetTaskData().CreateAt,
 		uint64(time.Now().Nanosecond()),
 	})
-	proposalState := ctypes.NewProposalState(proposalId, task.GetTaskId(), task.GetTaskSender())
-	//orgProposalState := ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now)
-	//orgProposalState.AddDeadlineDuration(task.GetTaskData().GetOperationCost().GetDuration())
-	//proposalState.StoreOrgProposalState(orgProposalState)
-	proposalState.StoreOrgProposalState(ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now))
 
 	log.Debugf("Generate proposal, proposalId: {%s}, taskId: {%s}", proposalId, task.GetTaskId())
 
 	// add some local cache
-	t.storeProposalState(proposalState)
+	t.storeOrgProposalState(
+		proposalId,
+		task.GetTaskId(),
+		task.GetTaskSender(),
+		ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now),
+		)
+
 	t.addProposalTask(types.NewProposalTask(proposalId, task, now))
 
 	// Start handle task ...
@@ -213,7 +210,7 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 // TODO 问题: 自己接受的任务, 但是发起方那边任务失败了, 由于任务信息存储在本地(自己正在参与的任务), 而任务发起方怎么通知 我这边删除调自己本地正在参与的任务信息 ??? 2pc 消息已经中断了 ...
 
 // Handle the prepareMsg from the task pulisher peer (on Subscriber)
-func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
+func (t *TwoPC) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
 
 	msg, err := fetchPrepareMsg(prepareMsg)
 	if nil != err {
@@ -261,7 +258,9 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		msg.MsgOption.ProposalId,
 		msg.TaskInfo.GetTaskId(),
 		sender,
-		ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, receiver, msg.CreateAt))
+		ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, receiver, msg.CreateAt),
+		)
+
 	t.addProposalTask(types.NewProposalTask(proposal.ProposalId, proposal.Task, proposal.CreateAt))
 
 	// Send task to Scheduler to replay sched.
@@ -325,7 +324,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 }
 
 // (on Publisher)
-func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
+func (t *TwoPC) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) error {
 
 	vote := fetchPrepareVote(prepareVote)
 
@@ -440,7 +439,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 }
 
 // (on Subscriber)
-func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
+func (t *TwoPC) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
 
 	msg := fetchConfirmMsg(confirmMsg)
 
@@ -540,7 +539,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 }
 
 // (on Publisher)
-func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
+func (t *TwoPC) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 
 	vote := fetchConfirmVote(confirmVote)
 
@@ -654,7 +653,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 }
 
 // (on Subscriber)
-func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
+func (t *TwoPC) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 
 	msg := fetchCommitMsg(cimmitMsg)
 

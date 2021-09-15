@@ -18,7 +18,7 @@ import (
 	"sync"
 )
 
-func (t *Twopc) isProposalTask(taskId string) bool {
+func (t *TwoPC) isProposalTask(taskId string) bool {
 	t.proposalTaskLock.RLock()
 	_, ok := t.proposalTaskCache[taskId]
 	t.proposalTaskLock.RUnlock()
@@ -27,16 +27,16 @@ func (t *Twopc) isProposalTask(taskId string) bool {
 	}
 	return false
 }
-func (t *Twopc) isNotProposalTask(taskId string) bool { return !t.isProposalTask(taskId) }
+func (t *TwoPC) isNotProposalTask(taskId string) bool { return !t.isProposalTask(taskId) }
 
-func (t *Twopc) hasOrgProposal(proposalId common.Hash, partyId string) bool {
+func (t *TwoPC) hasOrgProposal(proposalId common.Hash, partyId string) bool {
 	return t.state.HasOrgProposal(proposalId, partyId)
 }
-func (t *Twopc) hasNotOrgProposal(proposalId common.Hash, partyId string) bool {
+func (t *TwoPC) hasNotOrgProposal(proposalId common.Hash, partyId string) bool {
 	return t.state.HasNotOrgProposal(proposalId, partyId)
 }
 
-func (t *Twopc) addProposalTask(task *types.ProposalTask) {
+func (t *TwoPC) addProposalTask(task *types.ProposalTask) {
 	t.proposalTaskLock.Lock()
 	_, ok := t.proposalTaskCache[task.GetTaskId()]
 	if !ok {
@@ -44,12 +44,12 @@ func (t *Twopc) addProposalTask(task *types.ProposalTask) {
 	}
 	t.proposalTaskLock.Unlock()
 }
-func (t *Twopc) removeProposalTask(taskId string) {
+func (t *TwoPC) removeProposalTask(taskId string) {
 	t.proposalTaskLock.Lock()
 	delete(t.proposalTaskCache, taskId)
 	t.proposalTaskLock.Unlock()
 }
-func (t *Twopc) hasProposalTask(taskId string) bool {
+func (t *TwoPC) hasProposalTask(taskId string) bool {
 	t.proposalTaskLock.RLock()
 	_, ok := t.proposalTaskCache[taskId]
 	t.proposalTaskLock.RUnlock()
@@ -58,119 +58,119 @@ func (t *Twopc) hasProposalTask(taskId string) bool {
 	}
 	return false
 }
-func (t *Twopc) hasNotProposalTask(taskId string) bool { return !t.hasProposalTask(taskId) }
+func (t *TwoPC) hasNotProposalTask(taskId string) bool { return !t.hasProposalTask(taskId) }
 
-func (t *Twopc) getProposalTask(taskId string) (*types.ProposalTask, bool) {
+func (t *TwoPC) getProposalTask(taskId string) (*types.ProposalTask, bool) {
 	t.proposalTaskLock.RLock()
 	task, ok := t.proposalTaskCache[taskId]
 	t.proposalTaskLock.RUnlock()
 	return task, ok
 }
 
-func (t *Twopc) mustGetProposalTask(taskId string) *types.ProposalTask {
+func (t *TwoPC) mustGetProposalTask(taskId string) *types.ProposalTask {
 	t.proposalTaskLock.RLock()
 	task, _ := t.getProposalTask(taskId)
 	t.proposalTaskLock.RUnlock()
 	return task
 }
 
-func (t *Twopc) hasPrepareVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
+func (t *TwoPC) hasPrepareVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
 	return t.state.HasPrepareVoting(proposalId, org)
 }
 
-func (t *Twopc) storePrepareVote(vote *types.PrepareVote) {
+func (t *TwoPC) storePrepareVote(vote *types.PrepareVote) {
 	t.state.StorePrepareVote(vote)
 }
 
-func (t *Twopc) removePrepareVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
+func (t *TwoPC) removePrepareVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
 	t.state.RemovePrepareVote(proposalId, partyId, role)
 }
 
-func (t *Twopc) hasConfirmVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
+func (t *TwoPC) hasConfirmVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
 	return t.state.HasConfirmVoting(proposalId, org)
 }
 
-func (t *Twopc) storeConfirmVote(vote *types.ConfirmVote) {
+func (t *TwoPC) storeConfirmVote(vote *types.ConfirmVote) {
 	t.state.StoreConfirmVote(vote)
 }
 
-func (t *Twopc) removeConfirmVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
+func (t *TwoPC) removeConfirmVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
 	t.state.RemoveConfirmVote(proposalId, partyId, role)
 }
 
-func (t *Twopc) getTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskPrepareYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskDataSupplierPrepareYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskPowerSupplierPrepareYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskReceiverPrepareYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskReceiverPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskReceiverPrepareYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskPrepareTotalVoteCount(proposalId)
 }
-func (t *Twopc) getTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskDataSupplierPrepareTotalVoteCount(proposalId)
 }
-func (t *Twopc) getTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskPowerSupplierPrepareTotalVoteCount(proposalId)
 }
-func (t *Twopc) getTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskReceiverPrepareTotalVoteCount(proposalId)
 }
 
-func (t *Twopc) getTaskConfirmYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskConfirmYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskDataSupplierConfirmYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskPowerSupplierConfirmYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskReceiverConfirmYesVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskReceiverConfirmYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskReceiverConfirmYesVoteCount(proposalId)
 }
-func (t *Twopc) getTaskConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskConfirmTotalVoteCount(proposalId)
 }
-func (t *Twopc) getTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskDataSupplierConfirmTotalVoteCount(proposalId)
 }
-func (t *Twopc) getTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskPowerSupplierConfirmTotalVoteCount(proposalId)
 }
-func (t *Twopc) getTaskReceiverConfirmTotalVoteCount(proposalId common.Hash) uint32 {
+func (t *TwoPC) getTaskReceiverConfirmTotalVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskReceiverConfirmTotalVoteCount(proposalId)
 }
 
-func (t *Twopc) changeToConfirm(proposalId common.Hash, partyId string, startTime uint64) {
+func (t *TwoPC) changeToConfirm(proposalId common.Hash, partyId string, startTime uint64) {
 	t.state.ChangeToConfirm(proposalId, partyId, startTime)
 }
-func (t *Twopc) changeToCommit(proposalId common.Hash, partyId string, startTime uint64) {
+func (t *TwoPC) changeToCommit(proposalId common.Hash, partyId string, startTime uint64) {
 	t.state.ChangeToCommit(proposalId, partyId, startTime)
 }
 
-func (t *Twopc) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
+func (t *TwoPC) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
 	t.taskResultChSet[taskId] = resultCh
 	t.taskResultLock.Unlock()
 }
-func (t *Twopc) removeTaskResultCh(taskId string) {
+func (t *TwoPC) removeTaskResultCh(taskId string) {
 	t.taskResultLock.Lock()
 	log.Debugf("RemoveTaskResultCh taskId: {%s}", taskId)
 	delete(t.taskResultChSet, taskId)
 	t.taskResultLock.Unlock()
 }
-func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
+func (t *TwoPC) replyTaskConsensusResult(result *types.TaskConsResult) {
 	t.taskResultBusCh <- result
 }
-func (t *Twopc) handleTaskConsensusResult(result *types.TaskConsResult) {
+func (t *TwoPC) handleTaskConsensusResult(result *types.TaskConsResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
 	if ch, ok := t.taskResultChSet[result.TaskId]; ok {
@@ -182,21 +182,21 @@ func (t *Twopc) handleTaskConsensusResult(result *types.TaskConsResult) {
 	t.taskResultLock.Unlock()
 }
 
-func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
+func (t *TwoPC) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
 	t.needReplayScheduleTaskCh <- task
 }
 
-func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
+func (t *TwoPC) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 	t.needExecuteTaskCh <- task
 }
-
-func (t *Twopc) storeProposalState(proposalState *ctypes.ProposalState) {
-	t.state.StoreProposalState(proposalState)
-}
-func (t *Twopc) removeProposalState(proposalId common.Hash) {
-	t.state.CleanProposalState(proposalId)
-}
-func (t *Twopc) removeProposalStateAndTask(proposalId common.Hash) {
+//
+//func (t *TwoPC) storeProposalState(proposalState *ctypes.ProposalState) {
+//	t.state.StoreProposalState(proposalState)
+//}
+//func (t *TwoPC) removeProposalState(proposalId common.Hash) {
+//	t.state.CleanProposalState(proposalId)
+//}
+func (t *TwoPC) removeProposalStateAndTask(proposalId common.Hash) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
 		log.Infof("Start remove proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.GetTaskId())
 		t.removeProposalTask(state.GetTaskId())
@@ -204,7 +204,7 @@ func (t *Twopc) removeProposalStateAndTask(proposalId common.Hash) {
 
 	}
 }
-func (t *Twopc) storeOrgProposalState (proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+func (t *TwoPC) storeOrgProposalState (proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
 	pstate := t.state.GetProposalState(proposalId)
 
 	var first bool
@@ -220,7 +220,7 @@ func (t *Twopc) storeOrgProposalState (proposalId common.Hash, taskId string, se
 	}
 }
 
-func (t *Twopc) removeOrgProposalState (proposalId common.Hash, partyId string) {
+func (t *TwoPC) removeOrgProposalState (proposalId common.Hash, partyId string) {
 	pstate := t.state.GetProposalState(proposalId)
 
 	if pstate.IsEmpty() {
@@ -229,7 +229,7 @@ func (t *Twopc) removeOrgProposalState (proposalId common.Hash, partyId string) 
 	pstate.RemoveOrgProposalState(partyId)
 }
 
-func (t *Twopc) getOrgProposalState (proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
+func (t *TwoPC) getOrgProposalState (proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
 	pstate := t.state.GetProposalState(proposalId)
 	if pstate.IsEmpty() {
 		return nil, false
@@ -237,7 +237,7 @@ func (t *Twopc) getOrgProposalState (proposalId common.Hash, partyId string) (*c
 	return pstate.GetOrgProposalState(partyId)
 }
 
-func (t *Twopc) mustGetOrgProposalState (proposalId common.Hash, partyId string) *ctypes.OrgProposalState {
+func (t *TwoPC) mustGetOrgProposalState (proposalId common.Hash, partyId string) *ctypes.OrgProposalState {
 	pstate := t.state.GetProposalState(proposalId)
 	if pstate.IsEmpty() {
 		return nil
@@ -245,7 +245,7 @@ func (t *Twopc) mustGetOrgProposalState (proposalId common.Hash, partyId string)
 	return pstate.MustGetOrgProposalState(partyId)
 }
 
-func (t *Twopc) makeConfirmTaskPeerDesc (proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (t *TwoPC) makeConfirmTaskPeerDesc (proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 
 	var sender *twopcpb.TaskPeerInfo
 	dataSuppliers, powerSuppliers, receivers := make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0)
@@ -274,7 +274,7 @@ func (t *Twopc) makeConfirmTaskPeerDesc (proposalId common.Hash) *twopcpb.Confir
 	}
 }
 
-func (t *Twopc) refreshProposalState () {
+func (t *TwoPC) refreshProposalState () {
 
 	t.state.proposalsLock.Lock()
 
@@ -362,7 +362,7 @@ func (t *Twopc) refreshProposalState () {
 	t.state.proposalsLock.Unlock()
 }
 
-func (t *Twopc) driveTask(
+func (t *TwoPC) driveTask(
 	pid peer.ID,
 	proposalId common.Hash,
 	localTaskRole apicommonpb.TaskRole,
@@ -409,7 +409,7 @@ func (t *Twopc) driveTask(
 
 }
 
-func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
+func (t *TwoPC) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -495,7 +495,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	return nil
 }
 
-func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.PrepareVote) error {
+func (t *TwoPC) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.PrepareVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
 	} else {
@@ -503,7 +503,7 @@ func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskO
 	}
 }
 
-func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *twopcpb.ConfirmTaskPeerInfo, startTime uint64) error {
+func (t *TwoPC) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *twopcpb.ConfirmTaskPeerInfo, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -586,7 +586,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 	return nil
 }
 
-func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.ConfirmVote) error {
+func (t *TwoPC) sendConfirmVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.ConfirmVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
 	} else {
@@ -594,7 +594,7 @@ func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *apicommonpb.TaskO
 	}
 }
 
-func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
+func (t *TwoPC) sendCommitMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -735,14 +735,14 @@ func fetchOrgByPartyRole(partyId string, role apicommonpb.TaskRole, task *types.
 	return nil
 }
 
-func (t *Twopc) isIncludeSenderParty(partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) bool {
+func (t *TwoPC) isIncludeSenderParty(partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) bool {
 	if t.getIncludeSenderPartyCount(partyId, identityId, role, task) != 0 {
 		return true
 	}
 	return false
 }
 
-func (t *Twopc) getIncludeSenderPartyCount(partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) uint32 {
+func (t *TwoPC) getIncludeSenderPartyCount(partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) uint32 {
 
 	var count int
 	switch role {
@@ -767,7 +767,7 @@ func (t *Twopc) getIncludeSenderPartyCount(partyId, identityId string, role apic
 	}
 	return uint32(count)
 }
-func (t *Twopc) getNeedVotingCount(role apicommonpb.TaskRole, task *types.Task) uint32 {
+func (t *TwoPC) getNeedVotingCount(role apicommonpb.TaskRole, task *types.Task) uint32 {
 	sender := task.GetTaskSender()
 	includeCount := t.getIncludeSenderPartyCount(sender.GetPartyId(), sender.GetIdentityId(), role, task)
 	switch role {
@@ -781,7 +781,7 @@ func (t *Twopc) getNeedVotingCount(role apicommonpb.TaskRole, task *types.Task) 
 	return 0
 }
 
-func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) (bool, error) {
+func (t *TwoPC) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) (bool, error) {
 	var identityValid bool
 	switch role {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
@@ -846,7 +846,7 @@ func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityI
 	}
 	return identityValid, nil
 }
-func (t *Twopc) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) (bool, error) {
+func (t *TwoPC) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) (bool, error) {
 	var identityValid bool
 	switch role {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
@@ -908,30 +908,30 @@ func (t *Twopc) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityI
 	return identityValid, nil
 }
 
-func (t *Twopc) getPrepareVote(proposalId common.Hash, partyId string) *types.PrepareVote {
+func (t *TwoPC) getPrepareVote(proposalId common.Hash, partyId string) *types.PrepareVote {
 	return t.state.GetPrepareVote(proposalId, partyId)
 }
 
-func (t *Twopc) getConfirmVote(proposalId common.Hash, partyId string) *types.ConfirmVote {
+func (t *TwoPC) getConfirmVote(proposalId common.Hash, partyId string) *types.ConfirmVote {
 	return t.state.GetConfirmVote(proposalId, partyId)
 }
 
-func (t *Twopc) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *twopcpb.ConfirmTaskPeerInfo) {
+func (t *TwoPC) storeConfirmTaskPeerInfo(proposalId common.Hash, peers *twopcpb.ConfirmTaskPeerInfo) {
 	t.state.StoreConfirmTaskPeerInfo(proposalId, peers)
 }
 
-func (t *Twopc) hasConfirmTaskPeerInfo(proposalId common.Hash) bool {
+func (t *TwoPC) hasConfirmTaskPeerInfo(proposalId common.Hash) bool {
 	return t.state.HasConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *Twopc) getConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
+func (t *TwoPC) getConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
 	return t.state.GetConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *Twopc) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (t *TwoPC) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 	return t.state.MustGetConfirmTaskPeerInfo(proposalId)
 }
 
-func (t *Twopc) removeConfirmTaskPeerInfo(proposalId common.Hash) {
+func (t *TwoPC) removeConfirmTaskPeerInfo(proposalId common.Hash) {
 	t.state.RemoveConfirmTaskPeerInfo(proposalId)
 }
