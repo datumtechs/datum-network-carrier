@@ -26,9 +26,8 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*
 	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
 	for i, task := range tasks {
 		t := &pb.GetTaskDetailResponse{
-			Information: task,
-			//TODO: 待确认
-			//Role: task.Role,
+			Information: task.Data,
+			Role:        task.Role,
 		}
 		arr[i] = t
 	}
@@ -109,21 +108,21 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			colTmp[col.GetCIndex()] = col
 		}
 
-		var indexColumn *libtypes.MetadataColumn
+		var keyColumn *libtypes.MetadataColumn
 
-		if col, ok := colTmp[v.GetMetadataInfo().GetIndexColumn()]; ok {
-			indexColumn = col
+		if col, ok := colTmp[v.GetMetadataInfo().GetKeyColumn()]; ok {
+			keyColumn = col
 		} else {
-			return nil, fmt.Errorf("not found indexColumn on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
-				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetIndexColumn())
+			return nil, fmt.Errorf("not found keyColumn on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
+				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetKeyColumn())
 		}
 
-		caculateColumns := make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetCaculateColumns()))
-		for j, colIndex := range v.GetMetadataInfo().GetCaculateColumns() {
+		selectedColumns := make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetSelectedColumns()))
+		for j, colIndex := range v.GetMetadataInfo().GetSelectedColumns() {
 			if col, ok := colTmp[colIndex]; ok {
-				caculateColumns[j] = col
+				selectedColumns[j] = col
 			} else {
-				return nil, fmt.Errorf("not found column on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
+				return nil, fmt.Errorf("not found selected column on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}",
 					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), colIndex)
 			}
 		}
@@ -137,8 +136,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			},
 			MetadataId:      v.GetMetadataInfo().GetMetadataId(),
 			MetadataName:    metaData.GetInformation().GetMetadataSummary().GetTableName(),
-			IndexColumn:     indexColumn,
-			CaculateColumns: caculateColumns,
+			KeyColumn:       keyColumn,
+			SelectedColumns: selectedColumns,
 		}
 	}
 	// add dataSuppliers

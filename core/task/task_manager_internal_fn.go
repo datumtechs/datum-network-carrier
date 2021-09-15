@@ -379,9 +379,8 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
 	var filePath string
-	var indexColumnName string
-	var culcalteColumns []string
-
+	var keyColumn string
+	var selectedColumns []string
 
 	if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_DataSupplier {
 
@@ -396,10 +395,10 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 				}
 				filePath = metaData.MetadataData().GetFilePath()
 
-				indexColumnName = dataSupplier.GetIndexColumn().GetCName()
-				culcalteColumns = make([]string, len(dataSupplier.GetCaculateColumns()))
-				for i, col := range dataSupplier.GetCaculateColumns() {
-					culcalteColumns[i] = col.GetCName()
+				keyColumn = dataSupplier.GetKeyColumn().GetCName()
+				selectedColumns = make([]string, len(dataSupplier.GetSelectedColumns()))
+				for i, col := range dataSupplier.GetSelectedColumns() {
+					selectedColumns[i] = col.GetCName()
 				}
 
 				find = true
@@ -417,13 +416,13 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 	req := &types.FighterTaskReadyGoReqContractCfg{
 		PartyId: partyId,
 		DataParty: struct {
-			InputFile    string `json:"input_file"`
-			IndexColumn string `json:"index_column"`
-			CalculateColumns []string  `json:"calculate_columns"`
+			InputFile       string   `json:"input_file"`
+			KeyColumn       string   `json:"key_column"`
+			SelectedColumns []string `json:"selected_columns"`
 		}{
-			InputFile:    filePath,
-			IndexColumn: indexColumnName, 			// only dataSupplier own, but power supplier never own
-			CalculateColumns: culcalteColumns,
+			InputFile:       filePath,
+			KeyColumn:       keyColumn, // only dataSupplier own, but power supplier never own
+			SelectedColumns: selectedColumns,
 		},
 	}
 
