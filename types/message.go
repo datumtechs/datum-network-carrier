@@ -77,11 +77,10 @@ func (msg *IdentityMsg) String() string {
 func (msg *IdentityMsg) MsgType() string                            { return MSG_IDENTITY }
 func (msg *IdentityMsg) GetOrganization() *apicommonpb.Organization { return msg.organization }
 func (msg *IdentityMsg) GetOwnerName() string                       { return msg.organization.NodeName }
-func (msg *IdentityMsg) GetOwnerNodeId() string               { return msg.organization.NodeId }
-func (msg *IdentityMsg) GetOwnerIdentityId() string           { return msg.organization.IdentityId }
-func (msg *IdentityMsg) GetCreateAt() uint64                  { return msg.CreateAt }
-func (msg *IdentityMsg) SetOwnerNodeId(nodeId string)         { msg.organization.NodeId = nodeId }
-
+func (msg *IdentityMsg) GetOwnerNodeId() string                     { return msg.organization.NodeId }
+func (msg *IdentityMsg) GetOwnerIdentityId() string                 { return msg.organization.IdentityId }
+func (msg *IdentityMsg) GetCreateAt() uint64                        { return msg.CreateAt }
+func (msg *IdentityMsg) SetOwnerNodeId(nodeId string)               { msg.organization.NodeId = nodeId }
 
 type IdentityRevokeMsg struct {
 	CreateAt uint64 `json:"createAt"`
@@ -108,15 +107,16 @@ func (msg *IdentityRevokeMsg) MsgType() string { return MSG_IDENTITY_REVOKE }
 type IdentityMsgArr []*IdentityMsg
 type IdentityRevokeMsgArr []*IdentityRevokeMsg
 
-
 // Len returns the length of s.
 func (s IdentityMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s IdentityMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s IdentityMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
 
 // Len returns the length of s.
 func (s IdentityRevokeMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s IdentityRevokeMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s IdentityRevokeMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
@@ -183,7 +183,6 @@ func (msg *PowerMsg) HashByCreateTime() common.Hash {
 	})
 }
 
-
 type PowerRevokeMsg struct {
 	PowerId  string `json:"powerId"`
 	CreateAt uint64 `json:"createAt"`
@@ -212,15 +211,16 @@ func (msg *PowerRevokeMsg) MsgType() string { return MSG_POWER_REVOKE }
 type PowerMsgArr []*PowerMsg
 type PowerRevokeMsgArr []*PowerRevokeMsg
 
-
 // Len returns the length of s.
 func (s PowerMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s PowerMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s PowerMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
 
 // Len returns the length of s.
 func (s PowerRevokeMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s PowerRevokeMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s PowerRevokeMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
@@ -237,7 +237,7 @@ type MetadataMsg struct {
 }
 
 func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg {
-	metadataMsg :=  &MetadataMsg{
+	metadataMsg := &MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
 			MetadataId: req.GetInformation().GetMetadataSummary().GetMetadataId(),
 			OriginId:   req.GetInformation().GetMetadataSummary().GetOriginId(),
@@ -351,7 +351,6 @@ func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 	})
 }
 
-
 type MetadataRevokeMsg struct {
 	MetadataId string `json:"metadataId"`
 	CreateAt   uint64 `json:"createAt"`
@@ -391,12 +390,14 @@ type MetadataRevokeMsgArr []*MetadataRevokeMsg
 
 // Len returns the length of s.
 func (s MetadataMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s MetadataMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s MetadataMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
 
 // Len returns the length of s.
 func (s MetadataRevokeMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s MetadataRevokeMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s MetadataRevokeMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
@@ -415,7 +416,7 @@ type MetadataAuthorityMsg struct {
 }
 
 func NewMetadataAuthorityMessageFromRequest(req *pb.ApplyMetadataAuthorityRequest) *MetadataAuthorityMsg {
-	metadataAuthorityMsg :=  &MetadataAuthorityMsg{
+	metadataAuthorityMsg := &MetadataAuthorityMsg{
 		User:     req.GetUser(),
 		UserType: req.GetUserType(),
 		Auth:     req.GetAuth(),
@@ -517,11 +518,11 @@ func NewMetadataAuthorityRevokeMessageFromRequest(req *pb.RevokeMetadataAuthorit
 	}
 }
 
-func (msg *MetadataAuthorityRevokeMsg) GetMetadataAuthId() string   { return msg.MetadataAuthId }
+func (msg *MetadataAuthorityRevokeMsg) GetMetadataAuthId() string         { return msg.MetadataAuthId }
 func (msg *MetadataAuthorityRevokeMsg) GetUser() string                   { return msg.User }
 func (msg *MetadataAuthorityRevokeMsg) GetUserType() apicommonpb.UserType { return msg.UserType }
 func (msg *MetadataAuthorityRevokeMsg) GetSign() []byte                   { return msg.Sign }
-func (msg *MetadataAuthorityRevokeMsg) GetCreateAt() uint64         { return msg.CreateAt }
+func (msg *MetadataAuthorityRevokeMsg) GetCreateAt() uint64               { return msg.CreateAt }
 
 func (msg *MetadataAuthorityRevokeMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *MetadataAuthorityRevokeMsg) Unmarshal(b []byte) error { return nil }
@@ -537,19 +538,19 @@ func (msg *MetadataAuthorityRevokeMsg) MsgType() string { return MSG_METADATAAUT
 type MetadataAuthorityMsgArr []*MetadataAuthorityMsg
 type MetadataAuthorityRevokeMsgArr []*MetadataAuthorityRevokeMsg
 
-
 // Len returns the length of s.
 func (s MetadataAuthorityMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s MetadataAuthorityMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s MetadataAuthorityMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
 
 // Len returns the length of s.
 func (s MetadataAuthorityRevokeMsgArr) Len() int { return len(s) }
+
 // Swap swaps the i'th and the j'th element in s.
 func (s MetadataAuthorityRevokeMsgArr) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 func (s MetadataAuthorityRevokeMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].CreateAt }
-
 
 // ------------------- task -------------------
 
@@ -615,37 +616,32 @@ type TaskMsg struct {
 }
 
 func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
-
 	return &TaskMsg{
-		PowerPartyIds: req.PowerPartyIds,
+		PowerPartyIds: req.GetPowerPartyIds(),
 		Data: NewTask(&libtypes.TaskPB{
-
-			TaskId:     "",
-			TaskName:   req.TaskName,
-			PartyId:    req.Sender.PartyId,
-			IdentityId: req.Sender.IdentityId,
-			NodeId:     req.Sender.NodeId,
-			NodeName:   req.Sender.NodeName,
-			DataId:     "",
-			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-			State:      apicommonpb.TaskState_TaskState_Pending,
-			Reason:     "",
-			EventCount: 0,
-			Desc:       "",
-			CreateAt:   uint64(timeutils.UnixMsec()),
-			EndAt:      0,
-			StartAt:    0,
-			//TODO: 缺失，算法提供者信息
-			/*AlgoSupplier: &apicommonpb.TaskOrganization{
-				PartyId:  req.Owner.PartyId,
-				Identity: req.Owner.IdentityId,
-				NodeId:   req.Owner.NodeId,
-				NodeName: req.Owner.Name,
-			},*/
-			OperationCost:         req.OperationCost,
-			CalculateContractCode: req.CalculateContractCode,
-			DataSplitContractCode: req.DataSplitContractCode,
-			ContractExtraParams:   req.ContractExtraParams,
+			TaskId:                "",
+			TaskName:              req.GetTaskName(),
+			PartyId:               req.GetSender().GetPartyId(),
+			IdentityId:            req.GetSender().GetIdentityId(),
+			NodeId:                req.GetSender().GetNodeId(),
+			NodeName:              req.GetSender().GetNodeName(),
+			DataId:                "",
+			DataStatus:            apicommonpb.DataStatus_DataStatus_Normal,
+			State:                 apicommonpb.TaskState_TaskState_Pending,
+			Reason:                "",
+			EventCount:            0,
+			Desc:                  "",
+			CreateAt:              uint64(timeutils.UnixMsec()),
+			EndAt:                 0,
+			StartAt:               0,
+			AlgoSupplier:          req.GetAlgoSupplier(),
+			//DataSuppliers:
+			PowerSuppliers:        make([]*libtypes.TaskPowerSupplier, 0),
+			Receivers:             req.GetReceivers(),
+			OperationCost:         req.GetOperationCost(),
+			CalculateContractCode: req.GetCalculateContractCode(),
+			DataSplitContractCode: req.GetDataSplitContractCode(),
+			ContractExtraParams:   req.GetContractExtraParams(),
 		}),
 	}
 }
@@ -950,19 +946,41 @@ Example:
   "party_id": "p0",
   "data_party": {
       "input_file": "../data/bank_predict_data.csv",
-      "id_column_name": "CLIENT_ID"
+       "index_column": "CLIENT_ID",
+       "calculate_columns": ["col1", "col2"]
     },
   "dynamic_parameter": {
     "model_restore_party": "p0",
     "train_task_id": "task_id"
   }
 }
+
+or:
+
+{
+  "party_id": "p0",
+  "data_party": {
+    "input_file": "../data/bank_train_data.csv",
+    "index_column": "CLIENT_ID",
+    "calculate_columns": ["col1", "col2"]
+  },
+  "dynamic_parameter": {
+    "label_owner": "p0",
+    "label_column_name": "Y",
+    "algorithm_parameter": {
+      "epochs": 10,
+      "batch_size": 256,
+      "learning_rate": 0.1
+    }
+  }
+}
 */
 type FighterTaskReadyGoReqContractCfg struct {
 	PartyId   string `json:"party_id"`
 	DataParty struct {
-		InputFile    string `json:"input_file"`
-		IdColumnName string `json:"id_column_name"` // 目前 默认只会用一列, 后面再拓展 ..
+		InputFile        string   `json:"input_file"`
+		IndexColumn      string   `json:"index_column"`
+		CalculateColumns []string `json:"calculate_columns"`
 	} `json:"data_party"`
 	DynamicParameter map[string]interface{} `json:"dynamic_parameter"`
 }

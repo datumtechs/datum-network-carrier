@@ -13,28 +13,28 @@ func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *pb.T
 		TaskName: taskData.GetTaskName(),
 		//TODO: 需要确认部分
 		//Role:     role,
-		Owner: &apicommonpb.TaskOrganization{
+		Sender: &apicommonpb.TaskOrganization{
 			PartyId:    taskData.GetPartyId(),
-			NodeName:       taskData.GetNodeName(),
+			NodeName:   taskData.GetNodeName(),
 			NodeId:     taskData.GetNodeId(),
 			IdentityId: taskData.GetIdentityId(),
 		},
 		AlgoSupplier: &apicommonpb.TaskOrganization{
 			PartyId:    taskData.GetPartyId(),
-			NodeName:       taskData.GetNodeName(),
+			NodeName:   taskData.GetNodeName(),
 			NodeId:     taskData.GetNodeId(),
 			IdentityId: taskData.GetIdentityId(),
 		},
-		DataSupplier:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
-		PowerSupplier: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
-		Receivers:     taskData.GetReceivers(),
-		CreateAt:      taskData.GetCreateAt(),
-		StartAt:       taskData.GetStartAt(),
-		EndAt:         taskData.GetEndAt(),
-		State:         taskData.GetState(),
+		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
+		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
+		Receivers:      taskData.GetReceivers(),
+		CreateAt:       taskData.GetCreateAt(),
+		StartAt:        taskData.GetStartAt(),
+		EndAt:          taskData.GetEndAt(),
+		State:          taskData.GetState(),
 		OperationCost: &apicommonpb.TaskResourceCostDeclare{
 			Processor: taskData.GetOperationCost().GetProcessor(),
-			Memory:       taskData.GetOperationCost().GetMemory(),
+			Memory:    taskData.GetOperationCost().GetMemory(),
 			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
 			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
@@ -51,11 +51,11 @@ func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *pb.T
 			MetadataId:   metadataSupplier.GetMetadataId(),
 			MetadataName: metadataSupplier.GetMetadataName(),
 		}
-		detailShow.DataSupplier = append(detailShow.DataSupplier, dataSupplier)
+		detailShow.DataSuppliers = append(detailShow.DataSuppliers, dataSupplier)
 	}
 	// powerSupplier
 	for _, data := range taskData.GetPowerSuppliers() {
-		detailShow.PowerSupplier = append(detailShow.PowerSupplier, &pb.TaskPowerSupplierShow{
+		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
 				PartyId:    data.GetOrganization().GetPartyId(),
 				NodeName:   data.GetOrganization().GetNodeName(),
@@ -83,7 +83,7 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 			Type:     event.GetType(),
 			CreateAt: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner:    &apicommonpb.Organization{
+			Owner: &apicommonpb.Organization{
 				IdentityId: event.GetIdentityId(),
 			},
 		})
@@ -131,16 +131,16 @@ func NewOrgMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMeta
 
 func NewOrgResourceFromResource(input *Resource) *RemoteResourceTable {
 	return &RemoteResourceTable{
-		identityId: input.data.IdentityId,
+		identityId: input.data.GetIdentityId(),
 		total: &resource{
-			mem:       input.data.TotalMem,
-			processor: input.data.TotalProcessor,
-			bandwidth: input.data.TotalBandwidth,
+			mem:       input.data.GetTotalMem(),
+			processor: input.data.GetTotalProcessor(),
+			bandwidth: input.data.GetTotalBandwidth(),
 		},
 		used: &resource{
-			mem:       input.data.UsedMem,
-			processor: input.data.UsedProcessor,
-			bandwidth: input.data.UsedBandwidth,
+			mem:       input.data.GetUsedMem(),
+			processor: input.data.GetUsedProcessor(),
+			bandwidth: input.data.GetUsedBandwidth(),
 		},
 	}
 }
