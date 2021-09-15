@@ -69,7 +69,7 @@ func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
 func (dc *DataCenter) GetYarnName() (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	name, err :=  rawdb.ReadYarnName(dc.db)
+	name, err := rawdb.ReadYarnName(dc.db)
 	if nil != err {
 		return "", err
 	}
@@ -290,36 +290,38 @@ func (dc *DataCenter) StoreDataResourceDiskUsed(dataResourceDiskUsed *types.Data
 	defer dc.mu.RUnlock()
 	return rawdb.StoreDataResourceDiskUsed(dc.db, dataResourceDiskUsed)
 }
+
 func (dc *DataCenter) RemoveDataResourceDiskUsed(metaDataId string) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.RemoveDataResourceDiskUsed(dc.db, metaDataId)
 }
-func (dc *DataCenter)  QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error) {
+
+func (dc *DataCenter) QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryDataResourceDiskUsed(dc.db, metaDataId)
 }
 
-
-func (dc *DataCenter)  StoreLocalTaskExecuteStatus(taskId string) error   {
+func (dc *DataCenter) StoreLocalTaskExecuteStatus(taskId string) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	log.Debugf("Store local task executing status, taskId: {%s}", taskId)
 	return rawdb.StoreLocalTaskExecuteStatus(dc.db, taskId)
 }
-func (dc *DataCenter)  RemoveLocalTaskExecuteStatus (taskId string) error  {
+
+func (dc *DataCenter) RemoveLocalTaskExecuteStatus(taskId string) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	log.Debugf("Remove local task executing status, taskId: {%s}", taskId)
 	return rawdb.RemoveLocalTaskExecuteStatus(dc.db, taskId)
 }
-func (dc *DataCenter)  HasLocalTaskExecute(taskId string) (bool, error)  {
+
+func (dc *DataCenter) HasLocalTaskExecute(taskId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.HasLocalTaskExecute(dc.db, taskId)
 }
-
 
 func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
 	dc.mu.Lock()
@@ -341,8 +343,7 @@ func (dc *DataCenter) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, er
 	return list, nil
 }
 
-
-func (dc *DataCenter) RemoveTaskEventList(taskId string) error  {
+func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.DeleteTaskEvent(dc.db, taskId)
@@ -351,7 +352,6 @@ func (dc *DataCenter) RemoveTaskEventList(taskId string) error  {
 }
 
 // ****************************************************************************************************************
-
 func (dc *DataCenter) Stop() {
 	if !atomic.CompareAndSwapInt32(&dc.running, 0, 1) {
 		return
@@ -361,5 +361,3 @@ func (dc *DataCenter) Stop() {
 	dc.client.Close()
 	log.Info("Datacenter manager stopped")
 }
-
-

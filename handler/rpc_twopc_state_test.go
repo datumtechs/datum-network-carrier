@@ -3,7 +3,8 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/consensus/twopc"
+	"github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/kevinms/leakybucket-go"
@@ -91,7 +92,14 @@ func TestPrepareMsgRPCHandler_SendsPrepareMsg(t *testing.T) {
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
 	prepareMsg := &twopcpb.PrepareMsg{
-		ProposalId:           []byte("proposalId"),
+		MsgOption: &common.MsgOption{
+			ProposalId:           []byte("proposalId"),
+			SenderRole:           0,
+			SenderPartyId:        []byte("SenderPartyId"),
+			ReceiverRole:         0,
+			ReceiverPartyId:      []byte("ReceiverPartyId"),
+			MsgOwner:             nil,
+		},
 		TaskInfo:             []byte{},
 		CreateAt:             uint64(timeutils.Now().Unix()),
 		Sign:                 make([]byte, 64),
@@ -103,7 +111,7 @@ func TestPrepareMsgRPCHandler_SendsPrepareMsg(t *testing.T) {
 		defer wg.Done()
 		out := new(twopcpb.PrepareMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
-		require.Equal(t, out.ProposalId, prepareMsg.ProposalId)
+		require.Equal(t, out.MsgOption.ProposalId, prepareMsg.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
 			log.WithError(err).Error("Could not write to stream for response")
 		}
@@ -152,7 +160,14 @@ func TestPrepareVoteRPCHandler_SendsPrepareVoteMsg(t *testing.T) {
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
 	prepareVote := &twopcpb.PrepareVote{
-		ProposalId:           []byte("proposalId"),
+		MsgOption: &common.MsgOption{
+			ProposalId:           []byte("proposalId"),
+			SenderRole:           0,
+			SenderPartyId:        []byte("SenderPartyId"),
+			ReceiverRole:         0,
+			ReceiverPartyId:      []byte("ReceiverPartyId"),
+			MsgOwner:             nil,
+		},
 		CreateAt:             uint64(timeutils.Now().Unix()),
 		Sign:                 make([]byte, 64),
 	}
@@ -163,7 +178,7 @@ func TestPrepareVoteRPCHandler_SendsPrepareVoteMsg(t *testing.T) {
 		defer wg.Done()
 		out := new(twopcpb.PrepareVote)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
-		require.Equal(t, out.ProposalId, prepareVote.ProposalId)
+		require.Equal(t, out.MsgOption.ProposalId, prepareVote.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
 			log.WithError(err).Error("Could not write to stream for response")
 		}
@@ -211,7 +226,14 @@ func TestConfirmMsgRPCHandler_SendsConfirmMsg(t *testing.T) {
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
 	confirmMsg := &twopcpb.ConfirmMsg{
-		ProposalId:           []byte("proposalId"),
+		MsgOption: &common.MsgOption{
+			ProposalId:           []byte("proposalId"),
+			SenderRole:           0,
+			SenderPartyId:        []byte("SenderPartyId"),
+			ReceiverRole:         0,
+			ReceiverPartyId:      []byte("ReceiverPartyId"),
+			MsgOwner:             nil,
+		},
 		CreateAt:             uint64(timeutils.Now().Unix()),
 		Sign:                 make([]byte, 64),
 	}
@@ -222,7 +244,7 @@ func TestConfirmMsgRPCHandler_SendsConfirmMsg(t *testing.T) {
 		defer wg.Done()
 		out := new(twopcpb.ConfirmMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
-		require.Equal(t, out.ProposalId, confirmMsg.ProposalId)
+		require.Equal(t, out.MsgOption.ProposalId, confirmMsg.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
 			log.WithError(err).Error("Could not write to stream for response")
 		}
@@ -270,7 +292,14 @@ func TestConfirmVoteRPCHandler_SendsConfirmVote(t *testing.T) {
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
 	confirmVote := &twopcpb.ConfirmVote{
-		ProposalId:           []byte("proposalId"),
+		MsgOption: &common.MsgOption{
+			ProposalId:           []byte("proposalId"),
+			SenderRole:           0,
+			SenderPartyId:        []byte("SenderPartyId"),
+			ReceiverRole:         0,
+			ReceiverPartyId:      []byte("ReceiverPartyId"),
+			MsgOwner:             nil,
+		},
 		CreateAt:             uint64(timeutils.Now().Unix()),
 		Sign:                 make([]byte, 64),
 	}
@@ -281,7 +310,7 @@ func TestConfirmVoteRPCHandler_SendsConfirmVote(t *testing.T) {
 		defer wg.Done()
 		out := new(twopcpb.ConfirmVote)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
-		require.Equal(t, out.ProposalId, confirmVote.ProposalId)
+		require.Equal(t, out.MsgOption.ProposalId, confirmVote.MsgOption.ProposalId)
 		if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
 			log.WithError(err).Error("Could not write to stream for response")
 		}
@@ -329,7 +358,14 @@ func TestCommitMsgRPCHandler_SendsCommitMsg(t *testing.T) {
 	r2.rateLimiter.limiterMap[topic] = leakybucket.NewCollector(1, 1, false)
 
 	commitMsg := &twopcpb.CommitMsg{
-		ProposalId:           []byte("proposalId"),
+		MsgOption: &common.MsgOption{
+			ProposalId:           []byte("proposalId"),
+			SenderRole:           0,
+			SenderPartyId:        []byte("SenderPartyId"),
+			ReceiverRole:         0,
+			ReceiverPartyId:      []byte("ReceiverPartyId"),
+			MsgOwner:             nil,
+		},
 		CreateAt:             uint64(timeutils.Now().Unix()),
 		Sign:                 make([]byte, 64),
 	}
@@ -340,7 +376,7 @@ func TestCommitMsgRPCHandler_SendsCommitMsg(t *testing.T) {
 		defer wg.Done()
 		out := new(twopcpb.CommitMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
-		require.Equal(t, out.ProposalId, commitMsg.ProposalId)
+		require.Equal(t, out.MsgOption.ProposalId, commitMsg.MsgOption.ProposalId)
 		r2.writeErrorResponseToStream(responseCodeInvalidRequest, "test error", stream)
 		/*if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
 			log.WithError(err).Error("Could not write to stream for response")
