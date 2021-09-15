@@ -189,13 +189,13 @@ func (t *TwoPC) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
 func (t *TwoPC) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 	t.needExecuteTaskCh <- task
 }
-
-func (t *TwoPC) storeProposalState(proposalState *ctypes.ProposalState) {
-	t.state.StoreProposalState(proposalState)
-}
-func (t *TwoPC) removeProposalState(proposalId common.Hash) {
-	t.state.CleanProposalState(proposalId)
-}
+//
+//func (t *TwoPC) storeProposalState(proposalState *ctypes.ProposalState) {
+//	t.state.StoreProposalState(proposalState)
+//}
+//func (t *TwoPC) removeProposalState(proposalId common.Hash) {
+//	t.state.CleanProposalState(proposalId)
+//}
 func (t *TwoPC) removeProposalStateAndTask(proposalId common.Hash) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
 		log.Infof("Start remove proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.GetTaskId())

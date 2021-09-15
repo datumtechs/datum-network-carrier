@@ -47,6 +47,7 @@ func (dc *DataCenter) GetIdentity() (*apicommonpb.Organization, error) {
 	return identity, nil
 }
 
+
 // about identity on datacenter
 func (dc *DataCenter) HasIdentity(identity *apicommonpb.Organization) (bool, error) {
 	dc.serviceMu.RLock()
@@ -83,6 +84,11 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityRequest{
+		/*Member: &apicommonpb.Organization{
+			NodeName:       identity.Name(),
+			NodeId:     identity.NodeId(),
+			IdentityId: identity.IdentityId(),
+		},*/
 		IdentityId: identity.IdentityId(),
 	})
 	if err != nil {
@@ -101,72 +107,78 @@ func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
-// InsertMetadataAuthority saves the metadataAuthority to the storage.
+//// 存储元数据鉴权申请记录
+//func (dc *DataCenter) SaveMetadataAuthority(request *types.MetadataAuthority) error {
+//	dc.serviceMu.RLock()
+//	defer dc.serviceMu.RUnlock()
+//	if request.GetData().MetadataAuthId == "" {
+//		request.GetData().MetadataAuthId = request.Hash().Hex()
+//	}
+//	response, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.SaveMetadataAuthorityRequest{
+//		GetUser:                 request.GetData().GetUser,
+//		GetUserType:             request.GetData().GetUserType,
+//		Auth:                 request.GetData().Auth,
+//		MetadataAuthId:       request.GetData().MetadataAuthId,
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	if response.GetStatus() == 0 {
+//		return nil
+//	}
+//	return errors.New(response.GetMsg())
+//}
+
 func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
-	dc.serviceMu.RLock()
-	defer dc.serviceMu.RUnlock()
-	if metadataAuth.Data().MetadataAuthId == "" {
-		metadataAuth.Data().MetadataAuthId = metadataAuth.Hash().Hex()
-	}
-	response, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
-		MetadataAuthority: metadataAuth.Data(),
-	})
-	if err != nil {
-		return err
-	}
-	if response.GetStatus() == 0 {
-		return nil
-	}
-	return errors.New(response.GetMsg())
+
+	// TODO add
+
+	// todo  update
+
+	return nil
 }
 
-// Functions that do not need to be implemented.
 func (dc *DataCenter) RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
+
 	// todo  delete
 	return nil
 }
 
-func (dc *DataCenter) AuditMetadataAuthority(metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) error {
-	dc.serviceMu.RLock()
-	defer dc.serviceMu.RUnlock()
+//func (dc *DataCenter) StoreMetadataAuthority(metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) error {
+//	dc.serviceMu.RLock()
+//	defer dc.serviceMu.RUnlock()
+//	//response, err := dc.client.SaveMetadataAuthority(dc.ctx, &api.SaveMetadataAuthorityRequest{
+//	//	MetadataAuthId:       metadataAuthId,
+//	//	Audit:                option,
+//	//})
+//	//if err != nil {
+//	//	return err
+//	//}
+//	//if response.GetStatus() != 0 {
+//	//	return errors.New(response.GetMsg())
+//	//}
+//	return nil
+//}
+//
+//func (dc *DataCenter) StoreMetadataAuthorityAudit(metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) error {
+//	dc.serviceMu.RLock()
+//	defer dc.serviceMu.RUnlock()
+//	//response, err := dc.client.AuditMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
+//	//	MetadataAuthId:       metadataAuthId,
+//	//	Audit:                option,
+//	//})
+//	//if err != nil {
+//	//	return err
+//	//}
+//	//if response.GetStatus() != 0 {
+//	//	return errors.New(response.GetMsg())
+//	//}
+//	return nil
+//}
 
-	metadataAuthority, err := dc.GetMetadataAuthority(metadataAuthId)
-	if err != nil {
-		return err
-	}
-	if metadataAuthority.Data() == nil {
-		return errors.New("authority record not found")
-	}
-	metadataAuthority.Data().AuditSuggestion = suggestion
-	metadataAuthority.Data().AuditAt = uint64(timeutils.UnixMsec())
-	metadataAuthority.Data().AuditOption = option
-	response, err := dc.client.AuditMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
-		MetadataAuthority: metadataAuthority.Data(),
-	})
-	if err != nil {
-		return err
-	}
-	if response.GetStatus() != 0 {
-		return errors.New(response.GetMsg())
-	}
-	return nil
-}
-
-// GetMetadataAuthority retrieves the data with the specified metadataAuthId from the data store.
 func (dc *DataCenter) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
-	dc.serviceMu.RLock()
-	defer dc.serviceMu.RUnlock()
 
-	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
-		MetadataAuthId: metadataAuthId,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if response.GetStatus() != 0 {
-		return nil, errors.New(response.GetMsg())
-	}
-	return types.NewMetadataAuthority(response.GetMetadataAuthorities()[0]), nil
+	return nil, nil
 }
 
 func (dc *DataCenter) GetMetadataAuthorityListByIds (metadataAuthIds []string) (types.MetadataAuthArray, error) {

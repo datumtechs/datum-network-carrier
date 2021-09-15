@@ -82,8 +82,8 @@ var (
 	SourceDeleteSucceed   = NewEventType("0207004", "Source data deleted successfully.")
 	SourceDeleteFailed    = NewEventType("0207005", "Source data deleted failed.")
 	StartDataShard        = NewEventType("0207006", "Start data sharding.")
-	GetDataFileSucceed    = NewEventType("0207007", "Data file/directory retrieved successfully.")
-	GetDataFileFailed     = NewEventType("0207008", "Data file/directory retrieved failed.")
+	GetDataFileSucceed    = NewEventType("0207007", "GetData file/directory retrieved successfully.")
+	GetDataFileFailed     = NewEventType("0207008", "GetData file/directory retrieved failed.")
 )
 
 var DataServiceEvent = map[string]string{

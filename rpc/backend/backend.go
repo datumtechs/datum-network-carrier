@@ -34,7 +34,7 @@ type Backend interface {
 
 	// metadataAuthority api
 
-	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.MetadataAuthorityState, error)
+	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error)
 	GetMetadataAuthorityList() (types.MetadataAuthArray, error)
 	GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error)
 
