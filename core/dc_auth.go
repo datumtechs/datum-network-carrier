@@ -119,10 +119,7 @@ func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthor
 	return nil
 }
 
-func (dc *DataCenter)  RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
-	return nil
-}
-
+// UpdateMetadataAuthority updates the data already stored.
 func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
@@ -157,8 +154,8 @@ func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, la
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
-		IdentityId:           identityId,
-		LastUpdated:           lastUpdate,
+		IdentityId:  identityId,
+		LastUpdated: lastUpdate,
 	})
 	if err != nil {
 		return nil, err

@@ -692,7 +692,7 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 			continue
 		}
 
-		if err := m.dataCenter.RevokeMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
+		if err := m.dataCenter.UpdateMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
 			MetadataAuthId:  revoke.GetMetadataAuthId(),
 			User:            revoke.GetUser(),
 			UserType:        revoke.GetUserType(),
