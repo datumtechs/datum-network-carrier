@@ -145,7 +145,7 @@ func (gc *GrpcClient) SaveMetadataAuthority(ctx context.Context, request *api.Me
 
 // 数据授权审核，规则：
 // 1、授权后，可以将审核结果绑定到原有申请记录之上
-func (gc *GrpcClient) AuditMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
+func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *api.MetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
 	defer cancel()
 	return gc.identityService.UpdateMetadataAuthority(ctx, request)

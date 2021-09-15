@@ -120,28 +120,11 @@ func (dc *DataCenter) InsertMetadataAuthority(metadataAuth *types.MetadataAuthor
 	return errors.New(response.GetMsg())
 }
 
-// Functions that do not need to be implemented.
-func (dc *DataCenter) RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
-	// todo  delete
-	return nil
-}
-
-func (dc *DataCenter) AuditMetadataAuthority(metadataAuthId, suggestion string, option apicommonpb.AuditMetadataOption) error {
+func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-
-	metadataAuthority, err := dc.GetMetadataAuthority(metadataAuthId)
-	if err != nil {
-		return err
-	}
-	if metadataAuthority.Data() == nil {
-		return errors.New("authority record not found")
-	}
-	metadataAuthority.Data().AuditSuggestion = suggestion
-	metadataAuthority.Data().AuditAt = uint64(timeutils.UnixMsec())
-	metadataAuthority.Data().AuditOption = option
-	response, err := dc.client.AuditMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
-		MetadataAuthority: metadataAuthority.Data(),
+	response, err := dc.client.UpdateMetadataAuthority(dc.ctx, &api.MetadataAuthorityRequest{
+		MetadataAuthority: metadataAuth.Data(),
 	})
 	if err != nil {
 		return err
