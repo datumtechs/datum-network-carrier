@@ -43,14 +43,16 @@ message MetadataColumn {
 message MetadataAuthorityPB {
   string                                      metadata_auth_id = 1;     // 元数据授权申请Id
   string                                      user = 2;                 // 申请人地址
-  api.protobuf.UserType                       user_type = 3;            // 申请人类型
-  MetadataAuthority                           auth = 4;                 // 元数据使用授权信息
-  api.protobuf.AuditMetadataOption            audit_option  = 5;        // 审核结果
-  string                                      audit_suggestion = 6;     // 审核意见 (允许""字符)
-  MetadataUsedQuo                             used_quo = 7;             // 对应数据授权信息中元数据的使用实况
-  uint64                                      apply_at = 8;             // 发起授权申请的时间 (单位: ms)
-  uint64                                      audit_at = 9;             // 审核授权申请的时间 (单位: ms)
-  api.protobuf.MetadataAuthorityState         state = 10;               // 数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 <失效前主动撤回的>; 4: 已经失效的数据授权 <过期or达到使用上限的>)
+  string                                      data_id = 3;              //
+  api.protobuf.DataStatus                     data_status = 4;          // the status of data, N means normal, D means deleted.
+  api.protobuf.UserType                       user_type = 5;            // 申请人类型
+  MetadataAuthority                           auth = 6;                 // 元数据使用授权信息
+  api.protobuf.AuditMetadataOption            audit_option  = 7;        // 审核结果
+  string                                      audit_suggestion = 8;     // 审核意见 (允许""字符)
+  MetadataUsedQuo                             used_quo = 9;             // 对应数据授权信息中元数据的使用实况
+  uint64                                      apply_at = 10;             // 发起授权申请的时间 (单位: ms)
+  uint64                                      audit_at = 11;             // 审核授权申请的时间 (单位: ms)
+  api.protobuf.MetadataAuthorityState         state = 12;               // 数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 <失效前主动撤回的>; 4: 已经失效的数据授权 <过期or达到使用上限的>)
 }
 
 // =============================== For API =========================

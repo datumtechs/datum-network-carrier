@@ -146,9 +146,6 @@ func (dc *DataCenter) GetMetadataAuthority (metadataAuthId string) (*types.Metad
 	if err != nil {
 		return nil, err
 	}
-	if response.GetStatus() != 0 {
-		return nil, errors.New(response.GetMsg())
-	}
 	return types.NewMetadataAuthority(response.GetMetadataAuthorities()[0]), nil
 }
 
@@ -166,9 +163,6 @@ func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, la
 	})
 	if err != nil {
 		return nil, err
-	}
-	if response.GetStatus() != 0 {
-		return nil, errors.New(response.GetMsg())
 	}
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
