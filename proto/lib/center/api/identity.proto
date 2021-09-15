@@ -32,33 +32,24 @@ message ListIdentityResponse {
 
 // 定义：元数据授权申请记录
 message MetadataAuthorityRequest {
-  types.MetadataAuthorityPB metadataAuthority = 1;
+  types.MetadataAuthorityPB metadata_authority = 1;
 }
-
-/*message AuditMetadataAuthorityRequest {
-  string                            metadata_auth_id = 1;                  // 元数据授权申请Id
-  api.protobuf.AuditMetadataOption  audit = 2;                              // 审核结果
-}*/
 
 message ListMetadataAuthorityRequest {
   string identity_id = 1;   // 组织标识
   uint64 last_updated = 2;   // 最后同步时间（毫秒级时间戳）
 }
 
-/*message MetadataAuthorityDetail {
-  string                            metadata_auth_id = 1;                // 元数据授权申请Id
-  string                            user = 2;                             // 发起任务的用户的信息 (task是属于用户的)
-  api.protobuf.UserType             user_type = 3;                        // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-  types.MetadataAuthority           auth = 4;                             // 元数据使用授权信息
-  api.protobuf.AuditMetadataOption  audit = 5;                            // 审核结果
-  uint64                            apply_at = 6;                         // 发起授权申请的时间 (单位: ms)
-  uint64                            audit_at = 7;                         // 审核授权申请的时间 (单位: ms)
-}*/
-
 message ListMetadataAuthorityResponse {
-  int32                              status = 1;                       // 响应码
-  string                             msg = 2;                          // 错误信息
-  repeated types.MetadataAuthorityPB metadataAuthorities = 3;          // 数据授权信息列表
+  repeated types.MetadataAuthorityPB metadata_authorities = 1;          // 数据授权信息列表
+}
+
+message FindMetadataAuthorityRequest {
+  string metadata_auth_id = 1;
+}
+
+message FindMetadataAuthorityResponse {
+  types.MetadataAuthorityPB metadata_authority= 1;
 }
 
 // 身份信息服务
@@ -84,4 +75,7 @@ service IdentityService {
   // 获取数据授权申请列表
   // 规则：参数存在时根据条件获取，参数不存在时全量返回
   rpc ListMetadataAuthority(ListMetadataAuthorityRequest) returns (ListMetadataAuthorityResponse);
+
+  // FindMetadataAuthority retrieves data based on the specified ID.
+  rpc FindMetadataAuthority(FindMetadataAuthorityRequest) returns (FindMetadataAuthorityResponse);
 }
