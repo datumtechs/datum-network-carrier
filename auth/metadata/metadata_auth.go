@@ -137,22 +137,22 @@ func (ma *MetadataAuthority) GetMetadataAuthorityListByUser(userType apicommonpb
 
 func (ma *MetadataAuthority) VerifyMetadataAuth (user, metadataId string, userType apicommonpb.UserType) bool {
 
-	// TODO 检查 user  和 metadataId 的关联关系
-
-	// 获取 metadata
-	metadata, err := ma.dataCenter.GetMetadataByDataId(metadataId)
-	if nil != err {
-
-	}
-
-	// verify
-	metadataAuth, err := ma.GetMetadataAuthority(metadataId)
-	if nil != err {
-		log.Errorf("Failed to GetMetadataAuthority on VerifyMetadataAuth, metadataAuthId: {%s}, userType: {%s}, user: {%s}, err: {%s}",
-			metadataId, userType.String(), user, err)
-		return false
-	}
-
-	metadataAuth.
+	//// TODO 检查 user  和 metadataId 的关联关系
+	//
+	//// 获取 metadata
+	//metadata, err := ma.dataCenter.GetMetadataByDataId(metadataId)
+	//if nil != err {
+	//
+	//}
+	//
+	//// verify
+	//metadataAuth, err := ma.GetMetadataAuthority(metadataId)
+	//if nil != err {
+	//	log.Errorf("Failed to GetMetadataAuthority on VerifyMetadataAuth, metadataAuthId: {%s}, userType: {%s}, user: {%s}, err: {%s}",
+	//		metadataId, userType.String(), user, err)
+	//	return false
+	//}
+	//
+	//metadataAuth.
 
 }
