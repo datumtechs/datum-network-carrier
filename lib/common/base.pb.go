@@ -331,7 +331,7 @@ func (TaskState) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_5dab74a081363d1b, []int{9}
 }
 
-// 数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 <失效前主动撤回的>; 4: 已经失效的数据授权 <过期or达到使用上限的>)
+// 数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 <失效前主动撤回的>; 4: 已经失效的数据授权 <过期or达到使用上限的or被拒绝的>;)
 type MetadataAuthorityState int32
 
 const (

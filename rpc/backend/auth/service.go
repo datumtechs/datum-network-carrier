@@ -118,7 +118,7 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 
 func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMetadataAuthorityRequest) (*pb.ApplyMetadataAuthorityResponse, error) {
 	if req.GetUser() == "" {
-		return nil, errors.New("required User")
+		return nil, errors.New("required GetUser")
 	}
 	if !verifyUserType(req.GetUserType()) {
 		return nil, errors.New("required right user type")
@@ -149,7 +149,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 
 func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	if req.GetUser() == "" {
-		return nil, errors.New("required User")
+		return nil, errors.New("required GetUser")
 	}
 	if !verifyUserType(req.GetUserType()) {
 		return nil, errors.New("required right user type")
@@ -179,8 +179,27 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 
 func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
 
-	//svr.B.AuditMetadataAuthority()
-	return nil, nil
+	if "" == req.GetMetadataAuthId() {
+		return nil, errors.New("require metadataAuthId")
+	}
+
+	if req.GetAudit() == apicommonpb.AuditMetadataOption_Audit_Pending {
+		return nil, errors.New("audit option can not is pending")
+	}
+
+	option, err := svr.B.AuditMetadataAuthority(types.NewMetadataAuthAudit(req.GetMetadataAuthId(), req.GetSuggestion(), req.GetAudit()))
+	if nil != err {
+		log.WithError(err).Error("RPC-API:AuditMetadataAuthority failed")
+		return nil, ErrAuditMetadataAuth
+	}
+	log.Debugf("RPC-API:AuditMetadataAuthority succeed, metadataAuthId: {%s}, audit option: {%s}, audit suggestion: {%s}",
+		req.GetMetadataAuthId(), req.GetAudit().String(), req.GetSuggestion())
+
+	return &pb.AuditMetadataAuthorityResponse{
+		Status: 0,
+		Msg:    backend.OK,
+		Audit: option,
+	}, nil
 }
 
 func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
@@ -191,16 +210,15 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 	}
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
-		data := &pb.GetMetadataAuthority{
-			MetadataAuthId:  auth.Data().MetadataAuthId,
-			User:            auth.Data().User,
-			UserType:        auth.Data().UserType,
-			Auth:            auth.Data().Auth,
-			AuditSuggestion: auth.Data().AuditSuggestion,
-			ApplyAt:         auth.Data().ApplyAt,
-			AuditAt:         auth.Data().AuditAt,
+		arr[i] = &pb.GetMetadataAuthority{
+			MetadataAuthId:  auth.GetData().GetMetadataAuthId(),
+			User:            auth.GetData().GetUser(),
+			UserType:        auth.GetData().GetUserType(),
+			Auth:            auth.GetData().GetAuth(),
+			AuditSuggestion: auth.GetData().GetAuditSuggestion(),
+			ApplyAt:         auth.GetData().GetApplyAt(),
+			AuditAt:         auth.GetData().GetAuditAt(),
 		}
-		arr[i] = data
 	}
 	log.Debugf("Query all authority list, len: {%d}", len(authorityList))
 	return &pb.GetMetadataAuthorityListResponse{
@@ -211,8 +229,38 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 }
 
 func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.GetMetadataAuthorityListByUserRequest) (*pb.GetMetadataAuthorityListResponse, error) {
-	// todo: missing implements
-	return nil, nil
+
+	if "" == req.GetUser() {
+		return nil, errors.New("require user")
+	}
+
+	if verifyUserType(req.GetUserType()) {
+		return nil, errors.New("userType is invalid")
+	}
+
+	authorityList, err := svr.B.GetMetadataAuthorityListByUser(req.GetUserType(), req.GetUser())
+	if nil != err {
+		log.WithError(err).Error("RPC-API:GetMetadataAuthorityListByUser failed")
+		return nil, ErrGetAuthorityList
+	}
+	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
+	for i, auth := range authorityList {
+		arr[i] = &pb.GetMetadataAuthority{
+			MetadataAuthId:  auth.GetData().GetMetadataAuthId(),
+			User:            auth.GetData().GetUser(),
+			UserType:        auth.GetData().GetUserType(),
+			Auth:            auth.GetData().GetAuth(),
+			AuditSuggestion: auth.GetData().GetAuditSuggestion(),
+			ApplyAt:         auth.GetData().GetApplyAt(),
+			AuditAt:         auth.GetData().GetAuditAt(),
+		}
+	}
+	log.Debugf("Query all authority list by user, userType: {%s}, user: {%s}, len: {%d}", req.GetUserType().String(), req.GetUser(), len(authorityList))
+	return &pb.GetMetadataAuthorityListResponse{
+		Status: 0,
+		Msg:    backend.OK,
+		List:   arr,
+	}, nil
 }
 
 func verifyUserType(userType apicommonpb.UserType) bool {
