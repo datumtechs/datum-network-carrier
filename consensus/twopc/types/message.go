@@ -64,6 +64,14 @@ func NewProposalState(proposalId common.Hash, taskId string, sender *apicommonpb
 		stateCache: make(map[string]*OrgProposalState, 0),
 	}
 }
+func RecoveryProposalState(proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization, cache map[string]*OrgProposalState) *ProposalState {
+	return &ProposalState{
+		proposalId: proposalId,
+		taskId:     taskId,
+		taskSender: sender,
+		stateCache: cache,
+	}
+}
 func (pstate *ProposalState) GetProposalId() common.Hash             { return pstate.proposalId }
 func (pstate *ProposalState) GetTaskId() string                            { return pstate.taskId }
 func (pstate *ProposalState) GetTaskSender() *apicommonpb.TaskOrganization { return pstate.taskSender }
