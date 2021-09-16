@@ -2,6 +2,7 @@ package task
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -38,15 +39,15 @@ type Manager struct {
 	consensusEngine consensus.Engine
 	eventEngine     *ev.EventEngine
 	resourceMng     *resource.Manager
+	authMng         *auth.AuthorityManager
 	parser          *TaskParser
 	validator       *TaskValidator
 	// internal resource node set (Fighter node grpc client set)
 	resourceClientSet *grpclient.InternalResourceClientSet
-
-	eventCh chan *types.ReportTaskEvent
-	quit    chan struct{}
+	eventCh           chan *types.ReportTaskEvent
+	quit              chan struct{}
 	// send the validated taskMsgs to scheduler
-	localTasksCh chan types.TaskDataArray
+	localTasksCh             chan types.TaskDataArray
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
@@ -61,6 +62,7 @@ func NewTaskManager(
 	consensusEngine consensus.Engine,
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
+	authMng *auth.AuthorityManager,
 	resourceClientSet *grpclient.InternalResourceClientSet,
 	localTasksCh chan types.TaskDataArray,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
@@ -68,17 +70,17 @@ func NewTaskManager(
 ) *Manager {
 
 	m := &Manager{
-		p2p:               p2p,
-		scheduler:         scheduler,
-		consensusEngine:   consensusEngine,
-		eventEngine:       eventEngine,
-		resourceMng:       resourceMng,
-		resourceClientSet: resourceClientSet,
-		parser:            newTaskParser(),
-		validator:         newTaskValidator(),
-		eventCh:           make(chan *types.ReportTaskEvent, 10),
-		localTasksCh:      localTasksCh,
-		//needConsensusTaskCh:      needConsensusTaskCh,
+		p2p:                      p2p,
+		scheduler:                scheduler,
+		consensusEngine:          consensusEngine,
+		eventEngine:              eventEngine,
+		resourceMng:              resourceMng,
+		authMng:                  authMng,
+		resourceClientSet:        resourceClientSet,
+		parser:                   newTaskParser(resourceMng),
+		validator:                newTaskValidator(resourceMng, authMng),
+		eventCh:                  make(chan *types.ReportTaskEvent, 10),
+		localTasksCh:             localTasksCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask
@@ -137,7 +139,7 @@ func (m *Manager) loop() {
 			}
 
 		// handle the task of need replay scheduling while received from remote peer on consensus epoch
-		case needReplayScheduleTask := <- m.needReplayScheduleTaskCh:
+		case needReplayScheduleTask := <-m.needReplayScheduleTaskCh:
 
 			go func() {
 
@@ -187,10 +189,10 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	if nil != err {
 		for _, badMsg := range nonParsedMsgArr {
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to parse local taskMsg"))}
+				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), fmt.Sprintf("failed to parse local taskMsg"))}
 
 			if e := m.storeBadTask(badMsg.Data, events, "failed to parse taskMsg"); nil != e {
-				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.TaskId())
+				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.GetTaskId())
 			}
 		}
 
@@ -204,10 +206,10 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 		for _, badMsg := range nonValidatedMsgArr {
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				badMsg.TaskId(), badMsg.OwnerIdentityId(), fmt.Sprintf("failed to validate local taskMsg"))}
+				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), fmt.Sprintf("failed to validate local taskMsg"))}
 
 			if e := m.storeBadTask(badMsg.Data, events, "failed to validate taskMsg"); nil != e {
-				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.TaskId())
+				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.GetTaskId())
 			}
 		}
 

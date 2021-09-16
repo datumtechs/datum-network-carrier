@@ -9,30 +9,8 @@ import (
 // NewMetadataSaveRequest converts Metadata object to SaveMetadataRequest object.
 func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 	request := &api.SaveMetadataRequest{
-		/*MetaSummary: &libtypes.MetadataSummary{
-			MetadataId: metadata.data.DataId,
-			OriginId:   metadata.data.OriginId,
-			TableName:  metadata.data.TableName,
-			Desc:       metadata.data.Desc,
-			FilePath:   metadata.data.FilePath,
-			Rows:       uint32(metadata.data.Rows),
-			Columns:    uint32(metadata.data.Columns),
-			Size_:      metadata.data.Size_,
-			FileType:   metadata.data.FileType,
-			HasTitle:   metadata.data.HasTitle,
-			State:      metadata.data.State,
-		},
-		ColumnMeta: make([]*libtypes.MetadataColumn, 0),
-		Owner: &apicommonpb.Organization{
-			NodeName:   metadata.data.GetNodeName(),
-			NodeId:     metadata.data.GetNodeId(),
-			IdentityId: metadata.data.GetIdentityId(),
-		},*/
 		Metadata: metadata.MetadataData(),
 	}
-	/*for _, column := range metadata.data.MetadataColumns {
-		request.ColumnMeta = append(request.ColumnMeta, column)
-	}*/
 	return request
 }
 
@@ -50,17 +28,6 @@ func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 
 func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 	request := &api.PublishPowerRequest{
-		/*Owner: &apicommonpb.Organization{
-			NodeName:   resource.data.GetNodeName(),
-			NodeId:     resource.data.GetNodeId(),
-			IdentityId: resource.data.GetIdentityId(),
-		},
-		PowerId: resource.data.DataId,
-		Information: &api.PurePower{
-			Mem:       resource.data.GetTotalMem(),
-			Processor: uint32(resource.data.GetTotalProcessor()),
-			Bandwidth: resource.data.GetTotalBandwidth(),
-		},*/
 		Power: resource.data,
 	}
 	return request
@@ -81,19 +48,6 @@ func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
 func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 	return &api.SyncPowerRequest{
 		Power: resource.GetData(),
-		/*Power: &libtypes.Power{
-			JobNodeId: resource.data.JobNodeId,
-			PowerId:   resource.data.DataId,
-			UsageOverview: &libtypes.ResourceUsageOverview{
-				TotalMem:       resource.data.TotalMem,
-				TotalProcessor: uint32(resource.data.TotalProcessor),
-				TotalBandwidth: resource.data.TotalBandwidth,
-				UsedMem:        resource.data.UsedMem,
-				UsedProcessor:  uint32(resource.data.UsedProcessor),
-				UsedBandwidth:  resource.data.UsedBandwidth,
-			},
-			State: resource.data.State,
-		},*/
 	}
 }
 
@@ -116,62 +70,15 @@ func NewSaveTaskRequest(task *Task) *api.SaveTaskRequest {
 	return request
 }
 
-/*func NewMetadataArrayFromResponse(response *api.ListMetadataSummaryResponse) MetadataArray {
-	var metadataArray MetadataArray
-	for _, v := range response.GetMetadataSummaries() {
-		metadata := NewMetadata(&libtypes.MetadataPB{
-			IdentityId: v.GetOwner().GetIdentityId(),
-			NodeId:     v.GetOwner().GetNodeId(),
-			NodeName:   v.GetOwner().GetNodeName(),
-			DataId:     v.GetInformation().GetMetadataId(),
-			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-			OriginId:   v.GetInformation().GetOriginId(),
-			TableName:  v.GetInformation().GetTableName(),
-			FilePath:   v.GetInformation().GetFilePath(),
-			Desc:       v.GetInformation().GetDesc(),
-			Rows:       v.GetInformation().GetRows(),
-			Columns:    v.GetInformation().GetColumns(),
-			Size_:      uint64(v.GetInformation().GetSize_()),
-			FileType:   v.GetInformation().GetFileType(),
-			State:      v.GetInformation().GetState(),
-			HasTitle:   v.GetInformation().GetHasTitle(),
-			MetadataColumns: make([]*libtypes.MetadataColumn, 0),
-		})
-		metadataArray = append(metadataArray, metadata)
-	}
-	return metadataArray
-}*/
 
 func NewMetadataArrayFromDetailListResponse(response *api.ListMetadataResponse) MetadataArray {
 	var metadataArray MetadataArray
 	for _, v := range response.GetMetadata() {
-		/*data := &libtypes.MetadataPB{
-			IdentityId: v.GetOwner().GetIdentityId(),
-			NodeId:     v.GetOwner().GetNodeId(),
-			NodeName:   v.GetOwner().GetNodeName(),
-			DataId:     v.GetMetaSummary().GetMetadataId(),
-			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-			OriginId:   v.GetMetaSummary().GetOriginId(),
-			TableName:  v.GetMetaSummary().GetTableName(),
-			FilePath:   v.GetMetaSummary().GetFilePath(),
-			Desc:       v.GetMetaSummary().GetDesc(),
-			Rows:       v.GetMetaSummary().GetRows(),
-			Columns:    v.GetMetaSummary().GetColumns(),
-			Size_:      uint64(v.GetMetaSummary().GetSize_()),
-			FileType:   v.GetMetaSummary().GetFileType(),
-			State:      v.GetMetaSummary().GetState(),
-			HasTitle:   v.GetMetaSummary().GetHasTitle(),
-			MetadataColumns: v.GetMetadataColumns(),
-		}*/
 		metadata := NewMetadata(v)
 		metadataArray = append(metadataArray, metadata)
 	}
 	return metadataArray
 }
-
-//func NewResourceArrayFromPowerListResponse(response *api.ListPowerSummaryResponse) ResourceArray {
-//	return nil
-//}
 
 func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
@@ -218,27 +125,6 @@ func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 func NewTaskArrayFromResponse(response *api.ListTaskResponse) TaskDataArray {
 	taskArray := make(TaskDataArray, 0, len(response.GetTasks()))
 	for _, v := range response.GetTasks() {
-		/*task := NewTask(&libtypes.TaskPB{
-			// TODO: 任务的所有者标识明确
-			IdentityId:    v.GetSender().GetIdentityId(),
-			NodeId:        v.GetSender().GetNodeId(),
-			NodeName:      v.GetSender().GetNodeName(),
-			DataId:        v.GetTaskId(),
-			DataStatus:    apicommonpb.DataStatus_DataStatus_Normal,
-			TaskId:        v.GetTaskId(),
-			TaskName:      v.GetTaskName(),
-			State:         v.GetState(),
-			Desc:          v.GetDesc(),
-			CreateAt:      v.GetCreateAt(),
-			StartAt:       v.GetStartAt(),
-			EndAt:         v.GetEndAt(),
-			AlgoSupplier:  v.GetAlgoSupplier(),
-			OperationCost: v.GetOperationCost(),
-			DataSuppliers: v.GetDataSuppliers(),
-			PowerSuppliers: v.GetPowerSuppliers(),
-			Receivers:     v.GetReceivers(),
-			TaskEvents: nil,
-		})*/
 		taskArray = append(taskArray, NewTask(v))
 	}
 	return taskArray
@@ -248,28 +134,6 @@ func NewMetadataFromResponse(response *api.FindMetadataByIdResponse) *Metadata {
 	if response == nil {
 		return nil
 	}
-	/*metadataSummary := response.GetMetadata().GetMetaSummary()
-	if metadataSummary == nil {
-		return nil
-	}*/
-	/*metadata := &libtypes.MetadataPB{
-		IdentityId: response.GetMetadata().GetOwner().GetIdentityId(),
-		NodeId:     response.GetMetadata().GetOwner().GetNodeId(),
-		NodeName:   response.GetMetadata().GetOwner().GetNodeName(),
-		DataId:     metadataSummary.GetMetadataId(),
-		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-		OriginId:   metadataSummary.GetOriginId(),
-		TableName:  metadataSummary.GetTableName(),
-		FilePath:   metadataSummary.GetFilePath(),
-		Desc:       metadataSummary.GetDesc(),
-		Rows:       metadataSummary.GetRows(),
-		Columns:    metadataSummary.GetColumns(),
-		Size_:      uint64(metadataSummary.GetSize_()),
-		FileType:   metadataSummary.GetFileType(),
-		State:      metadataSummary.GetState(),
-		HasTitle:   metadataSummary.GetHasTitle(),
-		MetadataColumns: response.GetMetadata().GetMetadataColumns(),
-	}*/
 	return NewMetadata(response.Metadata)
 }
 
@@ -287,7 +151,6 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		}))
 	}
-	// todo: need more fields
 	return result
 }
 

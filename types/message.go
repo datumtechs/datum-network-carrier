@@ -659,7 +659,10 @@ func (msg *TaskMsg) String() string {
 		msg.Data.GetTaskId(), "["+strings.Join(msg.PowerPartyIds, ",")+"]", msg.Data.GetTaskData().String())
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
-func (msg *TaskMsg) Owner() *apicommonpb.TaskOrganization {
+
+func (msg *TaskMsg) GetUserType() apicommonpb.UserType { return msg.Data.GetTaskData().GetUserType() }
+func (msg *TaskMsg) GetUser() string { return msg.Data.GetTaskData().GetUser() }
+func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {
 	return &apicommonpb.TaskOrganization{
 		PartyId:    msg.Data.GetTaskData().GetPartyId(),
 		NodeName:   msg.Data.GetTaskData().GetNodeName(),
@@ -667,14 +670,21 @@ func (msg *TaskMsg) Owner() *apicommonpb.TaskOrganization {
 		IdentityId: msg.Data.GetTaskData().GetIdentityId(),
 	}
 }
-func (msg *TaskMsg) OwnerName() string       { return msg.Data.GetTaskData().GetNodeName() }
-func (msg *TaskMsg) OwnerNodeId() string     { return msg.Data.GetTaskData().GetNodeId() }
-func (msg *TaskMsg) OwnerIdentityId() string { return msg.Data.GetTaskData().GetIdentityId() }
-func (msg *TaskMsg) OwnerPartyId() string    { return msg.Data.GetTaskData().GetPartyId() }
-func (msg *TaskMsg) TaskId() string          { return msg.Data.GetTaskData().GetTaskId() }
-func (msg *TaskMsg) TaskName() string        { return msg.Data.GetTaskData().GetTaskName() }
-
-func (msg *TaskMsg) TaskMetadataSuppliers() []*apicommonpb.TaskOrganization {
+func (msg *TaskMsg) GetSenderName() string      { return msg.Data.GetTaskData().GetNodeName() }
+func (msg *TaskMsg) GetSenderNodeId() string     { return msg.Data.GetTaskData().GetNodeId() }
+func (msg *TaskMsg) GetSenderIdentityId() string { return msg.Data.GetTaskData().GetIdentityId() }
+func (msg *TaskMsg) GetSenderPartyId() string    { return msg.Data.GetTaskData().GetPartyId() }
+func (msg *TaskMsg) GetTaskId() string           { return msg.Data.GetTaskData().GetTaskId() }
+func (msg *TaskMsg) GetTaskName() string { return msg.Data.GetTaskData().GetTaskName() }
+func (msg *TaskMsg) GetAlgoSupplier() *apicommonpb.TaskOrganization {
+	return &apicommonpb.TaskOrganization{
+		PartyId:    msg.Data.GetTaskData().GetAlgoSupplier().GetPartyId(),
+		NodeName:   msg.Data.GetTaskData().GetAlgoSupplier().GetNodeName(),
+		NodeId:     msg.Data.GetTaskData().GetAlgoSupplier().GetNodeId(),
+		IdentityId: msg.Data.GetTaskData().GetAlgoSupplier().GetIdentityId(),
+	}
+}
+func (msg *TaskMsg) GetTaskMetadataSuppliers() []*apicommonpb.TaskOrganization {
 
 	partners := make([]*apicommonpb.TaskOrganization, len(msg.Data.GetTaskData().GetDataSuppliers()))
 	for i, v := range msg.Data.GetTaskData().GetDataSuppliers() {
@@ -688,12 +698,12 @@ func (msg *TaskMsg) TaskMetadataSuppliers() []*apicommonpb.TaskOrganization {
 	}
 	return partners
 }
-func (msg *TaskMsg) TaskMetadataSupplierDatas() []*libtypes.TaskDataSupplier {
+func (msg *TaskMsg) GetTaskMetadataSupplierDatas() []*libtypes.TaskDataSupplier {
 
 	return msg.Data.GetTaskData().GetDataSuppliers()
 }
 
-func (msg *TaskMsg) TaskResourceSuppliers() []*apicommonpb.TaskOrganization {
+func (msg *TaskMsg) GetTaskResourceSuppliers() []*apicommonpb.TaskOrganization {
 	powers := make([]*apicommonpb.TaskOrganization, len(msg.Data.GetTaskData().GetPowerSuppliers()))
 	for i, v := range msg.Data.GetTaskData().GetPowerSuppliers() {
 		powers[i] = &apicommonpb.TaskOrganization{
@@ -705,7 +715,7 @@ func (msg *TaskMsg) TaskResourceSuppliers() []*apicommonpb.TaskOrganization {
 	}
 	return powers
 }
-func (msg *TaskMsg) TaskResourceSupplierDatas() []*libtypes.TaskPowerSupplier {
+func (msg *TaskMsg) GetTaskResourceSupplierDatas() []*libtypes.TaskPowerSupplier {
 	return msg.Data.GetTaskData().GetPowerSuppliers()
 }
 func (msg *TaskMsg) GetPowerPartyIds() []string { return msg.PowerPartyIds }
@@ -713,19 +723,19 @@ func (msg *TaskMsg) GetReceivers() []*apicommonpb.TaskOrganization {
 	return msg.Data.GetTaskData().GetReceivers()
 }
 
-func (msg *TaskMsg) CalculateContractCode() string {
+func (msg *TaskMsg) GetCalculateContractCode() string {
 	return msg.Data.GetTaskData().GetCalculateContractCode()
 }
-func (msg *TaskMsg) DataSplitContractCode() string {
+func (msg *TaskMsg) GetDataSplitContractCode() string {
 	return msg.Data.GetTaskData().GetDataSplitContractCode()
 }
-func (msg *TaskMsg) ContractExtraParams() string {
+func (msg *TaskMsg) GetContractExtraParams() string {
 	return msg.Data.GetTaskData().GetContractExtraParams()
 }
-func (msg *TaskMsg) OperationCost() *apicommonpb.TaskResourceCostDeclare {
+func (msg *TaskMsg) GetOperationCost() *apicommonpb.TaskResourceCostDeclare {
 	return msg.Data.GetTaskData().GetOperationCost()
 }
-func (msg *TaskMsg) CreateAt() uint64 { return msg.Data.GetTaskData().GetCreateAt() }
+func (msg *TaskMsg) GetCreateAt() uint64 { return msg.Data.GetTaskData().GetCreateAt() }
 func (msg *TaskMsg) GenTaskId() string {
 	if "" != msg.Data.GetTaskId() {
 		return msg.Data.GetTaskId()

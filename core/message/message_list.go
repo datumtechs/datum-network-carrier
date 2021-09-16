@@ -163,8 +163,8 @@ func newTaskMsgList() *TaskMsgList {
 }
 
 func (lis *TaskMsgList) put(msg *types.TaskMsg) {
-	heap.Push(lis.prioty, msg.CreateAt())
-	lis.items[msg.CreateAt()] = msg
+	heap.Push(lis.prioty, msg.GetCreateAt())
+	lis.items[msg.GetCreateAt()] = msg
 }
 
 func (lis *TaskMsgList) get(createAt uint64) *types.TaskMsg {

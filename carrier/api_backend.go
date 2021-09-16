@@ -673,7 +673,7 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 }
 
 
-// for authority
+// for metadataAuthority
 
 func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error) {
 	return s.carrier.authEngine.AuditMetadataAuthority(audit)
@@ -687,6 +687,9 @@ func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser (userType apicommonpb
 	return s.carrier.authEngine.GetMetadataAuthorityListByUser(userType, user)
 }
 
+func (s *CarrierAPIBackend) HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string)  (bool, error) {
+	return s.carrier.authEngine.HasValidLastMetadataAuth(userType, user, metadataId)
+}
 
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, error) {

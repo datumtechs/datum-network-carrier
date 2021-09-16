@@ -389,16 +389,36 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 		for _, dataSupplier := range task.GetTask().GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetOrganization().GetPartyId() {
 
-				metaData, err := m.resourceMng.GetDB().GetMetadataByDataId(dataSupplier.GetMetadataId())
+				userType := task.GetTask().GetTaskData().GetUserType()
+				user := task.GetTask().GetTaskData().GetUser()
+				metadataId := dataSupplier.GetMetadataId()
+
+				// verify metadataAuth first
+				if !m.authMng.VerifyMetadataAuth(userType, user, metadataId) {
+					return "", fmt.Errorf("verify user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
+						userType, user, metadataId)
+				}
+
+				metadata, err := m.resourceMng.GetDB().GetMetadataByDataId(metadataId)
 				if nil != err {
 					return "", err
 				}
-				filePath = metaData.MetadataData().GetFilePath()
+				filePath = metadata.MetadataData().GetFilePath()
 
 				keyColumn = dataSupplier.GetKeyColumn().GetCName()
 				selectedColumns = make([]string, len(dataSupplier.GetSelectedColumns()))
 				for i, col := range dataSupplier.GetSelectedColumns() {
 					selectedColumns[i] = col.GetCName()
+				}
+
+				// query metadataAuthId by metadataId
+				metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
+				if nil != err {
+					return "", err
+				}
+				// ConsumeMetadataAuthority
+				if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
+					return "", err
 				}
 
 				find = true
@@ -412,7 +432,6 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 		}
 	}
 
-	// 目前 默认只会用一列, 后面再拓展 ..
 	req := &types.FighterTaskReadyGoReqContractCfg{
 		PartyId: partyId,
 		DataParty: struct {

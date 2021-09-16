@@ -101,16 +101,6 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 		return nil, ErrSendPowerRevokeMsg
 	}
 
-	//if identity.IdentityId() != req.Owner.IdentityId {
-	//	return nil, errors.New("invalid identityId of req")
-	//}
-	//if identity.NodeId() != req.Owner.NodeId {
-	//	return nil, errors.New("invalid nodeId of req")
-	//}
-	//if identity.Name() != req.Owner.Name {
-	//	return nil, errors.New("invalid nodeName of req")
-	//}
-
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 
 	err = svr.B.SendMsg(powerRevokeMsg)

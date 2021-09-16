@@ -130,10 +130,23 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		return nil, errors.New("required user sign")
 	}
 
+	has, err := svr.B.HasValidUserMetadataAuth(req.GetUserType(), req.GetUser(), req.GetAuth().GetMetadataId())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query valid user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
+			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
+		return nil, ErrSendMetadataAuthMsg
+	}
+
+	if has {
+		log.Errorf("RPC-API:ApplyMetadataAuthority failed, has valid metadata, userType: {%s}, user: {%s}, metadataId: {%s}",
+			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
+		return nil, ErrValidMetadataAuthMustCannotExist
+	}
+
 	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
 	metadataAuthId := metadataAuthorityMsg.GetMetadataAuthId()
 
-	err := svr.B.SendMsg(metadataAuthorityMsg)
+	err = svr.B.SendMsg(metadataAuthorityMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed")
 		return nil, ErrSendMetadataAuthMsg

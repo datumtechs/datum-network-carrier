@@ -67,8 +67,8 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
-	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)
+	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng, authManager)
 	twopcEngine := twopc.New(
 		&twopc.Config{
 			Option: &twopc.OptionConfig{
@@ -78,11 +78,10 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 			PeerMsgQueueSize: 1024,
 		},
 		resourceMng,
-		/*authManager,*/
+		//authManager,
 		config.P2P,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
-		//needSendTaskResultMsgCh,
 	)
 	taskManager := task.NewTaskManager(
 		config.P2P,
@@ -90,6 +89,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 		twopcEngine,
 		eventEngine,
 		resourceMng,
+		authManager,
 		resourceClientSet,
 		localTaskMsgCh,
 		needReplayScheduleTaskCh,
