@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-func TestValidateTwopc_ValidPrepareVote(t *testing.T) {
+func TestValidateTwopc_ValidPrepareMessage(t *testing.T) {
 	p := p2ptest.NewTestP2P(t)
 	ctx := context.Background()
 	c, err := lru.New(10)
@@ -26,11 +26,11 @@ func TestValidateTwopc_ValidPrepareVote(t *testing.T) {
 			P2P:         p,
 			InitialSync: &p2ptest.Sync{IsSyncing: false},
 		},
-		seenPrepareVoteCache: c,
+		seenPrepareMsgCache: c,
 	}
 
 	buf := new(bytes.Buffer)
-	_, err = p.Encoding().EncodeGossip(buf, &twopc.PrepareVote{
+	_, err = p.Encoding().EncodeGossip(buf, &twopc.PrepareMsg{
 		MsgOption: &common.MsgOption{
 			ProposalId:      []byte("proposalId"),
 			SenderRole:      0,
@@ -44,14 +44,14 @@ func TestValidateTwopc_ValidPrepareVote(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	topic := p2p.GossipTypeMapping[reflect.TypeOf(&twopc.PrepareVote{})]
+	topic := p2p.GossipTypeMapping[reflect.TypeOf(&twopc.PrepareMsg{})]
 	msg := &pubsub.Message{
 		Message: &pubsubpb.Message{
 			Data:  buf.Bytes(),
 			Topic: &topic,
 		},
 	}
-	valid := r.validatePrepareVotePubSub(ctx, "foobar", msg) == pubsub.ValidationIgnore
+	valid := r.validatePrepareMessagePubSub(ctx, "foobar", msg) == pubsub.ValidationIgnore
 	//todo: Need to add validation against consensus modules at a later stage.
 	assert.Equal(t, true, valid, "Failed Validation")
 	//require.NotNil(t, msg.ValidatorData, "Decoded message was not set on the message validator data")
