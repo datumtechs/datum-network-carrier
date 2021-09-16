@@ -1,6 +1,8 @@
 package rawdb
 
 import (
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	leveldberr "github.com/syndtr/goleveldb/leveldb/errors"
@@ -1270,4 +1272,83 @@ func HasLocalTaskExecute(db DatabaseReader, taskId string) (bool, error) {
 	return true, nil
 }
 
-//
+
+func StoreUserMetadataAauthId(db KeyValueStore, userType apicommonpb.UserType, user, metadataAuthId string) error {
+	count_key := GetUserMetadataAuthUsedTotalKey(userType, user)
+	val, err := db.Get(count_key)
+
+	var total uint32
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case nil == err && len(val) != 0:
+		total = bytesutil.BytesToUint32(val)
+	}
+
+	total++
+
+	if err := db.Put(count_key, bytesutil.Uint32ToBytes(total)); nil != err {
+		return err
+	}
+
+	item_key := GetUserMetadataAuthUsedKey(userType, user, total)
+
+	item, err := rlp.EncodeToBytes(metadataAuthId)
+	if nil != err {
+		return err
+	}
+	return db.Put(item_key, item)
+}
+
+func QueryUserLastMetadataAuthId (db DatabaseReader, userType apicommonpb.UserType, user string) (string, error) {
+	count_key := GetUserMetadataAuthUsedTotalKey(userType, user)
+	val, err := db.Get(count_key)
+
+	var total uint32
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return "", err
+	case nil == err && len(val) != 0:
+		total = bytesutil.BytesToUint32(val)
+	}
+
+	if total == 0 {
+		return "", ErrNotFound
+	}
+
+	item_key := GetUserMetadataAuthUsedKey(userType, user, total)
+
+	var metadataAuthId string
+	item_val, err := db.Get(item_key)
+	if nil != err {
+		return "", err
+	}
+
+	if err = rlp.DecodeBytes(item_val, &metadataAuthId); nil != err {
+		return "", err
+	}
+	if "" == metadataAuthId {
+		return "", ErrNotFound
+	}
+
+	return metadataAuthId, nil
+}
+
+func QueryUserMetadataAuthIdByIndex (db DatabaseReader, userType apicommonpb.UserType, user string, index uint32) (string, error) {
+	item_key := GetUserMetadataAuthUsedKey(userType, user, index)
+
+	var metadataAuthId string
+	item_val, err := db.Get(item_key)
+	if nil != err {
+		return "", err
+	}
+
+	if err = rlp.DecodeBytes(item_val, &metadataAuthId); nil != err {
+		return "", err
+	}
+	if "" == metadataAuthId {
+		return "", ErrNotFound
+	}
+
+	return metadataAuthId, nil
+}

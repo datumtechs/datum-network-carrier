@@ -1,37 +1,48 @@
 package rawdb
 
+import (
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+)
 
 var (
-	// jobNodeId -> LocalResourceTable
-	nodeResourceKeyPrefix           = []byte("NodeResourceKey:")
+	// prefix + jobNodeId -> LocalResourceTable
+	nodeResourceKeyPrefix           = []byte("NodeResourceKeyPrefix:")
 	// key -> [jobNodeId, jobNodeId, ..., jobNodeId]
 	nodeResourceIdListKey           = []byte("nodeResourceIdListKey")
-	// identityId -> RemoteResourceTable
-	orgResourceKeyPrefix            = []byte("OrgResourceKey:")
+	// prefix + identityId -> RemoteResourceTable
+	orgResourceKeyPrefix            = []byte("OrgResourceKeyPrefix:")
 	// key -> [identityId, identityId, ..., identityId]
 	orgResourceIdListKey            = []byte("OrgResourceIdListKey")
 	// key -> SlotUnit
 	nodeResourceSlotUnitKey         = []byte("nodeResourceSlotUnitKey")
-	// taskId -> LocalTaskPowerUsed
-	localTaskPowerUsedKeyPrefix     = []byte("localTaskPowerUsedKey:")
+	// prefix + taskId -> LocalTaskPowerUsed
+	localTaskPowerUsedKeyPrefix     = []byte("localTaskPowerUsedKeyPrefix:")
 	// key -> [taskId, taskId, ..., taskId]
 	localTaskPowerUsedIdListKey     = []byte("localTaskPowerUsedIdListKey")
-	// dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
-	dataResourceTableKeyPrefix      = []byte("dataResourceTableKey:")
+	// prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
+	dataResourceTableKeyPrefix      = []byte("dataResourceTableKeyPrefix:")
 	// key -> [dataNodeId, dataNodeId, ..., dataNodeId]
 	dataResourceTableIdListKey      = []byte("dataResourceTableIdListKey")
-	// originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
-	dataResourceFileUploadKeyPrefix = []byte("dataResourceDataUsedKey:")
+	// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
+	dataResourceFileUploadKeyPrefix = []byte("dataResourceDataUsedKeyPrefix:")
 	// key -> [originId, originId, ..., originId]
 	dataResourceFileUploadIdListKey = []byte("dataResourceFileUploadIdListKey")
-	// jonNodeId -> [taskId, taskId, ..., taskId]
+	// prefix + jonNodeId -> [taskId, taskId, ..., taskId]
 	resourceTaskIdsKeyPrefix = []byte("resourceTaskIdsKeyPrefix:")
-	// powerId -> jobNodeId
+	// prefix + powerId -> jobNodeId
 	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
-	// metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
+	// prefix + metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
-	// taskId -> executeStatus
-	localTaskExecuteStatusPrefix = []byte("localTaskExecuteStatus")
+	// prefix + taskId -> executeStatus
+	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
+
+	// prefix + userType + user -> n
+	userMetadataAuthUsedTotalKey = []byte("userMetadataAuthUsedTotalKey")
+	// prefix + userType + user + n -> metadataId
+	userMetadataAuthUsedKeyPrefix = []byte("userMetadataAuthUsedKeyPrefix:")
+
+
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -90,5 +101,29 @@ func GetDataResourceDiskUsedKey(metaDataId string) []byte {
 }
 
 func GetLocalTaskExecuteStatus(taskId string) []byte {
-	return append(localTaskExecuteStatusPrefix, []byte(taskId)...)
+	return append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...)
+}
+
+func GetUserMetadataAuthUsedTotalKey(userType apicommonpb.UserType, user string) []byte {
+	return append(append(userMetadataAuthUsedTotalKey, []byte(userType.String())...), []byte(user)...)
+}
+
+func GetUserMetadataAuthUsedKey(userType apicommonpb.UserType, user string, n uint32) []byte {
+
+	userTypeBytes := []byte(userType.String())
+	userBytes := []byte(user)
+	nBytes := bytesutil.Uint32ToBytes(n)
+
+	prefixLen := len(localTaskExecuteStatusKeyPrefix)
+	userTypeLen := len(userTypeBytes)
+	userLen := len(userBytes)
+	nLen := len(nBytes)
+
+	key := make([]byte, prefixLen+userTypeLen+userLen+nLen)
+	copy(key[:prefixLen], localTaskExecuteStatusKeyPrefix)
+	copy(key[prefixLen:userTypeLen], userTypeBytes)
+	copy(key[userTypeLen:userLen], userBytes)
+	copy(key[userLen:nLen], nBytes)
+
+	return key
 }
