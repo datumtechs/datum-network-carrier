@@ -23,7 +23,7 @@ func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 			State:      metadata.data.State,
 		},
 		ColumnMeta: make([]*libtypes.MetadataColumn, 0),
-		Owner: &apicommonpb.Organization{
+		GetSender: &apicommonpb.Organization{
 			NodeName:   metadata.data.GetNodeName(),
 			NodeId:     metadata.data.GetNodeId(),
 			IdentityId: metadata.data.GetIdentityId(),
@@ -50,7 +50,7 @@ func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 
 func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 	request := &api.PublishPowerRequest{
-		/*Owner: &apicommonpb.Organization{
+		/*GetSender: &apicommonpb.Organization{
 			NodeName:   resource.data.GetNodeName(),
 			NodeId:     resource.data.GetNodeId(),
 			IdentityId: resource.data.GetIdentityId(),
@@ -225,11 +225,11 @@ func NewTaskArrayFromResponse(response *api.ListTaskResponse) TaskDataArray {
 			NodeName:      v.GetSender().GetNodeName(),
 			DataId:        v.GetTaskId(),
 			DataStatus:    apicommonpb.DataStatus_DataStatus_Normal,
-			TaskId:        v.GetTaskId(),
-			TaskName:      v.GetTaskName(),
+			GetTaskId:        v.GetTaskId(),
+			GetTaskName:      v.GetTaskName(),
 			State:         v.GetState(),
 			Desc:          v.GetDesc(),
-			CreateAt:      v.GetCreateAt(),
+			GetCreateAt:      v.GetCreateAt(),
 			StartAt:       v.GetStartAt(),
 			EndAt:         v.GetEndAt(),
 			AlgoSupplier:  v.GetAlgoSupplier(),

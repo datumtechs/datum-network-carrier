@@ -8,13 +8,13 @@ import (
 //	Type     string     `json:"type"`
 //	GetCreateAt uint64     `json:"createAt"`
 //	Content  string     `json:"content"`
-//	Owner    *NodeAlias `json:"owner"`
+//	GetSender    *NodeAlias `json:"owner"`
 //}
 //func ConvertTaskEventToPB (event *TaskEvent) *pb.TaskEventShow {
 //	return &pb.TaskEventShow{
 //		Type:     event.Type,
 //		GetTaskId:   event.GetTaskId,
-//		Owner:    ConvertNodeAliasToPB(event.Owner),
+//		GetSender:    ConvertNodeAliasToPB(event.GetSender),
 //		Content:  event.Content,
 //		GetCreateAt: event.GetCreateAt,
 //	}
@@ -24,7 +24,7 @@ import (
 //	return &TaskEvent{
 //		Type:     event.Type,
 //		GetTaskId:   event.GetTaskId,
-//		Owner:    ConvertNodeAliasFromPB(event.Owner),
+//		GetSender:    ConvertNodeAliasFromPB(event.GetSender),
 //		Content:  event.Content,
 //		GetCreateAt: event.GetCreateAt,
 //	}
@@ -38,7 +38,7 @@ import (
 //		e := &pb.TaskEventShow{
 //			Type:     event.Type,
 //			GetTaskId:   event.GetTaskId,
-//			Owner:    ConvertNodeAliasToPB(event.Owner),
+//			GetSender:    ConvertNodeAliasToPB(event.GetSender),
 //			Content:  event.Content,
 //			GetCreateAt: event.GetCreateAt,
 //		}
@@ -54,7 +54,7 @@ import (
 //		e := &TaskEvent{
 //			Type:     event.Type,
 //			GetTaskId:   event.GetTaskId,
-//			Owner:    ConvertNodeAliasFromPB(event.Owner),
+//			GetSender:    ConvertNodeAliasFromPB(event.GetSender),
 //			Content:  event.Content,
 //			GetCreateAt: event.GetCreateAt,
 //		}

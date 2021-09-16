@@ -1273,25 +1273,25 @@ func HasLocalTaskExecute(db DatabaseReader, taskId string) (bool, error) {
 }
 
 
-func StoreUserMetadataAauthId(db KeyValueStore, userType apicommonpb.UserType, user, metadataAuthId string) error {
-	count_key := GetUserMetadataAuthUsedTotalKey(userType, user)
+func StoreUserMetadataAauthUsed (db KeyValueStore, userType apicommonpb.UserType, user, metadataAuthId string) error {
+	count_key := GetUserMetadataAuthUsedCountKey(userType, user)
 	val, err := db.Get(count_key)
 
-	var total uint32
+	var count uint32
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return err
 	case nil == err && len(val) != 0:
-		total = bytesutil.BytesToUint32(val)
+		count = bytesutil.BytesToUint32(val)
 	}
 
-	total++
+	count++
 
-	if err := db.Put(count_key, bytesutil.Uint32ToBytes(total)); nil != err {
+	if err := db.Put(count_key, bytesutil.Uint32ToBytes(count)); nil != err {
 		return err
 	}
 
-	item_key := GetUserMetadataAuthUsedKey(userType, user, total)
+	item_key := GetUserMetadataAuthUsedKey(userType, user, count)
 
 	item, err := rlp.EncodeToBytes(metadataAuthId)
 	if nil != err {
@@ -1300,41 +1300,20 @@ func StoreUserMetadataAauthId(db KeyValueStore, userType apicommonpb.UserType, u
 	return db.Put(item_key, item)
 }
 
-func QueryUserLastMetadataAuthId (db DatabaseReader, userType apicommonpb.UserType, user string) (string, error) {
-	count_key := GetUserMetadataAuthUsedTotalKey(userType, user)
+func QueryUserMetadataAuthUsedCount (db DatabaseReader, userType apicommonpb.UserType, user string) (uint32, error) {
+	count_key := GetUserMetadataAuthUsedCountKey(userType, user)
 	val, err := db.Get(count_key)
 
-	var total uint32
+	var count uint32
 	switch {
 	case IsNoDBNotFoundErr(err):
-		return "", err
+		return 0, err
 	case nil == err && len(val) != 0:
-		total = bytesutil.BytesToUint32(val)
+		count = bytesutil.BytesToUint32(val)
 	}
-
-	if total == 0 {
-		return "", ErrNotFound
-	}
-
-	item_key := GetUserMetadataAuthUsedKey(userType, user, total)
-
-	var metadataAuthId string
-	item_val, err := db.Get(item_key)
-	if nil != err {
-		return "", err
-	}
-
-	if err = rlp.DecodeBytes(item_val, &metadataAuthId); nil != err {
-		return "", err
-	}
-	if "" == metadataAuthId {
-		return "", ErrNotFound
-	}
-
-	return metadataAuthId, nil
+	return count, nil
 }
-
-func QueryUserMetadataAuthIdByIndex (db DatabaseReader, userType apicommonpb.UserType, user string, index uint32) (string, error) {
+func QueryUserMetadataAuthUsedByIndex (db DatabaseReader, userType apicommonpb.UserType, user string, index uint32) (string, error) {
 	item_key := GetUserMetadataAuthUsedKey(userType, user, index)
 
 	var metadataAuthId string
@@ -1352,3 +1331,87 @@ func QueryUserMetadataAuthIdByIndex (db DatabaseReader, userType apicommonpb.Use
 
 	return metadataAuthId, nil
 }
+
+
+func RemoveUserMetadataAuthUsedCount (db KeyValueStore, userType apicommonpb.UserType, user string) error {
+	count_key := GetUserMetadataAuthUsedCountKey(userType, user)
+
+	has, err := db.Has(count_key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+
+	return db.Delete(count_key)
+}
+
+func RemoveUserMetadataAuthUsedByIndex (db KeyValueStore, userType apicommonpb.UserType, user string, index uint32) error {
+	item_key := GetUserMetadataAuthUsedKey(userType, user, index)
+
+	has, err := db.Has(item_key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+
+	return db.Delete(item_key)
+}
+
+func StoreUserMetadataAuthIdByMetadataId (db DatabaseWriter, userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
+	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+	val, err := rlp.EncodeToBytes(metadataAuthId)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func QueryUserMetadataAuthIdByMetadataId (db DatabaseReader, userType apicommonpb.UserType, user, metadataId string) (string, error) {
+	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+
+	var metadataAuthId string
+	val, err := db.Get(key)
+	if nil != err {
+		return "", err
+	}
+
+	if err = rlp.DecodeBytes(val, &metadataAuthId); nil != err {
+		return "", err
+	}
+	if "" == metadataAuthId {
+		return "", ErrNotFound
+	}
+	return metadataAuthId, nil
+}
+
+func HasUserMetadataAuthIdByMetadataId (db DatabaseReader, userType apicommonpb.UserType, user, metadataId string) (bool, error) {
+	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return false, err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return false, nil
+	}
+	return true, nil
+}
+
+
+func RemoveUserMetadataAuthIdByMetadataId (db KeyValueStore, userType apicommonpb.UserType, user, metadataId string) error {
+	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+

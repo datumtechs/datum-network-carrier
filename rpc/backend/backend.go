@@ -37,7 +37,7 @@ type Backend interface {
 	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error)
 	GetMetadataAuthorityList() (types.MetadataAuthArray, error)
 	GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error)
-
+	HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string)  (bool, error)
 	// power api
 
 	GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error)

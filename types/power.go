@@ -9,13 +9,13 @@ package types
 //}
 //
 //type NodeResourceUsagePowerRes struct {
-//	Owner *NodeAlias              `json:"owner"` // organization identity
+//	GetSender *NodeAlias              `json:"owner"` // organization identity
 //	Usage *NodeResourceUsagePower `json:"usage"`
 //}
 //
 //// Resource usage of all node host machines in a single organization (Decentralized storage)
 //type OrgResourceUsagePower struct {
-//	Owner         *NodeAlias     `json:"owner"` // organization identity
+//	GetSender         *NodeAlias     `json:"owner"` // organization identity
 //	ResourceUsage *ResourceUsage `json:"resourceUsage"`
 //}
 //
@@ -44,8 +44,8 @@ package types
 
 //type PowerTask struct {
 //	GetTaskId         string             `json:"taskId"`
-//	TaskName       string             `json:"taskName"`
-//	Owner          *NodeAlias         `json:"owner"`
+//	GetTaskName       string             `json:"taskName"`
+//	GetSender          *NodeAlias         `json:"owner"`
 //	Patners        []*NodeAlias       `json:"patners"`
 //	Receivers      []*NodeAlias       `json:"receivers"`
 //	OperationCost  *TaskOperationCost `json:"operationCost"`
@@ -56,8 +56,8 @@ package types
 //func ConvertPowerTaskToPB(task *PowerTask) *libTypes.PowerTask {
 //	return &libTypes.PowerTask{
 //		GetTaskId:         task.GetTaskId,
-//		TaskName:       task.TaskName,
-//		Owner:          ConvertNodeAliasToPB(task.Owner),
+//		GetTaskName:       task.GetTaskName,
+//		GetSender:          ConvertNodeAliasToPB(task.GetSender),
 //		Patners:        ConvertNodeAliasArrToPB(task.Patners),
 //		Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 //		OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
@@ -68,8 +68,8 @@ package types
 //func ConvertPowerTaskFromPB(task *libTypes.PowerTask) *PowerTask {
 //	return &PowerTask{
 //		GetTaskId:         task.GetTaskId,
-//		TaskName:       task.TaskName,
-//		Owner:          ConvertNodeAliasFromPB(task.Owner),
+//		GetTaskName:       task.GetTaskName,
+//		GetSender:          ConvertNodeAliasFromPB(task.GetSender),
 //		Patners:        ConvertNodeAliasArrFromPB(task.Patners),
 //		Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 //		OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
@@ -84,8 +84,8 @@ package types
 //	for i, task := range tasks {
 //		t := &libTypes.PowerTask{
 //			GetTaskId:         task.GetTaskId,
-//			TaskName:       task.TaskName,
-//			Owner:          ConvertNodeAliasToPB(task.Owner),
+//			GetTaskName:       task.GetTaskName,
+//			GetSender:          ConvertNodeAliasToPB(task.GetSender),
 //			Patners:        ConvertNodeAliasArrToPB(task.Patners),
 //			Receivers:      ConvertNodeAliasArrToPB(task.Receivers),
 //			OperationCost:  ConvertTaskOperationCostToPB(task.OperationCost),
@@ -101,8 +101,8 @@ package types
 //	for i, task := range tasks {
 //		t := &PowerTask{
 //			GetTaskId:         task.GetTaskId,
-//			TaskName:       task.TaskName,
-//			Owner:          ConvertNodeAliasFromPB(task.Owner),
+//			GetTaskName:       task.GetTaskName,
+//			GetSender:          ConvertNodeAliasFromPB(task.GetSender),
 //			Patners:        ConvertNodeAliasArrFromPB(task.Patners),
 //			Receivers:      ConvertNodeAliasArrFromPB(task.Receivers),
 //			OperationCost:  ConvertTaskOperationCostFromPB(task.OperationCost),
@@ -115,11 +115,11 @@ package types
 //}
 
 //type OrgPowerDetail struct {
-//	Owner       *NodeAlias        `json:"owner"`
+//	GetSender       *NodeAlias        `json:"owner"`
 //	PowerDetail *PowerTotalDetail `json:"powerDetail"`
 //}
 
 //type NodePowerDetail struct {
-//	Owner       *NodeAlias         `json:"owner"`
+//	GetSender       *NodeAlias         `json:"owner"`
 //	PowerDetail *PowerSingleDetail `json:"powerDetail"`
 //}

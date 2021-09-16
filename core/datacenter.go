@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -321,6 +322,99 @@ func (dc *DataCenter) HasLocalTaskExecute(taskId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.HasLocalTaskExecute(dc.db, taskId)
+}
+
+func (dc *DataCenter) StoreUserMetadataAuthUsed (userType apicommonpb.UserType, user, metadataAuthId string)  error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.StoreUserMetadataAauthUsed(dc.db, userType, user, metadataAuthId)
+}
+
+
+func (dc *DataCenter) QueryUserMetadataAuthUsedCount (userType apicommonpb.UserType, user string) (uint32, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryUserMetadataAuthUsedCount(dc.db, userType, user)
+}
+
+func (dc *DataCenter) QueryUserMetadataAuthUseds (userType apicommonpb.UserType, user string) ([]string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+
+	count, err := rawdb.QueryUserMetadataAuthUsedCount(dc.db, userType, user)
+	if nil != err {
+		return nil, err
+	}
+
+	if 0 == count {
+		return nil, rawdb.ErrNotFound
+	}
+
+	metadataAuthIds := make([]string, 0)
+
+	for index := 1; index <= int(count); index++ {
+
+		metadataAuthId, err := rawdb.QueryUserMetadataAuthUsedByIndex(dc.db, userType, user, uint32(index))
+		switch {
+		case rawdb.IsNoDBNotFoundErr(err):
+			return nil, err
+		case rawdb.IsDBNotFoundErr(err):
+			continue
+		}
+		metadataAuthIds = append(metadataAuthIds, metadataAuthId)
+	}
+	if len(metadataAuthIds) == 0 {
+		return nil, rawdb.ErrNotFound
+	}
+	return metadataAuthIds, nil
+}
+
+func (dc *DataCenter) RemoveAllUserMetadataAuthUsed (userType apicommonpb.UserType, user string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+
+	count, err := rawdb.QueryUserMetadataAuthUsedCount(dc.db, userType, user)
+	switch {
+	case rawdb.IsNoDBNotFoundErr(err):
+		return err
+	case rawdb.IsDBNotFoundErr(err) || 0 == count:
+		return nil
+	}
+
+	for index := 1; index <= int(count); index++ {
+		err := rawdb.RemoveUserMetadataAuthUsedByIndex(dc.db, userType, user, uint32(index))
+		switch {
+		case rawdb.IsNoDBNotFoundErr(err):
+			return err
+		case rawdb.IsDBNotFoundErr(err):
+			continue
+		}
+	}
+	return rawdb.RemoveUserMetadataAuthUsedCount(dc.db, userType, user)
+}
+
+func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.StoreUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
+}
+
+func (dc *DataCenter) QueryUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
+}
+
+func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
+}
+
+func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
 func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {

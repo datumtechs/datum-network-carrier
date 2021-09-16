@@ -16,7 +16,10 @@ package twopc
 //
 //// With subscriber
 //func (t *Twopc) validatePrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {
-//	//proposalId := common.BytesToHash(prepareMsg.ProposalId)
+//	//msg, err := fetchPrepareMsg(prepareMsg)
+//	//if nil != err {
+//	//	return err
+//	//}
 //	//if t.state.HasProposal(proposalId) {
 //	//	return ctypes.ErrProposalAlreadyProcessed
 //	//}
@@ -38,13 +41,13 @@ package twopc
 //	//}
 //	//
 //	//// Verify the signature
-//	//_, err := t.verifyMsgSigned(prepareMsg.TaskOption.Owner.NodeId, prepareMsg.SealHash().Bytes(), prepareMsg.Signature())
+//	//_, err := t.verifyMsgSigned(prepareMsg.TaskOption.GetSender.NodeId, prepareMsg.SealHash().Bytes(), prepareMsg.Signature())
 //	//if err != nil {
 //	//	return err
 //	//}
 //	//
 //	//// validate the owner
-//	//if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.Owner); nil != err {
+//	//if err := t.validateOrganizationIdentity(prepareMsg.TaskOption.GetSender); nil != err {
 //	//	log.Error("Failed to validate prepareMsg, the owner organization identity is invalid", "err", err)
 //	//	return err
 //	//}
@@ -151,13 +154,13 @@ package twopc
 //	}
 //
 //	// Verify the signature
-//	_, err := t.verifyMsgSigned(vote.MsgOption.Owner.GetNodeId(), prepareVote.SealHash().Bytes(), prepareVote.Signature())
+//	_, err := t.verifyMsgSigned(vote.MsgOption.GetSender.GetNodeId(), prepareVote.SealHash().Bytes(), prepareVote.Signature())
 //	if err != nil {
 //		return err
 //	}
 //
 //	// validate the owner
-//	if err := t.validateOrganizationIdentity(vote.MsgOption.Owner); nil != err {
+//	if err := t.validateOrganizationIdentity(vote.MsgOption.GetSender); nil != err {
 //		log.Error("Failed to validate prepareVote, the owner organization identity is invalid", "err", err)
 //		return err
 //	}
@@ -210,13 +213,13 @@ package twopc
 //	}
 //
 //	// Verify the signature
-//	_, err := t.verifyMsgSigned(confirmMsg.Owner.NodeId, confirmMsg.SealHash().Bytes(), confirmMsg.Signature())
+//	_, err := t.verifyMsgSigned(confirmMsg.GetSender.NodeId, confirmMsg.SealHash().Bytes(), confirmMsg.Signature())
 //	if err != nil {
 //		return err
 //	}
 //
 //	// validate the owner
-//	if err := t.validateOrganizationIdentity(confirmMsg.Owner); nil != err {
+//	if err := t.validateOrganizationIdentity(confirmMsg.GetSender); nil != err {
 //		log.Error("Failed to validate confirmMsg, the owner organization identity is invalid", "err", err)
 //		return err
 //	}
@@ -254,13 +257,13 @@ package twopc
 //	}
 //
 //	// Verify the signature
-//	_, err := t.verifyMsgSigned(confirmVote.Owner.NodeId, confirmVote.SealHash().Bytes(), confirmVote.Signature())
+//	_, err := t.verifyMsgSigned(confirmVote.GetSender.NodeId, confirmVote.SealHash().Bytes(), confirmVote.Signature())
 //	if err != nil {
 //		return err
 //	}
 //
 //	// validate the owner
-//	if err := t.validateOrganizationIdentity(confirmVote.Owner); nil != err {
+//	if err := t.validateOrganizationIdentity(confirmVote.GetSender); nil != err {
 //		log.Error("Failed to validate confirmVote, the owner organization identity is invalid", "err", err)
 //		return err
 //	}
@@ -300,13 +303,13 @@ package twopc
 //	}
 //
 //	// Verify the signature
-//	_, err := t.verifyMsgSigned(commitMsg.Owner.NodeId, commitMsg.SealHash().Bytes(), commitMsg.Signature())
+//	_, err := t.verifyMsgSigned(commitMsg.GetSender.NodeId, commitMsg.SealHash().Bytes(), commitMsg.Signature())
 //	if err != nil {
 //		return err
 //	}
 //
 //	// validate the owner
-//	if err := t.validateOrganizationIdentity(commitMsg.Owner); nil != err {
+//	if err := t.validateOrganizationIdentity(commitMsg.GetSender); nil != err {
 //		log.Error("Failed to validate commitMsg, the owner organization identity is invalid", "err", err)
 //		return err
 //	}

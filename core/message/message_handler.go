@@ -619,8 +619,23 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 	errs := make([]string, 0)
 	for _, msg := range metadataAuthMsgArr {
 
+		err := m.authManager.StoreUserMetadataAuthIdByMetadataId(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId(), msg.GetMetadataAuthId())
+		if nil != err {
+			log.Errorf("Failed to store metadataId and metadataAuthId mapping on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err)
+			errs = append(errs, fmt.Sprintf("failed to store metadataId and metadataAuthId mappin on MessageHandler with broadcast,  metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err))
+			continue
+		}
 
-		// TODO 添加  user  和 metadataId 的 关联关系， 用来消除 重复申请
+		err = m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GenMetadataAuthId())
+		if nil != err {
+			log.Errorf("Failed to store metadataAuthId on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err)
+			errs = append(errs, fmt.Sprintf("failed to store metadataAuthId on MessageHandler with broadcast,  metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err))
+			continue
+		}
 
 		// Store metadataAuthority
 		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
@@ -689,6 +704,15 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
 			errs = append(errs, fmt.Sprintf("the metadataAuth has audit on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, audit: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String()))
+			continue
+		}
+
+		err = m.authManager.RemoveUserMetadataAuthIdByMetadataId(revoke.GetUserType(), revoke.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId())
+		if nil != err {
+			log.Errorf("Failed to remove metadataAuthId on MessageHandler with revoke, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
+				revoke.GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), revoke.GetUser(), err)
+			errs = append(errs, fmt.Sprintf("failed to remove metadataAuthId on MessageHandler with revoke,  metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
+				revoke.GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), revoke.GetUser(), err))
 			continue
 		}
 

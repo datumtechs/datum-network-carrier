@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -66,9 +67,9 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 		return err
 	}
 
-	if metadataAuth.GetData().State != apicommonpb.MetadataAuthorityState_MAState_Released {
-		log.Errorf("the old metadataAuth state is not release on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}",
-			metadataAuthId)
+	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
+		log.Errorf("the old metadataAuth state is not release on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}, state: {%s}",
+			metadataAuthId, metadataAuth.GetData().GetState().String())
 		return fmt.Errorf("the old metadataAuth state is not release")
 	}
 
@@ -103,7 +104,6 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 		return fmt.Errorf("usageRule state of the old metadataAuth is invalid")
 	}
 
-
 	metadataAuth.GetData().UsedQuo = usedQuo
 
 	err = ma.dataCenter.InsertMetadataAuthority(metadataAuth)
@@ -135,25 +135,178 @@ func (ma *MetadataAuthority) GetMetadataAuthorityListByUser(userType apicommonpb
 	return ma.dataCenter.GetMetadataAuthorityListByUser(userType, user, uint64(timeutils.UnixMsec()))
 }
 
-func (ma *MetadataAuthority) VerifyMetadataAuth (user, metadataId string, userType apicommonpb.UserType) bool {
+func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {
+	metadataAuthId, err := ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("Failed to query valid user metadataAuthId used on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}",
+			userType.String(), user, metadataId)
+		return false, err
+	}
 
-	//// TODO 检查 user  和 metadataId 的关联关系
-	//
-	//// 获取 metadata
-	//metadata, err := ma.dataCenter.GetMetadataByDataId(metadataId)
-	//if nil != err {
-	//
-	//}
-	//
-	//// verify
-	//metadataAuth, err := ma.GetMetadataAuthority(metadataId)
-	//if nil != err {
-	//	log.Errorf("Failed to GetMetadataAuthority on VerifyMetadataAuth, metadataAuthId: {%s}, userType: {%s}, user: {%s}, err: {%s}",
-	//		metadataId, userType.String(), user, err)
+	if rawdb.IsDBNotFoundErr(err) {
+		return false, nil
+	}
+
+	metadataAuth, err := ma.GetMetadataAuthority(metadataAuthId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("Failed to query last user metadataAuth info on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			userType.String(), user, metadataId, metadataAuthId)
+		return false, err
+	}
+
+	if rawdb.IsDBNotFoundErr(err) {
+		return false, nil
+	}
+
+	//if metadataAuth.GetData().GetAuth().GetMetadataId() != metadataId {
+	//	log.Errorf("the metadataId of metadataAuth and current metadataId is not same on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+	//		userType.String(), user, metadataId, metadataAuthId)
 	//	return false
 	//}
 	//
-	//metadataAuth.
+	//if metadataAuth.GetData().GetUserType() != userType || metadataAuth.GetData().GetUser() != user {
+	//	log.Errorf("the userType or user of metadataAuth and current userType or user is not same on MetadataAuthority.VerifyMetadataAuth(), auth userType: {%s},auth user: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+	//		metadataAuth.GetData().GetUserType().String(), metadataAuth.GetData().GetUser(), userType.String(), user, metadataId, metadataAuthId)
+	//	return false
+	//}
 
-	return false
+	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
+		log.Debugf("the old metadataAuth state is not release on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}, state: {%s}",
+			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
+		return false, nil
+	}
+
+	usageRule := metadataAuth.GetData().GetAuth().GetUsageRule()
+	usedQuo := metadataAuth.GetData().GetUsedQuo()
+
+	switch usageRule.UsageType {
+	case apicommonpb.MetadataUsageType_Usage_Period:
+		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
+		if uint64(timeutils.UnixMsec()) >= usageRule.GetEndAt() {
+			usedQuo.Expire = true
+			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+		} else {
+			usedQuo.Expire = false
+		}
+	case apicommonpb.MetadataUsageType_Usage_Times:
+		// do nothing
+	default:
+		log.Errorf("usageRule state of the old metadataAuth is invalid on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			userType.String(), user, metadataId, metadataAuthId)
+		return false, fmt.Errorf("usageRule state of the old metadataAuth is invalid")
+	}
+
+	if usedQuo.Expire == true {
+
+		log.Debugf("the old metadataAuth was expire on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}, state: {%s}",
+			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
+
+		metadataAuth.GetData().UsedQuo = usedQuo
+		if err = ma.dataCenter.InsertMetadataAuthority(metadataAuth); nil != err {
+			log.Errorf("Failed to update metadataAuth after consume on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
+				userType.String(), user, metadataId, metadataAuthId)
+			return false, err
+		}
+
+		return false, nil
+	}
+	return true, nil
+}
+
+func (ma *MetadataAuthority) HasInValidLastMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {
+	has, err := ma.HasValidLastMetadataAuth(userType, user, metadataId)
+	if nil != err {
+		return false, err
+	}
+	if has {
+		return false, nil
+	}
+	return true, nil
+}
+
+func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, user, metadataId string) bool {
+
+	metadataAuthId, err := ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
+	if nil != err {
+		log.Errorf("Failed to query user metadataAuthId by metadataId on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, err: {%s}",
+			userType.String(), user, metadataId, err)
+		return false
+	}
+
+	// verify
+	metadataAuth, err := ma.GetMetadataAuthority(metadataAuthId)
+	if nil != err {
+		log.Errorf("Failed to GetMetadataAuthority on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}, err: {%s}",
+			userType.String(), user, metadataId, metadataAuthId, err)
+		return false
+	}
+
+	if metadataAuth.GetData().GetAuth().GetMetadataId() != metadataId {
+		log.Errorf("the metadataId of metadataAuth and current metadataId is not same on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			userType.String(), user, metadataId, metadataAuthId)
+		return false
+	}
+
+	if metadataAuth.GetData().GetUserType() != userType || metadataAuth.GetData().GetUser() != user {
+		log.Errorf("the userType or user of metadataAuth and current userType or user is not same on MetadataAuthority.VerifyMetadataAuth(), auth userType: {%s},auth user: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			metadataAuth.GetData().GetUserType().String(), metadataAuth.GetData().GetUser(), userType.String(), user, metadataId, metadataAuthId)
+		return false
+	}
+
+	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
+		log.Debugf("the old metadataAuth state is not release on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}, state: {%s}",
+			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
+		return false
+	}
+
+	usageRule := metadataAuth.GetData().GetAuth().GetUsageRule()
+	usedQuo := metadataAuth.GetData().GetUsedQuo()
+
+	switch usageRule.UsageType {
+	case apicommonpb.MetadataUsageType_Usage_Period:
+		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
+		if uint64(timeutils.UnixMsec()) >= usageRule.GetEndAt() {
+			usedQuo.Expire = true
+			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+		} else {
+			usedQuo.Expire = false
+		}
+	case apicommonpb.MetadataUsageType_Usage_Times:
+		// do nothing
+	default:
+		log.Errorf("usageRule state of the old metadataAuth is invalid on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			userType.String(), user, metadataId, metadataAuthId)
+		return false
+	}
+
+	if usedQuo.Expire == true {
+
+		log.Debugf("the old metadataAuth was expire on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}, state: {%s}",
+			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
+
+		metadataAuth.GetData().UsedQuo = usedQuo
+		if err = ma.dataCenter.InsertMetadataAuthority(metadataAuth); nil != err {
+			log.Errorf("Failed to update metadataAuth after consume on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+				userType.String(), user, metadataId, metadataAuthId)
+			return false
+		}
+		return false
+	}
+	return true
+}
+
+func (ma *MetadataAuthority) StoreUserMetadataAuthUsed (userType apicommonpb.UserType, user, metadataAuthId string)  error {
+	return ma.dataCenter.StoreUserMetadataAuthUsed(userType, user, metadataAuthId)
+}
+
+func (ma *MetadataAuthority) StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
+	return ma.dataCenter.StoreUserMetadataAuthIdByMetadataId(userType, user, metadataId, metadataAuthId)
+}
+
+func (ma *MetadataAuthority) QueryMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (string, error) {
+	return ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
+}
+
+func (ma *MetadataAuthority) RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error {
+	return ma.dataCenter.RemoveUserMetadataAuthIdByMetadataId(userType, user, metadataId)
 }

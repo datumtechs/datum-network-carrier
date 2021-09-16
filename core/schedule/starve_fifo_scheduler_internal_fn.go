@@ -289,6 +289,14 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	return orgs, nil
 }
 
+
+func (sche *SchedulerStarveFIFO) verifyUserMetadataAuthOnTask (userType apicommonpb.UserType, user, metadataId string) bool {
+	if !sche.authMng.VerifyMetadataAuth(userType, user, metadataId) {
+		return false
+	}
+	return true
+}
+
 func utilOrgPowerArrString(powers []*libtypes.TaskPowerSupplier) string {
 	arr := make([]string, len(powers))
 	for i, power := range powers {
@@ -329,3 +337,5 @@ func utilDataResourceArrString(resources []*types.DataResourceTable) string {
 	}
 	return "[]"
 }
+
+

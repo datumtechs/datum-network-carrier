@@ -38,9 +38,11 @@ var (
 	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
 
 	// prefix + userType + user -> n
-	userMetadataAuthUsedTotalKey = []byte("userMetadataAuthUsedTotalKey")
+	userMetadataAuthUsedCountKey = []byte("userMetadataAuthUsedCountKey")
 	// prefix + userType + user + n -> metadataId
 	userMetadataAuthUsedKeyPrefix = []byte("userMetadataAuthUsedKeyPrefix:")
+	// prefix + userType + user + metadataId -> metadataAuthId
+	UserMetadataAuthByMetadataIdKeyPrefix = []byte("UserMetadataAuthByMetadataIdKeyPrefix:")
 
 
 )
@@ -104,8 +106,8 @@ func GetLocalTaskExecuteStatus(taskId string) []byte {
 	return append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...)
 }
 
-func GetUserMetadataAuthUsedTotalKey(userType apicommonpb.UserType, user string) []byte {
-	return append(append(userMetadataAuthUsedTotalKey, []byte(userType.String())...), []byte(user)...)
+func GetUserMetadataAuthUsedCountKey(userType apicommonpb.UserType, user string) []byte {
+	return append(append(userMetadataAuthUsedCountKey, []byte(userType.String())...), []byte(user)...)
 }
 
 func GetUserMetadataAuthUsedKey(userType apicommonpb.UserType, user string, n uint32) []byte {
@@ -114,16 +116,37 @@ func GetUserMetadataAuthUsedKey(userType apicommonpb.UserType, user string, n ui
 	userBytes := []byte(user)
 	nBytes := bytesutil.Uint32ToBytes(n)
 
-	prefixLen := len(localTaskExecuteStatusKeyPrefix)
+	prefixLen := len(userMetadataAuthUsedKeyPrefix)
 	userTypeLen := len(userTypeBytes)
 	userLen := len(userBytes)
 	nLen := len(nBytes)
 
 	key := make([]byte, prefixLen+userTypeLen+userLen+nLen)
-	copy(key[:prefixLen], localTaskExecuteStatusKeyPrefix)
+	copy(key[:prefixLen], userMetadataAuthUsedKeyPrefix)
 	copy(key[prefixLen:userTypeLen], userTypeBytes)
 	copy(key[userTypeLen:userLen], userBytes)
 	copy(key[userLen:nLen], nBytes)
+
+	return key
+}
+
+
+func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, metadataId string) []byte {
+
+	userTypeBytes := []byte(userType.String())
+	userBytes := []byte(user)
+	metadataIdBytes := []byte(metadataId)
+
+	prefixLen := len(UserMetadataAuthByMetadataIdKeyPrefix)
+	userTypeLen := len(userTypeBytes)
+	userLen := len(userBytes)
+	metadataIdLen := len(metadataIdBytes)
+
+	key := make([]byte, prefixLen+userTypeLen+userLen+metadataIdLen)
+	copy(key[:prefixLen], UserMetadataAuthByMetadataIdKeyPrefix)
+	copy(key[prefixLen:userTypeLen], userTypeBytes)
+	copy(key[userTypeLen:userLen], userBytes)
+	copy(key[userLen:metadataIdLen], metadataIdBytes)
 
 	return key
 }

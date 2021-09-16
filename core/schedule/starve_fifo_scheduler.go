@@ -2,6 +2,7 @@ package schedule
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/auth"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -16,35 +17,36 @@ import (
 )
 
 const (
-	ReschedMaxCount             = 8
-	StarveTerm                  = 3
+	ReschedMaxCount = 8
+	StarveTerm      = 3
 
-	electionOrgCondition        = 10000
-	electionLocalSeed           = 2
+	electionOrgCondition = 10000
+	electionLocalSeed    = 2
 	//taskComputeOrgCount         = 3
 )
 
 var (
 	ErrEnoughResourceOrgCountLessCalculateCount = fmt.Errorf("the enough resource org count is less calculate count")
 	ErrEnoughInternalResourceCount              = fmt.Errorf("has not enough internal resource count")
-	ErrRescheduleLargeThreshold = errors.New("The reschedule count of task bullet is large than max threshold")
+	ErrRescheduleLargeThreshold                 = errors.New("The reschedule count of task bullet is large than max threshold")
 )
 
 type SchedulerStarveFIFO struct {
 	internalNodeSet *grpclient.InternalResourceClientSet
 	resourceMng     *resource.Manager
+	authMng         *auth.AuthorityManager
 	// the local task into this queue, first
 	queue *types.TaskBullets
 	// the very very starve local task by priority
 	starveQueue *types.TaskBullets
 	// the scheduling task, it is ejected from the queue (taskId -> taskBullet)
-	schedulings   map[string]*types.TaskBullet
+	schedulings map[string]*types.TaskBullet
 	queueMutex  sync.Mutex
 
 	//quit            chan struct{}
-	eventEngine     *evengine.EventEngine
+	eventEngine *evengine.EventEngine
 	//dataCenter      iface.ForResourceDB
-	err             error
+	err error
 
 	// TODO 有些缓存需要持久化
 }
@@ -52,16 +54,18 @@ type SchedulerStarveFIFO struct {
 func NewSchedulerStarveFIFO(
 	internalNodeSet *grpclient.InternalResourceClientSet,
 	eventEngine *evengine.EventEngine,
-	mng *resource.Manager,
+	resourceMng *resource.Manager,
+	authMng *auth.AuthorityManager,
 ) *SchedulerStarveFIFO {
 
 	return &SchedulerStarveFIFO{
-		internalNodeSet:      internalNodeSet,
-		resourceMng:          mng,
-		queue:                new(types.TaskBullets),
-		starveQueue:          new(types.TaskBullets),
-		schedulings: 		  make(map[string]*types.TaskBullet),
-		eventEngine:          eventEngine,
+		internalNodeSet: internalNodeSet,
+		resourceMng:     resourceMng,
+		authMng:                  authMng,
+		queue:           new(types.TaskBullets),
+		starveQueue:     new(types.TaskBullets),
+		schedulings:     make(map[string]*types.TaskBullet),
+		eventEngine:     eventEngine,
 		//quit:                 make(chan struct{}),
 	}
 }
@@ -211,27 +215,34 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 		}
 
-		// 选出 关于自己 metaDataId 所在的 dataNode
-		var metaDataId string
+		// 选出 关于自己 metadataId 所在的 dataNode
+		var metadataId string
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if selfIdentityId == dataSupplier.GetOrganization().GetIdentityId() && localPartyId == dataSupplier.GetOrganization().GetPartyId() {
-				metaDataId = dataSupplier.MetadataId
+				metadataId = dataSupplier.MetadataId
 			}
 		}
 
+		// verify user metadataAuth about msg
+		if !sche.verifyUserMetadataAuthOnTask(task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), metadataId) {
+			log.Errorf("failed verify user metadataAuth on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
+				task.GetTaskId(), task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), metadataId)
+			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("verify user metadataAuth failed"), nil)
+		}
+
 		// 获取 metaData 所在的dataNode 资源
-		dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metaDataId)
+		dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metadataId)
 		if nil != err {
-			log.Errorf("failed query internal data node by metaDataId on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, metaDataId: {%s}",
-				task.GetTaskId(), metaDataId)
+			log.Errorf("failed query internal data node by metaDataId on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, metadataId: {%s}",
+				task.GetTaskId(), metadataId)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
 		dataNode, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
-			log.Errorf("failed query internal data node by metaDataId on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, metaDataId: {%s}",
-				task.GetTaskId(), metaDataId)
+			log.Errorf("failed query internal data node by metaDataId on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, metadataId: {%s}",
+				task.GetTaskId(), metadataId)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}

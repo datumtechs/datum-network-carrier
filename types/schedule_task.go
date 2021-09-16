@@ -63,7 +63,7 @@ func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *Propo
 //}
 //func (wrap *ReplayScheduleTaskWrap) SendFailedResult(taskId string, err error) {
 //	wrap.SendResult(&ScheduleResult{
-//		TaskId: taskId,
+//		GetTaskId: taskId,
 //		Status: TaskSchedFailed,
 //		Err:    err,
 //	})
@@ -165,7 +165,7 @@ func (res *TaskConsResult) String() string {
 //
 //
 //type ScheduleResult struct {
-//	TaskId   string
+//	GetTaskId   string
 //	Status   TaskSchedStatus
 //	Err      error
 //	Resource *PrepareVoteResource
@@ -173,7 +173,7 @@ func (res *TaskConsResult) String() string {
 //
 //func (res *ScheduleResult) String() string {
 //	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s, "resource": %s}`,
-//		res.TaskId, res.Status.String(), res.Err, res.Resource.String())
+//		res.GetTaskId, res.Status.String(), res.Err, res.Resource.String())
 //}
 //
 //type ConsensusResult struct {
@@ -181,7 +181,7 @@ func (res *TaskConsResult) String() string {
 //}
 //
 //func (res *ConsensusResult) String() string {
-//	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
+//	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.GetTaskId, res.Status.String(), res.Err)
 //}
 
 // ================================================= V2.0 =================================================
