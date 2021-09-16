@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package types;
+
+import "lib/common/base.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+message OrgProposalState{
+  uint64                        pre_period_start_time = 1;
+  uint64                        period_start_time = 2;
+  uint64                        deadline_duration = 3;
+  uint64                        create_at = 4;
+  api.protobuf.TaskRole         task_role = 5;
+  api.protobuf.TaskOrganization task_org = 6;
+  uint32                        period_num = 7;
+  string                        task_id = 8;
+  api.protobuf.TaskOrganization task_sender = 9;
+}
+
+message PrepareVoteResource{
+  string id = 1;
+  string ip = 2;
+  string port = 3;
+  string party_id = 4;
+}
+
+message MsgOption{
+  api.protobuf.TaskRole         sender_role = 1;
+  string                        sender_party_id = 2;
+  api.protobuf.TaskRole         receiver_role = 3;
+  string                        receiver_party_id = 4;
+  api.protobuf.TaskOrganization owner = 5;
+}
+
+message PrepareVoteState{
+  MsgOption                 msg_option = 1;
+  uint32                    vote_option = 2;
+  PrepareVoteResource       peer_info = 3;
+  uint64                    create_at = 4;
+  bytes                     sign = 5;
+}
+
+message ConfirmVoteState{
+  MsgOption                 msg_option = 1;
+  uint32                    vote_option = 2;
+  uint64                    create_at = 3;
+  bytes                     sign = 4;
+}

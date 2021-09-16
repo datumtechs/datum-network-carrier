@@ -36,7 +36,19 @@ func newState() *state {
 		proposalPeerInfoCache: make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
 	}
 }
-
+func recoveryState(
+	proposalSet map[common.Hash]*ctypes.ProposalState,
+	prepareVotes map[common.Hash]*prepareVoteState,
+	confirmVotes map[common.Hash]*confirmVoteState,
+	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo,
+) *state {
+	return &state{
+		proposalSet:           proposalSet,
+		prepareVotes:          prepareVotes,
+		confirmVotes:          confirmVotes,
+		proposalPeerInfoCache: proposalPeerInfoCache,
+	}
+}
 func (s *state) IsEmpty() bool    { return nil == s }
 func (s *state) IsNotEmpty() bool { return !s.IsEmpty() }
 
