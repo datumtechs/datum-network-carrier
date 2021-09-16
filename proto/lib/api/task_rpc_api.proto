@@ -104,8 +104,8 @@ message TaskDataSupplierDeclare {
 }
 message TaskMetadataDeclare {
   string          metadata_id = 1;                                            // 元数据id
-  uint32          index_column = 2;                                           // 该任务用来作为计算时数据表的索引列 (类比数据库中的id列意思)
-  repeated uint32 caculate_columns = 3;                                       // 该任务用来参与计算的原始数据的第几列数组 (类比数据库中非id列意思)
+  uint32          key_column = 2;                                             // 该任务用来作为计算时数据表的索引列 (类比数据库中的id列意思)
+  repeated uint32 selected_columns = 3;                                       // 该任务用来参与计算的原始数据的第几列数组 (类比数据库中非id列意思)
 }
 // 发布任务 resp
 message PublishTaskDeclareResponse {

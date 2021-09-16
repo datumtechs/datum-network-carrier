@@ -689,7 +689,7 @@ func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser (userType apicommonpb
 
 
 // task api
-func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, error) {
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
 
@@ -707,7 +707,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
+	makeTaskViewFn := func(task *types.Task) *types.TaskEventShowAndRole {
 		// task 发起方
 		if task.GetTaskData().GetIdentityId() == localIdentityId {
 			return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_Sender)
@@ -736,7 +736,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 		return nil
 	}
 
-	result := make([]*pb.TaskDetailShow, 0)
+	result := make([]*types.TaskEventShowAndRole, 0)
 	for _, task := range localTaskArray {
 		if taskView := makeTaskViewFn(task); nil != taskView {
 			result = append(result, taskView)

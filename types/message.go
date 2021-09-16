@@ -619,22 +619,22 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 	return &TaskMsg{
 		PowerPartyIds: req.GetPowerPartyIds(),
 		Data: NewTask(&libtypes.TaskPB{
-			TaskId:                "",
-			TaskName:              req.GetTaskName(),
-			PartyId:               req.GetSender().GetPartyId(),
-			IdentityId:            req.GetSender().GetIdentityId(),
-			NodeId:                req.GetSender().GetNodeId(),
-			NodeName:              req.GetSender().GetNodeName(),
-			DataId:                "",
-			DataStatus:            apicommonpb.DataStatus_DataStatus_Normal,
-			State:                 apicommonpb.TaskState_TaskState_Pending,
-			Reason:                "",
-			EventCount:            0,
-			Desc:                  "",
-			CreateAt:              uint64(timeutils.UnixMsec()),
-			EndAt:                 0,
-			StartAt:               0,
-			AlgoSupplier:          req.GetAlgoSupplier(),
+			TaskId:       "",
+			TaskName:     req.GetTaskName(),
+			PartyId:      req.GetSender().GetPartyId(),
+			IdentityId:   req.GetSender().GetIdentityId(),
+			NodeId:       req.GetSender().GetNodeId(),
+			NodeName:     req.GetSender().GetNodeName(),
+			DataId:       "",
+			DataStatus:   apicommonpb.DataStatus_DataStatus_Normal,
+			State:        apicommonpb.TaskState_TaskState_Pending,
+			Reason:       "",
+			EventCount:   0,
+			Desc:         "",
+			CreateAt:     uint64(timeutils.UnixMsec()),
+			EndAt:        0,
+			StartAt:      0,
+			AlgoSupplier: req.GetAlgoSupplier(),
 			//DataSuppliers:
 			PowerSuppliers:        make([]*libtypes.TaskPowerSupplier, 0),
 			Receivers:             req.GetReceivers(),
@@ -761,193 +761,14 @@ func (s TaskMsgArr) Less(i, j int) bool {
 	return s[i].Data.GetTaskData().GetCreateAt() < s[j].Data.GetTaskData().GetCreateAt()
 }
 
-//type TaskSupplier struct {
-//	*TaskNodeAlias
-//	MetadataPB *SupplierMetaData `json:"metaData"`
-//}
-
-//type SupplierMetaData struct {
-//	MetaDataId      string   `json:"metaDataId"`
-//	ColumnIndexList []uint64 `json:"columnIndexList"`
-//}
-
-//type TaskResultReceiver struct {
-//	*TaskNodeAlias
-//	Providers []*TaskNodeAlias `json:"providers"`
-//}
-
-//func ConvertTaskOperationCostToPB(cost *TaskOperationCost) *apicommonpb.TaskResourceCostDeclare {
-//	return &apicommonpb.TaskResourceCostDeclare{
-//		CostMem:       cost.Mem,
-//		CostProcessor: uint32(cost.Processor),
-//		CostBandwidth: cost.Bandwidth,
-//		Duration:      cost.Duration,
-//	}
-//}
-//func ConvertTaskOperationCostFromPB(cost *apicommonpb.TaskResourceCostDeclare) *TaskOperationCost {
-//	return &TaskOperationCost{
-//		Mem:       cost.CostMem,
-//		Processor: uint64(cost.CostProcessor),
-//		Bandwidth: cost.CostBandwidth,
-//		Duration:  cost.Duration,
-//	}
-//}
-
-// ------------------- data using authorize -------------------
-
-//type DataAuthorizationApply struct {
-//	PoposalHash string     `json:"poposalHash"`
-//	Proposer    *NodeAlias `json:"proposer"`
-//	Approver    *NodeAlias `json:"approver"`
-//	Apply       struct {
-//		MetaId       string `json:"metaId"`
-//		UseCount     uint64 `json:"useCount"`
-//		UseStartTime string `json:"useStartTime"`
-//		UseEndTime   string `json:"useEndTime"`
-//	} `json:"apply"`
-//}
-
-//type DataAuthorizationConfirm struct {
-//	PoposalHash string     `json:"poposalHash"`
-//	Proposer    *NodeAlias `json:"proposer"`
-//	Approver    *NodeAlias `json:"approver"`
-//	Approve     struct {
-//		Vote   uint16 `json:"vote"`
-//		Reason string `json:"reason"`
-//	} `json:"approve"`
-//}
-
-// ------------------- common -------------------
-
-//type NodeAlias struct {
-//	Name       string `json:"name"`
-//	NodeId     string `json:"nodeId"`
-//	IdentityId string `json:"identityId"`
-//}
-
-//type TaskNodeAlias struct {
-//	PartyId    string `json:"partyId"`
-//	Name       string `json:"name"`
-//	NodeId     string `json:"nodeId"`
-//	IdentityId string `json:"identityId"`
-//}
-
-//func (tna *TaskNodeAlias) String() string {
-//	return fmt.Sprintf(`{"partyId": %s, "name": %s, "nodeId": %s, "identityId": %s}`, tna.PartyId, tna.Name, tna.NodeId, tna.IdentityId)
-//}
-
-//func ConvertNodeAliasToPB(alias *NodeAlias) *apicommonpb.Organization {
-//	return &apicommonpb.Organization{
-//		NodeName:   alias.Name,
-//		NodeId:     alias.NodeId,
-//		IdentityId: alias.IdentityId,
-//	}
-//}
-
-//func ConvertTaskNodeAliasToPB(alias *TaskNodeAlias) *apicommonpb.TaskOrganization {
-//	return &apicommonpb.TaskOrganization{
-//		PartyId:    alias.PartyId,
-//		NodeName:   alias.Name,
-//		NodeId:     alias.NodeId,
-//		IdentityId: alias.IdentityId,
-//	}
-//}
-
-//func ConvertNodeAliasFromPB(org *apicommonpb.Organization) *NodeAlias {
-//	return &NodeAlias{
-//		Name:       org.NodeName,
-//		NodeId:     org.NodeId,
-//		IdentityId: org.IdentityId,
-//	}
-//}
-
-//func ConvertTaskNodeAliasFromPB(org *apicommonpb.TaskOrganization) *TaskNodeAlias {
-//	return &TaskNodeAlias{
-//		PartyId:    org.PartyId,
-//		Name:       org.NodeName,
-//		NodeId:     org.NodeId,
-//		IdentityId: org.IdentityId,
-//	}
-//}
-
-//func ConvertNodeAliasArrToPB(aliases []*NodeAlias) []*apicommonpb.Organization {
-//	orgs := make([]*apicommonpb.Organization, len(aliases))
-//	for i, a := range aliases {
-//		org := ConvertNodeAliasToPB(a)
-//		orgs[i] = org
-//	}
-//	return orgs
-//}
-
-//func ConvertTaskNodeAliasArrToPB(aliases []*TaskNodeAlias) []*apicommonpb.TaskOrganization {
-//	orgs := make([]*apicommonpb.TaskOrganization, len(aliases))
-//	for i, a := range aliases {
-//		org := ConvertTaskNodeAliasToPB(a)
-//		orgs[i] = org
-//	}
-//	return orgs
-//}
-
-//func ConvertNodeAliasArrFromPB(orgs []*apicommonpb.Organization) []*NodeAlias {
-//	aliases := make([]*NodeAlias, len(orgs))
-//	for i, o := range orgs {
-//		alias := ConvertNodeAliasFromPB(o)
-//		aliases[i] = alias
-//	}
-//	return aliases
-//}
-
-//func ConvertTaskNodeAliasArrFromPB(orgs []*apicommonpb.TaskOrganization) []*TaskNodeAlias {
-//	aliases := make([]*TaskNodeAlias, len(orgs))
-//	for i, o := range orgs {
-//		alias := ConvertTaskNodeAliasFromPB(o)
-//		aliases[i] = alias
-//	}
-//	return aliases
-//}
-
-//func (n *NodeAlias) GetNodeName() string       { return n.Name }
-//func (n *NodeAlias) GetNodeIdStr() string      { return n.NodeId }
-//func (n *NodeAlias) GetNodeIdentityId() string { return n.IdentityId }
-
-//type ResourceUsage struct {
-//	TotalMem       uint64 `json:"totalMem"`
-//	UsedMem        uint64 `json:"usedMem"`
-//	TotalProcessor uint64 `json:"totalProcessor"`
-//	UsedProcessor  uint64 `json:"usedProcessor"`
-//	TotalBandwidth uint64 `json:"totalBandwidth"`
-//	UsedBandwidth  uint64 `json:"usedBandwidth"`
-//}
-
-//func ConvertResourceUsageToPB(usage *ResourceUsage) *libtypes.ResourceUsageOverview {
-//	return &libtypes.ResourceUsageOverview{
-//		TotalMem:       usage.TotalMem,
-//		UsedMem:        usage.UsedMem,
-//		TotalProcessor: uint32(usage.TotalProcessor),
-//		UsedProcessor:  uint32(usage.UsedProcessor),
-//		TotalBandwidth: usage.TotalBandwidth,
-//		UsedBandwidth:  usage.UsedBandwidth,
-//	}
-//}
-//func ConvertResourceUsageFromPB(usage *libtypes.ResourceUsageOverview) *ResourceUsage {
-//	return &ResourceUsage{
-//		TotalMem:       usage.TotalMem,
-//		UsedMem:        usage.UsedMem,
-//		TotalProcessor: uint64(usage.TotalProcessor),
-//		UsedProcessor:  uint64(usage.UsedProcessor),
-//		TotalBandwidth: usage.TotalBandwidth,
-//		UsedBandwidth:  usage.UsedBandwidth,
-//	}
-//}
-
 /**
 Example:
 {
   "party_id": "p0",
   "data_party": {
       "input_file": "../data/bank_predict_data.csv",
-       "index_column": "CLIENT_ID",
-       "calculate_columns": ["col1", "col2"]
+       "key_column": "CLIENT_ID",
+       "selected_columns": ["col1", "col2"]
     },
   "dynamic_parameter": {
     "model_restore_party": "p0",
@@ -961,8 +782,8 @@ or:
   "party_id": "p0",
   "data_party": {
     "input_file": "../data/bank_train_data.csv",
-    "index_column": "CLIENT_ID",
-    "calculate_columns": ["col1", "col2"]
+    "key_column": "CLIENT_ID",
+    "selected_columns": ["col1", "col2"]
   },
   "dynamic_parameter": {
     "label_owner": "p0",
@@ -978,9 +799,9 @@ or:
 type FighterTaskReadyGoReqContractCfg struct {
 	PartyId   string `json:"party_id"`
 	DataParty struct {
-		InputFile        string   `json:"input_file"`
-		IndexColumn      string   `json:"index_column"`
-		CalculateColumns []string `json:"calculate_columns"`
+		InputFile       string   `json:"input_file"`
+		KeyColumn       string   `json:"key_column"`
+		SelectedColumns []string `json:"selected_columns"`
 	} `json:"data_party"`
 	DynamicParameter map[string]interface{} `json:"dynamic_parameter"`
 }

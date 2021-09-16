@@ -6,37 +6,41 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *pb.TaskDetailShow {
+func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *TaskEventShowAndRole {
 	taskData := input.GetTaskData()
-	detailShow := &pb.TaskDetailShow{
-		TaskId:   taskData.GetTaskId(),
-		TaskName: taskData.GetTaskName(),
-		//TODO: 需要确认部分
-		//Role:     role,
-		Sender: &apicommonpb.TaskOrganization{
-			PartyId:    taskData.GetPartyId(),
-			NodeName:   taskData.GetNodeName(),
-			NodeId:     taskData.GetNodeId(),
-			IdentityId: taskData.GetIdentityId(),
-		},
-		AlgoSupplier: &apicommonpb.TaskOrganization{
-			PartyId:    taskData.GetPartyId(),
-			NodeName:   taskData.GetNodeName(),
-			NodeId:     taskData.GetNodeId(),
-			IdentityId: taskData.GetIdentityId(),
-		},
-		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
-		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
-		Receivers:      taskData.GetReceivers(),
-		CreateAt:       taskData.GetCreateAt(),
-		StartAt:        taskData.GetStartAt(),
-		EndAt:          taskData.GetEndAt(),
-		State:          taskData.GetState(),
-		OperationCost: &apicommonpb.TaskResourceCostDeclare{
-			Processor: taskData.GetOperationCost().GetProcessor(),
-			Memory:    taskData.GetOperationCost().GetMemory(),
-			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
-			Duration:  taskData.GetOperationCost().GetDuration(),
+	detailShow := &TaskEventShowAndRole{
+		Data: &pb.TaskDetailShow{
+			TaskId:   taskData.GetTaskId(),
+			TaskName: taskData.GetTaskName(),
+			UserType: taskData.GetUserType(),
+			User:     taskData.GetUser(),
+			//TODO: 需要确认部分
+			//Role:     role,
+			Sender: &apicommonpb.TaskOrganization{
+				PartyId:    taskData.GetPartyId(),
+				NodeName:   taskData.GetNodeName(),
+				NodeId:     taskData.GetNodeId(),
+				IdentityId: taskData.GetIdentityId(),
+			},
+			AlgoSupplier: &apicommonpb.TaskOrganization{
+				PartyId:    taskData.GetPartyId(),
+				NodeName:   taskData.GetNodeName(),
+				NodeId:     taskData.GetNodeId(),
+				IdentityId: taskData.GetIdentityId(),
+			},
+			DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
+			PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
+			Receivers:      taskData.GetReceivers(),
+			CreateAt:       taskData.GetCreateAt(),
+			StartAt:        taskData.GetStartAt(),
+			EndAt:          taskData.GetEndAt(),
+			State:          taskData.GetState(),
+			OperationCost: &apicommonpb.TaskResourceCostDeclare{
+				Processor: taskData.GetOperationCost().GetProcessor(),
+				Memory:    taskData.GetOperationCost().GetMemory(),
+				Bandwidth: taskData.GetOperationCost().GetBandwidth(),
+				Duration:  taskData.GetOperationCost().GetDuration(),
+			},
 		},
 	}
 	// DataSupplier
@@ -51,11 +55,11 @@ func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *pb.T
 			MetadataId:   metadataSupplier.GetMetadataId(),
 			MetadataName: metadataSupplier.GetMetadataName(),
 		}
-		detailShow.DataSuppliers = append(detailShow.DataSuppliers, dataSupplier)
+		detailShow.Data.DataSuppliers = append(detailShow.Data.DataSuppliers, dataSupplier)
 	}
 	// powerSupplier
 	for _, data := range taskData.GetPowerSuppliers() {
-		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
+		detailShow.Data.PowerSuppliers = append(detailShow.Data.PowerSuppliers, &pb.TaskPowerSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
 				PartyId:    data.GetOrganization().GetPartyId(),
 				NodeName:   data.GetOrganization().GetNodeName(),
@@ -72,6 +76,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *pb.T
 			},
 		})
 	}
+	detailShow.Role = role
 	return detailShow
 }
 
