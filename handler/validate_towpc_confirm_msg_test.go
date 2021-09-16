@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-func TestValidateTwoPCCommit_ValidConfirmMsg(t *testing.T) {
+func TestValidateTwopc_ValidConfirmMsg(t *testing.T) {
 	p := p2ptest.NewTestP2P(t)
 	ctx := context.Background()
 	c, err := lru.New(10)
