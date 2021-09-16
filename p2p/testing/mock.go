@@ -1,8 +1,11 @@
 package testing
 
 import (
+	"errors"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/event"
+	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"sync"
 )
 
@@ -76,3 +79,15 @@ func (s *Sync) Status() error {
 func (s *Sync) Resync() error {
 	return nil
 }
+
+type MockTaskManager struct {
+
+}
+
+func (m *MockTaskManager) Start() error {
+	return nil
+}
+
+func (m *MockTaskManager) Stop() error { return nil }
+func (m *MockTaskManager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error { return errors.New("invalid check") }
+func (m *MockTaskManager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error { return nil }
