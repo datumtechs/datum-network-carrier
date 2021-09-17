@@ -55,6 +55,7 @@ type Backend interface {
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
 
 	// about DataResourceTable
+
 	//StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
 	//StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
 	//RemoveDataResourceTable(nodeId string) error
@@ -68,4 +69,12 @@ type Backend interface {
 	//RemoveDataResourceFileUpload(originId string) error
 	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
 	//QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
+
+	// about task result file
+	 StoreTaskResultFileMetadataId(taskId, metadataId string) error
+	 QueryTaskResultFileMetadataId(taskId string)  (string, error)
+
+
+
+
 }

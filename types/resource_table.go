@@ -477,4 +477,3 @@ func (drt *DataResourceDiskUsed) DecodeRLP(s *rlp.Stream) error {
 func (drt *DataResourceDiskUsed) GetMetadataId() string { return drt.metaDataId }
 func (drt *DataResourceDiskUsed) GetNodeId() string     { return drt.nodeId }
 func (drt *DataResourceDiskUsed) GetDiskUsed() uint64   { return drt.diskUsed }
-

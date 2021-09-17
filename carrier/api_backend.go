@@ -417,10 +417,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 }
 
 func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
-	// return s.carrier.resourceManager.SendTaskEvent(evengine)
-	//todo: missing SendTaskEvent
-	//return s.carrier.TaskManager.SendTaskEvent(event)
-	return nil
+	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
 // metadata api
@@ -573,17 +570,17 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 					CreateAt:       task.GetTaskData().CreateAt,
 				}
 				// 组装 数据参与方
-				//for _, dataSupplier := range task.TaskPB().DataSupplier {
-				//	// 协作方, 需要过滤掉自己
-				//	if task.TaskPB().GetNodeId() != dataSupplier.MemberInfo.IdentityId {
-				//		powerTask.Patners = append(powerTask.Patners, &apicommonpb.Organization{
-				//			NodeName:   dataSupplier.MemberInfo.GetNodeName(),
-				//			NodeId:     dataSupplier.MemberInfo.GetNodeId(),
-				//			IdentityId: dataSupplier.MemberInfo.GetIdentityId(),
-				//		})
-				//	}
-				//
-				//}
+				for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+					// 协作方, 需要过滤掉自己
+					if task.GetTaskData().GetNodeId() != dataSupplier.GetOrganization().GetIdentityId() {
+						powerTask.Partners = append(powerTask.Partners, &apicommonpb.Organization{
+							NodeName:   dataSupplier.GetOrganization().GetNodeName(),
+							NodeId:     dataSupplier.GetOrganization().GetNodeId(),
+							IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
+						})
+					}
+
+				}
 				// 组装结果接收方
 				for _, receiver := range task.GetTaskData().GetReceivers() {
 					powerTask.Receivers = append(powerTask.Receivers, &apicommonpb.Organization{
@@ -617,22 +614,22 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 	result := make([]*pb.GetPowerSingleDetailResponse, len(resourceList))
 	for i, resource := range resourceList {
 		nodePowerDetail := &pb.GetPowerSingleDetailResponse{
+			JobNodeId:        resource.GetJobNodeId(),
+			PowerId:          resource.DataId,
 			Owner: &apicommonpb.Organization{
 				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
 			Power: &libtypes.PowerUsageDetail{
-				//JobNodeId:        resource.GetJobNodeId(),
-				//PowerId:          resource.DataId,
 				TotalTaskCount:   uint32(taskCount(resource.GetJobNodeId())),
 				CurrentTaskCount: uint32(taskCount(resource.GetJobNodeId())),
 				Tasks:            make([]*libtypes.PowerTask, 0),
 				Information: &libtypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
 					UsedMem:        resource.GetUsedMem(),
-					TotalProcessor: uint32(resource.GetTotalProcessor()),
-					UsedProcessor:  uint32(resource.GetUsedProcessor()),
+					TotalProcessor: resource.GetTotalProcessor(),
+					UsedProcessor:  resource.GetUsedProcessor(),
 					TotalBandwidth: resource.GetTotalBandwidth(),
 					UsedBandwidth:  resource.GetUsedBandwidth(),
 				},
@@ -870,7 +867,15 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUpload(originId string) (*types
 	return s.carrier.carrierDB.QueryDataResourceFileUpload(originId)
 }
 
-func (s *CarrierAPIBackend) QueryDataResourceDataUseds() ([]*types.DataResourceFileUpload, error) {
+func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error) {
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
+}
+
+func (s *CarrierAPIBackend) StoreTaskResultFileMetadataId(taskId, metadataId string) error {
+	return nil
+}
+
+func (s *CarrierAPIBackend) QueryTaskResultFileMetadataId(taskId string)  (string, error) {
+	return "", nil
 }
 

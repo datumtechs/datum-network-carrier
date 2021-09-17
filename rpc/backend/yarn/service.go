@@ -472,9 +472,6 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 	}, nil
 }
 
-func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, request *pb.ReportTaskResultFileSummaryRequest) (*apicommonpb.SimpleResponse, error) {
-	panic("implement me")
-}
 
 func (svr *Server) GetTaskResultFileSummary(ctx context.Context, request *pb.GetTaskResultFileSummaryRequest) (*pb.GetTaskResultFileSummaryResponse, error) {
 	panic("implement me")
