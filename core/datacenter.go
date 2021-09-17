@@ -287,14 +287,14 @@ func (dc *DataCenter) QueryDataResourceFileUploads() ([]*types.DataResourceFileU
 
 // about DataResourceDiskUsed
 func (dc *DataCenter) StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	return rawdb.StoreDataResourceDiskUsed(dc.db, dataResourceDiskUsed)
 }
 
 func (dc *DataCenter) RemoveDataResourceDiskUsed(metaDataId string) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	return rawdb.RemoveDataResourceDiskUsed(dc.db, metaDataId)
 }
 
@@ -304,16 +304,17 @@ func (dc *DataCenter) QueryDataResourceDiskUsed(metaDataId string) (*types.DataR
 	return rawdb.QueryDataResourceDiskUsed(dc.db, metaDataId)
 }
 
+// about LocalTaskExecuteStatus
 func (dc *DataCenter) StoreLocalTaskExecuteStatus(taskId string) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	log.Debugf("Store local task executing status, taskId: {%s}", taskId)
 	return rawdb.StoreLocalTaskExecuteStatus(dc.db, taskId)
 }
 
 func (dc *DataCenter) RemoveLocalTaskExecuteStatus(taskId string) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	log.Debugf("Remove local task executing status, taskId: {%s}", taskId)
 	return rawdb.RemoveLocalTaskExecuteStatus(dc.db, taskId)
 }
@@ -324,9 +325,10 @@ func (dc *DataCenter) HasLocalTaskExecute(taskId string) (bool, error) {
 	return rawdb.HasLocalTaskExecute(dc.db, taskId)
 }
 
+// about UserMetadataAuthUsed
 func (dc *DataCenter) StoreUserMetadataAuthUsed (userType apicommonpb.UserType, user, metadataAuthId string)  error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	return rawdb.StoreUserMetadataAauthUsed(dc.db, userType, user, metadataAuthId)
 }
 
@@ -370,8 +372,8 @@ func (dc *DataCenter) QueryUserMetadataAuthUseds (userType apicommonpb.UserType,
 }
 
 func (dc *DataCenter) RemoveAllUserMetadataAuthUsed (userType apicommonpb.UserType, user string) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 
 	count, err := rawdb.QueryUserMetadataAuthUsedCount(dc.db, userType, user)
 	switch {
@@ -394,8 +396,8 @@ func (dc *DataCenter) RemoveAllUserMetadataAuthUsed (userType apicommonpb.UserTy
 }
 
 func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	return rawdb.StoreUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId, metadataAuthId)
 }
 
@@ -412,9 +414,28 @@ func (dc *DataCenter) HasUserMetadataAuthIdByMetadataId (userType apicommonpb.Us
 }
 
 func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
+}
+
+// about TaskResultFileMetadataId
+func (dc *DataCenter) StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskUpResultFile(dc.db, turf)
+}
+
+func (dc *DataCenter) QueryTaskUpResultFile(taskId string)  (*types.TaskUpResultFile, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
+	return rawdb.QueryTaskUpResultFile(dc.db, taskId)
+}
+
+func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.RemoveTaskUpResultFile(dc.db, taskId)
 }
 
 func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {

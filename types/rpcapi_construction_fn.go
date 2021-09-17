@@ -9,7 +9,7 @@ import (
 // NewMetadataSaveRequest converts Metadata object to SaveMetadataRequest object.
 func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 	request := &api.SaveMetadataRequest{
-		Metadata: metadata.MetadataData(),
+		Metadata: metadata.GetData(),
 	}
 	return request
 }
@@ -17,11 +17,11 @@ func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 	request := &api.RevokeMetadataRequest{
 		Owner: &apicommonpb.Organization{
-			IdentityId: metadata.MetadataData().IdentityId,
-			NodeId:     metadata.MetadataData().NodeId,
-			NodeName:   metadata.MetadataData().NodeName,
+			IdentityId: metadata.GetData().IdentityId,
+			NodeId:     metadata.GetData().NodeId,
+			NodeName:   metadata.GetData().NodeName,
 		},
-		MetadataId: metadata.MetadataData().DataId,
+		MetadataId: metadata.GetData().DataId,
 	}
 	return request
 }

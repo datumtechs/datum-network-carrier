@@ -379,7 +379,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) err
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: uint32(types.GetDefaultResoueceProcessor()), // todo 使用 默认的资源大小
+			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
 			TotalBandwidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
@@ -407,7 +407,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) err
 			// unit: byte
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: uint32(types.GetDefaultResoueceProcessor()), // todo 使用 默认的资源大小
+			TotalProcessor: types.GetDefaultResoueceProcessor(), // todo 使用 默认的资源大小
 			UsedProcessor:  0,
 			// unit: byte
 			TotalBandwidth: types.GetDefaultResoueceBandwidth(), // todo 使用 默认的资源大小
@@ -496,6 +496,14 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 }
 
 func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMsgArr) error {
+
+
+	identity, err := m.dataCenter.GetIdentity()
+	if nil != err {
+		log.Errorf("Failed to query local identity on MessageHandler with broadcast, err: {%s}", err)
+		return err
+	}
+
 	errs := make([]string, 0)
 	for _, metadata := range metadataMsgArr {
 
@@ -544,7 +552,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			continue
 		}
 
-		if err := m.dataCenter.InsertMetadata(metadata.ToDataCenter()); nil != err {
+		if err := m.dataCenter.InsertMetadata(metadata.ToDataCenter(identity)); nil != err {
 			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			errs = append(errs, fmt.Sprintf("failed to store metadata to dataCenter on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
@@ -562,6 +570,13 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 }
 
 func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr types.MetadataRevokeMsgArr) error {
+
+	identity, err := m.dataCenter.GetIdentity()
+	if nil != err {
+		log.Errorf("Failed to query local identity on MessageHandler with revoke, err: {%s}", err)
+		return err
+	}
+
 	errs := make([]string, 0)
 	for _, revoke := range metadataRevokeMsgArr {
 		// 需要将 dataNode 的 disk 使用信息 加回来 ...
@@ -600,7 +615,7 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 			continue
 		}
 
-		if err := m.dataCenter.RevokeMetadata(revoke.ToDataCenter()); nil != err {
+		if err := m.dataCenter.RevokeMetadata(revoke.ToDataCenter(identity)); nil != err {
 			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with revoke, metadataId: {%s}, err: {%s}",
 				revoke.GetMetadataId(), err)
 			errs = append(errs, fmt.Sprintf("failed to store metadata to dataCenter on MessageHandler with revoke, metadataId: {%s}, err: {%s}",

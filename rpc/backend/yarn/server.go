@@ -20,6 +20,7 @@ var (
 	ErrReportUpFileSummary        = &backend.RpcBizErr{Msg: "Failed to ReportUpFileSummary"}
 	ErrQueryDataResourceTableList = &backend.RpcBizErr{Msg: "Failed to query dataResourceTableList"}
 	ErrQueryDataResourceDataUsed  = &backend.RpcBizErr{Msg: "Failed to query dataResourceDataUsed"}
+	ErrQueryTaskResultFileSummary = &backend.RpcBizErr{Msg: "Failed to query taskResultFileSummary"}
 	ErrGetNodeInfo                = &backend.RpcBizErr{Msg: "Failed to get yarn node information"}
 )
 

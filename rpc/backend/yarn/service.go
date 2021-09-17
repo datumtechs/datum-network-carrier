@@ -2,6 +2,7 @@ package yarn
 
 import (
 	"context"
+	"errors"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -121,9 +122,9 @@ func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegistered
 	}*/
 	log.Debugf("RPC-API:GetRegisteredPeers succeed, node len: {%d}", len(registerNodes))
 	return &pb.GetRegisteredPeersResponse{
-		Status:    0,
-		Msg:       backend.OK,
-		Nodes: registerNodes,
+		Status: 0,
+		Msg:    backend.OK,
+		Nodes:  registerNodes,
 	}, nil
 }
 
@@ -209,9 +210,9 @@ func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*pb
 		seeds[i] = s
 	}
 	return &pb.GetSeedNodeListResponse{
-		Status:    0,
-		Msg:       backend.OK,
-		Nodes: 	   seeds,
+		Status: 0,
+		Msg:    backend.OK,
+		Nodes:  seeds,
 	}, nil
 }
 
@@ -299,7 +300,7 @@ func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*pb
 	datas := make([]*pb.YarnRegisteredPeer, len(list))
 	for i, v := range list {
 		d := &pb.YarnRegisteredPeer{
-			NodeType: pb.NodeType(pb.NodeType_value[pb.PrefixTypeDataNode.String()]) ,
+			NodeType: pb.NodeType(pb.NodeType_value[pb.PrefixTypeDataNode.String()]),
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
 				Id:           v.Id,
 				InternalIp:   v.InternalIp,
@@ -424,13 +425,14 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.
 func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryDataResourceTables failed, fileType: {%s}, fileSize: {%s}", req.FileType, req.FileSize)
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryDataResourceTables failed, fileType: {%s}, fileSize: {%s}",
+			req.GetFileType(), req.GetFileSize())
 		return nil, ErrQueryDataResourceTableList
 	}
 
 	var nodeId string
 	for _, resource := range dataResourceTables {
-		if req.FileSize < resource.RemainDisk() {
+		if req.GetFileSize() < resource.RemainDisk() {
 			nodeId = resource.GetNodeId()
 			break
 		}
@@ -439,44 +441,76 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, nodeId)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-GetRegisterNode failed, fileType: {%s}, fileSize: {%s}, dataNodeId: {%s}",
-			req.FileType, req.FileSize, nodeId)
+			req.GetFileType(), req.GetFileSize(), nodeId)
 		return nil, ErrGetDataNodeInfo
 	}
 	log.Debugf("RPC-API:QueryAvailableDataNode succeed, fileType: {%s}, fileSize: {%d}, return dataNodeId: {%s}, dataNodeIp: {%s}, dataNodePort: {%s}",
-		req.FileType, req.FileSize, dataNode.Id, dataNode.InternalIp, dataNode.InternalPort)
+		req.GetFileType(), req.GetFileSize(), dataNode.GetId(), dataNode.GetInternalIp(), dataNode.GetInternalPort())
 
 	return &pb.QueryAvailableDataNodeResponse{
-		Ip:   dataNode.InternalIp,
-		Port: dataNode.InternalPort,
+		Ip:   dataNode.GetInternalIp(),
+		Port: dataNode.GetInternalPort(),
 	}, nil
 }
 func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePositionRequest) (*pb.QueryFilePositionResponse, error) {
-	dataResourceFileUpload, err := svr.B.QueryDataResourceFileUpload(req.OriginId)
+
+	if "" == req.GetOriginId() {
+		return nil, errors.New("require originId")
+	}
+
+	dataResourceFileUpload, err := svr.B.QueryDataResourceFileUpload(req.GetOriginId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryFilePosition-QueryDataResourceFileUpload failed, originId: {%s}", req.OriginId)
+		log.WithError(err).Errorf("RPC-API:QueryFilePosition-QueryDataResourceFileUpload failed, originId: {%s}", req.GetOriginId())
 		return nil, ErrQueryDataResourceDataUsed
 	}
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, dataResourceFileUpload.GetNodeId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryFilePosition-GetRegisterNode failed, originId: {%s}", req.OriginId)
+		log.WithError(err).Errorf("RPC-API:QueryFilePosition-GetRegisterNode failed, originId: {%s}, dataNodeId: {%s}",
+			req.GetOriginId(), dataResourceFileUpload.GetNodeId())
 		return nil, ErrGetDataNodeInfo
 	}
 
 	log.Debugf("RPC-API:QueryFilePosition Succeed, originId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, filePath: {%s}",
-		req.OriginId, dataNode.InternalIp, dataNode.InternalPort, dataResourceFileUpload.GetFilePath())
+		req.GetOriginId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), dataResourceFileUpload.GetFilePath())
 
 	return &pb.QueryFilePositionResponse{
-		Ip:       dataNode.InternalIp,
-		Port:     dataNode.InternalPort,
+		Ip:       dataNode.GetInternalIp(),
+		Port:     dataNode.GetInternalPort(),
 		FilePath: dataResourceFileUpload.GetFilePath(),
 	}, nil
 }
 
+func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTaskResultFileSummaryRequest) (*pb.GetTaskResultFileSummaryResponse, error) {
+	if "" == req.GetTaskId() {
+		return nil, errors.New("require taskId")
+	}
 
-func (svr *Server) GetTaskResultFileSummary(ctx context.Context, request *pb.GetTaskResultFileSummaryRequest) (*pb.GetTaskResultFileSummaryResponse, error) {
-	panic("implement me")
+	taskResultFileSummary, err := svr.B.QueryTaskResultFileSummary(req.GetTaskId())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-QueryTaskResultFileSummary failed, taskId: {%s}", req.GetTaskId())
+		return nil, ErrQueryTaskResultFileSummary
+	}
+	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, taskResultFileSummary.GetNodeId())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-GetRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
+			req.GetTaskId(), taskResultFileSummary.GetNodeId())
+		return nil, ErrGetDataNodeInfo
+	}
+
+	log.Debugf("RPC-API:GetTaskResultFileSummary Succeed, taskId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, metadataId: {%s}, originId: {%s}, fileName: {%s}, filePath: {%s}",
+		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), taskResultFileSummary.GetMetaDataId(), taskResultFileSummary.GetOriginId(), taskResultFileSummary.GetFileName(), taskResultFileSummary.GetFilePath())
+
+	return &pb.GetTaskResultFileSummaryResponse{
+		TaskId:     taskResultFileSummary.GetTaskId(),
+		FileName:   taskResultFileSummary.GetFileName(),
+		MetaDataId: taskResultFileSummary.GetMetaDataId(),
+		OriginId:   taskResultFileSummary.GetOriginId(),
+		FilePath:   taskResultFileSummary.GetFilePath(),
+		Ip:         dataNode.GetInternalIp(),
+		Port:       dataNode.GetInternalPort(),
+	}, nil
 }
 
 func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *emptypb.Empty) (*pb.GetTaskResultFileSummaryListResponse, error) {
-	panic("implement me")
+	return nil, nil
 }

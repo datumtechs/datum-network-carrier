@@ -60,7 +60,7 @@ func (m *Metadata) Hash() common.Hash {
 	return v
 }
 
-func (m *Metadata) MetadataData() *libtypes.MetadataPB { return m.data }
+func (m *Metadata) GetData() *libtypes.MetadataPB { return m.data }
 // MetadataArray is a Transaction slice type for basic sorting.
 type MetadataArray []*Metadata
 

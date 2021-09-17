@@ -48,6 +48,7 @@ var (
 	// metadataId + n -> taskId
 
 	// taskId -> resultfile summary (auto build metadataId)
+	TaskResultFileMetadataIdKeyPrefix = []byte("TaskResultFileMetadataIdKeyPrefix:")
 
 
 
@@ -136,7 +137,6 @@ func GetUserMetadataAuthUsedKey(userType apicommonpb.UserType, user string, n ui
 	return key
 }
 
-
 func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, metadataId string) []byte {
 
 	userTypeBytes := []byte(userType.String())
@@ -155,4 +155,8 @@ func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, met
 	copy(key[userLen:metadataIdLen], metadataIdBytes)
 
 	return key
+}
+
+func  GetTaskResultFileMetadataIdKey(taskId string) []byte {
+	return append(TaskResultFileMetadataIdKeyPrefix, []byte(taskId)...)
 }

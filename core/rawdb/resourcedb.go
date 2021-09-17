@@ -1415,3 +1415,37 @@ func RemoveUserMetadataAuthIdByMetadataId (db KeyValueStore, userType apicommonp
 	return db.Delete(key)
 }
 
+func StoreTaskUpResultFile (db DatabaseWriter, turf *types.TaskUpResultFile)  error {
+	key := GetTaskResultFileMetadataIdKey(turf.GetTaskId())
+	val, err := rlp.EncodeToBytes(turf)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func QueryTaskUpResultFile (db DatabaseReader, taskId string)  (*types.TaskUpResultFile, error) {
+	key := GetTaskResultFileMetadataIdKey(taskId)
+	vb, err := db.Get(key)
+	if nil != err {
+		return nil, err
+	}
+	var taskUpResultFile types.TaskUpResultFile
+	if err = rlp.DecodeBytes(vb, &taskUpResultFile); nil != err {
+		return nil, err
+	}
+	return &taskUpResultFile, nil
+}
+
+func RemoveTaskUpResultFile (db KeyValueStore, taskId string) error {
+	key := GetTaskResultFileMetadataIdKey(taskId)
+
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}

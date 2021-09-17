@@ -36,8 +36,8 @@ type Backend interface {
 
 	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error)
 	GetMetadataAuthorityList() (types.MetadataAuthArray, error)
-	GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error)
-	HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string)  (bool, error)
+	GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error)
+	HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error)
 	// power api
 
 	GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error)
@@ -71,10 +71,10 @@ type Backend interface {
 	//QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-	 StoreTaskResultFileMetadataId(taskId, metadataId string) error
-	 QueryTaskResultFileMetadataId(taskId string)  (string, error)
-
-
-
-
+	//StoreTaskUpResultFile(taskId, metadataId string) error
+	//QueryTaskUpResultFile(taskId string) (string, error)
+	//RemoveTaskUpResultFile(taskId string) error
+	StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error
+	QueryTaskResultFileSummary (taskId string) (*types.TaskResultFileSummary, error)
+	QueryTaskResultFileSummaryList () (*types.TaskResultFileSummaryArr, error)
 }

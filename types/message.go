@@ -228,7 +228,7 @@ func (s PowerRevokeMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].Cre
 // ------------------- metaData -------------------
 
 type MetadataMsg struct {
-	MetadataId      string                    `json:"metaDataId"`
+	MetadataId      string                    `json:"metadataId"`
 	MetadataSummary *libtypes.MetadataSummary `json:"metadataSummary"`
 	ColumnMetas     []*types.MetadataColumn   `json:"columnMetas"`
 	CreateAt        uint64                    `json:"createAt"`
@@ -272,8 +272,12 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 	return metadataMsg
 }
 
-func (msg *MetadataMsg) ToDataCenter() *Metadata {
+func (msg *MetadataMsg) ToDataCenter(identity *apicommonpb.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
+		MetadataId:      msg.GetMetadataId(),
+		IdentityId:      identity.GetIdentityId(),
+		NodeId:          identity.GetNodeId(),
+		NodeName:        identity.GetNodeName(),
 		DataId:          msg.GetMetadataId(),
 		OriginId:        msg.GetOriginId(),
 		TableName:       msg.GetTableName(),
@@ -285,6 +289,7 @@ func (msg *MetadataMsg) ToDataCenter() *Metadata {
 		Size_:           msg.GetSize(),
 		HasTitle:        msg.GetHasTitle(),
 		MetadataColumns: msg.GetColumnMetas(),
+		Industry:        msg.GetIndustry(),
 		// the status of data, N means normal, D means deleted.
 		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		// metaData status, eg: create/release/revoke
@@ -321,6 +326,7 @@ func (msg *MetadataMsg) GetState() apicommonpb.MetadataState {
 func (msg *MetadataMsg) GetColumnMetas() []*types.MetadataColumn {
 	return msg.ColumnMetas
 }
+func (msg *MetadataMsg) GetIndustry() string   { return msg.MetadataSummary.Industry }
 func (msg *MetadataMsg) GetCreateAt() uint64   { return msg.CreateAt }
 func (msg *MetadataMsg) GetMetadataId() string { return msg.MetadataId }
 
@@ -365,9 +371,13 @@ func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetadataRequest) *Metadat
 
 func (msg *MetadataRevokeMsg) GetMetadataId() string { return msg.MetadataId }
 func (msg *MetadataRevokeMsg) GetCreateAat() uint64  { return msg.CreateAt }
-func (msg *MetadataRevokeMsg) ToDataCenter() *Metadata {
+func (msg *MetadataRevokeMsg) ToDataCenter(identity *apicommonpb.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
-		DataId: msg.MetadataId,
+		MetadataId: msg.GetMetadataId(),
+		IdentityId: identity.GetIdentityId(),
+		NodeId:     identity.GetNodeId(),
+		NodeName:   identity.GetNodeName(),
+		DataId:     msg.GetMetadataId(),
 		// the status of data, N means normal, D means deleted.
 		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 		// metaData status, eg: create/release/revoke
@@ -661,7 +671,7 @@ func (msg *TaskMsg) String() string {
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 
 func (msg *TaskMsg) GetUserType() apicommonpb.UserType { return msg.Data.GetTaskData().GetUserType() }
-func (msg *TaskMsg) GetUser() string { return msg.Data.GetTaskData().GetUser() }
+func (msg *TaskMsg) GetUser() string                   { return msg.Data.GetTaskData().GetUser() }
 func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {
 	return &apicommonpb.TaskOrganization{
 		PartyId:    msg.Data.GetTaskData().GetPartyId(),
@@ -670,12 +680,12 @@ func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {
 		IdentityId: msg.Data.GetTaskData().GetIdentityId(),
 	}
 }
-func (msg *TaskMsg) GetSenderName() string      { return msg.Data.GetTaskData().GetNodeName() }
+func (msg *TaskMsg) GetSenderName() string       { return msg.Data.GetTaskData().GetNodeName() }
 func (msg *TaskMsg) GetSenderNodeId() string     { return msg.Data.GetTaskData().GetNodeId() }
 func (msg *TaskMsg) GetSenderIdentityId() string { return msg.Data.GetTaskData().GetIdentityId() }
 func (msg *TaskMsg) GetSenderPartyId() string    { return msg.Data.GetTaskData().GetPartyId() }
 func (msg *TaskMsg) GetTaskId() string           { return msg.Data.GetTaskData().GetTaskId() }
-func (msg *TaskMsg) GetTaskName() string { return msg.Data.GetTaskData().GetTaskName() }
+func (msg *TaskMsg) GetTaskName() string         { return msg.Data.GetTaskData().GetTaskName() }
 func (msg *TaskMsg) GetAlgoSupplier() *apicommonpb.TaskOrganization {
 	return &apicommonpb.TaskOrganization{
 		PartyId:    msg.Data.GetTaskData().GetAlgoSupplier().GetPartyId(),
