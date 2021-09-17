@@ -1,5 +1,10 @@
 package types
 
+const (
+	IDENTITY_TYPE_CA  = "CA"
+	IDENTITY_TYPE_DID = "DID"
+)
+
 //type DataStatus string
 //
 //func (r DataStatus) String() string { return string(r) }

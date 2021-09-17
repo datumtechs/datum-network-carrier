@@ -81,14 +81,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		ExternalIp:   "", //
 		InternalPort: "", //
 		ExternalPort: "", //
-		//TODO: 需要更改
-		//IdentityType: types.IDENTITY_TYPE_DID.String(), // 默认先是 DID
+		IdentityType: types.IDENTITY_TYPE_DID, // 默认先是 DID
 		IdentityId: identityId,
 		Name:       nodeName,
 		Peers:      registerNodes,
 		SeedPeers:  seedNodes,
-		//TODO: 需要更改
-		//GetState:        types.YARN_STATE_ACTIVE.String(),
+		State:      pb.YarnNodeState_State_Active,
 	}, nil
 }
 
@@ -139,19 +137,6 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, erro
 			NodeDetail: v,
 		}
 		result = append(result, registeredPeer)
-		//TODO: 需要更改
-		//n := &types.YarnRegisteredDataNode{
-		//	Id:           v.Id,
-		//	InternalIp:   v.InternalIp,
-		//	ExternalIp:   v.ExternalIp,
-		//	InternalPort: v.InternalPort,
-		//	ExternalPort: v.ExternalPort,
-		//	//ResourceUsage:  &types.ResourceUsage{},
-		//	Duration: duration, // ms
-		//}
-		//n.Delta.FileCount = 0
-		//n.Delta.FileTotalSize = 0
-		//dns[i] = n
 	}
 	return result, nil
 }
