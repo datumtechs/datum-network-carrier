@@ -165,15 +165,15 @@ func InsertTask() {
 				},
 				MetadataId:   DataId,
 				MetadataName: "meta1",
-				Columns: []*libtypes.MetadataColumn{
-					{
+				KeyColumn: &libtypes.MetadataColumn{
+
 						CIndex:   2,
 						CName:    "cname",
 						CType:    "ctype",
 						CSize:    10,
 						CComment: "this test",
 					},
-				},
+
 			},
 		},
 		PowerSuppliers: []*libtypes.TaskPowerSupplier{
