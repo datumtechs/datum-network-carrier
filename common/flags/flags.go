@@ -48,7 +48,7 @@ var (
 	GRPCGatewayHost = &cli.StringFlag{
 		Name:  "grpc-gateway-host",
 		Usage: "The host on which the gateway server runs on",
-		Value: "127.0.0.1",
+		Value: "192.168.112.32",
 	}
 	// GRPCGatewayPort enables a gRPC gateway to be exposed for Carrier.
 	GRPCGatewayPort = &cli.IntFlag{
@@ -119,6 +119,18 @@ var (
 	TestnetFlag = &cli.BoolFlag{
 		Name:  "testnet",
 		Usage: "Ropsten network: pre-configured proof-of-work test network",
+	}
+
+	// Data Center
+	GRPCDataCenterHost = &cli.StringFlag{
+		Name:  "grpc-datacenter-host",
+		Usage: "The host on which the datacenter server runs on",
+		Value: "127.0.0.1",
+	}
+	GRPCDataCenterPort = &cli.IntFlag{
+		Name:  "grpc-datacenter-port",
+		Usage: "The port on which the datacenter server runs on",
+		Value: 9099,
 	}
 
 	// ****************************** P2P module ************************************

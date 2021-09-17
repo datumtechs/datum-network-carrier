@@ -125,11 +125,14 @@ func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) er
 		return err
 	}
 
+	gatewayPort := cliCtx.Uint64(flags.GRPCGatewayPort.Name)
+	gatewayHost := cliCtx.String(flags.GRPCGatewayHost.Name)
+
 	// setting database
 	carrierDB, err := core.NewDataCenter(node.ctx, db, &params.DataCenterConfig{
 		// todo 写死的连接dataCenter的 grpc server 的ip和port
-		GrpcUrl: "192.168.112.32",
-		Port:    9099,
+		GrpcUrl: gatewayHost,
+		Port:    gatewayPort,
 	})
 	if err != nil {
 		return err
