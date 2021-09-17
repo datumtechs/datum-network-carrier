@@ -247,14 +247,15 @@ func ReadSeedNode(db DatabaseReader, nodeId string) (*pb.SeedPeer, error) {
 	if err != nil {
 		return nil, err
 	}
-	var seedNodes dbtype.SeedNodeListPB
+	var seedNodes dbtype.SeedPeerListPB
 	if err := seedNodes.Unmarshal(blob); err != nil {
 		return nil, err
 	}
-	for _, seed := range seedNodes.GetSeedNodeList() {
+	for _, seed := range seedNodes.GetSeedPeerList() {
 		if strings.EqualFold(seed.Id, nodeId) {
 			return &pb.SeedPeer{
 				Id:           seed.Id,
+				NodeId:       seed.NodeId,
 				InternalIp:   seed.InternalIp,
 				InternalPort: seed.InternalPort,
 				ConnState:    pb.ConnState(seed.ConnState),
@@ -271,14 +272,15 @@ func ReadAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
 	if err != nil {
 		return nil, err
 	}
-	var seedNodes dbtype.SeedNodeListPB
+	var seedNodes dbtype.SeedPeerListPB
 	if err := seedNodes.Unmarshal(blob); err != nil {
 		return nil, err
 	}
 	var nodes []*pb.SeedPeer
-	for _, seed := range seedNodes.SeedNodeList {
+	for _, seed := range seedNodes.SeedPeerList {
 		nodes = append(nodes, &pb.SeedPeer{
 			Id:           seed.Id,
+			NodeId:   	  seed.NodeId,
 			InternalIp:   seed.InternalIp,
 			InternalPort: seed.InternalPort,
 			ConnState:    pb.ConnState(seed.ConnState),
@@ -294,28 +296,29 @@ func WriteSeedNodes(db KeyValueStore, seedNode *pb.SeedPeer) {
 	if err != nil {
 		log.Warn("Failed to load old seed nodes", "error", err)
 	}
-	var seedNodes dbtype.SeedNodeListPB
+	var seedNodes dbtype.SeedPeerListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); err != nil {
 			log.WithError(err).Fatal("Failed to decode old seed nodes")
 		}
 
 	}
-	for _, s := range seedNodes.GetSeedNodeList() {
+	for _, s := range seedNodes.GetSeedPeerList() {
 		if strings.EqualFold(s.Id, seedNode.Id) {
 			log.WithFields(logrus.Fields{"id": s.Id}).Info("Skip duplicated seed node")
 			return
 		}
 	}
-	seedNodes.SeedNodeList = append(seedNodes.SeedNodeList, &dbtype.SeedNodePB{
+	seedNodes.SeedPeerList = append(seedNodes.SeedPeerList, &dbtype.SeedPeerPB{
 		Id:           seedNode.Id,
+		NodeId:       seedNode.NodeId,
 		InternalIp:   seedNode.InternalIp,
 		InternalPort: seedNode.InternalPort,
 		ConnState:    int32(seedNode.ConnState),
 	})
 	// max limit for store seed node.
-	if len(seedNodes.SeedNodeList) > seedNodeToKeep {
-		seedNodes.SeedNodeList = seedNodes.SeedNodeList[:seedNodeToKeep]
+	if len(seedNodes.SeedPeerList) > seedNodeToKeep {
+		seedNodes.SeedPeerList = seedNodes.SeedPeerList[:seedNodeToKeep]
 	}
 	data, err := seedNodes.Marshal()
 	if err != nil {
@@ -332,16 +335,16 @@ func DeleteSeedNode(db KeyValueStore, id string) {
 	if err != nil {
 		log.Warn("Failed to load old seed nodes", "error", err)
 	}
-	var seedNodes dbtype.SeedNodeListPB
+	var seedNodes dbtype.SeedPeerListPB
 	if len(blob) > 0 {
 		if err := seedNodes.Unmarshal(blob); err != nil {
 			log.WithError(err).Fatal("Failed to decode old seed nodes")
 		}
 	}
 	// need to test.
-	for idx, s := range seedNodes.GetSeedNodeList() {
+	for idx, s := range seedNodes.GetSeedPeerList() {
 		if strings.EqualFold(s.Id, id) {
-			seedNodes.SeedNodeList = append(seedNodes.SeedNodeList[:idx], seedNodes.SeedNodeList[idx+1:]...)
+			seedNodes.SeedPeerList = append(seedNodes.SeedPeerList[:idx], seedNodes.SeedPeerList[idx+1:]...)
 			break
 		}
 	}
