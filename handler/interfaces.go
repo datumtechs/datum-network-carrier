@@ -36,4 +36,5 @@ type TaskManager interface {
 	Stop() error
 	ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error
 	OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error
+	SendTaskEvent(reportEvent *types.ReportTaskEvent) error
 }

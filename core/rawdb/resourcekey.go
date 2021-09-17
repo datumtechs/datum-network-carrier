@@ -44,6 +44,12 @@ var (
 	// prefix + userType + user + metadataId -> metadataAuthId
 	UserMetadataAuthByMetadataIdKeyPrefix = []byte("UserMetadataAuthByMetadataIdKeyPrefix:")
 
+	// metadataId -> taskCount
+	// metadataId + n -> taskId
+
+	// taskId -> resultfile summary (auto build metadataId)
+
+
 
 )
 
