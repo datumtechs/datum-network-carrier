@@ -274,6 +274,7 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 
 func (msg *MetadataMsg) ToDataCenter() *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
+		MetadataId:      msg.GetMetadataId(),
 		DataId:          msg.GetMetadataId(),
 		OriginId:        msg.GetOriginId(),
 		TableName:       msg.GetTableName(),
@@ -367,7 +368,8 @@ func (msg *MetadataRevokeMsg) GetMetadataId() string { return msg.MetadataId }
 func (msg *MetadataRevokeMsg) GetCreateAat() uint64  { return msg.CreateAt }
 func (msg *MetadataRevokeMsg) ToDataCenter() *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
-		DataId: msg.MetadataId,
+		MetadataId: msg.MetadataId,
+		DataId:     msg.MetadataId,
 		// the status of data, N means normal, D means deleted.
 		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 		// metaData status, eg: create/release/revoke
@@ -661,7 +663,7 @@ func (msg *TaskMsg) String() string {
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 
 func (msg *TaskMsg) GetUserType() apicommonpb.UserType { return msg.Data.GetTaskData().GetUserType() }
-func (msg *TaskMsg) GetUser() string { return msg.Data.GetTaskData().GetUser() }
+func (msg *TaskMsg) GetUser() string                   { return msg.Data.GetTaskData().GetUser() }
 func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {
 	return &apicommonpb.TaskOrganization{
 		PartyId:    msg.Data.GetTaskData().GetPartyId(),
@@ -670,12 +672,12 @@ func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {
 		IdentityId: msg.Data.GetTaskData().GetIdentityId(),
 	}
 }
-func (msg *TaskMsg) GetSenderName() string      { return msg.Data.GetTaskData().GetNodeName() }
+func (msg *TaskMsg) GetSenderName() string       { return msg.Data.GetTaskData().GetNodeName() }
 func (msg *TaskMsg) GetSenderNodeId() string     { return msg.Data.GetTaskData().GetNodeId() }
 func (msg *TaskMsg) GetSenderIdentityId() string { return msg.Data.GetTaskData().GetIdentityId() }
 func (msg *TaskMsg) GetSenderPartyId() string    { return msg.Data.GetTaskData().GetPartyId() }
 func (msg *TaskMsg) GetTaskId() string           { return msg.Data.GetTaskData().GetTaskId() }
-func (msg *TaskMsg) GetTaskName() string { return msg.Data.GetTaskData().GetTaskName() }
+func (msg *TaskMsg) GetTaskName() string         { return msg.Data.GetTaskData().GetTaskName() }
 func (msg *TaskMsg) GetAlgoSupplier() *apicommonpb.TaskOrganization {
 	return &apicommonpb.TaskOrganization{
 		PartyId:    msg.Data.GetTaskData().GetAlgoSupplier().GetPartyId(),

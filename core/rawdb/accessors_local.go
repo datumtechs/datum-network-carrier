@@ -28,7 +28,7 @@ func ReadLocalIdentity(db DatabaseReader) (*apicommonpb.Organization, error) {
 		return nil, err
 	}
 	return &apicommonpb.Organization{
-		NodeName:       blob.GetNodeName(),
+		NodeName:   blob.GetNodeName(),
 		NodeId:     blob.GetNodeId(),
 		IdentityId: blob.GetIdentityId(),
 	}, nil
@@ -36,11 +36,11 @@ func ReadLocalIdentity(db DatabaseReader) (*apicommonpb.Organization, error) {
 
 // WriteLocalIdentity stores the local identity.
 func WriteLocalIdentity(db DatabaseWriter, localIdentity *apicommonpb.Organization) {
-	pb := &apicommonpb.TaskOrganization{
-		PartyId:              "",
-		IdentityId:           localIdentity.GetIdentityId(),
-		NodeId:               localIdentity.GetNodeId(),
-		NodeName:             localIdentity.GetNodeName(),
+	pb := &apicommonpb.Organization{
+		//PartyId:    "",
+		IdentityId: localIdentity.GetIdentityId(),
+		NodeId:     localIdentity.GetNodeId(),
+		NodeName:   localIdentity.GetNodeName(),
 	}
 	enc, _ := pb.Marshal()
 	if err := db.Put(localIdentityKey, enc); err != nil {
@@ -81,7 +81,7 @@ func WriteRunningTaskIDList(db KeyValueStore, jobNodeId, taskId string) {
 	}
 	for _, s := range array.GetArray() {
 		if strings.EqualFold(s, taskId) {
-			log.WithFields(logrus.Fields{ "id": s }).Info("Skip duplicated running task id")
+			log.WithFields(logrus.Fields{"id": s}).Info("Skip duplicated running task id")
 			return
 		}
 	}
@@ -142,7 +142,7 @@ func IncreaseRunningTaskCountForJobNode(db KeyValueStore, jobNodeId string) uint
 
 func WriteRunningTaskCountForJobNode(db DatabaseWriter, jobNodeId string, count uint32) {
 	pb := dbtype.Uint32PB{
-		V:                    count,
+		V: count,
 	}
 	enc, _ := pb.Marshal()
 	if err := db.Put(runningTaskCountForJobNodeKey(jobNodeId), enc); err != nil {
@@ -176,7 +176,7 @@ func IncreaseRunningTaskCountForOrg(db KeyValueStore) uint32 {
 
 func WriteRunningTaskCountForOrg(db DatabaseWriter, count uint32) {
 	pb := dbtype.Uint32PB{
-		V:                    count,
+		V: count,
 	}
 	enc, _ := pb.Marshal()
 	if err := db.Put(runningTaskCountForOrgKey, enc); err != nil {
@@ -195,7 +195,7 @@ func ReadIdentityStr(db DatabaseReader) string {
 // WriteIdentityStr stores the identity.
 func WriteIdentityStr(db DatabaseWriter, identity string) {
 	pb := dbtype.StringPB{
-		V:                    identity,
+		V: identity,
 	}
 	enc, _ := pb.Marshal()
 	if err := db.Put(identityKey, enc); err != nil {
@@ -226,7 +226,7 @@ func ReadYarnName(db DatabaseReader) (string, error) {
 // WriteYarnName stores the name of yarn.
 func WriteYarnName(db DatabaseWriter, yarnName string) {
 	pb := dbtype.StringPB{
-		V:                    yarnName,
+		V: yarnName,
 	}
 	enc, _ := pb.Marshal()
 	if err := db.Put(yarnNameKey, enc); err != nil {
@@ -303,15 +303,15 @@ func WriteSeedNodes(db KeyValueStore, seedNode *pb.SeedPeer) {
 	}
 	for _, s := range seedNodes.GetSeedNodeList() {
 		if strings.EqualFold(s.Id, seedNode.Id) {
-			log.WithFields(logrus.Fields{ "id": s.Id }).Info("Skip duplicated seed node")
+			log.WithFields(logrus.Fields{"id": s.Id}).Info("Skip duplicated seed node")
 			return
 		}
 	}
 	seedNodes.SeedNodeList = append(seedNodes.SeedNodeList, &dbtype.SeedNodePB{
-		Id:                   seedNode.Id,
-		InternalIp:           seedNode.InternalIp,
-		InternalPort:         seedNode.InternalPort,
-		ConnState:            int32(seedNode.ConnState),
+		Id:           seedNode.Id,
+		InternalIp:   seedNode.InternalIp,
+		InternalPort: seedNode.InternalPort,
+		ConnState:    int32(seedNode.ConnState),
 	})
 	// max limit for store seed node.
 	if len(seedNodes.SeedNodeList) > seedNodeToKeep {
@@ -428,7 +428,7 @@ func ReadAllRegisterNodes(db DatabaseReader, nodeType pb.RegisteredNodeType) ([]
 func WriteRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) {
 	blob, err := db.Get(registryNodeKey(nodeType))
 	if err != nil {
-		log.Warnf("Failed to load old registered nodes, err: {%s}",  err)
+		log.Warnf("Failed to load old registered nodes, err: {%s}", err)
 	}
 	var registeredNodes dbtype.RegisteredNodeListPB
 	if len(blob) > 0 {
@@ -439,17 +439,17 @@ func WriteRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType, regist
 	}
 	for _, s := range registeredNodes.GetRegisteredNodeList() {
 		if strings.EqualFold(s.Id, registeredNode.Id) {
-			log.WithFields(logrus.Fields{ "id": s.Id }).Info("Skip duplicated registered node")
+			log.WithFields(logrus.Fields{"id": s.Id}).Info("Skip duplicated registered node")
 			return
 		}
 	}
 	registeredNodes.RegisteredNodeList = append(registeredNodes.RegisteredNodeList, &dbtype.RegisteredNodePB{
-		Id:                   registeredNode.Id,
-		InternalIp:           registeredNode.InternalIp,
-		InternalPort:         registeredNode.InternalPort,
-		ExternalIp: 		  registeredNode.ExternalIp,
-		ExternalPort: 	      registeredNode.ExternalPort,
-		ConnState:            int32(registeredNode.ConnState),
+		Id:           registeredNode.Id,
+		InternalIp:   registeredNode.InternalIp,
+		InternalPort: registeredNode.InternalPort,
+		ExternalIp:   registeredNode.ExternalIp,
+		ExternalPort: registeredNode.ExternalPort,
+		ConnState:    int32(registeredNode.ConnState),
 	})
 	// max limit for store seed node.
 	if len(registeredNodes.RegisteredNodeList) > registeredNodeToKeep {
@@ -512,10 +512,10 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libtypes.TaskEvent, err
 		if strings.EqualFold(e.GetTaskId(), taskId) {
 			resEvent = append(resEvent, &libtypes.TaskEvent{
 				Type:       e.GetType(),
-				IdentityId:   e.GetIdentityId(),
+				IdentityId: e.GetIdentityId(),
 				TaskId:     e.GetTaskId(),
 				Content:    e.GetContent(),
-				CreateAt: e.GetCreateAt(),
+				CreateAt:   e.GetCreateAt(),
 			})
 		}
 	}
@@ -523,7 +523,7 @@ func ReadTaskEvent(db DatabaseReader, taskId string) ([]*libtypes.TaskEvent, err
 }
 
 // ReadAllTaskEvent retrieves the task event with all.
-func ReadAllTaskEvents(db KeyValueStore) ( []*libtypes.TaskEvent, error) {
+func ReadAllTaskEvents(db KeyValueStore) ([]*libtypes.TaskEvent, error) {
 	prefix := taskEventPrefix
 	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
 	defer it.Release()
@@ -732,11 +732,11 @@ func WriteLocalTask(db KeyValueStore, task *types.Task) {
 		}
 	}
 
-	var duplicated bool = false
+	var duplicated = false
 	// Check whether there is duplicate data.
 	for i, s := range array.TaskList {
 		if strings.EqualFold(s.TaskId, task.GetTaskId()) {
-			log.WithFields(logrus.Fields{ "taskId": s.TaskId }).Info("update duplicated local task")
+			log.WithFields(logrus.Fields{"taskId": s.TaskId}).Info("update duplicated local task")
 			//return
 			array.TaskList[i] = task.GetTaskData()
 			duplicated = true
