@@ -55,14 +55,6 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 				NodeType:   pb.NodeType_NodeType_DataNode,
 				NodeDetail: v,
 			}
-			/*n.RegisteredNodeInfo = &pb.YarnRegisteredPeerDetail{
-				Id:           v.Id,
-				InternalIp:   v.InternalIp,
-				InternalPort: v.InternalPort,
-				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.ExternalPort,
-				ConnState:    v.ConnState,
-			}*/
 			registerNodes[jobsLen+i] = n
 		}
 	}
