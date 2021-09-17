@@ -57,14 +57,6 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 				NodeType:   pb.NodeType_NodeType_DataNode,
 				NodeDetail: v,
 			}
-			/*n.RegisteredNodeInfo = &pb.YarnRegisteredPeerDetail{
-				Id:           v.Id,
-				InternalIp:   v.InternalIp,
-				InternalPort: v.InternalPort,
-				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.ExternalPort,
-				ConnState:    v.ConnState,
-			}*/
 			registerNodes[jobsLen+i] = n
 		}
 	}
@@ -91,14 +83,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		ExternalIp:   "", //
 		InternalPort: "", //
 		ExternalPort: "", //
-		//TODO: 需要更改
-		//IdentityType: types.IDENTITY_TYPE_DID.String(), // 默认先是 DID
+		IdentityType: types.IDENTITY_TYPE_DID, // 默认先是 DID
 		IdentityId: identityId,
 		Name:       nodeName,
 		Peers:      registerNodes,
 		SeedPeers:  seedNodes,
-		//TODO: 需要更改
-		//GetState:        types.YARN_STATE_ACTIVE.String(),
+		State:      pb.YarnNodeState_State_Active,
 	}, nil
 }
 
@@ -149,19 +139,6 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, erro
 			NodeDetail: v,
 		}
 		result = append(result, registeredPeer)
-		//TODO: 需要更改
-		//n := &types.YarnRegisteredDataNode{
-		//	Id:           v.Id,
-		//	InternalIp:   v.InternalIp,
-		//	ExternalIp:   v.ExternalIp,
-		//	InternalPort: v.InternalPort,
-		//	ExternalPort: v.ExternalPort,
-		//	//ResourceUsage:  &types.ResourceUsage{},
-		//	Duration: duration, // ms
-		//}
-		//n.Delta.FileCount = 0
-		//n.Delta.FileTotalSize = 0
-		//dns[i] = n
 	}
 	return result, nil
 }
@@ -422,7 +399,7 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-// metadata api
+// metadata api   todo 加上查询本地 metadata ???
 func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error) {
 	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
 	if metadata == nil {
@@ -431,12 +408,12 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*p
 	return types.NewOrgMetadataInfoFromMetadata(metadata), err
 }
 
-// GetMetadataDetailList returns a list of all metadata details in the network.
+// GetMetadataDetailList returns a list of all metadata details in the network.   todo 加上查询本地 metadata ???
 func (s *CarrierAPIBackend) GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
 	return types.NewOrgMetadataInfoArrayFromMetadataArray(metadataArray), err
 }
-
+// todo 这里需要加上 metadata 被 task 引用的个数 ???
 func (s *CarrierAPIBackend) GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error) {
 	log.WithField("identityId", identityId).Debug("Invoke: GetMetadataDetailListByOwner executing...")
 	metadataList, err := s.GetMetadataDetailList()

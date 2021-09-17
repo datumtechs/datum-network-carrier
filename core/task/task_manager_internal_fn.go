@@ -403,7 +403,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 				if nil != err {
 					return "", err
 				}
-				filePath = metadata.MetadataData().GetFilePath()
+				filePath = metadata.GetData().GetFilePath()
 
 				keyColumn = dataSupplier.GetKeyColumn().GetCName()
 				selectedColumns = make([]string, len(dataSupplier.GetSelectedColumns()))

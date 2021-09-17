@@ -23,7 +23,7 @@ func TestLocalTask(t *testing.T) {
 		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 		TaskId:     "taskID",
 		TaskName:   "taskName",
-		State:      apicommonpb.TaskState_TaskState_Unknown,
+		State:      apicommonpb.TaskState_TaskState_Failed,
 		Reason:     "reason",
 		EventCount: 4,
 		Desc:       "desc",
@@ -41,7 +41,7 @@ func TestLocalTask(t *testing.T) {
 	WriteLocalTask(database, res)
 
 	res, _ = ReadLocalTask(database, data01.TaskId)
-	assert.Equal(t, "failed", res.GetTaskData().State)
+	assert.Equal(t, data01.State, res.GetTaskData().State)
 
 	taskList, _ := ReadAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 1)
@@ -179,9 +179,7 @@ func TestLocalIdentity(t *testing.T) {
 
 	DeleteLocalIdentity(database)
 	rnode, _ = ReadLocalIdentity(database)
-	assert.Equal(t, rnode.IdentityId, "")
-	assert.Equal(t, rnode.NodeId, "")
-	assert.Equal(t, rnode.NodeName, "")
+	require.Nil(t, rnode)
 }
 
 func TestLocalResource(t *testing.T) {

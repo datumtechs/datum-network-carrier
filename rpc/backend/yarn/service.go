@@ -16,49 +16,10 @@ func (svr *Server) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*pb.Get
 		log.WithError(err).Error("RPC-API:GetNodeInfo failed")
 		return nil, ErrGetNodeInfo
 	}
-	peers := make([]*pb.YarnRegisteredPeer, len(node.Peers))
-	for i, v := range node.Peers {
-		/*n := &pb.YarnRegisteredPeer{
-			NodeType: v.NodeType,
-			NodeDetail: &pb.YarnRegisteredPeerDetail{
-				Id:           v.RegisteredNodeInfo.Id,
-				InternalIp:   v.InternalIp,
-				InternalPort: v.InternalPort,
-				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.ExternalPort,
-				ConnState:    v.ConnState.Int32(),
-			},
-		}*/
-		peers[i] = v
-	}
-	seeds := make([]*pb.SeedPeer, len(node.SeedPeers))
-	for i, v := range node.SeedPeers {
-		n := &pb.SeedPeer{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			InternalPort: v.InternalPort,
-			ConnState:    v.ConnState,
-		}
-		seeds[i] = n
-	}
-
 	return &pb.GetNodeInfoResponse{
-		Status: 0,
-		Msg:    backend.OK,
-		Information: &pb.YarnNodeInfo{
-			NodeType:     node.NodeType,
-			NodeId:       node.NodeId,
-			InternalIp:   node.InternalIp,
-			InternalPort: node.InternalPort,
-			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.ExternalPort,
-			IdentityType: node.IdentityType,
-			IdentityId:   node.IdentityId,
-			State:        node.State,
-			Name:         node.Name,
-			SeedPeers:    seeds,
-			Peers:        peers,
-		},
+		Status:      0,
+		Msg:         backend.OK,
+		Information: node,
 	}, nil
 }
 
@@ -68,58 +29,6 @@ func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegistered
 		log.WithError(err).Error("RPC-API:GetRegisteredPeers failed")
 		return nil, ErrGetRegisteredPeers
 	}
-
-	//jobNodes := make([]*pb.YarnRegisteredPeerDetail, len(registerNodes.JobNodes))
-	//for i, v := range registerNodes.JobNodes {
-	//	node := &pb.YarnRegisteredPeerDetail{
-	//		Id:           v.Id,
-	//		InternalIp:   v.InternalIp,
-	//		ExternalIp:   v.ExternalIp,
-	//		InternalPort: v.InternalPort,
-	//		ExternalPort: v.ExternalPort,
-	//		//TODO: 数据结构调整导致必须注释的
-	//		/*organization: &pb.ResourceUsedDetailShow{
-	//			TotalMem:       v.ResourceUsage.TotalMem,
-	//			UsedMem:        v.ResourceUsage.UsedMem,
-	//			TotalProcessor: v.ResourceUsage.TotalProcessor,
-	//			UsedProcessor:  v.ResourceUsage.UsedProcessor,
-	//			TotalBandwidth: v.ResourceUsage.TotalBandwidth,
-	//			UsedBandwidth:  v.ResourceUsage.UsedBandwidth,
-	//		},
-	//		Duration: v.Duration,
-	//		GetTask: &pb.YarnRegisteredJobNodeTaskIds{
-	//			Count:   v.GetTask.Count,
-	//			TaskIds: v.GetTask.TaskIds,
-	//		},*/
-	//	}
-	//	jobNodes[i] = node
-	//}
-
-	//TODO: 数据结构调整导致必须注释的
-	/*dataNodes := make([]*pb.YarnRegisteredDataNode, len(registerNodes.DataNodes))
-	for i, v := range registerNodes.DataNodes {
-		node := &pb.YarnRegisteredDataNode{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			ExternalIp:   v.ExternalIp,
-			InternalPort: v.InternalPort,
-			ExternalPort: v.ExternalPort,
-			organization: &pb.ResourceUsedDetailShow{
-				TotalMem:       v.ResourceUsage.TotalMem,
-				UsedMem:        v.ResourceUsage.UsedMem,
-				TotalProcessor: v.ResourceUsage.TotalProcessor,
-				UsedProcessor:  v.ResourceUsage.UsedProcessor,
-				TotalBandwidth: v.ResourceUsage.TotalBandwidth,
-				UsedBandwidth:  v.ResourceUsage.UsedBandwidth,
-			},
-			Duration: v.Duration,
-			Delta: &pb.YarnRegisteredDataNodeDelta{
-				FileCount:     v.Delta.FileCount,
-				FileTotalSize: v.Delta.FileTotalSize,
-			},
-		}
-		dataNodes[i] = node
-	}*/
 	log.Debugf("RPC-API:GetRegisteredPeers succeed, node len: {%d}", len(registerNodes))
 	return &pb.GetRegisteredPeersResponse{
 		Status: 0,

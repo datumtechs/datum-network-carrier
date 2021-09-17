@@ -50,6 +50,8 @@ var (
 		flags.GPRCGatewayCorsDomain,
 		flags.GRPCGatewayHost,
 		flags.GRPCGatewayPort,
+		flags.GRPCDataCenterHost,
+		flags.GRPCDataCenterPort,
 		flags.GrpcMaxCallRecvMsgSizeFlag,
 	}
 

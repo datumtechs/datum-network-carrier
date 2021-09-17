@@ -249,6 +249,7 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 			Size_:      req.GetInformation().GetMetadataSummary().GetSize_(),
 			FileType:   req.GetInformation().GetMetadataSummary().GetFileType(),
 			HasTitle:   req.GetInformation().GetMetadataSummary().GetHasTitle(),
+			Industry:   req.GetInformation().GetMetadataSummary().GetIndustry(),
 			State:      req.GetInformation().GetMetadataSummary().GetState(),
 		},
 		ColumnMetas: make([]*types.MetadataColumn, 0),
