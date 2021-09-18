@@ -77,15 +77,15 @@
         ]
       }
     },
-    "/carrier/v1/power/singleList": {
+    "/carrier/v1/power/selfList": {
       "post": {
-        "summary": "查看某个节点各个单算力详情列表",
-        "operationId": "PowerService_GetPowerSingleDetailList",
+        "summary": "查看本组织的各个单算力详情列表",
+        "operationId": "PowerService_GetSelfPowerDetailList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiGetPowerSingleDetailListResponse"
+              "$ref": "#/definitions/rpcapiGetSelfPowerDetailListResponse"
             }
           },
           "default": {
@@ -112,13 +112,13 @@
     },
     "/carrier/v1/power/totalList": {
       "post": {
-        "summary": "查看各个节点的总算力详情列表",
-        "operationId": "PowerService_GetPowerTotalDetailList",
+        "summary": "查看全网各个组织的总算力详情列表",
+        "operationId": "PowerService_GetTotalPowerDetailList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiGetPowerTotalDetailListResponse"
+              "$ref": "#/definitions/rpcapiGetTotalPowerDetailListResponse"
             }
           },
           "default": {
@@ -157,6 +157,16 @@
         }
       }
     },
+    "protobufCommonStatus": {
+      "type": "string",
+      "enum": [
+        "CommonStatus_Unknown",
+        "CommonStatus_Normal",
+        "CommonStatus_NonNormal"
+      ],
+      "default": "CommonStatus_Unknown",
+      "title": "Y : normal, N non-normal"
+    },
     "protobufOrganization": {
       "type": "object",
       "properties": {
@@ -171,9 +181,24 @@
         "identity_id": {
           "type": "string",
           "title": "the identity for org"
+        },
+        "status": {
+          "$ref": "#/definitions/protobufCommonStatus",
+          "title": "the status for organization(deleted/normal)"
         }
       },
       "description": "A represents the basic information of the organization."
+    },
+    "protobufPowerState": {
+      "type": "string",
+      "enum": [
+        "PowerState_Unknown",
+        "PowerState_Created",
+        "PowerState_Released",
+        "PowerState_Revoked"
+      ],
+      "default": "PowerState_Unknown",
+      "title": "算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)"
     },
     "protobufSimpleResponse": {
       "type": "object",
@@ -192,17 +217,17 @@
     "protobufTaskResourceCostDeclare": {
       "type": "object",
       "properties": {
-        "cost_mem": {
+        "memory": {
           "type": "string",
           "format": "uint64",
           "title": "任务所需的内存 (单位: byte)"
         },
-        "cost_processor": {
+        "processor": {
           "type": "integer",
           "format": "int64",
           "title": "任务所需的核数 (单位: 个)"
         },
-        "cost_bandwidth": {
+        "bandwidth": {
           "type": "string",
           "format": "uint64",
           "title": "任务所需的带宽 (单位: bps)"
@@ -215,7 +240,7 @@
       },
       "title": "任务需要花费的资源声明"
     },
-    "rpcapiGetPowerSingleDetailListResponse": {
+    "rpcapiGetSelfPowerDetailListResponse": {
       "type": "object",
       "properties": {
         "status": {
@@ -228,51 +253,60 @@
         "power_list": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiGetPowerSingleDetailResponse"
+            "$ref": "#/definitions/rpcapiGetSelfPowerDetailResponse"
           }
-        }
-      }
-    },
-    "rpcapiGetPowerSingleDetailResponse": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/protobufOrganization"
-        },
-        "power": {
-          "$ref": "#/definitions/typesPowerSingleDetail"
-        }
-      }
-    },
-    "rpcapiGetPowerTotalDetailListResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "power_list": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiGetPowerTotalDetailResponse"
-          }
-        }
-      }
-    },
-    "rpcapiGetPowerTotalDetailResponse": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/protobufOrganization"
-        },
-        "power": {
-          "$ref": "#/definitions/typesPowerTotalDetail"
         }
       },
-      "title": "------------------------  power  ------------------------"
+      "title": "本组织的多个算力信息列表 resp"
+    },
+    "rpcapiGetSelfPowerDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/protobufOrganization"
+        },
+        "power": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        },
+        "job_node_id": {
+          "type": "string"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      },
+      "title": "本组织的单个算力信息"
+    },
+    "rpcapiGetTotalPowerDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "power_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetTotalPowerDetailResponse"
+          }
+        }
+      },
+      "title": "全网各个组织的总算力列表 resp"
+    },
+    "rpcapiGetTotalPowerDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/protobufOrganization"
+        },
+        "power": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        }
+      },
+      "title": "单个组织的总算力信息"
     },
     "rpcapiPublishPowerRequest": {
       "type": "object",
@@ -280,7 +314,8 @@
         "job_node_id": {
           "type": "string"
         }
-      }
+      },
+      "title": "启用算力 req"
     },
     "rpcapiPublishPowerResponse": {
       "type": "object",
@@ -295,7 +330,8 @@
         "power_id": {
           "type": "string"
         }
-      }
+      },
+      "title": "启用算力 resp"
     },
     "rpcapiRevokePowerRequest": {
       "type": "object",
@@ -303,7 +339,8 @@
         "power_id": {
           "type": "string"
         }
-      }
+      },
+      "title": "停用算力 req"
     },
     "runtimeError": {
       "type": "object",
@@ -326,38 +363,6 @@
         }
       }
     },
-    "typesPowerSingleDetail": {
-      "type": "object",
-      "properties": {
-        "information": {
-          "$ref": "#/definitions/typesResourceUsageOverview"
-        },
-        "job_node_id": {
-          "type": "string"
-        },
-        "power_id": {
-          "type": "string"
-        },
-        "total_task_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "current_task_count": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "tasks": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/typesPowerTask"
-          }
-        },
-        "state": {
-          "type": "string"
-        }
-      },
-      "title": "单个算力详情（对应到具体某一台服务器）"
-    },
     "typesPowerTask": {
       "type": "object",
       "properties": {
@@ -370,7 +375,7 @@
         "owner": {
           "$ref": "#/definitions/protobufOrganization"
         },
-        "patners": {
+        "partners": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/protobufOrganization"
@@ -395,7 +400,7 @@
       },
       "title": "算力上的任务信息"
     },
-    "typesPowerTotalDetail": {
+    "typesPowerUsageDetail": {
       "type": "object",
       "properties": {
         "information": {
@@ -416,10 +421,10 @@
           }
         },
         "state": {
-          "type": "string"
+          "$ref": "#/definitions/protobufPowerState"
         }
       },
-      "title": "总算力详情（对应到一个组织下的所有算力资源）"
+      "title": "算力及算力上的task信息的公共抽象"
     },
     "typesResourceUsageOverview": {
       "type": "object",
@@ -427,32 +432,32 @@
         "total_mem": {
           "type": "string",
           "format": "uint64",
-          "title": "服务系统的总内存"
+          "title": "服务系统的总内存 (单位: byte)"
         },
         "used_mem": {
           "type": "string",
           "format": "uint64",
-          "title": "服务系统的已用内存"
+          "title": "服务系统的已用内存  (单位: byte)"
         },
         "total_processor": {
           "type": "integer",
           "format": "int64",
-          "title": "服务的总内核数"
+          "title": "服务的总内核数 (单位: 个)"
         },
         "used_processor": {
           "type": "integer",
           "format": "int64",
-          "title": "服务的已用内核数"
+          "title": "服务的已用内核数 (单位: 个)"
         },
         "total_bandwidth": {
           "type": "string",
           "format": "uint64",
-          "title": "服务的总带宽数"
+          "title": "服务的总带宽数 (单位: bps)"
         },
         "used_bandwidth": {
           "type": "string",
           "format": "uint64",
-          "title": "服务的已用带宽数"
+          "title": "服务的已用带宽数 (单位: bps)"
         },
         "total_disk": {
           "type": "string",

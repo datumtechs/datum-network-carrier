@@ -46,7 +46,7 @@
     },
     "/carrier/v1/task/eventListByTaskIds": {
       "post": {
-        "summary": "查看某个任务的全部事件列表",
+        "summary": "查看多个任务的全部事件列表",
         "operationId": "TaskService_GetTaskEventListByTaskIds",
         "responses": {
           "200": {
@@ -79,7 +79,7 @@
     },
     "/carrier/v1/task/list": {
       "post": {
-        "summary": "查看全部任务详情列表",
+        "summary": "查看本组织参与过的全部任务详情列表",
         "operationId": "TaskService_GetTaskDetailList",
         "responses": {
           "200": {
@@ -190,6 +190,16 @@
         }
       }
     },
+    "protobufCommonStatus": {
+      "type": "string",
+      "enum": [
+        "CommonStatus_Unknown",
+        "CommonStatus_Normal",
+        "CommonStatus_NonNormal"
+      ],
+      "default": "CommonStatus_Unknown",
+      "title": "Y : normal, N non-normal"
+    },
     "protobufOrganization": {
       "type": "object",
       "properties": {
@@ -204,6 +214,10 @@
         "identity_id": {
           "type": "string",
           "title": "the identity for org"
+        },
+        "status": {
+          "$ref": "#/definitions/protobufCommonStatus",
+          "title": "the status for organization(deleted/normal)"
         }
       },
       "description": "A represents the basic information of the organization."
@@ -246,17 +260,17 @@
     "protobufTaskResourceCostDeclare": {
       "type": "object",
       "properties": {
-        "cost_mem": {
+        "memory": {
           "type": "string",
           "format": "uint64",
           "title": "任务所需的内存 (单位: byte)"
         },
-        "cost_processor": {
+        "processor": {
           "type": "integer",
           "format": "int64",
           "title": "任务所需的核数 (单位: 个)"
         },
-        "cost_bandwidth": {
+        "bandwidth": {
           "type": "string",
           "format": "uint64",
           "title": "任务所需的带宽 (单位: bps)"
@@ -269,15 +283,40 @@
       },
       "title": "任务需要花费的资源声明"
     },
+    "protobufTaskRole": {
+      "type": "string",
+      "enum": [
+        "TaskRole_Unknown",
+        "TaskRole_Sender",
+        "TaskRole_DataSupplier",
+        "TaskRole_PowerSupplier",
+        "TaskRole_Receiver",
+        "TaskRole_AlgoSupplier"
+      ],
+      "default": "TaskRole_Unknown",
+      "title": "本组织在task中的角色"
+    },
+    "protobufTaskState": {
+      "type": "string",
+      "enum": [
+        "TaskState_Unknown",
+        "TaskState_Pending",
+        "TaskState_Running",
+        "TaskState_Failed",
+        "TaskState_Succeed"
+      ],
+      "default": "TaskState_Unknown",
+      "title": "task的状态"
+    },
     "protobufUserType": {
       "type": "string",
       "enum": [
-        "Unknown",
-        "ETH",
-        "ATP",
-        "LAT"
+        "User_Unknown",
+        "User_ETH",
+        "User_ATP",
+        "User_LAT"
       ],
-      "default": "Unknown"
+      "default": "User_Unknown"
     },
     "rpcapiGetTaskDetailListResponse": {
       "type": "object",
@@ -295,7 +334,8 @@
             "$ref": "#/definitions/rpcapiGetTaskDetailResponse"
           }
         }
-      }
+      },
+      "title": "查看本组织参与过的全部任务详情列表 resp"
     },
     "rpcapiGetTaskDetailResponse": {
       "type": "object",
@@ -304,9 +344,10 @@
           "$ref": "#/definitions/rpcapiTaskDetailShow"
         },
         "role": {
-          "type": "string"
+          "$ref": "#/definitions/protobufTaskRole"
         }
-      }
+      },
+      "title": "查看本组织参与过的全部任务详情列表"
     },
     "rpcapiGetTaskEventListByTaskIdsRequest": {
       "type": "object",
@@ -317,7 +358,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "title": "查看多个任务的全部事件列表 req"
     },
     "rpcapiGetTaskEventListRequest": {
       "type": "object",
@@ -325,7 +367,8 @@
         "task_id": {
           "type": "string"
         }
-      }
+      },
+      "title": "查看某个任务的全部事件列表 req"
     },
     "rpcapiGetTaskEventListResponse": {
       "type": "object",
@@ -343,7 +386,8 @@
             "$ref": "#/definitions/rpcapiTaskEventShow"
           }
         }
-      }
+      },
+      "title": "查看某个or多个任务的全部事件列表 resp"
     },
     "rpcapiPublishTaskDeclareRequest": {
       "type": "object",
@@ -360,7 +404,10 @@
         "sender": {
           "$ref": "#/definitions/protobufTaskOrganization"
         },
-        "data_supplier": {
+        "algo_supplier": {
+          "$ref": "#/definitions/protobufTaskOrganization"
+        },
+        "data_suppliers": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiTaskDataSupplierDeclare"
@@ -375,16 +422,16 @@
         "receivers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/typesTaskResultReceiver"
+            "$ref": "#/definitions/protobufTaskOrganization"
           }
         },
         "operation_cost": {
           "$ref": "#/definitions/protobufTaskResourceCostDeclare"
         },
-        "calculate_contractcode": {
+        "calculate_contract_code": {
           "type": "string"
         },
-        "datasplit_contractcode": {
+        "data_split_contract_code": {
           "type": "string"
         },
         "contract_extra_params": {
@@ -393,8 +440,12 @@
         "sign": {
           "type": "string",
           "format": "byte"
+        },
+        "desc": {
+          "type": "string"
         }
-      }
+      },
+      "title": "发布任务 req"
     },
     "rpcapiPublishTaskDeclareResponse": {
       "type": "object",
@@ -409,16 +460,17 @@
         "task_id": {
           "type": "string"
         }
-      }
+      },
+      "title": "发布任务 resp"
     },
     "rpcapiTaskDataSupplierDeclare": {
       "type": "object",
       "properties": {
-        "member_info": {
+        "organization": {
           "$ref": "#/definitions/protobufTaskOrganization"
         },
-        "meta_data_info": {
-          "$ref": "#/definitions/rpcapiTaskMetaDataDeclare"
+        "metadata_info": {
+          "$ref": "#/definitions/rpcapiTaskMetadataDeclare"
         }
       },
       "title": "任务数据供应者信息 (任务详情定义用)"
@@ -426,13 +478,13 @@
     "rpcapiTaskDataSupplierShow": {
       "type": "object",
       "properties": {
-        "member_info": {
+        "organization": {
           "$ref": "#/definitions/protobufTaskOrganization"
         },
-        "meta_data_id": {
+        "metadata_id": {
           "type": "string"
         },
-        "meta_data_name": {
+        "metadata_name": {
           "type": "string"
         }
       },
@@ -447,19 +499,25 @@
         "task_name": {
           "type": "string"
         },
-        "owner": {
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/protobufUserType"
+        },
+        "sender": {
           "$ref": "#/definitions/protobufTaskOrganization"
         },
         "algo_supplier": {
           "$ref": "#/definitions/protobufTaskOrganization"
         },
-        "data_supplier": {
+        "data_suppliers": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiTaskDataSupplierShow"
           }
         },
-        "power_supplier": {
+        "power_suppliers": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiTaskPowerSupplierShow"
@@ -484,10 +542,13 @@
           "format": "uint64"
         },
         "state": {
-          "type": "string"
+          "$ref": "#/definitions/protobufTaskState"
         },
         "operation_cost": {
           "$ref": "#/definitions/protobufTaskResourceCostDeclare"
+        },
+        "desc": {
+          "type": "string"
         }
       },
       "title": "定义：任务详情（仅用户与前端交互展示使用）"
@@ -514,17 +575,21 @@
       },
       "title": "定义：任务事件（仅用于web页面交互使用）"
     },
-    "rpcapiTaskMetaDataDeclare": {
+    "rpcapiTaskMetadataDeclare": {
       "type": "object",
       "properties": {
-        "meta_data_id": {
+        "metadata_id": {
           "type": "string"
         },
-        "column_index_list": {
+        "key_column": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "selected_columns": {
           "type": "array",
           "items": {
-            "type": "string",
-            "format": "uint64"
+            "type": "integer",
+            "format": "int64"
           }
         }
       }
@@ -532,7 +597,7 @@
     "rpcapiTaskPowerSupplierShow": {
       "type": "object",
       "properties": {
-        "member_info": {
+        "organization": {
           "$ref": "#/definitions/protobufTaskOrganization"
         },
         "power_info": {
@@ -557,7 +622,8 @@
           "type": "string",
           "format": "byte"
         }
-      }
+      },
+      "title": "终止任务 req"
     },
     "runtimeError": {
       "type": "object",
@@ -586,32 +652,32 @@
         "total_mem": {
           "type": "string",
           "format": "uint64",
-          "title": "服务系统的总内存"
+          "title": "服务系统的总内存 (单位: byte)"
         },
         "used_mem": {
           "type": "string",
           "format": "uint64",
-          "title": "服务系统的已用内存"
+          "title": "服务系统的已用内存  (单位: byte)"
         },
         "total_processor": {
           "type": "integer",
           "format": "int64",
-          "title": "服务的总内核数"
+          "title": "服务的总内核数 (单位: 个)"
         },
         "used_processor": {
           "type": "integer",
           "format": "int64",
-          "title": "服务的已用内核数"
+          "title": "服务的已用内核数 (单位: 个)"
         },
         "total_bandwidth": {
           "type": "string",
           "format": "uint64",
-          "title": "服务的总带宽数"
+          "title": "服务的总带宽数 (单位: bps)"
         },
         "used_bandwidth": {
           "type": "string",
           "format": "uint64",
-          "title": "服务的已用带宽数"
+          "title": "服务的已用带宽数 (单位: bps)"
         },
         "total_disk": {
           "type": "string",
@@ -625,23 +691,6 @@
         }
       },
       "title": "系统资源消耗概览"
-    },
-    "typesTaskResultReceiver": {
-      "type": "object",
-      "properties": {
-        "receiver": {
-          "$ref": "#/definitions/protobufTaskOrganization",
-          "title": "任务接收方组织信息"
-        },
-        "providers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/protobufTaskOrganization"
-          },
-          "title": "提供结果的组织方信息（列表）"
-        }
-      },
-      "title": "定义：任务结果接收详细信息"
     }
   }
 }

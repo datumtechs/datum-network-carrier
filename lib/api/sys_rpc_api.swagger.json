@@ -11,6 +11,72 @@
     "application/json"
   ],
   "paths": {
+    "/carrier/v1/task/taskResultFileSummary": {
+      "post": {
+        "summary": "查询 任务结果文件摘要",
+        "operationId": "YarnService_GetTaskResultFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/task/taskResultFileSummaryList": {
+      "post": {
+        "summary": "查询当前组织参与的所有任务结果文件摘要",
+        "operationId": "YarnService_GetTaskResultFileSummaryList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
     "/carrier/v1/yarn/dataNodeList": {
       "post": {
         "summary": "查询数据服务列表",
@@ -310,7 +376,7 @@
     },
     "/carrier/v1/yarn/reportTaskEvent": {
       "post": {
-        "summary": "about report\n上报任务事件",
+        "summary": "about report\n数据/计算服务 上报任务事件",
         "operationId": "YarnService_ReportTaskEvent",
         "responses": {
           "200": {
@@ -343,7 +409,7 @@
     },
     "/carrier/v1/yarn/reportTaskResourceExpense": {
       "post": {
-        "summary": "上报资源使用实况",
+        "summary": "数据/计算服务 上报资源使用实况",
         "operationId": "YarnService_ReportTaskResourceExpense",
         "responses": {
           "200": {
@@ -366,6 +432,39 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/rpcapiReportTaskResourceExpenseRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/reportTaskResultFileSummary": {
+      "post": {
+        "summary": "上报 任务结果文件摘要",
+        "operationId": "YarnService_ReportTaskResultFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protobufSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiReportTaskResultFileSummaryRequest"
             }
           }
         ],
@@ -652,6 +751,15 @@
         }
       }
     },
+    "protobufOriginFileType": {
+      "type": "string",
+      "enum": [
+        "FileType_Unknown",
+        "FileType_CSV"
+      ],
+      "default": "FileType_Unknown",
+      "title": "原始文件类型"
+    },
     "protobufSimpleResponse": {
       "type": "object",
       "properties": {
@@ -666,13 +774,25 @@
         }
       }
     },
+    "rpcapiConnState": {
+      "type": "string",
+      "enum": [
+        "ConnState_UnConnected",
+        "ConnState_Connected",
+        "ConnState_Enabled",
+        "ConnState_Occupied"
+      ],
+      "default": "ConnState_UnConnected",
+      "title": "调度服务和 种子节点 or 计算服务 or 数据服务 的连接状态\n调度服务自身的状态信息 (0: 未被调度服务连接上; 1: 连接上; 2: 算力启用\u003c计算服务\u003e; 3: 算力被占用\u003c计算服务算力正在被任务占用\u003e)"
+    },
     "rpcapiDeleteRegisteredNodeRequest": {
       "type": "object",
       "properties": {
         "id": {
           "type": "string"
         }
-      }
+      },
+      "title": "删除种子or计算or数据服务node信息 req"
     },
     "rpcapiGetNodeInfoResponse": {
       "type": "object",
@@ -687,7 +807,8 @@
         "information": {
           "$ref": "#/definitions/rpcapiYarnNodeInfo"
         }
-      }
+      },
+      "title": "查看自身调度服务信息 resp"
     },
     "rpcapiGetRegisteredNodeListResponse": {
       "type": "object",
@@ -705,7 +826,8 @@
             "$ref": "#/definitions/rpcapiYarnRegisteredPeer"
           }
         }
-      }
+      },
+      "title": "查询数据 or 计算 服务列表 resp"
     },
     "rpcapiGetRegisteredPeersRequest": {
       "type": "object",
@@ -713,7 +835,8 @@
         "node_type": {
           "$ref": "#/definitions/rpcapiNodeType"
         }
-      }
+      },
+      "title": "查看自身调度服务的 peer注册信息 req"
     },
     "rpcapiGetRegisteredPeersResponse": {
       "type": "object",
@@ -731,7 +854,8 @@
             "$ref": "#/definitions/rpcapiYarnRegisteredPeer"
           }
         }
-      }
+      },
+      "title": "查看自身调度服务的 peer注册信息 resp"
     },
     "rpcapiGetSeedNodeListResponse": {
       "type": "object",
@@ -749,16 +873,75 @@
             "$ref": "#/definitions/rpcapiSeedPeer"
           }
         }
-      }
+      },
+      "title": "查询种子节点列表 resp"
+    },
+    "rpcapiGetTaskResultFileSummaryListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadata_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryResponse"
+          }
+        }
+      },
+      "title": "查询当前组织参与的所有任务结果文件摘要 resp"
+    },
+    "rpcapiGetTaskResultFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "title": "查询 任务结果文件摘要 req"
+    },
+    "rpcapiGetTaskResultFileSummaryResponse": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "file_name": {
+          "type": "string"
+        },
+        "metadata_id": {
+          "type": "string"
+        },
+        "origin_id": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      },
+      "title": "查询 任务结果文件摘要 resp"
     },
     "rpcapiNodeType": {
       "type": "string",
       "enum": [
-        "SeedNode",
-        "JobNode",
-        "DataNode"
+        "NodeType_Unknown",
+        "NodeType_SeedNode",
+        "NodeType_JobNode",
+        "NodeType_DataNode",
+        "NodeType_YarnNode"
       ],
-      "default": "SeedNode"
+      "default": "NodeType_Unknown",
+      "title": "节点进程类型"
     },
     "rpcapiQueryAvailableDataNodeRequest": {
       "type": "object",
@@ -768,9 +951,10 @@
           "format": "uint64"
         },
         "file_type": {
-          "type": "string"
+          "$ref": "#/definitions/protobufOriginFileType"
         }
-      }
+      },
+      "title": "查询可用数据服务资源目标 ip:port 信息 req"
     },
     "rpcapiQueryAvailableDataNodeResponse": {
       "type": "object",
@@ -781,7 +965,8 @@
         "port": {
           "type": "string"
         }
-      }
+      },
+      "title": "查询可用数据服务资源目标 ip:port 信息 resp"
     },
     "rpcapiQueryFilePositionRequest": {
       "type": "object",
@@ -789,7 +974,8 @@
         "origin_id": {
           "type": "string"
         }
-      }
+      },
+      "title": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 req"
     },
     "rpcapiQueryFilePositionResponse": {
       "type": "object",
@@ -803,15 +989,20 @@
         "file_path": {
           "type": "string"
         }
-      }
+      },
+      "title": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 resp"
     },
     "rpcapiReportTaskEventRequest": {
       "type": "object",
       "properties": {
+        "party_id": {
+          "type": "string"
+        },
         "task_event": {
           "$ref": "#/definitions/typesTaskEvent"
         }
-      }
+      },
+      "title": "数据/计算服务 上报任务事件 req"
     },
     "rpcapiReportTaskResourceExpenseRequest": {
       "type": "object",
@@ -826,7 +1017,28 @@
           "$ref": "#/definitions/typesResourceUsageOverview"
         }
       },
-      "title": "节点的资源使用实况上报请求"
+      "title": "数据/计算服务 上报资源使用实况 req"
+    },
+    "rpcapiReportTaskResultFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "origin_id": {
+          "type": "string"
+        },
+        "file_path": {
+          "type": "string"
+        },
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      },
+      "title": "上报 任务结果文件摘要 req"
     },
     "rpcapiReportUpFileSummaryRequest": {
       "type": "object",
@@ -843,7 +1055,8 @@
         "port": {
           "type": "string"
         }
-      }
+      },
+      "title": "上报 成功上传的原始文件Id req"
     },
     "rpcapiSeedPeer": {
       "type": "object",
@@ -861,8 +1074,7 @@
           "type": "string"
         },
         "conn_state": {
-          "type": "integer",
-          "format": "int32"
+          "$ref": "#/definitions/rpcapiConnState"
         }
       }
     },
@@ -881,7 +1093,8 @@
         "external_port": {
           "type": "string"
         }
-      }
+      },
+      "title": "新增数据服务信息 req"
     },
     "rpcapiSetDataNodeResponse": {
       "type": "object",
@@ -893,10 +1106,11 @@
         "msg": {
           "type": "string"
         },
-        "data_node": {
+        "node": {
           "$ref": "#/definitions/rpcapiYarnRegisteredPeerDetail"
         }
-      }
+      },
+      "title": "新增|修改 数据服务信息 resp"
     },
     "rpcapiSetJobNodeRequest": {
       "type": "object",
@@ -913,7 +1127,8 @@
         "external_port": {
           "type": "string"
         }
-      }
+      },
+      "title": "新增计算服务信息 req"
     },
     "rpcapiSetJobNodeResponse": {
       "type": "object",
@@ -925,10 +1140,11 @@
         "msg": {
           "type": "string"
         },
-        "job_node": {
+        "node": {
           "$ref": "#/definitions/rpcapiYarnRegisteredPeerDetail"
         }
-      }
+      },
+      "title": "新增|修改 计算服务信息 resp"
     },
     "rpcapiSetSeedNodeRequest": {
       "type": "object",
@@ -942,7 +1158,8 @@
         "internal_port": {
           "type": "string"
         }
-      }
+      },
+      "title": "新增种子节点信息 req"
     },
     "rpcapiSetSeedNodeResponse": {
       "type": "object",
@@ -954,10 +1171,11 @@
         "msg": {
           "type": "string"
         },
-        "seed_peer": {
+        "node": {
           "$ref": "#/definitions/rpcapiSeedPeer"
         }
-      }
+      },
+      "title": "新增|修改 种子节点信息 resp"
     },
     "rpcapiUpdateDataNodeRequest": {
       "type": "object",
@@ -977,7 +1195,8 @@
         "external_port": {
           "type": "string"
         }
-      }
+      },
+      "title": "修改数据服务信息 req"
     },
     "rpcapiUpdateJobNodeRequest": {
       "type": "object",
@@ -997,7 +1216,8 @@
         "external_port": {
           "type": "string"
         }
-      }
+      },
+      "title": "修改计算服务信息 req"
     },
     "rpcapiUpdateSeedNodeRequest": {
       "type": "object",
@@ -1014,7 +1234,8 @@
         "internal_port": {
           "type": "string"
         }
-      }
+      },
+      "title": "修改种子节点信息 req"
     },
     "rpcapiYarnNodeInfo": {
       "type": "object",
@@ -1059,7 +1280,7 @@
           }
         },
         "state": {
-          "type": "string"
+          "$ref": "#/definitions/rpcapiYarnNodeState"
         },
         "name": {
           "type": "string"
@@ -1070,6 +1291,18 @@
         }
       },
       "title": "调度服务的信息"
+    },
+    "rpcapiYarnNodeState": {
+      "type": "string",
+      "enum": [
+        "State_Unknown",
+        "State_Active",
+        "State_Leave",
+        "State_Join",
+        "State_Unuseful"
+      ],
+      "default": "State_Unknown",
+      "title": "调度服务节点的状态"
     },
     "rpcapiYarnRegisteredPeer": {
       "type": "object",
@@ -1102,8 +1335,29 @@
           "type": "string"
         },
         "conn_state": {
+          "$ref": "#/definitions/rpcapiConnState"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "task_count": {
           "type": "integer",
-          "format": "int32"
+          "format": "int64"
+        },
+        "task_id_list": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "file_count": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "file_total_size": {
+          "type": "integer",
+          "format": "int64"
         }
       }
     },
@@ -1134,32 +1388,32 @@
         "total_mem": {
           "type": "string",
           "format": "uint64",
-          "title": "服务系统的总内存"
+          "title": "服务系统的总内存 (单位: byte)"
         },
         "used_mem": {
           "type": "string",
           "format": "uint64",
-          "title": "服务系统的已用内存"
+          "title": "服务系统的已用内存  (单位: byte)"
         },
         "total_processor": {
           "type": "integer",
           "format": "int64",
-          "title": "服务的总内核数"
+          "title": "服务的总内核数 (单位: 个)"
         },
         "used_processor": {
           "type": "integer",
           "format": "int64",
-          "title": "服务的已用内核数"
+          "title": "服务的已用内核数 (单位: 个)"
         },
         "total_bandwidth": {
           "type": "string",
           "format": "uint64",
-          "title": "服务的总带宽数"
+          "title": "服务的总带宽数 (单位: bps)"
         },
         "used_bandwidth": {
           "type": "string",
           "format": "uint64",
-          "title": "服务的已用带宽数"
+          "title": "服务的已用带宽数 (单位: bps)"
         },
         "total_disk": {
           "type": "string",
