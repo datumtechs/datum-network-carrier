@@ -28,9 +28,10 @@ type Backend interface {
 	SendTaskEvent(event *types.ReportTaskEvent) error
 
 	// metadata api
-	GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error)
-	GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error)
-	GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error)
+
+	GetTotalMetadataDetailList() ([]*pb.GetTotalMetadataDetailResponse, error)
+	GetSelfMetadataDetailList() ([]*pb.GetSelfMetadataDetailResponse, error)
+	GetMetadataUsedTaskIdList(metadataId string) ([]string, error)
 
 	// metadataAuthority api
 
@@ -38,10 +39,11 @@ type Backend interface {
 	GetMetadataAuthorityList() (types.MetadataAuthArray, error)
 	GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error)
 	HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error)
+
 	// power api
 
-	GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error)
-	GetPowerSingleDetailList() ([]*pb.GetPowerSingleDetailResponse, error)
+	GetTotalPowerDetailList() ([]*pb.GetTotalPowerDetailResponse, error)
+	GetSelfPowerDetailList() ([]*pb.GetSelfPowerDetailResponse, error)
 
 	// identity api
 

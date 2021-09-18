@@ -31,7 +31,7 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // 单个组织的总算力信息
-type GetPowerTotalDetailResponse struct {
+type GetTotalPowerDetailResponse struct {
 	Owner                *common.Organization    `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	Power                *types.PowerUsageDetail `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
@@ -39,18 +39,18 @@ type GetPowerTotalDetailResponse struct {
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *GetPowerTotalDetailResponse) Reset()         { *m = GetPowerTotalDetailResponse{} }
-func (m *GetPowerTotalDetailResponse) String() string { return proto.CompactTextString(m) }
-func (*GetPowerTotalDetailResponse) ProtoMessage()    {}
-func (*GetPowerTotalDetailResponse) Descriptor() ([]byte, []int) {
+func (m *GetTotalPowerDetailResponse) Reset()         { *m = GetTotalPowerDetailResponse{} }
+func (m *GetTotalPowerDetailResponse) String() string { return proto.CompactTextString(m) }
+func (*GetTotalPowerDetailResponse) ProtoMessage()    {}
+func (*GetTotalPowerDetailResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e5594bc2f9a3f125, []int{0}
 }
-func (m *GetPowerTotalDetailResponse) XXX_Unmarshal(b []byte) error {
+func (m *GetTotalPowerDetailResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *GetPowerTotalDetailResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *GetTotalPowerDetailResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_GetPowerTotalDetailResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_GetTotalPowerDetailResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -60,26 +60,26 @@ func (m *GetPowerTotalDetailResponse) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *GetPowerTotalDetailResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetPowerTotalDetailResponse.Merge(m, src)
+func (m *GetTotalPowerDetailResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTotalPowerDetailResponse.Merge(m, src)
 }
-func (m *GetPowerTotalDetailResponse) XXX_Size() int {
+func (m *GetTotalPowerDetailResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *GetPowerTotalDetailResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetPowerTotalDetailResponse.DiscardUnknown(m)
+func (m *GetTotalPowerDetailResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTotalPowerDetailResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetPowerTotalDetailResponse proto.InternalMessageInfo
+var xxx_messageInfo_GetTotalPowerDetailResponse proto.InternalMessageInfo
 
-func (m *GetPowerTotalDetailResponse) GetOwner() *common.Organization {
+func (m *GetTotalPowerDetailResponse) GetOwner() *common.Organization {
 	if m != nil {
 		return m.Owner
 	}
 	return nil
 }
 
-func (m *GetPowerTotalDetailResponse) GetPower() *types.PowerUsageDetail {
+func (m *GetTotalPowerDetailResponse) GetPower() *types.PowerUsageDetail {
 	if m != nil {
 		return m.Power
 	}
@@ -87,27 +87,27 @@ func (m *GetPowerTotalDetailResponse) GetPower() *types.PowerUsageDetail {
 }
 
 // 全网各个组织的总算力列表 resp
-type GetPowerTotalDetailListResponse struct {
+type GetTotalPowerDetailListResponse struct {
 	Status               int32                          `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                         `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	PowerList            []*GetPowerTotalDetailResponse `protobuf:"bytes,3,rep,name=power_list,json=powerList,proto3" json:"power_list,omitempty"`
+	PowerList            []*GetTotalPowerDetailResponse `protobuf:"bytes,3,rep,name=power_list,json=powerList,proto3" json:"power_list,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}                       `json:"-"`
 	XXX_unrecognized     []byte                         `json:"-"`
 	XXX_sizecache        int32                          `json:"-"`
 }
 
-func (m *GetPowerTotalDetailListResponse) Reset()         { *m = GetPowerTotalDetailListResponse{} }
-func (m *GetPowerTotalDetailListResponse) String() string { return proto.CompactTextString(m) }
-func (*GetPowerTotalDetailListResponse) ProtoMessage()    {}
-func (*GetPowerTotalDetailListResponse) Descriptor() ([]byte, []int) {
+func (m *GetTotalPowerDetailListResponse) Reset()         { *m = GetTotalPowerDetailListResponse{} }
+func (m *GetTotalPowerDetailListResponse) String() string { return proto.CompactTextString(m) }
+func (*GetTotalPowerDetailListResponse) ProtoMessage()    {}
+func (*GetTotalPowerDetailListResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e5594bc2f9a3f125, []int{1}
 }
-func (m *GetPowerTotalDetailListResponse) XXX_Unmarshal(b []byte) error {
+func (m *GetTotalPowerDetailListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *GetPowerTotalDetailListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *GetTotalPowerDetailListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_GetPowerTotalDetailListResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_GetTotalPowerDetailListResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -117,41 +117,41 @@ func (m *GetPowerTotalDetailListResponse) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *GetPowerTotalDetailListResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetPowerTotalDetailListResponse.Merge(m, src)
+func (m *GetTotalPowerDetailListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetTotalPowerDetailListResponse.Merge(m, src)
 }
-func (m *GetPowerTotalDetailListResponse) XXX_Size() int {
+func (m *GetTotalPowerDetailListResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *GetPowerTotalDetailListResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetPowerTotalDetailListResponse.DiscardUnknown(m)
+func (m *GetTotalPowerDetailListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetTotalPowerDetailListResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetPowerTotalDetailListResponse proto.InternalMessageInfo
+var xxx_messageInfo_GetTotalPowerDetailListResponse proto.InternalMessageInfo
 
-func (m *GetPowerTotalDetailListResponse) GetStatus() int32 {
+func (m *GetTotalPowerDetailListResponse) GetStatus() int32 {
 	if m != nil {
 		return m.Status
 	}
 	return 0
 }
 
-func (m *GetPowerTotalDetailListResponse) GetMsg() string {
+func (m *GetTotalPowerDetailListResponse) GetMsg() string {
 	if m != nil {
 		return m.Msg
 	}
 	return ""
 }
 
-func (m *GetPowerTotalDetailListResponse) GetPowerList() []*GetPowerTotalDetailResponse {
+func (m *GetTotalPowerDetailListResponse) GetPowerList() []*GetTotalPowerDetailResponse {
 	if m != nil {
 		return m.PowerList
 	}
 	return nil
 }
 
-// 单个组织的单个算力信息
-type GetPowerSingleDetailResponse struct {
+// 本组织的单个算力信息
+type GetSelfPowerDetailResponse struct {
 	Owner                *common.Organization    `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	Power                *types.PowerUsageDetail `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
 	JobNodeId            string                  `protobuf:"bytes,3,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
@@ -161,18 +161,18 @@ type GetPowerSingleDetailResponse struct {
 	XXX_sizecache        int32                   `json:"-"`
 }
 
-func (m *GetPowerSingleDetailResponse) Reset()         { *m = GetPowerSingleDetailResponse{} }
-func (m *GetPowerSingleDetailResponse) String() string { return proto.CompactTextString(m) }
-func (*GetPowerSingleDetailResponse) ProtoMessage()    {}
-func (*GetPowerSingleDetailResponse) Descriptor() ([]byte, []int) {
+func (m *GetSelfPowerDetailResponse) Reset()         { *m = GetSelfPowerDetailResponse{} }
+func (m *GetSelfPowerDetailResponse) String() string { return proto.CompactTextString(m) }
+func (*GetSelfPowerDetailResponse) ProtoMessage()    {}
+func (*GetSelfPowerDetailResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e5594bc2f9a3f125, []int{2}
 }
-func (m *GetPowerSingleDetailResponse) XXX_Unmarshal(b []byte) error {
+func (m *GetSelfPowerDetailResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *GetPowerSingleDetailResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *GetSelfPowerDetailResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_GetPowerSingleDetailResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_GetSelfPowerDetailResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -182,68 +182,68 @@ func (m *GetPowerSingleDetailResponse) XXX_Marshal(b []byte, deterministic bool)
 		return b[:n], nil
 	}
 }
-func (m *GetPowerSingleDetailResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetPowerSingleDetailResponse.Merge(m, src)
+func (m *GetSelfPowerDetailResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetSelfPowerDetailResponse.Merge(m, src)
 }
-func (m *GetPowerSingleDetailResponse) XXX_Size() int {
+func (m *GetSelfPowerDetailResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *GetPowerSingleDetailResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetPowerSingleDetailResponse.DiscardUnknown(m)
+func (m *GetSelfPowerDetailResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetSelfPowerDetailResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetPowerSingleDetailResponse proto.InternalMessageInfo
+var xxx_messageInfo_GetSelfPowerDetailResponse proto.InternalMessageInfo
 
-func (m *GetPowerSingleDetailResponse) GetOwner() *common.Organization {
+func (m *GetSelfPowerDetailResponse) GetOwner() *common.Organization {
 	if m != nil {
 		return m.Owner
 	}
 	return nil
 }
 
-func (m *GetPowerSingleDetailResponse) GetPower() *types.PowerUsageDetail {
+func (m *GetSelfPowerDetailResponse) GetPower() *types.PowerUsageDetail {
 	if m != nil {
 		return m.Power
 	}
 	return nil
 }
 
-func (m *GetPowerSingleDetailResponse) GetJobNodeId() string {
+func (m *GetSelfPowerDetailResponse) GetJobNodeId() string {
 	if m != nil {
 		return m.JobNodeId
 	}
 	return ""
 }
 
-func (m *GetPowerSingleDetailResponse) GetPowerId() string {
+func (m *GetSelfPowerDetailResponse) GetPowerId() string {
 	if m != nil {
 		return m.PowerId
 	}
 	return ""
 }
 
-// 单个组织的多个算力信息列表 resp
-type GetPowerSingleDetailListResponse struct {
-	Status               int32                           `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
-	Msg                  string                          `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
-	PowerList            []*GetPowerSingleDetailResponse `protobuf:"bytes,3,rep,name=power_list,json=powerList,proto3" json:"power_list,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
-	XXX_unrecognized     []byte                          `json:"-"`
-	XXX_sizecache        int32                           `json:"-"`
+// 本组织的多个算力信息列表 resp
+type GetSelfPowerDetailListResponse struct {
+	Status               int32                         `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	Msg                  string                        `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
+	PowerList            []*GetSelfPowerDetailResponse `protobuf:"bytes,3,rep,name=power_list,json=powerList,proto3" json:"power_list,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}                      `json:"-"`
+	XXX_unrecognized     []byte                        `json:"-"`
+	XXX_sizecache        int32                         `json:"-"`
 }
 
-func (m *GetPowerSingleDetailListResponse) Reset()         { *m = GetPowerSingleDetailListResponse{} }
-func (m *GetPowerSingleDetailListResponse) String() string { return proto.CompactTextString(m) }
-func (*GetPowerSingleDetailListResponse) ProtoMessage()    {}
-func (*GetPowerSingleDetailListResponse) Descriptor() ([]byte, []int) {
+func (m *GetSelfPowerDetailListResponse) Reset()         { *m = GetSelfPowerDetailListResponse{} }
+func (m *GetSelfPowerDetailListResponse) String() string { return proto.CompactTextString(m) }
+func (*GetSelfPowerDetailListResponse) ProtoMessage()    {}
+func (*GetSelfPowerDetailListResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_e5594bc2f9a3f125, []int{3}
 }
-func (m *GetPowerSingleDetailListResponse) XXX_Unmarshal(b []byte) error {
+func (m *GetSelfPowerDetailListResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *GetPowerSingleDetailListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *GetSelfPowerDetailListResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_GetPowerSingleDetailListResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_GetSelfPowerDetailListResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -253,33 +253,33 @@ func (m *GetPowerSingleDetailListResponse) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *GetPowerSingleDetailListResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetPowerSingleDetailListResponse.Merge(m, src)
+func (m *GetSelfPowerDetailListResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetSelfPowerDetailListResponse.Merge(m, src)
 }
-func (m *GetPowerSingleDetailListResponse) XXX_Size() int {
+func (m *GetSelfPowerDetailListResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *GetPowerSingleDetailListResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetPowerSingleDetailListResponse.DiscardUnknown(m)
+func (m *GetSelfPowerDetailListResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetSelfPowerDetailListResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetPowerSingleDetailListResponse proto.InternalMessageInfo
+var xxx_messageInfo_GetSelfPowerDetailListResponse proto.InternalMessageInfo
 
-func (m *GetPowerSingleDetailListResponse) GetStatus() int32 {
+func (m *GetSelfPowerDetailListResponse) GetStatus() int32 {
 	if m != nil {
 		return m.Status
 	}
 	return 0
 }
 
-func (m *GetPowerSingleDetailListResponse) GetMsg() string {
+func (m *GetSelfPowerDetailListResponse) GetMsg() string {
 	if m != nil {
 		return m.Msg
 	}
 	return ""
 }
 
-func (m *GetPowerSingleDetailListResponse) GetPowerList() []*GetPowerSingleDetailResponse {
+func (m *GetSelfPowerDetailListResponse) GetPowerList() []*GetSelfPowerDetailResponse {
 	if m != nil {
 		return m.PowerList
 	}
@@ -447,10 +447,10 @@ func (m *RevokePowerRequest) GetPowerId() string {
 }
 
 func init() {
-	proto.RegisterType((*GetPowerTotalDetailResponse)(nil), "rpcapi.GetPowerTotalDetailResponse")
-	proto.RegisterType((*GetPowerTotalDetailListResponse)(nil), "rpcapi.GetPowerTotalDetailListResponse")
-	proto.RegisterType((*GetPowerSingleDetailResponse)(nil), "rpcapi.GetPowerSingleDetailResponse")
-	proto.RegisterType((*GetPowerSingleDetailListResponse)(nil), "rpcapi.GetPowerSingleDetailListResponse")
+	proto.RegisterType((*GetTotalPowerDetailResponse)(nil), "rpcapi.GetTotalPowerDetailResponse")
+	proto.RegisterType((*GetTotalPowerDetailListResponse)(nil), "rpcapi.GetTotalPowerDetailListResponse")
+	proto.RegisterType((*GetSelfPowerDetailResponse)(nil), "rpcapi.GetSelfPowerDetailResponse")
+	proto.RegisterType((*GetSelfPowerDetailListResponse)(nil), "rpcapi.GetSelfPowerDetailListResponse")
 	proto.RegisterType((*PublishPowerRequest)(nil), "rpcapi.PublishPowerRequest")
 	proto.RegisterType((*PublishPowerResponse)(nil), "rpcapi.PublishPowerResponse")
 	proto.RegisterType((*RevokePowerRequest)(nil), "rpcapi.RevokePowerRequest")
@@ -459,48 +459,48 @@ func init() {
 func init() { proto.RegisterFile("lib/api/power_rpc_api.proto", fileDescriptor_e5594bc2f9a3f125) }
 
 var fileDescriptor_e5594bc2f9a3f125 = []byte{
-	// 642 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x94, 0x41, 0x4f, 0xd4, 0x40,
-	0x14, 0xc7, 0x33, 0xac, 0xa0, 0xcc, 0x72, 0x30, 0xa3, 0x42, 0xe9, 0xae, 0xeb, 0x5a, 0x88, 0x20,
-	0x09, 0xad, 0x62, 0x8c, 0x09, 0x47, 0x50, 0x09, 0x89, 0x51, 0x52, 0xf4, 0xa2, 0x87, 0xcd, 0xb4,
-	0x7d, 0x94, 0x81, 0x6e, 0xa7, 0xce, 0x4c, 0x21, 0x78, 0xf0, 0x40, 0xe2, 0xd9, 0x18, 0xbf, 0x8d,
-	0x9f, 0xc0, 0xa3, 0x89, 0x5f, 0xc0, 0x10, 0x3f, 0x85, 0x27, 0xd3, 0x99, 0x2e, 0xb6, 0xec, 0x42,
-	0xa2, 0x07, 0x6f, 0x9d, 0x79, 0xef, 0xcd, 0xef, 0xff, 0xde, 0x7f, 0xa6, 0xb8, 0x95, 0xb0, 0xc0,
-	0xa3, 0x19, 0xf3, 0x32, 0x7e, 0x08, 0xa2, 0x27, 0xb2, 0xb0, 0x47, 0x33, 0xe6, 0x66, 0x82, 0x2b,
-	0x4e, 0x26, 0x44, 0x16, 0xd2, 0x8c, 0xd9, 0x37, 0x8a, 0xa4, 0x90, 0xf7, 0xfb, 0x3c, 0xf5, 0x02,
-	0x2a, 0xc1, 0x84, 0x6b, 0xdb, 0x11, 0x55, 0xb4, 0xdc, 0x6e, 0x17, 0xdb, 0xea, 0x28, 0x03, 0xe9,
-	0x09, 0x90, 0x3c, 0x17, 0x21, 0x54, 0xa2, 0xf6, 0x00, 0xa8, 0xa8, 0xdc, 0xaf, 0xf3, 0xec, 0x76,
-	0xcc, 0x79, 0x9c, 0x80, 0x0e, 0xd3, 0x34, 0xe5, 0x8a, 0x2a, 0xc6, 0x53, 0x59, 0x46, 0x5b, 0x65,
-	0x54, 0xaf, 0x82, 0x7c, 0xc7, 0x83, 0x7e, 0xa6, 0x8e, 0x4c, 0xd0, 0x79, 0x8f, 0x5b, 0x1b, 0xa0,
-	0xb6, 0x8a, 0x26, 0x5e, 0x72, 0x45, 0x93, 0xc7, 0xa0, 0x28, 0x4b, 0x7c, 0x90, 0x19, 0x4f, 0x25,
-	0x90, 0x7b, 0x78, 0x9c, 0x1f, 0xa6, 0x20, 0x2c, 0xd4, 0x45, 0x8b, 0xcd, 0x15, 0xdb, 0x3d, 0x85,
-	0x06, 0xf9, 0x8e, 0xfb, 0x42, 0xc4, 0x34, 0x65, 0xef, 0x34, 0xcd, 0x37, 0x89, 0x64, 0x19, 0x8f,
-	0xeb, 0x91, 0x58, 0x63, 0xba, 0x62, 0xc6, 0xd5, 0x1d, 0xb9, 0x9a, 0xf0, 0x4a, 0xd2, 0x18, 0x4a,
-	0x82, 0xc9, 0x72, 0x3e, 0x22, 0x7c, 0x6b, 0x84, 0x80, 0x67, 0x4c, 0xaa, 0x53, 0x11, 0xd3, 0x78,
-	0x42, 0x2a, 0xaa, 0x72, 0xa9, 0x55, 0x8c, 0xfb, 0xe5, 0x8a, 0x5c, 0xc5, 0x8d, 0xbe, 0x8c, 0x35,
-	0x68, 0xd2, 0x2f, 0x3e, 0xc9, 0x1a, 0xc6, 0xc6, 0x8f, 0x84, 0x49, 0x65, 0x35, 0xba, 0x8d, 0xc5,
-	0xe6, 0xca, 0x9c, 0x6b, 0xdc, 0x70, 0x2f, 0xe8, 0xd3, 0x9f, 0xd4, 0x65, 0x05, 0xd5, 0xf9, 0x82,
-	0x70, 0x7b, 0x90, 0xba, 0xcd, 0xd2, 0x38, 0x81, 0xff, 0x3c, 0x13, 0xd2, 0xc1, 0xcd, 0x3d, 0x1e,
-	0xf4, 0x52, 0x1e, 0x41, 0x8f, 0x45, 0x56, 0x43, 0xf7, 0x37, 0xb9, 0xc7, 0x83, 0xe7, 0x3c, 0x82,
-	0xcd, 0x88, 0xcc, 0xe2, 0x2b, 0xa6, 0x4b, 0x16, 0x59, 0x97, 0x74, 0xf0, 0xb2, 0x5e, 0x6f, 0x46,
-	0xce, 0x27, 0x84, 0xbb, 0xa3, 0xc4, 0xff, 0xe3, 0x3c, 0xd7, 0x47, 0xcc, 0x73, 0xfe, 0xec, 0x3c,
-	0x47, 0x0d, 0xa9, 0x3a, 0xd0, 0x87, 0xf8, 0xda, 0x56, 0x1e, 0x24, 0x4c, 0xee, 0xea, 0x74, 0x1f,
-	0xde, 0xe6, 0x20, 0xd5, 0xd9, 0x2e, 0xd1, 0x99, 0x2e, 0x9d, 0x37, 0xf8, 0x7a, 0xbd, 0xec, 0xaf,
-	0xd5, 0x57, 0xe7, 0xd4, 0xa8, 0xcf, 0xc9, 0xc3, 0xc4, 0x87, 0x03, 0xbe, 0x0f, 0x35, 0x49, 0xd5,
-	0x02, 0x54, 0x2b, 0x58, 0xf9, 0xd5, 0xc0, 0x53, 0xa6, 0x5b, 0x10, 0x07, 0x2c, 0x04, 0x72, 0x8c,
-	0xf0, 0xcc, 0x39, 0x17, 0x97, 0x4c, 0xbb, 0xe6, 0xc9, 0xfd, 0xb9, 0x15, 0x4f, 0x8a, 0x27, 0x67,
-	0x2f, 0x5c, 0x70, 0x15, 0xab, 0x0e, 0x39, 0x77, 0x8e, 0xbf, 0xff, 0xfc, 0x3c, 0xd6, 0x75, 0x5a,
-	0x5e, 0x48, 0x85, 0x60, 0x20, 0xbc, 0x83, 0xfb, 0xe6, 0x4f, 0xe3, 0xa9, 0xa2, 0xa4, 0x48, 0x5e,
-	0x45, 0x4b, 0xe4, 0x03, 0xc2, 0xd6, 0x79, 0x76, 0x9f, 0xab, 0x62, 0xf1, 0x22, 0x03, 0x6b, 0x32,
-	0x16, 0xb4, 0x8c, 0xdb, 0x4e, 0x7b, 0x58, 0x86, 0xd4, 0x35, 0x03, 0x1d, 0x1c, 0x4f, 0x55, 0xbd,
-	0x22, 0xad, 0x01, 0x62, 0x84, 0xf1, 0x76, 0x7b, 0x74, 0xb0, 0x64, 0xce, 0x6b, 0x66, 0xc7, 0x99,
-	0x1d, 0x66, 0x66, 0x26, 0xbf, 0x00, 0x26, 0xb8, 0x59, 0xf1, 0x8f, 0xd8, 0x83, 0x23, 0x87, 0x4d,
-	0xb5, 0xdb, 0xf5, 0xf7, 0xb9, 0xcd, 0xfa, 0x59, 0x02, 0xa7, 0xb8, 0x39, 0x8d, 0xbb, 0xe9, 0x58,
-	0xc3, 0x38, 0xa1, 0xcf, 0x5a, 0x45, 0x4b, 0x6b, 0x8f, 0xbe, 0x9e, 0x74, 0xd0, 0xb7, 0x93, 0x0e,
-	0xfa, 0x71, 0xd2, 0x41, 0xaf, 0xef, 0xc6, 0x4c, 0xed, 0xe6, 0x81, 0x1b, 0xf2, 0xbe, 0xe7, 0x73,
-	0x09, 0x4a, 0xd1, 0xa7, 0x09, 0x3f, 0xf4, 0xd6, 0xcd, 0x01, 0xcb, 0x1b, 0xdc, 0x2b, 0xff, 0xd5,
-	0xc1, 0x84, 0xc6, 0x3e, 0xf8, 0x1d, 0x00, 0x00, 0xff, 0xff, 0x87, 0x5d, 0x79, 0xc9, 0x2e, 0x06,
-	0x00, 0x00,
+	// 643 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x54, 0xcf, 0x4e, 0xd4, 0x40,
+	0x1c, 0xce, 0xb0, 0x82, 0x32, 0xcb, 0xc1, 0x8c, 0x0a, 0x4b, 0x77, 0x5d, 0x48, 0x51, 0x44, 0x12,
+	0x5a, 0xc5, 0x18, 0x13, 0x6e, 0xe2, 0x1f, 0x42, 0x62, 0x94, 0x14, 0xbd, 0xe8, 0x61, 0x33, 0x6d,
+	0x7f, 0xbb, 0x0c, 0xb4, 0x9d, 0x71, 0x66, 0x0a, 0xc1, 0x83, 0x26, 0xdc, 0x8d, 0x07, 0x5f, 0xc6,
+	0x47, 0xf0, 0x68, 0xe2, 0x0b, 0x18, 0xe2, 0x1b, 0xf8, 0x02, 0xa6, 0xd3, 0xee, 0xda, 0xb2, 0xbb,
+	0x24, 0x7a, 0xf1, 0xd6, 0x99, 0xef, 0xf7, 0x9b, 0xef, 0xfb, 0x7d, 0xdf, 0x4c, 0x71, 0x33, 0x62,
+	0xbe, 0x4b, 0x05, 0x73, 0x05, 0x3f, 0x02, 0xd9, 0x91, 0x22, 0xe8, 0x50, 0xc1, 0x1c, 0x21, 0xb9,
+	0xe6, 0x64, 0x4a, 0x8a, 0x80, 0x0a, 0x66, 0x5d, 0xcb, 0x8a, 0x02, 0x1e, 0xc7, 0x3c, 0x71, 0x7d,
+	0xaa, 0x20, 0x87, 0x2b, 0xdb, 0x21, 0xd5, 0xb4, 0xd8, 0x6e, 0x65, 0xdb, 0xfa, 0x58, 0x80, 0x72,
+	0x25, 0x28, 0x9e, 0xca, 0x00, 0x4a, 0xa8, 0xd5, 0x27, 0xd4, 0x54, 0x1d, 0x54, 0xf9, 0xac, 0x56,
+	0x8f, 0xf3, 0x5e, 0x04, 0x06, 0xa6, 0x49, 0xc2, 0x35, 0xd5, 0x8c, 0x27, 0xaa, 0x40, 0x9b, 0x05,
+	0x6a, 0x56, 0x7e, 0xda, 0x75, 0x21, 0x16, 0xfa, 0x38, 0x07, 0xed, 0xf7, 0xb8, 0xb9, 0x05, 0xfa,
+	0x25, 0xd7, 0x34, 0xda, 0xc9, 0x26, 0x79, 0x0c, 0x9a, 0xb2, 0xc8, 0x03, 0x25, 0x78, 0xa2, 0x80,
+	0xdc, 0xc1, 0x93, 0xfc, 0x28, 0x01, 0xd9, 0x40, 0x8b, 0x68, 0xa5, 0xbe, 0x6e, 0x39, 0x03, 0x52,
+	0x3f, 0xed, 0x3a, 0x2f, 0x64, 0x8f, 0x26, 0xec, 0x9d, 0x61, 0xf3, 0xf2, 0x42, 0xb2, 0x86, 0x27,
+	0x8d, 0x25, 0x8d, 0x09, 0xd3, 0x31, 0xe7, 0x98, 0x89, 0x1c, 0x73, 0xf8, 0x2b, 0x45, 0x7b, 0x50,
+	0x30, 0xe4, 0x55, 0xf6, 0x27, 0x84, 0x17, 0x46, 0x08, 0x78, 0xc6, 0x94, 0x1e, 0x88, 0x98, 0xc5,
+	0x53, 0x4a, 0x53, 0x9d, 0x2a, 0xa3, 0x62, 0xd2, 0x2b, 0x56, 0xe4, 0x32, 0xae, 0xc5, 0xaa, 0x67,
+	0x88, 0xa6, 0xbd, 0xec, 0x93, 0x6c, 0x62, 0x9c, 0xe7, 0x11, 0x31, 0xa5, 0x1b, 0xb5, 0xc5, 0xda,
+	0x4a, 0x7d, 0x7d, 0xc9, 0xc9, 0xd3, 0x70, 0xce, 0x99, 0xd3, 0x9b, 0x36, 0x6d, 0x19, 0xab, 0xfd,
+	0x05, 0x61, 0x6b, 0x0b, 0xf4, 0x2e, 0x44, 0xdd, 0xff, 0xe1, 0x08, 0x69, 0xe3, 0xfa, 0x3e, 0xf7,
+	0x3b, 0x09, 0x0f, 0xa1, 0xc3, 0xc2, 0x46, 0xcd, 0x4c, 0x37, 0xbd, 0xcf, 0xfd, 0xe7, 0x3c, 0x84,
+	0xed, 0x90, 0xcc, 0xe3, 0x4b, 0xf9, 0x8c, 0x2c, 0x6c, 0x5c, 0x30, 0xe0, 0x45, 0xb3, 0xde, 0x0e,
+	0xed, 0x8f, 0x08, 0xb7, 0x87, 0xa5, 0xff, 0xa3, 0x97, 0x0f, 0x47, 0x78, 0x69, 0x97, 0xbc, 0x1c,
+	0x63, 0x50, 0xd9, 0xca, 0xfb, 0xf8, 0xca, 0x4e, 0xea, 0x47, 0x4c, 0xed, 0x99, 0x42, 0x0f, 0xde,
+	0xa6, 0xa0, 0xf4, 0xd9, 0x09, 0xd1, 0x99, 0x09, 0xed, 0x37, 0xf8, 0x6a, 0xb5, 0xed, 0xaf, 0xb5,
+	0x97, 0x3d, 0xaa, 0x55, 0x3d, 0x72, 0x31, 0xf1, 0xe0, 0x90, 0x1f, 0x40, 0x45, 0x52, 0xb9, 0x01,
+	0x55, 0x1a, 0xd6, 0x7f, 0xd5, 0xf0, 0x8c, 0xa9, 0xdd, 0x05, 0x79, 0xc8, 0x02, 0x20, 0x27, 0x08,
+	0xcf, 0x8d, 0xb9, 0xb2, 0x64, 0xd6, 0xc9, 0x1f, 0xdb, 0x9f, 0x1b, 0xf1, 0x24, 0x7b, 0x6c, 0xd6,
+	0xad, 0x73, 0x2e, 0x61, 0x39, 0x1f, 0x7b, 0xf9, 0xe4, 0xfb, 0xcf, 0xcf, 0x13, 0x8b, 0x76, 0xd3,
+	0x0d, 0xa8, 0x94, 0x0c, 0xa4, 0x7b, 0x78, 0x37, 0xff, 0xc7, 0xb8, 0x3a, 0xeb, 0xcb, 0x8a, 0x37,
+	0xd0, 0x2a, 0xf9, 0x80, 0x67, 0x47, 0x27, 0x3d, 0x56, 0xc2, 0xf2, 0xf8, 0xec, 0x2a, 0x0a, 0x6e,
+	0x1a, 0x05, 0x0b, 0xb6, 0x35, 0xac, 0x40, 0x41, 0xd4, 0xed, 0x0b, 0xe0, 0x78, 0xa6, 0x1c, 0x12,
+	0x69, 0xf6, 0x8f, 0x1f, 0x91, 0xb8, 0xd5, 0x1a, 0x0d, 0x16, 0x8c, 0x37, 0x0c, 0x63, 0xdb, 0x9e,
+	0x1f, 0x66, 0x14, 0x79, 0x7d, 0x46, 0x18, 0xe1, 0x7a, 0x29, 0x38, 0x62, 0xf5, 0x8f, 0x1c, 0x4e,
+	0xd3, 0x6a, 0x55, 0x1f, 0xe5, 0x2e, 0x8b, 0x45, 0x04, 0x03, 0xba, 0x25, 0x43, 0x77, 0xdd, 0x6e,
+	0x0c, 0xd3, 0x49, 0x73, 0xd6, 0x06, 0x5a, 0xdd, 0x7c, 0xf0, 0xf5, 0xb4, 0x8d, 0xbe, 0x9d, 0xb6,
+	0xd1, 0x8f, 0xd3, 0x36, 0x7a, 0x7d, 0xbb, 0xc7, 0xf4, 0x5e, 0xea, 0x3b, 0x01, 0x8f, 0x5d, 0x8f,
+	0x2b, 0xd0, 0x9a, 0x3e, 0x8d, 0xf8, 0x91, 0xfb, 0x28, 0x3f, 0x60, 0x6d, 0x8b, 0xbb, 0xc5, 0xef,
+	0xd9, 0x9f, 0x32, 0xb4, 0xf7, 0x7e, 0x07, 0x00, 0x00, 0xff, 0xff, 0x29, 0xfc, 0xd7, 0x97, 0x21,
+	0x06, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -516,9 +516,9 @@ const _ = grpc.SupportPackageIsVersion4
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type PowerServiceClient interface {
 	// 查看全网各个组织的总算力详情列表
-	GetPowerTotalDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerTotalDetailListResponse, error)
+	GetTotalPowerDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetTotalPowerDetailListResponse, error)
 	// 查看本组织的各个单算力详情列表
-	GetPowerSingleDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerSingleDetailListResponse, error)
+	GetSelfPowerDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSelfPowerDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(ctx context.Context, in *PublishPowerRequest, opts ...grpc.CallOption) (*PublishPowerResponse, error)
 	// 停用算力 (撤销算力)
@@ -533,18 +533,18 @@ func NewPowerServiceClient(cc *grpc.ClientConn) PowerServiceClient {
 	return &powerServiceClient{cc}
 }
 
-func (c *powerServiceClient) GetPowerTotalDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerTotalDetailListResponse, error) {
-	out := new(GetPowerTotalDetailListResponse)
-	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerTotalDetailList", in, out, opts...)
+func (c *powerServiceClient) GetTotalPowerDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetTotalPowerDetailListResponse, error) {
+	out := new(GetTotalPowerDetailListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetTotalPowerDetailList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *powerServiceClient) GetPowerSingleDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetPowerSingleDetailListResponse, error) {
-	out := new(GetPowerSingleDetailListResponse)
-	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetPowerSingleDetailList", in, out, opts...)
+func (c *powerServiceClient) GetSelfPowerDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetSelfPowerDetailListResponse, error) {
+	out := new(GetSelfPowerDetailListResponse)
+	err := c.cc.Invoke(ctx, "/rpcapi.PowerService/GetSelfPowerDetailList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -572,9 +572,9 @@ func (c *powerServiceClient) RevokePower(ctx context.Context, in *RevokePowerReq
 // PowerServiceServer is the server API for PowerService service.
 type PowerServiceServer interface {
 	// 查看全网各个组织的总算力详情列表
-	GetPowerTotalDetailList(context.Context, *emptypb.Empty) (*GetPowerTotalDetailListResponse, error)
+	GetTotalPowerDetailList(context.Context, *emptypb.Empty) (*GetTotalPowerDetailListResponse, error)
 	// 查看本组织的各个单算力详情列表
-	GetPowerSingleDetailList(context.Context, *emptypb.Empty) (*GetPowerSingleDetailListResponse, error)
+	GetSelfPowerDetailList(context.Context, *emptypb.Empty) (*GetSelfPowerDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(context.Context, *PublishPowerRequest) (*PublishPowerResponse, error)
 	// 停用算力 (撤销算力)
@@ -585,11 +585,11 @@ type PowerServiceServer interface {
 type UnimplementedPowerServiceServer struct {
 }
 
-func (*UnimplementedPowerServiceServer) GetPowerTotalDetailList(ctx context.Context, req *emptypb.Empty) (*GetPowerTotalDetailListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPowerTotalDetailList not implemented")
+func (*UnimplementedPowerServiceServer) GetTotalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*GetTotalPowerDetailListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetTotalPowerDetailList not implemented")
 }
-func (*UnimplementedPowerServiceServer) GetPowerSingleDetailList(ctx context.Context, req *emptypb.Empty) (*GetPowerSingleDetailListResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPowerSingleDetailList not implemented")
+func (*UnimplementedPowerServiceServer) GetSelfPowerDetailList(ctx context.Context, req *emptypb.Empty) (*GetSelfPowerDetailListResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSelfPowerDetailList not implemented")
 }
 func (*UnimplementedPowerServiceServer) PublishPower(ctx context.Context, req *PublishPowerRequest) (*PublishPowerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PublishPower not implemented")
@@ -602,38 +602,38 @@ func RegisterPowerServiceServer(s *grpc.Server, srv PowerServiceServer) {
 	s.RegisterService(&_PowerService_serviceDesc, srv)
 }
 
-func _PowerService_GetPowerTotalDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PowerService_GetTotalPowerDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PowerServiceServer).GetPowerTotalDetailList(ctx, in)
+		return srv.(PowerServiceServer).GetTotalPowerDetailList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpcapi.PowerService/GetPowerTotalDetailList",
+		FullMethod: "/rpcapi.PowerService/GetTotalPowerDetailList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowerServiceServer).GetPowerTotalDetailList(ctx, req.(*emptypb.Empty))
+		return srv.(PowerServiceServer).GetTotalPowerDetailList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PowerService_GetPowerSingleDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _PowerService_GetSelfPowerDetailList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(emptypb.Empty)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PowerServiceServer).GetPowerSingleDetailList(ctx, in)
+		return srv.(PowerServiceServer).GetSelfPowerDetailList(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/rpcapi.PowerService/GetPowerSingleDetailList",
+		FullMethod: "/rpcapi.PowerService/GetSelfPowerDetailList",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PowerServiceServer).GetPowerSingleDetailList(ctx, req.(*emptypb.Empty))
+		return srv.(PowerServiceServer).GetSelfPowerDetailList(ctx, req.(*emptypb.Empty))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -679,12 +679,12 @@ var _PowerService_serviceDesc = grpc.ServiceDesc{
 	HandlerType: (*PowerServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "GetPowerTotalDetailList",
-			Handler:    _PowerService_GetPowerTotalDetailList_Handler,
+			MethodName: "GetTotalPowerDetailList",
+			Handler:    _PowerService_GetTotalPowerDetailList_Handler,
 		},
 		{
-			MethodName: "GetPowerSingleDetailList",
-			Handler:    _PowerService_GetPowerSingleDetailList_Handler,
+			MethodName: "GetSelfPowerDetailList",
+			Handler:    _PowerService_GetSelfPowerDetailList_Handler,
 		},
 		{
 			MethodName: "PublishPower",
@@ -699,7 +699,7 @@ var _PowerService_serviceDesc = grpc.ServiceDesc{
 	Metadata: "lib/api/power_rpc_api.proto",
 }
 
-func (m *GetPowerTotalDetailResponse) Marshal() (dAtA []byte, err error) {
+func (m *GetTotalPowerDetailResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -709,12 +709,12 @@ func (m *GetPowerTotalDetailResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *GetPowerTotalDetailResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *GetTotalPowerDetailResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *GetPowerTotalDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *GetTotalPowerDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -750,7 +750,7 @@ func (m *GetPowerTotalDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *GetPowerTotalDetailListResponse) Marshal() (dAtA []byte, err error) {
+func (m *GetTotalPowerDetailListResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -760,12 +760,12 @@ func (m *GetPowerTotalDetailListResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *GetPowerTotalDetailListResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *GetTotalPowerDetailListResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *GetPowerTotalDetailListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *GetTotalPowerDetailListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -803,7 +803,7 @@ func (m *GetPowerTotalDetailListResponse) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *GetPowerSingleDetailResponse) Marshal() (dAtA []byte, err error) {
+func (m *GetSelfPowerDetailResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -813,12 +813,12 @@ func (m *GetPowerSingleDetailResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *GetPowerSingleDetailResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *GetSelfPowerDetailResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *GetPowerSingleDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *GetSelfPowerDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -868,7 +868,7 @@ func (m *GetPowerSingleDetailResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
-func (m *GetPowerSingleDetailListResponse) Marshal() (dAtA []byte, err error) {
+func (m *GetSelfPowerDetailListResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -878,12 +878,12 @@ func (m *GetPowerSingleDetailListResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *GetPowerSingleDetailListResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *GetSelfPowerDetailListResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *GetPowerSingleDetailListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *GetSelfPowerDetailListResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1046,7 +1046,7 @@ func encodeVarintPowerRpcApi(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *GetPowerTotalDetailResponse) Size() (n int) {
+func (m *GetTotalPowerDetailResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1066,7 +1066,7 @@ func (m *GetPowerTotalDetailResponse) Size() (n int) {
 	return n
 }
 
-func (m *GetPowerTotalDetailListResponse) Size() (n int) {
+func (m *GetTotalPowerDetailListResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1091,7 +1091,7 @@ func (m *GetPowerTotalDetailListResponse) Size() (n int) {
 	return n
 }
 
-func (m *GetPowerSingleDetailResponse) Size() (n int) {
+func (m *GetSelfPowerDetailResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1119,7 +1119,7 @@ func (m *GetPowerSingleDetailResponse) Size() (n int) {
 	return n
 }
 
-func (m *GetPowerSingleDetailListResponse) Size() (n int) {
+func (m *GetSelfPowerDetailListResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1205,7 +1205,7 @@ func sovPowerRpcApi(x uint64) (n int) {
 func sozPowerRpcApi(x uint64) (n int) {
 	return sovPowerRpcApi(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *GetPowerTotalDetailResponse) Unmarshal(dAtA []byte) error {
+func (m *GetTotalPowerDetailResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1228,10 +1228,10 @@ func (m *GetPowerTotalDetailResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GetPowerTotalDetailResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: GetTotalPowerDetailResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetPowerTotalDetailResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GetTotalPowerDetailResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1328,7 +1328,7 @@ func (m *GetPowerTotalDetailResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GetPowerTotalDetailListResponse) Unmarshal(dAtA []byte) error {
+func (m *GetTotalPowerDetailListResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1351,10 +1351,10 @@ func (m *GetPowerTotalDetailListResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GetPowerTotalDetailListResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: GetTotalPowerDetailListResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetPowerTotalDetailListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GetTotalPowerDetailListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1437,7 +1437,7 @@ func (m *GetPowerTotalDetailListResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.PowerList = append(m.PowerList, &GetPowerTotalDetailResponse{})
+			m.PowerList = append(m.PowerList, &GetTotalPowerDetailResponse{})
 			if err := m.PowerList[len(m.PowerList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1464,7 +1464,7 @@ func (m *GetPowerTotalDetailListResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GetPowerSingleDetailResponse) Unmarshal(dAtA []byte) error {
+func (m *GetSelfPowerDetailResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1487,10 +1487,10 @@ func (m *GetPowerSingleDetailResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GetPowerSingleDetailResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: GetSelfPowerDetailResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetPowerSingleDetailResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GetSelfPowerDetailResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1651,7 +1651,7 @@ func (m *GetPowerSingleDetailResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *GetPowerSingleDetailListResponse) Unmarshal(dAtA []byte) error {
+func (m *GetSelfPowerDetailListResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -1674,10 +1674,10 @@ func (m *GetPowerSingleDetailListResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: GetPowerSingleDetailListResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: GetSelfPowerDetailListResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: GetPowerSingleDetailListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: GetSelfPowerDetailListResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -1760,7 +1760,7 @@ func (m *GetPowerSingleDetailListResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.PowerList = append(m.PowerList, &GetPowerSingleDetailResponse{})
+			m.PowerList = append(m.PowerList, &GetSelfPowerDetailResponse{})
 			if err := m.PowerList[len(m.PowerList)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
