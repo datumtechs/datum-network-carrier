@@ -145,7 +145,7 @@ func TestUpdatePrepareVotes(t *testing.T) {
 				CreateAt: 2121,
 				Sign:     []byte("this is a test"),
 			}
-			UpdatePrepareVotes(proposalId, vote)
+			UpdatePrepareVotes(vote)
 		}
 		count += 1
 		if count == 3 {
@@ -177,7 +177,7 @@ func TestUpdateConfirmVotes(t *testing.T) {
 				CreateAt:   2121,
 				Sign:       []byte("this is a test"),
 			}
-			UpdateConfirmVotes(proposalId, vote)
+			UpdateConfirmVotes(vote)
 		}
 		count += 1
 		if count == 3 {

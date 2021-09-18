@@ -156,6 +156,7 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 		pvs = newPrepareVoteState()
 	}
 	pvs.addVote(vote)
+	UpdatePrepareVotes(vote)
 	s.prepareVotes[vote.MsgOption.ProposalId] = pvs
 	s.prepareVotesLock.Unlock()
 }
@@ -167,10 +168,21 @@ func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role a
 		return
 	}
 	pvs.removeVote(partyId, role)
+	DeleteState(GetPrepareVotesKey(proposalId,partyId))
 	if pvs.isNotEmptyVote() {
+		go func() {
+			for _, vote := range pvs.votes {
+				UpdatePrepareVotes(vote)
+			}
+		}()
 		s.prepareVotes[proposalId] = pvs
 	} else {
 		delete(s.prepareVotes, proposalId)
+		go func() {
+			for partyId, _ := range s.prepareVotes[proposalId].votes {
+				DeleteState(GetPrepareVotesKey(proposalId, partyId))
+			}
+		}()
 	}
 	s.prepareVotesLock.Unlock()
 }
@@ -295,6 +307,7 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	}
 	cvs.addVote(vote)
 	s.confirmVotes[vote.MsgOption.ProposalId] = cvs
+	UpdateConfirmVotes(vote)
 	s.confirmVotesLock.Unlock()
 }
 
@@ -305,10 +318,21 @@ func (s *state) RemoveConfirmVote(proposalId common.Hash, partyId string, role a
 		return
 	}
 	cvs.removeVote(partyId, role)
+	DeleteState(GetConfirmVotesKey(proposalId,partyId))
 	if cvs.isNotEmptyVote() {
+		go func() {
+			for _, vote := range cvs.votes {
+				UpdateConfirmVotes(vote)
+			}
+		}()
 		s.confirmVotes[proposalId] = cvs
 	} else {
 		delete(s.confirmVotes, proposalId)
+		go func() {
+			for partyId,_:=range s.confirmVotes[proposalId].votes{
+				DeleteState(GetConfirmVotesKey(proposalId,partyId))
+			}
+		}()
 	}
 	s.confirmVotesLock.Unlock()
 }
@@ -626,6 +650,7 @@ func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopc
 	_, ok := s.proposalPeerInfoCache[proposalId]
 	if !ok {
 		s.proposalPeerInfoCache[proposalId] = peerDesc
+		UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
 	}
 	s.confirmPeerInfoLock.Unlock()
 }
@@ -652,5 +677,6 @@ func (s *state) MustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.Conf
 func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 	s.confirmPeerInfoLock.Lock()
 	delete(s.proposalPeerInfoCache, proposalId)
+	DeleteState(GetProposalPeerInfoCacheKey(proposalId))
 	s.confirmPeerInfoLock.Unlock()
 }

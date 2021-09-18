@@ -90,7 +90,7 @@ func UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.Confirm
 	}
 }
 
-func UpdatePrepareVotes(proposalId common.Hash, vote *types.PrepareVote) {
+func UpdatePrepareVotes(vote *types.PrepareVote) {
 	db, err := OpenDatabase(databasePath, 0, 0)
 	defer db.Close()
 	if err != nil {
@@ -119,12 +119,12 @@ func UpdatePrepareVotes(proposalId common.Hash, vote *types.PrepareVote) {
 	if er != nil {
 		log.Fatal("marshaling error: ", err)
 	}
-	if err := db.Put(GetPrepareVotesKey(proposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdatePrepareVotes to db fail,proposalId:", proposalId)
+	if err := db.Put(GetPrepareVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
+		log.Warning("UpdatePrepareVotes to db fail,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 
-func UpdateConfirmVotes(proposalId common.Hash, vote *types.ConfirmVote) {
+func UpdateConfirmVotes(vote *types.ConfirmVote) {
 	db, err := OpenDatabase(databasePath, 0, 0)
 	defer db.Close()
 	if err != nil {
@@ -147,8 +147,8 @@ func UpdateConfirmVotes(proposalId common.Hash, vote *types.ConfirmVote) {
 	if er != nil {
 		log.Fatal("marshaling error: ", err)
 	}
-	if err := db.Put(GetConfirmVotesKey(proposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdateConfirmVotes to db fail,proposalId:", proposalId)
+	if err := db.Put(GetConfirmVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
+		log.Warning("UpdateConfirmVotes to db fail,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 
