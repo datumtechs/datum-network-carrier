@@ -3,23 +3,23 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"testing"
 )
 
 var testTaskdata = NewTask(&types.TaskPB{
-	IdentityId:             "",
-	NodeId:               "",
-	NodeName:             "",
-	DataId:               "",
-	DataStatus:           "",
-	TaskId:               "",
-	State:                "",
-	Reason:               "",
-	EventCount:           0,
-	Desc:                 "",
-	PartnerList:          nil,
-	TaskEventList:        nil,
+	IdentityId: "",
+	NodeId:     "",
+	NodeName:   "",
+	DataId:     "",
+	DataStatus: apicommonpb.DataStatus_DataStatus_Unknown,
+	TaskId:     "",
+	State:      apicommonpb.TaskState_TaskState_Unknown,
+	Reason:     "",
+	EventCount: 0,
+	Desc:       "",
+	TaskEvents: nil,
 })
 
 func TestTaskDataEncode(t *testing.T) {

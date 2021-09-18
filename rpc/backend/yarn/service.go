@@ -334,7 +334,7 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.
 func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryDataResourceTables failed, fileType: {%s}, fileSize: {%s}",
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryDataResourceTables failed, fileType: {%s}, fileSize: {%d}",
 			req.GetFileType(), req.GetFileSize())
 		return nil, ErrQueryDataResourceTableList
 	}
@@ -349,7 +349,7 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, nodeId)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-GetRegisterNode failed, fileType: {%s}, fileSize: {%s}, dataNodeId: {%s}",
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-GetRegisterNode failed, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}",
 			req.GetFileType(), req.GetFileSize(), nodeId)
 		return nil, ErrGetDataNodeInfo
 	}
