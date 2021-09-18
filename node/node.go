@@ -130,7 +130,6 @@ func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) er
 
 	// setting database
 	carrierDB, err := core.NewDataCenter(node.ctx, db, &params.DataCenterConfig{
-		// todo 写死的连接dataCenter的 grpc server 的ip和port
 		GrpcUrl: datacenterHost,
 		Port:    datacenterPort,
 	})
