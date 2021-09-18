@@ -128,7 +128,7 @@ type TaskEventShowAndRole struct {
 type TaskResultFileSummary struct {
 	TaskId     string
 	FileName   string
-	MetaDataId string
+	MetadataId string
 	OriginId   string
 	FilePath   string
 	NodeId     string
@@ -138,18 +138,17 @@ func NewTaskResultFileSummary(taskId, fileName, metadataId, originId, filePath, 
 	return &TaskResultFileSummary{
 		TaskId:     taskId,
 		FileName:   fileName,
-		MetaDataId: metadataId,
+		MetadataId: metadataId,
 		OriginId:   originId,
 		FilePath:   filePath,
 		NodeId:     id,
 	}
 }
-func (trfs *TaskResultFileSummary) GetTaskId () string { return trfs.TaskId }
-func (trfs *TaskResultFileSummary) GetFileName () string { return trfs.FileName }
-func (trfs *TaskResultFileSummary) GetMetaDataId () string { return trfs.MetaDataId }
-func (trfs *TaskResultFileSummary) GetOriginId () string { return trfs.OriginId }
-func (trfs *TaskResultFileSummary) GetFilePath () string { return trfs.FilePath }
-func (trfs *TaskResultFileSummary) GetNodeId () string { return trfs.NodeId }
-
+func (trfs *TaskResultFileSummary) GetTaskId() string     { return trfs.TaskId }
+func (trfs *TaskResultFileSummary) GetFileName() string   { return trfs.FileName }
+func (trfs *TaskResultFileSummary) GetMetadataId() string { return trfs.MetadataId }
+func (trfs *TaskResultFileSummary) GetOriginId() string   { return trfs.OriginId }
+func (trfs *TaskResultFileSummary) GetFilePath() string   { return trfs.FilePath }
+func (trfs *TaskResultFileSummary) GetNodeId() string     { return trfs.NodeId }
 
 type TaskResultFileSummaryArr []*TaskResultFileSummary
