@@ -88,7 +88,6 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
-	//metaDataRevokeMsg.GetCreateAt = uint64(timeutils.UnixMsec())
 
 	err := svr.B.SendMsg(metadataRevokeMsg)
 	if nil != err {

@@ -407,12 +407,12 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 	}
 
 	log.Debugf("RPC-API:GetTaskResultFileSummary Succeed, taskId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, metadataId: {%s}, originId: {%s}, fileName: {%s}, filePath: {%s}",
-		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), taskResultFileSummary.GetMetaDataId(), taskResultFileSummary.GetOriginId(), taskResultFileSummary.GetFileName(), taskResultFileSummary.GetFilePath())
+		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), taskResultFileSummary.GetMetadataId(), taskResultFileSummary.GetOriginId(), taskResultFileSummary.GetFileName(), taskResultFileSummary.GetFilePath())
 
 	return &pb.GetTaskResultFileSummaryResponse{
 		TaskId:     taskResultFileSummary.GetTaskId(),
 		FileName:   taskResultFileSummary.GetFileName(),
-		MetaDataId: taskResultFileSummary.GetMetaDataId(),
+		MetadataId: taskResultFileSummary.GetMetadataId(),
 		OriginId:   taskResultFileSummary.GetOriginId(),
 		FilePath:   taskResultFileSummary.GetFilePath(),
 		Ip:         dataNode.GetInternalIp(),
