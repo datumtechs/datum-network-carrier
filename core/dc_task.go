@@ -32,7 +32,6 @@ func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 	return nil
 }
 
-
 func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
 	if taskId == "" {
 		return nil, errors.New("invalid params taskId for GetLocalTask")

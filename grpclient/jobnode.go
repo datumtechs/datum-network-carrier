@@ -14,13 +14,13 @@ import (
 )
 
 type JobNodeClient struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	conn   *grpc.ClientConn
-	addr   string
-	nodeId string
-	connMu sync.RWMutex
-	connStartAt   int64
+	ctx         context.Context
+	cancel      context.CancelFunc
+	conn        *grpc.ClientConn
+	addr        string
+	nodeId      string
+	connMu      sync.RWMutex
+	connStartAt int64
 
 	//TODO: define some client...
 	computeProviderClient computesvc.ComputeProviderClient
@@ -35,7 +35,7 @@ func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNode
 		nodeId: nodeId,
 	}
 	// try to connect grpc server.
-	runutil.RunEvery(client.ctx, 10 * time.Second, func() {
+	runutil.RunEvery(client.ctx, 10*time.Second, func() {
 		client.connecting()
 	})
 	return client, nil
@@ -106,7 +106,7 @@ func (c *JobNodeClient) IsConnected() bool {
 		return false
 	}
 }
-func (c *JobNodeClient) IsNotConnected() bool { return !c.IsConnected()}
+func (c *JobNodeClient) IsNotConnected() bool { return !c.IsConnected() }
 
 func (c *JobNodeClient) Reconnect() error {
 	err := c.connecting()
@@ -133,7 +133,7 @@ func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*
 	return nil, errors.New("method GetTaskDetails not implemented")
 }
 
-func (c *JobNodeClient) UploadShard(ctx context.Context) (computesvc.ComputeProvider_UploadShardClient, error){
+func (c *JobNodeClient) UploadShard(ctx context.Context) (computesvc.ComputeProvider_UploadShardClient, error) {
 	return nil, errors.New("method UploadShard not implemented")
 }
 

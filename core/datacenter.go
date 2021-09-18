@@ -150,7 +150,7 @@ func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRe
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	rawdb.WriteRegisterNodes(dc.db, typ, node)
-	return pb.ConnState(node.ConnState), nil
+	return node.ConnState, nil
 }
 
 func (dc *DataCenter) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
@@ -331,7 +331,6 @@ func (dc *DataCenter) StoreUserMetadataAuthUsed (userType apicommonpb.UserType, 
 	defer dc.mu.Unlock()
 	return rawdb.StoreUserMetadataAauthUsed(dc.db, userType, user, metadataAuthId)
 }
-
 
 func (dc *DataCenter) QueryUserMetadataAuthUsedCount (userType apicommonpb.UserType, user string) (uint32, error) {
 	dc.mu.RLock()

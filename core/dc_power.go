@@ -68,7 +68,6 @@ func (dc *DataCenter) InsertResource(resource *types.Resource) error {
 	return nil
 }
 
-
 func (dc *DataCenter) RevokeResource(resource *types.Resource) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -83,7 +82,6 @@ func (dc *DataCenter) RevokeResource(resource *types.Resource) error {
 	return nil
 }
 
-
 func (dc *DataCenter) SyncPowerUsed (resource *types.LocalResource) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
@@ -97,7 +95,6 @@ func (dc *DataCenter) SyncPowerUsed (resource *types.LocalResource) error {
 	}
 	return nil
 }
-
 
 func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.ResourceArray, error) {
 	dc.serviceMu.Lock()

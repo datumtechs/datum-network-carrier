@@ -11,7 +11,6 @@ import (
 	"strings"
 )
 
-
 // about identity on local
 func (dc *DataCenter) StoreIdentity(identity *apicommonpb.Organization) error {
 	dc.mu.Lock()
@@ -46,7 +45,6 @@ func (dc *DataCenter) GetIdentity() (*apicommonpb.Organization, error) {
 	}
 	return identity, nil
 }
-
 
 // about identity on datacenter
 func (dc *DataCenter) HasIdentity(identity *apicommonpb.Organization) (bool, error) {
@@ -84,11 +82,6 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityRequest{
-		/*Member: &apicommonpb.Organization{
-			NodeName:       identity.Name(),
-			NodeId:     identity.NodeId(),
-			IdentityId: identity.IdentityId(),
-		},*/
 		IdentityId: identity.IdentityId(),
 	})
 	if err != nil {
@@ -146,7 +139,8 @@ func (dc *DataCenter) GetMetadataAuthority (metadataAuthId string) (*types.Metad
 }
 
 func (dc *DataCenter) GetMetadataAuthorityListByIds (metadataAuthIds []string) (types.MetadataAuthArray, error) {
-
+	//todo: Discussion: Do we need to achieve?
+	panic("implements me")
 	return nil, nil
 }
 
@@ -164,5 +158,7 @@ func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, la
 }
 
 func (dc *DataCenter) GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string, lastUpdate uint64) (types.MetadataAuthArray, error) {
+	//todo: Discussion: Do we need to achieve?
+	panic("implements me")
 	return nil, nil
 }
