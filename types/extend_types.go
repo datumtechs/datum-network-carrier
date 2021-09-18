@@ -96,8 +96,8 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 	return result
 }
 
-func NewOrgMetadataInfoFromMetadata(input *Metadata) *pb.GetMetadataDetailResponse {
-	response := &pb.GetMetadataDetailResponse{
+func NewTotalMetadataInfoFromMetadata(input *Metadata) *pb.GetTotalMetadataDetailResponse {
+	response := &pb.GetTotalMetadataDetailResponse{
 		Owner: &apicommonpb.Organization{
 			NodeName:   input.data.GetNodeName(),
 			NodeId:     input.data.GetNodeId(),
@@ -124,14 +124,63 @@ func NewOrgMetadataInfoFromMetadata(input *Metadata) *pb.GetMetadataDetailRespon
 	return response
 }
 
-func NewOrgMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetMetadataDetailResponse {
-	result := make([]*pb.GetMetadataDetailResponse, 0, input.Len())
+func NewSelfMetadataInfoFromMetadata(islocal bool, input *Metadata) *pb.GetSelfMetadataDetailResponse {
+	response := &pb.GetSelfMetadataDetailResponse{
+		Owner: &apicommonpb.Organization{
+			NodeName:   input.data.GetNodeName(),
+			NodeId:     input.data.GetNodeId(),
+			IdentityId: input.data.GetIdentityId(),
+		},
+		Information: &libtypes.MetadataDetail{
+			MetadataSummary: &libtypes.MetadataSummary{
+				MetadataId: input.GetData().GetDataId(),
+				OriginId:   input.GetData().GetOriginId(),
+				TableName:  input.GetData().GetTableName(),
+				Desc:       input.GetData().GetDesc(),
+				FilePath:   input.GetData().GetFilePath(),
+				Rows:       input.GetData().GetRows(),
+				Columns:    input.GetData().GetColumns(),
+				Size_:      input.GetData().GetSize_(),
+				FileType:   input.GetData().GetFileType(),
+				HasTitle:   input.GetData().GetHasTitle(),
+				Industry:   input.GetData().GetIndustry(),
+				State:      input.GetData().GetState(),
+			},
+			MetadataColumns: input.GetData().GetMetadataColumns(),
+		},
+		IsLocal: islocal,
+	}
+	return response
+}
+
+func NewTotalMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetTotalMetadataDetailResponse {
+	result := make([]*pb.GetTotalMetadataDetailResponse, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue
 		}
-		result = append(result, NewOrgMetadataInfoFromMetadata(metadata))
+		result = append(result, NewTotalMetadataInfoFromMetadata(metadata))
 	}
+	return result
+}
+
+func NewSelfMetadataInfoArrayFromMetadataArray(localArr, publishArr MetadataArray) []*pb.GetSelfMetadataDetailResponse {
+	result := make([]*pb.GetSelfMetadataDetailResponse, 0, localArr.Len()+publishArr.Len())
+
+	for _, metadata := range localArr {
+		if metadata == nil {
+			continue
+		}
+		result = append(result, NewSelfMetadataInfoFromMetadata(true, metadata))
+	}
+
+	for _, metadata := range publishArr {
+		if metadata == nil {
+			continue
+		}
+		result = append(result, NewSelfMetadataInfoFromMetadata(false, metadata))
+	}
+
 	return result
 }
 

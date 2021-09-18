@@ -86,7 +86,7 @@ message TaskEventArrayPB {
 //// 原始数据 存储摘要
 //message DataSummaryPB {
 //    string origin_id    = 1;
-//    string meta_data_id = 2;
+//    string metadata_id = 2;
 //    string resoure_id   = 3;
 //    string file_path    = 4;
 //

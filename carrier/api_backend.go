@@ -399,48 +399,96 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-// metadata api   todo 加上查询本地 metadata ???
-func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error) {
-	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
-	if metadata == nil {
-		return nil, errors.New("not found metadata by special Id")
-	}
-	return types.NewOrgMetadataInfoFromMetadata(metadata), err
-}
+// metadata api
+
+//func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error) {
+//	var metadata *types.Metadata
+//	var err error
+//
+//	// find local metadata
+//	if "" == identityId {
+//		metadata, err = s.carrier.carrierDB.GetLocalMetadataByDataId(metaDataId)
+//		if rawdb.IsNoDBNotFoundErr(err) {
+//			return nil, errors.New("not found local metadata by special Id, " + err.Error())
+//		}
+//		if nil != metadata {
+//			return types.NewOrgMetadataInfoFromMetadata(true, metadata), nil
+//		}
+//	}
+//	metadata, err = s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
+//	if nil != err {
+//		return nil, errors.New("not found local metadata by special Id, " + err.Error())
+//	}
+//	if nil == metadata {
+//		return nil, errors.New("not found local metadata by special Id, metadata is empty")
+//	}
+//	return types.NewOrgMetadataInfoFromMetadata(false, metadata), nil
+//}
 
 // GetMetadataDetailList returns a list of all metadata details in the network.   todo 加上查询本地 metadata ???
-func (s *CarrierAPIBackend) GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error) {
-	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
-	return types.NewOrgMetadataInfoArrayFromMetadataArray(metadataArray), err
+func (s *CarrierAPIBackend) GetTotalMetadataDetailList() ([]*pb.GetTotalMetadataDetailResponse, error) {
+
+	var  arr []*pb.GetTotalMetadataDetailResponse
+	var  err error
+	localMetadataArr, err := s.carrier.carrierDB.GetLocalMetadataList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, errors.New("found local metadata arr failed, " + err.Error())
+	}
+	if len(localMetadataArr) != 0 {
+		arr = append(arr, types.NewTotalMetadataInfoArrayFromMetadataArray(localMetadataArr)...)
+	}
+
+	publishMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, errors.New("found publish metadata arr failed, " + err.Error())
+	}
+	if len(publishMetadataArr) != 0 {
+		arr = append(arr, types.NewTotalMetadataInfoArrayFromMetadataArray(publishMetadataArr)...)
+	}
+	if len(arr) == 0 {
+		return nil, errors.New("not found metadata arr")
+	}
+	return arr, err
 }
 // todo 这里需要加上 metadata 被 task 引用的个数 ???
-func (s *CarrierAPIBackend) GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error) {
-	log.WithField("identityId", identityId).Debug("Invoke: GetMetadataDetailListByOwner executing...")
-	metadataList, err := s.GetMetadataDetailList()
-	if err != nil {
-		return nil, err
+func (s *CarrierAPIBackend) GetSelfMetadataDetailList () ([]*pb.GetSelfMetadataDetailResponse, error) {
+	log.Debug("Invoke: GetSelfMetadataDetailList executing...")
+	var  arr []*pb.GetSelfMetadataDetailResponse
+	var  err error
+	localMetadataArr, err := s.carrier.carrierDB.GetLocalMetadataList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
-	result := make([]*pb.GetMetadataDetailResponse, 0)
-	for _, metadata := range metadataList {
-		if metadata.GetOwner().GetIdentityId() == identityId {
-			result = append(result, metadata)
-		}
+
+	publishMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, errors.New("found publish metadata arr failed, " + err.Error())
 	}
-	log.Debugf("Query metaData list, identityId: {%s}, len: {%d}", identityId, len(result))
-	return result, nil
+
+	arr = append(arr, types.NewSelfMetadataInfoArrayFromMetadataArray(localMetadataArr, publishMetadataArr)...)
+
+	if len(arr) == 0 {
+		return nil, errors.New("not found metadata arr")
+	}
+	return arr, nil
+}
+
+func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(metadataId string) ([]string, error) {
+
+	return nil, nil
 }
 
 // power api
-func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetailResponse, error) {
-	log.Debug("Invoke: GetPowerTotalDetailList executing...")
+func (s *CarrierAPIBackend) GetTotalPowerDetailList() ([]*pb.GetTotalPowerDetailResponse, error) {
+	log.Debug("Invoke: GetTotalPowerDetailList executing...")
 	resourceList, err := s.carrier.carrierDB.GetResourceList()
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Query all org's power list, len: {%d}", len(resourceList))
-	powerList := make([]*pb.GetPowerTotalDetailResponse, 0, resourceList.Len())
+	powerList := make([]*pb.GetTotalPowerDetailResponse, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
-		powerList = append(powerList, &pb.GetPowerTotalDetailResponse{
+		powerList = append(powerList, &pb.GetTotalPowerDetailResponse{
 			Owner: &apicommonpb.Organization{
 				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
@@ -465,28 +513,28 @@ func (s *CarrierAPIBackend) GetPowerTotalDetailList() ([]*pb.GetPowerTotalDetail
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDetailResponse, error) {
-	log.Debug("Invoke:GetPowerSingleDetailList executing...")
+func (s *CarrierAPIBackend) GetSelfPowerDetailList() ([]*pb.GetSelfPowerDetailResponse, error) {
+	log.Debug("Invoke:GetSelfPowerDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.GetLocalResourceList()
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Invoke:GetPowerSingleDetailList, call GetLocalResourceList, machineList: %s", machineList.String())
+	log.Debugf("Invoke:GetSelfPowerDetailList, call GetLocalResourceList, machineList: %s", machineList.String())
 
 	// query used of power for local task. : taskId -> {taskId, jobNodeId, slotCount}
 	localTaskPowerUsedList, err := s.carrier.carrierDB.QueryLocalTaskPowerUseds()
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryLocalTaskPowerUseds, localTaskPowerUsedList: %s",
+	log.Debugf("Invoke:GetSelfPowerDetailList, call QueryLocalTaskPowerUseds, localTaskPowerUsedList: %s",
 		utilLocalTaskPowerUsedArrString(localTaskPowerUsedList))
 
 	slotUnit, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Invoke:GetPowerSingleDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
+	log.Debugf("Invoke:GetSelfPowerDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
 		slotUnit.String())
 
 	// 收集 本地所有的 jonNode 上的 powerUsed 数组
@@ -502,7 +550,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 		validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()] = usedArr
 	}
 
-	log.Debugf("Invoke:GetPowerSingleDetailList, make validLocalTaskPowerUsedMap, validLocalTaskPowerUsedMap: %s",
+	log.Debugf("Invoke:GetSelfPowerDetailList, make validLocalTaskPowerUsedMap, validLocalTaskPowerUsedMap: %s",
 		utilLocalTaskPowerUsedMapString(validLocalTaskPowerUsedMap))
 
 	readElement := func(jobNodeId string, taskId string) uint64 {
@@ -525,7 +573,7 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 				taskId := powerUsed.GetTaskId()
 				task, err := s.carrier.carrierDB.GetLocalTask(taskId)
 				if err != nil {
-					log.Errorf("Failed to query local task on GetPowerSingleDetailList, taskId: {%s}, err: {%s}", taskId, err)
+					log.Errorf("Failed to query local task on GetSelfPowerDetailList, taskId: {%s}, err: {%s}", taskId, err)
 					continue
 				}
 
@@ -590,9 +638,9 @@ func (s *CarrierAPIBackend) GetPowerSingleDetailList() ([]*pb.GetPowerSingleDeta
 
 	resourceList := machineList.To()
 	// 逐个处理当前
-	result := make([]*pb.GetPowerSingleDetailResponse, len(resourceList))
+	result := make([]*pb.GetSelfPowerDetailResponse, len(resourceList))
 	for i, resource := range resourceList {
-		nodePowerDetail := &pb.GetPowerSingleDetailResponse{
+		nodePowerDetail := &pb.GetSelfPowerDetailResponse{
 			JobNodeId:        resource.GetJobNodeId(),
 			PowerId:          resource.DataId,
 			Owner: &apicommonpb.Organization{

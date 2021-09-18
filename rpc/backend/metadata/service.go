@@ -10,33 +10,48 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-func (svr *Server) GetMetadataDetail(ctx context.Context, req *pb.GetMetadataDetailRequest) (*pb.GetMetadataDetailResponse, error) {
-	if req.GetIdentityId() == "" {
-		return nil, errors.New("required identity")
-	}
-	if req.GetMetadataId() == "" {
-		return nil, errors.New("required metadataId")
-	}
-	metadataDetail, err := svr.B.GetMetadataDetail(req.GetIdentityId(), req.GetMetadataId())
-	if nil != err {
-		log.WithError(err).Error("RPC-API:GetMetadataDetail failed")
-		return nil, ErrGetMetadataDetail
-	}
-	return metadataDetail, nil
-}
+//func (svr *Server) GetMetadataDetail(ctx context.Context, req *pb.GetMetadataDetailRequest) (*pb.GetMetadataDetailResponse, error) {
+//	if req.GetMetadataId() == "" {
+//		return nil, errors.New("required metadataId")
+//	}
+//	metadataDetail, err := svr.B.GetMetadataDetail(req.GetIdentityId(), req.GetMetadataId())
+//	if nil != err {
+//		log.WithError(err).Error("RPC-API:GetMetadataDetail failed")
+//		return nil, ErrGetMetadataDetail
+//	}
+//	return metadataDetail, nil
+//}
 
-func (svr *Server) GetMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetMetadataDetailListResponse, error) {
-	metadataList, err := svr.B.GetMetadataDetailList()
+func (svr *Server) GetTotalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTotalMetadataDetailListResponse, error) {
+	metadataList, err := svr.B.GetTotalMetadataDetailList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetMetadataDetailList failed")
+		log.WithError(err).Error("RPC-API:GetTotalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
 	}
-	respList := make([]*pb.GetMetadataDetailResponse, len(metadataList))
-	for i, metaDataDetail := range metadataList {
-		respList[i] = metaDataDetail
+	respList := make([]*pb.GetTotalMetadataDetailResponse, len(metadataList))
+	for i, metadataDetail := range metadataList {
+		respList[i] = metadataDetail
 	}
 	log.Debugf("Query all org's metadata list, len: {%d}", len(respList))
-	return &pb.GetMetadataDetailListResponse{
+	return &pb.GetTotalMetadataDetailListResponse{
+		Status:       0,
+		Msg:          backend.OK,
+		MetadataList: respList,
+	}, nil
+}
+
+func (svr *Server) GetSelfMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetSelfMetadataDetailListResponse, error) {
+	metadataList, err := svr.B.GetSelfMetadataDetailList()
+	if nil != err {
+		log.WithError(err).Error("RPC-API:GetSelfMetadataDetailList failed")
+		return nil, ErrGetMetadataDetailList
+	}
+	respList := make([]*pb.GetSelfMetadataDetailResponse, len(metadataList))
+	for i, metadataDetail := range metadataList {
+		respList[i] = metadataDetail
+	}
+	log.Debugf("Query current org's metadata list, len: {%d}", len(respList))
+	return &pb.GetSelfMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
 		MetadataList: respList,
@@ -84,5 +99,16 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
+	}, nil
+}
+
+
+// GetMetadataUsedTaskIdList (GetMetadataUsedTaskIdListRequest) returns (GetMetadataUsedTaskIdListResponse) {
+func (svr *Server) GetMetadataUsedTaskIdList (ctx context.Context, req *pb.GetMetadataUsedTaskIdListRequest) (*pb.GetMetadataUsedTaskIdListResponse, error) {
+
+	return &pb.GetMetadataUsedTaskIdListResponse{
+		Status:     0,
+		Msg:        backend.OK,
+		TaskIds:    []string{},
 	}, nil
 }
