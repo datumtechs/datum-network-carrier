@@ -3,7 +3,6 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/abool"
-	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
@@ -34,9 +33,9 @@ func TestSubscribe_ReceivesValidMessage(t *testing.T) {
 	wg.Add(1)
 
 	r.subscribe(topic, r.noopValidator, func(_ context.Context, pid peer.ID, msg proto.Message) error {
-		m, ok := msg.(*libp2ppb.SignedGossipTestData)
+		m, ok := msg.(*libp2ppb.GossipTestData)
 		assert.Equal(t, true, ok, "Object is not of type *pb.GossipTestData")
-		if m.GetData().Step == 0 || m.GetData().Step != 55 {
+		if m.Step == 0 || m.Step != 55 {
 			t.Errorf("Unexpected incoming message: %+v", m)
 		}
 		wg.Done()
@@ -44,10 +43,7 @@ func TestSubscribe_ReceivesValidMessage(t *testing.T) {
 	})
 	//r.markForChainStart()
 
-	p2pService.ReceivePubSub(topic, &libp2ppb.SignedGossipTestData{
-		Data:                 &libp2ppb.GossipTestData{Step: 55},
-		Signature:            bytesutil.PadTo([]byte("signature"), 48),
-	})
+	p2pService.ReceivePubSub(topic, &libp2ppb.GossipTestData{Step: 55})
 
 	if WaitTimeout(&wg, 10 * time.Second) {
 		t.Fatal("Did not receive PubSub in 1 second")
