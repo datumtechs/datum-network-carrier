@@ -201,7 +201,17 @@ func (t *Twopc) removeProposalStateAndTask(proposalId common.Hash) {
 		log.Infof("Start remove proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.GetTaskId())
 		t.removeProposalTask(state.GetTaskId())
 		t.state.CleanProposalState(proposalId)
-
+		go func() {
+			for partyId, _ := range t.state.prepareVotes[proposalId].votes {
+				DeleteState(GetPrepareVotesKey(proposalId, partyId))
+			}
+			for partyId, _ := range t.state.confirmVotes[proposalId].votes {
+				DeleteState(GetConfirmVotesKey(proposalId, partyId))
+			}
+			for partyId, _ := range t.state.proposalSet[proposalId].GetStateCache() {
+				DeleteState(GetProposalSetKey(proposalId, partyId))
+			}
+		}()
 	}
 }
 func (t *Twopc) storeOrgProposalState (proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
@@ -213,6 +223,7 @@ func (t *Twopc) storeOrgProposalState (proposalId common.Hash, taskId string, se
 		first = true
 	}
 	pstate.StoreOrgProposalState(orgState)
+	UpdateOrgProposalState(proposalId,pstate.GetTaskSender(),orgState)
 	if first {
 		t.state.StoreProposalState(pstate)
 	} else {
@@ -227,6 +238,7 @@ func (t *Twopc) removeOrgProposalState (proposalId common.Hash, partyId string) 
 		return
 	}
 	pstate.RemoveOrgProposalState(partyId)
+	DeleteState(GetProposalSetKey(proposalId,partyId))
 }
 
 func (t *Twopc) getOrgProposalState (proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
@@ -281,6 +293,22 @@ func (t *Twopc) refreshProposalState () {
 	for proposalId, proposalState := range t.state.proposalSet {
 
 		proposalState.RefreshProposalState()
+
+		go func() {
+			for partyId, orgState := range proposalState.GetStateCache() {
+				if orgState.IsDeadline() {
+					DeleteState(GetProposalSetKey(proposalId, partyId))
+					continue
+				}
+				switch orgState.CurrPeriodNum() {
+				case 1, 2, 3:
+					UpdateOrgProposalState(proposalState.GetProposalId(), proposalState.GetTaskSender(), orgState)
+				case 4:
+					DeleteState(GetProposalSetKey(proposalId, partyId))
+				default:
+				}
+			}
+		}()
 
 		if proposalState.IsEmpty() {
 
