@@ -13,7 +13,7 @@
   "paths": {
     "/carrier/v1/auth/applyIdentity": {
       "post": {
-        "summary": "申请准入网络",
+        "summary": "组织身份入网申请",
         "operationId": "AuthService_ApplyIdentityJoin",
         "responses": {
           "200": {
@@ -46,13 +46,13 @@
     },
     "/carrier/v1/auth/applyMetaDataAuth": {
       "post": {
-        "summary": "数据授权申请",
-        "operationId": "AuthService_ApplyMetaDataAuthority",
+        "summary": "发起数据授权申请",
+        "operationId": "AuthService_ApplyMetadataAuthority",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiApplyMetaDataAuthorityResponse"
+              "$ref": "#/definitions/rpcapiApplyMetadataAuthorityResponse"
             }
           },
           "default": {
@@ -68,7 +68,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiApplyMetaDataAuthorityRequest"
+              "$ref": "#/definitions/rpcapiApplyMetadataAuthorityRequest"
             }
           }
         ],
@@ -80,12 +80,12 @@
     "/carrier/v1/auth/auditMetaDataAuth": {
       "post": {
         "summary": "数据授权审核",
-        "operationId": "AuthService_AuditMetaDataAuthority",
+        "operationId": "AuthService_AuditMetadataAuthority",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufSimpleResponse"
+              "$ref": "#/definitions/rpcapiAuditMetadataAuthorityResponse"
             }
           },
           "default": {
@@ -101,7 +101,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiAuditMetaDataAuthorityRequest"
+              "$ref": "#/definitions/rpcapiAuditMetadataAuthorityRequest"
             }
           }
         ],
@@ -145,7 +145,7 @@
     },
     "/carrier/v1/auth/identityList": {
       "post": {
-        "summary": "查询全网全部已发布的 身份信息",
+        "summary": "查询全网组织的身份信息列表(已入网的)",
         "operationId": "AuthService_GetIdentityList",
         "responses": {
           "200": {
@@ -178,13 +178,13 @@
     },
     "/carrier/v1/auth/metaDataAuthList": {
       "post": {
-        "summary": "获取数据授权申请列表",
-        "operationId": "AuthService_GetMetaDataAuthorityList",
+        "summary": "当前(组织)的所有元数据的授权申请及审核结果详情列表",
+        "operationId": "AuthService_GetMetadataAuthorityList",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/rpcapiGetMetaDataAuthorityListResponse"
+              "$ref": "#/definitions/rpcapiGetMetadataAuthorityListResponse"
             }
           },
           "default": {
@@ -201,6 +201,39 @@
             "required": true,
             "schema": {
               "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
+    },
+    "/carrier/v1/auth/metaDataAuthListByUser": {
+      "post": {
+        "summary": "当前(用户)的所有元数据的授权申请及审核结果详情列表",
+        "operationId": "AuthService_GetMetadataAuthorityListByUser",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetadataAuthorityListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetMetadataAuthorityListByUserRequest"
             }
           }
         ],
@@ -241,6 +274,39 @@
           "AuthService"
         ]
       }
+    },
+    "/carrier/v1/auth/revokeMetaDataAuth": {
+      "post": {
+        "summary": "撤销数据授权申请",
+        "operationId": "AuthService_RevokeMetadataAuthority",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/protobufSimpleResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiRevokeMetadataAuthorityRequest"
+            }
+          }
+        ],
+        "tags": [
+          "AuthService"
+        ]
+      }
     }
   },
   "definitions": {
@@ -256,6 +322,47 @@
         }
       }
     },
+    "protobufAuditMetadataOption": {
+      "type": "string",
+      "enum": [
+        "Audit_Pending",
+        "Audit_Passed",
+        "Audit_Refused"
+      ],
+      "default": "Audit_Pending"
+    },
+    "protobufCommonStatus": {
+      "type": "string",
+      "enum": [
+        "CommonStatus_Unknown",
+        "CommonStatus_Normal",
+        "CommonStatus_NonNormal"
+      ],
+      "default": "CommonStatus_Unknown",
+      "title": "Y : normal, N non-normal"
+    },
+    "protobufMetadataAuthorityState": {
+      "type": "string",
+      "enum": [
+        "MAState_Unknown",
+        "MAState_Created",
+        "MAState_Released",
+        "MAState_Revoked",
+        "MAState_Invalid"
+      ],
+      "default": "MAState_Unknown",
+      "title": "数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 \u003c失效前主动撤回的\u003e; 4: 已经失效的数据授权 \u003c过期or达到使用上限的or被拒绝的\u003e;)"
+    },
+    "protobufMetadataUsageType": {
+      "type": "string",
+      "enum": [
+        "Usage_Unknown",
+        "Usage_Period",
+        "Usage_Times"
+      ],
+      "default": "Usage_Unknown",
+      "title": "元数据的使用方式类型枚举"
+    },
     "protobufOrganization": {
       "type": "object",
       "properties": {
@@ -270,6 +377,10 @@
         "identity_id": {
           "type": "string",
           "title": "the identity for org"
+        },
+        "status": {
+          "$ref": "#/definitions/protobufCommonStatus",
+          "title": "the status for organization(deleted/normal)"
         }
       },
       "description": "A represents the basic information of the organization."
@@ -291,12 +402,12 @@
     "protobufUserType": {
       "type": "string",
       "enum": [
-        "Unknown",
-        "ETH",
-        "ATP",
-        "LAT"
+        "User_Unknown",
+        "User_ETH",
+        "User_ATP",
+        "User_LAT"
       ],
-      "default": "Unknown"
+      "default": "User_Unknown"
     },
     "rpcapiApplyIdentityJoinRequest": {
       "type": "object",
@@ -305,9 +416,9 @@
           "$ref": "#/definitions/protobufOrganization"
         }
       },
-      "title": "------------------------  auth  ------------------------"
+      "title": "组织身份入网申请 req"
     },
-    "rpcapiApplyMetaDataAuthorityRequest": {
+    "rpcapiApplyMetadataAuthorityRequest": {
       "type": "object",
       "properties": {
         "user": {
@@ -317,16 +428,16 @@
           "$ref": "#/definitions/protobufUserType"
         },
         "auth": {
-          "$ref": "#/definitions/typesMetaDataAuthority"
+          "$ref": "#/definitions/typesMetadataAuthority"
         },
         "sign": {
           "type": "string",
           "format": "byte"
         }
       },
-      "title": "用户对元数据使用授权申请req"
+      "title": "发起用户对元数据使用授权申请 req"
     },
-    "rpcapiApplyMetaDataAuthorityResponse": {
+    "rpcapiApplyMetadataAuthorityResponse": {
       "type": "object",
       "properties": {
         "status": {
@@ -336,22 +447,44 @@
         "msg": {
           "type": "string"
         },
-        "meta_data_auth_id": {
+        "metadata_auth_id": {
           "type": "string"
         }
       },
-      "title": "用户对元数据使用授权申请resp"
+      "title": "发起用户对元数据使用授权申请 resp"
     },
-    "rpcapiAuditMetaDataAuthorityRequest": {
+    "rpcapiAuditMetadataAuthorityRequest": {
       "type": "object",
       "properties": {
-        "meta_data_auth_id": {
+        "metadata_auth_id": {
           "type": "string"
         },
         "audit": {
-          "$ref": "#/definitions/typesAuditMetaDataOption"
+          "$ref": "#/definitions/protobufAuditMetadataOption"
+        },
+        "suggestion": {
+          "type": "string"
         }
-      }
+      },
+      "title": "组织对用户的数据授权申请做审核 req"
+    },
+    "rpcapiAuditMetadataAuthorityResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        },
+        "audit": {
+          "$ref": "#/definitions/protobufAuditMetadataOption"
+        }
+      },
+      "title": "组织对用户的数据授权申请做审核 resp"
     },
     "rpcapiGetIdentityListResponse": {
       "type": "object",
@@ -369,12 +502,13 @@
             "$ref": "#/definitions/protobufOrganization"
           }
         }
-      }
+      },
+      "title": "查询全网组织的身份信息列表(已入网的) resp"
     },
-    "rpcapiGetMetaDataAuthority": {
+    "rpcapiGetMetadataAuthority": {
       "type": "object",
       "properties": {
-        "meta_data_auth_id": {
+        "metadata_auth_id": {
           "type": "string"
         },
         "user": {
@@ -384,10 +518,16 @@
           "$ref": "#/definitions/protobufUserType"
         },
         "auth": {
-          "$ref": "#/definitions/typesMetaDataAuthority"
+          "$ref": "#/definitions/typesMetadataAuthority"
         },
-        "audit": {
-          "$ref": "#/definitions/typesAuditMetaDataOption"
+        "audit_option": {
+          "$ref": "#/definitions/protobufAuditMetadataOption"
+        },
+        "audit_suggestion": {
+          "type": "string"
+        },
+        "used_quo": {
+          "$ref": "#/definitions/typesMetadataUsedQuo"
         },
         "apply_at": {
           "type": "string",
@@ -396,10 +536,26 @@
         "audit_at": {
           "type": "string",
           "format": "uint64"
+        },
+        "state": {
+          "$ref": "#/definitions/protobufMetadataAuthorityState"
         }
-      }
+      },
+      "title": "当前组织的某个用户对单个元数据的授权申请及审核结果详情"
     },
-    "rpcapiGetMetaDataAuthorityListResponse": {
+    "rpcapiGetMetadataAuthorityListByUserRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/protobufUserType"
+        }
+      },
+      "title": "当前(用户)的所有元数据的授权申请及审核结果详情列表 req"
+    },
+    "rpcapiGetMetadataAuthorityListResponse": {
       "type": "object",
       "properties": {
         "status": {
@@ -412,10 +568,11 @@
         "list": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiGetMetaDataAuthority"
+            "$ref": "#/definitions/rpcapiGetMetadataAuthority"
           }
         }
-      }
+      },
+      "title": "当前(组织or用户)的所有元数据的授权申请及审核结果详情列表 resp"
     },
     "rpcapiGetNodeIdentityResponse": {
       "type": "object",
@@ -430,7 +587,27 @@
         "owner": {
           "$ref": "#/definitions/protobufOrganization"
         }
-      }
+      },
+      "title": "查询自己组织的identity信息 resp"
+    },
+    "rpcapiRevokeMetadataAuthorityRequest": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "type": "string"
+        },
+        "user_type": {
+          "$ref": "#/definitions/protobufUserType"
+        },
+        "metadata_auth_id": {
+          "type": "string"
+        },
+        "sign": {
+          "type": "string",
+          "format": "byte"
+        }
+      },
+      "title": "撤销用户对元数据使用授权申请 req"
     },
     "runtimeError": {
       "type": "object",
@@ -453,35 +630,26 @@
         }
       }
     },
-    "typesAuditMetaDataOption": {
-      "type": "string",
-      "enum": [
-        "Audit_Pending",
-        "Audit_Passed",
-        "Audit_Refused"
-      ],
-      "default": "Audit_Pending"
-    },
-    "typesMetaDataAuthority": {
+    "typesMetadataAuthority": {
       "type": "object",
       "properties": {
         "owner": {
           "$ref": "#/definitions/protobufOrganization"
         },
-        "meta_data_id": {
+        "metadata_id": {
           "type": "string"
         },
-        "usage": {
-          "$ref": "#/definitions/typesMetaDataUsage"
+        "usage_rule": {
+          "$ref": "#/definitions/typesMetadataUsageRule"
         }
       },
       "title": "元数据使用授权"
     },
-    "typesMetaDataUsage": {
+    "typesMetadataUsageRule": {
       "type": "object",
       "properties": {
         "usage_type": {
-          "$ref": "#/definitions/typesMetaDataUsageType"
+          "$ref": "#/definitions/protobufMetadataUsageType"
         },
         "start_at": {
           "type": "string",
@@ -498,15 +666,21 @@
       },
       "title": "元数据的使用方式定义"
     },
-    "typesMetaDataUsageType": {
-      "type": "string",
-      "enum": [
-        "Usage_Unknown",
-        "Period",
-        "Times"
-      ],
-      "default": "Usage_Unknown",
-      "title": "元数据的使用方式类型枚举"
+    "typesMetadataUsedQuo": {
+      "type": "object",
+      "properties": {
+        "usage_type": {
+          "$ref": "#/definitions/protobufMetadataUsageType"
+        },
+        "expire": {
+          "type": "boolean"
+        },
+        "used_times": {
+          "type": "integer",
+          "format": "int64"
+        }
+      },
+      "title": "对应授权信息中元数据的使用实况定义 (配合数据授权使用)"
     }
   }
 }
