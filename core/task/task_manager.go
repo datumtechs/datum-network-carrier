@@ -150,6 +150,12 @@ func (m *Manager) loop() {
 					needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
 
 				} else {
+
+					// store metadata used taskId
+					if err := m.storeMetaUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
+						log.Errorf("Failed to store metadata used taskId, err: {%s}", err)
+					}
+
 					result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask.GetTask())
 					needReplayScheduleTask.SendResult(result)
 				}
@@ -232,6 +238,12 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 			}
 
 		} else {
+
+			// store metadata used taskId
+			if err := m.storeMetaUsedTaskId(task); nil != err {
+				log.Errorf("Failed to store metadata used taskId, err: {%s}", err)
+			}
+
 			taskArr = append(taskArr, task)
 		}
 

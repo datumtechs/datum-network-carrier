@@ -418,6 +418,76 @@ func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb
 	return rawdb.RemoveUserMetadataAuthIdByMetadataId(dc.db, userType, user, metadataId)
 }
 
+
+// about metadata used taskId
+func (dc *DataCenter) StoreMetadataUsedTaskId (metadataId, taskId string)  error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreMetadataUsedTaskId(dc.db, metadataId, taskId)
+}
+
+func (dc *DataCenter) QueryMetadataUsedTaskIdCount (metadataId string) (uint32, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryMetadataUsedTaskIdCount(dc.db, metadataId)
+}
+
+func (dc *DataCenter) QueryMetadataUsedTaskIds (metadataId string) ([]string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+
+	count, err := rawdb.QueryMetadataUsedTaskIdCount(dc.db, metadataId)
+	if nil != err {
+		return nil, err
+	}
+
+	if 0 == count {
+		return nil, rawdb.ErrNotFound
+	}
+
+	taskIds := make([]string, 0)
+
+	for index := 1; index <= int(count); index++ {
+
+		taskId, err := rawdb.QueryMetadataUsedTaskIdByIndex(dc.db, metadataId, uint32(index))
+		switch {
+		case rawdb.IsNoDBNotFoundErr(err):
+			return nil, err
+		case rawdb.IsDBNotFoundErr(err):
+			continue
+		}
+		taskIds = append(taskIds, taskId)
+	}
+	if len(taskIds) == 0 {
+		return nil, rawdb.ErrNotFound
+	}
+	return taskIds, nil
+}
+
+func (dc *DataCenter) RemoveAllMetadataUsedTaskId (metadataId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+
+	count, err := rawdb.QueryMetadataUsedTaskIdCount(dc.db, metadataId)
+	switch {
+	case rawdb.IsNoDBNotFoundErr(err):
+		return err
+	case rawdb.IsDBNotFoundErr(err) || 0 == count:
+		return nil
+	}
+
+	for index := 1; index <= int(count); index++ {
+		err := rawdb.RemoveMetadataUsedTaskIdByIndex(dc.db, metadataId, uint32(index))
+		switch {
+		case rawdb.IsNoDBNotFoundErr(err):
+			return err
+		case rawdb.IsDBNotFoundErr(err):
+			continue
+		}
+	}
+	return rawdb.RemoveMetadataUsedTaskIdCount(dc.db, metadataId)
+}
+
 // about TaskResultFileMetadataId
 func (dc *DataCenter) StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error {
 	dc.mu.Lock()
