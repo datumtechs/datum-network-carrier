@@ -320,7 +320,6 @@ func (pcache *LocalTaskPowerUsed) String() string {
 		pcache.taskId, pcache.nodeId, pcache.slotCount)
 }
 
-
 type DataResourceTable struct {
 	nodeId    string
 	totalDisk uint64
@@ -391,7 +390,7 @@ func (drt *DataResourceTable) FreeDisk(use uint64) {
 type DataResourceFileUpload struct {
 	originId   string // db key
 	nodeId     string
-	metaDataId string
+	metadataId string
 	filePath   string
 }
 
@@ -406,7 +405,7 @@ func NewDataResourceFileUpload(nodeId, originId, metaDataId, filePath string) *D
 	return &DataResourceFileUpload{
 		nodeId:     nodeId,
 		originId:   originId,
-		metaDataId: metaDataId,
+		metadataId: metaDataId,
 		filePath:   filePath,
 	}
 }
@@ -416,7 +415,7 @@ func (drt *DataResourceFileUpload) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, dataResourceFileUploadRlp{
 		NodeId:     drt.nodeId,
 		OriginId:   drt.originId,
-		MetadataId: drt.metaDataId,
+		MetadataId: drt.metadataId,
 		FilePath:   drt.filePath,
 	})
 }
@@ -426,18 +425,18 @@ func (drt *DataResourceFileUpload) DecodeRLP(s *rlp.Stream) error {
 	var dec dataResourceFileUploadRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		drt.nodeId, drt.originId, drt.metaDataId, drt.filePath = dec.NodeId, dec.OriginId, dec.MetadataId, dec.FilePath
+		drt.nodeId, drt.originId, drt.metadataId, drt.filePath = dec.NodeId, dec.OriginId, dec.MetadataId, dec.FilePath
 	}
 	return err
 }
 func (drt *DataResourceFileUpload) GetNodeId() string               { return drt.nodeId }
 func (drt *DataResourceFileUpload) GetOriginId() string             { return drt.originId }
-func (drt *DataResourceFileUpload) SetMetadataId(metaDataId string) { drt.metaDataId = metaDataId }
-func (drt *DataResourceFileUpload) GetMetadataId() string           { return drt.metaDataId }
+func (drt *DataResourceFileUpload) SetMetadataId(metaDataId string) { drt.metadataId = metaDataId }
+func (drt *DataResourceFileUpload) GetMetadataId() string           { return drt.metadataId }
 func (drt *DataResourceFileUpload) GetFilePath() string             { return drt.filePath }
 
 type DataResourceDiskUsed struct {
-	metaDataId string // db key
+	metadataId string // db key
 	nodeId     string
 	diskUsed   uint64
 }
@@ -450,7 +449,7 @@ type dataResourceDiskUsedRlp struct {
 
 func NewDataResourceDiskUsed(metaDataId, nodeId string, diskUsed uint64) *DataResourceDiskUsed {
 	return &DataResourceDiskUsed{
-		metaDataId: metaDataId,
+		metadataId: metaDataId,
 		nodeId:     nodeId,
 		diskUsed:   diskUsed,
 	}
@@ -459,7 +458,7 @@ func NewDataResourceDiskUsed(metaDataId, nodeId string, diskUsed uint64) *DataRe
 // EncodeRLP implements rlp.Encoder.
 func (drt *DataResourceDiskUsed) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, dataResourceDiskUsedRlp{
-		MetadataId: drt.metaDataId,
+		MetadataId: drt.metadataId,
 		NodeId:     drt.nodeId,
 		DiskUsed:   drt.diskUsed,
 	})
@@ -470,10 +469,55 @@ func (drt *DataResourceDiskUsed) DecodeRLP(s *rlp.Stream) error {
 	var dec dataResourceDiskUsedRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		drt.metaDataId, drt.nodeId, drt.diskUsed = dec.MetadataId, dec.NodeId, dec.DiskUsed
+		drt.metadataId, drt.nodeId, drt.diskUsed = dec.MetadataId, dec.NodeId, dec.DiskUsed
 	}
 	return err
 }
-func (drt *DataResourceDiskUsed) GetMetadataId() string { return drt.metaDataId }
+func (drt *DataResourceDiskUsed) GetMetadataId() string { return drt.metadataId }
 func (drt *DataResourceDiskUsed) GetNodeId() string     { return drt.nodeId }
 func (drt *DataResourceDiskUsed) GetDiskUsed() uint64   { return drt.diskUsed }
+
+// v 2.0
+
+type TaskUpResultFile struct {
+	taskId     string
+	originId   string
+	metadataId string
+}
+
+type taskUpResultFileRlp struct {
+	TaskId     string
+	OriginId   string
+	MetadataId string
+}
+
+func NewTaskUpResultFile(taskId, originId, metadataId string) *TaskUpResultFile {
+	return &TaskUpResultFile{
+		taskId:     taskId,
+		originId:   originId,
+		metadataId: metadataId,
+	}
+}
+
+// EncodeRLP implements rlp.Encoder.
+func (turf *TaskUpResultFile) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, taskUpResultFileRlp{
+		TaskId:     turf.taskId,
+		OriginId:   turf.originId,
+		MetadataId: turf.metadataId,
+	})
+}
+
+// DecodeRLP implements rlp.Decoder.
+func (turf *TaskUpResultFile) DecodeRLP(s *rlp.Stream) error {
+	var dec taskUpResultFileRlp
+	err := s.Decode(&dec)
+	if err == nil {
+		turf.taskId, turf.originId, turf.metadataId = dec.TaskId, dec.OriginId, dec.MetadataId
+	}
+	return err
+}
+
+func (turf *TaskUpResultFile) GetTaskId() string     { return turf.taskId }
+func (turf *TaskUpResultFile) GetOriginId() string   { return turf.originId }
+func (turf *TaskUpResultFile) GetMetadataId() string { return turf.metadataId }

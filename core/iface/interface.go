@@ -78,7 +78,6 @@ type LocalStoreCarrierDB interface {
 	StoreLocalTaskExecuteStatus(taskId string) error
 	RemoveLocalTaskExecuteStatus(taskId string) error
 	HasLocalTaskExecute(taskId string) (bool, error)
-
 	// v2.0  about user metadataAuthUsed (userType + user -> metadataAuthId ...)
 	StoreUserMetadataAuthUsed (userType apicommonpb.UserType, user, metadataAuthId string)  error
 	QueryUserMetadataAuthUsedCount (userType apicommonpb.UserType, user string) (uint32, error)
@@ -89,9 +88,16 @@ type LocalStoreCarrierDB interface {
 	QueryUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (string, error)
 	HasUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (bool, error)
 	RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error
+	// v2.0  about TaskResultFileMetadataId
+	StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error
+	QueryTaskUpResultFile(taskId string)  (*types.TaskUpResultFile, error)
+	RemoveTaskUpResultFile(taskId string) error
 }
 
 type MetadataCarrierDB interface {
+	StoreLocalMetadata(metadata *types.Metadata) error
+	GetLocalMetadataByDataId(metadataId string) (*types.Metadata, error)
+	GetLocalMetadataList() (types.MetadataArray, error)
 	InsertMetadata(metadata *types.Metadata) error
 	RevokeMetadata(metadata *types.Metadata) error
 	GetMetadataByDataId(dataId string) (*types.Metadata, error)

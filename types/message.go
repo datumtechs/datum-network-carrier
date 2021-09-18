@@ -228,7 +228,7 @@ func (s PowerRevokeMsgArr) Less(i, j int) bool { return s[i].CreateAt < s[j].Cre
 // ------------------- metaData -------------------
 
 type MetadataMsg struct {
-	MetadataId      string                    `json:"metaDataId"`
+	MetadataId      string                    `json:"metadataId"`
 	MetadataSummary *libtypes.MetadataSummary `json:"metadataSummary"`
 	ColumnMetas     []*types.MetadataColumn   `json:"columnMetas"`
 	CreateAt        uint64                    `json:"createAt"`
@@ -249,6 +249,7 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 			Size_:      req.GetInformation().GetMetadataSummary().GetSize_(),
 			FileType:   req.GetInformation().GetMetadataSummary().GetFileType(),
 			HasTitle:   req.GetInformation().GetMetadataSummary().GetHasTitle(),
+			Industry:   req.GetInformation().GetMetadataSummary().GetIndustry(),
 			State:      req.GetInformation().GetMetadataSummary().GetState(),
 		},
 		ColumnMetas: make([]*types.MetadataColumn, 0),
@@ -272,9 +273,12 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 	return metadataMsg
 }
 
-func (msg *MetadataMsg) ToDataCenter() *Metadata {
+func (msg *MetadataMsg) ToDataCenter(identity *apicommonpb.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
 		MetadataId:      msg.GetMetadataId(),
+		IdentityId:      identity.GetIdentityId(),
+		NodeId:          identity.GetNodeId(),
+		NodeName:        identity.GetNodeName(),
 		DataId:          msg.GetMetadataId(),
 		OriginId:        msg.GetOriginId(),
 		TableName:       msg.GetTableName(),
@@ -286,6 +290,7 @@ func (msg *MetadataMsg) ToDataCenter() *Metadata {
 		Size_:           msg.GetSize(),
 		HasTitle:        msg.GetHasTitle(),
 		MetadataColumns: msg.GetColumnMetas(),
+		Industry:        msg.GetIndustry(),
 		// the status of data, N means normal, D means deleted.
 		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		// metaData status, eg: create/release/revoke
@@ -322,6 +327,7 @@ func (msg *MetadataMsg) GetState() apicommonpb.MetadataState {
 func (msg *MetadataMsg) GetColumnMetas() []*types.MetadataColumn {
 	return msg.ColumnMetas
 }
+func (msg *MetadataMsg) GetIndustry() string   { return msg.MetadataSummary.Industry }
 func (msg *MetadataMsg) GetCreateAt() uint64   { return msg.CreateAt }
 func (msg *MetadataMsg) GetMetadataId() string { return msg.MetadataId }
 
@@ -366,10 +372,13 @@ func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetadataRequest) *Metadat
 
 func (msg *MetadataRevokeMsg) GetMetadataId() string { return msg.MetadataId }
 func (msg *MetadataRevokeMsg) GetCreateAat() uint64  { return msg.CreateAt }
-func (msg *MetadataRevokeMsg) ToDataCenter() *Metadata {
+func (msg *MetadataRevokeMsg) ToDataCenter(identity *apicommonpb.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
-		MetadataId: msg.MetadataId,
-		DataId:     msg.MetadataId,
+		MetadataId: msg.GetMetadataId(),
+		IdentityId: identity.GetIdentityId(),
+		NodeId:     identity.GetNodeId(),
+		NodeName:   identity.GetNodeName(),
+		DataId:     msg.GetMetadataId(),
 		// the status of data, N means normal, D means deleted.
 		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 		// metaData status, eg: create/release/revoke

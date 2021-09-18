@@ -17,25 +17,25 @@ func (svr *Server) GetMetadataDetail(ctx context.Context, req *pb.GetMetadataDet
 	if req.GetMetadataId() == "" {
 		return nil, errors.New("required metadataId")
 	}
-	metaDataDetail, err := svr.B.GetMetadataDetail(req.GetIdentityId(), req.GetMetadataId())
+	metadataDetail, err := svr.B.GetMetadataDetail(req.GetIdentityId(), req.GetMetadataId())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetMetadataDetail failed")
 		return nil, ErrGetMetadataDetail
 	}
-	return metaDataDetail, nil
+	return metadataDetail, nil
 }
 
 func (svr *Server) GetMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetMetadataDetailListResponse, error) {
-	metaDataList, err := svr.B.GetMetadataDetailList()
+	metadataList, err := svr.B.GetMetadataDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
 	}
-	respList := make([]*pb.GetMetadataDetailResponse, len(metaDataList))
-	for i, metaDataDetail := range metaDataList {
+	respList := make([]*pb.GetMetadataDetailResponse, len(metadataList))
+	for i, metaDataDetail := range metadataList {
 		respList[i] = metaDataDetail
 	}
-	log.Debugf("Query all org's metaData list, len: {%d}", len(respList))
+	log.Debugf("Query all org's metadata list, len: {%d}", len(respList))
 	return &pb.GetMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
@@ -54,27 +54,28 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 		return nil, errors.New("required columnMeta of information")
 	}
 
-	metaDataMsg := types.NewMetadataMessageFromRequest(req)
+	metadataMsg := types.NewMetadataMessageFromRequest(req)
 
-	err := svr.B.SendMsg(metaDataMsg)
+	err := svr.B.SendMsg(metadataMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadata failed")
 		return nil, ErrSendMetadataMsg
 	}
-	log.Debugf("RPC-API:PublishMetadata succeed, originId: {%s}, return metadataId: {%s}", req.GetInformation().GetMetadataSummary().GetOriginId(), metaDataMsg.GetMetadataId())
+	log.Debugf("RPC-API:PublishMetadata succeed, originId: {%s}, return metadataId: {%s}",
+		req.GetInformation().GetMetadataSummary().GetOriginId(), metadataMsg.GetMetadataId())
 	return &pb.PublishMetadataResponse{
 		Status:     0,
 		Msg:        backend.OK,
-		MetadataId: metaDataMsg.GetMetadataId(),
+		MetadataId: metadataMsg.GetMetadataId(),
 	}, nil
 }
 
 func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
 
-	metaDataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
+	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 	//metaDataRevokeMsg.GetCreateAt = uint64(timeutils.UnixMsec())
 
-	err := svr.B.SendMsg(metaDataRevokeMsg)
+	err := svr.B.SendMsg(metadataRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetadata failed")
 		return nil, ErrSendMetadataRevokeMsg

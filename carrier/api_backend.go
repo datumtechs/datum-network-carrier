@@ -3,6 +3,8 @@ package carrier
 import (
 	"errors"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
@@ -397,7 +399,7 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-// metadata api
+// metadata api   todo 加上查询本地 metadata ???
 func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error) {
 	metadata, err := s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
 	if metadata == nil {
@@ -406,12 +408,12 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*p
 	return types.NewOrgMetadataInfoFromMetadata(metadata), err
 }
 
-// GetMetadataDetailList returns a list of all metadata details in the network.
+// GetMetadataDetailList returns a list of all metadata details in the network.   todo 加上查询本地 metadata ???
 func (s *CarrierAPIBackend) GetMetadataDetailList() ([]*pb.GetMetadataDetailResponse, error) {
 	metadataArray, err := s.carrier.carrierDB.GetMetadataList()
 	return types.NewOrgMetadataInfoArrayFromMetadataArray(metadataArray), err
 }
-
+// todo 这里需要加上 metadata 被 task 引用的个数 ???
 func (s *CarrierAPIBackend) GetMetadataDetailListByOwner(identityId string) ([]*pb.GetMetadataDetailResponse, error) {
 	log.WithField("identityId", identityId).Debug("Invoke: GetMetadataDetailListByOwner executing...")
 	metadataList, err := s.GetMetadataDetailList()
@@ -848,11 +850,111 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourc
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileMetadataId(taskId, metadataId string) error {
+//func (s *CarrierAPIBackend) StoreTaskUpResultFile(taskId, metadataId string) error {
+//	return s.carrier.carrierDB.StoreTaskUpResultFile(taskId, metadataId)
+//}
+//
+//func (s *CarrierAPIBackend) QueryTaskUpResultFile(taskId string) (string, error) {
+//	return s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
+//}
+//
+//func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
+//	return s.carrier.carrierDB.RemoveTaskUpResultFile(taskId)
+//}
+
+
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error {
+	// generate metadataId
+	originIdHash := rlputil.RlpHash([]interface{}{
+		originId,
+		uint64(timeutils.UnixMsec()),
+	})
+	metadataId := types.PREFIX_METADATA_ID + originIdHash.Hex()
+
+	identity, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		log.Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}, err: {%s}",
+			taskId, dataNodeId, originId, metadataId, filePath, err)
+		return err
+	}
+
+	// store local metadata (about task result file)
+	s.carrier.carrierDB.StoreLocalMetadata(types.NewMetadata(&libtypes.MetadataPB{
+		MetadataId:      metadataId,
+		IdentityId:      identity.GetIdentityId(),
+		NodeId:          identity.GetNodeId(),
+		NodeName:        identity.GetNodeName(),
+		DataId:          metadataId,
+		OriginId:        originId,
+		TableName:       "task `" + taskId+"` result file",
+		FilePath:        filePath,
+		FileType:        apicommonpb.OriginFileType_FileType_Unknown,
+		Desc:            "the task `" + taskId+"` result file after executed",
+		Rows:            0,
+		Columns:         0,
+		Size_:           0,
+		HasTitle:        false,
+		MetadataColumns: nil,
+		Industry:        "Unknown",
+		// the status of data, N means normal, D means deleted.
+		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+		// metaData status, eg: create/release/revoke
+		State: apicommonpb.MetadataState_MetadataState_Created,
+	}))
+
+	// store dataResourceFileUpload (about task result file)
+	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(dataNodeId, originId, metadataId, filePath))
+	if nil != err {
+		log.Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}, err: {%s}",
+			taskId, dataNodeId, originId, metadataId, filePath, err)
+		return err
+	}
+	// 记录原始数据占用资源大小   StoreDataResourceTable  todo 后续考虑是否加上, 目前不加 因为对于系统生成的元数据暂时不需要记录 disk 使用实况 ??
+	// 单独记录 metaData 的 GetSize 和所在 dataNodeId   StoreDataResourceDiskUsed  todo 后续考虑是否加上, 目前不加 因为对于系统生成的元数据暂时不需要记录 disk 使用实况 ??
+
+	// store taskId -> TaskUpResultFile (about task result file)
+	err = s.carrier.carrierDB.StoreTaskUpResultFile(types.NewTaskUpResultFile(taskId, originId, metadataId))
+	if nil != err {
+		log.Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}, err: {%s}",
+			taskId, dataNodeId, originId, metadataId, filePath, err)
+		return err
+	}
 	return nil
 }
 
-func (s *CarrierAPIBackend) QueryTaskResultFileMetadataId(taskId string)  (string, error) {
-	return "", nil
+func (s *CarrierAPIBackend) QueryTaskResultFileSummary (taskId string) (*types.TaskResultFileSummary, error) {
+	taskUpResultFile, err := s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
+	if nil != err {
+		log.Errorf("Failed query taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, err: {%s}",
+			taskId, err)
+		return nil, err
+	}
+	dataResourceFileUpload, err := s.carrier.carrierDB.QueryDataResourceFileUpload(taskUpResultFile.GetOriginId())
+	if nil != err {
+		log.Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, err: {%s}",
+			taskId, taskUpResultFile.GetOriginId(), err)
+		return nil, err
+	}
+
+	localMetadata, err := s.carrier.carrierDB.GetLocalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
+	if nil != err {
+		log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
+			taskId, taskUpResultFile.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)
+		return nil, err
+	}
+
+	return types.NewTaskResultFileSummary(
+		taskUpResultFile.GetTaskId(),
+		localMetadata.GetData().GetTableName(),
+		dataResourceFileUpload.GetMetadataId(),
+		dataResourceFileUpload.GetOriginId(),
+		dataResourceFileUpload.GetFilePath(),
+		dataResourceFileUpload.GetNodeId(),
+		), nil
+
+}
+
+func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList () (*types.TaskResultFileSummaryArr, error) {
+	return nil, nil
 }
 
