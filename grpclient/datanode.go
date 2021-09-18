@@ -16,13 +16,13 @@ import (
 const defaultRequestTime = 1 * time.Second
 
 type DataNodeClient struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	conn   *grpc.ClientConn
-	addr   string
-	nodeId string
-	connMu sync.RWMutex
-	connStartAt   int64
+	ctx         context.Context
+	cancel      context.CancelFunc
+	conn        *grpc.ClientConn
+	addr        string
+	nodeId      string
+	connMu      sync.RWMutex
+	connStartAt int64
 
 	//TODO: define some client...
 	dataProviderClient datasvc.DataProviderClient
@@ -107,6 +107,7 @@ func (c *DataNodeClient) IsConnected() bool {
 		return false
 	}
 }
+
 func (c *DataNodeClient) IsNotConnected() bool { return !c.IsConnected()}
 
 func (c *DataNodeClient) Reconnect() error {
