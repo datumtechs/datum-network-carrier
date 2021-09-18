@@ -47,7 +47,7 @@ func TestService_decodePubsubMessage(t *testing.T) {
 		},
 		{
 			name:  "valid message -- beacon block",
-			topic: p2p.GossipTypeMapping[reflect.TypeOf(&libp2ppb.SignedGossipTestData{})],
+			topic: p2p.GossipTypeMapping[reflect.TypeOf(&libp2ppb.GossipTestData{})],
 			input: &pubsub.Message{
 				Message: &pb.Message{
 					Data: func() []byte {
