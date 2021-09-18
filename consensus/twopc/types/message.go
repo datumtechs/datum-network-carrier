@@ -75,7 +75,7 @@ func RecoveryProposalState(proposalId common.Hash, taskId string, sender *apicom
 func (pstate *ProposalState) GetProposalId() common.Hash             { return pstate.proposalId }
 func (pstate *ProposalState) GetTaskId() string                            { return pstate.taskId }
 func (pstate *ProposalState) GetTaskSender() *apicommonpb.TaskOrganization { return pstate.taskSender }
-
+func (pstate *ProposalState) GetStateCache() map[string]*OrgProposalState { return pstate.stateCache}
 func (pstate *ProposalState) StoreOrgProposalState(orgState *OrgProposalState) {
 
 	pstate.lock.Lock()
