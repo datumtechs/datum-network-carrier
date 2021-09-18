@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/common/abool"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -60,12 +61,13 @@ func TestSubscribe_HandlesPanic(t *testing.T) {
 		cfg: &Config{
 			P2P: p,
 		},
+		chainStarted: abool.New(),
 	}
 	var err error
 	p.Digest, err = r.forkDigest()
 	require.NoError(t, err)
 
-	topic := p2p.GossipTypeMapping[reflect.TypeOf(&libp2ppb.SignedGossipTestData{})]
+	topic := p2p.GossipTypeMapping[reflect.TypeOf(&libp2ppb.GossipTestData{})]
 	var wg sync.WaitGroup
 	wg.Add(1)
 
@@ -74,7 +76,7 @@ func TestSubscribe_HandlesPanic(t *testing.T) {
 		panic("bad")
 	})
 	r.markForChainStart()
-	p.ReceivePubSub(topic, &libp2ppb.SignedGossipTestData{Data: &libp2ppb.GossipTestData{Step: 55}, Signature: make([]byte, 48)})
+	p.ReceivePubSub(topic, &libp2ppb.GossipTestData{ Step: 55 })
 
 	if WaitTimeout(&wg, time.Second) {
 		t.Fatal("Did not receive PubSub in 1 second")
