@@ -401,13 +401,13 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 
 // metadata api
 
-func (s *CarrierAPIBackend) GetMetadataDetail (identityId, metaDataId string) (*types.Metadata, error) {
+func (s *CarrierAPIBackend) GetMetadataDetail (identityId, metadataId string) (*types.Metadata, error) {
 	var metadata *types.Metadata
 	var err error
 
 	// find local metadata
 	if "" == identityId {
-		metadata, err = s.carrier.carrierDB.GetLocalMetadataByDataId(metaDataId)
+		metadata, err = s.carrier.carrierDB.GetLocalMetadataByDataId(metadataId)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return nil, errors.New("not found local metadata by special Id, " + err.Error())
 		}
@@ -415,7 +415,7 @@ func (s *CarrierAPIBackend) GetMetadataDetail (identityId, metaDataId string) (*
 			return metadata, nil
 		}
 	}
-	metadata, err = s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
+	metadata, err = s.carrier.carrierDB.GetMetadataByDataId(metadataId)
 	if nil != err {
 		return nil, errors.New("not found local metadata by special Id, " + err.Error())
 	}
@@ -426,19 +426,11 @@ func (s *CarrierAPIBackend) GetMetadataDetail (identityId, metaDataId string) (*
 	return metadata, nil
 }
 
-// GetMetadataDetailList returns a list of all metadata details in the network.   todo 加上查询本地 metadata ???
+// GetMetadataDetailList returns a list of all metadata details in the network.
 func (s *CarrierAPIBackend) GetTotalMetadataDetailList() ([]*pb.GetTotalMetadataDetailResponse, error) {
 
 	var  arr []*pb.GetTotalMetadataDetailResponse
 	var  err error
-	localMetadataArr, err := s.carrier.carrierDB.GetLocalMetadataList()
-	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, errors.New("found local metadata arr failed, " + err.Error())
-	}
-	if len(localMetadataArr) != 0 {
-		arr = append(arr, types.NewTotalMetadataInfoArrayFromMetadataArray(localMetadataArr)...)
-	}
-
 	publishMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found publish metadata arr failed, " + err.Error())
@@ -449,9 +441,19 @@ func (s *CarrierAPIBackend) GetTotalMetadataDetailList() ([]*pb.GetTotalMetadata
 	if len(arr) == 0 {
 		return nil, errors.New("not found metadata arr")
 	}
+	//// set metadata used taskCount
+	//for i, metadata := range arr {
+	//	count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
+	//	if nil != err {
+	//		log.Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetTotalMetadataDetailList(), err: {%s}", err)
+	//		continue
+	//	}
+	//	metadata.Information.TotalTaskCount = count
+	//	arr[i] = metadata
+	//}
 	return arr, err
 }
-// todo 这里需要加上 metadata 被 task 引用的个数 ???
+
 func (s *CarrierAPIBackend) GetSelfMetadataDetailList () ([]*pb.GetSelfMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetSelfMetadataDetailList executing...")
 	var  arr []*pb.GetSelfMetadataDetailResponse
@@ -471,12 +473,26 @@ func (s *CarrierAPIBackend) GetSelfMetadataDetailList () ([]*pb.GetSelfMetadataD
 	if len(arr) == 0 {
 		return nil, errors.New("not found metadata arr")
 	}
+	// set metadata used taskCount
+	for i, metadata := range arr {
+		count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
+		if nil != err {
+			log.Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetSelfMetadataDetailList(), err: {%s}", err)
+			continue
+		}
+		metadata.Information.TotalTaskCount = count
+		arr[i] = metadata
+	}
+
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(metadataId string) ([]string, error) {
-
-	return nil, nil
+func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error) {
+	taskIds, err := s.carrier.carrierDB.QueryMetadataUsedTaskIds(metadataId)
+	if nil != err {
+		return nil, err
+	}
+	return taskIds, nil
 }
 
 // power api

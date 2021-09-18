@@ -102,12 +102,19 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 }
 
 
-// GetMetadataUsedTaskIdList (GetMetadataUsedTaskIdListRequest) returns (GetMetadataUsedTaskIdListResponse) {
 func (svr *Server) GetMetadataUsedTaskIdList (ctx context.Context, req *pb.GetMetadataUsedTaskIdListRequest) (*pb.GetMetadataUsedTaskIdListResponse, error) {
 
+	if "" == req.GetMetadataId() {
+		return nil, errors.New("require metadataId")
+	}
+	taskIds, err := svr.B.GetMetadataUsedTaskIdList(req.GetIdentityId(), req.GetMetadataId())
+	if nil != err {
+		return nil, err
+	}
+	log.Debugf("RPC-API:GetMetadataUsedTaskIdList succeed, taskIds len: {%d}", len(taskIds))
 	return &pb.GetMetadataUsedTaskIdListResponse{
 		Status:     0,
 		Msg:        backend.OK,
-		TaskIds:    []string{},
+		TaskIds:    taskIds,
 	}, nil
 }

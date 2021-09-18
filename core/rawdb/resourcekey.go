@@ -7,23 +7,23 @@ import (
 
 var (
 	// prefix + jobNodeId -> LocalResourceTable
-	nodeResourceKeyPrefix           = []byte("NodeResourceKeyPrefix:")
+	nodeResourceKeyPrefix = []byte("NodeResourceKeyPrefix:")
 	// key -> [jobNodeId, jobNodeId, ..., jobNodeId]
-	nodeResourceIdListKey           = []byte("nodeResourceIdListKey")
+	nodeResourceIdListKey = []byte("nodeResourceIdListKey")
 	// prefix + identityId -> RemoteResourceTable
-	orgResourceKeyPrefix            = []byte("OrgResourceKeyPrefix:")
+	orgResourceKeyPrefix = []byte("OrgResourceKeyPrefix:")
 	// key -> [identityId, identityId, ..., identityId]
-	orgResourceIdListKey            = []byte("OrgResourceIdListKey")
+	orgResourceIdListKey = []byte("OrgResourceIdListKey")
 	// key -> SlotUnit
-	nodeResourceSlotUnitKey         = []byte("nodeResourceSlotUnitKey")
+	nodeResourceSlotUnitKey = []byte("nodeResourceSlotUnitKey")
 	// prefix + taskId -> LocalTaskPowerUsed
-	localTaskPowerUsedKeyPrefix     = []byte("localTaskPowerUsedKeyPrefix:")
+	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKeyPrefix:")
 	// key -> [taskId, taskId, ..., taskId]
-	localTaskPowerUsedIdListKey     = []byte("localTaskPowerUsedIdListKey")
+	localTaskPowerUsedIdListKey = []byte("localTaskPowerUsedIdListKey")
 	// prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
-	dataResourceTableKeyPrefix      = []byte("dataResourceTableKeyPrefix:")
+	dataResourceTableKeyPrefix = []byte("dataResourceTableKeyPrefix:")
 	// key -> [dataNodeId, dataNodeId, ..., dataNodeId]
-	dataResourceTableIdListKey      = []byte("dataResourceTableIdListKey")
+	dataResourceTableIdListKey = []byte("dataResourceTableIdListKey")
 	// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
 	dataResourceFileUploadKeyPrefix = []byte("dataResourceDataUsedKeyPrefix:")
 	// key -> [originId, originId, ..., originId]
@@ -42,16 +42,18 @@ var (
 	// prefix + userType + user + n -> metadataId
 	userMetadataAuthUsedKeyPrefix = []byte("userMetadataAuthUsedKeyPrefix:")
 	// prefix + userType + user + metadataId -> metadataAuthId
-	UserMetadataAuthByMetadataIdKeyPrefix = []byte("UserMetadataAuthByMetadataIdKeyPrefix:")
+	userMetadataAuthByMetadataIdKeyPrefix = []byte("userMetadataAuthByMetadataIdKeyPrefix:")
 
-	// metadataId -> taskCount
+	// metadataId -> taskCount (n)
+	metadataUsedTaskIdCountKey = []byte("metadataUsedTaskIdCountKey")
 	// metadataId + n -> taskId
+	metadataUsedTaskIdKeyPrefix = []byte("metadataUsedTaskIdKeyPrefix:")
+
+	// prefix + taskId -> n todo maybe support multi-result file about a taskId
+	// prefix + taskId + n -> resultfile summary (auto build metadataId)
 
 	// taskId -> resultfile summary (auto build metadataId)
-	TaskResultFileMetadataIdKeyPrefix = []byte("TaskResultFileMetadataIdKeyPrefix:")
-
-
-
+	taskResultFileMetadataIdKeyPrefix = []byte("taskResultFileMetadataIdKeyPrefix:")
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -78,14 +80,12 @@ func GetLocalTaskPowerUsedIdListKey() []byte {
 	return localTaskPowerUsedIdListKey
 }
 
-
 func GetDataResourceTableKey(dataNodeId string) []byte {
 	return append(dataResourceTableKeyPrefix, []byte(dataNodeId)...)
 }
 func GetDataResourceTableIdListKey() []byte {
 	return dataResourceTableIdListKey
 }
-
 
 func GetDataResourceFileUploadKey(originId string) []byte {
 	return append(dataResourceFileUploadKeyPrefix, []byte(originId)...)
@@ -101,6 +101,7 @@ func GetResourceTaskIdsKey(jonNodeId string) []byte {
 func GetResourcePowerIdMapingKey(powerId string) []byte {
 	return append(resourcePowerIdMapingKeyPrefix, []byte(powerId)...)
 }
+
 //func GetResourceMetadataIdMapingKey(powerId string) []byte {
 //	return append(resourceMetadataIdMapingKeyPrefix, []byte(powerId)...)
 //}
@@ -143,13 +144,13 @@ func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, met
 	userBytes := []byte(user)
 	metadataIdBytes := []byte(metadataId)
 
-	prefixLen := len(UserMetadataAuthByMetadataIdKeyPrefix)
+	prefixLen := len(userMetadataAuthByMetadataIdKeyPrefix)
 	userTypeLen := len(userTypeBytes)
 	userLen := len(userBytes)
 	metadataIdLen := len(metadataIdBytes)
 
 	key := make([]byte, prefixLen+userTypeLen+userLen+metadataIdLen)
-	copy(key[:prefixLen], UserMetadataAuthByMetadataIdKeyPrefix)
+	copy(key[:prefixLen], userMetadataAuthByMetadataIdKeyPrefix)
 	copy(key[prefixLen:userTypeLen], userTypeBytes)
 	copy(key[userTypeLen:userLen], userBytes)
 	copy(key[userLen:metadataIdLen], metadataIdBytes)
@@ -157,6 +158,27 @@ func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, met
 	return key
 }
 
-func  GetTaskResultFileMetadataIdKey(taskId string) []byte {
-	return append(TaskResultFileMetadataIdKeyPrefix, []byte(taskId)...)
+func GetMetadataUsedTaskIdCountKey(metadataId string) []byte {
+	return append(metadataUsedTaskIdCountKey, []byte(metadataId)...)
+}
+
+func GetMetadataUsedTaskIdKey(metadataId string, n uint32) []byte {
+
+	metadataIdBytes := []byte(metadataId)
+	nBytes := bytesutil.Uint32ToBytes(n)
+
+	prefixLen := len(metadataUsedTaskIdKeyPrefix)
+	metadataIdLen := len(metadataIdBytes)
+	nLen := len(nBytes)
+
+	key := make([]byte, prefixLen+metadataIdLen+nLen)
+	copy(key[:prefixLen], userMetadataAuthUsedKeyPrefix)
+	copy(key[prefixLen:metadataIdLen], metadataIdBytes)
+	copy(key[metadataIdLen:nLen], nBytes)
+
+	return key
+}
+
+func GetTaskResultFileMetadataIdKey(taskId string) []byte {
+	return append(taskResultFileMetadataIdKeyPrefix, []byte(taskId)...)
 }

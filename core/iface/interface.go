@@ -83,12 +83,17 @@ type LocalStoreCarrierDB interface {
 	QueryUserMetadataAuthUsedCount (userType apicommonpb.UserType, user string) (uint32, error)
 	QueryUserMetadataAuthUseds (userType apicommonpb.UserType, user string) ([]string, error)
 	RemoveAllUserMetadataAuthUsed (userType apicommonpb.UserType, user string) error
-	// v2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
+	// v 2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
 	StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error
 	QueryUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (string, error)
 	HasUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (bool, error)
 	RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error
-	// v2.0  about TaskResultFileMetadataId
+	// v 2.0 about metadata used taskId
+	StoreMetadataUsedTaskId (metadataId, taskId string)  error
+	QueryMetadataUsedTaskIdCount (metadataId string) (uint32, error)
+	QueryMetadataUsedTaskIds (metadataId string) ([]string, error)
+	RemoveAllMetadataUsedTaskId (metadataId string) error
+	// v 2.0  about TaskResultFileMetadataId
 	StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error
 	QueryTaskUpResultFile(taskId string)  (*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error

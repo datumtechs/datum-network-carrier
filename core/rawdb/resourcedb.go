@@ -1415,6 +1415,98 @@ func RemoveUserMetadataAuthIdByMetadataId (db KeyValueStore, userType apicommonp
 	return db.Delete(key)
 }
 
+
+
+func StoreMetadataUsedTaskId (db KeyValueStore, metadataId, taskId string) error {
+	count_key := GetMetadataUsedTaskIdCountKey(metadataId)
+	val, err := db.Get(count_key)
+
+	var count uint32
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+
+	count++
+
+	if err := db.Put(count_key, bytesutil.Uint32ToBytes(count)); nil != err {
+		return err
+	}
+
+	item_key := GetMetadataUsedTaskIdKey(metadataId, count)
+
+	item, err := rlp.EncodeToBytes(taskId)
+	if nil != err {
+		return err
+	}
+	return db.Put(item_key, item)
+}
+
+func QueryMetadataUsedTaskIdCount (db DatabaseReader, metadataId string) (uint32, error) {
+	count_key := GetMetadataUsedTaskIdCountKey(metadataId)
+	val, err := db.Get(count_key)
+
+	var count uint32
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+	return count, nil
+}
+func QueryMetadataUsedTaskIdByIndex (db DatabaseReader, metadataId string, index uint32) (string, error) {
+	item_key := GetMetadataUsedTaskIdKey(metadataId, index)
+
+	var taskId string
+	item_val, err := db.Get(item_key)
+	if nil != err {
+		return "", err
+	}
+
+	if err = rlp.DecodeBytes(item_val, &taskId); nil != err {
+		return "", err
+	}
+	if "" == taskId {
+		return "", ErrNotFound
+	}
+
+	return taskId, nil
+}
+
+
+func RemoveMetadataUsedTaskIdCount (db KeyValueStore, metadataId string) error {
+	count_key := GetMetadataUsedTaskIdCountKey(metadataId)
+
+	has, err := db.Has(count_key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+
+	return db.Delete(count_key)
+}
+
+func RemoveMetadataUsedTaskIdByIndex (db KeyValueStore, metadataId string, index uint32) error {
+	item_key := GetMetadataUsedTaskIdKey(metadataId, index)
+
+	has, err := db.Has(item_key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+
+	return db.Delete(item_key)
+}
+
+
+
 func StoreTaskUpResultFile (db DatabaseWriter, turf *types.TaskUpResultFile)  error {
 	key := GetTaskResultFileMetadataIdKey(turf.GetTaskId())
 	val, err := rlp.EncodeToBytes(turf)

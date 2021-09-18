@@ -709,6 +709,21 @@ func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state ap
 	m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(evTyp, taskId, identityId, evMsg))
 }
 
+func (m *Manager) storeMetaUsedTaskId (task *types.Task) error {
+	identityId, err := m.resourceMng.GetDB().GetIdentityId()
+	if nil != err {
+		return err
+	}
+	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+		if dataSupplier.GetOrganization().GetIdentityId() == identityId {
+			if err := m.resourceMng.GetDB().StoreMetadataUsedTaskId(dataSupplier.GetMetadataId(), task.GetTaskId()); nil != err {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 	msg := fetchTaskResultMsg(taskResultMsg)
 
