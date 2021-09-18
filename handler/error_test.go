@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/RosettaFlow/Carrier-Go/p2p/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
@@ -10,7 +11,7 @@ import (
 
 func TestRegularSync_generateErrorResponse(t *testing.T) {
 	r := &Service{
-		//cfg: &Config{P2P: p2ptest.NewTestP2P(t)},
+		cfg: &Config{P2P: p2ptest.NewTestP2P(t)},
 	}
 	data, err := r.generateErrorResponse(responseCodeServerError, "something bad happened")
 	require.NoError(t, err)

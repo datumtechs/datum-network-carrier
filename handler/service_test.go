@@ -21,6 +21,7 @@ func TestSyncHandlers_WaitToSync(t *testing.T) {
 			StateNotifier: &p2ptest.MockStateNotifier{},
 			InitialSync:   &p2ptest.Sync{IsSyncing: false},
 		},
+		chainStarted: abool.New(),
 	}
 
 	topic := "/carrier/%x/gossip_test_data"
