@@ -29,6 +29,7 @@ type Backend interface {
 
 	// metadata api
 
+	GetMetadataDetail(identityId, metaDataId string) (*types.Metadata, error)
 	GetTotalMetadataDetailList() ([]*pb.GetTotalMetadataDetailResponse, error)
 	GetSelfMetadataDetailList() ([]*pb.GetSelfMetadataDetailResponse, error)
 	GetMetadataUsedTaskIdList(metadataId string) ([]string, error)

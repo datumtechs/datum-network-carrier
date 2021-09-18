@@ -95,7 +95,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	dataSuppliers := make([]*libtypes.TaskDataSupplier, len(req.GetDataSuppliers()))
 	for i, v := range req.GetDataSuppliers() {
 
-		metaData, err := svr.B.GetMetadataDetail(v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
+		metadata, err := svr.B.GetMetadataDetail(v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
 				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
@@ -103,8 +103,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 		}
 
-		colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metaData.GetInformation().GetMetadataColumns()))
-		for _, col := range metaData.GetInformation().GetMetadataColumns() {
+		colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metadata.GetData().GetMetadataColumns()))
+		for _, col := range metadata.GetData().GetMetadataColumns() {
 			colTmp[col.GetCIndex()] = col
 		}
 
@@ -135,7 +135,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				IdentityId: v.GetOrganization().GetIdentityId(),
 			},
 			MetadataId:      v.GetMetadataInfo().GetMetadataId(),
-			MetadataName:    metaData.GetInformation().GetMetadataSummary().GetTableName(),
+			MetadataName:    metadata.GetData().GetTableName(),
 			KeyColumn:       keyColumn,
 			SelectedColumns: selectedColumns,
 		}

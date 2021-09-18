@@ -25,13 +25,13 @@ func (svr *Server) GetTotalPowerDetailList(ctx context.Context, req *emptypb.Emp
 	}, nil
 }
 
-func (svr *Server) GetSelfPowerSingleDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetSelfPowerDetailListResponse, error) {
+func (svr *Server) GetSelfPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetSelfPowerDetailListResponse, error) {
 	powerList, err := svr.B.GetSelfPowerDetailList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetSelfPowerSingleDetailList failed")
+		log.WithError(err).Error("RPC-API:GetSelfPowerDetailList failed")
 		return nil, ErrGetSinglePowerList
 	}
-	log.Debugf("RPC-API:GetSelfPowerSingleDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetSelfPowerDetailResponseArrString(powerList))
+	log.Debugf("RPC-API:GetSelfPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetSelfPowerDetailResponseArrString(powerList))
 	return &pb.GetSelfPowerDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,

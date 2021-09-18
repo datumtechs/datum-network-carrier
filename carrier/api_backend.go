@@ -401,29 +401,30 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 
 // metadata api
 
-//func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metaDataId string) (*pb.GetMetadataDetailResponse, error) {
-//	var metadata *types.Metadata
-//	var err error
-//
-//	// find local metadata
-//	if "" == identityId {
-//		metadata, err = s.carrier.carrierDB.GetLocalMetadataByDataId(metaDataId)
-//		if rawdb.IsNoDBNotFoundErr(err) {
-//			return nil, errors.New("not found local metadata by special Id, " + err.Error())
-//		}
-//		if nil != metadata {
-//			return types.NewOrgMetadataInfoFromMetadata(true, metadata), nil
-//		}
-//	}
-//	metadata, err = s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
-//	if nil != err {
-//		return nil, errors.New("not found local metadata by special Id, " + err.Error())
-//	}
-//	if nil == metadata {
-//		return nil, errors.New("not found local metadata by special Id, metadata is empty")
-//	}
-//	return types.NewOrgMetadataInfoFromMetadata(false, metadata), nil
-//}
+func (s *CarrierAPIBackend) GetMetadataDetail (identityId, metaDataId string) (*types.Metadata, error) {
+	var metadata *types.Metadata
+	var err error
+
+	// find local metadata
+	if "" == identityId {
+		metadata, err = s.carrier.carrierDB.GetLocalMetadataByDataId(metaDataId)
+		if rawdb.IsNoDBNotFoundErr(err) {
+			return nil, errors.New("not found local metadata by special Id, " + err.Error())
+		}
+		if nil != metadata {
+			return metadata, nil
+		}
+	}
+	metadata, err = s.carrier.carrierDB.GetMetadataByDataId(metaDataId)
+	if nil != err {
+		return nil, errors.New("not found local metadata by special Id, " + err.Error())
+	}
+
+	if nil == metadata {
+		return nil, errors.New("not found local metadata by special Id, metadata is empty")
+	}
+	return metadata, nil
+}
 
 // GetMetadataDetailList returns a list of all metadata details in the network.   todo 加上查询本地 metadata ???
 func (s *CarrierAPIBackend) GetTotalMetadataDetailList() ([]*pb.GetTotalMetadataDetailResponse, error) {
