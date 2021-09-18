@@ -46,7 +46,7 @@ func (m *Manager) tryScheduleTask() error {
 		}
 
 		result := nonConsTask.ReceiveResult()
-		log.Debugf("Received task result from consensus, taskId: {%s}, result: {%s}", nonConsTask.GetTask(), result.String())
+		log.Debugf("Received task result from consensus, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
 
 		// Consensus failed, task needs to be suspended and rescheduled
 		if result.Status != types.TaskConsensusSucceed {
