@@ -124,7 +124,7 @@ func (ma *MetadataAuthority) GetMetadataAuthorityList() (types.MetadataAuthArray
 	if nil != err {
 		return nil, err
 	}
-	return ma.dataCenter.GetMetadataAuthorityListByIdentityId(identityId, uint64(timeutils.UnixMsec()))
+	return ma.dataCenter.GetMetadataAuthorityListByIdentityId(identityId, uint64(timeutils.BeforeYearUnixMsec()))
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
