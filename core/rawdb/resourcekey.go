@@ -129,11 +129,16 @@ func GetUserMetadataAuthUsedKey(userType apicommonpb.UserType, user string, n ui
 	userLen := len(userBytes)
 	nLen := len(nBytes)
 
-	key := make([]byte, prefixLen+userTypeLen+userLen+nLen)
+	/*key := make([]byte, prefixLen+userTypeLen+userLen+nLen)
 	copy(key[:prefixLen], userMetadataAuthUsedKeyPrefix)
 	copy(key[prefixLen:userTypeLen], userTypeBytes)
 	copy(key[userTypeLen:userLen], userBytes)
-	copy(key[userLen:nLen], nBytes)
+	copy(key[userLen:nLen], nBytes)*/
+	key := make([]byte, 0)
+	key = append(key, userMetadataAuthUsedKeyPrefix[:prefixLen]...)
+	key = append(key, userTypeBytes[:userTypeLen]...)
+	key = append(key, userBytes[:userLen]...)
+	key = append(key, nBytes[:nLen]...)
 
 	return key
 }
@@ -149,12 +154,17 @@ func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, met
 	userLen := len(userBytes)
 	metadataIdLen := len(metadataIdBytes)
 
-	key := make([]byte, prefixLen+userTypeLen+userLen+metadataIdLen)
+	/*key := make([]byte, prefixLen+userTypeLen+userLen+metadataIdLen)
 	copy(key[:prefixLen], userMetadataAuthByMetadataIdKeyPrefix)
-	copy(key[prefixLen:userTypeLen], userTypeBytes)
+	copy(key[prefixLen:], userTypeBytes[:userTypeLen])
 	copy(key[userTypeLen:userLen], userBytes)
-	copy(key[userLen:metadataIdLen], metadataIdBytes)
+	copy(key[userLen:metadataIdLen], metadataIdBytes)*/
 
+	key := make([]byte, 0)
+	key = append(key, userMetadataAuthByMetadataIdKeyPrefix[:prefixLen]...)
+	key = append(key, userTypeBytes[:userTypeLen]...)
+	key = append(key, userBytes[:userLen]...)
+	key = append(key, metadataIdBytes[:metadataIdLen]...)
 	return key
 }
 

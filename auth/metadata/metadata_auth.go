@@ -132,7 +132,7 @@ func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []str
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
-	return ma.dataCenter.GetMetadataAuthorityListByUser(userType, user, uint64(timeutils.UnixMsec()))
+	return ma.dataCenter.GetMetadataAuthorityListByUser(userType, user, uint64(timeutils.BeforeYearUnixMsec()))
 }
 
 func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {

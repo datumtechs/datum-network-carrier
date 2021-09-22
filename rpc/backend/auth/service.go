@@ -247,7 +247,7 @@ func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.G
 		return nil, errors.New("require user")
 	}
 
-	if verifyUserType(req.GetUserType()) {
+	if !verifyUserType(req.GetUserType()) {
 		return nil, errors.New("userType is invalid")
 	}
 
