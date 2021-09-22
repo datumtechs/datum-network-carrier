@@ -23,3 +23,7 @@ func Now() time.Time {
 func UnixMsec() int64 {
 	return time.Now().UnixNano() / 1e6
 }
+
+func BeforeYearUnixMsec() int64 {
+	return time.Now().AddDate(-1, 0, 0).UnixNano() / 1e6
+}
