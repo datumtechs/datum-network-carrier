@@ -120,51 +120,49 @@ func GetUserMetadataAuthUsedCountKey(userType apicommonpb.UserType, user string)
 
 func GetUserMetadataAuthUsedKey(userType apicommonpb.UserType, user string, n uint32) []byte {
 
+	// key: prefix + userType + user + n
+
 	userTypeBytes := []byte(userType.String())
 	userBytes := []byte(user)
 	nBytes := bytesutil.Uint32ToBytes(n)
 
-	prefixLen := len(userMetadataAuthUsedKeyPrefix)
-	userTypeLen := len(userTypeBytes)
-	userLen := len(userBytes)
-	nLen := len(nBytes)
+	// some index of pivots
+	prefixIndex := len(userMetadataAuthUsedKeyPrefix)
+	userTypeIndex := prefixIndex + len(userTypeBytes)
+	userIndex := userTypeIndex + len(userBytes)
+	size := userIndex + len(nBytes)
 
-	/*key := make([]byte, prefixLen+userTypeLen+userLen+nLen)
-	copy(key[:prefixLen], userMetadataAuthUsedKeyPrefix)
-	copy(key[prefixLen:userTypeLen], userTypeBytes)
-	copy(key[userTypeLen:userLen], userBytes)
-	copy(key[userLen:nLen], nBytes)*/
-	key := make([]byte, 0)
-	key = append(key, userMetadataAuthUsedKeyPrefix[:prefixLen]...)
-	key = append(key, userTypeBytes[:userTypeLen]...)
-	key = append(key, userBytes[:userLen]...)
-	key = append(key, nBytes[:nLen]...)
+	// construct key
+	key := make([]byte, size)
+	copy(key[:prefixIndex], userMetadataAuthUsedKeyPrefix)
+	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
+	copy(key[userTypeIndex:userIndex], userBytes)
+	copy(key[userIndex:], nBytes)
 
 	return key
 }
 
 func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, metadataId string) []byte {
 
+	// key: prefix + userType + user + metadataId
+
 	userTypeBytes := []byte(userType.String())
 	userBytes := []byte(user)
 	metadataIdBytes := []byte(metadataId)
 
-	prefixLen := len(userMetadataAuthByMetadataIdKeyPrefix)
-	userTypeLen := len(userTypeBytes)
-	userLen := len(userBytes)
-	metadataIdLen := len(metadataIdBytes)
+	// some index of pivots
+	prefixIndex := len(userMetadataAuthByMetadataIdKeyPrefix)
+	userTypeIndex := prefixIndex + len(userTypeBytes)
+	userIndex := userTypeIndex + len(userBytes)
+	size := userIndex + len(metadataIdBytes)
 
-	/*key := make([]byte, prefixLen+userTypeLen+userLen+metadataIdLen)
-	copy(key[:prefixLen], userMetadataAuthByMetadataIdKeyPrefix)
-	copy(key[prefixLen:], userTypeBytes[:userTypeLen])
-	copy(key[userTypeLen:userLen], userBytes)
-	copy(key[userLen:metadataIdLen], metadataIdBytes)*/
+	// construct key
+	key := make([]byte, size)
+	copy(key[:prefixIndex], userMetadataAuthByMetadataIdKeyPrefix)
+	copy(key[prefixIndex:userTypeIndex], userTypeBytes)
+	copy(key[userTypeIndex:userIndex], userBytes)
+	copy(key[userIndex:], metadataIdBytes)
 
-	key := make([]byte, 0)
-	key = append(key, userMetadataAuthByMetadataIdKeyPrefix[:prefixLen]...)
-	key = append(key, userTypeBytes[:userTypeLen]...)
-	key = append(key, userBytes[:userLen]...)
-	key = append(key, metadataIdBytes[:metadataIdLen]...)
 	return key
 }
 
@@ -174,17 +172,21 @@ func GetMetadataUsedTaskIdCountKey(metadataId string) []byte {
 
 func GetMetadataUsedTaskIdKey(metadataId string, n uint32) []byte {
 
+	// key: prefix + metadataId + n
+
 	metadataIdBytes := []byte(metadataId)
 	nBytes := bytesutil.Uint32ToBytes(n)
 
-	prefixLen := len(metadataUsedTaskIdKeyPrefix)
-	metadataIdLen := len(metadataIdBytes)
-	nLen := len(nBytes)
+	// some index of pivots
+	prefixIndex := len(metadataUsedTaskIdKeyPrefix)
+	metadataIdIndex := prefixIndex + len(metadataIdBytes)
+	size := metadataIdIndex + len(nBytes)
 
-	key := make([]byte, prefixLen+metadataIdLen+nLen)
-	copy(key[:prefixLen], userMetadataAuthUsedKeyPrefix)
-	copy(key[prefixLen:metadataIdLen], metadataIdBytes)
-	copy(key[metadataIdLen:nLen], nBytes)
+	// construct key
+	key := make([]byte, size)
+	copy(key[:prefixIndex], userMetadataAuthUsedKeyPrefix)
+	copy(key[prefixIndex:metadataIdIndex], metadataIdBytes)
+	copy(key[metadataIdIndex:], nBytes)
 
 	return key
 }

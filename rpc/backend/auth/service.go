@@ -61,6 +61,8 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 		return nil, ErrSendIdentityRevokeMsg
 	}
 
+	// todo what if running task
+
 	identityRevokeMsg := types.NewIdentityRevokeMessage()
 	err = svr.B.SendMsg(identityRevokeMsg)
 	if nil != err {

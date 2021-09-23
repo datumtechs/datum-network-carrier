@@ -8,12 +8,12 @@ import "lib/fighter/common/common.proto";
 
 service ComputeProvider {
    rpc GetStatus(google.protobuf.Empty) returns (GetStatusReply) {
-    option(google.api.http) = {
+         option(google.api.http) = {
             get: "/compute/getStatus"
         };
   }
   rpc GetTaskDetails(GetTaskDetailsReq) returns (GetTaskDetailsReply) {
-    option(google.api.http) = {
+        option(google.api.http) = {
             post: "/compute/getTaskDetails"
             body: "*"
         };
@@ -22,8 +22,15 @@ service ComputeProvider {
   rpc UploadShard(stream UploadShardReq) returns (UploadShardReply) {}
 
   rpc HandleTaskReadyGo(common.TaskReadyGoReq) returns (common.TaskReadyGoReply) {
-    option(google.api.http) = {
+        option(google.api.http) = {
         post: "/compute/handleTaskReadyGo"
+        body: "*"
+    };
+  }
+
+  rpc HandleCancelTask(common.TaskCancelReq) returns (common.TaskCancelReply) {
+        option(google.api.http) = {
+        post: "/compute/handleCancelTask"
         body: "*"
     };
   }
@@ -35,35 +42,35 @@ message UploadShardReq {
     string data_id = 2;
   }
   oneof data {
-    Info  meta    = 1;
+    Info meta = 1;
     bytes content = 2;
   }
 }
 
 message UploadShardReply {
-    bool   ok  = 1;
-    string msg = 2;
+  bool ok = 1;
+  string msg = 2;
 }
 
 message GetStatusReply {
-    string cpu       = 1;
-    string mem       = 2;
-    string bandwidth = 3;
+  string cpu = 1;
+  string mem = 2;
+  string bandwidth = 3;
 }
 
 message GetTaskDetailsReq {
-    repeated string task_ids = 1;
+  repeated string task_ids = 1;
 }
 
 message GetTaskDetailsReply {
   message Detail {
-    string task_id      = 1;
-    string task_name    = 2;
-    string contract_id  = 3;
-    int64  elapsed_time = 4;
-    int64  remain_time  = 5;
-    string progress     = 6;
-    string phase        = 7;
+    string task_id = 1;
+    string task_name = 2;
+    string contract_id = 3;
+    int64 elapsed_time = 4;
+    int64 remain_time = 5;
+    string progress = 6;
+    string phase = 7;
   }
-    repeated Detail task_details = 1;
+  repeated Detail task_details = 1;
 }
