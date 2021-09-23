@@ -4,7 +4,7 @@ package types;
 
 import "lib/common/base.proto";
 import "lib/common/data.proto";
-import "repos/protobuf/gogoproto/gogo.proto";
+//import "repos/protobuf/gogoproto/gogo.proto";
 import "lib/types/metadata.proto";
 import "lib/types/identitydata.proto";
 import "lib/types/resourcedata.proto";
