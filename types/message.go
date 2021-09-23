@@ -654,6 +654,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			CalculateContractCode: req.GetCalculateContractCode(),
 			DataSplitContractCode: req.GetDataSplitContractCode(),
 			ContractExtraParams:   req.GetContractExtraParams(),
+			Sign: req.GetSign(),
 		}),
 	}
 }

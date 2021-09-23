@@ -676,6 +676,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			ApplyAt:         msg.GetCreateAt(),
 			AuditAt:         0,
 			State:           apicommonpb.MetadataAuthorityState_MAState_Released,
+			Sign: 			 msg.GetSign(),
 		})); nil != err {
 			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err)
