@@ -11,34 +11,34 @@ import (
 	"strings"
 )
 
-func (svr *Server) GetTotalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTotalPowerDetailListResponse, error) {
-	powerList, err := svr.B.GetTotalPowerDetailList()
+func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetGlobalPowerDetailListResponse, error) {
+	powerList, err := svr.B.GetGlobalPowerDetailList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetTotalPowerDetailList failed")
+		log.WithError(err).Error("RPC-API:GetGlobalPowerDetailList failed")
 		return nil, ErrGetTotalPowerList
 	}
-	log.Debugf("RPC-API:GetTotalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetTotalPowerDetailResponseArrString(powerList))
-	return &pb.GetTotalPowerDetailListResponse{
+	log.Debugf("RPC-API:GetGlobalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerDetailResponseArrString(powerList))
+	return &pb.GetGlobalPowerDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,
 		PowerList: powerList,
 	}, nil
 }
 
-func (svr *Server) GetSelfPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetSelfPowerDetailListResponse, error) {
-	powerList, err := svr.B.GetSelfPowerDetailList()
+func (svr *Server) GetLocalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetLocalPowerDetailListResponse, error) {
+	powerList, err := svr.B.GetLocalPowerDetailList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetSelfPowerDetailList failed")
+		log.WithError(err).Error("RPC-API:GetLocalPowerDetailList failed")
 		return nil, ErrGetSinglePowerList
 	}
-	log.Debugf("RPC-API:GetSelfPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetSelfPowerDetailResponseArrString(powerList))
-	return &pb.GetSelfPowerDetailListResponse{
+	log.Debugf("RPC-API:GetLocalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetLocalPowerDetailResponseArrString(powerList))
+	return &pb.GetLocalPowerDetailListResponse{
 		Status: 0,
 		Msg: backend.OK,
 		PowerList: powerList,
 	}, nil
 }
-func utilGetTotalPowerDetailResponseArrString(resp []*pb.GetTotalPowerDetailResponse) string {
+func utilGetGlobalPowerDetailResponseArrString(resp []*pb.GetGlobalPowerDetailResponse) string {
 	arr := make([]string, len(resp))
 	for i, u := range resp {
 		arr[i] = u.String()
@@ -48,7 +48,7 @@ func utilGetTotalPowerDetailResponseArrString(resp []*pb.GetTotalPowerDetailResp
 	}
 	return "[]"
 }
-func utilGetSelfPowerDetailResponseArrString(resp []*pb.GetSelfPowerDetailResponse) string {
+func utilGetLocalPowerDetailResponseArrString(resp []*pb.GetLocalPowerDetailResponse) string {
 	arr := make([]string, len(resp))
 	for i, u := range resp {
 		arr[i] = u.String()

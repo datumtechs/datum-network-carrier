@@ -30,8 +30,8 @@ type Backend interface {
 	// metadata api
 
 	GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error)
-	GetTotalMetadataDetailList() ([]*pb.GetTotalMetadataDetailResponse, error)
-	GetSelfMetadataDetailList() ([]*pb.GetSelfMetadataDetailResponse, error)
+	GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetadataDetailResponse, error)
+	GetLocalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error)
 	GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error)
 
 	// metadataAuthority api
@@ -43,8 +43,8 @@ type Backend interface {
 
 	// power api
 
-	GetTotalPowerDetailList() ([]*pb.GetTotalPowerDetailResponse, error)
-	GetSelfPowerDetailList() ([]*pb.GetSelfPowerDetailResponse, error)
+	GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDetailResponse, error)
+	GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetailResponse, error)
 
 	// identity api
 
