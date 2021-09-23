@@ -230,8 +230,9 @@ message ReportTaskEventRequest {
 // 数据/计算服务 上报资源使用实况 req
 message ReportTaskResourceExpenseRequest {
   NodeType                    node_type = 1;                        // 计算or数据服务node的类型
-  string                      node_id = 2;                          //  计算or数据服务的 节点Id
-  types.ResourceUsageOverview usage = 3;                            // 计算or数据的资源实况
+  string                      ip = 2;                               // Fighter 的 grpc server IP
+  string                      port = 3;                             // Fighter 的 grpc server PORT
+  types.ResourceUsageOverview usage = 4;                            // 计算or数据的资源实况
 }
 
 // 上报 成功上传的原始文件Id req
