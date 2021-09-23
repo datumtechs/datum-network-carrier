@@ -22,36 +22,36 @@ import (
 //	return metadataDetail, nil
 //}
 
-func (svr *Server) GetTotalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTotalMetadataDetailListResponse, error) {
-	metadataList, err := svr.B.GetTotalMetadataDetailList()
+func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetGlobalMetadataDetailListResponse, error) {
+	metadataList, err := svr.B.GetGlobalMetadataDetailList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetTotalMetadataDetailList failed")
+		log.WithError(err).Error("RPC-API:GetGlobalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
 	}
-	respList := make([]*pb.GetTotalMetadataDetailResponse, len(metadataList))
+	respList := make([]*pb.GetGlobalMetadataDetailResponse, len(metadataList))
 	for i, metadataDetail := range metadataList {
 		respList[i] = metadataDetail
 	}
 	log.Debugf("Query all org's metadata list, len: {%d}", len(respList))
-	return &pb.GetTotalMetadataDetailListResponse{
+	return &pb.GetGlobalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
 		MetadataList: respList,
 	}, nil
 }
 
-func (svr *Server) GetSelfMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetSelfMetadataDetailListResponse, error) {
-	metadataList, err := svr.B.GetSelfMetadataDetailList()
+func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetLocalMetadataDetailListResponse, error) {
+	metadataList, err := svr.B.GetLocalMetadataDetailList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetSelfMetadataDetailList failed")
+		log.WithError(err).Error("RPC-API:GetLocalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
 	}
-	respList := make([]*pb.GetSelfMetadataDetailResponse, len(metadataList))
+	respList := make([]*pb.GetLocalMetadataDetailResponse, len(metadataList))
 	for i, metadataDetail := range metadataList {
 		respList[i] = metadataDetail
 	}
 	log.Debugf("Query current org's metadata list, len: {%d}", len(respList))
-	return &pb.GetSelfMetadataDetailListResponse{
+	return &pb.GetLocalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
 		MetadataList: respList,
