@@ -54,6 +54,7 @@ message MetadataAuthorityPB {
   uint64                                      apply_at = 10;             // 发起授权申请的时间 (单位: ms)
   uint64                                      audit_at = 11;             // 审核授权申请的时间 (单位: ms)
   api.protobuf.MetadataAuthorityState         state = 12;               // 数据授权信息的状态 (0: 未知; 1: 还未发布的数据授权; 2: 已发布的数据授权; 3: 已撤销的数据授权 <失效前主动撤回的>; 4: 已经失效的数据授权 <过期or达到使用上限的>)
+  bytes                                       sign = 13;
 }
 
 // =============================== For API =========================
