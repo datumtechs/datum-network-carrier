@@ -96,7 +96,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: uint64(timeutils.BeforeYearUnixMsec())})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: timeutils.BeforeYearUnixMsecUint64()})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 

@@ -26,7 +26,7 @@ func RandStr(length int) string {
 }
 
 func generateProposalId() common.Hash {
-	now := uint64(timeutils.UnixMsec())
+	now := timeutils.UnixMsecUint64()
 	proposalId := rlputil.RlpHash([]interface{}{
 		RandStr(32),
 		now,

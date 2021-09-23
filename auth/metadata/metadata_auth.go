@@ -85,7 +85,7 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 	switch usageRule.UsageType {
 	case apicommonpb.MetadataUsageType_Usage_Period:
 		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
-		if uint64(timeutils.UnixMsec()) >= usageRule.GetEndAt() {
+		if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 			usedQuo.Expire = true
 			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
 		} else {
@@ -124,7 +124,7 @@ func (ma *MetadataAuthority) GetMetadataAuthorityList() (types.MetadataAuthArray
 	if nil != err {
 		return nil, err
 	}
-	return ma.dataCenter.GetMetadataAuthorityListByIdentityId(identityId, uint64(timeutils.BeforeYearUnixMsec()))
+	return ma.dataCenter.GetMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
@@ -132,7 +132,7 @@ func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []str
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
-	return ma.dataCenter.GetMetadataAuthorityListByUser(userType, user, uint64(timeutils.BeforeYearUnixMsec()))
+	return ma.dataCenter.GetMetadataAuthorityListByUser(userType, user, timeutils.BeforeYearUnixMsecUint64())
 }
 
 func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {
@@ -182,7 +182,7 @@ func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserT
 	switch usageRule.UsageType {
 	case apicommonpb.MetadataUsageType_Usage_Period:
 		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
-		if uint64(timeutils.UnixMsec()) >= usageRule.GetEndAt() {
+		if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 			usedQuo.Expire = true
 			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
 		} else {
@@ -265,7 +265,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	switch usageRule.UsageType {
 	case apicommonpb.MetadataUsageType_Usage_Period:
 		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
-		if uint64(timeutils.UnixMsec()) >= usageRule.GetEndAt() {
+		if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 			usedQuo.Expire = true
 			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
 		} else {

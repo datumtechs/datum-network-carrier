@@ -157,7 +157,7 @@ func (dc *DataCenter) GetTaskListByIdentityId(identityId string) (types.TaskData
 	defer dc.serviceMu.Unlock()
 	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{LastUpdated: uint64(timeutils.UnixMsec())})
 	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
-		LastUpdated: uint64(timeutils.UnixMsec()),
+		LastUpdated: timeutils.UnixMsecUint64(),
 		IdentityId: identityId,
 	})
 	return types.NewTaskArrayFromResponse(taskListResponse), err

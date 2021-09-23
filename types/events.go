@@ -16,6 +16,7 @@ const (
 	ApplyPower
 	RevokePower
 	ApplyTask
+	TerminateTask
 )
 
 type IdentityMsgEvent struct{ Msg *IdentityMsg }
@@ -27,6 +28,7 @@ type MetadataAuthRevokeMsgEvent struct{ Msgs MetadataAuthorityRevokeMsgArr }
 type PowerMsgEvent struct{ Msgs PowerMsgArr }
 type PowerRevokeMsgEvent struct{ Msgs PowerRevokeMsgArr }
 type TaskMsgEvent struct{ Msgs TaskMsgArr }
+type TaskTerminateMsgEvent struct{ Msgs TaskTerminateMsgArr }
 
 func (msg *IdentityMsgEvent) String() string {
 	result, err := json.Marshal(msg)

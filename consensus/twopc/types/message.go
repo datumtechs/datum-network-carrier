@@ -198,7 +198,7 @@ func NewOrgProposalState(
 		PeriodNum:        PeriodPrepare,
 		PeriodStartTime:  startTime,
 		DeadlineDuration: ProposalDeadlineDuration,
-		CreateAt:         uint64(timeutils.UnixMsec()),
+		CreateAt:         timeutils.UnixMsecUint64(),
 	}
 }
 
@@ -238,7 +238,7 @@ func (pstate *OrgProposalState) IsNotConfirmPeriod() bool  { return !pstate.IsCo
 func (pstate *OrgProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCommitPeriod() }
 func (pstate *OrgProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
 func (pstate *OrgProposalState) IsDeadline() bool {
-	now := uint64(timeutils.UnixMsec())
+	now := timeutils.UnixMsecUint64()
 	return (now - pstate.CreateAt) >= ProposalDeadlineDuration
 }
 
@@ -248,7 +248,7 @@ func (pstate *OrgProposalState) IsPrepareTimeout() bool {
 		return true
 	}
 
-	now := uint64(timeutils.UnixMsec())
+	now := timeutils.UnixMsecUint64()
 	duration := uint64(PrepareMsgVotingTimeout.Milliseconds())
 
 	// Due to the time boundary problem, the value `==`
@@ -272,7 +272,7 @@ func (pstate *OrgProposalState) IsConfirmTimeout() bool {
 		return true
 	}
 
-	now := uint64(timeutils.UnixMsec())
+	now := timeutils.UnixMsecUint64()
 	duration := uint64(ConfirmMsgVotingTimeout.Milliseconds())
 
 	if pstate.IsConfirmPeriod() && (now-pstate.PeriodStartTime) >= duration {
@@ -292,7 +292,7 @@ func (pstate *OrgProposalState) IsCommitTimeout() bool {
 		return true
 	}
 
-	now := uint64(timeutils.UnixMsec())
+	now := timeutils.UnixMsecUint64()
 	duration := uint64(CommitMsgEndingTimeout.Milliseconds())
 
 	// Due to the time boundary problem, the value `==`

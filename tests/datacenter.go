@@ -142,8 +142,8 @@ func InsertTask() {
 		Reason:     "",
 		EventCount: 0,
 		Desc:       "",
-		CreateAt:   uint64(timeutils.UnixMsec()),
-		EndAt:      uint64(timeutils.UnixMsec()),
+		CreateAt:   timeutils.UnixMsecUint64(),
+		EndAt:      timeutils.UnixMsecUint64(),
 		AlgoSupplier: &apicommonpb.TaskOrganization{
 			PartyId:    "",
 			NodeId:     Identity,

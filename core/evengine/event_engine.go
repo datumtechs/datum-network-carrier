@@ -25,7 +25,7 @@ func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *libt
 		TaskId: taskId,
 		IdentityId: identityId,
 		Content: fmt.Sprintf("%s, reason: {%s}", ScheduleEvent[typ], extra),
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt: timeutils.UnixMsecUint64(),
 	}
 }
 func  (e *EventEngine) StoreEvent(event *libtypes.TaskEvent) {

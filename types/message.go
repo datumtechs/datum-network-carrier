@@ -26,6 +26,7 @@ const (
 	MSG_METADATA        = "metaDataMsg"
 	MSG_METADATA_REVOKE = "metaDataRevokeMsg"
 	MSG_TASK            = "taskMsg"
+	MSG_TASK_TERMINATE  = "taskTerminateMsg"
 
 	MSG_METADATAAUTHORITY       = "MetadataAuthorityMsg"
 	MSG_METADATAAUTHORITYREVOKE = "MetadataAuthorityRevokeMsg"
@@ -54,7 +55,7 @@ func NewIdentityMessageFromRequest(req *pb.ApplyIdentityJoinRequest) *IdentityMs
 			NodeId:     req.GetMember().GetNodeId(),
 			IdentityId: req.GetMember().GetIdentityId(),
 		},
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt: timeutils.UnixMsecUint64(),
 	}
 }
 
@@ -88,7 +89,7 @@ type IdentityRevokeMsg struct {
 
 func NewIdentityRevokeMessage() *IdentityRevokeMsg {
 	return &IdentityRevokeMsg{
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt: timeutils.UnixMsecUint64(),
 	}
 }
 
@@ -135,7 +136,7 @@ type PowerMsg struct {
 func NewPowerMessageFromRequest(req *pb.PublishPowerRequest) *PowerMsg {
 	msg := &PowerMsg{
 		JobNodeId: req.GetJobNodeId(),
-		CreateAt:  uint64(timeutils.UnixMsec()),
+		CreateAt:  timeutils.UnixMsecUint64(),
 	}
 	msg.GenPowerId()
 	return msg
@@ -179,7 +180,7 @@ func (msg *PowerMsg) HashByCreateTime() common.Hash {
 	return rlputil.RlpHash([]interface{}{
 		msg.JobNodeId,
 		//msg.GetCreateAt,
-		uint64(timeutils.UnixMsec()),
+		timeutils.UnixMsecUint64(),
 	})
 }
 
@@ -191,7 +192,7 @@ type PowerRevokeMsg struct {
 func NewPowerRevokeMessageFromRequest(req *pb.RevokePowerRequest) *PowerRevokeMsg {
 	return &PowerRevokeMsg{
 		PowerId:  req.GetPowerId(),
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt: timeutils.UnixMsecUint64(),
 	}
 }
 
@@ -253,7 +254,7 @@ func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg 
 			State:      req.GetInformation().GetMetadataSummary().GetState(),
 		},
 		ColumnMetas: make([]*types.MetadataColumn, 0),
-		CreateAt:    uint64(timeutils.UnixMsec()),
+		CreateAt:    timeutils.UnixMsecUint64(),
 	}
 
 	ColumnMetas := make([]*libtypes.MetadataColumn, len(req.GetInformation().GetMetadataColumns()))
@@ -354,7 +355,7 @@ func (msg *MetadataMsg) Hash() common.Hash {
 func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 	return rlputil.RlpHash([]interface{}{
 		msg.MetadataSummary.OriginId,
-		uint64(timeutils.UnixMsec()),
+		timeutils.UnixMsecUint64(),
 	})
 }
 
@@ -366,7 +367,7 @@ type MetadataRevokeMsg struct {
 func NewMetadataRevokeMessageFromRequest(req *pb.RevokeMetadataRequest) *MetadataRevokeMsg {
 	return &MetadataRevokeMsg{
 		MetadataId: req.GetMetadataId(),
-		CreateAt:   uint64(timeutils.UnixMsec()),
+		CreateAt:   timeutils.UnixMsecUint64(),
 	}
 }
 
@@ -432,7 +433,7 @@ func NewMetadataAuthorityMessageFromRequest(req *pb.ApplyMetadataAuthorityReques
 		UserType: req.GetUserType(),
 		Auth:     req.GetAuth(),
 		Sign:     req.GetSign(),
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt: timeutils.UnixMsecUint64(),
 	}
 
 	metadataAuthorityMsg.GenMetadataAuthId()
@@ -496,7 +497,7 @@ func (msg *MetadataAuthorityMsg) HashByCreateTime() common.Hash {
 		msg.GetMetadataAuthority().GetUsageRule().GetEndAt(),
 		msg.GetMetadataAuthority().GetUsageRule().GetTimes(),
 		msg.GetSign(),
-		uint64(timeutils.UnixMsec()),
+		timeutils.UnixMsecUint64(),
 	})
 }
 
@@ -525,7 +526,7 @@ func NewMetadataAuthorityRevokeMessageFromRequest(req *pb.RevokeMetadataAuthorit
 		UserType:       req.GetUserType(),
 		MetadataAuthId: req.GetMetadataAuthId(),
 		Sign:           req.GetSign(),
-		CreateAt:       uint64(timeutils.UnixMsec()),
+		CreateAt:       timeutils.UnixMsecUint64(),
 	}
 }
 
@@ -642,7 +643,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			Reason:       "",
 			EventCount:   0,
 			Desc:         "",
-			CreateAt:     uint64(timeutils.UnixMsec()),
+			CreateAt:     timeutils.UnixMsecUint64(),
 			EndAt:        0,
 			StartAt:      0,
 			AlgoSupplier: req.GetAlgoSupplier(),
@@ -660,8 +661,6 @@ func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libtypes.TaskPowerSupp
 	task.SetResourceSupplierArr(powers)
 	return task
 }
-
-type TaskMsgArr []*TaskMsg
 
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
@@ -769,9 +768,63 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 		msg.Data.GetTaskData().GetPartyId(),
 		msg.Data.GetTaskData().GetTaskName(),
 		//msg.Data.GetTaskData().GetCreateAt,
-		uint64(timeutils.UnixMsec()),
+		timeutils.UnixMsecUint64(),
 	})
 }
+
+type TaskTerminateMsg struct {
+	UserType apicommonpb.UserType `json:"userType"`
+	User     string               `json:"user"`
+	TaskId   string               `json:"taskId"`
+	Sign     []byte               `json:"sign"`
+	CreateAt uint64               `json:"createAt"`
+	// caches
+	hash atomic.Value
+}
+
+func NewTaskTerminateMsg(userType apicommonpb.UserType, user, taskId string, sign []byte) *TaskTerminateMsg {
+	return &TaskTerminateMsg{
+		UserType: userType,
+		User:     user,
+		TaskId:   taskId,
+		Sign:     sign,
+		CreateAt: timeutils.UnixMsecUint64(),
+	}
+}
+
+func (msg *TaskTerminateMsg) Marshal() ([]byte, error) { return nil, nil }
+func (msg *TaskTerminateMsg) Unmarshal(b []byte) error { return nil }
+func (msg *TaskTerminateMsg) String() string {
+	return fmt.Sprintf(`{"userType": %s, "user": %s, "taskId": %s, "sign": %v, "createAt": %d}`,
+		msg.UserType.String(), msg.User, msg.TaskId, msg.Sign, msg.CreateAt)
+}
+func (msg *TaskTerminateMsg) MsgType() string                   { return MSG_TASK_TERMINATE }
+func (msg *TaskTerminateMsg) GetUserType() apicommonpb.UserType { return msg.UserType }
+func (msg *TaskTerminateMsg) GetUser() string                   { return msg.User }
+func (msg *TaskTerminateMsg) GetTaskId() string                 { return msg.TaskId }
+func (msg *TaskTerminateMsg) GetSign() []byte                   { return msg.Sign }
+func (msg *TaskTerminateMsg) GetCreateAt() uint64               { return msg.CreateAt }
+func (msg *TaskTerminateMsg) Hash() common.Hash {
+	if hash := msg.hash.Load(); hash != nil {
+		return hash.(common.Hash)
+	}
+	v := msg.HashByCreateTime()
+	msg.hash.Store(v)
+	return v
+}
+
+func (msg *TaskTerminateMsg) HashByCreateTime() common.Hash {
+	return rlputil.RlpHash([]interface{}{
+		msg.UserType.String(),
+		msg.User,
+		msg.TaskId,
+		msg.Sign,
+		timeutils.UnixMsecUint64(),
+	})
+}
+
+type TaskMsgArr []*TaskMsg
+type TaskTerminateMsgArr []*TaskTerminateMsg
 
 // Len returns the length of s.
 func (s TaskMsgArr) Len() int { return len(s) }
@@ -780,6 +833,15 @@ func (s TaskMsgArr) Len() int { return len(s) }
 func (s TaskMsgArr) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
 func (s TaskMsgArr) Less(i, j int) bool {
 	return s[i].Data.GetTaskData().GetCreateAt() < s[j].Data.GetTaskData().GetCreateAt()
+}
+
+// Len returns the length of s.
+func (s TaskTerminateMsgArr) Len() int { return len(s) }
+
+// Swap swaps the i'th and the j'th element in s.
+func (s TaskTerminateMsgArr) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
+func (s TaskTerminateMsgArr) Less(i, j int) bool {
+	return s[i].GetCreateAt() < s[j].GetCreateAt()
 }
 
 /**

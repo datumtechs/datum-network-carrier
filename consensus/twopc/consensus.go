@@ -173,7 +173,7 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		t.replyTaskConsensusResult(types.NewTaskConsResult(task.GetTaskId(), types.TaskConsensusInterrupt, ctypes.ErrPrososalTaskIsProcessed))
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
-	now := uint64(timeutils.UnixMsec())
+	now := timeutils.UnixMsecUint64()
 	proposalId := rlputil.RlpHash([]interface{}{
 		t.config.Option.NodeID,
 		now,
@@ -286,7 +286,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 			proposal.Task,
 			types.No,
 			&types.PrepareVoteResource{},
-			uint64(timeutils.UnixMsec()),
+			timeutils.UnixMsecUint64(),
 		)
 		log.Warnf("Failed to replay schedule task, will vote `NO`, taskId: {%s}, err: {%s}", replayTaskResult.GetTaskId(), replayTaskResult.GetErr().Error())
 	} else {
@@ -304,7 +304,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 				replayTaskResult.GetResource().Port,
 				replayTaskResult.GetResource().PartyId,
 			),
-			uint64(timeutils.UnixMsec()),
+			timeutils.UnixMsecUint64(),
 		)
 		log.Infof("Succeed to replay schedule task, will vote `YES`, taskId: {%s}", replayTaskResult.GetTaskId())
 	}
@@ -408,7 +408,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 		// Change the proposalState to `confirmPeriod`
 		if totalNeedVoteCount == yesVoteCount {
 
-			now := uint64(timeutils.UnixMsec())
+			now := timeutils.UnixMsecUint64()
 			// 修改状态
 			t.changeToConfirm(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId, now)
 
@@ -519,7 +519,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 		msg.MsgOption.SenderPartyId,
 		proposalTask.Task,
 		types.Yes,
-		uint64(timeutils.UnixMsec()),
+		timeutils.UnixMsecUint64(),
 	)
 
 	t.changeToConfirm(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId, msg.CreateAt)
@@ -603,7 +603,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) e
 		// Change the proposalState to `confirmPeriod`
 		if totalNeedVoteCount == yesVoteCount {
 
-			now := uint64(timeutils.UnixMsec())
+			now := timeutils.UnixMsecUint64()
 
 			// 修改状态
 			t.changeToCommit(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId, now)

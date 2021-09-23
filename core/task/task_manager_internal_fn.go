@@ -90,7 +90,7 @@ func (m *Manager) storeFailedReScheduleTask(taskId string) error {
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
 	task.GetTask().GetTaskData().State = apicommonpb.TaskState_TaskState_Running
-	task.GetTask().GetTaskData().StartAt = uint64(timeutils.UnixMsec())
+	task.GetTask().GetTaskData().StartAt = timeutils.UnixMsecUint64()
 	if err := m.resourceMng.GetDB().StoreLocalTask(task.GetTask()); nil != err {
 		log.Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}, err: {%s}",
 			task.GetTask().GetTaskId(), apicommonpb.TaskState_TaskState_Running.String(), err)
@@ -274,7 +274,7 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 	task.GetTaskData().EventCount = uint32(len(events))
 	task.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
-	task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
+	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 
 	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())
 	m.resourceMng.GetDB().RemoveTaskEventList(task.GetTaskId())
@@ -285,7 +285,7 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libtypes.TaskEvent, state apicommonpb.TaskState) *types.Task {
 	task.GetTaskData().TaskEvents = eventList
 	task.GetTaskData().EventCount = uint32(len(eventList))
-	task.GetTaskData().EndAt = uint64(timeutils.UnixMsec())
+	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 	task.GetTaskData().State = state
 	return task
 }
@@ -560,7 +560,7 @@ func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *taskmn
 			},
 		},
 		TaskEventList: types.ConvertTaskEventArr(eventList),
-		CreateAt:      uint64(timeutils.UnixMsec()),
+		CreateAt:      timeutils.UnixMsecUint64(),
 		Sign:          nil,
 	}
 }
@@ -659,9 +659,9 @@ func (m *Manager) expireTaskMonitor() {
 
 				switch task.GetLocalTaskRole() {
 				case apicommonpb.TaskRole_TaskRole_Sender:
-					duration = uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt() + uint64(senderExecuteTaskExpire.Milliseconds())
+					duration = timeutils.UnixMsecUint64() - task.GetTask().GetTaskData().GetStartAt() + uint64(senderExecuteTaskExpire.Milliseconds())
 				default:
-					duration = uint64(timeutils.UnixMsec()) - task.GetTask().GetTaskData().GetStartAt()
+					duration = timeutils.UnixMsecUint64() - task.GetTask().GetTaskData().GetStartAt()
 				}
 
 				if duration >= task.GetTask().GetTaskData().GetOperationCost().GetDuration() {

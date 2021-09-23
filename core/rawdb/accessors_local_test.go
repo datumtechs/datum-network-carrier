@@ -27,8 +27,8 @@ func TestLocalTask(t *testing.T) {
 		Reason:     "reason",
 		EventCount: 4,
 		Desc:       "desc",
-		CreateAt:   uint64(timeutils.UnixMsec()),
-		EndAt:      uint64(timeutils.UnixMsec()),
+		CreateAt:   timeutils.UnixMsecUint64(),
+		EndAt:      timeutils.UnixMsecUint64(),
 	}
 	WriteLocalTask(database, types.NewTask(data01))
 
@@ -134,7 +134,7 @@ func TestTaskEvent(t *testing.T) {
 		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent",
-		CreateAt:   uint64(timeutils.UnixMsec()),
+		CreateAt:   timeutils.UnixMsecUint64(),
 	}
 	WriteTaskEvent(database, taskEvent)
 
@@ -143,7 +143,7 @@ func TestTaskEvent(t *testing.T) {
 		IdentityId: "taskEventIdentity",
 		TaskId:     "taskEventTaskId",
 		Content:    "taskEventContent-02",
-		CreateAt:   uint64(timeutils.UnixMsec()),
+		CreateAt:   timeutils.UnixMsecUint64(),
 	}
 	WriteTaskEvent(database, taskEvent2)
 

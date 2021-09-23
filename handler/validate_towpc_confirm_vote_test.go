@@ -39,7 +39,7 @@ func TestValidateTwopc_ValidConfirmVote(t *testing.T) {
 			ReceiverPartyId: []byte("ReceiverPartyId"),
 			MsgOwner:        nil,
 		},
-		CreateAt: uint64(timeutils.UnixMsec()),
+		CreateAt: timeutils.UnixMsecUint64(),
 		Sign:     []byte("sign"),
 	})
 	require.NoError(t, err)

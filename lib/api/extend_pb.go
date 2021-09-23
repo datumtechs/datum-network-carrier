@@ -52,7 +52,7 @@ func (seed *SeedPeer) hashByCreateTime() (h common.Hash) {
 	}{
 		InternalIp:   seed.InternalIp,
 		InternalPort: seed.InternalPort,
-		CreateTime:   uint64(timeutils.UnixMsec()),
+		CreateTime:   timeutils.UnixMsecUint64(),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])
@@ -110,7 +110,7 @@ func (node *YarnRegisteredPeerDetail) hashByCreateTime(typ RegisteredNodeType) (
 		InternalPort: node.InternalPort,
 		ExternalIp:   node.ExternalIp,
 		ExternalPort: node.ExternalPort,
-		CreateAt:     uint64(timeutils.UnixMsec()),
+		CreateAt:     timeutils.UnixMsecUint64(),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])

@@ -932,7 +932,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 	// generate metadataId
 	originIdHash := rlputil.RlpHash([]interface{}{
 		originId,
-		uint64(timeutils.UnixMsec()),
+		timeutils.UnixMsecUint64(),
 	})
 	metadataId := types.PREFIX_METADATA_ID + originIdHash.Hex()
 

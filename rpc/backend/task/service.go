@@ -13,9 +13,6 @@ import (
 	"strings"
 )
 
-func (svr *Server) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apicommonpb.SimpleResponse, error) {
-	return nil, nil
-}
 
 func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTaskDetailListResponse, error) {
 	tasks, err := svr.B.GetTaskDetailList()
@@ -158,6 +155,10 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		Msg:    backend.OK,
 		TaskId: taskId,
 	}, nil
+}
+
+func (svr *Server) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apicommonpb.SimpleResponse, error) {
+	return nil, nil
 }
 
 func utilTaskDetailResponseArrString(tasks []*pb.GetTaskDetailResponse) string {

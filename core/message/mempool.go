@@ -163,6 +163,18 @@ func (pool *Mempool) Add(msg types.Msg) error {
 			Data: &types.TaskMsgEvent{Msgs: types.TaskMsgArr{task}},
 		})
 
+	case *types.TaskTerminateMsg:
+		taskTerminate, ok := msg.(*types.TaskTerminateMsg)
+		if !ok {
+			return ErrTaskMsgConvert
+		}
+
+		// We've directly injected a replacement taskTerminate msg, notify subsystems
+		pool.msgFeed.Send(&feed.Event{
+			Type: types.TerminateTask,
+			Data: &types.TaskTerminateMsgEvent{Msgs: types.TaskTerminateMsgArr{taskTerminate}},
+		})
+
 	default:
 		log.Fatalf("Failed to add msg, can not match the msg type")
 		return ErrUnknownMsgType

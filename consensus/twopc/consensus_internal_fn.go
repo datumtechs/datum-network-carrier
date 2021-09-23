@@ -360,7 +360,7 @@ func (t *Twopc) refreshProposalState () {
 						IdentityId: identity.GetIdentityId(),
 						TaskId:     proposalState.GetTaskId(),
 						Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
-						CreateAt:   uint64(timeutils.UnixMsec()),
+						CreateAt:   timeutils.UnixMsecUint64(),
 					})
 
 					t.sendNeedExecuteTask(types.NewNeedExecuteTask(

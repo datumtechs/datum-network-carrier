@@ -24,6 +24,14 @@ func UnixMsec() int64 {
 	return time.Now().UnixNano() / 1e6
 }
 
+func UnixMsecUint64() uint64 {
+	return uint64(UnixMsec())
+}
+
 func BeforeYearUnixMsec() int64 {
 	return time.Now().AddDate(-1, 0, 0).UnixNano() / 1e6
+}
+
+func BeforeYearUnixMsecUint64() uint64 {
+	return uint64(BeforeYearUnixMsec())
 }
