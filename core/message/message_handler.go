@@ -1,6 +1,7 @@
 package message
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
@@ -49,6 +50,7 @@ type MessageHandler struct {
 	lockPower        sync.Mutex
 	lockMetadata     sync.Mutex
 	lockMetadataAuth sync.Mutex
+	lockTask         sync.Mutex
 
 	// TODO 有些缓存需要持久化
 }
@@ -222,6 +224,7 @@ func (m *MessageHandler) loop() {
 
 			case types.ApplyTask:
 				eventMessage := event.Data.(*types.TaskMsgEvent)
+				m.lockTask.Lock()
 				m.taskMsgCache = append(m.taskMsgCache, eventMessage.Msgs...)
 				if len(m.taskMsgCache) >= defaultTaskMsgsCacheSize {
 					if err := m.BroadcastTaskMsgArr(m.taskMsgCache); nil != err {
@@ -229,7 +232,39 @@ func (m *MessageHandler) loop() {
 					}
 					m.taskMsgCache = make(types.TaskMsgArr, 0)
 				}
+				m.lockTask.Unlock()
+			case types.TerminateTask:
+				eventMessage := event.Data.(*types.TaskTerminateMsgEvent)
+				tmp := make(map[string]int, len(eventMessage.Msgs))
+				for i, msg := range eventMessage.Msgs {
+					tmp[msg.GetTaskId()] = i
+				}
+
+				// Remove local cache taskMsgs
+				m.lockTask.Lock()
+				for i := 0; i < len(m.taskMsgCache); i++ {
+					msg := m.taskMsgCache[i]
+					if _, ok := tmp[msg.GetTaskId()]; ok {
+						delete(tmp, msg.GetTaskId())
+						m.taskMsgCache = append(m.taskMsgCache[:i], m.taskMsgCache[i+1:]...)
+						i--
+					}
+				}
+				m.lockTask.Unlock()
+
+				// Revoke remote task
+				if len(tmp) != 0 {
+					msgs, index := make(types.TaskTerminateMsgArr, len(tmp)), 0
+					for _, i := range tmp {
+						msgs[index] = eventMessage.Msgs[i]
+						index++
+					}
+					if err := m.BroadcastTaskTerminateMsgArr(msgs); nil != err {
+						log.Errorf("Failed to call `BroadcastTaskTerminateMsgArr` on MessageHandler, %s", err)
+					}
+				}
 			}
+
 		case <-powerTicker.C:
 
 			if len(m.powerMsgCache) > 0 {
@@ -303,7 +338,6 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 		log.Errorf("Failed to get local org identity on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
-
 
 	// todo what if running task
 
@@ -507,7 +541,6 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMsgArr) error {
 
-
 	identity, err := m.dataCenter.GetIdentity()
 	if nil != err {
 		log.Errorf("Failed to query local identity on MessageHandler with broadcast, err: {%s}", err)
@@ -670,13 +703,13 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			Auth:            msg.GetMetadataAuthority(),
 			AuditOption:     apicommonpb.AuditMetadataOption_Audit_Pending,
 			AuditSuggestion: "",
-			UsedQuo:         &libtypes.MetadataUsedQuo{
+			UsedQuo: &libtypes.MetadataUsedQuo{
 				UsageType: apicommonpb.MetadataUsageType_Usage_Unknown,
 			},
-			ApplyAt:         msg.GetCreateAt(),
-			AuditAt:         0,
-			State:           apicommonpb.MetadataAuthorityState_MAState_Released,
-			Sign: 			 msg.GetSign(),
+			ApplyAt: msg.GetCreateAt(),
+			AuditAt: 0,
+			State:   apicommonpb.MetadataAuthorityState_MAState_Released,
+			Sign:    msg.GetSign(),
 		})); nil != err {
 			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err)
@@ -714,6 +747,14 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 				revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String())
 			errs = append(errs, fmt.Sprintf("user of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String()))
+			continue
+		}
+
+		if bytes.Compare(metadataAuth.GetData().GetSign(), revoke.GetSign()) != 0 {
+			log.Errorf("user sign of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, metadataAuth's sign: {%v}, revoke msg's sign: {%v}",
+				revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), metadataAuth.GetData().GetSign(), revoke.GetSign())
+			errs = append(errs, fmt.Sprintf("user sign of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, metadataAuth's sign: {%v}, revoke msg's sign: {%v}",
+				revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), metadataAuth.GetData().GetSign(), revoke.GetSign()))
 			continue
 		}
 
@@ -771,4 +812,8 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 
 func (m *MessageHandler) BroadcastTaskMsgArr(taskMsgArr types.TaskMsgArr) error {
 	return m.taskManager.SendTaskMsgArr(taskMsgArr)
+}
+
+func (m *MessageHandler) BroadcastTaskTerminateMsgArr(terminateMsgArr types.TaskTerminateMsgArr) error {
+	return m.taskManager.SendTaskTerminate(terminateMsgArr)
 }

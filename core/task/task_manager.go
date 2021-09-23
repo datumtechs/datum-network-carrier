@@ -256,6 +256,10 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	return nil
 }
 
+func (m *Manager) SendTaskTerminate(msgArr types.TaskTerminateMsgArr) error {
+	return nil  // TODO 还未实现 ...
+}
+
 func (m *Manager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error {
 	identityId, err := m.resourceMng.GetDB().GetIdentityId()
 	if nil != err {

@@ -67,6 +67,16 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 }
 
 func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
+
+	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
+		return nil, errors.New("required userType")
+	}
+	if "" == req.GetUser() {
+		return nil, errors.New("required user")
+	}
+	if len(req.GetSign()) == 0 {
+		return nil, errors.New("required user sign")
+	}
 	if req.GetOperationCost() == nil {
 		return nil, errors.New("required operationCost")
 	}
@@ -144,7 +154,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 
 	err = svr.B.SendMsg(taskMsg)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, taskId: {%s}",
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, send task msg failed, taskId: {%s}",
 			taskId)
 		return nil, ErrSendTaskMsg
 	}
@@ -157,8 +167,39 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	}, nil
 }
 
-func (svr *Server) TerminateTask(context.Context, *pb.TerminateTaskRequest) (*apicommonpb.SimpleResponse, error) {
-	return nil, nil
+func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskRequest) (*apicommonpb.SimpleResponse, error) {
+	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
+		return nil, errors.New("required userType")
+	}
+	if "" == req.GetUser() {
+		return nil, errors.New("required user")
+	}
+	if "" == req.GetTaskId() {
+		return nil, errors.New("required taskId")
+	}
+	if len(req.GetSign()) == 0 {
+		return nil, errors.New("required user sign")
+	}
+
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed, can not publish task")
+		return nil, ErrSendTaskMsg
+	}
+
+	taskTerminateMsg := types.NewTaskTerminateMsg(req.GetUserType(), req.GetUser(), req.GetTaskId(), req.GetSign())
+
+	err = svr.B.SendMsg(taskTerminateMsg)
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, send task terminate msg failed, taskId: {%s}",
+			req.GetTaskId())
+		return nil, ErrSendTaskMsg
+	}
+	log.Debugf("RPC-API:TerminateTask succeed, taskId: {%s}", req.GetTaskId())
+	return &apicommonpb.SimpleResponse{
+		Status: 0,
+		Msg:    backend.OK,
+	}, nil
 }
 
 func utilTaskDetailResponseArrString(tasks []*pb.GetTaskDetailResponse) string {
