@@ -303,6 +303,16 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() error {
 		log.Errorf("Failed to get local org identity on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
+
+
+	// todo what if running task
+
+	// todo what if power
+
+	// todo what metadata auth using on
+
+	// todo what if metadata publish
+
 	if err := m.dataCenter.RemoveIdentity(); nil != err {
 		log.Errorf("Failed to delete org identity to local on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return err

@@ -71,25 +71,6 @@ message Power {
   api.protobuf.PowerState state = 4;
 }
 
-//// 单个算力详情（对应到具体某一台服务器）
-//message PowerSingleDetail {
-//  ResourceUsageOverview information = 1;                      // 算力实况
-//  string                job_node_id = 2;                      // 计算服务id (节点内部的)
-//  string                power_id = 3;                         // 算力id
-//  uint32                total_task_count = 4;                 // 算力上总共执行的任务数 (已完成的和正在执行的)
-//  uint32                current_task_count = 5;               // 算力上正在执行的任务数
-//  repeated PowerTask    tasks = 6;                            // 算力上正在执行的任务详情信息
-//  string                state = 7;                            // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
-//}
-//// 总算力详情（对应到一个组织下的所有算力资源）
-//message PowerTotalDetail {
-//  ResourceUsageOverview information = 1;                 // 算力实况
-//  uint32                total_task_count = 2;            // 算力上总共执行的任务数 (已完成的和正在执行的)
-//  uint32                current_task_count = 3;          // 算力上正在执行的任务数
-//  repeated PowerTask    tasks = 4;                       // 算力上正在执行的任务详情信息
-//  string                state = 5;                       // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
-//}
-
 // 算力及算力上的task信息的公共抽象
 message PowerUsageDetail {
   ResourceUsageOverview             information = 1;                  // 算力实况
