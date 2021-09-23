@@ -40,6 +40,7 @@ message TaskPB {
   // v2.0
   string                                      user = 29;                                  // 发起任务的用户的信息 (task是属于用户的)
   api.protobuf.UserType                       user_type = 30;                             // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
+  bytes                                       sign = 31;
 }
 
 
