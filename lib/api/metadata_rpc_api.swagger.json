@@ -11,6 +11,72 @@
     "application/json"
   ],
   "paths": {
+    "/carrier/v1/metadata/globalList": {
+      "post": {
+        "summary": "查看全网元数据列表",
+        "operationId": "MetadataService_GetGlobalMetadataDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetGlobalMetadataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
+    "/carrier/v1/metadata/localList": {
+      "post": {
+        "summary": "查看 本组织元数据列表",
+        "operationId": "MetadataService_GetLocalMetadataDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetLocalMetadataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
     "/carrier/v1/metadata/publish": {
       "post": {
         "summary": "发布元数据  (新增和编辑 都是发布新的元数据) \u003c底层根据 原始数据Id -- OriginId 来关联 新的MetaDataId\u003e",
@@ -69,72 +135,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/rpcapiRevokeMetadataRequest"
-            }
-          }
-        ],
-        "tags": [
-          "MetadataService"
-        ]
-      }
-    },
-    "/carrier/v1/metadata/selfList": {
-      "post": {
-        "summary": "查看 本组织元数据列表",
-        "operationId": "MetadataService_GetSelfMetadataDetailList",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetSelfMetadataDetailListResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
-        "tags": [
-          "MetadataService"
-        ]
-      }
-    },
-    "/carrier/v1/metadata/totalList": {
-      "post": {
-        "summary": "查看全网元数据列表",
-        "operationId": "MetadataService_GetTotalMetadataDetailList",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetTotalMetadataDetailListResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
             }
           }
         ],
@@ -256,6 +256,71 @@
         }
       }
     },
+    "rpcapiGetGlobalMetadataDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadata_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetGlobalMetadataDetailResponse"
+          }
+        }
+      },
+      "title": "查看 全网元数据列表  resp"
+    },
+    "rpcapiGetGlobalMetadataDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/protobufOrganization"
+        },
+        "information": {
+          "$ref": "#/definitions/typesMetadataDetail"
+        }
+      },
+      "title": "(全网) 单个元数据详情 resp"
+    },
+    "rpcapiGetLocalMetadataDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadata_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetLocalMetadataDetailResponse"
+          }
+        }
+      },
+      "title": "查看 本组织元数据列表  resp"
+    },
+    "rpcapiGetLocalMetadataDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/protobufOrganization"
+        },
+        "information": {
+          "$ref": "#/definitions/typesMetadataDetail"
+        },
+        "is_internal": {
+          "type": "boolean"
+        }
+      },
+      "title": "(本组织) 单个元数据详情 resp"
+    },
     "rpcapiGetMetadataUsedTaskIdListRequest": {
       "type": "object",
       "properties": {
@@ -286,71 +351,6 @@
         }
       },
       "title": "查询某 metadata 参与过的任务的taskId列表 resp"
-    },
-    "rpcapiGetSelfMetadataDetailListResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "metadata_list": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiGetSelfMetadataDetailResponse"
-          }
-        }
-      },
-      "title": "查看 本组织元数据列表  resp"
-    },
-    "rpcapiGetSelfMetadataDetailResponse": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/protobufOrganization"
-        },
-        "information": {
-          "$ref": "#/definitions/typesMetadataDetail"
-        },
-        "is_local": {
-          "type": "boolean"
-        }
-      },
-      "title": "(本组织) 单个元数据详情 resp"
-    },
-    "rpcapiGetTotalMetadataDetailListResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "metadata_list": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiGetTotalMetadataDetailResponse"
-          }
-        }
-      },
-      "title": "查看 全网元数据列表  resp"
-    },
-    "rpcapiGetTotalMetadataDetailResponse": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/protobufOrganization"
-        },
-        "information": {
-          "$ref": "#/definitions/typesMetadataDetail"
-        }
-      },
-      "title": "(全网) 单个元数据详情 resp"
     },
     "rpcapiPublishMetadataRequest": {
       "type": "object",

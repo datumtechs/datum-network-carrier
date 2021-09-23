@@ -11,6 +11,72 @@
     "application/json"
   ],
   "paths": {
+    "/carrier/v1/power/globalList": {
+      "post": {
+        "summary": "查看全网各个组织的总算力详情列表",
+        "operationId": "PowerService_GetGlobalPowerDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetGlobalPowerDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/localList": {
+      "post": {
+        "summary": "查看本组织的各个单算力详情列表",
+        "operationId": "PowerService_GetLocalPowerDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetLocalPowerDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
+            }
+          }
+        ],
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
     "/carrier/v1/power/publish": {
       "post": {
         "summary": "启用算力 (发布算力)",
@@ -69,72 +135,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/rpcapiRevokePowerRequest"
-            }
-          }
-        ],
-        "tags": [
-          "PowerService"
-        ]
-      }
-    },
-    "/carrier/v1/power/selfList": {
-      "post": {
-        "summary": "查看本组织的各个单算力详情列表",
-        "operationId": "PowerService_GetSelfPowerDetailList",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetSelfPowerDetailListResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
-        "tags": [
-          "PowerService"
-        ]
-      }
-    },
-    "/carrier/v1/power/totalList": {
-      "post": {
-        "summary": "查看全网各个组织的总算力详情列表",
-        "operationId": "PowerService_GetTotalPowerDetailList",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetTotalPowerDetailListResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
             }
           }
         ],
@@ -240,7 +240,7 @@
       },
       "title": "任务需要花费的资源声明"
     },
-    "rpcapiGetSelfPowerDetailListResponse": {
+    "rpcapiGetGlobalPowerDetailListResponse": {
       "type": "object",
       "properties": {
         "status": {
@@ -253,13 +253,44 @@
         "power_list": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiGetSelfPowerDetailResponse"
+            "$ref": "#/definitions/rpcapiGetGlobalPowerDetailResponse"
+          }
+        }
+      },
+      "title": "全网各个组织的总算力列表 resp"
+    },
+    "rpcapiGetGlobalPowerDetailResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/protobufOrganization"
+        },
+        "power": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        }
+      },
+      "title": "单个组织的总算力信息"
+    },
+    "rpcapiGetLocalPowerDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "power_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetLocalPowerDetailResponse"
           }
         }
       },
       "title": "本组织的多个算力信息列表 resp"
     },
-    "rpcapiGetSelfPowerDetailResponse": {
+    "rpcapiGetLocalPowerDetailResponse": {
       "type": "object",
       "properties": {
         "owner": {
@@ -276,37 +307,6 @@
         }
       },
       "title": "本组织的单个算力信息"
-    },
-    "rpcapiGetTotalPowerDetailListResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "power_list": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiGetTotalPowerDetailResponse"
-          }
-        }
-      },
-      "title": "全网各个组织的总算力列表 resp"
-    },
-    "rpcapiGetTotalPowerDetailResponse": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/protobufOrganization"
-        },
-        "power": {
-          "$ref": "#/definitions/typesPowerUsageDetail"
-        }
-      },
-      "title": "单个组织的总算力信息"
     },
     "rpcapiPublishPowerRequest": {
       "type": "object",
