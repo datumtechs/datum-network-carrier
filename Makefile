@@ -20,7 +20,7 @@ carrier-race:
 	@echo "Run \"$(GOBIN)/carrier\" to launch carrier."
 
 all:
-	$(GORUN) build/ci.go install
+	$(GORUN) build/ci.go install ./cmd/
 
 test: all
 	$(GORUN) build/ci.go test
