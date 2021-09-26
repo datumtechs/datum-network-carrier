@@ -143,6 +143,11 @@ func (m *Manager) loop() {
 
 			go func() {
 
+				// store metadata used taskId
+				if err := m.storeMetaUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
+					log.Errorf("Failed to store metadata used taskId when received remote task, err: {%s}", err)
+				}
+
 				if err := m.resourceMng.GetDB().StoreLocalTask(needReplayScheduleTask.GetTask()); nil != err {
 
 					log.Errorf("failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}, err: {%s}", needReplayScheduleTask.GetTask().GetTaskId(), err)
@@ -150,11 +155,6 @@ func (m *Manager) loop() {
 					needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
 
 				} else {
-
-					// store metadata used taskId
-					if err := m.storeMetaUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
-						log.Errorf("Failed to store metadata used taskId, err: {%s}", err)
-					}
 
 					result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask.GetTask())
 					needReplayScheduleTask.SendResult(result)
@@ -187,6 +187,27 @@ func (m *Manager) loop() {
 }
 
 func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
+
+	//////////////////////////////// TODO  MOCK  ///////////////////////////////////
+	for _, msg := range msgArr {
+
+		task := msg.Data
+
+		// store metadata used taskId
+		if err := m.storeMetaUsedTaskId(task); nil != err {
+			log.Errorf("Failed to store metadata used taskId when received local task, err: {%s}", err)
+		}
+		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskSucceed.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), "finished mock task")}
+		if e := m.storeBadTask(task, events, "finished mock task"); nil != e {
+			log.Errorf("Failed to sending the mock task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
+		}
+	}
+
+	return nil
+
+
+
+	/////////////////////////////////////////////////////////
 	if len(msgArr) == 0 {
 		return fmt.Errorf("Receive some empty task msgArr")
 	}
@@ -227,7 +248,14 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	taskArr := make(types.TaskDataArray, 0)
 
 	for _, msg := range validatedMsgArr {
+
 		task := msg.Data
+
+		// store metadata used taskId
+		if err := m.storeMetaUsedTaskId(task); nil != err {
+			log.Errorf("Failed to store metadata used taskId when received local task, err: {%s}", err)
+		}
+
 		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 
 			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.GetTaskData().TaskId, err)
@@ -238,11 +266,6 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 			}
 
 		} else {
-
-			// store metadata used taskId
-			if err := m.storeMetaUsedTaskId(task); nil != err {
-				log.Errorf("Failed to store metadata used taskId, err: {%s}", err)
-			}
 
 			taskArr = append(taskArr, task)
 		}

@@ -1175,42 +1175,6 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 	return resourceId, nil
 }
 
-
-//func StoreLocalResourceIdByMetadataId(db DatabaseWriter, metaDataId, resourceId string) error {
-//	key := GetResourceMetadataIdMapingKey(metaDataId)
-//	index, err := rlp.EncodeToBytes(resourceId)
-//	if nil != err {
-//		return err
-//	}
-//	return db.Put(key, index)
-//}
-//
-//func RemoveLocalResourceIdByMetadataId(db DatabaseDeleter, metaDataId string) error {
-//	key := GetResourceMetadataIdMapingKey(metaDataId)
-//	return db.Delete(key)
-//}
-//
-//func QueryLocalResourceIdByMetadataId(db DatabaseReader, metaDataId string) (string, error) {
-//	key := GetResourceMetadataIdMapingKey(metaDataId)
-//	has, err := db.Has(key)
-//	if IsNoDBNotFoundErr(err) {
-//		return "", err
-//	}
-//
-//	if !has {
-//		return "", ErrNotFound
-//	}
-//	idsByte, err := db.Get(key)
-//	if nil != err {
-//		return "", err
-//	}
-//	var resourceId string
-//	if err := rlp.DecodeBytes(idsByte, &resourceId); nil != err {
-//		return "", err
-//	}
-//	return resourceId, nil
-//}
-
 func StoreDataResourceDiskUsed(db DatabaseWriter, dataResourceDiskUsed *types.DataResourceDiskUsed) error {
 	key := GetDataResourceDiskUsedKey(dataResourceDiskUsed.GetMetadataId())
 	val, err := rlp.EncodeToBytes(dataResourceDiskUsed)
@@ -1529,8 +1493,70 @@ func QueryTaskUpResultFile (db DatabaseReader, taskId string)  (*types.TaskUpRes
 	return &taskUpResultFile, nil
 }
 
+func QueryTaskUpResultFileList (db DatabaseIteratee) ([]*types.TaskUpResultFile, error) {
+
+	it := db.NewIteratorWithPrefixAndStart(GetTaskResultFileMetadataIdKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make([]*types.TaskUpResultFile, 0)
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			var taskUpResultFile types.TaskUpResultFile
+			if err := rlp.DecodeBytes(it.Value(), &taskUpResultFile); nil != err {
+				log.Errorf("Failed to call QueryAllTaskUpResultFile, decode db val failed, err: {%s}", err)
+				continue
+			}
+			arr = append(arr, &taskUpResultFile)
+		}
+	}
+
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return arr, nil
+}
+
 func RemoveTaskUpResultFile (db KeyValueStore, taskId string) error {
 	key := GetTaskResultFileMetadataIdKey(taskId)
+
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+
+
+func StoreTaskResuorceUsage (db DatabaseWriter, taskId string, tru *types.TaskResuorceUsage) error {
+	key := GetTaskResuorceUsageKey(taskId)
+	val, err := rlp.EncodeToBytes(tru)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func QueryTaskResuorceUsage (db DatabaseReader, taskId string) (*types.TaskResuorceUsage, error) {
+	key := GetTaskResuorceUsageKey(taskId)
+
+	vb, err := db.Get(key)
+	if nil != err {
+		return nil, err
+	}
+	var taskResuorceUsage types.TaskResuorceUsage
+	if err = rlp.DecodeBytes(vb, &taskResuorceUsage); nil != err {
+		return nil, err
+	}
+	return &taskResuorceUsage, nil
+}
+
+func RemoveTaskResuorceUsage (db KeyValueStore, taskId string) error {
+	key := GetTaskResuorceUsageKey(taskId)
 
 	has, err := db.Has(key)
 	switch {

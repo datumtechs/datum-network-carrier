@@ -28,13 +28,12 @@ func GetDefaultResoueceProcessor() uint32 { return DefaultResouece.processor }
 func GetDefaultResoueceBandwidth() uint64 { return DefaultResouece.bandwidth }
 
 type LocalResourceTable struct {
-	nodeId       string // Resource node id
-	powerId      string
+	nodeId       string    // Resource node id
+	powerId      string    // powerId
 	nodeResource *resource // The total resource on the node
 	assign       bool      // Whether to assign the slot tag
 	slotTotal    uint32    // The total number of slots are allocated on the resource of this node
-	//slotLocked   uint32    // Maybe we will to use, so lock first.
-	slotUsed uint32 // The number of slots that have been used on the resource of the node
+	slotUsed     uint32    // The number of slots that have been used on the resource of the node
 }
 type localResourceTableRlp struct {
 	NodeId    string // node id
@@ -51,13 +50,12 @@ func NewLocalResourceTable(nodeId, powerId string, mem, bandwidth uint64, proces
 	return &LocalResourceTable{
 		nodeId:  nodeId,
 		powerId: powerId,
-		//nodeResource: &resource{
-		//	mem:       mem,
-		//	processor: processor,
-		//	bandwidth: bandwidth,
-		//},
-		nodeResource: DefaultResouece, // TODO for test
-		assign:       false,
+		nodeResource: &resource{
+			mem:       mem,
+			processor: processor,
+			bandwidth: bandwidth,
+		},
+		assign: false,
 	}
 }
 
@@ -333,11 +331,9 @@ type dataResourceTableRlp struct {
 
 func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResourceTable {
 	return &DataResourceTable{
-		nodeId: nodeId,
-		//totalDisk: totalDisk,
-		//usedDisk:  usedDisk,
-		totalDisk: DefaultDisk,
-		usedDisk:  0,
+		nodeId:    nodeId,
+		totalDisk: totalDisk,
+		usedDisk:  usedDisk,
 	}
 }
 
@@ -521,3 +517,86 @@ func (turf *TaskUpResultFile) DecodeRLP(s *rlp.Stream) error {
 func (turf *TaskUpResultFile) GetTaskId() string     { return turf.taskId }
 func (turf *TaskUpResultFile) GetOriginId() string   { return turf.originId }
 func (turf *TaskUpResultFile) GetMetadataId() string { return turf.metadataId }
+
+type TaskResuorceUsage struct {
+	taskId         string
+	totalMem       uint64
+	totalProcessor uint32
+	totalBandwidth uint64
+	totalDisk      uint64
+	usedMem        uint64
+	usedProcessor  uint32
+	usedBandwidth  uint64
+	usedDisk       uint64
+}
+
+type taskResuorceUsageRlp struct {
+	TaskId         string
+	TotalMem       uint64
+	TotalProcessor uint32
+	TotalBandwidth uint64
+	TotalDisk      uint64
+	UsedMem        uint64
+	UsedProcessor  uint32
+	UsedBandwidth  uint64
+	UsedDisk       uint64
+}
+
+func NewTaskResuorceUsage(taskId string, totalMem, totalBandwidth, totalDisk, usedMem, usedBandwidth, usedDisk uint64, totalProcessor, usedProcessor uint32) *TaskResuorceUsage {
+	return &TaskResuorceUsage{
+		taskId:         taskId,
+		totalMem:       totalMem,
+		totalProcessor: totalProcessor,
+		totalBandwidth: totalBandwidth,
+		totalDisk:      totalDisk,
+		usedMem:        usedMem,
+		usedProcessor:  usedProcessor,
+		usedBandwidth:  usedBandwidth,
+		usedDisk:       usedDisk,
+	}
+}
+
+// EncodeRLP implements rlp.Encoder.
+func (tru *TaskResuorceUsage) EncodeRLP(w io.Writer) error {
+	return rlp.Encode(w, taskResuorceUsageRlp{
+		TaskId:         tru.taskId,
+		TotalMem:       tru.totalMem,
+		TotalProcessor: tru.totalProcessor,
+		TotalBandwidth: tru.totalBandwidth,
+		TotalDisk:      tru.totalDisk,
+		UsedMem:        tru.usedMem,
+		UsedProcessor:  tru.usedProcessor,
+		UsedBandwidth:  tru.usedBandwidth,
+		UsedDisk:       tru.usedDisk,
+	})
+}
+
+// DecodeRLP implements rlp.Decoder.
+func (tru *TaskResuorceUsage) DecodeRLP(s *rlp.Stream) error {
+	var dec taskResuorceUsageRlp
+	err := s.Decode(&dec)
+	if err == nil {
+		tru.taskId, tru.totalMem, tru.totalBandwidth, tru.totalDisk, tru.totalProcessor, tru.usedMem, tru.usedBandwidth, tru.usedDisk, tru.usedProcessor =
+			dec.TaskId, dec.TotalMem, dec.TotalBandwidth, dec.TotalDisk, dec.TotalProcessor, dec.UsedMem, dec.UsedBandwidth, dec.UsedDisk, dec.UsedProcessor
+	}
+	return err
+}
+
+func (tru *TaskResuorceUsage) GetTaskId() string         { return tru.taskId }
+func (tru *TaskResuorceUsage) GetTotalMem() uint64       { return tru.totalMem }
+func (tru *TaskResuorceUsage) GetTotalProcessor() uint32 { return tru.totalProcessor }
+func (tru *TaskResuorceUsage) GetTotalBandwidth() uint64 { return tru.totalBandwidth }
+func (tru *TaskResuorceUsage) GetTotalDisk() uint64      { return tru.totalDisk }
+func (tru *TaskResuorceUsage) GetUsedMem() uint64        { return tru.usedMem }
+func (tru *TaskResuorceUsage) GetUsedProcessor() uint32  { return tru.usedProcessor }
+func (tru *TaskResuorceUsage) GetUsedBandwidth() uint64  { return tru.usedBandwidth }
+func (tru *TaskResuorceUsage) GetUsedDisk() uint64       { return tru.usedDisk }
+
+func (tru *TaskResuorceUsage) SetetUsedMem(usedMem uint64) { tru.usedMem = usedMem }
+func (tru *TaskResuorceUsage) SetetUsedProcessor(usedProcessor uint32) {
+	tru.usedProcessor = usedProcessor
+}
+func (tru *TaskResuorceUsage) SetetUsedBandwidth(usedBandwidth uint64) {
+	tru.usedBandwidth = usedBandwidth
+}
+func (tru *TaskResuorceUsage) SetetUsedDisk(usedDisk uint64) { tru.usedDisk = usedDisk }

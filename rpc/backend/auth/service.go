@@ -235,7 +235,7 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 			AuditAt:         auth.GetData().GetAuditAt(),
 		}
 	}
-	log.Debugf("Query all authority list, len: {%d}", len(authorityList))
+	log.Debugf("Query all metadata authority list, len: {%d}", len(authorityList))
 	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -270,7 +270,7 @@ func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.G
 			AuditAt:         auth.GetData().GetAuditAt(),
 		}
 	}
-	log.Debugf("Query all authority list by user, userType: {%s}, user: {%s}, len: {%d}", req.GetUserType().String(), req.GetUser(), len(authorityList))
+	log.Debugf("Query all metadata authority list by user, userType: {%s}, user: {%s}, len: {%d}", req.GetUserType().String(), req.GetUser(), len(authorityList))
 	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,

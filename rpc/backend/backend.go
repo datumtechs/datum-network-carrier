@@ -3,6 +3,7 @@ package backend
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -26,6 +27,10 @@ type Backend interface {
 	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
 
 	SendTaskEvent(event *types.ReportTaskEvent) error
+
+	// v 2.0
+	ReportResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error
+
 
 	// metadata api
 
@@ -59,25 +64,26 @@ type Backend interface {
 
 	// about DataResourceTable
 
-	//StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
-	//StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
-	//RemoveDataResourceTable(nodeId string) error
-	//QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
+	StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
+	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
+	RemoveDataResourceTable(nodeId string) error
+	QueryDataResourceTable(nodeId string) (*types.DataResourceTable, error)
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
 
 	// about DataResourceFileUpload
 
 	StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error
 	StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error
-	//RemoveDataResourceFileUpload(originId string) error
+	RemoveDataResourceFileUpload(originId string) error
 	QueryDataResourceFileUpload(originId string) (*types.DataResourceFileUpload, error)
-	//QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
+	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-	//StoreTaskUpResultFile(taskId, metadataId string) error
-	//QueryTaskUpResultFile(taskId string) (string, error)
-	//RemoveTaskUpResultFile(taskId string) error
+
+	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
+	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
+	RemoveTaskUpResultFile(taskId string) error
 	StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error
 	QueryTaskResultFileSummary (taskId string) (*types.TaskResultFileSummary, error)
-	QueryTaskResultFileSummaryList () (*types.TaskResultFileSummaryArr, error)
+	QueryTaskResultFileSummaryList () (types.TaskResultFileSummaryArr, error)
 }

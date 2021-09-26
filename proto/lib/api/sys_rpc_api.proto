@@ -227,13 +227,21 @@ message ReportTaskEventRequest {
   types.TaskEvent task_event = 2;     // 事件信息
 }
 
-// 数据/计算服务 上报资源使用实况 req
+// 数据/计算服务 上报任务资源使用实况 req
 message ReportTaskResourceExpenseRequest {
-  NodeType                    node_type = 1;                        // 计算or数据服务node的类型
-  string                      ip = 2;                               // Fighter 的 grpc server IP
-  string                      port = 3;                             // Fighter 的 grpc server PORT
-  types.ResourceUsageOverview usage = 4;                            // 计算or数据的资源实况
+  string                      task_id = 1;                          // 任务Id
+  NodeType                    node_type = 2;                        // 计算or数据服务node的类型
+  string                      ip = 3;                               // Fighter 的 grpc server IP
+  string                      port = 4;                             // Fighter 的 grpc server PORT
+  types.ResourceUsageOverview usage = 5;                            // 计算or数据的资源实况
 }
+
+//message ReportTaskResourceExpenseRequest {
+//  NodeType                    node_type = 1;                        // 计算or数据服务node的类型
+//  string                      ip = 2;                               // Fighter 的 grpc server IP
+//  string                      port = 3;                             // Fighter 的 grpc server PORT
+//  types.ResourceUsageOverview usage = 4;                            // 计算or数据的资源实况
+//}
 
 // 上报 成功上传的原始文件Id req
 message ReportUpFileSummaryRequest {

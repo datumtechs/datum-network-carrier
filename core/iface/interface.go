@@ -26,10 +26,6 @@ type LocalStoreCarrierDB interface {
 	StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error
 	RemoveLocalResourceIdByPowerId(powerId string) error
 	QueryLocalResourceIdByPowerId(powerId string) (string, error)
-	//// metaDataId -> dataNodeId
-	//StoreLocalResourceIdByMetadataId(metaDataId, dataNodeId string) error
-	//RemoveLocalResourceIdByMetadataId(metaDataId string) error
-	//QueryLocalResourceIdByMetadataId(metaDataId string) (string, error)
 
 	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
@@ -88,15 +84,20 @@ type LocalStoreCarrierDB interface {
 	QueryUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (string, error)
 	HasUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (bool, error)
 	RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error
-	// v 2.0 about metadata used taskId
+	// v 2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
 	StoreMetadataUsedTaskId (metadataId, taskId string)  error
 	QueryMetadataUsedTaskIdCount (metadataId string) (uint32, error)
 	QueryMetadataUsedTaskIds (metadataId string) ([]string, error)
 	RemoveAllMetadataUsedTaskId (metadataId string) error
-	// v 2.0  about TaskResultFileMetadataId
+	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
 	StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error
 	QueryTaskUpResultFile(taskId string)  (*types.TaskUpResultFile, error)
+	QueryTaskUpResultFileList () ([]*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error
+	// V 2.0 about task used resource  (taskId -> resourceUsed)
+	StoreTaskResuorceUsage(taskId string, tru *types.TaskResuorceUsage) error
+	QueryTaskResuorceUsage(taskId string) (*types.TaskResuorceUsage, error)
+	RemoveTaskResuorceUsage(taskId string) error
 }
 
 type MetadataCarrierDB interface {

@@ -276,7 +276,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 					TotalMem:       iden.GetTotalMem(),
 					UsedMem:        cost.Mem,
 					TotalProcessor: uint32(iden.GetTotalProcessor()),
-					UsedProcessor:  uint32(cost.Processor),
+					UsedProcessor:  cost.Processor,
 					TotalBandwidth: iden.GetTotalBandWidth(),
 					UsedBandwidth:  cost.Bandwidth,
 				},

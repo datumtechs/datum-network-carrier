@@ -18,6 +18,7 @@ var (
 	ErrDeleteJobNodeInfo          = &backend.RpcBizErr{Msg: "Failed to delete job node info"}
 	ErrReportTaskEvent            = &backend.RpcBizErr{Msg: "Failed to report taskEvent"}
 	ErrReportUpFileSummary        = &backend.RpcBizErr{Msg: "Failed to ReportUpFileSummary"}
+	ErrReportTaskResourceExpense  = &backend.RpcBizErr{Msg: "Failed to ReportTaskResourceExpense"}
 	ErrQueryDataResourceTableList = &backend.RpcBizErr{Msg: "Failed to query dataResourceTableList"}
 	ErrQueryDataResourceDataUsed  = &backend.RpcBizErr{Msg: "Failed to query dataResourceDataUsed"}
 	ErrQueryTaskResultFileSummary = &backend.RpcBizErr{Msg: "Failed to query taskResultFileSummary"}
@@ -27,4 +28,3 @@ var (
 type Server struct {
 	B backend.Backend
 }
-

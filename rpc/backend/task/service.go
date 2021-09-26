@@ -125,6 +125,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		}
 
 		selectedColumns := make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetSelectedColumns()))
+
 		for j, colIndex := range v.GetMetadataInfo().GetSelectedColumns() {
 			if col, ok := colTmp[colIndex]; ok {
 				selectedColumns[j] = col
@@ -154,8 +155,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 
 	err = svr.B.SendMsg(taskMsg)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, send task msg failed, taskId: {%s}",
-			taskId)
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, send task msg failed, taskId: {%s}", taskId)
 		return nil, ErrSendTaskMsg
 	}
 	//log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}, taskMsg: %s", taskId, taskMsg.String())
