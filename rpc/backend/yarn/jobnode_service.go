@@ -2,6 +2,7 @@ package yarn
 
 import (
 	"context"
+	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -13,7 +14,9 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 	err := svr.B.SendTaskEvent(types.NewReportTaskEvent(req.PartyId, req.GetTaskEvent()))
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
-		return nil, ErrReportTaskEvent
+
+		errMsg := fmt.Sprintf(ErrReportTaskEvent.Msg, req.PartyId)
+		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, errMsg)
 	}
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
