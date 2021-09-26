@@ -95,10 +95,13 @@ func (m *MessageHandler) loop() {
 			case types.ApplyPower:
 				msg := event.Data.(*types.PowerMsgEvent)
 				m.lockPower.Lock()
+				m.powerMsgCache.Len()
 				m.powerMsgCache = append(m.powerMsgCache, msg.Msgs...)
+				m.dataCenter.StoreMessageCache(m.powerMsgCache)
 				if len(m.powerMsgCache) >= defaultPowerMsgsCacheSize {
 					m.BroadcastPowerMsgArr(m.powerMsgCache)
 					m.powerMsgCache = make(types.PowerMsgArr, 0)
+					m.dataCenter.StoreMessageCache(m.powerMsgCache)
 				}
 				m.lockPower.Unlock()
 			case types.RevokePower:
@@ -115,6 +118,7 @@ func (m *MessageHandler) loop() {
 					if _, ok := tmp[msg.GetPowerId()]; ok {
 						delete(tmp, msg.GetPowerId())
 						m.powerMsgCache = append(m.powerMsgCache[:i], m.powerMsgCache[i+1:]...)
+						m.dataCenter.StoreMessageCache(m.powerMsgCache)
 						i--
 					}
 				}
@@ -133,9 +137,11 @@ func (m *MessageHandler) loop() {
 				eventMessage := event.Data.(*types.MetadataMsgEvent)
 				m.lockMetadata.Lock()
 				m.metadataMsgCache = append(m.metadataMsgCache, eventMessage.Msgs...)
+				m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 				if len(m.metadataMsgCache) >= defaultMetadataMsgsCacheSize {
 					m.BroadcastMetadataMsgArr(m.metadataMsgCache)
 					m.metadataMsgCache = make(types.MetadataMsgArr, 0)
+					m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 				}
 				m.lockMetadata.Unlock()
 			case types.RevokeMetadata:
@@ -152,6 +158,7 @@ func (m *MessageHandler) loop() {
 					if _, ok := tmp[msg.GetMetadataId()]; ok {
 						delete(tmp, msg.GetMetadataId())
 						m.metadataMsgCache = append(m.metadataMsgCache[:i], m.metadataMsgCache[i+1:]...)
+						m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 						i--
 					}
 				}
@@ -171,9 +178,11 @@ func (m *MessageHandler) loop() {
 				eventMessage := event.Data.(*types.MetadataAuthMsgEvent)
 				m.lockMetadataAuth.Lock()
 				m.metadataAuthMsgCache = append(m.metadataAuthMsgCache, eventMessage.Msgs...)
+				m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 				if len(m.metadataAuthMsgCache) >= defaultMetadataAuthMsgsCacheSize {
 					m.BroadcastMetadataAuthMsgArr(m.metadataAuthMsgCache)
 					m.metadataAuthMsgCache = make(types.MetadataAuthorityMsgArr, 0)
+					m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 				}
 				m.lockMetadataAuth.Unlock()
 			case types.RevokeMetadataAuth:
@@ -190,6 +199,7 @@ func (m *MessageHandler) loop() {
 					if _, ok := tmp[msg.GetMetadataAuthId()]; ok {
 						delete(tmp, msg.GetMetadataAuthId())
 						m.metadataAuthMsgCache = append(m.metadataAuthMsgCache[:i], m.metadataAuthMsgCache[i+1:]...)
+						m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 						i--
 					}
 				}
@@ -209,9 +219,11 @@ func (m *MessageHandler) loop() {
 				eventMessage := event.Data.(*types.TaskMsgEvent)
 				m.lockTask.Lock()
 				m.taskMsgCache = append(m.taskMsgCache, eventMessage.Msgs...)
+				m.dataCenter.StoreMessageCache(m.taskMsgCache)
 				if len(m.taskMsgCache) >= defaultTaskMsgsCacheSize {
 					m.BroadcastTaskMsgArr(m.taskMsgCache)
 					m.taskMsgCache = make(types.TaskMsgArr, 0)
+					m.dataCenter.StoreMessageCache(m.taskMsgCache)
 				}
 				m.lockTask.Unlock()
 			case types.TerminateTask:
@@ -228,6 +240,7 @@ func (m *MessageHandler) loop() {
 					if _, ok := tmp[msg.GetTaskId()]; ok {
 						delete(tmp, msg.GetTaskId())
 						m.taskMsgCache = append(m.taskMsgCache[:i], m.taskMsgCache[i+1:]...)
+						m.dataCenter.StoreMessageCache(m.taskMsgCache)
 						i--
 					}
 				}
@@ -249,6 +262,7 @@ func (m *MessageHandler) loop() {
 			if len(m.powerMsgCache) > 0 {
 				m.BroadcastPowerMsgArr(m.powerMsgCache)
 				m.powerMsgCache = make(types.PowerMsgArr, 0)
+				m.dataCenter.StoreMessageCache(m.powerMsgCache)
 			}
 
 		case <-metadataTicker.C:
@@ -256,6 +270,7 @@ func (m *MessageHandler) loop() {
 			if len(m.metadataMsgCache) > 0 {
 				m.BroadcastMetadataMsgArr(m.metadataMsgCache)
 				m.metadataMsgCache = make(types.MetadataMsgArr, 0)
+				m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 			}
 
 		case <-metadataAuthTicker.C:
@@ -263,6 +278,7 @@ func (m *MessageHandler) loop() {
 			if len(m.metadataAuthMsgCache) > 0 {
 				m.BroadcastMetadataAuthMsgArr(m.metadataAuthMsgCache)
 				m.metadataAuthMsgCache = make(types.MetadataAuthorityMsgArr, 0)
+				m.dataCenter.StoreMessageCache(m.metadataAuthMsgCache)
 			}
 
 		case <-taskTicker.C:
@@ -270,6 +286,7 @@ func (m *MessageHandler) loop() {
 			if len(m.taskMsgCache) > 0 {
 				m.BroadcastTaskMsgArr(m.taskMsgCache)
 				m.taskMsgCache = make(types.TaskMsgArr, 0)
+				m.dataCenter.StoreMessageCache(m.taskMsgCache)
 			}
 
 		// Err() channel will be closed when unsubscribing.

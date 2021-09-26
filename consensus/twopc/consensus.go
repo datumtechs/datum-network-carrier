@@ -40,7 +40,7 @@ type Twopc struct {
 	taskResultChSet   map[string]chan<- *types.TaskConsResult
 	taskResultLock    sync.Mutex
 	proposalTaskLock  sync.RWMutex
-
+	db 				  *walDB
 	Errs []error
 }
 
@@ -53,11 +53,12 @@ func New(
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 
 ) *Twopc {
+	newWalDB:=newWal(conf)
 	return &Twopc{
 		config:                   conf,
 		p2p:                      p2p,
 		peerSet:                  ctypes.NewPeerSet(10), // TODO 暂时写死的
-		state:                    newState(),
+		state:                    newState(newWalDB),
 		resourceMng:              resourceMng,
 		//authMng:                  authMng,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
@@ -67,6 +68,7 @@ func New(
 		proposalTaskCache:        make(map[string]*types.ProposalTask),
 		taskResultBusCh:          make(chan *types.TaskConsResult, 100),
 		taskResultChSet:          make(map[string]chan<- *types.TaskConsResult, 100),
+		db: 					  newWalDB,
 		Errs:                     make([]error, 0),
 	}
 }

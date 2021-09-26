@@ -559,6 +559,27 @@ func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
 	return nil
 }
 
+// about Message Cache
+func (dc *DataCenter) StoreMessageCache(value interface{}) {
+	rawdb.StoreMessageCache(dc.db, value)
+}
+
+func (dc *DataCenter) QueryPowerMsgArr() (types.PowerMsgArr,error) {
+	return rawdb.QueryPowerMsgArr(dc.db)
+}
+
+func (dc *DataCenter) QueryMetadataMsgArr() (types.MetadataMsgArr,error) {
+	return rawdb.QueryMetadataMsgArr(dc.db)
+}
+
+func (dc *DataCenter) QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr,error) {
+	return rawdb.QueryMetadataAuthorityMsgArr(dc.db)
+}
+
+func (dc *DataCenter) QueryTaskMsgArr()(types.TaskMsgArr,error)  {
+	return rawdb.QueryTaskMsgArr(dc.db)
+}
+
 // ****************************************************************************************************************
 func (dc *DataCenter) Stop() {
 	if !atomic.CompareAndSwapInt32(&dc.running, 0, 1) {
