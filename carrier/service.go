@@ -48,7 +48,7 @@ type Service struct {
 
 // NewService creates a new CarrierServer object (including the
 // initialisation of the common Carrier object)
-func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string) (*Service, error) {
+func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consensusStateFile string) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
@@ -76,6 +76,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile string)
 				NodeID:     nodeId,
 			},
 			PeerMsgQueueSize: 1024,
+			ConsensusStateFile: consensusStateFile,
 		},
 		resourceMng,
 		//authManager,

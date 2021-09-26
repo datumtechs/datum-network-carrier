@@ -37,10 +37,18 @@ func generateProposalId() common.Hash {
 	})
 	return proposalId
 }
+func generateWalDB() *walDB {
+	config := &Config{
+		PeerMsgQueueSize:   12,
+		ConsensusStateFile: "D:\\project\\src\\github.com\\RosettaFlow\\test.json",
+	}
+	return newWal(config)
+}
 func TestKeySplitProposalIdAndPartyId(t *testing.T) {
+	db := generateWalDB()
 	prefixLength := len([]byte("proposalSet:"))
 	beforeProposalId := generateProposalId()
-	result := GetProposalSetKey(beforeProposalId, "p9")
+	result := db.GetProposalSetKey(beforeProposalId, "p9")
 	prefix := string(result[:prefixLength])
 	partyId := string(result[prefixLength+32:])
 	proposalId := common.BytesToHash(result[prefixLength : prefixLength+32])
@@ -49,6 +57,7 @@ func TestKeySplitProposalIdAndPartyId(t *testing.T) {
 	assert.Equal(t, "proposalSet:", prefix)
 }
 func TestUpdateOrgProposalState(t *testing.T) {
+	db := generateWalDB()
 	count := 0
 	partyIds := [5]string{"p1", "p2", "p3"}
 	for {
@@ -76,7 +85,7 @@ func TestUpdateOrgProposalState(t *testing.T) {
 				},
 				PeriodNum: 2,
 			}
-			UpdateOrgProposalState(proposalId, sender, orgState)
+			db.UpdateOrgProposalState(proposalId, sender, orgState)
 		}
 		if count == 3 {
 			break
@@ -84,6 +93,7 @@ func TestUpdateOrgProposalState(t *testing.T) {
 	}
 }
 func TestUpdateConfirmTaskPeerInfo(t *testing.T) {
+	db := generateWalDB()
 	proposalId := generateProposalId()
 	peerDesc := &twopcpb.ConfirmTaskPeerInfo{
 		OwnerPeerInfo: &twopcpb.TaskPeerInfo{
@@ -113,9 +123,10 @@ func TestUpdateConfirmTaskPeerInfo(t *testing.T) {
 			},
 		},
 	}
-	UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
+	db.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
 }
 func TestUpdatePrepareVotes(t *testing.T) {
+	db := generateWalDB()
 	count := 0
 	partyIds := [5]string{"p1", "p2", "p3"}
 	for {
@@ -145,7 +156,7 @@ func TestUpdatePrepareVotes(t *testing.T) {
 				CreateAt: 2121,
 				Sign:     []byte("this is a test"),
 			}
-			UpdatePrepareVotes(vote)
+			db.UpdatePrepareVotes(vote)
 		}
 		count += 1
 		if count == 3 {
@@ -154,6 +165,7 @@ func TestUpdatePrepareVotes(t *testing.T) {
 	}
 }
 func TestUpdateConfirmVotes(t *testing.T) {
+	db := generateWalDB()
 	count := 0
 	partyIds := [5]string{"p1", "p2", "p3"}
 	for {
@@ -177,7 +189,7 @@ func TestUpdateConfirmVotes(t *testing.T) {
 				CreateAt:   2121,
 				Sign:       []byte("this is a test"),
 			}
-			UpdateConfirmVotes(vote)
+			db.UpdateConfirmVotes(vote)
 		}
 		count += 1
 		if count == 3 {
@@ -186,9 +198,11 @@ func TestUpdateConfirmVotes(t *testing.T) {
 	}
 }
 func TestDeleteState(t *testing.T) {
+	db := generateWalDB()
 	proposalId := "0x126e3fc23ace8c7351f2d7db7462ecc47812782509650f90851b49f99c064b79"
-	DeleteState(GetProposalPeerInfoCacheKey(common.HexToHash(proposalId)))
+	db.DeleteState(db.GetProposalPeerInfoCacheKey(common.HexToHash(proposalId)))
 }
 func TestUnmarshal(t *testing.T) {
-	UnmarshalTest()
+	db := generateWalDB()
+	db.UnmarshalTest()
 }

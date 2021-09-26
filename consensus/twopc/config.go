@@ -13,4 +13,5 @@ type OptionConfig struct {
 type Config struct {
 	Option           *OptionConfig `json:"option"`
 	PeerMsgQueueSize uint64        `json:"peerMsgQueueSize"`
+	ConsensusStateFile string	   `json:"consensusStateFile"`
 }

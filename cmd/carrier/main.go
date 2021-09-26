@@ -94,6 +94,9 @@ var (
 	mockFlags = []cli.Flag{
 		flags.MockIdentityIdFileFlag,
 	}
+	consensusFlags = []cli.Flag{
+		flags.ConsensusStateStoreFlag,
+	}
 
 )
 
@@ -104,6 +107,7 @@ func init() {
 	p2pFlags = cmd.WrapFlags(p2pFlags)
 	debugFlags = cmd.WrapFlags(debugFlags)
 	mockFlags = cmd.WrapFlags(mockFlags)
+	consensusFlags = cmd.WrapFlags(consensusFlags)
 }
 
 func main() {
@@ -122,6 +126,7 @@ func main() {
 	app.Flags = append(app.Flags, p2pFlags...)
 	app.Flags = append(app.Flags, debugFlags...)
 	app.Flags = append(app.Flags, mockFlags...)
+	app.Flags = append(app.Flags, consensusFlags...)
 
 	app.Before = func(ctx *cli.Context) error {
 		// Load flags from config file, if specified.

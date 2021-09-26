@@ -268,6 +268,13 @@ var (
 		Usage: "Specifies the file path of the identityid information required by mock.",
 		Value: "",
 	}
+
+	// consensus state
+	ConsensusStateStoreFlag = &cli.StringFlag{
+		Name:  "consensus-state-file",
+		Usage: "Configuration files required to persist the consensus state.",
+		Value: "",
+	}
 )
 
 // DefaultDataDir is the default data directory to use for the databases and other

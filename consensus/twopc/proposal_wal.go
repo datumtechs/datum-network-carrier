@@ -1,8 +1,11 @@
 package twopc
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -10,6 +13,7 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/gogo/protobuf/proto"
+	"os"
 )
 
 var (
@@ -17,43 +21,75 @@ var (
 	prepareVotesPrefix          = []byte("prepareVotes:")
 	confirmVotesPrefix          = []byte("confirmVotes:")
 	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:")
-	databasePath                = "./consensus_state_save"
 )
 
-func GetProposalSetKey(hash common.Hash, partyId string) []byte {
+type jsonFile struct {
+	SavePath string `json:"savePath"`
+	Cache    int    `json:"cache"`
+	Handles  int    `json:"handles"`
+}
+
+type walDB struct {
+	db *db.LDBDatabase
+}
+
+func initLDB(conf *Config) (*db.LDBDatabase, error) {
+	configFile := conf.ConsensusStateFile
+	var (
+		savePath string
+		cache    int
+		handles  int
+	)
+	_, err := os.Stat(configFile)
+	if err != nil  {
+		savePath, cache, handles = "savePathState", 16, 16
+	} else {
+		var jsonfile jsonFile
+		if err := fileutil.LoadJSON(configFile, &jsonfile); err != nil {
+			log.Errorf("Failed to load `--consensus-state-file` on Start twoPC, file: {%s}, err: {%s}", configFile, err)
+			return nil, err
+		} else {
+			savePath, cache, handles = jsonfile.SavePath, jsonfile.Cache, jsonfile.Handles
+		}
+	}
+	return db.NewLDBDatabase(savePath, cache, handles)
+}
+
+func ldbObj(conf *Config) *db.LDBDatabase {
+	ldb, err := initLDB(conf)
+	if err != nil {
+		return nil
+	} else {
+		return ldb
+	}
+}
+
+func newWal(conf *Config) *walDB {
+	return &walDB{
+		db: ldbObj(conf),
+	}
+}
+
+func (w *walDB) GetProposalSetKey(hash common.Hash, partyId string) []byte {
 	result := append(proposalSetPrefix, hash.Bytes()...)
 	return append(result, []byte(partyId)...)
 }
 
-func GetProposalPeerInfoCacheKey(hash common.Hash) []byte {
+func (w *walDB) GetProposalPeerInfoCacheKey(hash common.Hash) []byte {
 	return append(proposalPeerInfoCachePrefix, hash.Bytes()...)
 }
 
-func GetPrepareVotesKey(hash common.Hash, partyId string) []byte {
+func (w *walDB) GetPrepareVotesKey(hash common.Hash, partyId string) []byte {
 	result := append(prepareVotesPrefix, hash.Bytes()...)
 	return append(result, []byte(partyId)...)
 }
 
-func GetConfirmVotesKey(hash common.Hash, partyId string) []byte {
+func (w *walDB) GetConfirmVotesKey(hash common.Hash, partyId string) []byte {
 	result := append(confirmVotesPrefix, hash.Bytes()...)
 	return append(result, []byte(partyId)...)
 }
 
-func OpenDatabase(dbpath string, cache int, handles int) (db.Database, error) {
-	db, err := db.NewLDBDatabase(dbpath, cache, handles)
-	if err != nil {
-		return nil, err
-	}
-	return db, nil
-}
-
-func UpdateOrgProposalState(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
-	db, err := OpenDatabase(databasePath, 0, 0)
-	defer db.Close()
-	if err != nil {
-		log.Warning("open leveldb fail!,err:", err)
-	}
-
+func (w *walDB) UpdateOrgProposalState(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
 	pbObj := &libtypes.OrgProposalState{
 		TaskId:             orgState.TaskId,
 		TaskSender:         sender,
@@ -65,38 +101,27 @@ func UpdateOrgProposalState(proposalId common.Hash, sender *apicommonpb.TaskOrga
 		TaskOrg:            orgState.TaskOrg,
 		PeriodNum:          uint32(orgState.PeriodNum),
 	}
-	data, er := proto.Marshal(pbObj)
-	if er != nil {
+	data, err := proto.Marshal(pbObj)
+	if err != nil {
 		log.Fatal("marshaling error: ", err)
 	}
-	if err := db.Put(GetProposalSetKey(proposalId, orgState.TaskOrg.PartyId), data); err != nil {
+	if err := w.db.Put(w.GetProposalSetKey(proposalId, orgState.TaskOrg.PartyId), data); err != nil {
 		log.Warning("UpdateOrgProposalState to db fail,proposalId:", proposalId)
 	}
 }
 
-func UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
-	db, err := OpenDatabase(databasePath, 0, 0)
-	defer db.Close()
+func (w *walDB) UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
+	data, err := proto.Marshal(peerDesc)
 	if err != nil {
-		log.Warning("open leveldb fail!,err:", err)
-	}
-	data, er := proto.Marshal(peerDesc)
-	if er != nil {
 		log.Fatal("marshaling error: ", err)
 	}
 	fmt.Println("proposalId:", proposalId)
-	if err := db.Put(GetProposalPeerInfoCacheKey(proposalId), data); err != nil {
+	if err := w.db.Put(w.GetProposalPeerInfoCacheKey(proposalId), data); err != nil {
 		log.Warning("UpdateConfirmTaskPeerInfo to db fail,proposalId:", proposalId)
 	}
 }
 
-func UpdatePrepareVotes(vote *types.PrepareVote) {
-	db, err := OpenDatabase(databasePath, 0, 0)
-	defer db.Close()
-	if err != nil {
-		log.Warning("open leveldb fail!,err:", err)
-	}
-
+func (w *walDB) UpdatePrepareVotes(vote *types.PrepareVote) {
 	pbObj := &libtypes.PrepareVoteState{
 		MsgOption: &libtypes.MsgOption{
 			SenderRole:      vote.MsgOption.SenderRole,
@@ -115,22 +140,16 @@ func UpdatePrepareVotes(vote *types.PrepareVote) {
 		CreateAt: vote.CreateAt,
 		Sign:     vote.Sign,
 	}
-	data, er := proto.Marshal(pbObj)
-	if er != nil {
+	data, err := proto.Marshal(pbObj)
+	if err != nil {
 		log.Fatal("marshaling error: ", err)
 	}
-	if err := db.Put(GetPrepareVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
+	if err := w.db.Put(w.GetPrepareVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
 		log.Warning("UpdatePrepareVotes to db fail,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 
-func UpdateConfirmVotes(vote *types.ConfirmVote) {
-	db, err := OpenDatabase(databasePath, 0, 0)
-	defer db.Close()
-	if err != nil {
-		log.Warning("open leveldb fail!,err:", err)
-	}
-
+func (w *walDB) UpdateConfirmVotes(vote *types.ConfirmVote) {
 	pbObj := &libtypes.ConfirmVoteState{
 		MsgOption: &libtypes.MsgOption{
 			SenderRole:      vote.MsgOption.SenderRole,
@@ -143,38 +162,40 @@ func UpdateConfirmVotes(vote *types.ConfirmVote) {
 		CreateAt:   vote.CreateAt,
 		Sign:       vote.Sign,
 	}
-	data, er := proto.Marshal(pbObj)
-	if er != nil {
+	data, err := proto.Marshal(pbObj)
+	if err != nil {
 		log.Fatal("marshaling error: ", err)
 	}
-	if err := db.Put(GetConfirmVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
+	if err := w.db.Put(w.GetConfirmVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
 		log.Warning("UpdateConfirmVotes to db fail,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 
-func DeleteState(key []byte) {
-	db, err := OpenDatabase(databasePath, 0, 0)
-	defer db.Close()
-
-	if err != nil {
-		log.Warning("open leveldb fail!,err:", err)
+func (w *walDB) DeleteState(key []byte) {
+	err := errors.New("")
+	prefix := append(bytes.Split(key, []byte(":"))[0], []byte(":")...)
+	if bytes.Equal(prefix, proposalPeerInfoCachePrefix) {
+		err = w.db.Delete(key)
+	} else {
+		partyId := string(key[len(prefix)+32:])
+		if partyId != "" {
+			err = w.db.Delete(key)
+		} else {
+			iter := w.db.NewIteratorWithPrefixAndStart(prefix, nil)
+			iter.Release()
+			for iter.Next() {
+				err = w.db.Delete(iter.Key())
+			}
+		}
 	}
-	er := db.Delete(key)
 	if err != nil {
-		log.WithError(er).Fatal("Failed to delete from leveldb, key is ", key)
+		log.WithError(err).Fatal("Failed to delete from leveldb, key is ", key)
 	}
 }
 
-func RecoveryState() *state {
-	db, err := OpenDatabase(databasePath, 0, 0)
-	defer db.Close()
-
-	if err != nil {
-		log.Warning("open leveldb fail!,err:", err)
-	}
-
+func (w *walDB) RecoveryState() *state {
 	// region recovery proposalSet
-	iter := db.NewIteratorWithPrefixAndStart(proposalSetPrefix, nil)
+	iter := w.db.NewIteratorWithPrefixAndStart(proposalSetPrefix, nil)
 	iter.Release()
 	prefixLength := len(proposalSetPrefix)
 	proposalSet := make(map[common.Hash]*ctypes.ProposalState, 0)
@@ -206,7 +227,7 @@ func RecoveryState() *state {
 	//endregion
 
 	//region recovery prepareVotes
-	iter = db.NewIteratorWithPrefixAndStart(prepareVotesPrefix, nil)
+	iter = w.db.NewIteratorWithPrefixAndStart(prepareVotesPrefix, nil)
 	prefixLength = len(prepareVotesPrefix)
 	prepareVotes := make(map[common.Hash]*prepareVoteState, 0)
 	votes := make(map[string]*types.PrepareVote, 0)
@@ -267,7 +288,7 @@ func RecoveryState() *state {
 	//endregion
 
 	// region  recovery confirmVotes
-	iter = db.NewIteratorWithPrefixAndStart(confirmVotesPrefix, nil)
+	iter = w.db.NewIteratorWithPrefixAndStart(confirmVotesPrefix, nil)
 	prefixLength = len(confirmVotesPrefix)
 	confirmVotes := make(map[common.Hash]*confirmVoteState, 0)
 	votesConfirm := make(map[string]*types.ConfirmVote, 0)
@@ -322,7 +343,7 @@ func RecoveryState() *state {
 	//endregion
 
 	// region recovery proposalPeerInfoCache
-	iter = db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
+	iter = w.db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
 	proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
 	prefixLength = len(proposalPeerInfoCachePrefix)
 	libProposalPeerInfoCache := &twopcpb.ConfirmTaskPeerInfo{}
@@ -336,17 +357,11 @@ func RecoveryState() *state {
 	}
 	// endregion
 
-	return recoveryState(proposalSet, prepareVotes, confirmVotes, proposalPeerInfoCache)
+	return recoveryState(proposalSet, prepareVotes, confirmVotes, proposalPeerInfoCache,w)
 }
 
-func UnmarshalTest() {
-	db, err := OpenDatabase(databasePath, 0, 0)
-	defer db.Close()
-
-	if err != nil {
-		log.Warning("open leveldb fail!,err:", err)
-	}
-	iter := db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
+func (w *walDB) UnmarshalTest() {
+	iter := w.db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
 	proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
 	prefixLength := len(proposalPeerInfoCachePrefix)
 	libProposalPeerInfoCache := &twopcpb.ConfirmTaskPeerInfo{}

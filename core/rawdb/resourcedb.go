@@ -1567,3 +1567,105 @@ func RemoveTaskResuorceUsage (db KeyValueStore, taskId string) error {
 	}
 	return db.Delete(key)
 }
+
+func StoreMessageCache(db KeyValueStore, value interface{}){
+	byteArray, _ := rlp.EncodeToBytes(value)
+	key:=""
+	switch value.(type) {
+	case types.PowerMsgArr:
+		key="PowerMsgArr"
+	case types.MetadataMsgArr:
+		key="MetadataMsgArr"
+	case types.MetadataAuthorityMsgArr:
+		key="MetadataAuthorityMsgArr"
+	case types.TaskMsgArr:
+		key="TaskMsgArr"
+	}
+	if err := db.Put([]byte(key), byteArray); err != nil {
+		log.Warning("StoreMessageCache fail,key is:",key)
+	}
+}
+
+func QueryPowerMsgArr(db KeyValueStore) (types.PowerMsgArr, error) {
+	key := []byte("PowerMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.PowerMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
+	key := []byte("MetadataMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.MetadataMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func QueryMetadataAuthorityMsgArr(db KeyValueStore) (types.MetadataAuthorityMsgArr, error)  {
+	key := []byte("MetadataAuthorityMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.MetadataAuthorityMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
+	key := []byte("TaskMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.TaskMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
+}
