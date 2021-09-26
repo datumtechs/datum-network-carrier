@@ -1,11 +1,16 @@
 package backend
 
 type RpcBizErr struct {
-	Msg string
+	Code int32
+	Msg  string
 }
 
-func NewRpcBizErr(msg string) *RpcBizErr { return &RpcBizErr{Msg: msg} }
+func NewRpcBizErr(code int32, msg string) *RpcBizErr { return &RpcBizErr{Code: code, Msg: msg} }
 
 func (e *RpcBizErr) Error() string {
 	return e.Msg
+}
+
+func (e *RpcBizErr) ErrCode() int32 {
+	return e.Code
 }
