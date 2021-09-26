@@ -2,7 +2,7 @@ package metadata
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -60,13 +60,13 @@ func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *emptypb.
 
 func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataRequest) (*pb.PublishMetadataResponse, error) {
 	if req.GetInformation() == nil {
-		return nil, errors.New("required information")
+		return nil, ErrReqInfoForPublishMetadata
 	}
-	if req.GetInformation().GetMetadataSummary()== nil {
-		return nil, errors.New("required metadata summary")
+	if req.GetInformation().GetMetadataSummary() == nil {
+		return nil, ErrReqMetaSummaryForPublishMetadata
 	}
 	if req.GetInformation().GetMetadataColumns() == nil {
-		return nil, errors.New("required columnMeta of information")
+		return nil, ErrReqMetaColumnsForPublishMetadata
 	}
 
 	metadataMsg := types.NewMetadataMessageFromRequest(req)
@@ -74,7 +74,10 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	err := svr.B.SendMsg(metadataMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadata failed")
-		return nil, ErrSendMetadataMsg
+
+		errMsg := fmt.Sprintf(ErrSendMetadataMsg.Msg,
+			req.GetInformation().GetMetadataSummary().GetOriginId(), metadataMsg.GetMetadataId())
+		return nil, backend.NewRpcBizErr(ErrSendMetadataMsg.Code, errMsg)
 	}
 	log.Debugf("RPC-API:PublishMetadata succeed, originId: {%s}, return metadataId: {%s}",
 		req.GetInformation().GetMetadataSummary().GetOriginId(), metadataMsg.GetMetadataId())
@@ -92,7 +95,9 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 	err := svr.B.SendMsg(metadataRevokeMsg)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetadata failed")
-		return nil, ErrSendMetadataRevokeMsg
+
+		errMsg := fmt.Sprintf(ErrSendMetadataRevokeMsg.Msg, req.GetMetadataId())
+		return nil, backend.NewRpcBizErr(ErrSendMetadataRevokeMsg.Code, errMsg)
 	}
 	log.Debugf("RPC-API:RevokeMetadata succeed, metadataId: {%s}", req.GetMetadataId())
 	return &apicommonpb.SimpleResponse{
@@ -101,20 +106,20 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 	}, nil
 }
 
-
-func (svr *Server) GetMetadataUsedTaskIdList (ctx context.Context, req *pb.GetMetadataUsedTaskIdListRequest) (*pb.GetMetadataUsedTaskIdListResponse, error) {
+func (svr *Server) GetMetadataUsedTaskIdList(ctx context.Context, req *pb.GetMetadataUsedTaskIdListRequest) (*pb.GetMetadataUsedTaskIdListResponse, error) {
 
 	if "" == req.GetMetadataId() {
-		return nil, errors.New("require metadataId")
+		return nil, ErrReqMetaIdForMetadataUsedTaskIdList
 	}
 	taskIds, err := svr.B.GetMetadataUsedTaskIdList(req.GetIdentityId(), req.GetMetadataId())
 	if nil != err {
-		return nil, err
+		errMsg := fmt.Sprintf(ErrReqListForMetadataUsedTaskIdList.Msg, req.GetIdentityId(), req.GetMetadataId())
+		return nil, backend.NewRpcBizErr(ErrReqListForMetadataUsedTaskIdList.Code, errMsg)
 	}
 	log.Debugf("RPC-API:GetMetadataUsedTaskIdList succeed, taskIds len: {%d}", len(taskIds))
 	return &pb.GetMetadataUsedTaskIdListResponse{
-		Status:     0,
-		Msg:        backend.OK,
-		TaskIds:    taskIds,
+		Status:  0,
+		Msg:     backend.OK,
+		TaskIds: taskIds,
 	}, nil
 }
