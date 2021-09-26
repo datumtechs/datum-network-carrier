@@ -29,7 +29,7 @@ type Backend interface {
 	SendTaskEvent(event *types.ReportTaskEvent) error
 
 	// v 2.0
-	ReportResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error
+	ReportTaskResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error
 
 
 	// metadata api

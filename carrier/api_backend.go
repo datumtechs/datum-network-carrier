@@ -406,7 +406,7 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-func (s *CarrierAPIBackend) ReportResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error {
+func (s *CarrierAPIBackend) ReportTaskResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error {
 
 
 

@@ -40,7 +40,7 @@ func (svr *Server) ReportTaskResourceExpense (ctx context.Context, req *pb.Repor
 		return nil, errors.New("require resource usage")
 	}
 
-	err := svr.B.ReportResourceExpense(req.GetNodeType(), req.GetTaskId(), req.GetIp(), req.GetPort(), req.GetUsage())
+	err := svr.B.ReportTaskResourceExpense(req.GetNodeType(), req.GetTaskId(), req.GetIp(), req.GetPort(), req.GetUsage())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskResourceExpense failed")
 		return nil, ErrReportTaskResourceExpense
