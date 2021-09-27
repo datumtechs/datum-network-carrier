@@ -292,11 +292,10 @@ func (t *Twopc) refreshProposalState () {
 				continue
 			}
 			switch orgState.CurrPeriodNum() {
-			case 1, 2, 3:
+			case ctypes.PeriodPrepare, ctypes.PeriodConfirm, ctypes.PeriodCommit:
 				t.db.UpdateOrgProposalState(proposalState.GetProposalId(), proposalState.GetTaskSender(), orgState)
-			case 4:
+			case ctypes.PeriodFinished:
 				t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
-			default:
 			}
 		}
 		proposalState.RefreshProposalState()
