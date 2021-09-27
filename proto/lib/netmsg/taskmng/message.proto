@@ -28,6 +28,8 @@ message TaskResourceUsageMsg {
   common.MsgOption              msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];     //
   bytes                         task_id = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];             // 任务id
   common.ResourceUsage          usage = 3;                                                          // 资源消耗
+  uint64                        create_at = 4 [(gogoproto.moretags) = "ssz-size:\"8\""];            // TaskResourceUsageMsg 创建的时间戳 (单位: ms)
+  bytes                         sign = 5 [(gogoproto.moretags) = "ssz-max:\"1024\""];               // TaskResourceUsageMsg 发起者签名
 }
 
 

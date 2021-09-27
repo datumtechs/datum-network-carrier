@@ -263,12 +263,40 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 }
 
 func (m *Manager) sendTaskResourceUsageToRemotePeer (task *types.NeedExecuteTask, usage *types.TaskResuorceUsage) {
-	//if err := handler.SendTaskResourceUsage(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
-	//	log.Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
-	//		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
-	//	return
-	//}
 
+	msg := &taskmngpb.TaskResourceUsageMsg{
+		MsgOption: &msgcommonpb.MsgOption{
+			ProposalId:      task.GetProposalId().Bytes(),
+			SenderRole:      uint64(task.GetLocalTaskRole()),
+			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
+			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
+			ReceiverPartyId: []byte(task.GetRemoteTaskOrganization().GetPartyId()),
+			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+				Name:       []byte(task.GetLocalTaskOrganization().GetNodeName()),
+				NodeId:     []byte(task.GetLocalTaskOrganization().GetNodeId()),
+				IdentityId: []byte(task.GetLocalTaskOrganization().GetIdentityId()),
+				PartyId:    []byte(task.GetLocalTaskOrganization().GetPartyId()),
+			},
+		},
+		TaskId: []byte(task.GetTask().GetTaskId()),
+		Usage: &msgcommonpb.ResourceUsage{
+			TotalMem: usage.GetTotalMem(),
+			UsedMem: usage.GetUsedMem(),
+			TotalProcessor: uint64(usage.GetTotalProcessor()),
+			UsedProcessor: uint64(usage.GetUsedProcessor()),
+			TotalBandwidth: usage.GetTotalBandwidth(),
+			UsedBandwidth: usage.GetUsedBandwidth(),
+			TotalDisk: usage.GetTotalDisk(),
+			UsedDisk: usage.GetUsedDisk(),
+		},
+		CreateAt: timeutils.UnixMsecUint64(),
+		Sign: nil,
+	}
+	if err := handler.SendTaskResourceUsage(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+		log.Errorf("failed to call `SendTaskResourceUsage`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+		return
+	}
 }
 
 func (m *Manager) sendLocalTaskToScheduler(tasks types.TaskDataArray) {
@@ -747,7 +775,7 @@ func (m *Manager) storeMetaUsedTaskId (task *types.Task) error {
 }
 
 func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
-	msg := fetchTaskResultMsg(taskResultMsg)
+	msg := types.FetchTaskResultMsg(taskResultMsg) // fetchTaskResultMsg(taskResultMsg)
 
 	log.Debugf("Received remote taskResultMsg on ValidateTaskResultMsg(), remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
@@ -767,7 +795,7 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.Ta
 }
 func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 
-	msg := fetchTaskResultMsg(taskResultMsg)
+	msg := types.FetchTaskResultMsg(taskResultMsg)
 
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
@@ -797,8 +825,10 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 }
 
 func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
-	return errors.New("invalid check")
+	return nil
 }
 func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+
+
 	return nil
 }
