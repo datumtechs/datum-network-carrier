@@ -52,6 +52,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.CertFlag,
 			flags.KeyFlag,
 			flags.GrpcMaxCallRecvMsgSizeFlag,
+			flags.SetGCPercent,
 		},
 	},
 	{
@@ -71,6 +72,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.TracingProcessNameFlag,
 			flags.TracingEndpointFlag,
 			flags.TraceSampleFractionFlag,
+			flags.MockIdentityIdFileFlag,
 		},
 	},
 	{
@@ -84,6 +86,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.RestoreSourceFileFlag,
 			flags.RestoreTargetDirFlag,
 			flags.ConfigFileFlag,
+			flags.ConsensusStateStoreFlag,
 		},
 	},
 	{
