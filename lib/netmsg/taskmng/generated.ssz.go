@@ -436,7 +436,7 @@ func (t *TaskResourceUsageMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the TaskResourceUsageMsg object to a target array
 func (t *TaskResourceUsageMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(72)
+	offset := int(84)
 
 	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
@@ -457,6 +457,13 @@ func (t *TaskResourceUsageMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 		return
 	}
 
+	// Field (3) 'CreateAt'
+	dst = ssz.MarshalUint64(dst, t.CreateAt)
+
+	// Offset (4) 'Sign'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.Sign)
+
 	// Field (0) 'MsgOption'
 	if dst, err = t.MsgOption.MarshalSSZTo(dst); err != nil {
 		return
@@ -469,6 +476,13 @@ func (t *TaskResourceUsageMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 	}
 	dst = append(dst, t.TaskId...)
 
+	// Field (4) 'Sign'
+	if len(t.Sign) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.Sign...)
+
 	return
 }
 
@@ -476,19 +490,19 @@ func (t *TaskResourceUsageMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) 
 func (t *TaskResourceUsageMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 72 {
+	if size < 84 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1 uint64
+	var o0, o1, o4 uint64
 
 	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 72 {
+	if o0 < 84 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -505,6 +519,14 @@ func (t *TaskResourceUsageMsg) UnmarshalSSZ(buf []byte) error {
 		return err
 	}
 
+	// Field (3) 'CreateAt'
+	t.CreateAt = ssz.UnmarshallUint64(buf[72:80])
+
+	// Offset (4) 'Sign'
+	if o4 = ssz.ReadOffset(buf[80:84]); o4 > size || o1 > o4 {
+		return ssz.ErrOffset
+	}
+
 	// Field (0) 'MsgOption'
 	{
 		buf = tail[o0:o1]
@@ -518,7 +540,7 @@ func (t *TaskResourceUsageMsg) UnmarshalSSZ(buf []byte) error {
 
 	// Field (1) 'TaskId'
 	{
-		buf = tail[o1:]
+		buf = tail[o1:o4]
 		if len(buf) > 128 {
 			return ssz.ErrBytesLength
 		}
@@ -527,12 +549,24 @@ func (t *TaskResourceUsageMsg) UnmarshalSSZ(buf []byte) error {
 		}
 		t.TaskId = append(t.TaskId, buf...)
 	}
+
+	// Field (4) 'Sign'
+	{
+		buf = tail[o4:]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.Sign) == 0 {
+			t.Sign = make([]byte, 0, len(buf))
+		}
+		t.Sign = append(t.Sign, buf...)
+	}
 	return err
 }
 
 // SizeSSZ returns the ssz encoded size in bytes for the TaskResourceUsageMsg object
 func (t *TaskResourceUsageMsg) SizeSSZ() (size int) {
-	size = 72
+	size = 84
 
 	// Field (0) 'MsgOption'
 	if t.MsgOption == nil {
@@ -542,6 +576,9 @@ func (t *TaskResourceUsageMsg) SizeSSZ() (size int) {
 
 	// Field (1) 'TaskId'
 	size += len(t.TaskId)
+
+	// Field (4) 'Sign'
+	size += len(t.Sign)
 
 	return
 }
@@ -571,6 +608,16 @@ func (t *TaskResourceUsageMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	if err = t.Usage.HashTreeRootWith(hh); err != nil {
 		return
 	}
+
+	// Field (3) 'CreateAt'
+	hh.PutUint64(t.CreateAt)
+
+	// Field (4) 'Sign'
+	if len(t.Sign) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.Sign)
 
 	hh.Merkleize(indx)
 	return
