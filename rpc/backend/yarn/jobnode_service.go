@@ -27,9 +27,7 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 }
 
 
-
-
-func (svr *Server) ReportTaskResourceExpense (ctx context.Context, req *pb.ReportTaskResourceExpenseRequest) (*apicommonpb.SimpleResponse, error) {
+func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportTaskResourceUsageRequest) (*apicommonpb.SimpleResponse, error) {
 
 	if req.GetTaskId() == "" {
 		return nil, errors.New("require taskId")
@@ -47,7 +45,17 @@ func (svr *Server) ReportTaskResourceExpense (ctx context.Context, req *pb.Repor
 		return nil, errors.New("require resource usage")
 	}
 
-	err := svr.B.ReportTaskResourceExpense(req.GetNodeType(), req.GetTaskId(), req.GetIp(), req.GetPort(), req.GetUsage())
+	err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetIp(), req.GetPort(),
+		types.NewTaskResuorceUsage(
+			req.GetTaskId(),
+			req.GetUsage().GetTotalMem(),
+			req.GetUsage().GetTotalBandwidth(),
+			req.GetUsage().GetTotalDisk(),
+			req.GetUsage().GetUsedMem(),
+			req.GetUsage().GetUsedBandwidth(),
+			req.GetUsage().GetUsedDisk(),
+			req.GetUsage().GetTotalProcessor(),
+			req.GetUsage().GetUsedProcessor()))
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskResourceExpense failed")
 		return nil, ErrReportTaskResourceExpense

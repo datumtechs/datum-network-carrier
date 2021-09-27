@@ -9,7 +9,7 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng";
 
 // 参与方反馈 各自对某个task的执行结果 (发给发起方)
 message TaskResultMsg {
-  common.MsgOption             msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
+  common.MsgOption             msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];              //
   repeated TaskEvent           task_event_list = 2 [(gogoproto.moretags) = "ssz-max:\"16777216\""];         // 任务在该参与方上产生的event
   uint64                       create_at = 3 [(gogoproto.moretags) = "ssz-size:\"8\""];                     // TaskResultMsg 创建的时间戳 (单位: ms)
   bytes                        sign = 4 [(gogoproto.moretags) = "ssz-max:\"1024\""];                        // TaskResultMsg 发起者签名
@@ -22,3 +22,12 @@ message TaskEvent {
   bytes  content = 4 [(gogoproto.moretags) = "ssz-max:\"2048\""];                       // 事件内容
   uint64 create_at = 5 [(gogoproto.moretags) = "ssz-size:\"8\""];                       // 事件产生时间戳 (单位: ms)
 }
+
+// 参与方 返回task的实时资源消耗
+message TaskResourceUsage {
+  common.MsgOption              msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];     //
+  bytes                         task_id = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];             // 任务id
+  common.ResourceUsage          usage = 3;                                                          // 资源消耗
+}
+
+

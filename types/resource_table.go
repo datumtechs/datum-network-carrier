@@ -592,11 +592,11 @@ func (tru *TaskResuorceUsage) GetUsedProcessor() uint32  { return tru.usedProces
 func (tru *TaskResuorceUsage) GetUsedBandwidth() uint64  { return tru.usedBandwidth }
 func (tru *TaskResuorceUsage) GetUsedDisk() uint64       { return tru.usedDisk }
 
-func (tru *TaskResuorceUsage) SetetUsedMem(usedMem uint64) { tru.usedMem = usedMem }
-func (tru *TaskResuorceUsage) SetetUsedProcessor(usedProcessor uint32) {
+func (tru *TaskResuorceUsage) SetUsedMem(usedMem uint64) { tru.usedMem = usedMem }
+func (tru *TaskResuorceUsage) SetUsedProcessor(usedProcessor uint32) {
 	tru.usedProcessor = usedProcessor
 }
-func (tru *TaskResuorceUsage) SetetUsedBandwidth(usedBandwidth uint64) {
+func (tru *TaskResuorceUsage) SetUsedBandwidth(usedBandwidth uint64) {
 	tru.usedBandwidth = usedBandwidth
 }
-func (tru *TaskResuorceUsage) SetetUsedDisk(usedDisk uint64) { tru.usedDisk = usedDisk }
+func (tru *TaskResuorceUsage) SetUsedDisk(usedDisk uint64) { tru.usedDisk = usedDisk }

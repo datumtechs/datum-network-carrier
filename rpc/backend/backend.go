@@ -3,7 +3,6 @@ package backend
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -29,7 +28,7 @@ type Backend interface {
 	SendTaskEvent(event *types.ReportTaskEvent) error
 
 	// v 2.0
-	ReportTaskResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error
+	ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error
 
 
 	// metadata api

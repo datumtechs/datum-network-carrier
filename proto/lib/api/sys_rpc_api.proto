@@ -228,7 +228,7 @@ message ReportTaskEventRequest {
 }
 
 // 数据/计算服务 上报任务资源使用实况 req
-message ReportTaskResourceExpenseRequest {
+message ReportTaskResourceUsageRequest {
   string                      task_id = 1;                          // 任务Id
   NodeType                    node_type = 2;                        // 计算or数据服务node的类型
   string                      ip = 3;                               // Fighter 的 grpc server IP
@@ -432,9 +432,9 @@ service YarnService {
   }
 
   // 数据/计算服务 上报资源使用实况
-  rpc ReportTaskResourceExpense (ReportTaskResourceExpenseRequest) returns (api.protobuf.SimpleResponse) {
+  rpc ReportTaskResourceUsage (ReportTaskResourceUsageRequest) returns (api.protobuf.SimpleResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/yarn/reportTaskResourceExpense"
+      post: "/carrier/v1/yarn/reportTaskResourceUsage"
       body: "*"
     };
   }

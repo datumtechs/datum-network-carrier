@@ -610,21 +610,21 @@ func (m *PowerTask) GetCreateAt() uint64 {
 // 系统资源消耗概览
 type ResourceUsageOverview struct {
 	// 服务系统的总内存 (单位: byte)
-	TotalMem uint64 `protobuf:"varint,2,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
+	TotalMem uint64 `protobuf:"varint,1,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
 	// 服务系统的已用内存  (单位: byte)
-	UsedMem uint64 `protobuf:"varint,3,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
+	UsedMem uint64 `protobuf:"varint,2,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
 	// 服务的总内核数 (单位: 个)
-	TotalProcessor uint32 `protobuf:"varint,4,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
+	TotalProcessor uint32 `protobuf:"varint,3,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
 	// 服务的已用内核数 (单位: 个)
-	UsedProcessor uint32 `protobuf:"varint,5,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
+	UsedProcessor uint32 `protobuf:"varint,4,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
 	// 服务的总带宽数 (单位: bps)
-	TotalBandwidth uint64 `protobuf:"varint,6,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
+	TotalBandwidth uint64 `protobuf:"varint,5,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
 	// 服务的已用带宽数 (单位: bps)
-	UsedBandwidth uint64 `protobuf:"varint,7,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
+	UsedBandwidth uint64 `protobuf:"varint,6,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
 	// 服务的总磁盘空间 (单位: byte)
-	TotalDisk uint64 `protobuf:"varint,8,opt,name=total_disk,json=totalDisk,proto3" json:"total_disk,omitempty"`
+	TotalDisk uint64 `protobuf:"varint,7,opt,name=total_disk,json=totalDisk,proto3" json:"total_disk,omitempty"`
 	// 服务的已用磁盘空间 (单位: byte)
-	UsedDisk             uint64   `protobuf:"varint,9,opt,name=used_disk,json=usedDisk,proto3" json:"used_disk,omitempty"`
+	UsedDisk             uint64   `protobuf:"varint,8,opt,name=used_disk,json=usedDisk,proto3" json:"used_disk,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -778,12 +778,12 @@ var fileDescriptor_8efe43321c6120dd = []byte{
 	0x26, 0x73, 0xae, 0x30, 0xee, 0x57, 0x62, 0x1b, 0x65, 0x97, 0xb0, 0x5f, 0x67, 0xd3, 0x05, 0xe6,
 	0x29, 0xad, 0x90, 0xc6, 0xe9, 0xea, 0x5a, 0x5e, 0x58, 0x31, 0x3b, 0x84, 0x20, 0x51, 0xc8, 0x0d,
 	0x7e, 0x67, 0xca, 0xbd, 0x52, 0x9e, 0x8f, 0xff, 0xdc, 0x83, 0x87, 0x6f, 0x35, 0xde, 0xe6, 0x3a,
-	0xda, 0xdb, 0xb2, 0x8e, 0x5a, 0x3b, 0xd7, 0x51, 0xbb, 0xe1, 0x3a, 0xf2, 0x1b, 0xae, 0xa3, 0x4e,
-	0xc3, 0x75, 0xd4, 0xdd, 0xbd, 0x8e, 0x82, 0xad, 0xeb, 0xa8, 0xb7, 0xb9, 0x8e, 0x4e, 0x9f, 0xfe,
-	0x7d, 0x77, 0xe4, 0xfd, 0x73, 0x77, 0xe4, 0xfd, 0x7b, 0x77, 0xe4, 0xfd, 0xf2, 0xd9, 0xb5, 0x30,
-	0xaf, 0x16, 0xb3, 0x71, 0x22, 0xb3, 0x49, 0x2c, 0x35, 0x1a, 0xc3, 0xbf, 0x9f, 0xcb, 0xe5, 0xe4,
-	0x8c, 0x2b, 0x25, 0x50, 0x7d, 0xf1, 0x83, 0x9c, 0x54, 0x7f, 0x99, 0x66, 0x1d, 0x1a, 0xdb, 0x57,
-	0xff, 0x07, 0x00, 0x00, 0xff, 0xff, 0xfc, 0x1f, 0x2a, 0xd1, 0x46, 0x09, 0x00, 0x00,
+	0xf2, 0xb6, 0xac, 0xa3, 0xbd, 0x9d, 0xeb, 0xa8, 0xd5, 0x70, 0x1d, 0xb5, 0x1b, 0xae, 0x23, 0xbf,
+	0xe1, 0x3a, 0xea, 0xec, 0x5e, 0x47, 0xdd, 0xad, 0xeb, 0x28, 0xd8, 0x5c, 0x47, 0xa7, 0x4f, 0xff,
+	0xbe, 0x3b, 0xf2, 0xfe, 0xb9, 0x3b, 0xf2, 0xfe, 0xbd, 0x3b, 0xf2, 0x7e, 0xf9, 0xec, 0x5a, 0x98,
+	0x57, 0x8b, 0xd9, 0x38, 0x91, 0xd9, 0x24, 0x96, 0x1a, 0x8d, 0xe1, 0xdf, 0xcf, 0xe5, 0x72, 0x72,
+	0xc6, 0x95, 0x12, 0xa8, 0xbe, 0xf8, 0x41, 0x4e, 0xaa, 0xbf, 0x4c, 0xb3, 0x0e, 0x8d, 0xed, 0xab,
+	0xff, 0x03, 0x00, 0x00, 0xff, 0xff, 0x26, 0x60, 0xfc, 0x56, 0x46, 0x09, 0x00, 0x00,
 }
 
 func (m *ResourcePB) Marshal() (dAtA []byte, err error) {
@@ -1266,42 +1266,42 @@ func (m *ResourceUsageOverview) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.UsedDisk != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedDisk))
 		i--
-		dAtA[i] = 0x48
+		dAtA[i] = 0x40
 	}
 	if m.TotalDisk != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalDisk))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x38
 	}
 	if m.UsedBandwidth != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedBandwidth))
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x30
 	}
 	if m.TotalBandwidth != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalBandwidth))
 		i--
-		dAtA[i] = 0x30
+		dAtA[i] = 0x28
 	}
 	if m.UsedProcessor != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedProcessor))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x20
 	}
 	if m.TotalProcessor != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalProcessor))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x18
 	}
 	if m.UsedMem != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedMem))
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x10
 	}
 	if m.TotalMem != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalMem))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -3041,7 +3041,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: ResourceUsageOverview: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
-		case 2:
+		case 1:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalMem", wireType)
 			}
@@ -3060,7 +3060,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 3:
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedMem", wireType)
 			}
@@ -3079,7 +3079,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 4:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalProcessor", wireType)
 			}
@@ -3098,7 +3098,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 5:
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedProcessor", wireType)
 			}
@@ -3117,7 +3117,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalBandwidth", wireType)
 			}
@@ -3136,7 +3136,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 7:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedBandwidth", wireType)
 			}
@@ -3155,7 +3155,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 8:
+		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalDisk", wireType)
 			}
@@ -3174,7 +3174,7 @@ func (m *ResourceUsageOverview) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 9:
+		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedDisk", wireType)
 			}

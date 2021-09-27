@@ -24,3 +24,22 @@ message TaskOrganizationIdentityInfo  {
   bytes party_id = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];                         // 所在任务中的partyId
 }
 
+// 资源消耗概览 (系统 和 task 的通用)
+message ResourceUsage {
+  // 服务系统的总内存 (单位: byte)
+  uint64 total_mem = 1 [(gogoproto.moretags) = "ssz-size:\"8\""];
+  // 服务系统的已用内存  (单位: byte)
+  uint64 used_mem = 2 [(gogoproto.moretags) = "ssz-size:\"8\""];
+  // 服务的总内核数 (单位: 个)
+  uint64 total_processor = 3 [(gogoproto.moretags) = "ssz-size:\"8\""];
+  // 服务的已用内核数 (单位: 个)
+  uint64 used_processor = 4 [(gogoproto.moretags) = "ssz-size:\"8\""];
+  // 服务的总带宽数 (单位: bps)
+  uint64 total_bandwidth = 5 [(gogoproto.moretags) = "ssz-size:\"8\""];
+  // 服务的已用带宽数 (单位: bps)
+  uint64 used_bandwidth = 6 [(gogoproto.moretags) = "ssz-size:\"8\""];
+  // 服务的总磁盘空间 (单位: byte)
+  uint64 total_disk = 7 [(gogoproto.moretags) = "ssz-size:\"8\""];
+  // 服务的已用磁盘空间 (单位: byte)
+  uint64 used_disk = 8 [(gogoproto.moretags) = "ssz-size:\"8\""];
+}

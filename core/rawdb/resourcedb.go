@@ -1532,9 +1532,9 @@ func RemoveTaskUpResultFile (db KeyValueStore, taskId string) error {
 
 
 
-func StoreTaskResuorceUsage (db DatabaseWriter, taskId string, tru *types.TaskResuorceUsage) error {
-	key := GetTaskResuorceUsageKey(taskId)
-	val, err := rlp.EncodeToBytes(tru)
+func StoreTaskResuorceUsage (db DatabaseWriter, usage *types.TaskResuorceUsage) error {
+	key := GetTaskResuorceUsageKey(usage.GetTaskId())
+	val, err := rlp.EncodeToBytes(usage)
 	if nil != err {
 		return err
 	}

@@ -513,10 +513,10 @@ func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
 	return rawdb.RemoveTaskUpResultFile(dc.db, taskId)
 }
 
-func (dc *DataCenter) StoreTaskResuorceUsage(taskId string, tru *types.TaskResuorceUsage) error {
+func (dc *DataCenter) StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreTaskResuorceUsage(dc.db, taskId, tru)
+	return rawdb.StoreTaskResuorceUsage(dc.db, usage)
 }
 
 func (dc *DataCenter) QueryTaskResuorceUsage(taskId string) (*types.TaskResuorceUsage, error)  {

@@ -180,13 +180,14 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
-
-		dataNodeStatus, err := client.GetStatus()
-		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
-		}
-		// add data resource  (disk)
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		//
+		//dataNodeStatus, err := client.GetStatus()
+		//if err != nil {
+		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+		//}
+		//// add data resource  (disk)
+		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
@@ -273,12 +274,13 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
-		dataNodeStatus, err := client.GetStatus()
-		if err != nil {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
-		}
-		// add new data resource  (disk)
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		//dataNodeStatus, err := client.GetStatus()
+		//if err != nil {
+		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+		//}
+		//// add new data resource  (disk)
+		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
@@ -406,10 +408,47 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-func (s *CarrierAPIBackend) ReportTaskResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error {
+func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error {
 
+	oldusage, err := s.carrier.carrierDB.QueryTaskResuorceUsage(usage.GetTaskId())
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.Errorf("Failed to QueryTaskResuorceUsage on CarrierAPIBackend.ReportTaskResourceExpense(), taskId: {%s}, err: {%s}", usage.GetTaskId(), err)
+		return err
+	}
 
+	var needSeedUsage bool
+	// add
+	if oldusage == nil {
+		oldusage = usage
+		err = s.carrier.carrierDB.StoreTaskResuorceUsage(oldusage)
+		needSeedUsage = true
+	} else {
+		// update
+		if usage.GetUsedMem() > oldusage.GetUsedMem() {
+			oldusage.SetUsedMem(usage.GetUsedMem())
+			needSeedUsage = true
+		}
+		if usage.GetUsedProcessor() > oldusage.GetUsedProcessor() {
+			oldusage.SetUsedProcessor(usage.GetUsedProcessor())
+			needSeedUsage = true
+		}
+		if usage.GetUsedBandwidth() > oldusage.GetUsedBandwidth() {
+			oldusage.SetUsedBandwidth(usage.GetUsedBandwidth())
+			needSeedUsage = true
+		}
+		if usage.GetUsedDisk() > oldusage.GetUsedDisk() {
+			oldusage.SetUsedDisk(usage.GetUsedDisk())
+			needSeedUsage = true
+		}
+		if needSeedUsage {
+			err = s.carrier.carrierDB.StoreTaskResuorceUsage(oldusage)
+		}
+	}
 
+	if nil != err {
+		log.Errorf("Failed to StoreTaskResuorceUsage on CarrierAPIBackend.ReportTaskResourceExpense(), taskId: {%s}, err: {%s}", usage.GetTaskId(), err)
+		return err
+	}
 
 	return nil
 }
