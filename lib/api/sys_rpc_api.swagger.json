@@ -407,10 +407,10 @@
         ]
       }
     },
-    "/carrier/v1/yarn/reportTaskResourceExpense": {
+    "/carrier/v1/yarn/reportTaskResourceUsage": {
       "post": {
         "summary": "数据/计算服务 上报资源使用实况",
-        "operationId": "YarnService_ReportTaskResourceExpense",
+        "operationId": "YarnService_ReportTaskResourceUsage",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -431,7 +431,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiReportTaskResourceExpenseRequest"
+              "$ref": "#/definitions/rpcapiReportTaskResourceUsageRequest"
             }
           }
         ],
@@ -1004,20 +1004,29 @@
       },
       "title": "数据/计算服务 上报任务事件 req"
     },
-    "rpcapiReportTaskResourceExpenseRequest": {
+    "rpcapiReportTaskResourceUsageRequest": {
       "type": "object",
       "properties": {
+        "task_id": {
+          "type": "string"
+        },
+        "party_id": {
+          "type": "string"
+        },
         "node_type": {
           "$ref": "#/definitions/rpcapiNodeType"
         },
-        "node_id": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
           "type": "string"
         },
         "usage": {
           "$ref": "#/definitions/typesResourceUsageOverview"
         }
       },
-      "title": "数据/计算服务 上报资源使用实况 req"
+      "title": "数据/计算服务 上报任务资源使用实况 req"
     },
     "rpcapiReportTaskResultFileSummaryRequest": {
       "type": "object",
