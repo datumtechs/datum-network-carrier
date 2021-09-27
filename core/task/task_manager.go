@@ -293,3 +293,11 @@ func (m *Manager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error {
 	m.sendTaskEvent(reportEvent)
 	return nil
 }
+
+func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
+
+	//m.queryNeedExecuteTaskCache()
+
+
+	return nil
+}

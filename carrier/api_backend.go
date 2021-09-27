@@ -408,7 +408,7 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error {
+func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, partyId, ip, port string, usage *types.TaskResuorceUsage) error {
 
 	oldusage, err := s.carrier.carrierDB.QueryTaskResuorceUsage(usage.GetTaskId())
 	if rawdb.IsNoDBNotFoundErr(err) {

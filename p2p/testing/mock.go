@@ -85,8 +85,13 @@ func (s *Sync) Resync() error {
 type MockTaskManager struct {
 }
 
-func (m *MockTaskManager) Start() error { return nil }
-func (m *MockTaskManager) Stop() error { return nil }
-func (m *MockTaskManager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error { return errors.New("invalid check") }
-func (m *MockTaskManager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error { return nil }
-func (m *MockTaskManager)  SendTaskEvent(reportEvent *types.ReportTaskEvent) error { return nil }
+func (m *MockTaskManager) Start() error                                               { return nil }
+func (m *MockTaskManager) Stop() error                                                { return nil }
+func (m *MockTaskManager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+	return errors.New("invalid check")
+}
+func (m *MockTaskManager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
+	return nil
+}
+func (m *MockTaskManager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error     { return nil }
+func (m *MockTaskManager) SendTaskResourceUsage(usage *types.TaskResuorceUsage) error { return nil }

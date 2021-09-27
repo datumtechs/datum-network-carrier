@@ -33,6 +33,10 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 		return nil, errors.New("require taskId")
 	}
 
+	if req.GetPartyId() == "" {
+		return nil, errors.New("require partyId")
+	}
+
 	if req.GetIp() == "" || req.GetPort() == "" {
 		return nil, errors.New("require ip and port")
 	}
@@ -45,7 +49,7 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 		return nil, errors.New("require resource usage")
 	}
 
-	err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetIp(), req.GetPort(),
+	err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetPartyId(), req.GetIp(), req.GetPort(),
 		types.NewTaskResuorceUsage(
 			req.GetTaskId(),
 			req.GetUsage().GetTotalMem(),

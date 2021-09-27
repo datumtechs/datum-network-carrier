@@ -230,10 +230,11 @@ message ReportTaskEventRequest {
 // 数据/计算服务 上报任务资源使用实况 req
 message ReportTaskResourceUsageRequest {
   string                      task_id = 1;                          // 任务Id
-  NodeType                    node_type = 2;                        // 计算or数据服务node的类型
-  string                      ip = 3;                               // Fighter 的 grpc server IP
-  string                      port = 4;                             // Fighter 的 grpc server PORT
-  types.ResourceUsageOverview usage = 5;                            // 计算or数据的资源实况
+  string                      party_id = 2;                         // 本资源在该 task 中的 partyId
+  NodeType                    node_type = 3;                        // 计算or数据服务node的类型
+  string                      ip = 4;                               // Fighter 的 grpc server IP
+  string                      port = 5;                             // Fighter 的 grpc server PORT
+  types.ResourceUsageOverview usage = 6;                            // 计算or数据的资源实况
 }
 
 //message ReportTaskResourceExpenseRequest {
