@@ -24,7 +24,7 @@ message TaskEvent {
 }
 
 // 参与方 返回task的实时资源消耗
-message TaskResourceUsage {
+message TaskResourceUsageMsg {
   common.MsgOption              msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];     //
   bytes                         task_id = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];             // 任务id
   common.ResourceUsage          usage = 3;                                                          // 资源消耗

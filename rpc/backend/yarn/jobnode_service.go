@@ -49,9 +49,10 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 		return nil, errors.New("require resource usage")
 	}
 
-	err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetPartyId(), req.GetIp(), req.GetPort(),
+	err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetIp(), req.GetPort(),
 		types.NewTaskResuorceUsage(
 			req.GetTaskId(),
+			req.GetPartyId(),
 			req.GetUsage().GetTotalMem(),
 			req.GetUsage().GetTotalBandwidth(),
 			req.GetUsage().GetTotalDisk(),
@@ -61,7 +62,7 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 			req.GetUsage().GetTotalProcessor(),
 			req.GetUsage().GetUsedProcessor()))
 	if nil != err {
-		log.WithError(err).Error("RPC-API:ReportTaskResourceExpense failed")
+		log.WithError(err).Error("RPC-API:ReportTaskResourceUsage failed")
 		return nil, ErrReportTaskResourceExpense
 	}
 

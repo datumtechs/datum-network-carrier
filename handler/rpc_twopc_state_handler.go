@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	libp2pcore "github.com/libp2p/go-libp2p-core"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -195,41 +194,7 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 	return nil
 }
 
-func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
-	SetRPCStreamDeadlines(stream)
-
-	m, ok := msg.(*taskmngpb.TaskResultMsg)
-	if !ok {
-		//log.Errorf("Failed to convert `TaskResultMsg` from msg, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
-		return errors.New("message is not type *twopcpb.TaskResultMsg")
-	}
-
-	// validate TaskResultMsg
-	if err := s.validateTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
-		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
-		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Errorf("Failed to call `validateTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
-		return err
-	}
-
-	// handle TaskResultMsg
-	if err := s.onTaskResultMsg(stream.Conn().RemotePeer(), m); err != nil {
-		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
-		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Warnf("Warning to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
-		return err
-	}
-
-	// response code
-	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
-		//log.WithError(err).Errorf("Could not write to stream for response, after to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
-		return err
-	}
-
-	closeStream(stream, log)
-	return nil
-}
 
 
 // ------------------------------------  some validate Fn  ------------------------------------

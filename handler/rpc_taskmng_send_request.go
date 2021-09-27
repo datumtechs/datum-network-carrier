@@ -9,7 +9,7 @@ import (
 )
 
 // SendTaskResultMsg sends taskResult to other peer, if the task has finished.
-func SendTaskResultMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskResultMsg) error {
+func SendTaskResultMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskResultMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -26,5 +26,28 @@ func SendTaskResultMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, re
 	if code != 0 {
 		return errors.New(errMsg)
 	}
+	return nil
+}
+
+
+func SendTaskResourceUsage(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskResourceUsageMsg) error {
+	ctx, cancel := context.WithTimeout(ctx, respTimeout)
+	defer cancel()
+
+	// send request on the special topic.
+	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTaskResourceUsageMsgTopic, pid)
+	if err != nil {
+		return err
+	}
+	defer closeStream(stream, log)
+	code, errMsg, err := ReadStatusCode(stream, p2pProvider.Encoding())
+	if err != nil {
+		return err
+	}
+	if code != 0 {
+		return errors.New(errMsg)
+	}
+	return nil
+
 	return nil
 }

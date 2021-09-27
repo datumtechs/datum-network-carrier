@@ -80,6 +80,12 @@ func (s *Service) registerRPCHandlers() {
 		s.taskResultMsgRPCHandler,
 	)
 
+
+	s.registerRPC(
+		p2p.RPCTaskResourceUsageMsgTopic,
+		s.taskResourceUsageMsgRPCHandler,
+	)
+
 	// for test.
 	s.registerRPC(
 		p2p.RPCGossipTestDataByRangeTopic,

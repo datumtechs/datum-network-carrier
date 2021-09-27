@@ -1533,7 +1533,7 @@ func RemoveTaskUpResultFile (db KeyValueStore, taskId string) error {
 
 
 func StoreTaskResuorceUsage (db DatabaseWriter, usage *types.TaskResuorceUsage) error {
-	key := GetTaskResuorceUsageKey(usage.GetTaskId())
+	key := GetTaskResuorceUsageKey(usage.GetTaskId(), usage.GetPartyId())
 	val, err := rlp.EncodeToBytes(usage)
 	if nil != err {
 		return err
@@ -1541,8 +1541,8 @@ func StoreTaskResuorceUsage (db DatabaseWriter, usage *types.TaskResuorceUsage) 
 	return db.Put(key, val)
 }
 
-func QueryTaskResuorceUsage (db DatabaseReader, taskId string) (*types.TaskResuorceUsage, error) {
-	key := GetTaskResuorceUsageKey(taskId)
+func QueryTaskResuorceUsage (db DatabaseReader, taskId, partyId string) (*types.TaskResuorceUsage, error) {
+	key := GetTaskResuorceUsageKey(taskId, partyId)
 
 	vb, err := db.Get(key)
 	if nil != err {
@@ -1555,8 +1555,8 @@ func QueryTaskResuorceUsage (db DatabaseReader, taskId string) (*types.TaskResuo
 	return &taskResuorceUsage, nil
 }
 
-func RemoveTaskResuorceUsage (db KeyValueStore, taskId string) error {
-	key := GetTaskResuorceUsageKey(taskId)
+func RemoveTaskResuorceUsage (db KeyValueStore, taskId, partyId string) error {
+	key := GetTaskResuorceUsageKey(taskId, partyId)
 
 	has, err := db.Has(key)
 	switch {

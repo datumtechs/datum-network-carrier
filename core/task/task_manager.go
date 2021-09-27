@@ -296,8 +296,18 @@ func (m *Manager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error {
 
 func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
 
-	//m.queryNeedExecuteTaskCache()
+	task, ok :=m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
+	if !ok {
+		return fmt.Errorf("Can not find task cache, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
+	}
+	running, err := m.resourceMng.GetDB().HasLocalTaskExecute(usage.GetTaskId())
+	if nil != err {
+		return err
+	}
+	if !running {
+		return fmt.Errorf("task is not executed, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
+	}
 
-
+	m.sendTaskResourceUsageToRemotePeer(task, usage)
 	return nil
 }

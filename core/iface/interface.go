@@ -96,8 +96,8 @@ type LocalStoreCarrierDB interface {
 	RemoveTaskUpResultFile(taskId string) error
 	// V 2.0 about task used resource  (taskId -> resourceUsed)
 	StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error
-	QueryTaskResuorceUsage(taskId string) (*types.TaskResuorceUsage, error)
-	RemoveTaskResuorceUsage(taskId string) error
+	QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)
+	RemoveTaskResuorceUsage(taskId, partyId string) error
 	// v 2.0 about Message Cache
 	StoreMessageCache(value interface{})
 	QueryPowerMsgArr()(types.PowerMsgArr,error)

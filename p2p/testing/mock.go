@@ -93,5 +93,11 @@ func (m *MockTaskManager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *task
 func (m *MockTaskManager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 	return nil
 }
+func (m *MockTaskManager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+	return errors.New("invalid check")
+}
+func (m *MockTaskManager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+	return nil
+}
 func (m *MockTaskManager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error     { return nil }
 func (m *MockTaskManager) SendTaskResourceUsage(usage *types.TaskResuorceUsage) error { return nil }

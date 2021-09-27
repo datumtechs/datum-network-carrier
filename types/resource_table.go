@@ -520,6 +520,7 @@ func (turf *TaskUpResultFile) GetMetadataId() string { return turf.metadataId }
 
 type TaskResuorceUsage struct {
 	taskId         string
+	partyId        string
 	totalMem       uint64
 	totalProcessor uint32
 	totalBandwidth uint64
@@ -532,6 +533,7 @@ type TaskResuorceUsage struct {
 
 type taskResuorceUsageRlp struct {
 	TaskId         string
+	PartyId        string
 	TotalMem       uint64
 	TotalProcessor uint32
 	TotalBandwidth uint64
@@ -542,9 +544,21 @@ type taskResuorceUsageRlp struct {
 	UsedDisk       uint64
 }
 
-func NewTaskResuorceUsage(taskId string, totalMem, totalBandwidth, totalDisk, usedMem, usedBandwidth, usedDisk uint64, totalProcessor, usedProcessor uint32) *TaskResuorceUsage {
+func NewTaskResuorceUsage(
+	taskId,
+	partyId string,
+	totalMem,
+	totalBandwidth,
+	totalDisk,
+	usedMem,
+	usedBandwidth,
+	usedDisk uint64,
+	totalProcessor,
+	usedProcessor uint32,
+) *TaskResuorceUsage {
 	return &TaskResuorceUsage{
 		taskId:         taskId,
+		partyId:        partyId,
 		totalMem:       totalMem,
 		totalProcessor: totalProcessor,
 		totalBandwidth: totalBandwidth,
@@ -560,6 +574,7 @@ func NewTaskResuorceUsage(taskId string, totalMem, totalBandwidth, totalDisk, us
 func (tru *TaskResuorceUsage) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, taskResuorceUsageRlp{
 		TaskId:         tru.taskId,
+		PartyId:        tru.partyId,
 		TotalMem:       tru.totalMem,
 		TotalProcessor: tru.totalProcessor,
 		TotalBandwidth: tru.totalBandwidth,
@@ -576,13 +591,14 @@ func (tru *TaskResuorceUsage) DecodeRLP(s *rlp.Stream) error {
 	var dec taskResuorceUsageRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		tru.taskId, tru.totalMem, tru.totalBandwidth, tru.totalDisk, tru.totalProcessor, tru.usedMem, tru.usedBandwidth, tru.usedDisk, tru.usedProcessor =
-			dec.TaskId, dec.TotalMem, dec.TotalBandwidth, dec.TotalDisk, dec.TotalProcessor, dec.UsedMem, dec.UsedBandwidth, dec.UsedDisk, dec.UsedProcessor
+		tru.taskId, tru.partyId, tru.totalMem, tru.totalBandwidth, tru.totalDisk, tru.totalProcessor, tru.usedMem, tru.usedBandwidth, tru.usedDisk, tru.usedProcessor =
+			dec.TaskId, dec.PartyId, dec.TotalMem, dec.TotalBandwidth, dec.TotalDisk, dec.TotalProcessor, dec.UsedMem, dec.UsedBandwidth, dec.UsedDisk, dec.UsedProcessor
 	}
 	return err
 }
 
 func (tru *TaskResuorceUsage) GetTaskId() string         { return tru.taskId }
+func (tru *TaskResuorceUsage) GetPartyId() string        { return tru.partyId }
 func (tru *TaskResuorceUsage) GetTotalMem() uint64       { return tru.totalMem }
 func (tru *TaskResuorceUsage) GetTotalProcessor() uint32 { return tru.totalProcessor }
 func (tru *TaskResuorceUsage) GetTotalBandwidth() uint64 { return tru.totalBandwidth }

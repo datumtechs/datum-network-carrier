@@ -262,6 +262,15 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 }
 
+func (m *Manager) sendTaskResourceUsageToRemotePeer (task *types.NeedExecuteTask, usage *types.TaskResuorceUsage) {
+	//if err := handler.SendTaskResourceUsage(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
+	//	log.Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+	//		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+	//	return
+	//}
+
+}
+
 func (m *Manager) sendLocalTaskToScheduler(tasks types.TaskDataArray) {
 	m.localTasksCh <- tasks
 }
@@ -784,5 +793,12 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 		}
 	}
 
+	return nil
+}
+
+func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+	return errors.New("invalid check")
+}
+func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
 	return nil
 }

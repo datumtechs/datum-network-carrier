@@ -54,7 +54,7 @@ var (
 
 	// prefix + taskId -> resultfile summary (auto build metadataId)
 	taskResultFileMetadataIdKeyPrefix = []byte("taskResultFileMetadataIdKeyPrefix:")
-	// prefix + taskId -> resourceUsed (totalProccesor, usedProccesor, totalMemory, usedMemory, totalBandwidth, usedBandwidth, totalDisk, usedDisk)
+	// prefix + taskId + partyId -> resourceUsed (totalProccesor, usedProccesor, totalMemory, usedMemory, totalBandwidth, usedBandwidth, totalDisk, usedDisk)
 	taskResuorceUsageKeyPrefix = []byte("taskResuorceUsageKeyPrefix:")
 
 )
@@ -198,6 +198,6 @@ func GetTaskResultFileMetadataIdKeyPrefix() []byte {
 	return taskResultFileMetadataIdKeyPrefix
 }
 
-func GetTaskResuorceUsageKey (taskId string) []byte {
-	return append(taskResuorceUsageKeyPrefix, []byte(taskId)...)
+func GetTaskResuorceUsageKey (taskId, partyId string) []byte {
+	return append(append(taskResuorceUsageKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }

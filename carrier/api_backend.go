@@ -408,46 +408,56 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
-func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, partyId, ip, port string, usage *types.TaskResuorceUsage) error {
+func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error {
 
-	oldusage, err := s.carrier.carrierDB.QueryTaskResuorceUsage(usage.GetTaskId())
+	oldUsage, err := s.carrier.carrierDB.QueryTaskResuorceUsage(usage.GetTaskId(), usage.GetPartyId())
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed to QueryTaskResuorceUsage on CarrierAPIBackend.ReportTaskResourceExpense(), taskId: {%s}, err: {%s}", usage.GetTaskId(), err)
+		log.Errorf("Failed to QueryTaskResuorceUsage on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}, err: {%s}",
+			usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port, err)
 		return err
 	}
 
 	var needSeedUsage bool
 	// add
-	if oldusage == nil {
-		oldusage = usage
-		err = s.carrier.carrierDB.StoreTaskResuorceUsage(oldusage)
+	if oldUsage == nil {
+		oldUsage = usage
+		err = s.carrier.carrierDB.StoreTaskResuorceUsage(oldUsage)
 		needSeedUsage = true
 	} else {
 		// update
-		if usage.GetUsedMem() > oldusage.GetUsedMem() {
-			oldusage.SetUsedMem(usage.GetUsedMem())
+		if usage.GetUsedMem() > oldUsage.GetUsedMem() {
+			oldUsage.SetUsedMem(usage.GetUsedMem())
 			needSeedUsage = true
 		}
-		if usage.GetUsedProcessor() > oldusage.GetUsedProcessor() {
-			oldusage.SetUsedProcessor(usage.GetUsedProcessor())
+		if usage.GetUsedProcessor() > oldUsage.GetUsedProcessor() {
+			oldUsage.SetUsedProcessor(usage.GetUsedProcessor())
 			needSeedUsage = true
 		}
-		if usage.GetUsedBandwidth() > oldusage.GetUsedBandwidth() {
-			oldusage.SetUsedBandwidth(usage.GetUsedBandwidth())
+		if usage.GetUsedBandwidth() > oldUsage.GetUsedBandwidth() {
+			oldUsage.SetUsedBandwidth(usage.GetUsedBandwidth())
 			needSeedUsage = true
 		}
-		if usage.GetUsedDisk() > oldusage.GetUsedDisk() {
-			oldusage.SetUsedDisk(usage.GetUsedDisk())
+		if usage.GetUsedDisk() > oldUsage.GetUsedDisk() {
+			oldUsage.SetUsedDisk(usage.GetUsedDisk())
 			needSeedUsage = true
 		}
 		if needSeedUsage {
-			err = s.carrier.carrierDB.StoreTaskResuorceUsage(oldusage)
+			err = s.carrier.carrierDB.StoreTaskResuorceUsage(oldUsage)
 		}
 	}
 
 	if nil != err {
-		log.Errorf("Failed to StoreTaskResuorceUsage on CarrierAPIBackend.ReportTaskResourceExpense(), taskId: {%s}, err: {%s}", usage.GetTaskId(), err)
+		log.Errorf("Failed to StoreTaskResuorceUsage on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}, err: {%s}",
+			usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port, err)
 		return err
+	}
+
+	if needSeedUsage {
+		if err := s.carrier.TaskManager.SendTaskResourceUsage(oldUsage); nil != err {
+			log.Errorf("Failed to SendTaskResourceUsage on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}, err: {%s}",
+				usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port, err)
+			return err
+		}
 	}
 
 	return nil

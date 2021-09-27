@@ -519,16 +519,16 @@ func (dc *DataCenter) StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) err
 	return rawdb.StoreTaskResuorceUsage(dc.db, usage)
 }
 
-func (dc *DataCenter) QueryTaskResuorceUsage(taskId string) (*types.TaskResuorceUsage, error)  {
+func (dc *DataCenter) QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)  {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryTaskResuorceUsage(dc.db, taskId)
+	return rawdb.QueryTaskResuorceUsage(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) RemoveTaskResuorceUsage(taskId string) error {
+func (dc *DataCenter) RemoveTaskResuorceUsage(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveTaskResuorceUsage(dc.db, taskId)
+	return rawdb.RemoveTaskResuorceUsage(dc.db, taskId, partyId)
 }
 
 func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
