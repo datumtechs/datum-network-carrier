@@ -16,6 +16,8 @@ const (
 	TwoPcCommitMsgTopicFormat     = "/carrier/%x/commit_message"
 	// TaskResultMsgTopicFormat is the topic format for the task result message of the task manager.
 	TaskResultMsgTopicFormat = "/carrier/%x/task_result_message"
+	// TaskResourceUsageMsgTopicFormat is the topic format for the task resource usage message of the task manager.
+	TaskResourceUsageMsgTopicFormat = "/carrier/%x/task_resource_usage_message"
 
 	// AttestationSubnetTopicFormat is the topic format for the attestation subnet.
 	AttestationSubnetTopicFormat = "/carrier/%x/beacon_attestation_%d"

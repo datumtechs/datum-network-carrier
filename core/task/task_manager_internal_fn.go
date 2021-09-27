@@ -813,7 +813,8 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 
 	if !has {
 		log.Warnf("Warning not found local task executing status on `onTaskResultMsg`, taskId: {%s}", taskId)
-		return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResultMsgInvalid)
+		//return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResultMsgInvalid)
+		return nil
 	}
 	for _, event := range msg.TaskEventList {
 		if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
@@ -828,7 +829,28 @@ func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg
 	return nil
 }
 func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
+	msg := types.FetchTaskResourceUsageMsg(taskResourceUsageMsg)
 
+	log.Debugf("Received remote taskResourceUsageMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecute(msg.GetUsage().GetTaskId())
+	if nil != err {
+		log.Errorf("Failed to query local task executing status on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
+			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
+		return fmt.Errorf("query local task failed")
+	}
+
+	if !has {
+		log.Warnf("Warning not found local task executing status on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}",
+			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId())
+		//return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResultMsgInvalid)
+		return nil
+	}
+
+	if err := m.resourceMng.GetDB().StoreTaskResuorceUsage(msg.GetUsage()); nil != err {
+		log.Errorf("Failed to store task resource usage on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
+			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
+		return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResourceUsageMsgInvalid)
+	}
 	return nil
 }

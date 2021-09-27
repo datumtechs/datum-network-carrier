@@ -597,6 +597,11 @@ func (tru *TaskResuorceUsage) DecodeRLP(s *rlp.Stream) error {
 	return err
 }
 
+func (tru *TaskResuorceUsage) String() string {
+	return fmt.Sprintf(`{"taskId": %s, "partyId": %s, "totalMem": %d, "totalBandwidth": %d, "totalDisk": %d, "totalProcessor": %d, "usedMem": %d, "usedBandwidth": %d, "usedDisk": %d, "usedProcessor": %d}`,
+		tru.taskId, tru.partyId, tru.totalMem, tru.totalBandwidth, tru.totalDisk, tru.totalProcessor, tru.usedMem, tru.usedBandwidth, tru.usedDisk, tru.usedProcessor)
+}
+
 func (tru *TaskResuorceUsage) GetTaskId() string         { return tru.taskId }
 func (tru *TaskResuorceUsage) GetPartyId() string        { return tru.partyId }
 func (tru *TaskResuorceUsage) GetTotalMem() uint64       { return tru.totalMem }

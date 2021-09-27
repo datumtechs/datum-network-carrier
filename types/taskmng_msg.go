@@ -38,9 +38,39 @@ func FetchTaskResultMsg(msg *taskmngpb.TaskResultMsg) *TaskResultMsg {
 
 type TaskResourceUsageMsg struct {
 	MsgOption     *MsgOption
-	Usage 		  TaskResuorceUsage
+	Usage 		  *TaskResuorceUsage
 	CreateAt      uint64
 	Sign          []byte
 }
 
+
+func (msg *TaskResourceUsageMsg) String() string {
+	return fmt.Sprintf(`{"msgOption": %s, "usage": %s, "createAt": %d, "sign": %v}`,
+		msg.MsgOption.String(), msg.Usage.String(), msg.CreateAt, msg.Sign)
+}
+
+func (msg *TaskResourceUsageMsg) GetMsgOption ()  *MsgOption { return msg.MsgOption }
+func (msg *TaskResourceUsageMsg) GetUsage ()  *TaskResuorceUsage { return msg.Usage }
+func (msg *TaskResourceUsageMsg) GetCreateAt ()  uint64 { return msg.CreateAt }
+func (msg *TaskResourceUsageMsg) GetSign()  []byte { return msg.Sign }
+
+func FetchTaskResourceUsageMsg (msg *taskmngpb.TaskResourceUsageMsg) *TaskResourceUsageMsg {
+	return &TaskResourceUsageMsg{
+		MsgOption:  FetchMsgOption(msg.GetMsgOption()),
+		Usage: NewTaskResuorceUsage(
+			string(msg.GetTaskId()),
+			string(msg.GetMsgOption().GetSenderPartyId()),
+			msg.GetUsage().GetTotalMem(),
+			msg.GetUsage().GetTotalBandwidth(),
+			msg.GetUsage().GetTotalDisk(),
+			msg.GetUsage().GetUsedMem(),
+			msg.GetUsage().GetUsedBandwidth(),
+			msg.GetUsage().GetUsedDisk(),
+			uint32(msg.GetUsage().GetTotalProcessor()),
+			uint32(msg.GetUsage().GetUsedProcessor()),
+			),
+		CreateAt:      msg.CreateAt,
+		Sign:          msg.Sign,
+	}
+}
 
