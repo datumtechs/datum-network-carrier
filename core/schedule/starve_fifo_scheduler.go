@@ -267,7 +267,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		log.Debugf("Succeed powerSupplier jobNode on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, jobNode: %s",
 			task.GetTaskId(), jobNode.String())
 
-		if err := sche.resourceMng.LockLocalResourceWithTask(jobNode.Id, needSlotCount, task); nil != err {
+		if err := sche.resourceMng.LockLocalResourceWithTask(localPartyId, jobNode.Id, needSlotCount, task); nil != err {
 			log.Errorf("Failed to Lock LocalResource {%s} With GetTask {%s} on SchedulerStarveFIFO.ReplaySchedule(), err: {%s}",
 				jobNode.Id, task.GetTaskId(), err)
 

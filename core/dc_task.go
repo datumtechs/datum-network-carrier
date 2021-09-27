@@ -137,6 +137,24 @@ func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, e
 	return rawdb.QueryResourceTaskIds(dc.db, jobNodeId)
 }
 
+func (dc *DataCenter) IncreaseResourceTaskPartyIdCount (jobNodeId, taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.IncreaseResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
+}
+
+func (dc *DataCenter) DecreaseResourceTaskPartyIdCount (jobNodeId, taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.DecreaseResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
+}
+
+func (dc *DataCenter) QueryResourceTaskPartyIdCount (jobNodeId, taskId string) (uint32, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.QueryResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
+}
+
 // about task on datacenter
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	dc.serviceMu.Lock()

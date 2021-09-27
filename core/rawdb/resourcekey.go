@@ -10,26 +10,35 @@ var (
 	nodeResourceKeyPrefix = []byte("NodeResourceKeyPrefix:")
 	// key -> [jobNodeId, jobNodeId, ..., jobNodeId]
 	nodeResourceIdListKey = []byte("nodeResourceIdListKey")
+
 	// prefix + identityId -> RemoteResourceTable
 	orgResourceKeyPrefix = []byte("OrgResourceKeyPrefix:")
 	// key -> [identityId, identityId, ..., identityId]
 	orgResourceIdListKey = []byte("OrgResourceIdListKey")
+
 	// key -> SlotUnit
 	nodeResourceSlotUnitKey = []byte("nodeResourceSlotUnitKey")
-	// prefix + taskId -> LocalTaskPowerUsed
+
+	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKeyPrefix:")
-	// key -> [taskId, taskId, ..., taskId]
-	localTaskPowerUsedIdListKey = []byte("localTaskPowerUsedIdListKey")
+	//// key -> [taskId, taskId, ..., taskId]
+	//localTaskPowerUsedIdListKey = []byte("localTaskPowerUsedIdListKey")
+
 	// prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
 	dataResourceTableKeyPrefix = []byte("dataResourceTableKeyPrefix:")
 	// key -> [dataNodeId, dataNodeId, ..., dataNodeId]
 	dataResourceTableIdListKey = []byte("dataResourceTableIdListKey")
+
 	// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
 	dataResourceFileUploadKeyPrefix = []byte("dataResourceDataUsedKeyPrefix:")
 	// key -> [originId, originId, ..., originId]
 	dataResourceFileUploadIdListKey = []byte("dataResourceFileUploadIdListKey")
-	// prefix + jonNodeId -> [taskId, taskId, ..., taskId]
+
+	// prefix + jobNodeId -> [taskId, taskId, ..., taskId]
 	resourceTaskIdsKeyPrefix = []byte("resourceTaskIdsKeyPrefix:")
+	// prefix + jobNodeId + taskId -> n (n: partyId count)
+	resourceTaskPartyIdCountKeyPrefix = []byte("resourceTaskPartyIdCountKeyPrefix:")
+
 	// prefix + powerId -> jobNodeId
 	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
 	// prefix + metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
@@ -76,11 +85,16 @@ func GetNodeResourceSlotUnitKey() []byte {
 	return nodeResourceSlotUnitKey
 }
 
-func GetLocalTaskPowerUsedKey(taskId string) []byte {
-	return append(localTaskPowerUsedKeyPrefix, []byte(taskId)...)
+func GetLocalTaskPowerUsedKey(taskId, partyId string) []byte {
+	return append(append(localTaskPowerUsedKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
-func GetLocalTaskPowerUsedIdListKey() []byte {
-	return localTaskPowerUsedIdListKey
+
+func GetLocalTaskPowerUsedKeyPrefix() []byte {
+	return localTaskPowerUsedKeyPrefix
+}
+
+func GetLocalTaskPowerUsedKeyPrefixByTaskId(taskId string) []byte {
+	return append(localTaskPowerUsedKeyPrefix, []byte(taskId)...)
 }
 
 func GetDataResourceTableKey(dataNodeId string) []byte {
@@ -97,8 +111,12 @@ func GetDataResourceFileUploadIdListKey() []byte {
 	return dataResourceFileUploadIdListKey
 }
 
-func GetResourceTaskIdsKey(jonNodeId string) []byte {
-	return append(resourceTaskIdsKeyPrefix, []byte(jonNodeId)...)
+func GetResourceTaskIdsKey(jobNodeId string) []byte {
+	return append(resourceTaskIdsKeyPrefix, []byte(jobNodeId)...)
+}
+
+func GetResourceTaskPartyIdCountKey(jobNodeId, taskId string) []byte {
+	return append(append(resourceTaskPartyIdCountKeyPrefix, []byte(jobNodeId)...), []byte(taskId)...)
 }
 
 func GetResourcePowerIdMapingKey(powerId string) []byte {
@@ -200,4 +218,12 @@ func GetTaskResultFileMetadataIdKeyPrefix() []byte {
 
 func GetTaskResuorceUsageKey (taskId, partyId string) []byte {
 	return append(append(taskResuorceUsageKeyPrefix, []byte(taskId)...), []byte(partyId)...)
+}
+
+func GetTaskResuorceUsageKeyPrefix() []byte {
+	return taskResuorceUsageKeyPrefix
+}
+
+func GetTaskResuorceUsageKeyPrefixByTaskId(taskId string) []byte {
+	return append(taskResuorceUsageKeyPrefix, []byte(taskId)...)
 }

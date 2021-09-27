@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
@@ -808,7 +807,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 	has, err := m.resourceMng.GetDB().HasLocalTaskExecute(taskId)
 	if nil != err {
 		log.Errorf("Failed to query local task executing status on `onTaskResultMsg`, taskId: {%s}, err: {%s}", taskId, err)
-		return fmt.Errorf("query local task failed")
+		return fmt.Errorf("query local task executing status failed")
 	}
 
 	if !has {
@@ -828,8 +827,8 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
 	return nil
 }
-func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
-	msg := types.FetchTaskResourceUsageMsg(taskResourceUsageMsg)
+func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg) error {
+	msg := types.FetchTaskResourceUsageMsg(usageMsg)
 
 	log.Debugf("Received remote taskResourceUsageMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
@@ -837,7 +836,7 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *task
 	if nil != err {
 		log.Errorf("Failed to query local task executing status on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
 			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
-		return fmt.Errorf("query local task failed")
+		return fmt.Errorf("query local task executing status failed")
 	}
 
 	if !has {
@@ -847,10 +846,36 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *task
 		return nil
 	}
 
-	if err := m.resourceMng.GetDB().StoreTaskResuorceUsage(msg.GetUsage()); nil != err {
-		log.Errorf("Failed to store task resource usage on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
+	//if err := m.resourceMng.GetDB().StoreTaskResuorceUsage(msg.GetUsage()); nil != err {
+	//	log.Errorf("Failed to store task resource usage on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
+	//		msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
+	//	return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResourceUsageMsgInvalid)
+	//}
+
+	task, err := m.resourceMng.GetDB().GetLocalTask(msg.GetUsage().GetTaskId())
+	if nil != err {
+		log.Errorf("Failed to query local task info on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
 			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
-		return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResourceUsageMsgInvalid)
+		return fmt.Errorf("query local task failed")
 	}
+
+	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+
+		if msg.GetMsgOption().SenderPartyId == powerSupplier.GetOrganization().GetPartyId() &&
+			msg.GetMsgOption().Owner.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
+			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedMem = msg.GetUsage().GetUsedMem()
+			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedProcessor = msg.GetUsage().GetUsedProcessor()
+			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedBandwidth = msg.GetUsage().GetUsedBandwidth()
+			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedDisk = msg.GetUsage().GetUsedDisk()
+		}
+	}
+
+	err = m.resourceMng.GetDB().StoreLocalTask(task)
+	if nil != err {
+		log.Errorf("Failed to store local task info on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
+			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
+		return fmt.Errorf("store local task failed")
+	}
+
 	return nil
 }

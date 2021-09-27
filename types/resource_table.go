@@ -275,18 +275,21 @@ func (r *RemoteResourceTable) GetUsedBandwidth() uint64  { return r.used.bandwid
 // 本地任务所占用的 资源缓存
 type LocalTaskPowerUsed struct {
 	taskId    string
+	partyId   string
 	nodeId    string
 	slotCount uint64
 }
 type localTaskPowerUsedRlp struct {
 	TaskId    string
+	PartyId   string
 	NodeId    string
 	SlotCount uint64
 }
 
-func NewLocalTaskPowerUsed(taskId, nodeId string, slotCount uint64) *LocalTaskPowerUsed {
+func NewLocalTaskPowerUsed(taskId, partyId, nodeId string, slotCount uint64) *LocalTaskPowerUsed {
 	return &LocalTaskPowerUsed{
 		taskId:    taskId,
+		partyId:   partyId,
 		nodeId:    nodeId,
 		slotCount: slotCount,
 	}
@@ -296,6 +299,7 @@ func NewLocalTaskPowerUsed(taskId, nodeId string, slotCount uint64) *LocalTaskPo
 func (pcache *LocalTaskPowerUsed) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, localTaskPowerUsedRlp{
 		TaskId:    pcache.taskId,
+		PartyId:   pcache.partyId,
 		NodeId:    pcache.nodeId,
 		SlotCount: pcache.slotCount,
 	})
@@ -306,16 +310,17 @@ func (pcache *LocalTaskPowerUsed) DecodeRLP(s *rlp.Stream) error {
 	var dec localTaskPowerUsedRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		pcache.taskId, pcache.nodeId, pcache.slotCount = dec.TaskId, dec.NodeId, dec.SlotCount
+		pcache.taskId, pcache.partyId, pcache.nodeId, pcache.slotCount = dec.TaskId, dec.PartyId, dec.NodeId, dec.SlotCount
 	}
 	return err
 }
 func (pcache *LocalTaskPowerUsed) GetTaskId() string    { return pcache.taskId }
+func (pcache *LocalTaskPowerUsed) GetPartyId() string   { return pcache.partyId }
 func (pcache *LocalTaskPowerUsed) GetNodeId() string    { return pcache.nodeId }
 func (pcache *LocalTaskPowerUsed) GetSlotCount() uint64 { return pcache.slotCount }
 func (pcache *LocalTaskPowerUsed) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "nodeId": %s, "slotCount":, %d}`,
-		pcache.taskId, pcache.nodeId, pcache.slotCount)
+	return fmt.Sprintf(`{"taskId": %s, "partyId": %s, "nodeId": %s, "slotCount":, %d}`,
+		pcache.taskId, pcache.partyId, pcache.nodeId, pcache.slotCount)
 }
 
 type DataResourceTable struct {

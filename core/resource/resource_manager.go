@@ -187,15 +187,14 @@ func (m *Manager) refreshOrgResourceTable() error {
 	return nil
 }
 
-// TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
-func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint64, task *types.Task) error {
+func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotCount uint64, task *types.Task) error {
 
-	log.Infof("Start lock local resource with taskId {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), jobNodeId, needSlotCount)
+	log.Infof("Start lock local resource with taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
 
 	// Lock local resource (jobNode)
 	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {
-		log.Errorf("Failed to lock internal power resource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
-			task.GetTaskId(), jobNodeId, needSlotCount, err)
+		log.Errorf("Failed to lock internal power resource, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
+			task.GetTaskId(), partyId, jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to lock internal power resource, {%s}", err)
 	}
 
@@ -207,7 +206,7 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return fmt.Errorf("failed to store local taskId and jobNodeId index, {%s}", err)
 	}
-	if err := m.dataCenter.StoreLocalTaskPowerUsed(types.NewLocalTaskPowerUsed(task.GetTaskId(), jobNodeId, needSlotCount)); nil != err {
+	if err := m.dataCenter.StoreLocalTaskPowerUsed(types.NewLocalTaskPowerUsed(task.GetTaskId(), partyId, jobNodeId, needSlotCount)); nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.GetTaskId())
@@ -223,7 +222,7 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 		m.dataCenter.RemoveJobNodeRunningTaskId(jobNodeId, task.GetTaskId())
-		m.dataCenter.RemoveLocalTaskPowerUsed(task.GetTaskId())
+		m.dataCenter.RemoveLocalTaskPowerUsed(task.GetTaskId(), partyId)
 
 		log.Errorf("Failed to query local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
 			task.GetTaskId(), jobNodeId, needSlotCount, err)
@@ -260,7 +259,8 @@ func (m *Manager) LockLocalResourceWithTask(jobNodeId string, needSlotCount uint
 	return nil
 }
 
-// TODO 有变更 RegisterNode mem  processor bandwidth 的 接口咩 ？？？
+
+
 func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 
 	localTaskPowerUsed, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId)
@@ -298,6 +298,14 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 		return fmt.Errorf("failed to remove local taskId use jobNode slot, {%s}", err)
 	}
 
+	// 移除本地所有 该task 的 ResourceUsage
+	if err := m.dataCenter.RemoveTaskResuorceUsageByTaskId(taskId); nil != err {
+		log.Errorf("Failed to remove local task resourceUsage, taskId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
+			taskId, jobNodeId, freeSlotUnitCount, err)
+		return fmt.Errorf("failed to remove local taskId use jobNode slot, {%s}", err)
+	}
+
+
 	// 更新本地 resource 资源信息 [释放资源使用情况]
 	jobNodeResource, err := m.dataCenter.GetLocalResource(jobNodeId)
 	if nil != err {
@@ -312,7 +320,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId string) error {
 	usedBandwidth := m.slotUnit.Bandwidth * freeSlotUnitCount
 
 	jobNodeResource.GetData().UsedMem -= usedMem
-	jobNodeResource.GetData().UsedProcessor -= uint32(usedProcessor)
+	jobNodeResource.GetData().UsedProcessor -= usedProcessor
 	jobNodeResource.GetData().UsedBandwidth -= usedBandwidth
 
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {

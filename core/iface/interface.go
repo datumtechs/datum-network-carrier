@@ -43,17 +43,24 @@ type LocalStoreCarrierDB interface {
 	StoreNodeResourceSlotUnit(slot *types.Slot) error
 	RemoveNodeResourceSlotUnit() error
 	QueryNodeResourceSlotUnit() (*types.Slot, error)
-	// about TaskPowerUsed  (taskId -> {taskId, jobNodeId, slotCount})
+	// about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})
 	StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error
 	StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error
-	RemoveLocalTaskPowerUsed(taskId string) error
-	QueryLocalTaskPowerUsed(taskId string) (*types.LocalTaskPowerUsed, error)
+	RemoveLocalTaskPowerUsed(taskId, partyId string) error
+	RemoveLocalTaskPowerUsedByTaskId(taskId string) error
+	QueryLocalTaskPowerUsed(taskId, partyId string) (*types.LocalTaskPowerUsed, error)
+	QueryLocalTaskPowerUsedsByTaskId(taskId string) ([]*types.LocalTaskPowerUsed, error)
 	QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error)
-	// resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
+	// about resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
 	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
 	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
 	GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
 	GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
+	// about resource task party count (prefix + taskId -> n (n: partyId count))
+	IncreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
+	DecreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
+	QueryResourceTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
+
 	// about DataResourceTable (dataNodeId -> {dataNodeId, totalDisk, usedDisk})
 	StoreDataResourceTable(StoreDataResourceTables *types.DataResourceTable) error
 	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
@@ -75,35 +82,36 @@ type LocalStoreCarrierDB interface {
 	RemoveLocalTaskExecuteStatus(taskId string) error
 	HasLocalTaskExecute(taskId string) (bool, error)
 	// v2.0  about user metadataAuthUsed (userType + user -> metadataAuthId ...)
-	StoreUserMetadataAuthUsed (userType apicommonpb.UserType, user, metadataAuthId string)  error
-	QueryUserMetadataAuthUsedCount (userType apicommonpb.UserType, user string) (uint32, error)
-	QueryUserMetadataAuthUseds (userType apicommonpb.UserType, user string) ([]string, error)
-	RemoveAllUserMetadataAuthUsed (userType apicommonpb.UserType, user string) error
+	StoreUserMetadataAuthUsed(userType apicommonpb.UserType, user, metadataAuthId string) error
+	QueryUserMetadataAuthUsedCount(userType apicommonpb.UserType, user string) (uint32, error)
+	QueryUserMetadataAuthUseds(userType apicommonpb.UserType, user string) ([]string, error)
+	RemoveAllUserMetadataAuthUsed(userType apicommonpb.UserType, user string) error
 	// v 2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
-	StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error
-	QueryUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (string, error)
-	HasUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) (bool, error)
-	RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error
+	StoreUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error
+	QueryUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (string, error)
+	HasUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (bool, error)
+	RemoveUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) error
 	// v 2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
-	StoreMetadataUsedTaskId (metadataId, taskId string)  error
-	QueryMetadataUsedTaskIdCount (metadataId string) (uint32, error)
-	QueryMetadataUsedTaskIds (metadataId string) ([]string, error)
-	RemoveAllMetadataUsedTaskId (metadataId string) error
+	StoreMetadataUsedTaskId(metadataId, taskId string) error
+	QueryMetadataUsedTaskIdCount(metadataId string) (uint32, error)
+	QueryMetadataUsedTaskIds(metadataId string) ([]string, error)
+	RemoveAllMetadataUsedTaskId(metadataId string) error
 	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
-	StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error
-	QueryTaskUpResultFile(taskId string)  (*types.TaskUpResultFile, error)
-	QueryTaskUpResultFileList () ([]*types.TaskUpResultFile, error)
+	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
+	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
+	QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error
 	// V 2.0 about task used resource  (taskId -> resourceUsed)
 	StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error
 	QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)
 	RemoveTaskResuorceUsage(taskId, partyId string) error
+	RemoveTaskResuorceUsageByTaskId(taskId string) error
 	// v 2.0 about Message Cache
 	StoreMessageCache(value interface{})
-	QueryPowerMsgArr()(types.PowerMsgArr,error)
-	QueryMetadataMsgArr() (types.MetadataMsgArr,error)
-	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr,error)
-	QueryTaskMsgArr()(types.TaskMsgArr,error)
+	QueryPowerMsgArr() (types.PowerMsgArr, error)
+	QueryMetadataMsgArr() (types.MetadataMsgArr, error)
+	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
+	QueryTaskMsgArr() (types.TaskMsgArr, error)
 }
 
 type MetadataCarrierDB interface {
@@ -138,10 +146,10 @@ type IdentityCarrierDB interface {
 	InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	//RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error
-	GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error)
-	GetMetadataAuthorityListByIds (metadataAuthIds []string) (types.MetadataAuthArray, error)
+	GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error)
+	GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error)
 	GetMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
-	GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string, lastUpdate uint64) (types.MetadataAuthArray, error)
+	GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string, lastUpdate uint64) (types.MetadataAuthArray, error)
 }
 
 type TaskCarrierDB interface {

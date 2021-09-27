@@ -204,16 +204,29 @@ func (dc *DataCenter) StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTask
 	return rawdb.StoreLocalTaskPowerUseds(dc.db, taskPowerUseds)
 }
 
-func (dc *DataCenter) RemoveLocalTaskPowerUsed(taskId string) error {
+func (dc *DataCenter) RemoveLocalTaskPowerUsed(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveLocalTaskPowerUsed(dc.db, taskId)
+	return rawdb.RemoveLocalTaskPowerUsed(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) QueryLocalTaskPowerUsed(taskId string) (*types.LocalTaskPowerUsed, error) {
+func (dc *DataCenter) RemoveLocalTaskPowerUsedByTaskId(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveLocalTaskPowerUsedByTaskId(dc.db, taskId)
+}
+
+func (dc *DataCenter) QueryLocalTaskPowerUsed(taskId, partyId string) (*types.LocalTaskPowerUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryLocalTaskPowerUsed(dc.db, taskId)
+	return rawdb.QueryLocalTaskPowerUsed(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) QueryLocalTaskPowerUsedsByTaskId(taskId string) ([]*types.LocalTaskPowerUsed, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	res, _ := rawdb.QueryLocalTaskPowerUsedsByTaskId(dc.db, taskId)
+	return res, nil
 }
 
 func (dc *DataCenter) QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error) {
@@ -529,6 +542,12 @@ func (dc *DataCenter) RemoveTaskResuorceUsage(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveTaskResuorceUsage(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveTaskResuorceUsageByTaskId (taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskResuorceUsageByTaskId(dc.db, taskId)
 }
 
 func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
