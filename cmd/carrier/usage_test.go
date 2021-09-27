@@ -15,6 +15,13 @@ func TestAllFlagsExistInHelp(t *testing.T) {
 		helpFlags = append(helpFlags, group.Flags...)
 	}
 
+	appFlags = append(appFlags, rpcFlags...)
+	appFlags = append(appFlags, nodeFlags...)
+	appFlags = append(appFlags, p2pFlags...)
+	appFlags = append(appFlags, debugFlags...)
+	appFlags = append(appFlags, mockFlags...)
+	appFlags = append(appFlags, consensusFlags...)
+
 	for _, flag := range appFlags {
 		if !doesFlagExist(flag, helpFlags) {
 			t.Errorf("Flag %s does not exist in help/usage flags.", flag.Names()[0])

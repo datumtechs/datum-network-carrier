@@ -27,7 +27,6 @@ var (
 		flags.SetGCPercent,
 		flags.DeveloperFlag,
 		flags.TestnetFlag,
-		// todo: more flags could be define here.
 	}
 
 	nodeFlags = []cli.Flag{
@@ -94,10 +93,10 @@ var (
 	mockFlags = []cli.Flag{
 		flags.MockIdentityIdFileFlag,
 	}
+
 	consensusFlags = []cli.Flag{
 		flags.ConsensusStateStoreFlag,
 	}
-
 )
 
 func init() {
@@ -117,7 +116,7 @@ func main() {
 	// set action func.
 	app.Action = startNode
 	app.Version = common.Version()
-	app.Commands = []*cli.Command {
+	app.Commands = []*cli.Command{
 		dbcommand.Commands,
 	}
 	app.Flags = append(app.Flags, appFlags...)
