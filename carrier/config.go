@@ -17,6 +17,6 @@ type Config struct {
 	P2P       p2p.P2P
 
 	// Database options
-	DatabaseHandles    int  `toml:"-"`
-	DatabaseCache      int
+	DatabaseHandles int
+	DatabaseCache   int
 }
