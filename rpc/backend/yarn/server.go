@@ -5,6 +5,7 @@ import (
 )
 
 var (
+
 	ErrGetRegisteredPeers                                = &backend.RpcBizErr{Code: 14001, Msg: "Failed to get all registeredNodes"}
 	ErrSetSeedNodeInfo                                   = &backend.RpcBizErr{Code: 14002, Msg: "%s failed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}"}
 	ErrDeleteSeedNodeInfo                                = &backend.RpcBizErr{Code: 14003, Msg: "Failed to delete seed node info, seedNodeId: {%s}"}
@@ -40,6 +41,8 @@ var (
 	ErrGetDataNodeInfoForTaskResultFileSummary           = &backend.RpcBizErr{Code: 14033, Msg: "GetTaskResultFileSummary failed, call GetRegisterNode() failed, taskId: {%s}, dataNodeId: {%s}"}
 	ErrReqOriginIdForQueryFilePosition                   = &backend.RpcBizErr{Code: 14034, Msg: "Query File Position Request: Failed to get Origin id"}
 	ErrReqTaskIdForGetTaskResultFileSummary              = &backend.RpcBizErr{Code: 14035, Msg: "Get Task Result File Summary Request:Failed to task id"}
+	ErrReportTaskResourceExpense  						 = &backend.RpcBizErr{Code: 14036, Msg: "Failed to ReportTaskResourceExpense"}
+
 )
 
 type Server struct {

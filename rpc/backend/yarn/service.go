@@ -460,5 +460,36 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 }
 
 func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *emptypb.Empty) (*pb.GetTaskResultFileSummaryListResponse, error) {
-	return nil, nil
+	taskResultFileSummaryArr, err := svr.B.QueryTaskResultFileSummaryList()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-QueryTaskResultFileSummaryList")
+		return nil, ErrQueryTaskResultFileSummary
+	}
+
+	arr := make([]*pb.GetTaskResultFileSummaryResponse, 0)
+	for _, summary := range taskResultFileSummaryArr {
+		dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, summary.GetNodeId())
+		if nil != err {
+			log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-GetRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
+				summary.GetTaskId(), summary.GetNodeId())
+			continue
+		}
+		arr = append(arr, &pb.GetTaskResultFileSummaryResponse{
+			TaskId:     summary.GetTaskId(),
+			FileName:   summary.GetFileName(),
+			MetadataId: summary.GetMetadataId(),
+			OriginId:   summary.GetOriginId(),
+			FilePath:   summary.GetFilePath(),
+			Ip:         dataNode.GetInternalIp(),
+			Port:       dataNode.GetInternalPort(),
+		})
+	}
+
+	log.Debugf("RPC-API:GetTaskResultFileSummaryList Succeed, task result file summary list len: {%d}", len(arr))
+	return &pb.GetTaskResultFileSummaryListResponse{
+		Status: 0,
+		Msg: backend.OK,
+		MetadataList: arr,
+	}, nil
 }
+

@@ -19,7 +19,8 @@ type state struct {
 	confirmVotes map[common.Hash]*confirmVoteState
 	// cache
 	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo
-
+	//db
+	db 			*walDB
 	proposalsLock       sync.RWMutex
 	prepareVotesLock    sync.RWMutex
 	confirmVotesLock    sync.RWMutex
@@ -28,12 +29,13 @@ type state struct {
 	// TODO 有些缓存需要持久化
 }
 
-func newState() *state {
+func newState(ldb *walDB) *state {
 	return &state{
 		proposalSet:           make(map[common.Hash]*ctypes.ProposalState, 0),
 		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
 		proposalPeerInfoCache: make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
+		db:					   ldb,
 	}
 }
 func recoveryState(
@@ -41,12 +43,14 @@ func recoveryState(
 	prepareVotes map[common.Hash]*prepareVoteState,
 	confirmVotes map[common.Hash]*confirmVoteState,
 	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo,
+	ldb *walDB,
 ) *state {
 	return &state{
 		proposalSet:           proposalSet,
 		prepareVotes:          prepareVotes,
 		confirmVotes:          confirmVotes,
 		proposalPeerInfoCache: proposalPeerInfoCache,
+		db:                    ldb,
 	}
 }
 func (s *state) IsEmpty() bool    { return nil == s }
@@ -156,7 +160,7 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 		pvs = newPrepareVoteState()
 	}
 	pvs.addVote(vote)
-	UpdatePrepareVotes(vote)
+	s.db.UpdatePrepareVotes(vote)
 	s.prepareVotes[vote.MsgOption.ProposalId] = pvs
 	s.prepareVotesLock.Unlock()
 }
@@ -168,20 +172,18 @@ func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role a
 		return
 	}
 	pvs.removeVote(partyId, role)
-	DeleteState(GetPrepareVotesKey(proposalId,partyId))
+	s.db.DeleteState(s.db.GetPrepareVotesKey(proposalId,partyId))
 	if pvs.isNotEmptyVote() {
 		go func() {
 			for _, vote := range pvs.votes {
-				UpdatePrepareVotes(vote)
+				s.db.UpdatePrepareVotes(vote)
 			}
 		}()
 		s.prepareVotes[proposalId] = pvs
 	} else {
 		delete(s.prepareVotes, proposalId)
 		go func() {
-			for partyId, _ := range s.prepareVotes[proposalId].votes {
-				DeleteState(GetPrepareVotesKey(proposalId, partyId))
-			}
+			s.db.DeleteState(s.db.GetPrepareVotesKey(proposalId, ""))
 		}()
 	}
 	s.prepareVotesLock.Unlock()
@@ -307,7 +309,7 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	}
 	cvs.addVote(vote)
 	s.confirmVotes[vote.MsgOption.ProposalId] = cvs
-	UpdateConfirmVotes(vote)
+	s.db.UpdateConfirmVotes(vote)
 	s.confirmVotesLock.Unlock()
 }
 
@@ -318,20 +320,18 @@ func (s *state) RemoveConfirmVote(proposalId common.Hash, partyId string, role a
 		return
 	}
 	cvs.removeVote(partyId, role)
-	DeleteState(GetConfirmVotesKey(proposalId,partyId))
+	s.db.DeleteState(s.db.GetConfirmVotesKey(proposalId,partyId))
 	if cvs.isNotEmptyVote() {
 		go func() {
 			for _, vote := range cvs.votes {
-				UpdateConfirmVotes(vote)
+				s.db.UpdateConfirmVotes(vote)
 			}
 		}()
 		s.confirmVotes[proposalId] = cvs
 	} else {
 		delete(s.confirmVotes, proposalId)
 		go func() {
-			for partyId,_:=range s.confirmVotes[proposalId].votes{
-				DeleteState(GetConfirmVotesKey(proposalId,partyId))
-			}
+			s.db.DeleteState(s.db.GetConfirmVotesKey(proposalId,""))
 		}()
 	}
 	s.confirmVotesLock.Unlock()
@@ -650,7 +650,7 @@ func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopc
 	_, ok := s.proposalPeerInfoCache[proposalId]
 	if !ok {
 		s.proposalPeerInfoCache[proposalId] = peerDesc
-		UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
+		s.db.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
 	}
 	s.confirmPeerInfoLock.Unlock()
 }
@@ -677,6 +677,6 @@ func (s *state) MustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.Conf
 func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 	s.confirmPeerInfoLock.Lock()
 	delete(s.proposalPeerInfoCache, proposalId)
-	DeleteState(GetProposalPeerInfoCacheKey(proposalId))
+	s.db.DeleteState(s.db.GetProposalPeerInfoCacheKey(proposalId))
 	s.confirmPeerInfoLock.Unlock()
 }

@@ -30,7 +30,7 @@ func NewResourceManager(dataCenter core.CarrierDB, mockIdentityIdsFile string) *
 	m := &Manager{
 		dataCenter: dataCenter,
 		remoteTableQueue:    make([]*types.RemoteResourceTable, 0),
-		slotUnit:            types.DefaultSlotUnit, // TODO for test
+		slotUnit:            types.DefaultSlotUnit,
 		mockIdentityIdsFile: mockIdentityIdsFile,   //TODO for test
 		mockIdentityIdsCache: make(map[string]struct{}, 0),
 	}
@@ -65,7 +65,7 @@ func (m *Manager) Start() error {
 	}
 	// load remote org resource Tables
 	remoteResources, err := m.dataCenter.QueryOrgResourceTables()
-	if nil != err && err != rawdb.ErrNotFound {
+	if  rawdb.IsNoDBNotFoundErr(err) {
 		return err
 	}
 	if len(remoteResources) != 0 {
@@ -90,7 +90,6 @@ func (m *Manager) Start() error {
 	}
 
 
-
 	go m.loop()
 	log.Info("Started resourceManager ...")
 	return nil
@@ -110,17 +109,11 @@ func (m *Manager) Stop() error {
 }
 
 func (m *Manager) SetSlotUnit(mem, b uint64, p uint32) {
-	//m.slotUnit = &types.Slot{
-	//	Mem:       mem,
-	//	Processor: p,
-	//	Bandwidth: b,
-	//}
-	m.slotUnit = types.DefaultSlotUnit // TODO for test
-	//if len(m.localTables) != 0 {
-	//	for _, re := range m.localTables {
-	//		re.SetSlotUnit(m.slotUnit)
-	//	}
-	//}
+	m.slotUnit = &types.Slot{
+		Mem:       mem,
+		Processor: p,
+		Bandwidth: b,
+	}
 }
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
 
@@ -129,9 +122,6 @@ func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
 	if nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
-	//if table.RemianSlot() < slotCount {
-	//	return fmt.Errorf("Insufficient slotRemain {%s} less than need lock count {%s} slots of node: %s", table.RemianSlot(),slotCount , nodeId)
-	//}
 	if err := table.UseSlot(slotCount); nil != err {
 		return err
 	}

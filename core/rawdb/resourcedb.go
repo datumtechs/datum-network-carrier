@@ -1175,42 +1175,6 @@ func QueryLocalResourceIdByPowerId(db DatabaseReader, powerId string) (string, e
 	return resourceId, nil
 }
 
-
-//func StoreLocalResourceIdByMetadataId(db DatabaseWriter, metaDataId, resourceId string) error {
-//	key := GetResourceMetadataIdMapingKey(metaDataId)
-//	index, err := rlp.EncodeToBytes(resourceId)
-//	if nil != err {
-//		return err
-//	}
-//	return db.Put(key, index)
-//}
-//
-//func RemoveLocalResourceIdByMetadataId(db DatabaseDeleter, metaDataId string) error {
-//	key := GetResourceMetadataIdMapingKey(metaDataId)
-//	return db.Delete(key)
-//}
-//
-//func QueryLocalResourceIdByMetadataId(db DatabaseReader, metaDataId string) (string, error) {
-//	key := GetResourceMetadataIdMapingKey(metaDataId)
-//	has, err := db.Has(key)
-//	if IsNoDBNotFoundErr(err) {
-//		return "", err
-//	}
-//
-//	if !has {
-//		return "", ErrNotFound
-//	}
-//	idsByte, err := db.Get(key)
-//	if nil != err {
-//		return "", err
-//	}
-//	var resourceId string
-//	if err := rlp.DecodeBytes(idsByte, &resourceId); nil != err {
-//		return "", err
-//	}
-//	return resourceId, nil
-//}
-
 func StoreDataResourceDiskUsed(db DatabaseWriter, dataResourceDiskUsed *types.DataResourceDiskUsed) error {
 	key := GetDataResourceDiskUsedKey(dataResourceDiskUsed.GetMetadataId())
 	val, err := rlp.EncodeToBytes(dataResourceDiskUsed)
@@ -1529,6 +1493,30 @@ func QueryTaskUpResultFile (db DatabaseReader, taskId string)  (*types.TaskUpRes
 	return &taskUpResultFile, nil
 }
 
+func QueryTaskUpResultFileList (db DatabaseIteratee) ([]*types.TaskUpResultFile, error) {
+
+	it := db.NewIteratorWithPrefixAndStart(GetTaskResultFileMetadataIdKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make([]*types.TaskUpResultFile, 0)
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			var taskUpResultFile types.TaskUpResultFile
+			if err := rlp.DecodeBytes(it.Value(), &taskUpResultFile); nil != err {
+				log.Errorf("Failed to call QueryAllTaskUpResultFile, decode db val failed, err: {%s}", err)
+				continue
+			}
+			arr = append(arr, &taskUpResultFile)
+		}
+	}
+
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return arr, nil
+}
+
 func RemoveTaskUpResultFile (db KeyValueStore, taskId string) error {
 	key := GetTaskResultFileMetadataIdKey(taskId)
 
@@ -1540,4 +1528,144 @@ func RemoveTaskUpResultFile (db KeyValueStore, taskId string) error {
 		return nil
 	}
 	return db.Delete(key)
+}
+
+
+
+func StoreTaskResuorceUsage (db DatabaseWriter, taskId string, tru *types.TaskResuorceUsage) error {
+	key := GetTaskResuorceUsageKey(taskId)
+	val, err := rlp.EncodeToBytes(tru)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func QueryTaskResuorceUsage (db DatabaseReader, taskId string) (*types.TaskResuorceUsage, error) {
+	key := GetTaskResuorceUsageKey(taskId)
+
+	vb, err := db.Get(key)
+	if nil != err {
+		return nil, err
+	}
+	var taskResuorceUsage types.TaskResuorceUsage
+	if err = rlp.DecodeBytes(vb, &taskResuorceUsage); nil != err {
+		return nil, err
+	}
+	return &taskResuorceUsage, nil
+}
+
+func RemoveTaskResuorceUsage (db KeyValueStore, taskId string) error {
+	key := GetTaskResuorceUsageKey(taskId)
+
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+func StoreMessageCache(db KeyValueStore, value interface{}){
+	byteArray, _ := rlp.EncodeToBytes(value)
+	key:=""
+	switch value.(type) {
+	case types.PowerMsgArr:
+		key="PowerMsgArr"
+	case types.MetadataMsgArr:
+		key="MetadataMsgArr"
+	case types.MetadataAuthorityMsgArr:
+		key="MetadataAuthorityMsgArr"
+	case types.TaskMsgArr:
+		key="TaskMsgArr"
+	}
+	if err := db.Put([]byte(key), byteArray); err != nil {
+		log.Warning("StoreMessageCache fail,key is:",key)
+	}
+}
+
+func QueryPowerMsgArr(db KeyValueStore) (types.PowerMsgArr, error) {
+	key := []byte("PowerMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.PowerMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
+	key := []byte("MetadataMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.MetadataMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func QueryMetadataAuthorityMsgArr(db KeyValueStore) (types.MetadataAuthorityMsgArr, error)  {
+	key := []byte("MetadataAuthorityMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.MetadataAuthorityMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
+}
+
+func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
+	key := []byte("TaskMsgArr")
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+	var result types.TaskMsgArr
+	if !has {
+		return nil, ErrNotFound
+	} else {
+		byteArray, er := db.Get(key)
+		if nil != er {
+			return nil, er
+		}
+		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
+			return nil, err
+		}
+	}
+	return result, nil
 }

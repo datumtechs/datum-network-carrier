@@ -83,7 +83,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		ExternalIp:   "", //
 		InternalPort: "", //
 		ExternalPort: "", //
-		IdentityType: types.IDENTITY_TYPE_DID, // 默认先是 DID
+		IdentityType: types.IDENTITY_TYPE_DID, // default: DID
 		IdentityId: identityId,
 		Name:       nodeName,
 		Peers:      registerNodes,
@@ -181,8 +181,12 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
-		// add data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
+		dataNodeStatus, err := client.GetStatus()
+		if err != nil {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+		}
+		// add data resource  (disk)
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
@@ -258,7 +262,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 			s.carrier.resourceClientSet.RemoveDataNodeClient(node.Id)
 		}
 
-		// remove old data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
+		// remove old data resource  (disk)
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.Id); rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("remove disk summary of old dataNode, %s", err)
 		}
@@ -269,12 +273,15 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
-		// add new data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
+		dataNodeStatus, err := client.GetStatus()
+		if err != nil {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+		}
+		// add new data resource  (disk)
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
-
 	}
 
 	// remove  old jobNode from db
@@ -342,7 +349,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 			client.Close()
 			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
 		}
-		// remove data resource  (disk)  todo 后续 需要根据 真实的 dataNode 上报自身的 disk 信息
+		// remove data resource  (disk)
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("remove disk summary of old registerNode, %s", err)
 		}
@@ -398,6 +405,15 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
+
+func (s *CarrierAPIBackend) ReportTaskResourceExpense(nodeType pb.NodeType, taskId, ip, port string, usage *libtypes.ResourceUsageOverview) error {
+
+
+
+
+	return nil
+}
+
 
 // metadata api
 
@@ -551,7 +567,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Invoke:GetSelfPowerDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
+	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
 		slotUnit.String())
 
 	// 收集 本地所有的 jonNode 上的 powerUsed 数组
@@ -915,17 +931,17 @@ func (s *CarrierAPIBackend) QueryDataResourceFileUploads() ([]*types.DataResourc
 	return s.carrier.carrierDB.QueryDataResourceFileUploads()
 }
 
-//func (s *CarrierAPIBackend) StoreTaskUpResultFile(taskId, metadataId string) error {
-//	return s.carrier.carrierDB.StoreTaskUpResultFile(taskId, metadataId)
-//}
-//
-//func (s *CarrierAPIBackend) QueryTaskUpResultFile(taskId string) (string, error) {
-//	return s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
-//}
-//
-//func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
-//	return s.carrier.carrierDB.RemoveTaskUpResultFile(taskId)
-//}
+func (s *CarrierAPIBackend) StoreTaskUpResultFile(turf *types.TaskUpResultFile) error {
+	return s.carrier.carrierDB.StoreTaskUpResultFile(turf)
+}
+
+func (s *CarrierAPIBackend) QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error) {
+	return s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
+}
+
+func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
+	return s.carrier.carrierDB.RemoveTaskUpResultFile(taskId)
+}
 
 
 func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error {
@@ -951,10 +967,10 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 		NodeName:        identity.GetNodeName(),
 		DataId:          metadataId,
 		OriginId:        originId,
-		TableName:       "task `" + taskId+"` result file",
+		TableName:       fmt.Sprintf("task `%s` result file", taskId),
 		FilePath:        filePath,
 		FileType:        apicommonpb.OriginFileType_FileType_Unknown,
-		Desc:            "the task `" + taskId+"` result file after executed",
+		Desc:            fmt.Sprintf("the task `%s` result file after executed", taskId),
 		Rows:            0,
 		Columns:         0,
 		Size_:           0,
@@ -1019,7 +1035,39 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary (taskId string) (*types.T
 
 }
 
-func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList () (*types.TaskResultFileSummaryArr, error) {
-	return nil, nil
+func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList () (types.TaskResultFileSummaryArr, error) {
+	taskResultFileSummaryArr, err := s.carrier.carrierDB.QueryTaskUpResultFileList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.Errorf("Failed query all taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummaryList(), err: {%s}", err)
+		return nil, err
+	}
+
+	arr := make(types.TaskResultFileSummaryArr, 0)
+	for _, summarry := range taskResultFileSummaryArr {
+		dataResourceFileUpload, err := s.carrier.carrierDB.QueryDataResourceFileUpload(summarry.GetOriginId())
+		if nil != err {
+			log.Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, err: {%s}",
+				summarry.GetTaskId(), summarry.GetOriginId(), err)
+			continue
+		}
+
+		localMetadata, err := s.carrier.carrierDB.GetLocalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
+		if nil != err {
+			log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
+				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)
+			continue
+		}
+
+		arr = append(arr, types.NewTaskResultFileSummary(
+			summarry.GetTaskId(),
+			localMetadata.GetData().GetTableName(),
+			dataResourceFileUpload.GetMetadataId(),
+			dataResourceFileUpload.GetOriginId(),
+			dataResourceFileUpload.GetFilePath(),
+			dataResourceFileUpload.GetNodeId(),
+		))
+	}
+
+	return arr, nil
 }
 

@@ -129,6 +129,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		}
 
 		selectedColumns := make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetSelectedColumns()))
+
 		for j, colIndex := range v.GetMetadataInfo().GetSelectedColumns() {
 			if col, ok := colTmp[colIndex]; ok {
 				selectedColumns[j] = col

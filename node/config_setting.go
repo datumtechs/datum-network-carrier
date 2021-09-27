@@ -17,6 +17,7 @@ type carrierConfig struct {
 	Node    Config
 	// more config modules
 	MockIdeneityIdsFile string
+	ConsensusStateFile string
 }
 
 func makeConfig(cliCtx *cli.Context) carrierConfig {
@@ -25,6 +26,7 @@ func makeConfig(cliCtx *cli.Context) carrierConfig {
 		Carrier:             carrier.DefaultConfig,
 		Node:                defaultNodeConfig(),
 		MockIdeneityIdsFile: cliCtx.String(flags.MockIdentityIdFileFlag.Name),
+		ConsensusStateFile:  cliCtx.String(flags.ConsensusStateStoreFlag.Name),
 	}
 
 	// todo: file conf load for config.

@@ -52,8 +52,11 @@ var (
 	// prefix + taskId -> n todo maybe support multi-result file about a taskId
 	// prefix + taskId + n -> resultfile summary (auto build metadataId)
 
-	// taskId -> resultfile summary (auto build metadataId)
+	// prefix + taskId -> resultfile summary (auto build metadataId)
 	taskResultFileMetadataIdKeyPrefix = []byte("taskResultFileMetadataIdKeyPrefix:")
+	// prefix + taskId -> resourceUsed (totalProccesor, usedProccesor, totalMemory, usedMemory, totalBandwidth, usedBandwidth, totalDisk, usedDisk)
+	taskResuorceUsageKeyPrefix = []byte("taskResuorceUsageKeyPrefix:")
+
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -101,10 +104,6 @@ func GetResourceTaskIdsKey(jonNodeId string) []byte {
 func GetResourcePowerIdMapingKey(powerId string) []byte {
 	return append(resourcePowerIdMapingKeyPrefix, []byte(powerId)...)
 }
-
-//func GetResourceMetadataIdMapingKey(powerId string) []byte {
-//	return append(resourceMetadataIdMapingKeyPrefix, []byte(powerId)...)
-//}
 
 func GetDataResourceDiskUsedKey(metaDataId string) []byte {
 	return append(dataResourceDiskUsedKeyPrefix, []byte(metaDataId)...)
@@ -193,4 +192,12 @@ func GetMetadataUsedTaskIdKey(metadataId string, n uint32) []byte {
 
 func GetTaskResultFileMetadataIdKey(taskId string) []byte {
 	return append(taskResultFileMetadataIdKeyPrefix, []byte(taskId)...)
+}
+
+func GetTaskResultFileMetadataIdKeyPrefix() []byte {
+	return taskResultFileMetadataIdKeyPrefix
+}
+
+func GetTaskResuorceUsageKey (taskId string) []byte {
+	return append(taskResuorceUsageKeyPrefix, []byte(taskId)...)
 }

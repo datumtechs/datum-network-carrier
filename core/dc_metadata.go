@@ -78,20 +78,3 @@ func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
 
-
-
-//func (dc *DataCenter)  StoreLocalResourceIdByMetadataId(metaDataId, dataNodeId string) error {
-//	dc.mu.RLock()
-//	defer dc.mu.RUnlock()
-//	return rawdb.StoreLocalResourceIdByMetadataId(dc.db, metaDataId, dataNodeId)
-//}
-//func (dc *DataCenter)  RemoveLocalResourceIdByMetadataId(metaDataId string) error {
-//	dc.mu.RLock()
-//	defer dc.mu.RUnlock()
-//	return rawdb.RemoveLocalResourceIdByMetadataId(dc.db, metaDataId)
-//}
-//func (dc *DataCenter)  QueryLocalResourceIdByMetadataId(metaDataId string) (string, error) {
-//	dc.mu.RLock()
-//	defer dc.mu.RUnlock()
-//	return rawdb.QueryLocalResourceIdByMetadataId(dc.db, metaDataId)
-//}

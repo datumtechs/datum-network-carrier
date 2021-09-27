@@ -282,6 +282,19 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
+func (m *Manager) storeMockTask(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
+	task.GetTaskData().TaskEvents = events
+	task.GetTaskData().EventCount = uint32(len(events))
+	task.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
+	task.GetTaskData().Reason = reason
+	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
+
+	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())
+	m.resourceMng.GetDB().RemoveTaskEventList(task.GetTaskId())
+
+	return m.resourceMng.GetDB().InsertTask(task)
+}
+
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libtypes.TaskEvent, state apicommonpb.TaskState) *types.Task {
 	task.GetTaskData().TaskEvents = eventList
 	task.GetTaskData().EventCount = uint32(len(eventList))
@@ -576,7 +589,7 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 
 			log.Debugf("Start handleTaskEvent, `event is the end`, current partyId: {%s}, event: %s", partyId, event.String())
 
-			// 先 缓存下 最终休止符 event
+			// store EOF event first
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "", apicommonpb.TaskState_TaskState_Failed)

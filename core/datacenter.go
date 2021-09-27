@@ -501,10 +501,34 @@ func (dc *DataCenter) QueryTaskUpResultFile(taskId string)  (*types.TaskUpResult
 	return rawdb.QueryTaskUpResultFile(dc.db, taskId)
 }
 
-func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
+func (dc *DataCenter) QueryTaskUpResultFileList () ([]*types.TaskUpResultFile, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskUpResultFileList(dc.db)
+}
+
+func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	return rawdb.RemoveTaskUpResultFile(dc.db, taskId)
+}
+
+func (dc *DataCenter) StoreTaskResuorceUsage(taskId string, tru *types.TaskResuorceUsage) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskResuorceUsage(dc.db, taskId, tru)
+}
+
+func (dc *DataCenter) QueryTaskResuorceUsage(taskId string) (*types.TaskResuorceUsage, error)  {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskResuorceUsage(dc.db, taskId)
+}
+
+func (dc *DataCenter) RemoveTaskResuorceUsage(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskResuorceUsage(dc.db, taskId)
 }
 
 func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
@@ -533,6 +557,27 @@ func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
 	rawdb.DeleteTaskEvent(dc.db, taskId)
 	log.Debugf("Remove task eventList, taskId: {%s}", taskId)
 	return nil
+}
+
+// about Message Cache
+func (dc *DataCenter) StoreMessageCache(value interface{}) {
+	rawdb.StoreMessageCache(dc.db, value)
+}
+
+func (dc *DataCenter) QueryPowerMsgArr() (types.PowerMsgArr,error) {
+	return rawdb.QueryPowerMsgArr(dc.db)
+}
+
+func (dc *DataCenter) QueryMetadataMsgArr() (types.MetadataMsgArr,error) {
+	return rawdb.QueryMetadataMsgArr(dc.db)
+}
+
+func (dc *DataCenter) QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr,error) {
+	return rawdb.QueryMetadataAuthorityMsgArr(dc.db)
+}
+
+func (dc *DataCenter) QueryTaskMsgArr()(types.TaskMsgArr,error)  {
+	return rawdb.QueryTaskMsgArr(dc.db)
 }
 
 // ****************************************************************************************************************

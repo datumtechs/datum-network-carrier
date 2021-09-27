@@ -53,9 +53,18 @@ message UploadShardReply {
 }
 
 message GetStatusReply {
-  string cpu = 1;
-  string mem = 2;
-  string bandwidth = 3;
+  uint32 total_cpu = 1;
+  uint32 used_cpu = 2;
+  uint32 idle_cpu = 3;
+  uint64 total_memory = 4;
+  uint64 used_memory = 5;
+  uint64 idle_memory = 6;
+  uint64 total_disk = 7;
+  uint64 used_disk = 8;
+  uint64 idle_disk = 9;
+  uint64 total_bandwidth = 10;
+  uint64 used_bandwidth = 11;
+  uint64 idle_bandwidth = 12;
 }
 
 message GetTaskDetailsReq {
