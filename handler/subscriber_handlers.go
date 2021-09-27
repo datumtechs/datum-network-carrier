@@ -111,7 +111,7 @@ func (s *Service) commitMessageSubscriber(ctx context.Context, pid peer.ID, msg 
 func (s *Service) taskResultMessageSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
 	m, ok := msg.(*taskmngpb.TaskResultMsg)
 	if !ok {
-		return fmt.Errorf("wrong type, expected: *twopcpb.TaskResultMsg got: %T", msg)
+		return fmt.Errorf("wrong type, expected: *taskmngpb.TaskResultMsg got: %T", msg)
 	}
 
 	s.setTaskResultMsgSeen(m.MsgOption.ProposalId)
@@ -119,6 +119,22 @@ func (s *Service) taskResultMessageSubscriber(ctx context.Context, pid peer.ID, 
 	// handle TaskResultMsg
 	if err := s.onTaskResultMsg(pid, m); err != nil {
 		log.WithError(err).Warnf("Warning to call `onTaskResultMsg`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
+		return err
+	}
+	return nil
+}
+
+func (s *Service) taskResourceUsageMessageSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
+	m, ok := msg.(*taskmngpb.TaskResourceUsageMsg)
+	if !ok {
+		return fmt.Errorf("wrong type, expected: *taskmngpb.TaskResourceUsageMsg got: %T", msg)
+	}
+
+	s.setTaskResourceUsageMsgSeen(m.MsgOption.ProposalId)
+
+	// handle TaskResourceUsageMsg
+	if err := s.onTaskResourceUsageMsg(pid, m); err != nil {
+		log.WithError(err).Warnf("Warning to call `onTaskResourceUsageMsg`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
 		return err
 	}
 	return nil

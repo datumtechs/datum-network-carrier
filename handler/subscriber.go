@@ -70,8 +70,8 @@ func (s *Service) registerSubscribers() {
 	)
 	s.subscribe(
 		p2p.TaskResourceUsageMsgTopicFormat,
-		s.validateTaskResultMessagePubSub,
-		s.taskResultMessageSubscriber,
+		s.validateTaskResourceUsageMessagePubSub,
+		s.taskResourceUsageMessageSubscriber,
 	)
 }
 

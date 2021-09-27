@@ -31,6 +31,7 @@ const seenConfirmMsgSize = 1000
 const seenConfirmVoteSize = 1000
 const seenCommitMsgSize = 1000
 const seenTaskResultMsgSize = 1000
+const seenTaskResourceUsageMsgSize = 1000
 const seenGossipTestDataSize = 100
 const seenProposerSlashingSize = 100
 const badBlockSize = 1000
@@ -61,19 +62,21 @@ type Service struct {
 	badBlockCache       *lru.Cache
 	badBlockLock        sync.RWMutex
 	// Consensus-related
-	seenPrepareMsgLock     sync.RWMutex
-	seenPrepareMsgCache    *lru.Cache
-	seenPrepareVoteLock    sync.RWMutex
-	seenPrepareVoteCache   *lru.Cache
-	seenConfirmMsgLock     sync.RWMutex
-	seenConfirmMsgCache    *lru.Cache
-	seenConfirmVoteLock    sync.RWMutex
-	seenConfirmVoteCache   *lru.Cache
-	seenCommitMsgLock      sync.RWMutex
-	seenCommitMsgCache     *lru.Cache
-	seenTaskResultMsgLock  sync.RWMutex
-	seenTaskResultMsgCache *lru.Cache
-	chainStarted           *abool.AtomicBool
+	seenPrepareMsgLock            sync.RWMutex
+	seenPrepareMsgCache           *lru.Cache
+	seenPrepareVoteLock           sync.RWMutex
+	seenPrepareVoteCache          *lru.Cache
+	seenConfirmMsgLock            sync.RWMutex
+	seenConfirmMsgCache           *lru.Cache
+	seenConfirmVoteLock           sync.RWMutex
+	seenConfirmVoteCache          *lru.Cache
+	seenCommitMsgLock             sync.RWMutex
+	seenCommitMsgCache            *lru.Cache
+	seenTaskResultMsgLock         sync.RWMutex
+	seenTaskResultMsgCache        *lru.Cache
+	seenTaskResourceUsageMsgLock  sync.RWMutex
+	seenTaskResourceUsageMsgCache *lru.Cache
+	chainStarted                  *abool.AtomicBool
 }
 
 // NewService initializes new regular sync service.
@@ -185,6 +188,10 @@ func (s *Service) initCaches() error {
 	if err != nil {
 		return err
 	}
+	taskResourceUsageMsgCache, err := lru.New(seenTaskResourceUsageMsgSize)
+	if err != nil {
+		return err
+	}
 	s.seenGossipDataCache = gossipCache
 	s.seenPrepareMsgCache = prepareMsgCache
 	s.seenPrepareVoteCache = prepareVoteCache
@@ -192,6 +199,7 @@ func (s *Service) initCaches() error {
 	s.seenConfirmVoteCache = confirmVoteCache
 	s.seenCommitMsgCache = commitMsgCache
 	s.seenTaskResultMsgCache = taskResultMsgCache
+	s.seenTaskResourceUsageMsgCache = taskResourceUsageMsgCache
 	return nil
 }
 
