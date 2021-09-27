@@ -428,3 +428,117 @@ func (t *TaskOrganizationIdentityInfo) HashTreeRootWith(hh *ssz.Hasher) (err err
 	hh.Merkleize(indx)
 	return
 }
+
+// MarshalSSZ ssz marshals the ResourceUsage object
+func (r *ResourceUsage) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(r)
+}
+
+// MarshalSSZTo ssz marshals the ResourceUsage object to a target array
+func (r *ResourceUsage) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+
+	// Field (0) 'TotalMem'
+	dst = ssz.MarshalUint64(dst, r.TotalMem)
+
+	// Field (1) 'UsedMem'
+	dst = ssz.MarshalUint64(dst, r.UsedMem)
+
+	// Field (2) 'TotalProcessor'
+	dst = ssz.MarshalUint64(dst, r.TotalProcessor)
+
+	// Field (3) 'UsedProcessor'
+	dst = ssz.MarshalUint64(dst, r.UsedProcessor)
+
+	// Field (4) 'TotalBandwidth'
+	dst = ssz.MarshalUint64(dst, r.TotalBandwidth)
+
+	// Field (5) 'UsedBandwidth'
+	dst = ssz.MarshalUint64(dst, r.UsedBandwidth)
+
+	// Field (6) 'TotalDisk'
+	dst = ssz.MarshalUint64(dst, r.TotalDisk)
+
+	// Field (7) 'UsedDisk'
+	dst = ssz.MarshalUint64(dst, r.UsedDisk)
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the ResourceUsage object
+func (r *ResourceUsage) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size != 64 {
+		return ssz.ErrSize
+	}
+
+	// Field (0) 'TotalMem'
+	r.TotalMem = ssz.UnmarshallUint64(buf[0:8])
+
+	// Field (1) 'UsedMem'
+	r.UsedMem = ssz.UnmarshallUint64(buf[8:16])
+
+	// Field (2) 'TotalProcessor'
+	r.TotalProcessor = ssz.UnmarshallUint64(buf[16:24])
+
+	// Field (3) 'UsedProcessor'
+	r.UsedProcessor = ssz.UnmarshallUint64(buf[24:32])
+
+	// Field (4) 'TotalBandwidth'
+	r.TotalBandwidth = ssz.UnmarshallUint64(buf[32:40])
+
+	// Field (5) 'UsedBandwidth'
+	r.UsedBandwidth = ssz.UnmarshallUint64(buf[40:48])
+
+	// Field (6) 'TotalDisk'
+	r.TotalDisk = ssz.UnmarshallUint64(buf[48:56])
+
+	// Field (7) 'UsedDisk'
+	r.UsedDisk = ssz.UnmarshallUint64(buf[56:64])
+
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the ResourceUsage object
+func (r *ResourceUsage) SizeSSZ() (size int) {
+	size = 64
+	return
+}
+
+// HashTreeRoot ssz hashes the ResourceUsage object
+func (r *ResourceUsage) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(r)
+}
+
+// HashTreeRootWith ssz hashes the ResourceUsage object with a hasher
+func (r *ResourceUsage) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'TotalMem'
+	hh.PutUint64(r.TotalMem)
+
+	// Field (1) 'UsedMem'
+	hh.PutUint64(r.UsedMem)
+
+	// Field (2) 'TotalProcessor'
+	hh.PutUint64(r.TotalProcessor)
+
+	// Field (3) 'UsedProcessor'
+	hh.PutUint64(r.UsedProcessor)
+
+	// Field (4) 'TotalBandwidth'
+	hh.PutUint64(r.TotalBandwidth)
+
+	// Field (5) 'UsedBandwidth'
+	hh.PutUint64(r.UsedBandwidth)
+
+	// Field (6) 'TotalDisk'
+	hh.PutUint64(r.TotalDisk)
+
+	// Field (7) 'UsedDisk'
+	hh.PutUint64(r.UsedDisk)
+
+	hh.Merkleize(indx)
+	return
+}
