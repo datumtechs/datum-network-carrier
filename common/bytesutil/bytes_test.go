@@ -200,3 +200,20 @@ func TestFromBytes8(t *testing.T) {
 		assert.Equal(t, tt, c)
 	}
 }
+
+func TestTruncate(t *testing.T) {
+	tests := []struct {
+		a []byte
+		b []byte
+	}{
+		{[]byte{'A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O'},
+			[]byte{'A', 'C', 'D', 'E', 'F', 'G'}},
+		{[]byte{'A', 'C', 'D', 'E', 'F'},
+			[]byte{'A', 'C', 'D', 'E', 'F'}},
+		{[]byte{}, []byte{}},
+	}
+	for _, tt := range tests {
+		b := bytesutil.Trunc(tt.a)
+		assert.DeepEqual(t, tt.b, b)
+	}
+}
