@@ -217,3 +217,20 @@ func TestTruncate(t *testing.T) {
 		assert.DeepEqual(t, tt.b, b)
 	}
 }
+
+func TestReverse(t *testing.T) {
+	tests := []struct {
+		input  [][32]byte
+		output [][32]byte
+	}{
+		{[][32]byte{{'A'}, {'B'}, {'C'}, {'D'}, {'E'}, {'F'}, {'G'}, {'H'}},
+			[][32]byte{{'H'}, {'G'}, {'F'}, {'E'}, {'D'}, {'C'}, {'B'}, {'A'}}},
+		{[][32]byte{{1}, {2}, {3}, {4}},
+			[][32]byte{{4}, {3}, {2}, {1}}},
+		{[][32]byte{}, [][32]byte{}},
+	}
+	for _, tt := range tests {
+		b := bytesutil.ReverseBytes32Slice(tt.input)
+		assert.DeepEqual(t, tt.output, b)
+	}
+}
