@@ -65,3 +65,57 @@ func TestBytes1(t *testing.T) {
 		assert.DeepEqual(t, tt.b, b)
 	}
 }
+
+func TestBytes2(t *testing.T) {
+	tests := []struct {
+		a uint64
+		b []byte
+	}{
+		{0, []byte{0, 0}},
+		{1, []byte{1, 0}},
+		{255, []byte{255, 0}},
+		{256, []byte{0, 1}},
+		{65534, []byte{254, 255}},
+		{65535, []byte{255, 255}},
+	}
+	for _, tt := range tests {
+		b := bytesutil.Bytes2(tt.a)
+		assert.DeepEqual(t, tt.b, b)
+	}
+}
+
+func TestBytes3(t *testing.T) {
+	tests := []struct {
+		a uint64
+		b []byte
+	}{
+		{0, []byte{0, 0, 0}},
+		{255, []byte{255, 0, 0}},
+		{256, []byte{0, 1, 0}},
+		{65535, []byte{255, 255, 0}},
+		{65536, []byte{0, 0, 1}},
+		{16777215, []byte{255, 255, 255}},
+	}
+	for _, tt := range tests {
+		b := bytesutil.Bytes3(tt.a)
+		assert.DeepEqual(t, tt.b, b)
+	}
+}
+
+func TestBytes4(t *testing.T) {
+	tests := []struct {
+		a uint64
+		b []byte
+	}{
+		{0, []byte{0, 0, 0, 0}},
+		{256, []byte{0, 1, 0, 0}},
+		{65536, []byte{0, 0, 1, 0}},
+		{16777216, []byte{0, 0, 0, 1}},
+		{16777217, []byte{1, 0, 0, 1}},
+		{4294967295, []byte{255, 255, 255, 255}},
+	}
+	for _, tt := range tests {
+		b := bytesutil.Bytes4(tt.a)
+		assert.DeepEqual(t, tt.b, b)
+	}
+}
