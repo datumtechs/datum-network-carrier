@@ -230,3 +230,62 @@ func TestLocalResource(t *testing.T) {
 	array, _ = ReadAllLocalResource(database)
 	require.True(t, array.Len() == 1)
 }
+
+func TestLocalMetadata(t *testing.T) {
+	database := db.NewMemoryDatabase()
+	localMetadata01 := &libtypes.MetadataPB{
+		MetadataId:           "metadataId",
+		IdentityId:           "identityId",
+		NodeId:               "nodeId",
+		NodeName:             "nodeName",
+		DataId:               "dataId",
+		DataStatus:           0,
+		OriginId:             "originId",
+		TableName:            "tableName",
+		FilePath:             "filePath",
+		Desc:                 "desc",
+		Rows:                 0,
+		Columns:              0,
+		Size_:                0,
+		FileType:             0,
+		State:                0,
+		HasTitle:             false,
+		MetadataColumns:      nil,
+		Industry:             "",
+	}
+	b, _ := localMetadata01.Marshal()
+	_ = b
+	WriteLocalMetadata(database, types.NewMetadata(localMetadata01))
+
+	localMetadata02 := &libtypes.MetadataPB{
+		MetadataId:           "metadataId-02",
+		IdentityId:           "identityId-02",
+		NodeId:               "nodeId-02",
+		NodeName:             "nodeName",
+		DataId:               "dataId",
+		DataStatus:           0,
+		OriginId:             "originId",
+		TableName:            "tableName",
+		FilePath:             "filePath",
+		Desc:                 "desc",
+		Rows:                 0,
+		Columns:              0,
+		Size_:                0,
+		FileType:             0,
+		State:                0,
+		HasTitle:             false,
+		MetadataColumns:      nil,
+		Industry:             "",
+	}
+	WriteLocalMetadata(database, types.NewMetadata(localMetadata02))
+
+	r1, _ := ReadLocalMetadata(database, localMetadata01.MetadataId)
+	assert.Equal(t, types.NewMetadata(localMetadata01).Hash(), r1.Hash())
+
+	array, _ := ReadAllLocalMetadata(database)
+	require.True(t, array.Len() == 2)
+
+	DeleteLocalMetadata(database, localMetadata01.MetadataId)
+	array, _ = ReadAllLocalMetadata(database)
+	require.True(t, array.Len() == 1)
+}
