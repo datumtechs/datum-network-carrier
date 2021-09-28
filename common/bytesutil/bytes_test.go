@@ -119,3 +119,47 @@ func TestBytes4(t *testing.T) {
 		assert.DeepEqual(t, tt.b, b)
 	}
 }
+
+func TestBytes8(t *testing.T) {
+	tests := []struct {
+		a uint64
+		b []byte
+	}{
+		{0, []byte{0, 0, 0, 0, 0, 0, 0, 0}},
+		{16777216, []byte{0, 0, 0, 1, 0, 0, 0, 0}},
+		{4294967296, []byte{0, 0, 0, 0, 1, 0, 0, 0}},
+		{4294967297, []byte{1, 0, 0, 0, 1, 0, 0, 0}},
+		{9223372036854775806, []byte{254, 255, 255, 255, 255, 255, 255, 127}},
+		{9223372036854775807, []byte{255, 255, 255, 255, 255, 255, 255, 127}},
+	}
+	for _, tt := range tests {
+		b := bytesutil.Bytes8(tt.a)
+		assert.DeepEqual(t, tt.b, b)
+	}
+}
+
+func TestFromBool(t *testing.T) {
+	tests := []byte{
+		0,
+		1,
+	}
+	for _, tt := range tests {
+		b := bytesutil.ToBool(tt)
+		c := bytesutil.FromBool(b)
+		assert.Equal(t, tt, c)
+	}
+}
+
+func TestFromBytes2(t *testing.T) {
+	tests := []uint64{
+		0,
+		1776,
+		96726,
+		(1 << 16) - 1,
+	}
+	for _, tt := range tests {
+		b := bytesutil.ToBytes(tt, 2)
+		c := bytesutil.FromBytes2(b)
+		assert.Equal(t, uint16(tt), c)
+	}
+}
