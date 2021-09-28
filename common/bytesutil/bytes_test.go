@@ -234,3 +234,21 @@ func TestReverse(t *testing.T) {
 		assert.DeepEqual(t, tt.output, b)
 	}
 }
+
+func TestSetBit(t *testing.T) {
+	tests := []struct {
+		a []byte
+		b int
+		c []byte
+	}{
+		{[]byte{0b00000000}, 1, []byte{0b00000010}},
+		{[]byte{0b00000010}, 7, []byte{0b10000010}},
+		{[]byte{0b10000010}, 9, []byte{0b10000010, 0b00000010}},
+		{[]byte{0b10000010}, 27, []byte{0b10000010, 0b00000000, 0b00000000, 0b00001000}},
+		{[]byte{0b10000010, 0b00000000}, 8, []byte{0b10000010, 0b00000001}},
+		{[]byte{0b10000010, 0b00000000}, 31, []byte{0b10000010, 0b00000000, 0b00000000, 0b10000000}},
+	}
+	for _, tt := range tests {
+		assert.DeepEqual(t, tt.c, bytesutil.SetBit(tt.a, tt.b))
+	}
+}
