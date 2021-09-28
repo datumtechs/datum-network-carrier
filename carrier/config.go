@@ -19,4 +19,5 @@ type Config struct {
 	// Database options
 	DatabaseHandles int
 	DatabaseCache   int
+	DefaultConsensusWal string
 }

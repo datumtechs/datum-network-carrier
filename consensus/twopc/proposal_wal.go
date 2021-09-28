@@ -14,6 +14,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/gogo/protobuf/proto"
 	"os"
+	"path/filepath"
 )
 
 var (
@@ -42,7 +43,7 @@ func initLDB(conf *Config) (*db.LDBDatabase, error) {
 	)
 	_, err := os.Stat(configFile)
 	if err != nil  {
-		savePath, cache, handles = "savePathState", 16, 16
+		savePath, cache, handles = filepath.Join(conf.DefaultConsensusWal, "consensuswal"), conf.DatabaseCache, conf.DatabaseHandles
 	} else {
 		var jsonfile jsonFile
 		if err := fileutil.LoadJSON(configFile, &jsonfile); err != nil {
