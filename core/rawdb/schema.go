@@ -17,6 +17,8 @@ var (
 	localIdentityKey    = []byte("LocalIdentity")
 	localResourcePrefix = []byte("LocalResource") // localResourcePrefix + jobNodeId -> resource of JobNode
 
+	localMetadataPrefix = []byte("LocalMetadata") // localMetadataPrefix + metadataId -> LocalMetadata
+
 	// runningTaskCountForOrgKey tracks the running count of task for org.
 	runningTaskCountForOrgKey = []byte("RunningTaskCountForOrg")
 
@@ -102,6 +104,10 @@ func taskEventKey(taskId string) []byte {
 // localResourceKey = localResourcePrefix + jobNodeId
 func localResourceKey(jobNodeId string) []byte {
 	return append(localResourcePrefix, []byte(jobNodeId)...)
+}
+
+func localMetadataKey(metadataId string) []byte {
+	return append(localMetadataPrefix, []byte(metadataId)...)
 }
 
 // headerKeyPrefix = headerPrefix + num (uint64 big endian)

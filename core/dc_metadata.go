@@ -11,22 +11,22 @@ import (
 
 // on local
 func (dc *DataCenter) StoreLocalMetadata(metadata *types.Metadata) error {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	// TODO 还未实现
 	return nil
 }
 
 func (dc *DataCenter) GetLocalMetadataByDataId(metadataId string) (*types.Metadata, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	// TODO 还未实现
 	return types.NewMetadataFromResponse(nil), nil
 }
 
 func (dc *DataCenter) GetLocalMetadataList() (types.MetadataArray, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
 	// TODO 还未实现
 	return types.NewMetadataArrayFromDetailListResponse(nil), nil
 }
