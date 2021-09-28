@@ -47,3 +47,21 @@ func TestToBytes(t *testing.T) {
 		assert.DeepEqual(t, tt.b, b)
 	}
 }
+
+func TestBytes1(t *testing.T) {
+	tests := []struct {
+		a uint64
+		b []byte
+	}{
+		{0, []byte{0}},
+		{1, []byte{1}},
+		{2, []byte{2}},
+		{253, []byte{253}},
+		{254, []byte{254}},
+		{255, []byte{255}},
+	}
+	for _, tt := range tests {
+		b := bytesutil.Bytes1(tt.a)
+		assert.DeepEqual(t, tt.b, b)
+	}
+}
