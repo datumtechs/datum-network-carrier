@@ -150,7 +150,7 @@ func (m *GetGlobalPowerDetailListResponse) GetPowerList() []*GetGlobalPowerDetai
 	return nil
 }
 
-// 本组织的单个算力信息
+// 本组织的单个(宿主机)算力信息 (包含【未发布】和【已发布】的) resp
 type GetLocalPowerDetailResponse struct {
 	Owner                *common.Organization    `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	Power                *types.PowerUsageDetail `protobuf:"bytes,2,opt,name=power,proto3" json:"power,omitempty"`
@@ -222,7 +222,7 @@ func (m *GetLocalPowerDetailResponse) GetPowerId() string {
 	return ""
 }
 
-// 本组织的多个算力信息列表 resp
+// 本组织的多个(宿主机)算力信息 (包含【未发布】和【已发布】的)
 type GetLocalPowerDetailListResponse struct {
 	Status               int32                          `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
 	Msg                  string                         `protobuf:"bytes,2,opt,name=msg,proto3" json:"msg,omitempty"`
@@ -517,7 +517,7 @@ const _ = grpc.SupportPackageIsVersion4
 type PowerServiceClient interface {
 	// 查看全网各个组织的总算力详情列表
 	GetGlobalPowerDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetGlobalPowerDetailListResponse, error)
-	// 查看本组织的各个单算力详情列表
+	// 本组织的所有(宿主机)算力信息列表 (包含【未发布】和【已发布】的)
 	GetLocalPowerDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetLocalPowerDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(ctx context.Context, in *PublishPowerRequest, opts ...grpc.CallOption) (*PublishPowerResponse, error)
@@ -573,7 +573,7 @@ func (c *powerServiceClient) RevokePower(ctx context.Context, in *RevokePowerReq
 type PowerServiceServer interface {
 	// 查看全网各个组织的总算力详情列表
 	GetGlobalPowerDetailList(context.Context, *emptypb.Empty) (*GetGlobalPowerDetailListResponse, error)
-	// 查看本组织的各个单算力详情列表
+	// 本组织的所有(宿主机)算力信息列表 (包含【未发布】和【已发布】的)
 	GetLocalPowerDetailList(context.Context, *emptypb.Empty) (*GetLocalPowerDetailListResponse, error)
 	// 启用算力 (发布算力)
 	PublishPower(context.Context, *PublishPowerRequest) (*PublishPowerResponse, error)

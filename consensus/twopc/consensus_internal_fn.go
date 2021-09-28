@@ -108,9 +108,9 @@ func (t *Twopc) storePrepareVote(vote *types.PrepareVote) {
 	t.state.StorePrepareVote(vote)
 }
 
-func (t *Twopc) removePrepareVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
-	t.state.RemovePrepareVote(proposalId, partyId, role)
-}
+//func (t *Twopc) removePrepareVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
+//	t.state.RemovePrepareVote(proposalId, partyId, role)
+//}
 
 func (t *Twopc) hasConfirmVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
 	return t.state.HasConfirmVoting(proposalId, org)
@@ -120,9 +120,9 @@ func (t *Twopc) storeConfirmVote(vote *types.ConfirmVote) {
 	t.state.StoreConfirmVote(vote)
 }
 
-func (t *Twopc) removeConfirmVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
-	t.state.RemoveConfirmVote(proposalId, partyId, role)
-}
+//func (t *Twopc) removeConfirmVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
+//	t.state.RemoveConfirmVote(proposalId, partyId, role)
+//}
 
 func (t *Twopc) getTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
 	return t.state.GetTaskPrepareYesVoteCount(proposalId)

@@ -383,20 +383,21 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 				jobNode.ConnState = pb.ConnState_ConnState_Connected
 			}
 
-			table, err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
+			/*table*/_, err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
 			if nil != err {
 				continue
 			}
-			if nil != table {
-				jobNode.ConnState = pb.ConnState_ConnState_Enabled
-			}
-			taskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(jobNode.Id)
-			if nil != err {
-				continue
-			}
-			if taskCount > 0 {
-				jobNode.ConnState = pb.ConnState_ConnState_Occupied
-			}
+			// TODO 需要修改 未完成
+			//if nil != table {
+			//	jobNode.ConnState = pb.ConnState_ConnState_Enabled
+			//}
+			//taskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(jobNode.Id)
+			//if nil != err {
+			//	continue
+			//}
+			//if taskCount > 0 {
+			//	jobNode.ConnState = pb.ConnState_ConnState_Occupied
+			//}
 			nodeList[i] = jobNode
 		}
 	}
