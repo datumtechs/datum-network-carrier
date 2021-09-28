@@ -137,9 +137,7 @@ func GoTool(tool string, args ...string) *exec.Cmd {
 
 // Binary packages that do not need to be compiled
 var no_compile_cmd = []string{
-	"/abigen",
-	"/bootnode",
-	"/clef",
+
 }
 
 // Insist on whether the package needs to compile
