@@ -140,16 +140,6 @@ var no_compile_cmd = []string{
 	"/abigen",
 	"/bootnode",
 	"/clef",
-	"/ctool",
-	"/examples",
-	"/faucet",
-	"/life",
-	"/p2psim",
-	"/simulations",
-	"/test_runner",
-	"/wagon_run",
-	"/wasm",
-	"/wnode",
 }
 
 // Insist on whether the package needs to compile
