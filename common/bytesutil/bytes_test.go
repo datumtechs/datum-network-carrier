@@ -163,3 +163,40 @@ func TestFromBytes2(t *testing.T) {
 		assert.Equal(t, uint16(tt), c)
 	}
 }
+
+func TestFromBytes4(t *testing.T) {
+	tests := []uint64{
+		0,
+		1776,
+		96726,
+		4290997,
+		4294967295, // 2^32 - 1
+		4294967200,
+		3894948296,
+	}
+	for _, tt := range tests {
+		b := bytesutil.ToBytes(tt, 4)
+		c := bytesutil.FromBytes4(b)
+		if c != tt {
+			t.Errorf("Wanted %d but got %d", tt, c)
+		}
+		assert.Equal(t, tt, c)
+	}
+}
+
+func TestFromBytes8(t *testing.T) {
+	tests := []uint64{
+		0,
+		1776,
+		96726,
+		4290997,
+		922376854775806,
+		42893720984775807,
+		18446744073709551615,
+	}
+	for _, tt := range tests {
+		b := bytesutil.ToBytes(tt, 8)
+		c := bytesutil.FromBytes8(b)
+		assert.Equal(t, tt, c)
+	}
+}
