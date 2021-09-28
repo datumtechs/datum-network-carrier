@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -13,22 +14,21 @@ import (
 func (dc *DataCenter) StoreLocalMetadata(metadata *types.Metadata) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	// TODO 还未实现
+	rawdb.WriteLocalMetadata(dc.db, metadata)
 	return nil
 }
 
 func (dc *DataCenter) GetLocalMetadataByDataId(metadataId string) (*types.Metadata, error) {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	// TODO 还未实现
-	return types.NewMetadataFromResponse(nil), nil
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	metadata, err := rawdb.ReadLocalMetadata(dc.db, metadataId)
+	return metadata, err
 }
 
 func (dc *DataCenter) GetLocalMetadataList() (types.MetadataArray, error) {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	// TODO 还未实现
-	return types.NewMetadataArrayFromDetailListResponse(nil), nil
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.ReadAllLocalMetadata(dc.db)
 }
 
 // on datecenter
