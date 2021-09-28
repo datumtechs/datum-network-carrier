@@ -46,6 +46,7 @@ type LocalStoreCarrierDB interface {
 	// about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})
 	StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error
 	StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error
+	HasLocalTaskPowerUsed(taskId, partyId string) (bool, error)
 	RemoveLocalTaskPowerUsed(taskId, partyId string) error
 	RemoveLocalTaskPowerUsedByTaskId(taskId string) error
 	QueryLocalTaskPowerUsed(taskId, partyId string) (*types.LocalTaskPowerUsed, error)
@@ -77,10 +78,10 @@ type LocalStoreCarrierDB interface {
 	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
-	// about task exec status (taskId -> "yes")
-	StoreLocalTaskExecuteStatus(taskId string) error
-	RemoveLocalTaskExecuteStatus(taskId string) error
-	HasLocalTaskExecute(taskId string) (bool, error)
+	// about task exec status (prefix + taskId + partyId -> "yes")
+	StoreLocalTaskExecuteStatus(taskId, partyId string) error
+	RemoveLocalTaskExecuteStatus(taskId, partyId string) error
+	HasLocalTaskExecute(taskId, partyId string) (bool, error)
 	// v2.0  about user metadataAuthUsed (userType + user -> metadataAuthId ...)
 	StoreUserMetadataAuthUsed(userType apicommonpb.UserType, user, metadataAuthId string) error
 	QueryUserMetadataAuthUsedCount(userType apicommonpb.UserType, user string) (uint32, error)

@@ -72,12 +72,15 @@ func RecoveryProposalState(proposalId common.Hash, taskId string, sender *apicom
 		stateCache: cache,
 	}
 }
-func (pstate *ProposalState) GetProposalId() common.Hash             { return pstate.proposalId }
+func (pstate *ProposalState) MustLock() { pstate.lock.Lock() }
+func (pstate *ProposalState) MustUnLock() { pstate.lock.Unlock() }
+func (pstate *ProposalState) MustRLock() { pstate.lock.RLock() }
+func (pstate *ProposalState) MustRUnLock() { pstate.lock.RUnlock() }
+func (pstate *ProposalState) GetProposalId() common.Hash                   { return pstate.proposalId }
 func (pstate *ProposalState) GetTaskId() string                            { return pstate.taskId }
 func (pstate *ProposalState) GetTaskSender() *apicommonpb.TaskOrganization { return pstate.taskSender }
-func (pstate *ProposalState) GetStateCache() map[string]*OrgProposalState { return pstate.stateCache}
+func (pstate *ProposalState) GetStateCache() map[string]*OrgProposalState  { return pstate.stateCache }
 func (pstate *ProposalState) StoreOrgProposalState(orgState *OrgProposalState) {
-
 	pstate.lock.Lock()
 	_, ok := pstate.stateCache[orgState.TaskOrg.GetPartyId()]
 	if !ok {
@@ -85,11 +88,18 @@ func (pstate *ProposalState) StoreOrgProposalState(orgState *OrgProposalState) {
 	}
 	pstate.lock.Unlock()
 }
+func (pstate *ProposalState) StoreOrgProposalStateUnSafe(orgState *OrgProposalState) {
+	pstate.stateCache[orgState.TaskOrg.GetPartyId()] = orgState
+}
 func (pstate *ProposalState) RemoveOrgProposalState(partyId string) {
 	pstate.lock.Lock()
 	delete(pstate.stateCache, partyId)
 	pstate.lock.Unlock()
 }
+func (pstate *ProposalState) RemoveOrgProposalStateUnSafe(partyId string) {
+	delete(pstate.stateCache, partyId)
+}
+
 func (pstate *ProposalState) MustGetOrgProposalState(partyId string) *OrgProposalState {
 	state, _ := pstate.GetOrgProposalState(partyId)
 	return state
@@ -109,69 +119,6 @@ func (pstate *ProposalState) IsEmpty() bool {
 }
 func (pstate *ProposalState) IsNotEmpty() bool { return !pstate.IsEmpty() }
 
-func (pstate *ProposalState) RefreshProposalState() {
-
-	pstate.lock.Lock()
-	for partyId, orgState := range pstate.stateCache {
-
-		if orgState.IsDeadline() {
-			log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-				pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-
-			delete(pstate.stateCache, partyId)
-			continue
-		}
-
-		switch orgState.CurrPeriodNum() {
-
-		case PeriodPrepare:
-
-			if orgState.IsPrepareTimeout() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-
-				orgState.ChangeToConfirm(orgState.PeriodStartTime + uint64(PrepareMsgVotingTimeout.Milliseconds()))
-				pstate.stateCache[partyId] = orgState
-			}
-
-		case PeriodConfirm:
-
-			if orgState.IsConfirmTimeout() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-
-				orgState.ChangeToCommit(orgState.PeriodStartTime + uint64(ConfirmMsgVotingTimeout.Milliseconds()))
-				pstate.stateCache[partyId] = orgState
-			}
-
-		case PeriodCommit:
-
-			if orgState.IsCommitTimeout() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-
-				orgState.ChangeToFinished(orgState.PeriodStartTime + uint64(CommitMsgEndingTimeout.Milliseconds()))
-				pstate.stateCache[partyId] = orgState
-			}
-
-		case PeriodFinished:
-
-			if orgState.IsDeadline() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-
-				delete(pstate.stateCache, partyId)
-
-			}
-
-		default:
-			log.Errorf("Unknown the proposalState period,  proposalId: {%s}, taskId: {%s}, partyId: {%s}", pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-		}
-	}
-
-	pstate.lock.Unlock()
-
-}
 
 type OrgProposalState struct {
 	PrePeriodStartTime uint64

@@ -43,7 +43,7 @@ var (
 	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
 	// prefix + metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
-	// prefix + taskId -> executeStatus
+	// prefix + taskId + partyId -> executeStatus
 	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
 
 	// prefix + userType + user -> n
@@ -127,8 +127,8 @@ func GetDataResourceDiskUsedKey(metaDataId string) []byte {
 	return append(dataResourceDiskUsedKeyPrefix, []byte(metaDataId)...)
 }
 
-func GetLocalTaskExecuteStatus(taskId string) []byte {
-	return append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...)
+func GetLocalTaskExecuteStatus(taskId, partyId string) []byte {
+	return append(append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
 func GetUserMetadataAuthUsedCountKey(userType apicommonpb.UserType, user string) []byte {

@@ -18,16 +18,22 @@ import (
 	"sync"
 )
 
-func (t *Twopc) isProposalTask(taskId string) bool {
+func (t *Twopc) isProposalTask(taskId, partyId string) bool {
 	t.proposalTaskLock.RLock()
-	_, ok := t.proposalTaskCache[taskId]
-	t.proposalTaskLock.RUnlock()
+	defer t.proposalTaskLock.RUnlock()
+	partyCache, ok := t.proposalTaskCache[taskId]
 	if !ok {
-		return true
+		return false
 	}
-	return false
+	_, ok = partyCache[partyId]
+	if !ok {
+		return false
+	}
+	return true
 }
-func (t *Twopc) isNotProposalTask(taskId string) bool { return !t.isProposalTask(taskId) }
+func (t *Twopc) isNotProposalTask(taskId, partyId string) bool {
+	return !t.isProposalTask(taskId, partyId)
+}
 
 func (t *Twopc) hasOrgProposal(proposalId common.Hash, partyId string) bool {
 	return t.state.HasOrgProposal(proposalId, partyId)
@@ -36,40 +42,60 @@ func (t *Twopc) hasNotOrgProposal(proposalId common.Hash, partyId string) bool {
 	return t.state.HasNotOrgProposal(proposalId, partyId)
 }
 
-func (t *Twopc) addProposalTask(task *types.ProposalTask) {
+func (t *Twopc) addProposalTask(partyId string, task *types.ProposalTask) {
 	t.proposalTaskLock.Lock()
-	_, ok := t.proposalTaskCache[task.GetTaskId()]
+	partyCache, ok := t.proposalTaskCache[task.GetTaskId()]
 	if !ok {
-		t.proposalTaskCache[task.GetTaskId()] = task
+		partyCache = make(map[string]*types.ProposalTask, 0)
 	}
-	t.proposalTaskLock.Unlock()
-}
-func (t *Twopc) removeProposalTask(taskId string) {
-	t.proposalTaskLock.Lock()
-	delete(t.proposalTaskCache, taskId)
-	t.proposalTaskLock.Unlock()
-}
-func (t *Twopc) hasProposalTask(taskId string) bool {
-	t.proposalTaskLock.RLock()
-	_, ok := t.proposalTaskCache[taskId]
-	t.proposalTaskLock.RUnlock()
-	if ok {
-		return true
-	}
-	return false
-}
-func (t *Twopc) hasNotProposalTask(taskId string) bool { return !t.hasProposalTask(taskId) }
+	partyCache[partyId] = task
+	t.proposalTaskCache[task.GetTaskId()] = partyCache
 
-func (t *Twopc) getProposalTask(taskId string) (*types.ProposalTask, bool) {
+	t.proposalTaskLock.Unlock()
+}
+func (t *Twopc) removeProposalTask(taskId, partyId string) {
+	t.proposalTaskLock.Lock()
+	partyCache, ok := t.proposalTaskCache[taskId]
+	if ok {
+		delete(partyCache, partyId)
+		if len(partyCache) == 0 {
+			delete(t.proposalTaskCache, taskId)
+		}
+	}
+	t.proposalTaskLock.Unlock()
+}
+
+func (t *Twopc) hasProposalTask(taskId, partyId string) bool {
 	t.proposalTaskLock.RLock()
-	task, ok := t.proposalTaskCache[taskId]
-	t.proposalTaskLock.RUnlock()
+	defer t.proposalTaskLock.RUnlock()
+	partyCache, ok := t.proposalTaskCache[taskId]
+	if !ok {
+		return false
+	}
+	_, ok = partyCache[partyId]
+	if !ok {
+		return false
+	}
+	return true
+}
+func (t *Twopc) hasNotProposalTask(taskId, partyId string) bool {
+	return !t.hasProposalTask(taskId, partyId)
+}
+
+func (t *Twopc) getProposalTask(taskId, partyId string) (*types.ProposalTask, bool) {
+	t.proposalTaskLock.RLock()
+	defer t.proposalTaskLock.RUnlock()
+	partyCache, ok := t.proposalTaskCache[taskId]
+	if !ok {
+		return nil, false
+	}
+	task, ok := partyCache[partyId]
 	return task, ok
 }
 
-func (t *Twopc) mustGetProposalTask(taskId string) *types.ProposalTask {
+func (t *Twopc) mustGetProposalTask(taskId, partyId string) *types.ProposalTask {
 	t.proposalTaskLock.RLock()
-	task, _ := t.getProposalTask(taskId)
+	task, _ := t.getProposalTask(taskId, partyId)
 	t.proposalTaskLock.RUnlock()
 	return task
 }
@@ -189,26 +215,21 @@ func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
 func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 	t.needExecuteTaskCh <- task
 }
-//
-//func (t *Twopc) storeProposalState(proposalState *ctypes.ProposalState) {
-//	t.state.StoreProposalState(proposalState)
-//}
-//func (t *Twopc) removeProposalState(proposalId common.Hash) {
-//	t.state.CleanProposalState(proposalId)
-//}
-func (t *Twopc) removeProposalStateAndTask(proposalId common.Hash) {
+
+func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
-		log.Infof("Start remove proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.GetTaskId())
-		t.removeProposalTask(state.GetTaskId())
-		t.state.CleanProposalState(proposalId)
+		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.GetTaskId())
+		t.removeProposalTask(state.GetTaskId(), partyId)
+		t.state.CleanOrgProposalState(proposalId, partyId)
 		go func() {
-			t.db.DeleteState(t.db.GetPrepareVotesKey(proposalId, ""))
-			t.db.DeleteState(t.db.GetConfirmVotesKey(proposalId, ""))
-			t.db.DeleteState(t.db.GetProposalSetKey(proposalId, ""))
+			t.db.DeleteState(t.db.GetPrepareVotesKey(proposalId, partyId))
+			t.db.DeleteState(t.db.GetConfirmVotesKey(proposalId, partyId))
+			t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
 		}()
 	}
 }
-func (t *Twopc) storeOrgProposalState (proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+
+func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
 	pstate := t.state.GetProposalState(proposalId)
 
 	var first bool
@@ -217,7 +238,7 @@ func (t *Twopc) storeOrgProposalState (proposalId common.Hash, taskId string, se
 		first = true
 	}
 	pstate.StoreOrgProposalState(orgState)
-	t.db.UpdateOrgProposalState(proposalId,pstate.GetTaskSender(),orgState)
+	t.db.UpdateOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
 	if first {
 		t.state.StoreProposalState(pstate)
 	} else {
@@ -225,17 +246,17 @@ func (t *Twopc) storeOrgProposalState (proposalId common.Hash, taskId string, se
 	}
 }
 
-func (t *Twopc) removeOrgProposalState (proposalId common.Hash, partyId string) {
+func (t *Twopc) removeOrgProposalState(proposalId common.Hash, partyId string) {
 	pstate := t.state.GetProposalState(proposalId)
 
 	if pstate.IsEmpty() {
 		return
 	}
 	pstate.RemoveOrgProposalState(partyId)
-	t.db.DeleteState(t.db.GetProposalSetKey(proposalId,partyId))
+	t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
 }
 
-func (t *Twopc) getOrgProposalState (proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
+func (t *Twopc) getOrgProposalState(proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
 	pstate := t.state.GetProposalState(proposalId)
 	if pstate.IsEmpty() {
 		return nil, false
@@ -243,7 +264,7 @@ func (t *Twopc) getOrgProposalState (proposalId common.Hash, partyId string) (*c
 	return pstate.GetOrgProposalState(partyId)
 }
 
-func (t *Twopc) mustGetOrgProposalState (proposalId common.Hash, partyId string) *ctypes.OrgProposalState {
+func (t *Twopc) mustGetOrgProposalState(proposalId common.Hash, partyId string) *ctypes.OrgProposalState {
 	pstate := t.state.GetProposalState(proposalId)
 	if pstate.IsEmpty() {
 		return nil
@@ -251,7 +272,7 @@ func (t *Twopc) mustGetOrgProposalState (proposalId common.Hash, partyId string)
 	return pstate.MustGetOrgProposalState(partyId)
 }
 
-func (t *Twopc) makeConfirmTaskPeerDesc (proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
+func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 
 	var sender *twopcpb.TaskPeerInfo
 	dataSuppliers, powerSuppliers, receivers := make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0)
@@ -280,104 +301,144 @@ func (t *Twopc) makeConfirmTaskPeerDesc (proposalId common.Hash) *twopcpb.Confir
 	}
 }
 
-func (t *Twopc) refreshProposalState () {
+func (t *Twopc) refreshProposalState() {
+
+	identity, err := t.resourceMng.GetDB().GetIdentity()
+	if nil != err {
+		log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
+		return
+	}
+
+	pid, err := p2p.HexPeerID(identity.GetNodeId())
+	if nil != err {
+		log.Errorf("Failed to convert on consensus.refreshProposalState(), err: {%s}", err)
+		return
+	}
 
 	t.state.proposalsLock.Lock()
 
-	for proposalId, proposalState := range t.state.proposalSet {
+	for proposalId, pstate := range t.state.proposalSet {
 
-		for partyId, orgState := range proposalState.GetStateCache() {
+		pstate.MustLock()
+		for partyId, orgState := range pstate.GetStateCache() {
+
 			if orgState.IsDeadline() {
+				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
+
+				pstate.RemoveOrgProposalStateUnSafe(partyId)
+				t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
+				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
+
 				t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
 				continue
 			}
+
 			switch orgState.CurrPeriodNum() {
-			case ctypes.PeriodPrepare, ctypes.PeriodConfirm, ctypes.PeriodCommit:
-				t.db.UpdateOrgProposalState(proposalState.GetProposalId(), proposalState.GetTaskSender(), orgState)
+
+			case ctypes.PeriodPrepare:
+
+				if orgState.IsPrepareTimeout() {
+					log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
+
+					orgState.ChangeToConfirm(orgState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
+					pstate.StoreOrgProposalStateUnSafe(orgState)
+
+					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+				}
+
+			case ctypes.PeriodConfirm:
+
+				if orgState.IsConfirmTimeout() {
+					log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
+
+					orgState.ChangeToCommit(orgState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
+					pstate.StoreOrgProposalStateUnSafe(orgState)
+
+					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+				}
+
+			case ctypes.PeriodCommit:
+
+				if orgState.IsCommitTimeout() {
+					log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
+
+					orgState.ChangeToFinished(orgState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
+					pstate.StoreOrgProposalStateUnSafe(orgState)
+
+					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+				}
+
 			case ctypes.PeriodFinished:
-				t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
-			}
-		}
-		proposalState.RefreshProposalState()
 
-		if proposalState.IsEmpty() {
+				if orgState.IsDeadline() {
+					log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-			log.Debugf("Start clean proposalState and task on consensus.refreshProposalState(), proposalId: {%s}, taskId: {%s}",
-				proposalId.String(), proposalState.GetTaskId())
+					pstate.RemoveOrgProposalStateUnSafe(partyId)
+					t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
+					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
-			has, err := t.resourceMng.GetDB().HasLocalTaskExecute(proposalState.GetTaskId())
-			if nil != err {
-				log.Errorf("Failed to query local task exec status with task on consensus.refreshProposalState(),  proposalId: {%s}, taskId: {%s}, err: {%s}",
-					proposalId.String(), proposalState.GetTaskId(), err)
-
-				t.removeProposalStateAndTask(proposalState.GetProposalId())
-				continue
-			}
-
-			if has {
-				log.Debugf("The local task have been executing, direct clean proposalStateAndTaskCache of consensus on consensus.refreshProposalState(), proposalId: {%s}, taskId: {%s}",
-					proposalId.String(), proposalState.GetTaskId())
-
-				t.removeProposalStateAndTask(proposalState.GetProposalId())
-				continue
-			}
-
-
-			identity, err := t.resourceMng.GetDB().GetIdentity()
-			if nil != err {
-				log.Errorf("Failed to query local identity on consensus.refreshProposalState(), proposalId: {%s}, taskId: {%s}, err: {%s}",
-					proposalId.String(), proposalState.GetTaskId(), err)
-
-				t.removeProposalStateAndTask(proposalState.GetProposalId())
-				continue
-			}
-
-			// Send task result msg to remote peer, if current org identityId is not task sender identityId
-			if identity.GetIdentityId() == proposalState.GetTaskSender().GetIdentityId() {
-				t.replyTaskConsensusResult(types.NewTaskConsResult(proposalState.GetTaskId(), types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
-			} else {
-
-				if t.hasNotProposalTask(proposalState.GetTaskId()) {
-					t.removeProposalStateAndTask(proposalState.GetProposalId())
-					continue
+					t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
 				}
 
-				pid, err := p2p.HexPeerID(identity.GetNodeId())
-				if nil == err {
-
-					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-						Type:       evengine.TaskProposalStateDeadline.Type,
-						IdentityId: identity.GetIdentityId(),
-						TaskId:     proposalState.GetTaskId(),
-						Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
-						CreateAt:   timeutils.UnixMsecUint64(),
-					})
-
-					t.sendNeedExecuteTask(types.NewNeedExecuteTask(
-						pid,
-						proposalId,
-						apicommonpb.TaskRole_TaskRole_Unknown,
-						&apicommonpb.TaskOrganization{
-							PartyId: "",
-							NodeName: identity.GetNodeName(),
-							NodeId: identity.GetNodeId(),
-							IdentityId: identity.GetIdentityId(),
-						},
-						apicommonpb.TaskRole_TaskRole_Sender,
-						proposalState.GetTaskSender(),
-						t.mustGetProposalTask(proposalState.GetTaskId()).Task,
-						types.TaskConsensusInterrupt,
-						nil,
-						nil,
-					))
-				}
+			default:
+				log.Errorf("Unknown the proposalState period,  proposalId: {%s}, taskId: {%s}, partyId: {%s}", pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 			}
-			// finally clean all things about proposal and task
-			t.removeProposalStateAndTask(proposalState.GetProposalId())
 		}
+
+		pstate.MustUnLock()
 	}
 
 	t.state.proposalsLock.Unlock()
+}
+
+func (t *Twopc) TaskConsensusInterrupt(
+	proposalId common.Hash,
+	localPid peer.ID,
+	taskId, partyId string,
+	identity *apicommonpb.Organization,
+	taskSender *apicommonpb.TaskOrganization,
+) {
+	// Send task result msg to remote peer, if current org identityId is not task sender identityId
+	if identity.GetIdentityId() == taskSender.GetIdentityId() {
+		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
+	} else {
+
+		if t.hasNotProposalTask(taskId, partyId) {
+			t.removeOrgProposalStateAndTask(proposalId, partyId)
+			return
+		}
+
+		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+			Type:       evengine.TaskProposalStateDeadline.Type,
+			IdentityId: identity.GetIdentityId(),
+			TaskId:     taskId,
+			Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
+			CreateAt:   timeutils.UnixMsecUint64(),
+		})
+
+		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
+			localPid,
+			proposalId,
+			apicommonpb.TaskRole_TaskRole_Unknown,
+			&apicommonpb.TaskOrganization{
+				PartyId:    partyId,
+				NodeName:   identity.GetNodeName(),
+				NodeId:     identity.GetNodeId(),
+				IdentityId: identity.GetIdentityId(),
+			},
+			apicommonpb.TaskRole_TaskRole_Sender,
+			taskSender,
+			t.mustGetProposalTask(taskId, partyId).Task,
+			types.TaskConsensusInterrupt,
+			nil,
+			nil,
+		))
+	}
 }
 
 func (t *Twopc) driveTask(
@@ -423,7 +484,7 @@ func (t *Twopc) driveTask(
 		peers,
 	))
 
-	t.removeProposalStateAndTask(proposalId)
+	t.removeOrgProposalStateAndTask(proposalId, localTaskOrganization.GetPartyId())
 
 }
 

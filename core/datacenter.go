@@ -204,6 +204,13 @@ func (dc *DataCenter) StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTask
 	return rawdb.StoreLocalTaskPowerUseds(dc.db, taskPowerUseds)
 }
 
+func (dc *DataCenter) HasLocalTaskPowerUsed(taskId, partyId string) (bool, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.HasLocalTaskPowerUsed(dc.db, taskId, partyId)
+}
+
+
 func (dc *DataCenter) RemoveLocalTaskPowerUsed(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -318,24 +325,22 @@ func (dc *DataCenter) QueryDataResourceDiskUsed(metaDataId string) (*types.DataR
 }
 
 // about LocalTaskExecuteStatus
-func (dc *DataCenter) StoreLocalTaskExecuteStatus(taskId string) error {
+func (dc *DataCenter) StoreLocalTaskExecuteStatus(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	log.Debugf("Store local task executing status, taskId: {%s}", taskId)
-	return rawdb.StoreLocalTaskExecuteStatus(dc.db, taskId)
+	return rawdb.StoreLocalTaskExecuteStatus(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) RemoveLocalTaskExecuteStatus(taskId string) error {
+func (dc *DataCenter) RemoveLocalTaskExecuteStatus(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	log.Debugf("Remove local task executing status, taskId: {%s}", taskId)
-	return rawdb.RemoveLocalTaskExecuteStatus(dc.db, taskId)
+	return rawdb.RemoveLocalTaskExecuteStatus(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) HasLocalTaskExecute(taskId string) (bool, error) {
+func (dc *DataCenter) HasLocalTaskExecute(taskId, partyId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.HasLocalTaskExecute(dc.db, taskId)
+	return rawdb.HasLocalTaskExecute(dc.db, taskId, partyId)
 }
 
 // about UserMetadataAuthUsed

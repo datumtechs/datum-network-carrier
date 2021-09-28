@@ -300,7 +300,7 @@ func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
 	if !ok {
 		return fmt.Errorf("Can not find task cache, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
 	}
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecute(usage.GetTaskId())
+	running, err := m.resourceMng.GetDB().HasLocalTaskExecute(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
 		return err
 	}
