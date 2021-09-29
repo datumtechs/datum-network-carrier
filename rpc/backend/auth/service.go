@@ -263,7 +263,7 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 			AuditAt:         auth.GetData().GetAuditAt(),
 		}
 	}
-	log.Debugf("Query all metadata authority list, len: {%d}", len(authorityList))
+	log.Debugf("Query current org's all metadata authority list, len: {%d}", len(authorityList))
 	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,

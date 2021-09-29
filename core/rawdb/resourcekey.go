@@ -51,9 +51,9 @@ var (
 
 	// prefix + userType + user -> n
 	userMetadataAuthUsedCountKey = []byte("userMetadataAuthUsedCountKey")
-	// prefix + userType + user + n -> metadataId
+	// prefix + userType + user + n -> metadataAuthId
 	userMetadataAuthUsedKeyPrefix = []byte("userMetadataAuthUsedKeyPrefix:")
-	// prefix + userType + user + metadataId -> metadataAuthId
+	// prefix + userType + user + metadataId -> metadataAuthId (only one)
 	userMetadataAuthByMetadataIdKeyPrefix = []byte("userMetadataAuthByMetadataIdKeyPrefix:")
 
 	// metadataId -> taskCount (n)

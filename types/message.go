@@ -1,9 +1,11 @@
 package types
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
@@ -177,12 +179,10 @@ func (msg *PowerMsg) Hash() common.Hash {
 }
 
 func (msg *PowerMsg) HashByCreateTime() common.Hash {
-
-	return rlputil.RlpHash([]interface{}{
-		msg.JobNodeId,
-		//msg.GetCreateAt,
-		timeutils.UnixMsecUint64(),
-	})
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetJobNodeId()))
+	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	return rlputil.RlpHash(buf.Bytes())
 }
 
 type PowerRevokeMsg struct {
@@ -344,20 +344,32 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlputil.RlpHash([]interface{}{
-		msg.MetadataSummary,
-		msg.ColumnMetas,
-		msg.CreateAt,
-	})
+
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetOriginId()))
+	buf.Write([]byte(msg.GetTableName()))
+	buf.Write([]byte(msg.GetDesc()))
+	buf.Write([]byte(msg.GetFilePath()))
+	buf.Write([]byte(msg.GetIndustry()))
+	buf.Write([]byte(msg.GetMetadataId()))
+	buf.Write([]byte(msg.GetState().String()))
+	buf.Write([]byte(fmt.Sprint(msg.GetHasTitle())))
+	buf.Write([]byte(msg.GetFileType().String()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetRows()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetColumns()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetSize()))
+	buf.Write([]byte(msg.GetTableName()))
+	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
 }
 
 func (msg *MetadataMsg) HashByCreateTime() common.Hash {
-	return rlputil.RlpHash([]interface{}{
-		msg.MetadataSummary.OriginId,
-		timeutils.UnixMsecUint64(),
-	})
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetOriginId()))
+	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	return rlputil.RlpHash(buf.Bytes())
 }
 
 type MetadataRevokeMsg struct {
@@ -478,28 +490,27 @@ func (msg *MetadataAuthorityMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlputil.RlpHash([]interface{}{
-		msg.GetUser(),
-		msg.GetUserType(),
-		msg.GetMetadataAuthority(),
-		msg.GetSign(),
-		msg.CreateAt,
-	})
+
+	b, _ := msg.GetMetadataAuthority().Marshal()
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
+	buf.Write(b)
+	buf.Write(msg.GetSign())
+	buf.Write(bytesutil.Uint64ToBytes(msg.CreateAt))
+	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
 }
 
 func (msg *MetadataAuthorityMsg) HashByCreateTime() common.Hash {
-	return rlputil.RlpHash([]interface{}{
-		msg.GetUser(),
-		msg.GetUserType(),
-		msg.GetMetadataAuthority().GetMetadataId(),
-		msg.GetMetadataAuthority().GetUsageRule().GetStartAt(),
-		msg.GetMetadataAuthority().GetUsageRule().GetEndAt(),
-		msg.GetMetadataAuthority().GetUsageRule().GetTimes(),
-		msg.GetSign(),
-		timeutils.UnixMsecUint64(),
-	})
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write([]byte(msg.GetMetadataAuthorityMetadataId()))
+	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	return rlputil.RlpHash(buf.Bytes())
 }
 
 func (msg *MetadataAuthorityMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -769,7 +780,7 @@ func (msg *TaskMsg) HashByCreateTime() common.Hash {
 		msg.Data.GetTaskData().GetIdentityId(),
 		msg.Data.GetTaskData().GetPartyId(),
 		msg.Data.GetTaskData().GetTaskName(),
-		//msg.Data.GetTaskData().GetCreateAt,
+		//PREFIX_TASK_ID,
 		timeutils.UnixMsecUint64(),
 	})
 }
@@ -820,7 +831,6 @@ func (msg *TaskTerminateMsg) HashByCreateTime() common.Hash {
 		msg.UserType.String(),
 		msg.User,
 		msg.TaskId,
-		msg.Sign,
 		timeutils.UnixMsecUint64(),
 	})
 }

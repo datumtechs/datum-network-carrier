@@ -550,7 +550,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 		}
 		// 单独记录 metaData 的 GetSize 和所在 dataNodeId
 		if err := m.dataCenter.StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
-			metadata.MetadataId, dataResourceFileUpload.GetNodeId(), metadata.GetSize())); nil != err {
+			metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), metadata.GetSize())); nil != err {
 			log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
@@ -559,6 +559,11 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 		if err := m.dataCenter.InsertMetadata(metadata.ToDataCenter(identity)); nil != err {
 			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
+
+			m.dataCenter.RemoveDataResourceDiskUsed(metadata.GetMetadataId())
+			dataResourceTable.FreeDisk(metadata.GetSize())
+			m.dataCenter.StoreDataResourceTable(dataResourceTable)
+
 			continue
 		}
 
@@ -619,17 +624,30 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.MetadataAuthorityMsgArr) {
 	for _, msg := range metadataAuthMsgArr {
 
-		err := m.authManager.StoreUserMetadataAuthIdByMetadataId(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId(), msg.GetMetadataAuthId())
+		has, err := m.authManager.HasValidLastMetadataAuth(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId())
 		if nil != err {
-			log.Errorf("Failed to store metadataId and metadataAuthId mapping on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
-				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err)
+			log.Errorf("Failed to call HasValidLastMetadataAuth on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 			continue
 		}
 
-		err = m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GenMetadataAuthId())
+		if has {
+			log.Errorf("broadcast metadataAuthMsg failed, alreay has valid last metadataAuth by userType: {%s}, user: {%s}, metadataId: {%s}",
+				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
+			continue
+		}
+
+		err = m.authManager.StoreUserMetadataAuthIdByMetadataId(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId(), msg.GetMetadataAuthId())
 		if nil != err {
-			log.Errorf("Failed to store metadataAuthId on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
-				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err)
+			log.Errorf("Failed to store metadataId and metadataAuthId mapping on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
+			continue
+		}
+
+		err = m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthId())
+		if nil != err {
+			log.Errorf("Failed to store metadataAuthId on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 			continue
 		}
 
@@ -649,13 +667,16 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			State:   apicommonpb.MetadataAuthorityState_MAState_Released,
 			Sign:    msg.GetSign(),
 		})); nil != err {
-			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
-				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser(), err)
+			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
+
+			m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthId())
+			m.authManager.RemoveUserMetadataAuthIdByMetadataId(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId())
 			continue
 		}
 
-		log.Debugf("broadcast metadataAuth msg succeed, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}",
-			msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUser())
+		log.Debugf("broadcast metadataAuth msg succeed, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
+			msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser())
 	}
 
 	return
