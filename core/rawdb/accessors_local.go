@@ -795,3 +795,60 @@ func DeleteLocalTasks(db DatabaseDeleter) {
 		log.WithError(err).Fatal("Failed to delete local task with all")
 	}
 }
+
+// ================================= Local Metadata ==========================================
+// ReadLocalMetadata retrieves the metadata of local with the corresponding metadataId.
+func ReadLocalMetadata(db DatabaseReader, metadataId string) (*types.Metadata, error) {
+	blob, err := db.Get(localMetadataKey(metadataId))
+	if err != nil {
+		log.WithError(err).Fatal("Failed to read local metadata")
+		return nil, err
+	}
+	localMetadata := new(libtypes.MetadataPB)
+	if err := localMetadata.Unmarshal(blob); err != nil {
+		log.WithError(err).Fatal("Failed to unmarshal local metadata")
+		return nil, err
+	}
+	return types.NewMetadata(localMetadata), nil
+}
+
+// ReadAllLocalMetadata retrieves the local metadata with all.
+func ReadAllLocalMetadata(db KeyValueStore) (types.MetadataArray, error) {
+	prefix := localMetadataPrefix
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+	array := make(types.MetadataArray, 0)
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			blob, err := db.Get(key)
+			if err != nil {
+				continue
+			}
+			localMetadata := new(libtypes.MetadataPB)
+			if err := localMetadata.Unmarshal(blob); err != nil {
+				continue
+			}
+			array = append(array, types.NewMetadata(localMetadata))
+		}
+	}
+	return array, nil
+}
+
+// WriteLocalMetadata serializes the local metadata into the database.
+func WriteLocalMetadata(db KeyValueStore, localMetadata *types.Metadata) {
+	buffer := new(bytes.Buffer)
+	err := localMetadata.EncodePb(buffer)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode local metadata")
+	}
+	if err := db.Put(localMetadataKey(localMetadata.GetData().GetMetadataId()), buffer.Bytes()); err != nil {
+		log.WithError(err).Fatal("Failed to write local metadata")
+	}
+}
+
+// DeleteLocalMetadata deletes the local metadata from the database with a special metadataId
+func DeleteLocalMetadata(db KeyValueStore, metadataId string) {
+	if err := db.Delete(localMetadataKey(metadataId)); err != nil {
+		log.WithError(err).Fatal("Failed to delete local metadata")
+	}
+}

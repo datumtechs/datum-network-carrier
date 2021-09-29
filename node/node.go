@@ -120,6 +120,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) error {
 	dbPath := filepath.Join(node.config.DataDir, "datachain")
 	log.WithField("database-path", dbPath).Info("Checking DB")
+	config.DefaultConsensusWal = node.config.DataDir
 	db, err := node.OpenDatabase(dbPath, config.DatabaseCache, config.DatabaseHandles)
 	if err != nil {
 		return err
