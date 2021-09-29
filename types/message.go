@@ -171,9 +171,12 @@ func (msg *PowerMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := rlputil.RlpHash([]interface{}{
-		msg.JobNodeId,
-	})
+
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetJobNodeId()))
+	buf.Write([]byte(msg.GetPowerId()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
 }
@@ -776,13 +779,14 @@ func (msg *TaskMsg) Hash() common.Hash {
 }
 
 func (msg *TaskMsg) HashByCreateTime() common.Hash {
-	return rlputil.RlpHash([]interface{}{
-		msg.Data.GetTaskData().GetIdentityId(),
-		msg.Data.GetTaskData().GetPartyId(),
-		msg.Data.GetTaskData().GetTaskName(),
-		//PREFIX_TASK_ID,
-		timeutils.UnixMsecUint64(),
-	})
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.Data.GetTaskData().GetIdentityId()))
+	buf.Write([]byte(msg.Data.GetTaskData().GetUserType().String()))
+	buf.Write([]byte(msg.Data.GetTaskData().GetUser()))
+	buf.Write([]byte(msg.Data.GetTaskData().GetPartyId()))
+	buf.Write([]byte(msg.Data.GetTaskData().GetTaskName()))
+	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	return rlputil.RlpHash(buf.Bytes())
 }
 
 type TaskTerminateMsg struct {
@@ -821,18 +825,24 @@ func (msg *TaskTerminateMsg) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
-	v := msg.HashByCreateTime()
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write([]byte(msg.GetTaskId()))
+	buf.Write(msg.GetSign())
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetCreateAt()))
+	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
 	return v
 }
 
 func (msg *TaskTerminateMsg) HashByCreateTime() common.Hash {
-	return rlputil.RlpHash([]interface{}{
-		msg.UserType.String(),
-		msg.User,
-		msg.TaskId,
-		timeutils.UnixMsecUint64(),
-	})
+	var buf bytes.Buffer
+	buf.Write([]byte(msg.GetUserType().String()))
+	buf.Write([]byte(msg.GetUser()))
+	buf.Write([]byte(msg.GetTaskId()))
+	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	return rlputil.RlpHash(buf.Bytes())
 }
 
 type TaskMsgArr []*TaskMsg
