@@ -9,6 +9,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -79,16 +80,16 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	return &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_NodeType_YarnNode,
 		NodeId:       nodeId,
-		InternalIp:   "", //
-		ExternalIp:   "", //
-		InternalPort: "", //
-		ExternalPort: "", //
+		InternalIp:   "",                      //
+		ExternalIp:   "",                      //
+		InternalPort: "",                      //
+		ExternalPort: "",                      //
 		IdentityType: types.IDENTITY_TYPE_DID, // default: DID
-		IdentityId: identityId,
-		Name:       nodeName,
-		Peers:      registerNodes,
-		SeedPeers:  seedNodes,
-		State:      pb.YarnNodeState_State_Active,
+		IdentityId:   identityId,
+		Name:         nodeName,
+		Peers:        registerNodes,
+		SeedPeers:    seedNodes,
+		State:        pb.YarnNodeState_State_Active,
 	}, nil
 }
 
@@ -114,8 +115,8 @@ func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, erro
 		if has {
 			duration = uint64(node.RunningDuration())
 		}
-		v.TaskCount, _ = s.carrier.carrierDB.GetRunningTaskCountOnJobNode(v.Id)
-		v.TaskIdList, _ = s.carrier.carrierDB.GetJobNodeRunningTaskIdList(v.Id)
+		v.TaskCount, _ = s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(v.Id)
+		v.TaskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(v.Id)
 		v.Duration = duration
 		registeredPeer := &pb.YarnRegisteredPeer{
 			NodeType:   pb.NodeType_NodeType_JobNode,
@@ -160,7 +161,43 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return s.carrier.carrierDB.GetSeedNodeList()
 }
 
+func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
+
+	// store into local db
+	if err := s.carrier.carrierDB.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
+		IdentityId: identity.GetIdentityId(),
+		NodeId:     identity.GetNodeId(),
+		NodeName:   identity.GetNodeName(),
+		JobNodeId:  jobNodeId,
+		DataId:     "", // can not own powerId now, because power have not publish
+		// the status of data, N means normal, D means deleted.
+		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+		// resource status, eg: create/release/revoke
+		State: apicommonpb.PowerState_PowerState_Created,
+		// unit: byte
+		TotalMem: jobNodeStatus.GetTotalMemory(),
+		UsedMem: 0,
+		// number of cpu cores.
+		TotalProcessor: jobNodeStatus.GetTotalCpu(),
+		UsedProcessor:  0,
+		// unit: byte
+		TotalBandwidth: jobNodeStatus.GetTotalBandwidth(),
+		UsedBandwidth:  0,
+	})); nil != err {
+		log.Errorf("Failed to store power to local on MessageHandler with broadcast, jobNodeId: {%s}, err: {%s}",
+			jobNodeId, err)
+		return err
+	}
+	return nil
+}
+
 func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
+
+	identity, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
+	}
+
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
@@ -172,6 +209,15 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
+
+		jobNodeStatus, err := client.GetStatus()
+		if err != nil {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
+		}
+		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
+		if err = s.storeLocalResource(identity, node.Id, jobNodeStatus); nil != err {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
+		}
 	}
 
 	if typ == pb.PrefixTypeDataNode {
@@ -180,20 +226,20 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
-		//
-		//dataNodeStatus, err := client.GetStatus()
-		//if err != nil {
-		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
-		//}
-		//// add data resource  (disk)
-		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
+
+		dataNodeStatus, err := client.GetStatus()
+		if err != nil {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+		}
+		// add data resource  (disk)
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
 	}
 	node.ConnState = pb.ConnState_ConnState_Connected
-	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
+	_, err = s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
 		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("Store registerNode to db failed, %s", err)
 	}
@@ -202,6 +248,11 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 
 func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
 
+	identity, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
+	}
+
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
@@ -209,7 +260,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 	}
 	if typ == pb.PrefixTypeJobNode {
 
-		// 算力已发布的jobNode不可以直接删除
+		// 算力已发布的jobNode不可以直接更新
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
@@ -222,7 +273,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
-		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(node.Id)
+		runningTaskCount, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
@@ -242,6 +293,15 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
 		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
+
+		jobNodeStatus, err := client.GetStatus()
+		if err != nil {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
+		}
+		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
+		if err = s.storeLocalResource(identity, node.Id, jobNodeStatus); nil != err {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
+		}
 
 	}
 
@@ -274,13 +334,13 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		}
 		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
 
-		//dataNodeStatus, err := client.GetStatus()
-		//if err != nil {
-		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
-		//}
-		//// add new data resource  (disk)
-		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
+		dataNodeStatus, err := client.GetStatus()
+		if err != nil {
+			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
+		}
+		// add new data resource  (disk)
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
@@ -293,7 +353,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 	// add new node to db
 	node.ConnState = pb.ConnState_ConnState_Connected
-	_, err := s.carrier.carrierDB.SetRegisterNode(typ, node)
+	_, err = s.carrier.carrierDB.SetRegisterNode(typ, node)
 	if err != nil {
 		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("Store new registerNode to db failed, %s", err)
 	}
@@ -301,6 +361,12 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 }
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
+
+	_, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		return fmt.Errorf("query local identity failed, %s", err)
+	}
+
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
@@ -321,7 +387,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 		}
 
 		// 先校验 jobNode 上是否有正在执行的 task
-		runningTaskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(id)
+		runningTaskCount, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
@@ -332,6 +398,11 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
 			client.Close()
 			s.carrier.resourceClientSet.RemoveJobNodeClient(id)
+		}
+
+		// remove jobNode local resource
+		if err = s.carrier.carrierDB.RemoveLocalResource(id); nil != err {
+			return fmt.Errorf("remove jobNode local resource failed, %s", err)
 		}
 	}
 
@@ -382,22 +453,6 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 			} else {
 				jobNode.ConnState = pb.ConnState_ConnState_Connected
 			}
-
-			/*table*/_, err := s.carrier.carrierDB.QueryLocalResourceTable(jobNode.Id)
-			if nil != err {
-				continue
-			}
-			// TODO 需要修改 未完成
-			//if nil != table {
-			//	jobNode.ConnState = pb.ConnState_ConnState_Enabled
-			//}
-			//taskCount, err := s.carrier.carrierDB.GetRunningTaskCountOnJobNode(jobNode.Id)
-			//if nil != err {
-			//	continue
-			//}
-			//if taskCount > 0 {
-			//	jobNode.ConnState = pb.ConnState_ConnState_Occupied
-			//}
 			nodeList[i] = jobNode
 		}
 	}
@@ -464,12 +519,14 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 	return nil
 }
 
-
 // metadata api
 
-func (s *CarrierAPIBackend) GetMetadataDetail (identityId, metadataId string) (*types.Metadata, error) {
-	var metadata *types.Metadata
-	var err error
+func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error) {
+
+	var (
+		metadata *types.Metadata
+		err      error
+	)
 
 	// find local metadata
 	if "" == identityId {
@@ -495,8 +552,11 @@ func (s *CarrierAPIBackend) GetMetadataDetail (identityId, metadataId string) (*
 // GetMetadataDetailList returns a list of all metadata details in the network.
 func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailList executing...")
-	var  arr []*pb.GetGlobalMetadataDetailResponse
-	var  err error
+	var (
+		arr []*pb.GetGlobalMetadataDetailResponse
+		err error
+	)
+
 	publishMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found publish metadata arr failed, " + err.Error())
@@ -520,10 +580,13 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetada
 	return arr, err
 }
 
-func (s *CarrierAPIBackend) GetLocalMetadataDetailList () ([]*pb.GetLocalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetLocalMetadataDetailList executing...")
-	var  arr []*pb.GetLocalMetadataDetailResponse
-	var  err error
+	var (
+		arr []*pb.GetLocalMetadataDetailResponse
+		err error
+	)
+
 	localMetadataArr, err := s.carrier.carrierDB.GetLocalMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
@@ -613,6 +676,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryLocalTaskPowerUseds, localTaskPowerUsedList: %s",
 		utilLocalTaskPowerUsedArrString(localTaskPowerUsedList))
 
+	// query slotUnit
 	slotUnit, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
 	if err != nil {
 		return nil, err
@@ -620,7 +684,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
 		slotUnit.String())
 
-	// 收集 本地所有的 jonNode 上的 powerUsed 数组
+	// collected all powerUsed on local jobNode (many powerUsed on one jobNodes, N -> 1)
 	validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
 	for _, taskPowerUsed := range localTaskPowerUsedList {
 		// condition: jobNode
@@ -636,23 +700,25 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	log.Debugf("Invoke:GetLocalPowerDetailList, make validLocalTaskPowerUsedMap, validLocalTaskPowerUsedMap: %s",
 		utilLocalTaskPowerUsedMapString(validLocalTaskPowerUsedMap))
 
-	readElement := func(jobNodeId string, taskId string) uint64 {
-		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
-			for _, powerUsed := range usedArr {
-				if jobNodeId == powerUsed.GetNodeId() && powerUsed.GetTaskId() == taskId {
-					return powerUsed.GetSlotCount()
-				}
+	readElement := func(partyId string, task *types.Task) *libtypes.TaskPowerSupplier {
+		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+			if partyId == powerSupplier.GetOrganization().GetPartyId() {
+				return powerSupplier
 			}
 		}
-		return 0
+		return nil
 	}
 
 	buildPowerTaskList := func(jobNodeId string) []*libtypes.PowerTask {
 		powerTaskList := make([]*libtypes.PowerTask, 0)
 
-		// 逐个 处理 jobNodeId 上的 task 信息
+		//  handle task information (about the powerUsed) of jobNode one by one with jobNodeId
 		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
+
+			// handle powerUsed one by one
 			for _, powerUsed := range usedArr {
+
+				// query local task information by taskId
 				taskId := powerUsed.GetTaskId()
 				task, err := s.carrier.carrierDB.GetLocalTask(taskId)
 				if err != nil {
@@ -660,7 +726,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 					continue
 				}
 
-				// 封装任务 摘要 ...
+				// build powerTask info
 				powerTask := &libtypes.PowerTask{
 					TaskId:   taskId,
 					TaskName: task.GetTaskData().TaskName,
@@ -676,22 +742,18 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 						Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
 						Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 					},
-					OperationSpend: nil, // 下面单独计算 任务资源使用 实况 ...
+					OperationSpend: nil, // will be culculating after ...
 					CreateAt:       task.GetTaskData().CreateAt,
 				}
-				// 组装 数据参与方
+				// build dataSuppliers of task info
 				for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-					// 协作方, 需要过滤掉自己
-					if task.GetTaskData().GetNodeId() != dataSupplier.GetOrganization().GetIdentityId() {
-						powerTask.Partners = append(powerTask.Partners, &apicommonpb.Organization{
-							NodeName:   dataSupplier.GetOrganization().GetNodeName(),
-							NodeId:     dataSupplier.GetOrganization().GetNodeId(),
-							IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
-						})
-					}
-
+					powerTask.Partners = append(powerTask.Partners, &apicommonpb.Organization{
+						NodeName:   dataSupplier.GetOrganization().GetNodeName(),
+						NodeId:     dataSupplier.GetOrganization().GetNodeId(),
+						IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
+					})
 				}
-				// 组装结果接收方
+				// build receivers of task info
 				for _, receiver := range task.GetTaskData().GetReceivers() {
 					powerTask.Receivers = append(powerTask.Receivers, &apicommonpb.Organization{
 						NodeName:   receiver.GetNodeName(),
@@ -700,13 +762,27 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 					})
 				}
 
-				// 计算任务使用实况 ...
-				slotCount := readElement(jobNodeId, powerTask.TaskId)
+				var (
+					processor uint32
+					memory    uint64
+					bandwidth uint64
+					duration  uint64
+				)
+				// culculate power resource used on task
+				powerSupplier := readElement(powerUsed.GetPartyId(), task)
+				if nil != powerSupplier {
+					processor = powerSupplier.GetResourceUsedOverview().GetUsedProcessor()
+					memory = powerSupplier.GetResourceUsedOverview().GetUsedMem()
+					bandwidth = powerSupplier.GetResourceUsedOverview().GetUsedBandwidth()
+				}
+				if task.GetTaskData().GetStartAt() != 0 {
+					duration = timeutils.UnixMsecUint64() - task.GetTaskData().GetStartAt()
+				}
 				powerTask.OperationSpend = &apicommonpb.TaskResourceCostDeclare{
-					Processor: slotUnit.Processor * uint32(slotCount),
-					Memory:    slotUnit.Mem * slotCount,
-					Bandwidth: slotUnit.Bandwidth * slotCount,
-					Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
+					Processor: processor,
+					Memory:    memory,
+					Bandwidth: bandwidth,
+					Duration:  duration,
 				}
 				powerTaskList = append(powerTaskList, powerTask)
 			}
@@ -714,26 +790,41 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 		return powerTaskList
 	}
 
-	// 计算 jobNodeId 上的 task 数量
-	taskCount := func(jobNodeId string) int {
-		return len(validLocalTaskPowerUsedMap[jobNodeId])
+	// culculate task history total count on jobNode
+	taskTotalCount := func(jobNodeId string) uint32 {
+		count, err := s.carrier.carrierDB.QueryResourceTaskTotalCount(jobNodeId)
+		if err != nil {
+			log.Errorf("Failed to query task totalCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}, err: {%s}", jobNodeId, err)
+			return 0
+		}
+		return count
+	}
+	// culculate task current running count on jobNode
+	taskRunningCount := func(jobNodeId string) uint32 {
+		count, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(jobNodeId)
+		if err != nil {
+			log.Errorf("Failed to query task runningCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}, err: {%s}", jobNodeId, err)
+			return 0
+		}
+		return count
 	}
 
 	resourceList := machineList.To()
-	// 逐个处理当前
+	// handle  resource one by one
 	result := make([]*pb.GetLocalPowerDetailResponse, len(resourceList))
 	for i, resource := range resourceList {
+
 		nodePowerDetail := &pb.GetLocalPowerDetailResponse{
-			JobNodeId:        resource.GetJobNodeId(),
-			PowerId:          resource.DataId,
+			JobNodeId: resource.GetJobNodeId(),
+			PowerId:   resource.DataId,
 			Owner: &apicommonpb.Organization{
 				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
 			Power: &libtypes.PowerUsageDetail{
-				TotalTaskCount:   uint32(taskCount(resource.GetJobNodeId())),
-				CurrentTaskCount: uint32(taskCount(resource.GetJobNodeId())),
+				TotalTaskCount:   taskTotalCount(resource.GetJobNodeId()),
+				CurrentTaskCount: taskRunningCount(resource.GetJobNodeId()),
 				Tasks:            make([]*libtypes.PowerTask, 0),
 				Information: &libtypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
@@ -746,22 +837,13 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 				State: resource.GetState(),
 			},
 		}
-		powerTaskArray := buildPowerTaskList(resource.GetJobNodeId())
-		nodePowerDetail.Power.Tasks = powerTaskArray
+		nodePowerDetail.Power.Tasks = buildPowerTaskList(resource.GetJobNodeId())
 		result[i] = nodePowerDetail
 	}
 	return result, nil
 }
 
 // identity api
-func (s *CarrierAPIBackend) ApplyIdentityJoin(identity *types.Identity) error {
-	//TODO: 申请身份标识时，相关数据需要进行本地存储，然后进行网络发布
-	return s.carrier.carrierDB.InsertIdentity(identity)
-}
-
-func (s *CarrierAPIBackend) RevokeIdentityJoin(identity *types.Identity) error {
-	return s.carrier.carrierDB.RevokeIdentity(identity)
-}
 
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	nodeAlias, err := s.carrier.carrierDB.GetIdentity()
@@ -779,7 +861,6 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 	return s.carrier.carrierDB.GetIdentityList()
 }
 
-
 // for metadataAuthority
 
 func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error) {
@@ -790,11 +871,11 @@ func (s *CarrierAPIBackend) GetMetadataAuthorityList() (types.MetadataAuthArray,
 	return s.carrier.authEngine.GetMetadataAuthorityList()
 }
 
-func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
+func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
 	return s.carrier.authEngine.GetMetadataAuthorityListByUser(userType, user)
 }
 
-func (s *CarrierAPIBackend) HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string)  (bool, error) {
+func (s *CarrierAPIBackend) HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {
 	return s.carrier.authEngine.HasValidLastMetadataAuth(userType, user, metadataId)
 }
 
@@ -993,7 +1074,6 @@ func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
 	return s.carrier.carrierDB.RemoveTaskUpResultFile(taskId)
 }
 
-
 func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error {
 	// generate metadataId
 	originIdHash := rlputil.RlpHash([]interface{}{
@@ -1053,7 +1133,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 	return nil
 }
 
-func (s *CarrierAPIBackend) QueryTaskResultFileSummary (taskId string) (*types.TaskResultFileSummary, error) {
+func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error) {
 	taskUpResultFile, err := s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
 	if nil != err {
 		log.Errorf("Failed query taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, err: {%s}",
@@ -1081,11 +1161,11 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary (taskId string) (*types.T
 		dataResourceFileUpload.GetOriginId(),
 		dataResourceFileUpload.GetFilePath(),
 		dataResourceFileUpload.GetNodeId(),
-		), nil
+	), nil
 
 }
 
-func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList () (types.TaskResultFileSummaryArr, error) {
+func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error) {
 	taskResultFileSummaryArr, err := s.carrier.carrierDB.QueryTaskUpResultFileList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed query all taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummaryList(), err: {%s}", err)
@@ -1120,4 +1200,3 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList () (types.TaskResultF
 
 	return arr, nil
 }
-

@@ -370,36 +370,25 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 	for _, power := range powerMsgArr {
 
-
-		client, ok := m.resourceClientSet.QueryJobNodeClient(power.GetJobNodeId())
-		if !ok {
-			log.Errorf("find jobNode client failed on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}",
-				power.GetPowerId(), power.GetJobNodeId())
-			return
-		}
-
-		if client.IsNotConnected() {
-			if err := client.Reconnect() ; err != nil {
-				log.Errorf("reconnect jobNode client failed on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
-					power.GetPowerId(), power.GetJobNodeId(), err)
-				return
-			}
-		}
-
-		jobNodeStatus, err := client.GetStatus()
-		if err != nil {
-			log.Errorf("connect jobNode query status failed on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+		// query local resource
+		resource, err := m.dataCenter.GetLocalResource(power.GetJobNodeId())
+		if nil != err {
+			log.Errorf("Failed to query local resource on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
-			return
+			continue
 		}
+
+		// set powerId to resource and change state
+		resource.GetData().DataId = power.GetPowerId()
+		resource.GetData().State = apicommonpb.PowerState_PowerState_Released
 
 		// store local resource with totally
 		resourceTable := types.NewLocalResourceTable(
 			power.GetJobNodeId(),
 			power.GetPowerId(),
-			jobNodeStatus.GetTotalMemory(),
-			jobNodeStatus.GetTotalBandwidth(),
-			jobNodeStatus.GetTotalCpu(),
+			resource.GetData().GetTotalMem(),
+			resource.GetData().GetTotalBandwidth(),
+			resource.GetData().GetTotalProcessor(),
 		)
 		resourceTable.SetSlotUnit(slotUnit)
 
@@ -416,28 +405,9 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			continue
 		}
 
-		// store into local db
-		if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
-			IdentityId: identity.GetIdentityId(),
-			NodeId:     identity.GetNodeId(),
-			NodeName:   identity.GetNodeName(),
-			JobNodeId:  power.GetJobNodeId(),
-			DataId:     power.GetPowerId(),
-			// the status of data, N means normal, D means deleted.
-			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-			// resource status, eg: create/release/revoke
-			State: apicommonpb.PowerState_PowerState_Released,
-			// unit: byte
-			TotalMem: jobNodeStatus.GetTotalMemory(),
-			UsedMem: 0,
-			// number of cpu cores.
-			TotalProcessor: jobNodeStatus.GetTotalCpu(),
-			UsedProcessor:  0,
-			// unit: byte
-			TotalBandwidth: jobNodeStatus.GetTotalBandwidth(),
-			UsedBandwidth:  0,
-		})); nil != err {
-			log.Errorf("Failed to store power to local on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+		// update local resource
+		if err := m.dataCenter.InsertLocalResource(resource); nil != err {
+			log.Errorf("Failed to update local resource with powerId to local on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
 			continue
 		}
@@ -453,13 +423,13 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			// resource status, eg: create/release/revoke
 			State: apicommonpb.PowerState_PowerState_Released,
 			// unit: byte
-			TotalMem: jobNodeStatus.GetTotalMemory(),
+			TotalMem: resource.GetData().GetTotalMem(),
 			UsedMem: 0,
 			// number of cpu cores.
-			TotalProcessor: jobNodeStatus.GetTotalCpu(),
+			TotalProcessor: resource.GetData().GetTotalProcessor(),
 			UsedProcessor:  0,
 			// unit: byte
-			TotalBandwidth: jobNodeStatus.GetTotalBandwidth(),
+			TotalBandwidth: resource.GetData().GetTotalBandwidth(),
 			UsedBandwidth:  0,
 		})); nil != err {
 			log.Errorf("Failed to store power to dataCenter on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
@@ -500,9 +470,21 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 			continue
 		}
 
-		// remove from local db
-		if err := m.dataCenter.RemoveLocalResource(jobNodeId); nil != err {
-			log.Errorf("Failed to RemoveLocalResource on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+
+		// query local resource
+		resource, err := m.dataCenter.GetLocalResource(jobNodeId)
+		if nil != err {
+			log.Errorf("Failed to query local resource on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+				revoke.GetPowerId(), jobNodeId, err)
+			continue
+		}
+
+		// remove powerId from local resource and change state
+		resource.GetData().DataId = ""
+		resource.GetData().State = apicommonpb.PowerState_PowerState_Revoked
+		// update local resource
+		if err := m.dataCenter.InsertLocalResource(resource); nil != err {
+			log.Errorf("Failed to update local resource with powerId to local on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}

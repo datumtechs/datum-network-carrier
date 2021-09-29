@@ -38,6 +38,9 @@ var (
 	resourceTaskIdsKeyPrefix = []byte("resourceTaskIdsKeyPrefix:")
 	// prefix + jobNodeId + taskId -> n (n: partyId count)
 	resourceTaskPartyIdCountKeyPrefix = []byte("resourceTaskPartyIdCountKeyPrefix:")
+	// prefix + jobNodeId -> taskTotalCount
+	resourceTaskTotalCountKeyPrefix = []byte("resourceTaskTotalCountKeyPrefix")
+
 
 	// prefix + powerId -> jobNodeId
 	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
@@ -117,6 +120,10 @@ func GetResourceTaskIdsKey(jobNodeId string) []byte {
 
 func GetResourceTaskPartyIdCountKey(jobNodeId, taskId string) []byte {
 	return append(append(resourceTaskPartyIdCountKeyPrefix, []byte(jobNodeId)...), []byte(taskId)...)
+}
+
+func GetResourceTaskTotalCountKey(jobNodeId string) []byte {
+	return append(resourceTaskTotalCountKeyPrefix, []byte(jobNodeId)...)
 }
 
 func GetResourcePowerIdMapingKey(powerId string) []byte {

@@ -9,6 +9,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"sync"
 	"time"
 )
@@ -126,7 +127,10 @@ func (c *JobNodeClient) RunningDuration() int64 {
 }
 
 func (c *JobNodeClient) GetStatus() (*computesvc.GetStatusReply, error) {
-	return nil, errors.New("method GetStatus not implemented")
+	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
+	defer cancel()
+	in := new(emptypb.Empty)
+	return c.computeProviderClient.GetStatus(ctx,  in)
 }
 
 func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*computesvc.GetTaskDetailsReply, error) {
@@ -138,7 +142,7 @@ func (c *JobNodeClient) UploadShard(ctx context.Context) (computesvc.ComputeProv
 }
 
 func (c *JobNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error) {
-	ctx, cancel := context.WithTimeout(c.ctx, defaultRequestTime)
+	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.computeProviderClient.HandleTaskReadyGo(ctx, req)
 }

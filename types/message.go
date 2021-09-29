@@ -18,6 +18,7 @@ const (
 	PREFIX_POWER_ID    = "power:"
 	PREFIX_METADATA_ID = "metadata:"
 	PREFIX_TASK_ID     = "task:"
+	PREFIX_METADATA_AUTH_ID = "metadataAuth:"
 
 	MSG_IDENTITY        = "identityMsg"
 	MSG_IDENTITY_REVOKE = "identityRevokeMsg"
@@ -470,7 +471,7 @@ func (msg *MetadataAuthorityMsg) GenMetadataAuthId() string {
 	if "" != msg.MetadataAuthId {
 		return msg.MetadataAuthId
 	}
-	msg.MetadataAuthId = PREFIX_METADATA_ID + msg.HashByCreateTime().Hex()
+	msg.MetadataAuthId = PREFIX_METADATA_AUTH_ID + msg.HashByCreateTime().Hex()
 	return msg.MetadataAuthId
 }
 func (msg *MetadataAuthorityMsg) Hash() common.Hash {

@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
 	"sync"
@@ -193,7 +194,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 
 	// Lock local resource (jobNode)
 	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {
-		log.Errorf("Failed to lock internal power resource, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
+		log.Errorf("Failed to lock internal power resource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
 			task.GetTaskId(), partyId, jobNodeId, needSlotCount, err)
 		return err
 	}
@@ -213,7 +214,18 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
-		log.Errorf("Failed to query local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
+		log.Errorf("Failed to query local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
+			task.GetTaskId(), jobNodeId, needSlotCount, err)
+		return err
+	}
+
+	jobNodeRunningTaskCount, err := m.dataCenter.QueryRunningTaskCountOnJobNode(jobNodeId)
+	if nil != err {
+
+		m.FreeSlot(jobNodeId, uint32(needSlotCount))
+		m.removePartyTaskPowerUsedOnJobNode(used)
+
+		log.Errorf("Failed to query task runningCount in jobNode on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
 			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return err
 	}
@@ -224,21 +236,24 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 	usedBandwidth := m.slotUnit.Bandwidth * needSlotCount
 
 	jobNodeResource.GetData().UsedMem += usedMem
-	jobNodeResource.GetData().UsedProcessor += uint32(usedProcessor)
+	jobNodeResource.GetData().UsedProcessor +=usedProcessor
 	jobNodeResource.GetData().UsedBandwidth += usedBandwidth
+	if jobNodeRunningTaskCount > 0 {
+		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Occupation
+	}
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
-		log.Errorf("Failed to update local jobNodeResource, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
+		log.Errorf("Failed to update local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
 			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return err
 	}
 
 	// 还需要 将资源使用实况 实时上报给  dataCenter  [添加资源使用情况]
 	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
-		log.Errorf("Failed to sync jobNodeResource to dataCenter, taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
+		log.Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}, err: {%s}",
 			task.GetTaskId(), jobNodeId, needSlotCount, err)
 		return err
 	}
@@ -252,18 +267,18 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 
 	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
 	if nil != err {
-		log.Errorf("Failed to query local task powerUsed,taskId {%s}, partyId: {%s}, err: {%s}", taskId, partyId, err)
+		log.Errorf("Failed to query local task powerUsed on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, err: {%s}", taskId, partyId, err)
 		return err
 	}
 
 	jobNodeId := used.GetNodeId()
 	freeSlotUnitCount := used.GetSlotCount()
 
-	log.Infof("Start unlock local resource with taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", taskId, partyId, jobNodeId, freeSlotUnitCount)
+	log.Infof("Start unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", taskId, partyId, jobNodeId, freeSlotUnitCount)
 
 	// Unlock local resource (jobNode)
 	if err := m.FreeSlot(used.GetNodeId(), uint32(freeSlotUnitCount)); nil != err {
-		log.Errorf("Failed to unlock internal power resource, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
+		log.Errorf("Failed to unlock internal power resource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
 		return err
 	}
@@ -274,7 +289,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 
 	// 移除partyId 对应的本地 该task 的 ResourceUsage
 	if err := m.dataCenter.RemoveTaskResuorceUsage(taskId, partyId); nil != err {
-		log.Errorf("Failed to remove local task resourceUsage, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
+		log.Errorf("Failed to remove local task resourceUsage on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
 		return err
 	}
@@ -282,7 +297,14 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	// 更新本地 resource 资源信息 [释放资源使用情况]
 	jobNodeResource, err := m.dataCenter.GetLocalResource(jobNodeId)
 	if nil != err {
-		log.Errorf("Failed to query local jobNodeResource, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
+		log.Errorf("Failed to query local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
+			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
+		return err
+	}
+
+	jobNodeRunningTaskCount, err := m.dataCenter.QueryRunningTaskCountOnJobNode(jobNodeId)
+	if nil != err {
+		log.Errorf("Failed to query task runningCount in jobNode on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
 		return err
 	}
@@ -295,16 +317,18 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	jobNodeResource.GetData().UsedMem -= usedMem
 	jobNodeResource.GetData().UsedProcessor -= usedProcessor
 	jobNodeResource.GetData().UsedBandwidth -= usedBandwidth
-
+	if jobNodeRunningTaskCount == 0 {
+		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Released
+	}
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
-		log.Errorf("Failed to update local jobNodeResource, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
+		log.Errorf("Failed to update local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
 		return err
 	}
 
 	// 还需要 将资源使用实况 实时上报给  dataCenter  [释放资源使用情况]
 	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
-		log.Errorf("Failed to sync jobNodeResource to dataCenter, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
+		log.Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
 		return err
 	}
@@ -343,7 +367,6 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 		return
 	}
 
-
 	if option.IsUnlockLocalResorce() {
 		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
 			logdesc, taskId, partyId, option)
@@ -352,8 +375,6 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 				logdesc, taskId, partyId, option, err)
 		}
 	}
-
-
 
 	if option.IsRemoveLocalTask() && count == 0 {
 		log.Debugf("start remove local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
@@ -404,6 +425,17 @@ func (m *Manager) addPartyTaskPowerUsedOnJobNode(used *types.LocalTaskPowerUsed)
 					used.String(), err)
 				return err
 			}
+
+			if err := m.dataCenter.IncreaseResourceTaskTotalCount(used.GetNodeId()); nil != err {
+
+				m.dataCenter.DecreaseResourceTaskPartyIdCount(used.GetNodeId(), used.GetTaskId())
+				m.dataCenter.RemoveJobNodeRunningTaskId(used.GetNodeId(), used.GetTaskId())
+
+				log.Errorf("failed to increase taskTotalCount on jobNode, used: {%s}, err: {%s}",
+					used.String(), err)
+				return err
+			}
+
 		}
 
 		if err := m.dataCenter.StoreLocalTaskPowerUsed(used); nil != err {

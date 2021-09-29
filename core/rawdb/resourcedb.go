@@ -1056,7 +1056,7 @@ func RemoveResourceTaskId(db KeyValueStore, jobNodeId, taskId string) error {
 func QueryResourceTaskIds(db KeyValueStore, jobNodeId string) ([]string, error) {
 	key := GetResourceTaskIdsKey(jobNodeId)
 	has, err := db.Has(key)
-	if IsNoDBNotFoundErr(err) {
+	if nil != err {
 		return nil, err
 	}
 	var taskIds []string
@@ -1073,6 +1073,8 @@ func QueryResourceTaskIds(db KeyValueStore, jobNodeId string) ([]string, error) 
 	}
 	return taskIds, nil
 }
+
+
 
 func IncreaseResourceTaskPartyIdCount (db KeyValueStore, jobNodeId, taskId string) error {
 	count_key := GetResourceTaskPartyIdCountKey(jobNodeId, taskId)
@@ -1126,6 +1128,78 @@ func DecreaseResourceTaskPartyIdCount (db KeyValueStore, jobNodeId, taskId strin
 
 func QueryResourceTaskPartyIdCount (db DatabaseReader, jobNodeId, taskId string) (uint32, error) {
 	count_key := GetResourceTaskPartyIdCountKey(jobNodeId, taskId)
+	val, err := db.Get(count_key)
+
+	var count uint32
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+
+	return count, nil
+}
+
+func IncreaseResourceTaskTotalCount (db KeyValueStore, jobNodeId string) error {
+	count_key := GetResourceTaskTotalCountKey(jobNodeId)
+	val, err := db.Get(count_key)
+
+	var count uint32
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+
+	count++
+
+	if err := db.Put(count_key, bytesutil.Uint32ToBytes(count)); nil != err {
+		return err
+	}
+	return nil
+}
+
+func DecreaseResourceTaskTotalCount (db KeyValueStore, jobNodeId string) error {
+	count_key := GetResourceTaskTotalCountKey(jobNodeId)
+	val, err := db.Get(count_key)
+
+	var count uint32
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err):
+		return nil
+	case nil == err && len(val) != 0:
+		count = bytesutil.BytesToUint32(val)
+	}
+
+	if count == 0 {
+		if err := db.Delete(count_key); nil != err {
+			return err
+		}
+	} else {
+
+		count++
+
+		if err := db.Put(count_key, bytesutil.Uint32ToBytes(count)); nil != err {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func RemoveResourceTaskTotalCount (db DatabaseDeleter, jobNodeId string) error {
+	count_key := GetResourceTaskTotalCountKey(jobNodeId)
+	return db.Delete(count_key)
+}
+
+func QueryResourceTaskTotalCount (db DatabaseReader, jobNodeId string) (uint32, error) {
+	count_key := GetResourceTaskTotalCountKey(jobNodeId)
 	val, err := db.Get(count_key)
 
 	var count uint32

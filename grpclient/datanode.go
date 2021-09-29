@@ -9,6 +9,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/datasvc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/connectivity"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"sync"
 	"time"
 )
@@ -129,7 +130,10 @@ func (c *DataNodeClient) RunningDuration() int64 {
 
 
 func (c *DataNodeClient) GetStatus() (*datasvc.GetStatusReply, error) {
-	return nil, errors.New("method GetStatus not implemented")
+	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
+	defer cancel()
+	in := new(emptypb.Empty)
+	return c.dataProviderClient.GetStatus(ctx,  in)
 }
 
 func (c *DataNodeClient) ListData() (*datasvc.ListDataReply, error) {
@@ -157,7 +161,7 @@ func (c *DataNodeClient) SendSharesData(in *datasvc.SendSharesDataRequest) (*dat
 }
 
 func (c *DataNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.TaskReadyGoReply, error) {
-	ctx, cancel := context.WithTimeout(c.ctx, defaultRequestTime)
+	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.dataProviderClient.HandleTaskReadyGo(ctx, req)
 }

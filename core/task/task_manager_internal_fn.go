@@ -849,19 +849,20 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return nil
 	}
 
+	// todo 还不清楚需不需要更新本地的  ResourceUsage
 	//if err := m.resourceMng.GetDB().StoreTaskResuorceUsage(msg.GetUsage()); nil != err {
 	//	log.Errorf("Failed to store task resource usage on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
 	//		msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
 	//	return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResourceUsageMsgInvalid)
 	//}
 
+	// Update task resourceUUsed of powerSuppliers of local task
 	task, err := m.resourceMng.GetDB().GetLocalTask(msg.GetUsage().GetTaskId())
 	if nil != err {
 		log.Errorf("Failed to query local task info on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
 			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
 		return fmt.Errorf("query local task failed")
 	}
-
 	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 
 		if msg.GetMsgOption().SenderPartyId == powerSupplier.GetOrganization().GetPartyId() &&
@@ -872,7 +873,6 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedDisk = msg.GetUsage().GetUsedDisk()
 		}
 	}
-
 	err = m.resourceMng.GetDB().StoreLocalTask(task)
 	if nil != err {
 		log.Errorf("Failed to store local task info on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",

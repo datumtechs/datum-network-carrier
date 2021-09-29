@@ -105,7 +105,7 @@ func NewTotalMetadataInfoFromMetadata(input *Metadata) *pb.GetGlobalMetadataDeta
 		},
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
-				MetadataId: input.GetData().GetDataId(),
+				MetadataId: input.GetData().GetMetadataId(),
 				OriginId:   input.GetData().GetOriginId(),
 				TableName:  input.GetData().GetTableName(),
 				Desc:       input.GetData().GetDesc(),

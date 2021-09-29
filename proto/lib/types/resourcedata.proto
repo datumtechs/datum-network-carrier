@@ -77,7 +77,7 @@ message PowerUsageDetail {
   uint32                            total_task_count = 2;             // 算力(宿主机)上执行过的任务总数 (已完成的和正在执行的)
   uint32                            current_task_count = 3;           // 算力(宿主机)上当前正在执行的任务数
   repeated PowerTask                tasks = 4;                        // 算力(宿主机)上当前正在执行的任务详情信息
-  api.protobuf.PowerState           state = 5;                        // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)
+  api.protobuf.PowerState           state = 5;                        // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力(算力未被占用); 3: 已发布的算力(算力正在被占用); 4: 已撤销的算力)
 }
 
 // 算力上的任务信息

@@ -121,20 +121,28 @@ func (dc *DataCenter) RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
 	return rawdb.RemoveResourceTaskId(dc.db, jobNodeId, taskId)
 }
 
-func (dc *DataCenter) GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error) {
+func (dc *DataCenter) QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	taskIds, err := rawdb.QueryResourceTaskIds(dc.db, jobNodeId)
-	if nil != err {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		return 0, err
+	} else if rawdb.IsDBNotFoundErr(err) {
+		return 0, nil
 	}
 	return uint32(len(taskIds)), nil
 }
 
-func (dc *DataCenter) GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error) {
+func (dc *DataCenter) QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryResourceTaskIds(dc.db, jobNodeId)
+	ids, err := rawdb.QueryResourceTaskIds(dc.db, jobNodeId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, err
+	} else if rawdb.IsDBNotFoundErr(err) {
+		return nil, nil
+	}
+	return ids, nil
 }
 
 func (dc *DataCenter) IncreaseResourceTaskPartyIdCount (jobNodeId, taskId string) error {
@@ -154,6 +162,31 @@ func (dc *DataCenter) QueryResourceTaskPartyIdCount (jobNodeId, taskId string) (
 	defer dc.mu.Unlock()
 	return rawdb.QueryResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
 }
+
+func  (dc *DataCenter) IncreaseResourceTaskTotalCount (jobNodeId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.IncreaseResourceTaskTotalCount(dc.db, jobNodeId)
+}
+
+func  (dc *DataCenter) DecreaseResourceTaskTotalCount (jobNodeId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.DecreaseResourceTaskTotalCount(dc.db, jobNodeId)
+}
+
+func  (dc *DataCenter) RemoveResourceTaskTotalCount (jobNodeId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveResourceTaskTotalCount(dc.db, jobNodeId)
+}
+
+func  (dc *DataCenter) QueryResourceTaskTotalCount (jobNodeId string) (uint32, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryResourceTaskTotalCount(dc.db, jobNodeId)
+}
+
 
 // about task on datacenter
 func (dc *DataCenter) InsertTask(task *types.Task) error {

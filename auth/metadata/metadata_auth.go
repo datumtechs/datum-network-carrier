@@ -158,17 +158,17 @@ func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserT
 		return false, nil
 	}
 
-	//if metadataAuth.GetData().GetAuth().GetMetadataId() != metadataId {
-	//	log.Errorf("the metadataId of metadataAuth and current metadataId is not same on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
-	//		userType.String(), user, metadataId, metadataAuthId)
-	//	return false
-	//}
-	//
-	//if metadataAuth.GetData().GetUserType() != userType || metadataAuth.GetData().GetUser() != user {
-	//	log.Errorf("the userType or user of metadataAuth and current userType or user is not same on MetadataAuthority.VerifyMetadataAuth(), auth userType: {%s},auth user: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
-	//		metadataAuth.GetData().GetUserType().String(), metadataAuth.GetData().GetUser(), userType.String(), user, metadataId, metadataAuthId)
-	//	return false
-	//}
+	if metadataAuth.GetData().GetAuth().GetMetadataId() != metadataId {
+		log.Errorf("the metadataId of metadataAuth and current metadataId is not same on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			userType.String(), user, metadataId, metadataAuthId)
+		return false, fmt.Errorf("invalid metadataId")
+	}
+
+	if metadataAuth.GetData().GetUserType() != userType || metadataAuth.GetData().GetUser() != user {
+		log.Errorf("the userType or user of metadataAuth and current userType or user is not same on MetadataAuthority.InvalidLastMetadataAuth(), auth userType: {%s},auth user: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			metadataAuth.GetData().GetUserType().String(), metadataAuth.GetData().GetUser(), userType.String(), user, metadataId, metadataAuthId)
+		return false, fmt.Errorf("invalid userType or user")
+	}
 
 	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
 		log.Debugf("the old metadataAuth state is not release on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}, state: {%s}",

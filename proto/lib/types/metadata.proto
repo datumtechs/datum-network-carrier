@@ -100,5 +100,5 @@ message MetadataAuthority {
 message MetadataUsedQuo {
   api.protobuf.MetadataUsageType  usage_type = 1;               // 元数据的使用方式 (0: 未定义; 1: 按照时间段来使用; 2: 按照次数来使用)
   bool                            expire = 2;                   // 是否已过期 (当 usage_type 为 1 时才需要的字段)
-  uint32                          used_times = 3;               // 已经使用的次数 (当 usage_type 为 1 时才需要的字段)
+  uint32                          used_times = 3;               // 已经使用的次数 (当 usage_type 为 2 时才需要的字段)
 }

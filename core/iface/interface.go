@@ -55,12 +55,17 @@ type LocalStoreCarrierDB interface {
 	// about resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
 	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
 	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
-	GetRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
-	GetJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
+	QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
+	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
 	// about resource task party count (prefix + taskId -> n (n: partyId count))
 	IncreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
 	DecreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
 	QueryResourceTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
+	// about task totalCount on jobNode ever (prefix + jobNodeId -> taskTotalCount)
+	IncreaseResourceTaskTotalCount (jobNodeId string) error
+	DecreaseResourceTaskTotalCount (jobNodeId string) error
+	RemoveResourceTaskTotalCount (jobNodeId string) error
+	QueryResourceTaskTotalCount (jobNodeId string) (uint32, error)
 
 	// about DataResourceTable (dataNodeId -> {dataNodeId, totalDisk, usedDisk})
 	StoreDataResourceTable(StoreDataResourceTables *types.DataResourceTable) error
