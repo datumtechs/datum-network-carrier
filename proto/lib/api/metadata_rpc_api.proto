@@ -83,7 +83,7 @@ message GetMetadataUsedTaskIdListResponse {
 // ## 元数据 相关接口
 service MetadataService {
 
-  // 查看全网元数据列表
+  // 查看 全网元数据列表
   rpc GetGlobalMetadataDetailList (google.protobuf.Empty) returns (GetGlobalMetadataDetailListResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/metadata/globalList"

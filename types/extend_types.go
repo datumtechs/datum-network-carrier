@@ -96,7 +96,7 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 	return result
 }
 
-func NewTotalMetadataInfoFromMetadata(input *Metadata) *pb.GetGlobalMetadataDetailResponse {
+func NewGlobalMetadataInfoFromMetadata(input *Metadata) *pb.GetGlobalMetadataDetailResponse {
 	response := &pb.GetGlobalMetadataDetailResponse{
 		Owner: &apicommonpb.Organization{
 			NodeName:   input.data.GetNodeName(),
@@ -124,7 +124,7 @@ func NewTotalMetadataInfoFromMetadata(input *Metadata) *pb.GetGlobalMetadataDeta
 	return response
 }
 
-func NewSelfMetadataInfoFromMetadata(isInternal bool, input *Metadata) *pb.GetLocalMetadataDetailResponse {
+func NewLocalMetadataInfoFromMetadata(isInternal bool, input *Metadata) *pb.GetLocalMetadataDetailResponse {
 	response := &pb.GetLocalMetadataDetailResponse{
 		Owner: &apicommonpb.Organization{
 			NodeName:   input.data.GetNodeName(),
@@ -153,32 +153,32 @@ func NewSelfMetadataInfoFromMetadata(isInternal bool, input *Metadata) *pb.GetLo
 	return response
 }
 
-func NewTotalMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetGlobalMetadataDetailResponse {
+func NewGlobalMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetGlobalMetadataDetailResponse {
 	result := make([]*pb.GetGlobalMetadataDetailResponse, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue
 		}
-		result = append(result, NewTotalMetadataInfoFromMetadata(metadata))
+		result = append(result, NewGlobalMetadataInfoFromMetadata(metadata))
 	}
 	return result
 }
 
-func NewSelfMetadataInfoArrayFromMetadataArray(localArr, publishArr MetadataArray) []*pb.GetLocalMetadataDetailResponse {
-	result := make([]*pb.GetLocalMetadataDetailResponse, 0, localArr.Len()+publishArr.Len())
+func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr MetadataArray) []*pb.GetLocalMetadataDetailResponse {
+	result := make([]*pb.GetLocalMetadataDetailResponse, 0, internalArr.Len()+publishArr.Len())
 
-	for _, metadata := range localArr {
+	for _, metadata := range internalArr {
 		if metadata == nil {
 			continue
 		}
-		result = append(result, NewSelfMetadataInfoFromMetadata(true, metadata))
+		result = append(result, NewLocalMetadataInfoFromMetadata(true, metadata))
 	}
 
 	for _, metadata := range publishArr {
 		if metadata == nil {
 			continue
 		}
-		result = append(result, NewSelfMetadataInfoFromMetadata(false, metadata))
+		result = append(result, NewLocalMetadataInfoFromMetadata(false, metadata))
 	}
 
 	return result

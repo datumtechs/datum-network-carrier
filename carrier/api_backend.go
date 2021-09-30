@@ -1,8 +1,10 @@
 package carrier
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
@@ -562,7 +564,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetada
 		return nil, errors.New("found publish metadata arr failed, " + err.Error())
 	}
 	if len(publishMetadataArr) != 0 {
-		arr = append(arr, types.NewTotalMetadataInfoArrayFromMetadataArray(publishMetadataArr)...)
+		arr = append(arr, types.NewGlobalMetadataInfoArrayFromMetadataArray(publishMetadataArr)...)
 	}
 	if len(arr) == 0 {
 		return nil, errors.New("not found metadata arr")
@@ -582,22 +584,37 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetada
 
 func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetLocalMetadataDetailList executing...")
+
 	var (
 		arr []*pb.GetLocalMetadataDetailResponse
 		err error
 	)
 
-	localMetadataArr, err := s.carrier.carrierDB.GetLocalMetadataList()
+	identity, err := s.carrier.carrierDB.GetIdentity()
+	if nil != err {
+		if nil != err {
+			return nil, errors.New("found local identity failed, " + err.Error())
+		}
+	}
+
+	internalMetadataArr, err := s.carrier.carrierDB.GetLocalMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
 
-	publishMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
+	globalMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found publish metadata arr failed, " + err.Error())
 	}
 
-	arr = append(arr, types.NewSelfMetadataInfoArrayFromMetadataArray(localMetadataArr, publishMetadataArr)...)
+	publishMetadataArr := make(types.MetadataArray, 0)
+	for _, metadata := range globalMetadataArr {
+		if identity.GetIdentityId() == metadata.GetData().GetIdentityId() {
+			publishMetadataArr = append(publishMetadataArr, metadata)
+		}
+	}
+
+	arr = append(arr, types.NewLocalMetadataInfoArrayFromMetadataArray(internalMetadataArr, publishMetadataArr)...)
 
 	if len(arr) == 0 {
 		return nil, errors.New("not found metadata arr")
@@ -1080,10 +1097,11 @@ func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
 
 func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error {
 	// generate metadataId
-	originIdHash := rlputil.RlpHash([]interface{}{
-		originId,
-		timeutils.UnixMsecUint64(),
-	})
+	var buf bytes.Buffer
+	buf.Write([]byte(originId))
+	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
+	originIdHash := rlputil.RlpHash(buf.Bytes())
+
 	metadataId := types.PREFIX_METADATA_ID + originIdHash.Hex()
 
 	identity, err := s.carrier.carrierDB.GetIdentity()
@@ -1151,7 +1169,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 		return nil, err
 	}
 
-	localMetadata, err := s.carrier.carrierDB.GetLocalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
+	localMetadata, err := s.carrier.carrierDB.GetLocalMetadataByDataId(taskUpResultFile.GetMetadataId())
 	if nil != err {
 		log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
 			taskId, taskUpResultFile.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)

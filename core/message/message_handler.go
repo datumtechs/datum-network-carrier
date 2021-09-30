@@ -348,10 +348,8 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 		}
 	}
 
-	// todo what if have any power publised, revoke the powers
-
+	// todo what if have any power publised, revoke the powers,
 	// todo what metadata auth using on
-
 	// todo what if metadata publish
 
 
@@ -367,6 +365,10 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 			NodeName:   identity.GetNodeName(),
 			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
+			DataId: "",
+			DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+			Status:     apicommonpb.CommonStatus_CommonStatus_NonNormal,
+			Credential: "",
 		})); nil != err {
 		log.Errorf("Failed to remove org identity to remote on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return
@@ -541,7 +543,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 	for _, metadata := range metadataMsgArr {
 
-		// 维护本地 数据服务的 orginId  和 metadataId 关系
+		// maintain the orginId and metadataId relationship of the local data service
 		dataResourceFileUpload, err := m.dataCenter.QueryDataResourceFileUpload(metadata.GetOriginId())
 		if nil != err {
 			log.Errorf("Failed to QueryDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, err: {%s}",
@@ -549,27 +551,28 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			continue
 		}
 
-		// 更新 fileupload 信息中的 metadataId
+		// Update metadataId in fileupload information
 		dataResourceFileUpload.SetMetadataId(metadata.GetMetadataId())
 		if err := m.dataCenter.StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
 			log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
 		}
-		// 记录原始数据占用资源大小
+		// Record the size of the resources occupied by the original data
 		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
 		}
+		// update disk used of data resource table
 		dataResourceTable.UseDisk(metadata.GetSize())
 		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
 			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
 		}
-		// 单独记录 metaData 的 GetSize 和所在 dataNodeId
+		// Separately record the GetSize of the metaData and the dataNodeId where it is located
 		if err := m.dataCenter.StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
 			metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), metadata.GetSize())); nil != err {
 			log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
@@ -577,6 +580,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			continue
 		}
 
+		// publish metadata information
 		if err := m.dataCenter.InsertMetadata(metadata.ToDataCenter(identity)); nil != err {
 			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)

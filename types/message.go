@@ -17,9 +17,9 @@ import (
 )
 
 const (
-	PREFIX_POWER_ID    = "power:"
-	PREFIX_METADATA_ID = "metadata:"
-	PREFIX_TASK_ID     = "task:"
+	PREFIX_POWER_ID         = "power:"
+	PREFIX_METADATA_ID      = "metadata:"
+	PREFIX_TASK_ID          = "task:"
 	PREFIX_METADATA_AUTH_ID = "metadataAuth:"
 
 	MSG_IDENTITY        = "identityMsg"
@@ -67,6 +67,10 @@ func (msg *IdentityMsg) ToDataCenter() *Identity {
 		NodeName:   msg.organization.NodeName,
 		NodeId:     msg.organization.NodeId,
 		IdentityId: msg.organization.IdentityId,
+		DataId:     "",
+		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+		Status:     apicommonpb.CommonStatus_CommonStatus_Normal,
+		Credential: "",
 	})
 }
 func (msg *IdentityMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -669,7 +673,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			CalculateContractCode: req.GetCalculateContractCode(),
 			DataSplitContractCode: req.GetDataSplitContractCode(),
 			ContractExtraParams:   req.GetContractExtraParams(),
-			Sign: req.GetSign(),
+			Sign:                  req.GetSign(),
 		}),
 	}
 }
