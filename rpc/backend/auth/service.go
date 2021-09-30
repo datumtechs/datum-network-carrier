@@ -293,23 +293,12 @@ func (svr *Server) GetLocalMetadataAuthorityList(context.Context, *emptypb.Empty
 	}, nil
 }
 
-func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.GetMetadataAuthorityListByUserRequest) (*pb.GetMetadataAuthorityListResponse, error) {
+func (svr *Server) GetGlobalMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
 
-	if "" == req.GetUser() {
-		return nil, ErrReqGetUserForMetadataAuthListByUser
-	}
-
-	if !verifyUserType(req.GetUserType()) {
-		return nil, ErrVerifyUserTypeForMetadataAuthListByUser
-	}
-
-	authorityList, err := svr.B.GetMetadataAuthorityListByUser(req.GetUserType(), req.GetUser())
+	authorityList, err := svr.B.GetGlobalMetadataAuthorityList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetMetadataAuthorityListByUser failed")
-
-		errMsg := fmt.Sprintf(ErrGetAuthorityListByUserTypeAndUser.Msg,
-			req.GetUserType().String(), req.GetUser())
-		return nil, backend.NewRpcBizErr(ErrGetAuthorityListByUserTypeAndUser.Code, errMsg)
+		log.WithError(err).Error("RPC-API:GetGlobalMetadataAuthorityList failed")
+		return nil, ErrGetAuthorityList
 	}
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
@@ -318,12 +307,15 @@ func (svr *Server) GetMetadataAuthorityListByUser(ctx context.Context, req *pb.G
 			User:            auth.GetData().GetUser(),
 			UserType:        auth.GetData().GetUserType(),
 			Auth:            auth.GetData().GetAuth(),
+			AuditOption: 	 auth.GetData().GetAuditOption(),
 			AuditSuggestion: auth.GetData().GetAuditSuggestion(),
+			UsedQuo:         auth.GetData().GetUsedQuo(),
 			ApplyAt:         auth.GetData().GetApplyAt(),
 			AuditAt:         auth.GetData().GetAuditAt(),
+			State: 			 auth.GetData().GetState(),
 		}
 	}
-	log.Debugf("Query all metadata authority list by user, userType: {%s}, user: {%s}, len: {%d}", req.GetUserType().String(), req.GetUser(), len(authorityList))
+	log.Debugf("RPC-API:GetGlobalMetadataAuthorityList succeed, metadata authority list, len: {%d}", len(authorityList))
 	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,

@@ -157,8 +157,16 @@ func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, la
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
-func (dc *DataCenter) GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string, lastUpdate uint64) (types.MetadataAuthArray, error) {
-	//todo: Discussion: Do we need to achieve?
-	panic("implements me")
-	return nil, nil
+
+func (dc *DataCenter) GetMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
+	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
+		LastUpdated: lastUpdate,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
+

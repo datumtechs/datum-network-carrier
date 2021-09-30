@@ -13,7 +13,7 @@
   "paths": {
     "/carrier/v1/metadata/globalList": {
       "post": {
-        "summary": "查看全网元数据列表",
+        "summary": "查看 全网元数据列表",
         "operationId": "MetadataService_GetGlobalMetadataDetailList",
         "responses": {
           "200": {

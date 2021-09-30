@@ -125,12 +125,12 @@ func (ma *MetadataAuthority) GetLocalMetadataAuthorityList() (types.MetadataAuth
 	return ma.dataCenter.GetMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
 }
 
-func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
-	return ma.dataCenter.GetMetadataAuthorityListByIds(metadataAuthIds)
+func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList() (types.MetadataAuthArray, error) {
+	return ma.dataCenter.GetMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64())
 }
 
-func (ma *MetadataAuthority) GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
-	return ma.dataCenter.GetMetadataAuthorityListByUser(userType, user, timeutils.BeforeYearUnixMsecUint64())
+func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
+	return ma.dataCenter.GetMetadataAuthorityListByIds(metadataAuthIds)
 }
 
 func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {

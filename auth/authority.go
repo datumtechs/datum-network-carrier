@@ -38,12 +38,12 @@ func (am *AuthorityManager) GetLocalMetadataAuthorityList () (types.MetadataAuth
 	return am.metadataAuth.GetLocalMetadataAuthorityList()
 }
 
-func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []string) (types.MetadataAuthArray, error) {
-	return am.metadataAuth.GetMetadataAuthorityListByIds(metadataAuthIds)
+func (am *AuthorityManager) GetGlobalMetadataAuthorityList () (types.MetadataAuthArray, error) {
+	return am.metadataAuth.GetGlobalMetadataAuthorityList()
 }
 
-func (am *AuthorityManager) GetMetadataAuthorityListByUser (userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
-	return am.metadataAuth.GetMetadataAuthorityListByUser(userType, user)
+func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []string) (types.MetadataAuthArray, error) {
+	return am.metadataAuth.GetMetadataAuthorityListByIds(metadataAuthIds)
 }
 
 func (am *AuthorityManager) HasValidLastMetadataAuth (userType apicommonpb.UserType, user, metadataId string) (bool, error) {

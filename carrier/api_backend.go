@@ -889,11 +889,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList() (types.MetadataAuthA
 }
 
 func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	return nil, nil
-}
-
-func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {
-	return s.carrier.authEngine.GetMetadataAuthorityListByUser(userType, user)
+	return s.carrier.authEngine.GetGlobalMetadataAuthorityList()
 }
 
 func (s *CarrierAPIBackend) HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {

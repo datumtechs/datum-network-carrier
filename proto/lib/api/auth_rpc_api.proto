@@ -94,12 +94,6 @@ message GetMetadataAuthorityListResponse {
 }
 
 
-// 当前(用户)的所有元数据的授权申请及审核结果详情列表 req
-message GetMetadataAuthorityListByUserRequest {
-  string                    user = 1;                             // 发起任务的用户的信息 (数据授权 是属于用户的)
-  api.protobuf.UserType     user_type = 2;                        // 用户类型 (0: 未定义; 1: 以太坊地址; 2: Alaya地址; 3: PlatON地址)
-}
-
 service AuthService {
 
   // 组织身份入网申请
@@ -157,7 +151,7 @@ service AuthService {
     };
   }
 
-  // 当前(组织)的所有元数据的授权申请及审核结果详情列表
+  // 查询(本组织)的所有元数据的授权申请及审核结果详情列表
   rpc GetLocalMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/auth/localMetadataAuthList"
@@ -165,10 +159,10 @@ service AuthService {
     };
   }
 
-  // 当前(用户)的所有元数据的授权申请及审核结果详情列表
-  rpc GetMetadataAuthorityListByUser(GetMetadataAuthorityListByUserRequest) returns (GetMetadataAuthorityListResponse) {
+  // 查询(全网)的所有元数据的授权申请及审核结果详情列表
+  rpc GetGlobalMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/auth/metadataAuthListByUser"
+      post: "/carrier/v1/auth/globalMetadataAuthList"
       body: "*"
     };
   }

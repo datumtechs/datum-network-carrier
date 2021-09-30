@@ -633,7 +633,7 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MetadataServiceClient interface {
-	// 查看全网元数据列表
+	// 查看 全网元数据列表
 	GetGlobalMetadataDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetGlobalMetadataDetailListResponse, error)
 	// 查看 本组织元数据列表
 	GetLocalMetadataDetailList(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*GetLocalMetadataDetailListResponse, error)
@@ -701,7 +701,7 @@ func (c *metadataServiceClient) GetMetadataUsedTaskIdList(ctx context.Context, i
 
 // MetadataServiceServer is the server API for MetadataService service.
 type MetadataServiceServer interface {
-	// 查看全网元数据列表
+	// 查看 全网元数据列表
 	GetGlobalMetadataDetailList(context.Context, *emptypb.Empty) (*GetGlobalMetadataDetailListResponse, error)
 	// 查看 本组织元数据列表
 	GetLocalMetadataDetailList(context.Context, *emptypb.Empty) (*GetLocalMetadataDetailListResponse, error)

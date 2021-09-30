@@ -155,7 +155,7 @@ type IdentityCarrierDB interface {
 	GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error)
 	GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error)
 	GetMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
-	GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string, lastUpdate uint64) (types.MetadataAuthArray, error)
+	GetMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error)
 }
 
 type TaskCarrierDB interface {

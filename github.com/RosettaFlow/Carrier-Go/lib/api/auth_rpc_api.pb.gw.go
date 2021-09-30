@@ -306,8 +306,8 @@ func local_request_AuthService_GetLocalMetadataAuthorityList_0(ctx context.Conte
 
 }
 
-func request_AuthService_GetMetadataAuthorityListByUser_0(ctx context.Context, marshaler runtime.Marshaler, client AuthServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetMetadataAuthorityListByUserRequest
+func request_AuthService_GetGlobalMetadataAuthorityList_0(ctx context.Context, marshaler runtime.Marshaler, client AuthServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -318,13 +318,13 @@ func request_AuthService_GetMetadataAuthorityListByUser_0(ctx context.Context, m
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.GetMetadataAuthorityListByUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetGlobalMetadataAuthorityList(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_AuthService_GetMetadataAuthorityListByUser_0(ctx context.Context, marshaler runtime.Marshaler, server AuthServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq GetMetadataAuthorityListByUserRequest
+func local_request_AuthService_GetGlobalMetadataAuthorityList_0(ctx context.Context, marshaler runtime.Marshaler, server AuthServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -335,7 +335,7 @@ func local_request_AuthService_GetMetadataAuthorityListByUser_0(ctx context.Cont
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.GetMetadataAuthorityListByUser(ctx, &protoReq)
+	msg, err := server.GetGlobalMetadataAuthorityList(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -530,7 +530,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 
 	})
 
-	mux.Handle("POST", pattern_AuthService_GetMetadataAuthorityListByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AuthService_GetGlobalMetadataAuthorityList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -541,7 +541,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_AuthService_GetMetadataAuthorityListByUser_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_AuthService_GetGlobalMetadataAuthorityList_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -549,7 +549,7 @@ func RegisterAuthServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux
 			return
 		}
 
-		forward_AuthService_GetMetadataAuthorityListByUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_AuthService_GetGlobalMetadataAuthorityList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -754,7 +754,7 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 
 	})
 
-	mux.Handle("POST", pattern_AuthService_GetMetadataAuthorityListByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_AuthService_GetGlobalMetadataAuthorityList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -763,14 +763,14 @@ func RegisterAuthServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_AuthService_GetMetadataAuthorityListByUser_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_AuthService_GetGlobalMetadataAuthorityList_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_AuthService_GetMetadataAuthorityListByUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_AuthService_GetGlobalMetadataAuthorityList_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -794,7 +794,7 @@ var (
 
 	pattern_AuthService_GetLocalMetadataAuthorityList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "auth", "localMetadataAuthList"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_AuthService_GetMetadataAuthorityListByUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "auth", "metadataAuthListByUser"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_AuthService_GetGlobalMetadataAuthorityList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "auth", "globalMetadataAuthList"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -814,5 +814,5 @@ var (
 
 	forward_AuthService_GetLocalMetadataAuthorityList_0 = runtime.ForwardResponseMessage
 
-	forward_AuthService_GetMetadataAuthorityListByUser_0 = runtime.ForwardResponseMessage
+	forward_AuthService_GetGlobalMetadataAuthorityList_0 = runtime.ForwardResponseMessage
 )
