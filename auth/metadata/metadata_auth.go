@@ -48,7 +48,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	metadataAuth.GetData().AuditOption = audit.GetAuditOption()
 	metadataAuth.GetData().AuditSuggestion = audit.GetAuditSuggestion()
 
-	err = ma.dataCenter.InsertMetadataAuthority(metadataAuth)
+	err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth)
 	if nil != err {
 		log.Errorf("Failed to store metadataAuth after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}, err: {%s}",
 			audit.GetMetadataAuthId(), audit.GetAuditOption().String(), err)
@@ -82,9 +82,8 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 	usageRule := metadataAuth.GetData().GetAuth().GetUsageRule()
 	usedQuo := metadataAuth.GetData().GetUsedQuo()
 
-	switch usageRule.UsageType {
+	switch usageRule.GetUsageType() {
 	case apicommonpb.MetadataUsageType_Usage_Period:
-		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
 		if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 			usedQuo.Expire = true
 			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
@@ -92,21 +91,20 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 			usedQuo.Expire = false
 		}
 	case apicommonpb.MetadataUsageType_Usage_Times:
-		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Times
 		if usedQuo.GetUsedTimes() < usageRule.GetTimes() {
 			usedQuo.UsedTimes += 1
 		} else {
 			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
 		}
 	default:
-		log.Errorf("usageRule state of the old metadataAuth is invalid on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}",
+		log.Errorf("unknown usageType of the old metadataAuth on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}",
 			metadataAuthId)
-		return fmt.Errorf("usageRule state of the old metadataAuth is invalid")
+		return fmt.Errorf("unknown usageType of the old metadataAuth")
 	}
 
 	metadataAuth.GetData().UsedQuo = usedQuo
 
-	err = ma.dataCenter.InsertMetadataAuthority(metadataAuth)
+	err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth)
 	if nil != err {
 		log.Errorf("Failed to update metadataAuth after consume on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}, err: {%s}",
 			metadataAuthId, err)
@@ -119,7 +117,7 @@ func (ma *MetadataAuthority) GetMetadataAuthority(metadataAuthId string) (*types
 	return ma.dataCenter.GetMetadataAuthority(metadataAuthId)
 }
 
-func (ma *MetadataAuthority) GetMetadataAuthorityList() (types.MetadataAuthArray, error) {
+func (ma *MetadataAuthority) GetLocalMetadataAuthorityList() (types.MetadataAuthArray, error) {
 	identityId, err := ma.dataCenter.GetIdentityId()
 	if nil != err {
 		return nil, err
@@ -179,9 +177,8 @@ func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserT
 	usageRule := metadataAuth.GetData().GetAuth().GetUsageRule()
 	usedQuo := metadataAuth.GetData().GetUsedQuo()
 
-	switch usageRule.UsageType {
+	switch usageRule.GetUsageType() {
 	case apicommonpb.MetadataUsageType_Usage_Period:
-		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
 		if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 			usedQuo.Expire = true
 			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
@@ -191,9 +188,9 @@ func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserT
 	case apicommonpb.MetadataUsageType_Usage_Times:
 		// do nothing
 	default:
-		log.Errorf("usageRule state of the old metadataAuth is invalid on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
+		log.Errorf("unknown usageType of the old metadataAuth on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
 			userType.String(), user, metadataId, metadataAuthId)
-		return false, fmt.Errorf("usageRule state of the old metadataAuth is invalid")
+		return false, fmt.Errorf("unknown usageType of the old metadataAuth")
 	}
 
 	if usedQuo.Expire == true {
@@ -202,7 +199,7 @@ func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserT
 			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
 
 		metadataAuth.GetData().UsedQuo = usedQuo
-		if err = ma.dataCenter.InsertMetadataAuthority(metadataAuth); nil != err {
+		if err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
 			log.Errorf("Failed to update metadataAuth after consume on MetadataAuthority.InvalidLastMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
 				userType.String(), user, metadataId, metadataAuthId)
 			return false, err
@@ -274,7 +271,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	case apicommonpb.MetadataUsageType_Usage_Times:
 		// do nothing
 	default:
-		log.Errorf("usageRule state of the old metadataAuth is invalid on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+		log.Errorf("unknown usageType of the metadataAuth on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 			userType.String(), user, metadataId, metadataAuthId)
 		return false
 	}
@@ -285,8 +282,8 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
 
 		metadataAuth.GetData().UsedQuo = usedQuo
-		if err = ma.dataCenter.InsertMetadataAuthority(metadataAuth); nil != err {
-			log.Errorf("Failed to update metadataAuth after consume on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+		if err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
+			log.Errorf("Failed to update metadataAuth after verify expire auth on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 				userType.String(), user, metadataId, metadataAuthId)
 			return false
 		}

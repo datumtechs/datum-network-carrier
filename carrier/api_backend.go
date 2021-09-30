@@ -260,7 +260,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 	}
 	if typ == pb.PrefixTypeJobNode {
 
-		// 算力已发布的jobNode不可以直接更新
+		// The published jobNode cannot be updated directly
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
@@ -272,7 +272,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 				node.Id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
-		// 先校验 jobNode 上是否有正在执行的 task
+		// First check whether there is a task being executed on jobNode
 		runningTaskCount, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
@@ -307,7 +307,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 	if typ == pb.PrefixTypeDataNode {
 
-		// 先校验 dataNode 上是否已被 使用
+		// First verify whether the dataNode has been used
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
@@ -374,7 +374,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 	}
 	if typ == pb.PrefixTypeJobNode {
 
-		// 算力已发布的jobNode不可以直接删除
+		// The published jobNode cannot be updated directly
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query local power resource on old jobNode failed, %s", err)
@@ -386,7 +386,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 				id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}
 
-		// 先校验 jobNode 上是否有正在执行的 task
+		// First check whether there is a task being executed on jobNode
 		runningTaskCount, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
@@ -408,7 +408,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 
 	if typ == pb.PrefixTypeDataNode {
 
-		// 先校验 dataNode 上是否已被 使用
+		// First verify whether the dataNode has been used
 		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
@@ -440,7 +440,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 		return nil, err
 	}
 
-	// 需要处理 计算服务 信息
+	// Need to improve the computing service connection information
 	if typ == pb.PrefixTypeJobNode {
 		for i, jobNode := range nodeList {
 
@@ -867,8 +867,12 @@ func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudi
 	return s.carrier.authEngine.AuditMetadataAuthority(audit)
 }
 
-func (s *CarrierAPIBackend) GetMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	return s.carrier.authEngine.GetMetadataAuthorityList()
+func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList() (types.MetadataAuthArray, error) {
+	return s.carrier.authEngine.GetLocalMetadataAuthorityList()
+}
+
+func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList() (types.MetadataAuthArray, error) {
+	return nil, nil
 }
 
 func (s *CarrierAPIBackend) GetMetadataAuthorityListByUser(userType apicommonpb.UserType, user string) (types.MetadataAuthArray, error) {

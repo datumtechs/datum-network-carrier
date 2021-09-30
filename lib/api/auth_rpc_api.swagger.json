@@ -44,7 +44,7 @@
         ]
       }
     },
-    "/carrier/v1/auth/applyMetaDataAuth": {
+    "/carrier/v1/auth/applyMetadataAuth": {
       "post": {
         "summary": "发起数据授权申请",
         "operationId": "AuthService_ApplyMetadataAuthority",
@@ -77,7 +77,7 @@
         ]
       }
     },
-    "/carrier/v1/auth/auditMetaDataAuth": {
+    "/carrier/v1/auth/auditMetadataAuth": {
       "post": {
         "summary": "数据授权审核",
         "operationId": "AuthService_AuditMetadataAuthority",
@@ -176,10 +176,10 @@
         ]
       }
     },
-    "/carrier/v1/auth/metaDataAuthList": {
+    "/carrier/v1/auth/localMetadataAuthList": {
       "post": {
         "summary": "当前(组织)的所有元数据的授权申请及审核结果详情列表",
-        "operationId": "AuthService_GetMetadataAuthorityList",
+        "operationId": "AuthService_GetLocalMetadataAuthorityList",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -209,7 +209,7 @@
         ]
       }
     },
-    "/carrier/v1/auth/metaDataAuthListByUser": {
+    "/carrier/v1/auth/metadataAuthListByUser": {
       "post": {
         "summary": "当前(用户)的所有元数据的授权申请及审核结果详情列表",
         "operationId": "AuthService_GetMetadataAuthorityListByUser",
@@ -275,7 +275,7 @@
         ]
       }
     },
-    "/carrier/v1/auth/revokeMetaDataAuth": {
+    "/carrier/v1/auth/revokeMetadataAuth": {
       "post": {
         "summary": "撤销数据授权申请",
         "operationId": "AuthService_RevokeMetadataAuthority",
@@ -361,7 +361,7 @@
         "Usage_Times"
       ],
       "default": "Usage_Unknown",
-      "title": "元数据的使用方式类型枚举"
+      "title": "元数据的使用方式类型枚举 (0: 未定义; 1: 按照时间段来使用; 2: 按照次数来使用)"
     },
     "protobufOrganization": {
       "type": "object",

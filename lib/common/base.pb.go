@@ -197,7 +197,7 @@ func (MetadataState) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_5dab74a081363d1b, []int{5}
 }
 
-// 元数据的使用方式类型枚举
+// 元数据的使用方式类型枚举 (0: 未定义; 1: 按照时间段来使用; 2: 按照次数来使用)
 type MetadataUsageType int32
 
 const (

@@ -46,7 +46,7 @@
     },
     "/carrier/v1/power/localList": {
       "post": {
-        "summary": "查看本组织的各个单算力详情列表",
+        "summary": "本组织的所有(宿主机)算力信息列表 (包含【未发布】和【已发布】的)",
         "operationId": "PowerService_GetLocalPowerDetailList",
         "responses": {
           "200": {
@@ -195,10 +195,11 @@
         "PowerState_Unknown",
         "PowerState_Created",
         "PowerState_Released",
+        "PowerState_Occupation",
         "PowerState_Revoked"
       ],
       "default": "PowerState_Unknown",
-      "title": "算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力; 3: 已撤销的算力)"
+      "title": "算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力(算力未被占用); 3: 已发布的算力(算力正在被占用); 4: 已撤销的算力)"
     },
     "protobufSimpleResponse": {
       "type": "object",
@@ -288,7 +289,7 @@
           }
         }
       },
-      "title": "本组织的多个算力信息列表 resp"
+      "title": "本组织的多个(宿主机)算力信息 (包含【未发布】和【已发布】的)"
     },
     "rpcapiGetLocalPowerDetailResponse": {
       "type": "object",
@@ -306,7 +307,7 @@
           "type": "string"
         }
       },
-      "title": "本组织的单个算力信息"
+      "title": "本组织的单个(宿主机)算力信息 (包含【未发布】和【已发布】的) resp"
     },
     "rpcapiPublishPowerRequest": {
       "type": "object",

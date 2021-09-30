@@ -211,7 +211,7 @@
     },
     "/carrier/v1/yarn/jobNodeList": {
       "post": {
-        "summary": "查询计算服务列表",
+        "summary": "查询计算服务列表 (宿主机的物理信息和网络连接信息)",
         "operationId": "YarnService_GetJobNodeList",
         "responses": {
           "200": {
@@ -778,12 +778,10 @@
       "type": "string",
       "enum": [
         "ConnState_UnConnected",
-        "ConnState_Connected",
-        "ConnState_Enabled",
-        "ConnState_Occupied"
+        "ConnState_Connected"
       ],
       "default": "ConnState_UnConnected",
-      "title": "调度服务和 种子节点 or 计算服务 or 数据服务 的连接状态\n调度服务自身的状态信息 (0: 未被调度服务连接上; 1: 连接上; 2: 算力启用\u003c计算服务\u003e; 3: 算力被占用\u003c计算服务算力正在被任务占用\u003e)"
+      "title": "调度服务和 种子节点 or 计算服务 or 数据服务 的连接状态\n调度服务自身的状态信息 (0: 未被调度服务连接上; 1: 连接上; )"
     },
     "rpcapiDeleteRegisteredNodeRequest": {
       "type": "object",

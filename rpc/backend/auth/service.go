@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -145,6 +146,23 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		return nil, ErrReqUserSignForMetadataAuthApply
 	}
 
+	now := timeutils.UnixMsecUint64()
+	switch req.GetAuth().GetUsageRule().GetUsageType() {
+	case apicommonpb.MetadataUsageType_Usage_Period:
+		if now >= req.GetAuth().GetUsageRule().GetEndAt() {
+			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule endTime of metadataAuth has expire, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%s}, now: {%s}",
+				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
+			return nil, fmt.Errorf("usaageRule endTime of metadataAuth has expire")
+		}
+	case apicommonpb.MetadataUsageType_Usage_Times:
+		// do nothing
+	default:
+		log.Errorf("RPC-API:ApplyMetadataAuthority failed, unknown usageType of the metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
+			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String())
+		return nil, fmt.Errorf("unknown usageType of the metadataAuth")
+	}
+
+
 	has, err := svr.B.HasValidUserMetadataAuth(req.GetUserType(), req.GetUser(), req.GetAuth().GetMetadataId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query valid user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
@@ -198,6 +216,7 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 		return nil, ErrReqUserSignForRevokeMetadataAuth
 	}
 
+
 	metadataAuthorityRevokeMsg := types.NewMetadataAuthorityRevokeMessageFromRequest(req)
 	metadataAuthId := metadataAuthorityRevokeMsg.GetMetadataAuthId()
 
@@ -245,10 +264,10 @@ func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMeta
 	}, nil
 }
 
-func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
-	authorityList, err := svr.B.GetMetadataAuthorityList()
+func (svr *Server) GetLocalMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
+	authorityList, err := svr.B.GetLocalMetadataAuthorityList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetMetadataAuthorityList failed")
+		log.WithError(err).Error("RPC-API:GetLocalMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList
 	}
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
@@ -258,12 +277,15 @@ func (svr *Server) GetMetadataAuthorityList(context.Context, *emptypb.Empty) (*p
 			User:            auth.GetData().GetUser(),
 			UserType:        auth.GetData().GetUserType(),
 			Auth:            auth.GetData().GetAuth(),
+			AuditOption: 	 auth.GetData().GetAuditOption(),
 			AuditSuggestion: auth.GetData().GetAuditSuggestion(),
+			UsedQuo:         auth.GetData().GetUsedQuo(),
 			ApplyAt:         auth.GetData().GetApplyAt(),
 			AuditAt:         auth.GetData().GetAuditAt(),
+			State: 			 auth.GetData().GetState(),
 		}
 	}
-	log.Debugf("Query current org's all metadata authority list, len: {%d}", len(authorityList))
+	log.Debugf("RPC-API:GetLocalMetadataAuthorityList succeed, metadata authority list, len: {%d}", len(authorityList))
 	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,

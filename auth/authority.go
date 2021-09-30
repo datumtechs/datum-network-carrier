@@ -34,8 +34,8 @@ func (am *AuthorityManager) GetMetadataAuthority (metadataAuthId string) (*types
 	return am.metadataAuth.GetMetadataAuthority(metadataAuthId)
 }
 
-func (am *AuthorityManager) GetMetadataAuthorityList () (types.MetadataAuthArray, error) {
-	return am.metadataAuth.GetMetadataAuthorityList()
+func (am *AuthorityManager) GetLocalMetadataAuthorityList () (types.MetadataAuthArray, error) {
+	return am.metadataAuth.GetLocalMetadataAuthorityList()
 }
 
 func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []string) (types.MetadataAuthArray, error) {

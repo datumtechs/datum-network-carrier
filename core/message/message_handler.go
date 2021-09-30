@@ -4,10 +4,13 @@ import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/iface"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -320,21 +323,39 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 
 func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 
-	// remove identity from local db
+	// query local identity
 	identity, err := m.dataCenter.GetIdentity()
 	if nil != err {
 		log.Errorf("Failed to get local org identity on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return
 	}
 
-	// todo what if running task
+	// what if running task, can not revoke identity
+	jobNodes , err := m.dataCenter.GetRegisterNodeList(pb.PrefixTypeJobNode)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.Errorf("query all jobNode failed, %s", err)
+		return
+	}
+	for _, node := range jobNodes {
+		runningTaskCount, err := m.dataCenter.QueryRunningTaskCountOnJobNode(node.Id)
+		if rawdb.IsNoDBNotFoundErr(err) {
+			log.Errorf("query local running taskCount on old jobNode failed, %s", err)
+			return
+		}
+		if runningTaskCount > 0 {
+			log.Errorf("the old jobNode have been running {%d} task current, don't revoke identity it", runningTaskCount)
+			return
+		}
+	}
 
-	// todo what if power
+	// todo what if have any power publised, revoke the powers
 
 	// todo what metadata auth using on
 
 	// todo what if metadata publish
 
+
+	// remove local identity
 	if err := m.dataCenter.RemoveIdentity(); nil != err {
 		log.Errorf("Failed to delete org identity to local on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return
@@ -651,6 +672,29 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			continue
 		}
 
+		// check usageType/endTime once again before store and pushlish
+		var (
+			expire bool
+			state apicommonpb.MetadataAuthorityState
+		)
+
+		switch msg.GetMetadataAuthority().GetUsageRule().GetUsageType() {
+		case apicommonpb.MetadataUsageType_Usage_Period:
+			if timeutils.UnixMsecUint64() >= msg.GetMetadataAuthority().GetUsageRule().GetEndAt() {
+				expire = true
+				state = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			} else {
+				expire = false
+				state = apicommonpb.MetadataAuthorityState_MAState_Released
+			}
+		case apicommonpb.MetadataUsageType_Usage_Times:
+			// do nothing
+		default:
+			log.Errorf("unknown usageType of the metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
+				msg.GetUserType().String(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().GetUsageRule().GetUsageType().String())
+			continue
+		}
+
 		// Store metadataAuthority
 		if err := m.authManager.ApplyMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
 			MetadataAuthId:  msg.GetMetadataAuthId(),
@@ -660,11 +704,13 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			AuditOption:     apicommonpb.AuditMetadataOption_Audit_Pending,
 			AuditSuggestion: "",
 			UsedQuo: &libtypes.MetadataUsedQuo{
-				UsageType: apicommonpb.MetadataUsageType_Usage_Unknown,
+				UsageType: msg.GetMetadataAuthority().GetUsageRule().GetUsageType(),
+				Expire: expire,
+				UsedTimes: 0,
 			},
 			ApplyAt: msg.GetCreateAt(),
 			AuditAt: 0,
-			State:   apicommonpb.MetadataAuthorityState_MAState_Released,
+			State:   state,
 			Sign:    msg.GetSign(),
 		})); nil != err {
 			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
@@ -705,12 +751,15 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 			continue
 		}
 
-		if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
+		// The data authorization application information that has been `invalidated` or has been `revoked` is not allowed to be revoked
+		if metadataAuth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Revoked ||
+			metadataAuth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Invalid {
 			log.Errorf("state of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetState().String())
 			continue
 		}
 
+		// The data authorization application information that has been audited and cannot be revoked
 		if metadataAuth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Pending {
 			log.Errorf("the metadataAuth has audit on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
