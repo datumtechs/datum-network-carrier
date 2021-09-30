@@ -47,6 +47,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 
 	metadataAuth.GetData().AuditOption = audit.GetAuditOption()
 	metadataAuth.GetData().AuditSuggestion = audit.GetAuditSuggestion()
+	metadataAuth.GetData().AuditAt = timeutils.UnixMsecUint64()
 
 	err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth)
 	if nil != err {

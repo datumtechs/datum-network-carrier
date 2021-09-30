@@ -321,11 +321,13 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 	return m.resourceMng.GetDB().InsertTask(task)
 }
 
+// TODO MOCK TASK
 func (m *Manager) storeMockTask(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
 	task.GetTaskData().EventCount = uint32(len(events))
-	task.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
+	task.GetTaskData().State = apicommonpb.TaskState_TaskState_Succeed
 	task.GetTaskData().Reason = reason
+	task.GetTaskData().StartAt = timeutils.UnixMsecUint64()
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 
 	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())

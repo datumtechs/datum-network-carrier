@@ -652,6 +652,8 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 		Data: NewTask(&libtypes.TaskPB{
 			TaskId:       "",
 			TaskName:     req.GetTaskName(),
+			UserType:     req.GetUserType(),
+			User:         req.GetUser(),
 			PartyId:      req.GetSender().GetPartyId(),
 			IdentityId:   req.GetSender().GetIdentityId(),
 			NodeId:       req.GetSender().GetNodeId(),
@@ -661,7 +663,7 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 			State:        apicommonpb.TaskState_TaskState_Pending,
 			Reason:       "",
 			EventCount:   0,
-			Desc:         "",
+			Desc:         req.GetDesc(),
 			CreateAt:     timeutils.UnixMsecUint64(),
 			EndAt:        0,
 			StartAt:      0,

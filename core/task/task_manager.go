@@ -198,7 +198,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 			log.Errorf("Failed to store metadata used taskId when received local task, err: {%s}", err)
 		}
 		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskSucceed.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), "finished mock task")}
-		if e := m.storeBadTask(task, events, "finished mock task"); nil != e {
+		if e := m.storeMockTask(task, events, "finished mock task"); nil != e {
 			log.Errorf("Failed to sending the mock task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
 		}
 	}

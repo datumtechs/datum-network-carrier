@@ -217,6 +217,46 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	}
 
 
+
+	//
+	//// verify
+	//metadataAuth, err := m.authManager.GetMetadataAuthority(revoke.GetMetadataAuthId())
+	//if nil != err {
+	//	log.Errorf("Failed to query old metadataAuth on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, err: {%s}",
+	//		revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), err)
+	//	continue
+	//}
+	//
+	//if metadataAuth.GetData().GetUser() != revoke.GetUser() || metadataAuth.GetData().GetUserType() != revoke.GetUserType() {
+	//	log.Errorf("user of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}",
+	//		revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String())
+	//	continue
+	//}
+	//
+	//if bytes.Compare(metadataAuth.GetData().GetSign(), revoke.GetSign()) != 0 {
+	//	log.Errorf("user sign of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, metadataAuth's sign: {%v}, revoke msg's sign: {%v}",
+	//		revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), metadataAuth.GetData().GetSign(), revoke.GetSign())
+	//	continue
+	//}
+	//
+	//// The data authorization application information that has been `invalidated` or has been `revoked` is not allowed to be revoked
+	//if metadataAuth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Revoked ||
+	//	metadataAuth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Invalid {
+	//	log.Errorf("state of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+	//		revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetState().String())
+	//	continue
+	//}
+	//
+	//// The data authorization application information that has been audited and cannot be revoked
+	//if metadataAuth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Pending {
+	//	log.Errorf("the metadataAuth has audit on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+	//		revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
+	//	continue
+	//}
+
+
+
+
 	metadataAuthorityRevokeMsg := types.NewMetadataAuthorityRevokeMessageFromRequest(req)
 	metadataAuthId := metadataAuthorityRevokeMsg.GetMetadataAuthId()
 

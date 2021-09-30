@@ -14,8 +14,6 @@ func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *Task
 			TaskName: taskData.GetTaskName(),
 			UserType: taskData.GetUserType(),
 			User:     taskData.GetUser(),
-			//TODO: 需要确认部分
-			//Role:     role,
 			Sender: &apicommonpb.TaskOrganization{
 				PartyId:    taskData.GetPartyId(),
 				NodeName:   taskData.GetNodeName(),
