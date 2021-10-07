@@ -65,13 +65,13 @@ func (m *Manager) tryScheduleTask() error {
 
 func (m *Manager) storeFailedReScheduleTask(taskId string) error {
 
-	task, err := m.resourceMng.GetDB().GetLocalTask(taskId)
+	task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
 	if nil != err {
 		log.Errorf("Failed to query local task for sending datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
 		return err
 	}
 
-	events, err := m.resourceMng.GetDB().GetTaskEventList(task.GetTaskId())
+	events, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTaskId())
 	if nil != err {
 		log.Errorf("Failed to query all task event list for sending datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
 		return err
@@ -86,6 +86,7 @@ func (m *Manager) storeFailedReScheduleTask(taskId string) error {
 	return nil
 }
 
+// To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
 	task.GetTask().GetTaskData().State = apicommonpb.TaskState_TaskState_Running
@@ -116,13 +117,13 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 	// clinet *grpclient.DataNodeClient,
 	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
 	if !has {
-		log.Errorf("Failed to query internal data node, taskId: {%s}, dataNodeId: {%s}",
+		log.Errorf("Failed to query internal data node on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}",
 			task.GetTask().GetTaskId(), dataNodeId)
 		return errors.New("data node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
-			log.Errorf("Failed to connect internal data node, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to connect internal data node on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
 				task.GetTask().GetTaskId(), dataNodeId, err)
 			return err
 		}
@@ -130,7 +131,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
-		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+		log.Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
 			task.GetTask().GetTaskId(), dataNodeId, err)
 		return err
 	}
@@ -142,7 +143,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 		return err
 	}
 	if !resp.Ok {
-		log.Errorf("Falied to executing task from `data-Fighter` node response, taskId: {%s}, dataNodeId: {%s}, resp: {%s}",
+		log.Errorf("Falied to executing task from `data-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, dataNodeId: {%s}, resp: {%s}",
 			task.GetTask().GetTaskId(), dataNodeId, resp.String())
 		return nil
 	}
@@ -160,13 +161,13 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	// clinet *grpclient.DataNodeClient,
 	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
 	if !has {
-		log.Errorf("Failed to query internal job node, taskId: {%s}, jobNodeId: {%s}",
+		log.Errorf("Failed to query internal job node on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}",
 			task.GetTask().GetTaskId(), jobNodeId)
 		return errors.New("job node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
-			log.Errorf("Failed to connect internal job node, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to connect internal job node on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
 				task.GetTask().GetTaskId(), jobNodeId, err)
 			return err
 		}
@@ -174,7 +175,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
-		log.Errorf("Falied to make taskReadyGoReq, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+		log.Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
 			task.GetTask().GetTaskId(), jobNodeId, err)
 		return err
 	}
@@ -186,7 +187,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 		return err
 	}
 	if !resp.Ok {
-		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, jobNodeId: {%s}",
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, jobNodeId: {%s}",
 			task.GetTask().GetTaskId(), jobNodeId)
 		return nil
 	}
@@ -196,9 +197,124 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	return nil
 }
 
+// To terminate task
+func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
+
+	m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("task terminate"), apicommonpb.TaskState_TaskState_Failed)
+	switch task.GetLocalTaskRole() {
+	case apicommonpb.TaskRole_TaskRole_Sender:
+
+		// send task terminate msg to remote peers
+		m.sendTaskTerminateMsgToRemotePeer(task)
+		//
+		m.publishFinishedTaskToDataCenter(task)
+	default:
+		//
+		m.sendTaskResultMsgToRemotePeer(task)
+	}
+
+	switch task.GetLocalTaskRole() {
+	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
+		return m.terminateTaskOnDataNode(task)
+	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
+		return m.terminateTaskOnJobNode(task)
+	default:
+		log.Errorf("Faided to driveTaskForTerminate(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTask().GetTaskId(), task.GetLocalTaskRole().String())
+		return errors.New("Unknown resource node type")
+	}
+}
+
+func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
+
+	// 找到自己的投票
+	dataNodeId := task.GetLocalResource().Id
+
+	// clinet *grpclient.DataNodeClient,
+	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
+	if !has {
+		log.Errorf("Failed to query internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}",
+			task.GetTask().GetTaskId(), dataNodeId)
+		return errors.New("data node client not found")
+	}
+	if client.IsNotConnected() {
+		if err := client.Reconnect(); nil != err {
+			log.Errorf("Failed to connect internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+				task.GetTask().GetTaskId(), dataNodeId, err)
+			return err
+		}
+	}
+
+	req, err := m.makeTerminateTaskReq(task)
+	if nil != err {
+		log.Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+			task.GetTask().GetTaskId(), dataNodeId, err)
+		return err
+	}
+
+	resp, err := client.HandleCancelTask(req)
+	if nil != err {
+		log.Errorf("Falied to call publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, dataNodeId: {%s}, err: {%s}",
+			task.GetTask().GetTaskId(), dataNodeId, err)
+		return err
+	}
+	if !resp.Ok {
+		log.Errorf("Falied to executing task from `data-Fighter` node to terminating the resp code is not `ok`, taskId: {%s}, dataNodeId: {%s}, resp: {%s}",
+			task.GetTask().GetTaskId(), dataNodeId, resp.String())
+		return nil
+	}
+
+	log.Infof("Success to publish schedTask to `data-Fighter` node to terminating,  taskId: {%s}, dataNodeId: {%s}",
+		task.GetTask().GetTaskId(), dataNodeId)
+	return nil
+}
+
+func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
+
+	// 找到自己的投票
+	jobNodeId := task.GetLocalResource().Id
+
+	// clinet *grpclient.DataNodeClient,
+	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
+	if !has {
+		log.Errorf("Failed to query internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}",
+			task.GetTask().GetTaskId(), jobNodeId)
+		return errors.New("job node client not found")
+	}
+	if client.IsNotConnected() {
+		if err := client.Reconnect(); nil != err {
+			log.Errorf("Failed to connect internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+				task.GetTask().GetTaskId(), jobNodeId, err)
+			return err
+		}
+	}
+
+	req, err := m.makeTerminateTaskReq(task)
+	if nil != err {
+		log.Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+			task.GetTask().GetTaskId(), jobNodeId, err)
+		return err
+	}
+
+	resp, err := client.HandleCancelTask(req)
+	if nil != err {
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, jobNodeId: {%s}, err: {%s}",
+			task.GetTask().GetTaskId(), jobNodeId, err)
+		return err
+	}
+	if !resp.Ok {
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to terminating the resp code is not `ok`, taskId: {%s}, jobNodeId: {%s}",
+			task.GetTask().GetTaskId(), jobNodeId)
+		return nil
+	}
+
+	log.Infof("Success to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, jobNodeId: {%s}",
+		task.GetTask().GetTaskId(), jobNodeId)
+	return nil
+}
+
 func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask) {
 
-	eventList, err := m.resourceMng.GetDB().GetTaskEventList(task.GetTask().GetTaskId())
+	eventList, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTask().GetTaskId())
 	if nil != err {
 		log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", task.GetTask().GetTaskId(), err)
 		return
@@ -257,14 +373,14 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 	}
 
 	// clean local task cache
-	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.publishFinishedTaskToDataCenter()",
+	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.sendTaskResultMsgToRemotePeer()",
 		task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption())
 
 	log.Debugf("Finished sendTaskResultMsgToRemotePeer,  taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 }
 
-func (m *Manager) sendTaskResourceUsageToRemotePeer (task *types.NeedExecuteTask, usage *types.TaskResuorceUsage) {
+func (m *Manager) sendTaskResourceUsageMsgToRemotePeer(task *types.NeedExecuteTask, usage *types.TaskResuorceUsage) {
 
 	msg := &taskmngpb.TaskResourceUsageMsg{
 		MsgOption: &msgcommonpb.MsgOption{
@@ -294,8 +410,35 @@ func (m *Manager) sendTaskResourceUsageToRemotePeer (task *types.NeedExecuteTask
 		CreateAt: timeutils.UnixMsecUint64(),
 		Sign: nil,
 	}
-	if err := handler.SendTaskResourceUsage(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
-		log.Errorf("failed to call `SendTaskResourceUsage`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+	if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+		log.Errorf("failed to call `SendTaskResourceUsageMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+		return
+	}
+}
+
+func (m *Manager) sendTaskTerminateMsgToRemotePeer (task *types.NeedExecuteTask) {
+
+	msg := &taskmngpb.TaskTerminateMsg{
+		MsgOption: &msgcommonpb.MsgOption{
+			ProposalId:      task.GetProposalId().Bytes(),
+			SenderRole:      uint64(task.GetLocalTaskRole()),
+			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
+			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
+			ReceiverPartyId: []byte(task.GetRemoteTaskOrganization().GetPartyId()),
+			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+				Name:       []byte(task.GetLocalTaskOrganization().GetNodeName()),
+				NodeId:     []byte(task.GetLocalTaskOrganization().GetNodeId()),
+				IdentityId: []byte(task.GetLocalTaskOrganization().GetIdentityId()),
+				PartyId:    []byte(task.GetLocalTaskOrganization().GetPartyId()),
+			},
+		},
+		TaskId: []byte(task.GetTask().GetTaskId()),
+		CreateAt: timeutils.UnixMsecUint64(),
+		Sign: nil,
+	}
+	if err := handler.SendTaskTerminateMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+		log.Errorf("failed to call `SendTaskTerminateMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
 			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
 		return
 	}
@@ -316,6 +459,7 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 
 	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())
+	m.resourceMng.GetDB().RemoveTaskPowerPartyIds(task.GetTaskId())
 	m.resourceMng.GetDB().RemoveTaskEventList(task.GetTaskId())
 
 	return m.resourceMng.GetDB().InsertTask(task)
@@ -331,6 +475,7 @@ func (m *Manager) storeMockTask(task *types.Task, events []*libtypes.TaskEvent, 
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 
 	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())
+	m.resourceMng.GetDB().RemoveTaskPowerPartyIds(task.GetTaskId())
 	m.resourceMng.GetDB().RemoveTaskEventList(task.GetTaskId())
 
 	return m.resourceMng.GetDB().InsertTask(task)
@@ -453,7 +598,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 						userType, user, metadataId)
 				}
 
-				metadata, err := m.resourceMng.GetDB().GetMetadataByDataId(metadataId)
+				metadata, err := m.resourceMng.GetDB().QueryMetadataByDataId(metadataId)
 				if nil != err {
 					return "", err
 				}
@@ -515,6 +660,13 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 			task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), task.GetLocalTaskOrganization().GetPartyId(), err)
 	}
 	return string(b), nil
+}
+
+// make terminate rpc req
+func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*common.TaskCancelReq, error) {
+	return &common.TaskCancelReq{
+		TaskId: task.GetTask().GetTaskId(),
+	}, nil
 }
 
 func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask) {
@@ -594,7 +746,7 @@ func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *taskmn
 		return nil
 	}
 
-	eventList, err := m.resourceMng.GetDB().GetTaskEventList(task.GetTask().GetTaskId())
+	eventList, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTask().GetTaskId())
 	if nil != err {
 		log.Errorf("Failed to make TaskResultMsg with query task eventList, taskId {%s}, err {%s}", task.GetTask().GetTaskId(), err)
 		return nil
@@ -694,12 +846,6 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 
 func (m *Manager) expireTaskMonitor() {
 
-	identityId, err := m.resourceMng.GetDB().GetIdentityId()
-	if nil != err {
-		//log.Warnf("Warned to query local identity on expireTaskMonitor(), err: {%s}", err)
-		return
-	}
-
 	m.runningTaskCacheLock.Lock()
 
 	for taskId, cache := range m.runningTaskCache {
@@ -722,7 +868,7 @@ func (m *Manager) expireTaskMonitor() {
 					log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
 						taskId, duration, task.GetTask().GetTaskData().GetOperationCost().GetDuration())
 
-					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), identityId, fmt.Sprintf("task running expire"), apicommonpb.TaskState_TaskState_Failed)
+					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("task running expire"), apicommonpb.TaskState_TaskState_Failed)
 					switch task.GetLocalTaskRole() {
 					case apicommonpb.TaskRole_TaskRole_Sender:
 						m.publishFinishedTaskToDataCenter(task)
@@ -764,7 +910,7 @@ func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state ap
 }
 
 func (m *Manager) storeMetaUsedTaskId (task *types.Task) error {
-	identityId, err := m.resourceMng.GetDB().GetIdentityId()
+	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
 		return err
 	}
@@ -797,6 +943,7 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.Ta
 
 	return nil
 }
+
 func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 
 	msg := types.FetchTaskResultMsg(taskResultMsg)
@@ -832,6 +979,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 func (m *Manager) ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error {
 	return nil
 }
+
 func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg) error {
 	msg := types.FetchTaskResourceUsageMsg(usageMsg)
 
@@ -859,7 +1007,7 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	//}
 
 	// Update task resourceUUsed of powerSuppliers of local task
-	task, err := m.resourceMng.GetDB().GetLocalTask(msg.GetUsage().GetTaskId())
+	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetUsage().GetTaskId())
 	if nil != err {
 		log.Errorf("Failed to query local task info on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
 			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
@@ -882,5 +1030,52 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return fmt.Errorf("store local task failed")
 	}
 
+	return nil
+}
+
+func (m *Manager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error { return nil }
+
+func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+	msg := types.FetchTaskTerminateTaskMngMsg(terminateMsg)
+	log.Debugf("Received remote taskTerminateMsg, remote pid: {%s}, taskTerminateMsg: %s", pid, msg.String())
+
+
+	localTask, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
+	if nil != err {
+		log.Errorf("Failed to query local task on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}, err: {%s}",
+			msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId, err)
+		return err
+	}
+
+	if nil == localTask {
+		log.Errorf("Not found local task on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}",
+			msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)
+		return err
+	}
+
+	needExecuteTask, ok := m.queryNeedExecuteTaskCache(msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)
+	if ok {
+		has, err := m.resourceMng.GetDB().HasLocalTaskExecute(msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)
+		if nil != err {
+			log.Errorf("Failed to query local task execute status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}, err: {%s}",
+				msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId, err)
+			return err
+		}
+		if has {
+			// call terminate task
+			if err := m.driveTaskForTerminate(needExecuteTask); nil != err {
+				log.Errorf("Failed to call driveTaskForTerminate() on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, partyId: {%s}, err: {%s}",
+					msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId, err)
+				return err
+			}
+		} else {
+			// remove the task on scheduler (maybe task on consensus now)
+			m.sendTaskResultMsgToRemotePeer(needExecuteTask)
+		}
+	} else {
+		// remove local task short circuit
+		m.resourceMng.ReleaseLocalResourceWithTaskShortCircuit("on `taskManager.OnTaskTerminateMsg()`",
+			msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId, resource.SetAllReleaseResourceOption())
+	}
 	return nil
 }

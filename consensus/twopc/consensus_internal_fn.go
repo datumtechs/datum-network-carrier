@@ -303,7 +303,7 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.Confirm
 
 func (t *Twopc) refreshProposalState() {
 
-	identity, err := t.resourceMng.GetDB().GetIdentity()
+	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
 		return

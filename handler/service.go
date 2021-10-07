@@ -32,6 +32,7 @@ const seenConfirmVoteSize = 1000
 const seenCommitMsgSize = 1000
 const seenTaskResultMsgSize = 1000
 const seenTaskResourceUsageMsgSize = 1000
+const seenTaskTerminateMsgSize = 1000
 const seenGossipTestDataSize = 100
 const seenProposerSlashingSize = 100
 const badBlockSize = 1000
@@ -76,6 +77,8 @@ type Service struct {
 	seenTaskResultMsgCache        *lru.Cache
 	seenTaskResourceUsageMsgLock  sync.RWMutex
 	seenTaskResourceUsageMsgCache *lru.Cache
+	seenTaskTerminateMsgLock      sync.RWMutex
+	seenTaskTerminateMsgCache     *lru.Cache
 	chainStarted                  *abool.AtomicBool
 }
 
@@ -192,6 +195,11 @@ func (s *Service) initCaches() error {
 	if err != nil {
 		return err
 	}
+	seenTaskTerminateMsgCache, err := lru.New(seenTaskTerminateMsgSize)
+	if err != nil {
+		return err
+	}
+
 	s.seenGossipDataCache = gossipCache
 	s.seenPrepareMsgCache = prepareMsgCache
 	s.seenPrepareVoteCache = prepareVoteCache
@@ -200,6 +208,7 @@ func (s *Service) initCaches() error {
 	s.seenCommitMsgCache = commitMsgCache
 	s.seenTaskResultMsgCache = taskResultMsgCache
 	s.seenTaskResourceUsageMsgCache = taskResourceUsageMsgCache
+	s.seenTaskTerminateMsgCache = seenTaskTerminateMsgCache
 	return nil
 }
 

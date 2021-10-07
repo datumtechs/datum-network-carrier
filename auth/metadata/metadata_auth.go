@@ -115,23 +115,23 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
-	return ma.dataCenter.GetMetadataAuthority(metadataAuthId)
+	return ma.dataCenter.QueryMetadataAuthority(metadataAuthId)
 }
 
 func (ma *MetadataAuthority) GetLocalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	identityId, err := ma.dataCenter.GetIdentityId()
+	identityId, err := ma.dataCenter.QueryIdentityId()
 	if nil != err {
 		return nil, err
 	}
-	return ma.dataCenter.GetMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
+	return ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
 }
 
 func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	return ma.dataCenter.GetMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64())
+	return ma.dataCenter.QueryMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64())
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
-	return ma.dataCenter.GetMetadataAuthorityListByIds(metadataAuthIds)
+	return ma.dataCenter.QueryMetadataAuthorityListByIds(metadataAuthIds)
 }
 
 func (ma *MetadataAuthority) HasValidLastMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {
@@ -234,7 +234,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	// verify
 	metadataAuth, err := ma.GetMetadataAuthority(metadataAuthId)
 	if nil != err {
-		log.Errorf("Failed to GetMetadataAuthority on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}, err: {%s}",
+		log.Errorf("Failed to QueryMetadataAuthority on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}, err: {%s}",
 			userType.String(), user, metadataId, metadataAuthId, err)
 		return false
 	}

@@ -165,3 +165,9 @@ func (c *DataNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.
 	defer cancel()
 	return c.dataProviderClient.HandleTaskReadyGo(ctx, req)
 }
+
+func (c *DataNodeClient) HandleCancelTask (req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
+	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
+	defer cancel()
+	return c.dataProviderClient.HandleCancelTask(ctx, req)
+}

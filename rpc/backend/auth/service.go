@@ -110,7 +110,7 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb.GetIdentityListResponse, error) {
 	identityList, err := svr.B.GetIdentityList()
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetIdentityList failed")
+		log.WithError(err).Error("RPC-API:QueryIdentityList failed")
 		return nil, ErrGetIdentityList
 	}
 	arr := make([]*apicommonpb.Organization, len(identityList))
@@ -220,7 +220,7 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 
 	//
 	//// verify
-	//metadataAuth, err := m.authManager.GetMetadataAuthority(revoke.GetMetadataAuthId())
+	//metadataAuth, err := m.authManager.QueryMetadataAuthority(revoke.GetMetadataAuthId())
 	//if nil != err {
 	//	log.Errorf("Failed to query old metadataAuth on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, err: {%s}",
 	//		revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), err)

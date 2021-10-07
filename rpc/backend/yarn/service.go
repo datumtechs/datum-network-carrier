@@ -113,7 +113,7 @@ func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredN
 func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetSeedNodeListResponse, error) {
 	list, err := svr.B.GetSeedNodeList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Error("RPC-API:GetSeedNodeList failed")
+		log.WithError(err).Error("RPC-API:QuerySeedNodeList failed")
 		return nil, ErrGetSeedNodeList
 	}
 	seeds := make([]*pb.SeedPeer, len(list))
@@ -375,7 +375,7 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, nodeId)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-GetRegisterNode failed, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}",
+		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryRegisterNode failed, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}",
 			req.GetFileType(), req.GetFileSize(), nodeId)
 
 		errMsg := fmt.Sprintf(ErrGetDataNodeInfoForQueryAvailableDataNode.Msg,
@@ -405,7 +405,7 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 	}
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, dataResourceFileUpload.GetNodeId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryFilePosition-GetRegisterNode failed, originId: {%s}, dataNodeId: {%s}",
+		log.WithError(err).Errorf("RPC-API:QueryFilePosition-QueryRegisterNode failed, originId: {%s}, dataNodeId: {%s}",
 			req.GetOriginId(), dataResourceFileUpload.GetNodeId())
 
 		errMsg := fmt.Sprintf(ErrGetDataNodeInfoForQueryFilePosition.Msg,
@@ -437,7 +437,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 	}
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, taskResultFileSummary.GetNodeId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-GetRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
+		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-QueryRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
 			req.GetTaskId(), taskResultFileSummary.GetNodeId())
 
 		errMsg := fmt.Sprintf(ErrGetDataNodeInfoForTaskResultFileSummary.Msg,
@@ -470,7 +470,7 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 	for _, summary := range taskResultFileSummaryArr {
 		dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, summary.GetNodeId())
 		if nil != err {
-			log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-GetRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
+			log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummaryList-QueryRegisterNode failed, taskId: {%s}, dataNodeId: {%s}",
 				summary.GetTaskId(), summary.GetNodeId())
 			continue
 		}

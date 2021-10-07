@@ -8,20 +8,20 @@ import (
 )
 
 type LocalStoreCarrierDB interface {
-	GetYarnName() (string, error)
+	QueryYarnName() (string, error)
 	SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 	DeleteSeedNode(id string) error
-	GetSeedNode(id string) (*pb.SeedPeer, error)
-	GetSeedNodeList() ([]*pb.SeedPeer, error)
+	QuerySeedNode(id string) (*pb.SeedPeer, error)
+	QuerySeedNodeList() ([]*pb.SeedPeer, error)
 	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
 	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
-	GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
-	GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
+	QueryRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
+	QueryRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
 
 	InsertLocalResource(resource *types.LocalResource) error
 	RemoveLocalResource(jobNodeId string) error
-	GetLocalResource(jobNodeId string) (*types.LocalResource, error)
-	GetLocalResourceList() (types.LocalResourceArray, error)
+	QueryLocalResource(jobNodeId string) (*types.LocalResource, error)
+	QueryLocalResourceList() (types.LocalResourceArray, error)
 	// powerId -> jobNodeId
 	StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error
 	RemoveLocalResourceIdByPowerId(powerId string) error
@@ -33,12 +33,6 @@ type LocalStoreCarrierDB interface {
 	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
 	QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error)
 	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
-	// about Org power resource (identityId -> {identityId, resourceTotal, resourceUsed})
-	StoreOrgResourceTable(resource *types.RemoteResourceTable) error
-	StoreOrgResourceTables(resources []*types.RemoteResourceTable) error
-	RemoveOrgResourceTable(identityId string) error
-	QueryOrgResourceTable(identityId string) (*types.RemoteResourceTable, error)
-	QueryOrgResourceTables() ([]*types.RemoteResourceTable, error)
 	// about slotUnit (key -> slotUnit)
 	StoreNodeResourceSlotUnit(slot *types.Slot) error
 	RemoveNodeResourceSlotUnit() error
@@ -112,6 +106,10 @@ type LocalStoreCarrierDB interface {
 	QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)
 	RemoveTaskResuorceUsage(taskId, partyId string) error
 	RemoveTaskResuorceUsageByTaskId(taskId string) error
+	// v 2.0 about task powerPartyIds (prefix + taskId -> powerPartyIds)
+	StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error
+	QueryTaskPowerPartyIds(taskId string) ([]string, error)
+	RemoveTaskPowerPartyIds (taskId string) error
 	// v 2.0 about Message Cache
 	StoreMessageCache(value interface{})
 	QueryPowerMsgArr() (types.PowerMsgArr, error)
@@ -122,18 +120,18 @@ type LocalStoreCarrierDB interface {
 
 type MetadataCarrierDB interface {
 	StoreLocalMetadata(metadata *types.Metadata) error
-	GetLocalMetadataByDataId(metadataId string) (*types.Metadata, error)
-	GetLocalMetadataList() (types.MetadataArray, error)
+	QueryLocalMetadataByDataId(metadataId string) (*types.Metadata, error)
+	QueryLocalMetadataList() (types.MetadataArray, error)
 	InsertMetadata(metadata *types.Metadata) error
 	RevokeMetadata(metadata *types.Metadata) error
-	GetMetadataByDataId(dataId string) (*types.Metadata, error)
-	GetMetadataList() (types.MetadataArray, error)
+	QueryMetadataByDataId(dataId string) (*types.Metadata, error)
+	QueryMetadataList() (types.MetadataArray, error)
 }
 
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
-	GetResourceList() (types.ResourceArray, error)
+	QueryResourceList() (types.ResourceArray, error)
 	SyncPowerUsed(resource *types.LocalResource) error
 }
 
@@ -141,42 +139,42 @@ type IdentityCarrierDB interface {
 	InsertIdentity(identity *types.Identity) error
 	StoreIdentity(identity *apicommonpb.Organization) error
 	RemoveIdentity() error
-	GetIdentityId() (string, error)
-	GetIdentity() (*apicommonpb.Organization, error)
+	QueryIdentityId() (string, error)
+	QueryIdentity() (*apicommonpb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
-	GetIdentityList() (types.IdentityArray, error)
-	//GetIdentityListByIds(identityIds []string) (types.IdentityArray, error)
+	QueryIdentityList() (types.IdentityArray, error)
+	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	HasIdentity(identity *apicommonpb.Organization) (bool, error)
 
 	// v2.0
 	InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	//RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error
-	GetMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error)
-	GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error)
-	GetMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
-	GetMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error)
+	QueryMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error)
+	QueryMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error)
+	QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
+	QueryMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error)
 }
 
 type TaskCarrierDB interface {
 	StoreTaskEvent(event *libtypes.TaskEvent) error
-	GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
+	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
-	GetLocalTask(taskId string) (*types.Task, error)
-	GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
-	GetLocalTaskList() (types.TaskDataArray, error)
-	GetLocalTaskAndEvents(taskId string) (*types.Task, error)
-	GetLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
-	GetLocalTaskAndEventsList() (types.TaskDataArray, error)
+	QueryLocalTask(taskId string) (*types.Task, error)
+	QueryLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
+	QueryLocalTaskList() (types.TaskDataArray, error)
+	QueryLocalTaskAndEvents(taskId string) (*types.Task, error)
+	QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
+	QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
 
 	// about task on datacenter
 	InsertTask(task *types.Task) error
-	GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
-	GetRunningTaskCountOnOrg() uint32
-	GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
-	GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
+	QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
+	QueryRunningTaskCountOnOrg() uint32
+	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
+	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 }
 
 type ForConsensusDB interface {

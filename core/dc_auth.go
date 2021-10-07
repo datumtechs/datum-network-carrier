@@ -26,7 +26,7 @@ func (dc *DataCenter) RemoveIdentity() error {
 	return nil
 }
 
-func (dc *DataCenter) GetIdentityId() (string, error) {
+func (dc *DataCenter) QueryIdentityId() (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	identity, err := rawdb.ReadLocalIdentity(dc.db)
@@ -36,7 +36,7 @@ func (dc *DataCenter) GetIdentityId() (string, error) {
 	return identity.GetIdentityId(), nil
 }
 
-func (dc *DataCenter) GetIdentity() (*apicommonpb.Organization, error) {
+func (dc *DataCenter) QueryIdentity() (*apicommonpb.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	identity, err := rawdb.ReadLocalIdentity(dc.db)
@@ -93,7 +93,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
-func (dc *DataCenter) GetIdentityList() (types.IdentityArray, error) {
+func (dc *DataCenter) QueryIdentityList() (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: timeutils.BeforeYearUnixMsecUint64()})
@@ -128,7 +128,7 @@ func (dc *DataCenter) UpdateMetadataAuthority(metadataAuth *types.MetadataAuthor
 	return nil
 }
 
-func (dc *DataCenter) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
+func (dc *DataCenter) QueryMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error) {
 	response, err := dc.client.FindMetadataAuthority(dc.ctx, &api.FindMetadataAuthorityRequest{
 		MetadataAuthId: metadataAuthId,
 	})
@@ -138,13 +138,13 @@ func (dc *DataCenter) GetMetadataAuthority (metadataAuthId string) (*types.Metad
 	return types.NewMetadataAuthority(response.MetadataAuthority), nil
 }
 
-func (dc *DataCenter) GetMetadataAuthorityListByIds (metadataAuthIds []string) (types.MetadataAuthArray, error) {
+func (dc *DataCenter) QueryMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
 	//todo: Discussion: Do we need to achieve?
 	panic("implements me")
 	return nil, nil
 }
 
-func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
+func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
@@ -158,7 +158,7 @@ func (dc *DataCenter) GetMetadataAuthorityListByIdentityId(identityId string, la
 }
 
 
-func (dc *DataCenter) GetMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
+func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{

@@ -562,7 +562,7 @@ func WriteTaskEvent(db KeyValueStore, taskEvent *libtypes.TaskEvent) {
 			log.WithError(err).Fatal("Failed to decode old task events")
 		}
 	}
-	//for _, s := range array.GetTaskEventList() {
+	//for _, s := range array.QueryTaskEventList() {
 	//	if strings.EqualFold(s.GetTaskId, taskEvent.GetTaskId) &&
 	//		strings.EqualFold(s.Identity, taskEvent.Identity) &&
 	//		strings.EqualFold(s.EventContent, taskEvent.Content) {

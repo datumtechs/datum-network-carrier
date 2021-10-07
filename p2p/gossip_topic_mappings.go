@@ -18,6 +18,7 @@ var GossipTopicMappings = map[string]proto.Message{
 	TwoPcCommitMsgTopicFormat:       &twopcpb.CommitMsg{},
 	TaskResultMsgTopicFormat:        &taskmngpb.TaskResultMsg{},
 	TaskResourceUsageMsgTopicFormat: &taskmngpb.TaskResourceUsageMsg{},
+	TaskTerminateMsgTopicFormat:     &taskmngpb.TaskTerminateMsg{},
 }
 
 // GossipTypeMapping is the inverse of GossipTopicMappings so that an arbitrary protobuf message

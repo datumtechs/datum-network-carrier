@@ -80,10 +80,14 @@ func (s *Service) registerRPCHandlers() {
 		s.taskResultMsgRPCHandler,
 	)
 
-
 	s.registerRPC(
 		p2p.RPCTaskResourceUsageMsgTopic,
 		s.taskResourceUsageMsgRPCHandler,
+	)
+
+	s.registerRPC(
+		p2p.RPCTaskTerminateMsgTopic,
+		s.taskTerminateMsgRPCHandler,
 	)
 
 	// for test.

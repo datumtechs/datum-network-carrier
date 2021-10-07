@@ -20,31 +20,23 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 	sche.queueMutex.Unlock()
 	if !ok {
 		heap.Push(sche.queue, bullet)
-		return nil
+		sche.schedulings[bullet.TaskId] = bullet
 	}
-	return sche.repushTaskBullet(bullet.TaskId)
+	return nil
 }
 
-func (sche *SchedulerStarveFIFO) repushTaskBullet(taskId string) error {
+func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) error {
 	sche.queueMutex.Lock()
 	defer sche.queueMutex.Unlock()
 
-	// The bullet is first into queue
-	bullet := sche.schedulings[taskId]
-	delete(sche.schedulings, bullet.TaskId)
-
-	if bullet.Resched >= ReschedMaxCount {
-		return ErrRescheduleLargeThreshold
+	if bullet.Starve {
+		log.Debugf("repush task into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+			bullet.TaskId, bullet.Resched, ReschedMaxCount)
+		heap.Push(sche.starveQueue, bullet)
 	} else {
-		if bullet.Starve {
-			log.Debugf("GetTask repush  into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
-				bullet.TaskId, bullet.Resched, ReschedMaxCount)
-			heap.Push(sche.starveQueue, bullet)
-		} else {
-			log.Debugf("GetTask repush  into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
-				bullet.TaskId, bullet.Resched, ReschedMaxCount)
-			heap.Push(sche.queue, bullet)
-		}
+		log.Debugf("repush task into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+			bullet.TaskId, bullet.Resched, ReschedMaxCount)
+		heap.Push(sche.queue, bullet)
 	}
 	return nil
 }
@@ -62,7 +54,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		bullet := (*(sche.queue))[i]
 
 		// When found the bullet with taskId, removed it from queue.
-		if bullet.TaskId == taskId {
+		if bullet.GetTaskId() == taskId {
 			heap.Remove(sche.queue, i)
 			delete(sche.schedulings, taskId)
 			return nil // todo 这里需要做一次 持久化
@@ -80,7 +72,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		bullet := (*(sche.starveQueue))[i]
 
 		// When found the bullet with taskId, removed it from starveQueue.
-		if bullet.TaskId == taskId {
+		if bullet.GetTaskId() == taskId {
 			heap.Remove(sche.starveQueue, i)
 			delete(sche.schedulings, taskId)
 			return nil // todo 这里需要做一次 持久化
@@ -108,15 +100,10 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 			return nil
 		}
 	}
-	bullet.IncreaseResched()
-	sche.schedulings[bullet.TaskId] = bullet
-
 	return bullet
 }
 
-
-
-func (sche *SchedulerStarveFIFO) increaseTaskTerm() {
+func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 	// handle starve queue
 	sche.starveQueue.IncreaseTerm()
 
@@ -169,8 +156,8 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 		return nil, ErrEnoughInternalResourceCount
 	}
 
-	resourceId := resourceNodeIdArr[len(resourceNodeIdArr)%electionLocalSeed]
-	jobNode, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeJobNode, resourceId)
+	resourceId := resourceNodeIdArr[len(resourceNodeIdArr)-1]
+	jobNode, err := sche.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeJobNode, resourceId)
 	if nil != err {
 		return nil, err
 	}
@@ -182,55 +169,23 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 
 func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	powerPartyIds []string,
-	dataIdentityIdCache map[string]struct{},
+	skipIdentityIdCache map[string]struct{},
 	cost *twopctypes.TaskOperationCost,
 ) ([]*libtypes.TaskPowerSupplier, error) {
 
 	calculateCount := len(powerPartyIds)
-	identityIds := make([]string, 0)
 
-	remoteResources := sche.resourceMng.GetRemoteResourceTables()
-	log.Debugf("GetRemoteResouceTables on electionConputeOrg, remoteResources: %s", utilRemoteResourceArrString(remoteResources))
-	for _, r := range remoteResources {
-
-		// Skip the mock identityId
-		if sche.resourceMng.IsMockIdentityId(r.GetIdentityId()) {
-			continue
-		}
-
-		// 计算方不可以是任务发起方 和 数据参与方 和 接收方
-		if _, ok := dataIdentityIdCache[r.GetIdentityId()]; ok {
-			continue
-		}
-		// 还需要有足够的 资源
-		if r.IsEnough(cost.Mem, cost.Bandwidth, cost.Processor) {
-			identityIds = append(identityIds, r.GetIdentityId())
-		}
-	}
-
-	if calculateCount > len(identityIds) {
-		return nil, ErrEnoughResourceOrgCountLessCalculateCount
-	}
-
-	// Election
-	index := electionOrgCondition % len(identityIds)
-	identityIdTmp := make(map[string]struct{}, calculateCount)
-	for i := calculateCount; i > 0; i-- {
-		identityIdTmp[identityIds[index]] = struct{}{}
-		index++
-
-	}
-
-	if len(identityIdTmp) != calculateCount {
-		return nil, ErrEnoughResourceOrgCountLessCalculateCount
-	}
-
-	identityInfoArr, err := sche.resourceMng.GetDB().GetIdentityList()
+	// Find global identitys
+	identityInfoArr, err := sche.resourceMng.GetDB().QueryIdentityList()
 	if nil != err {
 		return nil, err
 	}
 
-	log.Debugf("GetIdentityList by dataCenter on electionConputeOrg, identityList: %s", identityInfoArr.String())
+	if len(identityInfoArr) != calculateCount {
+		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	}
+
+	log.Debugf("QueryIdentityList by dataCenter on electionConputeOrg, identityList: %s", identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 
@@ -238,59 +193,76 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 		if sche.resourceMng.IsMockIdentityId(identityInfo.IdentityId()) {
 			continue
 		}
-
-		if _, ok := identityIdTmp[identityInfo.IdentityId()]; ok {
-			identityInfoTmp[identityInfo.IdentityId()] = identityInfo
-		}
 	}
 
 	if len(identityInfoTmp) != calculateCount {
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
 
-	resourceArr, err := sche.resourceMng.GetDB().GetResourceList()
+	// Find global power resources
+	globalResources, err := sche.resourceMng.GetDB().QueryResourceList()
 	if nil != err {
 		return nil, err
 	}
+	//log.Debugf("GetRemoteResouceTables on electionConputeOrg, globalResources: %s", utilRemoteResourceArrString(globalResources))
+	log.Debugf("GetRemoteResouceTables on electionConputeOrg, globalResources: %s", globalResources.String())
 
-	log.Debugf("GetResourceList by dataCenter on electionConputeOrg, resources: %s", resourceArr.String())
+	if len(globalResources) != calculateCount {
+		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	}
 
-	orgs := make([]*libtypes.TaskPowerSupplier, calculateCount)
+	orgs := make([]*libtypes.TaskPowerSupplier, 0)
 	i := 0
-	for _, iden := range resourceArr {
+	for _, r := range globalResources {
 
 		if i == calculateCount {
 			break
 		}
 
-		if info, ok := identityInfoTmp[iden.GetIdentityId()]; ok {
-			orgs[i] = &libtypes.TaskPowerSupplier{
+		// skip
+		if nil != skipIdentityIdCache {
+			if _, ok := skipIdentityIdCache[r.GetIdentityId()]; ok {
+				continue
+			}
+		}
+
+		// Find one, if have enough resource
+		rMem, rBandwidth, rProcessor := r.GetTotalMem()-r.GetUsedMem(), r.GetTotalBandWidth()-r.GetUsedBandWidth(), r.GetTotalProcessor()-r.GetUsedProcessor()
+		if rMem < cost.Mem {
+			continue
+		}
+		if rProcessor < cost.Processor {
+			continue
+		}
+		if rBandwidth < cost.Bandwidth {
+			continue
+		}
+
+		// append one, if it enouph
+		if info, ok := identityInfoTmp[r.GetIdentityId()]; ok {
+			orgs = append(orgs, &libtypes.TaskPowerSupplier{
 				Organization: &apicommonpb.TaskOrganization{
 					PartyId:    powerPartyIds[i],
 					NodeName:   info.Name(),
 					NodeId:     info.NodeId(),
 					IdentityId: info.IdentityId(),
 				},
-				// TODO 这里的 task 资源消耗是事先加上的 先在这里直接加上 写死的(任务定义的)
 				ResourceUsedOverview: &libtypes.ResourceUsageOverview{
-					TotalMem:       iden.GetTotalMem(),
+					TotalMem:       r.GetTotalMem(),
 					UsedMem:        cost.Mem,
-					TotalProcessor: uint32(iden.GetTotalProcessor()),
+					TotalProcessor: r.GetTotalProcessor(),
 					UsedProcessor:  cost.Processor,
-					TotalBandwidth: iden.GetTotalBandWidth(),
+					TotalBandwidth: r.GetTotalBandWidth(),
 					UsedBandwidth:  cost.Bandwidth,
 				},
-			}
+			})
 			i++
-			delete(identityInfoTmp, iden.GetIdentityId())
 		}
 	}
-
 	return orgs, nil
 }
 
-
-func (sche *SchedulerStarveFIFO) verifyUserMetadataAuthOnTask (userType apicommonpb.UserType, user, metadataId string) bool {
+func (sche *SchedulerStarveFIFO) verifyUserMetadataAuthOnTask(userType apicommonpb.UserType, user, metadataId string) bool {
 	if !sche.authMng.VerifyMetadataAuth(userType, user, metadataId) {
 		return false
 	}
@@ -317,16 +289,7 @@ func utilLocalResourceArrString(resources []*types.LocalResourceTable) string {
 	}
 	return "[]"
 }
-func utilRemoteResourceArrString(resources []*types.RemoteResourceTable) string {
-	arr := make([]string, len(resources))
-	for i, r := range resources {
-		arr[i] = r.String()
-	}
-	if len(arr) != 0 {
-		return "[" + strings.Join(arr, ",") + "]"
-	}
-	return "[]"
-}
+
 func utilDataResourceArrString(resources []*types.DataResourceTable) string {
 	arr := make([]string, len(resources))
 	for i, r := range resources {
@@ -337,5 +300,3 @@ func utilDataResourceArrString(resources []*types.DataResourceTable) string {
 	}
 	return "[]"
 }
-
-

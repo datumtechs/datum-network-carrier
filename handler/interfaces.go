@@ -38,6 +38,8 @@ type TaskManager interface {
 	OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error
 	ValidateTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error
 	OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error
+	ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
+	OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
 	SendTaskEvent(reportEvent *types.ReportTaskEvent) error
 	SendTaskResourceUsage (usage *types.TaskResuorceUsage) error
 }

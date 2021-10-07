@@ -41,7 +41,6 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 	return nil
 }
 
-
 func (s *Service) taskResourceUsageMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)
@@ -75,6 +74,39 @@ func (s *Service) taskResourceUsageMsgRPCHandler(ctx context.Context, msg interf
 	return nil
 }
 
+func (s *Service) taskTerminateMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
+
+	SetRPCStreamDeadlines(stream)
+
+	m, ok := msg.(*taskmngpb.TaskTerminateMsg)
+	if !ok {
+		return errors.New("message is not type *taskmngpb.TaskTerminateMsg")
+	}
+
+	// validate TaskTerminateMsg
+	if err := s.validateTaskTerminateMsg(stream.Conn().RemotePeer(), m); err != nil {
+		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+		return err
+	}
+
+	// handle TaskTerminateMsg
+	if err := s.onTaskTerminateMsg(stream.Conn().RemotePeer(), m); err != nil {
+		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+		return err
+	}
+
+	// response code
+	if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
+		//log.WithError(err).Errorf("Could not write to stream for response, after to call `onTaskResultMsg`, proposalId: {%s}, taskId: {%s}", common.BytesToHash(m.ProposalId).String(), string(m.GetTaskId))
+		return err
+	}
+
+	closeStream(stream, log)
+	return nil
+}
+
 
 // --------------------------------------- validate fn ---------------------------------------
 func (s *Service) validateTaskResultMsg(pid peer.ID, r *taskmngpb.TaskResultMsg) error {
@@ -83,6 +115,10 @@ func (s *Service) validateTaskResultMsg(pid peer.ID, r *taskmngpb.TaskResultMsg)
 
 func (s *Service) validateTaskResourceUsageMsg(pid peer.ID, r *taskmngpb.TaskResourceUsageMsg) error {
 	return s.cfg.TaskManager.ValidateTaskResourceUsageMsg(pid, r)
+}
+
+func (s *Service) validateTaskTerminateMsg(pid peer.ID, r *taskmngpb.TaskTerminateMsg) error {
+	return s.cfg.TaskManager.ValidateTaskTerminateMsg(pid, r)
 }
 
 
@@ -95,4 +131,8 @@ func (s *Service) onTaskResultMsg(pid peer.ID, r *taskmngpb.TaskResultMsg) error
 
 func (s *Service) onTaskResourceUsageMsg(pid peer.ID, r *taskmngpb.TaskResourceUsageMsg) error {
 	return s.cfg.TaskManager.OnTaskResourceUsageMsg(pid, r)
+}
+
+func (s *Service) onTaskTerminateMsg(pid peer.ID, r *taskmngpb.TaskTerminateMsg) error {
+	return s.cfg.TaskManager.OnTaskTerminateMsg(pid, r)
 }

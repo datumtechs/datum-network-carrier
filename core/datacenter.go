@@ -67,7 +67,7 @@ func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
 
 // ************************************* public api (datachain) *******************************************
 
-func (dc *DataCenter) GetYarnName() (string, error) {
+func (dc *DataCenter) QueryYarnName() (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	name, err := rawdb.ReadYarnName(dc.db)
@@ -134,13 +134,13 @@ func (dc *DataCenter) DeleteSeedNode(id string) error {
 	return nil
 }
 
-func (dc *DataCenter) GetSeedNode(id string) (*pb.SeedPeer, error) {
+func (dc *DataCenter) QuerySeedNode(id string) (*pb.SeedPeer, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadSeedNode(dc.db, id)
 }
 
-func (dc *DataCenter) GetSeedNodeList() ([]*pb.SeedPeer, error) {
+func (dc *DataCenter) QuerySeedNodeList() ([]*pb.SeedPeer, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllSeedNodes(dc.db)
@@ -160,13 +160,13 @@ func (dc *DataCenter) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) e
 	return nil
 }
 
-func (dc *DataCenter) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataCenter) QueryRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadRegisterNode(dc.db, typ, id)
 }
 
-func (dc *DataCenter) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
+func (dc *DataCenter) QueryRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllRegisterNodes(dc.db, typ)
@@ -555,6 +555,24 @@ func (dc *DataCenter) RemoveTaskResuorceUsageByTaskId (taskId string) error {
 	return rawdb.RemoveTaskResuorceUsageByTaskId(dc.db, taskId)
 }
 
+func (dc *DataCenter) StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskPowerPartyIds(dc.db, taskId, powerPartyIds)
+}
+
+func (dc *DataCenter) QueryTaskPowerPartyIds(taskId string) ([]string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskPowerPartyIds(dc.db, taskId)
+}
+
+func (dc *DataCenter) RemoveTaskPowerPartyIds (taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskPowerPartyIds(dc.db, taskId)
+}
+
 func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -563,7 +581,7 @@ func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
 	return nil
 }
 
-func (dc *DataCenter) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 

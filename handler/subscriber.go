@@ -73,6 +73,11 @@ func (s *Service) registerSubscribers() {
 		s.validateTaskResourceUsageMessagePubSub,
 		s.taskResourceUsageMessageSubscriber,
 	)
+	s.subscribe(
+		p2p.TaskTerminateMsgTopicFormat,
+		s.validateTaskTerminateMessagePubSub,
+		s.taskTerminateMessageSubscriber,
+	)
 }
 
 // subscribe to a given topic with a given validator and subscription handler.

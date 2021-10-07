@@ -18,14 +18,14 @@ func (dc *DataCenter) StoreLocalMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-func (dc *DataCenter) GetLocalMetadataByDataId(metadataId string) (*types.Metadata, error) {
+func (dc *DataCenter) QueryLocalMetadataByDataId(metadataId string) (*types.Metadata, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	metadata, err := rawdb.ReadLocalMetadata(dc.db, metadataId)
 	return metadata, err
 }
 
-func (dc *DataCenter) GetLocalMetadataList() (types.MetadataArray, error) {
+func (dc *DataCenter) QueryLocalMetadataList() (types.MetadataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllLocalMetadata(dc.db)
@@ -60,7 +60,7 @@ func (dc *DataCenter) RevokeMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error) {
+func (dc *DataCenter) QueryMetadataByDataId(dataId string) (*types.Metadata, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.FindMetadataByIdRequest{
@@ -69,7 +69,7 @@ func (dc *DataCenter) GetMetadataByDataId(dataId string) (*types.Metadata, error
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
-func (dc *DataCenter) GetMetadataList() (types.MetadataArray, error) {
+func (dc *DataCenter) QueryMetadataList() (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.ListMetadataRequest{

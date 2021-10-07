@@ -32,31 +32,31 @@ func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 	return nil
 }
 
-func (dc *DataCenter) GetLocalTask(taskId string) (*types.Task, error) {
+func (dc *DataCenter) QueryLocalTask(taskId string) (*types.Task, error) {
 	if taskId == "" {
-		return nil, errors.New("invalid params taskId for GetLocalTask")
+		return nil, errors.New("invalid params taskId for QueryLocalTask")
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	//log.Debugf("GetLocalTask, taskId: {%s}", taskId)
+	//log.Debugf("QueryLocalTask, taskId: {%s}", taskId)
 	return rawdb.ReadLocalTask(dc.db, taskId)
 }
 
-func (dc *DataCenter) GetLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error) {
+func (dc *DataCenter) QueryLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadLocalTaskByIds(dc.db, taskIds)
 }
 
-func (dc *DataCenter) GetLocalTaskList() (types.TaskDataArray, error) {
+func (dc *DataCenter) QueryLocalTaskList() (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllLocalTasks(dc.db)
 }
 
-func (dc *DataCenter) GetLocalTaskAndEvents(taskId string) (*types.Task, error) {
+func (dc *DataCenter) QueryLocalTaskAndEvents(taskId string) (*types.Task, error) {
 	if taskId == "" {
-		return nil, errors.New("invalid params taskId for GetLocalTask")
+		return nil, errors.New("invalid params taskId for QueryLocalTask")
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -72,7 +72,7 @@ func (dc *DataCenter) GetLocalTaskAndEvents(taskId string) (*types.Task, error) 
 	return task, nil
 }
 
-func (dc *DataCenter) GetLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error) {
+func (dc *DataCenter) QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	tasks, err := rawdb.ReadLocalTaskByIds(dc.db, taskIds)
@@ -90,7 +90,7 @@ func (dc *DataCenter) GetLocalTaskAndEventsListByIds(taskIds []string) (types.Ta
 	return tasks, nil
 }
 
-func (dc *DataCenter) GetLocalTaskAndEventsList() (types.TaskDataArray, error) {
+func (dc *DataCenter) QueryLocalTaskAndEventsList() (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 
@@ -203,7 +203,7 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	return nil
 }
 
-func (dc *DataCenter) GetTaskListByIdentityId(identityId string) (types.TaskDataArray, error) {
+func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{LastUpdated: uint64(timeutils.UnixMsec())})
@@ -214,7 +214,7 @@ func (dc *DataCenter) GetTaskListByIdentityId(identityId string) (types.TaskData
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
-func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
+func (dc *DataCenter) QueryRunningTaskCountOnOrg() uint32 {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	taskList, err := rawdb.ReadAllLocalTasks(dc.db)
@@ -227,7 +227,7 @@ func (dc *DataCenter) GetRunningTaskCountOnOrg() uint32 {
 	return 0
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
@@ -236,7 +236,7 @@ func (dc *DataCenter) GetTaskEventListByTaskId(taskId string) ([]*libtypes.TaskE
 	return taskEventResponse.TaskEvents, err
 }
 
-func (dc *DataCenter) GetTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 

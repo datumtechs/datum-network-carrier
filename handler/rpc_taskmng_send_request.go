@@ -29,8 +29,7 @@ func SendTaskResultMsg (ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, r
 	return nil
 }
 
-
-func SendTaskResourceUsage(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskResourceUsageMsg) error {
+func SendTaskResourceUsageMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskResourceUsageMsg) error {
 	ctx, cancel := context.WithTimeout(ctx, respTimeout)
 	defer cancel()
 
@@ -48,6 +47,24 @@ func SendTaskResourceUsage(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID
 		return errors.New(errMsg)
 	}
 	return nil
+}
 
+func SendTaskTerminateMsg(ctx context.Context, p2pProvider p2p.P2P, pid peer.ID, req *taskmngpb.TaskTerminateMsg) error {
+	ctx, cancel := context.WithTimeout(ctx, respTimeout)
+	defer cancel()
+
+	// send request on the special topic.
+	stream, err := p2pProvider.Send(ctx, req, p2p.RPCTaskTerminateMsgTopic, pid)
+	if err != nil {
+		return err
+	}
+	defer closeStream(stream, log)
+	code, errMsg, err := ReadStatusCode(stream, p2pProvider.Encoding())
+	if err != nil {
+		return err
+	}
+	if code != 0 {
+		return errors.New(errMsg)
+	}
 	return nil
 }

@@ -182,26 +182,3 @@ func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr Metadata
 	return result
 }
 
-func NewOrgResourceFromResource(input *Resource) *RemoteResourceTable {
-	return &RemoteResourceTable{
-		identityId: input.data.GetIdentityId(),
-		total: &resource{
-			mem:       input.data.GetTotalMem(),
-			processor: input.data.GetTotalProcessor(),
-			bandwidth: input.data.GetTotalBandwidth(),
-		},
-		used: &resource{
-			mem:       input.data.GetUsedMem(),
-			processor: input.data.GetUsedProcessor(),
-			bandwidth: input.data.GetUsedBandwidth(),
-		},
-	}
-}
-
-//func NewOrgResourceArrayFromResourceArray(input ResourceArray) []*RemoteResourceTable {
-//	result := make([]*RemoteResourceTable, input.Len())
-//	for i, resource := range input {
-//		result[i] = NewOrgResourceFromResource(resource)
-//	}
-//	return result
-//}

@@ -146,3 +146,9 @@ func (c *JobNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.T
 	defer cancel()
 	return c.computeProviderClient.HandleTaskReadyGo(ctx, req)
 }
+
+func (c *JobNodeClient) HandleCancelTask (req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
+	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
+	defer cancel()
+	return c.computeProviderClient.HandleCancelTask(ctx, req)
+}

@@ -31,12 +31,12 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 
 // system (the yarn node self info)
 func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
-	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed to get all `job nodes`, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
-	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
+	dataNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed to get all `data nodes, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
@@ -64,7 +64,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		}
 	}
 
-	identity, err := s.carrier.carrierDB.GetIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		log.Warnf("Failed to get identity, on GetNodeInfo(), err: {%s}", err)
 		//return nil, fmt.Errorf("query local identity failed, %s", err)
@@ -78,7 +78,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeName = identity.NodeName
 	}
 
-	seedNodes, err := s.carrier.carrierDB.GetSeedNodeList()
+	seedNodes, err := s.carrier.carrierDB.QuerySeedNodeList()
 	return &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_NodeType_YarnNode,
 		NodeId:       nodeId,
@@ -97,13 +97,13 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 
 func (s *CarrierAPIBackend) GetRegisteredPeers() ([]*pb.YarnRegisteredPeer, error) {
 	// all dataNodes on yarnNode
-	dataNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
+	dataNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
 		return nil, err
 	}
 
 	// all jobNodes on yarnNode
-	jobNodes, err := s.carrier.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if nil != err {
 		return nil, err
 	}
@@ -156,11 +156,11 @@ func (s *CarrierAPIBackend) DeleteSeedNode(id string) error {
 }
 
 func (s *CarrierAPIBackend) GetSeedNode(id string) (*pb.SeedPeer, error) {
-	return s.carrier.carrierDB.GetSeedNode(id)
+	return s.carrier.carrierDB.QuerySeedNode(id)
 }
 
 func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
-	return s.carrier.carrierDB.GetSeedNodeList()
+	return s.carrier.carrierDB.QuerySeedNodeList()
 }
 
 func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
@@ -195,7 +195,7 @@ func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organizatio
 
 func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
 
-	identity, err := s.carrier.carrierDB.GetIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
 	}
@@ -250,7 +250,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 
 func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
 
-	identity, err := s.carrier.carrierDB.GetIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local identity failed, %s", err)
 	}
@@ -364,7 +364,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
 
-	_, err := s.carrier.carrierDB.GetIdentity()
+	_, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
@@ -433,11 +433,11 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 }
 
 func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
-	return s.carrier.carrierDB.GetRegisterNode(typ, id)
+	return s.carrier.carrierDB.QueryRegisterNode(typ, id)
 }
 
 func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
-	nodeList, err := s.carrier.carrierDB.GetRegisterNodeList(typ)
+	nodeList, err := s.carrier.carrierDB.QueryRegisterNodeList(typ)
 	if nil != err {
 		return nil, err
 	}
@@ -532,7 +532,7 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 
 	// find local metadata
 	if "" == identityId {
-		metadata, err = s.carrier.carrierDB.GetLocalMetadataByDataId(metadataId)
+		metadata, err = s.carrier.carrierDB.QueryLocalMetadataByDataId(metadataId)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return nil, errors.New("not found local metadata by special Id, " + err.Error())
 		}
@@ -540,7 +540,7 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 			return metadata, nil
 		}
 	}
-	metadata, err = s.carrier.carrierDB.GetMetadataByDataId(metadataId)
+	metadata, err = s.carrier.carrierDB.QueryMetadataByDataId(metadataId)
 	if nil != err {
 		return nil, errors.New("not found local metadata by special Id, " + err.Error())
 	}
@@ -559,7 +559,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetada
 		err error
 	)
 
-	publishMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
+	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found publish metadata arr failed, " + err.Error())
 	}
@@ -590,19 +590,19 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 		err error
 	)
 
-	identity, err := s.carrier.carrierDB.GetIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		if nil != err {
 			return nil, errors.New("found local identity failed, " + err.Error())
 		}
 	}
 
-	internalMetadataArr, err := s.carrier.carrierDB.GetLocalMetadataList()
+	internalMetadataArr, err := s.carrier.carrierDB.QueryLocalMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
 
-	globalMetadataArr, err := s.carrier.carrierDB.GetMetadataList()
+	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found publish metadata arr failed, " + err.Error())
 	}
@@ -644,7 +644,7 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 // power api
 func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
-	resourceList, err := s.carrier.carrierDB.GetResourceList()
+	resourceList, err := s.carrier.carrierDB.QueryResourceList()
 	if err != nil {
 		return nil, err
 	}
@@ -679,11 +679,11 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDeta
 func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetailResponse, error) {
 	log.Debug("Invoke:GetLocalPowerDetailList executing...")
 	// query local resource list from db.
-	machineList, err := s.carrier.carrierDB.GetLocalResourceList()
+	machineList, err := s.carrier.carrierDB.QueryLocalResourceList()
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Invoke:GetLocalPowerDetailList, call GetLocalResourceList, machineList: %s", machineList.String())
+	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryLocalResourceList, machineList: %s", machineList.String())
 
 	// query used of power for local task. : taskId -> {taskId, jobNodeId, slotCount}
 	localTaskPowerUsedList, err := s.carrier.carrierDB.QueryLocalTaskPowerUseds()
@@ -737,7 +737,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 
 				// query local task information by taskId
 				taskId := powerUsed.GetTaskId()
-				task, err := s.carrier.carrierDB.GetLocalTask(taskId)
+				task, err := s.carrier.carrierDB.QueryLocalTask(taskId)
 				if err != nil {
 					log.Errorf("Failed to query local task on GetLocalPowerDetailList, taskId: {%s}, err: {%s}", taskId, err)
 					continue
@@ -863,7 +863,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 // identity api
 
 func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
-	nodeAlias, err := s.carrier.carrierDB.GetIdentity()
+	nodeAlias, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return nil, err
 	}
@@ -875,7 +875,7 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 }
 
 func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
-	return s.carrier.carrierDB.GetIdentityList()
+	return s.carrier.carrierDB.QueryIdentityList()
 }
 
 // for metadataAuthority
@@ -899,18 +899,18 @@ func (s *CarrierAPIBackend) HasValidUserMetadataAuth(userType apicommonpb.UserTy
 // task api
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, error) {
 	// the task is executing.
-	localTaskArray, err := s.carrier.carrierDB.GetLocalTaskList()
+	localTaskArray, err := s.carrier.carrierDB.QueryLocalTaskList()
 
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
-	localIdentityId, err := s.carrier.carrierDB.GetIdentityId()
+	localIdentityId, err := s.carrier.carrierDB.QueryIdentityId()
 	if err != nil {
 		return nil, fmt.Errorf("query local identityId failed, %s", err)
 	}
 
 	// the task has been executed.
-	networkTaskList, err := s.carrier.carrierDB.GetTaskListByIdentityId(localIdentityId)
+	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByIdentityId(localIdentityId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
@@ -962,13 +962,13 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, 
 
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error) {
 
-	identity, err := s.carrier.carrierDB.GetIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return nil, err
 	}
 
 	// 先查出 task 在本地的 eventList
-	localEventList, err := s.carrier.carrierDB.GetTaskEventList(taskId)
+	localEventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
@@ -988,7 +988,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 		}
 	}
 
-	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskId(taskId)
+	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskId(taskId)
 	if nil != err {
 		return nil, err
 	}
@@ -998,7 +998,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 
 func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error) {
 
-	identity, err := s.carrier.carrierDB.GetIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return nil, err
 	}
@@ -1007,7 +1007,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 
 	// 先查出 task 在本地的 eventList
 	for _, taskId := range taskIds {
-		localEventList, err := s.carrier.carrierDB.GetTaskEventList(taskId)
+		localEventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return nil, err
 		}
@@ -1029,7 +1029,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 		}
 	}
 
-	taskEvent, err := s.carrier.carrierDB.GetTaskEventListByTaskIds(taskIds)
+	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskIds(taskIds)
 	if nil != err {
 		return nil, err
 	}
@@ -1100,7 +1100,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 
 	metadataId := types.PREFIX_METADATA_ID + originIdHash.Hex()
 
-	identity, err := s.carrier.carrierDB.GetIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		log.Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}, err: {%s}",
 			taskId, dataNodeId, originId, metadataId, filePath, err)
@@ -1165,7 +1165,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 		return nil, err
 	}
 
-	localMetadata, err := s.carrier.carrierDB.GetLocalMetadataByDataId(taskUpResultFile.GetMetadataId())
+	localMetadata, err := s.carrier.carrierDB.QueryLocalMetadataByDataId(taskUpResultFile.GetMetadataId())
 	if nil != err {
 		log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
 			taskId, taskUpResultFile.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)
@@ -1199,7 +1199,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 			continue
 		}
 
-		localMetadata, err := s.carrier.carrierDB.GetLocalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
+		localMetadata, err := s.carrier.carrierDB.QueryLocalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
 		if nil != err {
 			log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
 				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)

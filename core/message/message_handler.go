@@ -324,14 +324,14 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 
 	// query local identity
-	identity, err := m.dataCenter.GetIdentity()
+	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
 		log.Errorf("Failed to get local org identity on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return
 	}
 
 	// what if running task, can not revoke identity
-	jobNodes , err := m.dataCenter.GetRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodes , err := m.dataCenter.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("query all jobNode failed, %s", err)
 		return
@@ -379,7 +379,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 
 func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
-	identity, err := m.dataCenter.GetIdentity()
+	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
 		log.Errorf("query local identityInfo failed, {%s}", err)
 		return
@@ -394,7 +394,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 	for _, power := range powerMsgArr {
 
 		// query local resource
-		resource, err := m.dataCenter.GetLocalResource(power.GetJobNodeId())
+		resource, err := m.dataCenter.QueryLocalResource(power.GetJobNodeId())
 		if nil != err {
 			log.Errorf("Failed to query local resource on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
@@ -468,7 +468,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.PowerRevokeMsgArr) {
 
-	identity, err := m.dataCenter.GetIdentity()
+	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
 		log.Errorf("failed to broadcast powerRevokeMsgArr, query local identityInfo failed, {%s}", err)
 		return
@@ -495,7 +495,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 
 		// query local resource
-		resource, err := m.dataCenter.GetLocalResource(jobNodeId)
+		resource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 		if nil != err {
 			log.Errorf("Failed to query local resource on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
@@ -535,7 +535,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMsgArr) {
 
-	identity, err := m.dataCenter.GetIdentity()
+	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
 		log.Errorf("Failed to query local identity on MessageHandler with broadcast, err: {%s}", err)
 		return
@@ -600,7 +600,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr types.MetadataRevokeMsgArr) {
 
-	identity, err := m.dataCenter.GetIdentity()
+	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
 		log.Errorf("Failed to query local identity on MessageHandler with revoke, err: {%s}", err)
 		return

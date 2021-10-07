@@ -52,7 +52,7 @@ func InsertData() {
 		panic("from data center InsertIdentity fail," + merr.Error() + "\n")
 	} else {
 		fmt.Println("InsertIdentity successful")
-		result, err := dc.GetIdentityList()
+		result, err := dc.QueryIdentityList()
 		if nil != err {
 			fmt.Println("err", err)
 		}
@@ -91,7 +91,7 @@ func InsertMetadata() {
 		panic("from data center InsertMetadata fail," + merr.Error() + "\n")
 	} else {
 		fmt.Println("InsertMetadata successful")
-		result, err := dc.GetMetadataList()
+		result, err := dc.QueryMetadataList()
 		if nil != err {
 			fmt.Println("err", err)
 		}
@@ -119,7 +119,7 @@ func InsertResource() {
 		panic("from data center InsertResource fail," + terr.Error() + "\n")
 	} else {
 		fmt.Print("InsertResource successful\n")
-		//result, err := dc.GetResourceList()
+		//result, err := dc.QueryResourceList()
 		//if nil != err {
 		//	fmt.Println("err", err)
 		//}
@@ -209,7 +209,7 @@ func InsertTask() {
 		panic("from data center InsertTask fail," + terr.Error() + "\n")
 	} else {
 		fmt.Print("InsertTask successful\n")
-		result, err := dc.GetLocalTaskList()
+		result, err := dc.QueryLocalTaskList()
 		if nil != err {
 			fmt.Println("err", err)
 		}
@@ -236,32 +236,32 @@ func RevokeIdentity() {
 func GetData() {
 	dc := serverObj()
 
-	//region GetIdentityList
-	identity, err := dc.GetIdentityList()
+	//region QueryIdentityList
+	identity, err := dc.QueryIdentityList()
 	if nil != err {
 		fmt.Println("err", err)
 	}
-	fmt.Println("GetIdentityList result is:")
+	fmt.Println("QueryIdentityList result is:")
 	for _, value := range identity {
 		fmt.Println(types.IdentityDataTojson(value))
 	}
 	//endregion
 
-	// region GetMetadataList
-	metadata, err := dc.GetMetadataList()
+	// region QueryMetadataList
+	metadata, err := dc.QueryMetadataList()
 	if nil != err {
 		fmt.Println("err", err)
 	}
-	fmt.Println("GetMetadataList result is:")
+	fmt.Println("QueryMetadataList result is:")
 	fmt.Println(metadata)
 	//endregion
 
-	//region GetMetadataByDataId
-	MetadataByDataId, err := dc.GetMetadataByDataId(DataId)
+	//region QueryMetadataByDataId
+	MetadataByDataId, err := dc.QueryMetadataByDataId(DataId)
 	if nil != err {
 		fmt.Println("err", err)
 	}
-	fmt.Println("GetMetadataByDataId result is:")
+	fmt.Println("QueryMetadataByDataId result is:")
 	fmt.Println(types.MetadataToJson(MetadataByDataId))
 	// endregion
 
@@ -275,7 +275,7 @@ func GetData() {
 	// endregion
 
 	// region GetTaskList
-	GetTaskList, err := dc.GetLocalTaskList()
+	GetTaskList, err := dc.QueryLocalTaskList()
 	if nil != err {
 		fmt.Println("err", err)
 	}

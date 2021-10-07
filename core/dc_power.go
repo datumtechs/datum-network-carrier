@@ -22,13 +22,13 @@ func (dc *DataCenter) RemoveLocalResource(jobNodeId string) error {
 	return nil
 }
 
-func (dc *DataCenter) GetLocalResource(jobNodeId string) (*types.LocalResource, error) {
+func (dc *DataCenter) QueryLocalResource(jobNodeId string) (*types.LocalResource, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadLocalResource(dc.db, jobNodeId)
 }
 
-func (dc *DataCenter) GetLocalResourceList() (types.LocalResourceArray, error) {
+func (dc *DataCenter) QueryLocalResourceList() (types.LocalResourceArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ReadAllLocalResource(dc.db)
@@ -105,7 +105,7 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
 }
 
-func (dc *DataCenter) GetResourceList() (types.ResourceArray, error) {
+func (dc *DataCenter) QueryResourceList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	powerListRequest, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
@@ -142,35 +142,4 @@ func (dc *DataCenter) QueryLocalResourceTables() ([]*types.LocalResourceTable, e
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryNodeResources(dc.db)
-}
-
-// about Org power resource
-func (dc *DataCenter) StoreOrgResourceTable(resource *types.RemoteResourceTable) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.StoreOrgResource(dc.db, resource)
-}
-
-func (dc *DataCenter) StoreOrgResourceTables(resources []*types.RemoteResourceTable) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.StoreOrgResources(dc.db, resources)
-}
-
-func (dc *DataCenter) RemoveOrgResourceTable(resourceId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.RemoveOrgResource(dc.db, resourceId)
-}
-
-func (dc *DataCenter) QueryOrgResourceTable(resourceId string) (*types.RemoteResourceTable, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QueryOrgResource(dc.db, resourceId)
-}
-
-func (dc *DataCenter) QueryOrgResourceTables() ([]*types.RemoteResourceTable, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QueryOrgResources(dc.db)
 }

@@ -119,7 +119,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 	s.Engines[types.ChainconsTyp] = chaincons.New()
 
 	// load stored jobNode and dataNode
-	jobNodeList, err := s.carrierDB.GetRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if err == nil {
 		for _, node := range jobNodeList {
 			client, err := grpclient.NewJobNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
@@ -128,7 +128,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 			}
 		}
 	}
-	dataNodeList, err := s.carrierDB.GetRegisterNodeList(pb.PrefixTypeDataNode)
+	dataNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 	if err == nil {
 		for _, node := range dataNodeList {
 			client, err := grpclient.NewDataNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)

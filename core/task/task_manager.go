@@ -11,7 +11,6 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
-
 	"sync"
 	"time"
 )
@@ -186,6 +185,74 @@ func (m *Manager) loop() {
 	}
 }
 
+func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
+
+	localTask, err := m.resourceMng.GetDB().QueryLocalTask(terminate.GetTaskId())
+	if nil != err {
+		log.Errorf("Failed to query local task on `taskManager.TerminateTask()`, taskId: {%s}, err: {%s}", terminate.GetTaskId(), err)
+		return
+	}
+
+	if nil == localTask {
+		log.Errorf("Not found local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
+		return
+	}
+
+
+	needExecuteTask, ok := m.queryNeedExecuteTaskCache(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+
+	if ok {
+
+		// check user
+		if needExecuteTask.GetTask().GetTaskData().GetUser() != terminate.GetUser() ||
+			needExecuteTask.GetTask().GetTaskData().GetUserType() != terminate.GetUserType() {
+
+			log.Errorf("terminate task user and publish task user must be same on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+			return
+		}
+
+		// todo verify user sign with terminate task
+
+		has, err := m.resourceMng.GetDB().HasLocalTaskExecute(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		if nil != err {
+			log.Errorf("Failed to query local task execute status on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
+				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
+			return
+		}
+		if has {
+			// call terminate task
+			if err := m.driveTaskForTerminate(needExecuteTask); nil != err {
+				log.Errorf("Failed to call driveTaskForTerminate() on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
+					localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
+				return
+			}
+		} else {
+			// remove the task on scheduler (maybe task on consensus now)
+			m.publishFinishedTaskToDataCenter(needExecuteTask)
+		}
+	} else {
+		// remove local task short circuit
+		events, err := m.resourceMng.GetDB().QueryTaskEventList(localTask.GetTaskId())
+		if nil != err {
+			log.Errorf("Failed to query all task event list for sending datacenter on taskManager.TerminateTask(), taskId: {%s}, err: {%s}", localTask.GetTaskId(), err)
+			return
+		}
+		events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+			localTask.GetTaskId(), localTask.GetTaskSender().GetIdentityId(), "terminate task short circuit"))
+
+		if err := m.storeBadTask(localTask, events, "terminate task short circuit"); nil != err {
+			log.Errorf("Failed to store local terminate task on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
+				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
+		}
+
+		if err := m.scheduler.RemoveTask(localTask.GetTaskId()); nil != err {
+			log.Errorf("Failed to remove task of scheduler.queue on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
+				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
+		}
+	}
+}
+
 func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 	//////////////////////////////// TODO  MOCK  ///////////////////////////////////
@@ -256,9 +323,16 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 			log.Errorf("Failed to store metadata used taskId when received local task, err: {%s}", err)
 		}
 
+		var storeErr error
 		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
+			storeErr = err
+		}
+		if err := m.resourceMng.GetDB().StoreTaskPowerPartyIds(task.GetTaskId(), msg.GetPowerPartyIds()); nil != err {
+			storeErr = err
+		}
+		if nil != storeErr {
 
-			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.GetTaskData().TaskId, err)
+			e := fmt.Errorf("store local task failed, taskId {%s}, %s", task.GetTaskData().TaskId, storeErr)
 			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task, err: {%s}", e.Error())
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), e.Error())}
 			if e := m.storeBadTask(task, events, e.Error()); nil != e {
@@ -280,11 +354,14 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 }
 
 func (m *Manager) SendTaskTerminate(msgArr types.TaskTerminateMsgArr) error {
-	return nil  // TODO 还未实现 ...
+	for _, terminate := range msgArr {
+		go m.TerminateTask(terminate)
+	}
+	return nil
 }
 
 func (m *Manager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error {
-	identityId, err := m.resourceMng.GetDB().GetIdentityId()
+	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
 		return fmt.Errorf("query local identityId failed, %s", err)
@@ -308,6 +385,6 @@ func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
 		return fmt.Errorf("task is not executed, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
 	}
 
-	m.sendTaskResourceUsageToRemotePeer(task, usage)
+	m.sendTaskResourceUsageMsgToRemotePeer(task, usage)
 	return nil
 }

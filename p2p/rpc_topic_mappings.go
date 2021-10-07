@@ -33,13 +33,14 @@ const (
 	// for 2pc consensus
 	RPCTwoPcPrepareMsgTopic  = "/rosettanet/consensus/twopc/send_prepare_msg" + schemaVersionV1
 	RPCTwoPcPrepareVoteTopic = "/rosettanet/consensus/twopc/send_prepare_vote" + schemaVersionV1
-	RPCTwoPcConfirmMsgTopic  = "/rosettanet/consensus/twopc/send_confir_mmsg" + schemaVersionV1
+	RPCTwoPcConfirmMsgTopic  = "/rosettanet/consensus/twopc/send_confirm_msg" + schemaVersionV1
 	RPCTwoPcConfirmVoteTopic = "/rosettanet/consensus/twopc/send_confirm_vote" + schemaVersionV1
 	RPCTwoPcCommitMsgTopic   = "/rosettanet/consensus/twopc/send_commit_msg" + schemaVersionV1
 
 	// for task manager
-	RPCTaskResultMsgTopic        = "/rosettanet/consensus/task/send_task_resultmsg" + schemaVersionV1
-	RPCTaskResourceUsageMsgTopic = "/rosettanet/consensus/task/send_task_resource_usagemsg" + schemaVersionV1
+	RPCTaskResultMsgTopic        = "/rosettanet/consensus/task/send_task_result_msg" + schemaVersionV1
+	RPCTaskResourceUsageMsgTopic = "/rosettanet/consensus/task/send_task_resource_usage_msg" + schemaVersionV1
+	RPCTaskTerminateMsgTopic     = "/rosettanet/consensus/task/send_task_terminate_msg" + schemaVersionV1
 )
 
 // RPCTopicMappings map the base message type to the rpc request.
@@ -57,6 +58,7 @@ var RPCTopicMappings = map[string]interface{}{
 	RPCTwoPcCommitMsgTopic:        new(twopcpb.CommitMsg),
 	RPCTaskResultMsgTopic:         new(taskmngpb.TaskResultMsg),
 	RPCTaskResourceUsageMsgTopic:  new(taskmngpb.TaskResourceUsageMsg),
+	RPCTaskTerminateMsgTopic:      new(taskmngpb.TaskTerminateMsg),
 }
 
 // VerifyTopicMapping verifies that the topic and its accompanying

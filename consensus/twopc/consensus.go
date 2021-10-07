@@ -227,9 +227,9 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) erro
 		return ctypes.ErrProposalAlreadyProcessed
 	}
 
-	identity, err := t.resourceMng.GetDB().GetIdentity()
+	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		log.Errorf("Failed to call onPrepareMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposal.GetTaskId(), err)
+		log.Errorf("Failed to call onPrepareMsg with `QueryIdentity`, taskId: {%s}, err: {%s}", proposal.GetTaskId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
@@ -355,9 +355,9 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap) e
 			vote.MsgOption.Owner.GetIdentityId(), vote.MsgOption.ReceiverPartyId)
 	}
 
-	identity, err := t.resourceMng.GetDB().GetIdentity()
+	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		log.Errorf("Failed to call onPrepareVote with `GetIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
+		log.Errorf("Failed to call onPrepareVote with `QueryIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
@@ -475,13 +475,13 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) erro
 			msg.MsgOption.Owner.GetIdentityId(), msg.MsgOption.ReceiverPartyId)
 	}
 
-	identity, err := t.resourceMng.GetDB().GetIdentity()
+	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(),
 			msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
 		t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
 
-		log.Errorf("Failed to call onConfirmMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
+		log.Errorf("Failed to call onConfirmMsg with `QueryIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
@@ -694,13 +694,13 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap) error {
 			msg.MsgOption.Owner.GetIdentityId(), msg.MsgOption.ReceiverPartyId)
 	}
 
-	identity, err := t.resourceMng.GetDB().GetIdentity()
+	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", proposalTask.GetTaskId(),
 			msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
 		t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
 
-		log.Errorf("Failed to call onCommitMsg with `GetIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
+		log.Errorf("Failed to call onCommitMsg with `QueryIdentity`, taskId: {%s}, err: {%s}", proposalTask.GetTaskId(), err)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 

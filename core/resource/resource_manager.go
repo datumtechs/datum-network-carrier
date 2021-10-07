@@ -4,11 +4,9 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
-	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
-	"sync"
 	"time"
 )
 
@@ -19,10 +17,7 @@ const (
 type Manager struct {
 	// TODO 这里需要一个 config <SlotUnit 的>
 	dataCenter  core.CarrierDB // Low level persistent database to store final content.
-	//eventCh                chan *libTypes.TaskEvent
 	slotUnit *types.Slot
-	remoteTableQueue     []*types.RemoteResourceTable
-	remoteTableQueueMu  sync.RWMutex
 	mockIdentityIdsFile  string
 	mockIdentityIdsCache map[string]struct{}
 }
@@ -30,7 +25,7 @@ type Manager struct {
 func NewResourceManager(dataCenter core.CarrierDB, mockIdentityIdsFile string) *Manager {
 	m := &Manager{
 		dataCenter: dataCenter,
-		remoteTableQueue:    make([]*types.RemoteResourceTable, 0),
+		//remoteTableQueue:    make([]*types.RemoteResourceTable, 0),
 		slotUnit:            types.DefaultSlotUnit,
 		mockIdentityIdsFile: mockIdentityIdsFile,   //TODO for test
 		mockIdentityIdsCache: make(map[string]struct{}, 0),
@@ -40,15 +35,6 @@ func NewResourceManager(dataCenter core.CarrierDB, mockIdentityIdsFile string) *
 }
 
 func (m *Manager) loop() {
-	refreshTicker := time.NewTicker(defaultRefreshOrgResourceInterval)
-	for {
-		select {
-		case <-refreshTicker.C:
-			if err := m.refreshOrgResourceTable(); nil != err {
-				log.Errorf("Failed to refresh org resourceTables on loop, err: %s", err)
-			}
-		}
-	}
 }
 
 func (m *Manager) Start() error {
@@ -63,18 +49,6 @@ func (m *Manager) Start() error {
 	// store slotUnit
 	if err := m.dataCenter.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
 		return err
-	}
-	// load remote org resource Tables
-	remoteResources, err := m.dataCenter.QueryOrgResourceTables()
-	if  rawdb.IsNoDBNotFoundErr(err) {
-		return err
-	}
-	if len(remoteResources) != 0 {
-		m.remoteTableQueue = remoteResources
-	} else {
-		if err := m.refreshOrgResourceTable(); nil != err {
-			log.Errorf("Failed to refresh org resourceTables on Start resourceManager, err: %s", err)
-		}
 	}
 
 	// build mock identityIds cache
@@ -99,10 +73,6 @@ func (m *Manager) Start() error {
 func (m *Manager) Stop() error {
 	// store slotUnit
 	if err := m.dataCenter.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
-		return err
-	}
-	// store remote org resource Tables
-	if err := m.dataCenter.StoreOrgResourceTables(m.remoteTableQueue); nil != err {
 		return err
 	}
 	log.Infof("Stopped resource manager ...")
@@ -164,30 +134,6 @@ func (m *Manager) CleanLocalResourceTables() error {
 	return nil
 }
 
-func (m *Manager) GetRemoteResourceTables() []*types.RemoteResourceTable {
-	m.remoteTableQueueMu.RLock()
-	defer m.remoteTableQueueMu.RUnlock()
-	return m.remoteTableQueue
-}
-func (m *Manager) refreshOrgResourceTable() error {
-	resources, err := m.dataCenter.GetResourceList()
-	if nil != err {
-		return err
-	}
-
-	remoteResourceArr := make([]*types.RemoteResourceTable, len(resources))
-
-	for i, r := range resources {
-		remoteResourceArr[i] = types.NewOrgResourceFromResource(r)
-	}
-
-	m.remoteTableQueueMu.Lock()
-	defer m.remoteTableQueueMu.Unlock()
-
-	m.remoteTableQueue = remoteResourceArr
-	return nil
-}
-
 func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotCount uint64, task *types.Task) error {
 
 	log.Infof("Start lock local resource with taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
@@ -208,7 +154,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 	}
 
 	// 更新本地 resource 资源信息 [添加资源使用情况]
-	jobNodeResource, err := m.dataCenter.GetLocalResource(jobNodeId)
+	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
 
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
@@ -262,7 +208,6 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 	return nil
 }
 
-
 func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 
 	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
@@ -295,7 +240,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	}
 
 	// 更新本地 resource 资源信息 [释放资源使用情况]
-	jobNodeResource, err := m.dataCenter.GetLocalResource(jobNodeId)
+	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
 		log.Errorf("Failed to query local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
@@ -384,6 +329,10 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 			log.Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
 				logdesc, taskId, partyId, option, err)
 		}
+		if err := m.dataCenter.RemoveTaskPowerPartyIds(taskId); nil != err {
+			log.Errorf("Failed to remove powerPartyIds of local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
+				logdesc, taskId, partyId, option, err)
+		}
 	}
 	if option.IsCleanTaskEvents() && count == 0 {
 		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
@@ -393,6 +342,50 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 	}
 }
 
+func (m *Manager) ReleaseLocalResourceWithTaskShortCircuit(logdesc, taskId, partyId string, option ReleaseResourceOption) {
+
+	log.Debugf("Start ReleaseLocalResourceWithTaskShortCircuit %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
+
+	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
+	if nil != err {
+		log.Errorf("Failed to query local task powerUsed,taskId {%s}, partyId: {%s}, err: {%s}", taskId, partyId, err)
+		return
+	}
+	count, err := m.dataCenter.QueryResourceTaskPartyIdCount(used.GetNodeId(), used.GetTaskId())
+	if nil != err {
+		log.Errorf("failed to query resuorce task party count, used: {%s}, err: {%s}", used.String(), err)
+		return
+	}
+
+	if option.IsUnlockLocalResorce() {
+		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
+			logdesc, taskId, partyId, option)
+		if err := m.UnLockLocalResourceWithTask(taskId, partyId); nil != err {
+			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
+				logdesc, taskId, partyId, option, err)
+		}
+	}
+
+	if option.IsRemoveLocalTask() && count == 0 {
+		log.Debugf("start remove local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
+			logdesc, taskId, partyId, option, err)
+		// 因为在 schedule 那边已经对 task 做了 StoreLocalTask
+		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
+			log.Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
+				logdesc, taskId, partyId, option, err)
+		}
+		if err := m.dataCenter.RemoveTaskPowerPartyIds(taskId); nil != err {
+			log.Errorf("Failed to remove powerPartyIds of local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
+				logdesc, taskId, partyId, option, err)
+		}
+	}
+	if option.IsCleanTaskEvents() && count == 0 {
+		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
+		if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
+			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
+		}
+	}
+}
 
 func (m *Manager) addPartyTaskPowerUsedOnJobNode(used *types.LocalTaskPowerUsed) error {
 	has, err := m.dataCenter.HasLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId())

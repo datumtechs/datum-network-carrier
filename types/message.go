@@ -598,6 +598,12 @@ func NewTaskBullet(taskId string) *TaskBullet {
 	}
 }
 
+func (b *TaskBullet) GetTaskId() string { return b.TaskId }
+func (b *TaskBullet) IsStarve() bool { return b.Starve }
+func (b *TaskBullet) GetTerm() uint32 { return b.Term }
+func (b *TaskBullet) GetResched() uint32 { return b.Resched }
+
+
 func (b *TaskBullet) IncreaseResched() { b.Resched++ }
 func (b *TaskBullet) DecreaseResched() {
 	if b.Resched > 0 {
@@ -610,6 +616,13 @@ func (b *TaskBullet) DecreaseTerm() {
 		b.Term--
 	}
 }
+func (b *TaskBullet) IsOverlowReschedThreshold (reschedMaxCount uint32) bool {
+	if b.Resched >= reschedMaxCount {
+		return true
+	}
+	return false
+}
+
 
 type TaskBullets []*TaskBullet
 

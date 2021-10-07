@@ -19,10 +19,6 @@ import (
 const (
 	ReschedMaxCount = 8
 	StarveTerm      = 3
-
-	electionOrgCondition = 10000
-	electionLocalSeed    = 2
-	//taskComputeOrgCount         = 3
 )
 
 var (
@@ -94,21 +90,34 @@ func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {
 
 func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error) {
 
-	sche.increaseTaskTerm()
+	sche.increaseTotalTaskTerm()
 	bullet := sche.popTaskBullet()
 
 	if nil == bullet {
 		return nil, nil
 	}
+	bullet.IncreaseResched()
 
-	task, err := sche.resourceMng.GetDB().GetLocalTask(bullet.TaskId)
+	task, err := sche.resourceMng.GetDB().QueryLocalTask(bullet.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", bullet.TaskId, err)
+		log.Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", bullet.GetTaskId(), err)
 
-		if e := sche.repushTaskBullet(bullet.TaskId); nil != e {
+		if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
+			sche.removeTaskBullet(bullet.GetTaskId())
+			return types.NewNeedConsensusTask(types.NewTask(&libtypes.TaskPB{TaskId: bullet.GetTaskId()})), ErrRescheduleLargeThreshold
+		}
+		if e := sche.repushTaskBullet(bullet); nil != e {
 			err = e
 		}
-		return types.NewNeedConsensusTask(types.NewTask(&libtypes.TaskPB{TaskId: bullet.TaskId})), err
+		return types.NewNeedConsensusTask(types.NewTask(&libtypes.TaskPB{TaskId: bullet.GetTaskId()})), err
+	}
+
+	// query the powerPartyIds of this task
+	powerPartyIds, err := sche.resourceMng.GetDB().QueryTaskPowerPartyIds(task.GetTaskId())
+	if nil != err {
+		log.Errorf("Failed to query powerPartyIds of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
+		//repushFn(task)
+		return types.NewNeedConsensusTask(task), err
 	}
 
 	cost := &ctypes.TaskOperationCost{
@@ -121,10 +130,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	log.Debugf("Call SchedulerStarveFIFO.TrySchedule() start, taskId: {%s}, partyId: {%s}, taskCost: {%s}",
 		task.GetTaskData().TaskId, task.GetTaskData().PartyId, cost.String())
 
-	// 获取 powerPartyIds 标签 TODO
-
-	// 【选出 其他组织的算力】
-	powers, err := sche.electionConputeOrg(nil, nil, cost)
+	// election other org's power resources
+	powers, err := sche.electionConputeOrg(powerPartyIds, nil, cost)
 	if nil != err {
 		log.Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
 		//repushFn(task)
@@ -138,7 +145,6 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	// restore task by power
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
-
 		//repushFn(task)
 		return types.NewNeedConsensusTask(task), err
 	}
@@ -156,7 +162,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	log.Debugf("Call SchedulerStarveFIFO.ReplaySchedule() start, taskId: {%s}, localTaskRole: {%s}, myPartyId: {%s}, taskCost: {%s}",
 		task.GetTaskId(), localTaskRole.String(), localPartyId, cost.String())
 
-	selfIdentityId, err := sche.resourceMng.GetDB().GetIdentityId()
+	selfIdentityId, err := sche.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
 		log.Errorf("Failed to query self identityInfo on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
 		return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
@@ -239,7 +245,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		dataNode, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
+		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
 		if nil != err {
 			log.Errorf("failed query internal data node by metaDataId on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, metadataId: {%s}",
 				task.GetTaskId(), metadataId)
@@ -290,7 +296,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		log.Debugf("QueryDataResourceTables on replaySchedule by taskRole is the resuler on SchedulerStarveFIFO.ReplaySchedule(), dataResourceTables: %s", utilDataResourceArrString(dataResourceTables))
 
 		resource := dataResourceTables[len(dataResourceTables)-1]
-		dataNode, err := sche.resourceMng.GetDB().GetRegisterNode(pb.PrefixTypeDataNode, resource.GetNodeId())
+		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeDataNode, resource.GetNodeId())
 		if nil != err {
 			log.Errorf("Failed to query internal data node resource on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, dataNodeId: {%s}, err: {%s}",
 				task.GetTaskId(), resource.GetNodeId(), err)

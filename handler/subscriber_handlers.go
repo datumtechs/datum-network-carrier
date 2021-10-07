@@ -139,3 +139,19 @@ func (s *Service) taskResourceUsageMessageSubscriber(ctx context.Context, pid pe
 	}
 	return nil
 }
+
+func (s *Service) taskTerminateMessageSubscriber(ctx context.Context, pid peer.ID, msg proto.Message) error {
+	m, ok := msg.(*taskmngpb.TaskTerminateMsg)
+	if !ok {
+		return fmt.Errorf("wrong type, expected: *taskmngpb.TaskTerminateMsg got: %T", msg)
+	}
+
+	s.setTaskTerminateMsgSeen(m.MsgOption.ProposalId)
+
+	// handle TaskTerminateMsg
+	if err := s.onTaskTerminateMsg(pid, m); err != nil {
+		log.WithError(err).Warnf("Warning to call `onTaskTerminateMsg`, proposalId: {%s}", common.BytesToHash(m.MsgOption.ProposalId).String())
+		return err
+	}
+	return nil
+}

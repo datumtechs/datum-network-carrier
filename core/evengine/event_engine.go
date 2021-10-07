@@ -35,7 +35,7 @@ func  (e *EventEngine) StoreEvent(event *libtypes.TaskEvent) {
 	return
 }
 func  (e *EventEngine) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
-	return e.dataCenter.GetTaskEventList(taskId)
+	return e.dataCenter.QueryTaskEventList(taskId)
 }
 func  (e *EventEngine)  RemoveTaskEventList(taskId string) error {
 	return e.dataCenter.RemoveTaskEventList(taskId)

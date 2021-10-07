@@ -20,7 +20,7 @@ func newTaskValidator (resourceMng *resource.Manager, authMng *auth.AuthorityMan
 
 func (tv *TaskValidator) validateTaskMsg (msgs types.TaskMsgArr) (types.TaskMsgArr, types.TaskMsgArr, error) {
 
-	identity, err := tv.resourceMng.GetDB().GetIdentity()
+	identity, err := tv.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		return nil, nil, err
 	}

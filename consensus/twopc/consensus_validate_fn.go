@@ -328,7 +328,7 @@ package twopc
 //	has, err := t.resourceMng.GetDB().HasIdentity(&apicommonpb.Organization{
 //		NodeName:   identityInfo.GetNodeName(),
 //		NodeId:     identityInfo.GetNodeId(),
-//		IdentityId: identityInfo.GetIdentityId(),
+//		IdentityId: identityInfo.QueryIdentityId(),
 //	})
 //	if nil != err {
 //		return fmt.Errorf("Failed to validate organization identity from all identity list")

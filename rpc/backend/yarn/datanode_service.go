@@ -26,7 +26,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 
 	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call GetRegisterNodeList() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
+		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call QueryRegisterNodeList() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 
 		errMsg := fmt.Sprintf(ErrGetRegisterNodeListForReportUpFileSummary.Msg,
@@ -87,7 +87,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 
 	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call GetRegisterNodeList() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
+		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call QueryRegisterNodeList() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 
 		errMsg := fmt.Sprintf(ErrGetRegisterNodeListForReportTaskResultFileSummary.Msg,

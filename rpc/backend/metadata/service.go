@@ -14,7 +14,7 @@ import (
 //	if req.GetMetadataId() == "" {
 //		return nil, errors.New("required metadataId")
 //	}
-//	metadataDetail, err := svr.B.GetMetadataDetail(req.GetIdentityId(), req.GetMetadataId())
+//	metadataDetail, err := svr.B.GetMetadataDetail(req.QueryIdentityId(), req.GetMetadataId())
 //	if nil != err {
 //		log.WithError(err).Error("RPC-API:GetMetadataDetail failed")
 //		return nil, ErrGetMetadataDetail
