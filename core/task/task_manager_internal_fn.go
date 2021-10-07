@@ -809,6 +809,7 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 		return m.resourceMng.GetDB().StoreTaskEvent(event)
 	}
 }
+
 func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 
 	log.Debugf("Start handle needExecuteTask, remote pid: {%s} proposalId: {%s}, taskId: {%s}, self taskRole: {%s}, self taskOrganization: {%s}",

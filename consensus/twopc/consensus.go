@@ -28,7 +28,6 @@ type Twopc struct {
 	peerSet     *ctypes.PeerSet
 	state       *state
 	resourceMng *resource.Manager
-	//authMng     *auth.AuthorityManager
 	// send remote task to `Scheduler` to replay
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	// send has was consensus remote tasks to taskManager
@@ -47,20 +46,18 @@ type Twopc struct {
 func New(
 	conf *Config,
 	resourceMng *resource.Manager,
-	//authMng *auth.AuthorityManager,
 	p2p p2p.P2P,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
 
 ) *Twopc {
-	newWalDB:=newWal(conf)
+	newWalDB := newWal(conf)
 	return &Twopc{
 		config:                   conf,
 		p2p:                      p2p,
 		peerSet:                  ctypes.NewPeerSet(10), // TODO 暂时写死的
 		state:                    newState(newWalDB),
 		resourceMng:              resourceMng,
-		//authMng:                  authMng,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
 		asyncCallCh:              make(chan func(), conf.PeerMsgQueueSize),
@@ -106,29 +103,6 @@ func (t *Twopc) loop() {
 	}
 }
 
-func (t *Twopc) ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
-	if nil == msg {
-		return fmt.Errorf("Failed to validate 2pc consensus msg, the msg is nil")
-	}
-	//switch msg := msg.(type) {
-	//case *types.PrepareMsgWrap:
-	//	return t.validatePrepareMsg(pid, msg)
-	//case *types.PrepareVoteWrap:
-	//	return t.validatePrepareVote(pid, msg)
-	//case *types.ConfirmMsgWrap:
-	//	return t.validateConfirmMsg(pid, msg)
-	//case *types.ConfirmVoteWrap:
-	//	return t.validateConfirmVote(pid, msg)
-	//case *types.CommitMsgWrap:
-	//	return t.validateCommitMsg(pid, msg)
-	////case *types.TaskResultMsgWrap:
-	////	return t.validateTaskResultMsg(pid, msg)
-	//default:
-	//	return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
-	//}
-	return nil
-}
-
 func (t *Twopc) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 
 	switch msg := msg.(type) {
@@ -142,8 +116,6 @@ func (t *Twopc) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 		return t.onConfirmVote(pid, msg)
 	case *types.CommitMsgWrap:
 		return t.onCommitMsg(pid, msg)
-	//case *types.TaskResultMsgWrap:
-	//	return t.onTaskResultMsg(pid, msg)
 	default:
 		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
 
@@ -211,7 +183,7 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 	return nil
 }
 
-// TODO 问题: 自己接受的任务, 但是发起方那边任务失败了, 由于任务信息存储在本地(自己正在参与的任务), 而任务发起方怎么通知 我这边删除调自己本地正在参与的任务信息 ??? 2pc 消息已经中断了 ...
+// TODO 问题: 自己接收的任务, 但是发起方那边任务失败了, 由于任务信息存储在本地(自己正在参与的任务), 而任务发起方怎么通知 我这边删除调自己本地正在参与的任务信息 ??? 2pc 消息已经中断了 ...
 
 // Handle the prepareMsg from the task pulisher peer (on Subscriber)
 func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap) error {

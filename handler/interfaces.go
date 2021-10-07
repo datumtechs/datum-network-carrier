@@ -26,7 +26,6 @@ type Engine interface {
 	Close() error
 	OnPrepare(task *types.Task) error
 	OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error
-	ValidateConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnError() error
 }
