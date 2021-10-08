@@ -22,13 +22,13 @@ func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, str
 
 	//TODO: validate request by rateLimiter.
 
-	// validate prepareMsg
-	if err := s.validatePrepareMsg(stream.Conn().RemotePeer(), m); err != nil {
-		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
-		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Errorf("Failed to call `validatePrepareMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return err
-	}
+	//// validate prepareMsg
+	//if err := s.validatePrepareMsg(stream.Conn().RemotePeer(), m); err != nil {
+	//	s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+	//	s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+	//	//log.WithError(err).Errorf("Failed to call `validatePrepareMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+	//	return err
+	//}
 
 	// handle prepareMsg
 	if err := s.onPrepareMsg(stream.Conn().RemotePeer(), m); err != nil {
@@ -58,13 +58,13 @@ func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, st
 		return errors.New("message is not type *twopcpb.PrepareVote")
 	}
 
-	// validate prepareVote
-	if err := s.validatePrepareVote(stream.Conn().RemotePeer(), m); err != nil {
-		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
-		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Errorf("Failed to call `validatePrepareVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return err
-	}
+	//// validate prepareVote
+	//if err := s.validatePrepareVote(stream.Conn().RemotePeer(), m); err != nil {
+	//	s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+	//	s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+	//	//log.WithError(err).Errorf("Failed to call `validatePrepareVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+	//	return err
+	//}
 
 	// handle prepareVote
 	if err := s.onPrepareVote(stream.Conn().RemotePeer(), m); err != nil {
@@ -95,13 +95,13 @@ func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, str
 		return errors.New("message is not type *twopcpb.ConfirmMsg")
 	}
 
-	// validate ConfirmMsg
-	if err := s.validateConfirmMsg(stream.Conn().RemotePeer(), m); err != nil {
-		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
-		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Errorf("Failed to call `validateConfirmMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return err
-	}
+	//// validate ConfirmMsg
+	//if err := s.validateConfirmMsg(stream.Conn().RemotePeer(), m); err != nil {
+	//	s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+	//	s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+	//	//log.WithError(err).Errorf("Failed to call `validateConfirmMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+	//	return err
+	//}
 
 	// handle ConfirmMsg
 	if err := s.onConfirmMsg(stream.Conn().RemotePeer(), m); err != nil {
@@ -132,13 +132,13 @@ func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, st
 		return errors.New("message is not type *twopcpb.ConfirmVote")
 	}
 
-	// validate ConfirmVote
-	if err := s.validateConfirmVote(stream.Conn().RemotePeer(), m); err != nil {
-		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
-		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Errorf("Failed to call `validateConfirmVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return err
-	}
+	//// validate ConfirmVote
+	//if err := s.validateConfirmVote(stream.Conn().RemotePeer(), m); err != nil {
+	//	s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+	//	s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+	//	//log.WithError(err).Errorf("Failed to call `validateConfirmVote`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+	//	return err
+	//}
 
 	// handle ConfirmVote
 	if err := s.onConfirmVote(stream.Conn().RemotePeer(), m); err != nil {
@@ -168,13 +168,13 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 		return errors.New("message is not type *twopcpb.CommitMsg")
 	}
 
-	// validate CommitMsg
-	if err := s.validateCommitMsg(stream.Conn().RemotePeer(), m); err != nil {
-		s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
-		s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
-		//log.WithError(err).Errorf("Failed to call `validateCommitMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
-		return err
-	}
+	//// validate CommitMsg
+	//if err := s.validateCommitMsg(stream.Conn().RemotePeer(), m); err != nil {
+	//	s.writeErrorResponseToStream(responseCodeInvalidRequest, err.Error(), stream)
+	//	s.cfg.P2P.Peers().Scorers().BadResponsesScorer().Increment(stream.Conn().RemotePeer())
+	//	//log.WithError(err).Errorf("Failed to call `validateCommitMsg`, proposalId: {%s}", common.BytesToHash(m.ProposalId).String())
+	//	return err
+	//}
 
 	// handle CommitMsg
 	if err := s.onCommitMsg(stream.Conn().RemotePeer(), m); err != nil {
@@ -200,43 +200,48 @@ func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stre
 // ------------------------------------  some validate Fn  ------------------------------------
 
 func (s *Service) validatePrepareMsg(pid peer.ID, r *twopcpb.PrepareMsg) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.ValidateConsensusMsg(pid, &types.PrepareMsgWrap{PrepareMsg: r})
+	//engine, ok := s.cfg.Engines[types.TwopcTyp]
+	//if !ok {
+	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	//}
+	//return engine.ValidateConsensusMsg(pid, &types.PrepareMsgWrap{PrepareMsg: r})
+	return nil
 }
 
 func (s *Service) validatePrepareVote(pid peer.ID, r *twopcpb.PrepareVote) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.ValidateConsensusMsg(pid, &types.PrepareVoteWrap{PrepareVote: r})
+	//engine, ok := s.cfg.Engines[types.TwopcTyp]
+	//if !ok {
+	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	//}
+	//return engine.ValidateConsensusMsg(pid, &types.PrepareVoteWrap{PrepareVote: r})
+	return nil
 }
 
 func (s *Service) validateConfirmMsg(pid peer.ID, r *twopcpb.ConfirmMsg) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.ValidateConsensusMsg(pid, &types.ConfirmMsgWrap{ConfirmMsg: r})
+	//engine, ok := s.cfg.Engines[types.TwopcTyp]
+	//if !ok {
+	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	//}
+	//return engine.ValidateConsensusMsg(pid, &types.ConfirmMsgWrap{ConfirmMsg: r})
+	return nil
 }
 
 func (s *Service) validateConfirmVote(pid peer.ID, r *twopcpb.ConfirmVote) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.ValidateConsensusMsg(pid, &types.ConfirmVoteWrap{ConfirmVote: r})
+	//engine, ok := s.cfg.Engines[types.TwopcTyp]
+	//if !ok {
+	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	//}
+	//return engine.ValidateConsensusMsg(pid, &types.ConfirmVoteWrap{ConfirmVote: r})
+	return nil
 }
 
 func (s *Service) validateCommitMsg(pid peer.ID, r *twopcpb.CommitMsg) error {
-	engine, ok := s.cfg.Engines[types.TwopcTyp]
-	if !ok {
-		return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
-	}
-	return engine.ValidateConsensusMsg(pid, &types.CommitMsgWrap{CommitMsg: r})
+	//engine, ok := s.cfg.Engines[types.TwopcTyp]
+	//if !ok {
+	//	return fmt.Errorf("Failed to fecth 2pc engine instanse ...")
+	//}
+	//return engine.ValidateConsensusMsg(pid, &types.CommitMsgWrap{CommitMsg: r})
+	return nil
 }
 
 

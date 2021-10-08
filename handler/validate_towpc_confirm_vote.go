@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -38,11 +37,11 @@ func (s *Service) validateConfirmVotePubSub(ctx context.Context, pid peer.ID, ms
 		return pubsub.ValidationIgnore
 	}
 
-	// validate ConfirmVote
-	if err := s.validateConfirmVote(pid, message); err != nil {
-		log.WithError(err).Errorf("Failed to call `validateConfirmVote`, proposalId: {%s}", common.BytesToHash(message.MsgOption.ProposalId).String())
-		return pubsub.ValidationIgnore
-	}
+	//// validate ConfirmVote
+	//if err := s.validateConfirmVote(pid, message); err != nil {
+	//	log.WithError(err).Errorf("Failed to call `validateConfirmVote`, proposalId: {%s}", common.BytesToHash(message.MsgOption.ProposalId).String())
+	//	return pubsub.ValidationIgnore
+	//}
 
 	msg.ValidatorData = message // Used in downstream subscriber
 	return pubsub.ValidationAccept
