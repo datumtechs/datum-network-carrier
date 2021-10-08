@@ -125,6 +125,9 @@ type TaskEventShowAndRole struct {
 	Data *pb.TaskDetailShow
 }
 
+func (t *TaskEventShowAndRole) GetRole() apicommonpb.TaskRole { return t.Role }
+func (t *TaskEventShowAndRole) GetData() *pb.TaskDetailShow   { return t.Data }
+
 type TaskResultFileSummary struct {
 	TaskId     string
 	FileName   string

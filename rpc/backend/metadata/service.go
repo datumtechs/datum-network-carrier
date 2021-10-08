@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"strings"
 )
 
 //func (svr *Server) GetMetadataDetail(ctx context.Context, req *pb.GetMetadataDetailRequest) (*pb.GetMetadataDetailResponse, error) {
@@ -89,6 +90,10 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 }
 
 func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
+
+	if "" == strings.Trim(req.GetMetadataId(), "") {
+		return nil, backend.NewRpcBizErr(ErrSendMetadataRevokeMsg.Code, "require metadataId")
+	}
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 

@@ -20,10 +20,10 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 	identity, err := svr.B.GetNodeIdentity()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-			req.Member.IdentityId, req.Member.NodeId, req.Member.NodeName)
+			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 
 		errMsg := fmt.Sprintf(ErrSendIdentityMsg.Msg, "ApplyIdentityJoin failed, query local identity failed",
-			req.Member.IdentityId, req.Member.NodeId, req.Member.NodeName)
+			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
 
@@ -36,12 +36,12 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
 
-	if req.Member == nil {
+	if req.GetMember() == nil {
 		return nil, ErrReqMemberParams
 	}
 
-	if "" == strings.Trim(req.Member.IdentityId, "") ||
-		"" == strings.Trim(req.Member.NodeName, "") {
+	if "" == strings.Trim(req.GetMember().GetIdentityId(), "") ||
+		"" == strings.Trim(req.GetMember().GetNodeName(), "") {
 		return nil, ErrReqMemberIdentityIdOrNameParams
 	}
 
@@ -49,14 +49,14 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 	err = svr.B.SendMsg(identityMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-			req.Member.IdentityId, req.Member.NodeId, req.Member.NodeName)
+			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 
 		errMsg := fmt.Sprintf(ErrSendIdentityMsg.Msg, "ApplyIdentityJoin failed",
-			req.Member.IdentityId, req.Member.NodeId, req.Member.NodeName)
+			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
 	log.Debugf("RPC-API:ApplyIdentityJoin succeed SendMsg, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-		req.Member.IdentityId, req.Member.NodeId, req.Member.NodeName)
+		req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -73,7 +73,21 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
 	}
 
-	// todo what if running task
+	// what if local task we can not revoke identity
+	has, err := svr.B.HasLocalTask ()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, can not check has local task")
+
+		errMsg := fmt.Sprintf(ErrSendIdentityRevokeMsg.Msg, "can not check has local task")
+		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
+	}
+
+	if has {
+		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, don't revoke identity when has local task")
+
+		errMsg := fmt.Sprintf(ErrSendIdentityRevokeMsg.Msg, "don't revoke identity when has local task")
+		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
+	}
 
 	identityRevokeMsg := types.NewIdentityRevokeMessage()
 	err = svr.B.SendMsg(identityRevokeMsg)
@@ -218,6 +232,7 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 
 
 
+	// todo Maybe verify ~
 	//
 	//// verify
 	//metadataAuth, err := m.authManager.QueryMetadataAuthority(revoke.GetMetadataAuthId())

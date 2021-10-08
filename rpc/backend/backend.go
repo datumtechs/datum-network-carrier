@@ -60,6 +60,7 @@ type Backend interface {
 	GetTaskDetailList() ([]*types.TaskEventShowAndRole, error)
 	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
+	HasLocalTask () (bool, error)
 
 	// about DataResourceTable
 

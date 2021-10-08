@@ -1133,6 +1133,21 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 	return evenList, nil
 }
 
+func (s *CarrierAPIBackend) HasLocalTask () (bool, error) {
+	localTasks, err := s.carrier.carrierDB.QueryLocalTaskList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return false, err
+	}
+	if rawdb.IsDBNotFoundErr(err) {
+		return false, nil
+	}
+	if len(localTasks) == 0 {
+		return false, nil
+	}
+	return true, nil
+}
+
+
 // about DataResourceTable
 func (s *CarrierAPIBackend) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
 	return s.carrier.carrierDB.StoreDataResourceTable(dataResourceTable)

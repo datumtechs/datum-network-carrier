@@ -22,8 +22,8 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*
 	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
 	for i, task := range tasks {
 		t := &pb.GetTaskDetailResponse{
-			Information: task.Data,
-			Role:        task.Role,
+			Information: task.GetData(),
+			Role:        task.GetRole(),
 		}
 		arr[i] = t
 	}
@@ -37,13 +37,17 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*
 
 func (svr *Server) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventListRequest) (*pb.GetTaskEventListResponse, error) {
 
-	events, err := svr.B.GetTaskEventList(req.TaskId)
+	if "" == strings.Trim(req.GetTaskId(), "") {
+		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventList.Code, "require taskId")
+	}
+
+	events, err := svr.B.GetTaskEventList(req.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryTaskEventList failed, taskId: {%s}", req.TaskId)
-		errMsg := fmt.Sprintf(ErrGetNodeTaskEventList.Msg, req.TaskId)
+		log.WithError(err).Errorf("RPC-API:QueryTaskEventList failed, taskId: {%s}", req.GetTaskId())
+		errMsg := fmt.Sprintf(ErrGetNodeTaskEventList.Msg, req.GetTaskId())
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventList.Code, errMsg)
 	}
-	log.Debugf("RPC-API:QueryTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.TaskId, len(events))
+	log.Debugf("RPC-API:QueryTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.GetTaskId(), len(events))
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
@@ -53,13 +57,17 @@ func (svr *Server) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventLis
 
 func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTaskEventListByTaskIdsRequest) (*pb.GetTaskEventListResponse, error) {
 
-	events, err := svr.B.GetTaskEventListByTaskIds(req.TaskIds)
+	if len(req.GetTaskIds()) == 0 {
+		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventList.Code, "require taskIds")
+	}
+
+	events, err := svr.B.GetTaskEventListByTaskIds(req.GetTaskIds())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryTaskEventListByTaskIds failed, taskId: {%v}", req.TaskIds)
-		errMsg := fmt.Sprintf(ErrGetNodeTaskEventList.Msg, req.TaskIds)
+		log.WithError(err).Errorf("RPC-API:QueryTaskEventListByTaskIds failed, taskId: {%v}", req.GetTaskIds())
+		errMsg := fmt.Sprintf(ErrGetNodeTaskEventList.Msg, req.GetTaskIds())
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventList.Code, errMsg)
 	}
-	log.Debugf("RPC-API:QueryTaskEventListByTaskIds succeed, taskId: {%v},  eventList len: {%d}", req.TaskIds, len(events))
+	log.Debugf("RPC-API:QueryTaskEventListByTaskIds succeed, taskId: {%v},  eventList len: {%d}", req.GetTaskIds(), len(events))
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
