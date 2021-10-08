@@ -36,8 +36,8 @@ type SchedulerStarveFIFO struct {
 	// the very very starve local task by priority
 	starveQueue *types.TaskBullets
 	// the scheduling task, it is ejected from the queue (taskId -> taskBullet)
-	schedulings map[string]*types.TaskBullet
-	queueMutex  sync.Mutex
+	schedulings      map[string]*types.TaskBullet
+	schedulingsMutex sync.Mutex
 
 	//quit            chan struct{}
 	eventEngine *evengine.EventEngine
@@ -57,7 +57,7 @@ func NewSchedulerStarveFIFO(
 	return &SchedulerStarveFIFO{
 		internalNodeSet: internalNodeSet,
 		resourceMng:     resourceMng,
-		authMng:                  authMng,
+		authMng:         authMng,
 		queue:           new(types.TaskBullets),
 		starveQueue:     new(types.TaskBullets),
 		schedulings:     make(map[string]*types.TaskBullet),

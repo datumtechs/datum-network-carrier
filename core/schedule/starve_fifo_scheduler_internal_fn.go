@@ -14,20 +14,19 @@ import (
 )
 
 func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error {
-	sche.queueMutex.Lock()
+	sche.schedulingsMutex.Lock()
 	// The bullet is first into queue
 	_, ok := sche.schedulings[bullet.TaskId]
-	sche.queueMutex.Unlock()
 	if !ok {
 		heap.Push(sche.queue, bullet)
 		sche.schedulings[bullet.TaskId] = bullet
 	}
+	sche.schedulingsMutex.Unlock()
 	return nil
 }
 
 func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) error {
-	sche.queueMutex.Lock()
-	defer sche.queueMutex.Unlock()
+	sche.schedulingsMutex.Lock()
 
 	if bullet.Starve {
 		log.Debugf("repush task into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
@@ -38,12 +37,13 @@ func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) erro
 			bullet.TaskId, bullet.Resched, ReschedMaxCount)
 		heap.Push(sche.queue, bullet)
 	}
+	sche.schedulingsMutex.Unlock()
 	return nil
 }
 
 func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
-	sche.queueMutex.Lock()
-	defer sche.queueMutex.Unlock()
+	sche.schedulingsMutex.Lock()
+	defer sche.schedulingsMutex.Unlock()
 
 	// traversal the queue to remove task bullet, first.
 	i := 0
@@ -84,8 +84,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 }
 
 func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
-	sche.queueMutex.Lock()
-	defer sche.queueMutex.Unlock()
+	sche.schedulingsMutex.Lock()
 
 	var bullet *types.TaskBullet
 
@@ -96,10 +95,9 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 		if sche.queue.Len() != 0 {
 			x := heap.Pop(sche.queue)
 			bullet = x.(*types.TaskBullet)
-		} else {
-			return nil
 		}
 	}
+	sche.schedulingsMutex.Unlock()
 	return bullet
 }
 
