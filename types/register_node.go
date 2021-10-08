@@ -37,7 +37,7 @@ package types
 //	*RegisteredNodeInfo
 //}
 
-//func (seed *SeedNodeInfo) SeedNodeId() string {
+//func (seed *SeedNodeInfo) GenSeedNodeId() string {
 //	if "" != seed.Id {
 //		return seed.Id
 //	}
@@ -74,14 +74,14 @@ package types
 //	return h
 //}
 
-//func (node *RegisteredNodeInfo) SetJobNodeId() string {
+//func (node *RegisteredNodeInfo) GenJobNodeId() string {
 //	if "" != node.Id {
 //		return node.Id
 //	}
 //	node.Id = PREFIX_JOBNODE_ID + node.hashByCreateTime(PREFIX_TYPE_JOBNODE).Hex()
 //	return node.Id
 //}
-//func (node *RegisteredNodeInfo) SetDataNodeId() string {
+//func (node *RegisteredNodeInfo) GenDataNodeId() string {
 //	if "" != node.Id {
 //		return node.Id
 //	}

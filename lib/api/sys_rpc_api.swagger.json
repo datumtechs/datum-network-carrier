@@ -11,72 +11,6 @@
     "application/json"
   ],
   "paths": {
-    "/carrier/v1/task/taskResultFileSummary": {
-      "post": {
-        "summary": "查询 任务结果文件摘要",
-        "operationId": "YarnService_GetTaskResultFileSummary",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryRequest"
-            }
-          }
-        ],
-        "tags": [
-          "YarnService"
-        ]
-      }
-    },
-    "/carrier/v1/task/taskResultFileSummaryList": {
-      "post": {
-        "summary": "查询当前组织参与的所有任务结果文件摘要",
-        "operationId": "YarnService_GetTaskResultFileSummaryList",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryListResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
-        "tags": [
-          "YarnService"
-        ]
-      }
-    },
     "/carrier/v1/yarn/dataNodeList": {
       "post": {
         "summary": "查询数据服务列表",
@@ -630,6 +564,72 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/rpcapiSetSeedNodeRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/taskResultFileSummary": {
+      "post": {
+        "summary": "查询 任务结果文件摘要",
+        "operationId": "YarnService_GetTaskResultFileSummary",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryRequest"
+            }
+          }
+        ],
+        "tags": [
+          "YarnService"
+        ]
+      }
+    },
+    "/carrier/v1/yarn/taskResultFileSummaryList": {
+      "post": {
+        "summary": "查询当前组织参与的所有任务结果文件摘要",
+        "operationId": "YarnService_GetTaskResultFileSummaryList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "properties": {}
             }
           }
         ],

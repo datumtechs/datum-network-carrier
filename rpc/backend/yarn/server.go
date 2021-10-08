@@ -39,8 +39,8 @@ var (
 	ErrGetDataNodeInfoForQueryAvailableDataNode          = &backend.RpcBizErr{Code: 14031, Msg: "QueryAvailableDataNode failed, call QueryRegisterNode() failed, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}"}
 	ErrGetDataNodeInfoForQueryFilePosition               = &backend.RpcBizErr{Code: 14032, Msg: "QueryFilePosition failed, call QueryRegisterNode() failed, originId: {%s}, dataNodeId: {%s}"}
 	ErrGetDataNodeInfoForTaskResultFileSummary           = &backend.RpcBizErr{Code: 14033, Msg: "GetTaskResultFileSummary failed, call QueryRegisterNode() failed, taskId: {%s}, dataNodeId: {%s}"}
-	ErrReqOriginIdForQueryFilePosition                   = &backend.RpcBizErr{Code: 14034, Msg: "Query File Position Request: Failed to get Origin id"}
-	ErrReqTaskIdForGetTaskResultFileSummary              = &backend.RpcBizErr{Code: 14035, Msg: "Get Task Result File Summary Request:Failed to task id"}
+	ErrReqOriginIdForQueryFilePosition                   = &backend.RpcBizErr{Code: 14034, Msg: "Query File Position Request: Failed to get OriginId"}
+	ErrReqTaskIdForGetTaskResultFileSummary              = &backend.RpcBizErr{Code: 14035, Msg: "Get Task Result File Summary Request: require taskId"}
 	ErrReportTaskResourceExpense  						 = &backend.RpcBizErr{Code: 14036, Msg: "Failed to ReportTaskResourceExpense"}
 
 )

@@ -1819,9 +1819,9 @@ var (
 
 	pattern_YarnService_QueryFilePosition_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "yarn", "queryFilePosition"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_YarnService_GetTaskResultFileSummary_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "task", "taskResultFileSummary"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_YarnService_GetTaskResultFileSummary_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "yarn", "taskResultFileSummary"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_YarnService_GetTaskResultFileSummaryList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "task", "taskResultFileSummaryList"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_YarnService_GetTaskResultFileSummaryList_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"carrier", "v1", "yarn", "taskResultFileSummaryList"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

@@ -255,7 +255,7 @@ func (m *TaskResourceUsageMsg) GetSign() []byte {
 	return nil
 }
 
-// 取消任务
+// 任务终止消息
 type TaskTerminateMsg struct {
 	MsgOption            *common.MsgOption `protobuf:"bytes,1,opt,name=msg_option,json=msgOption,proto3" json:"msg_option,omitempty" ssz-max:"16777216"`
 	TaskId               []byte            `protobuf:"bytes,2,opt,name=task_id,json=taskId,proto3" json:"task_id,omitempty" ssz-max:"128"`

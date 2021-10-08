@@ -21,12 +21,12 @@ type RegisteredNodeType string
 
 func (typ RegisteredNodeType) String() string { return string(typ) }
 
-func (seed *SeedPeer) SeedNodeId() string {
-	if "" != seed.Id {
-		return seed.Id
+func (seed *SeedPeer) GenSeedNodeId() string {
+	if "" != seed.GetId() {
+		return seed.GetId()
 	}
 	seed.Id = PrefixSeedNodeId + seed.hashByCreateTime().Hex()
-	return seed.Id
+	return seed.GetId()
 }
 
 func (seed *SeedPeer) hash() (h common.Hash) {
@@ -35,8 +35,8 @@ func (seed *SeedPeer) hash() (h common.Hash) {
 		InternalIp   string
 		InternalPort string
 	}{
-		InternalIp:   seed.InternalIp,
-		InternalPort: seed.InternalPort,
+		InternalIp:   seed.GetInternalIp(),
+		InternalPort: seed.GetInternalPort(),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])
@@ -50,8 +50,8 @@ func (seed *SeedPeer) hashByCreateTime() (h common.Hash) {
 		InternalPort string
 		CreateTime   uint64
 	}{
-		InternalIp:   seed.InternalIp,
-		InternalPort: seed.InternalPort,
+		InternalIp:   seed.GetInternalIp(),
+		InternalPort: seed.GetInternalPort(),
 		CreateTime:   timeutils.UnixMsecUint64(),
 	}
 	rlp.Encode(hw, d)
@@ -59,20 +59,20 @@ func (seed *SeedPeer) hashByCreateTime() (h common.Hash) {
 	return h
 }
 
-func (node *YarnRegisteredPeerDetail) SetJobNodeId() string {
-	if "" != node.Id {
-		return node.Id
+func (node *YarnRegisteredPeerDetail) GenJobNodeId() string {
+	if "" != node.GetId() {
+		return node.GetId()
 	}
 	node.Id = PrefixJobNodeId + node.hashByCreateTime(PrefixTypeJobNode).Hex()
-	return node.Id
+	return node.GetId()
 }
 
-func (node *YarnRegisteredPeerDetail) SetDataNodeId() string {
-	if "" != node.Id {
-		return node.Id
+func (node *YarnRegisteredPeerDetail) GenDataNodeId() string {
+	if "" != node.GetId() {
+		return node.GetId()
 	}
 	node.Id = PrefixDataNodeId + node.hashByCreateTime(PrefixTypeDataNode).Hex()
-	return node.Id
+	return node.GetId()
 }
 
 func (node *YarnRegisteredPeerDetail) hash(typ RegisteredNodeType) (h common.Hash) {
@@ -85,10 +85,10 @@ func (node *YarnRegisteredPeerDetail) hash(typ RegisteredNodeType) (h common.Has
 		ExternalPort string
 	}{
 		Type:         typ,
-		InternalIp:   node.InternalIp,
-		InternalPort: node.InternalPort,
-		ExternalIp:   node.ExternalIp,
-		ExternalPort: node.ExternalPort,
+		InternalIp:   node.GetInternalIp(),
+		InternalPort: node.GetInternalPort(),
+		ExternalIp:   node.GetExternalIp(),
+		ExternalPort: node.GetExternalPort(),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])
@@ -106,10 +106,10 @@ func (node *YarnRegisteredPeerDetail) hashByCreateTime(typ RegisteredNodeType) (
 		CreateAt     uint64
 	}{
 		Type:         typ,
-		InternalIp:   node.InternalIp,
-		InternalPort: node.InternalPort,
-		ExternalIp:   node.ExternalIp,
-		ExternalPort: node.ExternalPort,
+		InternalIp:   node.GetInternalIp(),
+		InternalPort: node.GetInternalPort(),
+		ExternalIp:   node.GetExternalIp(),
+		ExternalPort: node.GetExternalPort(),
 		CreateAt:     timeutils.UnixMsecUint64(),
 	}
 	rlp.Encode(hw, d)

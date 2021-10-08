@@ -307,17 +307,17 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 
 	// add identity to local db
 	if err := m.dataCenter.StoreIdentity(msg.GetOrganization()); nil != err {
-		log.Errorf("Failed to store local org identity on MessageHandler with broadcast, identityId: {%s}, err: {%s}", msg.GetOwnerIdentityId(), err)
+		log.Errorf("Failed to store local org identity on MessageHandler with broadcast identity, identityId: {%s}, err: {%s}", msg.GetOwnerIdentityId(), err)
 		return
 	}
 
 	// send identity to datacenter
 	if err := m.dataCenter.InsertIdentity(msg.ToDataCenter()); nil != err {
-		log.Errorf("Failed to broadcast org org identity on MessageHandler with broadcast, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, err: {%s}",
+		log.Errorf("Failed to broadcast org org identity on MessageHandler with broadcast identity, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, err: {%s}",
 			msg.GetOwnerIdentityId(), msg.GetOwnerNodeId(), msg.GetOwnerName(), err)
 		return
 	}
-	log.Debugf("Registered identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", msg.GetOwnerIdentityId(), msg.GetOwnerNodeId(), msg.GetOwnerName())
+	log.Debugf("broadcast identity msg succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", msg.GetOwnerIdentityId(), msg.GetOwnerNodeId(), msg.GetOwnerName())
 	return
 }
 
@@ -326,7 +326,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 	// query local identity
 	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
-		log.Errorf("Failed to get local org identity on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
+		log.Errorf("Failed to get local org identity on MessageHandler with revoke identity, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return
 	}
 
@@ -339,7 +339,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 	for _, node := range jobNodes {
 		runningTaskCount, err := m.dataCenter.QueryRunningTaskCountOnJobNode(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			log.Errorf("query local running taskCount on old jobNode failed, %s", err)
+			log.Errorf("query local running taskCount on old jobNode failed on MessageHandler with revoke identity, %s", err)
 			return
 		}
 		if runningTaskCount > 0 {
@@ -355,7 +355,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 
 	// remove local identity
 	if err := m.dataCenter.RemoveIdentity(); nil != err {
-		log.Errorf("Failed to delete org identity to local on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
+		log.Errorf("Failed to delete org identity to local on MessageHandler with revoke identity, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return
 	}
 
@@ -370,10 +370,10 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 			Status:     apicommonpb.CommonStatus_CommonStatus_NonNormal,
 			Credential: "",
 		})); nil != err {
-		log.Errorf("Failed to remove org identity to remote on MessageHandler with revoke, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
+		log.Errorf("Failed to remove org identity to remote on MessageHandler with revoke identity, identityId: {%s}, err: {%s}", identity.GetIdentityId(), err)
 		return
 	}
-	log.Debugf("Revoke identity succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", identity.GetIdentityId(), identity.GetNodeId(), identity.GetNodeName())
+	log.Debugf("Revoke identity msg succeed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", identity.GetIdentityId(), identity.GetNodeId(), identity.GetNodeName())
 	return
 }
 
@@ -381,7 +381,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
-		log.Errorf("query local identityInfo failed, {%s}", err)
+		log.Errorf("query local identityInfo failed on MessageHandler with broadcast power, {%s}", err)
 		return
 	}
 
@@ -396,7 +396,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 		// query local resource
 		resource, err := m.dataCenter.QueryLocalResource(power.GetJobNodeId())
 		if nil != err {
-			log.Errorf("Failed to query local resource on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to query local resource on MessageHandler with broadcast power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
 			continue
 		}
@@ -417,20 +417,20 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 		log.Debugf("Publish power, StoreLocalResourceTable, %s", resourceTable.String())
 		if err := m.dataCenter.StoreLocalResourceTable(resourceTable); nil != err {
-			log.Errorf("Failed to StoreLocalResourceTable on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreLocalResourceTable on MessageHandler with broadcast power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
 			continue
 		}
 
 		if err := m.dataCenter.StoreLocalResourceIdByPowerId(power.GetPowerId(), power.GetJobNodeId()); nil != err {
-			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler with broadcast,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler with broadcast power,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
 			continue
 		}
 
 		// update local resource
 		if err := m.dataCenter.InsertLocalResource(resource); nil != err {
-			log.Errorf("Failed to update local resource with powerId to local on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to update local resource with powerId to local on MessageHandler with broadcast power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
 			continue
 		}
@@ -455,7 +455,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			TotalBandwidth: resource.GetData().GetTotalBandwidth(),
 			UsedBandwidth:  0,
 		})); nil != err {
-			log.Errorf("Failed to store power to dataCenter on MessageHandler with broadcast, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to store power to dataCenter on MessageHandler with broadcast power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
 			continue
 		}
@@ -470,7 +470,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
-		log.Errorf("failed to broadcast powerRevokeMsgArr, query local identityInfo failed, {%s}", err)
+		log.Errorf("failed to query local identityInfo failed on MessageHandler with revoke power, err: {%s}", err)
 		return
 	}
 
@@ -478,17 +478,17 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 		jobNodeId, err := m.dataCenter.QueryLocalResourceIdByPowerId(revoke.GetPowerId())
 		if nil != err {
-			log.Errorf("Failed to QueryLocalResourceIdByPowerId on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryLocalResourceIdByPowerId on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}
 		if err := m.dataCenter.RemoveLocalResourceIdByPowerId(revoke.GetPowerId()); nil != err {
-			log.Errorf("Failed to RemoveLocalResourceIdByPowerId on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to RemoveLocalResourceIdByPowerId on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}
 		if err := m.dataCenter.RemoveLocalResourceTable(jobNodeId); nil != err {
-			log.Errorf("Failed to RemoveLocalResourceTable on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to RemoveLocalResourceTable on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}
@@ -497,7 +497,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 		// query local resource
 		resource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 		if nil != err {
-			log.Errorf("Failed to query local resource on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to query local resource on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}
@@ -507,7 +507,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 		resource.GetData().State = apicommonpb.PowerState_PowerState_Revoked
 		// update local resource
 		if err := m.dataCenter.InsertLocalResource(resource); nil != err {
-			log.Errorf("Failed to update local resource with powerId to local on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to update local resource with powerId to local on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}
@@ -523,7 +523,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 			// resource status, eg: create/release/revoke
 			State: apicommonpb.PowerState_PowerState_Revoked,
 		})); nil != err {
-			log.Errorf("Failed to remove dataCenter resource on MessageHandler with revoke, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to remove dataCenter resource on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}
@@ -537,7 +537,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
-		log.Errorf("Failed to query local identity on MessageHandler with broadcast, err: {%s}", err)
+		log.Errorf("Failed to query local identity on MessageHandler with broadcast metadata, err: {%s}", err)
 		return
 	}
 
@@ -546,7 +546,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 		// maintain the orginId and metadataId relationship of the local data service
 		dataResourceFileUpload, err := m.dataCenter.QueryDataResourceFileUpload(metadata.GetOriginId())
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceFileUpload on MessageHandler with broadcast metadata, originId: {%s}, metadataId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), err)
 			continue
 		}
@@ -554,35 +554,35 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 		// Update metadataId in fileupload information
 		dataResourceFileUpload.SetMetadataId(metadata.GetMetadataId())
 		if err := m.dataCenter.StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
-			log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast metadata, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
 		}
 		// Record the size of the resources occupied by the original data
 		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast metadata, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
 		}
 		// update disk used of data resource table
 		dataResourceTable.UseDisk(metadata.GetSize())
 		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
-			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast metadata, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
 		}
 		// Separately record the GetSize of the metaData and the dataNodeId where it is located
 		if err := m.dataCenter.StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
 			metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), metadata.GetSize())); nil != err {
-			log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast metadata, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 			continue
 		}
 
 		// publish metadata information
 		if err := m.dataCenter.InsertMetadata(metadata.ToDataCenter(identity)); nil != err {
-			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with broadcast, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with broadcast metadata, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				metadata.GetOriginId(), metadata.GetMetadataId(), dataResourceFileUpload.GetNodeId(), err)
 
 			m.dataCenter.RemoveDataResourceDiskUsed(metadata.GetMetadataId())
@@ -602,7 +602,7 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 
 	identity, err := m.dataCenter.QueryIdentity()
 	if nil != err {
-		log.Errorf("Failed to query local identity on MessageHandler with revoke, err: {%s}", err)
+		log.Errorf("Failed to query local identity on MessageHandler with revoke metadata, err: {%s}", err)
 		return
 	}
 
@@ -610,34 +610,34 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 		// (metaDataId -> {metaDataId, dataNodeId, diskUsed})
 		dataResourceDiskUsed, err := m.dataCenter.QueryDataResourceDiskUsed(revoke.GetMetadataId())
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceDiskUsed on MessageHandler with revoke, metadataId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceDiskUsed on MessageHandler with revoke metadata, metadataId: {%s}, err: {%s}",
 				revoke.GetMetadataId(), err)
 			continue
 		}
 		// update dataNode table (dataNodeId -> {dataNodeId, totalDisk, usedDisk})
 		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceDiskUsed.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to QueryDataResourceTable on MessageHandler with revoke metadata, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err)
 			continue
 		}
 		dataResourceTable.FreeDisk(dataResourceDiskUsed.GetDiskUsed())
 		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
-			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to StoreDataResourceTable on MessageHandler with revoke metadata, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err)
 			continue
 		}
 
 		// remove dataNodeDiskUsed (metaDataId -> {metaDataId, dataNodeId, diskUsed})
 		if err := m.dataCenter.RemoveDataResourceDiskUsed(revoke.GetMetadataId()); nil != err {
-			log.Errorf("Failed to RemoveDataResourceDiskUsed on MessageHandler with revoke, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to RemoveDataResourceDiskUsed on MessageHandler with revoke metadata, metadataId: {%s}, dataNodeId: {%s}, err: {%s}",
 				revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId(), err)
 			continue
 		}
 
 		// revoke from global
 		if err := m.dataCenter.RevokeMetadata(revoke.ToDataCenter(identity)); nil != err {
-			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with revoke, metadataId: {%s}, err: {%s}",
+			log.Errorf("Failed to store metadata to dataCenter on MessageHandler with revoke metadata, metadataId: {%s}, err: {%s}",
 				revoke.GetMetadataId(), err)
 			continue
 		}
@@ -651,27 +651,27 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 
 		has, err := m.authManager.HasValidLastMetadataAuth(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId())
 		if nil != err {
-			log.Errorf("Failed to call HasValidLastMetadataAuth on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+			log.Errorf("Failed to call HasValidLastMetadataAuth on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 			continue
 		}
 
 		if has {
-			log.Errorf("broadcast metadataAuthMsg failed, alreay has valid last metadataAuth by userType: {%s}, user: {%s}, metadataId: {%s}",
+			log.Errorf("Failed to broadcast metadataAuth, cause alreay has valid last metadataAuth on MessageHandler with broadcast metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}",
 				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
 			continue
 		}
 
 		err = m.authManager.StoreUserMetadataAuthIdByMetadataId(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId(), msg.GetMetadataAuthId())
 		if nil != err {
-			log.Errorf("Failed to store metadataId and metadataAuthId mapping on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+			log.Errorf("Failed to store metadataId and metadataAuthId mapping on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 			continue
 		}
 
 		err = m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthId())
 		if nil != err {
-			log.Errorf("Failed to store metadataAuthId on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+			log.Errorf("Failed to store metadataAuthId on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 			continue
 		}
@@ -694,7 +694,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		case apicommonpb.MetadataUsageType_Usage_Times:
 			// do nothing
 		default:
-			log.Errorf("unknown usageType of the metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
+			log.Errorf("unknown usageType of the metadataAuth on MessageHandler with broadcast metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
 				msg.GetUserType().String(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().GetUsageRule().GetUsageType().String())
 			continue
 		}
@@ -717,7 +717,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			State:   state,
 			Sign:    msg.GetSign(),
 		})); nil != err {
-			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 
 			m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthId())
@@ -738,19 +738,19 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 		// verify
 		metadataAuth, err := m.authManager.GetMetadataAuthority(revoke.GetMetadataAuthId())
 		if nil != err {
-			log.Errorf("Failed to query old metadataAuth on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, err: {%s}",
+			log.Errorf("Failed to query old metadataAuth on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, userType: {%s}, err: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), err)
 			continue
 		}
 
 		if metadataAuth.GetData().GetUser() != revoke.GetUser() || metadataAuth.GetData().GetUserType() != revoke.GetUserType() {
-			log.Errorf("user of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}",
+			log.Errorf("user of metadataAuth is wrong on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, userType: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String())
 			continue
 		}
 
 		if bytes.Compare(metadataAuth.GetData().GetSign(), revoke.GetSign()) != 0 {
-			log.Errorf("user sign of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, metadataAuth's sign: {%v}, revoke msg's sign: {%v}",
+			log.Errorf("user sign of metadataAuth is wrong on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, userType: {%s}, metadataAuth's sign: {%v}, revoke msg's sign: {%v}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), metadataAuth.GetData().GetSign(), revoke.GetSign())
 			continue
 		}
@@ -758,21 +758,21 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 		// The data authorization application information that has been `invalidated` or has been `revoked` is not allowed to be revoked
 		if metadataAuth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Revoked ||
 			metadataAuth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Invalid {
-			log.Errorf("state of metadataAuth is wrong on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+			log.Errorf("state of metadataAuth is wrong on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetState().String())
 			continue
 		}
 
 		// The data authorization application information that has been audited and cannot be revoked
 		if metadataAuth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Pending {
-			log.Errorf("the metadataAuth has audit on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, state: {%s}",
+			log.Errorf("the metadataAuth has audit on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
 			continue
 		}
 
 		err = m.authManager.RemoveUserMetadataAuthIdByMetadataId(revoke.GetUserType(), revoke.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId())
 		if nil != err {
-			log.Errorf("Failed to remove metadataAuthId on MessageHandler with revoke, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
+			log.Errorf("Failed to remove metadataAuthId on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
 				revoke.GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), revoke.GetUser(), err)
 			continue
 		}
@@ -789,7 +789,7 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 			AuditAt:         metadataAuth.GetData().GetAuditAt(),
 			State:           apicommonpb.MetadataAuthorityState_MAState_Revoked,
 		})); nil != err {
-			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, err: {%s}",
+			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, err: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), err)
 			continue
 		}
@@ -808,7 +808,7 @@ func (m *MessageHandler) BroadcastTaskMsgArr(taskMsgArr types.TaskMsgArr) {
 
 func (m *MessageHandler) BroadcastTaskTerminateMsgArr(terminateMsgArr types.TaskTerminateMsgArr) {
 	if err := m.taskManager.SendTaskTerminate(terminateMsgArr); nil != err{
-		log.Errorf("Failed to call `BroadcastTaskMsgArr` on MessageHandler, %s", err)
+		log.Errorf("Failed to call `BroadcastTaskTerminateMsgArr` on MessageHandler, %s", err)
 	}
 	return
 }

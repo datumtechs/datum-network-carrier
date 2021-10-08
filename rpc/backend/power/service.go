@@ -64,6 +64,11 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 		return nil, ErrReqEmptyForPublishPower
 	}
 
+	if "" == strings.Trim(req.GetJobNodeId(), "") {
+		log.Error("RPC-API:PublishPower failed, jobNodeId must be not empty")
+		return nil, ErrSendPowerMsg
+	}
+
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power")
@@ -91,7 +96,7 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	if req == nil {
 		return nil, ErrReqEmptyForRevokePower
 	}
-	if req.PowerId == "" {
+	if "" == strings.Trim(req.GetPowerId(), "") {
 		return nil, ErrReqEmptyPowerIdForRevokePower
 	}
 

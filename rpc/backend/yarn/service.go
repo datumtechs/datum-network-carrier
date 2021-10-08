@@ -8,6 +8,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"strings"
 )
 
 func (svr *Server) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*pb.GetNodeInfoResponse, error) {
@@ -24,7 +25,14 @@ func (svr *Server) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*pb.Get
 }
 
 func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegisteredPeersRequest) (*pb.GetRegisteredPeersResponse, error) {
-	registerNodes, err := svr.B.GetRegisteredPeers()
+
+	if req.GetNodeType() == pb.NodeType_NodeType_YarnNode ||
+		req.GetNodeType() == pb.NodeType_NodeType_SeedNode {
+		log.Errorf("RPC-API:GetRegisteredPeers failed, invalid nodeType from req, nodeType: {%s}", req.GetNodeType().String())
+		return nil, ErrGetRegisteredPeers
+	}
+
+	registerNodes, err := svr.B.GetRegisteredPeers(req.GetNodeType())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetRegisteredPeers failed")
 		return nil, ErrGetRegisteredPeers
@@ -38,91 +46,133 @@ func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegistered
 }
 
 func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
+
+	if "" == strings.Trim(req.GetNodeId(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require nodeId of seedNode")
+	}
+
+	// TODO 需要填 external 而不是 internal 吧？
+	if "" == strings.Trim(req.GetInternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require internal ip of seedNode")
+	}
+
+	if "" == strings.Trim(req.GetInternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require internal port of seedNode")
+	}
+
 	seedNode := &pb.SeedPeer{
-		InternalIp:   req.InternalIp,
-		InternalPort: req.InternalPort,
+		NodeId:       req.GetNodeId(),
+		InternalIp:   req.GetInternalIp(),
+		InternalPort: req.GetInternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	seedNode.SeedNodeId()
-	status, err := svr.B.SetSeedNode(seedNode)
+	seedNode.GenSeedNodeId()
+	status, err := svr.B.SetSeedNode(seedNode) // todo 需要去真正的 连接 seed Node, 并进入 p2p 模块
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:SetSeedNode failed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}",
-			seedNode.Id, req.InternalIp, req.InternalPort)
+		log.WithError(err).Errorf("RPC-API:SetSeedNode failed, id: {%s}, nodeId: {%s}, internalIp: {%s}, internalPort: {%s}",
+			seedNode.GetId(), req.GetNodeId(), req.GetInternalIp(), req.GetInternalPort())
 
 		errMsg := fmt.Sprintf(ErrSetSeedNodeInfo.Msg, "SetSeedNode",
-			seedNode.Id, req.InternalIp, req.InternalPort)
+			seedNode.GetId(), req.GetNodeId(), req.GetInternalIp(), req.GetInternalPort())
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, errMsg)
 	}
-	log.Debugf("RPC-API:SetSeedNode succeed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d}",
-		seedNode.Id, req.InternalIp, req.InternalPort, status)
+	log.Debugf("RPC-API:SetSeedNode succeed, nodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d} return id: {%s}",
+		req.GetNodeId(), req.GetInternalIp(), req.GetInternalPort(), status, seedNode.GetId())
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Node: &pb.SeedPeer{
-			Id:           seedNode.Id,
-			InternalIp:   seedNode.InternalIp,
-			InternalPort: seedNode.InternalPort,
+			Id:           seedNode.GetId(),
+			NodeId:       seedNode.GetNodeId(),
+			InternalIp:   seedNode.GetInternalIp(),
+			InternalPort: seedNode.GetInternalPort(),
 			ConnState:    status,
 		},
 	}, nil
 }
 
 func (svr *Server) UpdateSeedNode(ctx context.Context, req *pb.UpdateSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
+
+	if "" == strings.Trim(req.GetId(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require id of seedNode")
+	}
+
+	if "" == strings.Trim(req.GetNodeId(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require nodeId of seedNode")
+	}
+
+	// TODO 需要填 external 而不是 internal 吧？
+	if "" == strings.Trim(req.GetInternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require internal ip of seedNode")
+	}
+
+	if "" == strings.Trim(req.GetInternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require internal port of seedNode")
+	}
+
 	seedNode := &pb.SeedPeer{
-		Id:           req.Id,
-		InternalIp:   req.InternalIp,
-		InternalPort: req.InternalPort,
+		Id:           req.GetId(),
+		NodeId:       req.GetNodeId(),
+		InternalIp:   req.GetInternalIp(),
+		InternalPort: req.GetInternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	svr.B.DeleteSeedNode(seedNode.Id)
-	status, err := svr.B.SetSeedNode(seedNode)
+	status, err := svr.B.SetSeedNode(seedNode) // todo 需要去真正的 连接 seed Node, 并进入 p2p 模块
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:UpdateSeedNode failed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}",
-			req.Id, req.InternalIp, req.InternalPort)
+		log.WithError(err).Errorf("RPC-API:UpdateSeedNode failed, id: {%s}, nodeId: {%s}, internalIp: {%s}, internalPort: {%s}",
+			req.GetId(), req.GetNodeId(), req.GetInternalIp(), req.GetInternalPort())
 
 		errMsg := fmt.Sprintf(ErrSetSeedNodeInfo.Msg, "UpdateSeedNode",
-			seedNode.Id, req.InternalIp, req.InternalPort)
+			req.GetId(), req.GetNodeId(), req.GetInternalIp(), req.GetInternalPort())
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, errMsg)
 	}
-	log.Debugf("RPC-API:UpdateSeedNode succeed, seedNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d}",
-		req.Id, req.InternalIp, req.InternalPort, status)
+	log.Debugf("RPC-API:UpdateSeedNode succeed, id: {%s}, nodeId: {%s}, internalIp: {%s}, internalPort: {%s}, connStatus: {%d}",
+		req.GetId(), req.GetNodeId(), req.GetInternalIp(), req.GetInternalPort(), status)
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Node: &pb.SeedPeer{
-			Id:           seedNode.Id,
-			InternalIp:   seedNode.InternalIp,
-			InternalPort: seedNode.InternalPort,
+			Id:           seedNode.GetId(),
+			NodeId:       seedNode.GetNodeId(),
+			InternalIp:   seedNode.GetInternalIp(),
+			InternalPort: seedNode.GetInternalPort(),
 			ConnState:    status,
 		},
 	}, nil
 }
 
 func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
-	err := svr.B.DeleteSeedNode(req.Id)
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:DeleteSeedNode failed, seedNodeId: {%s}", req.Id)
 
-		errMsg := fmt.Sprintf(ErrDeleteSeedNodeInfo.Msg, req.Id)
+	if "" == strings.Trim(req.GetId(), "") {
+		return nil, backend.NewRpcBizErr(ErrDeleteSeedNodeInfo.Code, "require id of seedNode")
+	}
+
+	err := svr.B.DeleteSeedNode(req.GetId())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:DeleteSeedNode failed, id: {%s}", req.GetId())
+
+		errMsg := fmt.Sprintf(ErrDeleteSeedNodeInfo.Msg, req.GetId())
 		return nil, backend.NewRpcBizErr(ErrDeleteSeedNodeInfo.Code, errMsg)
 	}
-	log.Debugf("RPC-API:DeleteSeedNode succeed, seedNodeId: {%s}", req.Id)
+	log.Debugf("RPC-API:DeleteSeedNode succeed, id: {%s}", req.GetId())
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetSeedNodeListResponse, error) {
 	list, err := svr.B.GetSeedNodeList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Error("RPC-API:QuerySeedNodeList failed")
+		log.WithError(err).Error("RPC-API:GetSeedNodeList failed")
 		return nil, ErrGetSeedNodeList
 	}
 	seeds := make([]*pb.SeedPeer, len(list))
 	for i, v := range list {
 		s := &pb.SeedPeer{
-			Id:           v.Id,
-			InternalIp:   v.InternalIp,
-			InternalPort: v.InternalPort,
-			ConnState:    v.ConnState,
+			Id:           v.GetId(),
+			NodeId:       v.GetNodeId(),
+			InternalIp:   v.GetInternalIp(),
+			InternalPort: v.GetInternalPort(),
+			ConnState:    v.GetConnState(),
 		}
 		seeds[i] = s
 	}
@@ -134,46 +184,84 @@ func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*pb
 }
 
 func (svr *Server) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) (*pb.SetDataNodeResponse, error) {
+
+	if "" == strings.Trim(req.GetInternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require internal Ip")
+	}
+
+	if "" == strings.Trim(req.GetInternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require internal port")
+	}
+
+	if "" == strings.Trim(req.GetExternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require external Ip")
+	}
+
+	if "" == strings.Trim(req.GetExternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require external port")
+	}
+
 	node := &pb.YarnRegisteredPeerDetail{
-		InternalIp:   req.InternalIp,
-		InternalPort: req.InternalPort,
-		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.ExternalPort,
+		InternalIp:   req.GetInternalIp(),
+		InternalPort: req.GetInternalPort(),
+		ExternalIp:   req.GetExternalIp(),
+		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	node.SetDataNodeId()
+	node.GenDataNodeId()
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeDataNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:SetDataNode failed, dataNodeId:{%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
-			node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			node.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 
 		errMsg := fmt.Sprintf(ErrSetDataNodeInfo.Msg, "SetDataNode",
-			node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			node.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, errMsg)
 	}
-	log.Debugf("RPC-API:SetDataNode succeed, dataNodeId:{%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStatus: {%d}",
-		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
+	log.Debugf("RPC-API:SetDataNode succeed, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStatus: {%d} return dataNodeId: {%s}",
+		req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort(), status, node.GetId())
 	return &pb.SetDataNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Node: &pb.YarnRegisteredPeerDetail{
-			Id:           node.Id,
-			InternalIp:   node.InternalIp,
-			InternalPort: node.InternalPort,
-			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.ExternalPort,
+			Id:           node.GetId(),
+			InternalIp:   node.GetInternalIp(),
+			InternalPort: node.GetInternalPort(),
+			ExternalIp:   node.GetExternalIp(),
+			ExternalPort: node.GetExternalPort(),
 			ConnState:    status,
 		},
 	}, nil
 }
 
 func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeRequest) (*pb.SetDataNodeResponse, error) {
+
+	if "" == strings.Trim(req.GetId(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require id of data node")
+	}
+
+	if "" == strings.Trim(req.GetInternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require internal Ip")
+	}
+
+	if "" == strings.Trim(req.GetInternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require internal port")
+	}
+
+	if "" == strings.Trim(req.GetExternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require external Ip")
+	}
+
+	if "" == strings.Trim(req.GetExternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, "require external port")
+	}
+
 	node := &pb.YarnRegisteredPeerDetail{
-		Id:           req.Id,
-		InternalIp:   req.InternalIp,
-		InternalPort: req.InternalPort,
-		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.ExternalPort,
+		Id:           req.GetId(),
+		InternalIp:   req.GetInternalIp(),
+		InternalPort: req.GetInternalPort(),
+		ExternalIp:   req.GetExternalIp(),
+		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	// delete and insert.
@@ -182,36 +270,41 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeReq
 	status, err := svr.B.UpdateRegisterNode(pb.PrefixTypeDataNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateDataNode failed, dataNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
-			req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			node.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 
 		errMsg := fmt.Sprintf(ErrSetDataNodeInfo.Msg, "UpdateDataNode",
-			node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			node.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 		return nil, backend.NewRpcBizErr(ErrSetDataNodeInfo.Code, errMsg)
 	}
 	log.Debugf("RPC-API:UpdateDataNode succeed, dataNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStatus: {%d}",
-		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
+		node.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort(), status)
 	return &pb.SetDataNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Node: &pb.YarnRegisteredPeerDetail{
-			Id:           node.Id,
-			InternalIp:   node.InternalIp,
-			InternalPort: node.InternalPort,
-			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.ExternalPort,
+			Id:           node.GetId(),
+			InternalIp:   node.GetInternalIp(),
+			InternalPort: node.GetInternalPort(),
+			ExternalIp:   node.GetExternalIp(),
+			ExternalPort: node.GetExternalPort(),
 			ConnState:    status,
 		},
 	}, nil
 }
 
 func (svr *Server) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
-	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeDataNode, req.Id); nil != err {
-		log.WithError(err).Errorf("RPC-API:DeleteDataNode failed, dataNodeId: {%s}", req.Id)
 
-		errMsg := fmt.Sprintf(ErrDeleteDataNodeInfo.Msg, req.Id)
+	if "" == strings.Trim(req.GetId(), "") {
+		return nil, backend.NewRpcBizErr(ErrDeleteDataNodeInfo.Code, "require id of data node")
+	}
+
+	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeDataNode, req.GetId()); nil != err {
+		log.WithError(err).Errorf("RPC-API:DeleteDataNode failed, dataNodeId: {%s}", req.GetId())
+
+		errMsg := fmt.Sprintf(ErrDeleteDataNodeInfo.Msg, req.GetId())
 		return nil, backend.NewRpcBizErr(ErrDeleteDataNodeInfo.Code, errMsg)
 	}
-	log.Debugf("RPC-API:DeleteDataNode succeed, dataNodeId: {%s}", req.Id)
+	log.Debugf("RPC-API:DeleteDataNode succeed, dataNodeId: {%s}", req.GetId())
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
@@ -225,14 +318,19 @@ func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*pb
 	datas := make([]*pb.YarnRegisteredPeer, len(list))
 	for i, v := range list {
 		d := &pb.YarnRegisteredPeer{
-			NodeType: pb.NodeType(pb.NodeType_value[pb.PrefixTypeDataNode.String()]),
+			NodeType: pb.NodeType_NodeType_DataNode,
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
-				Id:           v.Id,
-				InternalIp:   v.InternalIp,
-				InternalPort: v.InternalPort,
-				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.ExternalPort,
-				ConnState:    v.ConnState,
+				Id:            v.GetId(),
+				InternalIp:    v.GetInternalIp(),
+				InternalPort:  v.GetInternalPort(),
+				ExternalIp:    v.GetExternalIp(),
+				ExternalPort:  v.GetExternalPort(),
+				ConnState:     v.GetConnState(),
+				Duration:      v.GetDuration(),
+				TaskCount:     v.GetTaskCount(),
+				TaskIdList:    v.GetTaskIdList(),
+				FileCount:     v.GetFileCount(),
+				FileTotalSize: v.GetFileTotalSize(),
 			},
 		}
 		datas[i] = d
@@ -245,47 +343,85 @@ func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*pb
 }
 
 func (svr *Server) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*pb.SetJobNodeResponse, error) {
+
+	if "" == strings.Trim(req.GetInternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require internal Ip")
+	}
+
+	if "" == strings.Trim(req.GetInternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require internal port")
+	}
+
+	if "" == strings.Trim(req.GetExternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require external Ip")
+	}
+
+	if "" == strings.Trim(req.GetExternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require external port")
+	}
+
 	node := &pb.YarnRegisteredPeerDetail{
-		InternalIp:   req.InternalIp,
-		InternalPort: req.InternalPort,
-		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.ExternalPort,
+		InternalIp:   req.GetInternalIp(),
+		InternalPort: req.GetInternalPort(),
+		ExternalIp:   req.GetExternalIp(),
+		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	node.SetJobNodeId()
+	node.GenJobNodeId()
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeJobNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:SetJobNode failed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
-			node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			node.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 
 		errMsg := fmt.Sprintf(ErrSetJobNodeInfo.Msg, "SetJobNode",
-			node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			node.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, errMsg)
 	}
 
-	log.Debugf("RPC-API:SetJobNode succeed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStats: {%d}",
-		node.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
+	log.Debugf("RPC-API:SetJobNode succeed, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStats: {%d} return jobNodeId: {%s}",
+		req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort(), status, node.GetId())
 	return &pb.SetJobNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Node: &pb.YarnRegisteredPeerDetail{
-			Id:           node.Id,
-			InternalIp:   node.InternalIp,
-			InternalPort: node.InternalPort,
-			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.ExternalPort,
+			Id:           node.GetId(),
+			InternalIp:   node.GetInternalIp(),
+			InternalPort: node.GetInternalPort(),
+			ExternalIp:   node.GetExternalIp(),
+			ExternalPort: node.GetExternalPort(),
 			ConnState:    status,
 		},
 	}, nil
 }
 
 func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeRequest) (*pb.SetJobNodeResponse, error) {
+
+	if "" == strings.Trim(req.GetId(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require id of job node")
+	}
+
+	if "" == strings.Trim(req.GetInternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require internal Ip")
+	}
+
+	if "" == strings.Trim(req.GetInternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require internal port")
+	}
+
+	if "" == strings.Trim(req.GetExternalIp(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require external Ip")
+	}
+
+	if "" == strings.Trim(req.GetExternalPort(), "") {
+		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, "require external port")
+	}
+
 	node := &pb.YarnRegisteredPeerDetail{
-		Id:           req.Id,
-		InternalIp:   req.InternalIp,
-		InternalPort: req.InternalPort,
-		ExternalIp:   req.ExternalIp,
-		ExternalPort: req.ExternalPort,
+		Id:           req.GetId(),
+		InternalIp:   req.GetInternalIp(),
+		InternalPort: req.GetInternalPort(),
+		ExternalIp:   req.GetExternalIp(),
+		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	//svr.B.DeleteRegisterNode(types.PrefixTypeJobNode, node.Id)
@@ -293,37 +429,42 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeReque
 	status, err := svr.B.UpdateRegisterNode(pb.PrefixTypeJobNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateJobNode failed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
-			req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			req.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 
 		errMsg := fmt.Sprintf(ErrSetJobNodeInfo.Msg, "UpdateJobNode",
-			req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort)
+			req.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort())
 		return nil, backend.NewRpcBizErr(ErrSetJobNodeInfo.Code, errMsg)
 	}
 
 	log.Debugf("RPC-API:UpdateJobNode succeed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}, connStats: {%d}",
-		req.Id, req.InternalIp, req.InternalPort, req.ExternalIp, req.ExternalPort, status)
+		req.GetId(), req.GetInternalIp(), req.GetInternalPort(), req.GetExternalIp(), req.GetExternalPort(), status)
 	return &pb.SetJobNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
 		Node: &pb.YarnRegisteredPeerDetail{
-			Id:           node.Id,
-			InternalIp:   node.InternalIp,
-			InternalPort: node.InternalPort,
-			ExternalIp:   node.ExternalIp,
-			ExternalPort: node.ExternalPort,
+			Id:           node.GetId(),
+			InternalIp:   node.GetInternalIp(),
+			InternalPort: node.GetInternalPort(),
+			ExternalIp:   node.GetExternalIp(),
+			ExternalPort: node.GetExternalPort(),
 			ConnState:    status,
 		},
 	}, nil
 }
 
 func (svr *Server) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
-	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeJobNode, req.Id); nil != err {
-		log.WithError(err).Errorf("RPC-API:DeleteJobNode failed, jobNodeId: {%s}", req.Id)
 
-		errMsg := fmt.Sprintf(ErrDeleteJobNodeInfo.Msg, req.Id)
+	if "" == strings.Trim(req.GetId(), "") {
+		return nil, backend.NewRpcBizErr(ErrDeleteJobNodeInfo.Code, "require id of job node")
+	}
+
+	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeJobNode, req.GetId()); nil != err {
+		log.WithError(err).Errorf("RPC-API:DeleteJobNode failed, jobNodeId: {%s}", req.GetId())
+
+		errMsg := fmt.Sprintf(ErrDeleteJobNodeInfo.Msg, req.GetId())
 		return nil, backend.NewRpcBizErr(ErrDeleteJobNodeInfo.Code, errMsg)
 	}
-	log.Debugf("RPC-API:DeleteJobNode succeed, jobNodeId: {%s}", req.Id)
+	log.Debugf("RPC-API:DeleteJobNode succeed, jobNodeId: {%s}", req.GetId())
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
@@ -336,14 +477,14 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.
 	jobs := make([]*pb.YarnRegisteredPeer, len(list))
 	for i, v := range list {
 		d := &pb.YarnRegisteredPeer{
-			NodeType: pb.NodeType(pb.NodeType_value[pb.PrefixTypeJobNode.String()]),
+			NodeType: pb.NodeType_NodeType_JobNode,
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
-				Id:           v.Id,
-				InternalIp:   v.InternalIp,
-				InternalPort: v.InternalPort,
-				ExternalIp:   v.ExternalIp,
-				ExternalPort: v.ExternalPort,
-				ConnState:    v.ConnState,
+				Id:           v.GetId(),
+				InternalIp:   v.GetInternalIp(),
+				InternalPort: v.GetInternalPort(),
+				ExternalIp:   v.GetExternalIp(),
+				ExternalPort: v.GetExternalPort(),
+				ConnState:    v.GetConnState(),
 			},
 		}
 		jobs[i] = d
@@ -356,6 +497,15 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.
 }
 
 func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
+
+	if req.GetFileType() == apicommonpb.OriginFileType_FileType_Unknown {
+		return nil, fmt.Errorf("invalid fileType")
+	}
+
+	if req.GetFileSize() == 0 {
+		return nil, fmt.Errorf("require fileSize")
+	}
+
 	dataResourceTables, err := svr.B.QueryDataResourceTables()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryDataResourceTables failed, fileType: {%s}, fileSize: {%d}",
@@ -424,6 +574,7 @@ func (svr *Server) QueryFilePosition(ctx context.Context, req *pb.QueryFilePosit
 }
 
 func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTaskResultFileSummaryRequest) (*pb.GetTaskResultFileSummaryResponse, error) {
+
 	if "" == req.GetTaskId() {
 		return nil, ErrReqTaskIdForGetTaskResultFileSummary
 	}
@@ -487,9 +638,8 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 
 	log.Debugf("RPC-API:GetTaskResultFileSummaryList Succeed, task result file summary list len: {%d}", len(arr))
 	return &pb.GetTaskResultFileSummaryListResponse{
-		Status: 0,
-		Msg: backend.OK,
+		Status:       0,
+		Msg:          backend.OK,
 		MetadataList: arr,
 	}, nil
 }
-
