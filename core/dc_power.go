@@ -108,7 +108,7 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 func (dc *DataCenter) QueryResourceList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerListRequest, err := dc.client.GetPowerTotalSummaryList(dc.ctx)
+	powerListRequest, err := dc.client.GetPowerGlobalSummaryList(dc.ctx)
 	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListRequest), err
 }
 

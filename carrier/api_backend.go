@@ -657,7 +657,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetada
 
 	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, errors.New("found publish metadata arr failed, " + err.Error())
+		return nil, errors.New("found global metadata arr failed, " + err.Error())
 	}
 	if len(publishMetadataArr) != 0 {
 		arr = append(arr, types.NewGlobalMetadataInfoArrayFromMetadataArray(publishMetadataArr)...)
@@ -700,7 +700,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 
 	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, errors.New("found publish metadata arr failed, " + err.Error())
+		return nil, errors.New("found global metadata arr failed, " + err.Error())
 	}
 
 	publishMetadataArr := make(types.MetadataArray, 0)

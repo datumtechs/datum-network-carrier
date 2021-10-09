@@ -108,7 +108,7 @@ func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *
 	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request)
 }
 
-func (gc *GrpcClient) GetPowerTotalSummaryList(ctx context.Context) (*api.ListPowerSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context) (*api.ListPowerSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	return gc.resourceService.ListPowerSummary(ctx, &emptypb.Empty{})

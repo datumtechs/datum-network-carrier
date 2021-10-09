@@ -682,6 +682,8 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 			state apicommonpb.MetadataAuthorityState
 		)
 
+		state = apicommonpb.MetadataAuthorityState_MAState_Released
+
 		switch msg.GetMetadataAuthority().GetUsageRule().GetUsageType() {
 		case apicommonpb.MetadataUsageType_Usage_Period:
 			if timeutils.UnixMsecUint64() >= msg.GetMetadataAuthority().GetUsageRule().GetEndAt() {
@@ -689,7 +691,6 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 				state = apicommonpb.MetadataAuthorityState_MAState_Invalid
 			} else {
 				expire = false
-				state = apicommonpb.MetadataAuthorityState_MAState_Released
 			}
 		case apicommonpb.MetadataUsageType_Usage_Times:
 			// do nothing
