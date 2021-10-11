@@ -622,3 +622,177 @@ func (t *TaskResourceUsageMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	hh.Merkleize(indx)
 	return
 }
+
+// MarshalSSZ ssz marshals the TaskTerminateMsg object
+func (t *TaskTerminateMsg) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(t)
+}
+
+// MarshalSSZTo ssz marshals the TaskTerminateMsg object to a target array
+func (t *TaskTerminateMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(20)
+
+	// Offset (0) 'MsgOption'
+	dst = ssz.WriteOffset(dst, offset)
+	if t.MsgOption == nil {
+		t.MsgOption = new(common.MsgOption)
+	}
+	offset += t.MsgOption.SizeSSZ()
+
+	// Offset (1) 'TaskId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.TaskId)
+
+	// Field (2) 'CreateAt'
+	dst = ssz.MarshalUint64(dst, t.CreateAt)
+
+	// Offset (3) 'Sign'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.Sign)
+
+	// Field (0) 'MsgOption'
+	if dst, err = t.MsgOption.MarshalSSZTo(dst); err != nil {
+		return
+	}
+
+	// Field (1) 'TaskId'
+	if len(t.TaskId) > 128 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.TaskId...)
+
+	// Field (3) 'Sign'
+	if len(t.Sign) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.Sign...)
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the TaskTerminateMsg object
+func (t *TaskTerminateMsg) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 20 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0, o1, o3 uint64
+
+	// Offset (0) 'MsgOption'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	if o0 < 20 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Offset (1) 'TaskId'
+	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
+		return ssz.ErrOffset
+	}
+
+	// Field (2) 'CreateAt'
+	t.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+
+	// Offset (3) 'Sign'
+	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
+		return ssz.ErrOffset
+	}
+
+	// Field (0) 'MsgOption'
+	{
+		buf = tail[o0:o1]
+		if t.MsgOption == nil {
+			t.MsgOption = new(common.MsgOption)
+		}
+		if err = t.MsgOption.UnmarshalSSZ(buf); err != nil {
+			return err
+		}
+	}
+
+	// Field (1) 'TaskId'
+	{
+		buf = tail[o1:o3]
+		if len(buf) > 128 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.TaskId) == 0 {
+			t.TaskId = make([]byte, 0, len(buf))
+		}
+		t.TaskId = append(t.TaskId, buf...)
+	}
+
+	// Field (3) 'Sign'
+	{
+		buf = tail[o3:]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.Sign) == 0 {
+			t.Sign = make([]byte, 0, len(buf))
+		}
+		t.Sign = append(t.Sign, buf...)
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the TaskTerminateMsg object
+func (t *TaskTerminateMsg) SizeSSZ() (size int) {
+	size = 20
+
+	// Field (0) 'MsgOption'
+	if t.MsgOption == nil {
+		t.MsgOption = new(common.MsgOption)
+	}
+	size += t.MsgOption.SizeSSZ()
+
+	// Field (1) 'TaskId'
+	size += len(t.TaskId)
+
+	// Field (3) 'Sign'
+	size += len(t.Sign)
+
+	return
+}
+
+// HashTreeRoot ssz hashes the TaskTerminateMsg object
+func (t *TaskTerminateMsg) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(t)
+}
+
+// HashTreeRootWith ssz hashes the TaskTerminateMsg object with a hasher
+func (t *TaskTerminateMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'MsgOption'
+	if err = t.MsgOption.HashTreeRootWith(hh); err != nil {
+		return
+	}
+
+	// Field (1) 'TaskId'
+	if len(t.TaskId) > 128 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.TaskId)
+
+	// Field (2) 'CreateAt'
+	hh.PutUint64(t.CreateAt)
+
+	// Field (3) 'Sign'
+	if len(t.Sign) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.Sign)
+
+	hh.Merkleize(indx)
+	return
+}
