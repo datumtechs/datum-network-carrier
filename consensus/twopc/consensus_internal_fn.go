@@ -7,7 +7,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
-	"github.com/RosettaFlow/Carrier-Go/handler"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -515,7 +514,8 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 		if types.IsSameTaskOrg(sender, receiver) {
 			sendErr = t.sendLocalPrepareMsg(pid, prepareMsg)
 		} else {
-			sendErr = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg)
+			//sendErr = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg)
+			sendErr = t.p2p.Broadcast(context.TODO(), prepareMsg)
 		}
 
 		if nil != sendErr {
@@ -576,7 +576,8 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 
 func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.PrepareVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
-		return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
+		//return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
+		return t.p2p.Broadcast(context.TODO(), req)
 	} else {
 		return t.sendLocalPrepareVote(pid, req)
 	}
@@ -603,7 +604,8 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 		if types.IsSameTaskOrg(sender, receiver) {
 			sendErr = t.sendLocalConfirmMsg(pid, confirmMsg)
 		} else {
-			sendErr = handler.SendTwoPcConfirmMsg(context.TODO(), t.p2p, pid, confirmMsg)
+			//sendErr = handler.SendTwoPcConfirmMsg(context.TODO(), t.p2p, pid, confirmMsg)
+			sendErr = t.p2p.Broadcast(context.TODO(), confirmMsg)
 		}
 
 		// Send the ConfirmMsg to other peer
@@ -667,7 +669,8 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 
 func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.ConfirmVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
-		return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
+		//return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
+		return t.p2p.Broadcast(context.TODO(),  req)
 	} else {
 		return t.sendLocalConfirmVote(pid, req)
 	}
@@ -694,7 +697,8 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 		if types.IsSameTaskOrg(sender, receiver) {
 			sendErr = t.sendLocalCommitMsg(pid, commitMsg)
 		} else {
-			sendErr = handler.SendTwoPcCommitMsg(context.TODO(), t.p2p, pid, commitMsg)
+			//sendErr = handler.SendTwoPcCommitMsg(context.TODO(), t.p2p, pid, commitMsg)
+			sendErr = t.p2p.Broadcast(context.TODO(), commitMsg)
 		}
 
 		// Send the ConfirmMsg to other peer
