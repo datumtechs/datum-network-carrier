@@ -10,6 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
+// Deprecate: See prepareMessageSubscriber in the subscriber_handler.go.
 func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)
@@ -48,6 +49,7 @@ func (s *Service) prepareMsgRPCHandler(ctx context.Context, msg interface{}, str
 	return nil
 }
 
+// Deprecate: See prepareVoteSubscriber in the subscriber_handlers.go.
 func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)
@@ -84,7 +86,7 @@ func (s *Service) prepareVoteRPCHandler(ctx context.Context, msg interface{}, st
 	return nil
 }
 
-
+// Deprecate: Use gossip to send msg, See confirmMessageSubscriber in the subscriber_handler.go.
 func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)
@@ -121,7 +123,7 @@ func (s *Service) confirmMsgRPCHandler(ctx context.Context, msg interface{}, str
 	return nil
 }
 
-
+// Deprecate: Use gossip to send message, see confirmVoteSubscriber in the subscriber_handlers.go
 func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)
@@ -158,6 +160,7 @@ func (s *Service) confirmVoteRPCHandler(ctx context.Context, msg interface{}, st
 	return nil
 }
 
+// Deprecate: Use gossip network to send message, see commitMessageSubscriber in the subscriber_handlers.go.
 func (s *Service) commitMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)

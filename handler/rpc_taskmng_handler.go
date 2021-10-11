@@ -8,7 +8,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
-
+// Deprecate: See taskResultMessageSubscriber in the subscriber_handlers.go.
 func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)
@@ -41,6 +41,7 @@ func (s *Service) taskResultMsgRPCHandler(ctx context.Context, msg interface{}, 
 	return nil
 }
 
+// Deprecate: See taskResourceUsageMessageSubscriber in the subscriber_handlers.go.
 func (s *Service) taskResourceUsageMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)
@@ -74,6 +75,7 @@ func (s *Service) taskResourceUsageMsgRPCHandler(ctx context.Context, msg interf
 	return nil
 }
 
+// Deprecate: See taskTerminateMessageSubscriber in the subscriber_handlers.go.
 func (s *Service) taskTerminateMsgRPCHandler(ctx context.Context, msg interface{}, stream libp2pcore.Stream) error {
 
 	SetRPCStreamDeadlines(stream)

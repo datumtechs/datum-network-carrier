@@ -8,7 +8,6 @@ import (
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
-	"github.com/RosettaFlow/Carrier-Go/handler"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
@@ -359,7 +358,8 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 
 	if task.IsNotRemotePIDEmpty() {
 
-		if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
+		//if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
+		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultByEventList(task)); nil != err {
 			log.Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
 				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
 			return
@@ -410,7 +410,8 @@ func (m *Manager) sendTaskResourceUsageMsgToRemotePeer(task *types.NeedExecuteTa
 		CreateAt: timeutils.UnixMsecUint64(),
 		Sign: nil,
 	}
-	if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+	//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+	if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
 		log.Errorf("failed to call `SendTaskResourceUsageMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
 			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
 		return
@@ -437,7 +438,8 @@ func (m *Manager) sendTaskTerminateMsgToRemotePeer (task *types.NeedExecuteTask)
 		CreateAt: timeutils.UnixMsecUint64(),
 		Sign: nil,
 	}
-	if err := handler.SendTaskTerminateMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+	//if err := handler.SendTaskTerminateMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+	if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
 		log.Errorf("failed to call `SendTaskTerminateMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
 			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
 		return
