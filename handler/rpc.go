@@ -75,18 +75,18 @@ func (s *Service) registerRPCHandlers() {
 		s.commitMsgRPCHandler,
 	)*/
 
-	s.registerRPC(
+	/*s.registerRPC(
 		p2p.RPCTaskResultMsgTopic,
 		s.taskResultMsgRPCHandler,
-	)
-	s.registerRPC(
+	)*/
+	/*s.registerRPC(
 		p2p.RPCTaskResourceUsageMsgTopic,
 		s.taskResourceUsageMsgRPCHandler,
-	)
-	s.registerRPC(
+	)*/
+	/*s.registerRPC(
 		p2p.RPCTaskTerminateMsgTopic,
 		s.taskTerminateMsgRPCHandler,
-	)
+	)*/
 
 	// for test.
 	s.registerRPC(
