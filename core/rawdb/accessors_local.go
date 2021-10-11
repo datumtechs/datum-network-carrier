@@ -9,6 +9,7 @@ import (
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/sirupsen/logrus"
 	"strings"
 	"sync/atomic"
@@ -720,6 +721,48 @@ func ReadAllLocalTasks(db DatabaseReader) (types.TaskDataArray, error) {
 		result = append(result, types.NewTask(task))
 	}
 	return result, nil
+}
+
+// WriteScheduling save scheduled tasks.
+func WriteScheduling(db KeyValueStore, bullet *types.TaskBullet) {
+	result, err := rlp.EncodeToBytes(bullet)
+	if err != nil {
+		log.WithError(err).Fatal("Failed to encode scheduling task.")
+	}
+	if err := db.Put(schedulingKey(bullet.TaskId), result); err != nil {
+		log.WithError(err).Fatal("Failed to write scheduling task.")
+	}
+}
+
+func DeleteScheduling(db KeyValueStore, bullet *types.TaskBullet) {
+	if err := db.Delete(schedulingKey(bullet.TaskId)); err != nil {
+		log.WithError(err).Fatal("Failed to delete scheduling task.")
+	}
+}
+
+func RecoveryScheduling(db KeyValueStore) (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet) {
+	it := db.NewIteratorWithPrefixAndStart(schedulingPrefix, nil)
+	defer it.Release()
+	queue := make(types.TaskBullets,0)
+	starveQueue := make(types.TaskBullets,0)
+	schedulings := make(map[string]*types.TaskBullet, 0)
+	for it.Next() {
+		var result types.TaskBullet
+		key := it.Key()
+		taskId := string(key[len(schedulingPrefix):])
+
+		value := it.Value()
+		if err := rlp.DecodeBytes(value, &result); nil != err {
+			log.Warning("RecoveryScheduling DecodeBytes fail,error info:", err)
+		}
+		schedulings[taskId] = &result
+		if result.Starve == true {
+			starveQueue.Push(result)
+		} else {
+			queue.Push(result)
+		}
+	}
+	return &queue, &starveQueue, schedulings
 }
 
 // WriteLocalTask serializes the local task into the database.
