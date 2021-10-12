@@ -253,7 +253,15 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 	return eventList, nil
 }
 
-
+func (dc *DataCenter) StoreScheduling(bullet *types.TaskBullet) {
+	rawdb.WriteScheduling(dc.db, bullet)
+}
+func (dc *DataCenter) DeleteScheduling(bullet *types.TaskBullet) {
+	rawdb.DeleteScheduling(dc.db, bullet)
+}
+func (dc *DataCenter)RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet) {
+	return rawdb.RecoveryScheduling(dc.db)
+}
 //func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
 //	if taskId == "" || state == "" {
 //		return errors.New("invalid params taskId or state for UpdateLocalTaskState")
