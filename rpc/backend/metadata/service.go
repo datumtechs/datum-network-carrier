@@ -66,7 +66,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	if req.GetInformation().GetMetadataSummary() == nil {
 		return nil, ErrReqMetaSummaryForPublishMetadata
 	}
-	if req.GetInformation().GetMetadataColumns() == nil {
+	if len(req.GetInformation().GetMetadataColumns()) == 0 {
 		return nil, ErrReqMetaColumnsForPublishMetadata
 	}
 

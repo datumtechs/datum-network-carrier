@@ -88,6 +88,15 @@ func (m *Manager) storeFailedReScheduleTask(taskId string) error {
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
+	//////////////////////////////// TODO  MOCK  ///////////////////////////////////
+
+	//events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskSucceed.Type, task.GetTask().GetTaskId(), task.GetTask().GetTaskData().GetIdentityId(), "finished mock task")}
+	//if e := m.storeMockTask(task.GetTask(), events, "finished mock task"); nil != e {
+	//	log.Errorf("Failed to sending the mock task to datacenter on taskManager, taskId: {%s}", task.GetTask().GetTaskId())
+	//}
+
+	return nil
+
 	task.GetTask().GetTaskData().State = apicommonpb.TaskState_TaskState_Running
 	task.GetTask().GetTaskData().StartAt = timeutils.UnixMsecUint64()
 	if err := m.resourceMng.GetDB().StoreLocalTask(task.GetTask()); nil != err {
