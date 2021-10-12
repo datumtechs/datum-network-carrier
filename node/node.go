@@ -159,7 +159,7 @@ func (node *CarrierNode) OpenDatabase(dbpath string, cache int, handles int) (db
 func (b *CarrierNode) Start() {
 	b.lock.Lock()
 
-	log.Info("Starting rosetta node")
+	log.Info("Starting Carrier Node ...")
 
 	b.services.StartAll()
 
