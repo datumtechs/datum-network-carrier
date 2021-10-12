@@ -20,6 +20,7 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 	if !ok {
 		heap.Push(sche.queue, bullet)
 		sche.schedulings[bullet.TaskId] = bullet
+		sche.resourceMng.GetDB().StoreScheduling(bullet)
 	}
 	sche.schedulingsMutex.Unlock()
 	return nil
@@ -56,6 +57,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		// When found the bullet with taskId, removed it from queue.
 		if bullet.GetTaskId() == taskId {
 			heap.Remove(sche.queue, i)
+			sche.resourceMng.GetDB().DeleteScheduling(sche.schedulings[taskId])
 			delete(sche.schedulings, taskId)
 			return nil // todo 这里需要做一次 持久化
 		}
@@ -74,6 +76,7 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		// When found the bullet with taskId, removed it from starveQueue.
 		if bullet.GetTaskId() == taskId {
 			heap.Remove(sche.starveQueue, i)
+			sche.resourceMng.GetDB().DeleteScheduling(sche.schedulings[taskId])
 			delete(sche.schedulings, taskId)
 			return nil // todo 这里需要做一次 持久化
 		}

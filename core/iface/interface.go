@@ -175,6 +175,11 @@ type TaskCarrierDB interface {
 	QueryRunningTaskCountOnOrg() uint32
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
+
+	// about scheduling
+	StoreScheduling(bullet *types.TaskBullet)
+	DeleteScheduling(bullet *types.TaskBullet)
+	RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet)
 }
 
 type ForConsensusDB interface {
