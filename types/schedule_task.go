@@ -25,7 +25,6 @@ func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *Propo
 	}
 }
 
-
 type TaskConsStatus uint16
 
 func (t TaskConsStatus) String() string {
@@ -72,8 +71,6 @@ func (res *TaskConsResult) GetErr() error             { return res.Err }
 func (res *TaskConsResult) String() string {
 	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
 }
-
-
 
 // ================================================= V2.0 =================================================
 
@@ -136,8 +133,8 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apicommonpb.TaskRole { return nrst.localTaskRole }
-func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                { return nrst.localPartyId }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apicommonpb.TaskRole  { return nrst.localTaskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.localPartyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
@@ -217,9 +214,9 @@ func NewNeedExecuteTask(
 		resources:              resources,
 	}
 }
-func (net *NeedExecuteTask) IsRemotePIDEmpty() bool           { return net.remotepid == "" }
-func (net *NeedExecuteTask) IsNotRemotePIDEmpty() bool        { return !net.IsRemotePIDEmpty() }
-func (net *NeedExecuteTask) GetRemotePID() peer.ID            { return net.remotepid }
+func (net *NeedExecuteTask) HasRemotePID() bool                     { return strings.Trim(string(net.remotepid), "") != "" }
+func (net *NeedExecuteTask) HasEmptyRemotePID() bool                { return !net.HasRemotePID() }
+func (net *NeedExecuteTask) GetRemotePID() peer.ID                  { return net.remotepid }
 func (net *NeedExecuteTask) GetProposalId() common.Hash             { return net.proposalId }
 func (net *NeedExecuteTask) GetLocalTaskRole() apicommonpb.TaskRole { return net.localTaskRole }
 func (net *NeedExecuteTask) GetLocalTaskOrganization() *apicommonpb.TaskOrganization {
@@ -229,8 +226,8 @@ func (net *NeedExecuteTask) GetRemoteTaskRole() apicommonpb.TaskRole { return ne
 func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apicommonpb.TaskOrganization {
 	return net.remoteTaskOrganization
 }
-func (net *NeedExecuteTask) GetTask() *Task                         { return net.task }
-func (net *NeedExecuteTask) GetConsStatus() TaskConsStatus          { return net.consStatus }
+func (net *NeedExecuteTask) GetTask() *Task                             { return net.task }
+func (net *NeedExecuteTask) GetConsStatus() TaskConsStatus              { return net.consStatus }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
 func (net *NeedExecuteTask) String() string {
@@ -327,4 +324,6 @@ func IsSameTaskOrg(org1, org2 *apicommonpb.TaskOrganization) bool {
 	}
 	return false
 }
-func IsNotSameTaskOrg(org1, org2 *apicommonpb.TaskOrganization) bool { return !IsSameTaskOrg(org1, org2) }
+func IsNotSameTaskOrg(org1, org2 *apicommonpb.TaskOrganization) bool {
+	return !IsSameTaskOrg(org1, org2)
+}

@@ -356,7 +356,7 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 	log.Debugf("Start sendTaskResultMsgToRemotePeer, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
-	if task.IsNotRemotePIDEmpty() {
+	if task.HasRemotePID() {
 
 		//if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
 		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultByEventList(task)); nil != err {
@@ -410,11 +410,23 @@ func (m *Manager) sendTaskResourceUsageMsgToRemotePeer(task *types.NeedExecuteTa
 		CreateAt: timeutils.UnixMsecUint64(),
 		Sign: nil,
 	}
-	//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
-	if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
-		log.Errorf("failed to call `SendTaskResourceUsageMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
-			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
-		return
+
+	// send msg to remote target peer with broadcast
+	if task.HasRemotePID() {
+		//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+		if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
+			log.Errorf("failed to call `SendTaskResourceUsageMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+			return
+		}
+	} else {
+
+		// send msg to current peer
+		if err := m.OnTaskResourceUsageMsg(task.GetRemotePID(), msg); nil != err {
+			log.Errorf("failed to call `OnTaskResourceUsageMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+			return
+		}
 	}
 }
 
@@ -438,11 +450,23 @@ func (m *Manager) sendTaskTerminateMsgToRemotePeer (task *types.NeedExecuteTask)
 		CreateAt: timeutils.UnixMsecUint64(),
 		Sign: nil,
 	}
-	//if err := handler.SendTaskTerminateMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
-	if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
-		log.Errorf("failed to call `SendTaskTerminateMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
-			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
-		return
+
+	// send msg to remote target peer with broadcast
+	if task.HasRemotePID() {
+		//if err := handler.SendTaskTerminateMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+		if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
+			log.Errorf("failed to call `SendTaskTerminateMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+			return
+		}
+	} else {
+
+		// send msg to current peer
+		if err := m.OnTaskTerminateMsg(task.GetRemotePID(), msg); nil != err {
+			log.Errorf("failed to call `OnTaskTerminateMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
+				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
+			return
+		}
 	}
 }
 
@@ -787,15 +811,19 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 			// store EOF event first
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "", apicommonpb.TaskState_TaskState_Failed)
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "task execute failed eof", apicommonpb.TaskState_TaskState_Failed)
 			} else {
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "", apicommonpb.TaskState_TaskState_Succeed)
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "task execute succeed eof", apicommonpb.TaskState_TaskState_Succeed)
 			}
 
 			if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_Sender {
+				// announce remote peer to terminate this task
+				m.sendTaskTerminateMsgToRemotePeer(task)
+				// handle this task result with current peer
 				m.publishFinishedTaskToDataCenter(task)
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), partyId)
 			} else {
+				// send this task result to remote target peer
 				m.sendTaskResultMsgToRemotePeer(task)
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), partyId)
 			}
@@ -807,7 +835,7 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 	} else {
 
 		log.Debugf("Start handleTaskEvent, `event is not the end`, event: %s", event.String())
-		// 不是休止符 event, 任务还在继续, 保存 event
+		// It's not EOF event, then the task still executing, so store this event
 		return m.resourceMng.GetDB().StoreTaskEvent(event)
 	}
 }
@@ -1071,6 +1099,7 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 					msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId, err)
 				return err
 			}
+
 		} else {
 			// remove the task on scheduler (maybe task on consensus now)
 			m.sendTaskResultMsgToRemotePeer(needExecuteTask)
