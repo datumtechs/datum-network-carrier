@@ -18,9 +18,9 @@ func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID,
 	}
 
 	// The head state will be too far away to validate any voluntary exit.
-	if s.cfg.InitialSync.Syncing() {
+	/*if s.cfg.InitialSync.Syncing() {
 		return pubsub.ValidationIgnore
-	}
+	}*/
 
 	ctx, span := trace.StartSpan(ctx, "sync.prepareMessage")
 	defer span.End()
