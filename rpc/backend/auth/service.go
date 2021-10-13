@@ -29,10 +29,10 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 
 	if nil != identity {
 		log.Errorf("RPC-API:ApplyIdentityJoin failed, identity was already exist, old identityId: {%s}, old nodeId: {%s}, old nodeName: {%s}",
-			identity.IdentityId(), identity.NodeId(), identity.Name())
+			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
 
 		errMsg := fmt.Sprintf(ErrSendIdentityMsg.Msg, "ApplyIdentityJoin failed, identity was already exist",
-			identity.IdentityId(), identity.NodeId(), identity.Name())
+			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
 
@@ -114,9 +114,9 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 		Status: 0,
 		Msg:    backend.OK,
 		Owner: &apicommonpb.Organization{
-			NodeName:   identity.Name(),
-			NodeId:     identity.NodeId(),
-			IdentityId: identity.IdentityId(),
+			NodeName:   identity.GetName(),
+			NodeId:     identity.GetNodeId(),
+			IdentityId: identity.GetIdentityId(),
 		},
 	}, nil
 }
@@ -130,9 +130,9 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb
 	arr := make([]*apicommonpb.Organization, len(identityList))
 	for i, identity := range identityList {
 		iden := &apicommonpb.Organization{
-			NodeName:   identity.Name(),
-			NodeId:     identity.NodeId(),
-			IdentityId: identity.IdentityId(),
+			NodeName:   identity.GetName(),
+			NodeId:     identity.GetNodeId(),
+			IdentityId: identity.GetIdentityId(),
 		}
 		arr[i] = iden
 	}

@@ -82,7 +82,7 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.RevokeIdentityJoin(dc.ctx, &api.RevokeIdentityRequest{
-		IdentityId: identity.IdentityId(),
+		IdentityId: identity.GetIdentityId(),
 	})
 	if err != nil {
 		return err

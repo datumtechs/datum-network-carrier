@@ -186,14 +186,16 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
 
-	log.Debugf("QueryIdentityList by dataCenter on electionConputeOrg, identityList: %s", identityInfoArr.String())
+	log.Debugf("QueryIdentityList by dataCenter on electionConputeOrg, len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 
 		// Skip the mock identityId
-		if sche.resourceMng.IsMockIdentityId(identityInfo.IdentityId()) {
+		if sche.resourceMng.IsMockIdentityId(identityInfo.GetIdentityId()) {
 			continue
 		}
+
+		identityInfoTmp[identityInfo.GetIdentityId()] = identityInfo
 	}
 
 	if len(identityInfoTmp) != calculateCount {
@@ -206,7 +208,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 		return nil, err
 	}
 	//log.Debugf("GetRemoteResouceTables on electionConputeOrg, globalResources: %s", utilRemoteResourceArrString(globalResources))
-	log.Debugf("GetRemoteResouceTables on electionConputeOrg, globalResources: %s", globalResources.String())
+	log.Debugf("GetRemoteResouceTables on electionConputeOrg, len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
 
 	if len(globalResources) != calculateCount {
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
@@ -221,7 +223,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 		}
 
 		// skip
-		if nil != skipIdentityIdCache {
+		if len(skipIdentityIdCache) != 0 {
 			if _, ok := skipIdentityIdCache[r.GetIdentityId()]; ok {
 				continue
 			}
@@ -244,9 +246,9 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 			orgs = append(orgs, &libtypes.TaskPowerSupplier{
 				Organization: &apicommonpb.TaskOrganization{
 					PartyId:    powerPartyIds[i],
-					NodeName:   info.Name(),
-					NodeId:     info.NodeId(),
-					IdentityId: info.IdentityId(),
+					NodeName:   info.GetName(),
+					NodeId:     info.GetNodeId(),
+					IdentityId: info.GetIdentityId(),
 				},
 				ResourceUsedOverview: &libtypes.ResourceUsageOverview{
 					TotalMem:       r.GetTotalMem(),
