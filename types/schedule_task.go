@@ -25,6 +25,10 @@ func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *Propo
 	}
 }
 
+func (pt *ProposalTask) GetProposalId() common.Hash { return pt.ProposalId }
+func (pt *ProposalTask) GetTask() *Task             { return pt.Task }
+func (pt *ProposalTask) GetCreateAt() uint64        { return pt.CreateAt }
+
 type TaskConsStatus uint16
 
 func (t TaskConsStatus) String() string {
@@ -318,8 +322,18 @@ func IsNotSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) 
 	return !IsSameTaskOrgByte(org1, org2)
 }
 
-func IsSameTaskOrg(org1, org2 *apicommonpb.TaskOrganization) bool {
+func IsSameTaskOrgParty(org1, org2 *apicommonpb.TaskOrganization) bool {
 	if org1.GetPartyId() == org2.GetPartyId() && org1.GetIdentityId() == org2.GetIdentityId() {
+		return true
+	}
+	return false
+}
+func IsNotSameTaskOrgParty(org1, org2 *apicommonpb.TaskOrganization) bool {
+	return !IsSameTaskOrgParty(org1, org2)
+}
+
+func IsSameTaskOrg(org1, org2 *apicommonpb.TaskOrganization) bool {
+	if org1.GetIdentityId() == org2.GetIdentityId() {
 		return true
 	}
 	return false

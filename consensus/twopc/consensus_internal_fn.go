@@ -391,10 +391,10 @@ func (t *Twopc) TaskConsensusInterrupt(
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
 	} else {
 
-		if t.hasNotProposalTask(taskId, partyId) {
-			t.removeOrgProposalStateAndTask(proposalId, partyId)
-			return
-		}
+		//if t.hasNotProposalTask(taskId, partyId) {
+		//	t.removeOrgProposalStateAndTask(proposalId, partyId)
+		//	return
+		//}
 
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 			Type:       evengine.TaskProposalStateDeadline.Type,
@@ -416,7 +416,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 			},
 			apicommonpb.TaskRole_TaskRole_Sender,
 			taskSender,
-			t.mustGetProposalTask(taskId, partyId).Task,
+			t.mustGetProposalTask(taskId, partyId).GetTask(),
 			types.TaskConsensusInterrupt,
 			nil,
 			nil,
