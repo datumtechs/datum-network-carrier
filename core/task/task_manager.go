@@ -255,22 +255,22 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 
 func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
-	//////////////////////////////// TODO  MOCK  ///////////////////////////////////
-	for _, msg := range msgArr {
-
-		task := msg.Data
-
-		// store metadata used taskId
-		if err := m.storeMetaUsedTaskId(task); nil != err {
-			log.Errorf("Failed to store metadata used taskId when received local task, err: {%s}", err)
-		}
-		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskSucceed.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), "finished mock task")}
-		if e := m.storeMockTask(task, events, "finished mock task"); nil != e {
-			log.Errorf("Failed to sending the mock task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
-		}
-	}
-
-	return nil
+	////////////////////////////////// TODO  MOCK  ///////////////////////////////////
+	//for _, msg := range msgArr {
+	//
+	//	task := msg.Data
+	//
+	//	// store metadata used taskId
+	//	if err := m.storeMetaUsedTaskId(task); nil != err {
+	//		log.Errorf("Failed to store metadata used taskId when received local task, err: {%s}", err)
+	//	}
+	//	events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskSucceed.Type, task.GetTaskId(), task.GetTaskData().GetIdentityId(), "finished mock task")}
+	//	if e := m.storeMockTask(task, events, "finished mock task"); nil != e {
+	//		log.Errorf("Failed to sending the mock task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
+	//	}
+	//}
+	//
+	//return nil
 
 
 

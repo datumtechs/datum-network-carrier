@@ -39,8 +39,8 @@ type Twopc struct {
 	taskResultChSet   map[string]chan<- *types.TaskConsResult
 	taskResultLock    sync.Mutex
 	proposalTaskLock  sync.RWMutex
-	db 				  *walDB
-	Errs []error
+	db                *walDB
+	Errs              []error
 }
 
 func New(
@@ -65,7 +65,7 @@ func New(
 		proposalTaskCache:        make(map[string]map[string]*types.ProposalTask),
 		taskResultBusCh:          make(chan *types.TaskConsResult, 100),
 		taskResultChSet:          make(map[string]chan<- *types.TaskConsResult, 100),
-		db: 					  newWalDB,
+		db:                       newWalDB,
 		Errs:                     make([]error, 0),
 	}
 }
@@ -117,7 +117,7 @@ func (t *Twopc) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 	case *types.CommitMsgWrap:
 		return t.onCommitMsg(pid, msg)
 	default:
-		return fmt.Errorf("TaskRoleUnknown the 2pc msg type")
+		return fmt.Errorf("Unknown the 2pc msg type")
 
 	}
 }

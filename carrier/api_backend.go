@@ -674,9 +674,6 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetada
 	if len(publishMetadataArr) != 0 {
 		arr = append(arr, types.NewGlobalMetadataInfoArrayFromMetadataArray(publishMetadataArr)...)
 	}
-	if len(arr) == 0 {
-		return nil, errors.New("not found metadata arr")
-	}
 	//// set metadata used taskCount
 	//for i, metadata := range arr {
 	//	count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
@@ -712,7 +709,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 
 	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, errors.New("found global metadata arr failed, " + err.Error())
+		return nil, errors.New("found global metadata arr failed on query local metadata arr, " + err.Error())
 	}
 
 	publishMetadataArr := make(types.MetadataArray, 0)
@@ -724,9 +721,6 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 
 	arr = append(arr, types.NewLocalMetadataInfoArrayFromMetadataArray(internalMetadataArr, publishMetadataArr)...)
 
-	if len(arr) == 0 {
-		return nil, errors.New("not found metadata arr")
-	}
 	// set metadata used taskCount
 	for i, metadata := range arr {
 		count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())

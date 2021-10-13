@@ -1,6 +1,7 @@
 package rawdb
 
 import (
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
@@ -9,8 +10,11 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
+	"math/rand"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestLocalTask(t *testing.T) {
@@ -288,4 +292,47 @@ func TestLocalMetadata(t *testing.T) {
 	DeleteLocalMetadata(database, localMetadata01.MetadataId)
 	array, _ = ReadAllLocalMetadata(database)
 	require.True(t, array.Len() == 1)
+}
+func TestWriteScheduling(t *testing.T) {
+	var taskBullt *types.TaskBullet
+	database := db.NewMemoryDatabase()
+	var count uint32
+	var starve bool
+	rand.Seed(time.Now().UnixNano())
+
+	queue := make(types.TaskBullets,0)
+	starveQueue := make(types.TaskBullets,0)
+
+	for {
+		if count > 20 {
+			break
+		}
+		count++
+		if a := rand.Intn(2); a == 1 {
+			starve = true
+		} else {
+			starve = false
+		}
+
+		taskBullt = &types.TaskBullet{
+			TaskId:  "taskId_" + strconv.FormatUint(uint64(count), 10),
+			Starve:  starve,
+			Term:    count,
+			Resched: count,
+		}
+		WriteScheduling(database, taskBullt)
+		if starve == true {
+			starveQueue.Push(taskBullt)
+		} else {
+			queue.Push(taskBullt)
+		}
+	}
+	fmt.Println("-----------starveQueue--------------")
+	for _, value := range starveQueue {
+		fmt.Println(value.Starve,value.TaskId)
+	}
+	fmt.Println("-----------queue--------------------")
+	for _,value:=range queue{
+		fmt.Println(value.Starve,value.TaskId)
+	}
 }

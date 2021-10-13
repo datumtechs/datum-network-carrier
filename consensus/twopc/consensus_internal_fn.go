@@ -304,7 +304,7 @@ func (t *Twopc) refreshProposalState() {
 
 	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
+		//log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
 		return
 	}
 

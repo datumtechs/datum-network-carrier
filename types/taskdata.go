@@ -67,16 +67,6 @@ func (m *Task) GetTaskSender() *apicommonpb.TaskOrganization {
 }
 
 func (m *Task) SetEventList(eventList []*libtypes.TaskEvent) {
-	/*eventArr := make([]*libtypes.TaskEvent, len(eventList))
-	for i, ev := range eventList {
-		eventArr[i] = &libtypes.TaskEvent{
-			GetTaskId:     ev.GetTaskId,
-			Type:       ev.Type,
-			GetCreateAt:   ev.GetCreateAt,
-			Content:    ev.Content,
-			IdentityId: ev.IdentityId,
-		}
-	}*/
 	m.data.TaskEvents = eventList
 }
 func (m *Task) SetMetadataSupplierArr(arr []*libtypes.TaskDataSupplier) {
