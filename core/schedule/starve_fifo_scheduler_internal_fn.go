@@ -142,7 +142,7 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 	if nil != err {
 		return nil, err
 	}
-	log.Debugf("GetLocalResourceTables on electionConputeNode, localResources: %s", utilLocalResourceArrString(tables))
+	log.Debugf("GetLocalResourceTables on electionComputeNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
 		if r.IsEnough(uint32(needSlotCount)) {
 
@@ -168,7 +168,7 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 	return jobNode, nil
 }
 
-func (sche *SchedulerStarveFIFO) electionConputeOrg(
+func (sche *SchedulerStarveFIFO) electionComputeOrg(
 	powerPartyIds []string,
 	skipIdentityIdCache map[string]struct{},
 	cost *twopctypes.TaskOperationCost,
@@ -186,7 +186,7 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
 
-	log.Debugf("QueryIdentityList by dataCenter on electionConputeOrg, len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
+	log.Debugf("QueryIdentityList by dataCenter on electionComputeOrg, len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 
@@ -207,8 +207,8 @@ func (sche *SchedulerStarveFIFO) electionConputeOrg(
 	if nil != err {
 		return nil, err
 	}
-	//log.Debugf("GetRemoteResouceTables on electionConputeOrg, globalResources: %s", utilRemoteResourceArrString(globalResources))
-	log.Debugf("GetRemoteResouceTables on electionConputeOrg, len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
+	//log.Debugf("GetRemoteResouceTables on electionComputeOrg, globalResources: %s", utilRemoteResourceArrString(globalResources))
+	log.Debugf("GetRemoteResouceTables on electionComputeOrg, len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
 
 	if len(globalResources) != calculateCount {
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount

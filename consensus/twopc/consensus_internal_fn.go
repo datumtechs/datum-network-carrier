@@ -201,7 +201,7 @@ func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
-		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.GetTaskId())
+		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
 		t.removeProposalTask(state.GetTaskId(), partyId)
 		t.state.CleanOrgProposalState(proposalId, partyId)
 		go func() {
@@ -388,6 +388,8 @@ func (t *Twopc) TaskConsensusInterrupt(
 ) {
 	// Send task result msg to remote peer, if current org identityId is not task sender identityId
 	if identity.GetIdentityId() == taskSender.GetIdentityId() {
+		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on local org, taskId: {%s}, partyId: {%s}",
+			taskId, partyId)
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
 	} else {
 
@@ -395,6 +397,9 @@ func (t *Twopc) TaskConsensusInterrupt(
 		//	t.removeOrgProposalStateAndTask(proposalId, partyId)
 		//	return
 		//}
+
+		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on remote org, taskId: {%s}, partyId: {%s}",
+			taskId, partyId)
 
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 			Type:       evengine.TaskProposalStateDeadline.Type,
@@ -421,6 +426,12 @@ func (t *Twopc) TaskConsensusInterrupt(
 			nil,
 			nil,
 		))
+
+		// clean local task cache that task manager do it.
+		//
+		//// release local resouce
+		//t.resourceMng.ReleaseLocalResourceWithTask("on TaskConsensusInterrupt", taskId,
+		//	partyId, resource.SetAllReleaseResourceOption())
 	}
 }
 

@@ -264,7 +264,8 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 	t.sendNeedReplayScheduleTask(needReplayScheduleTask)
 	replayTaskResult := needReplayScheduleTask.ReceiveResult()
 
-	log.Debugf("Received the reschedule task result from `schedule.ReplaySchedule()`, the result: %s", replayTaskResult.String())
+	log.Debugf("Received the reschedule task result from `schedule.ReplaySchedule()`, selfRole: {%s}, selfPartyId: {%s}, the result: %s",
+		msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, replayTaskResult.String())
 
 	var vote *twopcpb.PrepareVote
 
@@ -280,7 +281,8 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 			&types.PrepareVoteResource{},
 			timeutils.UnixMsecUint64(),
 		)
-		log.Warnf("Failed to replay schedule task, will vote `NO`, taskId: {%s}, err: {%s}", replayTaskResult.GetTaskId(), replayTaskResult.GetErr().Error())
+		log.Warnf("Failed to replay schedule task, will vote `NO`, taskId: {%s}, selfRole: {%s}, selfPartyId: {%s}, err: {%s}",
+			replayTaskResult.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, replayTaskResult.GetErr().Error())
 	} else {
 		vote = makePrepareVote(
 			proposal.ProposalId,
@@ -298,23 +300,24 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 			),
 			timeutils.UnixMsecUint64(),
 		)
-		log.Infof("Succeed to replay schedule task, will vote `YES`, taskId: {%s}", replayTaskResult.GetTaskId())
+		log.Infof("Succeed to replay schedule task, will vote `YES`, taskId: {%s}, selfRole: {%s}, selfPartyId: {%s},",
+			replayTaskResult.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 	}
 
 	// store self vote state And Send vote to Other peer
 	t.storePrepareVote(types.FetchPrepareVote(vote))
 	go func() {
 		if err := t.sendPrepareVote(pid, receiver, sender, vote); nil != err {
-			log.Errorf("failed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, receiver taskPartyId:{%s}, receiver taskRole:{%s}, receiver peerId: {%s}, err: \n%s",
-				proposal.ProposalId.String(), msg.TaskInfo.GetTaskId(), msg.MsgOption.SenderPartyId, msg.MsgOption.SenderRole.String(), pid, err)
+			log.Errorf("failed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, selfRole: {%s}, selfPartyId: {%s}, receiver taskRole:{%s}, receiver taskPartyId:{%s}, receiver peerId: {%s}, err: \n%s",
+				proposal.ProposalId.String(), msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, pid, err)
 
 			t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", msg.TaskInfo.GetTaskId(),
 				msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
 			// clean some data
 			t.removeOrgProposalStateAndTask(proposal.ProposalId, msg.MsgOption.ReceiverPartyId)
 		} else {
-			log.Debugf("Succceed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, receiver taskPartyId:{%s}, receiver taskRole:{%s}, receiver peerId: {%s}",
-				proposal.ProposalId.String(), msg.TaskInfo.GetTaskId(), msg.MsgOption.SenderPartyId, msg.MsgOption.SenderRole.String(), pid)
+			log.Debugf("Succceed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, selfRole: {%s}, selfPartyId: {%s}, receiver taskRole:{%s}, receiver taskPartyId:{%s}, receiver peerId: {%s}",
+				proposal.ProposalId.String(), msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, pid)
 		}
 	}()
 	return nil
