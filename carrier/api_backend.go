@@ -14,6 +14,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"strings"
 )
 
 // CarrierAPIBackend implements rpc.Backend for Carrier
@@ -79,12 +80,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	}
 
 	seedNodes, err := s.carrier.carrierDB.QuerySeedNodeList()
-	return &pb.YarnNodeInfo{
+	nodeInfo := &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_NodeType_YarnNode,
 		NodeId:       nodeId,
-		InternalIp:   "",                      //
+		//InternalIp:   "",                      //
 		ExternalIp:   "",                      //
-		InternalPort: "",                      //
+		//InternalPort: "",                      //
 		ExternalPort: "",                      //
 		IdentityType: types.IDENTITY_TYPE_DID, // default: DID
 		IdentityId:   identityId,
@@ -92,7 +93,18 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
 		State:        pb.YarnNodeState_State_Active,
-	}, nil
+	}
+
+	h := s.carrier.config.P2P.Host()
+	multiAddr := h.Addrs()
+	if len(multiAddr) != 0 {
+		// /ip4/192.168.35.1/tcp/16788
+		multiAddrParts := strings.Split(multiAddr[0].String(), "/")
+		nodeInfo.InternalIp = multiAddrParts[2]
+		nodeInfo.InternalPort = multiAddrParts[4]
+		nodeInfo.ExternalPort = multiAddrParts[4]
+	}
+	return nodeInfo, nil
 }
 
 func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.YarnRegisteredPeer, error) {
