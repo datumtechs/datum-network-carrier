@@ -57,7 +57,7 @@ type Twopc struct {
 	taskResultChSet   map[string]chan<- *types.TaskConsResult
 	taskResultLock    sync.Mutex
 	proposalTaskLock  sync.RWMutex
-	db                *walDB
+	wal               *walDB
 	Errs              []error
 }
 
@@ -83,7 +83,7 @@ func New(
 		proposalTaskCache:        make(map[string]map[string]*types.ProposalTask),
 		taskResultBusCh:          make(chan *types.TaskConsResult, 100),
 		taskResultChSet:          make(map[string]chan<- *types.TaskConsResult, 100),
-		db:                       newWalDB,
+		wal:                      newWalDB,
 		Errs:                     make([]error, 0),
 	}
 }

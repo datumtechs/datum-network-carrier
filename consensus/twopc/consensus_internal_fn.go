@@ -205,9 +205,9 @@ func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId st
 		t.removeProposalTask(state.GetTaskId(), partyId)
 		t.state.CleanOrgProposalState(proposalId, partyId)
 		go func() {
-			t.db.DeleteState(t.db.GetPrepareVotesKey(proposalId, partyId))
-			t.db.DeleteState(t.db.GetConfirmVotesKey(proposalId, partyId))
-			t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+			t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+			t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+			t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 		}()
 	}
 }
@@ -221,7 +221,7 @@ func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sen
 		first = true
 	}
 	pstate.StoreOrgProposalState(orgState)
-	t.db.UpdateOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
+	t.wal.UpdateOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
 	if first {
 		t.state.StoreProposalState(pstate)
 	} else {
@@ -236,7 +236,7 @@ func (t *Twopc) removeOrgProposalState(proposalId common.Hash, partyId string) {
 		return
 	}
 	pstate.RemoveOrgProposalState(partyId)
-	t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+	t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 }
 
 func (t *Twopc) getOrgProposalState(proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
@@ -313,7 +313,7 @@ func (t *Twopc) refreshProposalState() {
 				t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
 				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
-				t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+				t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				continue
 			}
 
@@ -328,7 +328,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToConfirm(orgState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodConfirm:
@@ -340,7 +340,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToCommit(orgState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodCommit:
@@ -352,7 +352,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToFinished(orgState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodFinished:
@@ -365,7 +365,7 @@ func (t *Twopc) refreshProposalState() {
 					t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
 					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
-					t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				}
 
 			default:
