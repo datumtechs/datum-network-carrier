@@ -284,7 +284,7 @@ func TestService_JoinLeaveTopic(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Try leaving topic that has subscriptions.
-	want := "cannot close topic: outstanding evengine handlers or subscriptions"
+	want := "cannot close topic: outstanding event handlers or subscriptions"
 	assert.Contains(t, s.LeaveTopic(topic).Error(), want)
 
 	// After subscription is cancelled, leaving topic should not result in error.
