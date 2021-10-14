@@ -169,7 +169,7 @@ func (m *Manager) loop() {
 				// to execute the task
 				m.handleNeedExecuteTask(task)
 			} else {
-				// interrupt local task
+				// interrupt local task todo maybe there never do.
 				if task.GetRemotePID() == "" {
 					// send local task result msg to datacenter, short circuit.
 					m.publishFinishedTaskToDataCenter(task)
