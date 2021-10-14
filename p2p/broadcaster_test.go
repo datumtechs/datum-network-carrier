@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	libp2ppb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/gogo/protobuf/proto"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -83,5 +84,5 @@ func TestService_Broadcast_ReturnsErr_TopicNotMapped(t *testing.T) {
 		genesisTime:           time.Now(),
 		genesisValidatorsRoot: bytesutil.PadTo([]byte{'A'}, 32),
 	}
-	assert.ErrorContains(t, p.Broadcast(context.Background(), &libp2ppb.GossipTestData{}), ErrMessageNotMapped.Error())
+	assert.ErrorContains(t, p.Broadcast(context.Background(), &libtypes.BlockData{}), ErrMessageNotMapped.Error())
 }

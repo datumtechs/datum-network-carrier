@@ -46,14 +46,14 @@ func TestMetadataEncode(t *testing.T) {
 	}
 	dBuffer := new(bytes.Buffer)
 	dmetadata.EncodePb(dBuffer)
-
+	t.Log(common.Bytes2Hex(buffer.Bytes()))
 	if !bytes.Equal(buffer.Bytes(), dBuffer.Bytes()) {
 		t.Fatalf("encode protobuf mismatch, got %x, want %x", common.Bytes2Hex(dBuffer.Bytes()), common.Bytes2Hex(buffer.Bytes()))
 	}
 }
 
 func TestMetadata(t *testing.T) {
-	byts := common.Hex2Bytes("0a084964656e7469747912066e6f646549641a066461746149642201442a042f612f6132046465736338014002480352036373765a066372656174656a1208021205636e616d651a056374797065200a")
+	byts := common.Hex2Bytes("12084964656e746974791a066e6f646549642a0664617461496430014a042f612f61520464657363580160026803700178018a011208021205636e616d651a056374797065200a")
 	dmetadata := new(Metadata)
 	err := dmetadata.DecodePb(byts)
 	if err != nil {

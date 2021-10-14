@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
 	"github.com/gogo/protobuf/proto"
 	"github.com/RosettaFlow/Carrier-Go/params"
@@ -120,7 +121,7 @@ func TestSszNetworkEncoder_MaxInt64(t *testing.T) {
 func TestSszNetworkEncoder_DecodeWithBadSnappyStream(t *testing.T) {
 	st := newBadSnappyStream()
 	e := &encoder.SszNetworkEncoder{}
-	decoded := new(librpcpb.GossipTestData)
+	decoded := new(libtypes.BlockData)
 	err := e.DecodeWithMaxLength(st, decoded)
 	assert.ErrorContains(t, err, io.EOF.Error())
 }
