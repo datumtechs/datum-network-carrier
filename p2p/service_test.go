@@ -5,8 +5,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/feed"
-	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
@@ -111,7 +109,7 @@ func TestService_Start_OnlyStartsOnce(t *testing.T) {
 		<-exitRoutine
 	}()
 	// Send in a loop to ensure it is delivered (busy wait for the service to subscribe to the state feed).
-	for sent := 0; sent == 0; {
+	/*for sent := 0; sent == 0; {
 		sent = s.stateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.Initialized,
 			Data: &statefeed.InitializedData{
@@ -119,7 +117,7 @@ func TestService_Start_OnlyStartsOnce(t *testing.T) {
 				GenesisValidatorsRoot: make([]byte, 32),
 			},
 		})
-	}
+	}*/
 	time.Sleep(time.Second * 2)
 	assert.Equal(t, true, s.started, "Expected service to be started")
 	s.Start()
@@ -216,7 +214,7 @@ func TestListenForNewNodes(t *testing.T) {
 	}()
 	time.Sleep(1 * time.Second)
 	// Send in a loop to ensure it is delivered (busy wait for the service to subscribe to the state feed).
-	for sent := 0; sent == 0; {
+	/*for sent := 0; sent == 0; {
 		sent = s.stateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.Initialized,
 			Data: &statefeed.InitializedData{
@@ -224,7 +222,7 @@ func TestListenForNewNodes(t *testing.T) {
 				GenesisValidatorsRoot: genesisValidatorsRoot,
 			},
 		})
-	}
+	}*/
 	time.Sleep(4 * time.Second)
 	assert.Equal(t, 5, len(s.host.Network().Peers()), "Not all peers added to peerstore")
 	require.NoError(t, s.Stop())
@@ -270,6 +268,7 @@ func TestService_JoinLeaveTopic(t *testing.T) {
 	go s.awaitStateInitialized()
 	fd := initializeStateWithForkDigest(ctx, t, s.stateNotifier.StateFeed())
 
+
 	assert.Equal(t, 0, len(s.joinedTopics))
 
 	topic := fmt.Sprintf(GossipTestDataTopicFormat, fd) + "/" + encoder.ProtocolSuffixSSZSnappy
@@ -296,9 +295,9 @@ func TestService_JoinLeaveTopic(t *testing.T) {
 // initializeStateWithForkDigest sets up the state feed initialized evengine and returns the fork
 // digest associated with that genesis evengine.
 func initializeStateWithForkDigest(ctx context.Context, t *testing.T, ef *event.Feed) [4]byte {
-	gt := timeutils.Now()
-	gvr := bytesutil.PadTo([]byte("genesis validator root"), 32)
-	for n := 0; n == 0; {
+	_ = timeutils.Now()
+	_ = bytesutil.PadTo([]byte("genesis validator root"), 32)
+	/*for n := 0; n == 0; {
 		if ctx.Err() != nil {
 			t.Fatal(ctx.Err())
 		}
@@ -309,7 +308,7 @@ func initializeStateWithForkDigest(ctx context.Context, t *testing.T, ef *event.
 				GenesisValidatorsRoot: gvr,
 			},
 		})
-	}
+	}*/
 
 	fd:= [4]byte{0x1, 0x1, 0x1, 0x1,}
 
