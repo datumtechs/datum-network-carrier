@@ -17,22 +17,6 @@ import (
 	"sync"
 )
 
-func (t *Twopc) isProposalTask(taskId, partyId string) bool {
-	t.proposalTaskLock.RLock()
-	defer t.proposalTaskLock.RUnlock()
-	partyCache, ok := t.proposalTaskCache[taskId]
-	if !ok {
-		return false
-	}
-	_, ok = partyCache[partyId]
-	if !ok {
-		return false
-	}
-	return true
-}
-func (t *Twopc) isNotProposalTask(taskId, partyId string) bool {
-	return !t.isProposalTask(taskId, partyId)
-}
 
 func (t *Twopc) hasOrgProposal(proposalId common.Hash, partyId string) bool {
 	return t.state.HasOrgProposal(proposalId, partyId)
@@ -217,13 +201,13 @@ func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
-		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}", proposalId, state.GetTaskId())
+		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
 		t.removeProposalTask(state.GetTaskId(), partyId)
 		t.state.CleanOrgProposalState(proposalId, partyId)
 		go func() {
-			t.db.DeleteState(t.db.GetPrepareVotesKey(proposalId, partyId))
-			t.db.DeleteState(t.db.GetConfirmVotesKey(proposalId, partyId))
-			t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+			t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+			t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+			t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 		}()
 	}
 }
@@ -237,7 +221,7 @@ func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sen
 		first = true
 	}
 	pstate.StoreOrgProposalState(orgState)
-	t.db.UpdateOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
+	t.wal.UpdateOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
 	if first {
 		t.state.StoreProposalState(pstate)
 	} else {
@@ -252,7 +236,7 @@ func (t *Twopc) removeOrgProposalState(proposalId common.Hash, partyId string) {
 		return
 	}
 	pstate.RemoveOrgProposalState(partyId)
-	t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+	t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 }
 
 func (t *Twopc) getOrgProposalState(proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
@@ -329,7 +313,7 @@ func (t *Twopc) refreshProposalState() {
 				t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
 				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
-				t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+				t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				continue
 			}
 
@@ -344,7 +328,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToConfirm(orgState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodConfirm:
@@ -356,7 +340,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToCommit(orgState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodCommit:
@@ -368,7 +352,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToFinished(orgState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.db.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodFinished:
@@ -381,7 +365,7 @@ func (t *Twopc) refreshProposalState() {
 					t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
 					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
-					t.db.DeleteState(t.db.GetProposalSetKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				}
 
 			default:
@@ -404,13 +388,18 @@ func (t *Twopc) TaskConsensusInterrupt(
 ) {
 	// Send task result msg to remote peer, if current org identityId is not task sender identityId
 	if identity.GetIdentityId() == taskSender.GetIdentityId() {
+		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on local org, taskId: {%s}, partyId: {%s}",
+			taskId, partyId)
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
 	} else {
 
-		if t.hasNotProposalTask(taskId, partyId) {
-			t.removeOrgProposalStateAndTask(proposalId, partyId)
-			return
-		}
+		//if t.hasNotProposalTask(taskId, partyId) {
+		//	t.removeOrgProposalStateAndTask(proposalId, partyId)
+		//	return
+		//}
+
+		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on remote org, taskId: {%s}, partyId: {%s}",
+			taskId, partyId)
 
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 			Type:       evengine.TaskProposalStateDeadline.Type,
@@ -432,11 +421,17 @@ func (t *Twopc) TaskConsensusInterrupt(
 			},
 			apicommonpb.TaskRole_TaskRole_Sender,
 			taskSender,
-			t.mustGetProposalTask(taskId, partyId).Task,
+			t.mustGetProposalTask(taskId, partyId).GetTask(),
 			types.TaskConsensusInterrupt,
 			nil,
 			nil,
 		))
+
+		// clean local task cache that task manager do it.
+		//
+		//// release local resouce
+		//t.resourceMng.ReleaseLocalResourceWithTask("on TaskConsensusInterrupt", taskId,
+		//	partyId, resource.SetAllReleaseResourceOption())
 	}
 }
 
@@ -511,21 +506,24 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 		}
 
 		var sendErr error
+		var logdesc string
 		if types.IsSameTaskOrg(sender, receiver) {
 			sendErr = t.sendLocalPrepareMsg(pid, prepareMsg)
+			logdesc = "sendLocalPrepareMsg()"
 		} else {
 			//sendErr = handler.SendTwoPcPrepareMsg(context.TODO(), t.p2p, pid, prepareMsg)
 			sendErr = t.p2p.Broadcast(context.TODO(), prepareMsg)
+			logdesc = "Broadcast()"
 		}
 
 		if nil != sendErr {
-			errCh <- fmt.Errorf("failed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
-				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, sendErr)
+			errCh <- fmt.Errorf("failed to call `sendPrepareMsg.%s` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
+				logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, sendErr)
 			return
 		}
 
-		log.Debugf("Succceed to call `SendTwoPcPrepareMsg` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s",
-			proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
+		log.Debugf("Succceed to call `sendPrepareMsg.%s` proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s",
+			logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
 	}
 
 	size := (len(task.GetTaskData().GetDataSuppliers())) + len(task.GetTaskData().GetPowerSuppliers()) + len(task.GetTaskData().GetReceivers())
@@ -601,23 +599,26 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 		confirmMsg := makeConfirmMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), task, peers, startTime)
 
 		var sendErr error
+		var logdesc string
 		if types.IsSameTaskOrg(sender, receiver) {
 			sendErr = t.sendLocalConfirmMsg(pid, confirmMsg)
+			logdesc = "sendLocalConfirmMsg()"
 		} else {
 			//sendErr = handler.SendTwoPcConfirmMsg(context.TODO(), t.p2p, pid, confirmMsg)
 			sendErr = t.p2p.Broadcast(context.TODO(), confirmMsg)
+			logdesc = "Broadcast()"
 		}
 
 		// Send the ConfirmMsg to other peer
 		if nil != sendErr {
-			errCh <- fmt.Errorf("failed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
-				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
+			errCh <- fmt.Errorf("failed to call`sendConfirmMsg.%s` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
+				logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
 			errCh <- err
 			return
 		}
 
-		log.Debugf("Succceed to call`SendTwoPcConfirmMsg` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
-			proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
+		log.Debugf("Succceed to call`sendConfirmMsg.%s` proposalId: %s, taskId: %s,other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
+			logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
 
 	}
 
@@ -694,23 +695,26 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 		commitMsg := makeCommitMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), task, startTime)
 
 		var sendErr error
+		var logdesc string
 		if types.IsSameTaskOrg(sender, receiver) {
 			sendErr = t.sendLocalCommitMsg(pid, commitMsg)
+			logdesc = "sendLocalCommitMsg()"
 		} else {
 			//sendErr = handler.SendTwoPcCommitMsg(context.TODO(), t.p2p, pid, commitMsg)
 			sendErr = t.p2p.Broadcast(context.TODO(), commitMsg)
+			logdesc = "Broadcast()"
 		}
 
 		// Send the ConfirmMsg to other peer
 		if nil != sendErr {
-			errCh <- fmt.Errorf("failed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
-				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
+			errCh <- fmt.Errorf("failed to call`sendCommitMsg.%s` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+				logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
 			errCh <- err
 			return
 		}
 
-		log.Debugf("Succceed to call`SendTwoPcCommitMsg` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s",
-			proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
+		log.Debugf("Succceed to call`sendCommitMsg.%s` proposalId: %s, taskId: %s,  other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s",
+			logdesc, proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
 
 	}
 

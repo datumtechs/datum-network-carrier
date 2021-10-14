@@ -1231,6 +1231,9 @@ func RemoveUserMetadataAuthUsedByIndex (db KeyValueStore, userType apicommonpb.U
 }
 
 func StoreUserMetadataAuthIdByMetadataId (db DatabaseWriter, userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
+
+	log.Debugf("Store metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAauthId: {%s}", userType.String(), user, metadataId, metadataAuthId)
+
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 	val, err := rlp.EncodeToBytes(metadataAuthId)
 	if nil != err {
@@ -1242,15 +1245,19 @@ func StoreUserMetadataAuthIdByMetadataId (db DatabaseWriter, userType apicommonp
 func QueryUserMetadataAuthIdByMetadataId (db DatabaseReader, userType apicommonpb.UserType, user, metadataId string) (string, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
-	var metadataAuthId string
+
 	val, err := db.Get(key)
 	if nil != err {
 		return "", err
 	}
 
+	var metadataAuthId string
 	if err = rlp.DecodeBytes(val, &metadataAuthId); nil != err {
 		return "", err
 	}
+
+	log.Debugf("Query metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}, return metadataAauthId: {%s}", userType.String(), user, metadataId, metadataAuthId)
+
 	if "" == metadataAuthId {
 		return "", ErrNotFound
 	}
@@ -1259,6 +1266,8 @@ func QueryUserMetadataAuthIdByMetadataId (db DatabaseReader, userType apicommonp
 
 func HasUserMetadataAuthIdByMetadataId (db DatabaseReader, userType apicommonpb.UserType, user, metadataId string) (bool, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+
+	log.Debugf("Has metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 
 	has, err := db.Has(key)
 	switch {
@@ -1273,6 +1282,9 @@ func HasUserMetadataAuthIdByMetadataId (db DatabaseReader, userType apicommonpb.
 
 func RemoveUserMetadataAuthIdByMetadataId (db KeyValueStore, userType apicommonpb.UserType, user, metadataId string) error {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
+
+	log.Debugf("Remove metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
+
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):

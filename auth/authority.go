@@ -46,26 +46,15 @@ func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []st
 	return am.metadataAuth.GetMetadataAuthorityListByIds(metadataAuthIds)
 }
 
-func (am *AuthorityManager) HasValidLastMetadataAuth (userType apicommonpb.UserType, user, metadataId string) (bool, error) {
-	return am.metadataAuth.HasValidLastMetadataAuth(userType, user, metadataId)
+func (am *AuthorityManager)  HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {
+	return am.metadataAuth.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
 func (am *AuthorityManager) VerifyMetadataAuth (userType apicommonpb.UserType, user, metadataId string) bool {
 	return am.metadataAuth.VerifyMetadataAuth(userType, user, metadataId)
 }
 
-func (am *AuthorityManager) StoreUserMetadataAuthUsed (userType apicommonpb.UserType, user, metadataAuthId string)  error {
-	return am.metadataAuth.StoreUserMetadataAuthUsed(userType, user, metadataAuthId)
-}
-
-func (am *AuthorityManager) StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
-	return am.metadataAuth.StoreUserMetadataAuthIdByMetadataId(userType, user, metadataId, metadataAuthId)
-}
-
 func  (am *AuthorityManager) QueryMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (string, error) {
 	return am.metadataAuth.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
 }
 
-func  (am *AuthorityManager) RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId string) error {
-	return am.metadataAuth.RemoveUserMetadataAuthIdByMetadataId(userType, user, metadataId)
-}

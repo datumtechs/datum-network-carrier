@@ -14,5 +14,5 @@ func newTaskParser (resourceMng *resource.Manager) *TaskParser {
 }
 
 func (tp *TaskParser) ParseTask(tasks types.TaskMsgArr) (types.TaskMsgArr, types.TaskMsgArr, error) {
-	return nil, nil, nil
+	return nil, tasks, nil
 }

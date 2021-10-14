@@ -58,15 +58,15 @@ func (m *Identity) Hash() common.Hash {
 	return v
 }
 
-func (m *Identity) Name() string {
+func (m *Identity) GetName() string {
 	return m.data.GetNodeName()
 }
 
-func (m *Identity) IdentityId() string {
+func (m *Identity) GetIdentityId() string {
 	return m.data.GetIdentityId()
 }
 
-func (m *Identity) NodeId() string {
+func (m *Identity) GetNodeId() string {
 	return m.data.GetNodeId()
 }
 

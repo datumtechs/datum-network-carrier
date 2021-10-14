@@ -649,9 +649,9 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.MetadataAuthorityMsgArr) {
 	for _, msg := range metadataAuthMsgArr {
 
-		has, err := m.authManager.HasValidLastMetadataAuth(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId())
+		has, err := m.authManager.HasValidMetadataAuth(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityOwnerIdentity(), msg.GetMetadataAuthorityMetadataId())
 		if nil != err {
-			log.Errorf("Failed to call HasValidLastMetadataAuth on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
+			log.Errorf("Failed to call HasValidLocalMetadataAuth on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 			continue
 		}
@@ -659,20 +659,6 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		if has {
 			log.Errorf("Failed to broadcast metadataAuth, cause alreay has valid last metadataAuth on MessageHandler with broadcast metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}",
 				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
-			continue
-		}
-
-		err = m.authManager.StoreUserMetadataAuthIdByMetadataId(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId(), msg.GetMetadataAuthId())
-		if nil != err {
-			log.Errorf("Failed to store metadataId and metadataAuthId mapping on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
-				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
-			continue
-		}
-
-		err = m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthId())
-		if nil != err {
-			log.Errorf("Failed to store metadataAuthId on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
-				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
 			continue
 		}
 
@@ -720,9 +706,6 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		})); nil != err {
 			log.Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with broadcast metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
 				msg.GetMetadataAuthId(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetUserType(), msg.GetUser(), err)
-
-			m.authManager.StoreUserMetadataAuthUsed(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthId())
-			m.authManager.RemoveUserMetadataAuthIdByMetadataId(msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthorityMetadataId())
 			continue
 		}
 
@@ -768,13 +751,6 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 		if metadataAuth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Pending {
 			log.Errorf("the metadataAuth has audit on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}, state: {%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser(), metadataAuth.GetData().GetAuditOption().String())
-			continue
-		}
-
-		err = m.authManager.RemoveUserMetadataAuthIdByMetadataId(revoke.GetUserType(), revoke.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId())
-		if nil != err {
-			log.Errorf("Failed to remove metadataAuthId on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, metadataId: {%s}, user:{%s}, err: {%s}",
-				revoke.GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), revoke.GetUser(), err)
 			continue
 		}
 

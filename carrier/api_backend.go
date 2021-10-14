@@ -994,8 +994,8 @@ func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList() (types.MetadataAuth
 	return s.carrier.authEngine.GetGlobalMetadataAuthorityList()
 }
 
-func (s *CarrierAPIBackend) HasValidUserMetadataAuth(userType apicommonpb.UserType, user, metadataId string) (bool, error) {
-	return s.carrier.authEngine.HasValidLastMetadataAuth(userType, user, metadataId)
+func (s *CarrierAPIBackend) HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {
+	return s.carrier.authEngine.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
 // task api

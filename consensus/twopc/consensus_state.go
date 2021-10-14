@@ -186,18 +186,18 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 //		return
 //	}
 //	pvs.removeVote(partyId, role)
-//	s.db.DeleteState(s.db.GetPrepareVotesKey(proposalId,partyId))
+//	s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId,partyId))
 //	if pvs.isNotEmptyVote() {
 //		go func() {
 //			for _, vote := range pvs.votes {
-//				s.db.UpdatePrepareVotes(vote)
+//				s.wal.UpdatePrepareVotes(vote)
 //			}
 //		}()
 //		s.prepareVotes[proposalId] = pvs
 //	} else {
 //		delete(s.prepareVotes, proposalId)
 //		go func() {
-//			s.db.DeleteState(s.db.GetPrepareVotesKey(proposalId, ""))
+//			s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, ""))
 //		}()
 //	}
 //	s.prepareVotesLock.Unlock()
@@ -349,18 +349,18 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 //		return
 //	}
 //	cvs.removeVote(partyId, role)
-//	s.db.DeleteState(s.db.GetConfirmVotesKey(proposalId,partyId))
+//	s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId,partyId))
 //	if cvs.isNotEmptyVote() {
 //		go func() {
 //			for _, vote := range cvs.votes {
-//				s.db.UpdateConfirmVotes(vote)
+//				s.wal.UpdateConfirmVotes(vote)
 //			}
 //		}()
 //		s.confirmVotes[proposalId] = cvs
 //	} else {
 //		delete(s.confirmVotes, proposalId)
 //		go func() {
-//			s.db.DeleteState(s.db.GetConfirmVotesKey(proposalId,""))
+//			s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId,""))
 //		}()
 //	}
 //	s.confirmVotesLock.Unlock()

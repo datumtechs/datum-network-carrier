@@ -75,7 +75,74 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 	}, nil
 }
 
+func taskJsonReq (req *pb.PublishTaskDeclareRequest) string {
+
+	sender := fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
+		req.GetSender().GetPartyId(), req.GetSender().GetNodeName(), req.GetSender().GetNodeId(),
+		req.GetSender().GetIdentityId())
+
+	algoSupplier := fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
+		req.GetAlgoSupplier().GetPartyId(), req.GetAlgoSupplier().GetNodeName(),
+		req.GetAlgoSupplier().GetNodeId(), req.GetAlgoSupplier().GetIdentityId())
+
+	dataSuppliers := "[]"
+	dataSupplierArr := make([]string, len(req.GetDataSuppliers()))
+	for i, dataSupplier := range req.GetDataSuppliers() {
+
+		organization :=  fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
+			dataSupplier.GetOrganization().GetPartyId(), dataSupplier.GetOrganization().GetNodeName(),
+			dataSupplier.GetOrganization().GetNodeId(), dataSupplier.GetOrganization().GetIdentityId())
+
+
+		selectedColumns := "[]"
+		selectedColumnArr := make([]string, len(dataSupplier.GetMetadataInfo().GetSelectedColumns()))
+		for j, selectedColumn := range dataSupplier.GetMetadataInfo().GetSelectedColumns() {
+			selectedColumnArr[j] = fmt.Sprint(selectedColumn)
+		}
+		if len(selectedColumnArr) != 0 {
+			selectedColumns = "[" + strings.Join(selectedColumnArr, ",") + "]"
+		}
+
+		metadataInfo := fmt.Sprintf(`{"metadataId": "%s", "keyColumn": %d, "selectedColumns": %s}`,
+			dataSupplier.GetMetadataInfo().GetMetadataId(), dataSupplier.GetMetadataInfo().GetKeyColumn(), selectedColumns)
+
+		dataSupplierArr[i] = fmt.Sprintf(`{"organization": %s, "metadataInfo": %s}`,
+			organization, metadataInfo)
+	}
+	if len(dataSupplierArr) != 0 {
+		dataSuppliers = "[" + strings.Join(dataSupplierArr, ",") + "]"
+	}
+
+	powerPartyIds := "[]"
+	powerPartyIdArr := make([]string, len(req.GetPowerPartyIds()))
+	for i, partyId := range req.GetPowerPartyIds() {
+		powerPartyIdArr[i] = `"` + partyId + `"`
+	}
+	if len(powerPartyIdArr) != 0 {
+		powerPartyIds = "[" + strings.Join(powerPartyIdArr, ",") + "]"
+	}
+
+	receivers := "[]"
+	receiverArr := make([]string, len(req.GetReceivers()))
+	for i, receiver := range req.GetReceivers() {
+		receiverArr[i] = fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
+			receiver.GetPartyId(), receiver.GetNodeName(),
+			receiver.GetNodeId(), receiver.GetIdentityId())
+	}
+	if len(receiverArr) != 0 {
+		receivers = "[" + strings.Join(receiverArr, ",") + "]"
+	}
+
+	operationCost := fmt.Sprintf(`{"memory": %d, "processor": %d, "bandwidth": %d, "duration": %d}`,
+		req.GetOperationCost().GetMemory(), req.GetOperationCost().GetProcessor(), req.GetOperationCost().GetBandwidth(), req.GetOperationCost().GetDuration())
+
+	return fmt.Sprintf(`{"taskName": "%s", "user": "%s", "userType": %d, "sender": %s, "algoSupplier": %s, "dataSuppliers": %s, "powerPartyIds": %s, "receivers": %s, "operationCost": %s, "calculateContractCode": "%s", "dataSplitContractCode": "%s", "contractExtraParams": "%s", "sign": "%s", "desc": "%s"}`,
+		req.GetTaskName(), req.GetUser(), req.GetUserType(), sender, algoSupplier, dataSuppliers, powerPartyIds, receivers, operationCost, req.GetCalculateContractCode(), req.GetDataSplitContractCode(), req.GetContractExtraParams(), string(req.GetSign()), req.GetDesc())
+}
+
 func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
+
+	log.Debugf("Received Publish task req: %s", taskJsonReq(req))
 
 	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
 		return nil, ErrReqUserTypePublishTask
@@ -107,9 +174,22 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
+	checkPartyIdCache := make(map[string]struct{}, 0)
+	checkPartyIdCache[req.GetSender().GetPartyId()] = struct{}{}
+
+	if _, ok := checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()]; ok {
+		return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())
+	}
+	checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
+
 	// add  dataSuppliers
 	dataSuppliers := make([]*libtypes.TaskDataSupplier, len(req.GetDataSuppliers()))
 	for i, v := range req.GetDataSuppliers() {
+
+		if _, ok := checkPartyIdCache[v.GetOrganization().GetPartyId()]; ok {
+			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetOrganization().GetPartyId())
+		}
+		checkPartyIdCache[v.GetOrganization().GetPartyId()] = struct{}{}
 
 		metadata, err := svr.B.GetMetadataDetail(v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 		if nil != err {
@@ -163,6 +243,21 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	}
 	// add dataSuppliers
 	taskMsg.Data.SetMetadataSupplierArr(dataSuppliers)
+
+	for _, partyId := range req.GetPowerPartyIds() {
+		if _, ok := checkPartyIdCache[partyId]; ok {
+			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on powerPartyIds, partyId: {%s}", partyId)
+		}
+		checkPartyIdCache[partyId] = struct{}{}
+	}
+
+	for _, v := range req.GetReceivers() {
+		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
+			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on receivers, partyId: {%s}", v.GetPartyId())
+		}
+		checkPartyIdCache[v.GetPartyId()] = struct{}{}
+	}
+
 	// add taskId
 	taskId := taskMsg.GenTaskId()
 

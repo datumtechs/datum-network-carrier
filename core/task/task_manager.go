@@ -101,7 +101,7 @@ func (m *Manager) Stop() error {
 func (m *Manager) loop() {
 
 	taskMonitorTicker := time.NewTicker(taskMonitorInterval)
-	taskTicker := time.NewTicker(defaultScheduleTaskInterval)
+	//taskTicker := time.NewTicker(defaultScheduleTaskInterval)
 
 	for {
 		select {
@@ -131,11 +131,11 @@ func (m *Manager) loop() {
 			}
 
 		// To schedule local task interval
-		case <-taskTicker.C:
-
-			if err := m.tryScheduleTask(); nil != err {
-				log.Errorf("Failed to try schedule local task when taskTicker, err: {%s}", err)
-			}
+		//case <-taskTicker.C:
+		//
+		//	if err := m.tryScheduleTask(); nil != err {
+		//		log.Errorf("Failed to try schedule local task when taskTicker, err: {%s}", err)
+		//	}
 
 		// handle the task of need replay scheduling while received from remote peer on consensus epoch
 		case needReplayScheduleTask := <-m.needReplayScheduleTaskCh:

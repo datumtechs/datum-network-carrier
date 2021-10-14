@@ -1,7 +1,9 @@
 package twopc
 
 import (
+	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
@@ -27,14 +29,11 @@ func RandStr(length int) string {
 
 func generateProposalId() common.Hash {
 	now := timeutils.UnixMsecUint64()
-	proposalId := rlputil.RlpHash([]interface{}{
-		RandStr(32),
-		now,
-		"",
-		"",
-		"",
-		uint64(time.Now().Nanosecond()),
-	})
+
+	var buf bytes.Buffer
+	buf.Write([]byte(RandStr(32)))
+	buf.Write(bytesutil.Uint64ToBytes(now))
+	proposalId := rlputil.RlpHash(buf.Bytes())
 	return proposalId
 }
 func generateWalDB() *walDB {

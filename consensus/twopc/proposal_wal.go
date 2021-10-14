@@ -107,7 +107,7 @@ func (w *walDB) UpdateOrgProposalState(proposalId common.Hash, sender *apicommon
 		log.Fatal("marshaling error: ", err)
 	}
 	if err := w.db.Put(w.GetProposalSetKey(proposalId, orgState.TaskOrg.PartyId), data); err != nil {
-		log.Warning("UpdateOrgProposalState to db fail,proposalId:", proposalId)
+		log.Warning("UpdateOrgProposalState to wal fail,proposalId:", proposalId)
 	}
 }
 
@@ -118,7 +118,7 @@ func (w *walDB) UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twop
 	}
 	fmt.Println("proposalId:", proposalId)
 	if err := w.db.Put(w.GetProposalPeerInfoCacheKey(proposalId), data); err != nil {
-		log.Warning("UpdateConfirmTaskPeerInfo to db fail,proposalId:", proposalId)
+		log.Warning("UpdateConfirmTaskPeerInfo to wal fail,proposalId:", proposalId)
 	}
 }
 
@@ -146,7 +146,7 @@ func (w *walDB) UpdatePrepareVotes(vote *types.PrepareVote) {
 		log.Fatal("marshaling error: ", err)
 	}
 	if err := w.db.Put(w.GetPrepareVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdatePrepareVotes to db fail,proposalId:", vote.MsgOption.ProposalId)
+		log.Warning("UpdatePrepareVotes to wal fail,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 
@@ -168,7 +168,7 @@ func (w *walDB) UpdateConfirmVotes(vote *types.ConfirmVote) {
 		log.Fatal("marshaling error: ", err)
 	}
 	if err := w.db.Put(w.GetConfirmVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdateConfirmVotes to db fail,proposalId:", vote.MsgOption.ProposalId)
+		log.Warning("UpdateConfirmVotes to wal fail,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 

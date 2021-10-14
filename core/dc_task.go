@@ -233,7 +233,13 @@ func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.Tas
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
 		TaskId: taskId,
 	})
-	return taskEventResponse.TaskEvents, err
+	if nil != err {
+		return nil, err
+	}
+	if nil == taskEventResponse {
+		return nil, rawdb.ErrNotFound
+	}
+	return taskEventResponse.GetTaskEvents(), nil
 }
 
 func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
@@ -246,9 +252,14 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 			TaskId: taskId,
 		})
 		if nil != err {
-			return nil, err
+			//return nil, err
+			continue
 		}
-		eventList = append(eventList, taskEventResponse.TaskEvents...)
+		if nil == taskEventResponse {
+			//return nil, rawdb.ErrNotFound
+			continue
+		}
+		eventList = append(eventList, taskEventResponse.GetTaskEvents()...)
 	}
 	return eventList, nil
 }
