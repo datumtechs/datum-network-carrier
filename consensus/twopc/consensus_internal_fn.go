@@ -20,13 +20,9 @@ import (
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
 		log.Infof("TwopcMsgStart remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
-		t.state.RemoveProposalTaskWithPartyId(state.GetTaskId(), partyId)
-		t.state.CleanOrgProposalState(proposalId, partyId)
-		go func() {
-			t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
-			t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
-			t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
-		}()
+		t.state.RemoveOrgProposalStateAnyCache(proposalId, state.GetTaskId(), partyId) // remove task/proposal state/prepare vote/ confirm vote and wal with partyId
+	} else {
+		t.state.RemoveConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
 	}
 }
 
@@ -73,8 +69,7 @@ func (t *Twopc) mustGetOrgProposalState(proposalId common.Hash, partyId string) 
 	return pstate.MustGetOrgProposalState(partyId)
 }
 
-
-func (t *Twopc) makeEmptyConfirmTaskPeerDesc () *twopcpb.ConfirmTaskPeerInfo {
+func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *twopcpb.ConfirmTaskPeerInfo {
 	return &twopcpb.ConfirmTaskPeerInfo{
 		OwnerPeerInfo:              &twopcpb.TaskPeerInfo{},
 		DataSupplierPeerInfoList:   make([]*twopcpb.TaskPeerInfo, 0),
@@ -119,12 +114,11 @@ func (t *Twopc) refreshProposalState() {
 		//log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
 		return
 	}
-
-	pid, err := p2p.HexPeerID(identity.GetNodeId())
-	if nil != err {
-		log.Errorf("Failed to convert on consensus.refreshProposalState(), err: {%s}", err)
-		return
-	}
+	//localPid, err := p2p.HexPeerID(identity.GetNodeId())
+	//if nil != err {
+	//	log.Errorf("Failed to convert nodeId to pid of local identity on consensus.refreshProposalState(), err: {%s}", err)
+	//	return
+	//}
 
 	t.state.proposalsLock.Lock()
 
@@ -137,25 +131,42 @@ func (t *Twopc) refreshProposalState() {
 				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, remove org proposalState and task cache on Consensus, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-				pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
 				t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
+				pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
 				t.state.RemoveOrgPrepareVoteState(proposalId, partyId)             // remove prepare vote with partyId
 				t.state.RemoveOrgConfirmVoteState(proposalId, partyId)             // remove confirm vote with partyId
 
 				if pstate.IsEmpty() {
 					delete(t.state.proposalSet, proposalId)
-					t.removeConfirmTaskPeerInfo(proposalId)						// remove confirm peers
+					t.removeConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
 				} else {
 					t.state.proposalSet[proposalId] = pstate
 				}
-				go func() {														// remove wal record
+				go func() { // remove wal record
 					t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
 					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				}()
 
-				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
+				var pid peer.ID
+
+				// remote task, so need convert remote pid by nodeId of task sender identity
+				if pstate.GetTaskSender().GetIdentityId() != identity.GetIdentityId() {
+					senderPid, err := p2p.HexPeerID(pstate.GetTaskSender().GetNodeId())
+					if nil != err {
+						log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
+						continue
+					}
+					pid = senderPid
+				} else {
+
+					// local task
+					pid = ""
+				}
+
+				pstate.GetTaskId()
+				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender())
 				continue
 			}
 
@@ -203,24 +214,40 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
 					t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
+					pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
 					t.state.RemoveOrgPrepareVoteState(proposalId, partyId)             // remove prepare vote with partyId
 					t.state.RemoveOrgConfirmVoteState(proposalId, partyId)             // remove confirm vote with partyId
 
 					if pstate.IsEmpty() {
 						delete(t.state.proposalSet, proposalId)
-						t.removeConfirmTaskPeerInfo(proposalId)						// remove confirm peers
+						t.removeConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
 					} else {
 						t.state.proposalSet[proposalId] = pstate
 					}
-					go func() {														// remove wal record
+					go func() { // remove wal record
 						t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
 						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 					}()
 
-					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
+
+					var pid peer.ID
+
+					// remote task, so need convert remote pid by nodeId of task sender identity
+					if pstate.GetTaskSender().GetIdentityId() != identity.GetIdentityId() {
+						senderPid, err := p2p.HexPeerID(pstate.GetTaskSender().GetNodeId())
+						if nil != err {
+							log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
+							continue
+						}
+						pid = senderPid
+					} else {
+
+						// local task
+						pid = ""
+					}
+					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender())
 
 				}
 
@@ -237,8 +264,9 @@ func (t *Twopc) refreshProposalState() {
 
 func (t *Twopc) TaskConsensusInterrupt(
 	proposalId common.Hash,
-	localPid peer.ID,
+	pid peer.ID,
 	taskId, partyId string,
+	role  apicommonpb.TaskRole,
 	sender *apicommonpb.Organization,
 	receiver *apicommonpb.TaskOrganization,
 ) {
@@ -266,9 +294,9 @@ func (t *Twopc) TaskConsensusInterrupt(
 		})
 
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
-			localPid,
+			pid,
 			proposalId,
-			apicommonpb.TaskRole_TaskRole_Unknown,
+			role,
 			&apicommonpb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   sender.GetNodeName(),
@@ -292,7 +320,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 }
 
 func (t *Twopc) driveTask(
-	pid peer.ID,
+	remotePid peer.ID,
 	proposalId common.Hash,
 	localTaskRole apicommonpb.TaskRole,
 	localTaskOrganization *apicommonpb.TaskOrganization,
@@ -322,7 +350,7 @@ func (t *Twopc) driveTask(
 
 	// Send task to TaskManager to execute
 	t.sendNeedExecuteTask(types.NewNeedExecuteTask(
-		pid,
+		remotePid,
 		proposalId,
 		localTaskRole,
 		localTaskOrganization,
@@ -333,9 +361,6 @@ func (t *Twopc) driveTask(
 		selfVote.PeerInfo,
 		peers,
 	))
-
-	t.removeOrgProposalStateAndTask(proposalId, localTaskOrganization.GetPartyId())
-
 }
 
 func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
@@ -428,9 +453,6 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	return nil
 }
 
-
-
-
 func (t *Twopc) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
@@ -465,7 +487,6 @@ func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
 func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 	t.needExecuteTaskCh <- task
 }
-
 
 func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.PrepareVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
@@ -566,7 +587,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.ConfirmVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
-		return t.p2p.Broadcast(context.TODO(),  req)
+		return t.p2p.Broadcast(context.TODO(), req)
 	} else {
 		return t.sendLocalConfirmVote(pid, req)
 	}

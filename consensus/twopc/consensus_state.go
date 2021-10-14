@@ -19,8 +19,8 @@ type state struct {
 	confirmVotes map[common.Hash]*confirmVoteState
 	// cache
 	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo
-	//db
-	db *walDB
+	// wal
+	wal *walDB
 
 	proposalTaskLock    sync.RWMutex
 	proposalsLock       sync.RWMutex
@@ -38,7 +38,7 @@ func newState(ldb *walDB) *state {
 		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
 		proposalPeerInfoCache: make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
-		db:                    ldb,
+		wal:                   ldb,
 	}
 }
 func recoveryState(
@@ -53,7 +53,7 @@ func recoveryState(
 		prepareVotes:          prepareVotes,
 		confirmVotes:          confirmVotes,
 		proposalPeerInfoCache: proposalPeerInfoCache,
-		db:                    ldb,
+		wal:                   ldb,
 	}
 }
 func (s *state) IsEmpty() bool    { return nil == s }
@@ -209,10 +209,17 @@ func (s *state) ChangeToCommit(proposalId common.Hash, partyId string, startTime
 	s.proposalSet[proposalId] = proposalState
 }
 
-func (s *state) CleanOrgProposalState(proposalId common.Hash, partyId string) {
+func (s *state) RemoveOrgProposalStateAnyCache(proposalId common.Hash, taskId, partyId string) {
+	s.RemoveProposalTaskWithPartyId(taskId, partyId)
 	s.RemoveOrgProposalState(proposalId, partyId)
 	s.RemoveOrgPrepareVoteState(proposalId, partyId)
 	s.RemoveOrgConfirmVoteState(proposalId, partyId)
+	go func() {
+		// TODO 还需要做一个清除 task cache 的 wal key
+		s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, partyId))
+		s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId, partyId))
+		s.wal.DeleteState(s.wal.GetProposalSetKey(proposalId, partyId))
+	}()
 }
 
 // ---------------- PrepareVote ----------------
@@ -233,7 +240,7 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 		pvs = newPrepareVoteState()
 	}
 	pvs.addVote(vote)
-	s.db.UpdatePrepareVotes(vote)
+	s.wal.UpdatePrepareVotes(vote)
 	s.prepareVotes[vote.MsgOption.ProposalId] = pvs
 	s.prepareVotesLock.Unlock()
 }
@@ -397,7 +404,7 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	}
 	cvs.addVote(vote)
 	s.confirmVotes[vote.MsgOption.ProposalId] = cvs
-	s.db.UpdateConfirmVotes(vote)
+	s.wal.UpdateConfirmVotes(vote)
 	s.confirmVotesLock.Unlock()
 }
 
@@ -775,7 +782,7 @@ func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopc
 	_, ok := s.proposalPeerInfoCache[proposalId]
 	if !ok {
 		s.proposalPeerInfoCache[proposalId] = peerDesc
-		s.db.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
+		s.wal.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
 	}
 	s.confirmPeerInfoLock.Unlock()
 }
@@ -802,6 +809,6 @@ func (s *state) MustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.Conf
 func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 	s.confirmPeerInfoLock.Lock()
 	delete(s.proposalPeerInfoCache, proposalId)
-	s.db.DeleteState(s.db.GetProposalPeerInfoCacheKey(proposalId))
 	s.confirmPeerInfoLock.Unlock()
+	go s.wal.DeleteState(s.wal.GetProposalPeerInfoCacheKey(proposalId))
 }

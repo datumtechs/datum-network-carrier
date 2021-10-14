@@ -169,8 +169,15 @@ func (m *Manager) loop() {
 				// to execute the task
 				m.handleNeedExecuteTask(task)
 			} else {
-				// send task result msg to remote peer, short circuit.
-				m.sendTaskResultMsgToRemotePeer(task)
+				// interrupt local task
+				if task.GetRemotePID() == "" {
+					// send local task result msg to datacenter, short circuit.
+					m.publishFinishedTaskToDataCenter(task)
+				} else {
+					// interrupt remote task.
+					// send remote task result msg to remote peer, short circuit.
+					m.sendTaskResultMsgToRemotePeer(task)
+				}
 			}
 
 		// handle the executing expire tasks
