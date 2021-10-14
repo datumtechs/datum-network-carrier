@@ -256,7 +256,7 @@ func (t *Twopc) refreshProposalState() {
 			}
 		}
 
-		pstate.MustUnLock()
+		pstate.MustUnLock() // todo 这个锁可能还会有问题 ...
 	}
 
 	t.state.proposalsLock.Unlock()
@@ -311,7 +311,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 			nil,
 		))
 
-		// clean local task cache that task manager do it.
+		// Release local task cache that task manager will do it.
 		//
 		//// release local resouce
 		//t.resourceMng.ReleaseLocalResourceWithTask("on TaskConsensusInterrupt", taskId,
