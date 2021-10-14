@@ -10,7 +10,7 @@ import (
 )
 
 type state struct {
-
+	proposalTaskCache map[string]map[string]*types.ProposalTask // (taskId -> partyId -> task)
 	// Proposal being processed (proposalId -> proposalState)
 	proposalSet map[common.Hash]*ctypes.ProposalState
 	// About the voting state of prepareMsg for proposal
@@ -20,7 +20,9 @@ type state struct {
 	// cache
 	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo
 	//db
-	db 			*walDB
+	db *walDB
+
+	proposalTaskLock    sync.RWMutex
 	proposalsLock       sync.RWMutex
 	prepareVotesLock    sync.RWMutex
 	confirmVotesLock    sync.RWMutex
@@ -31,11 +33,12 @@ type state struct {
 
 func newState(ldb *walDB) *state {
 	return &state{
+		proposalTaskCache:     make(map[string]map[string]*types.ProposalTask),
 		proposalSet:           make(map[common.Hash]*ctypes.ProposalState, 0),
 		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
 		proposalPeerInfoCache: make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
-		db:					   ldb,
+		db:                    ldb,
 	}
 }
 func recoveryState(
@@ -56,7 +59,7 @@ func recoveryState(
 func (s *state) IsEmpty() bool    { return nil == s }
 func (s *state) IsNotEmpty() bool { return !s.IsEmpty() }
 
-func (s *state) HasOrgProposal(proposalId common.Hash, partyId string) bool {
+func (s *state) HasOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
 	s.proposalsLock.RLock()
 	defer s.proposalsLock.RUnlock()
 
@@ -67,8 +70,66 @@ func (s *state) HasOrgProposal(proposalId common.Hash, partyId string) bool {
 	}
 	return false
 }
-func (s *state) HasNotOrgProposal(proposalId common.Hash, partyId string) bool {
-	return !s.HasOrgProposal(proposalId, partyId)
+func (s *state) HasNotOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
+	return !s.HasOrgProposalWithPartyId(proposalId, partyId)
+}
+
+func (s *state) StoreProposalTaskWithPartyId(partyId string, task *types.ProposalTask) {
+	s.proposalTaskLock.Lock()
+	partyCache, ok := s.proposalTaskCache[task.GetTaskId()]
+	if !ok {
+		partyCache = make(map[string]*types.ProposalTask, 0)
+	}
+	partyCache[partyId] = task
+	s.proposalTaskCache[task.GetTaskId()] = partyCache
+
+	s.proposalTaskLock.Unlock()
+}
+func (s *state) RemoveProposalTaskWithPartyId(taskId, partyId string) {
+	s.proposalTaskLock.Lock()
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if ok {
+		delete(partyCache, partyId)
+		if len(partyCache) == 0 {
+			delete(s.proposalTaskCache, taskId)
+		}
+	}
+	s.proposalTaskLock.Unlock()
+}
+
+func (s *state) HasProposalTaskWithPartyId(taskId, partyId string) bool {
+	s.proposalTaskLock.RLock()
+	defer s.proposalTaskLock.RUnlock()
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if !ok {
+		return false
+	}
+	_, ok = partyCache[partyId]
+	if !ok {
+		return false
+	}
+	return true
+}
+func (s *state) HasNotProposalTaskWithPartyId(taskId, partyId string) bool {
+	return !s.HasProposalTaskWithPartyId(taskId, partyId)
+}
+
+func (s *state) GetProposalTaskWithPartyId(taskId, partyId string) (*types.ProposalTask, bool) {
+	s.proposalTaskLock.RLock()
+	defer s.proposalTaskLock.RUnlock()
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if !ok {
+		return nil, false
+	}
+	task, ok := partyCache[partyId]
+	return task, ok
+}
+
+func (s *state) MustGetProposalTaskWithPartyId(taskId, partyId string) *types.ProposalTask {
+	s.proposalTaskLock.RLock()
+	task, _ := s.GetProposalTaskWithPartyId(taskId, partyId)
+	s.proposalTaskLock.RUnlock()
+	return task
 }
 
 func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
@@ -148,13 +209,11 @@ func (s *state) ChangeToCommit(proposalId common.Hash, partyId string, startTime
 	s.proposalSet[proposalId] = proposalState
 }
 
-
 func (s *state) CleanOrgProposalState(proposalId common.Hash, partyId string) {
 	s.RemoveOrgProposalState(proposalId, partyId)
 	s.RemoveOrgPrepareVoteState(proposalId, partyId)
 	s.RemoveOrgConfirmVoteState(proposalId, partyId)
 }
-
 
 // ---------------- PrepareVote ----------------
 func (s *state) HasPrepareVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {

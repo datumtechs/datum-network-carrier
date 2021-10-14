@@ -41,7 +41,7 @@ func (m *Manager) Start() error {
 
 	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
 	if nil != err {
-		log.Warnf("Failed to load local slotUnit on resourceManager Start(), err: {%s}", err)
+		log.Warnf("Failed to load local slotUnit on resourceManager TwopcMsgStart(), err: {%s}", err)
 	} else {
 		m.SetSlotUnit(slotUnit.Mem, slotUnit.Bandwidth, slotUnit.Processor)
 	}
@@ -55,7 +55,7 @@ func (m *Manager) Start() error {
 	if "" != m.mockIdentityIdsFile {
 		var identityIdList []string
 		if err := fileutil.LoadJSON(m.mockIdentityIdsFile, &identityIdList); err != nil {
-			log.Errorf("Failed to load `--mock-identity-file` on Start resourceManager, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
+			log.Errorf("Failed to load `--mock-identity-file` on TwopcMsgStart resourceManager, file: {%s}, err: {%s}", m.mockIdentityIdsFile, err)
 			return err
 		}
 
@@ -136,7 +136,7 @@ func (m *Manager) CleanLocalResourceTables() error {
 
 func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotCount uint64, task *types.Task) error {
 
-	log.Infof("Start lock local resource with taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
+	log.Infof("TwopcMsgStart lock local resource with taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
 
 	// Lock local resource (jobNode)
 	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {
@@ -219,7 +219,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	jobNodeId := used.GetNodeId()
 	freeSlotUnitCount := used.GetSlotCount()
 
-	log.Infof("Start unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", taskId, partyId, jobNodeId, freeSlotUnitCount)
+	log.Infof("TwopcMsgStart unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", taskId, partyId, jobNodeId, freeSlotUnitCount)
 
 	// Unlock local resource (jobNode)
 	if err := m.FreeSlot(used.GetNodeId(), uint32(freeSlotUnitCount)); nil != err {
@@ -285,7 +285,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 
 func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, option ReleaseResourceOption) {
 
-	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
+	log.Debugf("TwopcMsgStart ReleaseLocalResourceWithTask %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
 
 	has, err := m.dataCenter.HasLocalTaskExecute(taskId, partyId)
 	if nil != err {
@@ -344,7 +344,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 
 func (m *Manager) ReleaseLocalResourceWithTaskShortCircuit(logdesc, taskId, partyId string, option ReleaseResourceOption) {
 
-	log.Debugf("Start ReleaseLocalResourceWithTaskShortCircuit %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
+	log.Debugf("TwopcMsgStart ReleaseLocalResourceWithTaskShortCircuit %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
 
 	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
 	if nil != err {

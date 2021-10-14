@@ -91,7 +91,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 
 func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) error {
 
-	log.Debugf("Start consume metadataAuth, metadataAuthId: {%s}", metadataAuthId)
+	log.Debugf("TwopcMsgStart consume metadataAuth, metadataAuthId: {%s}", metadataAuthId)
 
 	// verify
 	metadataAuth, err := ma.GetMetadataAuthority(metadataAuthId)
@@ -312,7 +312,7 @@ func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType apicommonpb.UserTy
 
 func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, user, metadataId string) bool {
 
-	log.Debugf("Start verify metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
+	log.Debugf("TwopcMsgStart verify metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 
 	metadataAuthId, err := ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
 	if nil != err {

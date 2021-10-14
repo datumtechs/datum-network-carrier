@@ -22,8 +22,8 @@ const (
 )
 
 //type Scheduler interface {
-//	Start() error
-//	Stop() error
+//	TwopcMsgStart() error
+//	TwopcMsgStop() error
 //	Error() error
 //	Name() string
 //	AddTask(task *types.Task) error

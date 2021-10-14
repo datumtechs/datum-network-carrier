@@ -78,14 +78,16 @@ func makeConfirmMsg(
 	senderPartyId, receiverPartyId string,
 	owner *apicommonpb.TaskOrganization,
 	peers *twopcpb.ConfirmTaskPeerInfo,
+	option types.TwopcMsgOption,
 	startTime uint64,
 ) *twopcpb.ConfirmMsg {
 
 	msg := &twopcpb.ConfirmMsg{
-		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
-		Peers:     peers,
-		CreateAt:  startTime,
-		Sign:      nil,
+		MsgOption:     makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
+		ConfirmOption: option.Bytes(),
+		Peers:         peers,
+		CreateAt:      startTime,
+		Sign:          nil,
 	}
 
 	return msg
@@ -113,13 +115,15 @@ func makeCommitMsg(
 	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
 	owner *apicommonpb.TaskOrganization,
+	option types.TwopcMsgOption,
 	startTime uint64,
 ) *twopcpb.CommitMsg {
 
 	msg := &twopcpb.CommitMsg{
-		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
-		CreateAt:  startTime,
-		Sign:      nil,
+		MsgOption:    makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
+		CommitOption: option.Bytes(),
+		CreateAt:     startTime,
+		Sign:         nil,
 	}
 	return msg
 }
@@ -163,10 +167,11 @@ func fetchPrepareVote(vote *types.PrepareVoteWrap) *types.PrepareVote {
 
 func fetchConfirmMsg(msg *types.ConfirmMsgWrap) *types.ConfirmMsg {
 	return &types.ConfirmMsg{
-		MsgOption: types.FetchMsgOption(msg.MsgOption),
-		Peers:     msg.Peers,
-		CreateAt:  msg.CreateAt,
-		Sign:      msg.Sign,
+		MsgOption:     types.FetchMsgOption(msg.MsgOption),
+		ConfirmOption: types.TwopcMsgOptionFromBytes(msg.ConfirmOption),
+		Peers:         msg.Peers,
+		CreateAt:      msg.CreateAt,
+		Sign:          msg.Sign,
 	}
 }
 
@@ -182,7 +187,8 @@ func fetchConfirmVote(vote *types.ConfirmVoteWrap) *types.ConfirmVote {
 func fetchCommitMsg(msg *types.CommitMsgWrap) *types.CommitMsg {
 	return &types.CommitMsg{
 		MsgOption: types.FetchMsgOption(msg.MsgOption),
-		CreateAt:  msg.CreateAt,
-		Sign:      msg.Sign,
+
+		CreateAt: msg.CreateAt,
+		Sign:     msg.Sign,
 	}
 }
