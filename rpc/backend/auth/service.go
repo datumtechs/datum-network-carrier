@@ -176,8 +176,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		return nil, fmt.Errorf("unknown usageType of the metadataAuth")
 	}
 
-
-	has, err := svr.B.HasValidUserMetadataAuth(req.GetUserType(), req.GetUser(), req.GetAuth().GetMetadataId())
+	has, err := svr.B.HasValidMetadataAuth(req.GetUserType(), req.GetUser(), req.GetAuth().GetOwner().GetIdentityId(), req.GetAuth().GetMetadataId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query valid user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
