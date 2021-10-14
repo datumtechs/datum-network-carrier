@@ -161,7 +161,7 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 
 	t.addTaskResultCh(task.GetTaskId(), result)
 
-	if t.hasProposalTask(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
+	if t.hasProposalTaskWithPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
 		t.replyTaskConsensusResult(types.NewTaskConsResult(task.GetTaskId(), types.TaskConsensusInterrupt, ctypes.ErrPrososalTaskIsProcessed))
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
@@ -185,7 +185,7 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now),
 	)
 
-	t.addProposalTask(task.GetTaskSender().GetPartyId(), types.NewProposalTask(proposalId, task, now))
+	t.addProposalTaskWithPartyId(task.GetTaskSender().GetPartyId(), types.NewProposalTask(proposalId, task, now))
 
 	// Start handle task ...
 	go func() {
@@ -213,7 +213,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 	log.Debugf("Received remote prepareMsg, remote pid: {%s}, consensusSymbol: {%s}, prepareMsg: %s", pid, consensusSymbol.string(), msg.String())
 
 	proposal := fetchProposalFromPrepareMsg(msg)
-	if t.hasOrgProposal(proposal.ProposalId, msg.MsgOption.ReceiverPartyId) {
+	if t.hasOrgProposalWithPartyId(proposal.ProposalId, msg.MsgOption.ReceiverPartyId) {
 		return ctypes.ErrProposalAlreadyProcessed
 	}
 
@@ -257,7 +257,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 		ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, receiver, msg.CreateAt),
 	)
 
-	t.addProposalTask(msg.MsgOption.ReceiverPartyId, types.NewProposalTask(proposal.ProposalId, proposal.Task, proposal.CreateAt))
+	t.addProposalTaskWithPartyId(msg.MsgOption.ReceiverPartyId, types.NewProposalTask(proposal.ProposalId, proposal.Task, proposal.CreateAt))
 
 	// Send task to Scheduler to replay sched.
 	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.MsgOption.ReceiverRole, msg.MsgOption.ReceiverPartyId, proposal.Task)
@@ -330,7 +330,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 
 	log.Debugf("Received remote prepareVote, remote pid: {%s}, consensusSymbol: {%s}, prepareVote: %s", pid, consensusSymbol.string(), vote.String())
 
-	if t.hasNotOrgProposal(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
+	if t.hasNotOrgProposalWithPartyId(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
 		return fmt.Errorf("%s onPrepareVote", ctypes.ErrProposalNotFound)
 	}
 	orgProposalState := t.mustGetOrgProposalState(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)
@@ -341,7 +341,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.getProposalTask(orgProposalState.GetTaskId(), vote.MsgOption.ReceiverPartyId)
+	proposalTask, ok := t.getProposalTaskWithPartyId(orgProposalState.GetTaskId(), vote.MsgOption.ReceiverPartyId)
 	if !ok {
 		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 			ctypes.ErrProposalTaskNotFound, proposalTask.GetTaskData().GetTaskId(), vote.MsgOption.ReceiverRole.String(),
@@ -445,7 +445,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 
 	log.Debugf("Received remote confirmMsg, remote pid: {%s}, consensusSymbol: {%s}, confirmMsg: %s", pid, consensusSymbol.string(), msg.String())
 
-	if t.hasNotOrgProposal(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
+	if t.hasNotOrgProposalWithPartyId(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
 		return fmt.Errorf("%s onConfirmMsg", ctypes.ErrProposalNotFound)
 	}
 
@@ -461,7 +461,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.getProposalTask(orgProposalState.GetTaskId(), msg.MsgOption.ReceiverPartyId)
+	proposalTask, ok := t.getProposalTaskWithPartyId(orgProposalState.GetTaskId(), msg.MsgOption.ReceiverPartyId)
 	if !ok {
 		return fmt.Errorf("%s, on the confirm msg [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 			ctypes.ErrProposalTaskNotFound, proposalTask.GetTaskData().GetTaskId(), msg.MsgOption.ReceiverRole.String(),
@@ -550,7 +550,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 
 	log.Debugf("Received remote confirmVote, remote pid: {%s}, consensusSymbol: {%s}, comfirmVote: %s", pid, consensusSymbol.string(), vote.String())
 
-	if t.hasNotOrgProposal(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
+	if t.hasNotOrgProposalWithPartyId(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
 		return fmt.Errorf("%s onConfirmVote", ctypes.ErrProposalNotFound)
 	}
 	orgProposalState := t.mustGetOrgProposalState(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)
@@ -563,7 +563,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.getProposalTask(orgProposalState.GetTaskId(), vote.MsgOption.ReceiverPartyId)
+	proposalTask, ok := t.getProposalTaskWithPartyId(orgProposalState.GetTaskId(), vote.MsgOption.ReceiverPartyId)
 	if !ok {
 		return fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 			ctypes.ErrProposalTaskNotFound, proposalTask.GetTaskData().GetTaskId(), vote.MsgOption.ReceiverRole.String(),
@@ -664,7 +664,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consens
 
 	log.Debugf("Received remote commitMsg, remote pid: {%s}, consensusSymbol: {%s}, commitMsg: %s", pid, consensusSymbol.string(), msg.String())
 
-	if t.hasNotOrgProposal(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
+	if t.hasNotOrgProposalWithPartyId(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
 		return fmt.Errorf("%s onCommitMsg", ctypes.ErrProposalNotFound)
 	}
 
@@ -680,7 +680,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consens
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.getProposalTask(orgProposalState.GetTaskId(), msg.MsgOption.ReceiverPartyId)
+	proposalTask, ok := t.getProposalTaskWithPartyId(orgProposalState.GetTaskId(), msg.MsgOption.ReceiverPartyId)
 	if !ok {
 		return fmt.Errorf("%s, on the commit msg [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 			ctypes.ErrProposalTaskNotFound, proposalTask.GetTaskData().GetTaskId(), msg.MsgOption.ReceiverRole.String(),

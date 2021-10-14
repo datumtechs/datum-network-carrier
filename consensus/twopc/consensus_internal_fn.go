@@ -18,14 +18,14 @@ import (
 )
 
 
-func (t *Twopc) hasOrgProposal(proposalId common.Hash, partyId string) bool {
+func (t *Twopc) hasOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
 	return t.state.HasOrgProposal(proposalId, partyId)
 }
-func (t *Twopc) hasNotOrgProposal(proposalId common.Hash, partyId string) bool {
+func (t *Twopc) hasNotOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
 	return t.state.HasNotOrgProposal(proposalId, partyId)
 }
 
-func (t *Twopc) addProposalTask(partyId string, task *types.ProposalTask) {
+func (t *Twopc) addProposalTaskWithPartyId(partyId string, task *types.ProposalTask) {
 	t.proposalTaskLock.Lock()
 	partyCache, ok := t.proposalTaskCache[task.GetTaskId()]
 	if !ok {
@@ -36,7 +36,7 @@ func (t *Twopc) addProposalTask(partyId string, task *types.ProposalTask) {
 
 	t.proposalTaskLock.Unlock()
 }
-func (t *Twopc) removeProposalTask(taskId, partyId string) {
+func (t *Twopc) removeProposalTaskWithPartyId(taskId, partyId string) {
 	t.proposalTaskLock.Lock()
 	partyCache, ok := t.proposalTaskCache[taskId]
 	if ok {
@@ -48,7 +48,7 @@ func (t *Twopc) removeProposalTask(taskId, partyId string) {
 	t.proposalTaskLock.Unlock()
 }
 
-func (t *Twopc) hasProposalTask(taskId, partyId string) bool {
+func (t *Twopc) hasProposalTaskWithPartyId(taskId, partyId string) bool {
 	t.proposalTaskLock.RLock()
 	defer t.proposalTaskLock.RUnlock()
 	partyCache, ok := t.proposalTaskCache[taskId]
@@ -61,11 +61,11 @@ func (t *Twopc) hasProposalTask(taskId, partyId string) bool {
 	}
 	return true
 }
-func (t *Twopc) hasNotProposalTask(taskId, partyId string) bool {
-	return !t.hasProposalTask(taskId, partyId)
+func (t *Twopc) hasNotProposalTaskWithPartyId(taskId, partyId string) bool {
+	return !t.hasProposalTaskWithPartyId(taskId, partyId)
 }
 
-func (t *Twopc) getProposalTask(taskId, partyId string) (*types.ProposalTask, bool) {
+func (t *Twopc) getProposalTaskWithPartyId(taskId, partyId string) (*types.ProposalTask, bool) {
 	t.proposalTaskLock.RLock()
 	defer t.proposalTaskLock.RUnlock()
 	partyCache, ok := t.proposalTaskCache[taskId]
@@ -76,9 +76,9 @@ func (t *Twopc) getProposalTask(taskId, partyId string) (*types.ProposalTask, bo
 	return task, ok
 }
 
-func (t *Twopc) mustGetProposalTask(taskId, partyId string) *types.ProposalTask {
+func (t *Twopc) mustGetProposalTaskWithPartyId(taskId, partyId string) *types.ProposalTask {
 	t.proposalTaskLock.RLock()
-	task, _ := t.getProposalTask(taskId, partyId)
+	task, _ := t.getProposalTaskWithPartyId(taskId, partyId)
 	t.proposalTaskLock.RUnlock()
 	return task
 }
@@ -202,7 +202,7 @@ func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
 		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
-		t.removeProposalTask(state.GetTaskId(), partyId)
+		t.removeProposalTaskWithPartyId(state.GetTaskId(), partyId)
 		t.state.CleanOrgProposalState(proposalId, partyId)
 		go func() {
 			t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
@@ -306,14 +306,28 @@ func (t *Twopc) refreshProposalState() {
 		for partyId, orgState := range pstate.GetStateCache() {
 
 			if orgState.IsDeadline() {
-				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, remove org proposalState and task cache on Consensus, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-				pstate.RemoveOrgProposalStateUnSafe(partyId)
-				t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
+				pstate.RemoveOrgProposalStateUnSafe(partyId)  					// remove state with partyId
+				t.removeProposalTaskWithPartyId(pstate.GetTaskId(), partyId)    // remove proposal task with partyId
+				t.state.RemoveOrgPrepareVoteState(proposalId, partyId)			// remove prepare vote with partyId
+				t.state.RemoveOrgConfirmVoteState(proposalId, partyId)			// remove confirm vote with partyId
+
+				if pstate.IsEmpty() {
+					delete(t.state.proposalSet, proposalId)
+					t.removeConfirmTaskPeerInfo(proposalId)						// remove confirm peers
+				} else {
+					t.state.proposalSet[proposalId] = pstate
+				}
+				go func() {														// remove wal record
+					t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
+				}()
+
 				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
-				t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				continue
 			}
 
@@ -361,11 +375,25 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					pstate.RemoveOrgProposalStateUnSafe(partyId)
-					t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
+					pstate.RemoveOrgProposalStateUnSafe(partyId)  					// remove state with partyId
+					t.removeProposalTaskWithPartyId(pstate.GetTaskId(), partyId)    // remove proposal task with partyId
+					t.state.RemoveOrgPrepareVoteState(proposalId, partyId)			// remove prepare vote with partyId
+					t.state.RemoveOrgConfirmVoteState(proposalId, partyId)			// remove confirm vote with partyId
+
+					if pstate.IsEmpty() {
+						delete(t.state.proposalSet, proposalId)
+						t.removeConfirmTaskPeerInfo(proposalId)						// remove confirm peers
+					} else {
+						t.state.proposalSet[proposalId] = pstate
+					}
+					go func() {														// remove wal record
+						t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
+					}()
+
 					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
 
-					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				}
 
 			default:
@@ -393,7 +421,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
 	} else {
 
-		//if t.hasNotProposalTask(taskId, partyId) {
+		//if t.hasNotProposalTaskWithPartyId(taskId, partyId) {
 		//	t.removeOrgProposalStateAndTask(proposalId, partyId)
 		//	return
 		//}
@@ -421,7 +449,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 			},
 			apicommonpb.TaskRole_TaskRole_Sender,
 			taskSender,
-			t.mustGetProposalTask(taskId, partyId).GetTask(),
+			t.mustGetProposalTaskWithPartyId(taskId, partyId).GetTask(),
 			types.TaskConsensusInterrupt,
 			nil,
 			nil,
