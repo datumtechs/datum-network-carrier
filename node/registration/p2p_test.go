@@ -27,6 +27,7 @@ func TestP2PPreregistration(t *testing.T) {
 	testDataDir := "testDataDir"
 
 	file, err := ioutil.TempFile(t.TempDir(), "bootstrapFile*.yaml")
+	defer file.Close()
 	require.NoError(t, err)
 	err = ioutil.WriteFile(file.Name(), []byte(sampleNode), 0644)
 	require.NoError(t, err, "Error in WriteFile call")
@@ -49,6 +50,7 @@ func TestP2PPreregistration(t *testing.T) {
 
 func TestBootStrapNodeFile(t *testing.T) {
 	file, err := ioutil.TempFile(t.TempDir(), "bootstrapFile")
+	defer file.Close()
 	require.NoError(t, err)
 
 	sampleNode0 := "- enr:-Ku4QMKVC_MowDsmEa20d5uGjrChI0h8_KsKXDmgVQbIbngZV0i" +
@@ -68,6 +70,7 @@ func TestBootStrapNodeFile(t *testing.T) {
 
 func TestStaticNodeFile(t *testing.T) {
 	file, err := ioutil.TempFile(t.TempDir(), "staticFile")
+	defer file.Close()
 	require.NoError(t, err)
 
 	sampleNode := `[
