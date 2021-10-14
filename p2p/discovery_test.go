@@ -5,8 +5,6 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	"github.com/RosettaFlow/Carrier-Go/common/feed"
-	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/iputils"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p/peers"
@@ -195,7 +193,7 @@ func TestStaticPeering_PeersAreAdded(t *testing.T) {
 	}()
 	time.Sleep(10 * time.Millisecond)
 	// Send in a loop to ensure it is delivered (busy wait for the service to subscribe to the state feed).
-	for sent := 0; sent == 0; {
+	/*for sent := 0; sent == 0; {
 		sent = s.stateNotifier.StateFeed().Send(&feed.Event{
 			Type: statefeed.Initialized,
 			Data: &statefeed.InitializedData{
@@ -203,7 +201,7 @@ func TestStaticPeering_PeersAreAdded(t *testing.T) {
 				GenesisValidatorsRoot: make([]byte, 32),
 			},
 		})
-	}
+	}*/
 	time.Sleep(4 * time.Second)
 	peers := s.host.Network().Peers()
 	assert.Equal(t, 5, len(peers), "Not all peers added to peerstore")
