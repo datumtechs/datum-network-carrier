@@ -57,14 +57,14 @@ func makePrepareVote(
 	proposalId common.Hash,
 	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	task *types.Task,
+	owner *apicommonpb.TaskOrganization,
 	voteOption types.VoteOption,
 	peerInfo *types.PrepareVoteResource,
 	startTime uint64,
 ) *twopcpb.PrepareVote {
 
 	return &twopcpb.PrepareVote{
-		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		VoteOption: voteOption.Bytes(),
 		PeerInfo:   types.ConvertTaskPeerInfo(peerInfo),
 		CreateAt:   startTime,
@@ -76,13 +76,13 @@ func makeConfirmMsg(
 	proposalId common.Hash,
 	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	task *types.Task,
+	owner *apicommonpb.TaskOrganization,
 	peers *twopcpb.ConfirmTaskPeerInfo,
 	startTime uint64,
 ) *twopcpb.ConfirmMsg {
 
 	msg := &twopcpb.ConfirmMsg{
-		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		Peers:     peers,
 		CreateAt:  startTime,
 		Sign:      nil,
@@ -95,13 +95,13 @@ func makeConfirmVote(
 	proposalId common.Hash,
 	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	task *types.Task,
+	owner *apicommonpb.TaskOrganization,
 	voteOption types.VoteOption,
 	startTime uint64,
 ) *twopcpb.ConfirmVote {
 
 	return &twopcpb.ConfirmVote{
-		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		MsgOption:  makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		VoteOption: voteOption.Bytes(),
 		CreateAt:   startTime,
 		Sign:       nil,
@@ -112,19 +112,17 @@ func makeCommitMsg(
 	proposalId common.Hash,
 	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	task *types.Task,
+	owner *apicommonpb.TaskOrganization,
 	startTime uint64,
 ) *twopcpb.CommitMsg {
 
 	msg := &twopcpb.CommitMsg{
-		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		MsgOption: makeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, owner),
 		CreateAt:  startTime,
 		Sign:      nil,
 	}
 	return msg
 }
-
-
 
 func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 
@@ -188,4 +186,3 @@ func fetchCommitMsg(msg *types.CommitMsgWrap) *types.CommitMsg {
 		Sign:      msg.Sign,
 	}
 }
-

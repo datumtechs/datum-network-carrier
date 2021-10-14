@@ -113,7 +113,7 @@ type MsgOption struct {
 }
 
 func (option *MsgOption) String() string {
-	return fmt.Sprintf(`{"ProposalId": %s, "senderRole": %s, "senderPartyId": %s, "receiverRole": %s, "receiverPartyId": %s, "owner": %s}`,
+	return fmt.Sprintf(`{"ProposalId": "%s", "senderRole": "%s", "senderPartyId": "%s", "receiverRole": "%s", "receiverPartyId": "%s", "owner": %s}`,
 		option.ProposalId.String(), option.SenderRole.String(), option.SenderPartyId, option.ReceiverRole.String(), option.ReceiverPartyId, option.Owner.String())
 }
 
@@ -175,7 +175,7 @@ type PrepareVote struct {
 
 func (vote *PrepareVote) PeerInfoEmpty () bool { return nil == vote.PeerInfo }
 func (vote *PrepareVote) String() string {
-	return fmt.Sprintf(`{"msgOption": %s, "voteOption": %s, "peerInfo": %s, "createAt": %d, "sign": %v}`,
+	return fmt.Sprintf(`{"msgOption": %s, "voteOption": "%s", "peerInfo": %s, "createAt": %d, "sign": %v}`,
 		vote.MsgOption.String(), vote.VoteOption.String(), vote.PeerInfo.String(), vote.CreateAt, vote.Sign)
 }
 

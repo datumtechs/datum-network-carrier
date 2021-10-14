@@ -411,11 +411,11 @@ func (t *Twopc) TaskConsensusInterrupt(
 	proposalId common.Hash,
 	localPid peer.ID,
 	taskId, partyId string,
-	identity *apicommonpb.Organization,
-	taskSender *apicommonpb.TaskOrganization,
+	sender *apicommonpb.Organization,
+	receiver *apicommonpb.TaskOrganization,
 ) {
 	// Send task result msg to remote peer, if current org identityId is not task sender identityId
-	if identity.GetIdentityId() == taskSender.GetIdentityId() {
+	if sender.GetIdentityId() == receiver.GetIdentityId() {
 		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on local org, taskId: {%s}, partyId: {%s}",
 			taskId, partyId)
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
@@ -431,7 +431,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 			Type:       evengine.TaskProposalStateDeadline.Type,
-			IdentityId: identity.GetIdentityId(),
+			IdentityId: sender.GetIdentityId(),
 			TaskId:     taskId,
 			Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 			CreateAt:   timeutils.UnixMsecUint64(),
@@ -443,12 +443,12 @@ func (t *Twopc) TaskConsensusInterrupt(
 			apicommonpb.TaskRole_TaskRole_Unknown,
 			&apicommonpb.TaskOrganization{
 				PartyId:    partyId,
-				NodeName:   identity.GetNodeName(),
-				NodeId:     identity.GetNodeId(),
-				IdentityId: identity.GetIdentityId(),
+				NodeName:   sender.GetNodeName(),
+				NodeId:     sender.GetNodeId(),
+				IdentityId: sender.GetIdentityId(),
 			},
 			apicommonpb.TaskRole_TaskRole_Sender,
-			taskSender,
+			receiver,
 			t.mustGetProposalTaskWithPartyId(taskId, partyId).GetTask(),
 			types.TaskConsensusInterrupt,
 			nil,
@@ -624,7 +624,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 			return
 		}
 
-		confirmMsg := makeConfirmMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), task, peers, startTime)
+		confirmMsg := makeConfirmMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), sender, peers, startTime)
 
 		var sendErr error
 		var logdesc string
@@ -720,7 +720,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 			return
 		}
 
-		commitMsg := makeCommitMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), task, startTime)
+		commitMsg := makeCommitMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), sender, startTime)
 
 		var sendErr error
 		var logdesc string

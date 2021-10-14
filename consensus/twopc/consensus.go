@@ -276,7 +276,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 			msg.MsgOption.SenderRole,
 			msg.MsgOption.ReceiverPartyId,
 			msg.MsgOption.SenderPartyId,
-			proposal.Task,
+			receiver,
 			types.No,
 			&types.PrepareVoteResource{},
 			timeutils.UnixMsecUint64(),
@@ -290,7 +290,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 			msg.MsgOption.SenderRole,
 			msg.MsgOption.ReceiverPartyId,
 			msg.MsgOption.SenderPartyId,
-			proposal.Task,
+			receiver,
 			types.Yes,
 			types.NewPrepareVoteResource(
 				replayTaskResult.GetResource().Id,
@@ -517,7 +517,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 		msg.MsgOption.SenderRole,
 		msg.MsgOption.ReceiverPartyId,
 		msg.MsgOption.SenderPartyId,
-		proposalTask.Task,
+		receiver,
 		types.Yes,
 		timeutils.UnixMsecUint64(),
 	)
