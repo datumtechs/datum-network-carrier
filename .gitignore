@@ -21,3 +21,5 @@ deb
 /proto/scripts/protoc-gen-gorosetta
 /gui/next-gen-gui
 .idea
+p2p/metaData
+p2p/network-keys
