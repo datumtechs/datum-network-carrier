@@ -49,7 +49,7 @@ func (s *Service) pingHandler(_ context.Context, msg interface{}, stream libp2pc
 		return nil
 	}
 
-	// The sequence number was not valid.  TwopcMsgStart our own ping back to the peer.
+	// The sequence number was not valid.  Start our own ping back to the peer.
 	go func() {
 		// New context so the calling function doesn't cancel on us.
 		ctx, cancel := context.WithTimeout(context.Background(), ttfbTimeout)
