@@ -335,7 +335,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 	log.Debugf("Received remote prepareVote, remote pid: {%s}, consensusSymbol: {%s}, prepareVote: %s", pid, consensusSymbol.string(), vote.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
-		log.Errorf("Failed to check org proposalState has exist on onPrepareVote, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to check org proposalState has not exist on onPrepareVote, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			vote.MsgOption.ProposalId.String(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("%s onPrepareVote", ctypes.ErrProposalNotFound)
 	}
@@ -374,7 +374,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 	}
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId and current identityId is same on onPrepareVote, they are not same, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to verify receiver identityId of prepareVote, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId)
 		return ctypes.ErrConsensusMsgInvalid
 	}
@@ -488,7 +488,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 	log.Debugf("Received remote confirmMsg, remote pid: {%s}, consensusSymbol: {%s}, confirmMsg: %s", pid, consensusSymbol.string(), msg.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
-		log.Errorf("Failed to check org proposalState has exist on onConfirmMsg, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to check org proposalState has not exist on onConfirmMsg, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 					msg.MsgOption.ProposalId.String(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("%s onConfirmMsg", ctypes.ErrProposalNotFound)
 	}
@@ -534,7 +534,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
 
-		log.Errorf("Failed to verify receiver identityId of confirmMsg and current identityId is same on onConfirmMsg, they are not same, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to verify receiver identityId of confirmMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return ctypes.ErrConsensusMsgInvalid
 	}
@@ -657,7 +657,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 	log.Debugf("Received remote confirmVote, remote pid: {%s}, consensusSymbol: {%s}, comfirmVote: %s", pid, consensusSymbol.string(), vote.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
-		log.Errorf("Failed to check org proposalState has exist on onConfirmVote, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to check org proposalState has not exist on onConfirmVote, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			vote.MsgOption.ProposalId.String(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("%s onConfirmVote", ctypes.ErrProposalNotFound)
 	}
@@ -701,7 +701,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 	}
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId and current identityId is same on onConfirmVote, they are not same, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to verify receiver identityId of confirmVote, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId)
 		return ctypes.ErrConsensusMsgInvalid
 	}
@@ -810,7 +810,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consens
 	log.Debugf("Received remote commitMsg, remote pid: {%s}, consensusSymbol: {%s}, commitMsg: %s", pid, consensusSymbol.string(), msg.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
-		log.Errorf("Failed to check org proposalState has exist on onCommitMsg, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to check org proposalState has not exist on onCommitMsg, it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("%s onCommitMsg", ctypes.ErrProposalNotFound)
 	}
@@ -863,7 +863,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consens
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
 
-		log.Errorf("Failed to verify receiver identityId of commitMsg and current identityId is same on onCommitMsg, they are not same, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Errorf("Failed to verify receiver identityId of commitMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return ctypes.ErrConsensusMsgInvalid
 	}

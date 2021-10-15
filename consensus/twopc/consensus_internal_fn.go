@@ -159,7 +159,6 @@ func (t *Twopc) refreshProposalState() {
 					if nil != err {
 						log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
 
-						pstate.MustUnLock()
 						continue
 					}
 					pid = senderPid
@@ -171,7 +170,6 @@ func (t *Twopc) refreshProposalState() {
 
 				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender(), task)
 
-				pstate.MustUnLock()
 				continue
 			}
 
@@ -247,7 +245,6 @@ func (t *Twopc) refreshProposalState() {
 						if nil != err {
 							log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
 
-							pstate.MustUnLock()
 							continue
 						}
 						pid = senderPid
