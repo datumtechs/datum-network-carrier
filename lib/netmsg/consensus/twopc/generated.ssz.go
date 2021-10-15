@@ -400,7 +400,7 @@ func (c *ConfirmMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the ConfirmMsg object to a target array
 func (c *ConfirmMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(20)
+	offset := int(24)
 
 	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
@@ -409,17 +409,21 @@ func (c *ConfirmMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	offset += c.MsgOption.SizeSSZ()
 
-	// Offset (1) 'Peers'
+	// Offset (1) 'ConfirmOption'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(c.ConfirmOption)
+
+	// Offset (2) 'Peers'
 	dst = ssz.WriteOffset(dst, offset)
 	if c.Peers == nil {
 		c.Peers = new(ConfirmTaskPeerInfo)
 	}
 	offset += c.Peers.SizeSSZ()
 
-	// Field (2) 'CreateAt'
+	// Field (3) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
-	// Offset (3) 'Sign'
+	// Offset (4) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(c.Sign)
 
@@ -428,12 +432,19 @@ func (c *ConfirmMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 
-	// Field (1) 'Peers'
+	// Field (1) 'ConfirmOption'
+	if len(c.ConfirmOption) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, c.ConfirmOption...)
+
+	// Field (2) 'Peers'
 	if dst, err = c.Peers.MarshalSSZTo(dst); err != nil {
 		return
 	}
 
-	// Field (3) 'Sign'
+	// Field (4) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -447,32 +458,37 @@ func (c *ConfirmMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (c *ConfirmMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 20 {
+	if size < 24 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o3 uint64
+	var o0, o1, o2, o4 uint64
 
 	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 20 {
+	if o0 < 24 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Offset (1) 'Peers'
+	// Offset (1) 'ConfirmOption'
 	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
 		return ssz.ErrOffset
 	}
 
-	// Field (2) 'CreateAt'
-	c.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+	// Offset (2) 'Peers'
+	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+		return ssz.ErrOffset
+	}
 
-	// Offset (3) 'Sign'
-	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
+	// Field (3) 'CreateAt'
+	c.CreateAt = ssz.UnmarshallUint64(buf[12:20])
+
+	// Offset (4) 'Sign'
+	if o4 = ssz.ReadOffset(buf[20:24]); o4 > size || o2 > o4 {
 		return ssz.ErrOffset
 	}
 
@@ -487,9 +503,21 @@ func (c *ConfirmMsg) UnmarshalSSZ(buf []byte) error {
 		}
 	}
 
-	// Field (1) 'Peers'
+	// Field (1) 'ConfirmOption'
 	{
-		buf = tail[o1:o3]
+		buf = tail[o1:o2]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(c.ConfirmOption) == 0 {
+			c.ConfirmOption = make([]byte, 0, len(buf))
+		}
+		c.ConfirmOption = append(c.ConfirmOption, buf...)
+	}
+
+	// Field (2) 'Peers'
+	{
+		buf = tail[o2:o4]
 		if c.Peers == nil {
 			c.Peers = new(ConfirmTaskPeerInfo)
 		}
@@ -498,9 +526,9 @@ func (c *ConfirmMsg) UnmarshalSSZ(buf []byte) error {
 		}
 	}
 
-	// Field (3) 'Sign'
+	// Field (4) 'Sign'
 	{
-		buf = tail[o3:]
+		buf = tail[o4:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -514,7 +542,7 @@ func (c *ConfirmMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the ConfirmMsg object
 func (c *ConfirmMsg) SizeSSZ() (size int) {
-	size = 20
+	size = 24
 
 	// Field (0) 'MsgOption'
 	if c.MsgOption == nil {
@@ -522,13 +550,16 @@ func (c *ConfirmMsg) SizeSSZ() (size int) {
 	}
 	size += c.MsgOption.SizeSSZ()
 
-	// Field (1) 'Peers'
+	// Field (1) 'ConfirmOption'
+	size += len(c.ConfirmOption)
+
+	// Field (2) 'Peers'
 	if c.Peers == nil {
 		c.Peers = new(ConfirmTaskPeerInfo)
 	}
 	size += c.Peers.SizeSSZ()
 
-	// Field (3) 'Sign'
+	// Field (4) 'Sign'
 	size += len(c.Sign)
 
 	return
@@ -548,15 +579,22 @@ func (c *ConfirmMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 
-	// Field (1) 'Peers'
+	// Field (1) 'ConfirmOption'
+	if len(c.ConfirmOption) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(c.ConfirmOption)
+
+	// Field (2) 'Peers'
 	if err = c.Peers.HashTreeRootWith(hh); err != nil {
 		return
 	}
 
-	// Field (2) 'CreateAt'
+	// Field (3) 'CreateAt'
 	hh.PutUint64(c.CreateAt)
 
-	// Field (3) 'Sign'
+	// Field (4) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -1060,7 +1098,7 @@ func (c *CommitMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the CommitMsg object to a target array
 func (c *CommitMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(16)
+	offset := int(20)
 
 	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
@@ -1069,10 +1107,14 @@ func (c *CommitMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	offset += c.MsgOption.SizeSSZ()
 
-	// Field (1) 'CreateAt'
+	// Offset (1) 'CommitOption'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(c.CommitOption)
+
+	// Field (2) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, c.CreateAt)
 
-	// Offset (2) 'Sign'
+	// Offset (3) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(c.Sign)
 
@@ -1081,7 +1123,14 @@ func (c *CommitMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 		return
 	}
 
-	// Field (2) 'Sign'
+	// Field (1) 'CommitOption'
+	if len(c.CommitOption) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, c.CommitOption...)
+
+	// Field (3) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -1095,33 +1144,38 @@ func (c *CommitMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (c *CommitMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 16 {
+	if size < 20 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o2 uint64
+	var o0, o1, o3 uint64
 
 	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 16 {
+	if o0 < 20 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
-	// Field (1) 'CreateAt'
-	c.CreateAt = ssz.UnmarshallUint64(buf[4:12])
+	// Offset (1) 'CommitOption'
+	if o1 = ssz.ReadOffset(buf[4:8]); o1 > size || o0 > o1 {
+		return ssz.ErrOffset
+	}
 
-	// Offset (2) 'Sign'
-	if o2 = ssz.ReadOffset(buf[12:16]); o2 > size || o0 > o2 {
+	// Field (2) 'CreateAt'
+	c.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+
+	// Offset (3) 'Sign'
+	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
 		return ssz.ErrOffset
 	}
 
 	// Field (0) 'MsgOption'
 	{
-		buf = tail[o0:o2]
+		buf = tail[o0:o1]
 		if c.MsgOption == nil {
 			c.MsgOption = new(common.MsgOption)
 		}
@@ -1130,9 +1184,21 @@ func (c *CommitMsg) UnmarshalSSZ(buf []byte) error {
 		}
 	}
 
-	// Field (2) 'Sign'
+	// Field (1) 'CommitOption'
 	{
-		buf = tail[o2:]
+		buf = tail[o1:o3]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(c.CommitOption) == 0 {
+			c.CommitOption = make([]byte, 0, len(buf))
+		}
+		c.CommitOption = append(c.CommitOption, buf...)
+	}
+
+	// Field (3) 'Sign'
+	{
+		buf = tail[o3:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -1146,7 +1212,7 @@ func (c *CommitMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the CommitMsg object
 func (c *CommitMsg) SizeSSZ() (size int) {
-	size = 16
+	size = 20
 
 	// Field (0) 'MsgOption'
 	if c.MsgOption == nil {
@@ -1154,7 +1220,10 @@ func (c *CommitMsg) SizeSSZ() (size int) {
 	}
 	size += c.MsgOption.SizeSSZ()
 
-	// Field (2) 'Sign'
+	// Field (1) 'CommitOption'
+	size += len(c.CommitOption)
+
+	// Field (3) 'Sign'
 	size += len(c.Sign)
 
 	return
@@ -1174,10 +1243,17 @@ func (c *CommitMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 		return
 	}
 
-	// Field (1) 'CreateAt'
+	// Field (1) 'CommitOption'
+	if len(c.CommitOption) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(c.CommitOption)
+
+	// Field (2) 'CreateAt'
 	hh.PutUint64(c.CreateAt)
 
-	// Field (2) 'Sign'
+	// Field (3) 'Sign'
 	if len(c.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return

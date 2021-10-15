@@ -17,6 +17,7 @@ import (
 
 func TestPrivateKeyLoading(t *testing.T) {
 	file, err := ioutil.TempFile(t.TempDir(), "key")
+	defer file.Close()
 	require.NoError(t, err)
 	key, _, err := crypto.GenerateSecp256k1Key(rand.Reader)
 	require.NoError(t, err, "Could not generate key")

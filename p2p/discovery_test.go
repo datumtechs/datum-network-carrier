@@ -280,6 +280,7 @@ func TestUDPMultiAddress(t *testing.T) {
 
 func TestMultipleDiscoveryAddresses(t *testing.T) {
 	db, err := enode.OpenDB(t.TempDir())
+	defer db.Close()
 	require.NoError(t, err)
 	_, key := createAddrAndPrivKey(t)
 	node := enode.NewLocalNode(db, key)
