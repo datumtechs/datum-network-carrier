@@ -144,11 +144,13 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 	}
 	log.Debugf("GetLocalResourceTables on electionComputeNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
-		if r.IsEnough(uint32(needSlotCount)) {
-
+		isEnough := r.IsEnough(uint32(needSlotCount))
+		log.Debugf("Call electionComputeNode, resource: %s, isEnough: %v", r.String(), isEnough)
+		if isEnough {
 			jobNodeClient, find := sche.internalNodeSet.QueryJobNodeClient(r.GetNodeId())
 			if find && jobNodeClient.IsConnected() {
 				resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
+				log.Debugf("Call electionComputeNode, Append resourceId: %s", r.GetNodeId())
 			}
 		}
 	}
