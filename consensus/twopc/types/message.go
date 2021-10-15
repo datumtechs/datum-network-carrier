@@ -72,10 +72,10 @@ func RecoveryProposalState(proposalId common.Hash, taskId string, sender *apicom
 		stateCache: cache,
 	}
 }
-func (pstate *ProposalState) MustLock() { pstate.lock.Lock() }
-func (pstate *ProposalState) MustUnLock() { pstate.lock.Unlock() }
-func (pstate *ProposalState) MustRLock() { pstate.lock.RLock() }
-func (pstate *ProposalState) MustRUnLock() { pstate.lock.RUnlock() }
+func (pstate *ProposalState) MustLock()                                    { pstate.lock.Lock() }
+func (pstate *ProposalState) MustUnLock()                                  { pstate.lock.Unlock() }
+func (pstate *ProposalState) MustRLock()                                   { pstate.lock.RLock() }
+func (pstate *ProposalState) MustRUnLock()                                 { pstate.lock.RUnlock() }
 func (pstate *ProposalState) GetProposalId() common.Hash                   { return pstate.proposalId }
 func (pstate *ProposalState) GetTaskId() string                            { return pstate.taskId }
 func (pstate *ProposalState) GetTaskSender() *apicommonpb.TaskOrganization { return pstate.taskSender }
@@ -97,6 +97,7 @@ func (pstate *ProposalState) RemoveOrgProposalState(partyId string) {
 	pstate.lock.Unlock()
 }
 func (pstate *ProposalState) RemoveOrgProposalStateUnSafe(partyId string) {
+	log.Debugf("Start Remove org proposalState whit unsafe, partyId: {%s}", partyId)
 	delete(pstate.stateCache, partyId)
 }
 
@@ -118,7 +119,6 @@ func (pstate *ProposalState) IsEmpty() bool {
 	return len(pstate.stateCache) == 0
 }
 func (pstate *ProposalState) IsNotEmpty() bool { return !pstate.IsEmpty() }
-
 
 type OrgProposalState struct {
 	PrePeriodStartTime uint64
@@ -153,7 +153,8 @@ func (pstate *OrgProposalState) CurrPeriodNum() ProposalStatePeriod {
 	return pstate.PeriodNum
 }
 
-func (pstate *OrgProposalState) GetTaskId() string { return pstate.TaskId }
+func (pstate *OrgProposalState) GetTaskId() string                 { return pstate.TaskId }
+func (pstate *OrgProposalState) GetTaskRole() apicommonpb.TaskRole { return pstate.TaskRole }
 func (pstate *OrgProposalState) GetPeriod() string {
 
 	switch pstate.PeriodNum {

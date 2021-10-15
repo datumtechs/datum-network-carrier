@@ -58,70 +58,58 @@ func VoteOptionFromBytes(option []byte) VoteOption {
 	if len(option) != 1 {
 		return VoteUnknown
 	}
-	return VoteOptionFromUint8(uint8(option[0]))
+	return VoteOptionFromUint8(option[0])
 }
 
 
 
 
-//type TaskRole uint8
-//
-//func (t TaskRole) Bytes() []byte { return []byte{byte(t)} }
-//func (t TaskRole) String() string {
-//	switch t {
-//	case DataSupplier:
-//		return "DataSupplier"
-//	case PowerSupplier:
-//		return "PowerSupplier"
-//	case ResultSupplier:
-//		return "ResultSupplier"
-//	case TaskOwner:
-//		return "TaskOwner"
-//	default:
-//		return "TaskRoleUnknown"
-//	}
-//}
-//
-//const (
-//	TaskRoleUnknown TaskRole = 0x00
-//	DataSupplier    TaskRole = 0x01
-//	PowerSupplier   TaskRole = 0x02
-//	ResultSupplier  TaskRole = 0x03
-//	TaskOwner       TaskRole = 0x04
-//)
-//
-//func TaskRoleFromUint8(role uint8) TaskRole {
-//	switch role {
-//	case 0x01:
-//		return DataSupplier
-//	case 0x02:
-//		return PowerSupplier
-//	case 0x03:
-//		return ResultSupplier
-//	case 0x04:
-//		return TaskOwner
-//	default:
-//		return TaskRoleUnknown
-//	}
-//}
-//
-//func TaskRoleFromStr(role string) TaskRole {
-//	switch role {
-//	case "DataSupplier":
-//		return DataSupplier
-//	case "PowerSupplier":
-//		return PowerSupplier
-//	case "ResultSupplier":
-//		return ResultSupplier
-//	case "TaskOwner":
-//		return TaskOwner
-//	default:
-//		return TaskRoleUnknown
-//	}
-//}
-//func TaskRoleFromBytes(role []byte) TaskRole {
-//	if len(role) != 1 {
-//		return TaskRoleUnknown
-//	}
-//	return TaskRoleFromUint8(role[0])
-//}
+type TwopcMsgOption uint8
+
+func (c TwopcMsgOption) Bytes() []byte { return []byte{byte(c)} }
+func (c TwopcMsgOption) String() string {
+	switch c {
+	case TwopcMsgStart:
+		return "Start"
+	case TwopcMsgStop:
+		return "Stop"
+	default:
+		return "Unknown"
+	}
+}
+
+const (
+	TwopcMsgUnknown TwopcMsgOption = 0x00
+	TwopcMsgStart   TwopcMsgOption = 0x01
+	TwopcMsgStop    TwopcMsgOption = 0x02
+)
+
+func TwopcMsgOptionFromUint8(option uint8) TwopcMsgOption {
+	switch option {
+	case 0x01:
+		return TwopcMsgStart
+	case 0x02:
+		return TwopcMsgStop
+	default:
+		return TwopcMsgUnknown
+	}
+}
+func TwopcMsgOptionFromStr(option string) TwopcMsgOption {
+	switch option {
+	case "Start":
+		return TwopcMsgStart
+	case "Stop":
+		return TwopcMsgStop
+	default:
+		return TwopcMsgUnknown
+	}
+}
+func TwopcMsgOptionFromBytes(option []byte) TwopcMsgOption {
+	if len(option) != 1 {
+		return TwopcMsgUnknown
+	}
+	return TwopcMsgOptionFromUint8(option[0])
+}
+
+
+

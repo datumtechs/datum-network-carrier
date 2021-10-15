@@ -50,7 +50,7 @@ type Service struct {
 // initialisation of the common Carrier object)
 func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consensusStateFile string) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
-	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
+	_ = cancel // govet fix for lost cancel. Cancel is handled in service.TwopcMsgStop()
 
 	nodeIdStr := config.P2P.NodeId()
 	// read config from p2p config.

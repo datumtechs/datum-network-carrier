@@ -47,7 +47,7 @@ func initLDB(conf *Config) (*db.LDBDatabase, error) {
 	} else {
 		var jsonfile jsonFile
 		if err := fileutil.LoadJSON(configFile, &jsonfile); err != nil {
-			log.Errorf("Failed to load `--consensus-state-file` on Start twoPC, file: {%s}, err: {%s}", configFile, err)
+			log.Errorf("Failed to load `--consensus-state-file` on TwopcMsgStart twoPC, file: {%s}, err: {%s}", configFile, err)
 			return nil, err
 		} else {
 			savePath, cache, handles = jsonfile.SavePath, jsonfile.Cache, jsonfile.Handles

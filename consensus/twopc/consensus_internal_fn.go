@@ -17,198 +17,12 @@ import (
 	"sync"
 )
 
-
-func (t *Twopc) hasOrgProposal(proposalId common.Hash, partyId string) bool {
-	return t.state.HasOrgProposal(proposalId, partyId)
-}
-func (t *Twopc) hasNotOrgProposal(proposalId common.Hash, partyId string) bool {
-	return t.state.HasNotOrgProposal(proposalId, partyId)
-}
-
-func (t *Twopc) addProposalTask(partyId string, task *types.ProposalTask) {
-	t.proposalTaskLock.Lock()
-	partyCache, ok := t.proposalTaskCache[task.GetTaskId()]
-	if !ok {
-		partyCache = make(map[string]*types.ProposalTask, 0)
-	}
-	partyCache[partyId] = task
-	t.proposalTaskCache[task.GetTaskId()] = partyCache
-
-	t.proposalTaskLock.Unlock()
-}
-func (t *Twopc) removeProposalTask(taskId, partyId string) {
-	t.proposalTaskLock.Lock()
-	partyCache, ok := t.proposalTaskCache[taskId]
-	if ok {
-		delete(partyCache, partyId)
-		if len(partyCache) == 0 {
-			delete(t.proposalTaskCache, taskId)
-		}
-	}
-	t.proposalTaskLock.Unlock()
-}
-
-func (t *Twopc) hasProposalTask(taskId, partyId string) bool {
-	t.proposalTaskLock.RLock()
-	defer t.proposalTaskLock.RUnlock()
-	partyCache, ok := t.proposalTaskCache[taskId]
-	if !ok {
-		return false
-	}
-	_, ok = partyCache[partyId]
-	if !ok {
-		return false
-	}
-	return true
-}
-func (t *Twopc) hasNotProposalTask(taskId, partyId string) bool {
-	return !t.hasProposalTask(taskId, partyId)
-}
-
-func (t *Twopc) getProposalTask(taskId, partyId string) (*types.ProposalTask, bool) {
-	t.proposalTaskLock.RLock()
-	defer t.proposalTaskLock.RUnlock()
-	partyCache, ok := t.proposalTaskCache[taskId]
-	if !ok {
-		return nil, false
-	}
-	task, ok := partyCache[partyId]
-	return task, ok
-}
-
-func (t *Twopc) mustGetProposalTask(taskId, partyId string) *types.ProposalTask {
-	t.proposalTaskLock.RLock()
-	task, _ := t.getProposalTask(taskId, partyId)
-	t.proposalTaskLock.RUnlock()
-	return task
-}
-
-func (t *Twopc) hasPrepareVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
-	return t.state.HasPrepareVoting(proposalId, org)
-}
-
-func (t *Twopc) storePrepareVote(vote *types.PrepareVote) {
-	t.state.StorePrepareVote(vote)
-}
-
-//func (t *Twopc) removePrepareVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
-//	t.state.RemovePrepareVote(proposalId, partyId, role)
-//}
-
-func (t *Twopc) hasConfirmVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
-	return t.state.HasConfirmVoting(proposalId, org)
-}
-
-func (t *Twopc) storeConfirmVote(vote *types.ConfirmVote) {
-	t.state.StoreConfirmVote(vote)
-}
-
-//func (t *Twopc) removeConfirmVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
-//	t.state.RemoveConfirmVote(proposalId, partyId, role)
-//}
-
-func (t *Twopc) getTaskPrepareYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskPrepareYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskDataSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskDataSupplierPrepareYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskPowerSupplierPrepareYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskPowerSupplierPrepareYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskReceiverPrepareYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskReceiverPrepareYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskPrepareTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskPrepareTotalVoteCount(proposalId)
-}
-func (t *Twopc) getTaskDataSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskDataSupplierPrepareTotalVoteCount(proposalId)
-}
-func (t *Twopc) getTaskPowerSupplierPrepareTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskPowerSupplierPrepareTotalVoteCount(proposalId)
-}
-func (t *Twopc) getTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskReceiverPrepareTotalVoteCount(proposalId)
-}
-
-func (t *Twopc) getTaskConfirmYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskConfirmYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskDataSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskDataSupplierConfirmYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskPowerSupplierConfirmYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskPowerSupplierConfirmYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskReceiverConfirmYesVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskReceiverConfirmYesVoteCount(proposalId)
-}
-func (t *Twopc) getTaskConfirmTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskConfirmTotalVoteCount(proposalId)
-}
-func (t *Twopc) getTaskDataSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskDataSupplierConfirmTotalVoteCount(proposalId)
-}
-func (t *Twopc) getTaskPowerSupplierConfirmTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskPowerSupplierConfirmTotalVoteCount(proposalId)
-}
-func (t *Twopc) getTaskReceiverConfirmTotalVoteCount(proposalId common.Hash) uint32 {
-	return t.state.GetTaskReceiverConfirmTotalVoteCount(proposalId)
-}
-
-func (t *Twopc) changeToConfirm(proposalId common.Hash, partyId string, startTime uint64) {
-	t.state.ChangeToConfirm(proposalId, partyId, startTime)
-}
-func (t *Twopc) changeToCommit(proposalId common.Hash, partyId string, startTime uint64) {
-	t.state.ChangeToCommit(proposalId, partyId, startTime)
-}
-
-func (t *Twopc) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
-	t.taskResultLock.Lock()
-	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
-	t.taskResultChSet[taskId] = resultCh
-	t.taskResultLock.Unlock()
-}
-func (t *Twopc) removeTaskResultCh(taskId string) {
-	t.taskResultLock.Lock()
-	log.Debugf("RemoveTaskResultCh taskId: {%s}", taskId)
-	delete(t.taskResultChSet, taskId)
-	t.taskResultLock.Unlock()
-}
-func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
-	t.taskResultBusCh <- result
-}
-func (t *Twopc) handleTaskConsensusResult(result *types.TaskConsResult) {
-	t.taskResultLock.Lock()
-	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
-	if ch, ok := t.taskResultChSet[result.TaskId]; ok {
-		log.Debugf("Start SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
-		ch <- result
-		close(ch)
-		delete(t.taskResultChSet, result.TaskId)
-	}
-	t.taskResultLock.Unlock()
-}
-
-func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
-	t.needReplayScheduleTaskCh <- task
-}
-
-func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
-	t.needExecuteTaskCh <- task
-}
-
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
 	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
-		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
-		t.removeProposalTask(state.GetTaskId(), partyId)
-		t.state.CleanOrgProposalState(proposalId, partyId)
-		go func() {
-			t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
-			t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
-			t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
-		}()
+		log.Infof("TwopcMsgStart remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
+		t.state.RemoveOrgProposalStateAnyCache(proposalId, state.GetTaskId(), partyId) // remove task/proposal state/prepare vote/ confirm vote and wal with partyId
+	} else {
+		t.state.RemoveConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
 	}
 }
 
@@ -255,6 +69,15 @@ func (t *Twopc) mustGetOrgProposalState(proposalId common.Hash, partyId string) 
 	return pstate.MustGetOrgProposalState(partyId)
 }
 
+func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *twopcpb.ConfirmTaskPeerInfo {
+	return &twopcpb.ConfirmTaskPeerInfo{
+		OwnerPeerInfo:              &twopcpb.TaskPeerInfo{},
+		DataSupplierPeerInfoList:   make([]*twopcpb.TaskPeerInfo, 0),
+		PowerSupplierPeerInfoList:  make([]*twopcpb.TaskPeerInfo, 0),
+		ResultReceiverPeerInfoList: make([]*twopcpb.TaskPeerInfo, 0),
+	}
+}
+
 func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 
 	var sender *twopcpb.TaskPeerInfo
@@ -291,12 +114,11 @@ func (t *Twopc) refreshProposalState() {
 		//log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
 		return
 	}
-
-	pid, err := p2p.HexPeerID(identity.GetNodeId())
-	if nil != err {
-		log.Errorf("Failed to convert on consensus.refreshProposalState(), err: {%s}", err)
-		return
-	}
+	//localPid, err := p2p.HexPeerID(identity.GetNodeId())
+	//if nil != err {
+	//	log.Errorf("Failed to convert nodeId to pid of local identity on consensus.refreshProposalState(), err: {%s}", err)
+	//	return
+	//}
 
 	t.state.proposalsLock.Lock()
 
@@ -306,14 +128,45 @@ func (t *Twopc) refreshProposalState() {
 		for partyId, orgState := range pstate.GetStateCache() {
 
 			if orgState.IsDeadline() {
-				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, remove org proposalState and task cache on Consensus, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-				pstate.RemoveOrgProposalStateUnSafe(partyId)
-				t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
-				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
+				t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
+				pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
+				t.state.RemoveOrgPrepareVoteState(proposalId, partyId)             // remove prepare vote with partyId
+				t.state.RemoveOrgConfirmVoteState(proposalId, partyId)             // remove confirm vote with partyId
 
-				t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
+				if pstate.IsEmpty() {
+					delete(t.state.proposalSet, proposalId)
+					t.removeConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
+				} else {
+					t.state.proposalSet[proposalId] = pstate
+				}
+				go func() { // remove wal record
+					t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
+				}()
+
+
+				var pid peer.ID
+
+				// remote task, so need convert remote pid by nodeId of task sender identity
+				if pstate.GetTaskSender().GetIdentityId() != identity.GetIdentityId() {
+					senderPid, err := p2p.HexPeerID(pstate.GetTaskSender().GetNodeId())
+					if nil != err {
+						log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
+						continue
+					}
+					pid = senderPid
+				} else {
+
+					// local task
+					pid = ""
+				}
+
+				pstate.GetTaskId()
+				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender())
 				continue
 			}
 
@@ -361,11 +214,41 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					pstate.RemoveOrgProposalStateUnSafe(partyId)
-					t.removeOrgProposalStateAndTask(pstate.GetProposalId(), partyId)
-					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, identity, pstate.GetTaskSender())
+					t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
+					pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
+					t.state.RemoveOrgPrepareVoteState(proposalId, partyId)             // remove prepare vote with partyId
+					t.state.RemoveOrgConfirmVoteState(proposalId, partyId)             // remove confirm vote with partyId
 
-					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
+					if pstate.IsEmpty() {
+						delete(t.state.proposalSet, proposalId)
+						t.removeConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
+					} else {
+						t.state.proposalSet[proposalId] = pstate
+					}
+					go func() { // remove wal record
+						t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
+					}()
+
+
+					var pid peer.ID
+
+					// remote task, so need convert remote pid by nodeId of task sender identity
+					if pstate.GetTaskSender().GetIdentityId() != identity.GetIdentityId() {
+						senderPid, err := p2p.HexPeerID(pstate.GetTaskSender().GetNodeId())
+						if nil != err {
+							log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
+							continue
+						}
+						pid = senderPid
+					} else {
+
+						// local task
+						pid = ""
+					}
+					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender())
+
 				}
 
 			default:
@@ -373,7 +256,7 @@ func (t *Twopc) refreshProposalState() {
 			}
 		}
 
-		pstate.MustUnLock()
+		pstate.MustUnLock() // todo 这个锁可能还会有问题 ...
 	}
 
 	t.state.proposalsLock.Unlock()
@@ -381,19 +264,20 @@ func (t *Twopc) refreshProposalState() {
 
 func (t *Twopc) TaskConsensusInterrupt(
 	proposalId common.Hash,
-	localPid peer.ID,
+	pid peer.ID,
 	taskId, partyId string,
-	identity *apicommonpb.Organization,
-	taskSender *apicommonpb.TaskOrganization,
+	role  apicommonpb.TaskRole,
+	sender *apicommonpb.Organization,
+	receiver *apicommonpb.TaskOrganization,
 ) {
 	// Send task result msg to remote peer, if current org identityId is not task sender identityId
-	if identity.GetIdentityId() == taskSender.GetIdentityId() {
+	if sender.GetIdentityId() == receiver.GetIdentityId() {
 		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on local org, taskId: {%s}, partyId: {%s}",
 			taskId, partyId)
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
 	} else {
 
-		//if t.hasNotProposalTask(taskId, partyId) {
+		//if t.HasNotProposalTaskWithPartyId(taskId, partyId) {
 		//	t.removeOrgProposalStateAndTask(proposalId, partyId)
 		//	return
 		//}
@@ -403,31 +287,31 @@ func (t *Twopc) TaskConsensusInterrupt(
 
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 			Type:       evengine.TaskProposalStateDeadline.Type,
-			IdentityId: identity.GetIdentityId(),
+			IdentityId: sender.GetIdentityId(),
 			TaskId:     taskId,
 			Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 			CreateAt:   timeutils.UnixMsecUint64(),
 		})
 
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
-			localPid,
+			pid,
 			proposalId,
-			apicommonpb.TaskRole_TaskRole_Unknown,
+			role,
 			&apicommonpb.TaskOrganization{
 				PartyId:    partyId,
-				NodeName:   identity.GetNodeName(),
-				NodeId:     identity.GetNodeId(),
-				IdentityId: identity.GetIdentityId(),
+				NodeName:   sender.GetNodeName(),
+				NodeId:     sender.GetNodeId(),
+				IdentityId: sender.GetIdentityId(),
 			},
 			apicommonpb.TaskRole_TaskRole_Sender,
-			taskSender,
-			t.mustGetProposalTask(taskId, partyId).GetTask(),
+			receiver,
+			t.state.MustGetProposalTaskWithPartyId(taskId, partyId).GetTask(),
 			types.TaskConsensusInterrupt,
 			nil,
 			nil,
 		))
 
-		// clean local task cache that task manager do it.
+		// Release local task cache that task manager will do it.
 		//
 		//// release local resouce
 		//t.resourceMng.ReleaseLocalResourceWithTask("on TaskConsensusInterrupt", taskId,
@@ -436,7 +320,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 }
 
 func (t *Twopc) driveTask(
-	pid peer.ID,
+	remotePid peer.ID,
 	proposalId common.Hash,
 	localTaskRole apicommonpb.TaskRole,
 	localTaskOrganization *apicommonpb.TaskOrganization,
@@ -445,7 +329,7 @@ func (t *Twopc) driveTask(
 	task *types.Task,
 ) {
 
-	log.Debugf("Start to call `driveTask`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+	log.Debugf("TwopcMsgStart to call `driveTask`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
 		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 
 	selfVote := t.getPrepareVote(proposalId, localTaskOrganization.GetPartyId())
@@ -466,7 +350,7 @@ func (t *Twopc) driveTask(
 
 	// Send task to TaskManager to execute
 	t.sendNeedExecuteTask(types.NewNeedExecuteTask(
-		pid,
+		remotePid,
 		proposalId,
 		localTaskRole,
 		localTaskOrganization,
@@ -477,9 +361,6 @@ func (t *Twopc) driveTask(
 		selfVote.PeerInfo,
 		peers,
 	))
-
-	t.removeOrgProposalStateAndTask(proposalId, localTaskOrganization.GetPartyId())
-
 }
 
 func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
@@ -572,6 +453,41 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 	return nil
 }
 
+func (t *Twopc) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
+	t.taskResultLock.Lock()
+	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
+	t.taskResultChSet[taskId] = resultCh
+	t.taskResultLock.Unlock()
+}
+func (t *Twopc) removeTaskResultCh(taskId string) {
+	t.taskResultLock.Lock()
+	log.Debugf("RemoveTaskResultCh taskId: {%s}", taskId)
+	delete(t.taskResultChSet, taskId)
+	t.taskResultLock.Unlock()
+}
+func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
+	t.taskResultBusCh <- result
+}
+func (t *Twopc) handleTaskConsensusResult(result *types.TaskConsResult) {
+	t.taskResultLock.Lock()
+	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
+	if ch, ok := t.taskResultChSet[result.TaskId]; ok {
+		log.Debugf("TwopcMsgStart SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
+		ch <- result
+		close(ch)
+		delete(t.taskResultChSet, result.TaskId)
+	}
+	t.taskResultLock.Unlock()
+}
+
+func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
+	t.needReplayScheduleTaskCh <- task
+}
+
+func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
+	t.needExecuteTaskCh <- task
+}
+
 func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.PrepareVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcPrepareVote(context.TODO(), t.p2p, pid, req)
@@ -581,7 +497,7 @@ func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskO
 	}
 }
 
-func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *twopcpb.ConfirmTaskPeerInfo, startTime uint64) error {
+func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *twopcpb.ConfirmTaskPeerInfo, option types.TwopcMsgOption, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -596,7 +512,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 			return
 		}
 
-		confirmMsg := makeConfirmMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), task, peers, startTime)
+		confirmMsg := makeConfirmMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), sender, peers, option, startTime)
 
 		var sendErr error
 		var logdesc string
@@ -671,13 +587,13 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 func (t *Twopc) sendConfirmVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.ConfirmVote) error {
 	if types.IsNotSameTaskOrg(sender, receiver) {
 		//return handler.SendTwoPcConfirmVote(context.TODO(), t.p2p, pid, req)
-		return t.p2p.Broadcast(context.TODO(),  req)
+		return t.p2p.Broadcast(context.TODO(), req)
 	} else {
 		return t.sendLocalConfirmVote(pid, req)
 	}
 }
 
-func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
+func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option types.TwopcMsgOption, startTime uint64) error {
 
 	sender := task.GetTaskSender()
 
@@ -692,7 +608,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, startTim
 			return
 		}
 
-		commitMsg := makeCommitMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), task, startTime)
+		commitMsg := makeCommitMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), sender, option, startTime)
 
 		var sendErr error
 		var logdesc string
@@ -869,14 +785,14 @@ func (t *Twopc) getNeedVotingCount(role apicommonpb.TaskRole, task *types.Task) 
 }
 
 func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) (bool, error) {
-	var identityValid bool
+	var find bool
 	switch role {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
 
 		dataSupplierCount := len(task.GetTaskData().GetDataSuppliers())
 		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
 
-		if (uint32(dataSupplierCount) - includeCount) == t.getTaskDataSupplierPrepareTotalVoteCount(proposalId) {
+		if (uint32(dataSupplierCount) - includeCount) == t.state.GetTaskDataSupplierPrepareTotalVoteCount(proposalId) {
 			return false, fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(),
 				identityId, partyId)
@@ -885,7 +801,7 @@ func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityI
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			// identity + partyId
 			if dataSupplier.GetOrganization().GetIdentityId() == identityId && dataSupplier.GetOrganization().GetPartyId() == partyId {
-				identityValid = true
+				find = true
 				break
 			}
 		}
@@ -894,7 +810,7 @@ func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityI
 		powerSupplierCount := len(task.GetTaskData().GetPowerSuppliers())
 		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
 
-		if (uint32(powerSupplierCount) - includeCount) == t.getTaskPowerSupplierPrepareTotalVoteCount(proposalId) {
+		if (uint32(powerSupplierCount) - includeCount) == t.state.GetTaskPowerSupplierPrepareTotalVoteCount(proposalId) {
 			return false, fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(),
 				identityId, partyId)
@@ -903,7 +819,7 @@ func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityI
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			// identity + partyId
 			if powerSupplier.GetOrganization().GetIdentityId() == identityId && powerSupplier.GetOrganization().GetPartyId() == partyId {
-				identityValid = true
+				find = true
 				break
 			}
 		}
@@ -912,7 +828,7 @@ func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityI
 		receiverCount := len(task.GetTaskData().GetReceivers())
 		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
 
-		if (uint32(receiverCount) - includeCount) == t.getTaskReceiverPrepareTotalVoteCount(proposalId) {
+		if (uint32(receiverCount) - includeCount) == t.state.GetTaskReceiverPrepareTotalVoteCount(proposalId) {
 			return false, fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(),
 				identityId, partyId)
@@ -921,7 +837,7 @@ func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityI
 		for _, receiver := range task.GetTaskData().GetReceivers() {
 			// identity + partyId
 			if receiver.GetIdentityId() == identityId && receiver.GetPartyId() == partyId {
-				identityValid = true
+				find = true
 				break
 			}
 		}
@@ -931,7 +847,7 @@ func (t *Twopc) verifyPrepareVoteRole(proposalId common.Hash, partyId, identityI
 			identityId, partyId)
 
 	}
-	return identityValid, nil
+	return find, nil
 }
 func (t *Twopc) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityId string, role apicommonpb.TaskRole, task *types.Task) (bool, error) {
 	var identityValid bool
@@ -941,7 +857,7 @@ func (t *Twopc) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityI
 		dataSupplierCount := len(task.GetTaskData().GetDataSuppliers())
 		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
 
-		if (uint32(dataSupplierCount) - includeCount) == t.getTaskDataSupplierConfirmTotalVoteCount(proposalId) {
+		if (uint32(dataSupplierCount) - includeCount) == t.state.GetTaskDataSupplierConfirmTotalVoteCount(proposalId) {
 			return false, fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(), identityId, partyId)
 		}
@@ -958,7 +874,7 @@ func (t *Twopc) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityI
 		powerSupplierCount := len(task.GetTaskData().GetPowerSuppliers())
 		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
 
-		if (uint32(powerSupplierCount) - includeCount) == t.getTaskPowerSupplierConfirmTotalVoteCount(proposalId) {
+		if (uint32(powerSupplierCount) - includeCount) == t.state.GetTaskPowerSupplierConfirmTotalVoteCount(proposalId) {
 			return false, fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(), identityId, partyId)
 		}
@@ -975,7 +891,7 @@ func (t *Twopc) verifyConfirmVoteRole(proposalId common.Hash, partyId, identityI
 		receiverCount := len(task.GetTaskData().GetReceivers())
 		includeCount := t.getIncludeSenderPartyCount(partyId, identityId, role, task)
 
-		if (uint32(receiverCount) - includeCount) == t.getTaskReceiverConfirmTotalVoteCount(proposalId) {
+		if (uint32(receiverCount) - includeCount) == t.state.GetTaskReceiverConfirmTotalVoteCount(proposalId) {
 			return false, fmt.Errorf("%s, on the confirm vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 				ctypes.ErrVoteCountOverflow, task.GetTaskData().GetTaskId(), role.String(), identityId, partyId)
 		}

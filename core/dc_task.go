@@ -277,7 +277,7 @@ func (dc *DataCenter)RecoveryScheduling() (*types.TaskBullets, *types.TaskBullet
 //	if taskId == "" || state == "" {
 //		return errors.New("invalid params taskId or state for UpdateLocalTaskState")
 //	}
-//	log.Debugf("Start to update local task state, taskId: {%s}, need update state: {%s}", taskId, state)
+//	log.Debugf("TwopcMsgStart to update local task state, taskId: {%s}, need update state: {%s}", taskId, state)
 //
 //	dc.mu.Lock()
 //	defer dc.mu.Unlock()

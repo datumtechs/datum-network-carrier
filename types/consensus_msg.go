@@ -113,7 +113,7 @@ type MsgOption struct {
 }
 
 func (option *MsgOption) String() string {
-	return fmt.Sprintf(`{"ProposalId": %s, "senderRole": %s, "senderPartyId": %s, "receiverRole": %s, "receiverPartyId": %s, "owner": %s}`,
+	return fmt.Sprintf(`{"ProposalId": "%s", "senderRole": "%s", "senderPartyId": "%s", "receiverRole": "%s", "receiverPartyId": "%s", "owner": %s}`,
 		option.ProposalId.String(), option.SenderRole.String(), option.SenderPartyId, option.ReceiverRole.String(), option.ReceiverPartyId, option.Owner.String())
 }
 
@@ -173,9 +173,9 @@ type PrepareVote struct {
 	Sign       []byte
 }
 
-func (vote *PrepareVote) PeerInfoEmpty () bool { return nil == vote.PeerInfo }
+func (vote *PrepareVote) PeerInfoEmpty() bool { return nil == vote.PeerInfo }
 func (vote *PrepareVote) String() string {
-	return fmt.Sprintf(`{"msgOption": %s, "voteOption": %s, "peerInfo": %s, "createAt": %d, "sign": %v}`,
+	return fmt.Sprintf(`{"msgOption": %s, "voteOption": "%s", "peerInfo": %s, "createAt": %d, "sign": %v}`,
 		vote.MsgOption.String(), vote.VoteOption.String(), vote.PeerInfo.String(), vote.CreateAt, vote.Sign)
 }
 
@@ -199,10 +199,11 @@ func FetchPrepareVote(vote *twopcpb.PrepareVote) *PrepareVote {
 }
 
 type ConfirmMsg struct {
-	MsgOption *MsgOption
-	Peers     *twopcpb.ConfirmTaskPeerInfo
-	CreateAt  uint64
-	Sign      []byte
+	MsgOption     *MsgOption
+	ConfirmOption TwopcMsgOption
+	Peers         *twopcpb.ConfirmTaskPeerInfo
+	CreateAt      uint64
+	Sign          []byte
 }
 
 func (msg *ConfirmMsg) PeersEmpty() bool {
@@ -225,24 +226,26 @@ func (msg *ConfirmMsg) String() string {
 		peers = msg.Peers.String()
 	}
 
-	return fmt.Sprintf(`{"msgOption": %s, "peers": %s, "createAt": %d, "sign": %v}`,
-		msg.MsgOption.String(), peers, msg.CreateAt, msg.Sign)
+	return fmt.Sprintf(`{"msgOption": %s, "confirmOption": "%s", "peers": %s, "createAt": %d, "sign": %v}`,
+		msg.MsgOption.String(), msg.ConfirmOption.String(), peers, msg.CreateAt, msg.Sign)
 }
 
 func ConvertConfirmMsg(msg *ConfirmMsg) *twopcpb.ConfirmMsg {
 	return &twopcpb.ConfirmMsg{
-		MsgOption: ConvertMsgOption(msg.MsgOption),
-		Peers:     msg.Peers,
-		CreateAt:  msg.CreateAt,
-		Sign:      msg.Sign,
+		MsgOption:     ConvertMsgOption(msg.MsgOption),
+		ConfirmOption: msg.ConfirmOption.Bytes(),
+		Peers:         msg.Peers,
+		CreateAt:      msg.CreateAt,
+		Sign:          msg.Sign,
 	}
 }
 func FetchConfirmMsg(msg *twopcpb.ConfirmMsg) *ConfirmMsg {
 	return &ConfirmMsg{
-		MsgOption:  FetchMsgOption(msg.GetMsgOption()),
-		Peers: msg.Peers,
-		CreateAt: msg.CreateAt,
-		Sign:     msg.Sign,
+		MsgOption:     FetchMsgOption(msg.GetMsgOption()),
+		ConfirmOption: TwopcMsgOptionFromBytes(msg.ConfirmOption),
+		Peers:         msg.Peers,
+		CreateAt:      msg.CreateAt,
+		Sign:          msg.Sign,
 	}
 }
 
@@ -254,13 +257,13 @@ type ConfirmVote struct {
 }
 
 func (vote *ConfirmVote) String() string {
-	return fmt.Sprintf(`{"msgOption": %s, "voteOption": %s, "createAt": %d, "sign": %v}`,
+	return fmt.Sprintf(`{"msgOption": %s, "voteOption": "%s", "createAt": %d, "sign": %v}`,
 		vote.MsgOption.String(), vote.VoteOption.String(), vote.CreateAt, vote.Sign)
 }
 
 func ConvertConfirmVote(vote *ConfirmVote) *twopcpb.ConfirmVote {
 	return &twopcpb.ConfirmVote{
-		MsgOption: ConvertMsgOption(vote.MsgOption),
+		MsgOption:  ConvertMsgOption(vote.MsgOption),
 		VoteOption: vote.VoteOption.Bytes(),
 		CreateAt:   vote.CreateAt,
 		Sign:       vote.Sign,
@@ -276,28 +279,30 @@ func FetchConfirmVote(vote *twopcpb.ConfirmVote) *ConfirmVote {
 }
 
 type CommitMsg struct {
-	MsgOption *MsgOption
-	CreateAt  uint64
-	Sign      []byte
+	MsgOption    *MsgOption
+	CommitOption TwopcMsgOption
+	CreateAt     uint64
+	Sign         []byte
 }
 
 func (msg *CommitMsg) String() string {
-	return fmt.Sprintf(`{"msgOption": %s, "createAt": %d, "sign": %v}`,
-		msg.MsgOption.String(), msg.CreateAt, msg.Sign)
+	return fmt.Sprintf(`{"msgOption": %s, "commitOption", "%s", "createAt": %d, "sign": %v}`,
+		msg.MsgOption.String(), msg.CommitOption.String(), msg.CreateAt, msg.Sign)
 }
 
 func ConvertCommitMsg(msg *CommitMsg) *twopcpb.CommitMsg {
 	return &twopcpb.CommitMsg{
-		MsgOption: ConvertMsgOption(msg.MsgOption),
-		CreateAt: msg.CreateAt,
-		Sign:     msg.Sign,
+		MsgOption:    ConvertMsgOption(msg.MsgOption),
+		CommitOption: msg.CommitOption.Bytes(),
+		CreateAt:     msg.CreateAt,
+		Sign:         msg.Sign,
 	}
 }
 func FetchCommitMsg(msg *twopcpb.CommitMsg) *CommitMsg {
 	return &CommitMsg{
-		MsgOption:  FetchMsgOption(msg.GetMsgOption()),
-		CreateAt: msg.CreateAt,
-		Sign:     msg.Sign,
+		MsgOption:    FetchMsgOption(msg.GetMsgOption()),
+		CommitOption: TwopcMsgOptionFromBytes(msg.CommitOption),
+		CreateAt:     msg.CreateAt,
+		Sign:         msg.Sign,
 	}
 }
-

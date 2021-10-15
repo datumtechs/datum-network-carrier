@@ -28,9 +28,10 @@ message PrepareVote {
 // 2pc confirm 阶段信息
 message ConfirmMsg {
   common.MsgOption             msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
-  ConfirmTaskPeerInfo          peers = 2 [(gogoproto.moretags) = "ssz-max:\"16777216\""];                 // task 各个参与方的 内部资源信息 (对外的ip:port, 做任务用的)
-  uint64                       create_at = 3 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // ConfirmMsg 创建的时间戳 (单位: ms)
-  bytes                        sign = 4 [(gogoproto.moretags) = "ssz-max:\"1024\""];                      // ConfirmMsg 发起者签名
+  bytes                        confirm_option = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];              // ConfirmMsg 指令通知 (start: 通知执行; stop: 通知终止;)
+  ConfirmTaskPeerInfo          peers = 3 [(gogoproto.moretags) = "ssz-max:\"16777216\""];                 // task 各个参与方的 内部资源信息 (对外的ip:port, 做任务用的)
+  uint64                       create_at = 4 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // ConfirmMsg 创建的时间戳 (单位: ms)
+  bytes                        sign = 5 [(gogoproto.moretags) = "ssz-max:\"1024\""];                      // ConfirmMsg 发起者签名
 }
 
 // On ConfirmMsg, the task partners peerInfo
@@ -52,8 +53,9 @@ message ConfirmVote {
 // 触发任务执行消息
 message CommitMsg {
   common.MsgOption             msg_option = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];
-  uint64                       create_at = 2 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // CommitMsg 创建的时间戳 (单位: ms)
-  bytes                        sign = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                      // CommitMsg 发起者签名
+  bytes                        commit_option = 2 [(gogoproto.moretags) = "ssz-max:\"32\""];               // CommitMsg 指令通知 (start: 通知执行; stop: 通知终止;)
+  uint64                       create_at = 3 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // CommitMsg 创建的时间戳 (单位: ms)
+  bytes                        sign = 4 [(gogoproto.moretags) = "ssz-max:\"1024\""];                      // CommitMsg 发起者签名
 }
 
 message TaskPeerInfo {

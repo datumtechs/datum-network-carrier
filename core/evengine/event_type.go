@@ -81,7 +81,7 @@ var (
 	SourceDownloadFailed  = NewEventType("0207003", "Source data downloaded failed.")
 	SourceDeleteSucceed   = NewEventType("0207004", "Source data deleted successfully.")
 	SourceDeleteFailed    = NewEventType("0207005", "Source data deleted failed.")
-	StartDataShard        = NewEventType("0207006", "Start data sharding.")
+	StartDataShard        = NewEventType("0207006", "TwopcMsgStart data sharding.")
 	GetDataFileSucceed    = NewEventType("0207007", "GetData file/directory retrieved successfully.")
 	GetDataFileFailed     = NewEventType("0207008", "GetData file/directory retrieved failed.")
 )
@@ -101,10 +101,10 @@ var DataServiceEvent = map[string]string{
 // 计算服务事件
 var (
 	ReportComputeRes      = NewEventType("0308000", "Report computing resources.")
-	StartNewTask          = NewEventType("0309000", "Start a new task.")
+	StartNewTask          = NewEventType("0309000", "TwopcMsgStart a new task.")
 	DownloadCodeSucceed   = NewEventType("0309001", "The contract code was downloaded successfully.")
 	DownloadCodeFailed    = NewEventType("0309002", "The contract code was downloaded failed.")
-	StartBuildTaskEnv     = NewEventType("0309003", "Start building the computing task environment.")
+	StartBuildTaskEnv     = NewEventType("0309003", "TwopcMsgStart building the computing task environment.")
 	CreateIoSucceed       = NewEventType("0309004", "Create network IO successfully.")
 	CreateIoFailed        = NewEventType("0309005", "Create network IO failed.")
 	RegisterViaSucceed    = NewEventType("0309006", "Successfully registered with VIA service.")

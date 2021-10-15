@@ -31,7 +31,7 @@ func (m *Manager) tryScheduleTask() error {
 
 	go func(nonConsTask *types.NeedConsensusTask) {
 
-		log.Debugf("Start consensus task on 2pc consensus engine, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+		log.Debugf("TwopcMsgStart consensus task on 2pc consensus engine, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 
 		if err := m.consensusEngine.OnPrepare(nonConsTask.GetTask()); nil != err {
 			log.Errorf("Failed to call `OnPrepare()` on 2pc consensus engine, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
@@ -341,7 +341,7 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask) {
 		taskState = apicommonpb.TaskState_TaskState_Succeed
 	}
 
-	log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTask().GetTaskId(), taskState.String())
+	log.Debugf("TwopcMsgStart publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTask().GetTaskId(), taskState.String())
 
 	finalTask := m.convertScheduleTaskToTask(task.GetTask(), eventList, taskState)
 	if err := m.resourceMng.GetDB().InsertTask(finalTask); nil != err {
@@ -362,7 +362,7 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask) {
 }
 func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 
-	log.Debugf("Start sendTaskResultMsgToRemotePeer, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
+	log.Debugf("TwopcMsgStart sendTaskResultMsgToRemotePeer, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
 	if task.HasRemotePID() {
@@ -680,7 +680,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 	}
 
 	var dynamicParameter map[string]interface{}
-	log.Debugf("Start json Unmarshal the `ContractExtraParams`, taskId: {%s}, ContractExtraParams: %s", task.GetTask().GetTaskId(), task.GetTask().GetTaskData().GetContractExtraParams())
+	log.Debugf("TwopcMsgStart json Unmarshal the `ContractExtraParams`, taskId: {%s}, ContractExtraParams: %s", task.GetTask().GetTaskId(), task.GetTask().GetTaskData().GetContractExtraParams())
 	if "" != task.GetTask().GetTaskData().GetContractExtraParams() {
 		if err := json.Unmarshal([]byte(task.GetTask().GetTaskData().GetContractExtraParams()), &dynamicParameter); nil != err {
 			return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}, err: {%s}",
@@ -815,7 +815,7 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 	if event.Type == ev.TaskExecuteSucceedEOF.Type || event.Type == ev.TaskExecuteFailedEOF.Type {
 		if task, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), partyId); ok {
 
-			log.Debugf("Start handleTaskEvent, `event is the end`, current partyId: {%s}, event: %s", partyId, event.String())
+			log.Debugf("TwopcMsgStart handleTaskEvent, `event is the end`, current partyId: {%s}, event: %s", partyId, event.String())
 
 			// store EOF event first
 			m.resourceMng.GetDB().StoreTaskEvent(event)
@@ -843,7 +843,7 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 
 	} else {
 
-		log.Debugf("Start handleTaskEvent, `event is not the end`, event: %s", event.String())
+		log.Debugf("TwopcMsgStart handleTaskEvent, `event is not the end`, event: %s", event.String())
 		// It's not EOF event, then the task still executing, so store this event
 		return m.resourceMng.GetDB().StoreTaskEvent(event)
 	}
@@ -851,7 +851,7 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 
 func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 
-	log.Debugf("Start handle needExecuteTask, remote pid: {%s} proposalId: {%s}, taskId: {%s}, self taskRole: {%s}, self taskOrganization: {%s}",
+	log.Debugf("TwopcMsgStart handle needExecuteTask, remote pid: {%s} proposalId: {%s}, taskId: {%s}, self taskRole: {%s}, self taskOrganization: {%s}",
 		task.GetRemotePID(), task.GetProposalId(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().String())
 
 	// Store task exec status

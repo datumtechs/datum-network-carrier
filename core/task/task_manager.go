@@ -22,8 +22,8 @@ const (
 )
 
 //type Scheduler interface {
-//	Start() error
-//	Stop() error
+//	TwopcMsgStart() error
+//	TwopcMsgStop() error
 //	Error() error
 //	Name() string
 //	AddTask(task *types.Task) error
@@ -169,8 +169,15 @@ func (m *Manager) loop() {
 				// to execute the task
 				m.handleNeedExecuteTask(task)
 			} else {
-				// send task result msg to remote peer, short circuit.
-				m.sendTaskResultMsgToRemotePeer(task)
+				// interrupt local task todo maybe there never do.
+				if task.GetRemotePID() == "" {
+					// send local task result msg to datacenter, short circuit.
+					m.publishFinishedTaskToDataCenter(task)
+				} else {
+					// interrupt remote task.
+					// send remote task result msg to remote peer, short circuit.
+					m.sendTaskResultMsgToRemotePeer(task)
+				}
 			}
 
 		// handle the executing expire tasks

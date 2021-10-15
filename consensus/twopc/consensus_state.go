@@ -10,7 +10,7 @@ import (
 )
 
 type state struct {
-
+	proposalTaskCache map[string]map[string]*types.ProposalTask // (taskId -> partyId -> task)
 	// Proposal being processed (proposalId -> proposalState)
 	proposalSet map[common.Hash]*ctypes.ProposalState
 	// About the voting state of prepareMsg for proposal
@@ -19,8 +19,10 @@ type state struct {
 	confirmVotes map[common.Hash]*confirmVoteState
 	// cache
 	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo
-	//db
-	db 			*walDB
+	// wal
+	wal *walDB
+
+	proposalTaskLock    sync.RWMutex
 	proposalsLock       sync.RWMutex
 	prepareVotesLock    sync.RWMutex
 	confirmVotesLock    sync.RWMutex
@@ -31,11 +33,12 @@ type state struct {
 
 func newState(ldb *walDB) *state {
 	return &state{
+		proposalTaskCache:     make(map[string]map[string]*types.ProposalTask),
 		proposalSet:           make(map[common.Hash]*ctypes.ProposalState, 0),
 		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
 		proposalPeerInfoCache: make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
-		db:					   ldb,
+		wal:                   ldb,
 	}
 }
 func recoveryState(
@@ -50,13 +53,13 @@ func recoveryState(
 		prepareVotes:          prepareVotes,
 		confirmVotes:          confirmVotes,
 		proposalPeerInfoCache: proposalPeerInfoCache,
-		db:                    ldb,
+		wal:                   ldb,
 	}
 }
 func (s *state) IsEmpty() bool    { return nil == s }
 func (s *state) IsNotEmpty() bool { return !s.IsEmpty() }
 
-func (s *state) HasOrgProposal(proposalId common.Hash, partyId string) bool {
+func (s *state) HasOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
 	s.proposalsLock.RLock()
 	defer s.proposalsLock.RUnlock()
 
@@ -67,8 +70,66 @@ func (s *state) HasOrgProposal(proposalId common.Hash, partyId string) bool {
 	}
 	return false
 }
-func (s *state) HasNotOrgProposal(proposalId common.Hash, partyId string) bool {
-	return !s.HasOrgProposal(proposalId, partyId)
+func (s *state) HasNotOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
+	return !s.HasOrgProposalWithPartyId(proposalId, partyId)
+}
+
+func (s *state) StoreProposalTaskWithPartyId(partyId string, task *types.ProposalTask) {
+	s.proposalTaskLock.Lock()
+	partyCache, ok := s.proposalTaskCache[task.GetTaskId()]
+	if !ok {
+		partyCache = make(map[string]*types.ProposalTask, 0)
+	}
+	partyCache[partyId] = task
+	s.proposalTaskCache[task.GetTaskId()] = partyCache
+
+	s.proposalTaskLock.Unlock()
+}
+func (s *state) RemoveProposalTaskWithPartyId(taskId, partyId string) {
+	s.proposalTaskLock.Lock()
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if ok {
+		delete(partyCache, partyId)
+		if len(partyCache) == 0 {
+			delete(s.proposalTaskCache, taskId)
+		}
+	}
+	s.proposalTaskLock.Unlock()
+}
+
+func (s *state) HasProposalTaskWithPartyId(taskId, partyId string) bool {
+	s.proposalTaskLock.RLock()
+	defer s.proposalTaskLock.RUnlock()
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if !ok {
+		return false
+	}
+	_, ok = partyCache[partyId]
+	if !ok {
+		return false
+	}
+	return true
+}
+func (s *state) HasNotProposalTaskWithPartyId(taskId, partyId string) bool {
+	return !s.HasProposalTaskWithPartyId(taskId, partyId)
+}
+
+func (s *state) GetProposalTaskWithPartyId(taskId, partyId string) (*types.ProposalTask, bool) {
+	s.proposalTaskLock.RLock()
+	defer s.proposalTaskLock.RUnlock()
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if !ok {
+		return nil, false
+	}
+	task, ok := partyCache[partyId]
+	return task, ok
+}
+
+func (s *state) MustGetProposalTaskWithPartyId(taskId, partyId string) *types.ProposalTask {
+	s.proposalTaskLock.RLock()
+	task, _ := s.GetProposalTaskWithPartyId(taskId, partyId)
+	s.proposalTaskLock.RUnlock()
+	return task
 }
 
 func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
@@ -148,13 +209,18 @@ func (s *state) ChangeToCommit(proposalId common.Hash, partyId string, startTime
 	s.proposalSet[proposalId] = proposalState
 }
 
-
-func (s *state) CleanOrgProposalState(proposalId common.Hash, partyId string) {
+func (s *state) RemoveOrgProposalStateAnyCache(proposalId common.Hash, taskId, partyId string) {
+	s.RemoveProposalTaskWithPartyId(taskId, partyId)
 	s.RemoveOrgProposalState(proposalId, partyId)
 	s.RemoveOrgPrepareVoteState(proposalId, partyId)
 	s.RemoveOrgConfirmVoteState(proposalId, partyId)
+	go func() {
+		// TODO 还需要做一个清除 task cache 的 wal key
+		s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, partyId))
+		s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId, partyId))
+		s.wal.DeleteState(s.wal.GetProposalSetKey(proposalId, partyId))
+	}()
 }
-
 
 // ---------------- PrepareVote ----------------
 func (s *state) HasPrepareVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
@@ -174,7 +240,7 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 		pvs = newPrepareVoteState()
 	}
 	pvs.addVote(vote)
-	s.db.UpdatePrepareVotes(vote)
+	s.wal.UpdatePrepareVotes(vote)
 	s.prepareVotes[vote.MsgOption.ProposalId] = pvs
 	s.prepareVotesLock.Unlock()
 }
@@ -338,7 +404,7 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	}
 	cvs.addVote(vote)
 	s.confirmVotes[vote.MsgOption.ProposalId] = cvs
-	s.db.UpdateConfirmVotes(vote)
+	s.wal.UpdateConfirmVotes(vote)
 	s.confirmVotesLock.Unlock()
 }
 
@@ -716,7 +782,7 @@ func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopc
 	_, ok := s.proposalPeerInfoCache[proposalId]
 	if !ok {
 		s.proposalPeerInfoCache[proposalId] = peerDesc
-		s.db.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
+		s.wal.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
 	}
 	s.confirmPeerInfoLock.Unlock()
 }
@@ -743,6 +809,6 @@ func (s *state) MustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.Conf
 func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 	s.confirmPeerInfoLock.Lock()
 	delete(s.proposalPeerInfoCache, proposalId)
-	s.db.DeleteState(s.db.GetProposalPeerInfoCacheKey(proposalId))
 	s.confirmPeerInfoLock.Unlock()
+	go s.wal.DeleteState(s.wal.GetProposalPeerInfoCacheKey(proposalId))
 }
