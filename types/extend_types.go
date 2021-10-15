@@ -115,6 +115,8 @@ func NewGlobalMetadataInfoFromMetadata(input *Metadata) *pb.GetGlobalMetadataDet
 				HasTitle:   input.GetData().GetHasTitle(),
 				Industry:   input.GetData().GetIndustry(),
 				State:      input.GetData().GetState(),
+				PublishAt:  input.GetData().GetPublishAt(),
+				UpdateAt:   input.GetData().GetUpdateAt(),
 			},
 			MetadataColumns: input.GetData().GetMetadataColumns(),
 		},
