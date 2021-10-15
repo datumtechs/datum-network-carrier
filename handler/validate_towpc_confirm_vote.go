@@ -33,7 +33,7 @@ func (s *Service) validateConfirmVotePubSub(ctx context.Context, pid peer.ID, ms
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenConfirmVote(message.MsgOption.ProposalId) {
+	if s.hasSeenConfirmVote(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId, message.MsgOption.ReceiverPartyId) {
 		return pubsub.ValidationIgnore
 	}
 
@@ -48,16 +48,20 @@ func (s *Service) validateConfirmVotePubSub(ctx context.Context, pid peer.ID, ms
 }
 
 // Returns true if the node has already received a prepare message request for the validator with index `proposalId`.
-func (s *Service) hasSeenConfirmVote(proposalId []byte) bool {
+func (s *Service) hasSeenConfirmVote(proposalId []byte, senderPartId []byte, receivePartId []byte) bool {
 	s.seenConfirmVoteLock.RLock()
 	defer s.seenConfirmVoteLock.RUnlock()
-	_, seen := s.seenConfirmVoteCache.Get(string(proposalId))
+	v := append(proposalId, senderPartId...)
+	v = append(v, receivePartId...)
+	_, seen := s.seenConfirmVoteCache.Get(string(v))
 	return seen
 }
 
 // Set proposalId in seen exit request cache.
-func (s *Service) setConfirmVoteSeen(proposalId []byte) {
+func (s *Service) setConfirmVoteSeen(proposalId []byte, senderPartId []byte, receivePartId []byte) {
 	s.seenConfirmVoteLock.Lock()
 	defer s.seenConfirmVoteLock.Unlock()
-	s.seenConfirmVoteCache.Add(string(proposalId), true)
+	v := append(proposalId, senderPartId...)
+	v = append(v, receivePartId...)
+	s.seenConfirmVoteCache.Add(string(v), true)
 }
