@@ -36,6 +36,7 @@ func generateProposalId() common.Hash {
 	proposalId := rlputil.RlpHash(buf.Bytes())
 	return proposalId
 }
+
 func generateWalDB() *walDB {
 	config := &Config{
 		PeerMsgQueueSize:   12,
@@ -43,6 +44,7 @@ func generateWalDB() *walDB {
 	}
 	return newWal(config)
 }
+
 func TestKeySplitProposalIdAndPartyId(t *testing.T) {
 	db := generateWalDB()
 	prefixLength := len([]byte("proposalSet:"))
@@ -55,6 +57,7 @@ func TestKeySplitProposalIdAndPartyId(t *testing.T) {
 	assert.Equal(t, beforeProposalId, proposalId)
 	assert.Equal(t, "proposalSet:", prefix)
 }
+
 func TestUpdateOrgProposalState(t *testing.T) {
 	db := generateWalDB()
 	count := 0
@@ -91,6 +94,7 @@ func TestUpdateOrgProposalState(t *testing.T) {
 		}
 	}
 }
+
 func TestUpdateConfirmTaskPeerInfo(t *testing.T) {
 	db := generateWalDB()
 	proposalId := generateProposalId()
