@@ -176,50 +176,41 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	// 如果 当前参与方为 DataSupplier   [重新 演算 选 powers]
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
 
-		var isSender bool
-		if localPartyId == task.GetTaskSender().GetPartyId() && selfIdentityId == task.GetTaskSender().GetIdentityId() {
-			isSender = true
+		powerPartyIds := make([]string, len(task.GetTaskData().GetPowerSuppliers()))
+		for i, power := range task.GetTaskData().GetPowerSuppliers() {
+			powerPartyIds[i] = power.GetOrganization().GetPartyId()
+		}
+		// mock election power orgs
+		powers, err := sche.electionComputeOrg(powerPartyIds, nil, cost)
+		if nil != err {
+			log.Errorf("Failed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, err: {%s}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId, err)
+
+			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		if !isSender {
+		log.Debugf("Succeed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, powers: %s",
+			task.GetTaskId(), localTaskRole.String(), localPartyId, utilOrgPowerArrString(powers))
 
-			powerPartyIds := make([]string, len(task.GetTaskData().GetPowerSuppliers()))
-			for i, power := range task.GetTaskData().GetPowerSuppliers() {
-				powerPartyIds[i] = power.GetOrganization().GetPartyId()
-			}
-			// mock election power orgs
-			powers, err := sche.electionComputeOrg(powerPartyIds, nil, cost)
-			if nil != err {
-				log.Errorf("Failed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, err: {%s}",
-					task.GetTaskId(), localTaskRole.String(), localPartyId, err)
+		// compare powerSuppliers of task And powerSuppliers of election
+		if len(powers) != len(task.GetTaskData().GetPowerSuppliers()) {
+			log.Errorf("reschedule powers len and task powers len is not match when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, reschedule power len: {%d}, task powers len: {%d}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId, len(powers), len(task.GetTaskData().GetPowerSuppliers()))
 
+			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+		}
+
+		tmp := make(map[string]struct{}, len(powers))
+
+		for _, power := range powers {
+			tmp[power.GetOrganization().GetIdentityId()] = struct{}{}
+		}
+		for _, power := range task.GetTaskData().GetPowerSuppliers() {
+			if _, ok := tmp[power.GetOrganization().GetIdentityId()]; !ok {
+				log.Errorf("task power identityId not found with reschedule powers when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, task power identityId: {%s}",
+					task.GetTaskId(), localTaskRole.String(), localPartyId, power.GetOrganization().GetIdentityId())
 				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 			}
-
-			log.Debugf("Succeed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, powers: %s",
-				task.GetTaskId(), localTaskRole.String(), localPartyId, utilOrgPowerArrString(powers))
-
-			// compare powerSuppliers of task And powerSuppliers of election
-			if len(powers) != len(task.GetTaskData().GetPowerSuppliers()) {
-				log.Errorf("reschedule powers len and task powers len is not match when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, reschedule power len: {%d}, task powers len: {%d}",
-					task.GetTaskId(), localTaskRole.String(), localPartyId, len(powers), len(task.GetTaskData().GetPowerSuppliers()))
-
-				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
-			}
-
-			tmp := make(map[string]struct{}, len(powers))
-
-			for _, power := range powers {
-				tmp[power.GetOrganization().GetIdentityId()] = struct{}{}
-			}
-			for _, power := range task.GetTaskData().GetPowerSuppliers() {
-				if _, ok := tmp[power.GetOrganization().GetIdentityId()]; !ok {
-					log.Errorf("task power identityId not found with reschedule powers when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, task power identityId: {%s}",
-						task.GetTaskId(), localTaskRole.String(), localPartyId, power.GetOrganization().GetIdentityId())
-					return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
-				}
-			}
-
 		}
 
 		// 选出 关于自己 metadataId 所在的 dataNode

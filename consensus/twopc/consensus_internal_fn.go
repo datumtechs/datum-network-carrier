@@ -232,18 +232,15 @@ func (t *Twopc) TaskConsensusInterrupt(
 	receiver *apicommonpb.TaskOrganization,
 	task *types.Task,
 ) {
+
+	log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg with role is %s, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote partyId: {%s}",
+		role, proposalId.String(), taskId, role, partyId, receiver.GetPartyId())
 	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 	if role == apicommonpb.TaskRole_TaskRole_Sender {
-		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on local org, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote partyId: {%s}",
-			proposalId.String(), taskId, role, partyId, receiver.GetPartyId())
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
 	} else {
 
 		// release local resource and clean some data  (on task partenr)
-
-		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on remote org, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote partyId: {%s}",
-			proposalId.String(), taskId, role, partyId, receiver.GetPartyId())
-
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 			Type:       evengine.TaskProposalStateDeadline.Type,
 			IdentityId: sender.GetIdentityId(),
