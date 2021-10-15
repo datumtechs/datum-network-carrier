@@ -32,7 +32,7 @@ func (s *Service) validateTaskTerminateMessagePubSub(ctx context.Context, pid pe
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenTaskTerminateMsg(message.MsgOption.ProposalId) {
+	if s.hasSeenTaskTerminateMsg(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId, message.MsgOption.ReceiverPartyId) {
 		return pubsub.ValidationIgnore
 	}
 
@@ -47,16 +47,20 @@ func (s *Service) validateTaskTerminateMessagePubSub(ctx context.Context, pid pe
 }
 
 // Returns true if the node has already received a prepare message request for the validator with index `proposalId`.
-func (s *Service) hasSeenTaskTerminateMsg(proposalId []byte) bool {
+func (s *Service) hasSeenTaskTerminateMsg(proposalId []byte, senderPartId []byte, receivePartId []byte) bool {
 	s.seenTaskTerminateMsgLock.RLock()
 	defer s.seenTaskTerminateMsgLock.RUnlock()
-	_, seen := s.seenTaskTerminateMsgCache.Get(string(proposalId))
+	v := append(proposalId, senderPartId...)
+	v = append(v, receivePartId...)
+	_, seen := s.seenTaskTerminateMsgCache.Get(string(v))
 	return seen
 }
 
 // Set proposalId in seen exit request cache.
-func (s *Service) setTaskTerminateMsgSeen(proposalId []byte) {
+func (s *Service) setTaskTerminateMsgSeen(proposalId []byte, senderPartId []byte, receivePartId []byte) {
 	s.seenTaskTerminateMsgLock.Lock()
 	defer s.seenTaskTerminateMsgLock.Unlock()
-	s.seenTaskTerminateMsgCache.Add(string(proposalId), true)
+	v := append(proposalId, senderPartId...)
+	v = append(v, receivePartId...)
+	s.seenTaskTerminateMsgCache.Add(string(v), true)
 }

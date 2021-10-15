@@ -304,6 +304,8 @@ func (msg *MetadataMsg) ToDataCenter(identity *apicommonpb.Organization) *Metada
 		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		// metaData status, eg: create/release/revoke
 		State: apicommonpb.MetadataState_MetadataState_Released,
+		PublishAt: timeutils.UnixMsecUint64(),
+		UpdateAt:  timeutils.UnixMsecUint64(),
 	})
 }
 func (msg *MetadataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -404,6 +406,7 @@ func (msg *MetadataRevokeMsg) ToDataCenter(identity *apicommonpb.Organization) *
 		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 		// metaData status, eg: create/release/revoke
 		State: apicommonpb.MetadataState_MetadataState_Revoked,
+		UpdateAt: timeutils.UnixMsecUint64(),
 	})
 }
 func (msg *MetadataRevokeMsg) Marshal() ([]byte, error) { return nil, nil }

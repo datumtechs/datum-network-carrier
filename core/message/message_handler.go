@@ -454,6 +454,8 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			// unit: byte
 			TotalBandwidth: resource.GetData().GetTotalBandwidth(),
 			UsedBandwidth:  0,
+			PublishAt: timeutils.UnixMsecUint64(),
+			UpdateAt:  timeutils.UnixMsecUint64(),
 		})); nil != err {
 			log.Errorf("Failed to store power to dataCenter on MessageHandler with broadcast power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				power.GetPowerId(), power.GetJobNodeId(), err)
@@ -522,6 +524,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 			DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 			// resource status, eg: create/release/revoke
 			State: apicommonpb.PowerState_PowerState_Revoked,
+			UpdateAt: timeutils.UnixMsecUint64(),
 		})); nil != err {
 			log.Errorf("Failed to remove dataCenter resource on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
