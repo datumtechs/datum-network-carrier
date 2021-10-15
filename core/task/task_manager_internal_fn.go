@@ -31,20 +31,20 @@ func (m *Manager) tryScheduleTask() error {
 
 	go func(nonConsTask *types.NeedConsensusTask) {
 
-		log.Debugf("Start consensus task on 2pc consensus engine, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+		log.Debugf("Start need-consensus task to 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 
 		if err := m.consensusEngine.OnPrepare(nonConsTask.GetTask()); nil != err {
-			log.Errorf("Failed to call `OnPrepare()` on 2pc consensus engine, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
+			log.Errorf("Failed to call `OnPrepare()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
 			nonConsTask.SendResult(types.NewTaskConsResult(nonConsTask.GetTask().GetTaskId(), types.TaskConsensusInterrupt, err))
 			return
 		}
 
 		if err := m.consensusEngine.OnHandle(nonConsTask.GetTask(), nonConsTask.GetResultCh()); nil != err {
-			log.Errorf("Failed to call `OnHandle()` on 2pc consensus engine, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
+			log.Errorf("Failed to call `OnHandle()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
 		}
 
 		result := nonConsTask.ReceiveResult()
-		log.Debugf("Received task result from consensus, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
+		log.Debugf("Received need-consensus task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
 
 		// Consensus failed, task needs to be suspended and rescheduled
 		if result.Status != types.TaskConsensusSucceed {
