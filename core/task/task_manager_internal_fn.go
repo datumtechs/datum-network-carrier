@@ -366,7 +366,6 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
 	if task.HasRemotePID() {
-
 		//if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
 		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultByEventList(task)); nil != err {
 			log.Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
@@ -869,9 +868,12 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_Sender:
 		if err := m.driveTaskForExecute(task); nil != err {
-			log.Errorf("Failed to execute task on taskOnwer node, taskId:{%s}, %s", task.GetTask().GetTaskId(), err)
+			log.WithError(err).Errorf("Failed to execute task on task sender node, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+				task.GetProposalId().String(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
-			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("failed to execute task"), apicommonpb.TaskState_TaskState_Failed)
+			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+				fmt.Sprintf("failed to execute task: %s with %s", task.GetConsStatus().String(),
+					task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
 			m.publishFinishedTaskToDataCenter(task)
 			m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 
@@ -879,10 +881,12 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 
 	default:
 		if err := m.driveTaskForExecute(task); nil != err {
-			log.Errorf("Failed to execute task on %s node, taskId: {%s}, %s", task.GetLocalTaskRole().String(), task.GetTask().GetTaskId(), err)
+			log.WithError(err).Errorf("Failed to execute task on %s node, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+				task.GetLocalTaskRole().String(), task.GetProposalId().String(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
-			// 因为是 task 参与者, 所以需要构造 taskResult 发送给 task 发起者.. (里面有解锁 本地资源 ...)
-			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("failed to execute task"), apicommonpb.TaskState_TaskState_Failed)
+			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+				fmt.Sprintf("failed to execute task: %s with %s", task.GetConsStatus().String(),
+					task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
 			m.sendTaskResultMsgToRemotePeer(task)
 			m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 		}

@@ -114,11 +114,6 @@ func (t *Twopc) refreshProposalState() {
 		//log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
 		return
 	}
-	//localPid, err := p2p.HexPeerID(identity.GetNodeId())
-	//if nil != err {
-	//	log.Errorf("Failed to convert nodeId to pid of local identity on consensus.refreshProposalState(), err: {%s}", err)
-	//	return
-	//}
 
 	t.state.proposalsLock.Lock()
 
@@ -149,27 +144,7 @@ func (t *Twopc) refreshProposalState() {
 					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				}()
-
-
-				var pid peer.ID
-
-				// remote task, so need convert remote pid by nodeId of task sender identity
-				if pstate.GetTaskSender().GetIdentityId() != identity.GetIdentityId() {
-					senderPid, err := p2p.HexPeerID(pstate.GetTaskSender().GetNodeId())
-					if nil != err {
-						log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
-
-						continue
-					}
-					pid = senderPid
-				} else {
-
-					// local task
-					pid = ""
-				}
-
-				t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender(), task)
-
+				t.TaskConsensusInterrupt(proposalId, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender(), task)
 				continue
 			}
 
@@ -235,25 +210,7 @@ func (t *Twopc) refreshProposalState() {
 						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 					}()
-
-
-					var pid peer.ID
-
-					// remote task, so need convert remote pid by nodeId of task sender identity
-					if pstate.GetTaskSender().GetIdentityId() != identity.GetIdentityId() {
-						senderPid, err := p2p.HexPeerID(pstate.GetTaskSender().GetNodeId())
-						if nil != err {
-							log.Errorf("Failed to convert nodeId to pid of task sender identity on consensus.refreshProposalState(), err: {%s}", err)
-
-							continue
-						}
-						pid = senderPid
-					} else {
-
-						// local task
-						pid = ""
-					}
-					t.TaskConsensusInterrupt(proposalId, pid, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender(), task)
+					t.TaskConsensusInterrupt(proposalId, pstate.GetTaskId(), partyId, orgState.GetTaskRole(), identity, pstate.GetTaskSender(), task)
 				}
 
 			default:
@@ -269,27 +226,23 @@ func (t *Twopc) refreshProposalState() {
 
 func (t *Twopc) TaskConsensusInterrupt(
 	proposalId common.Hash,
-	pid peer.ID,
 	taskId, partyId string,
 	role  apicommonpb.TaskRole,
 	sender *apicommonpb.Organization,
 	receiver *apicommonpb.TaskOrganization,
 	task *types.Task,
 ) {
-	// Send task result msg to remote peer, if current org identityId is not task sender identityId
-	if sender.GetIdentityId() == receiver.GetIdentityId() {
-		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on local org, taskId: {%s}, partyId: {%s}",
-			taskId, partyId)
+	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
+	if role == apicommonpb.TaskRole_TaskRole_Sender {
+		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on local org, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote partyId: {%s}",
+			proposalId.String(), taskId, role, partyId, receiver.GetPartyId())
 		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
 	} else {
 
-		//if t.HasNotProposalTaskWithPartyId(taskId, partyId) {
-		//	t.removeOrgProposalStateAndTask(proposalId, partyId)
-		//	return
-		//}
+		// release local resource and clean some data  (on task partenr)
 
-		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on remote org, taskId: {%s}, partyId: {%s}",
-			taskId, partyId)
+		log.Debugf("Call TaskConsensusInterrupt() to interrupt consensus msg on remote org, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote partyId: {%s}",
+			proposalId.String(), taskId, role, partyId, receiver.GetPartyId())
 
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 			Type:       evengine.TaskProposalStateDeadline.Type,
@@ -299,8 +252,25 @@ func (t *Twopc) TaskConsensusInterrupt(
 			CreateAt:   timeutils.UnixMsecUint64(),
 		})
 
+
+
+		var remotePID peer.ID
+
+		// remote task, so need convert remote pid by nodeId of task sender identity
+		if receiver.GetIdentityId() != sender.GetIdentityId() {
+			receiverPID, err := p2p.HexPeerID(receiver.GetNodeId())
+			if nil != err {
+				log.WithError(err).Errorf("Failed to convert nodeId to remote pid receiver identity on `consensus.TaskConsensusInterrupt()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote partyId: {%s}",
+					proposalId.String(), taskId, role, partyId, receiver.GetPartyId())
+			}
+			remotePID = receiverPID
+		} else {
+			// local task (call native func direct)
+			remotePID = ""
+		}
+
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
-			pid,
+			remotePID,
 			proposalId,
 			role,
 			&apicommonpb.TaskOrganization{
@@ -317,11 +287,7 @@ func (t *Twopc) TaskConsensusInterrupt(
 			nil,
 		))
 
-		// Release local task cache that task manager will do it.
-		//
-		//// release local resouce
-		//t.resourceMng.ReleaseLocalResourceWithTask("on TaskConsensusInterrupt", taskId,
-		//	partyId, resource.SetAllReleaseResourceOption())
+		// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)
 	}
 }
 

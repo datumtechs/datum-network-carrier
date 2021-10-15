@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -169,15 +170,17 @@ func (m *Manager) loop() {
 				// to execute the task
 				m.handleNeedExecuteTask(task)
 			} else {
-				// interrupt local task todo maybe there never do.
-				if task.GetRemotePID() == "" {
-					// send local task result msg to datacenter, short circuit.
+
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+					fmt.Sprintf("failed to execute task: %s with %s", task.GetConsStatus().String(),
+						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
+				switch task.GetLocalTaskRole() {
+				case apicommonpb.TaskRole_TaskRole_Sender:
 					m.publishFinishedTaskToDataCenter(task)
-				} else {
-					// interrupt remote task.
-					// send remote task result msg to remote peer, short circuit.
+				default:
 					m.sendTaskResultMsgToRemotePeer(task)
 				}
+				m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 			}
 
 		// handle the executing expire tasks

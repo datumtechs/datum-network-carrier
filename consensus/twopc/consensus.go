@@ -314,9 +314,9 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 			log.Errorf("failed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}, err: \n%s",
 				msg.MsgOption.ProposalId.String(), msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, pid, err)
 
-			t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", msg.TaskInfo.GetTaskId(),
-				msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
-			// clean some data
+			// release local resource and clean some data  (on task partner)
+			t.resourceMng.ReleaseLocalResourceWithTask("on onPrepareMsg", msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverPartyId,
+				resource.SetAllReleaseResourceOption())
 			t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
 		} else {
 			log.Debugf("Succceed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}",
@@ -370,6 +370,11 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on onPrepareVote, some one is empty, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId)
+
+		// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
+		t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt,
+			errors.New("query local identity failed on onPrepareVote")))
+		t.removeOrgProposalStateAndTask(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 	// verify the receiver is myself ?
@@ -448,8 +453,9 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 					log.Errorf("Failed to call `sendConfirmMsg` with `start` consensus prepare epoch, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}, err: \n%s",
 						vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId, vote.MsgOption.SenderRole.String(), vote.MsgOption.SenderPartyId, pid, err)
 
-					// Send consensus result
-					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("failed to call `sendConfirmMsg`")))
+					// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
+					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt,
+						errors.New("failed to call `sendConfirmMsg`")))
 					t.removeOrgProposalStateAndTask(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)
 				}
 			}()
@@ -471,8 +477,9 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 						vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId, vote.MsgOption.SenderRole.String(), vote.MsgOption.SenderPartyId, pid, err)
 
 				}
-				// Send consensus result to interrupt consensus epoch
-				t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("The prepareMsg voting result was not passed")))
+				// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
+				t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt,
+					errors.New("the prepareMsg voting result was not passed")))
 				t.removeOrgProposalStateAndTask(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)
 			}()
 		}
@@ -522,12 +529,12 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 
 	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on onConfirmMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		// release local resource and clean some data  (on task partner)
 		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(),
 			msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
 		t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
-
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on onConfirmMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
@@ -550,22 +557,20 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 	// Cause the local message will only call the local function once,
 	// and the remote message needs to prevent receiving the repeated forwarded consensus message.
 	if consensusSymbol == RemoteConsensusMsg && t.state.HasConfirmVoting(msg.MsgOption.ProposalId, org) {
-
 		log.Errorf("Failed to check remote peer confirm vote wether voting on onConfirmMsg, it's voting alreay, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.ConfirmOption.String())
-
 		return ctypes.ErrPrepareVotehadVoted
 	}
 
 
 	// check msg confirm option value is `start` or `stop` ?
 	if msg.ConfirmOption == types.TwopcMsgStop || msg.ConfirmOption == types.TwopcMsgUnknown {
+		log.Errorf("Failed to verify confirmMsgOption of confirmMsg on onConfirmMsg, confirmMsgOption is not `Start`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
+			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.ConfirmOption.String())
+		// release local resource and clean some data  (on task partner)
 		t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(),
 			msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
 		t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
-
-		log.Errorf("Failed to verify confirmMsgOption of confirmMsg on onConfirmMsg, confirmMsgOption is not `Start`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
-			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.ConfirmOption.String())
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
@@ -624,23 +629,22 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 			log.Errorf("failed to call `sendConfirmVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}, \n%s",
 				msg.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, pid, err)
 
-
+			// release local resource and clean some data  (on task partner)
 			t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(),
 				msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
-			// clean some data
 			t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
 		} else {
 
 			// In any case, as long as voting 'No', Need to clean the local cache
 			if msg.PeersEmpty() {
 
+				// release local resource and clean some data  (on task partner)
 				t.resourceMng.ReleaseLocalResourceWithTask("on onConfirmMsg", proposalTask.GetTaskId(),
 					msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
-				// clean some data
 				t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
 			}
 
-			log.Debugf("Succceed to call `sendConfirmVote`,proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}",
+			log.Debugf("Succceed to call `sendConfirmVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}",
 				msg.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, pid)
 
 		}
@@ -697,6 +701,11 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on onConfirmVote, some one is empty, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId)
+
+		// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
+		t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt,
+			errors.New("query local identity failed on onConfirmVote")))
+		t.removeOrgProposalStateAndTask(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 	// verify the receiver is myself ?
@@ -759,11 +768,12 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 					log.Errorf("Failed to call `sendCommitMsg` with `start` consensus confirm epoch, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}, err: \n%s",
 						vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId, vote.MsgOption.SenderRole.String(), vote.MsgOption.SenderPartyId, pid, err)
 
-					// Send consensus result
-					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("failed to call `sendCommitMsg`")))
+					// Send consensus result (on task sender)
+					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt,
+						errors.New("failed to call `sendCommitMsg`")))
 
 				} else {
-					// Send consensus result
+					// Send consensus result (on task sender)
 					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusSucceed, nil))
 
 					// If sending `CommitMsg` is successful,
@@ -793,8 +803,9 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 						vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(), vote.MsgOption.ReceiverPartyId, vote.MsgOption.SenderRole.String(), vote.MsgOption.SenderPartyId, pid, err)
 
 				}
-				// Send consensus result to interrupt consensus epoch
-				t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt, errors.New("The cofirmMsg voting result was not passed")))
+				// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
+				t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusInterrupt,
+					errors.New("the cofirmMsg voting result was not passed")))
 				t.removeOrgProposalStateAndTask(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)
 			}()
 		}
@@ -851,18 +862,17 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consens
 
 	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on onCommitMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		// release local resource and clean some data  (on task partner)
 		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", proposalTask.GetTaskId(),
 			msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
 		t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
-
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on onCommitMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-
 		log.Errorf("Failed to verify receiver identityId of commitMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return ctypes.ErrConsensusMsgInvalid
@@ -870,12 +880,12 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consens
 
 	// check msg commit option value is `start` or `stop` ?
 	if msg.CommitOption == types.TwopcMsgStop || msg.CommitOption == types.TwopcMsgUnknown {
+		log.Errorf("Failed to verify commitMsgOption of commitMsg on onCommitMsg, commitMsgOption is not `Start`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
+			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.CommitOption.String())
+		// release local resource and clean some data  (on task partner)
 		t.resourceMng.ReleaseLocalResourceWithTask("on onCommitMsg", proposalTask.GetTaskId(),
 			msg.MsgOption.ReceiverPartyId, resource.SetAllReleaseResourceOption())
 		t.removeOrgProposalStateAndTask(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId)
-
-		log.Errorf("Failed to verify commitMsgOption of commitMsg on onCommitMsg, commitMsgOption is not `Start`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
-			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.CommitOption.String())
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
