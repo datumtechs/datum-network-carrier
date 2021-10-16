@@ -77,10 +77,13 @@ type LocalStoreCarrierDB interface {
 	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
-	// about task exec status (prefix + taskId + partyId -> "yes")
-	StoreLocalTaskExecuteStatus(taskId, partyId string) error
+	// about task exec status (prefix + taskId + partyId -> "cons"|"exec")
+	StoreLocalTaskExecuteStatusValCons(taskId, partyId string) error
+	StoreLocalTaskExecuteStatusValExec(taskId, partyId string) error
 	RemoveLocalTaskExecuteStatus(taskId, partyId string) error
-	HasLocalTaskExecute(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatus(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusValCons(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusValExec(taskId, partyId string) (bool, error)
 	// v2.0  about user metadataAuthUsed (userType + user -> metadataAuthId ...)
 	//StoreUserMetadataAuthUsed(userType apicommonpb.UserType, user, metadataAuthId string) error
 	//QueryUserMetadataAuthUsedCount(userType apicommonpb.UserType, user string) (uint32, error)

@@ -383,9 +383,10 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 		return
 	}
 
+	// todo  resource.SetAllReleaseResourceOption()
 	// clean local task cache
 	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.sendTaskResultMsgToRemotePeer()",
-		task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption())
+		task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), )
 
 	log.Debugf("Finished sendTaskResultMsgToRemotePeer,  taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
@@ -862,7 +863,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 		task.GetRemotePID(), task.GetProposalId(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().String())
 
 	// Store task exec status
-	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatus(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
+	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValExec(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
 		log.Errorf("Failed to store local task about exec status,  remote pid: {%s} proposalId: {%s}, taskId: {%s}, self taskRole: {%s}, self taskOrganization: {%s}, err: {%s}",
 			task.GetRemotePID(), task.GetProposalId(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().String(), err)
 		return
@@ -1008,38 +1009,45 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 
 	taskId := msg.TaskEventList[0].GetTaskId()
 
-	has, err := m.resourceMng.GetDB().HasLocalTaskExecute(taskId, msg.MsgOption.ReceiverPartyId)
+	// While task is consensus or executing, handle task resultMsg.
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatus (taskId, msg.MsgOption.ReceiverPartyId)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task executing status on `taskManager.OnTaskResultMsg()`,  proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.WithError(err).Errorf("Failed to query local task executing status on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return fmt.Errorf("query local task executing status failed")
 	}
 
 	if !has {
-		log.Warnf("Warning not found local task executing status on `taskManager.OnTaskResultMsg()`,  proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.Warnf("Warning not found local task executing status on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return nil
 	}
 
-	receiver := m.mustQueryNeedExecuteTaskCache(taskId, msg.MsgOption.ReceiverPartyId).GetLocalTaskOrganization()
+	task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
+		return fmt.Errorf("query local task failed, %s", err)
+	}
+
+	receiver := fetchOrgByPartyRole(msg.MsgOption.ReceiverPartyId, msg.MsgOption.ReceiverRole, task)
 	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId of taskResultMsg, receiver is not me on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.Errorf("Failed to verify receiver identityId of taskResultMsg, receiver is not me on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
 	}
 
-
 	for _, event := range msg.TaskEventList {
 		if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
-			log.WithError(err).Errorf("Failed to store local task event from remote peer on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote pid: {%s}, event: %s",
-				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, pid, event.String())
+			log.WithError(err).Errorf("Failed to store local task event from remote peer on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
+				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId,  msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
 		}
 	}
 
@@ -1055,47 +1063,45 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 
 	log.Debugf("Received remote taskResourceUsageMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
-	has, err := m.resourceMng.GetDB().HasLocalTaskExecute(msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverPartyId)
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExec(msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverPartyId)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task executing status on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.WithError(err).Errorf("Failed to query local task executing status on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return fmt.Errorf("query local task executing status failed")
 	}
 
 	if !has {
-		log.Warnf("Warning not found local task executing status on `taskManager.OnTaskResourceUsageMsg()`, taskId: {%s}, remote partyId: {%s}",
-			msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId())
-		//return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResultMsgInvalid)
+		log.Warnf("Warning not found local task executing status on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return nil
 	}
 
 	// todo 还不清楚需不需要更新本地的  ResourceUsage
 	//if err := m.resourceMng.GetDB().StoreTaskResuorceUsage(msg.GetUsage()); nil != err {
-	//	log.Errorf("Failed to store task resource usage on `OnTaskResourceUsageMsg`, taskId: {%s}, remote partyId: {%s}, err: {%s}",
-	//		msg.GetUsage().GetTaskId(), msg.GetUsage().GetPartyId(), err)
+	//	log.WithError(err).Errorf("Failed to store task resource usage on `OnTaskResourceUsageMsg`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+	//		msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 	//	return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResourceUsageMsgInvalid)
 	//}
 
 	// Update task resourceUsed of powerSuppliers of local task
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetUsage().GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task info on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
-		return fmt.Errorf("query local task failed")
+		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
+		return fmt.Errorf("query local task failed, %s", err)
 	}
-
-	receiver := m.mustQueryNeedExecuteTaskCache(msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverPartyId).GetLocalTaskOrganization()
+	receiver := fetchOrgByPartyRole(msg.MsgOption.ReceiverPartyId, msg.MsgOption.ReceiverRole, task)
 	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
 
-		log.Errorf("Failed to verify receiver identityId of taskResourceUsageMsg, receiver is not me on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.Errorf("Failed to verify receiver identityId of taskResourceUsageMsg, receiver is not me on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
 	}
 
@@ -1115,8 +1121,8 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	}
 	err = m.resourceMng.GetDB().StoreLocalTask(task)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to store local task info on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.WithError(err).Errorf("Failed to store local task info on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return fmt.Errorf("update local task by usage change failed")
 	}
 
@@ -1132,14 +1138,13 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 
 	localTask, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task on `taskManager.OnTaskTerminateMsg()`,  proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
-		return err
+		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
+		return fmt.Errorf("query local task failed, %s", err)
 	}
-
 	if nil == localTask {
-		log.Errorf("Not found local task on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+		log.Errorf("Not found local task on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+			msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 		return err
 	}
 
@@ -1149,30 +1154,30 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 		receiver := m.mustQueryNeedExecuteTaskCache(msg.GetTaskId(), msg.MsgOption.ReceiverPartyId).GetLocalTaskOrganization()
 		identity, err := m.resourceMng.GetDB().QueryIdentity()
 		if nil != err {
-			log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-				msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+			log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+				msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 			return fmt.Errorf("query local identity failed, %s", err)
 		}
 		// verify the receiver is myself ?
 		if identity.GetIdentityId() != receiver.GetIdentityId() {
 
-			log.Errorf("Failed to verify receiver identityId of taskTerminateMsg, receiver is not me on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-				msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+			log.Errorf("Failed to verify receiver identityId of taskTerminateMsg, receiver is not me on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+				msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 			return fmt.Errorf("receiver is not me of taskTerminateMsg")
 		}
 
-
-		has, err := m.resourceMng.GetDB().HasLocalTaskExecute(msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)
+		// While task is consensus or executing, can terminate.  todo  这里还要详细区分是 在共识中  还是在 计算中 ...处理
+		has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatus (msg.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)
 		if nil != err {
-			log.WithError(err).Errorf("Failed to query local task execute status on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-				msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+			log.WithError(err).Errorf("Failed to query local task execute status on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+				msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 			return err
 		}
 		if has {
 			// call terminate task
 			if err := m.driveTaskForTerminate(needExecuteTask); nil != err {
-				log.WithError(err).Errorf("Failed to call driveTaskForTerminate() on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-					msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
+				log.WithError(err).Errorf("Failed to call driveTaskForTerminate() on `taskManager.OnTaskTerminateMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+					msg.MsgOption.ProposalId.String(), msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 				return err
 			}
 
@@ -1189,3 +1194,31 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 }
 
 
+func fetchOrgByPartyRole(partyId string, role apicommonpb.TaskRole, task *types.Task) *apicommonpb.TaskOrganization {
+
+	switch role {
+	case apicommonpb.TaskRole_TaskRole_Sender:
+		if partyId == task.GetTaskSender().GetPartyId() {
+			return task.GetTaskSender()
+		}
+	case apicommonpb.TaskRole_TaskRole_DataSupplier:
+		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+			if partyId == dataSupplier.GetOrganization().GetPartyId() {
+				return dataSupplier.GetOrganization()
+			}
+		}
+	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
+		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+			if partyId == powerSupplier.GetOrganization().GetPartyId() {
+				return powerSupplier.GetOrganization()
+			}
+		}
+	case apicommonpb.TaskRole_TaskRole_Receiver:
+		for _, receiver := range task.GetTaskData().GetReceivers() {
+			if partyId == receiver.GetPartyId() {
+				return receiver
+			}
+		}
+	}
+	return nil
+}

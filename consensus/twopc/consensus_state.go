@@ -245,29 +245,7 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 	s.prepareVotesLock.Unlock()
 }
 
-//func (s *state) RemovePrepareVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
-//	s.prepareVotesLock.Lock()
-//	pvs, ok := s.prepareVotes[proposalId]
-//	if !ok {
-//		return
-//	}
-//	pvs.removeVote(partyId, role)
-//	s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId,partyId))
-//	if pvs.isNotEmptyVote() {
-//		go func() {
-//			for _, vote := range pvs.votes {
-//				s.wal.UpdatePrepareVotes(vote)
-//			}
-//		}()
-//		s.prepareVotes[proposalId] = pvs
-//	} else {
-//		delete(s.prepareVotes, proposalId)
-//		go func() {
-//			s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, ""))
-//		}()
-//	}
-//	s.prepareVotesLock.Unlock()
-//}
+
 
 func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
 	s.prepareVotesLock.RLock()
@@ -388,13 +366,13 @@ func (s *state) GetTaskReceiverPrepareTotalVoteCount(proposalId common.Hash) uin
 
 // ---------------- ConfirmVote ----------------
 func (s *state) HasConfirmVoting(proposalId common.Hash, org *apicommonpb.TaskOrganization) bool {
-	s.prepareVotesLock.RLock()
-	pvs, ok := s.prepareVotes[proposalId]
-	s.prepareVotesLock.RUnlock()
+	s.confirmVotesLock.RLock()
+	cvs, ok := s.confirmVotes[proposalId]
+	s.confirmVotesLock.RUnlock()
 	if !ok {
 		return false
 	}
-	return pvs.hasPrepareVoting(org.PartyId, org.IdentityId)
+	return cvs.hasConfirmVoting(org.PartyId, org.IdentityId)
 }
 func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	s.confirmVotesLock.Lock()
@@ -408,29 +386,7 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	s.confirmVotesLock.Unlock()
 }
 
-//func (s *state) RemoveConfirmVote(proposalId common.Hash, partyId string, role apicommonpb.TaskRole) {
-//	s.confirmVotesLock.Lock()
-//	cvs, ok := s.confirmVotes[proposalId]
-//	if !ok {
-//		return
-//	}
-//	cvs.removeVote(partyId, role)
-//	s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId,partyId))
-//	if cvs.isNotEmptyVote() {
-//		go func() {
-//			for _, vote := range cvs.votes {
-//				s.wal.UpdateConfirmVotes(vote)
-//			}
-//		}()
-//		s.confirmVotes[proposalId] = cvs
-//	} else {
-//		delete(s.confirmVotes, proposalId)
-//		go func() {
-//			s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId,""))
-//		}()
-//	}
-//	s.confirmVotesLock.Unlock()
-//}
+
 
 func (s *state) GetConfirmVoteArr(proposalId common.Hash) []*types.ConfirmVote {
 	s.confirmVotesLock.RLock()

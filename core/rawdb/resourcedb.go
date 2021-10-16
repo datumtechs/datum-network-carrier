@@ -1112,13 +1112,12 @@ func QueryDataResourceDiskUsed(db DatabaseReader, metaDataId string) (*types.Dat
 	return &dataResourceDiskUsed, nil
 }
 
-func StoreLocalTaskExecuteStatus(db DatabaseWriter, taskId, partyId string) error {
-	key := GetLocalTaskExecuteStatus(taskId, partyId)
-	val, err := rlp.EncodeToBytes("yes")
-	if nil != err {
-		return err
-	}
-	return db.Put(key, val)
+
+func StoreLocalTaskExecuteStatusValCons(db DatabaseWriter, taskId, partyId string) error {
+	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), GetLocalTaskExecuteStatusValCons())
+}
+func StoreLocalTaskExecuteStatusValExec (db DatabaseWriter, taskId, partyId string) error {
+	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), GetLocalTaskExecuteStatusValExec())
 }
 
 func RemoveLocalTaskExecuteStatus(db KeyValueStore, taskId, partyId string) error {
@@ -1133,7 +1132,19 @@ func RemoveLocalTaskExecuteStatus(db KeyValueStore, taskId, partyId string) erro
 	return db.Delete(key)
 }
 
-func HasLocalTaskExecute(db DatabaseReader, taskId, partyId string) (bool, error) {
+
+func HasLocalTaskExecuteStatusValCons (db DatabaseReader, taskId, partyId string) (bool, error) {
+	key := GetLocalTaskExecuteStatus(taskId, partyId)
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return false, err
+	}
+	if !has {
+		return false, nil
+	}
+	return true, nil
+}
+func HasLocalTaskExecuteStatusValExec (db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {

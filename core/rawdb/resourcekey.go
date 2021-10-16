@@ -48,6 +48,9 @@ var (
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
 	// prefix + taskId + partyId -> executeStatus
 	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
+	localTaskExecuteStatusValCons = []byte("cons")  // start consensus
+	localTaskExecuteStatusValExec = []byte("exec")  // start execute
+
 
 	// prefix + userType + user -> n
 	userMetadataAuthUsedCountKey = []byte("userMetadataAuthUsedCountKey")
@@ -136,6 +139,13 @@ func GetDataResourceDiskUsedKey(metaDataId string) []byte {
 func GetLocalTaskExecuteStatus(taskId, partyId string) []byte {
 	return append(append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
+func GetLocalTaskExecuteStatusValCons() []byte {
+	return localTaskExecuteStatusValCons
+}
+func GetLocalTaskExecuteStatusValExec() []byte {
+	return localTaskExecuteStatusValExec
+}
+
 
 func GetUserMetadataAuthUsedCountKey(userType apicommonpb.UserType, user string) []byte {
 	return append(append(userMetadataAuthUsedCountKey, []byte(userType.String())...), []byte(user)...)

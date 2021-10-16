@@ -116,7 +116,6 @@ func (w *walDB) UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twop
 	if err != nil {
 		log.Fatal("marshaling error: ", err)
 	}
-	fmt.Println("proposalId:", proposalId)
 	if err := w.db.Put(w.GetProposalPeerInfoCacheKey(proposalId), data); err != nil {
 		log.Warning("UpdateConfirmTaskPeerInfo to wal fail,proposalId:", proposalId)
 	}

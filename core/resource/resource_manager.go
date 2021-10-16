@@ -287,7 +287,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 
 	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
 
-	has, err := m.dataCenter.HasLocalTaskExecute(taskId, partyId)
+	has, err := m.dataCenter.HasLocalTaskExecuteStatus(taskId, partyId)
 	if nil != err {
 		log.Errorf("Failed to query local task exec status with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
 			logdesc, taskId, partyId, option, err)

@@ -180,7 +180,7 @@ func (m *Manager) loop() {
 				default:
 					m.sendTaskResultMsgToRemotePeer(task)
 				}
-				m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+				//m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 			}
 
 		// handle the executing expire tasks
@@ -224,7 +224,8 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 
 		// todo verify user sign with terminate task
 
-		has, err := m.resourceMng.GetDB().HasLocalTaskExecute(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		// While task is consensus or executing, can terminate.
+		has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatus (localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 		if nil != err {
 			log.Errorf("Failed to query local task execute status on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
 				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
@@ -387,7 +388,7 @@ func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
 	if !ok {
 		return fmt.Errorf("Can not find task cache, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
 	}
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecute(usage.GetTaskId(), usage.GetPartyId())
+	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExec (usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
 		return err
 	}

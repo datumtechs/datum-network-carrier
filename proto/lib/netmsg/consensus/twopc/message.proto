@@ -36,10 +36,9 @@ message ConfirmMsg {
 
 // On ConfirmMsg, the task partners peerInfo
 message ConfirmTaskPeerInfo {
-  TaskPeerInfo          owner_peer_info = 1 [(gogoproto.moretags) = "ssz-max:\"16777216\""];                          // task 发起方的 资源信息
-  repeated TaskPeerInfo data_supplier_peer_info_list = 2 [(gogoproto.moretags) = "ssz-max:\"16777216\""];             // 数据参与方的 资源信息
-  repeated TaskPeerInfo power_supplier_peer_info_list = 3 [(gogoproto.moretags) = "ssz-max:\"16777216\""];            // 算力参与方的 资源信息
-  repeated TaskPeerInfo result_receiver_peer_info_list = 4 [(gogoproto.moretags) = "ssz-max:\"16777216\""];           // 结果接收方的 资源信息
+  repeated TaskPeerInfo data_supplier_peer_info_s = 2 [(gogoproto.moretags) = "ssz-max:\"16777216\""];             // 数据参与方的 资源信息
+  repeated TaskPeerInfo power_supplier_peer_info_s = 3 [(gogoproto.moretags) = "ssz-max:\"16777216\""];            // 算力参与方的 资源信息
+  repeated TaskPeerInfo result_receiver_peer_info_s = 4 [(gogoproto.moretags) = "ssz-max:\"16777216\""];           // 结果接收方的 资源信息
 }
 
 // 2pc confirmVote
