@@ -280,7 +280,6 @@ service YarnService {
   rpc GetNodeInfo (google.protobuf.Empty) returns (GetNodeInfoResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/yarn/nodeInfo"
-      body: "*"
     };
   }
 
@@ -320,7 +319,6 @@ service YarnService {
   rpc GetSeedNodeList (google.protobuf.Empty) returns (GetSeedNodeListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/yarn/seedList"
-      body: "*"
     };
   }
 
@@ -353,7 +351,6 @@ service YarnService {
   rpc GetDataNodeList (google.protobuf.Empty) returns (GetRegisteredNodeListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/yarn/dataNodeList"
-      body: "*"
     };
   }
 
@@ -387,7 +384,6 @@ service YarnService {
   rpc GetJobNodeList (google.protobuf.Empty) returns (GetRegisteredNodeListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/yarn/jobNodeList"
-      body: "*"
     };
   }
 
@@ -452,7 +448,6 @@ service YarnService {
   rpc GetTaskResultFileSummaryList (google.protobuf.Empty) returns (GetTaskResultFileSummaryListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/yarn/taskResultFileSummaryList"
-      body: "*"
     };
   }
 

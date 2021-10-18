@@ -129,7 +129,6 @@ service TaskService {
   rpc GetTaskDetailList (google.protobuf.Empty) returns (GetTaskDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/task/list"
-      body: "*"
     };
   }
 

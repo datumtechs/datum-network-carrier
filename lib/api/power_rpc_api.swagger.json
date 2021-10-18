@@ -11,9 +11,9 @@
     "application/json"
   ],
   "paths": {
-    "/carrier/v1/power/globalList": {
-      "post": {
-        "summary": "查看全网各个组织的总算力详情列表",
+    "/carrier/v1/power/globalDetailList": {
+      "get": {
+        "summary": "查看全网各个组织的各个算力详情列表",
         "operationId": "PowerService_GetGlobalPowerDetailList",
         "responses": {
           "200": {
@@ -29,23 +29,36 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "PowerService"
         ]
       }
     },
-    "/carrier/v1/power/localList": {
-      "post": {
+    "/carrier/v1/power/globalSummaryList": {
+      "get": {
+        "summary": "查看全网各个组织的总算力(累加)详情列表",
+        "operationId": "PowerService_GetGlobalPowerSummaryList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetGlobalPowerSummaryListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "PowerService"
+        ]
+      }
+    },
+    "/carrier/v1/power/localDetailList": {
+      "get": {
         "summary": "本组织的所有(宿主机)算力信息列表 (包含【未发布】和【已发布】的)",
         "operationId": "PowerService_GetLocalPowerDetailList",
         "responses": {
@@ -62,16 +75,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "PowerService"
         ]
@@ -258,7 +261,7 @@
           }
         }
       },
-      "title": "全网各个组织的总算力列表 resp"
+      "title": "全网各个组织的各个算力列表 resp"
     },
     "rpcapiGetGlobalPowerDetailResponse": {
       "type": "object",
@@ -268,6 +271,40 @@
         },
         "power": {
           "$ref": "#/definitions/typesPowerUsageDetail"
+        }
+      },
+      "title": "单个组织的各个算力信息"
+    },
+    "rpcapiGetGlobalPowerSummaryListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "power_list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetGlobalPowerSummaryResponse"
+          }
+        }
+      },
+      "title": "查看全网各个组织的总算力(累加)详情列表 resp"
+    },
+    "rpcapiGetGlobalPowerSummaryResponse": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/protobufOrganization"
+        },
+        "power": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        },
+        "power_id": {
+          "type": "string"
         }
       },
       "title": "单个组织的总算力信息"

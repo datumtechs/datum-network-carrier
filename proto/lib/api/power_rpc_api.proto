@@ -82,7 +82,6 @@ service PowerService {
   rpc GetGlobalPowerSummaryList (google.protobuf.Empty) returns (GetGlobalPowerSummaryListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/power/globalSummaryList"
-      body: "*"
     };
   }
 
@@ -90,7 +89,6 @@ service PowerService {
   rpc GetGlobalPowerDetailList (google.protobuf.Empty) returns (GetGlobalPowerDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/power/globalDetailList"
-      body: "*"
     };
   }
 
@@ -98,7 +96,6 @@ service PowerService {
   rpc GetLocalPowerDetailList (google.protobuf.Empty) returns (GetLocalPowerDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/power/localDetailList"
-      body: "*"
     };
   }
 

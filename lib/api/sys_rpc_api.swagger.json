@@ -12,7 +12,7 @@
   ],
   "paths": {
     "/carrier/v1/yarn/dataNodeList": {
-      "post": {
+      "get": {
         "summary": "查询数据服务列表",
         "operationId": "YarnService_GetDataNodeList",
         "responses": {
@@ -29,16 +29,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "YarnService"
         ]
@@ -144,7 +134,7 @@
       }
     },
     "/carrier/v1/yarn/jobNodeList": {
-      "post": {
+      "get": {
         "summary": "查询计算服务列表 (宿主机的物理信息和网络连接信息)",
         "operationId": "YarnService_GetJobNodeList",
         "responses": {
@@ -161,23 +151,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "YarnService"
         ]
       }
     },
     "/carrier/v1/yarn/nodeInfo": {
-      "post": {
+      "get": {
         "summary": "Getter YarnNode ...\n查看自身调度服务信息",
         "operationId": "YarnService_GetNodeInfo",
         "responses": {
@@ -194,16 +174,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "YarnService"
         ]
@@ -441,7 +411,7 @@
       }
     },
     "/carrier/v1/yarn/seedList": {
-      "post": {
+      "get": {
         "summary": "查询种子节点列表",
         "operationId": "YarnService_GetSeedNodeList",
         "responses": {
@@ -458,16 +428,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "YarnService"
         ]
@@ -606,7 +566,7 @@
       }
     },
     "/carrier/v1/yarn/taskResultFileSummaryList": {
-      "post": {
+      "get": {
         "summary": "查询当前组织参与的所有任务结果文件摘要",
         "operationId": "YarnService_GetTaskResultFileSummaryList",
         "responses": {
@@ -623,16 +583,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "YarnService"
         ]

@@ -12,7 +12,7 @@
   ],
   "paths": {
     "/carrier/v1/metadata/globalList": {
-      "post": {
+      "get": {
         "summary": "查看 全网元数据列表",
         "operationId": "MetadataService_GetGlobalMetadataDetailList",
         "responses": {
@@ -29,23 +29,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "MetadataService"
         ]
       }
     },
     "/carrier/v1/metadata/localList": {
-      "post": {
+      "get": {
         "summary": "查看 本组织元数据列表",
         "operationId": "MetadataService_GetLocalMetadataDetailList",
         "responses": {
@@ -62,16 +52,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "MetadataService"
         ]
@@ -490,6 +470,14 @@
         },
         "state": {
           "$ref": "#/definitions/protobufMetadataState"
+        },
+        "publish_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
         }
       },
       "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"

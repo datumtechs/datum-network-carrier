@@ -87,7 +87,6 @@ service MetadataService {
   rpc GetGlobalMetadataDetailList (google.protobuf.Empty) returns (GetGlobalMetadataDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/metadata/globalList"
-      body: "*"
     };
   }
 
@@ -95,7 +94,6 @@ service MetadataService {
   rpc GetLocalMetadataDetailList (google.protobuf.Empty) returns (GetLocalMetadataDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/metadata/localList"
-      body: "*"
     };
   }
 

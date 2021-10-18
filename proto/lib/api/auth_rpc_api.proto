@@ -107,7 +107,7 @@ service AuthService {
   // 注销准入网络
   rpc RevokeIdentityJoin (google.protobuf.Empty) returns (api.protobuf.SimpleResponse) {
     option (google.api.http) = {
-      get: "/carrier/v1/auth/revokeIdentity"
+      post: "/carrier/v1/auth/revokeIdentity"
       body: "*"
     };
   }
@@ -115,7 +115,6 @@ service AuthService {
   rpc GetNodeIdentity (google.protobuf.Empty)returns (GetNodeIdentityResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/auth/getIdentity"
-      body: "*"
     };
   }
 
@@ -155,7 +154,6 @@ service AuthService {
   rpc GetLocalMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/auth/localMetadataAuthList"
-      body: "*"
     };
   }
 
@@ -163,7 +161,6 @@ service AuthService {
   rpc GetGlobalMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/auth/globalMetadataAuthList"
-      body: "*"
     };
   }
 

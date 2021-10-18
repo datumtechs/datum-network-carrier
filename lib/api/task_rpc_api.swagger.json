@@ -78,7 +78,7 @@
       }
     },
     "/carrier/v1/task/list": {
-      "post": {
+      "get": {
         "summary": "查看本组织参与过的全部任务详情列表",
         "operationId": "TaskService_GetTaskDetailList",
         "responses": {
@@ -95,16 +95,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "TaskService"
         ]

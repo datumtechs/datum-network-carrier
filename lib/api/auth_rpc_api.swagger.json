@@ -111,7 +111,7 @@
       }
     },
     "/carrier/v1/auth/getIdentity": {
-      "post": {
+      "get": {
         "summary": "查询自己组织的identity信息",
         "operationId": "AuthService_GetNodeIdentity",
         "responses": {
@@ -128,23 +128,13 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "AuthService"
         ]
       }
     },
     "/carrier/v1/auth/globalMetadataAuthList": {
-      "post": {
+      "get": {
         "summary": "查询(全网)的所有元数据的授权申请及审核结果详情列表",
         "operationId": "AuthService_GetGlobalMetadataAuthorityList",
         "responses": {
@@ -161,16 +151,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "AuthService"
         ]
@@ -210,7 +190,7 @@
       }
     },
     "/carrier/v1/auth/localMetadataAuthList": {
-      "post": {
+      "get": {
         "summary": "查询(本组织)的所有元数据的授权申请及审核结果详情列表",
         "operationId": "AuthService_GetLocalMetadataAuthorityList",
         "responses": {
@@ -227,16 +207,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "properties": {}
-            }
-          }
-        ],
         "tags": [
           "AuthService"
         ]
