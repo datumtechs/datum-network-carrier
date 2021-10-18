@@ -11,9 +11,13 @@ import (
 )
 
 // The value of these vars are set through linker options.
-var gitCommit = "Local build"
-var buildDate = "Moments ago"
-var gitTag = "Unknown"
+//var gitCommit = "Local build"
+//var buildDate = "Moments ago"
+//var gitTag = "Unknown"
+
+var gitCommit = "{STABLE_GIT_COMMIT}"
+var buildDate = "{DATE}"
+var gitTag = "{STABLE_GIT_TAG}"
 
 // Version returns the version string of this build.
 func Version() string {
