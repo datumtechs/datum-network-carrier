@@ -113,7 +113,8 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		resourceClientSet: resourceClientSet,
 	}
 
-	s.APIBackend = &CarrierAPIBackend{carrier: s}
+	//s.APIBackend = &CarrierAPIBackend{carrier: s}
+	s.APIBackend = NewCarrierAPIBackend(s)
 	s.Engines = make(map[types.ConsensusEngineType]handler.Engine, 0)
 	s.Engines[types.TwopcTyp] = twopcEngine
 	s.Engines[types.ChainconsTyp] = chaincons.New()
