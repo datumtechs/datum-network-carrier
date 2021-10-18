@@ -279,7 +279,7 @@ service YarnService {
   // 查看自身调度服务信息
   rpc GetNodeInfo (google.protobuf.Empty) returns (GetNodeInfoResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/yarn/nodeInfo"
+      get: "/carrier/v1/yarn/nodeInfo"
       body: "*"
     };
   }
@@ -319,7 +319,7 @@ service YarnService {
   // 查询种子节点列表
   rpc GetSeedNodeList (google.protobuf.Empty) returns (GetSeedNodeListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/yarn/seedList"
+      get: "/carrier/v1/yarn/seedList"
       body: "*"
     };
   }
@@ -352,7 +352,7 @@ service YarnService {
   // 查询数据服务列表
   rpc GetDataNodeList (google.protobuf.Empty) returns (GetRegisteredNodeListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/yarn/dataNodeList"
+      get: "/carrier/v1/yarn/dataNodeList"
       body: "*"
     };
   }
@@ -386,7 +386,7 @@ service YarnService {
   // 查询计算服务列表 (宿主机的物理信息和网络连接信息)
   rpc GetJobNodeList (google.protobuf.Empty) returns (GetRegisteredNodeListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/yarn/jobNodeList"
+      get: "/carrier/v1/yarn/jobNodeList"
       body: "*"
     };
   }
@@ -451,7 +451,7 @@ service YarnService {
   // 查询当前组织参与的所有任务结果文件摘要
   rpc GetTaskResultFileSummaryList (google.protobuf.Empty) returns (GetTaskResultFileSummaryListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/yarn/taskResultFileSummaryList"
+      get: "/carrier/v1/yarn/taskResultFileSummaryList"
       body: "*"
     };
   }

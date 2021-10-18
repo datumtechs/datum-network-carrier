@@ -107,14 +107,14 @@ service AuthService {
   // 注销准入网络
   rpc RevokeIdentityJoin (google.protobuf.Empty) returns (api.protobuf.SimpleResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/auth/revokeIdentity"
+      get: "/carrier/v1/auth/revokeIdentity"
       body: "*"
     };
   }
   // 查询自己组织的identity信息
   rpc GetNodeIdentity (google.protobuf.Empty)returns (GetNodeIdentityResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/auth/getIdentity"
+      get: "/carrier/v1/auth/getIdentity"
       body: "*"
     };
   }
@@ -154,7 +154,7 @@ service AuthService {
   // 查询(本组织)的所有元数据的授权申请及审核结果详情列表
   rpc GetLocalMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/auth/localMetadataAuthList"
+      get: "/carrier/v1/auth/localMetadataAuthList"
       body: "*"
     };
   }
@@ -162,7 +162,7 @@ service AuthService {
   // 查询(全网)的所有元数据的授权申请及审核结果详情列表
   rpc GetGlobalMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/auth/globalMetadataAuthList"
+      get: "/carrier/v1/auth/globalMetadataAuthList"
       body: "*"
     };
   }

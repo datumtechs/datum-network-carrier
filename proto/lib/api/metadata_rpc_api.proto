@@ -86,7 +86,7 @@ service MetadataService {
   // 查看 全网元数据列表
   rpc GetGlobalMetadataDetailList (google.protobuf.Empty) returns (GetGlobalMetadataDetailListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/metadata/globalList"
+      get: "/carrier/v1/metadata/globalList"
       body: "*"
     };
   }
@@ -94,7 +94,7 @@ service MetadataService {
   // 查看 本组织元数据列表
   rpc GetLocalMetadataDetailList (google.protobuf.Empty) returns (GetLocalMetadataDetailListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/metadata/localList"
+      get: "/carrier/v1/metadata/localList"
       body: "*"
     };
   }
