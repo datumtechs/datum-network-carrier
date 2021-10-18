@@ -36,7 +36,7 @@ func (t TaskConsStatus) String() string {
 	case TaskConsensusSucceed:
 		return "TaskConsensusSucceed"
 	case TaskConsensusInterrupt:
-		return "taskConsensusInterrupt"
+		return "TaskConsensusInterrupt"
 	case TaskConsensusRefused:
 		return "TaskConsensusRefused"
 	case TaskNeedExecute:
