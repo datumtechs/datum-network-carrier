@@ -230,8 +230,8 @@ func (msg *ConfirmMsg) PeersEmpty() bool {
 	if nil == msg.Peers {
 		return true
 	}
-	if nil == msg.Peers.GetOwnerPeerInfo() && len(msg.Peers.GetDataSupplierPeerInfoList()) == 0 &&
-		len(msg.Peers.GetPowerSupplierPeerInfoList()) == 0 && len(msg.Peers.GetResultReceiverPeerInfoList()) == 0 {
+	if len(msg.Peers.GetDataSupplierPeerInfos()) == 0 &&
+		len(msg.Peers.GetPowerSupplierPeerInfos()) == 0 && len(msg.Peers.GetResultReceiverPeerInfos()) == 0 {
 		return true
 	}
 	return false

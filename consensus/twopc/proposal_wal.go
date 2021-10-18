@@ -3,7 +3,6 @@ package twopc
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
@@ -372,6 +371,5 @@ func (w *walDB) UnmarshalTest() {
 			log.Fatal("marshaling error: ", err)
 		}
 		proposalPeerInfoCache[proposalId] = libProposalPeerInfoCache
-		fmt.Println(proposalId.String(), string(libProposalPeerInfoCache.OwnerPeerInfo.PartyId))
 	}
 }

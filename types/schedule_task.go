@@ -259,9 +259,8 @@ func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 	if nil == resources {
 		return "{}"
 	}
-	ownerPeerInfoStr := FetchTaskPeerInfo(resources.GetOwnerPeerInfo()).String()
-	dataSupplierList := make([]string, len(resources.GetDataSupplierPeerInfoList()))
-	for i, peerInfo := range resources.GetDataSupplierPeerInfoList() {
+	dataSupplierList := make([]string, len(resources.GetDataSupplierPeerInfos()))
+	for i, peerInfo := range resources.GetDataSupplierPeerInfos() {
 		var resource *PrepareVoteResource
 		if nil == peerInfo {
 			resource = &PrepareVoteResource{}
@@ -276,8 +275,8 @@ func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 	}
 	dataSupplierListStr := "[" + strings.Join(dataSupplierList, ",") + "]"
 
-	powerSupplierList := make([]string, len(resources.GetPowerSupplierPeerInfoList()))
-	for i, peerInfo := range resources.GetPowerSupplierPeerInfoList() {
+	powerSupplierList := make([]string, len(resources.GetPowerSupplierPeerInfos()))
+	for i, peerInfo := range resources.GetPowerSupplierPeerInfos() {
 		var resource *PrepareVoteResource
 		if nil == peerInfo {
 			resource = &PrepareVoteResource{}
@@ -292,8 +291,8 @@ func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 	}
 	powerSupplierListStr := "[" + strings.Join(powerSupplierList, ",") + "]"
 
-	receiverList := make([]string, len(resources.GetResultReceiverPeerInfoList()))
-	for i, peerInfo := range resources.GetResultReceiverPeerInfoList() {
+	receiverList := make([]string, len(resources.GetResultReceiverPeerInfos()))
+	for i, peerInfo := range resources.GetResultReceiverPeerInfos() {
 		var resource *PrepareVoteResource
 		if nil == peerInfo {
 			resource = &PrepareVoteResource{}
@@ -308,8 +307,8 @@ func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 	}
 	receiverListStr := "[" + strings.Join(receiverList, ",") + "]"
 
-	return fmt.Sprintf(`{"ownerPeerInfo": %s, "dataSupplierPeerInfoList": %s, "powerSupplierPeerInfoList": %s, "resultReceiverPeerInfoList": %s}`,
-		ownerPeerInfoStr, dataSupplierListStr, powerSupplierListStr, receiverListStr)
+	return fmt.Sprintf(`{"dataSupplierPeerInfoList": %s, "powerSupplierPeerInfoList": %s, "resultReceiverPeerInfoList": %s}`,
+		dataSupplierListStr, powerSupplierListStr, receiverListStr)
 }
 
 func IsSameTaskOrgByte(org1, org2 *msgcommonpb.TaskOrganizationIdentityInfo) bool {
