@@ -1219,7 +1219,7 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 
 
 	// While task is consensus or executing, can terminate.
-	cons, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValCons(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValCons(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
@@ -1229,21 +1229,21 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 	// interrupt consensus with sender AND send terminateMsg to remote partners
 	// OR terminate executing task AND send terminateMsg to remote partners
 
-	if cons {
+	if has {
 		if err = m.consensusEngine.OnConsensusMsg(pid, types.NewInterruptMsgWrap(localTask.GetTaskId(), terminateMsg.MsgOption)); nil != err {
 			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 				msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 			return err
 		}
 	} else {
-		cons, err = m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExec(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		has, err = m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExec(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute `exec` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 				msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 			return err
 		}
 
-		if cons {
+		if has {
 			if err := m.driveTaskForTerminate(m.mustQueryNeedExecuteTaskCache(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())); nil != err {
 				log.WithError(err).Errorf("Failed to call driveTaskForTerminate() on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 					msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)

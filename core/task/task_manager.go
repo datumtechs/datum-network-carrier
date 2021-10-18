@@ -151,7 +151,7 @@ func (m *Manager) loop() {
 
 				if err := m.resourceMng.GetDB().StoreLocalTask(needReplayScheduleTask.GetTask()); nil != err {
 
-					log.Errorf("failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}, err: {%s}", needReplayScheduleTask.GetTask().GetTaskId(), err)
+					log.Errorf("Failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}, err: {%s}", needReplayScheduleTask.GetTask().GetTaskId(), err)
 
 					needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
 
@@ -171,7 +171,7 @@ func (m *Manager) loop() {
 			} else {
 
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-					fmt.Sprintf("failed to execute task: %s with %s", task.GetConsStatus().String(),
+					fmt.Sprintf("execute task failed: %s with %s", task.GetConsStatus().String(),
 						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
 				switch task.GetLocalTaskRole() {
 				case apicommonpb.TaskRole_TaskRole_Sender:
@@ -179,7 +179,6 @@ func (m *Manager) loop() {
 				default:
 					m.sendTaskResultMsgToRemotePeer(task)
 				}
-				//m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 			}
 
 		// handle the executing expire tasks
@@ -220,13 +219,13 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 
 	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
 	// While task is consensus or executing, can terminate.
-	cons, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValCons(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValCons(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 			localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 		return
 	}
-	if cons {
+	if has {
 		if err = m.consensusEngine.OnConsensusMsg(
 			"", types.NewInterruptMsgWrap(localTask.GetTaskId(),
 			types.MakeMsgOption(common.Hash{},
