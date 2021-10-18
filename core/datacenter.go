@@ -347,7 +347,7 @@ func (dc *DataCenter) RemoveLocalTaskExecuteStatus(taskId, partyId string) error
 func (dc *DataCenter) HasLocalTaskExecuteStatus(taskId, partyId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.HasLocalTaskExecuteStatusValExec(dc.db, taskId, partyId)
+	return rawdb.HasLocalTaskExecuteStatus(dc.db, taskId, partyId)
 }
 
 func (dc *DataCenter) HasLocalTaskExecuteStatusValCons(taskId, partyId string) (bool, error) {

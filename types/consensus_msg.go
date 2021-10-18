@@ -112,6 +112,26 @@ type MsgOption struct {
 	Owner           *apicommonpb.TaskOrganization
 }
 
+func MakeMsgOption(proposalId common.Hash,
+	senderRole, receiverRole apicommonpb.TaskRole,
+	senderPartyId, receiverPartyId string,
+	sender *apicommonpb.TaskOrganization,
+) *msgcommonpb.MsgOption {
+	return &msgcommonpb.MsgOption{
+		ProposalId:      proposalId.Bytes(),
+		SenderRole:      uint64(senderRole),
+		SenderPartyId:   []byte(senderPartyId),
+		ReceiverRole:    uint64(receiverRole),
+		ReceiverPartyId: []byte(receiverPartyId),
+		MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+			Name:       []byte(sender.GetNodeName()),
+			NodeId:     []byte(sender.GetNodeId()),
+			IdentityId: []byte(sender.GetIdentityId()),
+			PartyId:    []byte(sender.GetPartyId()),
+		},
+	}
+}
+
 func (option *MsgOption) String() string {
 	return fmt.Sprintf(`{"ProposalId": "%s", "senderRole": "%s", "senderPartyId": "%s", "receiverRole": "%s", "receiverPartyId": "%s", "owner": %s}`,
 		option.ProposalId.String(), option.SenderRole.String(), option.SenderPartyId, option.ReceiverRole.String(), option.ReceiverPartyId, option.Owner.String())

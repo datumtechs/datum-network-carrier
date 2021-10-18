@@ -29,11 +29,17 @@ const (
 	PeriodCommit  ProposalStatePeriod = 3
 	// The consensus message life cycle of `proposal` has reached its deadline,
 	// but at this time the `GetState` of `proposal` itself has not reached the `Deadline`.
+	//
+	// (it will be changed on `refresh loop` only)
 	PeriodFinished ProposalStatePeriod = 4
 
-	PrepareMsgVotingTimeout = 3 * time.Second // 3s
-	ConfirmMsgVotingTimeout = 1 * time.Second // 1s
-	CommitMsgEndingTimeout  = 1 * time.Second // 1s
+	// the consensus period:
+	//
+	//   prepare epoch [prepare start time] <-- prepare voting duration --> confirm epoch [confirm start time] <-- confirm voting duration --> commit epoch [commit start time] <-- commit ending duration --> finished
+	//
+	PrepareMsgVotingDuration = 3 * time.Second // 3s
+	ConfirmMsgVotingDuration = 1 * time.Second // 1s
+	CommitMsgEndingDuration  = 1 * time.Second // 1s
 
 	//ConfirmEpochUnknown ConfirmEpoch = 0
 	//ConfirmEpochFirst   ConfirmEpoch = 1
@@ -149,14 +155,12 @@ func NewOrgProposalState(
 	}
 }
 
+func (pstate *OrgProposalState) GetTaskId() string                 { return pstate.TaskId }
+func (pstate *OrgProposalState) GetTaskRole() apicommonpb.TaskRole { return pstate.TaskRole }
 func (pstate *OrgProposalState) CurrPeriodNum() ProposalStatePeriod {
 	return pstate.PeriodNum
 }
-
-func (pstate *OrgProposalState) GetTaskId() string                 { return pstate.TaskId }
-func (pstate *OrgProposalState) GetTaskRole() apicommonpb.TaskRole { return pstate.TaskRole }
-func (pstate *OrgProposalState) GetPeriod() string {
-
+func (pstate *OrgProposalState) GetPeriodStr() string {
 	switch pstate.PeriodNum {
 	case PeriodPrepare:
 		return "PeriodPrepare"
@@ -197,7 +201,7 @@ func (pstate *OrgProposalState) IsPrepareTimeout() bool {
 	}
 
 	now := timeutils.UnixMsecUint64()
-	duration := uint64(PrepareMsgVotingTimeout.Milliseconds())
+	duration := uint64(PrepareMsgVotingDuration.Milliseconds())
 
 	// Due to the time boundary problem, the value `==`
 	if pstate.IsPreparePeriod() && (now-pstate.PeriodStartTime) >= duration {
@@ -221,7 +225,7 @@ func (pstate *OrgProposalState) IsConfirmTimeout() bool {
 	}
 
 	now := timeutils.UnixMsecUint64()
-	duration := uint64(ConfirmMsgVotingTimeout.Milliseconds())
+	duration := uint64(ConfirmMsgVotingDuration.Milliseconds())
 
 	if pstate.IsConfirmPeriod() && (now-pstate.PeriodStartTime) >= duration {
 		return true
@@ -241,7 +245,7 @@ func (pstate *OrgProposalState) IsCommitTimeout() bool {
 	}
 
 	now := timeutils.UnixMsecUint64()
-	duration := uint64(CommitMsgEndingTimeout.Milliseconds())
+	duration := uint64(CommitMsgEndingDuration.Milliseconds())
 
 	// Due to the time boundary problem, the value `==`
 	if pstate.IsCommitPeriod() && (now-pstate.PeriodStartTime) >= duration {

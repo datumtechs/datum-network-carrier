@@ -168,7 +168,7 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					orgState.ChangeToConfirm(orgState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingTimeout.Milliseconds()))
+					orgState.ChangeToConfirm(orgState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingDuration.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
 					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
@@ -180,7 +180,7 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					orgState.ChangeToCommit(orgState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingTimeout.Milliseconds()))
+					orgState.ChangeToCommit(orgState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingDuration.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
 					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
@@ -192,7 +192,7 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					orgState.ChangeToFinished(orgState.PeriodStartTime + uint64(ctypes.CommitMsgEndingTimeout.Milliseconds()))
+					orgState.ChangeToFinished(orgState.PeriodStartTime + uint64(ctypes.CommitMsgEndingDuration.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
 					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
@@ -261,7 +261,7 @@ func (t *Twopc) taskConsensusInterrupt(
 		logdesc, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId())
 	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 	if senderRole == apicommonpb.TaskRole_TaskRole_Sender {
-		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf("the task proposalState coming deadline")))
+		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf(logdesc)))
 	} else {
 
 		// release local resource and clean some data  (on task partenr)
@@ -327,7 +327,6 @@ func (t *Twopc) driveTask(
 	if nil == selfVote {
 		log.Errorf("Failed to find local cache about prepareVote myself internal resource, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
 			proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
-
 		return
 	}
 

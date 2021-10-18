@@ -3,6 +3,7 @@ package task
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
+	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -165,8 +166,6 @@ func (m *Manager) loop() {
 		case task := <-m.needExecuteTaskCh:
 
 			if task.GetConsStatus() == types.TaskNeedExecute {
-				// add local cache first
-				m.addNeedExecuteTaskCache(task)
 				// to execute the task
 				m.handleNeedExecuteTask(task)
 			} else {
@@ -208,59 +207,44 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 		return
 	}
 
+	// check user
+	if localTask.GetTaskData().GetUser() != terminate.GetUser() ||
+		localTask.GetTaskData().GetUserType() != terminate.GetUserType() {
 
-	needExecuteTask, ok := m.queryNeedExecuteTaskCache(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		log.Errorf("terminate task user and publish task user must be same on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+			localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		return
+	}
 
-	if ok {
+	// todo verify user sign with terminate task
 
-		// check user
-		if needExecuteTask.GetTask().GetTaskData().GetUser() != terminate.GetUser() ||
-			needExecuteTask.GetTask().GetTaskData().GetUserType() != terminate.GetUserType() {
-
-			log.Errorf("terminate task user and publish task user must be same on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
+	// While task is consensus or executing, can terminate.
+	cons, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValCons(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+			localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		return
+	}
+	if cons {
+		if err = m.consensusEngine.OnConsensusMsg(
+			"", types.NewInterruptMsgWrap(localTask.GetTaskId(),
+			types.MakeMsgOption(common.Hash{},
+			apicommonpb.TaskRole_TaskRole_Sender,
+			apicommonpb.TaskRole_TaskRole_Sender,
+				localTask.GetTaskSender().GetPartyId(),
+				localTask.GetTaskSender().GetPartyId(),
+				localTask.GetTaskSender()))); nil != err {
+			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 			return
 		}
+		m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+	}
 
-		// todo verify user sign with terminate task
-
-		// While task is consensus or executing, can terminate.
-		has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatus (localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-		if nil != err {
-			log.Errorf("Failed to query local task execute status on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
-				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
-			return
-		}
-		if has {
-			// call terminate task
-			if err := m.driveTaskForTerminate(needExecuteTask); nil != err {
-				log.Errorf("Failed to call driveTaskForTerminate() on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
-					localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
-				return
-			}
-		} else {
-			// remove the task on scheduler (maybe task on consensus now)
-			m.publishFinishedTaskToDataCenter(needExecuteTask)
-		}
-	} else {
-		// remove local task short circuit
-		events, err := m.resourceMng.GetDB().QueryTaskEventList(localTask.GetTaskId())
-		if nil != err {
-			log.Errorf("Failed to query all task event list for sending datacenter on taskManager.TerminateTask(), taskId: {%s}, err: {%s}", localTask.GetTaskId(), err)
-			return
-		}
-		events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-			localTask.GetTaskId(), localTask.GetTaskSender().GetIdentityId(), "terminate task short circuit"))
-
-		if err := m.storeBadTask(localTask, events, "terminate task short circuit"); nil != err {
-			log.Errorf("Failed to store local terminate task on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
-				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
-		}
-
-		if err := m.scheduler.RemoveTask(localTask.GetTaskId()); nil != err {
-			log.Errorf("Failed to remove task of scheduler.queue on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}, err: {%s}",
-				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId(), err)
-		}
+	// Anyway, need send terminateMsg to remote partners
+	if err := m.sendTaskTerminateMsg(localTask); nil != err {
+		log.Errorf("Failed to call `sendTaskTerminateMsg()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", terminate.GetTaskId(), err)
 	}
 }
 

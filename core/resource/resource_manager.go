@@ -334,7 +334,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 				logdesc, taskId, partyId, option, err)
 		}
 	}
-	if option.IsCleanTaskEvents() && count == 0 {
+	if option.IsRemoveLocalTaskEvents() && count == 0 {
 		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
 		if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
 			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
@@ -379,7 +379,7 @@ func (m *Manager) ReleaseLocalResourceWithTaskShortCircuit(logdesc, taskId, part
 				logdesc, taskId, partyId, option, err)
 		}
 	}
-	if option.IsCleanTaskEvents() && count == 0 {
+	if option.IsRemoveLocalTaskEvents() && count == 0 {
 		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
 		if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
 			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)

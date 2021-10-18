@@ -1,6 +1,7 @@
 package rawdb
 
 import (
+	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -1132,6 +1133,17 @@ func RemoveLocalTaskExecuteStatus(db KeyValueStore, taskId, partyId string) erro
 	return db.Delete(key)
 }
 
+func HasLocalTaskExecuteStatus (db DatabaseReader, taskId, partyId string) (bool, error) {
+	key := GetLocalTaskExecuteStatus(taskId, partyId)
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return false, err
+	}
+	if !has {
+		return false, nil
+	}
+	return true, nil
+}
 
 func HasLocalTaskExecuteStatusValCons (db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
@@ -1140,6 +1152,14 @@ func HasLocalTaskExecuteStatusValCons (db DatabaseReader, taskId, partyId string
 		return false, err
 	}
 	if !has {
+		return false, nil
+	}
+
+	vb, err := db.Get(key)
+	if nil != err {
+		return false, err
+	}
+	if bytes.Compare(vb, GetLocalTaskExecuteStatusValCons()) != 0 {
 		return false, nil
 	}
 	return true, nil
@@ -1151,6 +1171,14 @@ func HasLocalTaskExecuteStatusValExec (db DatabaseReader, taskId, partyId string
 		return false, err
 	}
 	if !has {
+		return false, nil
+	}
+
+	vb, err := db.Get(key)
+	if nil != err {
+		return false, err
+	}
+	if bytes.Compare(vb, GetLocalTaskExecuteStatusValExec()) != 0 {
 		return false, nil
 	}
 	return true, nil
