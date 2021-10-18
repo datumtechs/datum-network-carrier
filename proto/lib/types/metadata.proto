@@ -78,7 +78,7 @@ message MetadataSummary {
   bool                          has_title = 10;             // 源文件是否包含标题 (true: 包含; false: 不包含)
   string                        industry = 11;              // 元数据所属行业
   api.protobuf.MetadataState    state = 12;                 // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
-
+  // v 2.0
   uint64                        publish_at = 13;            // 数据发布时间
   uint64                        update_at = 14;             // 数据更新时间
 }

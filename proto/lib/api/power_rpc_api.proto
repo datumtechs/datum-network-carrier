@@ -17,7 +17,6 @@ import "google/protobuf/empty.proto";
 message GetGlobalPowerSummaryResponse {
   api.protobuf.Organization owner = 1;                  // 算力拥有者信息
   types.PowerUsageDetail    power = 2;                  // 算力单个摘要
-  string                    power_id = 3;               // 算力id
 }
 
 // 查看全网各个组织的总算力(累加)详情列表 resp
@@ -31,6 +30,7 @@ message GetGlobalPowerSummaryListResponse {
 message GetGlobalPowerDetailResponse {
   api.protobuf.Organization owner = 1;                  // 算力拥有者信息
   types.PowerUsageDetail    power = 2;                  // 算力总详细
+  string                    power_id = 3;               // 算力id
 }
 
 // 全网各个组织的各个算力列表 resp

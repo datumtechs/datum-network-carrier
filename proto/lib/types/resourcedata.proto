@@ -80,6 +80,9 @@ message PowerUsageDetail {
   uint32                            current_task_count = 3;           // 算力(宿主机)上当前正在执行的任务数
   repeated PowerTask                tasks = 4;                        // 算力(宿主机)上当前正在执行的任务详情信息
   api.protobuf.PowerState           state = 5;                        // 算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力(算力未被占用); 3: 已发布的算力(算力正在被占用); 4: 已撤销的算力)
+  // v 2.0
+  uint64                            publish_at = 6;                   // 数据发布时间 (表示单条算力时才有值)
+  uint64                            update_at = 7;                    // 数据更新时间 (表示单条算力时才有值)
 }
 
 // 算力上的任务信息

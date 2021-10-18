@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -105,11 +106,18 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 	return types.NewResourceFromResponse(powerTotalSummaryResponse), err
 }
 
-func (dc *DataCenter) QueryResourceList() (types.ResourceArray, error) {
+func (dc *DataCenter) QueryGlobalResourceSummaryList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	powerListRequest, err := dc.client.GetPowerGlobalSummaryList(dc.ctx)
 	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListRequest), err
+}
+
+func (dc *DataCenter) QueryGlobalResourceDetailList() (types.ResourceArray, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+	powerListRequest, err := dc.client.GetPowerList(dc.ctx, &api.ListPowerRequest{LastUpdated: timeutils.BeforeYearUnixMsecUint64()})
+	return types.NewResourceArrayFromPowerDetailListResponse(powerListRequest), err
 }
 
 // For ResourceManager

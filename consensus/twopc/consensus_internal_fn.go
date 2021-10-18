@@ -72,23 +72,17 @@ func (t *Twopc) mustGetOrgProposalState(proposalId common.Hash, partyId string) 
 
 func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *twopcpb.ConfirmTaskPeerInfo {
 	return &twopcpb.ConfirmTaskPeerInfo{
-		OwnerPeerInfo:              &twopcpb.TaskPeerInfo{},
-		DataSupplierPeerInfoList:   make([]*twopcpb.TaskPeerInfo, 0),
-		PowerSupplierPeerInfoList:  make([]*twopcpb.TaskPeerInfo, 0),
-		ResultReceiverPeerInfoList: make([]*twopcpb.TaskPeerInfo, 0),
+		DataSupplierPeerInfos:   make([]*twopcpb.TaskPeerInfo, 0),
+		PowerSupplierPeerInfos:  make([]*twopcpb.TaskPeerInfo, 0),
+		ResultReceiverPeerInfos: make([]*twopcpb.TaskPeerInfo, 0),
 	}
 }
 
 func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
 
-	var sender *twopcpb.TaskPeerInfo
 	dataSuppliers, powerSuppliers, receivers := make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0), make([]*twopcpb.TaskPeerInfo, 0)
 
 	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
-
-		if vote.MsgOption.SenderRole == apicommonpb.TaskRole_TaskRole_Sender && nil != vote.PeerInfo {
-			sender = types.ConvertTaskPeerInfo(vote.PeerInfo)
-		}
 
 		if vote.MsgOption.SenderRole == apicommonpb.TaskRole_TaskRole_DataSupplier && nil != vote.PeerInfo {
 			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
@@ -101,10 +95,9 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.Confirm
 		}
 	}
 	return &twopcpb.ConfirmTaskPeerInfo{
-		OwnerPeerInfo:              sender,
-		DataSupplierPeerInfoList:   dataSuppliers,
-		PowerSupplierPeerInfoList:  powerSuppliers,
-		ResultReceiverPeerInfoList: receivers,
+		DataSupplierPeerInfos:   dataSuppliers,
+		PowerSupplierPeerInfos:  powerSuppliers,
+		ResultReceiverPeerInfos: receivers,
 	}
 }
 

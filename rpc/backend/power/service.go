@@ -11,6 +11,20 @@ import (
 	"strings"
 )
 
+func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *emptypb.Empty) (*pb.GetGlobalPowerSummaryListResponse, error) {
+	powerList, err := svr.B.GetGlobalPowerSummaryList()
+	if nil != err {
+		log.WithError(err).Error("RPC-API:GetGlobalPowerSummaryList failed")
+		return nil, ErrGetTotalPowerList
+	}
+	log.Debugf("RPC-API:GetGlobalPowerSummaryList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerSummaryResponseArrString(powerList))
+	return &pb.GetGlobalPowerSummaryListResponse{
+		Status:    0,
+		Msg:       backend.OK,
+		PowerList: powerList,
+	}, nil
+}
+
 func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetGlobalPowerDetailListResponse, error) {
 	powerList, err := svr.B.GetGlobalPowerDetailList()
 	if nil != err {
@@ -37,6 +51,16 @@ func (svr *Server) GetLocalPowerDetailList(ctx context.Context, req *emptypb.Emp
 		Msg:       backend.OK,
 		PowerList: powerList,
 	}, nil
+}
+func utilGetGlobalPowerSummaryResponseArrString(resp []*pb.GetGlobalPowerSummaryResponse) string {
+	arr := make([]string, len(resp))
+	for i, u := range resp {
+		arr[i] = u.String()
+	}
+	if len(arr) != 0 {
+		return "[" + strings.Join(arr, ",") + "]"
+	}
+	return "[]"
 }
 func utilGetGlobalPowerDetailResponseArrString(resp []*pb.GetGlobalPowerDetailResponse) string {
 	arr := make([]string, len(resp))

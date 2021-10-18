@@ -134,7 +134,8 @@ type MetadataCarrierDB interface {
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
-	QueryResourceList() (types.ResourceArray, error)
+	QueryGlobalResourceSummaryList() (types.ResourceArray, error)
+	QueryGlobalResourceDetailList() (types.ResourceArray, error)
 	SyncPowerUsed(resource *types.LocalResource) error
 }
 

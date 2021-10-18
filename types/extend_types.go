@@ -145,6 +145,8 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *Metadata) *pb.GetL
 				HasTitle:   input.GetData().GetHasTitle(),
 				Industry:   input.GetData().GetIndustry(),
 				State:      input.GetData().GetState(),
+				PublishAt:  input.GetData().GetPublishAt(),
+				UpdateAt:   input.GetData().GetUpdateAt(),
 			},
 			MetadataColumns: input.GetData().GetMetadataColumns(),
 		},

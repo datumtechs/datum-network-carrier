@@ -744,13 +744,49 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 }
 
 // power api
-func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDetailResponse, error) {
-	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryResourceList()
+
+
+func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummaryResponse, error) {
+	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList()
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Query all org's power list, len: {%d}", len(resourceList))
+	log.Debugf("Query all org's power summary list, len: {%d}", len(resourceList))
+	powerList := make([]*pb.GetGlobalPowerSummaryResponse, 0, resourceList.Len())
+	for _, resource := range resourceList.To() {
+		powerList = append(powerList, &pb.GetGlobalPowerSummaryResponse{
+			Owner: &apicommonpb.Organization{
+				NodeName:   resource.GetNodeName(),
+				NodeId:     resource.GetNodeId(),
+				IdentityId: resource.GetIdentityId(),
+			},
+			Power: &libtypes.PowerUsageDetail{
+				TotalTaskCount:   0,
+				CurrentTaskCount: 0,
+				Tasks:            make([]*libtypes.PowerTask, 0),
+				Information: &libtypes.ResourceUsageOverview{
+					TotalMem:       resource.GetTotalMem(),
+					UsedMem:        resource.GetUsedMem(),
+					TotalProcessor: resource.GetTotalProcessor(),
+					UsedProcessor:  resource.GetUsedProcessor(),
+					TotalBandwidth: resource.GetTotalBandwidth(),
+					UsedBandwidth:  resource.GetUsedBandwidth(),
+				},
+				State: resource.GetState(),
+			},
+		})
+	}
+	return powerList, nil
+}
+
+func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDetailResponse, error) {
+	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList()
+	if err != nil {
+		return nil, err
+	}
+	log.Debugf("Query all org's power detail list, len: {%d}", len(resourceList))
 	powerList := make([]*pb.GetGlobalPowerDetailResponse, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
 		powerList = append(powerList, &pb.GetGlobalPowerDetailResponse{
@@ -759,6 +795,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDeta
 				NodeId:     resource.GetNodeId(),
 				IdentityId: resource.GetIdentityId(),
 			},
+			PowerId: resource.GetDataId(),
 			Power: &libtypes.PowerUsageDetail{
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
@@ -935,7 +972,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 
 		nodePowerDetail := &pb.GetLocalPowerDetailResponse{
 			JobNodeId: resource.GetJobNodeId(),
-			PowerId:   resource.DataId,
+			PowerId:   resource.GetDataId(),
 			Owner: &apicommonpb.Organization{
 				NodeName:   resource.GetNodeName(),
 				NodeId:     resource.GetNodeId(),
@@ -970,9 +1007,9 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 		return nil, err
 	}
 	return types.NewIdentity(&libtypes.IdentityPB{
-		IdentityId: nodeAlias.IdentityId,
-		NodeId:     nodeAlias.NodeId,
-		NodeName:   nodeAlias.NodeName,
+		IdentityId: nodeAlias.GetIdentityId(),
+		NodeId:     nodeAlias.GetNodeId(),
+		NodeName:   nodeAlias.GetNodeName(),
 	}), err
 }
 

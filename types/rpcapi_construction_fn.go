@@ -102,6 +102,17 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 	return resourceArray
 }
 
+
+func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse) ResourceArray {
+	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
+	for _, v := range response.GetPowers() {
+		resource := NewResource(v)
+		resourceArray = append(resourceArray, resource)
+	}
+	return resourceArray
+}
+
+
 func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0)
 	resource := NewResource(&libtypes.ResourcePB{

@@ -46,7 +46,7 @@ type Backend interface {
 	HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error)
 
 	// power api
-
+	GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummaryResponse, error)
 	GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDetailResponse, error)
 	GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetailResponse, error)
 

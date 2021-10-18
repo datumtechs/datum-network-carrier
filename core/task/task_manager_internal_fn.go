@@ -604,26 +604,13 @@ func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libty
 
 func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommon.TaskReadyGoReq, error) {
 
-	ownerPort := string(task.GetResources().GetOwnerPeerInfo().GetPort())
-	port, err := strconv.Atoi(ownerPort)
-	if nil != err {
-		return nil, err
-	}
-
 	var dataPartyArr []string
 	var powerPartyArr []string
 	var receiverPartyArr []string
 
-	peerList := []*fightercommon.TaskReadyGoReq_Peer{
-		&fightercommon.TaskReadyGoReq_Peer{
-			Ip:      string(task.GetResources().GetOwnerPeerInfo().GetIp()),
-			Port:    int32(port),
-			PartyId: string(task.GetResources().GetOwnerPeerInfo().GetPartyId()),
-		},
-	}
-	dataPartyArr = append(dataPartyArr, string(task.GetResources().GetOwnerPeerInfo().GetPartyId()))
+	peerList := make([]*fightercommon.TaskReadyGoReq_Peer, 0)
 
-	for _, dataSupplier := range task.GetResources().GetDataSupplierPeerInfoList() {
+	for _, dataSupplier := range task.GetResources().GetDataSupplierPeerInfos() {
 		portStr := string(dataSupplier.GetPort())
 		port, err := strconv.Atoi(portStr)
 		if nil != err {
@@ -637,7 +624,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		dataPartyArr = append(dataPartyArr, string(dataSupplier.GetPartyId()))
 	}
 
-	for _, powerSupplier := range task.GetResources().GetPowerSupplierPeerInfoList() {
+	for _, powerSupplier := range task.GetResources().GetPowerSupplierPeerInfos() {
 		portStr := string(powerSupplier.GetPort())
 		port, err := strconv.Atoi(portStr)
 		if nil != err {
@@ -652,7 +639,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		powerPartyArr = append(powerPartyArr, string(powerSupplier.GetPartyId()))
 	}
 
-	for _, receiver := range task.GetResources().GetResultReceiverPeerInfoList() {
+	for _, receiver := range task.GetResources().GetResultReceiverPeerInfos() {
 		portStr := string(receiver.GetPort())
 		port, err := strconv.Atoi(portStr)
 		if nil != err {
