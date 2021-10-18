@@ -99,26 +99,21 @@ func TestUpdateConfirmTaskPeerInfo(t *testing.T) {
 	db := generateWalDB()
 	proposalId := generateProposalId()
 	peerDesc := &twopcpb.ConfirmTaskPeerInfo{
-		OwnerPeerInfo: &twopcpb.TaskPeerInfo{
-			Ip:      []byte("192.157.222.111"),
-			Port:    []byte("8899"),
-			PartyId: []byte("P2"),
-		},
-		DataSupplierPeerInfoList: []*twopcpb.TaskPeerInfo{
+		DataSupplierPeerInfos: []*twopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.112"),
 				Port:    []byte("8890"),
 				PartyId: []byte("P1"),
 			},
 		},
-		PowerSupplierPeerInfoList: []*twopcpb.TaskPeerInfo{
+		PowerSupplierPeerInfos: []*twopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.113"),
 				Port:    []byte("8889"),
 				PartyId: []byte("P0"),
 			},
 		},
-		ResultReceiverPeerInfoList: []*twopcpb.TaskPeerInfo{
+		ResultReceiverPeerInfos: []*twopcpb.TaskPeerInfo{
 			{
 				Ip:      []byte("192.157.222.114"),
 				Port:    []byte("8888"),
