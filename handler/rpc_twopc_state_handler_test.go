@@ -7,6 +7,7 @@ import (
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
+	twopctypes "github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/kevinms/leakybucket-go"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -366,6 +367,7 @@ func TestCommitMsgRPCHandler_SendsCommitMsg(t *testing.T) {
 			ReceiverPartyId:      []byte("ReceiverPartyId"),
 			MsgOwner:             nil,
 		},
+		CommitOption: 			twopctypes.TwopcMsgStart.Bytes(),
 		CreateAt:             uint64(timeutils.Now().Unix()),
 		Sign:                 make([]byte, 64),
 	}
@@ -376,6 +378,7 @@ func TestCommitMsgRPCHandler_SendsCommitMsg(t *testing.T) {
 		defer wg.Done()
 		out := new(twopcpb.CommitMsg)
 		require.NoError(t, r.cfg.P2P.Encoding().DecodeWithMaxLength(stream, out))
+		t.Log(twopctypes.TwopcMsgOptionFromBytes(out.CommitOption))
 		require.Equal(t, out.MsgOption.ProposalId, commitMsg.MsgOption.ProposalId)
 		r2.writeErrorResponseToStream(responseCodeInvalidRequest, "test error", stream)
 		/*if _, err := stream.Write([]byte{responseCodeSuccess}); err != nil {
