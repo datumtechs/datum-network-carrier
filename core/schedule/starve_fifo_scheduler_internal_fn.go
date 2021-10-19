@@ -208,7 +208,7 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 	}
 
 	// Find global power resources
-	globalResources, err := sche.resourceMng.GetDB().QueryGlobalResourceDetailList()
+	globalResources, err := sche.resourceMng.GetDB().QueryGlobalResourceSummaryList()
 	if nil != err {
 		return nil, err
 	}
@@ -266,6 +266,9 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 			})
 			i++
 		}
+	}
+	if len(orgs) != calculateCount {
+		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
 	return orgs, nil
 }
