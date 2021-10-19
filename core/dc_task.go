@@ -145,48 +145,47 @@ func (dc *DataCenter) QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string,
 	return ids, nil
 }
 
-func (dc *DataCenter) IncreaseResourceTaskPartyIdCount (jobNodeId, taskId string) error {
+func (dc *DataCenter) IncreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.IncreaseResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
 }
 
-func (dc *DataCenter) DecreaseResourceTaskPartyIdCount (jobNodeId, taskId string) error {
+func (dc *DataCenter) DecreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.DecreaseResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
 }
 
-func (dc *DataCenter) QueryResourceTaskPartyIdCount (jobNodeId, taskId string) (uint32, error) {
+func (dc *DataCenter) QueryResourceTaskPartyIdCount(jobNodeId, taskId string) (uint32, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.QueryResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
 }
 
-func  (dc *DataCenter) IncreaseResourceTaskTotalCount (jobNodeId string) error {
+func (dc *DataCenter) IncreaseResourceTaskTotalCount(jobNodeId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.IncreaseResourceTaskTotalCount(dc.db, jobNodeId)
 }
 
-func  (dc *DataCenter) DecreaseResourceTaskTotalCount (jobNodeId string) error {
+func (dc *DataCenter) DecreaseResourceTaskTotalCount(jobNodeId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.DecreaseResourceTaskTotalCount(dc.db, jobNodeId)
 }
 
-func  (dc *DataCenter) RemoveResourceTaskTotalCount (jobNodeId string) error {
+func (dc *DataCenter) RemoveResourceTaskTotalCount(jobNodeId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveResourceTaskTotalCount(dc.db, jobNodeId)
 }
 
-func  (dc *DataCenter) QueryResourceTaskTotalCount (jobNodeId string) (uint32, error) {
+func (dc *DataCenter) QueryResourceTaskTotalCount(jobNodeId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryResourceTaskTotalCount(dc.db, jobNodeId)
 }
-
 
 // about task on datacenter
 func (dc *DataCenter) InsertTask(task *types.Task) error {
@@ -209,7 +208,7 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDa
 	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{LastUpdated: uint64(timeutils.UnixMsec())})
 	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
 		LastUpdated: timeutils.UnixMsecUint64(),
-		IdentityId: identityId,
+		IdentityId:  identityId,
 	})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
@@ -270,9 +269,10 @@ func (dc *DataCenter) StoreScheduling(bullet *types.TaskBullet) {
 func (dc *DataCenter) DeleteScheduling(bullet *types.TaskBullet) {
 	rawdb.DeleteScheduling(dc.db, bullet)
 }
-func (dc *DataCenter)RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet) {
+func (dc *DataCenter) RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet) {
 	return rawdb.RecoveryScheduling(dc.db)
 }
+
 //func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
 //	if taskId == "" || state == "" {
 //		return errors.New("invalid params taskId or state for UpdateLocalTaskState")

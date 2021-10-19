@@ -10,9 +10,6 @@ import (
 )
 
 var (
-	//ErrNotFound = errors.New("rawdb: not found")
-	//ErrLeveldbNotFound = leveldberr.ErrNotFound
-
 	ErrNotFound = leveldberr.ErrNotFound
 )
 
