@@ -41,18 +41,17 @@ func (dc *DataCenter) StoreLocalResourceIdByPowerId(powerId, jobNodeId string) e
 	return rawdb.StoreLocalResourceIdByPowerId(dc.db, powerId, jobNodeId)
 }
 
-func (dc *DataCenter) RemoveLocalResourceIdByPowerId(powerId string) error  {
+func (dc *DataCenter) RemoveLocalResourceIdByPowerId(powerId string) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.RemoveLocalResourceIdByPowerId(dc.db, powerId)
 }
 
-func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, error)  {
+func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryLocalResourceIdByPowerId(dc.db, powerId)
 }
-
 
 // about power on datacenter
 func (dc *DataCenter) InsertResource(resource *types.Resource) error {
@@ -83,7 +82,7 @@ func (dc *DataCenter) RevokeResource(resource *types.Resource) error {
 	return nil
 }
 
-func (dc *DataCenter) SyncPowerUsed (resource *types.LocalResource) error {
+func (dc *DataCenter) SyncPowerUsed(resource *types.LocalResource) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	response, err := dc.client.SyncPower(dc.ctx, types.NewSyncPowerRequest(resource))

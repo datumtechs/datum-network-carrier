@@ -8,8 +8,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-// about metaData
-
 // on local
 func (dc *DataCenter) StoreLocalMetadata(metadata *types.Metadata) error {
 	dc.mu.Lock()
@@ -73,8 +71,7 @@ func (dc *DataCenter) QueryMetadataList() (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.ListMetadataRequest{
-		LastUpdated:      uint64( timeutils.Now().Unix()),
+		LastUpdated: uint64(timeutils.Now().Unix()),
 	})
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }
-

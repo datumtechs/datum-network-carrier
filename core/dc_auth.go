@@ -157,7 +157,6 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, 
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
-
 func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
@@ -169,4 +168,3 @@ func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64) (types.Metad
 	}
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
-
