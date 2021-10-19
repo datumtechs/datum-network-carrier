@@ -3,6 +3,7 @@ package schedule
 import (
 	"container/heap"
 	"errors"
+	"fmt"
 	twopctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -168,7 +169,7 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 		return nil, err
 	}
 	if nil == jobNode {
-		return nil, errors.New("not found jobNode information")
+		return nil, fmt.Errorf("not found jobNode information")
 	}
 	return jobNode, nil
 }
@@ -187,8 +188,8 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 		return nil, err
 	}
 
-	if len(identityInfoArr) != calculateCount {
-		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	if len(identityInfoArr) < calculateCount {
+		return nil, fmt.Errorf("query identityList count less calculate count")
 	}
 
 	log.Debugf("QueryIdentityList by dataCenter on electionComputeOrg, len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
@@ -203,8 +204,8 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 		identityInfoTmp[identityInfo.GetIdentityId()] = identityInfo
 	}
 
-	if len(identityInfoTmp) != calculateCount {
-		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	if len(identityInfoTmp) < calculateCount {
+		return nil, fmt.Errorf("find valid identityIds count less calculate count")
 	}
 
 	// Find global power resources
@@ -215,8 +216,8 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 	//log.Debugf("GetRemoteResouceTables on electionComputeOrg, globalResources: %s", utilRemoteResourceArrString(globalResources))
 	log.Debugf("GetRemoteResouceTables on electionComputeOrg, len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
 
-	if len(globalResources) != calculateCount {
-		return nil, ErrEnoughResourceOrgCountLessCalculateCount
+	if len(globalResources) < calculateCount {
+		return nil, fmt.Errorf("query org's power resource count less calculate count")
 	}
 
 	orgs := make([]*libtypes.TaskPowerSupplier, 0)
@@ -267,7 +268,7 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 			i++
 		}
 	}
-	if len(orgs) != calculateCount {
+	if len(orgs) < calculateCount {
 		return nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
 	return orgs, nil
