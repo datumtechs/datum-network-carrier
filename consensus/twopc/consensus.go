@@ -467,7 +467,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 
 			go func() {
 
-				log.Infof("PrepareVoting succeed on consensus prepare epoch, the `Yes` vote count has enough, `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+				log.Infof("PrepareVoting succeed on consensus prepare epoch, the `Yes` vote count has enough, will send `Start` confirm msg, the `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 					yesVoteCount, totalNeedVoteCount, vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(),
 					vote.MsgOption.ReceiverPartyId)
 				if err := t.sendConfirmMsg(vote.MsgOption.ProposalId, proposalTask.Task, peers, types.TwopcMsgStart, now); nil != err {
@@ -487,7 +487,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 			// and remove local cache (task/proposal state/prepare vote) about proposal and task
 			go func() {
 
-				log.Infof("PrepareVoting failed on consensus prepare epoch, the `Yes` vote count is no enough, `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+				log.Infof("PrepareVoting failed on consensus prepare epoch, the `Yes` vote count is no enough, will send `Stop` confirm msg, the `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 					yesVoteCount, totalNeedVoteCount, vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(),
 					vote.MsgOption.ReceiverPartyId)
 
@@ -773,7 +773,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 
 			go func() {
 
-				log.Debugf("ConfirmVoting succeed on consensus confirm epoch, the `Yes` vote count has enough, `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+				log.Debugf("ConfirmVoting succeed on consensus confirm epoch, the `Yes` vote count has enough, will send `Start` commit msg, the `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 					yesVoteCount, totalNeedVoteCount, vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(),
 					vote.MsgOption.ReceiverPartyId)
 
@@ -802,7 +802,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 			// and remove local cache (task/proposal state/prepare vote/confirm vote/peerDesc) about proposal and task
 			go func() {
 
-				log.Debugf("ConfirmVoting failed on consensus confirm epoch, the `Yes` vote count is no enough, `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+				log.Debugf("ConfirmVoting failed on consensus confirm epoch, the `Yes` vote count is no enough, will send `Stop` commit msg, the `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 					yesVoteCount, totalNeedVoteCount, vote.MsgOption.ProposalId.String(), proposalTask.GetTaskId(), vote.MsgOption.ReceiverRole.String(),
 					vote.MsgOption.ReceiverPartyId)
 
