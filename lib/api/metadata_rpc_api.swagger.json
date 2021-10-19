@@ -473,7 +473,8 @@
         },
         "publish_at": {
           "type": "string",
-          "format": "uint64"
+          "format": "uint64",
+          "title": "v 2.0"
         },
         "update_at": {
           "type": "string",

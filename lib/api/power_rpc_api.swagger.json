@@ -271,6 +271,9 @@
         },
         "power": {
           "$ref": "#/definitions/typesPowerUsageDetail"
+        },
+        "power_id": {
+          "type": "string"
         }
       },
       "title": "单个组织的各个算力信息"
@@ -302,9 +305,6 @@
         },
         "power": {
           "$ref": "#/definitions/typesPowerUsageDetail"
-        },
-        "power_id": {
-          "type": "string"
         }
       },
       "title": "单个组织的总算力信息"
@@ -460,6 +460,15 @@
         },
         "state": {
           "$ref": "#/definitions/protobufPowerState"
+        },
+        "publish_at": {
+          "type": "string",
+          "format": "uint64",
+          "title": "v 2.0"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
         }
       },
       "title": "算力及算力上的task信息的公共抽象"
