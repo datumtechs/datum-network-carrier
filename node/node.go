@@ -94,7 +94,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	}
 
 	// register backend service.
-	if err := node.registerBackendService(&config.Carrier, config.MockIdeneityIdsFile,config.ConsensusStateFile); err != nil {
+	if err := node.registerBackendService(&config.Carrier, config.MockIdentityIdsFile,config.ConsensusStateFile); err != nil {
 		return nil, err
 	}
 
