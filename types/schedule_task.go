@@ -29,49 +29,50 @@ func (pt *ProposalTask) GetProposalId() common.Hash { return pt.ProposalId }
 func (pt *ProposalTask) GetTask() *Task             { return pt.Task }
 func (pt *ProposalTask) GetCreateAt() uint64        { return pt.CreateAt }
 
-type TaskConsStatus uint16
+type TaskActionStatus uint16
 
-func (t TaskConsStatus) String() string {
+func (t TaskActionStatus) String() string {
 	switch t {
-	case TaskConsensusSucceed:
-		return "TaskConsensusSucceed"
+	case TaskConsensusFinished:
+		return "TaskConsensusFinished"
 	case TaskConsensusInterrupt:
 		return "TaskConsensusInterrupt"
-	case TaskConsensusRefused:
-		return "TaskConsensusRefused"
+	case TaskTerminate:
+		return "TaskTerminate"
 	case TaskNeedExecute:
 		return "TaskNeedExecute"
 	case TaskExecutingInterrupt:
 		return "TaskExecutingInterrupt"
+
 	default:
 		return "UnknownTaskResultStatus"
 	}
 }
 
 const (
-	TaskConsensusSucceed   TaskConsStatus = 0x0000
-	TaskConsensusInterrupt TaskConsStatus = 0x0001
-	TaskConsensusRefused   TaskConsStatus = 0x0010 // has  some org refused this task
-	TaskNeedExecute        TaskConsStatus = 0x0100
-	TaskExecutingInterrupt TaskConsStatus = 0x1000
+	TaskConsensusFinished  TaskActionStatus = 0x0000
+	TaskConsensusInterrupt TaskActionStatus = 0x0001
+	TaskTerminate          TaskActionStatus = 0x0010 // terminate task while consensus or executing
+	TaskNeedExecute        TaskActionStatus = 0x0100
+	TaskExecutingInterrupt TaskActionStatus = 0x1000
 )
 
 type TaskConsResult struct {
 	TaskId string
-	Status TaskConsStatus
+	Status TaskActionStatus
 	Err    error
 }
 
-func NewTaskConsResult(taskId string, status TaskConsStatus, err error) *TaskConsResult {
+func NewTaskConsResult(taskId string, status TaskActionStatus, err error) *TaskConsResult {
 	return &TaskConsResult{
 		TaskId: taskId,
 		Status: status,
 		Err:    err,
 	}
 }
-func (res *TaskConsResult) GetTaskId() string         { return res.TaskId }
-func (res *TaskConsResult) GetStatus() TaskConsStatus { return res.Status }
-func (res *TaskConsResult) GetErr() error             { return res.Err }
+func (res *TaskConsResult) GetTaskId() string           { return res.TaskId }
+func (res *TaskConsResult) GetStatus() TaskActionStatus { return res.Status }
+func (res *TaskConsResult) GetErr() error               { return res.Err }
 func (res *TaskConsResult) String() string {
 	return fmt.Sprintf(`{"taskId": %s, "status": %s, "err": %s}`, res.TaskId, res.Status.String(), res.Err)
 }
@@ -188,7 +189,7 @@ type NeedExecuteTask struct {
 	remoteTaskRole         apicommonpb.TaskRole
 	remoteTaskOrganization *apicommonpb.TaskOrganization
 	task                   *Task
-	consStatus             TaskConsStatus
+	consStatus             TaskActionStatus
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
 }
@@ -201,7 +202,7 @@ func NewNeedExecuteTask(
 	remoteTaskRole apicommonpb.TaskRole,
 	remoteTaskOrganization *apicommonpb.TaskOrganization,
 	task *Task,
-	consStatus TaskConsStatus,
+	consStatus TaskActionStatus,
 	localResource *PrepareVoteResource,
 	resources *twopcpb.ConfirmTaskPeerInfo,
 ) *NeedExecuteTask {
@@ -231,7 +232,7 @@ func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apicommonpb.TaskOrganiz
 	return net.remoteTaskOrganization
 }
 func (net *NeedExecuteTask) GetTask() *Task                             { return net.task }
-func (net *NeedExecuteTask) GetConsStatus() TaskConsStatus              { return net.consStatus }
+func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.consStatus }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
 func (net *NeedExecuteTask) String() string {

@@ -36,8 +36,8 @@ type SchedulerStarveFIFO struct {
 	// the very very starve local task by priority
 	starveQueue *types.TaskBullets
 	// the scheduling task, it is ejected from the queue (taskId -> taskBullet)
-	schedulings      map[string]*types.TaskBullet
-	schedulingsMutex sync.Mutex
+	schedulings   map[string]*types.TaskBullet
+	scheduleMutex sync.Mutex
 
 	//quit            chan struct{}
 	eventEngine *evengine.EventEngine
@@ -80,8 +80,19 @@ func (sche *SchedulerStarveFIFO) Name() string { return "SchedulerStarveFIFO" }
 
 func (sche *SchedulerStarveFIFO) AddTask(task *types.Task) error {
 	bullet := types.NewTaskBullet(task.GetTaskId())
-	// todo 这里需要做一次 持久化
 	return sche.pushTaskBullet(bullet)
+}
+
+func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
+	bullet, ok := sche.schedulings[task.GetTaskId()]
+	if !ok {
+		return nil
+	}
+	if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
+		sche.removeTaskBullet(bullet.GetTaskId())
+		return ErrRescheduleLargeThreshold
+	}
+	return sche.repushTaskBullet(bullet)
 }
 
 func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {

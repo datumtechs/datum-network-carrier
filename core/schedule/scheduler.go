@@ -8,9 +8,10 @@ import (
 type Scheduler interface {
 	Start() error
 	Stop() error
-	Error () error
+	Error() error
 	Name() string
 	AddTask(task *types.Task) error
+	RepushTask(task *types.Task) error
 	RemoveTask(taskId string) error
 	TrySchedule() (*types.NeedConsensusTask, error)
 	ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, task *types.Task) *types.ReplayScheduleResult

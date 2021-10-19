@@ -28,7 +28,7 @@ func (m *Manager) tryScheduleTask() error {
 	if nil != err && err != schedule.ErrRescheduleLargeThreshold {
 		return err
 	} else if nil != err && err == schedule.ErrRescheduleLargeThreshold {
-		return m.storeFailedReScheduleTask(nonConsTask.GetTask().GetTaskId())
+		return m.storeFailedScheduleTask(nonConsTask.GetTask().GetTaskId(), schedule.ErrRescheduleLargeThreshold.Error())
 	} else if nil == err && nil == nonConsTask {
 		return nil
 	}
@@ -50,47 +50,66 @@ func (m *Manager) tryScheduleTask() error {
 		result := nonConsTask.ReceiveResult()
 		log.Debugf("Received need-consensus task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
 
-		// Consensus failed, task needs to be suspended and rescheduled
-		if result.Status != types.TaskConsensusSucceed {
-
-			// Remove task execute status `cons` after consensus failed with remote peers
-			if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetPartyId()); nil != err {
-				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
-			}
-
-			m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskFailedConsensus.Type,
-				nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(), result.GetErr().Error()))
-			// re push task into queue
-			if err := m.scheduler.AddTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
-				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
-				m.storeFailedReScheduleTask(nonConsTask.GetTask().GetTaskId())
-			} else {
-				log.Debugf("Succeed to repush local task into queue/starve queue on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
-			}
+		// Remove task execute status `cons` after consensus failed with remote peers
+		if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetPartyId()); nil != err {
+			log.WithError(err).Errorf("Failed to repush local task into queue/starve queue on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 		}
 
+		// store task event
+		var reason string
+		if nil != result.Err {
+			reason = result.Err.Error()
+		} else {
+			reason = result.Status.String()
+		}
+		m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskFailedConsensus.Type,
+			nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(), reason))
+
+
+		// Consensus failed, task needs to be suspended and rescheduled
+		switch result.Status {
+		case types.TaskConsensusFinished:
+			// remove task from scheduler.queue|starvequeue after task consensus succeed
+			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
+				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus succeed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+			}
+		case types.TerminateTask:
+			// remove task from scheduler.queue|starvequeue after task consensus terminated
+			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
+				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus terminate on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+			}
+			m.storeFailedScheduleTask(nonConsTask.GetTask().GetTaskId(), reason)
+		default:
+			// re push task into queue ,if anything else
+			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus failed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+				m.storeFailedScheduleTask(nonConsTask.GetTask().GetTaskId(), reason)
+			} else {
+				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus failed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+			}
+		}
 	}(nonConsTask)
 	return nil
 }
 
-func (m *Manager) storeFailedReScheduleTask(taskId string) error {
+func (m *Manager) storeFailedScheduleTask(taskId, reason string) error {
 
 	task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
 	if nil != err {
-		log.Errorf("Failed to query local task for sending datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
+		log.WithError(err).Errorf("Failed to query local task for sending datacenter on taskManager.storeFailedScheduleTask(), taskId: {%s}", task.GetTaskId())
 		return err
 	}
 
 	events, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to query all task event list for sending datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
+		log.WithError(err).Errorf("Failed to query all task event list for sending datacenter on taskManager.storeFailedScheduleTask(), taskId: {%s}", task.GetTaskId())
 		return err
 	}
 	events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-		taskId, task.GetTaskSender().GetIdentityId(), "overflow reschedule threshold"))
+		taskId, task.GetTaskSender().GetIdentityId(), reason))
 
-	if err := m.storeBadTask(task, events, "overflow reschedule threshold"); nil != err {
-		log.Errorf("Failed to sending task to datacenter on taskManager.storeFailedReScheduleTask(), taskId: {%s}, err: {%s}", taskId, err)
+	if err := m.storeBadTask(task, events, reason); nil != err {
+		log.WithError(err).Errorf("Failed to sending task to datacenter on taskManager.storeFailedScheduleTask(), taskId: {%s}", taskId)
 		return err
 	}
 	return nil

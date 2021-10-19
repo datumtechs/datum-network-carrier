@@ -138,7 +138,7 @@ func (t *Twopc) refreshProposalState() {
 					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				}()
-				t.taskConsensusInterrupt(
+				t.stopTaskConsensus(
 					"on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 					proposalId,
 					pstate.GetTaskId(),
@@ -149,7 +149,7 @@ func (t *Twopc) refreshProposalState() {
 						NodeId:     identity.GetNodeId(),
 						IdentityId: identity.GetIdentityId(),
 					},
-					pstate.GetTaskSender(), task)
+					pstate.GetTaskSender(), task, types.TaskConsensusInterrupt)
 				continue
 			}
 
@@ -215,7 +215,7 @@ func (t *Twopc) refreshProposalState() {
 						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 					}()
-					t.taskConsensusInterrupt(
+					t.stopTaskConsensus(
 						"on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 						proposalId,
 						pstate.GetTaskId(),
@@ -226,7 +226,7 @@ func (t *Twopc) refreshProposalState() {
 							NodeId:     identity.GetNodeId(),
 							IdentityId: identity.GetIdentityId(),
 						},
-						pstate.GetTaskSender(), task)
+						pstate.GetTaskSender(), task, types.TaskConsensusInterrupt)
 				}
 
 			default:
@@ -240,7 +240,7 @@ func (t *Twopc) refreshProposalState() {
 	t.state.proposalsLock.Unlock()
 }
 
-func (t *Twopc) taskConsensusInterrupt(
+func (t *Twopc) stopTaskConsensus(
 	logdesc string,
 	proposalId common.Hash,
 	taskId string,
@@ -248,13 +248,14 @@ func (t *Twopc) taskConsensusInterrupt(
 	sender *apicommonpb.TaskOrganization,
 	receiver *apicommonpb.TaskOrganization,
 	task *types.Task,
+	taskActionStatus  types.TaskActionStatus,
 ) {
 
-	log.Debugf("Call taskConsensusInterrupt() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
-		logdesc, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId())
+	log.Debugf("Call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}, taskActionStatus: {%s}",
+		logdesc, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId(), taskActionStatus.String())
 	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 	if senderRole == apicommonpb.TaskRole_TaskRole_Sender {
-		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, types.TaskConsensusInterrupt, fmt.Errorf(logdesc)))
+		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, taskActionStatus, fmt.Errorf(logdesc)))
 	} else {
 
 		// release local resource and clean some data  (on task partenr)
@@ -272,7 +273,7 @@ func (t *Twopc) taskConsensusInterrupt(
 		if receiver.GetIdentityId() != sender.GetIdentityId() {
 			receiverPID, err := p2p.HexPeerID(receiver.GetNodeId())
 			if nil != err {
-				log.WithError(err).Errorf("Failed to convert nodeId to remote pid receiver identity when call taskConsensusInterrupt() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
+				log.WithError(err).Errorf("Failed to convert nodeId to remote pid receiver identity when call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
 				logdesc, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId())
 			}
 			remotePID = receiverPID
@@ -294,7 +295,7 @@ func (t *Twopc) taskConsensusInterrupt(
 			apicommonpb.TaskRole_TaskRole_Sender,
 			receiver,
 			task,
-			types.TaskConsensusInterrupt,
+			taskActionStatus,
 			nil,
 			nil,
 		))

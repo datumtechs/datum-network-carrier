@@ -14,7 +14,7 @@ import (
 )
 
 func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error {
-	sche.schedulingsMutex.Lock()
+	sche.scheduleMutex.Lock()
 	// The bullet is first into queue
 	_, ok := sche.schedulings[bullet.TaskId]
 	if !ok {
@@ -22,12 +22,12 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 		sche.schedulings[bullet.TaskId] = bullet
 		sche.resourceMng.GetDB().StoreScheduling(bullet)
 	}
-	sche.schedulingsMutex.Unlock()
+	sche.scheduleMutex.Unlock()
 	return nil
 }
 
 func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) error {
-	sche.schedulingsMutex.Lock()
+	sche.scheduleMutex.Lock()
 
 	if bullet.Starve {
 		log.Debugf("repush task into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
@@ -38,13 +38,21 @@ func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) erro
 			bullet.TaskId, bullet.Resched, ReschedMaxCount)
 		heap.Push(sche.queue, bullet)
 	}
-	sche.schedulingsMutex.Unlock()
+	sche.scheduleMutex.Unlock()
 	return nil
 }
 
 func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
-	sche.schedulingsMutex.Lock()
-	defer sche.schedulingsMutex.Unlock()
+	sche.scheduleMutex.Lock()
+	defer sche.scheduleMutex.Unlock()
+
+	bullet ,ok := sche.schedulings[taskId]
+	if !ok {
+		return nil
+	}
+
+	delete(sche.schedulings, taskId)
+	sche.resourceMng.GetDB().DeleteScheduling(bullet)
 
 	// traversal the queue to remove task bullet, first.
 	i := 0
@@ -52,16 +60,13 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		if i == sche.queue.Len() {
 			break
 		}
-		bullet := (*(sche.queue))[i]
-
+		qbullet := (*(sche.queue))[i]
 		// When found the bullet with taskId, removed it from queue.
-		if bullet.GetTaskId() == taskId {
+		if qbullet.GetTaskId() == taskId {
 			heap.Remove(sche.queue, i)
-			sche.resourceMng.GetDB().DeleteScheduling(sche.schedulings[taskId])
-			delete(sche.schedulings, taskId)
-			return nil // todo 这里需要做一次 持久化
+			return nil
 		}
-		(*(sche.queue))[i] = bullet
+		(*(sche.queue))[i] = qbullet
 		i++
 	}
 
@@ -71,23 +76,21 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		if i == sche.starveQueue.Len() {
 			break
 		}
-		bullet := (*(sche.starveQueue))[i]
+		qbullet := (*(sche.starveQueue))[i]
 
 		// When found the bullet with taskId, removed it from starveQueue.
-		if bullet.GetTaskId() == taskId {
+		if qbullet.GetTaskId() == taskId {
 			heap.Remove(sche.starveQueue, i)
-			sche.resourceMng.GetDB().DeleteScheduling(sche.schedulings[taskId])
-			delete(sche.schedulings, taskId)
-			return nil // todo 这里需要做一次 持久化
+			return nil
 		}
-		(*(sche.starveQueue))[i] = bullet
+		(*(sche.starveQueue))[i] = qbullet
 		i++
 	}
 	return nil
 }
 
 func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
-	sche.schedulingsMutex.Lock()
+	sche.scheduleMutex.Lock()
 
 	var bullet *types.TaskBullet
 
@@ -100,7 +103,7 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 			bullet = x.(*types.TaskBullet)
 		}
 	}
-	sche.schedulingsMutex.Unlock()
+	sche.scheduleMutex.Unlock()
 	return bullet
 }
 
