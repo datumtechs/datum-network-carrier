@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/debug"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
@@ -156,17 +157,17 @@ func (node *CarrierNode) OpenDatabase(dbpath string, cache int, handles int) (db
 }
 
 // Start the CarrierNode and kicks off every registered service.
-func (b *CarrierNode) Start() {
-	b.lock.Lock()
+func (node *CarrierNode) Start() {
+	node.lock.Lock()
 
 	log.Info("Starting Carrier Node ...")
 
-	b.services.StartAll()
+	node.services.StartAll()
 
 	// -------------------------------------------------------------
 	//TODO: mock, Temporarily set the initial success of the system
 	go func() {
-		b.stateFeed.Send(&feed.Event{
+		node.stateFeed.Send(&feed.Event{
 			Type: statefeed.Initialized,
 			Data: &statefeed.InitializedData{
 				StartTime: time.Now(),
@@ -175,8 +176,8 @@ func (b *CarrierNode) Start() {
 	}()
 	// +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-	stop := b.stop
-	b.lock.Unlock()
+	stop := node.stop
+	node.lock.Unlock()
 
 	go func() {
 		sigc := make(chan os.Signal, 1)
@@ -184,8 +185,8 @@ func (b *CarrierNode) Start() {
 		defer signal.Stop(sigc)
 		<-sigc
 		log.Info("Got interrupt, shutting down...")
-		//debug.Exit(b.cliCtx) // Ensure trace and CPU profile data are flushed.
-		go b.Close()
+		debug.Exit(node.cliCtx) // Ensure trace and CPU profile data are flushed.
+		go node.Close()
 		for i := 10; i > 0; i-- {
 			<-sigc
 			if i > 1 {
@@ -200,17 +201,17 @@ func (b *CarrierNode) Start() {
 }
 
 // Close handles graceful shutdown of the system.
-func (b *CarrierNode) Close() {
-	b.lock.Lock()
-	defer b.lock.Unlock()
+func (node *CarrierNode) Close() {
+	node.lock.Lock()
+	defer node.lock.Unlock()
 
 	log.Info("Stopping carrier node")
-	b.services.StopAll()
-	b.cancel()
-	close(b.stop)
+	node.services.StopAll()
+	node.cancel()
+	close(node.stop)
 }
 
-func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
+func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	bootstrapNodeAddrs, dataDir, err := registration.P2PPreregistration(cliCtx)
 	if err != nil {
 		return err
@@ -219,7 +220,7 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	svc, err := p2p.NewService(b.ctx, &p2p.Config{
+	svc, err := p2p.NewService(node.ctx, &p2p.Config{
 		NoDiscovery:       cliCtx.Bool(flags.NoDiscovery.Name),
 		StaticPeers:       staticNodeAddrs,
 		BootstrapNodeAddr: bootstrapNodeAddrs,
@@ -237,47 +238,47 @@ func (b *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 		DenyListCIDR:      sliceutil.SplitCommaSeparated(cliCtx.StringSlice(flags.P2PDenyList.Name)),
 		EnableUPnP:        cliCtx.Bool(flags.EnableUPnPFlag.Name),
 		DisableDiscv5:     cliCtx.Bool(flags.DisableDiscv5.Name),
-		StateNotifier:     b,
+		StateNotifier:     node,
 	})
 	if err != nil {
 		return err
 	}
-	return b.services.RegisterService(svc)
+	return node.services.RegisterService(svc)
 }
 
-func (b *CarrierNode) registerBackendService(carrierConfig *carrier.Config, mockIdentityIdsFile ,consensusStateFile string) error {
-	carrierConfig.CarrierDB = b.db
-	carrierConfig.P2P = b.fetchP2P()
-	backendService, err := carrier.NewService(b.ctx, carrierConfig, mockIdentityIdsFile,consensusStateFile)
+func (node *CarrierNode) registerBackendService(carrierConfig *carrier.Config, mockIdentityIdsFile ,consensusStateFile string) error {
+	carrierConfig.CarrierDB = node.db
+	carrierConfig.P2P = node.fetchP2P()
+	backendService, err := carrier.NewService(node.ctx, carrierConfig, mockIdentityIdsFile,consensusStateFile)
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
-	return b.services.RegisterService(backendService)
+	return node.services.RegisterService(backendService)
 }
 
-func (b *CarrierNode) registerHandlerService() error {
-	// use ` b.services.FetchService` to check whether the dependent service is registered.
-	rs := handler.NewService(b.ctx, &handler.Config{
-		P2P:           b.fetchP2P(),
-		StateNotifier: b,
-		Engines:       b.fetchBackend().Engines,
-		TaskManager:   b.fetchBackend().TaskManager,
+func (node *CarrierNode) registerHandlerService() error {
+	// use ` node.services.FetchService` to check whether the dependent service is registered.
+	rs := handler.NewService(node.ctx, &handler.Config{
+		P2P:           node.fetchP2P(),
+		StateNotifier: node,
+		Engines:       node.fetchBackend().Engines,
+		TaskManager:   node.fetchBackend().TaskManager,
 	})
-	return b.services.RegisterService(rs)
+	return node.services.RegisterService(rs)
 }
 
-func (b *CarrierNode) registerRPCService() error {
-	backend := b.fetchRPCBackend()
-	host := b.cliCtx.String(flags.RPCHost.Name)
-	port := b.cliCtx.String(flags.RPCPort.Name)
-	cert := b.cliCtx.String(flags.CertFlag.Name)
-	key := b.cliCtx.String(flags.KeyFlag.Name)
-	enableDebugRPCEndpoints := b.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
-	maxMsgSize := b.cliCtx.Int(flags.GrpcMaxCallRecvMsgSizeFlag.Name)
+func (node *CarrierNode) registerRPCService() error {
+	backend := node.fetchRPCBackend()
+	host := node.cliCtx.String(flags.RPCHost.Name)
+	port := node.cliCtx.String(flags.RPCPort.Name)
+	cert := node.cliCtx.String(flags.CertFlag.Name)
+	key := node.cliCtx.String(flags.KeyFlag.Name)
+	enableDebugRPCEndpoints := node.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
+	maxMsgSize := node.cliCtx.Int(flags.GrpcMaxCallRecvMsgSizeFlag.Name)
 
-	p2pService := b.fetchP2P()
+	p2pService := node.fetchP2P()
 
-	rpcService := rpc.NewService(b.ctx, &rpc.Config{
+	rpcService := rpc.NewService(node.ctx, &rpc.Config{
 		Host:                    host,
 		Port:                    port,
 		CertFlag:                cert,
@@ -287,66 +288,66 @@ func (b *CarrierNode) registerRPCService() error {
 		PeersFetcher:            p2pService,
 		PeerManager:             p2pService,
 		MetadataProvider:        p2pService,
-		StateNotifier:           b,
+		StateNotifier:           node,
 		BackendAPI:              backend,
 		MaxMsgSize:              maxMsgSize,
 	})
-	return b.services.RegisterService(rpcService)
+	return node.services.RegisterService(rpcService)
 }
 
-func (b *CarrierNode) registerGRPCGateway() error {
-	if b.cliCtx.Bool(flags.DisableGRPCGateway.Name) {
+func (node *CarrierNode) registerGRPCGateway() error {
+	if node.cliCtx.Bool(flags.DisableGRPCGateway.Name) {
 		return nil
 	}
-	gatewayPort := b.cliCtx.Int(flags.GRPCGatewayPort.Name)
-	gatewayHost := b.cliCtx.String(flags.GRPCGatewayHost.Name)
-	rpcHost := b.cliCtx.String(flags.RPCHost.Name)
-	selfAddress := fmt.Sprintf("%s:%d", rpcHost, b.cliCtx.Int(flags.RPCPort.Name))
+	gatewayPort := node.cliCtx.Int(flags.GRPCGatewayPort.Name)
+	gatewayHost := node.cliCtx.String(flags.GRPCGatewayHost.Name)
+	rpcHost := node.cliCtx.String(flags.RPCHost.Name)
+	selfAddress := fmt.Sprintf("%s:%d", rpcHost, node.cliCtx.Int(flags.RPCPort.Name))
 	gatewayAddress := fmt.Sprintf("%s:%d", gatewayHost, gatewayPort)
-	allowedOrigins := strings.Split(b.cliCtx.String(flags.GPRCGatewayCorsDomain.Name), ",")
-	enableDebugRPCEndpoints := b.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
-	selfCert := b.cliCtx.String(flags.CertFlag.Name)
+	allowedOrigins := strings.Split(node.cliCtx.String(flags.GPRCGatewayCorsDomain.Name), ",")
+	enableDebugRPCEndpoints := node.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
+	selfCert := node.cliCtx.String(flags.CertFlag.Name)
 
-	return b.services.RegisterService(
+	return node.services.RegisterService(
 		gateway.New(
-			b.ctx,
+			node.ctx,
 			selfAddress,
 			selfCert,
 			gatewayAddress,
 			nil, /*optional mux*/
 			allowedOrigins,
 			enableDebugRPCEndpoints,
-			b.cliCtx.Uint64(flags.GrpcMaxCallRecvMsgSizeFlag.Name),
+			node.cliCtx.Uint64(flags.GrpcMaxCallRecvMsgSizeFlag.Name),
 		),
 	)
 }
 
-func (b *CarrierNode) fetchRPCBackend() backend.Backend {
+func (node *CarrierNode) fetchRPCBackend() backend.Backend {
 	var s *carrier.Service
-	if err := b.services.FetchService(&s); err != nil {
+	if err := node.services.FetchService(&s); err != nil {
 		panic(err)
 	}
 	return s.APIBackend
 }
 
-func (b *CarrierNode) fetchBackend() *carrier.Service {
+func (node *CarrierNode) fetchBackend() *carrier.Service {
 	var s *carrier.Service
-	if err := b.services.FetchService(&s); err != nil {
+	if err := node.services.FetchService(&s); err != nil {
 		panic(err)
 	}
 	return s
 }
 
-func (b *CarrierNode) fetchP2P() p2p.P2P {
+func (node *CarrierNode) fetchP2P() p2p.P2P {
 	var p *p2p.Service
-	if err := b.services.FetchService(&p); err != nil {
+	if err := node.services.FetchService(&p); err != nil {
 		panic(err)
 	}
 	return p
 }
 
 // StateFeed implements statefeed.Notifier.
-func (b *CarrierNode) StateFeed() *event.Feed {
-	return b.stateFeed
+func (node *CarrierNode) StateFeed() *event.Feed {
+	return node.stateFeed
 }
 
