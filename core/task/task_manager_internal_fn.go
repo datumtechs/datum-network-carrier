@@ -28,7 +28,9 @@ func (m *Manager) tryScheduleTask() error {
 	if nil != err && err != schedule.ErrRescheduleLargeThreshold {
 		return err
 	} else if nil != err && err == schedule.ErrRescheduleLargeThreshold {
-		return m.storeFailedScheduleTask(nonConsTask.GetTask().GetTaskId(), schedule.ErrRescheduleLargeThreshold.Error())
+		m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskFailedConsensus.Type,
+			nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(), schedule.ErrRescheduleLargeThreshold.Error()))
+		return m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), types.TaskConsensusInterrupt)
 	} else if nil == err && nil == nonConsTask {
 		return nil
 	}
@@ -73,17 +75,19 @@ func (m *Manager) tryScheduleTask() error {
 			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
 				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus succeed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 			}
-		case types.TerminateTask:
+		case types.TaskTerminate:
 			// remove task from scheduler.queue|starvequeue after task consensus terminated
 			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
 				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus terminate on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 			}
-			m.storeFailedScheduleTask(nonConsTask.GetTask().GetTaskId(), reason)
+			m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), result.Status)
+		case types.TaskNeedExecute:
+			// never be it.
 		default:
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
 				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus failed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
-				m.storeFailedScheduleTask(nonConsTask.GetTask().GetTaskId(), reason)
+				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), result.Status)
 			} else {
 				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus failed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 			}
@@ -92,26 +96,30 @@ func (m *Manager) tryScheduleTask() error {
 	return nil
 }
 
-func (m *Manager) storeFailedScheduleTask(taskId, reason string) error {
+func (m *Manager) sendNeedExecuteTaskByAction (task *types.Task, taskActionStatus types.TaskActionStatus) error {
 
-	task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task for sending datacenter on taskManager.storeFailedScheduleTask(), taskId: {%s}", task.GetTaskId())
-		return err
-	}
-
-	events, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTaskId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query all task event list for sending datacenter on taskManager.storeFailedScheduleTask(), taskId: {%s}", task.GetTaskId())
-		return err
-	}
-	events = append(events, m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-		taskId, task.GetTaskSender().GetIdentityId(), reason))
-
-	if err := m.storeBadTask(task, events, reason); nil != err {
-		log.WithError(err).Errorf("Failed to sending task to datacenter on taskManager.storeFailedScheduleTask(), taskId: {%s}", taskId)
-		return err
-	}
+	m.needExecuteTaskCh <- types.NewNeedExecuteTask(
+		"",
+		common.Hash{},
+		apicommonpb.TaskRole_TaskRole_Sender,
+		&apicommonpb.TaskOrganization{
+			PartyId:    task.GetTaskSender().GetPartyId(),
+			NodeName:   task.GetTaskSender().GetNodeName(),
+			NodeId:     task.GetTaskSender().GetNodeId(),
+			IdentityId: task.GetTaskSender().GetIdentityId(),
+		},
+		apicommonpb.TaskRole_TaskRole_Sender,
+		&apicommonpb.TaskOrganization{
+			PartyId:    task.GetTaskSender().GetPartyId(),
+			NodeName:   task.GetTaskSender().GetNodeName(),
+			NodeId:     task.GetTaskSender().GetNodeId(),
+			IdentityId: task.GetTaskSender().GetIdentityId(),
+		},
+		task,
+		taskActionStatus,
+		nil,
+		nil,
+	)
 	return nil
 }
 

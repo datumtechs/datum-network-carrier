@@ -165,13 +165,23 @@ func (m *Manager) loop() {
 		// handle task of need to executing, and send it to fighter of myself organization or send the task result msg to remote peer
 		case task := <-m.needExecuteTaskCh:
 
-			if task.GetConsStatus() == types.TaskNeedExecute {
+			switch task.GetConsStatus() {
+			case types.TaskNeedExecute:
 				// to execute the task
 				m.handleNeedExecuteTask(task)
-			} else {
-
+			case types.TaskConsensusFinished:
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-					fmt.Sprintf("execute task failed: %s with %s", task.GetConsStatus().String(),
+					fmt.Sprintf("execute task: %s with %s", task.GetConsStatus().String(),
+						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Succeed)
+				switch task.GetLocalTaskRole() {
+				case apicommonpb.TaskRole_TaskRole_Sender:
+					m.publishFinishedTaskToDataCenter(task)
+				default:
+					m.sendTaskResultMsgToRemotePeer(task)
+				}
+			default:
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+					fmt.Sprintf("execute task: %s with %s", task.GetConsStatus().String(),
 						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
 				switch task.GetLocalTaskRole() {
 				case apicommonpb.TaskRole_TaskRole_Sender:
