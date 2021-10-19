@@ -38,14 +38,6 @@ func request_MetadataService_GetGlobalMetadataDetailList_0(ctx context.Context, 
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
 	msg, err := client.GetGlobalMetadataDetailList(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -54,14 +46,6 @@ func request_MetadataService_GetGlobalMetadataDetailList_0(ctx context.Context, 
 func local_request_MetadataService_GetGlobalMetadataDetailList_0(ctx context.Context, marshaler runtime.Marshaler, server MetadataServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
 
 	msg, err := server.GetGlobalMetadataDetailList(ctx, &protoReq)
 	return msg, metadata, err
@@ -72,14 +56,6 @@ func request_MetadataService_GetLocalMetadataDetailList_0(ctx context.Context, m
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
 
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
 	msg, err := client.GetLocalMetadataDetailList(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -88,14 +64,6 @@ func request_MetadataService_GetLocalMetadataDetailList_0(ctx context.Context, m
 func local_request_MetadataService_GetLocalMetadataDetailList_0(ctx context.Context, marshaler runtime.Marshaler, server MetadataServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq emptypb.Empty
 	var metadata runtime.ServerMetadata
-
-	newReader, berr := utilities.IOReaderFactory(req.Body)
-	if berr != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", berr)
-	}
-	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
 
 	msg, err := server.GetLocalMetadataDetailList(ctx, &protoReq)
 	return msg, metadata, err
@@ -210,7 +178,7 @@ func local_request_MetadataService_GetMetadataUsedTaskIdList_0(ctx context.Conte
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterMetadataServiceHandlerFromEndpoint instead.
 func RegisterMetadataServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server MetadataServiceServer) error {
 
-	mux.Handle("POST", pattern_MetadataService_GetGlobalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_MetadataService_GetGlobalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -233,7 +201,7 @@ func RegisterMetadataServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_MetadataService_GetLocalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_MetadataService_GetLocalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -366,7 +334,7 @@ func RegisterMetadataServiceHandler(ctx context.Context, mux *runtime.ServeMux, 
 // "MetadataServiceClient" to call the correct interceptors.
 func RegisterMetadataServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client MetadataServiceClient) error {
 
-	mux.Handle("POST", pattern_MetadataService_GetGlobalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_MetadataService_GetGlobalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -386,7 +354,7 @@ func RegisterMetadataServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 
 	})
 
-	mux.Handle("POST", pattern_MetadataService_GetLocalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_MetadataService_GetLocalMetadataDetailList_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
