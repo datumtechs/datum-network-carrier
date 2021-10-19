@@ -88,10 +88,10 @@ func (m *Manager) tryScheduleTask() error {
 		default:
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
-				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus failed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}", result.Status.String(), nonConsTask.GetTask().GetTaskId())
 				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), result.Status)
 			} else {
-				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus failed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}", result.Status.String(), nonConsTask.GetTask().GetTaskId())
 			}
 		}
 	}(nonConsTask)
