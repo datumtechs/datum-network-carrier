@@ -72,11 +72,13 @@ func (m *Manager) tryScheduleTask() error {
 		switch result.Status {
 		case types.TaskConsensusFinished:
 			// remove task from scheduler.queue|starvequeue after task consensus succeed
+			// Don't send needexecuteTask, because that will be handle in `2pc engine.driveTask()`
 			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
 				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus succeed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 			}
 		case types.TaskTerminate:
-			// remove task from scheduler.queue|starvequeue after task consensus terminated
+			// remove task from scheduler.queue|starvequeue after `task consensus terminated`
+			// then will received `terminate` from consensus result
 			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
 				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus terminate on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 			}

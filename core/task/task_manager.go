@@ -170,16 +170,8 @@ func (m *Manager) loop() {
 				// to execute the task
 				m.handleNeedExecuteTask(task)
 			case types.TaskConsensusFinished:
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-					fmt.Sprintf("execute task: %s with %s", task.GetConsStatus().String(),
-						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Succeed)
-				switch task.GetLocalTaskRole() {
-				case apicommonpb.TaskRole_TaskRole_Sender:
-					m.publishFinishedTaskToDataCenter(task)
-				default:
-					m.sendTaskResultMsgToRemotePeer(task)
-				}
-			default:
+				// do nothing, because that will be handle in `2pc engine.driveTask()` after consensus succeed.
+			default: // handle `interrupt` and `terminate`
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 					fmt.Sprintf("execute task: %s with %s", task.GetConsStatus().String(),
 						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
@@ -248,6 +240,7 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 			return
 		}
+		// The task sender does not need to release local resources, but needs to remove the taskExecuteStatus for the consensus.
 		m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 	}
 
