@@ -584,7 +584,7 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 		log.WithError(err).Errorf("RPC-API:GetTaskResultFileSummary-QueryTaskResultFileSummary failed, taskId: {%s}", req.GetTaskId())
 
 		errMsg := fmt.Sprintf(ErrQueryTaskResultFileSummary.Msg, req.GetTaskId())
-		return nil, backend.NewRpcBizErr(ErrQueryTaskResultFileSummary.Code, errMsg)
+		return nil, backend.NewRpcBizErr(ErrQueryTaskResultFileSummary.Code, fmt.Sprintf("%s: %s", errMsg, err))
 	}
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, taskResultFileSummary.GetNodeId())
 	if nil != err {
