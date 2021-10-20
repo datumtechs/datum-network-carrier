@@ -185,7 +185,7 @@ func TestPeerAllowList(t *testing.T) {
 	// use unattainable subnet, which will lead to
 	// peer rejecting all peers, except for those
 	// from that subnet.
-	cidr := "192.168.1.111/16"
+	cidr := "22.168.11.111/1"
 
 	listen, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", ipAddr, 2000))
 	require.NoError(t, err, "Failed to p2p listen")
@@ -220,7 +220,7 @@ func TestPeerAllowList(t *testing.T) {
 	require.NoError(t, err)
 	err = h1.Connect(context.Background(), *addrInfo)
 	assert.NotNil(t, err, "Wanted connection to fail with allow list")
-	//require.Contains(t, err, "no good addresses")
+	require.Contains(t, err.Error(), "no good addresses")
 }
 
 func TestPeerDenyList(t *testing.T) {
@@ -266,7 +266,27 @@ func TestPeerDenyList(t *testing.T) {
 	require.NoError(t, err)
 	err = h1.Connect(context.Background(), *addrInfo)
 	assert.NotNil(t, err, "Wanted connection to fail with deny list")
-	//assert.ErrorContains(t, "no good addresses", err)
+	assert.Contains(t, err.Error(), "no good addresses")
+}
+
+func TestService_InterceptAddrDial_Allow(t *testing.T) {
+	s := &Service{
+		ipLimiter: leakybucket.NewCollector(ipLimit, ipBurst, false),
+		peers: peers.NewStatus(context.Background(), &peers.StatusConfig{
+			ScorerParams: &scorers.Config{},
+		}),
+	}
+	var err error
+	cidr := "212.67.89.112/16"
+	s.addrFilter, err = configureFilter(&Config{AllowListCIDR: cidr})
+	require.NoError(t, err)
+	ip := "212.67.10.122"
+	multiAddress, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", ip, 3000))
+	require.NoError(t, err)
+	valid := s.InterceptAddrDial("", multiAddress)
+	if !valid {
+		t.Errorf("Expected multiaddress with ip %s to not be rejected with an allow cidr mask of %s", ip, cidr)
+	}
 }
 
 // Mock type for testing.
