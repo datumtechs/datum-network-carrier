@@ -1228,18 +1228,20 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
 		}
 
-		publish, err := m.checkTaskSenderPublishOpportunity(task, event)
-		if nil != err {
-			log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.OnTaskResultMsg()`, event: %s",
-				event.GetPartyId())
-			return err
-		}
+		if event.Type == ev.TaskExecuteSucceedEOF.Type || event.Type == ev.TaskExecuteFailedEOF.Type {
+			publish, err := m.checkTaskSenderPublishOpportunity(task, event)
+			if nil != err {
+				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.OnTaskResultMsg()`, event: %s",
+					event.GetPartyId())
+				return err
+			}
 
-		if publish {
-			needTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
-			// handle this task result with current peer
-			m.publishFinishedTaskToDataCenter(needTask, true)
-			m.removeNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
+			if publish {
+				needTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
+				// handle this task result with current peer
+				m.publishFinishedTaskToDataCenter(needTask, true)
+				m.removeNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
+			}
 		}
 	}
 	return nil
