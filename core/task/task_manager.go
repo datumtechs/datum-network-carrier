@@ -47,7 +47,7 @@ type Manager struct {
 	validator       *TaskValidator
 	// internal resource node set (Fighter node grpc client set)
 	resourceClientSet *grpclient.InternalResourceClientSet
-	eventCh           chan *types.ReportTaskEvent
+	eventCh           chan *libtypes.TaskEvent
 	quit              chan struct{}
 	// send the validated taskMsgs to scheduler
 	localTasksCh             chan types.TaskDataArray
@@ -82,7 +82,7 @@ func NewTaskManager(
 		resourceClientSet:        resourceClientSet,
 		parser:                   newTaskParser(resourceMng),
 		validator:                newTaskValidator(resourceMng, authMng),
-		eventCh:                  make(chan *types.ReportTaskEvent, 10),
+		eventCh:                  make(chan *libtypes.TaskEvent, 10),
 		localTasksCh:             localTasksCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
@@ -113,8 +113,8 @@ func (m *Manager) loop() {
 		// handle reported event from fighter of self organization
 		case event := <-m.eventCh:
 			go func() {
-				if err := m.handleTaskEvent(event.GetPartyId(), event.GetEvent()); nil != err {
-					log.Errorf("Failed to call handleTaskEvent() on TaskManager, taskId: {%s}, event: %s", event.GetEvent().GetTaskId(), event.GetEvent().String())
+				if err := m.handleTaskEventWithCurrentIdentity(event); nil != err {
+					log.WithError(err).Errorf("Failed to call handleTaskEventWithCurrentIdentity() on TaskManager, taskId: {%s}, event: %s", event.GetTaskId(), event.String())
 				}
 			}()
 
@@ -253,8 +253,6 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 			return
 		}
-		// The task sender does not need to release local resources, but needs to remove the taskExecuteStatus for the consensus.
-		m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 	}
 
 	// Anyway, need send terminateMsg to remote partners
@@ -356,14 +354,8 @@ func (m *Manager) SendTaskTerminate(msgArr types.TaskTerminateMsgArr) error {
 	return nil
 }
 
-func (m *Manager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error {
-	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
-	if nil != err {
-		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
-		return fmt.Errorf("query local identityId failed, %s", err)
-	}
-	reportEvent.GetEvent().IdentityId = identityId
-	m.sendTaskEvent(reportEvent)
+func (m *Manager) SendTaskEvent(event *libtypes.TaskEvent) error {
+	m.sendTaskEvent(event)
 	return nil
 }
 

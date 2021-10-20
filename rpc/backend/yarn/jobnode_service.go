@@ -16,15 +16,20 @@ import (
 
 func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*apicommonpb.SimpleResponse, error) {
 
-	if "" == strings.Trim(req.GetPartyId(), "") {
+	if "" == strings.Trim(req.GetTaskEvent().GetTaskId(), "") {
+		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, "require taskId")
+	}
+
+	if "" == strings.Trim(req.GetTaskEvent().GetPartyId(), "") {
 		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, "require partyId")
 	}
+
 	log.Debugf("RPC-API:ReportTaskEvent, req: {%v}", req)
-	err := svr.B.SendTaskEvent(types.NewReportTaskEvent(req.GetPartyId(), req.GetTaskEvent()))
+	err := svr.B.SendTaskEvent(req.GetTaskEvent())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
 
-		errMsg := fmt.Sprintf(ErrReportTaskEvent.Msg, req.GetPartyId())
+		errMsg := fmt.Sprintf(ErrReportTaskEvent.Msg, req.GetTaskEvent().GetPartyId())
 		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, errMsg)
 	}
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil

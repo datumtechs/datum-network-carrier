@@ -2,6 +2,7 @@ package handler
 
 import (
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 )
@@ -39,6 +40,6 @@ type TaskManager interface {
 	OnTaskResourceUsageMsg(pid peer.ID, taskResourceUsageMsg *taskmngpb.TaskResourceUsageMsg) error
 	ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
 	OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
-	SendTaskEvent(reportEvent *types.ReportTaskEvent) error
+	SendTaskEvent(event *libtypes.TaskEvent) error
 	SendTaskResourceUsage (usage *types.TaskResuorceUsage) error
 }

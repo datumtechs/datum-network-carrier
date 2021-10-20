@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"sync"
@@ -103,5 +104,5 @@ func (m *MockTaskManager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *ta
 	return errors.New("invalid check")
 }
 func (m *MockTaskManager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error { return nil }
-func (m *MockTaskManager) SendTaskEvent(reportEvent *types.ReportTaskEvent) error     { return nil }
+func (m *MockTaskManager) SendTaskEvent(event *libtypes.TaskEvent) error     { return nil }
 func (m *MockTaskManager) SendTaskResourceUsage(usage *types.TaskResuorceUsage) error { return nil }

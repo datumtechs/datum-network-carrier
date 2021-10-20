@@ -570,7 +570,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 	return nodeList, nil
 }
 
-func (s *CarrierAPIBackend) SendTaskEvent(event *types.ReportTaskEvent) error {
+func (s *CarrierAPIBackend) SendTaskEvent(event *libtypes.TaskEvent) error {
 	return s.carrier.TaskManager.SendTaskEvent(event)
 }
 
