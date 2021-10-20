@@ -62,3 +62,30 @@ func TestPeer_AtMaxLimit(t *testing.T) {
 	err = h2.Connect(context.Background(), *addrInfo)
 	require.NotNil(t, err, "Wanted connection to fail with max peer")
 }
+
+func TestService_InterceptBannedIP(t *testing.T) {
+	s := &Service{
+		ipLimiter: leakybucket.NewCollector(ipLimit, ipBurst, false),
+		peers: peers.NewStatus(context.Background(), &peers.StatusConfig{
+			PeerLimit:    20,
+			ScorerParams: &scorers.Config{},
+		}),
+	}
+	var err error
+	s.addrFilter, err = configureFilter(&Config{})
+	require.NoError(t, err)
+	ip := "192.168.1.111"
+	multiAddress, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", ip, 3000))
+	require.NoError(t, err)
+
+	for i := 0; i < ipBurst; i++ {
+		valid := s.validateDial(multiAddress)
+		if !valid {
+			t.Errorf("Expected multiaddress with ip %s to not be rejected", ip)
+		}
+	}
+	valid := s.validateDial(multiAddress)
+	if valid {
+		t.Errorf("Expected multiaddress with ip %s to be rejected as it exceeds the burst limit", ip)
+	}
+}
