@@ -12,6 +12,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	ma "github.com/multiformats/go-multiaddr"
 	ethpb "github.com/prysmaticlabs/ethereumapis/eth/v1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -128,6 +129,52 @@ func TestService_RejectInboundPeersBeyondLimit(t *testing.T) {
 	if valid {
 		t.Errorf("Expected multiaddress with ip %s to be rejected as it exceeds the inbound limit", ip)
 	}
+}
+
+func TestPeer_BelowMaxLimit(t *testing.T) {
+	// create host and remote peer
+	ipAddr, pkey := createAddrAndPrivKey(t)
+	ipAddr2, pkey2 := createAddrAndPrivKey(t)
+
+	listen, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", ipAddr, 2000))
+	require.NoError(t, err, "Failed to p2p listen")
+	s := &Service{
+		ipLimiter: leakybucket.NewCollector(ipLimit, ipBurst, false),
+	}
+	s.peers = peers.NewStatus(context.Background(), &peers.StatusConfig{
+		PeerLimit: 1,
+		ScorerParams: &scorers.Config{
+			BadResponsesScorerConfig: &scorers.BadResponsesScorerConfig{
+				Threshold: 3,
+			},
+		},
+	})
+	s.cfg = &Config{MaxPeers: 1}
+	s.addrFilter, err = configureFilter(&Config{})
+	require.NoError(t, err)
+	h1, err := libp2p.New(context.Background(), []libp2p.Option{privKeyOption(pkey), libp2p.ListenAddrs(listen), libp2p.ConnectionGater(s)}...)
+	require.NoError(t, err)
+	s.host = h1
+	defer func() {
+		err := h1.Close()
+		require.NoError(t, err)
+	}()
+
+	// create alternate host
+	listen, err = ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", ipAddr2, 3000))
+	require.NoError(t, err, "Failed to p2p listen")
+	h2, err := libp2p.New(context.Background(), []libp2p.Option{privKeyOption(pkey2), libp2p.ListenAddrs(listen)}...)
+	require.NoError(t, err)
+	defer func() {
+		err := h2.Close()
+		require.NoError(t, err)
+	}()
+	multiAddress, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d/p2p/%s", ipAddr, 2000, h1.ID()))
+	require.NoError(t, err)
+	addrInfo, err := peer.AddrInfoFromP2pAddr(multiAddress)
+	require.NoError(t, err)
+	err = h2.Connect(context.Background(), *addrInfo)
+	assert.NoError(t, err, "Wanted connection to succeed")
 }
 
 // Mock type for testing.
