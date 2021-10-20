@@ -1,6 +1,7 @@
 package p2p
 
 import (
+	"context"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"testing"
@@ -15,4 +16,9 @@ func TestMakePeer_OK(t *testing.T) {
 	a, err := MakePeer("/ip4/127.0.0.1/tcp/3333/p2p/QmUn6ycS8Fu6L462uZvuEfDoSgYX6kqP4aSZWMa7z1tWAX")
 	require.NoError(t, err, "Unexpected error when making a valid peer")
 	assert.Equal(t, "QmUn6ycS8Fu6L462uZvuEfDoSgYX6kqP4aSZWMa7z1tWAX", a.ID.Pretty(), "Unexpected peer ID")
+}
+
+func TestDialRelayNode_InvalidPeerString(t *testing.T) {
+	err := dialRelayNode(context.Background(), nil, "/ip4")
+	assert.ErrorContains(t, err, "failed to parse multiaddr \"/ip4\"", "Expected to fail with invalid peer string")
 }
