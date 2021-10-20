@@ -1163,6 +1163,8 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.Ta
 
 func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 
+
+
 	msg := types.FetchTaskResultMsg(taskResultMsg)
 
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
@@ -1194,6 +1196,17 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 		return fmt.Errorf("query local task failed, %s", err)
 	}
 
+	/**
+	+++++++++++++++++++++++++++++++++++++++++++
+	NOTE: receiverPartyId must be task sender partyId.
+	+++++++++++++++++++++++++++++++++++++++++++
+	 */
+	if msg.MsgOption.ReceiverPartyId != task.GetTaskSender().GetPartyId() {
+		log.Errorf("Failed to check receiver partyId of msg must be task sender partyId, but it is not, on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, taskSenderPartyId: {%s}",
+			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, task.GetTaskSender().GetPartyId())
+		return fmt.Errorf("invalid taskResultMsg")
+	}
+
 	receiver := fetchOrgByPartyRole(msg.MsgOption.ReceiverPartyId, msg.MsgOption.ReceiverRole, task)
 	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
@@ -1223,15 +1236,10 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 		}
 
 		if publish {
-			needTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), task.GetTaskSender().GetPartyId())
+			needTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
 			// handle this task result with current peer
 			m.publishFinishedTaskToDataCenter(needTask, true)
-			m.removeNeedExecuteTaskCache(event.GetTaskId(), task.GetTaskSender().GetPartyId())
-		} else {
-			needTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
-			// send this task result to remote target peer
-			m.sendTaskResultMsgToRemotePeer(needTask)
-			m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
+			m.removeNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
 		}
 	}
 	return nil
