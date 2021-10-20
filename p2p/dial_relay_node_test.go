@@ -2,6 +2,9 @@ package p2p
 
 import (
 	"context"
+	"fmt"
+	swarmt "github.com/libp2p/go-libp2p-swarm/testing"
+	bh "github.com/libp2p/go-libp2p-blankhost"
 	"github.com/stretchr/testify/require"
 	"gotest.tools/assert"
 	"testing"
@@ -21,4 +24,14 @@ func TestMakePeer_OK(t *testing.T) {
 func TestDialRelayNode_InvalidPeerString(t *testing.T) {
 	err := dialRelayNode(context.Background(), nil, "/ip4")
 	assert.ErrorContains(t, err, "failed to parse multiaddr \"/ip4\"", "Expected to fail with invalid peer string")
+}
+
+func TestDialRelayNode_OK(t *testing.T) {
+	ctx := context.Background()
+	relay := bh.NewBlankHost(swarmt.GenSwarm(t, ctx))
+	host := bh.NewBlankHost(swarmt.GenSwarm(t, ctx))
+	relayAddr := fmt.Sprintf("%s/p2p/%s", relay.Addrs()[0], relay.ID().Pretty())
+
+	assert.NilError(t, dialRelayNode(ctx, host, relayAddr), "Unexpected error when dialing relay node")
+	assert.Equal(t, relay.ID(), host.Peerstore().PeerInfo(relay.ID()).ID, "Host peerstore does not have peer info on relay node")
 }
