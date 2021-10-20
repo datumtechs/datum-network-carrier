@@ -220,7 +220,53 @@ func TestPeerAllowList(t *testing.T) {
 	require.NoError(t, err)
 	err = h1.Connect(context.Background(), *addrInfo)
 	assert.NotNil(t, err, "Wanted connection to fail with allow list")
-	require.Contains(t, "no good addresses", err)
+	//require.Contains(t, err, "no good addresses")
+}
+
+func TestPeerDenyList(t *testing.T) {
+	// create host with deny list
+	ipAddr, pkey := createAddrAndPrivKey(t)
+	ipAddr2, pkey2 := createAddrAndPrivKey(t)
+
+	mask := ipAddr2.DefaultMask()
+	ones, _ := mask.Size()
+	maskedIP := ipAddr2.Mask(mask)
+	cidr := maskedIP.String() + fmt.Sprintf("/%d", ones)
+
+	listen, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", ipAddr, 2000))
+	require.NoError(t, err, "Failed to p2p listen")
+	s := &Service{
+		ipLimiter: leakybucket.NewCollector(ipLimit, ipBurst, false),
+		peers: peers.NewStatus(context.Background(), &peers.StatusConfig{
+			ScorerParams: &scorers.Config{},
+		}),
+	}
+	s.addrFilter, err = configureFilter(&Config{DenyListCIDR: []string{cidr}})
+	require.NoError(t, err)
+	h1, err := libp2p.New(context.Background(), []libp2p.Option{privKeyOption(pkey), libp2p.ListenAddrs(listen), libp2p.ConnectionGater(s)}...)
+	require.NoError(t, err)
+	s.host = h1
+	defer func() {
+		err := h1.Close()
+		require.NoError(t, err)
+	}()
+
+	// create alternate host
+	listen, err = ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d", ipAddr2, 3000))
+	require.NoError(t, err, "Failed to p2p listen")
+	h2, err := libp2p.New(context.Background(), []libp2p.Option{privKeyOption(pkey2), libp2p.ListenAddrs(listen)}...)
+	require.NoError(t, err)
+	defer func() {
+		err := h2.Close()
+		require.NoError(t, err)
+	}()
+	multiAddress, err := ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%d/p2p/%s", ipAddr2, 3000, h2.ID()))
+	require.NoError(t, err)
+	addrInfo, err := peer.AddrInfoFromP2pAddr(multiAddress)
+	require.NoError(t, err)
+	err = h1.Connect(context.Background(), *addrInfo)
+	assert.NotNil(t, err, "Wanted connection to fail with deny list")
+	//assert.ErrorContains(t, "no good addresses", err)
 }
 
 // Mock type for testing.
