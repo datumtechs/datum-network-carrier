@@ -195,8 +195,7 @@ func (p *Status) IsAboveInboundLimit() bool {
 	return totalInbound > inboundLimit
 }
 
-// InboundLimit returns the current inbound
-// peer limit.
+// InboundLimit returns the current inbound peer limit.
 func (p *Status) InboundLimit() int {
 	p.store.RLock()
 	defer p.store.RUnlock()
@@ -239,6 +238,8 @@ func (p *Status) CommitteeIndices(pid peer.ID) ([]uint64, error) {
 }
 
 // SubscribedToSubnet retrieves the peers subscribed to the given committee subnet.
+//
+// Deprecated: Not useful for now.
 func (p *Status) SubscribedToSubnet(index uint64) []peer.ID {
 	p.store.RLock()
 	defer p.store.RUnlock()
@@ -296,7 +297,7 @@ func (p *Status) ChainStateLastUpdated(pid peer.ID) (time.Time, error) {
 // IsBad states if the peer is to be considered bad (by *any* of the registered scorers).
 // If the peer is unknown this will return `false`, which makes using this function easier than returning an error.
 func (p *Status) IsBad(pid peer.ID) bool {
-	return p.isfromBadIP(pid) || p.scorers.IsBadPeer(pid)
+	return p.isFromBadIP(pid) || p.scorers.IsBadPeer(pid)
 }
 
 // NextValidTime gets the earliest possible time it is to contact/dial
@@ -547,6 +548,8 @@ func (p *Status) Prune() {
 // Ideally, all peers would be reporting the same finalized epoch but some may be behind due to their
 // own latency, or because of their finalized epoch at the time we queried them.
 // Returns epoch number and list of peers that are at or beyond that epoch.
+//
+// Deprecated: Not useful for now.
 func (p *Status) BestFinalized(maxPeers int, ourFinalizedEpoch types.Epoch) (types.Epoch, []peer.ID) {
 	//TODO: need to thinking...
 	connected := p.Connected()
@@ -600,6 +603,8 @@ func (p *Status) BestFinalized(maxPeers int, ourFinalizedEpoch types.Epoch) (typ
 
 // BestNonFinalized returns the highest known epoch, higher than ours,
 // and is shared by at least minPeers.
+//
+// Deprecated: Not useful for now.
 func (p *Status) BestNonFinalized(minPeers int, ourHeadEpoch types.Epoch) (types.Epoch, []peer.ID) {
 	connected := p.Connected()
 	epochVotes := make(map[types.Epoch]uint64)
@@ -654,8 +659,7 @@ func (p *Status) PeersToPrune() []peer.ID {
 	inBoundLimit := p.InboundLimit()
 	activePeers := p.Active()
 	numInboundPeers := len(p.InboundConnected())
-	// Exit early if we are still below our max
-	// limit.
+	// Exit early if we are still below our max limit.
 	if len(activePeers) <= int(connLimit) {
 		return []peer.ID{}
 	}
@@ -709,6 +713,8 @@ func (p *Status) PeersToPrune() []peer.ID {
 }
 
 // HighestEpoch returns the highest epoch reported epoch amongst peers.
+//
+// Deprecated: not useful for now.
 func (p *Status) HighestEpoch() types.Epoch {
 	p.store.RLock()
 	defer p.store.RUnlock()
@@ -723,8 +729,6 @@ func (p *Status) HighestEpoch() types.Epoch {
 	return 0
 }
 
-//
-
 // ConnectedPeerLimit returns the peer limit of concurrent peers connected to the node.
 func (p *Status) ConnectedPeerLimit() uint64 {
 	maxLimit := p.MaxPeerLimit()
@@ -734,7 +738,7 @@ func (p *Status) ConnectedPeerLimit() uint64 {
 	return uint64(maxLimit) - maxLimitBuffer
 }
 
-func (p *Status) isfromBadIP(pid peer.ID) bool {
+func (p *Status) isFromBadIP(pid peer.ID) bool {
 	p.store.RLock()
 	defer p.store.RUnlock()
 

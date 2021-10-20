@@ -110,6 +110,7 @@ func (s *Service) Start() error {
 	})
 	s.cfg.P2P.AddPingMethod(s.sendPingRequest)
 	s.processPendingBlocksQueue()
+	// TODO: Enable at the right time.
 	//s.maintainPeerStatuses()
 	// Update sync metrics.
 	runutil.RunEvery(s.ctx, syncMetricsInterval, s.updateMetrics)
