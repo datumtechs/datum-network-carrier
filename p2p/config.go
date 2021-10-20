@@ -24,6 +24,6 @@ type Config struct {
 	AllowListCIDR       string
 	DenyListCIDR        []string
 	//TODO: need to update..
-	StateNotifier       statefeed.Notifier
+	StateNotifier statefeed.Notifier
 	//DB                  db.ReadOnlyDatabase
 }

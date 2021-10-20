@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	p2ptest "github.com/RosettaFlow/Carrier-Go/p2p/testing"
+	twopctypes "github.com/RosettaFlow/Carrier-Go/types"
 	lru "github.com/hashicorp/golang-lru"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	pubsubpb "github.com/libp2p/go-libp2p-pubsub/pb"
@@ -39,8 +40,9 @@ func TestValidateTwopc_ValidCommitMsg(t *testing.T) {
 			ReceiverPartyId: []byte("ReceiverPartyId"),
 			MsgOwner:        nil,
 		},
-		CreateAt: timeutils.UnixMsecUint64(),
-		Sign:     []byte("sign"),
+		CommitOption: twopctypes.TwopcMsgStart.Bytes(),
+		CreateAt:     timeutils.UnixMsecUint64(),
+		Sign:         []byte("sign"),
 	})
 	require.NoError(t, err)
 
