@@ -17,11 +17,12 @@ func NewEventEngine(dataCenter iface.TaskCarrierDB) *EventEngine {
 	}
 }
 
-func (e *EventEngine) GenerateEvent(typ, taskId, identityId, extra string) *libtypes.TaskEvent {
+func (e *EventEngine) GenerateEvent(typ, taskId, identityId, partyId, extra string) *libtypes.TaskEvent {
 	return &libtypes.TaskEvent{
 		Type:       typ,
 		TaskId:     taskId,
 		IdentityId: identityId,
+		PartyId:    partyId,
 		Content:    fmt.Sprintf("%s, reason: {%s}", ScheduleEvent[typ], extra),
 		CreateAt:   timeutils.UnixMsecUint64(),
 	}
@@ -34,10 +35,4 @@ func (e *EventEngine) StoreEvent(event *libtypes.TaskEvent) {
 	return
 }
 
-func (e *EventEngine) GetTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
-	return e.dataCenter.QueryTaskEventList(taskId)
-}
 
-func (e *EventEngine) RemoveTaskEventList(taskId string) error {
-	return e.dataCenter.RemoveTaskEventList(taskId)
-}

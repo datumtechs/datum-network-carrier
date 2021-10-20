@@ -168,7 +168,7 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 	}
 
 	// Store task execute status `cons` before consensus when send task prepareMsg to remote peers
-	if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValCons(task.GetTaskId(), task.GetTaskSender().GetPartyId()); nil != err {
+	if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValConsByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()); nil != err {
 		log.WithError(err).Errorf("Failed to store local task about `cons` status on OnHandle,  taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		t.stopTaskConsensus("store task executeStatus about `cons` failed", common.Hash{}, task.GetTaskId(),
@@ -267,7 +267,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 	}
 
 	// Store task execute status `cons` before consensus when received a remote task prepareMsg
-	if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValCons(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverPartyId); nil != err {
+	if err := t.resourceMng.GetDB().StoreLocalTaskExecuteStatusValConsByPartyId(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverPartyId); nil != err {
 		log.WithError(err).Errorf("Failed to store local task about `cons` status on onPrepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return err
@@ -786,9 +786,6 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 				} else {
 					// Send consensus result (on task sender)
 					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusFinished, nil))
-					// If sending `CommitMsg` is successful,
-					// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
-					t.driveTask("", vote.MsgOption.ProposalId, vote.MsgOption.ReceiverRole, receiver, vote.MsgOption.SenderRole, sender, proposalTask.Task)
 				}
 				// Finally, whether the commitmsg is sent successfully or not, the local cache needs to be cleared
 				t.removeOrgProposalStateAndTask(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId)

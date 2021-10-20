@@ -10,7 +10,7 @@ import (
 type LocalStoreCarrierDB interface {
 	QueryYarnName() (string, error)
 	SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
-	DeleteSeedNode(id string) error
+	RemoveSeedNode(id string) error
 	QuerySeedNode(id string) (*pb.SeedPeer, error)
 	QuerySeedNodeList() ([]*pb.SeedPeer, error)
 	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
@@ -78,12 +78,13 @@ type LocalStoreCarrierDB interface {
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
 	// about task exec status (prefix + taskId + partyId -> "cons"|"exec")
-	StoreLocalTaskExecuteStatusValCons(taskId, partyId string) error
-	StoreLocalTaskExecuteStatusValExec(taskId, partyId string) error
-	RemoveLocalTaskExecuteStatus(taskId, partyId string) error
-	HasLocalTaskExecuteStatus(taskId, partyId string) (bool, error)
-	HasLocalTaskExecuteStatusValCons(taskId, partyId string) (bool, error)
-	HasLocalTaskExecuteStatusValExec(taskId, partyId string) (bool, error)
+	StoreLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) error
+	StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) error
+	RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId string) error
+	HasLocalTaskExecuteStatusParty(taskId string) (bool, error)
+	HasLocalTaskExecuteStatusByPartyId(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) (bool, error)
 	// v2.0  about user metadataAuthUsed (userType + user -> metadataAuthId ...)
 	//StoreUserMetadataAuthUsed(userType apicommonpb.UserType, user, metadataAuthId string) error
 	//QueryUserMetadataAuthUsedCount(userType apicommonpb.UserType, user string) (uint32, error)
@@ -113,6 +114,12 @@ type LocalStoreCarrierDB interface {
 	StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error
 	QueryTaskPowerPartyIds(taskId string) ([]string, error)
 	RemoveTaskPowerPartyIds (taskId string) error
+	// v 2.0 about task partyIds of all partners (prefix + taskId -> [partyId, ..., partyId]  for task sender)
+   	StoreTaskPartnerPartyIds(taskId string, partyIds []string) error
+   	HasTaskPartnerPartyIds(taskId string) (bool, error)
+   	QueryTaskPartnerPartyIds(taskId string) ([]string, error)
+   	RemoveTaskPartnerPartyId (taskId, partyId string) error
+   	RemoveTaskPartnerPartyIds (taskId string) error
 	// v 2.0 about Message Cache
 	StoreMessageCache(value interface{})
 	QueryPowerMsgArr() (types.PowerMsgArr, error)
@@ -163,7 +170,9 @@ type IdentityCarrierDB interface {
 type TaskCarrierDB interface {
 	StoreTaskEvent(event *libtypes.TaskEvent) error
 	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
+	QueryTaskEventListByPartyId (taskId, partyId string) ([]*libtypes.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
+	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
 	QueryLocalTask(taskId string) (*types.Task, error)
@@ -181,9 +190,9 @@ type TaskCarrierDB interface {
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 
 	// about scheduling
-	StoreScheduling(bullet *types.TaskBullet)
-	DeleteScheduling(bullet *types.TaskBullet)
-	RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet)
+	StoreScheduling(bullet *types.TaskBullet) error
+	DeleteScheduling(bullet *types.TaskBullet) error
+	RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet, error)
 }
 
 type ForConsensusDB interface {

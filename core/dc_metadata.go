@@ -12,21 +12,20 @@ import (
 func (dc *DataCenter) StoreLocalMetadata(metadata *types.Metadata) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	rawdb.WriteLocalMetadata(dc.db, metadata)
-	return nil
+	return rawdb.StoreLocalMetadata(dc.db, metadata)
 }
 
 func (dc *DataCenter) QueryLocalMetadataByDataId(metadataId string) (*types.Metadata, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	metadata, err := rawdb.ReadLocalMetadata(dc.db, metadataId)
+	metadata, err := rawdb.QueryLocalMetadata(dc.db, metadataId)
 	return metadata, err
 }
 
 func (dc *DataCenter) QueryLocalMetadataList() (types.MetadataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadAllLocalMetadata(dc.db)
+	return rawdb.QueryAllLocalMetadata(dc.db)
 }
 
 // on datecenter

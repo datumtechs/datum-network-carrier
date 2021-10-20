@@ -150,12 +150,12 @@ func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteRegisteredN
 
 	err := svr.B.DeleteSeedNode(req.GetId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:DeleteSeedNode failed, id: {%s}", req.GetId())
+		log.WithError(err).Errorf("RPC-API:RemoveSeedNode failed, id: {%s}", req.GetId())
 
 		errMsg := fmt.Sprintf(ErrDeleteSeedNodeInfo.Msg, req.GetId())
 		return nil, backend.NewRpcBizErr(ErrDeleteSeedNodeInfo.Code, errMsg)
 	}
-	log.Debugf("RPC-API:DeleteSeedNode succeed, id: {%s}", req.GetId())
+	log.Debugf("RPC-API:RemoveSeedNode succeed, id: {%s}", req.GetId())
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
@@ -265,7 +265,7 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeReq
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
 	// delete and insert.
-	//svr.B.DeleteRegisterNode(types.PrefixTypeDataNode, node.Id)
+	//svr.B.RemoveRegisterNode(types.PrefixTypeDataNode, node.Id)
 	//status, err := svr.B.SetRegisterNode(types.PrefixTypeDataNode, node)
 	status, err := svr.B.UpdateRegisterNode(pb.PrefixTypeDataNode, node)
 	if nil != err {
@@ -424,7 +424,7 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeReque
 		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	//svr.B.DeleteRegisterNode(types.PrefixTypeJobNode, node.Id)
+	//svr.B.RemoveRegisterNode(types.PrefixTypeJobNode, node.Id)
 	//status, err := svr.B.SetRegisterNode(types.PrefixTypeJobNode, node)
 	status, err := svr.B.UpdateRegisterNode(pb.PrefixTypeJobNode, node)
 	if nil != err {

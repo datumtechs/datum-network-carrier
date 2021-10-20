@@ -11,18 +11,11 @@ var (
 	// key -> [jobNodeId, jobNodeId, ..., jobNodeId]
 	nodeResourceIdListKey = []byte("nodeResourceIdListKey")
 
-	//// prefix + identityId -> RemoteResourceTable
-	//orgResourceKeyPrefix = []byte("OrgResourceKeyPrefix:")
-	//// key -> [identityId, identityId, ..., identityId]
-	//orgResourceIdListKey = []byte("OrgResourceIdListKey")
-
 	// key -> SlotUnit
 	nodeResourceSlotUnitKey = []byte("nodeResourceSlotUnitKey")
 
 	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKeyPrefix:")
-	//// key -> [taskId, taskId, ..., taskId]
-	//localTaskPowerUsedIdListKey = []byte("localTaskPowerUsedIdListKey")
 
 	// prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
 	dataResourceTableKeyPrefix = []byte("dataResourceTableKeyPrefix:")
@@ -73,6 +66,8 @@ var (
 	taskResuorceUsageKeyPrefix = []byte("taskResuorceUsageKeyPrefix:")
 	// prefix + taskId -> powerPartyIds
 	taskPowerPartyIdsKeyPrefix = []byte("taskPowerPartyIdsKeyPrefix:")
+	// prefix + taskId -> [partyId, ..., partyId]  for task sender
+	taskPartnerPartyIdsKeyPrefix = []byte("taskPartnerPartyIdsKeyPrefix:")
 
 
 
@@ -246,4 +241,8 @@ func GetTaskResuorceUsageKeyPrefixByTaskId(taskId string) []byte {
 
 func GetTaskPowerPartyIdsKey(taskId string) []byte {
 	return append(taskPowerPartyIdsKeyPrefix, []byte(taskId)...)
+}
+
+func GetTaskPartnerPartyIdsKey(taskId string) []byte {
+	return append(taskPartnerPartyIdsKeyPrefix, []byte(taskId)...)
 }

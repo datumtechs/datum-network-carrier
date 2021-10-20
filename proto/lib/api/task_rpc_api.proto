@@ -48,8 +48,9 @@ message TaskEventShow {
   string                    type = 1;                        // 事件类型码
   string                    task_id = 2;                     // 事件对应的任务id
   api.protobuf.Organization owner = 3;                       // 产生事件的节点身份
-  string                    content = 4;                     // 事件内容
-  uint64                    create_at = 5;                   // 事件产生时间 (单位: ms)
+  string                    partyId = 4;                     // 产生事件的partyId (单个组织可以担任任务的多个party, 区分是哪一方产生的event)
+  string                    content = 5;                     // 事件内容
+  uint64                    create_at = 6;                   // 事件产生时间 (单位: ms)
 }
 
 // 查看本组织参与过的全部任务详情列表

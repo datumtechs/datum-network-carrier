@@ -229,35 +229,35 @@ func (dc *DataChain) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
 }
 
 func (dc *DataChain) DeleteSeedNode(id string) error {
-	rawdb.DeleteSeedNode(dc.db, id)
+	rawdb.RemoveSeedNode(dc.db, id)
 	return nil
 }
 
 func (dc *DataChain) GetSeedNode(id string) (*pb.SeedPeer, error) {
-	return rawdb.ReadSeedNode(dc.db, id)
+	return rawdb.QuerySeedNode(dc.db, id)
 }
 
 func (dc *DataChain) GetSeedNodeList() ([]*pb.SeedPeer, error) {
-	return rawdb.ReadAllSeedNodes(dc.db)
+	return rawdb.QueryAllSeedNodes(dc.db)
 }
 // TODO 未完成 ...
 func (dc *DataChain) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
-	rawdb.WriteRegisterNodes(dc.db, typ, node)
+	rawdb.StoreRegisterNode(dc.db, typ, node)
 	// todo: need to establish conn to registered node. heartbeat detection
 	return  pb.ConnState_ConnState_UnConnected, nil
 }
 
 func (dc *DataChain) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
-	rawdb.DeleteRegisterNode(dc.db, typ, id)
+	rawdb.RemoveRegisterNode(dc.db, typ, id)
 	return nil
 }
 
 func (dc *DataChain) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
-	return rawdb.ReadRegisterNode(dc.db, typ, id)
+	return rawdb.QueryRegisterNode(dc.db, typ, id)
 }
 
 func (dc *DataChain) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
-	return rawdb.ReadAllRegisterNodes(dc.db, typ)
+	return rawdb.QueryAllRegisterNodes(dc.db, typ)
 }
 
 // TODO 存储当前组织正在参与运行的任务详情 (正在运行的, 管理台需要看 我的任务列表, 存储使用的 pb和数据中心一样, 最后需要两边都查回来本地合并列表展示)
@@ -286,13 +286,13 @@ func (dc *DataChain) IncreaseRunningTaskCountOnOrg() uint32 {
 // TODO 存储当前计算服务 正在运行的任务总数 (递增)
 func (dc *DataChain) IncreaseRunningTaskCountOnJobNode(jobNodeId string) uint32 {
 	// todo: implements by datacenter
-	return rawdb.IncreaseRunningTaskCountForOrg(dc.db)
+	return 0
 }
 
 // TODO 查询当前组织 正在运行的任务总数
 func (dc *DataChain) GetRunningTaskCountOnOrg () uint32 {
 	// todo: implements by datacenter
-	return rawdb.ReadRunningTaskCountForOrg(dc.db)
+	return 0
 }
 
 // TODO 查询当前计算服务 正在运行的任务总数

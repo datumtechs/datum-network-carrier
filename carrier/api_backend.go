@@ -213,7 +213,7 @@ func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 
 func (s *CarrierAPIBackend) DeleteSeedNode(id string) error {
 	//TODO: current node need to disconnect with seed node.(delay processing)
-	return s.carrier.carrierDB.DeleteSeedNode(id)
+	return s.carrier.carrierDB.RemoveSeedNode(id)
 }
 
 func (s *CarrierAPIBackend) GetSeedNode(id string) (*pb.SeedPeer, error) {
@@ -444,7 +444,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 		}
 
 		if nil != resourceTable {
-			log.Debugf("still have the published computing power information on old jobNode on DeleteRegisterNode, %s", resourceTable.String())
+			log.Debugf("still have the published computing power information on old jobNode on RemoveRegisterNode, %s", resourceTable.String())
 			return fmt.Errorf("still have the published computing power information on old jobNode failed,input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
 				id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
 		}

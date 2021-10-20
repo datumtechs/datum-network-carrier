@@ -15,21 +15,19 @@ import (
 func (dc *DataCenter) StoreIdentity(identity *apicommonpb.Organization) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	rawdb.WriteLocalIdentity(dc.db, identity)
-	return nil
+	return rawdb.StoreLocalIdentity(dc.db, identity)
 }
 
 func (dc *DataCenter) RemoveIdentity() error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	rawdb.DeleteLocalIdentity(dc.db)
-	return nil
+	return rawdb.RemoveLocalIdentity(dc.db)
 }
 
 func (dc *DataCenter) QueryIdentityId() (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	identity, err := rawdb.ReadLocalIdentity(dc.db)
+	identity, err := rawdb.QueryLocalIdentity(dc.db)
 	if nil != err {
 		return "", err
 	}
@@ -39,7 +37,7 @@ func (dc *DataCenter) QueryIdentityId() (string, error) {
 func (dc *DataCenter) QueryIdentity() (*apicommonpb.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	identity, err := rawdb.ReadLocalIdentity(dc.db)
+	identity, err := rawdb.QueryLocalIdentity(dc.db)
 	if nil != err {
 		return nil, err
 	}
