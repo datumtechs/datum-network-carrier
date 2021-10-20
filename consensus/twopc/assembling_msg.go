@@ -10,8 +10,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-
-
 func makePrepareMsg(
 	proposalId common.Hash,
 	senderRole, receiverRole apicommonpb.TaskRole,
@@ -167,9 +165,9 @@ func fetchConfirmVote(vote *types.ConfirmVoteWrap) *types.ConfirmVote {
 
 func fetchCommitMsg(msg *types.CommitMsgWrap) *types.CommitMsg {
 	return &types.CommitMsg{
-		MsgOption: types.FetchMsgOption(msg.MsgOption),
-
-		CreateAt: msg.CreateAt,
-		Sign:     msg.Sign,
+		MsgOption:    types.FetchMsgOption(msg.MsgOption),
+		CommitOption: types.TwopcMsgOptionFromBytes(msg.CommitOption),
+		CreateAt:     msg.CreateAt,
+		Sign:         msg.Sign,
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
@@ -144,22 +145,28 @@ func (m *Manager) loop() {
 
 			go func() {
 
-				// store metadata used taskId
-				if err := m.storeMetaUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
-					log.Errorf("Failed to store metadata used taskId when received remote task, err: {%s}", err)
+				// Do duplication check ...
+				_, err := m.resourceMng.GetDB().QueryLocalTask(needReplayScheduleTask.GetTask().GetTaskId())
+				if rawdb.IsNoDBNotFoundErr(err) {
+					log.WithError(err).Errorf("Failed to query local task when received remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+					return
 				}
 
-				if err := m.resourceMng.GetDB().StoreLocalTask(needReplayScheduleTask.GetTask()); nil != err {
-
-					log.Errorf("Failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}, err: {%s}", needReplayScheduleTask.GetTask().GetTaskId(), err)
-
-					needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
-
-				} else {
-
-					result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask.GetTask())
-					needReplayScheduleTask.SendResult(result)
+				if rawdb.IsDBNotFoundErr(err) {
+					// store metadata used taskId
+					if err := m.storeMetaUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
+						log.WithError(err).Errorf("Failed to store metadata used taskId when received remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+					}
+					if err := m.resourceMng.GetDB().StoreLocalTask(needReplayScheduleTask.GetTask()); nil != err {
+						log.WithError(err).Errorf("Failed to call StoreLocalTask when replay schedule remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+						needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
+						return
+					}
 				}
+
+				// Start replay schedule remote task ...
+				result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask.GetTask())
+				needReplayScheduleTask.SendResult(result)
 			}()
 
 		// handle task of need to executing, and send it to fighter of myself organization or send the task result msg to remote peer
@@ -317,7 +324,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 		// store metadata used taskId
 		if err := m.storeMetaUsedTaskId(task); nil != err {
-			log.Errorf("Failed to store metadata used taskId when received local task, err: {%s}", err)
+			log.WithError(err).Errorf("Failed to store metadata used taskId when received local task, taskId: {%s}", task.GetTaskId())
 		}
 
 		var storeErr error
