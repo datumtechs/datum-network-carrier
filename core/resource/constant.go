@@ -30,6 +30,10 @@ func SetRemoveLocalTaskAndEvents () ReleaseResourceOption {
 	return RemoveLocalTask | RemoveLocalTaskEvents
 }
 
+func SetUnlockLocalResorceAndRemoveEvents () ReleaseResourceOption {
+	return UnlockLocalResorce | RemoveLocalTaskEvents
+}
+
 func SetAllReleaseResourceOption() ReleaseResourceOption {
 	return UnlockLocalResorce | RemoveLocalTask | RemoveLocalTaskEvents
 }
@@ -46,4 +50,5 @@ func (option ReleaseResourceOption) IsRemoveLocalTask() bool {
 func (option ReleaseResourceOption) IsRemoveLocalTaskEvents() bool {
 	return option&RemoveLocalTaskEvents == RemoveLocalTaskEvents
 }
+
 

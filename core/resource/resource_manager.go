@@ -341,13 +341,16 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 				log.Errorf("Failed to remove handler partner's partyIds of local task  %s, taskId: {%s}, last partyId: {%s}, releaseOption: {%d}, err: {%s}",
 					logdesc, taskId, partyId, option, err)
 			}
+			if err := m.dataCenter.RemoveTaskEventListByPartyId(taskId, partyId); nil != err {
+				log.WithError(err).Errorf("Failed to clean all event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
+			}
 		}
 	}
 
 	if option.IsRemoveLocalTaskEvents() {
-		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
+		log.Debugf("start clean party event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
 		if err := m.dataCenter.RemoveTaskEventListByPartyId(taskId, partyId); nil != err {
-			log.WithError(err).Errorf("Failed to clean event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
+			log.WithError(err).Errorf("Failed to clean party event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
 		}
 	}
 }

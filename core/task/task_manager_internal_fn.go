@@ -431,7 +431,7 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 
 	// when other partner and sender is same identity, we don't need to removed local task and local eventList
 	if task.GetLocalTaskOrganization().GetIdentityId() == task.GetRemoteTaskOrganization().GetIdentityId() {
-		option = resource.SetUnlockLocalResorce() // unlock local resource only, but don't remove local task and events
+		option = resource.SetUnlockLocalResorceAndRemoveEvents() // unlock local resource and remove and events, but don't remove local task
 	} else {
 		option = resource.SetAllReleaseResourceOption() // unlock local resource and remove local task and events
 	}
