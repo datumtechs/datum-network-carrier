@@ -319,8 +319,8 @@ func (t *Twopc) driveTask(
 	log.Debugf("Start to call `2pc.driveTask()`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
 		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 
-	selfVote := t.getPrepareVote(proposalId, localTaskOrganization.GetPartyId())
-	if nil == selfVote {
+	selfvote := t.getPrepareVote(proposalId, localTaskOrganization.GetPartyId())
+	if nil == selfvote {
 		log.Errorf("Failed to find local cache about prepareVote myself internal resource, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
 			proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 		return
@@ -334,6 +334,10 @@ func (t *Twopc) driveTask(
 		return
 	}
 
+	log.Debugf("Find resource proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote %s, peers %s",
+		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName(),
+		selfvote.String(), peers.String())
+
 	// Send task to TaskManager to execute
 	t.sendNeedExecuteTask(types.NewNeedExecuteTask(
 		remotePid,
@@ -344,7 +348,7 @@ func (t *Twopc) driveTask(
 		remoteTaskOrganization,
 		task,
 		types.TaskNeedExecute,
-		selfVote.PeerInfo,
+		selfvote.PeerInfo,
 		peers,
 	))
 }
