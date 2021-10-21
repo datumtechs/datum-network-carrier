@@ -36,8 +36,7 @@ const (
 	// maxFirstDeliveryScore describes the max score a peer can obtain from first deliveries.
 	maxFirstDeliveryScore = 40
 
-	// decayToZero specifies the terminal value that we will use when decaying
-	// a value.
+	// decayToZero specifies the terminal value that we will use when decaying a value.
 	decayToZero = 0.01
 
 	// dampeningFactor reduces the amount by which the various thresholds and caps are created.
@@ -347,11 +346,11 @@ func defaultVoluntaryExitTopicParams() *pubsub.TopicScoreParams {
 }
 
 func oneSlotDuration() time.Duration {
-	return time.Duration(params.CarrierChainConfig().SecondsPerSlot) * time.Second
+	return time.Duration(12) * time.Second
 }
 
 func oneEpochDuration() time.Duration {
-	return time.Duration(params.CarrierChainConfig().SlotsPerEpoch) * oneSlotDuration()
+	return time.Duration(32) * oneSlotDuration()
 }
 
 // determines the decay rate from the provided time period till
