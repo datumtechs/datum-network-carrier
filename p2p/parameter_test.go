@@ -26,3 +26,10 @@ func TestFanoutParameters(t *testing.T) {
 		t.Errorf("gossipSubFanoutTTL, wanted: %d, got: %d", gossipSubFanoutTTL, pubsub.GossipSubFanoutTTL)
 	}
 }
+
+func TestHeartbeatParameters(t *testing.T) {
+	setPubSubParameters()
+	if pubsub.GossipSubHeartbeatInterval != gossipSubHeartbeatInterval {
+		t.Errorf("gossipSubHeartbeatInterval, wanted: %d, got: %d", gossipSubHeartbeatInterval, pubsub.GossipSubHeartbeatInterval)
+	}
+}
