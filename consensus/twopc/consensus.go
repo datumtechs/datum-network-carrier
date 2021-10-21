@@ -929,7 +929,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.InterruptMsgWra
 	receiver := fetchOrgByPartyRole(msgOption.ReceiverPartyId, msgOption.ReceiverRole, proposalTask.Task)
 	if nil == sender || nil == receiver {
 		log.Errorf("Failed to check msg.MsgOption sender and receiver of interruptMsg on onTerminateTaskConsensus, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.ReceiverPartyId)
+			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.ReceiverRole, msgOption.ReceiverPartyId)
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
