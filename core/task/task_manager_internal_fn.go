@@ -469,7 +469,8 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
-	if task.HasRemotePID() {
+	// broadcast `task result msg` to reply remote peer
+	if task.GetLocalTaskOrganization().GetIdentityId() != task.GetRemoteTaskOrganization().GetIdentityId() {
 		//if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
 		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultByEventList(task)); nil != err {
 			log.Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
@@ -497,7 +498,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.sendTaskResultMsgToTaskSender()",
 		task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), option)
 
-	log.Debugf("Finished sendTaskResultMsgToTaskSender,  taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
+	log.Debugf("Finished sendTaskResultMsgToTaskSender, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 }
 
@@ -532,9 +533,8 @@ func (m *Manager) sendTaskResourceUsageMsgToTaskSender(task *types.NeedExecuteTa
 		Sign:     nil,
 	}
 
-	// send msg to remote target peer with broadcast
-	if task.HasRemotePID() {
-
+	// broadcast `task resource usage msg` to reply remote peer
+	if task.GetLocalTaskOrganization().GetIdentityId() != task.GetRemoteTaskOrganization().GetIdentityId() {
 		// send resource usage quo to remote peer that it will update power supplier resource usage info of task.
 		//
 		//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
