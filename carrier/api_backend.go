@@ -1115,18 +1115,19 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 	evenList := make([]*pb.TaskEventShow, len(localEventList))
 	for i, e := range localEventList {
 		evenList[i] = &pb.TaskEventShow{
-			TaskId:   e.TaskId,
-			Type:     e.Type,
-			CreateAt: e.CreateAt,
-			Content:  e.Content,
+			TaskId:   e.GetTaskId(),
+			Type:     e.GetType(),
+			CreateAt: e.GetCreateAt(),
+			Content:  e.GetContent(),
 			Owner: &apicommonpb.Organization{
-				NodeName:   identity.NodeName,
-				NodeId:     identity.NodeId,
-				IdentityId: identity.IdentityId,
+				NodeName:   identity.GetNodeName(),
+				NodeId:     identity.GetNodeId(),
+				IdentityId: identity.GetIdentityId(),
 			},
+			PartyId: e.GetPartyId(),
 		}
 	}
-
+	// 再查数据中心的.
 	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskId(taskId)
 	if nil != err {
 		return nil, err
@@ -1155,19 +1156,20 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 		}
 		for _, e := range localEventList {
 			evenList = append(evenList, &pb.TaskEventShow{
-				TaskId:   e.TaskId,
-				Type:     e.Type,
-				CreateAt: e.CreateAt,
-				Content:  e.Content,
+				TaskId:   e.GetTaskId(),
+				Type:     e.GetType(),
+				CreateAt: e.GetCreateAt(),
+				Content:  e.GetContent(),
 				Owner: &apicommonpb.Organization{
-					NodeName:   identity.NodeName,
-					NodeId:     identity.NodeId,
-					IdentityId: identity.IdentityId,
+					NodeName:   identity.GetNodeName(),
+					NodeId:     identity.GetNodeId(),
+					IdentityId: identity.GetIdentityId(),
 				},
+				PartyId: e.GetPartyId(),
 			})
 		}
 	}
-
+	// 再查数据中心的.
 	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskIds(taskIds)
 	if nil != err {
 		return nil, err
