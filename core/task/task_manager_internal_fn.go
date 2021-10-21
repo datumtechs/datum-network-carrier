@@ -1005,10 +1005,9 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 				return nil
 			}
 
-			log.Debugf("Start handleTaskEventWithCurrentIdentity, `event is the end`, event: %s", event.String())
-
 			// store EOF event first
 			m.resourceMng.GetDB().StoreTaskEvent(event)
+
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 					task.GetLocalTaskOrganization().GetPartyId(), "task execute failed", apicommonpb.TaskState_TaskState_Failed)
@@ -1016,6 +1015,8 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 					task.GetLocalTaskOrganization().GetPartyId(),"task execute succeed", apicommonpb.TaskState_TaskState_Succeed)
 			}
+
+			log.Infof("Started handle taskEvent with currentIdentity, `event is the end`, event: %s", event.String())
 
 			publish, err := m.checkTaskSenderPublishOpportunity(task.GetTask(), event)
 			if nil != err {
@@ -1178,6 +1179,9 @@ func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *lib
 	if task.GetTaskSender().GetIdentityId() != identityId {
 		return false, nil
 	}
+
+	log.Debugf("Start to remove partyId of local task's partner arr on `taskManager.checkTaskSenderPublishOpportunity()`, taskId: {%s}, partyId: {%s}",
+		event.GetTaskId(), event.GetPartyId())
 	// Remove the currently processed partyId from the partyIds array of the task partner to be processed
 	if err := m.resourceMng.GetDB().RemoveTaskPartnerPartyId(event.GetTaskId(), event.GetPartyId()); nil != err {
 		log.WithError(err).Errorf("Failed to remove partyId of local task's partner arr on `taskManager.checkTaskSenderPublishOpportunity()`, taskId: {%s}, partyId: {%s}",
