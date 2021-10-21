@@ -146,8 +146,7 @@ func (t *Twopc) refreshProposalState() {
 					Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 					CreateAt:   timeutils.UnixMsecUint64(),
 				})
-				t.stopTaskConsensus(
-					"on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
+				t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 					proposalId,
 					pstate.GetTaskId(),
 					orgState.GetTaskRole(),
@@ -232,8 +231,7 @@ func (t *Twopc) refreshProposalState() {
 						Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 						CreateAt:   timeutils.UnixMsecUint64(),
 					})
-					t.stopTaskConsensus(
-						"on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
+					t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 						proposalId,
 						pstate.GetTaskId(),
 						orgState.GetTaskRole(),
@@ -289,6 +287,22 @@ func (t *Twopc) stopTaskConsensus(
 			remotePID = ""
 		}
 
+
+		selfvote := t.getPrepareVote(proposalId, sender.GetPartyId())
+		if nil == selfvote {
+			log.Errorf("Failed to find local cache about prepareVote myself internal resource on `2pc.stopTaskConsensus()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+				proposalId.String(), task.GetTaskId(), senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
+			return
+		}
+
+		peers, ok := t.getConfirmTaskPeerInfo(proposalId)
+		if !ok {
+			log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT} on `2pc.stopTaskConsensus()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+				proposalId.String(), task.GetTaskId(), senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
+
+			return
+		}
+
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
 			remotePID,
 			proposalId,
@@ -298,8 +312,8 @@ func (t *Twopc) stopTaskConsensus(
 			receiver,
 			task,
 			taskActionStatus,
-			nil,
-			nil,
+			selfvote.PeerInfo,
+			peers,
 		))
 
 		// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)
@@ -321,20 +335,20 @@ func (t *Twopc) driveTask(
 
 	selfvote := t.getPrepareVote(proposalId, localTaskOrganization.GetPartyId())
 	if nil == selfvote {
-		log.Errorf("Failed to find local cache about prepareVote myself internal resource, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+		log.Errorf("Failed to find local cache about prepareVote myself internal resource on `2pc.driveTask()`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
 			proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 		return
 	}
 
 	peers, ok := t.getConfirmTaskPeerInfo(proposalId)
 	if !ok {
-		log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT}, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+		log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT} on `2pc.driveTask()`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
 			proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 
 		return
 	}
 
-	log.Debugf("Find resource proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote %s, peers %s",
+	log.Debugf("Find vote resources on `2pc.driveTask()` proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote %s, peers %s",
 		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName(),
 		selfvote.String(), peers.String())
 

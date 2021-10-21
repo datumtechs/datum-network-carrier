@@ -1260,6 +1260,9 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 		}
 
 		if event.Type == ev.TaskFailed.Type || event.Type == ev.TaskSucceed.Type {
+			log.Debugf("Received task result msg `event is the finished`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
+				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
+
 			publish, err := m.checkTaskSenderPublishOpportunity(task, event)
 			if nil != err {
 				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.OnTaskResultMsg()`, event: %s",
