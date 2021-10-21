@@ -314,7 +314,7 @@ func (t *Twopc) driveTask(
 	task *types.Task,
 ) {
 
-	log.Debugf("Start to call `driveTask`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
+	log.Debugf("Start to call `2pc.driveTask()`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
 		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 
 	selfVote := t.getPrepareVote(proposalId, localTaskOrganization.GetPartyId())
