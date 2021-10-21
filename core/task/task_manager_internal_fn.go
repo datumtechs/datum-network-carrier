@@ -765,7 +765,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 
 				metadata, err := m.resourceMng.GetDB().QueryMetadataByDataId(metadataId)
 				if nil != err {
-					return "", err
+					return "", fmt.Errorf("query metadata failed %s, metadataId: {%s}", err, metadataId)
 				}
 				filePath = metadata.GetData().GetFilePath()
 
@@ -778,11 +778,11 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 				// query metadataAuthId by metadataId
 				metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
 				if nil != err {
-					return "", err
+					return "", fmt.Errorf("query metadataAuthId failed %s, metadataId: {%s}", err, metadataId)
 				}
 				// ConsumeMetadataAuthority
 				if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
-					return "", err
+					return "", fmt.Errorf("consume metadataAuth failed %s, metadataAuthId: {%s}", err, metadataAuthId)
 				}
 
 				find = true
