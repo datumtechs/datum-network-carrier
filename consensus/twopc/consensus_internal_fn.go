@@ -303,7 +303,7 @@ func (t *Twopc) stopTaskConsensus(
 			return
 		}
 
-		log.Debugf("Find vote resources on `2pc.driveTask()` proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote: %s, peers: %s",
+		log.Debugf("Find vote resources on `2pc.stopTaskConsensus()` proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote: %s, peers: %s",
 			proposalId.String(), task.GetTaskId(), senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName(),
 			selfvote.String(), peers.String())
 

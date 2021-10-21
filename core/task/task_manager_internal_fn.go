@@ -11,6 +11,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
+	"github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	fightercommon "github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
@@ -168,8 +169,20 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
 func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 
-	// 找到自己的投票
-	dataNodeId := task.GetLocalResource().Id
+	// find dataNodeId with self vote
+	var dataNodeId string
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeDataNode)
+	if nil != err {
+		log.Errorf("Failed to query internal dataNode arr on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
+		return errors.New("query internal dataNodes failed")
+	}
+	for _, dataNode := range dataNodes {
+		if dataNode.GetExternalIp() == task.GetLocalResource().Ip && dataNode.GetExternalPort() == task.GetLocalResource().Port {
+			dataNodeId = dataNode.GetId()
+			break
+		}
+	}
 
 	if "" == strings.Trim(dataNodeId, "") {
 		log.Errorf("Failed to find dataNodeId of self vote resource on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
@@ -218,13 +231,25 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 
 func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 
-	// 找到自己的投票
-	jobNodeId := task.GetLocalResource().Id
+	// find jobNodeId with self vote
+	var jobNodeId string
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeJobNode)
+	if nil != err {
+		log.Errorf("Failed to query internal jobNode arr on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
+		return errors.New("query internal jobNodes failed")
+	}
+	for _, jobNode := range jobNodes {
+		if jobNode.GetExternalIp() == task.GetLocalResource().Ip && jobNode.GetExternalPort() == task.GetLocalResource().Port {
+			jobNodeId = jobNode.GetId()
+			break
+		}
+	}
 
 	if "" == strings.Trim(jobNodeId, "") {
-		log.Errorf("Failed to find jobNodeId of self vote resource on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+		log.Errorf("Failed to find jobNodeId of self vote resource on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return errors.New("not find dataNodeId of self vote resource")
+		return errors.New("not find jobNodeId of self vote resource")
 	}
 
 	// clinet *grpclient.DataNodeClient,
