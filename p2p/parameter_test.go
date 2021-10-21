@@ -33,3 +33,8 @@ func TestHeartbeatParameters(t *testing.T) {
 		t.Errorf("gossipSubHeartbeatInterval, wanted: %d, got: %d", gossipSubHeartbeatInterval, pubsub.GossipSubHeartbeatInterval)
 	}
 }
+
+func TestMiscParameters(t *testing.T) {
+	setPubSubParameters()
+	assert.Equal(t, randomSubD, pubsub.RandomSubD, "randomSubD")
+}
