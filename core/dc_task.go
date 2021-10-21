@@ -18,8 +18,7 @@ func (dc *DataCenter) StoreLocalTask(task *types.Task) error {
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	rawdb.WriteLocalTask(dc.db, task)
-	return nil
+	return rawdb.StoreLocalTask(dc.db, task)
 }
 
 func (dc *DataCenter) RemoveLocalTask(taskId string) error {
@@ -28,8 +27,7 @@ func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	rawdb.DeleteLocalTask(dc.db, taskId)
-	return nil
+	return rawdb.RemoveLocalTask(dc.db, taskId)
 }
 
 func (dc *DataCenter) QueryLocalTask(taskId string) (*types.Task, error) {
@@ -39,19 +37,19 @@ func (dc *DataCenter) QueryLocalTask(taskId string) (*types.Task, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	//log.Debugf("QueryLocalTask, taskId: {%s}", taskId)
-	return rawdb.ReadLocalTask(dc.db, taskId)
+	return rawdb.QueryLocalTask(dc.db, taskId)
 }
 
 func (dc *DataCenter) QueryLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadLocalTaskByIds(dc.db, taskIds)
+	return rawdb.QueryLocalTaskByIds(dc.db, taskIds)
 }
 
 func (dc *DataCenter) QueryLocalTaskList() (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadAllLocalTasks(dc.db)
+	return rawdb.QueryAllLocalTasks(dc.db)
 }
 
 func (dc *DataCenter) QueryLocalTaskAndEvents(taskId string) (*types.Task, error) {
@@ -60,11 +58,11 @@ func (dc *DataCenter) QueryLocalTaskAndEvents(taskId string) (*types.Task, error
 	}
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	task, err := rawdb.ReadLocalTask(dc.db, taskId)
+	task, err := rawdb.QueryLocalTask(dc.db, taskId)
 	if nil != err {
 		return nil, err
 	}
-	list, err := rawdb.ReadTaskEvent(dc.db, taskId)
+	list, err := rawdb.QueryTaskEvent(dc.db, taskId)
 	if nil != err {
 		return nil, err
 	}
@@ -75,12 +73,12 @@ func (dc *DataCenter) QueryLocalTaskAndEvents(taskId string) (*types.Task, error
 func (dc *DataCenter) QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	tasks, err := rawdb.ReadLocalTaskByIds(dc.db, taskIds)
+	tasks, err := rawdb.QueryLocalTaskByIds(dc.db, taskIds)
 	if nil != err {
 		return nil, err
 	}
 	for i, task := range tasks {
-		list, err := rawdb.ReadTaskEvent(dc.db, task.GetTaskId())
+		list, err := rawdb.QueryTaskEvent(dc.db, task.GetTaskId())
 		if nil != err {
 			return nil, err
 		}
@@ -94,12 +92,12 @@ func (dc *DataCenter) QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 
-	tasks, err := rawdb.ReadAllLocalTasks(dc.db)
+	tasks, err := rawdb.QueryAllLocalTasks(dc.db)
 	if nil != err {
 		return nil, err
 	}
 	for i, task := range tasks {
-		list, err := rawdb.ReadTaskEvent(dc.db, task.GetTaskId())
+		list, err := rawdb.QueryTaskEvent(dc.db, task.GetTaskId())
 		if nil != err {
 			return nil, err
 		}
@@ -216,7 +214,7 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDa
 func (dc *DataCenter) QueryRunningTaskCountOnOrg() uint32 {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	taskList, err := rawdb.ReadAllLocalTasks(dc.db)
+	taskList, err := rawdb.QueryAllLocalTasks(dc.db)
 	if nil != err {
 		return 0
 	}
@@ -263,13 +261,13 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 	return eventList, nil
 }
 
-func (dc *DataCenter) StoreScheduling(bullet *types.TaskBullet) {
-	rawdb.WriteScheduling(dc.db, bullet)
+func (dc *DataCenter) StoreScheduling(bullet *types.TaskBullet) error {
+	return rawdb.StoreScheduling(dc.db, bullet)
 }
-func (dc *DataCenter) DeleteScheduling(bullet *types.TaskBullet) {
-	rawdb.DeleteScheduling(dc.db, bullet)
+func (dc *DataCenter) DeleteScheduling(bullet *types.TaskBullet) error {
+	return rawdb.RemoveScheduling(dc.db, bullet)
 }
-func (dc *DataCenter) RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet) {
+func (dc *DataCenter) RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet, error) {
 	return rawdb.RecoveryScheduling(dc.db)
 }
 
@@ -281,12 +279,12 @@ func (dc *DataCenter) RecoveryScheduling() (*types.TaskBullets, *types.TaskBulle
 //
 //	dc.mu.Lock()
 //	defer dc.mu.Unlock()
-//	task, err := rawdb.ReadLocalTask(dc.db, taskId)
+//	task, err := rawdb.QueryLocalTask(dc.db, taskId)
 //	if nil != err {
 //		return err
 //	}
 //	task.TaskPB().GetState = state
-//	rawdb.DeleteLocalTask(dc.db, taskId)
-//	rawdb.WriteLocalTask(dc.db, task)
+//	rawdb.RemoveLocalTask(dc.db, taskId)
+//	rawdb.StoreLocalTask(dc.db, task)
 //	return nil
 //}

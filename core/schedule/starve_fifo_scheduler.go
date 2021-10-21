@@ -9,7 +9,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -99,7 +98,7 @@ func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {
 	return sche.removeTaskBullet(taskId)
 }
 
-func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error) {
+func (sche *SchedulerStarveFIFO) TrySchedule() (needConsensusTask *types.NeedConsensusTask, err error) {
 
 	sche.increaseTotalTaskTerm()
 	bullet := sche.popTaskBullet()
@@ -109,26 +108,30 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	}
 	bullet.IncreaseResched()
 
+	defer func() {
+		if er := recover(); nil != er {
+			if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
+				needConsensusTask, err =  nil, ErrRescheduleLargeThreshold
+			} else {
+				err =  fmt.Errorf("%s", er)
+			}
+		}
+	}()
+
 	task, err := sche.resourceMng.GetDB().QueryLocalTask(bullet.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", bullet.GetTaskId(), err)
-
-		if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
-			sche.removeTaskBullet(bullet.GetTaskId())
-			return types.NewNeedConsensusTask(types.NewTask(&libtypes.TaskPB{TaskId: bullet.GetTaskId()})), ErrRescheduleLargeThreshold
-		}
-		if e := sche.repushTaskBullet(bullet); nil != e {
-			err = e
-		}
-		return types.NewNeedConsensusTask(types.NewTask(&libtypes.TaskPB{TaskId: bullet.GetTaskId()})), err
+		log.WithError(err).Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", bullet.GetTaskId())
+		sche.removeTaskBullet(bullet.GetTaskId())
+		panic(err.Error())
 	}
+
+	needConsensusTask = types.NewNeedConsensusTask(task)
 
 	// query the powerPartyIds of this task
 	powerPartyIds, err := sche.resourceMng.GetDB().QueryTaskPowerPartyIds(task.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to query powerPartyIds of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
-		//repushFn(task)
-		return types.NewNeedConsensusTask(task), err
+		log.WithError(err).Errorf("Failed to query powerPartyIds of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+		panic(err.Error())
 	}
 
 	cost := &ctypes.TaskOperationCost{
@@ -144,9 +147,8 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	// election other org's power resources
 	powers, err := sche.electionComputeOrg(powerPartyIds, nil, cost)
 	if nil != err {
-		log.Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
-		//repushFn(task)
-		return types.NewNeedConsensusTask(task), err
+		log.WithError(err).Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+		panic(err.Error())
 	}
 
 	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powers: %s", task.GetTaskId(), utilOrgPowerArrString(powers))
@@ -155,11 +157,10 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (*types.NeedConsensusTask, error)
 	task = types.ConvertTaskMsgToTaskWithPowers(task, powers)
 	// restore task by power
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
-		log.Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}, err: {%s}", task.GetTaskId(), err)
-		//repushFn(task)
-		return types.NewNeedConsensusTask(task), err
+		log.WithError(err).Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+		panic(err.Error())
 	}
-	return types.NewNeedConsensusTask(task), nil
+	return needConsensusTask, nil
 }
 func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
 

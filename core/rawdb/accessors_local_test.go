@@ -34,32 +34,32 @@ func TestLocalTask(t *testing.T) {
 		CreateAt:   timeutils.UnixMsecUint64(),
 		EndAt:      timeutils.UnixMsecUint64(),
 	}
-	WriteLocalTask(database, types.NewTask(data01))
+	StoreLocalTask(database, types.NewTask(data01))
 
-	res, _ := ReadLocalTask(database, data01.TaskId)
+	res, _ := QueryLocalTask(database, data01.TaskId)
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.GetTaskId()))
 
 	// test update state
 	res.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
-	DeleteLocalTask(database, data01.TaskId)
-	WriteLocalTask(database, res)
+	RemoveLocalTask(database, data01.TaskId)
+	StoreLocalTask(database, res)
 
-	res, _ = ReadLocalTask(database, data01.TaskId)
+	res, _ = QueryLocalTask(database, data01.TaskId)
 	assert.Equal(t, data01.State, res.GetTaskData().State)
 
-	taskList, _ := ReadAllLocalTasks(database)
+	taskList, _ := QueryAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 1)
 
 	// delete
-	DeleteLocalTask(database, data01.TaskId)
+	RemoveLocalTask(database, data01.TaskId)
 
-	taskList, _ = ReadAllLocalTasks(database)
+	taskList, _ = QueryAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 0)
 
 	// delete
-	DeleteSeedNodes(database)
+	RemoveSeedNodes(database)
 
-	taskList, _ = ReadAllLocalTasks(database)
+	taskList, _ = QueryAllLocalTasks(database)
 	assert.Assert(t, len(taskList) == 0)
 }
 
@@ -72,27 +72,27 @@ func TestSeedNode(t *testing.T) {
 		InternalPort: "9999",
 		ConnState:    1,
 	}
-	WriteSeedNodes(database, seedNodeInfo)
+	StoreSeedNode(database, seedNodeInfo)
 
 	// get seed
-	rseed, _ := ReadSeedNode(database, "id")
+	rseed, _ := QuerySeedNode(database, "id")
 	t.Logf("seed info : %v", rseed)
 	assert.Assert(t, strings.EqualFold("id", rseed.Id))
 
 	// read all
-	seedNodes, _ := ReadAllSeedNodes(database)
+	seedNodes, _ := QueryAllSeedNodes(database)
 	assert.Assert(t, len(seedNodes) == 1)
 
 	// delete
-	DeleteSeedNode(database, "id")
+	RemoveSeedNode(database, "id")
 
-	seedNodes, _ = ReadAllSeedNodes(database)
+	seedNodes, _ = QueryAllSeedNodes(database)
 	assert.Assert(t, len(seedNodes) == 0)
 
 	// delete
-	DeleteSeedNodes(database)
+	RemoveSeedNodes(database)
 
-	seedNodes, _ = ReadAllSeedNodes(database)
+	seedNodes, _ = QueryAllSeedNodes(database)
 	assert.Assert(t, len(seedNodes) == 0)
 }
 
@@ -107,27 +107,27 @@ func TestRegisteredNode(t *testing.T) {
 		ExternalPort: "999",
 		ConnState:    1,
 	}
-	WriteRegisterNodes(database, pb.PrefixTypeJobNode, registered)
+	StoreRegisterNode(database, pb.PrefixTypeJobNode, registered)
 
 	// get seed
-	r, _ := ReadRegisterNode(database, pb.PrefixTypeJobNode, "id")
+	r, _ := QueryRegisterNode(database, pb.PrefixTypeJobNode, "id")
 	t.Logf("registered info : %v", r)
 	assert.Assert(t, strings.EqualFold("id", r.Id))
 
 	// read all
-	registeredNodes, _ := ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ := QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 1)
 
 	// delete
-	DeleteRegisterNode(database, pb.PrefixTypeJobNode, "id")
+	RemoveRegisterNode(database, pb.PrefixTypeJobNode, "id")
 
-	registeredNodes, _ = ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ = QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 
 	// delete
-	DeleteRegisterNodes(database, pb.PrefixTypeJobNode)
+	RemoveRegisterNodes(database, pb.PrefixTypeJobNode)
 
-	registeredNodes, _ = ReadAllRegisterNodes(database, pb.PrefixTypeJobNode)
+	registeredNodes, _ = QueryAllRegisterNodes(database, pb.PrefixTypeJobNode)
 	assert.Assert(t, len(registeredNodes) == 0)
 }
 
@@ -140,7 +140,7 @@ func TestTaskEvent(t *testing.T) {
 		Content:    "taskEventContent",
 		CreateAt:   timeutils.UnixMsecUint64(),
 	}
-	WriteTaskEvent(database, taskEvent)
+	StoreTaskEvent(database, taskEvent)
 
 	taskEvent2 := &libtypes.TaskEvent{
 		Type:       "taskEventType-02",
@@ -149,20 +149,20 @@ func TestTaskEvent(t *testing.T) {
 		Content:    "taskEventContent-02",
 		CreateAt:   timeutils.UnixMsecUint64(),
 	}
-	WriteTaskEvent(database, taskEvent2)
+	StoreTaskEvent(database, taskEvent2)
 
-	revent, _ := ReadTaskEvent(database, "taskEventTaskId")
+	revent, _ := QueryTaskEvent(database, "taskEventTaskId")
 	t.Logf("task evengine info : %v", len(revent))
 	assert.Assert(t, strings.EqualFold("taskEventIdentity", revent[0].IdentityId))
 
 	// read all
-	taskEvents, _ := ReadAllTaskEvents(database)
+	taskEvents, _ := QueryAllTaskEvents(database)
 	assert.Assert(t, len(taskEvents) == 2)
 
 	// delete
-	DeleteTaskEvent(database, "taskEventTaskId")
+	RemoveTaskEvent(database, "taskEventTaskId")
 
-	taskEvents, _ = ReadAllTaskEvents(database)
+	taskEvents, _ = QueryAllTaskEvents(database)
 	assert.Assert(t, len(taskEvents) == 0)
 }
 
@@ -173,16 +173,16 @@ func TestLocalIdentity(t *testing.T) {
 		NodeId:     "node-nodeId",
 		IdentityId: "node-identityId",
 	}
-	WriteLocalIdentity(database, nodeAlias)
-	WriteLocalIdentity(database, nodeAlias)
+	StoreLocalIdentity(database, nodeAlias)
+	StoreLocalIdentity(database, nodeAlias)
 
-	rnode, _ := ReadLocalIdentity(database)
+	rnode, _ := QueryLocalIdentity(database)
 	assert.Equal(t, rnode.IdentityId, nodeAlias.IdentityId)
 	assert.Equal(t, rnode.NodeId, nodeAlias.NodeId)
 	assert.Equal(t, rnode.NodeName, nodeAlias.NodeName)
 
-	DeleteLocalIdentity(database)
-	rnode, _ = ReadLocalIdentity(database)
+	RemoveLocalIdentity(database)
+	rnode, _ = QueryLocalIdentity(database)
 	require.Nil(t, rnode)
 }
 
@@ -205,7 +205,7 @@ func TestLocalResource(t *testing.T) {
 	}
 	b, _ := localResource01.Marshal()
 	_ = b
-	WriteLocalResource(database, types.NewLocalResource(localResource01))
+	StoreLocalResource(database, types.NewLocalResource(localResource01))
 
 	localResource02 := &libtypes.LocalResourcePB{
 		IdentityId:     "01-identity",
@@ -222,16 +222,16 @@ func TestLocalResource(t *testing.T) {
 		TotalBandwidth: 33,
 		UsedBandwidth:  44,
 	}
-	WriteLocalResource(database, types.NewLocalResource(localResource02))
+	StoreLocalResource(database, types.NewLocalResource(localResource02))
 
-	r1, _ := ReadLocalResource(database, localResource01.JobNodeId)
+	r1, _ := QueryLocalResource(database, localResource01.JobNodeId)
 	assert.Equal(t, types.NewLocalResource(localResource01).Hash(), r1.Hash())
 
-	array, _ := ReadAllLocalResource(database)
+	array, _ := QueryAllLocalResource(database)
 	require.True(t, array.Len() == 2)
 
-	DeleteLocalResource(database, localResource01.JobNodeId)
-	array, _ = ReadAllLocalResource(database)
+	RemoveLocalResource(database, localResource01.JobNodeId)
+	array, _ = QueryAllLocalResource(database)
 	require.True(t, array.Len() == 1)
 }
 
@@ -259,7 +259,7 @@ func TestLocalMetadata(t *testing.T) {
 	}
 	b, _ := localMetadata01.Marshal()
 	_ = b
-	WriteLocalMetadata(database, types.NewMetadata(localMetadata01))
+	StoreLocalMetadata(database, types.NewMetadata(localMetadata01))
 
 	localMetadata02 := &libtypes.MetadataPB{
 		MetadataId:           "metadataId-02",
@@ -281,16 +281,16 @@ func TestLocalMetadata(t *testing.T) {
 		MetadataColumns:      nil,
 		Industry:             "",
 	}
-	WriteLocalMetadata(database, types.NewMetadata(localMetadata02))
+	StoreLocalMetadata(database, types.NewMetadata(localMetadata02))
 
-	r1, _ := ReadLocalMetadata(database, localMetadata01.MetadataId)
+	r1, _ := QueryLocalMetadata(database, localMetadata01.MetadataId)
 	assert.Equal(t, types.NewMetadata(localMetadata01).Hash(), r1.Hash())
 
-	array, _ := ReadAllLocalMetadata(database)
+	array, _ := QueryAllLocalMetadata(database)
 	require.True(t, array.Len() == 2)
 
-	DeleteLocalMetadata(database, localMetadata01.MetadataId)
-	array, _ = ReadAllLocalMetadata(database)
+	RemoveLocalMetadata(database, localMetadata01.MetadataId)
+	array, _ = QueryAllLocalMetadata(database)
 	require.True(t, array.Len() == 1)
 }
 func TestWriteScheduling(t *testing.T) {
@@ -320,7 +320,7 @@ func TestWriteScheduling(t *testing.T) {
 			Term:    count,
 			Resched: count,
 		}
-		WriteScheduling(database, taskBullt)
+		StoreScheduling(database, taskBullt)
 		if starve == true {
 			starveQueue.Push(taskBullt)
 		} else {

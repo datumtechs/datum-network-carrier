@@ -1111,14 +1111,14 @@ func QueryDataResourceDiskUsed(db DatabaseReader, metaDataId string) (*types.Dat
 }
 
 
-func StoreLocalTaskExecuteStatusValCons(db DatabaseWriter, taskId, partyId string) error {
+func StoreLocalTaskExecuteStatusValConsByPartyId(db DatabaseWriter, taskId, partyId string) error {
 	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), GetLocalTaskExecuteStatusValCons())
 }
-func StoreLocalTaskExecuteStatusValExec (db DatabaseWriter, taskId, partyId string) error {
+func StoreLocalTaskExecuteStatusValExecByPartyId(db DatabaseWriter, taskId, partyId string) error {
 	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), GetLocalTaskExecuteStatusValExec())
 }
 
-func RemoveLocalTaskExecuteStatus(db KeyValueStore, taskId, partyId string) error {
+func RemoveLocalTaskExecuteStatusByPartyId(db KeyValueStore, taskId, partyId string) error {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	switch {
@@ -1130,7 +1130,28 @@ func RemoveLocalTaskExecuteStatus(db KeyValueStore, taskId, partyId string) erro
 	return db.Delete(key)
 }
 
-func HasLocalTaskExecuteStatus (db DatabaseReader, taskId, partyId string) (bool, error) {
+func HasLocalTaskExecuteStatusParty (db KeyValueStore, taskId string) (bool, error) {
+	prefix := append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...)
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			has, err := db.Has(key)
+			if IsNoDBNotFoundErr(err) {
+				return false, err
+			}
+			// As long as there is a K-V existence,
+			// it is a existence about task party execStatus
+			if has {
+				return true, nil
+			}
+		}
+	}
+	return false, nil
+}
+
+func HasLocalTaskExecuteStatusByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {
@@ -1142,7 +1163,7 @@ func HasLocalTaskExecuteStatus (db DatabaseReader, taskId, partyId string) (bool
 	return true, nil
 }
 
-func HasLocalTaskExecuteStatusValCons (db DatabaseReader, taskId, partyId string) (bool, error) {
+func HasLocalTaskExecuteStatusValConsByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {
@@ -1161,7 +1182,7 @@ func HasLocalTaskExecuteStatusValCons (db DatabaseReader, taskId, partyId string
 	}
 	return true, nil
 }
-func HasLocalTaskExecuteStatusValExec (db DatabaseReader, taskId, partyId string) (bool, error) {
+func HasLocalTaskExecuteStatusValExecByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {
@@ -1551,6 +1572,85 @@ func QueryTaskPowerPartyIds(db DatabaseReader, taskId string) ([]string, error) 
 
 func RemoveTaskPowerPartyIds (db KeyValueStore, taskId string) error {
 	key := GetTaskPowerPartyIdsKey(taskId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+func StoreTaskPartnerPartyIds(db DatabaseWriter, taskId string, partyIds []string) error {
+	key := GetTaskPartnerPartyIdsKey(taskId)
+	val, err := rlp.EncodeToBytes(partyIds)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func HasTaskPartnerPartyIds(db DatabaseReader, taskId string) (bool, error) {
+	key := GetTaskPartnerPartyIdsKey(taskId)
+
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return false, err
+	case IsDBNotFoundErr(err), !has:
+		return false, nil
+	}
+	return true, nil
+}
+
+func QueryTaskPartnerPartyIds(db DatabaseReader, taskId string) ([]string, error) {
+	key := GetTaskPartnerPartyIdsKey(taskId)
+
+	vb, err := db.Get(key)
+	if nil != err {
+		return nil, err
+	}
+	var partyIds []string
+	if err = rlp.DecodeBytes(vb, &partyIds); nil != err {
+		return nil, err
+	}
+	return partyIds, nil
+}
+
+func RemoveTaskPartnerPartyId (db KeyValueStore, taskId, partyId string) error {
+	key := GetTaskPartnerPartyIdsKey(taskId)
+	vb, err := db.Get(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && len(vb) == 0:
+		return nil
+	}
+
+	var partyIds []string
+	if err = rlp.DecodeBytes(vb, &partyIds); nil != err {
+		return err
+	}
+
+	for i, id := range partyIds {
+		if id == partyId {
+			partyIds = append(partyIds[:i], partyIds[i+1:]...)
+			break
+		}
+	}
+	if len(partyIds) == 0 {
+		return db.Delete(key)
+	}
+	vb, err = rlp.EncodeToBytes(partyIds)
+	if nil != err {
+		return err
+	}
+	return db.Put(key, vb)
+}
+
+func RemoveTaskPartnerPartyIds (db KeyValueStore, taskId string) error {
+	key := GetTaskPartnerPartyIdsKey(taskId)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):

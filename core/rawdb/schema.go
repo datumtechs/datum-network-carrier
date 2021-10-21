@@ -19,14 +19,9 @@ var (
 
 	localMetadataPrefix = []byte("LocalMetadata") // localMetadataPrefix + metadataId -> LocalMetadata
 
-	// runningTaskCountForOrgKey tracks the running count of task for org.
-	runningTaskCountForOrgKey = []byte("RunningTaskCountForOrg")
-
-	runningTaskCountPrefix = []byte("JobRunningTaskCount") // runningTaskCountPrefix + nodeId -> task count
-	runningTaskIDPrefix    = []byte("JobRunningTaskID")    // runningTaskIDPrefix + nodeId -> the list of task id
 
 	// taskEventKey tracks the task event list of a task.
-	taskEventPrefix = []byte("TaskEvent")	// taskEventPrefix + taskId -> the event of task.
+	taskEventPrefix = []byte("TaskEvent")	// taskEventPrefix + taskId + partyId -> the events of task.
 
 	// databaseVersionKey tracks the current database version
 	databaseVersionKey = []byte("DatabaseVersion")
@@ -87,19 +82,10 @@ var (
 	schedulingPrefix = []byte("scheduling")
 )
 
-// runningTaskCountForJobNodeKey = runningTaskCountPrefix + jobNodeId
-func runningTaskCountForJobNodeKey(jobNodeId string) []byte {
-	return append(runningTaskCountPrefix, []byte(jobNodeId)...)
-}
 
-// runningTaskIDListKey = runningTaskIDPrefix + jobNodeId
-func runningTaskIDListKey(jobNodeId string) []byte {
-	return append(runningTaskIDPrefix, []byte(jobNodeId)...)
-}
-
-// taskEventKey = taskEventPrefix + taskId
-func taskEventKey(taskId string) []byte {
-	return append(taskEventPrefix, []byte(taskId)...)
+// taskEventKey = taskEventPrefix + taskId + partyId
+func taskEventKey(taskId, partyId string) []byte {
+	return append(append(taskEventPrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
 // localResourceKey = localResourcePrefix + jobNodeId

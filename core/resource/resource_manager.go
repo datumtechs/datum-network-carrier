@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
@@ -89,39 +90,39 @@ func (m *Manager) SetSlotUnit(mem, b uint64, p uint32) {
 func (m *Manager) GetSlotUnit() *types.Slot { return m.slotUnit }
 
 func (m *Manager) UseSlot(nodeId string, slotCount uint32) error {
-	table, err := m.GetLocalResourceTable(nodeId)
+	table, err := m.QueryLocalResourceTable(nodeId)
 	if nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	if err := table.UseSlot(slotCount); nil != err {
 		return err
 	}
-	return m.SetLocalResourceTable(table)
+	return m.StoreLocalResourceTable(table)
 }
 func (m *Manager) FreeSlot(nodeId string, slotCount uint32) error {
-	table, err := m.GetLocalResourceTable(nodeId)
+	table, err := m.QueryLocalResourceTable(nodeId)
 	if nil != err {
 		return fmt.Errorf("No found the resource table of node: %s, %s", nodeId, err)
 	}
 	if err := table.FreeSlot(slotCount); nil != err {
 		return err
 	}
-	return m.SetLocalResourceTable(table)
+	return m.StoreLocalResourceTable(table)
 }
 
-func (m *Manager) SetLocalResourceTable(table *types.LocalResourceTable) error {
+func (m *Manager) StoreLocalResourceTable(table *types.LocalResourceTable) error {
 	return m.dataCenter.StoreLocalResourceTable(table)
 }
-func (m *Manager) GetLocalResourceTable(nodeId string) (*types.LocalResourceTable, error) {
+func (m *Manager) QueryLocalResourceTable(nodeId string) (*types.LocalResourceTable, error) {
 	return m.dataCenter.QueryLocalResourceTable(nodeId)
 }
-func (m *Manager) GetLocalResourceTables() ([]*types.LocalResourceTable, error) {
+func (m *Manager) QueryLocalResourceTables() ([]*types.LocalResourceTable, error) {
 	return m.dataCenter.QueryLocalResourceTables()
 }
-func (m *Manager) DelLocalResourceTable(nodeId string) error {
+func (m *Manager) RemoveLocalResourceTable(nodeId string) error {
 	return m.dataCenter.RemoveLocalResourceTable(nodeId)
 }
-func (m *Manager) CleanLocalResourceTables() error {
+func (m *Manager) RemoveLocalResourceTables() error {
 	localResourceTableArr, err := m.dataCenter.QueryLocalResourceTables()
 	if nil != err {
 		return err
@@ -287,8 +288,8 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 
 	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
 
-	has, err := m.dataCenter.HasLocalTaskExecuteStatus(taskId, partyId)
-	if nil != err {
+	has, err := m.dataCenter.HasLocalTaskExecuteStatusByPartyId(taskId, partyId)
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.Errorf("Failed to query local task exec status with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
 			logdesc, taskId, partyId, option, err)
 		return
@@ -301,16 +302,17 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 	}
 
 
-	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
-	if nil != err {
-		log.Errorf("Failed to query local task powerUsed,taskId {%s}, partyId: {%s}, err: {%s}", taskId, partyId, err)
-		return
-	}
-	count, err := m.dataCenter.QueryResourceTaskPartyIdCount(used.GetNodeId(), used.GetTaskId())
-	if nil != err {
-		log.Errorf("failed to query resuorce task party count, used: {%s}, err: {%s}", used.String(), err)
-		return
-	}
+	//used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
+	//if nil != err {
+	//	log.Errorf("Failed to query local task powerUsed,taskId {%s}, partyId: {%s}, err: {%s}", taskId, partyId, err)
+	//	return
+	//}
+	//// query partyId count on jobNode with jobNodeId and taskId.
+	//count, err := m.dataCenter.QueryResourceTaskPartyIdCount(used.GetNodeId(), used.GetTaskId())
+	//if nil != err {
+	//	log.Errorf("failed to query resuorce task party count, used: {%s}, err: {%s}", used.String(), err)
+	//	return
+	//}
 
 	if option.IsUnlockLocalResorce() {
 		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
@@ -321,68 +323,34 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 		}
 	}
 
-	if option.IsRemoveLocalTask() && count == 0 {
+	if option.IsRemoveLocalTask() {
 		log.Debugf("start remove local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
 			logdesc, taskId, partyId, option, err)
-		// 因为在 schedule 那边已经对 task 做了 StoreLocalTask
-		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
-			log.Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-				logdesc, taskId, partyId, option, err)
-		}
-		if err := m.dataCenter.RemoveTaskPowerPartyIds(taskId); nil != err {
-			log.Errorf("Failed to remove powerPartyIds of local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-				logdesc, taskId, partyId, option, err)
-		}
-	}
-	if option.IsRemoveLocalTaskEvents() && count == 0 {
-		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
-		if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
-			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
-		}
-	}
-}
-
-func (m *Manager) ReleaseLocalResourceWithTaskShortCircuit(logdesc, taskId, partyId string, option ReleaseResourceOption) {
-
-	log.Debugf("Start ReleaseLocalResourceWithTaskShortCircuit %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
-
-	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
-	if nil != err {
-		log.Errorf("Failed to query local task powerUsed,taskId {%s}, partyId: {%s}, err: {%s}", taskId, partyId, err)
-		return
-	}
-	count, err := m.dataCenter.QueryResourceTaskPartyIdCount(used.GetNodeId(), used.GetTaskId())
-	if nil != err {
-		log.Errorf("failed to query resuorce task party count, used: {%s}, err: {%s}", used.String(), err)
-		return
-	}
-
-	if option.IsUnlockLocalResorce() {
-		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
-			logdesc, taskId, partyId, option)
-		if err := m.UnLockLocalResourceWithTask(taskId, partyId); nil != err {
-			log.Errorf("Failed to unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-				logdesc, taskId, partyId, option, err)
+		// When tasks in current organization, including sender and other partners, do not have an 'executestatus' symbol.
+		has, err := m.dataCenter.HasLocalTaskExecuteStatusParty(taskId)
+		if nil == err && !has {
+			if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
+				log.Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
+					logdesc, taskId, partyId, option, err)
+			}
+			if err := m.dataCenter.RemoveTaskPowerPartyIds(taskId); nil != err {
+				log.Errorf("Failed to remove power's partyIds of local task  %s, taskId: {%s}, last partyId: {%s}, releaseOption: {%d}, err: {%s}",
+					logdesc, taskId, partyId, option, err)
+			}
+			if err := m.dataCenter.RemoveTaskPartnerPartyIds(taskId); nil != err {
+				log.Errorf("Failed to remove handler partner's partyIds of local task  %s, taskId: {%s}, last partyId: {%s}, releaseOption: {%d}, err: {%s}",
+					logdesc, taskId, partyId, option, err)
+			}
+			if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
+				log.WithError(err).Errorf("Failed to clean all event list of task  %s, taskId: {%s}", logdesc, taskId)
+			}
 		}
 	}
 
-	if option.IsRemoveLocalTask() && count == 0 {
-		log.Debugf("start remove local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-			logdesc, taskId, partyId, option, err)
-		// 因为在 schedule 那边已经对 task 做了 StoreLocalTask
-		if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
-			log.Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-				logdesc, taskId, partyId, option, err)
-		}
-		if err := m.dataCenter.RemoveTaskPowerPartyIds(taskId); nil != err {
-			log.Errorf("Failed to remove powerPartyIds of local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-				logdesc, taskId, partyId, option, err)
-		}
-	}
-	if option.IsRemoveLocalTaskEvents() && count == 0 {
-		log.Debugf("start clean event list of task  %s, taskId: {%s}", logdesc, taskId)
-		if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
-			log.Errorf("Failed to clean event list of task  %s, taskId: {%s}, err: {%s}", logdesc, taskId, err)
+	if option.IsRemoveLocalTaskEvents() {
+		log.Debugf("start clean party event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
+		if err := m.dataCenter.RemoveTaskEventListByPartyId(taskId, partyId); nil != err {
+			log.WithError(err).Errorf("Failed to clean party event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
 		}
 	}
 }

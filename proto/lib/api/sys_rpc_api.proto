@@ -190,8 +190,7 @@ message UpdateJobNodeRequest {
 
 // 数据/计算服务 上报任务事件 req
 message ReportTaskEventRequest {
-  string          party_id = 1;       // 本资源在该 task 中的 partyId
-  types.TaskEvent task_event = 2;     // 事件信息
+  types.TaskEvent task_event = 1;     // 事件信息
 }
 
 // 数据/计算服务 上报任务资源使用实况 req

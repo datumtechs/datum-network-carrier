@@ -142,11 +142,11 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 
 	resourceNodeIdArr := make([]string, 0)
 
-	tables, err := sche.resourceMng.GetLocalResourceTables()
+	tables, err := sche.resourceMng.QueryLocalResourceTables()
 	if nil != err {
 		return nil, err
 	}
-	log.Debugf("GetLocalResourceTables on electionComputeNode, localResources: %s", utilLocalResourceArrString(tables))
+	log.Debugf("QueryLocalResourceTables on electionComputeNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
 		isEnough := r.IsEnough(uint32(needSlotCount))
 		log.Debugf("Call electionComputeNode, resource: %s, isEnough: %v", r.String(), isEnough)

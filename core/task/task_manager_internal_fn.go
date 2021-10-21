@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/runutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -25,14 +27,23 @@ import (
 
 func (m *Manager) tryScheduleTask() error {
 	nonConsTask, err := m.scheduler.TrySchedule()
-	if nil != err && err != schedule.ErrRescheduleLargeThreshold {
+	if nil == err && nil == nonConsTask {
+		return nil
+	} else if nil != err && err != schedule.ErrRescheduleLargeThreshold {
+		if nil != nonConsTask {
+			m.scheduler.RepushTask(nonConsTask.GetTask())
+		}
 		return err
 	} else if nil != err && err == schedule.ErrRescheduleLargeThreshold {
+
+		if nil != nonConsTask {
+			m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
+		}
+
 		m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskFailedConsensus.Type,
-			nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(), schedule.ErrRescheduleLargeThreshold.Error()))
-		return m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), types.TaskConsensusInterrupt)
-	} else if nil == err && nil == nonConsTask {
-		return nil
+			nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
+			nonConsTask.GetTask().GetTaskSender().GetPartyId(), schedule.ErrRescheduleLargeThreshold.Error()))
+		return m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), types.TaskScheduleFailed)
 	}
 
 	go func(nonConsTask *types.NeedConsensusTask) {
@@ -41,7 +52,16 @@ func (m *Manager) tryScheduleTask() error {
 
 		if err := m.consensusEngine.OnPrepare(nonConsTask.GetTask()); nil != err {
 			log.Errorf("Failed to call `OnPrepare()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
-			nonConsTask.SendResult(types.NewTaskConsResult(nonConsTask.GetTask().GetTaskId(), types.TaskConsensusInterrupt, err))
+			// re push task into queue ,if anything else
+			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after call `consensus.onPrepare()` on `taskManager.tryScheduleTask()`, taskId: {%s}",
+					nonConsTask.GetTask().GetTaskId())
+				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), types.TaskConsensusInterrupt)
+			} else {
+				log.Debugf("Succeed to repush local task into queue/starve queue after call `consensus.onPrepare()` on `taskManager.tryScheduleTask()`, taskId: {%s}",
+					nonConsTask.GetTask().GetTaskId())
+			}
+			nonConsTask.Close()
 			return
 		}
 
@@ -52,11 +72,6 @@ func (m *Manager) tryScheduleTask() error {
 		result := nonConsTask.ReceiveResult()
 		log.Debugf("Received need-consensus task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
 
-		// Remove task execute status `cons` after consensus failed with remote peers
-		if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetPartyId()); nil != err {
-			log.WithError(err).Errorf("Failed to repush local task into queue/starve queue on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
-		}
-
 		// store task event
 		var reason string
 		if nil != result.Err {
@@ -65,40 +80,38 @@ func (m *Manager) tryScheduleTask() error {
 			reason = result.Status.String()
 		}
 		m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskFailedConsensus.Type,
-			nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(), reason))
+			nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
+			nonConsTask.GetTask().GetTaskSender().GetPartyId(), reason))
 
-
+		// received status must be `TaskConsensusFinished|TaskConsensusInterrupt|TaskTerminate` from consensus engine
+		// never be `TaskNeedExecute|TaskScheduleFailed`
+		//
 		// Consensus failed, task needs to be suspended and rescheduled
 		switch result.Status {
-		case types.TaskConsensusFinished:
+		case types.TaskTerminate, types.TaskConsensusFinished:
 			// remove task from scheduler.queue|starvequeue after task consensus succeed
 			// Don't send needexecuteTask, because that will be handle in `2pc engine.driveTask()`
 			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
-				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus succeed on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
-			}
-		case types.TaskTerminate:
-			// remove task from scheduler.queue|starvequeue after `task consensus terminated`
-			// then will received `terminate` from consensus result
-			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
-				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after task consensus terminate on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
+					result.Status.String(), nonConsTask.GetTask().GetTaskId())
 			}
 			m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), result.Status)
-		case types.TaskNeedExecute:
-			// never be it.
-		default:
+		case types.TaskConsensusInterrupt:
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
-				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}", result.Status.String(), nonConsTask.GetTask().GetTaskId())
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
+					result.Status.String(), nonConsTask.GetTask().GetTaskId())
 				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask(), result.Status)
 			} else {
-				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}", result.Status.String(), nonConsTask.GetTask().GetTaskId())
+				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
+					result.Status.String(), nonConsTask.GetTask().GetTaskId())
 			}
 		}
 	}(nonConsTask)
 	return nil
 }
 
-func (m *Manager) sendNeedExecuteTaskByAction (task *types.Task, taskActionStatus types.TaskActionStatus) error {
+func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task, taskActionStatus types.TaskActionStatus) error {
 
 	m.needExecuteTaskCh <- types.NewNeedExecuteTask(
 		"",
@@ -128,16 +141,10 @@ func (m *Manager) sendNeedExecuteTaskByAction (task *types.Task, taskActionStatu
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
-	//////////////////////////////// TODO  MOCK  ///////////////////////////////////
-
-	//events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskSucceed.Type, task.GetTask().GetTaskId(), task.GetTask().GetTaskData().GetIdentityId(), "finished mock task")}
-	//if e := m.storeMockTask(task.GetTask(), events, "finished mock task"); nil != e {
-	//	log.Errorf("Failed to sending the mock task to datacenter on taskManager, taskId: {%s}", task.GetTask().GetTaskId())
-	//}
-
+	// TODO for test
+	log.Debugf("Start execute task on `taskManager.driveTaskForExecute()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 	return nil
-
-
 
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
@@ -242,16 +249,17 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 
 	m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-		fmt.Sprintf("task terminate"), apicommonpb.TaskState_TaskState_Failed)
-	switch task.GetLocalTaskRole() {
-	case apicommonpb.TaskRole_TaskRole_Sender:
-		//
-		m.publishFinishedTaskToDataCenter(task)
-	default:
-		//
-		m.sendTaskResultMsgToRemotePeer(task)
-	}
+		task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("task terminate"), apicommonpb.TaskState_TaskState_Failed)
 
+	// Send taskResultMsg first and then terminate the task,
+	// or terminate the task and then send taskResultMsg first?
+	//
+	// This is a question~
+	//
+	// 1、Send taskResultMsg
+	m.sendTaskResultMsgToRemotePeer(task)
+
+	// 2、terminate the task
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
 		return m.terminateTaskOnDataNode(task)
@@ -351,45 +359,64 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 	return nil
 }
 
-func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask) {
+func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, delay bool) {
 
-	eventList, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTask().GetTaskId())
-	if nil != err {
-		log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", task.GetTask().GetTaskId(), err)
-		return
-	}
-	var isFailed bool
-	for _, event := range eventList {
-		if event.Type == ev.TaskFailed.Type {
-			isFailed = true
-			break
+	/**
+	++++++++++++++++++++++++++++
+	NOTE: the needExecuteTask must be sender's here. (task.GetLocalTaskOrganization is sender's identity)
+	++++++++++++++++++++++++++++
+	 */
+
+	handleFn := func() {
+
+		eventList, err := m.resourceMng.GetDB().QueryTaskEventList(task.GetTask().GetTaskId())
+		if nil != err {
+			log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", task.GetTask().GetTaskId(), err)
+			return
 		}
+
+		// check all events of this task, and change task state finally.
+		var isFailed bool
+		for _, event := range eventList {
+			if event.Type == ev.TaskFailed.Type {
+				isFailed = true
+				break
+			}
+		}
+		var taskState apicommonpb.TaskState
+		if isFailed {
+			taskState = apicommonpb.TaskState_TaskState_Failed
+		} else {
+			taskState = apicommonpb.TaskState_TaskState_Succeed
+		}
+
+		log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTask().GetTaskId(), taskState.String())
+		finalTask := m.convertScheduleTaskToTask(task.GetTask(), eventList, taskState)
+		if err := m.resourceMng.GetDB().InsertTask(finalTask); nil != err {
+			log.WithError(err).Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}",
+				task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return
+		}
+
+		if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
+			log.WithError(err).Errorf("Failed to remove task executing status on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}",
+				task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+			return
+		}
+		// clean local task cache
+		m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.publishFinishedTaskToDataCenter()",
+			task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption())
+
+		log.Debugf("Finished pulishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState)
 	}
-	var taskState apicommonpb.TaskState
-	if isFailed {
-		taskState = apicommonpb.TaskState_TaskState_Failed
+
+	if delay {
+		// delays handling some logic. (default delay 10s)
+		runutil.RunOnce(context.TODO(), senderExecuteTaskExpire, handleFn)
 	} else {
-		taskState = apicommonpb.TaskState_TaskState_Succeed
+		handleFn()
 	}
-
-	log.Debugf("Start publishFinishedTaskToDataCenter, taskId: {%s}, taskState: {%s}", task.GetTask().GetTaskId(), taskState.String())
-
-	finalTask := m.convertScheduleTaskToTask(task.GetTask(), eventList, taskState)
-	if err := m.resourceMng.GetDB().InsertTask(finalTask); nil != err {
-		log.Errorf("Failed to save task to datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", task.GetTask().GetTaskId(), err)
-		return
-	}
-
-	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
-		log.Errorf("Failed to remove task executing status on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, err: {%s}",
-			task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), err)
-		return
-	}
-	// clean local task cache
-	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.publishFinishedTaskToDataCenter()",
-		task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption())
-
-	log.Debugf("Finished pulishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}", task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState)
 }
 func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 
@@ -401,11 +428,10 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultByEventList(task)); nil != err {
 			log.Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
 				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
-			return
 		}
 	}
 
-	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatus(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
+	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
 		log.Errorf("Failed to remove task executing status on sendTaskResultMsgToRemotePeer, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
 			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
 		return
@@ -415,7 +441,7 @@ func (m *Manager) sendTaskResultMsgToRemotePeer(task *types.NeedExecuteTask) {
 
 	// when other partner and sender is same identity, we don't need to removed local task and local eventList
 	if task.GetLocalTaskOrganization().GetIdentityId() == task.GetRemoteTaskOrganization().GetIdentityId() {
-		option = resource.SetUnlockLocalResorce () // unlock local resource only, but don't remove local task and events
+		option = resource.SetUnlockLocalResorceAndRemoveEvents() // unlock local resource and remove and events, but don't remove local task
 	} else {
 		option = resource.SetAllReleaseResourceOption() // unlock local resource and remove local task and events
 	}
@@ -446,17 +472,17 @@ func (m *Manager) sendTaskResourceUsageMsgToRemotePeer(task *types.NeedExecuteTa
 		},
 		TaskId: []byte(task.GetTask().GetTaskId()),
 		Usage: &msgcommonpb.ResourceUsage{
-			TotalMem: usage.GetTotalMem(),
-			UsedMem: usage.GetUsedMem(),
+			TotalMem:       usage.GetTotalMem(),
+			UsedMem:        usage.GetUsedMem(),
 			TotalProcessor: uint64(usage.GetTotalProcessor()),
-			UsedProcessor: uint64(usage.GetUsedProcessor()),
+			UsedProcessor:  uint64(usage.GetUsedProcessor()),
 			TotalBandwidth: usage.GetTotalBandwidth(),
-			UsedBandwidth: usage.GetUsedBandwidth(),
-			TotalDisk: usage.GetTotalDisk(),
-			UsedDisk: usage.GetUsedDisk(),
+			UsedBandwidth:  usage.GetUsedBandwidth(),
+			TotalDisk:      usage.GetTotalDisk(),
+			UsedDisk:       usage.GetUsedDisk(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
-		Sign: nil,
+		Sign:     nil,
 	}
 
 	// send msg to remote target peer with broadcast
@@ -483,7 +509,7 @@ func (m *Manager) sendTaskResourceUsageMsgToRemotePeer(task *types.NeedExecuteTa
 	}
 }
 
-func (m *Manager) sendTaskTerminateMsg (task *types.Task) error {
+func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 	sender := task.GetTaskSender()
 
@@ -498,7 +524,7 @@ func (m *Manager) sendTaskTerminateMsg (task *types.Task) error {
 			return
 		}
 
-		terminateMsg :=  &taskmngpb.TaskTerminateMsg{
+		terminateMsg := &taskmngpb.TaskTerminateMsg{
 			MsgOption: &msgcommonpb.MsgOption{
 				ProposalId:      common.Hash{}.Bytes(),
 				SenderRole:      uint64(senderRole),
@@ -512,9 +538,9 @@ func (m *Manager) sendTaskTerminateMsg (task *types.Task) error {
 					PartyId:    []byte(sender.GetPartyId()),
 				},
 			},
-			TaskId: []byte(task.GetTaskId()),
+			TaskId:   []byte(task.GetTaskId()),
 			CreateAt: timeutils.UnixMsecUint64(),
-			Sign: nil,
+			Sign:     nil,
 		}
 
 		var sendErr error
@@ -589,8 +615,8 @@ func (m *Manager) sendTaskTerminateMsg (task *types.Task) error {
 func (m *Manager) sendLocalTaskToScheduler(tasks types.TaskDataArray) {
 	m.localTasksCh <- tasks
 }
-func (m *Manager) sendTaskEvent(reportEvent *types.ReportTaskEvent) {
-	m.eventCh <- reportEvent
+func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
+	m.eventCh <- event
 }
 
 func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
@@ -900,37 +926,66 @@ func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *taskmn
 	}
 }
 
-func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) error {
+func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) error {
 	eventType := event.Type
 	if len(eventType) != ev.EventTypeCharLen {
 		return ev.IncEventType
 	}
-	// TODO need to validate the task that have been processing ? Maybe~
-	if event.Type == ev.TaskExecuteSucceedEOF.Type || event.Type == ev.TaskExecuteFailedEOF.Type {
-		if task, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), partyId); ok {
 
-			log.Debugf("Start handleTaskEvent, `event is the end`, current partyId: {%s}, event: %s", partyId, event.String())
+	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
+	if nil != err {
+		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
+		return fmt.Errorf("query local identityId failed, %s", err)
+	}
+	event.IdentityId = identityId
+
+
+	if event.Type == ev.TaskExecuteSucceedEOF.Type || event.Type == ev.TaskExecuteFailedEOF.Type {
+		if task, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId()); ok {
+
+			// need to validate the task that have been processing ? Maybe~
+			// While task is consensus or executing, can terminate.
+			has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(event.GetTaskId(), event.GetPartyId())
+			if nil != err {
+				log.WithError(err).Errorf("Failed to query local task execute `exec` status on `taskManager.handleTaskEventWithCurrentIdentity()`, taskId: {%s}, partyId: {%s}",
+					event.GetTaskId(), event.GetPartyId())
+				return err
+			}
+
+			if !has {
+				log.Warnf("Warn ignore event, `event is the end` but not find party task executeStatus `exec` on `taskManager.handleTaskEventWithCurrentIdentity()`, event: %s",
+					event.String())
+				return nil
+			}
+
+			log.Debugf("Start handleTaskEventWithCurrentIdentity, `event is the end`, event: %s", event.String())
 
 			// store EOF event first
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "task execute failed eof", apicommonpb.TaskState_TaskState_Failed)
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+					task.GetLocalTaskOrganization().GetPartyId(), "task execute failed", apicommonpb.TaskState_TaskState_Failed)
 			} else {
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), "task execute succeed eof", apicommonpb.TaskState_TaskState_Succeed)
+				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+					task.GetLocalTaskOrganization().GetPartyId(),"task execute succeed", apicommonpb.TaskState_TaskState_Succeed)
 			}
 
-			if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_Sender {
-				// announce remote peer to terminate this task
-				// (When the task sender unilaterally fails the task,
-				// it is necessary to timely notify other participants of the task to terminate the task)
-				m.sendTaskTerminateMsg(task.GetTask())
+			publish, err := m.checkTaskSenderPublishOpportunity(task.GetTask(), event)
+			if nil != err {
+				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.handleTaskEventWithCurrentIdentity()`, event: %s",
+					event.GetPartyId())
+				return err
+			}
+
+			if publish {
+				senderNeedTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), task.GetTask().GetTaskSender().GetPartyId())
 				// handle this task result with current peer
-				m.publishFinishedTaskToDataCenter(task)
-				m.removeNeedExecuteTaskCache(event.GetTaskId(), partyId)
+				m.publishFinishedTaskToDataCenter(senderNeedTask, true)
+				m.removeNeedExecuteTaskCache(event.GetTaskId(), task.GetTask().GetTaskSender().GetPartyId())
 			} else {
 				// send this task result to remote target peer
 				m.sendTaskResultMsgToRemotePeer(task)
-				m.removeNeedExecuteTaskCache(event.GetTaskId(), partyId)
+				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
 			}
 			return nil
 		} else {
@@ -939,7 +994,7 @@ func (m *Manager) handleTaskEvent(partyId string, event *libtypes.TaskEvent) err
 
 	} else {
 
-		log.Debugf("Start handleTaskEvent, `event is not the end`, event: %s", event.String())
+		log.Debugf("Start handleTaskEventWithCurrentIdentity, `event is not the end`, event: %s", event.String())
 		// It's not EOF event, then the task still executing, so store this event
 		return m.resourceMng.GetDB().StoreTaskEvent(event)
 	}
@@ -950,35 +1005,41 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 	log.Debugf("Start handle needExecuteTask, remote pid: {%s} proposalId: {%s}, taskId: {%s}, self taskRole: {%s}, self taskOrganization: {%s}",
 		task.GetRemotePID(), task.GetProposalId(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().String())
 	// Store task exec status
-	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValExec(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
-		log.Errorf("Failed to store local task about exec status,  remote pid: {%s} proposalId: {%s}, taskId: {%s}, self taskRole: {%s}, self taskOrganization: {%s}, err: {%s}",
+	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValExecByPartyId(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
+		log.Errorf("Failed to store local task about `exec` status,  remote pid: {%s} proposalId: {%s}, taskId: {%s}, self taskRole: {%s}, self taskOrganization: {%s}, err: {%s}",
 			task.GetRemotePID(), task.GetProposalId(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().String(), err)
 		return
 	}
-	task.GetTask().GetTaskData().State = apicommonpb.TaskState_TaskState_Running
-	task.GetTask().GetTaskData().StartAt = timeutils.UnixMsecUint64()
-	if err := m.resourceMng.GetDB().StoreLocalTask(task.GetTask()); nil != err {
-		log.Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}, err: {%s}",
-			task.GetTask().GetTaskId(), apicommonpb.TaskState_TaskState_Running.String(), err)
+
+	if task.GetTask().GetTaskData().State == apicommonpb.TaskState_TaskState_Pending &&
+		task.GetTask().GetTaskData().StartAt == 0 {
+		task.GetTask().GetTaskData().State = apicommonpb.TaskState_TaskState_Running
+		task.GetTask().GetTaskData().StartAt = timeutils.UnixMsecUint64()
+		if err := m.resourceMng.GetDB().StoreLocalTask(task.GetTask()); nil != err {
+			log.WithError(err).Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}",
+				task.GetTask().GetTaskId(), apicommonpb.TaskState_TaskState_Running.String())
+		}
 	}
+
 	// store local cache
 	m.addNeedExecuteTaskCache(task)
-	// driving task to executing
-	if err := m.driveTaskForExecute(task); nil != err {
-		log.WithError(err).Errorf("Failed to execute task on %s node, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			task.GetLocalTaskRole().String(), task.GetProposalId().String(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(),
-			task.GetLocalTaskOrganization().GetPartyId())
 
-		m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-			fmt.Sprintf("failed to execute task: %s with %s", task.GetConsStatus().String(),
-				task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
-		switch task.GetLocalTaskRole() {
-		case apicommonpb.TaskRole_TaskRole_Sender:
-			m.publishFinishedTaskToDataCenter(task)			// local task
-		default:
-			m.sendTaskResultMsgToRemotePeer(task)			// remote task
+	// The task sender will not execute the task
+	if task.GetLocalTaskRole() != apicommonpb.TaskRole_TaskRole_Sender &&
+		task.GetLocalTaskOrganization().GetPartyId() != task.GetTask().GetTaskSender().GetPartyId() {
+		// driving task to executing
+		if err := m.driveTaskForExecute(task); nil != err {
+			log.WithError(err).Errorf("Failed to execute task on %s node, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+				task.GetLocalTaskRole().String(), task.GetProposalId().String(), task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(),
+				task.GetLocalTaskOrganization().GetPartyId())
+
+			m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+				task.GetLocalTaskOrganization().GetPartyId(),
+				fmt.Sprintf("failed to execute task: %s with %s", task.GetConsStatus().String(),
+					task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
+			m.sendTaskResultMsgToRemotePeer(task) // remote task
+			m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 		}
-		m.removeNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 	}
 }
 
@@ -995,22 +1056,18 @@ func (m *Manager) expireTaskMonitor() {
 				// the task has running expire
 				var duration uint64
 
-				switch task.GetLocalTaskRole() {
-				case apicommonpb.TaskRole_TaskRole_Sender:
-					duration = timeutils.UnixMsecUint64() - task.GetTask().GetTaskData().GetStartAt() + uint64(senderExecuteTaskExpire.Milliseconds())
-				default:
-					duration = timeutils.UnixMsecUint64() - task.GetTask().GetTaskData().GetStartAt()
-				}
+				duration = timeutils.UnixMsecUint64() - task.GetTask().GetTaskData().GetStartAt()
 
 				if duration >= task.GetTask().GetTaskData().GetOperationCost().GetDuration() {
 					log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
 						taskId, duration, task.GetTask().GetTaskData().GetOperationCost().GetDuration())
 
-					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), fmt.Sprintf("task running expire"), apicommonpb.TaskState_TaskState_Failed)
+					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+						task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("task running expire"),
+						apicommonpb.TaskState_TaskState_Failed)
 					switch task.GetLocalTaskRole() {
 					case apicommonpb.TaskRole_TaskRole_Sender:
-						m.publishFinishedTaskToDataCenter(task)
-
+						m.publishFinishedTaskToDataCenter(task, true)
 					default:
 						m.sendTaskResultMsgToRemotePeer(task)
 					}
@@ -1031,7 +1088,7 @@ func (m *Manager) expireTaskMonitor() {
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state apicommonpb.TaskState) {
+func (m *Manager) storeTaskFinalEvent(taskId, identityId, partyId, extra string, state apicommonpb.TaskState) {
 	var evTyp string
 	var evMsg string
 	if state == apicommonpb.TaskState_TaskState_Failed {
@@ -1044,10 +1101,10 @@ func (m *Manager) storeTaskFinalEvent(taskId, identityId, extra string, state ap
 	if "" != extra {
 		evMsg = extra
 	}
-	m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(evTyp, taskId, identityId, evMsg))
+	m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(evTyp, taskId, identityId, partyId, evMsg))
 }
 
-func (m *Manager) storeMetaUsedTaskId (task *types.Task) error {
+func (m *Manager) storeMetaUsedTaskId(task *types.Task) error {
 	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
 		return err
@@ -1060,6 +1117,37 @@ func (m *Manager) storeMetaUsedTaskId (task *types.Task) error {
 		}
 	}
 	return nil
+}
+
+func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *libtypes.TaskEvent) (bool, error) {
+
+	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
+	if nil != err {
+		log.Errorf("Failed to query self identityId on taskManager.checkTaskSenderPublishOpportunity(), %s", err)
+		return false, fmt.Errorf("query local identityId failed, %s", err)
+	}
+
+	// Collect the task result things of other organization, When the current organization is the task sender
+	if task.GetTaskSender().GetIdentityId() != identityId {
+		return false, nil
+	}
+	// Remove the currently processed partyId from the partyIds array of the task partner to be processed
+	if err := m.resourceMng.GetDB().RemoveTaskPartnerPartyId(event.GetTaskId(), event.GetPartyId()); nil != err {
+		log.WithError(err).Errorf("Failed to remove partyId of local task's partner arr on `taskManager.checkTaskSenderPublishOpportunity()`, taskId: {%s}, partyId: {%s}",
+			event.GetTaskId(), event.GetPartyId())
+	}
+	has, err := m.resourceMng.GetDB().HasTaskPartnerPartyIds(event.GetTaskId())
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("Failed to check task partner partyIds whether exist on `taskManager.checkTaskSenderPublishOpportunity()`, taskId: {%s}",
+			event.GetTaskId())
+		return false, err
+	}
+
+	if has {
+		log.Debugf("task partner partyIds still has some partyId exist, need continue  on `taskManager.checkTaskSenderPublishOpportunity()`, current partyId: {%s}, event: %s", event.GetPartyId(), event.String())
+		return false, nil
+	}
+	return true, nil
 }
 
 func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
@@ -1084,6 +1172,8 @@ func (m *Manager) ValidateTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.Ta
 
 func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResultMsg) error {
 
+
+
 	msg := types.FetchTaskResultMsg(taskResultMsg)
 
 	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
@@ -1095,7 +1185,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 	taskId := msg.TaskEventList[0].GetTaskId()
 
 	// While task is consensus or executing, handle task resultMsg.
-	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatus (taskId, msg.MsgOption.ReceiverPartyId)
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusByPartyId(taskId, msg.MsgOption.ReceiverPartyId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task executing status on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
@@ -1115,6 +1205,17 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 		return fmt.Errorf("query local task failed, %s", err)
 	}
 
+	/**
+	+++++++++++++++++++++++++++++++++++++++++++
+	NOTE: receiverPartyId must be task sender partyId.
+	+++++++++++++++++++++++++++++++++++++++++++
+	 */
+	if msg.MsgOption.ReceiverPartyId != task.GetTaskSender().GetPartyId() {
+		log.Errorf("Failed to check receiver partyId of msg must be task sender partyId, but it is not, on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, taskSenderPartyId: {%s}",
+			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, task.GetTaskSender().GetPartyId())
+		return fmt.Errorf("invalid taskResultMsg")
+	}
+
 	receiver := fetchOrgByPartyRole(msg.MsgOption.ReceiverPartyId, msg.MsgOption.ReceiverRole, task)
 	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
@@ -1130,12 +1231,28 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 	}
 
 	for _, event := range msg.TaskEventList {
+
 		if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
 			log.WithError(err).Errorf("Failed to store local task event from remote peer on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
-				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId,  msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
+				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
+		}
+
+		if event.Type == ev.TaskFailed.Type || event.Type == ev.TaskSucceed.Type {
+			publish, err := m.checkTaskSenderPublishOpportunity(task, event)
+			if nil != err {
+				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.OnTaskResultMsg()`, event: %s",
+					event.GetPartyId())
+				return err
+			}
+
+			if publish {
+				needTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
+				// handle this task result with current peer
+				m.publishFinishedTaskToDataCenter(needTask, true)
+				m.removeNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
+			}
 		}
 	}
-
 	return nil
 }
 
@@ -1148,7 +1265,7 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 
 	log.Debugf("Received remote taskResourceUsageMsg, remote pid: {%s}, taskResultMsg: %s", pid, msg.String())
 
-	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExec(msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverPartyId)
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverPartyId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task executing status on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
@@ -1214,12 +1331,13 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	return nil
 }
 
-func (m *Manager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error { return nil }
+func (m *Manager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+	return nil
+}
 
-func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
+func (m *Manager) OnTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error {
 	msg := types.FetchTaskTerminateTaskMngMsg(terminateMsg)
 	log.Debugf("Received remote taskTerminateMsg, remote pid: {%s}, taskTerminateMsg: %s", pid, msg.String())
-
 
 	localTask, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
 	if nil != err {
@@ -1233,9 +1351,8 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 		return err
 	}
 
-
 	// While task is consensus or executing, can terminate.
-	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValCons(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValConsByPartyId(localTask.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
@@ -1252,7 +1369,7 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 			return err
 		}
 	} else {
-		has, err = m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExec(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		has, err = m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(localTask.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute `exec` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 				msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
@@ -1260,7 +1377,7 @@ func (m *Manager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskT
 		}
 
 		if has {
-			if err := m.driveTaskForTerminate(m.mustQueryNeedExecuteTaskCache(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())); nil != err {
+			if err := m.driveTaskForTerminate(m.mustQueryNeedExecuteTaskCache(localTask.GetTaskId(), msg.GetMsgOption().ReceiverPartyId)); nil != err {
 				log.WithError(err).Errorf("Failed to call driveTaskForTerminate() on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 					msg.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
 				return err

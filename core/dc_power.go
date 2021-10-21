@@ -12,27 +12,25 @@ import (
 func (dc *DataCenter) InsertLocalResource(resource *types.LocalResource) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	rawdb.WriteLocalResource(dc.db, resource)
-	return nil
+	return rawdb.StoreLocalResource(dc.db, resource)
 }
 
 func (dc *DataCenter) RemoveLocalResource(jobNodeId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	rawdb.DeleteLocalResource(dc.db, jobNodeId)
-	return nil
+	return rawdb.RemoveLocalResource(dc.db, jobNodeId)
 }
 
 func (dc *DataCenter) QueryLocalResource(jobNodeId string) (*types.LocalResource, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadLocalResource(dc.db, jobNodeId)
+	return rawdb.QueryLocalResource(dc.db, jobNodeId)
 }
 
 func (dc *DataCenter) QueryLocalResourceList() (types.LocalResourceArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.ReadAllLocalResource(dc.db)
+	return rawdb.QueryAllLocalResource(dc.db)
 }
 
 func (dc *DataCenter) StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error {

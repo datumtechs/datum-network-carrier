@@ -41,9 +41,8 @@ func (t TaskActionStatus) String() string {
 		return "TaskTerminate"
 	case TaskNeedExecute:
 		return "TaskNeedExecute"
-	case TaskExecutingInterrupt:
-		return "TaskExecutingInterrupt"
-
+	case TaskScheduleFailed:
+		return "TaskScheduleFailed"
 	default:
 		return "UnknownTaskResultStatus"
 	}
@@ -54,7 +53,7 @@ const (
 	TaskConsensusInterrupt TaskActionStatus = 0x0001
 	TaskTerminate          TaskActionStatus = 0x0010 // terminate task while consensus or executing
 	TaskNeedExecute        TaskActionStatus = 0x0100
-	TaskExecutingInterrupt TaskActionStatus = 0x1000
+	TaskScheduleFailed     TaskActionStatus = 0x1000 // schedule failed final
 )
 
 type TaskConsResult struct {
@@ -91,8 +90,8 @@ func NewNeedConsensusTask(task *Task) *NeedConsensusTask {
 		resultCh: make(chan *TaskConsResult),
 	}
 }
-func (nct *NeedConsensusTask) GetTask() *Task { return nct.task }
 
+func (nct *NeedConsensusTask) GetTask() *Task { return nct.task }
 func (nct *NeedConsensusTask) GetResultCh() chan *TaskConsResult { return nct.resultCh }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
@@ -108,6 +107,10 @@ func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
 func (nct *NeedConsensusTask) ReceiveResult() *TaskConsResult {
 	return <-nct.resultCh
 }
+func (nct *NeedConsensusTask) Close () {
+	close(nct.resultCh)
+}
+
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
 type NeedReplayScheduleTask struct {
