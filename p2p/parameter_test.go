@@ -12,3 +12,10 @@ func TestOverlayParameters(t *testing.T) {
 	assert.Equal(t, gossipSubDlo, pubsub.GossipSubDlo, "gossipSubDlo")
 	assert.Equal(t, gossipSubDhi, pubsub.GossipSubDhi, "gossipSubDhi")
 }
+
+func TestGossipParameters(t *testing.T) {
+	setPubSubParameters()
+	assert.Equal(t, gossipSubMcacheLen, pubsub.GossipSubHistoryLength, "gossipSubMcacheLen")
+	assert.Equal(t, gossipSubMcacheGossip, pubsub.GossipSubHistoryGossip, "gossipSubMcacheGossip")
+	assert.Equal(t, gossipSubSeenTTL, int(pubsub.TimeCacheDuration.Milliseconds()/pubsub.GossipSubHeartbeatInterval.Milliseconds()), "gossipSubSeenTtl")
+}
