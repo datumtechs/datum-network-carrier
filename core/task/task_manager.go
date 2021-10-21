@@ -183,6 +183,9 @@ func (m *Manager) loop() {
 			// sender and partner to clear local task things after received status: `scheduleFailed` and `interrupt` and `terminate`.
 			// sender need to publish local task and event to datacenter,
 			// partner need to send task's event to remote task's sender.
+			//
+			// NOTE:
+			//	sender never received status `interrupt`, and partners never received status `scheduleFailed`.
 			default:
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 					task.GetLocalTaskOrganization().GetPartyId(),
@@ -192,7 +195,7 @@ func (m *Manager) loop() {
 				case apicommonpb.TaskRole_TaskRole_Sender:
 					m.publishFinishedTaskToDataCenter(task, true)
 				default:
-					m.sendTaskResultMsgToRemotePeer(task)
+					m.sendTaskResultMsgToTaskSender(task)
 				}
 			}
 
@@ -212,7 +215,7 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 
 	localTask, err := m.resourceMng.GetDB().QueryLocalTask(terminate.GetTaskId())
 	if nil != err {
-		log.Errorf("Failed to query local task on `taskManager.TerminateTask()`, taskId: {%s}, err: {%s}", terminate.GetTaskId(), err)
+		log.WithError(err).Errorf("Failed to query local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
 		return
 	}
 
@@ -220,17 +223,6 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 		log.Errorf("Not found local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
 		return
 	}
-
-	// check user
-	if localTask.GetTaskData().GetUser() != terminate.GetUser() ||
-		localTask.GetTaskData().GetUserType() != terminate.GetUserType() {
-
-		log.Errorf("terminate task user and publish task user must be same on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-			localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
-		return
-	}
-
-	// todo verify user sign with terminate task
 
 	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
 	// While task is consensus or executing, can terminate.
@@ -373,7 +365,7 @@ func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
 		return fmt.Errorf("task is not executed, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
 	}
 
-	m.sendTaskResourceUsageMsgToRemotePeer(task, usage)
+	m.sendTaskResourceUsageMsgToTaskSender(task, usage)
 	return nil
 }
 
