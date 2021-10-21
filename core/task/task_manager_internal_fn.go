@@ -249,8 +249,15 @@ func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 	m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 		task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("task terminate"), apicommonpb.TaskState_TaskState_Failed)
 
+	// Send taskResultMsg first and then terminate the task,
+	// or terminate the task and then send taskResultMsg first?
+	//
+	// This is a question~
+	//
+	// 1、Send taskResultMsg
 	m.sendTaskResultMsgToRemotePeer(task)
 
+	// 2、terminate the task
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
 		return m.terminateTaskOnDataNode(task)
@@ -365,6 +372,8 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, d
 			log.Errorf("Failed to Query all task event list for sending datacenter on publishFinishedTaskToDataCenter, taskId: {%s}, err: {%s}", task.GetTask().GetTaskId(), err)
 			return
 		}
+
+		// check all events of this task, and change task state finally.
 		var isFailed bool
 		for _, event := range eventList {
 			if event.Type == ev.TaskFailed.Type {
@@ -398,7 +407,6 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, d
 
 		log.Debugf("Finished pulishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState)
-
 	}
 
 	if delay {
@@ -954,10 +962,10 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 			if event.Type == ev.TaskExecuteFailedEOF.Type {
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-					task.GetLocalTaskOrganization().GetPartyId(), "task execute failed eof", apicommonpb.TaskState_TaskState_Failed)
+					task.GetLocalTaskOrganization().GetPartyId(), "task execute failed", apicommonpb.TaskState_TaskState_Failed)
 			} else {
 				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-					task.GetLocalTaskOrganization().GetPartyId(),"task execute succeed eof", apicommonpb.TaskState_TaskState_Succeed)
+					task.GetLocalTaskOrganization().GetPartyId(),"task execute succeed", apicommonpb.TaskState_TaskState_Succeed)
 			}
 
 			publish, err := m.checkTaskSenderPublishOpportunity(task.GetTask(), event)
@@ -1058,7 +1066,6 @@ func (m *Manager) expireTaskMonitor() {
 					switch task.GetLocalTaskRole() {
 					case apicommonpb.TaskRole_TaskRole_Sender:
 						m.publishFinishedTaskToDataCenter(task, true)
-
 					default:
 						m.sendTaskResultMsgToRemotePeer(task)
 					}
@@ -1228,7 +1235,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
 		}
 
-		if event.Type == ev.TaskExecuteSucceedEOF.Type || event.Type == ev.TaskExecuteFailedEOF.Type {
+		if event.Type == ev.TaskFailed.Type || event.Type == ev.TaskSucceed.Type {
 			publish, err := m.checkTaskSenderPublishOpportunity(task, event)
 			if nil != err {
 				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.OnTaskResultMsg()`, event: %s",
