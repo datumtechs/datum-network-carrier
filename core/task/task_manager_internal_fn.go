@@ -814,7 +814,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 	if "" != task.GetTask().GetTaskData().GetContractExtraParams() {
 		if err := json.Unmarshal([]byte(task.GetTask().GetTaskData().GetContractExtraParams()), &dynamicParameter); nil != err {
 			return "", fmt.Errorf("can not json Unmarshal the `ContractExtraParams` of task %s, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
-				err, task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), task.GetLocalTaskOrganization().GetPartyId()\)
+				err, task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), task.GetLocalTaskOrganization().GetPartyId())
 		}
 	}
 	req.DynamicParameter = dynamicParameter
