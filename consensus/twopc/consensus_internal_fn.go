@@ -303,6 +303,10 @@ func (t *Twopc) stopTaskConsensus(
 			return
 		}
 
+		log.Debugf("Find vote resources on `2pc.driveTask()` proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote: %s, peers: %s",
+			proposalId.String(), task.GetTaskId(), senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName(),
+			selfvote.String(), peers.String())
+
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
 			remotePID,
 			proposalId,
@@ -348,7 +352,7 @@ func (t *Twopc) driveTask(
 		return
 	}
 
-	log.Debugf("Find vote resources on `2pc.driveTask()` proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote %s, peers %s",
+	log.Debugf("Find vote resources on `2pc.driveTask()` proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote: %s, peers: %s",
 		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName(),
 		selfvote.String(), peers.String())
 
