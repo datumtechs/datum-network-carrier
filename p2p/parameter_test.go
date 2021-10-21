@@ -19,3 +19,10 @@ func TestGossipParameters(t *testing.T) {
 	assert.Equal(t, gossipSubMcacheGossip, pubsub.GossipSubHistoryGossip, "gossipSubMcacheGossip")
 	assert.Equal(t, gossipSubSeenTTL, int(pubsub.TimeCacheDuration.Milliseconds()/pubsub.GossipSubHeartbeatInterval.Milliseconds()), "gossipSubSeenTtl")
 }
+
+func TestFanoutParameters(t *testing.T) {
+	setPubSubParameters()
+	if pubsub.GossipSubFanoutTTL != gossipSubFanoutTTL {
+		t.Errorf("gossipSubFanoutTTL, wanted: %d, got: %d", gossipSubFanoutTTL, pubsub.GossipSubFanoutTTL)
+	}
+}
