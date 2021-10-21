@@ -141,10 +141,10 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task, taskActionStatus
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
-	// TODO for test
-	log.Debugf("Start execute task on `taskManager.driveTaskForExecute()`, taskId: {%s}, role: {%s}, partyId: {%s}",
-		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
-	return nil
+	//// TODO for test
+	//log.Debugf("Start execute task on `taskManager.driveTaskForExecute()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+	//	task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
+	//return nil
 
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
@@ -1059,8 +1059,8 @@ func (m *Manager) expireTaskMonitor() {
 				duration = timeutils.UnixMsecUint64() - task.GetTask().GetTaskData().GetStartAt()
 
 				if duration >= task.GetTask().GetTaskData().GetOperationCost().GetDuration() {
-					log.Infof("Has task running expire, taskId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
-						taskId, duration, task.GetTask().GetTaskData().GetOperationCost().GetDuration())
+					log.Infof("Has task running expire, taskId: {%s}, partyId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
+						taskId, partyId, duration, task.GetTask().GetTaskData().GetOperationCost().GetDuration())
 
 					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 						task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("task running expire"),

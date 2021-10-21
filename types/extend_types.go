@@ -89,6 +89,7 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 			Owner: &apicommonpb.Organization{
 				IdentityId: event.GetIdentityId(),
 			},
+			PartyId: event.GetPartyId(),
 		})
 	}
 	return result
@@ -185,4 +186,3 @@ func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr Metadata
 
 	return result
 }
-
