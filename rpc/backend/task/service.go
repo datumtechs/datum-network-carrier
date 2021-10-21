@@ -293,9 +293,25 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed, can not publish task")
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed, can not terminate task")
 		return nil, ErrTerminateTask
 	}
+
+	task, err := svr.B.GetLocalTask(req.GetTaskId())
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local task failed, can not terminate task")
+		return nil, ErrTerminateTask
+	}
+
+	// check user
+	if task.GetUser() != req.GetUser() ||
+		task.GetUserType() != req.GetUserType() {
+		log.WithError(err).Errorf("terminate task user and publish task user must be same, taskId: {%s}",
+			task.GetTaskId())
+		return nil, ErrTerminateTask
+	}
+	// todo verify user sign with terminate task
+
 
 	taskTerminateMsg := types.NewTaskTerminateMsg(req.GetUserType(), req.GetUser(), req.GetTaskId(), req.GetSign())
 

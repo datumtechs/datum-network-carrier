@@ -1036,6 +1036,51 @@ func (s *CarrierAPIBackend) HasValidMetadataAuth(userType apicommonpb.UserType, 
 }
 
 // task api
+func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, error) {
+	// the task is executing.
+	localTask, err := s.carrier.carrierDB.QueryLocalTask(taskId)
+	if nil != err {
+		log.Errorf("Failed to query local task on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}", taskId)
+		return nil, err
+	}
+
+	if nil == localTask {
+		log.Errorf("Not found local task on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}", taskId)
+		return nil, fmt.Errorf("not found local task")
+	}
+	return &pb.TaskDetailShow{
+		TaskId:   localTask.GetTaskId(),
+		TaskName: localTask.GetTaskData().GetTaskName(),
+		UserType: localTask.GetTaskData().GetUserType(),
+		User:     localTask.GetTaskData().GetUser(),
+		Sender: &apicommonpb.TaskOrganization{
+			PartyId:   localTask.GetTaskData().GetPartyId(),
+			NodeName:  localTask.GetTaskData().GetNodeName(),
+			NodeId:    localTask.GetTaskData().GetNodeId(),
+			IdentityId:localTask.GetTaskData().GetIdentityId(),
+		},
+		AlgoSupplier: &apicommonpb.TaskOrganization{
+			PartyId:    localTask.GetTaskData().GetPartyId(),
+			NodeName:   localTask.GetTaskData().GetNodeName(),
+			NodeId:     localTask.GetTaskData().GetNodeId(),
+			IdentityId: localTask.GetTaskData().GetIdentityId(),
+		},
+		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(localTask.GetTaskData().GetDataSuppliers())),
+		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(localTask.GetTaskData().GetPowerSuppliers())),
+		Receivers:      localTask.GetTaskData().GetReceivers(),
+		CreateAt:       localTask.GetTaskData().GetCreateAt(),
+		StartAt:        localTask.GetTaskData().GetStartAt(),
+		EndAt:          localTask.GetTaskData().GetEndAt(),
+		State:          localTask.GetTaskData().GetState(),
+		OperationCost: &apicommonpb.TaskResourceCostDeclare{
+			Processor: localTask.GetTaskData().GetOperationCost().GetProcessor(),
+			Memory:    localTask.GetTaskData().GetOperationCost().GetMemory(),
+			Bandwidth: localTask.GetTaskData().GetOperationCost().GetBandwidth(),
+			Duration:  localTask.GetTaskData().GetOperationCost().GetDuration(),
+		},
+	}, nil
+}
+
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, error) {
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.QueryLocalTaskList()
