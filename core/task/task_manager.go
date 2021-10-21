@@ -353,9 +353,9 @@ func (m *Manager) SendTaskEvent(event *libtypes.TaskEvent) error {
 
 func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
 
-	task, ok :=m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
+	task, ok := m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
 	if !ok {
-		return fmt.Errorf("Can not find task cache, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
+		return fmt.Errorf("Can not find `need execute task` cache, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
 	}
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
