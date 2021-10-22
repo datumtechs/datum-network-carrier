@@ -8,9 +8,11 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -895,6 +897,16 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consens
 	t.state.ChangeToCommit(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId, msg.CreateAt)
 
 	go func() {
+
+		// store succeed consensus event for partyId
+		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+			Type:       ev.TaskFinishedConsensus.Type,
+			TaskId:     orgProposalState.GetTaskId(),
+			IdentityId: receiver.GetIdentityId(),
+			PartyId:    receiver.GetPartyId(),
+			Content:    fmt.Sprintf("finished consensus succeed."),
+			CreateAt:   timeutils.UnixMsecUint64(),
+		})
 		// If receiving `CommitMsg` is successful,
 		// we will forward `schedTask` to `taskManager` to send it to `Fighter` to execute the task.
 		t.driveTask(pid, msg.MsgOption.ProposalId, msg.MsgOption.ReceiverRole, receiver, msg.MsgOption.SenderRole, sender, proposalTask.Task)
@@ -929,7 +941,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.InterruptMsgWra
 	receiver := fetchOrgByPartyRole(msgOption.ReceiverPartyId, msgOption.ReceiverRole, proposalTask.Task)
 	if nil == sender || nil == receiver {
 		log.Errorf("Failed to check msg.MsgOption sender and receiver of interruptMsg on onTerminateTaskConsensus, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.ReceiverPartyId)
+			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.ReceiverRole, msgOption.ReceiverPartyId)
 		return ctypes.ErrConsensusMsgInvalid
 	}
 

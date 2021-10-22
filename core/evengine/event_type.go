@@ -49,9 +49,12 @@ var (
 	TaskFailed                 = NewEventType("0100004", "The task was failed")
 	TaskSucceed                = NewEventType("0100005", "The task was succeed")
 	TaskResourceElectionFailed = NewEventType("0100006", "The resource of task was failed on election")
-	TaskStartConsensus         = NewEventType("0101001", "The task was started to consensus")
-	TaskFailedConsensus        = NewEventType("0101002", "The task was failed to consensus")
+	TaskScheduleFailed         = NewEventType("0100007", "The task was scheduled failed")
+	TaskTerminated             = NewEventType("0100008", "The task was terminated")
+	TaskStartConsensus         = NewEventType("0101001", "The task was started consensus")
+	TaskFailedConsensus        = NewEventType("0101002", "The task was failed consensus")
 	TaskProposalStateDeadline  = NewEventType("0101003", "The task proposalState was deadline")
+	TaskFinishedConsensus      = NewEventType("0101004", "The task was finished consensus succeed")
 )
 
 var ScheduleEvent = map[string]string{
