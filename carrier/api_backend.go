@@ -67,8 +67,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		log.Warnf("Failed to get identity, on GetNodeInfo(), err: {%s}", err)
-		//return nil, fmt.Errorf("query local identity failed, %s", err)
+		log.WithError(err).Warnf("Warn to get identity, on GetNodeInfo()")
 	}
 	var identityId string
 	var nodeId string
@@ -83,10 +82,6 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	nodeInfo := &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_NodeType_YarnNode,
 		NodeId:       nodeId,
-		//InternalIp:   "",                      //
-		ExternalIp:   "",                      //
-		//InternalPort: "",                      //
-		ExternalPort: "",                      //
 		IdentityType: types.IDENTITY_TYPE_DID, // default: DID
 		IdentityId:   identityId,
 		Name:         nodeName,
@@ -100,8 +95,9 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	if len(multiAddr) != 0 {
 		// /ip4/192.168.35.1/tcp/16788
 		multiAddrParts := strings.Split(multiAddr[0].String(), "/")
-		nodeInfo.InternalIp = multiAddrParts[2]
-		nodeInfo.InternalPort = multiAddrParts[4]
+		nodeInfo.InternalIp = multiAddrParts[2]    // todo rpc server ip ?
+		nodeInfo.ExternalIp = multiAddrParts[2]
+		nodeInfo.InternalPort = multiAddrParts[4]  // todo rpc server port ?
 		nodeInfo.ExternalPort = multiAddrParts[4]
 	}
 	return nodeInfo, nil
