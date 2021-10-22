@@ -674,6 +674,19 @@ func (dc *DataCenter) QueryTaskMsgArr()(types.TaskMsgArr,error)  {
 	return rawdb.QueryTaskMsgArr(dc.db)
 }
 
+
+func (dc *DataCenter) StoreNeedExecuteTask(cache *types.NeedExecuteTask, taskId, partyId string) error{
+	return rawdb.StoreNeedExecuteTask(cache,taskId,partyId,dc.db)
+}
+
+func (dc *DataCenter) DeleteNeedExecuteTask(taskId, partyId string) {
+	rawdb.DeleteNeedExecuteTask(taskId, partyId,dc.db)
+}
+
+func (dc *DataCenter) RecoveryNeedExecuteTask() map[string]map[string]*types.NeedExecuteTask {
+	return rawdb.RecoveryNeedExecuteTask(dc.db)
+}
+
 // ****************************************************************************************************************
 func (dc *DataCenter) Stop() {
 	if !atomic.CompareAndSwapInt32(&dc.running, 0, 1) {

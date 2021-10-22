@@ -180,8 +180,8 @@ func (w *walDB) DeleteState(key []byte) {
 		if partyId != "" {
 			err = w.db.Delete(key)
 		} else {
-			iter := w.db.NewIteratorWithPrefixAndStart(prefix, nil)
-			iter.Release()
+			iter := w.db.NewIteratorWithPrefixAndStart(key, nil)
+			defer iter.Release()
 			for iter.Next() {
 				err = w.db.Delete(iter.Key())
 			}
@@ -195,7 +195,7 @@ func (w *walDB) DeleteState(key []byte) {
 func (w *walDB) RecoveryState() *state {
 	// region recovery proposalSet
 	iter := w.db.NewIteratorWithPrefixAndStart(proposalSetPrefix, nil)
-	iter.Release()
+	defer iter.Release()
 	prefixLength := len(proposalSetPrefix)
 	proposalSet := make(map[common.Hash]*ctypes.ProposalState, 0)
 	stateCache := make(map[string]*ctypes.OrgProposalState, 0)

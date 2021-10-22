@@ -126,6 +126,10 @@ type LocalStoreCarrierDB interface {
 	QueryMetadataMsgArr() (types.MetadataMsgArr, error)
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
+	//v 2.0 about NeedExecuteTask
+	StoreNeedExecuteTask(cache *types.NeedExecuteTask, taskId, partyId string) error
+	DeleteNeedExecuteTask(taskId, partyId string)
+	RecoveryNeedExecuteTask() map[string]map[string]*types.NeedExecuteTask
 }
 
 type MetadataCarrierDB interface {
