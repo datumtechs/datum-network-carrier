@@ -6,76 +6,39 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *TaskEventShowAndRole {
+func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 	taskData := input.GetTaskData()
-	detailShow := &TaskEventShowAndRole{
-		Data: &pb.TaskDetailShow{
-			TaskId:   taskData.GetTaskId(),
-			TaskName: taskData.GetTaskName(),
-			UserType: taskData.GetUserType(),
-			User:     taskData.GetUser(),
-			Sender: &apicommonpb.TaskOrganization{
-				PartyId:    taskData.GetPartyId(),
-				NodeName:   taskData.GetNodeName(),
-				NodeId:     taskData.GetNodeId(),
-				IdentityId: taskData.GetIdentityId(),
-			},
-			AlgoSupplier: &apicommonpb.TaskOrganization{
-				PartyId:    taskData.GetPartyId(),
-				NodeName:   taskData.GetNodeName(),
-				NodeId:     taskData.GetNodeId(),
-				IdentityId: taskData.GetIdentityId(),
-			},
-			DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
-			PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
-			Receivers:      taskData.GetReceivers(),
-			CreateAt:       taskData.GetCreateAt(),
-			StartAt:        taskData.GetStartAt(),
-			EndAt:          taskData.GetEndAt(),
-			State:          taskData.GetState(),
-			OperationCost: &apicommonpb.TaskResourceCostDeclare{
-				Processor: taskData.GetOperationCost().GetProcessor(),
-				Memory:    taskData.GetOperationCost().GetMemory(),
-				Bandwidth: taskData.GetOperationCost().GetBandwidth(),
-				Duration:  taskData.GetOperationCost().GetDuration(),
-			},
+	detailShow := &pb.TaskDetailShow{
+		TaskId:   taskData.GetTaskId(),
+		TaskName: taskData.GetTaskName(),
+		UserType: taskData.GetUserType(),
+		User:     taskData.GetUser(),
+		Sender: &apicommonpb.TaskOrganization{
+			PartyId:    taskData.GetPartyId(),
+			NodeName:   taskData.GetNodeName(),
+			NodeId:     taskData.GetNodeId(),
+			IdentityId: taskData.GetIdentityId(),
 		},
-		Roles: make([]apicommonpb.TaskRole, 0),
+		AlgoSupplier: &apicommonpb.TaskOrganization{
+			PartyId:    taskData.GetPartyId(),
+			NodeName:   taskData.GetNodeName(),
+			NodeId:     taskData.GetNodeId(),
+			IdentityId: taskData.GetIdentityId(),
+		},
+		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
+		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
+		Receivers:      taskData.GetReceivers(),
+		CreateAt:       taskData.GetCreateAt(),
+		StartAt:        taskData.GetStartAt(),
+		EndAt:          taskData.GetEndAt(),
+		State:          taskData.GetState(),
+		OperationCost: &apicommonpb.TaskResourceCostDeclare{
+			Processor: taskData.GetOperationCost().GetProcessor(),
+			Memory:    taskData.GetOperationCost().GetMemory(),
+			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
+			Duration:  taskData.GetOperationCost().GetDuration(),
+		},
 	}
-	// DataSupplier
-	for _, metadataSupplier := range taskData.GetDataSuppliers() {
-		dataSupplier := &pb.TaskDataSupplierShow{
-			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
-				NodeName:   metadataSupplier.GetOrganization().GetNodeName(),
-				NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
-				IdentityId: metadataSupplier.GetOrganization().GetIdentityId(),
-			},
-			MetadataId:   metadataSupplier.GetMetadataId(),
-			MetadataName: metadataSupplier.GetMetadataName(),
-		}
-		detailShow.Data.DataSuppliers = append(detailShow.Data.DataSuppliers, dataSupplier)
-	}
-	// powerSupplier
-	for _, data := range taskData.GetPowerSuppliers() {
-		detailShow.Data.PowerSuppliers = append(detailShow.Data.PowerSuppliers, &pb.TaskPowerSupplierShow{
-			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    data.GetOrganization().GetPartyId(),
-				NodeName:   data.GetOrganization().GetNodeName(),
-				NodeId:     data.GetOrganization().GetNodeId(),
-				IdentityId: data.GetOrganization().GetIdentityId(),
-			},
-			PowerInfo: &libtypes.ResourceUsageOverview{
-				TotalMem:       data.GetResourceUsedOverview().GetTotalMem(),
-				UsedMem:        data.GetResourceUsedOverview().GetUsedMem(),
-				TotalProcessor: data.GetResourceUsedOverview().GetTotalProcessor(),
-				UsedProcessor:  data.GetResourceUsedOverview().GetUsedProcessor(),
-				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
-				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
-			},
-		})
-	}
-	detailShow.Roles = append(detailShow.Roles, role)
 	return detailShow
 }
 

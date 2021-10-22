@@ -58,7 +58,7 @@ type Backend interface {
 
 	// task api
 	GetLocalTask(taskId string) (*pb.TaskDetailShow, error)
-	GetTaskDetailList() ([]*types.TaskEventShowAndRole, error)
+	GetTaskDetailList() ([]*pb.TaskDetailShow, error)
 	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
 	HasLocalTask () (bool, error)

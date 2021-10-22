@@ -1081,7 +1081,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 	}, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, error) {
+func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.QueryLocalTaskList()
 
@@ -1099,48 +1099,21 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, 
 		return nil, err
 	}
 
-	makeTaskViewFn := func(task *types.Task) *types.TaskEventShowAndRole {
-		// task 发起方
-		if task.GetTaskData().GetIdentityId() == localIdentityId {
-			return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_Sender)
-		}
-
-		// task 参与方
-		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			if dataSupplier.GetOrganization().GetIdentityId() == localIdentityId {
-				return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_DataSupplier)
-			}
-		}
-
-		// 算力提供方
-		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-			if powerSupplier.GetOrganization().GetIdentityId() == localIdentityId {
-				return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_PowerSupplier)
-			}
-		}
-
-		// 数据接收方
-		for _, receiver := range task.GetTaskData().GetReceivers() {
-			if receiver.GetIdentityId() == localIdentityId {
-				return types.NewTaskDetailShowFromTaskData(task, apicommonpb.TaskRole_TaskRole_Receiver)
-			}
-		}
-		return nil
+	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
+		return types.NewTaskDetailShowFromTaskData(task)
 	}
 
-	result := make([]*types.TaskEventShowAndRole, 0)
+	result := make([]*pb.TaskDetailShow, 0)
 	for _, task := range localTaskArray {
 		if taskView := makeTaskViewFn(task); nil != taskView {
 			result = append(result, taskView)
 		}
 	}
-
 	for _, networkTask := range networkTaskList {
 		if taskView := makeTaskViewFn(networkTask); nil != taskView {
 			result = append(result, taskView)
 		}
 	}
-
 	return result, err
 }
 

@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
@@ -110,13 +109,13 @@ func (s TaskDataArray) To() []*libtypes.TaskPB {
 	return arr
 }
 
-type TaskEventShowAndRole struct {
-	Roles []apicommonpb.TaskRole
-	Data  *pb.TaskDetailShow
-}
-
-func (t *TaskEventShowAndRole) GetRoles() []apicommonpb.TaskRole { return t.Roles }
-func (t *TaskEventShowAndRole) GetData() *pb.TaskDetailShow   { return t.Data }
+//type TaskEventShowAndRole struct {
+//	Roles []apicommonpb.TaskRole
+//	Data  *pb.TaskDetailShow
+//}
+//
+//func (t *TaskEventShowAndRole) GetRoles() []apicommonpb.TaskRole { return t.Roles }
+//func (t *TaskEventShowAndRole) GetData() *pb.TaskDetailShow   { return t.Data }
 
 type TaskResultFileSummary struct {
 	TaskId     string
