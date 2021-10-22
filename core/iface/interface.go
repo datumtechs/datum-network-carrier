@@ -2,6 +2,7 @@ package iface
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -184,7 +185,7 @@ type TaskCarrierDB interface {
 
 	// about task on datacenter
 	InsertTask(task *types.Task) error
-	QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, map[string][]apicommonpb.TaskRole, error)
+	QueryTaskListByIdentityId(identityId string) ([]*api.TaskWithRole, error)
 	QueryRunningTaskCountOnOrg() uint32
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)

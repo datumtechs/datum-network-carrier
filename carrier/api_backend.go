@@ -1094,7 +1094,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, 
 	}
 
 	// the task has been executed.
-	networkTaskList, taskRoleList, err := s.carrier.carrierDB.QueryTaskListByIdentityId(localIdentityId)
+	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByIdentityId(localIdentityId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
@@ -1136,11 +1136,9 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, 
 	}
 
 	for _, networkTask := range networkTaskList {
-		if taskView := makeTaskViewFn(networkTask); nil != taskView {
+		if taskView := makeTaskViewFn(types.NewTask(networkTask.Task)); nil != taskView {
 			// fill role info
-			if v, ok := taskRoleList[taskView.Data.GetTaskId()]; ok {
-				taskView.Roles = v
-			}
+			taskView.Roles = networkTask.Roles
 			result = append(result, taskView)
 		}
 	}
