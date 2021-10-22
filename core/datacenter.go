@@ -613,6 +613,7 @@ func (dc *DataCenter) QueryTaskPartnerPartyIds(taskId string) ([]string, error) 
 func (dc *DataCenter) RemoveTaskPartnerPartyId (taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
+	log.Debugf("Start remove partyId of local task's partner arr, taskId: {%s}, partyId: {%s}", taskId, partyId)
 	return rawdb.RemoveTaskPartnerPartyId(dc.db, taskId, partyId)
 }
 

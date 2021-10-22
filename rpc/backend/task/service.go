@@ -142,7 +142,7 @@ func taskJsonReq (req *pb.PublishTaskDeclareRequest) string {
 
 func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
 
-	log.Debugf("Received Publish task req: %s", taskJsonReq(req))
+	//log.Debugf("Received Publish task req: %s", taskJsonReq(req))
 
 	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
 		return nil, ErrReqUserTypePublishTask

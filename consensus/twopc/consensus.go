@@ -21,26 +21,9 @@ import (
 	"time"
 )
 
-type ConsensusMsgLocationSymbol bool
-
-func (cls ConsensusMsgLocationSymbol) string() string {
-	switch cls {
-	case LocalConsensusMsg:
-		return "local consensus msg"
-	case RemoteConsensusMsg:
-		return "remote consensus msg"
-	default:
-		return "Unknown consensus location symbol"
-
-	}
-}
-
 const (
 	//defaultCleanExpireProposalInterval  = 30 * time.Millisecond
 	defaultRefreshProposalStateInternal = 300 * time.Millisecond
-
-	LocalConsensusMsg  ConsensusMsgLocationSymbol = true
-	RemoteConsensusMsg ConsensusMsgLocationSymbol = false
 )
 
 type Twopc struct {
@@ -123,15 +106,15 @@ func (t *Twopc) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 
 	switch msg := msg.(type) {
 	case *types.PrepareMsgWrap:
-		return t.onPrepareMsg(pid, msg, RemoteConsensusMsg)
+		return t.onPrepareMsg(pid, msg, types.RemoteNetworkMsg)
 	case *types.PrepareVoteWrap:
-		return t.onPrepareVote(pid, msg, RemoteConsensusMsg)
+		return t.onPrepareVote(pid, msg, types.RemoteNetworkMsg)
 	case *types.ConfirmMsgWrap:
-		return t.onConfirmMsg(pid, msg, RemoteConsensusMsg)
+		return t.onConfirmMsg(pid, msg, types.RemoteNetworkMsg)
 	case *types.ConfirmVoteWrap:
-		return t.onConfirmVote(pid, msg, RemoteConsensusMsg)
+		return t.onConfirmVote(pid, msg, types.RemoteNetworkMsg)
 	case *types.CommitMsgWrap:
-		return t.onCommitMsg(pid, msg, RemoteConsensusMsg)
+		return t.onCommitMsg(pid, msg, types.RemoteNetworkMsg)
 	case *types.InterruptMsgWrap: // Must be  local msg
 		return t.onTerminateTaskConsensus(pid, msg)
 	default:
@@ -216,13 +199,13 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 }
 
 // Handle the prepareMsg from the task pulisher peer (on Subscriber)
-func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, consensusSymbol ConsensusMsgLocationSymbol) error {
+func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls types.NetworkMsgLocationSymbol) error {
 
 	msg, err := fetchPrepareMsg(prepareMsg)
 	if nil != err {
 		return err
 	}
-	log.Debugf("Received remote prepareMsg, remote pid: {%s}, consensusSymbol: {%s}, prepareMsg: %s", pid, consensusSymbol.string(), msg.String())
+	log.Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
 
 	if t.state.HasOrgProposalWithPartyId(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
 		log.Errorf("Failed to check org proposalState whether have been not exist on onPrepareMsg, but it's alreay exist, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
@@ -262,7 +245,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 	// If you have already voted then we will not vote again.
 	// Cause the local message will only call the local function once,
 	// and the remote message needs to prevent receiving the repeated forwarded consensus message.
-	if consensusSymbol == RemoteConsensusMsg && t.state.HasPrepareVoting(msg.MsgOption.ProposalId, org) {
+	if nmls == types.RemoteNetworkMsg && t.state.HasPrepareVoting(msg.MsgOption.ProposalId, org) {
 		log.Errorf("Failed to check remote peer prepare vote wether exist on onPrepareMsg, it's exist alreay, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId)
 		return ctypes.ErrPrepareVotehadVoted
@@ -330,7 +313,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 	}
 
 	// Store current peer own vote for checking whether to vote already
-	if consensusSymbol == RemoteConsensusMsg {
+	if nmls == types.RemoteNetworkMsg {
 		t.state.StorePrepareVote(types.FetchPrepareVote(vote))
 	}
 	go func() {
@@ -351,11 +334,11 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, cons
 }
 
 // (on Publisher)
-func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, consensusSymbol ConsensusMsgLocationSymbol) error {
+func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, nmls types.NetworkMsgLocationSymbol) error {
 
 	vote := fetchPrepareVote(prepareVote)
 
-	log.Debugf("Received remote prepareVote, remote pid: {%s}, consensusSymbol: {%s}, prepareVote: %s", pid, consensusSymbol.string(), vote.String())
+	log.Debugf("Received prepareVote, consensusSymbol: {%s}, remote pid: {%s}, prepareVote: %s", nmls.String(), pid, vote.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onPrepareVote, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
@@ -508,11 +491,11 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, c
 }
 
 // (on Subscriber)
-func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, consensusSymbol ConsensusMsgLocationSymbol) error {
+func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls types.NetworkMsgLocationSymbol) error {
 
 	msg := fetchConfirmMsg(confirmMsg)
 
-	log.Debugf("Received remote confirmMsg, remote pid: {%s}, consensusSymbol: {%s}, confirmMsg: %s", pid, consensusSymbol.string(), msg.String())
+	log.Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onConfirmMsg, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
@@ -576,7 +559,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 	// If you have already voted then we will not vote again.
 	// Cause the local message will only call the local function once,
 	// and the remote message needs to prevent receiving the repeated forwarded consensus message.
-	if consensusSymbol == RemoteConsensusMsg && t.state.HasConfirmVoting(msg.MsgOption.ProposalId, org) {
+	if nmls == types.RemoteNetworkMsg && t.state.HasConfirmVoting(msg.MsgOption.ProposalId, org) {
 		log.Errorf("Failed to check remote peer confirm vote wether voting on onConfirmMsg, it's voting alreay, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.MsgOption.ProposalId.String(), orgProposalState.GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.ConfirmOption.String())
 		return ctypes.ErrConfirmVotehadVoted
@@ -635,7 +618,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 	}
 
 	// Store current peer own vote for checking whether to vote already
-	if consensusSymbol == RemoteConsensusMsg {
+	if nmls == types.RemoteNetworkMsg {
 		t.state.StoreConfirmVote(types.FetchConfirmVote(vote))
 	}
 
@@ -669,11 +652,11 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, cons
 }
 
 // (on Publisher)
-func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, consensusSymbol ConsensusMsgLocationSymbol) error {
+func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, nmls types.NetworkMsgLocationSymbol) error {
 
 	vote := fetchConfirmVote(confirmVote)
 
-	log.Debugf("Received remote confirmVote, remote pid: {%s}, consensusSymbol: {%s}, comfirmVote: %s", pid, consensusSymbol.string(), vote.String())
+	log.Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, comfirmVote: %s", nmls.String(), pid, vote.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(vote.MsgOption.ProposalId, vote.MsgOption.ReceiverPartyId) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onConfirmVote, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
@@ -820,11 +803,11 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, c
 }
 
 // (on Subscriber)
-func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, consensusSymbol ConsensusMsgLocationSymbol) error {
+func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls types.NetworkMsgLocationSymbol) error {
 
 	msg := fetchCommitMsg(cimmitMsg)
 
-	log.Debugf("Received remote commitMsg, remote pid: {%s}, consensusSymbol: {%s}, commitMsg: %s", pid, consensusSymbol.string(), msg.String())
+	log.Debugf("Received commitMsg, consensusSymbol: {%s}, remote pid: {%s}, commitMsg: %s", nmls.String(), pid, msg.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(msg.MsgOption.ProposalId, msg.MsgOption.ReceiverPartyId) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onCommitMsg, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
