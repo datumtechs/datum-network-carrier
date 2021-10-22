@@ -22,8 +22,17 @@ message ListTaskRequest {
     uint64 last_updated = 1;
 }
 
+message TaskWithRole {
+  types.TaskPB task                    = 1;   // 任务基本信息
+  repeated api.protobuf.TaskRole roles = 2;   // 当前组织对应任务的角色信息
+}
+
 message ListTaskResponse {
     repeated types.TaskPB tasks = 1;
+}
+
+message ListTaskByIdentityResponse {
+  repeated TaskWithRole tasks = 1;
 }
 
 message GetTaskDetailRequest {
@@ -60,7 +69,7 @@ service TaskService {
   rpc ListTask(ListTaskRequest) returns (ListTaskResponse);
 
   // 根据组织身份查询任务列表
-  rpc ListTaskByIdentity(ListTaskByIdentityRequest) returns (ListTaskResponse);
+  rpc ListTaskByIdentity(ListTaskByIdentityRequest) returns (ListTaskByIdentityResponse);
 
   // 查询任务的事件列表
   rpc ListTaskEvent(ListTaskEventRequest) returns (ListTaskEventResponse);

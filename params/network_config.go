@@ -32,18 +32,12 @@ type NetworkConfig struct {
 
 var networkConfig = mainnetNetworkConfig
 
-// CarrierNetworkConfig returns the current network config for
-// the carrier server.
+// CarrierNetworkConfig returns the current network config for the carrier server.
 func CarrierNetworkConfig() *NetworkConfig {
 	return networkConfig
 }
 
-func TestnetNetworkConfig() *NetworkConfig {
-	return testnetNetworkConfig
-}
-
-// OverrideCarrierNetworkConfig will override the network
-// config with the added argument.
+// OverrideCarrierNetworkConfig will override the network config with the added argument.
 func OverrideCarrierNetworkConfig(cfg *NetworkConfig) {
 	networkConfig = cfg.Copy()
 }
