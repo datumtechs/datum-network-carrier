@@ -55,9 +55,10 @@ message TaskEventShow {
 
 // 查看本组织参与过的全部任务详情列表
 message GetTaskDetailResponse {
-  TaskDetailShow            information = 1;                  // 任务(展示)详情
-  api.protobuf.TaskRole     role = 2;                         // 我在任务中的角色 (0: 未知角色; 1: 任务发起方; 2: 数据提供方: 3: 算力提供方; 4: 结果接收方; 5: 算法提供方)
+  TaskDetailShow                     information = 1;                  // 任务(展示)详情
+  repeated api.protobuf.TaskRole     roles = 2;                         // 我在任务中的角色 (0: 未知角色; 1: 任务发起方; 2: 数据提供方: 3: 算力提供方; 4: 结果接收方; 5: 算法提供方)
 }
+
 // 查看本组织参与过的全部任务详情列表 resp
 message GetTaskDetailListResponse {
   int32                          status = 1;                 // 响应码

@@ -27,9 +27,9 @@ func MainnetConfig() *DataChainConfig {
 	return mainnetCarrierConfig
 }
 
-func TestnetConfig() *DataChainConfig {
+/*func TestnetConfig() *DataChainConfig {
 	return testnetCarrierConfig
-}
+}*/
 
 func UseMainnetConfig() {
 	carrierConfig = MainnetConfig()

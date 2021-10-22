@@ -189,7 +189,7 @@ func (gc *GrpcClient) ListTask(ctx context.Context, request *api.ListTaskRequest
 	return gc.taskService.ListTask(ctx, request)
 }
 
-func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.ListTaskByIdentityRequest) (*api.ListTaskResponse, error) {
+func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.ListTaskByIdentityRequest) (*api.ListTaskByIdentityResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 	return gc.taskService.ListTaskByIdentity(ctx, request)

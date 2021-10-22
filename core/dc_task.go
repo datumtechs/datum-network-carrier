@@ -200,7 +200,7 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	return nil
 }
 
-func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error) {
+func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) ([]*api.TaskWithRole, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{LastUpdated: uint64(timeutils.UnixMsec())})
@@ -208,7 +208,8 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDa
 		LastUpdated: timeutils.UnixMsecUint64(),
 		IdentityId:  identityId,
 	})
-	return types.NewTaskArrayFromResponse(taskListResponse), err
+	//taskList, roleList := types.NewTaskArrayFromResponse(taskListResponse)
+	return taskListResponse.Tasks, err
 }
 
 func (dc *DataCenter) QueryRunningTaskCountOnOrg() uint32 {

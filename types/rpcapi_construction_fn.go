@@ -133,12 +133,14 @@ func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 	return resourceArray
 }
 
-func NewTaskArrayFromResponse(response *api.ListTaskResponse) TaskDataArray {
+func NewTaskArrayFromResponse(response *api.ListTaskByIdentityResponse) (TaskDataArray, map[string][]apicommonpb.TaskRole) {
 	taskArray := make(TaskDataArray, 0, len(response.GetTasks()))
+	taskRoleList := make(map[string][]apicommonpb.TaskRole, 0)
 	for _, v := range response.GetTasks() {
-		taskArray = append(taskArray, NewTask(v))
+		taskArray = append(taskArray, NewTask(v.Task))
+		taskRoleList[v.Task.GetTaskId()] = v.Roles
 	}
-	return taskArray
+	return taskArray, taskRoleList
 }
 
 func NewMetadataFromResponse(response *api.FindMetadataByIdResponse) *Metadata {

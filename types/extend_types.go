@@ -40,6 +40,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *Task
 				Duration:  taskData.GetOperationCost().GetDuration(),
 			},
 		},
+		Roles: make([]apicommonpb.TaskRole, 0),
 	}
 	// DataSupplier
 	for _, metadataSupplier := range taskData.GetDataSuppliers() {
@@ -74,7 +75,7 @@ func NewTaskDetailShowFromTaskData(input *Task, role apicommonpb.TaskRole) *Task
 			},
 		})
 	}
-	detailShow.Role = role
+	detailShow.Roles = append(detailShow.Roles, role)
 	return detailShow
 }
 
