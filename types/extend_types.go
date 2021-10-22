@@ -39,6 +39,40 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
 	}
+
+	// DataSupplier
+	for _, metadataSupplier := range taskData.GetDataSuppliers() {
+		dataSupplier := &pb.TaskDataSupplierShow{
+			Organization: &apicommonpb.TaskOrganization{
+				PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
+				NodeName:   metadataSupplier.GetOrganization().GetNodeName(),
+				NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
+				IdentityId: metadataSupplier.GetOrganization().GetIdentityId(),
+			},
+			MetadataId:   metadataSupplier.GetMetadataId(),
+			MetadataName: metadataSupplier.GetMetadataName(),
+		}
+		detailShow.DataSuppliers = append(detailShow.DataSuppliers, dataSupplier)
+	}
+	// powerSupplier
+	for _, data := range taskData.GetPowerSuppliers() {
+		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
+			Organization: &apicommonpb.TaskOrganization{
+				PartyId:    data.GetOrganization().GetPartyId(),
+				NodeName:   data.GetOrganization().GetNodeName(),
+				NodeId:     data.GetOrganization().GetNodeId(),
+				IdentityId: data.GetOrganization().GetIdentityId(),
+			},
+			PowerInfo: &libtypes.ResourceUsageOverview{
+				TotalMem:       data.GetResourceUsedOverview().GetTotalMem(),
+				UsedMem:        data.GetResourceUsedOverview().GetUsedMem(),
+				TotalProcessor: data.GetResourceUsedOverview().GetTotalProcessor(),
+				UsedProcessor:  data.GetResourceUsedOverview().GetUsedProcessor(),
+				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
+				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
+			},
+		})
+	}
 	return detailShow
 }
 
