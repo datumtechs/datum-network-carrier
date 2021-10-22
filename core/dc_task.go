@@ -203,12 +203,10 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) ([]*api.TaskWithRole, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	//taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{LastUpdated: uint64(timeutils.UnixMsec())})
 	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
 		LastUpdated: timeutils.UnixMsecUint64(),
 		IdentityId:  identityId,
 	})
-	//taskList, roleList := types.NewTaskArrayFromResponse(taskListResponse)
 	return taskListResponse.Tasks, err
 }
 
