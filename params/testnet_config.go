@@ -10,7 +10,8 @@ func UseTestnetNetworkConfig() {
 }
 
 func UseTestnetConfig() {
-	carrierConfig = TestnetConfig()
+	cfg := TestnetConfig()
+	OverrideCarrierConfig(cfg)
 }
 
 func TestnetConfig() *CarrierChainConfig {
