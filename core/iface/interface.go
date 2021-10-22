@@ -184,7 +184,7 @@ type TaskCarrierDB interface {
 
 	// about task on datacenter
 	InsertTask(task *types.Task) error
-	QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
+	QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, map[string][]apicommonpb.TaskRole, error)
 	QueryRunningTaskCountOnOrg() uint32
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
