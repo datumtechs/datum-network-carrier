@@ -4,23 +4,17 @@ import (
 	"time"
 )
 
-/*func MainnetConfig() *DataChainConfig  {
-
-}
-*/
-/*// MainnetConfig returns the configuration to be used in the main network.
-func MainnetConfig() *BeaconChainConfig {
-	return mainnetBeaconConfig
+// MainnetConfig returns the configuration to be used in the main network.
+func MainnetConfig() *CarrierChainConfig {
+	return mainnetCarrierConfig
 }
 
-// UseMainnetConfig for beacon chain services.
 func UseMainnetConfig() {
-	beaconConfig = MainnetConfig()
+	carrierConfig = MainnetConfig()
 }
-*/
 
 // the default config for main network.
-var mainnetCarrierConfig = &DataChainConfig{
+var mainnetCarrierConfig = &CarrierChainConfig{
 
 }
 

@@ -107,7 +107,7 @@ func (s *Service) retrieveActiveValidators() (uint64, error) {
 	//	return s.activeValidatorCount, nil
 	//}
 	//rt := s.cfg.DB.LastArchivedRoot(s.ctx)
-	//if rt == params.CarrierChainConfig().ZeroHash {
+	//if rt == params.CarrierConfig().ZeroHash {
 	//	genState, err := s.cfg.DB.GenesisState(s.ctx)
 	//	if err != nil {
 	//		return 0, err
@@ -145,7 +145,7 @@ func (s *Service) retrieveActiveValidators() (uint64, error) {
 
 func defaultBlockTopicParams() *pubsub.TopicScoreParams {
 	decayEpoch := time.Duration(5)
-	blocksPerEpoch := uint64(params.CarrierChainConfig().SlotsPerEpoch)
+	blocksPerEpoch := uint64(params.CarrierConfig().SlotsPerEpoch)
 	meshWeight := -0.717
 	if !meshDeliveryIsScored {
 		// Set the mesh weight as zero as a temporary measure, so as to prevent
@@ -225,13 +225,13 @@ func defaultAggregateSubnetTopicParams(activeValidators uint64) (*pubsub.TopicSc
 		return nil, nil
 	}
 	// Determine the amount of validators expected in a subnet in a single slot.
-	numPerSlot := time.Duration(subnetWeight / uint64(params.CarrierChainConfig().SlotsPerEpoch))
+	numPerSlot := time.Duration(subnetWeight / uint64(params.CarrierConfig().SlotsPerEpoch))
 	if numPerSlot == 0 {
 		log.Warn("numPerSlot is 0, skipping initializing topic scoring")
 		return nil, nil
 	}
 	comsPerSlot := committeeCountPerSlot(activeValidators)
-	exceedsThreshold := comsPerSlot >= 2*subnetCount/uint64(params.CarrierChainConfig().SlotsPerEpoch)
+	exceedsThreshold := comsPerSlot >= 2*subnetCount/uint64(params.CarrierConfig().SlotsPerEpoch)
 	firstDecay := time.Duration(1)
 	meshDecay := time.Duration(4)
 	if exceedsThreshold {
@@ -392,7 +392,7 @@ func committeeCountPerSlot(activeValidators uint64) uint64 {
 // Uses a very rough gauge for total aggregator size per slot.
 func aggregatorsPerSlot(activeValidators uint64) uint64 {
 	//comms := committeeCountPerSlot(activeValidators)
-	//totalAggs := comms * params.CarrierChainConfig().TargetAggregatorsPerCommittee
+	//totalAggs := comms * params.CarrierConfig().TargetAggregatorsPerCommittee
 	//return totalAggs
 	//TODO: need to do more thing...
 	return 0

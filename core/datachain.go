@@ -21,7 +21,7 @@ const (
 )
 
 type DataChain struct {
-	chainConfig *params.DataChainConfig // network configuration
+	chainConfig *params.CarrierChainConfig // network configuration
 
 	db        db.Database // Low level persistent database to store final content.
 	chainFeed event.Feed
@@ -43,7 +43,7 @@ type DataChain struct {
 }
 
 // NewDataChain returns a fully initialised data chain using information available in the database.
-func NewDataChain(ctx context.Context, db db.Database, chainConfig *params.DataChainConfig) (*DataChain, error) {
+func NewDataChain(ctx context.Context, db db.Database, chainConfig *params.CarrierChainConfig) (*DataChain, error) {
 	blockCache, _ := lru.New(blockCacheLimit)
 	bodyCache, _ := lru.New(blockCacheLimit)
 	bodyPbCache, _ := lru.New(blockCacheLimit)
@@ -313,7 +313,7 @@ func (dc *DataChain) GetJobNodeRunningTaskIdList (jobNodeId string) []string {
 //}
 
 // Config retrieves the datachain's chain configuration.
-func (dc *DataChain) Config() *params.DataChainConfig { return dc.chainConfig }
+func (dc *DataChain) Config() *params.CarrierChainConfig { return dc.chainConfig }
 
 // Stop stops the DataChain service. If any imports are currently in progress
 // it will abort them using the procInterrupt.

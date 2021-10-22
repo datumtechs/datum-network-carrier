@@ -23,7 +23,7 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*
 	for i, task := range tasks {
 		t := &pb.GetTaskDetailResponse{
 			Information: task.GetData(),
-			Roles:       task.GetRoles(),
+			//Roles:       task.GetRoles(),
 		}
 		arr[i] = t
 	}

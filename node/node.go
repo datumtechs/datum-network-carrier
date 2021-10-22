@@ -131,7 +131,7 @@ func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) er
 	datacenterPort := cliCtx.Uint64(flags.GRPCDataCenterPort.Name)
 
 	// setting database
-	carrierDB, err := core.NewDataCenter(node.ctx, db, &params.DataCenterConfig{
+	carrierDB, err := core.NewDataCenter(node.ctx, db, &params.CarrierChainConfig{
 		GrpcUrl: datacenterHost,
 		Port:    datacenterPort,
 	})

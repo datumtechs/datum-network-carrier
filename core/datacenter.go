@@ -19,7 +19,7 @@ import (
 // DataCenter is mainly responsible for communicating with the data center service
 type DataCenter struct {
 	ctx       context.Context
-	config    *params.DataCenterConfig
+	config    *params.CarrierChainConfig
 	client    *grpclient.GrpcClient
 	mu        sync.RWMutex // global mutex for locking data center operations.
 	serviceMu sync.RWMutex // data processor lock
@@ -33,7 +33,7 @@ type DataCenter struct {
 }
 
 // NewDataCenter returns a fully initialised data center using information available in the database.
-func NewDataCenter(ctx context.Context, db db.Database, config *params.DataCenterConfig) (*DataCenter, error) {
+func NewDataCenter(ctx context.Context, db db.Database, config *params.CarrierChainConfig) (*DataCenter, error) {
 	if config.GrpcUrl == "" || config.Port == 0 {
 		panic("Invalid Grpc Config.")
 	}
