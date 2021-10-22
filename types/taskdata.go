@@ -111,11 +111,11 @@ func (s TaskDataArray) To() []*libtypes.TaskPB {
 }
 
 type TaskEventShowAndRole struct {
-	Role apicommonpb.TaskRole
-	Data *pb.TaskDetailShow
+	Roles []apicommonpb.TaskRole
+	Data  *pb.TaskDetailShow
 }
 
-func (t *TaskEventShowAndRole) GetRole() apicommonpb.TaskRole { return t.Role }
+func (t *TaskEventShowAndRole) GetRoles() []apicommonpb.TaskRole { return t.Roles }
 func (t *TaskEventShowAndRole) GetData() *pb.TaskDetailShow   { return t.Data }
 
 type TaskResultFileSummary struct {

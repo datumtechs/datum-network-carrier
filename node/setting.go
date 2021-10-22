@@ -33,8 +33,9 @@ func SetCarrierConfig(ctx *cli.Context, cfg *carrier.Config) {
 	// override any default configs.
 	switch {
 	case ctx.IsSet(flags.TestnetFlag.Name):
-		params.OverrideCarrierConfig(params.TestnetConfig())
-		params.OverrideCarrierNetworkConfig(params.TestnetNetworkConfig())
+		log.Warn("Running on Testnet")
+		params.UseTestnetConfig()
+		params.UseTestnetNetworkConfig()
 	}
 
 	// Override any default configs for hard coded networks.

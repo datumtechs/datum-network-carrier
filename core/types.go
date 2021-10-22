@@ -7,5 +7,5 @@ import (
 
 // Processor is an interface for processing blocks.
 type Processor interface {
-	Process(block *types.Block, config *params.DataCenterConfig) error
+	Process(block *types.Block, config *params.CarrierChainConfig) error
 }

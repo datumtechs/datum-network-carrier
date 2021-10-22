@@ -8,19 +8,19 @@ import (
 
 // StateProcessor implements Processor.
 type CenterProcessor struct {
-	config *params.DataCenterConfig
+	config *params.CarrierChainConfig
 	bc     *DataCenter
 }
 
 // NewStateProcessor initialises a new StateProcessor.
-func NewCenterProcessor(config *params.DataCenterConfig, bc *DataCenter) *CenterProcessor {
+func NewCenterProcessor(config *params.CarrierChainConfig, bc *DataCenter) *CenterProcessor {
 	return &CenterProcessor{
 		config: config,
 		bc:     bc,
 	}
 }
 
-func (p *CenterProcessor) Process(block *types.Block, config *params.DataCenterConfig) error {
+func (p *CenterProcessor) Process(block *types.Block, config *params.CarrierChainConfig) error {
 	for _, metadata := range block.Metadatas() {
 		response, err := p.bc.client.SaveMetadata(p.bc.ctx, types.NewMetadataSaveRequest(metadata))
 		if err != nil {

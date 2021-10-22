@@ -581,35 +581,35 @@ func TestTrimmedOrderedPeers(t *testing.T) {
 	// Peer 1
 	pid1 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid1, &pb.Status{
-		HeadSlot:       3 * params.CarrierChainConfig().SlotsPerEpoch,
+		HeadSlot:       3 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 3,
 		FinalizedRoot:  mockroot3[:],
 	})
 	// Peer 2
 	pid2 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid2, &pb.Status{
-		HeadSlot:       4 * params.CarrierChainConfig().SlotsPerEpoch,
+		HeadSlot:       4 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 4,
 		FinalizedRoot:  mockroot4[:],
 	})
 	// Peer 3
 	pid3 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid3, &pb.Status{
-		HeadSlot:       5 * params.CarrierChainConfig().SlotsPerEpoch,
+		HeadSlot:       5 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 5,
 		FinalizedRoot:  mockroot5[:],
 	})
 	// Peer 4
 	pid4 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid4, &pb.Status{
-		HeadSlot:       2 * params.CarrierChainConfig().SlotsPerEpoch,
+		HeadSlot:       2 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 2,
 		FinalizedRoot:  mockroot2[:],
 	})
 	// Peer 5
 	pid5 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid5, &pb.Status{
-		HeadSlot:       2 * params.CarrierChainConfig().SlotsPerEpoch,
+		HeadSlot:       2 * params.CarrierConfig().SlotsPerEpoch,
 		FinalizedEpoch: 2,
 		FinalizedRoot:  mockroot2[:],
 	})
@@ -735,12 +735,12 @@ func TestStatus_BestPeer(t *testing.T) {
 		{
 			name: "head slot matches finalized epoch",
 			peers: []*peerConfig{
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 3 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 3 * params.CarrierChainConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 3 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 3 * params.CarrierConfig().SlotsPerEpoch},
 			},
 			limitPeers:         15,
 			targetEpoch:        4,
@@ -752,12 +752,12 @@ func TestStatus_BestPeer(t *testing.T) {
 			// (Function sorts peers, and on equal head slot, produced incorrect results).
 			name: "head slots equal for peers with different finalized epochs",
 			peers: []*peerConfig{
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 4 * params.CarrierChainConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 4 * params.CarrierConfig().SlotsPerEpoch},
 			},
 			limitPeers:         15,
 			targetEpoch:        4,
@@ -766,12 +766,12 @@ func TestStatus_BestPeer(t *testing.T) {
 		{
 			name: "head slot significantly ahead of finalized epoch (long period of non-finality)",
 			peers: []*peerConfig{
-				{finalizedEpoch: 4, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
 			},
 			limitPeers:         15,
 			targetEpoch:        4,
@@ -780,13 +780,13 @@ func TestStatus_BestPeer(t *testing.T) {
 		{
 			name: "ignore lower epoch peers",
 			peers: []*peerConfig{
-				{finalizedEpoch: 4, headSlot: 41 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 43 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 44 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 45 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 46 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 41 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 43 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 44 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 45 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 46 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
 			},
 			ourFinalizedEpoch:  5,
 			limitPeers:         15,
@@ -796,17 +796,17 @@ func TestStatus_BestPeer(t *testing.T) {
 		{
 			name: "combine peers from several epochs starting from epoch higher than ours",
 			peers: []*peerConfig{
-				{finalizedEpoch: 4, headSlot: 41 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 43 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 44 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 45 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 46 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 7, headSlot: 7 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 8, headSlot: 8 * params.CarrierChainConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 41 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 43 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 44 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 45 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 46 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 7, headSlot: 7 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 8, headSlot: 8 * params.CarrierConfig().SlotsPerEpoch},
 			},
 			ourFinalizedEpoch:  5,
 			limitPeers:         15,
@@ -816,17 +816,17 @@ func TestStatus_BestPeer(t *testing.T) {
 		{
 			name: "limit number of returned peers",
 			peers: []*peerConfig{
-				{finalizedEpoch: 4, headSlot: 41 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 42 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 43 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 44 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 4, headSlot: 45 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 3, headSlot: 46 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 7, headSlot: 7 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 8, headSlot: 8 * params.CarrierChainConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 41 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 42 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 43 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 44 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 4, headSlot: 45 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 3, headSlot: 46 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 7, headSlot: 7 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 8, headSlot: 8 * params.CarrierConfig().SlotsPerEpoch},
 			},
 			ourFinalizedEpoch:  5,
 			limitPeers:         4,
@@ -836,13 +836,13 @@ func TestStatus_BestPeer(t *testing.T) {
 		{
 			name: "handle epoch ties",
 			peers: []*peerConfig{
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 6, headSlot: 6 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 7, headSlot: 7 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 8, headSlot: 8 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 8, headSlot: 8 * params.CarrierChainConfig().SlotsPerEpoch},
-				{finalizedEpoch: 8, headSlot: 8 * params.CarrierChainConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 6, headSlot: 6 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 7, headSlot: 7 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 8, headSlot: 8 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 8, headSlot: 8 * params.CarrierConfig().SlotsPerEpoch},
+				{finalizedEpoch: 8, headSlot: 8 * params.CarrierConfig().SlotsPerEpoch},
 			},
 			ourFinalizedEpoch:  5,
 			limitPeers:         15,
@@ -923,17 +923,17 @@ func TestStatus_CurrentEpoch(t *testing.T) {
 	// Peer 1
 	pid1 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid1, &pb.Status{
-		HeadSlot: params.CarrierChainConfig().SlotsPerEpoch * 4,
+		HeadSlot: params.CarrierConfig().SlotsPerEpoch * 4,
 	})
 	// Peer 2
 	pid2 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid2, &pb.Status{
-		HeadSlot: params.CarrierChainConfig().SlotsPerEpoch * 5,
+		HeadSlot: params.CarrierConfig().SlotsPerEpoch * 5,
 	})
 	// Peer 3
 	pid3 := addPeer(t, p, peers.PeerConnected)
 	p.SetChainState(pid3, &pb.Status{
-		HeadSlot: params.CarrierChainConfig().SlotsPerEpoch * 4,
+		HeadSlot: params.CarrierConfig().SlotsPerEpoch * 4,
 	})
 
 	//assert.Equal(t, types.Epoch(5), p.HighestEpoch(), "Expected current epoch to be 5")
