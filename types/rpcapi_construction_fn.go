@@ -133,15 +133,12 @@ func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 	return resourceArray
 }
 
-// Deprecate: Invalid method, will be deleted in the future.
-func NewTaskArrayFromResponse(response *api.ListTaskByIdentityResponse) (TaskDataArray, map[string][]apicommonpb.TaskRole) {
+func NewTaskArrayFromResponse(response *api.ListTaskResponse) TaskDataArray {
 	taskArray := make(TaskDataArray, 0, len(response.GetTasks()))
-	taskRoleList := make(map[string][]apicommonpb.TaskRole, 0)
 	for _, v := range response.GetTasks() {
-		taskArray = append(taskArray, NewTask(v.Task))
-		taskRoleList[v.Task.GetTaskId()] = v.Roles
+		taskArray = append(taskArray, NewTask(v))
 	}
-	return taskArray, taskRoleList
+	return taskArray
 }
 
 func NewMetadataFromResponse(response *api.FindMetadataByIdResponse) *Metadata {

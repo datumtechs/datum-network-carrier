@@ -1136,9 +1136,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*types.TaskEventShowAndRole, 
 	}
 
 	for _, networkTask := range networkTaskList {
-		if taskView := makeTaskViewFn(types.NewTask(networkTask.Task)); nil != taskView {
-			// fill role info
-			taskView.Roles = networkTask.Roles
+		if taskView := makeTaskViewFn(networkTask); nil != taskView {
 			result = append(result, taskView)
 		}
 	}
