@@ -1049,10 +1049,6 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 		if event.Type == ev.TaskFailed.Type || event.Type == ev.TaskSucceed.Type {
 			log.Infof("Started handle taskEvent with currentIdentity, `event is the task final finished`, event: %s", event.String())
 
-			if event.GetPartyId() == "p7" {
-				fmt.Println()
-			}
-
 			// store final event
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 
