@@ -19,9 +19,9 @@ message TaskEvent {
   bytes  type = 1 [(gogoproto.moretags) = "ssz-max:\"32\""];                            // 事件类型码
   bytes  task_id = 2 [(gogoproto.moretags) = "ssz-max:\"128\""];                        // 事件对应的任务id
   bytes  identity_id = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                   // 产生事件的节点身份
-//  bytes  party_id = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];                        // 产生事件的节点在task中的partyId
-  bytes  content = 4 [(gogoproto.moretags) = "ssz-max:\"2048\""];                       // 事件内容
-  uint64 create_at = 5 [(gogoproto.moretags) = "ssz-size:\"8\""];                       // 事件产生时间戳 (单位: ms)
+  bytes  party_id = 4 [(gogoproto.moretags) = "ssz-max:\"32\""];                        // 产生事件的节点在task中的partyId
+  bytes  content = 5 [(gogoproto.moretags) = "ssz-max:\"2048\""];                       // 事件内容
+  uint64 create_at = 6 [(gogoproto.moretags) = "ssz-size:\"8\""];                       // 事件产生时间戳 (单位: ms)
 }
 
 // 参与方 返回task的实时资源消耗
