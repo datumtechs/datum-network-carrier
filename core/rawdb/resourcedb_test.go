@@ -89,7 +89,7 @@ func NeedExecuteTask() KeyValueStore {
 
 			_task := types.NewNeedExecuteTask(peer.ID(remotepid), proposalId, 1, localTaskOrganization, 2, remoteTaskOrganization, task,
 				3, localResource, resources)
-			if err := StoreNeedExecuteTask(_task, taskId, partyId, database); err != nil {
+			if err := StoreNeedExecuteTask(database, _task, taskId, partyId); err != nil {
 				fmt.Printf("StoreNeedExecuteTask fail,taskId %s\n", taskId)
 			}
 		}
@@ -105,14 +105,14 @@ func TestDeleteNeedExecuteTask(t *testing.T) {
 	taskId1 := "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65"
 	taskId2 := "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e66"
 	partyId := "P2"
-	RemoveNeedExecuteTask(taskId1, "", database)
+	RemoveNeedExecuteTask(database, taskId1)
 	count := 0
 	iter := database.NewIteratorWithPrefixAndStart(needExecuteTaskPrefix, nil)
 	for iter.Next() {
 		count++
 	}
 	assert.Equal(t, 12, count)
-	RemoveNeedExecuteTask(taskId2, partyId, database)
+	RemoveNeedExecuteTaskByPartyId(database, taskId2, partyId)
 	assert.Equal(t, 11, count-1)
 }
 

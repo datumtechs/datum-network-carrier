@@ -1789,13 +1789,15 @@ func RecoveryNeedExecuteTask(db KeyValueStore) map[string]map[string]*types.Need
 				log.WithError(err).Errorf("Failed to call query needExecuteTask, decode db val failed")
 				continue
 			}
+			// task:${taskId hex} == 5 + 2 + 64
 			taskId := key[len(needExecuteTaskPrefix):len(needExecuteTaskPrefix)+71]
-			partyId := key[len(needExecuteTaskPrefix)+len(needExecuteTaskPrefix)+71:]
+			partyId := key[len(needExecuteTaskPrefix)+71:]
 			cache, ok := runningTaskCache[string(taskId)]
 			if !ok {
 				cache = make(map[string]*types.NeedExecuteTask, 0)
 			}
 			cache[string(partyId)] = &needExecuteTask
+			runningTaskCache[string(taskId)] = cache
 		}
 	}
 	return runningTaskCache
