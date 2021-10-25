@@ -1052,7 +1052,7 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 			// store final event
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 
-			publish, err := m.checkTaskSenderPublishOpportunity(task.GetTask(), event)
+			publish, err := m.checkTaskSenderPublishOpportunity(task.GetTask(), event, event.GetPartyId())
 			if nil != err {
 				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.handleTaskEventWithCurrentIdentity()`, event: %s",
 					event.GetPartyId())
@@ -1197,7 +1197,8 @@ func (m *Manager) storeMetaUsedTaskId(task *types.Task) error {
 	return nil
 }
 
-func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *libtypes.TaskEvent) (bool, error) {
+// todo 加了临时处理, 后续用 event 的 partyId
+func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *libtypes.TaskEvent, partyId string) (bool, error) {
 
 	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
@@ -1211,9 +1212,10 @@ func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *lib
 	}
 
 	// Remove the currently processed partyId from the partyIds array of the task partner to be processed
-	if err := m.resourceMng.GetDB().RemoveTaskPartnerPartyId(event.GetTaskId(), event.GetPartyId()); nil != err {
+	//if err := m.resourceMng.GetDB().RemoveTaskPartnerPartyId(event.GetTaskId(), event.GetPartyId()); nil != err { // todo 这行才是对的
+	if err := m.resourceMng.GetDB().RemoveTaskPartnerPartyId(event.GetTaskId(), partyId); nil != err { // todo  临时处理
 		log.WithError(err).Errorf("Failed to remove partyId of local task's partner arr on `taskManager.checkTaskSenderPublishOpportunity()`, taskId: {%s}, partyId: {%s}",
-			event.GetTaskId(), event.GetPartyId())
+			event.GetTaskId(), partyId)
 	}
 	has, err := m.resourceMng.GetDB().HasTaskPartnerPartyIds(event.GetTaskId())
 	if rawdb.IsNoDBNotFoundErr(err) {
@@ -1309,9 +1311,10 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 
 	for _, event := range msg.TaskEventList {
 
-		if "" == strings.Trim(event.GetPartyId(), "") || msg.MsgOption.ReceiverPartyId != strings.Trim(event.GetPartyId(), "") {
-			continue
-		}
+		// todo 这里需要打开注释
+		//if "" == strings.Trim(event.GetPartyId(), "") || msg.MsgOption.ReceiverPartyId != strings.Trim(event.GetPartyId(), "") {
+		//	continue
+		//}
 
 		if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
 			log.WithError(err).Errorf("Failed to store local task event from remote peer on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
@@ -1322,7 +1325,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 			log.Infof("Received task result msg `event is the task final finished`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
 				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
 
-			publish, err := m.checkTaskSenderPublishOpportunity(task, event)
+			publish, err := m.checkTaskSenderPublishOpportunity(task, event, msg.MsgOption.ReceiverPartyId)
 			if nil != err {
 				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.OnTaskResultMsg()`, event: %s",
 					event.GetPartyId())

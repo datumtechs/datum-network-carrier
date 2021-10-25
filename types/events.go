@@ -85,7 +85,7 @@ func ConvertTaskEvent(event *libtypes.TaskEvent) *pb.TaskEvent {
 		Type:       []byte(event.GetType()),
 		TaskId:     []byte(event.GetTaskId()),
 		IdentityId: []byte(event.GetIdentityId()),
-		PartyId:    []byte(event.GetPartyId()),
+		//PartyId:    []byte(event.GetPartyId()), // todo 这里需要打开注释
 		Content:    []byte(event.GetContent()),
 		CreateAt:   event.GetCreateAt(),
 	}
@@ -96,7 +96,7 @@ func FetchTaskEvent(event *pb.TaskEvent) *libtypes.TaskEvent {
 		Type:       string(event.GetType()),
 		TaskId:     string(event.GetTaskId()),
 		IdentityId: string(event.GetIdentityId()),
-		PartyId:    string(event.GetPartyId()),
+		//PartyId:    string(event.GetPartyId()), // todo 这里需要打开注释
 		Content:    string(event.GetContent()),
 		CreateAt:   event.GetCreateAt(),
 	}
