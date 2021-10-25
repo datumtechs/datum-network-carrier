@@ -821,10 +821,28 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 						userType, user, metadataId)
 				}
 
-				metadata, err := m.resourceMng.GetDB().QueryMetadataByDataId(metadataId)
+				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataByDataId(metadataId)
 				if nil != err {
-					return "", fmt.Errorf("query metadata failed %s, metadataId: {%s}", err, metadataId)
+					return "", fmt.Errorf("check metadata whether internal metadata failed %s, metadataId: {%s}", err, metadataId)
 				}
+
+				var metadata *types.Metadata
+
+				// whether the metadata is internal metadata ?
+				if internalMetadataFlag {
+					// query internal metadata
+					metadata, err = m.resourceMng.GetDB().QueryInternalMetadataByDataId(metadataId)
+					if nil != err {
+						return "", fmt.Errorf("query internale metadata failed %s, metadataId: {%s}", err, metadataId)
+					}
+				} else {
+					// query published metadata
+					metadata, err = m.resourceMng.GetDB().QueryMetadataByDataId(metadataId)
+					if nil != err {
+						return "", fmt.Errorf("query publish metadata failed %s, metadataId: {%s}", err, metadataId)
+					}
+				}
+
 				filePath = metadata.GetData().GetFilePath()
 
 				keyColumn = dataSupplier.GetKeyColumn().GetCName()
@@ -833,14 +851,17 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 					selectedColumns[i] = col.GetCName()
 				}
 
-				// query metadataAuthId by metadataId
-				metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
-				if nil != err {
-					return "", fmt.Errorf("query metadataAuthId failed %s, metadataId: {%s}", err, metadataId)
-				}
-				// ConsumeMetadataAuthority
-				if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
-					return "", fmt.Errorf("consume metadataAuth failed %s, metadataAuthId: {%s}", err, metadataAuthId)
+				// only consume metadata auth when metadata is not internal metadata.
+				if !internalMetadataFlag {
+					// query metadataAuthId by metadataId
+					metadataAuthId, err := m.authMng.QueryMetadataAuthIdByMetadataId(userType, user, metadataId)
+					if nil != err {
+						return "", fmt.Errorf("query metadataAuthId failed %s, metadataId: {%s}", err, metadataId)
+					}
+					// ConsumeMetadataAuthority
+					if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
+						return "", fmt.Errorf("consume metadataAuth failed %s, metadataAuthId: {%s}", err, metadataAuthId)
+					}
 				}
 
 				find = true
