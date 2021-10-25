@@ -324,22 +324,22 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 	}
 
 	if option.IsRemoveLocalTask() {
-		log.Debugf("start remove local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-			logdesc, taskId, partyId, option, err)
+		log.Debugf("start remove local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
+			logdesc, taskId, partyId, option)
 		// When tasks in current organization, including sender and other partners, do not have an 'executestatus' symbol.
 		has, err := m.dataCenter.HasLocalTaskExecuteStatusParty(taskId)
 		if nil == err && !has {
 			if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
-				log.Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, err: {%s}",
-					logdesc, taskId, partyId, option, err)
+				log.WithError(err).Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
+					logdesc, taskId, partyId, option)
 			}
 			if err := m.dataCenter.RemoveTaskPowerPartyIds(taskId); nil != err {
-				log.Errorf("Failed to remove power's partyIds of local task  %s, taskId: {%s}, last partyId: {%s}, releaseOption: {%d}, err: {%s}",
-					logdesc, taskId, partyId, option, err)
+				log.WithError(err).Errorf("Failed to remove power's partyIds of local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
+					logdesc, taskId, partyId, option)
 			}
 			if err := m.dataCenter.RemoveTaskPartnerPartyIds(taskId); nil != err {
-				log.Errorf("Failed to remove handler partner's partyIds of local task  %s, taskId: {%s}, last partyId: {%s}, releaseOption: {%d}, err: {%s}",
-					logdesc, taskId, partyId, option, err)
+				log.WithError(err).Errorf("Failed to remove handler partner's partyIds of local task  %s,taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
+					logdesc, taskId, partyId, option)
 			}
 			if err := m.dataCenter.RemoveTaskEventList(taskId); nil != err {
 				log.WithError(err).Errorf("Failed to clean all event list of task  %s, taskId: {%s}", logdesc, taskId)

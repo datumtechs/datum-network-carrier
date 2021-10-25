@@ -1049,6 +1049,10 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 		if event.Type == ev.TaskFailed.Type || event.Type == ev.TaskSucceed.Type {
 			log.Infof("Started handle taskEvent with currentIdentity, `event is the task final finished`, event: %s", event.String())
 
+			if event.GetPartyId() == "p7" {
+				fmt.Println()
+			}
+
 			// store final event
 			m.resourceMng.GetDB().StoreTaskEvent(event)
 
@@ -1062,6 +1066,14 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 			if publish {
 				log.Debugf("Need to call `publishFinishedTaskToDataCenter` on `taskManager.handleTaskEventWithCurrentIdentity()`, taskId: {%s}, sender partyId: {%s}",
 					event.GetTaskId(), task.GetTask().GetTaskSender().GetPartyId())
+
+
+				//1、 handle last party
+				// send this task result to remote target peer
+				m.sendTaskResultMsgToTaskSender(task)
+				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
+
+				//2、 handle sender party
 				senderNeedTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), task.GetTask().GetTaskSender().GetPartyId())
 				// handle this task result with current peer
 				m.publishFinishedTaskToDataCenter(senderNeedTask, true)
@@ -1306,7 +1318,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
 		log.Errorf("Failed to verify receiver identityId of taskResultMsg, receiver is not me on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
-		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
+		return fmt.Errorf("receiver is not me of taskResultMsg")
 	}
 
 	for _, event := range msg.TaskEventList {

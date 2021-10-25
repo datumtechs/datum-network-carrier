@@ -4,9 +4,9 @@ package resource
 type ReleaseResourceOption uint32
 
 const (
-	UnlockLocalResorce    ReleaseResourceOption = 1<< iota // 0001
-	RemoveLocalTask                                        // 0010
-	RemoveLocalTaskEvents                                  // 0100
+	UnlockLocalResorce    ReleaseResourceOption = 1<< iota // 0001     1
+	RemoveLocalTask                                        // 0010     2
+	RemoveLocalTaskEvents                                  // 0100     4
 )
 
 
