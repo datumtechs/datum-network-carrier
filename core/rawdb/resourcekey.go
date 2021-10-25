@@ -69,7 +69,7 @@ var (
 	// prefix + taskId -> [partyId, ..., partyId]  for task sender
 	taskPartnerPartyIdsKeyPrefix = []byte("taskPartnerPartyIdsKeyPrefix:")
 
-
+	needExecuteTaskPrefix = []byte("needExecuteTaskPrefix:")
 
 )
 
@@ -245,4 +245,8 @@ func GetTaskPowerPartyIdsKey(taskId string) []byte {
 
 func GetTaskPartnerPartyIdsKey(taskId string) []byte {
 	return append(taskPartnerPartyIdsKeyPrefix, []byte(taskId)...)
+}
+
+func GetNeedExecuteTaskKey(taskId, partyId string) []byte {
+	return append(append(needExecuteTaskPrefix, []byte(taskId)...), []byte(partyId)...)
 }

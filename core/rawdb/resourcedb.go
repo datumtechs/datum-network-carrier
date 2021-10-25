@@ -6,6 +6,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/pkg/errors"
 	leveldberr "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
@@ -1761,4 +1762,68 @@ func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
 		}
 	}
 	return result, nil
+}
+
+func StoreNeedExecuteTask(cache *types.NeedExecuteTask, taskId, partyId string, db KeyValueStore) error{
+	key := GetNeedExecuteTaskKey(taskId, partyId)
+	result, err := rlp.EncodeToBytes(cache)
+	if nil != err {
+		//log.WithError(err).Info("StoreNeedExecuteTask fail taskId %s partyId %s", taskId, partyId)
+		return err
+	}
+	if err := db.Put(key, result); err != nil {
+		return err
+	}
+	return nil
+}
+
+func DeleteNeedExecuteTask(taskId, partyId string, db KeyValueStore) {
+	err := errors.New("")
+	if partyId == "" {
+		prefix := GetNeedExecuteTaskKey(taskId, partyId)
+		iter := db.NewIteratorWithPrefixAndStart(prefix, nil)
+		for iter.Next(){
+			err = db.Delete(iter.Key())
+		}
+	} else {
+		key := GetNeedExecuteTaskKey(taskId, partyId)
+		err = db.Delete(key)
+	}
+	if err != nil {
+		log.WithError(err).Fatal("DeleteNeedExecuteTask fail.")
+	}
+}
+
+func RecoveryNeedExecuteTask(db KeyValueStore) map[string]map[string]*types.NeedExecuteTask {
+	iter := db.NewIteratorWithPrefixAndStart(needExecuteTaskPrefix, nil)
+	defer iter.Release()
+	runningTaskCache := make(map[string]map[string]*types.NeedExecuteTask, 0)
+	flag := ""
+	for iter.Next() {
+		// key= needExecuteTaskPrefix+taskId+partyId
+		key := string(iter.Key())
+		// taskIdPrefix=needExecuteTaskPrefix+taskId
+		taskIdPrefix := key[:len(needExecuteTaskPrefix)+71]
+		// Filter out duplicate taskId
+		if flag == taskIdPrefix {
+			continue
+		}
+		flag = taskIdPrefix
+		taskId := key[len(needExecuteTaskPrefix) : len(needExecuteTaskPrefix)+71]
+
+		filterTaskIter := db.NewIteratorWithPrefixAndStart([]byte(taskIdPrefix), nil)
+		partyToTask := make(map[string]*types.NeedExecuteTask, 0)
+		for filterTaskIter.Next() {
+			var executeTask types.NeedExecuteTask
+			key = string(filterTaskIter.Key())
+			if err := rlp.DecodeBytes(filterTaskIter.Value(), &executeTask); nil != err {
+				log.WithError(err).Fatal("rlp decodeBytes fail.")
+			}
+			partyId := key[len(taskIdPrefix):]
+			partyToTask[partyId] = &executeTask
+		}
+		filterTaskIter.Release()
+		runningTaskCache[taskId] = partyToTask
+	}
+	return runningTaskCache
 }
