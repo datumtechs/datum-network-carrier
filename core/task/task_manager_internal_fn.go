@@ -1312,7 +1312,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 	for _, event := range msg.TaskEventList {
 
 		// todo 这里需要打开注释
-		//if "" == strings.Trim(event.GetPartyId(), "") || msg.MsgOption.ReceiverPartyId != strings.Trim(event.GetPartyId(), "") {
+		//if "" == strings.Trim(event.GetPartyId(), "") || msg.MsgOption.SenderPartyId != strings.Trim(event.GetPartyId(), "") {
 		//	continue
 		//}
 
@@ -1325,7 +1325,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 			log.Infof("Received task result msg `event is the task final finished`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
 				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
 
-			publish, err := m.checkTaskSenderPublishOpportunity(task, event, msg.MsgOption.ReceiverPartyId)
+			publish, err := m.checkTaskSenderPublishOpportunity(task, event, msg.MsgOption.SenderPartyId) // todo 临时处理 ...
 			if nil != err {
 				log.WithError(err).Errorf("Failed to check task sender publish opportunity on `taskManager.OnTaskResultMsg()`, event: %s",
 					event.GetPartyId())
