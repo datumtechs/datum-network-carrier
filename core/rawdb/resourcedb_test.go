@@ -105,14 +105,14 @@ func TestDeleteNeedExecuteTask(t *testing.T) {
 	taskId1 := "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65"
 	taskId2 := "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e66"
 	partyId := "P2"
-	DeleteNeedExecuteTask(taskId1, "", database)
+	RemoveNeedExecuteTask(taskId1, "", database)
 	count := 0
 	iter := database.NewIteratorWithPrefixAndStart(needExecuteTaskPrefix, nil)
 	for iter.Next() {
 		count++
 	}
 	assert.Equal(t, 12, count)
-	DeleteNeedExecuteTask(taskId2, partyId, database)
+	RemoveNeedExecuteTask(taskId2, partyId, database)
 	assert.Equal(t, 11, count-1)
 }
 

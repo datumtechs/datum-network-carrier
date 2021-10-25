@@ -176,7 +176,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	default:
-		log.Fatalf("Failed to add msg, can not match the msg type")
+		log.Errorf("Failed to add msg, can not match the msg type")
 		return ErrUnknownMsgType
 	}
 	return nil

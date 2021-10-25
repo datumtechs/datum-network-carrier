@@ -675,12 +675,16 @@ func (dc *DataCenter) QueryTaskMsgArr()(types.TaskMsgArr,error)  {
 }
 
 
-func (dc *DataCenter) StoreNeedExecuteTask(cache *types.NeedExecuteTask, taskId, partyId string) error{
-	return rawdb.StoreNeedExecuteTask(cache,taskId,partyId,dc.db)
+func (dc *DataCenter) StoreNeedExecuteTask(cache *types.NeedExecuteTask, taskId, partyId string) error {
+	return rawdb.StoreNeedExecuteTask(dc.db, cache,taskId,partyId)
 }
 
-func (dc *DataCenter) DeleteNeedExecuteTask(taskId, partyId string) {
-	rawdb.DeleteNeedExecuteTask(taskId, partyId,dc.db)
+func (dc *DataCenter) RemoveNeedExecuteTaskByPartyId(taskId, partyId string) error {
+	return rawdb.RemoveNeedExecuteTaskByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveNeedExecuteTask(taskId string) error {
+	return rawdb.RemoveNeedExecuteTask(dc.db, taskId)
 }
 
 func (dc *DataCenter) RecoveryNeedExecuteTask() map[string]map[string]*types.NeedExecuteTask {

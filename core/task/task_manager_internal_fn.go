@@ -902,8 +902,8 @@ func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask) {
 	m.runningTaskCache[task.GetTask().GetTaskId()] = cache
 	go func() {
 		err:=m.resourceMng.GetDB().StoreNeedExecuteTask(task,task.GetTask().GetTaskId(),task.GetLocalTaskOrganization().GetPartyId())
-		if nil!=err {
-			log.WithError(err).Info("StoreNeedExecuteTask fail")
+		if nil != err {
+			log.WithError(err).Errorf("store needExecuteTask failed")
 		}
 	}()
 	m.runningTaskCacheLock.Unlock()
@@ -912,7 +912,7 @@ func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask) {
 func (m *Manager) removeNeedExecuteTask(taskId string) {
 	m.runningTaskCacheLock.Lock()
 	delete(m.runningTaskCache, taskId)
-	go m.resourceMng.GetDB().DeleteNeedExecuteTask(taskId, "")
+	go m.resourceMng.GetDB().RemoveNeedExecuteTask(taskId)
 	m.runningTaskCacheLock.Unlock()
 }
 
@@ -923,20 +923,11 @@ func (m *Manager) removeNeedExecuteTaskCache(taskId, partyId string) {
 		return
 	}
 	delete(cache, partyId)
-	go m.resourceMng.GetDB().DeleteNeedExecuteTask(taskId, partyId)
+	go m.resourceMng.GetDB().RemoveNeedExecuteTaskByPartyId(taskId, partyId)
 	if len(cache) == 0 {
-		delete(m.runningTaskCache, taskId)
-		go m.resourceMng.GetDB().DeleteNeedExecuteTask(taskId, "")
+		delete(m.runningTaskCache, taskId) // delete empty map[partyId]task
 	} else {
-		m.runningTaskCache[taskId] = cache
-		go func() {
-			for _,task:=range cache{
-				err:=m.resourceMng.GetDB().StoreNeedExecuteTask(task,taskId,partyId)
-				if nil!=err {
-					log.WithError(err).Info("StoreNeedExecuteTask fail")
-				}
-			}
-		}()
+		m.runningTaskCache[taskId] = cache // restore map[partyId]task if it is not empty
 	}
 	m.runningTaskCacheLock.Unlock()
 }
@@ -1160,20 +1151,11 @@ func (m *Manager) expireTaskMonitor() {
 
 					// clean current party task cache
 					delete(cache, partyId)
-					go m.resourceMng.GetDB().DeleteNeedExecuteTask(taskId,partyId)
+					go m.resourceMng.GetDB().RemoveNeedExecuteTaskByPartyId(taskId,partyId)
 					if len(cache) == 0 {
 						delete(m.runningTaskCache, taskId)
-						go m.resourceMng.GetDB().DeleteNeedExecuteTask(taskId,"")
 					} else {
 						m.runningTaskCache[taskId] = cache
-						go func() {
-							for _,task:=range cache{
-								err:=m.resourceMng.GetDB().StoreNeedExecuteTask(task,taskId,partyId)
-								if nil!=err {
-									log.WithError(err).Info("StoreNeedExecuteTask fail")
-								}
-							}
-						}()
 					}
 
 				}
