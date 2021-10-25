@@ -492,8 +492,8 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 
 	// broadcast `task result msg` to reply remote peer
 	if task.GetLocalTaskOrganization().GetIdentityId() != task.GetRemoteTaskOrganization().GetIdentityId() {
-		//if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultByEventList(task)); nil != err {
-		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultByEventList(task)); nil != err {
+		//if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultMsgWithEventList(task)); nil != err {
+		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultMsgWithEventList(task)); nil != err {
 			log.Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}, err: {%s}",
 				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID(), err)
 		}
@@ -962,16 +962,17 @@ func (m *Manager) ForEachRunningTaskCache(f func(taskId string, task *types.Need
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) makeTaskResultByEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
+func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
 
 	if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_Sender {
-		log.Errorf("send task OR task owner can not make TaskResult Msg")
+		log.Errorf("send task OR task owner can not make taskResultMsg")
 		return nil
 	}
 
 	eventList, err := m.resourceMng.GetDB().QueryTaskEventListByPartyId(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 	if nil != err {
-		log.Errorf("Failed to make TaskResultMsg with query task eventList, taskId {%s}, err {%s}", task.GetTask().GetTaskId(), err)
+		log.WithError(err).Errorf("Failed to make taskResultMsg with query task eventList, taskId {%s}, partyId {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 		return nil
 	}
 	return &taskmngpb.TaskResultMsg{
@@ -1002,7 +1003,7 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 
 	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
-		log.Errorf("Failed to query self identityId on taskManager.SendTaskEvent(), %s", err)
+		log.WithError(err).Errorf("Failed to query self identityId on taskManager.SendTaskEvent()")
 		return fmt.Errorf("query local identityId failed, %s", err)
 	}
 	event.IdentityId = identityId
@@ -1051,6 +1052,8 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 			}
 
 			if publish {
+				log.Debugf("Need to call `publishFinishedTaskToDataCenter` on `taskManager.handleTaskEventWithCurrentIdentity()`, taskId: {%s}, sender partyId: {%s}",
+					event.GetTaskId(), task.GetTask().GetTaskSender().GetPartyId())
 				senderNeedTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), task.GetTask().GetTaskSender().GetPartyId())
 				// handle this task result with current peer
 				m.publishFinishedTaskToDataCenter(senderNeedTask, true)
@@ -1297,6 +1300,10 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 
 	for _, event := range msg.TaskEventList {
 
+		if "" == strings.Trim(event.GetPartyId(), "") || msg.MsgOption.ReceiverPartyId != strings.Trim(event.GetPartyId(), "") {
+			continue
+		}
+
 		if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
 			log.WithError(err).Errorf("Failed to store local task event from remote peer on `taskManager.OnTaskResultMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
 				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
@@ -1314,6 +1321,8 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 			}
 
 			if publish {
+				log.Debugf("Need to call `publishFinishedTaskToDataCenter` on `taskManager.OnTaskResultMsg()`, taskId: {%s}, sender partyId: {%s}",
+					event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
 				needTask := m.mustQueryNeedExecuteTaskCache(event.GetTaskId(), msg.MsgOption.ReceiverPartyId)
 				// handle this task result with current peer
 				m.publishFinishedTaskToDataCenter(needTask, true)
