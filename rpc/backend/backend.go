@@ -33,7 +33,7 @@ type Backend interface {
 
 
 	// metadata api
-
+	IsInternalMetadata(metadataId string) (bool, error)
 	GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error)
 	GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetadataDetailResponse, error)
 	GetLocalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error)

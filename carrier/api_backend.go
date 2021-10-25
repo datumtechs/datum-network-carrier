@@ -626,6 +626,10 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 }
 
 // metadata api
+func (s *CarrierAPIBackend) IsInternalMetadata(metadataId string) (bool, error) {
+	return s.carrier.carrierDB.IsInternalMetadataByDataId(metadataId)
+}
+
 
 func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error) {
 
@@ -636,7 +640,7 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 
 	// find local metadata
 	if "" == identityId {
-		metadata, err = s.carrier.carrierDB.QueryLocalMetadataByDataId(metadataId)
+		metadata, err = s.carrier.carrierDB.QueryInternalMetadataByDataId(metadataId)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return nil, errors.New("not found local metadata by special Id, " + err.Error())
 		}
@@ -698,7 +702,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 		}
 	}
 
-	internalMetadataArr, err := s.carrier.carrierDB.QueryLocalMetadataList()
+	internalMetadataArr, err := s.carrier.carrierDB.QueryInternalMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
@@ -1278,7 +1282,7 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 	}
 
 	// store local metadata (about task result file)
-	s.carrier.carrierDB.StoreLocalMetadata(types.NewMetadata(&libtypes.MetadataPB{
+	s.carrier.carrierDB.StoreInternalMetadata(types.NewMetadata(&libtypes.MetadataPB{
 		MetadataId:      metadataId,
 		IdentityId:      identity.GetIdentityId(),
 		NodeId:          identity.GetNodeId(),
@@ -1300,6 +1304,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 		// metaData status, eg: create/release/revoke
 		State: apicommonpb.MetadataState_MetadataState_Created,
 	}))
+
+	// todo whether need to store a dataResourceDiskUsed (metadataId. dataNodeId, diskUsed) ??? 后面需要上传 磁盘使用空间在弄吧
 
 	// store dataResourceFileUpload (about task result file)
 	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(dataNodeId, originId, metadataId, filePath))
@@ -1335,7 +1341,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 		return nil, err
 	}
 
-	localMetadata, err := s.carrier.carrierDB.QueryLocalMetadataByDataId(taskUpResultFile.GetMetadataId())
+	localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataByDataId(taskUpResultFile.GetMetadataId())
 	if nil != err {
 		log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
 			taskId, taskUpResultFile.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)
@@ -1369,7 +1375,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 			continue
 		}
 
-		localMetadata, err := s.carrier.carrierDB.QueryLocalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
+		localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
 		if nil != err {
 			log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
 				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)

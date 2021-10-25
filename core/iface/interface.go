@@ -134,10 +134,10 @@ type LocalStoreCarrierDB interface {
 }
 
 type MetadataCarrierDB interface {
-	StoreLocalMetadata(metadata *types.Metadata) error
-	IsLocalMetadataByDataId(metadataId string) (bool, error)
-	QueryLocalMetadataByDataId(metadataId string) (*types.Metadata, error)
-	QueryLocalMetadataList() (types.MetadataArray, error)
+	StoreInternalMetadata(metadata *types.Metadata) error
+	IsInternalMetadataByDataId(metadataId string) (bool, error)
+	QueryInternalMetadataByDataId(metadataId string) (*types.Metadata, error)
+	QueryInternalMetadataList() (types.MetadataArray, error)
 	InsertMetadata(metadata *types.Metadata) error
 	RevokeMetadata(metadata *types.Metadata) error
 	QueryMetadataByDataId(dataId string) (*types.Metadata, error)

@@ -171,13 +171,13 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 	}
 
-	log.Debugf("Call SchedulerStarveFIFO.ReplaySchedule() start, taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, taskCost: {%s}",
+	log.Debugf("Call SchedulerStarveFIFO.ReplaySchedule() start, taskId: {%s}, role: {%s}, partyId: {%s}, taskCost: {%s}",
 		task.GetTaskId(), localTaskRole.String(), localPartyId, cost.String())
 
 	selfIdentityId, err := sche.resourceMng.GetDB().QueryIdentityId()
 	if nil != err {
-		log.Errorf("Failed to query self identityInfo on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, err: {%s}",
-			task.GetTaskId(), localTaskRole.String(), localPartyId, err)
+		log.WithError(err).Errorf("Failed to query self identityInfo on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
+			task.GetTaskId(), localTaskRole.String(), localPartyId)
 		return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 	}
 
@@ -195,18 +195,18 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		// mock election power orgs
 		powers, err := sche.electionComputeOrg(powerPartyIds, nil, cost)
 		if nil != err {
-			log.Errorf("Failed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, err: {%s}",
-				task.GetTaskId(), localTaskRole.String(), localPartyId, err)
+			log.WithError(err).Errorf("Failed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		log.Debugf("Succeed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, powers: %s",
+		log.Debugf("Succeed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, powers: %s",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, utilOrgPowerArrString(powers))
 
 		// compare powerSuppliers of task And powerSuppliers of election
 		if len(powers) != len(task.GetTaskData().GetPowerSuppliers()) {
-			log.Errorf("reschedule powers len and task powers len is not match when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, reschedule power len: {%d}, task powers len: {%d}",
+			log.Errorf("reschedule powers len and task powers len is not match when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, reschedule power len: {%d}, task powers len: {%d}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId, len(powers), len(task.GetTaskData().GetPowerSuppliers()))
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
@@ -219,7 +219,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		}
 		for _, power := range task.GetTaskData().GetPowerSuppliers() {
 			if _, ok := tmp[power.GetOrganization().GetIdentityId()]; !ok {
-				log.Errorf("task power identityId not found with reschedule powers when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, task power identityId: {%s}",
+				log.Errorf("task power identityId not found with reschedule powers when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, task power identityId: {%s}",
 					task.GetTaskId(), localTaskRole.String(), localPartyId, power.GetOrganization().GetIdentityId())
 				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 			}
@@ -235,32 +235,60 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 		// verify user metadataAuth about msg
 		if !sche.verifyUserMetadataAuthOnTask(task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), metadataId) {
-			log.Errorf("failed verify user metadataAuth when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
+			log.Errorf("failed verify user metadataAuth when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), metadataId)
 			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("verify user metadataAuth failed"), nil)
 		}
 
-		log.Debugf("Succeed verify user metadataAuth when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
+		log.Debugf("Succeed verify user metadataAuth when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), metadataId)
 
 		// Select the datanode where your metadata ID is located.
-		dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metadataId)
+		var dataNodeId string
+		// check the metadata whether internal metadata
+		internalMetadataFlag, err := sche.resourceMng.GetDB().IsInternalMetadataByDataId(metadataId)
 		if nil != err {
-			log.Errorf("failed query internal data resource by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, metadataId: {%s}",
+			log.Errorf("failed check metadata whether internal metadata by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
+
+			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+		}
+		if internalMetadataFlag {
+
+			internalMetadata, err := sche.resourceMng.GetDB().QueryInternalMetadataByDataId(metadataId)
+			if nil != err {
+				log.WithError(err).Errorf("failed query internal metadataInfo by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
+					task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
+				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+			}
+			dataResourceFileUpload, err := sche.resourceMng.GetDB().QueryDataResourceFileUpload(internalMetadata.GetData().GetOriginId())
+			if nil != err {
+				log.WithError(err).Errorf("Failed query dataResourceFileUpload on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
+					task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
+				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+			}
+			dataNodeId = dataResourceFileUpload.GetNodeId()
+		} else {
+
+			dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metadataId)
+			if nil != err {
+				log.WithError(err).Errorf("failed query dataResourceDiskUsed by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, metadataId: {%s}",
+					task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
+
+				return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+			}
+			dataNodeId = dataResourceDiskUsed.GetNodeId()
+		}
+
+		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeDataNode, dataNodeId)
+		if nil != err {
+			log.WithError(err).Errorf("failed query internal data resource by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeDataNode, dataResourceDiskUsed.GetNodeId())
-		if nil != err {
-			log.Errorf("failed query internal data resource by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, metadataId: {%s}",
-				task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
-
-			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
-		}
-
-		log.Debugf("Succeed election internal data resource when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, dataNode: %s",
+		log.Debugf("Succeed election internal data resource when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, dataNode: %s",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, dataNode.String())
 
 		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, localPartyId))
@@ -271,18 +299,18 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Bandwidth, cost.Processor)
 		jobNode, err := sche.electionComputeNode(needSlotCount)
 		if nil != err {
-			log.Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, err: {%s}",
-				task.GetTaskId(), localTaskRole.String(), localPartyId, err)
+			log.WithError(err).Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, role: {%s}, partyId: {%s}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		log.Debugf("Succeed election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, jobNode: %s",
+		log.Debugf("Succeed election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, jobNode: %s",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, jobNode.String())
 
 		if err := sche.resourceMng.LockLocalResourceWithTask(localPartyId, jobNode.Id, needSlotCount, task); nil != err {
-			log.Errorf("Failed to Lock LocalResource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, jobNodeId: {%s}, err: {%s}",
-				task.GetTaskId(), localTaskRole.String(), localPartyId, jobNode.Id, err)
+			log.WithError(err).Errorf("Failed to Lock LocalResource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId, jobNode.Id)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
@@ -294,25 +322,25 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 		dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()
 		if nil != err {
-			log.Errorf("Failed to election internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, err: {%s}",
-				task.GetTaskId(), localTaskRole.String(), localPartyId, err)
+			log.WithError(err).Errorf("Failed to election internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId)
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		log.Debugf("QueryDataResourceTables when role is receiver on replaySchedule by taskRole is the resuler on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, dataResourceTables: %s",
+		log.Debugf("QueryDataResourceTables when role is receiver on replaySchedule by taskRole is the resuler on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, dataResourceTables: %s",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, utilDataResourceArrString(dataResourceTables))
 
 		resource := dataResourceTables[len(dataResourceTables)-1]
 		dataNode, err := sche.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeDataNode, resource.GetNodeId())
 		if nil != err {
-			log.Errorf("Failed to query internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, dataNodeId: {%s}, err: {%s}",
-				task.GetTaskId(), localTaskRole.String(), localPartyId, resource.GetNodeId(), err)
+			log.WithError(err).Errorf("Failed to query internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+				task.GetTaskId(), localTaskRole.String(), localPartyId, resource.GetNodeId())
 
 			return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
 		}
 
-		log.Debugf("Succeed election internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, dataNode: %s",
+		log.Debugf("Succeed election internal data resource when role is receiver on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, dataNode: %s",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, dataNode.String())
 
 		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, localPartyId))

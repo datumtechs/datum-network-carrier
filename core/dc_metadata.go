@@ -9,13 +9,13 @@ import (
 )
 
 // on local
-func (dc *DataCenter) StoreLocalMetadata(metadata *types.Metadata) error {
+func (dc *DataCenter) StoreInternalMetadata(metadata *types.Metadata) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalMetadata(dc.db, metadata)
 }
 
-func (dc *DataCenter) IsLocalMetadataByDataId(metadataId string) (bool, error) {
+func (dc *DataCenter) IsInternalMetadataByDataId(metadataId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	_, err := rawdb.QueryLocalMetadata(dc.db, metadataId)
@@ -28,13 +28,13 @@ func (dc *DataCenter) IsLocalMetadataByDataId(metadataId string) (bool, error) {
 	return true, nil
 }
 
-func (dc *DataCenter) QueryLocalMetadataByDataId(metadataId string) (*types.Metadata, error) {
+func (dc *DataCenter) QueryInternalMetadataByDataId(metadataId string) (*types.Metadata, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryLocalMetadata(dc.db, metadataId)
 }
 
-func (dc *DataCenter) QueryLocalMetadataList() (types.MetadataArray, error) {
+func (dc *DataCenter) QueryInternalMetadataList() (types.MetadataArray, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryAllLocalMetadata(dc.db)

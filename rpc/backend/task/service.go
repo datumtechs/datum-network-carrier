@@ -165,7 +165,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		return nil, ErrReqCalculateContractCodeForPublishTask
 	}
 
-	_, err := svr.B.GetNodeIdentity()
+	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed, can not publish task")
 		return nil, ErrPublishTaskDeclare
@@ -190,7 +190,26 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		}
 		checkPartyIdCache[v.GetOrganization().GetPartyId()] = struct{}{}
 
-		metadata, err := svr.B.GetMetadataDetail(v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
+		var (
+			identityId string
+			internalMetadata bool
+		)
+		if v.GetOrganization().GetIdentityId() != identity.GetIdentityId() { // Is not current identity
+			identityId = v.GetOrganization().GetIdentityId()
+		} else {  //  current identity
+			internalMetadata, err = svr.B.IsInternalMetadata(v.GetMetadataInfo().GetMetadataId())
+			if nil != err {
+				log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, check metadata whether internal metadata failed, identityId: {%s}, metadataId: {%s}",
+					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
+
+				errMsg := fmt.Sprintf(ErrReqMetadataDetailForPublishTask.Msg,
+					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
+				return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
+			}
+		}
+
+
+		metadata, err := svr.B.GetMetadataDetail(identityId, v.GetMetadataInfo().GetMetadataId())
 		if nil != err {
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
 				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
@@ -200,32 +219,44 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
 		}
 
-		colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metadata.GetData().GetMetadataColumns()))
-		for _, col := range metadata.GetData().GetMetadataColumns() {
-			colTmp[col.GetCIndex()] = col
-		}
+		var (
+		 	keyColumn *libtypes.MetadataColumn
+			selectedColumns []*libtypes.MetadataColumn
+		)
 
-		var keyColumn *libtypes.MetadataColumn
-
-		if col, ok := colTmp[v.GetMetadataInfo().GetKeyColumn()]; ok {
-			keyColumn = col
-		} else {
-			errMsg := fmt.Sprintf(ErrReqMetadataByKeyColumn.Msg, v.GetOrganization().GetIdentityId(),
-				v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetKeyColumn())
-			return nil, backend.NewRpcBizErr(ErrReqMetadataByKeyColumn.Code, errMsg)
-		}
-
-		selectedColumns := make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetSelectedColumns()))
-
-		for j, colIndex := range v.GetMetadataInfo().GetSelectedColumns() {
-			if col, ok := colTmp[colIndex]; ok {
-				selectedColumns[j] = col
-			} else {
-				errMsg := fmt.Sprintf(ErrReqMetadataBySelectedColumn.Msg,
-					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), colIndex)
-				return nil, backend.NewRpcBizErr(ErrReqMetadataBySelectedColumn.Code, errMsg)
+		// handle publish metadata columns
+		if !internalMetadata {
+			colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metadata.GetData().GetMetadataColumns()))
+			for _, col := range metadata.GetData().GetMetadataColumns() {
+				colTmp[col.GetCIndex()] = col
 			}
+
+			if col, ok := colTmp[v.GetMetadataInfo().GetKeyColumn()]; ok {
+				keyColumn = col
+			} else {
+				errMsg := fmt.Sprintf(ErrReqMetadataByKeyColumn.Msg, v.GetOrganization().GetIdentityId(),
+					v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetKeyColumn())
+				return nil, backend.NewRpcBizErr(ErrReqMetadataByKeyColumn.Code, errMsg)
+			}
+
+			selectedColumns = make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetSelectedColumns()))
+
+			for j, colIndex := range v.GetMetadataInfo().GetSelectedColumns() {
+				if col, ok := colTmp[colIndex]; ok {
+					selectedColumns[j] = col
+				} else {
+					errMsg := fmt.Sprintf(ErrReqMetadataBySelectedColumn.Msg,
+						v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), colIndex)
+					return nil, backend.NewRpcBizErr(ErrReqMetadataBySelectedColumn.Code, errMsg)
+				}
+			}
+		} else {
+			// take it zero value
+			keyColumn = &libtypes.MetadataColumn{}
+			selectedColumns = make([]*libtypes.MetadataColumn, 0)
 		}
+
+
 
 		dataSuppliers[i] = &libtypes.TaskDataSupplier{
 			Organization: &apicommonpb.TaskOrganization{
