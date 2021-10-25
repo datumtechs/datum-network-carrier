@@ -15,11 +15,23 @@ func (dc *DataCenter) StoreLocalMetadata(metadata *types.Metadata) error {
 	return rawdb.StoreLocalMetadata(dc.db, metadata)
 }
 
+func (dc *DataCenter) IsLocalMetadataByDataId(metadataId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	_, err := rawdb.QueryLocalMetadata(dc.db, metadataId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return false, err
+	}
+	if rawdb.IsDBNotFoundErr(err) {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (dc *DataCenter) QueryLocalMetadataByDataId(metadataId string) (*types.Metadata, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	metadata, err := rawdb.QueryLocalMetadata(dc.db, metadataId)
-	return metadata, err
+	return rawdb.QueryLocalMetadata(dc.db, metadataId)
 }
 
 func (dc *DataCenter) QueryLocalMetadataList() (types.MetadataArray, error) {

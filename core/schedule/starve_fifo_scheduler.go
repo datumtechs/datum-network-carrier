@@ -225,7 +225,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 			}
 		}
 
-		// 选出 关于自己 metadataId 所在的 dataNode
+		// Find metadataId of current identyt of task with current partyId.
 		var metadataId string
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if selfIdentityId == dataSupplier.GetOrganization().GetIdentityId() && localPartyId == dataSupplier.GetOrganization().GetPartyId() {
@@ -243,7 +243,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		log.Debugf("Succeed verify user metadataAuth when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), metadataId)
 
-		// 获取 metaData 所在的dataNode 资源
+		// Select the datanode where your metadata ID is located.
 		dataResourceDiskUsed, err := sche.resourceMng.GetDB().QueryDataResourceDiskUsed(metadataId)
 		if nil != err {
 			log.Errorf("failed query internal data resource by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, selfTaskRole: {%s}, selfPartyId: {%s}, metadataId: {%s}",

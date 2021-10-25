@@ -135,6 +135,7 @@ type LocalStoreCarrierDB interface {
 
 type MetadataCarrierDB interface {
 	StoreLocalMetadata(metadata *types.Metadata) error
+	IsLocalMetadataByDataId(metadataId string) (bool, error)
 	QueryLocalMetadataByDataId(metadataId string) (*types.Metadata, error)
 	QueryLocalMetadataList() (types.MetadataArray, error)
 	InsertMetadata(metadata *types.Metadata) error

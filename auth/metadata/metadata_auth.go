@@ -314,6 +314,19 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 
 	log.Debugf("Start verify metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 
+	// If the metadata is internal metadata, no verify metadataAuth required
+	flag, err := ma.dataCenter.IsLocalMetadataByDataId(metadataId)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to check internal metadata by metadataId on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}",
+			userType.String(), user, metadataId)
+		return false
+	}
+
+	if flag {
+		log.Debugf("The internal metadata verify the authorization information default `pass`, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
+		return true
+	}
+
 	metadataAuthId, err := ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query user metadataAuthId by metadataId on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}",
