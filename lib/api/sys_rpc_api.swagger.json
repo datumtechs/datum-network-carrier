@@ -943,9 +943,6 @@
     "rpcapiReportTaskEventRequest": {
       "type": "object",
       "properties": {
-        "party_id": {
-          "type": "string"
-        },
         "task_event": {
           "$ref": "#/definitions/typesTaskEvent"
         }
@@ -1395,6 +1392,9 @@
           "type": "string"
         },
         "identity_id": {
+          "type": "string"
+        },
+        "party_id": {
           "type": "string"
         },
         "content": {

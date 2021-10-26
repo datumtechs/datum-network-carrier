@@ -121,8 +121,7 @@ service AuthService {
   // 查询全网组织的身份信息列表(已入网的)
   rpc GetIdentityList (google.protobuf.Empty) returns (GetIdentityListResponse) {
     option (google.api.http) = {
-      post: "/carrier/v1/auth/identityList"
-      body: "*"
+      get: "/carrier/v1/auth/identityList"
     };
   }
 

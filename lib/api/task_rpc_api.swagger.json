@@ -273,19 +273,6 @@
       },
       "title": "任务需要花费的资源声明"
     },
-    "protobufTaskRole": {
-      "type": "string",
-      "enum": [
-        "TaskRole_Unknown",
-        "TaskRole_Sender",
-        "TaskRole_DataSupplier",
-        "TaskRole_PowerSupplier",
-        "TaskRole_Receiver",
-        "TaskRole_AlgoSupplier"
-      ],
-      "default": "TaskRole_Unknown",
-      "title": "本组织在task中的角色"
-    },
     "protobufTaskState": {
       "type": "string",
       "enum": [
@@ -332,9 +319,6 @@
       "properties": {
         "information": {
           "$ref": "#/definitions/rpcapiTaskDetailShow"
-        },
-        "role": {
-          "$ref": "#/definitions/protobufTaskRole"
         }
       },
       "title": "查看本组织参与过的全部任务详情列表"
@@ -554,6 +538,9 @@
         },
         "owner": {
           "$ref": "#/definitions/protobufOrganization"
+        },
+        "party_id": {
+          "type": "string"
         },
         "content": {
           "type": "string"
