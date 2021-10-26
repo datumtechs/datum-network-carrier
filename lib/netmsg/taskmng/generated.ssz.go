@@ -225,7 +225,7 @@ func (t *TaskEvent) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the TaskEvent object to a target array
 func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(24)
+	offset := int(28)
 
 	// Offset (0) 'Type'
 	dst = ssz.WriteOffset(dst, offset)
@@ -239,11 +239,15 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.IdentityId)
 
-	// Offset (3) 'Content'
+	// Offset (3) 'PartyId'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(t.PartyId)
+
+	// Offset (4) 'Content'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(t.Content)
 
-	// Field (4) 'CreateAt'
+	// Field (5) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, t.CreateAt)
 
 	// Field (0) 'Type'
@@ -267,7 +271,14 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, t.IdentityId...)
 
-	// Field (3) 'Content'
+	// Field (3) 'PartyId'
+	if len(t.PartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, t.PartyId...)
+
+	// Field (4) 'Content'
 	if len(t.Content) > 2048 {
 		err = ssz.ErrBytesLength
 		return
@@ -281,19 +292,19 @@ func (t *TaskEvent) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 24 {
+	if size < 28 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o2, o3 uint64
+	var o0, o1, o2, o3, o4 uint64
 
 	// Offset (0) 'Type'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 24 {
+	if o0 < 28 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -307,13 +318,18 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Offset (3) 'Content'
+	// Offset (3) 'PartyId'
 	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
 		return ssz.ErrOffset
 	}
 
-	// Field (4) 'CreateAt'
-	t.CreateAt = ssz.UnmarshallUint64(buf[16:24])
+	// Offset (4) 'Content'
+	if o4 = ssz.ReadOffset(buf[16:20]); o4 > size || o3 > o4 {
+		return ssz.ErrOffset
+	}
+
+	// Field (5) 'CreateAt'
+	t.CreateAt = ssz.UnmarshallUint64(buf[20:28])
 
 	// Field (0) 'Type'
 	{
@@ -351,9 +367,21 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 		t.IdentityId = append(t.IdentityId, buf...)
 	}
 
-	// Field (3) 'Content'
+	// Field (3) 'PartyId'
 	{
-		buf = tail[o3:]
+		buf = tail[o3:o4]
+		if len(buf) > 32 {
+			return ssz.ErrBytesLength
+		}
+		if cap(t.PartyId) == 0 {
+			t.PartyId = make([]byte, 0, len(buf))
+		}
+		t.PartyId = append(t.PartyId, buf...)
+	}
+
+	// Field (4) 'Content'
+	{
+		buf = tail[o4:]
 		if len(buf) > 2048 {
 			return ssz.ErrBytesLength
 		}
@@ -367,7 +395,7 @@ func (t *TaskEvent) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the TaskEvent object
 func (t *TaskEvent) SizeSSZ() (size int) {
-	size = 24
+	size = 28
 
 	// Field (0) 'Type'
 	size += len(t.Type)
@@ -378,7 +406,10 @@ func (t *TaskEvent) SizeSSZ() (size int) {
 	// Field (2) 'IdentityId'
 	size += len(t.IdentityId)
 
-	// Field (3) 'Content'
+	// Field (3) 'PartyId'
+	size += len(t.PartyId)
+
+	// Field (4) 'Content'
 	size += len(t.Content)
 
 	return
@@ -414,14 +445,21 @@ func (t *TaskEvent) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(t.IdentityId)
 
-	// Field (3) 'Content'
+	// Field (3) 'PartyId'
+	if len(t.PartyId) > 32 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(t.PartyId)
+
+	// Field (4) 'Content'
 	if len(t.Content) > 2048 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(t.Content)
 
-	// Field (4) 'CreateAt'
+	// Field (5) 'CreateAt'
 	hh.PutUint64(t.CreateAt)
 
 	hh.Merkleize(indx)
