@@ -65,8 +65,15 @@ func NewSchedulerStarveFIFO(
 	}
 }
 
+func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
+	queue, starveQueue, schedulings := sche.resourceMng.GetDB().RecoveryScheduling()
+	sche.queue = queue
+	sche.starveQueue = starveQueue
+	sche.schedulings = schedulings
+}
 func (sche *SchedulerStarveFIFO) Start() error {
 	//go sche.loop()
+	sche.recoveryQueueSchedulings()
 	log.Info("Started SchedulerStarveFIFO ...")
 	return nil
 }
