@@ -702,7 +702,7 @@ func RemoveScheduling(db KeyValueStore, bullet *types.TaskBullet) error {
 	return db.Delete(key)
 }
 
-func RecoveryScheduling(db KeyValueStore) (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet, error) {
+func RecoveryScheduling(db KeyValueStore) (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet) {
 	it := db.NewIteratorWithPrefixAndStart(schedulingPrefix, nil)
 	defer it.Release()
 	queue := make(types.TaskBullets,0)
@@ -724,7 +724,7 @@ func RecoveryScheduling(db KeyValueStore) (*types.TaskBullets, *types.TaskBullet
 			queue.Push(result)
 		}
 	}
-	return &queue, &starveQueue, schedulings, nil
+	return &queue, &starveQueue, schedulings
 }
 
 // StoreLocalTask serializes the local task into the database.

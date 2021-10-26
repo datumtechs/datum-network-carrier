@@ -71,6 +71,7 @@ func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.M
 
 func (m *MessageHandler) Start() error {
 	m.msgSub = m.pool.SubscribeNewMessageEvent(m.msgChannel)
+	m.recoveryCache()
 	go m.loop()
 	log.Info("Started message handler ...")
 	return nil
@@ -80,12 +81,40 @@ func (m *MessageHandler) Stop() error {
 	return nil
 }
 
+func (m *MessageHandler) recoveryCache()  {
+	taskMsgCache, err := m.dataCenter.QueryTaskMsgArr()
+	if nil != err {
+		log.Warning("Failed to get taskMsgCache from QueryTaskMsgArr.")
+	} else {
+		m.taskMsgCache = taskMsgCache
+	}
+
+	metadataAuthMsgCache,err:=m.dataCenter.QueryMetadataAuthorityMsgArr()
+	if nil != err {
+		log.Warning("Failed to get metadataAuthMsgCache from QueryMetadataAuthorityMsgArr.")
+	} else {
+		m.metadataAuthMsgCache = metadataAuthMsgCache
+	}
+
+	metadataMsgCache,err:=m.dataCenter.QueryMetadataMsgArr()
+	if nil != err {
+		log.Warning("Failed to get metadataMsgCache from QueryMetadataMsgArr.")
+	} else {
+		m.metadataMsgCache=metadataMsgCache
+	}
+
+	powerMsgCache,err:=m.dataCenter.QueryPowerMsgArr()
+	if nil != err {
+		log.Warning("Failed to get powerMsgCache from QueryPowerMsgArr.")
+	} else {
+		m.powerMsgCache=powerMsgCache
+	}
+}
 func (m *MessageHandler) loop() {
 	powerTicker := time.NewTicker(defaultBroadcastPowerMsgInterval)
 	metadataTicker := time.NewTicker(defaultBroadcastMetadataMsgInterval)
 	metadataAuthTicker := time.NewTicker(defaultBroadcastMetadataAuthMsgInterval)
 	taskTicker := time.NewTicker(defaultBroadcastTaskMsgInterval)
-
 	for {
 		select {
 		case event := <-m.msgChannel:
