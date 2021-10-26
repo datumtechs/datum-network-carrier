@@ -14,16 +14,16 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 		UserType: taskData.GetUserType(),
 		User:     taskData.GetUser(),
 		Sender: &apicommonpb.TaskOrganization{
-			PartyId:    taskData.GetPartyId(),
-			NodeName:   taskData.GetNodeName(),
-			NodeId:     taskData.GetNodeId(),
-			IdentityId: taskData.GetIdentityId(),
+			PartyId:    input.GetTaskSender().GetPartyId(),
+			NodeName:   input.GetTaskSender().GetNodeName(),
+			NodeId:     input.GetTaskSender().GetNodeId(),
+			IdentityId: input.GetTaskSender().GetIdentityId(),
 		},
 		AlgoSupplier: &apicommonpb.TaskOrganization{
-			PartyId:    taskData.GetPartyId(),
-			NodeName:   taskData.GetNodeName(),
-			NodeId:     taskData.GetNodeId(),
-			IdentityId: taskData.GetIdentityId(),
+			PartyId:    input.GetTaskData().GetAlgoSupplier().GetPartyId(),
+			NodeName:   input.GetTaskData().GetAlgoSupplier().GetNodeName(),
+			NodeId:     input.GetTaskData().GetAlgoSupplier().GetNodeId(),
+			IdentityId: input.GetTaskData().GetAlgoSupplier().GetIdentityId(),
 		},
 		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(taskData.GetDataSuppliers())),
 		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(taskData.GetPowerSuppliers())),
@@ -41,18 +41,17 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 	}
 
 	// DataSupplier
-	for _, metadataSupplier := range taskData.GetDataSuppliers() {
-		dataSupplier := &pb.TaskDataSupplierShow{
+	for _, dataSupplier := range taskData.GetDataSuppliers() {
+		detailShow.DataSuppliers = append(detailShow.DataSuppliers, &pb.TaskDataSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    metadataSupplier.GetOrganization().GetPartyId(),
-				NodeName:   metadataSupplier.GetOrganization().GetNodeName(),
-				NodeId:     metadataSupplier.GetOrganization().GetNodeId(),
-				IdentityId: metadataSupplier.GetOrganization().GetIdentityId(),
+				PartyId:    dataSupplier.GetOrganization().GetPartyId(),
+				NodeName:   dataSupplier.GetOrganization().GetNodeName(),
+				NodeId:     dataSupplier.GetOrganization().GetNodeId(),
+				IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
 			},
-			MetadataId:   metadataSupplier.GetMetadataId(),
-			MetadataName: metadataSupplier.GetMetadataName(),
-		}
-		detailShow.DataSuppliers = append(detailShow.DataSuppliers, dataSupplier)
+			MetadataId:   dataSupplier.GetMetadataId(),
+			MetadataName: dataSupplier.GetMetadataName(),
+		})
 	}
 	// powerSupplier
 	for _, data := range taskData.GetPowerSuppliers() {

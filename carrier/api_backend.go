@@ -1048,22 +1048,23 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 		log.Errorf("Not found local task on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}", taskId)
 		return nil, fmt.Errorf("not found local task")
 	}
-	return &pb.TaskDetailShow{
+
+	detailShow :=  &pb.TaskDetailShow{
 		TaskId:   localTask.GetTaskId(),
 		TaskName: localTask.GetTaskData().GetTaskName(),
 		UserType: localTask.GetTaskData().GetUserType(),
 		User:     localTask.GetTaskData().GetUser(),
 		Sender: &apicommonpb.TaskOrganization{
-			PartyId:   localTask.GetTaskData().GetPartyId(),
-			NodeName:  localTask.GetTaskData().GetNodeName(),
-			NodeId:    localTask.GetTaskData().GetNodeId(),
-			IdentityId:localTask.GetTaskData().GetIdentityId(),
+			PartyId:   localTask.GetTaskSender().GetPartyId(),
+			NodeName:  localTask.GetTaskSender().GetNodeName(),
+			NodeId:    localTask.GetTaskSender().GetNodeId(),
+			IdentityId:localTask.GetTaskSender().GetIdentityId(),
 		},
 		AlgoSupplier: &apicommonpb.TaskOrganization{
-			PartyId:    localTask.GetTaskData().GetPartyId(),
-			NodeName:   localTask.GetTaskData().GetNodeName(),
-			NodeId:     localTask.GetTaskData().GetNodeId(),
-			IdentityId: localTask.GetTaskData().GetIdentityId(),
+			PartyId:    localTask.GetTaskData().GetAlgoSupplier().GetPartyId(),
+			NodeName:   localTask.GetTaskData().GetAlgoSupplier().GetNodeName(),
+			NodeId:     localTask.GetTaskData().GetAlgoSupplier().GetNodeId(),
+			IdentityId: localTask.GetTaskData().GetAlgoSupplier().GetIdentityId(),
 		},
 		DataSuppliers:  make([]*pb.TaskDataSupplierShow, 0, len(localTask.GetTaskData().GetDataSuppliers())),
 		PowerSuppliers: make([]*pb.TaskPowerSupplierShow, 0, len(localTask.GetTaskData().GetPowerSuppliers())),
@@ -1078,7 +1079,42 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 			Bandwidth: localTask.GetTaskData().GetOperationCost().GetBandwidth(),
 			Duration:  localTask.GetTaskData().GetOperationCost().GetDuration(),
 		},
-	}, nil
+	}
+
+	// DataSupplier
+	for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
+		detailShow.DataSuppliers = append(detailShow.DataSuppliers, &pb.TaskDataSupplierShow{
+			Organization: &apicommonpb.TaskOrganization{
+				PartyId:    dataSupplier.GetOrganization().GetPartyId(),
+				NodeName:   dataSupplier.GetOrganization().GetNodeName(),
+				NodeId:     dataSupplier.GetOrganization().GetNodeId(),
+				IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
+			},
+			MetadataId:   dataSupplier.GetMetadataId(),
+			MetadataName: dataSupplier.GetMetadataName(),
+		})
+	}
+	// powerSupplier
+	for _, data := range localTask.GetTaskData().GetPowerSuppliers() {
+		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
+			Organization: &apicommonpb.TaskOrganization{
+				PartyId:    data.GetOrganization().GetPartyId(),
+				NodeName:   data.GetOrganization().GetNodeName(),
+				NodeId:     data.GetOrganization().GetNodeId(),
+				IdentityId: data.GetOrganization().GetIdentityId(),
+			},
+			PowerInfo: &libtypes.ResourceUsageOverview{
+				TotalMem:       data.GetResourceUsedOverview().GetTotalMem(),
+				UsedMem:        data.GetResourceUsedOverview().GetUsedMem(),
+				TotalProcessor: data.GetResourceUsedOverview().GetTotalProcessor(),
+				UsedProcessor:  data.GetResourceUsedOverview().GetUsedProcessor(),
+				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
+				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
+			},
+		})
+	}
+
+	return detailShow, nil
 }
 
 func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
