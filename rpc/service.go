@@ -91,7 +91,7 @@ func (s *Service) Start() error {
 			),
 			grpc_prometheus.StreamServerInterceptor,
 			grpc_opentracing.StreamServerInterceptor(),
-			s.validatorStreamConnectionInterceptor,
+			//s.validatorStreamConnectionInterceptor,
 		)),
 		grpc.UnaryInterceptor(middleware.ChainUnaryServer(
 			recovery.UnaryServerInterceptor(
@@ -99,7 +99,7 @@ func (s *Service) Start() error {
 			),
 			grpc_prometheus.UnaryServerInterceptor,
 			grpc_opentracing.UnaryServerInterceptor(),
-			s.validatorUnaryConnectionInterceptor,
+			//s.validatorUnaryConnectionInterceptor,
 		)),
 		grpc.MaxRecvMsgSize(s.cfg.MaxMsgSize),
 	}
