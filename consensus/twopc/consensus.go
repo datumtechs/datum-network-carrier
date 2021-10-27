@@ -70,6 +70,7 @@ func New(
 }
 
 func (t *Twopc) Start() error {
+	t.state = t.wal.RecoveryState()
 	go t.loop()
 	log.Info("Started 2pc consensus engine ...")
 	return nil

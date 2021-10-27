@@ -92,8 +92,14 @@ func NewTaskManager(
 	}
 	return m
 }
-
+func (m *Manager) recoveryNeedExecuteTask()  {
+	result := m.resourceMng.GetDB().RecoveryNeedExecuteTask()
+	if nil != result {
+		m.runningTaskCache = result
+	}
+}
 func (m *Manager) Start() error {
+	m.recoveryNeedExecuteTask()
 	go m.loop()
 	log.Info("Started taskManager ...")
 	return nil
@@ -104,7 +110,6 @@ func (m *Manager) Stop() error {
 }
 
 func (m *Manager) loop() {
-
 	taskMonitorTicker := time.NewTicker(taskMonitorInterval)
 	taskTicker := time.NewTicker(defaultScheduleTaskInterval)
 

@@ -266,7 +266,7 @@ func (dc *DataCenter) StoreScheduling(bullet *types.TaskBullet) error {
 func (dc *DataCenter) DeleteScheduling(bullet *types.TaskBullet) error {
 	return rawdb.RemoveScheduling(dc.db, bullet)
 }
-func (dc *DataCenter) RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet, error) {
+func (dc *DataCenter) RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet) {
 	return rawdb.RecoveryScheduling(dc.db)
 }
 

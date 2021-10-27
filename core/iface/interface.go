@@ -198,7 +198,7 @@ type TaskCarrierDB interface {
 	// about scheduling
 	StoreScheduling(bullet *types.TaskBullet) error
 	DeleteScheduling(bullet *types.TaskBullet) error
-	RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet, error)
+	RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet)
 }
 
 type ForConsensusDB interface {
