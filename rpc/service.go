@@ -91,7 +91,7 @@ func (s *Service) Start() error {
 			),
 			grpc_prometheus.StreamServerInterceptor,
 			grpc_opentracing.StreamServerInterceptor(),
-			//s.validatorStreamConnectionInterceptor,
+			s.validatorStreamConnectionInterceptor,
 		)),
 		grpc.UnaryInterceptor(middleware.ChainUnaryServer(
 			recovery.UnaryServerInterceptor(
@@ -99,7 +99,7 @@ func (s *Service) Start() error {
 			),
 			grpc_prometheus.UnaryServerInterceptor,
 			grpc_opentracing.UnaryServerInterceptor(),
-			//s.validatorUnaryConnectionInterceptor,
+			s.validatorUnaryConnectionInterceptor,
 		)),
 		grpc.MaxRecvMsgSize(s.cfg.MaxMsgSize),
 	}
@@ -198,7 +198,7 @@ func (s *Service) logNewClientConnection(ctx context.Context) {
 		if !s.connectedRPCClients[clientInfo.Addr] {
 			log.WithFields(logrus.Fields{
 				"addr": clientInfo.Addr.String(),
-			}).Infof("New gRPC client connected to carrier node")
+			}).Debug("New gRPC client connected to carrier node")
 			s.connectedRPCClients[clientInfo.Addr] = true
 		}
 	}
