@@ -53,7 +53,7 @@ type MessageHandler struct {
 	lockMetadataAuth sync.Mutex
 	lockTask         sync.Mutex
 
-	// TODO 有些缓存需要持久化
+
 }
 
 func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.Manager, authManager *auth.AuthorityManager, resourceClientSet *grpclient.InternalResourceClientSet) *MessageHandler {
@@ -84,28 +84,28 @@ func (m *MessageHandler) Stop() error {
 func (m *MessageHandler) recoveryCache()  {
 	taskMsgCache, err := m.dataCenter.QueryTaskMsgArr()
 	if nil != err {
-		log.Warning("Failed to get taskMsgCache from QueryTaskMsgArr.")
+		log.WithError(err).Warning("Failed to get taskMsgCache from QueryTaskMsgArr.")
 	} else {
 		m.taskMsgCache = taskMsgCache
 	}
 
 	metadataAuthMsgCache,err:=m.dataCenter.QueryMetadataAuthorityMsgArr()
 	if nil != err {
-		log.Warning("Failed to get metadataAuthMsgCache from QueryMetadataAuthorityMsgArr.")
+		log.WithError(err).Warning("Failed to get metadataAuthMsgCache from QueryMetadataAuthorityMsgArr.")
 	} else {
 		m.metadataAuthMsgCache = metadataAuthMsgCache
 	}
 
 	metadataMsgCache,err:=m.dataCenter.QueryMetadataMsgArr()
 	if nil != err {
-		log.Warning("Failed to get metadataMsgCache from QueryMetadataMsgArr.")
+		log.WithError(err).Warning("Failed to get metadataMsgCache from QueryMetadataMsgArr.")
 	} else {
 		m.metadataMsgCache=metadataMsgCache
 	}
 
 	powerMsgCache,err:=m.dataCenter.QueryPowerMsgArr()
 	if nil != err {
-		log.Warning("Failed to get powerMsgCache from QueryPowerMsgArr.")
+		log.WithError(err).Warning("Failed to get powerMsgCache from QueryPowerMsgArr.")
 	} else {
 		m.powerMsgCache=powerMsgCache
 	}

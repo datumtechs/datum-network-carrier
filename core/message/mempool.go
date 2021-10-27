@@ -193,7 +193,6 @@ type msgLookup struct {
 	metaDataMsgLock sync.RWMutex
 	powerMsgLock    sync.RWMutex
 
-	// TODO 有些缓存需要持久化
 }
 
 func newMsgLookup() *msgLookup {

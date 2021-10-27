@@ -43,7 +43,6 @@ type SchedulerStarveFIFO struct {
 	//dataCenter      iface.ForResourceDB
 	err error
 
-	// TODO 有些缓存需要持久化
 }
 
 func NewSchedulerStarveFIFO(

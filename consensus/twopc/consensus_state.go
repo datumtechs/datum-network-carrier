@@ -28,7 +28,6 @@ type state struct {
 	confirmVotesLock    sync.RWMutex
 	confirmPeerInfoLock sync.RWMutex
 
-	// TODO 有些缓存需要持久化
 }
 
 func newState(ldb *walDB) *state {

@@ -56,8 +56,6 @@ type Manager struct {
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
 	runningTaskCacheLock     sync.RWMutex
-
-	// TODO 有些缓存需要持久化
 }
 
 func NewTaskManager(
