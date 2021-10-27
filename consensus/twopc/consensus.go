@@ -115,7 +115,7 @@ func (t *Twopc) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {
 		return t.onConfirmVote(pid, msg, types.RemoteNetworkMsg)
 	case *types.CommitMsgWrap:
 		return t.onCommitMsg(pid, msg, types.RemoteNetworkMsg)
-	case *types.InterruptMsgWrap: // Must be  local msg
+	case *types.TerminateConsensusMsgWrap: // Must be  local msg
 		return t.onTerminateTaskConsensus(pid, msg)
 	default:
 		return fmt.Errorf("Unknown the 2pc msg type")
@@ -901,10 +901,10 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 	return nil
 }
 
-func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.InterruptMsgWrap) error {
+func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsensusMsgWrap) error {
 
 	msgOption := types.FetchMsgOption(msg.MsgOption)
-	log.Infof("Start interrupt task consensus, taskId: {%s}, partyId: {%s}", msg.GetTaskId(), msgOption.ReceiverPartyId)
+	log.Infof("Start terminate task consensus, taskId: {%s}, partyId: {%s}", msg.GetTaskId(), msgOption.ReceiverPartyId)
 
 	// find the task of proposal on proposalTask
 	proposalTask, ok := t.state.GetProposalTaskWithPartyId(msg.GetTaskId(), msgOption.ReceiverPartyId)

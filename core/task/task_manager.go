@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
@@ -123,12 +124,12 @@ func (m *Manager) loop() {
 
 			for _, task := range tasks {
 				if err := m.scheduler.AddTask(task); nil != err {
-					log.Errorf("Failed to add local task into scheduler queue, err: {%s}", err)
+					log.WithError(err).Errorf("Failed to add local task into scheduler queue")
 					continue
 				}
 
 				if err := m.tryScheduleTask(); nil != err {
-					log.Errorf("Failed to try schedule local task while received local tasks, err: {%s}", err)
+					log.WithError(err).Errorf("Failed to try schedule local task while received local tasks")
 					continue
 				}
 
@@ -213,44 +214,74 @@ func (m *Manager) loop() {
 
 func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 
-	localTask, err := m.resourceMng.GetDB().QueryLocalTask(terminate.GetTaskId())
+	// Why load 'local task' instead of 'needexecutetask'?
+	//
+	// Because the task may still be in the `consensus phase` rather than the `execution phase`,
+	// the cached task cannot be found in the 'needexecutetaskcache' at this time.
+	task, err := m.resourceMng.GetDB().QueryLocalTask(terminate.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
 		return
 	}
 
-	if nil == localTask {
+	if nil == task {
 		log.Errorf("Not found local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
 		return
 	}
 
 	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
 	// While task is consensus or executing, can terminate.
-	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValConsByPartyId(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValConsByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-			localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		return
 	}
 	if has {
 		if err = m.consensusEngine.OnConsensusMsg(
-			"", types.NewInterruptMsgWrap(localTask.GetTaskId(),
+			"", types.NewInterruptMsgWrap(task.GetTaskId(),
 			types.MakeMsgOption(common.Hash{},
 			apicommonpb.TaskRole_TaskRole_Sender,
 			apicommonpb.TaskRole_TaskRole_Sender,
-				localTask.GetTaskSender().GetPartyId(),
-				localTask.GetTaskSender().GetPartyId(),
-				localTask.GetTaskSender()))); nil != err {
+				task.GetTaskSender().GetPartyId(),
+				task.GetTaskSender().GetPartyId(),
+				task.GetTaskSender()))); nil != err {
 			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
-				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+				task.GetTaskId(), task.GetTaskSender().GetPartyId())
 			return
 		}
 	}
 
-	// Anyway, need send terminateMsg to remote partners
-	if err := m.sendTaskTerminateMsg(localTask); nil != err {
-		log.Errorf("Failed to call `sendTaskTerminateMsg()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", terminate.GetTaskId(), err)
+	if err := m.onTerminateExecuteTask(task); nil != err {
+		log.Errorf("Failed to call `onTerminateExecuteTask()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", task.GetTaskId(), err)
 	}
+
+}
+
+func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
+	// what if find the needExecuteTask(status: types.TaskConsensusFinished) with sender
+	if m.hasNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
+
+		// 1、 store task terminate (failed or succeed) event with current party
+		m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+			Type:        ev.TaskTerminated.Type,
+			TaskId:     task.GetTaskId(),
+			IdentityId: task.GetTaskSender().GetIdentityId(),
+			PartyId:    task.GetTaskSender().GetPartyId(),
+			Content:    "task was terminated.",
+			CreateAt:   timeutils.UnixMsecUint64(),
+		})
+
+		// 2、 remove needExecuteTask cache with sender
+		m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId())
+		// 3、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
+		m.sendNeedExecuteTaskByAction(task,
+			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
+			task.GetTaskSender(), task.GetTaskSender(),
+			types.TaskTerminate)
+	}
+
+	return m.sendTaskTerminateMsg(task)
 }
 
 func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {

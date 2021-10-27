@@ -285,7 +285,7 @@ func (msg *CommitMsgWrap) Hash() common.Hash {
 func (msg *CommitMsgWrap) Signature() []byte { return msg.Sign }
 
 // ------------------------------- About InterruptMsg -------------------------------
-type InterruptMsgWrap struct {
+type TerminateConsensusMsgWrap struct {
 	MsgOption *commonpb.MsgOption
 	TaskId    []byte
 	// caches
@@ -293,22 +293,22 @@ type InterruptMsgWrap struct {
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
-func NewInterruptMsgWrap(taskId string, msgOption *commonpb.MsgOption) *InterruptMsgWrap {
-	return &InterruptMsgWrap{
+func NewInterruptMsgWrap(taskId string, msgOption *commonpb.MsgOption) *TerminateConsensusMsgWrap {
+	return &TerminateConsensusMsgWrap{
 		TaskId: []byte(taskId),
 		MsgOption: msgOption,
 	}
 }
-func (msg *InterruptMsgWrap) GetTaskId() string                 { return string(msg.TaskId) }
-func (msg *InterruptMsgWrap) GetMsgOption() *commonpb.MsgOption { return msg.MsgOption }
-func (msg *InterruptMsgWrap) String() string {
+func (msg *TerminateConsensusMsgWrap) GetTaskId() string                 { return string(msg.TaskId) }
+func (msg *TerminateConsensusMsgWrap) GetMsgOption() *commonpb.MsgOption { return msg.MsgOption }
+func (msg *TerminateConsensusMsgWrap) String() string {
 	result, err := json.Marshal(msg)
 	if err != nil {
 		return "Failed to generate string"
 	}
 	return string(result)
 }
-func (msg *InterruptMsgWrap) SealHash() common.Hash {
+func (msg *TerminateConsensusMsgWrap) SealHash() common.Hash {
 	if sealHash := msg.sealHash.Load(); sealHash != nil {
 		return sealHash.(common.Hash)
 	}
@@ -316,7 +316,7 @@ func (msg *InterruptMsgWrap) SealHash() common.Hash {
 	msg.sealHash.Store(v)
 	return v
 }
-func (msg *InterruptMsgWrap) _sealHash() (hash common.Hash) {
+func (msg *TerminateConsensusMsgWrap) _sealHash() (hash common.Hash) {
 	hasher := sha3.NewKeccak256()
 	var buf bytes.Buffer
 	buf.Write([]byte(msg.GetTaskId()))
@@ -330,7 +330,7 @@ func (msg *InterruptMsgWrap) _sealHash() (hash common.Hash) {
 	hasher.Sum(hash[:0])
 	return hash
 }
-func (msg *InterruptMsgWrap) Hash() common.Hash {
+func (msg *TerminateConsensusMsgWrap) Hash() common.Hash {
 	if hash := msg.hash.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
@@ -338,7 +338,7 @@ func (msg *InterruptMsgWrap) Hash() common.Hash {
 	msg.hash.Store(v)
 	return v
 }
-func (msg *InterruptMsgWrap) Signature() []byte { return nil }
+func (msg *TerminateConsensusMsgWrap) Signature() []byte { return nil }
 
 //// ------------------------------- About TaskResultMsg -------------------------------
 //type TaskResultMsgWrap struct {
