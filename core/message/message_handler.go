@@ -71,7 +71,7 @@ func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.M
 
 func (m *MessageHandler) Start() error {
 	m.msgSub = m.pool.SubscribeNewMessageEvent(m.msgChannel)
-	m.recoveryCache()
+	//m.recoveryCache()
 	go m.loop()
 	log.Info("Started message handler ...")
 	return nil

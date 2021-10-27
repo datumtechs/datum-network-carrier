@@ -97,7 +97,7 @@ func (m *Manager) recoveryNeedExecuteTask()  {
 	}
 }
 func (m *Manager) Start() error {
-	m.recoveryNeedExecuteTask()
+	//m.recoveryNeedExecuteTask()
 	go m.loop()
 	log.Info("Started taskManager ...")
 	return nil
