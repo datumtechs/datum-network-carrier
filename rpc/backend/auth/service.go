@@ -379,11 +379,11 @@ func (svr *Server) GetGlobalMetadataAuthorityList(context.Context, *emptypb.Empt
 
 func verifyUserType(userType apicommonpb.UserType) bool {
 	switch userType {
-	case apicommonpb.UserType_User_ETH:
+	case apicommonpb.UserType_User_1:
 		return true
-	case apicommonpb.UserType_User_ATP:
+	case apicommonpb.UserType_User_2:
 		return true
-	case apicommonpb.UserType_User_LAT:
+	case apicommonpb.UserType_User_3:
 		return true
 	default:
 		return false

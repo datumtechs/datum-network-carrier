@@ -363,9 +363,9 @@
       "type": "string",
       "enum": [
         "User_Unknown",
-        "User_ETH",
-        "User_ATP",
-        "User_LAT"
+        "User_1",
+        "User_2",
+        "User_3"
       ],
       "default": "User_Unknown"
     },
