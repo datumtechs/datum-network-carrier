@@ -34,8 +34,8 @@ func (dc *DataCenter) QueryLocalTask(taskId string) (*types.Task, error) {
 	if taskId == "" {
 		return nil, errors.New("invalid params taskId for QueryLocalTask")
 	}
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
 	//log.Debugf("QueryLocalTask, taskId: {%s}", taskId)
 	return rawdb.QueryLocalTask(dc.db, taskId)
 }
@@ -56,8 +56,8 @@ func (dc *DataCenter) QueryLocalTaskAndEvents(taskId string) (*types.Task, error
 	if taskId == "" {
 		return nil, errors.New("invalid params taskId for QueryLocalTask")
 	}
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
 	task, err := rawdb.QueryLocalTask(dc.db, taskId)
 	if nil != err {
 		return nil, err
@@ -105,6 +105,20 @@ func (dc *DataCenter) QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
 		tasks[i] = task
 	}
 	return tasks, nil
+}
+
+//
+func (dc *DataCenter) QueryRunningTaskCountOnCurrentOrg() uint32 {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	taskList, err := rawdb.QueryAllLocalTasks(dc.db)
+	if nil != err {
+		return 0
+	}
+	if taskList != nil {
+		return uint32(taskList.Len())
+	}
+	return 0
 }
 
 func (dc *DataCenter) StoreJobNodeRunningTaskId(jobNodeId, taskId string) error {
@@ -156,8 +170,8 @@ func (dc *DataCenter) DecreaseResourceTaskPartyIdCount(jobNodeId, taskId string)
 }
 
 func (dc *DataCenter) QueryResourceTaskPartyIdCount(jobNodeId, taskId string) (uint32, error) {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
 	return rawdb.QueryResourceTaskPartyIdCount(dc.db, jobNodeId, taskId)
 }
 
@@ -231,8 +245,8 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 }
 
 func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
 	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
 		LastUpdated: timeutils.UnixMsecUint64(),
 		IdentityId:  identityId,
@@ -240,22 +254,9 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDa
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
-func (dc *DataCenter) QueryRunningTaskCountOnOrg() uint32 {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	taskList, err := rawdb.QueryAllLocalTasks(dc.db)
-	if nil != err {
-		return 0
-	}
-	if taskList != nil {
-		return uint32(taskList.Len())
-	}
-	return 0
-}
-
 func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
 		TaskId: taskId,
 	})
@@ -269,8 +270,8 @@ func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.Tas
 }
 
 func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error) {
-	dc.serviceMu.Lock()
-	defer dc.serviceMu.Unlock()
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
 
 	eventList := make([]*libtypes.TaskEvent, 0)
 	for _, taskId := range taskIds {
@@ -305,8 +306,8 @@ func (dc *DataCenter) StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTask
 }
 
 func (dc *DataCenter) HasLocalTaskPowerUsed(taskId, partyId string) (bool, error) {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
 	return rawdb.HasLocalTaskPowerUsed(dc.db, taskId, partyId)
 }
 

@@ -37,11 +37,7 @@ func (dc *DataCenter) QueryIdentityId() (string, error) {
 func (dc *DataCenter) QueryIdentity() (*apicommonpb.Organization, error) {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	identity, err := rawdb.QueryLocalIdentity(dc.db)
-	if nil != err {
-		return nil, err
-	}
-	return identity, nil
+	return rawdb.QueryLocalIdentity(dc.db)
 }
 
 // about identity on datacenter

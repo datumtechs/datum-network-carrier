@@ -144,24 +144,31 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	//log.Debugf("Received Publish task req: %s", taskJsonReq(req))
 
 	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check userType failed, wrong userType: {%s}", req.GetUserType().String())
 		return nil, ErrReqUserTypePublishTask
 	}
 	if "" == req.GetUser() {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check user failed, user is empty")
 		return nil, ErrReqUserPublishTask
 	}
 	if len(req.GetSign()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check sign failed, sign is empty")
 		return nil, ErrReqUserSignPublishTask
 	}
 	if req.GetOperationCost() == nil {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check OperationCost failed, OperationCost is empty")
 		return nil, ErrReqOperationCostForPublishTask
 	}
 	if len(req.GetReceivers()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check receivers failed, receivers is empty")
 		return nil, ErrReqReceiversForPublishTask
 	}
 	if len(req.GetDataSuppliers()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check dataSuppliers failed, dataSuppliers is empty")
 		return nil, ErrReqDataSuppliersForPublishTask
 	}
 	if "" == req.GetCalculateContractCode() {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check CalculateContractCode failed, CalculateContractCode is empty")
 		return nil, ErrReqCalculateContractCodeForPublishTask
 	}
 
@@ -177,6 +184,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	checkPartyIdCache[req.GetSender().GetPartyId()] = struct{}{}
 
 	if _, ok := checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()]; ok {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of algoSupplier failed, this partyId has alreay exist, partyId: {%s}",
+			req.GetAlgoSupplier().GetPartyId())
 		return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())
 	}
 	checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
@@ -186,6 +195,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	for i, v := range req.GetDataSuppliers() {
 
 		if _, ok := checkPartyIdCache[v.GetOrganization().GetPartyId()]; ok {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of dataSupplier failed, this partyId has alreay exist, partyId: {%s}",
+				v.GetOrganization().GetPartyId())
 			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetOrganization().GetPartyId())
 		}
 		checkPartyIdCache[v.GetOrganization().GetPartyId()] = struct{}{}
@@ -236,6 +247,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			} else {
 				errMsg := fmt.Sprintf(ErrReqMetadataByKeyColumn.Msg, v.GetOrganization().GetIdentityId(),
 					v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetKeyColumn())
+				log.Errorf("RPC-API:PublishTaskDeclare failed, check columns colIndex of keyColumn, this colIndex is not exist, partyId: {%s}, colIndex: {%d}",
+					v.GetOrganization().GetPartyId(), v.GetMetadataInfo().GetKeyColumn())
 				return nil, backend.NewRpcBizErr(ErrReqMetadataByKeyColumn.Code, errMsg)
 			}
 
@@ -247,6 +260,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				} else {
 					errMsg := fmt.Sprintf(ErrReqMetadataBySelectedColumn.Msg,
 						v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), colIndex)
+					log.Errorf("RPC-API:PublishTaskDeclare failed, check columns colIndex of selectedColumns, this colIndex is not exist, partyId: {%s}, colIndex: {%d}",
+						v.GetOrganization().GetPartyId(), colIndex)
 					return nil, backend.NewRpcBizErr(ErrReqMetadataBySelectedColumn.Code, errMsg)
 				}
 			}
@@ -276,6 +291,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 
 	for _, partyId := range req.GetPowerPartyIds() {
 		if _, ok := checkPartyIdCache[partyId]; ok {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSupplier failed, this partyId has alreay exist, partyId: {%s}",
+				partyId)
 			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on powerPartyIds, partyId: {%s}", partyId)
 		}
 		checkPartyIdCache[partyId] = struct{}{}
@@ -283,6 +300,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 
 	for _, v := range req.GetReceivers() {
 		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of receiver failed, this partyId has alreay exist, partyId: {%s}",
+				v.GetPartyId())
 			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on receivers, partyId: {%s}", v.GetPartyId())
 		}
 		checkPartyIdCache[v.GetPartyId()] = struct{}{}

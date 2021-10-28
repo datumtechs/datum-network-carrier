@@ -132,6 +132,7 @@ type TaskCarrierDB interface {
 	QueryLocalTaskAndEvents(taskId string) (*types.Task, error)
 	QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
 	QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
+	QueryRunningTaskCountOnCurrentOrg() uint32
 	// about resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
 	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
 	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
@@ -155,7 +156,6 @@ type TaskCarrierDB interface {
 	// about task on datacenter
 	InsertTask(task *types.Task) error
 	QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
-	QueryRunningTaskCountOnOrg() uint32
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 	// v 1.0 about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})
