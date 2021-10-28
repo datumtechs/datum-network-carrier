@@ -91,7 +91,7 @@ func NewNeedConsensusTask(task *Task) *NeedConsensusTask {
 	}
 }
 
-func (nct *NeedConsensusTask) GetTask() *Task { return nct.task }
+func (nct *NeedConsensusTask) GetTask() *Task                    { return nct.task }
 func (nct *NeedConsensusTask) GetResultCh() chan *TaskConsResult { return nct.resultCh }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
@@ -107,10 +107,9 @@ func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
 func (nct *NeedConsensusTask) ReceiveResult() *TaskConsResult {
 	return <-nct.resultCh
 }
-func (nct *NeedConsensusTask) Close () {
+func (nct *NeedConsensusTask) Close() {
 	close(nct.resultCh)
 }
-
 
 // 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
 type NeedReplayScheduleTask struct {
@@ -200,10 +199,8 @@ type NeedExecuteTask struct {
 func NewNeedExecuteTask(
 	remotepid peer.ID,
 	proposalId common.Hash,
-	localTaskRole apicommonpb.TaskRole,
-	localTaskOrganization *apicommonpb.TaskOrganization,
-	remoteTaskRole apicommonpb.TaskRole,
-	remoteTaskOrganization *apicommonpb.TaskOrganization,
+	localTaskRole, remoteTaskRole apicommonpb.TaskRole,
+	localTaskOrganization, remoteTaskOrganization *apicommonpb.TaskOrganization,
 	task *Task,
 	consStatus TaskActionStatus,
 	localResource *PrepareVoteResource,

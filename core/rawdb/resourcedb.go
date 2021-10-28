@@ -2,10 +2,13 @@ package rawdb
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/gogo/protobuf/proto"
 	leveldberr "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
@@ -349,9 +352,9 @@ func QueryLocalTaskPowerUsedsByTaskId(db KeyValueStore, taskId string) ([]*types
 
 	arr := make([]*types.LocalTaskPowerUsed, 0)
 	for it.Next() {
-		if key := it.Key(); len(key) != 0 {
+		if value := it.Value(); len(value) != 0 {
 			var taskPowerUsed types.LocalTaskPowerUsed
-			if err := rlp.DecodeBytes(it.Value(), &taskPowerUsed); nil != err {
+			if err := rlp.DecodeBytes(value, &taskPowerUsed); nil != err {
 				return nil, err
 			}
 			arr = append(arr, &taskPowerUsed)
@@ -370,9 +373,9 @@ func QueryLocalTaskPowerUseds(db KeyValueStore) ([]*types.LocalTaskPowerUsed, er
 
 	arr := make([]*types.LocalTaskPowerUsed, 0)
 	for it.Next() {
-		if key := it.Key(); len(key) != 0 {
+		if value := it.Value(); len(value) != 0 {
 			var taskPowerUsed types.LocalTaskPowerUsed
-			if err := rlp.DecodeBytes(it.Value(), &taskPowerUsed); nil != err {
+			if err := rlp.DecodeBytes(value, &taskPowerUsed); nil != err {
 				return nil, err
 			}
 			arr = append(arr, &taskPowerUsed)
@@ -1450,9 +1453,9 @@ func QueryTaskUpResultFileList(db DatabaseIteratee) ([]*types.TaskUpResultFile, 
 
 	arr := make([]*types.TaskUpResultFile, 0)
 	for it.Next() {
-		if key := it.Key(); len(key) != 0 {
+		if value := it.Value(); len(value) != 0 {
 			var taskUpResultFile types.TaskUpResultFile
-			if err := rlp.DecodeBytes(it.Value(), &taskUpResultFile); nil != err {
+			if err := rlp.DecodeBytes(value, &taskUpResultFile); nil != err {
 				log.Errorf("Failed to call QueryAllTaskUpResultFile, decode db val failed, err: {%s}", err)
 				continue
 			}
@@ -1642,119 +1645,64 @@ func RemoveTaskPartnerPartyIds(db KeyValueStore, taskId string) error {
 	return db.Delete(key)
 }
 
-func StoreMessageCache(db KeyValueStore, value interface{}) {
-	byteArray, _ := rlp.EncodeToBytes(value)
-	key := ""
-	switch value.(type) {
-	case types.PowerMsgArr:
-		key = "PowerMsgArr"
-	case types.MetadataMsgArr:
-		key = "MetadataMsgArr"
-	case types.MetadataAuthorityMsgArr:
-		key = "MetadataAuthorityMsgArr"
-	case types.TaskMsgArr:
-		key = "TaskMsgArr"
+func StoreMessageCache(db KeyValueStore, value interface{}) error {
+	var (
+		key []byte
+		val []byte
+		err error
+	)
+	switch v := value.(type) {
+	case *types.PowerMsg:
+
+		key = GetPowerMsgKey(v.GetPowerId())
+		val, err = proto.Marshal(&libtypes.PowerMsg{
+			PowerId:   v.GetPowerId(),
+			JobNodeId: v.GetJobNodeId(),
+			CreateAt:  v.GetCreateAt(),
+		})
+		if nil != err {
+			return fmt.Errorf("marshal powerMsg failed, %s", err)
+		}
+
+	case types.MetadataMsg:
+		key = GetMetadataMsgKey(v.GetMetadataId())
+		val, err = proto.Marshal(&libtypes.MetadataMsg{
+			MetadataId:      v.GetMetadataId(),
+			MetadataSummary: v.GetMetadataSummary(),
+			ColumnMetas:     v.GetColumnMetas(),
+			CreateAt:        v.GetCreateAt(),
+		})
+		if nil != err {
+			return fmt.Errorf("marshal metadataMsg failed, %s", err)
+		}
+	case types.MetadataAuthorityMsg:
+		key = GetMetadataAuthMsgKey(v.GetMetadataAuthId())
+		val, err = proto.Marshal(&libtypes.MetadataAuthorityMsg{
+			MetadataAuthId: v.GetMetadataAuthId(),
+			User:           v.GetUser(),
+			UserType:       v.GetUserType(),
+			Auth:           v.GetMetadataAuthority(),
+			Sign:           v.GetSign(),
+			CreateAt:       v.GetCreateAt(),
+		})
+		if nil != err {
+			return fmt.Errorf("marshal metadataAuthorityMsg failed, %s", err)
+		}
+	case types.TaskMsg:
+		key = GetTaskMsgKey(v.GetTaskId())
+		val, err = proto.Marshal(&libtypes.TaskMsg{
+			Data:          v.GetTaskData(),
+			PowerPartyIds: v.GetPowerPartyIds(),
+		})
+		if nil != err {
+			return fmt.Errorf("marshal taskMsg failed, %s", err)
+		}
 	}
-	if err := db.Put([]byte(key), byteArray); err != nil {
-		log.Warning("StoreMessageCache fail,key is:", key)
-	}
+	return db.Put(key, val)
 }
 
-func QueryPowerMsgArr(db KeyValueStore) (types.PowerMsgArr, error) {
-	key := []byte("PowerMsgArr")
-	has, err := db.Has(key)
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
-	}
-	var result types.PowerMsgArr
-	if !has {
-		return nil, ErrNotFound
-	} else {
-		byteArray, er := db.Get(key)
-		if nil != er {
-			return nil, er
-		}
-		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
-	key := []byte("MetadataMsgArr")
-	has, err := db.Has(key)
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
-	}
-	var result types.MetadataMsgArr
-	if !has {
-		return nil, ErrNotFound
-	} else {
-		byteArray, er := db.Get(key)
-		if nil != er {
-			return nil, er
-		}
-		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func QueryMetadataAuthorityMsgArr(db KeyValueStore) (types.MetadataAuthorityMsgArr, error) {
-	key := []byte("MetadataAuthorityMsgArr")
-	has, err := db.Has(key)
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
-	}
-	var result types.MetadataAuthorityMsgArr
-	if !has {
-		return nil, ErrNotFound
-	} else {
-		byteArray, er := db.Get(key)
-		if nil != er {
-			return nil, er
-		}
-		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
-	key := []byte("TaskMsgArr")
-	has, err := db.Has(key)
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
-	}
-	var result types.TaskMsgArr
-	if !has {
-		return nil, ErrNotFound
-	} else {
-		byteArray, er := db.Get(key)
-		if nil != er {
-			return nil, er
-		}
-		if err := rlp.DecodeBytes(byteArray, &result); nil != err {
-			return nil, err
-		}
-	}
-	return result, nil
-}
-
-func StoreNeedExecuteTask(db KeyValueStore, cache *types.NeedExecuteTask, taskId, partyId string) error {
-	key := GetNeedExecuteTaskKey(taskId, partyId)
-	result, err := rlp.EncodeToBytes(cache)
-	if nil != err {
-		return err
-	}
-	return db.Put(key, result)
-}
-
-func RemoveNeedExecuteTaskByPartyId(db KeyValueStore, taskId, partyId string) error {
-	key := GetNeedExecuteTaskKey(taskId, partyId)
+func RemovePowerMsg(db KeyValueStore, powerId string) error {
+	key := GetPowerMsgKey(powerId)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -1765,10 +1713,10 @@ func RemoveNeedExecuteTaskByPartyId(db KeyValueStore, taskId, partyId string) er
 	return db.Delete(key)
 }
 
-func RemoveNeedExecuteTask(db KeyValueStore, taskId string) error {
-	prefix := append(needExecuteTaskPrefix, []byte(taskId)...)
-	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+func RemoveAllPowerMsg(db KeyValueStore) error {
+	it := db.NewIteratorWithPrefixAndStart(GetPowerMsgKeyPrefix(), nil)
 	defer it.Release()
+
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
 			db.Delete(key)
@@ -1777,28 +1725,180 @@ func RemoveNeedExecuteTask(db KeyValueStore, taskId string) error {
 	return nil
 }
 
-func RecoveryNeedExecuteTask(db KeyValueStore) map[string]map[string]*types.NeedExecuteTask {
-	it := db.NewIteratorWithPrefixAndStart(needExecuteTaskPrefix, nil)
+func RemoveMetadataMsg(db KeyValueStore, metadataId string) error {
+	key := GetMetadataMsgKey(metadataId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+func RemoveAllMetadataMsg(db KeyValueStore) error {
+	it := db.NewIteratorWithPrefixAndStart(GetMetadataMsgKeyPrefix(), nil)
 	defer it.Release()
-	runningTaskCache := make(map[string]map[string]*types.NeedExecuteTask, 0)
 
 	for it.Next() {
 		if key := it.Key(); len(key) != 0 {
-			var needExecuteTask types.NeedExecuteTask
-			if err := rlp.DecodeBytes(it.Value(), &needExecuteTask); nil != err {
-				log.WithError(err).Errorf("Failed to call query needExecuteTask, decode db val failed")
-				continue
-			}
-			// task:${taskId hex} == 5 + 2 + 64
-			taskId := key[len(needExecuteTaskPrefix):len(needExecuteTaskPrefix)+71]
-			partyId := key[len(needExecuteTaskPrefix)+71:]
-			cache, ok := runningTaskCache[string(taskId)]
-			if !ok {
-				cache = make(map[string]*types.NeedExecuteTask, 0)
-			}
-			cache[string(partyId)] = &needExecuteTask
-			runningTaskCache[string(taskId)] = cache
+			db.Delete(key)
 		}
 	}
-	return runningTaskCache
+	return nil
 }
+
+func RemoveMetadataAuthMsg(db KeyValueStore, metadataAuthId string) error {
+	key := GetMetadataAuthMsgKey(metadataAuthId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+func RemoveAllMetadataAuthMsg(db KeyValueStore) error {
+	it := db.NewIteratorWithPrefixAndStart(GetMetadataAuthMsgKeyPrefix(), nil)
+	defer it.Release()
+
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			db.Delete(key)
+		}
+	}
+	return nil
+}
+
+func RemoveTaskMsg(db KeyValueStore, taskId string) error {
+	key := GetTaskMsgKey(taskId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+func RemoveAllTaskMsg(db KeyValueStore) error {
+	it := db.NewIteratorWithPrefixAndStart(GetTaskMsgKeyPrefix(), nil)
+	defer it.Release()
+
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			db.Delete(key)
+		}
+	}
+	return nil
+}
+
+func QueryPowerMsgArr(db KeyValueStore) (types.PowerMsgArr, error) {
+
+	it := db.NewIteratorWithPrefixAndStart(GetPowerMsgKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make(types.PowerMsgArr, 0)
+
+	for it.Next() {
+		if val := it.Value(); len(val) != 0 {
+			var res libtypes.PowerMsg
+			if err := proto.Unmarshal(val, &res); nil != err {
+				continue
+			}
+			arr = append(arr, &types.PowerMsg{
+				PowerId:   res.GetPowerId(),
+				JobNodeId: res.GetJobNodeId(),
+				CreateAt:  res.GetCreateAt(),
+			})
+		}
+	}
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
+}
+
+func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
+	it := db.NewIteratorWithPrefixAndStart(GetMetadataMsgKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make(types.MetadataMsgArr, 0)
+
+	for it.Next() {
+		if val := it.Value(); len(val) != 0 {
+			var res libtypes.MetadataMsg
+			if err := proto.Unmarshal(val, &res); nil != err {
+				continue
+			}
+			arr = append(arr, &types.MetadataMsg{
+				MetadataId:      res.GetMetadataId(),
+				MetadataSummary: res.GetMetadataSummary(),
+				ColumnMetas:     res.GetColumnMetas(),
+				CreateAt:        res.GetCreateAt(),
+			})
+		}
+	}
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
+}
+
+func QueryMetadataAuthorityMsgArr(db KeyValueStore) (types.MetadataAuthorityMsgArr, error) {
+	it := db.NewIteratorWithPrefixAndStart(GetMetadataAuthMsgKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make(types.MetadataAuthorityMsgArr, 0)
+
+	for it.Next() {
+		if val := it.Value(); len(val) != 0 {
+			var res libtypes.MetadataAuthorityMsg
+			if err := proto.Unmarshal(val, &res); nil != err {
+				continue
+			}
+			arr = append(arr, &types.MetadataAuthorityMsg{
+				MetadataAuthId: res.GetMetadataAuthId(),
+				User:           res.GetUser(),
+				UserType:       res.GetUserType(),
+				Auth:           res.GetAuth(),
+				Sign:           res.GetSign(),
+				CreateAt:       res.GetCreateAt(),
+			})
+		}
+	}
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
+}
+
+func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
+	it := db.NewIteratorWithPrefixAndStart(GetMetadataAuthMsgKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make(types.TaskMsgArr, 0)
+
+	for it.Next() {
+		if val := it.Value(); len(val) != 0 {
+			var res libtypes.TaskMsg
+			if err := proto.Unmarshal(val, &res); nil != err {
+				continue
+			}
+			arr = append(arr, &types.TaskMsg{
+				Data:          types.NewTask(res.GetData()),
+				PowerPartyIds: res.GetPowerPartyIds(),
+			})
+		}
+	}
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
+}
+
+

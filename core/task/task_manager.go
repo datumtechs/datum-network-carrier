@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
@@ -15,6 +16,8 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/gogo/protobuf/proto"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 	"sync"
 	"time"
@@ -90,14 +93,56 @@ func NewTaskManager(
 	}
 	return m
 }
-func (m *Manager) recoveryNeedExecuteTask()  {
-	result := m.resourceMng.GetDB().RecoveryNeedExecuteTask()
-	if nil != result {
-		m.runningTaskCache = result
+func (m *Manager) recoveryNeedExecuteTask() {
+	prefix := rawdb.GetNeedExecuteTaskKeyPrefix()
+	if err := m.resourceMng.GetDB().ForEachNeedExecuteTask(func(key, value []byte) error {
+		if len(key) != 0 && len(value) != 0 {
+
+			// task:${taskId hex} == 5 + 2 + 64 == "taskId:" + "0x" + "e33...fe4"
+			taskId := string(key[len(prefix) : len(prefix)+71])
+			partyId := string(key[len(prefix)+71:])
+
+			task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
+			if nil != err {
+				return fmt.Errorf("query local task failed on recover needExecuteTask from db, %s, taskId: {%s}", err, taskId)
+			}
+
+			var res libtypes.NeedExecuteTask
+
+			if err := proto.Unmarshal(value, &res); nil != err {
+				return fmt.Errorf("Unmarshal needExecuteTask failed, %s", err)
+			}
+
+			cache, ok := m.runningTaskCache[taskId]
+			if !ok {
+				cache = make(map[string]*types.NeedExecuteTask, 0)
+			}
+			cache[partyId] = types.NewNeedExecuteTask(
+				peer.ID(res.GetRemotePid()),
+				common.HexToHash(res.GetProposalId()),
+				res.GetLocalTaskRole(),
+				res.GetRemoteTaskRole(),
+				res.GetLocalTaskOrganization(),
+				res.GetRemoteTaskOrganization(),
+				task,
+				types.TaskActionStatus(bytesutil.BytesToUint16(res.GetConsStatus())),
+				types.NewPrepareVoteResource(
+					res.GetLocalResource().GetId(),
+					res.GetLocalResource().GetIp(),
+					res.GetLocalResource().GetPort(),
+					res.GetLocalResource().GetPartyId(),
+				),
+				res.GetResources(),
+			)
+			m.runningTaskCache[taskId] = cache
+		}
+		return nil
+	}); nil != err {
+		log.WithError(err).Fatalf("recover needExecuteTask failed")
 	}
 }
 func (m *Manager) Start() error {
-	//m.recoveryNeedExecuteTask()
+	m.recoveryNeedExecuteTask()
 	go m.loop()
 	log.Info("Started taskManager ...")
 	return nil
@@ -215,7 +260,7 @@ func (m *Manager) loop() {
 	}
 }
 
-func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
+func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 
 	// Why load 'local task' instead of 'needexecutetask'?
 	//
@@ -243,12 +288,12 @@ func (m *Manager) TerminateTask (terminate *types.TaskTerminateMsg) {
 	if has {
 		if err = m.consensusEngine.OnConsensusMsg(
 			"", types.NewInterruptMsgWrap(task.GetTaskId(),
-			types.MakeMsgOption(common.Hash{},
-			apicommonpb.TaskRole_TaskRole_Sender,
-			apicommonpb.TaskRole_TaskRole_Sender,
-				task.GetTaskSender().GetPartyId(),
-				task.GetTaskSender().GetPartyId(),
-				task.GetTaskSender()))); nil != err {
+				types.MakeMsgOption(common.Hash{},
+					apicommonpb.TaskRole_TaskRole_Sender,
+					apicommonpb.TaskRole_TaskRole_Sender,
+					task.GetTaskSender().GetPartyId(),
+					task.GetTaskSender().GetPartyId(),
+					task.GetTaskSender()))); nil != err {
 			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetTaskSender().GetPartyId())
 			return
@@ -267,7 +312,7 @@ func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
 
 		// 1、 store task terminate (failed or succeed) event with current party
 		m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-			Type:        ev.TaskTerminated.Type,
+			Type:       ev.TaskTerminated.Type,
 			TaskId:     task.GetTaskId(),
 			IdentityId: task.GetTaskSender().GetIdentityId(),
 			PartyId:    task.GetTaskSender().GetPartyId(),
@@ -296,6 +341,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	nonParsedMsgArr, parsedMsgArr, err := m.parser.ParseTask(msgArr)
 	if nil != err {
 		for _, badMsg := range nonParsedMsgArr {
+			go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskId()) // remove from disk if task been non-parsed task
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), badMsg.GetSenderPartyId(), fmt.Sprintf("failed to parse local taskMsg"))}
 
@@ -313,6 +359,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	if nil != err {
 
 		for _, badMsg := range nonValidatedMsgArr {
+			go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskId()) // remove from disk if task been non-validated task
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), badMsg.GetSenderPartyId(), fmt.Sprintf("failed to validate local taskMsg"))}
 
@@ -329,6 +376,8 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	taskArr := make(types.TaskDataArray, 0)
 
 	for _, msg := range validatedMsgArr {
+
+		go m.resourceMng.GetDB().RemoveTaskMsg(msg.GetTaskId()) // remove from disk if task been handle task
 
 		task := msg.Data
 
@@ -354,7 +403,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task, err: %s",
 				"\n["+strings.Join(storeErrs, ",")+"]")
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type,
-				task.GetTaskId(), task.GetTaskData().GetIdentityId(), task.GetTaskData().GetPartyId(),"store local task failed")}
+				task.GetTaskId(), task.GetTaskData().GetIdentityId(), task.GetTaskData().GetPartyId(), "store local task failed")}
 			if err := m.storeBadTask(task, events, "store local task failed"); nil != err {
 				log.WithError(err).Errorf("Failed to sending the task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
 			}
@@ -385,7 +434,7 @@ func (m *Manager) SendTaskEvent(event *libtypes.TaskEvent) error {
 	return nil
 }
 
-func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
+func (m *Manager) SendTaskResourceUsage(usage *types.TaskResuorceUsage) error {
 
 	task, ok := m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
 	if !ok {
@@ -403,7 +452,7 @@ func (m *Manager) SendTaskResourceUsage (usage *types.TaskResuorceUsage) error {
 	return nil
 }
 
-func (m *Manager) storeTaskHanlderPartyIds (task *types.Task, powerPartyIds []string) error {
+func (m *Manager) storeTaskHanlderPartyIds(task *types.Task, powerPartyIds []string) error {
 	partyIds := make([]string, 0)
 
 	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {

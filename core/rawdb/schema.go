@@ -79,7 +79,7 @@ var (
 	//resourceLookupPrefix  		= []byte("r") 	// resourceLookupPrefix + dataId -> resource lookup metadata
 	//identityLookupPrefix  		= []byte("i") 	// identityLookupPrefix + dataId -> identity lookup metadata
 	//taskLookupPrefix  			= []byte("t") 	// taskLookupPrefix + dataId -> task lookup metadata
-	schedulingPrefix = []byte("scheduling")
+
 )
 
 
@@ -187,11 +187,6 @@ func identityDataIdKey(nodeId []byte, hash common.Hash) []byte {
 // identityDataTypeHashKey = identityDataTypeHashPrefix + type + dataId
 func identityDataTypeHashKey(dataId []byte, typ []byte) []byte {
 	return append(append(identityDataTypeHashPrefix, typ...), dataId...)
-}
-
-// schedulingKey = schedulingPrefix + taskId
-func schedulingKey(taskId string) []byte {
-	return append(schedulingPrefix, []byte(taskId)...)
 }
 
 // taskDataHashKey = taskDataHashPrefix + num + index + taskDataHashSuffix

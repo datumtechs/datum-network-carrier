@@ -6,6 +6,17 @@ import "lib/common/base.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
+message ProposalTask {
+  /**
+  ProposalId common.Hash
+	*Task
+	CreateAt uint64
+   */
+  string          proposal_id = 1;
+  string          task_id = 2;
+  uint64          create_at = 3;
+}
+
 message OrgProposalState{
   uint64                        pre_period_start_time = 1;
   uint64                        period_start_time = 2;
@@ -33,7 +44,7 @@ message MsgOption{
   api.protobuf.TaskOrganization owner = 5;
 }
 
-message PrepareVoteState{
+message PrepareVote{
   MsgOption                 msg_option = 1;
   uint32                    vote_option = 2;
   PrepareVoteResource       peer_info = 3;
@@ -41,7 +52,7 @@ message PrepareVoteState{
   bytes                     sign = 5;
 }
 
-message ConfirmVoteState{
+message ConfirmVote{
   MsgOption                 msg_option = 1;
   uint32                    vote_option = 2;
   uint64                    create_at = 3;

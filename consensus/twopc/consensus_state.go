@@ -40,21 +40,6 @@ func newState(ldb *walDB) *state {
 		wal:                   ldb,
 	}
 }
-func recoveryState(
-	proposalSet map[common.Hash]*ctypes.ProposalState,
-	prepareVotes map[common.Hash]*prepareVoteState,
-	confirmVotes map[common.Hash]*confirmVoteState,
-	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo,
-	ldb *walDB,
-) *state {
-	return &state{
-		proposalSet:           proposalSet,
-		prepareVotes:          prepareVotes,
-		confirmVotes:          confirmVotes,
-		proposalPeerInfoCache: proposalPeerInfoCache,
-		wal:                   ldb,
-	}
-}
 func (s *state) IsEmpty() bool    { return nil == s }
 func (s *state) IsNotEmpty() bool { return !s.IsEmpty() }
 

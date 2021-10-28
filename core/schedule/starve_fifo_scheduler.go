@@ -5,11 +5,13 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"sync"
@@ -65,10 +67,28 @@ func NewSchedulerStarveFIFO(
 }
 
 func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
-	queue, starveQueue, schedulings := sche.resourceMng.GetDB().RecoveryScheduling()
-	sche.queue = queue
-	sche.starveQueue = starveQueue
-	sche.schedulings = schedulings
+
+	prefix := rawdb.GetTaskBulletKeyPrefix()
+	if err := sche.resourceMng.GetDB().ForEachTaskBullets(func(key, value []byte) error {
+		if len(key) != 0 && len(value) != 0 {
+			var result types.TaskBullet
+			taskId := string(key[len(prefix):])
+
+			if err := rlp.DecodeBytes(value, &result); nil != err {
+				return fmt.Errorf("decode taskBullet failed, %s, taskId: {%s}", err, taskId)
+			}
+			sche.schedulings[taskId] = &result
+			if result.Starve == true {
+				sche.starveQueue.Push(result)
+			} else {
+				sche.queue.Push(result)
+			}
+		}
+		return nil
+	}); nil != err {
+		log.WithError(err).Fatalf("recover taskBullet queue/starveQueue/schedulings failed")
+	}
+	return
 }
 func (sche *SchedulerStarveFIFO) Start() error {
 	//go sche.loop()

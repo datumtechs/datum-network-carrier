@@ -12,6 +12,7 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 	"sync"
@@ -120,7 +121,7 @@ func (t *Twopc) refreshProposalState() {
 				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, remove org proposalState and task cache on Consensus, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-				task := t.state.MustGetProposalTaskWithPartyId(pstate.GetTaskId(), partyId).GetTask()
+				proposalTask, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
 
 				t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
 				pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
@@ -146,6 +147,12 @@ func (t *Twopc) refreshProposalState() {
 					Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 					CreateAt:   timeutils.UnixMsecUint64(),
 				})
+
+				if !ok {
+					continue
+				}
+				task := proposalTask.GetTask()
+
 				t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 					proposalId,
 					pstate.GetTaskId(),
@@ -205,7 +212,7 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					task := t.state.MustGetProposalTaskWithPartyId(pstate.GetTaskId(), partyId).GetTask()
+					proposalTask, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
 
 					t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
 					pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
@@ -231,6 +238,12 @@ func (t *Twopc) refreshProposalState() {
 						Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 						CreateAt:   timeutils.UnixMsecUint64(),
 					})
+
+					if !ok {
+						continue
+					}
+					task := proposalTask.GetTask()
+
 					t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 						proposalId,
 						pstate.GetTaskId(),
@@ -311,8 +324,8 @@ func (t *Twopc) stopTaskConsensus(
 			remotePID,
 			proposalId,
 			senderRole,
-			sender,
 			receiverRole,
+			sender,
 			receiver,
 			task,
 			taskActionStatus,
@@ -361,8 +374,8 @@ func (t *Twopc) driveTask(
 		remotePid,
 		proposalId,
 		localTaskRole,
-		localTaskOrganization,
 		remoteTaskRole,
+		localTaskOrganization,
 		remoteTaskOrganization,
 		task,
 		types.TaskNeedExecute,
@@ -844,4 +857,211 @@ func (t *Twopc) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.Conf
 
 func (t *Twopc) removeConfirmTaskPeerInfo(proposalId common.Hash) {
 	t.state.RemoveConfirmTaskPeerInfo(proposalId)
+}
+
+func (t *Twopc) recoverCache() {
+
+	errCh := make(chan error, 5)
+	var wg sync.WaitGroup
+	wg.Add(5)
+	// recovery proposalTaskCache  (taskId -> partyId -> proposalTask)
+	go func(wg *sync.WaitGroup, errCh chan<- error) {
+
+		defer wg.Done()
+
+		prefixLength := len(proposalTaskCachePrefix)
+		if err := t.wal.ForEachKVWithPrefix(proposalTaskCachePrefix, func(key, value []byte) error {
+
+			if len(key) != 0 && len(value) != 0 {
+				taskId, partyId := string(key[prefixLength:prefixLength+71]), string(key[prefixLength+71:])
+				proposalTaskPB := &libtypes.ProposalTask{}
+				if err := proto.Unmarshal(value, proposalTaskPB); err != nil {
+					t.wal.DeleteState(key)
+					return fmt.Errorf("unmarshal proposalTask failed, %s", err)
+				}
+
+				task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTaskPB.GetTaskId())
+				if nil != err {
+					return fmt.Errorf("query local task failed on recover proposalTask from wal, %s, taskId: {%s}", err, proposalTaskPB.GetTaskId())
+				}
+
+				cache, ok := t.state.proposalTaskCache[taskId]
+				if !ok {
+					cache =make(map[string]*types.ProposalTask, 0)
+				}
+				cache[partyId] =  types.NewProposalTask(common.HexToHash(proposalTaskPB.GetProposalId()), task, proposalTaskPB.GetCreateAt())
+				t.state.proposalTaskCache[taskId] = cache
+			}
+			return nil
+		}); nil != err {
+			errCh <- err
+			return
+		}
+	}(&wg, errCh)
+
+	// recovery proposalSet (proposalId -> partyId -> orgState)
+	go func(wg *sync.WaitGroup, errCh chan<- error) {
+
+		defer wg.Done()
+
+		prefixLength := len(proposalSetPrefix)
+		if err := t.wal.ForEachKVWithPrefix(proposalSetPrefix, func(key, value []byte) error {
+
+			if len(key) != 0 && len(value) != 0 {
+				proposalId := common.BytesToHash(key[prefixLength:prefixLength+32])
+
+				libOrgProposalState := &libtypes.OrgProposalState{}
+				if err := proto.Unmarshal(value, libOrgProposalState); err != nil {
+					return fmt.Errorf("unmarshal org proposalState failed, %s", err)
+				}
+				proposalState, ok := t.state.proposalSet[proposalId]
+				if !ok {
+					proposalState = ctypes.NewProposalState(proposalId, libOrgProposalState.TaskId, libOrgProposalState.TaskSender)
+				}
+				proposalState.StoreOrgProposalStateUnSafe(&ctypes.OrgProposalState{
+					PrePeriodStartTime: libOrgProposalState.PrePeriodStartTime,
+					PeriodStartTime:    libOrgProposalState.PeriodStartTime,
+					DeadlineDuration:   libOrgProposalState.DeadlineDuration,
+					CreateAt:           libOrgProposalState.CreateAt,
+					TaskId:             libOrgProposalState.TaskId,
+					TaskRole:           libOrgProposalState.TaskRole,
+					TaskOrg:            libOrgProposalState.TaskOrg,
+					PeriodNum:          ctypes.ProposalStatePeriod(libOrgProposalState.PeriodNum),
+				})
+				t.state.proposalSet[proposalId] = proposalState
+			}
+			return nil
+		}); nil != err {
+			errCh <- err
+			return
+		}
+	}(&wg, errCh)
+
+	// recovery prepareVotes (proposalId -> partyId -> prepareVote)
+	go func(wg *sync.WaitGroup, errCh chan<- error) {
+
+		defer wg.Done()
+
+		prefixLength := len(prepareVotesPrefix)
+		if err := t.wal.ForEachKVWithPrefix(prepareVotesPrefix, func(key, value []byte) error {
+
+			if len(key) != 0 && len(value) != 0 {
+				proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+33]), string(key[prefixLength+34:])
+
+				vote := &libtypes.PrepareVote{}
+				if err := proto.Unmarshal(value, vote); err != nil {
+					return fmt.Errorf("unmarshal org prepareVote failed, %s", err)
+				}
+
+				prepareVoteState, ok := t.state.prepareVotes[proposalId]
+				if !ok {
+					prepareVoteState = newPrepareVoteState()
+				}
+				prepareVoteState.addVote(&types.PrepareVote{
+					MsgOption: &types.MsgOption{
+						ProposalId:      proposalId,
+						SenderRole:      vote.MsgOption.SenderRole,
+						SenderPartyId:   partyId,
+						ReceiverRole:    vote.MsgOption.ReceiverRole,
+						ReceiverPartyId: vote.MsgOption.ReceiverPartyId,
+						Owner:           vote.MsgOption.Owner,
+					},
+					VoteOption: types.VoteOption(vote.VoteOption),
+					PeerInfo: &types.PrepareVoteResource{
+						Id:      vote.PeerInfo.Id,
+						Ip:      vote.PeerInfo.Ip,
+						Port:    vote.PeerInfo.Port,
+						PartyId: vote.PeerInfo.PartyId,
+					},
+					CreateAt: vote.CreateAt,
+					Sign:     vote.Sign,
+				})
+				t.state.prepareVotes[proposalId] = prepareVoteState
+			}
+			return nil
+		}); nil != err {
+			errCh <- err
+			return
+		}
+	}(&wg, errCh)
+
+	// recovery confirmVotes (proposalId -> partyId -> confirmVote)
+	go func(wg *sync.WaitGroup, errCh chan<- error) {
+
+		defer wg.Done()
+
+		prefixLength := len(confirmVotesPrefix)
+		if err := t.wal.ForEachKVWithPrefix(confirmVotesPrefix, func(key, value []byte) error {
+
+			if len(key) != 0 && len(value) != 0 {
+				proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+32]), string(key[prefixLength+32:])
+
+				vote := &libtypes.ConfirmVote{}
+				if err := proto.Unmarshal(value, vote); err != nil {
+					return fmt.Errorf("unmarshal org confirmVote failed, %s", err)
+				}
+				confirmVoteState, ok := t.state.confirmVotes[proposalId]
+				if !ok {
+					confirmVoteState = newConfirmVoteState()
+				}
+				confirmVoteState.addVote(&types.ConfirmVote{
+					MsgOption: &types.MsgOption{
+						ProposalId:      proposalId,
+						SenderRole:      vote.MsgOption.SenderRole,
+						SenderPartyId:   partyId,
+						ReceiverRole:    vote.MsgOption.ReceiverRole,
+						ReceiverPartyId: vote.MsgOption.ReceiverPartyId,
+						Owner:           vote.MsgOption.Owner,
+					},
+					VoteOption: types.VoteOption(vote.VoteOption),
+					CreateAt:   vote.CreateAt,
+					Sign:       vote.Sign,
+				})
+				t.state.confirmVotes[proposalId] = confirmVoteState
+			}
+			return nil
+		}); nil != err {
+			errCh <- err
+			return
+		}
+	}(&wg, errCh)
+
+	// recovery proposalPeerInfoCache (proposalId -> ConfirmTaskPeerInfo)
+	go func(wg *sync.WaitGroup, errCh chan<- error) {
+
+		defer wg.Done()
+
+		prefixLength := len(proposalPeerInfoCachePrefix)
+		if err := t.wal.ForEachKVWithPrefix(proposalPeerInfoCachePrefix, func(key, value []byte) error {
+
+			if len(key) != 0 && len(value) != 0 {
+				proposalId := common.BytesToHash(key[prefixLength:])
+				confirmTaskPeerInfo := &twopcpb.ConfirmTaskPeerInfo{}
+				if err := proto.Unmarshal(value, confirmTaskPeerInfo); err != nil {
+					return fmt.Errorf("unmarshal confirmTaskPeerInfo failed, %s", err)
+				}
+				t.state.proposalPeerInfoCache[proposalId] = confirmTaskPeerInfo
+			}
+			return nil
+		}); nil != err {
+			errCh <- err
+			return
+		}
+	}(&wg, errCh)
+
+	wg.Wait()
+	close(errCh)
+
+	errStrs := make([]string, 0)
+
+	for err := range errCh {
+		if nil != err {
+			errStrs = append(errStrs, err.Error())
+		}
+	}
+	if len(errStrs) != 0 {
+		log.Fatalf(
+			"recover consensus state failed: \n%s",
+			strings.Join(errStrs, "\n"))
+	}
 }

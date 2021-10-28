@@ -4,12 +4,15 @@ package rawdb
 
 import (
 	"bytes"
+	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/gogo/protobuf/proto"
 	"github.com/sirupsen/logrus"
 	"strings"
 )
@@ -675,22 +678,94 @@ func QueryAllLocalTasks(db DatabaseReader) (types.TaskDataArray, error) {
 	return result, nil
 }
 
-// StoreScheduling save scheduled tasks.
-func StoreScheduling(db KeyValueStore, bullet *types.TaskBullet) error {
-	val, err := rlp.EncodeToBytes(bullet)
+func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
+	key := GetNeedExecuteTaskKey(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+
+	val, err := proto.Marshal(&libtypes.NeedExecuteTask{
+		RemotePid:              task.GetRemotePID().String(),
+		ProposalId:             task.GetProposalId().String(),
+		LocalTaskRole:          task.GetLocalTaskRole(),
+		LocalTaskOrganization:  task.GetLocalTaskOrganization(),
+		RemoteTaskRole:         task.GetRemoteTaskRole(),
+		RemoteTaskOrganization: task.GetRemoteTaskOrganization(),
+		TaskId:                 task.GetTask().GetTaskId(),
+		ConsStatus:             bytesutil.Uint16ToBytes(uint16(task.GetConsStatus())),
+		LocalResource: &libtypes.PrepareVoteResource{
+			Id:      task.GetLocalResource().Id,
+			Ip:      task.GetLocalResource().Ip,
+			Port:    task.GetLocalResource().Port,
+			PartyId: task.GetLocalResource().PartyId,
+		},
+		Resources: task.GetResources(),
+	})
 	if nil != err {
-		log.WithError(err).Errorf("Failed to encode scheduling task.")
-		return err
+		return fmt.Errorf("marshal needExecuteTask failed, %s", err)
 	}
-	if err := db.Put(schedulingKey(bullet.GetTaskId()), val); nil != err {
-		log.WithError(err).Error("Failed to write scheduling task.")
+	return db.Put(key, val)
+}
+
+func RemoveNeedExecuteTaskByPartyId(db KeyValueStore, taskId, partyId string) error {
+	key := GetNeedExecuteTaskKey(taskId, partyId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
 		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+func RemoveNeedExecuteTask(db KeyValueStore, taskId string) error {
+	prefix := append(needExecuteTaskKeyPrefix, []byte(taskId)...)
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			db.Delete(key)
+		}
 	}
 	return nil
 }
 
-func RemoveScheduling(db KeyValueStore, bullet *types.TaskBullet) error {
-	key := schedulingKey(bullet.TaskId)
+func ForEachNeedExecuteTaskWwithPrefix(db KeyValueStore, prefix []byte, f func(key, value []byte) error) error {
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+	for it.Next() {
+		if err := f(it.Key(), it.Value()); nil != err {
+			return err
+		}
+	}
+	return nil
+}
+
+func ForEachNeedExecuteTask(db KeyValueStore, f func(key, value []byte) error) error {
+	it := db.NewIteratorWithPrefixAndStart(GetNeedExecuteTaskKeyPrefix(), nil)
+	defer it.Release()
+	for it.Next() {
+		if err := f(it.Key(), it.Value()); nil != err {
+			return err
+		}
+	}
+	return nil
+}
+
+
+// StoreTaskBullet save scheduled tasks.
+func StoreTaskBullet(db KeyValueStore, bullet *types.TaskBullet) error {
+
+	key := GetTaskBulletKey(bullet.GetTaskId())
+
+	val, err := rlp.EncodeToBytes(bullet)
+	if nil != err {
+		log.WithError(err).Errorf("encode taskBullet failed")
+		return err
+	}
+	return db.Put(key, val)
+}
+
+func RemoveTaskBullet(db KeyValueStore, taskId string) error {
+	key := GetTaskBulletKey(taskId)
 
 	has, err := db.Has(key)
 	switch {
@@ -702,29 +777,16 @@ func RemoveScheduling(db KeyValueStore, bullet *types.TaskBullet) error {
 	return db.Delete(key)
 }
 
-func RecoveryScheduling(db KeyValueStore) (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet) {
-	it := db.NewIteratorWithPrefixAndStart(schedulingPrefix, nil)
-	defer it.Release()
-	queue := make(types.TaskBullets,0)
-	starveQueue := make(types.TaskBullets,0)
-	schedulings := make(map[string]*types.TaskBullet, 0)
-	for it.Next() {
-		var result types.TaskBullet
-		key := it.Key()
-		taskId := string(key[len(schedulingPrefix):])
 
-		value := it.Value()
-		if err := rlp.DecodeBytes(value, &result); nil != err {
-			log.Warning("RecoveryScheduling DecodeBytes fail,error info:", err)
-		}
-		schedulings[taskId] = &result
-		if result.Starve == true {
-			starveQueue.Push(result)
-		} else {
-			queue.Push(result)
+func ForEachTaskBullets (db KeyValueStore, f func(key, value []byte) error) error {
+	it := db.NewIteratorWithPrefixAndStart(GetTaskBulletKeyPrefix(), nil)
+	defer it.Release()
+	for it.Next() {
+		if err := f(it.Key(), it.Value()); nil != err {
+			return err
 		}
 	}
-	return &queue, &starveQueue, schedulings
+	return nil
 }
 
 // StoreLocalTask serializes the local task into the database.

@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package types;
+
+import "lib/common/base.proto";
+import "lib/types/types.proto";
+import "lib/types/metadata.proto";
+import "lib/types/taskdata.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+
+message PowerMsg {
+  /**
+  PowerId   string `json:"powerId"`
+	JobNodeId string `json:"jobNodeId"`
+	CreateAt  uint64 `json:"createAt"`
+   */
+  string  power_id = 1;
+  string  job_node_id = 2;
+  uint64  create_at = 3;
+}
+
+
+message MetadataMsg {
+  /**
+  MetadataId      string                    `json:"metadataId"`
+	MetadataSummary *libtypes.MetadataSummary `json:"metadataSummary"`
+	ColumnMetas     []*types.MetadataColumn   `json:"columnMetas"`
+	CreateAt        uint64                    `json:"createAt"`
+   */
+  string                    metadata_id = 1;
+  MetadataSummary           metadata_summary = 2;
+  repeated MetadataColumn   column_metas = 3;
+  uint64                    create_at = 4;
+}
+
+
+message MetadataAuthorityMsg {
+  /**
+  MetadataAuthId string                   `json:"metaDataAuthId"`
+	User           string                   `json:"user"`
+	UserType       apicommonpb.UserType     `json:"userType"`
+	Auth           *types.MetadataAuthority `json:"auth"`
+	Sign           []byte                   `json:"sign"`
+	CreateAt       uint64
+   */
+  string                        metadata_auth_id = 1;
+  string                        user = 2;
+  api.protobuf.UserType         user_type = 3;
+  MetadataAuthority             auth = 4;
+  bytes                         sign = 5;
+  uint64                        create_at = 6;
+}
+
+message TaskMsg {
+  /**
+  Data          *Task
+	PowerPartyIds []string `json:"powerPartyIds"`
+   */
+  TaskPB                  data = 1;
+  repeated string         power_party_ids = 2;
+}

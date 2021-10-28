@@ -303,7 +303,7 @@ func (msg *MetadataMsg) ToDataCenter(identity *apicommonpb.Organization) *Metada
 		// the status of data, N means normal, D means deleted.
 		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		// metaData status, eg: create/release/revoke
-		State: apicommonpb.MetadataState_MetadataState_Released,
+		State:     apicommonpb.MetadataState_MetadataState_Released,
 		PublishAt: timeutils.UnixMsecUint64(),
 		UpdateAt:  timeutils.UnixMsecUint64(),
 	})
@@ -318,7 +318,7 @@ func (msg *MetadataMsg) String() string {
 	return string(result)
 }
 func (msg *MetadataMsg) MsgType() string { return MSG_METADATA }
-func (msg *MetadataMsg) MetaDataSummary() *libtypes.MetadataSummary {
+func (msg *MetadataMsg) GetMetadataSummary() *libtypes.MetadataSummary {
 	return msg.MetadataSummary
 }
 func (msg *MetadataMsg) GetOriginId() string  { return msg.MetadataSummary.OriginId }
@@ -405,7 +405,7 @@ func (msg *MetadataRevokeMsg) ToDataCenter(identity *apicommonpb.Organization) *
 		// the status of data, N means normal, D means deleted.
 		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
 		// metaData status, eg: create/release/revoke
-		State: apicommonpb.MetadataState_MetadataState_Revoked,
+		State:    apicommonpb.MetadataState_MetadataState_Revoked,
 		UpdateAt: timeutils.UnixMsecUint64(),
 	})
 }
@@ -601,11 +601,10 @@ func NewTaskBullet(taskId string) *TaskBullet {
 	}
 }
 
-func (b *TaskBullet) GetTaskId() string { return b.TaskId }
-func (b *TaskBullet) IsStarve() bool { return b.Starve }
-func (b *TaskBullet) GetTerm() uint32 { return b.Term }
+func (b *TaskBullet) GetTaskId() string  { return b.TaskId }
+func (b *TaskBullet) IsStarve() bool     { return b.Starve }
+func (b *TaskBullet) GetTerm() uint32    { return b.Term }
 func (b *TaskBullet) GetResched() uint32 { return b.Resched }
-
 
 func (b *TaskBullet) IncreaseResched() { b.Resched++ }
 func (b *TaskBullet) DecreaseResched() {
@@ -619,13 +618,12 @@ func (b *TaskBullet) DecreaseTerm() {
 		b.Term--
 	}
 }
-func (b *TaskBullet) IsOverlowReschedThreshold (reschedMaxCount uint32) bool {
+func (b *TaskBullet) IsOverlowReschedThreshold(reschedMaxCount uint32) bool {
 	if b.Resched >= reschedMaxCount {
 		return true
 	}
 	return false
 }
-
 
 type TaskBullets []*TaskBullet
 
@@ -708,6 +706,7 @@ func (msg *TaskMsg) String() string {
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 
+func (msg *TaskMsg) GetTaskData() *types.TaskPB        { return msg.Data.GetTaskData() }
 func (msg *TaskMsg) GetUserType() apicommonpb.UserType { return msg.Data.GetTaskData().GetUserType() }
 func (msg *TaskMsg) GetUser() string                   { return msg.Data.GetTaskData().GetUser() }
 func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {

@@ -21,14 +21,14 @@ const (
 
 type IdentityMsgEvent struct{ Msg *IdentityMsg }
 type IdentityRevokeMsgEvent struct{ Msg *IdentityRevokeMsg }
-type MetadataMsgEvent struct{ Msgs MetadataMsgArr }
-type MetadataRevokeMsgEvent struct{ Msgs MetadataRevokeMsgArr }
-type MetadataAuthMsgEvent struct{ Msgs MetadataAuthorityMsgArr }
-type MetadataAuthRevokeMsgEvent struct{ Msgs MetadataAuthorityRevokeMsgArr }
-type PowerMsgEvent struct{ Msgs PowerMsgArr }
-type PowerRevokeMsgEvent struct{ Msgs PowerRevokeMsgArr }
-type TaskMsgEvent struct{ Msgs TaskMsgArr }
-type TaskTerminateMsgEvent struct{ Msgs TaskTerminateMsgArr }
+type MetadataMsgEvent struct{ Msg *MetadataMsg }
+type MetadataRevokeMsgEvent struct{ Msg *MetadataRevokeMsg }
+type MetadataAuthMsgEvent struct{ Msg *MetadataAuthorityMsg }
+type MetadataAuthRevokeMsgEvent struct{ Msg *MetadataAuthorityRevokeMsg }
+type PowerMsgEvent struct{ Msg *PowerMsg }
+type PowerRevokeMsgEvent struct{ Msg *PowerRevokeMsg }
+type TaskMsgEvent struct{ Msg *TaskMsg }
+type TaskTerminateMsgEvent struct{ Msg *TaskTerminateMsg }
 
 func (msg *IdentityMsgEvent) String() string {
 	result, err := json.Marshal(msg)

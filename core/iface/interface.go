@@ -17,7 +17,7 @@ type LocalStoreCarrierDB interface {
 	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
 	QueryRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
 	QueryRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
-
+	// about local resource (local jobNode resource)
 	InsertLocalResource(resource *types.LocalResource) error
 	RemoveLocalResource(jobNodeId string) error
 	QueryLocalResource(jobNodeId string) (*types.LocalResource, error)
@@ -37,30 +37,6 @@ type LocalStoreCarrierDB interface {
 	StoreNodeResourceSlotUnit(slot *types.Slot) error
 	RemoveNodeResourceSlotUnit() error
 	QueryNodeResourceSlotUnit() (*types.Slot, error)
-	// about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})
-	StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error
-	StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error
-	HasLocalTaskPowerUsed(taskId, partyId string) (bool, error)
-	RemoveLocalTaskPowerUsed(taskId, partyId string) error
-	RemoveLocalTaskPowerUsedByTaskId(taskId string) error
-	QueryLocalTaskPowerUsed(taskId, partyId string) (*types.LocalTaskPowerUsed, error)
-	QueryLocalTaskPowerUsedsByTaskId(taskId string) ([]*types.LocalTaskPowerUsed, error)
-	QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error)
-	// about resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
-	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
-	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
-	QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
-	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
-	// about resource task party count (prefix + taskId -> n (n: partyId count))
-	IncreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
-	DecreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
-	QueryResourceTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
-	// about task totalCount on jobNode ever (prefix + jobNodeId -> taskTotalCount)
-	IncreaseResourceTaskTotalCount (jobNodeId string) error
-	DecreaseResourceTaskTotalCount (jobNodeId string) error
-	RemoveResourceTaskTotalCount (jobNodeId string) error
-	QueryResourceTaskTotalCount (jobNodeId string) (uint32, error)
-
 	// about DataResourceTable (dataNodeId -> {dataNodeId, totalDisk, usedDisk})
 	StoreDataResourceTable(StoreDataResourceTables *types.DataResourceTable) error
 	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
@@ -77,14 +53,6 @@ type LocalStoreCarrierDB interface {
 	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
-	// about task exec status (prefix + taskId + partyId -> "cons"|"exec")
-	StoreLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) error
-	StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) error
-	RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId string) error
-	HasLocalTaskExecuteStatusParty(taskId string) (bool, error)
-	HasLocalTaskExecuteStatusByPartyId(taskId, partyId string) (bool, error)
-	HasLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) (bool, error)
-	HasLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) (bool, error)
 	// v2.0  about user metadataAuthUsed (userType + user -> metadataAuthId ...)
 	//StoreUserMetadataAuthUsed(userType apicommonpb.UserType, user, metadataAuthId string) error
 	//QueryUserMetadataAuthUsedCount(userType apicommonpb.UserType, user string) (uint32, error)
@@ -100,37 +68,20 @@ type LocalStoreCarrierDB interface {
 	QueryMetadataUsedTaskIdCount(metadataId string) (uint32, error)
 	QueryMetadataUsedTaskIds(metadataId string) ([]string, error)
 	RemoveAllMetadataUsedTaskId(metadataId string) error
-	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
-	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
-	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
-	QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error)
-	RemoveTaskUpResultFile(taskId string) error
-	// V 2.0 about task used resource  (taskId -> resourceUsed)
-	StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error
-	QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)
-	RemoveTaskResuorceUsage(taskId, partyId string) error
-	RemoveTaskResuorceUsageByTaskId(taskId string) error
-	// v 2.0 about task powerPartyIds (prefix + taskId -> powerPartyIds)
-	StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error
-	QueryTaskPowerPartyIds(taskId string) ([]string, error)
-	RemoveTaskPowerPartyIds (taskId string) error
-	// v 2.0 about task partyIds of all partners (prefix + taskId -> [partyId, ..., partyId]  for task sender)
-   	StoreTaskPartnerPartyIds(taskId string, partyIds []string) error
-   	HasTaskPartnerPartyIds(taskId string) (bool, error)
-   	QueryTaskPartnerPartyIds(taskId string) ([]string, error)
-   	RemoveTaskPartnerPartyId (taskId, partyId string) error
-   	RemoveTaskPartnerPartyIds (taskId string) error
 	// v 2.0 about Message Cache
-	StoreMessageCache(value interface{})
+	StoreMessageCache(value interface{}) error
+	RemovePowerMsg(powerId string) error
+	RemoveAllPowerMsg() error
+	RemoveMetadataMsg(metadataId string) error
+	RemoveAllMetadataMsg() error
+	RemoveMetadataAuthMsg(metadataAuthId string) error
+	RemoveAllMetadataAuthMsg() error
+	RemoveTaskMsg(taskId string) error
+	RemoveAllTaskMsg() error
 	QueryPowerMsgArr() (types.PowerMsgArr, error)
 	QueryMetadataMsgArr() (types.MetadataMsgArr, error)
 	QueryMetadataAuthorityMsgArr() (types.MetadataAuthorityMsgArr, error)
 	QueryTaskMsgArr() (types.TaskMsgArr, error)
-	//v 2.0 about NeedExecuteTask
-	StoreNeedExecuteTask(cache *types.NeedExecuteTask, taskId, partyId string) error
-	RemoveNeedExecuteTaskByPartyId(taskId, partyId string) error
-	RemoveNeedExecuteTask(taskId string) error
-	RecoveryNeedExecuteTask() map[string]map[string]*types.NeedExecuteTask
 }
 
 type MetadataCarrierDB interface {
@@ -162,7 +113,6 @@ type IdentityCarrierDB interface {
 	QueryIdentityList() (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	HasIdentity(identity *apicommonpb.Organization) (bool, error)
-
 	// v2.0
 	InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error
@@ -174,11 +124,6 @@ type IdentityCarrierDB interface {
 }
 
 type TaskCarrierDB interface {
-	StoreTaskEvent(event *libtypes.TaskEvent) error
-	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
-	QueryTaskEventListByPartyId (taskId, partyId string) ([]*libtypes.TaskEvent, error)
-	RemoveTaskEventList(taskId string) error
-	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
 	QueryLocalTask(taskId string) (*types.Task, error)
@@ -187,18 +132,80 @@ type TaskCarrierDB interface {
 	QueryLocalTaskAndEvents(taskId string) (*types.Task, error)
 	QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
 	QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
-
+	// about resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
+	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
+	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
+	QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
+	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
+	// about resource task party count (prefix + taskId -> n (n: partyId count))
+	IncreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
+	DecreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
+	QueryResourceTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
+	// about task totalCount on jobNode ever (prefix + jobNodeId -> taskTotalCount)
+	IncreaseResourceTaskTotalCount (jobNodeId string) error
+	DecreaseResourceTaskTotalCount (jobNodeId string) error
+	RemoveResourceTaskTotalCount (jobNodeId string) error
+	QueryResourceTaskTotalCount (jobNodeId string) (uint32, error)
+	// about local task event
+	StoreTaskEvent(event *libtypes.TaskEvent) error
+	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
+	QueryTaskEventListByPartyId (taskId, partyId string) ([]*libtypes.TaskEvent, error)
+	RemoveTaskEventList(taskId string) error
+	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	// about task on datacenter
 	InsertTask(task *types.Task) error
 	QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
 	QueryRunningTaskCountOnOrg() uint32
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
+	// v 1.0 about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})
+	StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error
+	StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error
+	HasLocalTaskPowerUsed(taskId, partyId string) (bool, error)
+	RemoveLocalTaskPowerUsed(taskId, partyId string) error
+	RemoveLocalTaskPowerUsedByTaskId(taskId string) error
+	QueryLocalTaskPowerUsed(taskId, partyId string) (*types.LocalTaskPowerUsed, error)
+	QueryLocalTaskPowerUsedsByTaskId(taskId string) ([]*types.LocalTaskPowerUsed, error)
+	QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error)
+	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
+	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
+	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
+	QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error)
+	RemoveTaskUpResultFile(taskId string) error
+	// V 2.0 about task used resource  (taskId -> partyId -> resourceUsed)
+	StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error
+	QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)
+	RemoveTaskResuorceUsage(taskId, partyId string) error
+	RemoveTaskResuorceUsageByTaskId(taskId string) error
+	// v 2.0 about task powerPartyIds (prefix + taskId -> powerPartyIds)
+	StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error
+	QueryTaskPowerPartyIds(taskId string) ([]string, error)
+	RemoveTaskPowerPartyIds (taskId string) error
+	// v 2.0 about task partyIds of all partners (prefix + taskId -> [partyId, ..., partyId]  for task sender)
+	StoreTaskPartnerPartyIds(taskId string, partyIds []string) error
+	HasTaskPartnerPartyIds(taskId string) (bool, error)
+	QueryTaskPartnerPartyIds(taskId string) ([]string, error)
+	RemoveTaskPartnerPartyId (taskId, partyId string) error
+	RemoveTaskPartnerPartyIds (taskId string) error
+	// v 1.0 -> v 2.0 about task exec status (prefix + taskId + partyId -> "cons"|"exec")
+	StoreLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) error
+	StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) error
+	RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId string) error
+	HasLocalTaskExecuteStatusParty(taskId string) (bool, error)
+	HasLocalTaskExecuteStatusByPartyId(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) (bool, error)
+	// v 2.0 about NeedExecuteTask
+	StoreNeedExecuteTask(task *types.NeedExecuteTask) error
+	RemoveNeedExecuteTaskByPartyId(taskId, partyId string) error
+	RemoveNeedExecuteTask(taskId string) error
+	ForEachNeedExecuteTaskWwithPrefix (prifix []byte, f func(key, value []byte) error) error
+	ForEachNeedExecuteTask (f func(key, value []byte) error) error
+	// v 2.0 about taskbullet
+	StoreTaskBullet(bullet *types.TaskBullet) error
+	RemoveTaskBullet(taskId string) error
+	ForEachTaskBullets(f func(key, value []byte) error) error
 
-	// about scheduling
-	StoreScheduling(bullet *types.TaskBullet) error
-	DeleteScheduling(bullet *types.TaskBullet) error
-	RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets,map[string]*types.TaskBullet)
 }
 
 type ForConsensusDB interface {
@@ -211,6 +218,7 @@ type ForHandleDB interface {
 	IdentityCarrierDB
 	ResourceCarrierDB
 	MetadataCarrierDB
+	TaskCarrierDB
 }
 
 type ForResourceDB interface {

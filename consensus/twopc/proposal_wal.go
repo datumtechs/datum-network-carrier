@@ -1,11 +1,10 @@
 package twopc
 
 import (
-	"bytes"
-	"errors"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
@@ -17,10 +16,11 @@ import (
 )
 
 var (
-	proposalSetPrefix           = []byte("proposalSet:")
-	prepareVotesPrefix          = []byte("prepareVotes:")
-	confirmVotesPrefix          = []byte("confirmVotes:")
-	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:")
+	proposalTaskCachePrefix     = []byte("proposalTaskCache:")  	//	taskId -> partyId -> proposalTask
+	proposalSetPrefix           = []byte("proposalSet:")			// 	proposalId -> partyId -> orgState
+	prepareVotesPrefix          = []byte("prepareVotes:")			//  proposalId -> partyId -> prepareVote
+	confirmVotesPrefix          = []byte("confirmVotes:")			//  proposalId -> partyId -> confirmVote
+	proposalPeerInfoCachePrefix = []byte("proposalPeerInfoCache:")	//  proposalId -> ConfirmTaskPeerInfo
 )
 
 type jsonFile struct {
@@ -41,7 +41,7 @@ func initLDB(conf *Config) (*db.LDBDatabase, error) {
 		handles  int
 	)
 	_, err := os.Stat(configFile)
-	if err != nil  {
+	if err != nil {
 		savePath, cache, handles = filepath.Join(conf.DefaultConsensusWal, "consensuswal"), conf.DatabaseCache, conf.DatabaseHandles
 	} else {
 		var jsonfile jsonFile
@@ -70,9 +70,12 @@ func newWal(conf *Config) *walDB {
 	}
 }
 
+func (w *walDB) GetProposalTaskCacheKey(taskId, partyId string) []byte {
+	return append(append(proposalTaskCachePrefix, []byte(taskId)...), []byte(partyId)...)
+}
+
 func (w *walDB) GetProposalSetKey(hash common.Hash, partyId string) []byte {
-	result := append(proposalSetPrefix, hash.Bytes()...)
-	return append(result, []byte(partyId)...)
+	return append(append(proposalSetPrefix, hash.Bytes()...), []byte(partyId)...)
 }
 
 func (w *walDB) GetProposalPeerInfoCacheKey(hash common.Hash) []byte {
@@ -80,13 +83,11 @@ func (w *walDB) GetProposalPeerInfoCacheKey(hash common.Hash) []byte {
 }
 
 func (w *walDB) GetPrepareVotesKey(hash common.Hash, partyId string) []byte {
-	result := append(prepareVotesPrefix, hash.Bytes()...)
-	return append(result, []byte(partyId)...)
+	return append(append(prepareVotesPrefix, hash.Bytes()...), []byte(partyId)...)
 }
 
 func (w *walDB) GetConfirmVotesKey(hash common.Hash, partyId string) []byte {
-	result := append(confirmVotesPrefix, hash.Bytes()...)
-	return append(result, []byte(partyId)...)
+	return append(append(confirmVotesPrefix, hash.Bytes()...), []byte(partyId)...)
 }
 
 func (w *walDB) UpdateOrgProposalState(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
@@ -103,7 +104,7 @@ func (w *walDB) UpdateOrgProposalState(proposalId common.Hash, sender *apicommon
 	}
 	data, err := proto.Marshal(pbObj)
 	if err != nil {
-		log.Fatal("marshaling error: ", err)
+		log.Fatal("marshal org proposalState error: ", err)
 	}
 	if err := w.db.Put(w.GetProposalSetKey(proposalId, orgState.TaskOrg.PartyId), data); err != nil {
 		log.Warning("UpdateOrgProposalState to wal fail,proposalId:", proposalId)
@@ -113,7 +114,7 @@ func (w *walDB) UpdateOrgProposalState(proposalId common.Hash, sender *apicommon
 func (w *walDB) UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
 	data, err := proto.Marshal(peerDesc)
 	if err != nil {
-		log.Fatal("marshaling error: ", err)
+		log.Fatal("marshal confirmTaskPeerInfo error: ", err)
 	}
 	if err := w.db.Put(w.GetProposalPeerInfoCacheKey(proposalId), data); err != nil {
 		log.Warning("UpdateConfirmTaskPeerInfo to wal fail,proposalId:", proposalId)
@@ -121,7 +122,7 @@ func (w *walDB) UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twop
 }
 
 func (w *walDB) UpdatePrepareVotes(vote *types.PrepareVote) {
-	pbObj := &libtypes.PrepareVoteState{
+	pbObj := &libtypes.PrepareVote{
 		MsgOption: &libtypes.MsgOption{
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,
@@ -141,15 +142,15 @@ func (w *walDB) UpdatePrepareVotes(vote *types.PrepareVote) {
 	}
 	data, err := proto.Marshal(pbObj)
 	if err != nil {
-		log.Fatal("marshaling error: ", err)
+		log.Fatal("marshal prepareVote error: ", err)
 	}
 	if err := w.db.Put(w.GetPrepareVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdatePrepareVotes to wal fail,proposalId:", vote.MsgOption.ProposalId)
+		log.Warning("UpdatePrepareVotes to wal failed,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 
 func (w *walDB) UpdateConfirmVotes(vote *types.ConfirmVote) {
-	pbObj := &libtypes.ConfirmVoteState{
+	pbObj := &libtypes.ConfirmVote{
 		MsgOption: &libtypes.MsgOption{
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,
@@ -163,200 +164,44 @@ func (w *walDB) UpdateConfirmVotes(vote *types.ConfirmVote) {
 	}
 	data, err := proto.Marshal(pbObj)
 	if err != nil {
-		log.Fatal("marshaling error: ", err)
+		log.Fatal("marshal confirmVote error: ", err)
 	}
 	if err := w.db.Put(w.GetConfirmVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdateConfirmVotes to wal fail,proposalId:", vote.MsgOption.ProposalId)
+		log.Warning("UpdateConfirmVotes to wal failed,proposalId:", vote.MsgOption.ProposalId)
 	}
 }
 
-func (w *walDB) DeleteState(key []byte) {
-	err := errors.New("")
-	prefix := append(bytes.Split(key, []byte(":"))[0], []byte(":")...)
-	if bytes.Equal(prefix, proposalPeerInfoCachePrefix) {
-		err = w.db.Delete(key)
-	} else {
-		partyId := string(key[len(prefix)+32:])
-		if partyId != "" {
-			err = w.db.Delete(key)
-		} else {
-			iter := w.db.NewIteratorWithPrefixAndStart(key, nil)
-			defer iter.Release()
-			for iter.Next() {
-				err = w.db.Delete(iter.Key())
-			}
-		}
+func (w *walDB) DeleteState(key []byte) error {
+	has, err := w.db.Has(key)
+	switch {
+	case rawdb.IsNoDBNotFoundErr(err):
+		return err
+	case rawdb.IsDBNotFoundErr(err), nil == err && !has:
+		return nil
 	}
-	if err != nil {
-		log.WithError(err).Fatal("Failed to delete from leveldb, key is ", key)
-	}
+	return w.db.Delete(key)
 }
 
-func (w *walDB) RecoveryState() *state {
-	// region recovery proposalSet
-	iter := w.db.NewIteratorWithPrefixAndStart(proposalSetPrefix, nil)
-	defer iter.Release()
-	prefixLength := len(proposalSetPrefix)
-	proposalSet := make(map[common.Hash]*ctypes.ProposalState, 0)
-	stateCache := make(map[string]*ctypes.OrgProposalState, 0)
-	for iter.Next() {
-		key := iter.Key()
-		proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+32]), string(key[prefixLength+32:])
-
-		value := iter.Value()
-		libOrgProposalState := &libtypes.OrgProposalState{}
-		if err := proto.Unmarshal(value, libOrgProposalState); err != nil {
-			log.Fatal("marshaling error: ", err)
-		}
-		if _, ok := proposalSet[proposalId]; !ok {
-			stateCache = make(map[string]*ctypes.OrgProposalState, 0)
-			proposalSet[proposalId] = ctypes.RecoveryProposalState(proposalId, libOrgProposalState.TaskId, libOrgProposalState.TaskSender, stateCache)
-		}
-		stateCache[partyId] = &ctypes.OrgProposalState{
-			PrePeriodStartTime: libOrgProposalState.PrePeriodStartTime,
-			PeriodStartTime:    libOrgProposalState.PeriodStartTime,
-			DeadlineDuration:   libOrgProposalState.DeadlineDuration,
-			CreateAt:           libOrgProposalState.CreateAt,
-			TaskId:             libOrgProposalState.TaskId,
-			TaskRole:           libOrgProposalState.TaskRole,
-			TaskOrg:            libOrgProposalState.TaskOrg,
-			PeriodNum:          ctypes.ProposalStatePeriod(libOrgProposalState.PeriodNum),
+func (w *walDB)  ForEachKV (f func(key, value []byte) error) error {
+	it := w.db.NewIterator()
+	defer it.Release()
+	for it.Next() {
+		if err := f(it.Key(), it.Value()); nil != err {
+			return err
 		}
 	}
-	//endregion
+	return nil
+}
 
-	//region recovery prepareVotes
-	iter = w.db.NewIteratorWithPrefixAndStart(prepareVotesPrefix, nil)
-	prefixLength = len(prepareVotesPrefix)
-	prepareVotes := make(map[common.Hash]*prepareVoteState, 0)
-	votes := make(map[string]*types.PrepareVote, 0)
-	yesVotes := make(map[apicommonpb.TaskRole]uint32, 0)
-	voteStatus := make(map[apicommonpb.TaskRole]uint32, 0)
-	for iter.Next() {
-		key := iter.Key()
-		proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+33]), string(key[prefixLength+34:])
-
-		value := iter.Value()
-		libPrepareVoteState := &libtypes.PrepareVoteState{}
-		if err := proto.Unmarshal(value, libPrepareVoteState); err != nil {
-			log.Fatal("marshaling error: ", err)
-		}
-		if _, ok := prepareVotes[proposalId]; !ok {
-			votes = make(map[string]*types.PrepareVote, 0)
-			yesVotes = make(map[apicommonpb.TaskRole]uint32, 0)
-			voteStatus = make(map[apicommonpb.TaskRole]uint32, 0)
-			prepareVotes[proposalId] = &prepareVoteState{
-				votes:      votes,
-				yesVotes:   yesVotes,
-				voteStatus: voteStatus,
-			}
-		}
-		votes[partyId] = &types.PrepareVote{
-			MsgOption: &types.MsgOption{
-				ProposalId:      proposalId,
-				SenderRole:      libPrepareVoteState.MsgOption.SenderRole,
-				SenderPartyId:   partyId,
-				ReceiverRole:    libPrepareVoteState.MsgOption.ReceiverRole,
-				ReceiverPartyId: libPrepareVoteState.MsgOption.ReceiverPartyId,
-				Owner:           libPrepareVoteState.MsgOption.Owner,
-			},
-			VoteOption: types.VoteOption(libPrepareVoteState.VoteOption),
-			PeerInfo: &types.PrepareVoteResource{
-				Id:      libPrepareVoteState.PeerInfo.Id,
-				Ip:      libPrepareVoteState.PeerInfo.Ip,
-				Port:    libPrepareVoteState.PeerInfo.Port,
-				PartyId: libPrepareVoteState.PeerInfo.PartyId,
-			},
-			CreateAt: libPrepareVoteState.CreateAt,
-			Sign:     libPrepareVoteState.Sign,
-		}
-		if types.VoteOption(libPrepareVoteState.VoteOption) == types.Yes {
-			if _, ok := yesVotes[libPrepareVoteState.MsgOption.SenderRole]; !ok {
-				yesVotes[libPrepareVoteState.MsgOption.SenderRole] = 1
-			} else {
-				yesVotes[libPrepareVoteState.MsgOption.SenderRole] += 1
-			}
-		}
-
-		if _, ok := voteStatus[libPrepareVoteState.MsgOption.SenderRole]; !ok {
-			yesVotes[libPrepareVoteState.MsgOption.SenderRole] = 1
-		} else {
-			yesVotes[libPrepareVoteState.MsgOption.SenderRole] += 1
+func (w *walDB)  ForEachKVWithPrefix (prefix []byte, f func(key, value []byte) error) error {
+	it := w.db.NewIteratorWithPrefix(prefix)
+	defer it.Release()
+	for it.Next() {
+		if err := f(it.Key(), it.Value()); nil != err {
+			return err
 		}
 	}
-	//endregion
-
-	// region  recovery confirmVotes
-	iter = w.db.NewIteratorWithPrefixAndStart(confirmVotesPrefix, nil)
-	prefixLength = len(confirmVotesPrefix)
-	confirmVotes := make(map[common.Hash]*confirmVoteState, 0)
-	votesConfirm := make(map[string]*types.ConfirmVote, 0)
-	yesVotes = make(map[apicommonpb.TaskRole]uint32, 0)
-	voteStatus = make(map[apicommonpb.TaskRole]uint32, 0)
-	for iter.Next() {
-		key := iter.Key()
-		proposalId, partyId := common.BytesToHash(key[prefixLength:prefixLength+32]), string(key[prefixLength+32:])
-		value := iter.Value()
-
-		libConfirmVoteState := &libtypes.ConfirmVoteState{}
-		if err := proto.Unmarshal(value, libConfirmVoteState); err != nil {
-			log.Fatal("marshaling error: ", err)
-		}
-		if _, ok := confirmVotes[proposalId]; !ok {
-			votesConfirm = make(map[string]*types.ConfirmVote, 0)
-			yesVotes = make(map[apicommonpb.TaskRole]uint32, 0)
-			voteStatus = make(map[apicommonpb.TaskRole]uint32, 0)
-			confirmVotes[proposalId] = &confirmVoteState{
-				votes:      votesConfirm,
-				yesVotes:   yesVotes,
-				voteStatus: voteStatus,
-			}
-		}
-		votes[partyId] = &types.PrepareVote{
-			MsgOption: &types.MsgOption{
-				ProposalId:      proposalId,
-				SenderRole:      libConfirmVoteState.MsgOption.SenderRole,
-				SenderPartyId:   partyId,
-				ReceiverRole:    libConfirmVoteState.MsgOption.ReceiverRole,
-				ReceiverPartyId: libConfirmVoteState.MsgOption.ReceiverPartyId,
-				Owner:           libConfirmVoteState.MsgOption.Owner,
-			},
-			VoteOption: types.VoteOption(libConfirmVoteState.VoteOption),
-			CreateAt:   libConfirmVoteState.CreateAt,
-			Sign:       libConfirmVoteState.Sign,
-		}
-		if types.VoteOption(libConfirmVoteState.VoteOption) == types.Yes {
-			if _, ok := yesVotes[libConfirmVoteState.MsgOption.SenderRole]; !ok {
-				yesVotes[libConfirmVoteState.MsgOption.SenderRole] = 1
-			} else {
-				yesVotes[libConfirmVoteState.MsgOption.SenderRole] += 1
-			}
-		}
-
-		if _, ok := voteStatus[libConfirmVoteState.MsgOption.SenderRole]; !ok {
-			yesVotes[libConfirmVoteState.MsgOption.SenderRole] = 1
-		} else {
-			yesVotes[libConfirmVoteState.MsgOption.SenderRole] += 1
-		}
-	}
-	//endregion
-
-	// region recovery proposalPeerInfoCache
-	iter = w.db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
-	proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
-	prefixLength = len(proposalPeerInfoCachePrefix)
-	libProposalPeerInfoCache := &twopcpb.ConfirmTaskPeerInfo{}
-	for iter.Next() {
-		key := iter.Key()
-		proposalId := common.BytesToHash(key[prefixLength:])
-		if err := proto.Unmarshal(iter.Value(), libProposalPeerInfoCache); err != nil {
-			log.Fatal("marshaling error: ", err)
-		}
-		proposalPeerInfoCache[proposalId] = libProposalPeerInfoCache
-	}
-	// endregion
-
-	return recoveryState(proposalSet, prepareVotes, confirmVotes, proposalPeerInfoCache,w)
+	return nil
 }
 
 func (w *walDB) UnmarshalTest() {

@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package types;
+
+import "lib/common/base.proto";
+import "lib/types/consensusstate.proto";
+import "lib/netmsg/consensus/twopc/message.proto";
+
+option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
+
+message NeedExecuteTask {
+      string                              remote_pid = 1;
+      string                              proposalId = 2;
+      api.protobuf.TaskRole               local_task_role = 3;
+      api.protobuf.TaskOrganization       local_task_organization = 4;
+      api.protobuf.TaskRole               remote_task_role = 5;
+      api.protobuf.TaskOrganization       remote_task_organization = 6;
+      string                              task_id = 7;
+      bytes                               consStatus = 8;
+      PrepareVoteResource                 local_resource = 9;
+      twopc.ConfirmTaskPeerInfo           resources = 10;
+}

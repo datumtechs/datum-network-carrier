@@ -162,8 +162,8 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task,  senderRole, rec
 		"",
 		common.Hash{},
 		senderRole,
-		sender,
 		receiverRole,
+		sender,
 		receiver,
 		task,
 		taskActionStatus,
@@ -915,9 +915,9 @@ func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask) {
 	cache[task.GetLocalTaskOrganization().GetPartyId()] = task
 	m.runningTaskCache[task.GetTask().GetTaskId()] = cache
 	go func() {
-		err:=m.resourceMng.GetDB().StoreNeedExecuteTask(task,task.GetTask().GetTaskId(),task.GetLocalTaskOrganization().GetPartyId())
-		if nil != err {
-			log.WithError(err).Errorf("store needExecuteTask failed")
+		if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
+			log.WithError(err).Errorf("store needExecuteTask failed, taskId: {%s}, partyId: {%s}",
+				task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 		}
 	}()
 	m.runningTaskCacheLock.Unlock()

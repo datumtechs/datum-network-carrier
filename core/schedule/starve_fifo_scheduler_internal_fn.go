@@ -21,7 +21,7 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 	if !ok {
 		heap.Push(sche.queue, bullet)
 		sche.schedulings[bullet.TaskId] = bullet
-		sche.resourceMng.GetDB().StoreScheduling(bullet)
+		sche.resourceMng.GetDB().StoreTaskBullet(bullet)
 	}
 	sche.scheduleMutex.Unlock()
 	return nil
@@ -47,13 +47,13 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 	sche.scheduleMutex.Lock()
 	defer sche.scheduleMutex.Unlock()
 
-	bullet ,ok := sche.schedulings[taskId]
+	_ ,ok := sche.schedulings[taskId]
 	if !ok {
 		return nil
 	}
 
 	delete(sche.schedulings, taskId)
-	sche.resourceMng.GetDB().DeleteScheduling(bullet)
+	sche.resourceMng.GetDB().RemoveTaskBullet(taskId)
 
 	// traversal the queue to remove task bullet, first.
 	i := 0

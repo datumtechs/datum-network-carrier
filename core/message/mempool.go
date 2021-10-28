@@ -52,127 +52,127 @@ func (pool *Mempool) SubscribeNewMessageEvent(ch chan<- *feed.Event) event.Subsc
 
 func (pool *Mempool) Add(msg types.Msg) error {
 
-	switch msg.(type) {
+	switch m := msg.(type) {
 	case *types.IdentityMsg:
-		identity, ok := msg.(*types.IdentityMsg)
-		if !ok {
-			return ErrIdentityMsgConvert
-		}
+		//identity, ok := msg.(*types.IdentityMsg)
+		//if !ok {
+		//	return ErrIdentityMsgConvert
+		//}
 		// set local nodeId first
-		identity.SetOwnerNodeId(pool.cfg.NodeId)
+		m.SetOwnerNodeId(pool.cfg.NodeId)
 		// We've directly injected a replacement identityMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyIdentity,
-			Data: &types.IdentityMsgEvent{Msg: identity},
+			Data: &types.IdentityMsgEvent{Msg: m},
 		})
 
 	case *types.IdentityRevokeMsg:
-		identityRevoke, ok := msg.(*types.IdentityRevokeMsg)
-		if !ok {
-			return ErrIdentityRevokeMsgConvert
-		}
+		//identityRevoke, ok := msg.(*types.IdentityRevokeMsg)
+		//if !ok {
+		//	return ErrIdentityRevokeMsgConvert
+		//}
 
 		// We've directly injected a replacement identityMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeIdentity,
-			Data: &types.IdentityRevokeMsgEvent{Msg: identityRevoke},
+			Data: &types.IdentityRevokeMsgEvent{Msg: m},
 		})
 
 	case *types.PowerMsg:
-		power, ok := msg.(*types.PowerMsg)
-		if !ok {
-			return ErrPowerMsgConvert
-		}
+		//power, ok := msg.(*types.PowerMsg)
+		//if !ok {
+		//	return ErrPowerMsgConvert
+		//}
 
 		// We've directly injected a replacement identityRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyPower,
-			Data: &types.PowerMsgEvent{Msgs: types.PowerMsgArr{power}},
+			Data: &types.PowerMsgEvent{Msg: m},
 		})
 
 	case *types.PowerRevokeMsg:
-		powerRevoke, ok := msg.(*types.PowerRevokeMsg)
-		if !ok {
-			return ErrPowerRevokeMsgConvert
-		}
+		//powerRevoke, ok := msg.(*types.PowerRevokeMsg)
+		//if !ok {
+		//	return ErrPowerRevokeMsgConvert
+		//}
 
 		// We've directly injected a replacement powerRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokePower,
-			Data: &types.PowerRevokeMsgEvent{Msgs: types.PowerRevokeMsgArr{powerRevoke}},
+			Data: &types.PowerRevokeMsgEvent{Msg: m},
 		})
 
 	case *types.MetadataMsg:
-		metaData, ok := msg.(*types.MetadataMsg)
-		if !ok {
-			return ErrMetadataMsgConvert
-		}
+		//metaData, ok := msg.(*types.MetadataMsg)
+		//if !ok {
+		//	return ErrMetadataMsgConvert
+		//}
 
 		// We've directly injected a replacement metaDataMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyMetadata,
-			Data: &types.MetadataMsgEvent{Msgs: types.MetadataMsgArr{metaData}},
+			Data: &types.MetadataMsgEvent{Msg: m},
 		})
 
 	case *types.MetadataRevokeMsg:
-		metaDataRevoke, ok := msg.(*types.MetadataRevokeMsg)
-		if !ok {
-			return ErrMetadataRevokeMsgConvert
-		}
+		//metaDataRevoke, ok := msg.(*types.MetadataRevokeMsg)
+		//if !ok {
+		//	return ErrMetadataRevokeMsgConvert
+		//}
 
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeMetadata,
-			Data: &types.MetadataRevokeMsgEvent{Msgs: types.MetadataRevokeMsgArr{metaDataRevoke}},
+			Data: &types.MetadataRevokeMsgEvent{Msg: m},
 		})
 
 	case *types.MetadataAuthorityMsg:
-		metadataAuthorityMsg, ok := msg.(*types.MetadataAuthorityMsg)
-		if !ok {
-			return ErrMetadataAuthMsgConvert
-		}
+		//metadataAuthorityMsg, ok := msg.(*types.MetadataAuthorityMsg)
+		//if !ok {
+		//	return ErrMetadataAuthMsgConvert
+		//}
 
 		// We've directly injected a replacement metadata authority msg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyMetadataAuth,
-			Data: &types.MetadataAuthMsgEvent{Msgs: types.MetadataAuthorityMsgArr{metadataAuthorityMsg}},
+			Data: &types.MetadataAuthMsgEvent{Msg: m},
 		})
 
 	case *types.MetadataAuthorityRevokeMsg:
 
-		metadataAuthorityRevokeMsg, ok := msg.(*types.MetadataAuthorityRevokeMsg)
-		if !ok {
-			return ErrMetadataAuthRevokeMsgConvert
-		}
+		//metadataAuthorityRevokeMsg, ok := msg.(*types.MetadataAuthorityRevokeMsg)
+		//if !ok {
+		//	return ErrMetadataAuthRevokeMsgConvert
+		//}
 
 		// We've directly injected a replacement metadata authority rovkeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeMetadataAuth,
-			Data: &types.MetadataAuthRevokeMsgEvent{Msgs: types.MetadataAuthorityRevokeMsgArr{metadataAuthorityRevokeMsg}},
+			Data: &types.MetadataAuthRevokeMsgEvent{Msg: m},
 		})
 
 	case *types.TaskMsg:
-		task, ok := msg.(*types.TaskMsg)
-		if !ok {
-			return ErrTaskMsgConvert
-		}
+		//task, ok := msg.(*types.TaskMsg)
+		//if !ok {
+		//	return ErrTaskMsgConvert
+		//}
 
 		// We've directly injected a replacement taskMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.ApplyTask,
-			Data: &types.TaskMsgEvent{Msgs: types.TaskMsgArr{task}},
+			Data: &types.TaskMsgEvent{Msg: m},
 		})
 
 	case *types.TaskTerminateMsg:
-		taskTerminate, ok := msg.(*types.TaskTerminateMsg)
-		if !ok {
-			return ErrTaskMsgConvert
-		}
+		//taskTerminate, ok := msg.(*types.TaskTerminateMsg)
+		//if !ok {
+		//	return ErrTaskMsgConvert
+		//}
 
 		// We've directly injected a replacement taskTerminate msg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.TerminateTask,
-			Data: &types.TaskTerminateMsgEvent{Msgs: types.TaskTerminateMsgArr{taskTerminate}},
+			Data: &types.TaskTerminateMsgEvent{Msg: m},
 		})
 
 	default:

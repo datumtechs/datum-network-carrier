@@ -320,7 +320,7 @@ func TestWriteScheduling(t *testing.T) {
 			Term:    count,
 			Resched: count,
 		}
-		StoreScheduling(database, taskBullt)
+		StoreTaskBullet(database, taskBullt)
 		if starve == true {
 			starveQueue.Push(taskBullt)
 		} else {

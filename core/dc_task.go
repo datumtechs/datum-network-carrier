@@ -185,6 +185,36 @@ func (dc *DataCenter) QueryResourceTaskTotalCount(jobNodeId string) (uint32, err
 	return rawdb.QueryResourceTaskTotalCount(dc.db, jobNodeId)
 }
 
+func (dc *DataCenter) StoreTaskEvent(event *libtypes.TaskEvent) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskEvent(dc.db, event)
+}
+
+func (dc *DataCenter) QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskEvent(dc.db, taskId)
+}
+
+func (dc *DataCenter) QueryTaskEventListByPartyId (taskId, partyId string) ([]*libtypes.TaskEvent, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskEventByPartyId (dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskEvent(dc.db, taskId)
+}
+
+func (dc *DataCenter) RemoveTaskEventListByPartyId(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskEventByPartyId(dc.db, taskId, partyId)
+}
+
 // about task on datacenter
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	dc.serviceMu.Lock()
@@ -260,30 +290,245 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 	return eventList, nil
 }
 
-func (dc *DataCenter) StoreScheduling(bullet *types.TaskBullet) error {
-	return rawdb.StoreScheduling(dc.db, bullet)
-}
-func (dc *DataCenter) DeleteScheduling(bullet *types.TaskBullet) error {
-	return rawdb.RemoveScheduling(dc.db, bullet)
-}
-func (dc *DataCenter) RecoveryScheduling() (*types.TaskBullets, *types.TaskBullets, map[string]*types.TaskBullet) {
-	return rawdb.RecoveryScheduling(dc.db)
+
+// about TaskPowerUsed
+func (dc *DataCenter) StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreLocalTaskPowerUsed(dc.db, taskPowerUsed)
 }
 
-//func (dc *DataCenter) UpdateLocalTaskState(taskId, state string) error {
-//	if taskId == "" || state == "" {
-//		return errors.New("invalid params taskId or state for UpdateLocalTaskState")
-//	}
-//	log.Debugf("Start to update local task state, taskId: {%s}, need update state: {%s}", taskId, state)
-//
-//	dc.mu.Lock()
-//	defer dc.mu.Unlock()
-//	task, err := rawdb.QueryLocalTask(dc.db, taskId)
-//	if nil != err {
-//		return err
-//	}
-//	task.TaskPB().GetState = state
-//	rawdb.RemoveLocalTask(dc.db, taskId)
-//	rawdb.StoreLocalTask(dc.db, task)
-//	return nil
-//}
+func (dc *DataCenter) StoreLocalTaskPowerUseds(taskPowerUseds []*types.LocalTaskPowerUsed) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreLocalTaskPowerUseds(dc.db, taskPowerUseds)
+}
+
+func (dc *DataCenter) HasLocalTaskPowerUsed(taskId, partyId string) (bool, error) {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.HasLocalTaskPowerUsed(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveLocalTaskPowerUsed(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveLocalTaskPowerUsed(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveLocalTaskPowerUsedByTaskId(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveLocalTaskPowerUsedByTaskId(dc.db, taskId)
+}
+
+func (dc *DataCenter) QueryLocalTaskPowerUsed(taskId, partyId string) (*types.LocalTaskPowerUsed, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryLocalTaskPowerUsed(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) QueryLocalTaskPowerUsedsByTaskId(taskId string) ([]*types.LocalTaskPowerUsed, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	res, _ := rawdb.QueryLocalTaskPowerUsedsByTaskId(dc.db, taskId)
+	return res, nil
+}
+
+func (dc *DataCenter) QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	res, _ := rawdb.QueryLocalTaskPowerUseds(dc.db)
+	return res, nil
+}
+
+// about TaskResultFileMetadataId
+func (dc *DataCenter) StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskUpResultFile(dc.db, turf)
+}
+
+func (dc *DataCenter) QueryTaskUpResultFile(taskId string)  (*types.TaskUpResultFile, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskUpResultFile(dc.db, taskId)
+}
+
+func (dc *DataCenter) QueryTaskUpResultFileList () ([]*types.TaskUpResultFile, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskUpResultFileList(dc.db)
+}
+
+func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskUpResultFile(dc.db, taskId)
+}
+
+func (dc *DataCenter) StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskResuorceUsage(dc.db, usage)
+}
+
+func (dc *DataCenter) QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)  {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskResuorceUsage(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveTaskResuorceUsage(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskResuorceUsage(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveTaskResuorceUsageByTaskId (taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskResuorceUsageByTaskId(dc.db, taskId)
+}
+
+func (dc *DataCenter) StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskPowerPartyIds(dc.db, taskId, powerPartyIds)
+}
+
+func (dc *DataCenter) QueryTaskPowerPartyIds(taskId string) ([]string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskPowerPartyIds(dc.db, taskId)
+}
+
+func (dc *DataCenter) RemoveTaskPowerPartyIds (taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskPowerPartyIds(dc.db, taskId)
+}
+
+func (dc *DataCenter) StoreTaskPartnerPartyIds(taskId string, partyIds []string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskPartnerPartyIds(dc.db, taskId, partyIds)
+}
+
+func (dc *DataCenter) HasTaskPartnerPartyIds(taskId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasTaskPartnerPartyIds(dc.db, taskId)
+}
+
+func (dc *DataCenter) QueryTaskPartnerPartyIds(taskId string) ([]string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryTaskPartnerPartyIds(dc.db, taskId)
+}
+
+func (dc *DataCenter) RemoveTaskPartnerPartyId (taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	log.Debugf("Start remove partyId of local task's partner arr, taskId: {%s}, partyId: {%s}", taskId, partyId)
+	return rawdb.RemoveTaskPartnerPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveTaskPartnerPartyIds (taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskPartnerPartyIds(dc.db, taskId)
+}
+
+// v 1.0 -> v 2.0 about task exec status (prefix + taskId + partyId -> "cons"|"exec")
+func (dc *DataCenter) StoreLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreLocalTaskExecuteStatusValConsByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreLocalTaskExecuteStatusValExecByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveLocalTaskExecuteStatusByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) HasLocalTaskExecuteStatusParty(taskId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasLocalTaskExecuteStatusParty(dc.db, taskId)
+}
+
+func (dc *DataCenter) HasLocalTaskExecuteStatusByPartyId(taskId, partyId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasLocalTaskExecuteStatusByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) HasLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasLocalTaskExecuteStatusValConsByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) HasLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasLocalTaskExecuteStatusValExecByPartyId(dc.db, taskId, partyId)
+}
+
+// v 2.0 about local needExecuteTask
+func (dc *DataCenter) StoreNeedExecuteTask(task *types.NeedExecuteTask) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreNeedExecuteTask(dc.db, task)
+}
+
+func (dc *DataCenter) RemoveNeedExecuteTaskByPartyId(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveNeedExecuteTaskByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) RemoveNeedExecuteTask(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveNeedExecuteTask(dc.db, taskId)
+}
+
+func (dc *DataCenter) ForEachNeedExecuteTaskWwithPrefix (prifix []byte, f func(key, value []byte) error) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.ForEachNeedExecuteTaskWwithPrefix(dc.db, prifix, f)
+}
+
+func (dc *DataCenter) ForEachNeedExecuteTask (f func(key, value []byte) error) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.ForEachNeedExecuteTask(dc.db, f)
+}
+
+// v 2.0 about taskbullet
+func (dc *DataCenter) StoreTaskBullet(bullet *types.TaskBullet) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreTaskBullet(dc.db, bullet)
+}
+
+func (dc *DataCenter) RemoveTaskBullet(taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.RemoveTaskBullet(dc.db, taskId)
+}
+
+func (dc *DataCenter) ForEachTaskBullets(f func(key, value []byte) error) error {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.ForEachTaskBullets(dc.db, f)
+}

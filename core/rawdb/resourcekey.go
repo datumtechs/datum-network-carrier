@@ -34,16 +34,14 @@ var (
 	// prefix + jobNodeId -> taskTotalCount
 	resourceTaskTotalCountKeyPrefix = []byte("resourceTaskTotalCountKeyPrefix")
 
-
 	// prefix + powerId -> jobNodeId
 	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
 	// prefix + metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
 	// prefix + taskId + partyId -> executeStatus
 	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
-	localTaskExecuteStatusValCons = []byte("cons")  // start consensus
-	localTaskExecuteStatusValExec = []byte("exec")  // start execute
-
+	localTaskExecuteStatusValCons   = []byte("cons") // start consensus
+	localTaskExecuteStatusValExec   = []byte("exec") // start execute
 
 	// prefix + userType + user -> n
 	userMetadataAuthUsedCountKey = []byte("userMetadataAuthUsedCountKey")
@@ -69,8 +67,16 @@ var (
 	// prefix + taskId -> [partyId, ..., partyId]  for task sender
 	taskPartnerPartyIdsKeyPrefix = []byte("taskPartnerPartyIdsKeyPrefix:")
 
-	needExecuteTaskPrefix = []byte("needExecuteTaskPrefix:")
+	needExecuteTaskKeyPrefix = []byte("needExecuteTaskKeyPrefix:")
 
+	// ---------  for message_handler  ---------
+	powerMsgKeyPrefix        = []byte("powerMsgKeyPrefix:")
+	metadataMsgKeyPrefix     = []byte("metadataMsgKeyPrefix:")
+	metadataAuthMsgKeyPrefix = []byte("metadataAuthMsgKeyPrefix:")
+	taskMsgKeyPrefix         = []byte("taskMsgKeyPrefix:")
+
+	// ---------- for scheduler (task bullet) ----------
+	taskBulletKeyPrefix = []byte("taskBulletKeyPrefix:")
 )
 
 // nodeResourceKey = NodeResourceKeyPrefix + jobNodeId
@@ -140,7 +146,6 @@ func GetLocalTaskExecuteStatusValCons() []byte {
 func GetLocalTaskExecuteStatusValExec() []byte {
 	return localTaskExecuteStatusValExec
 }
-
 
 func GetUserMetadataAuthUsedCountKey(userType apicommonpb.UserType, user string) []byte {
 	return append(append(userMetadataAuthUsedCountKey, []byte(userType.String())...), []byte(user)...)
@@ -227,7 +232,7 @@ func GetTaskResultFileMetadataIdKeyPrefix() []byte {
 	return taskResultFileMetadataIdKeyPrefix
 }
 
-func GetTaskResuorceUsageKey (taskId, partyId string) []byte {
+func GetTaskResuorceUsageKey(taskId, partyId string) []byte {
 	return append(append(taskResuorceUsageKeyPrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
@@ -247,6 +252,52 @@ func GetTaskPartnerPartyIdsKey(taskId string) []byte {
 	return append(taskPartnerPartyIdsKeyPrefix, []byte(taskId)...)
 }
 
+func GetNeedExecuteTaskKeyPrefix() []byte {
+	return needExecuteTaskKeyPrefix
+}
+
 func GetNeedExecuteTaskKey(taskId, partyId string) []byte {
-	return append(append(needExecuteTaskPrefix, []byte(taskId)...), []byte(partyId)...)
+	return append(append(needExecuteTaskKeyPrefix, []byte(taskId)...), []byte(partyId)...)
+}
+
+func GetPowerMsgKeyPrefix() []byte {
+	return powerMsgKeyPrefix
+}
+
+func GetMetadataMsgKeyPrefix() []byte {
+	return metadataMsgKeyPrefix
+}
+
+func GetMetadataAuthMsgKeyPrefix() []byte {
+	return metadataAuthMsgKeyPrefix
+}
+
+func GetTaskMsgKeyPrefix() []byte {
+	return taskMsgKeyPrefix
+}
+
+func GetPowerMsgKey(powerId string) []byte {
+	return append(powerMsgKeyPrefix, []byte(powerId)...)
+}
+
+func GetMetadataMsgKey(metadataId string) []byte {
+	return append(metadataMsgKeyPrefix, []byte(metadataId)...)
+}
+
+func GetMetadataAuthMsgKey(metadataAuthId string) []byte {
+	return append(metadataAuthMsgKeyPrefix, []byte(metadataAuthId)...)
+}
+
+func GetTaskMsgKey(taskId string) []byte {
+	return append(taskMsgKeyPrefix, []byte(taskId)...)
+}
+
+
+func GetTaskBulletKeyPrefix() []byte {
+	return taskBulletKeyPrefix
+}
+
+// GetTaskBulletKey = taskBulletKeyPrefix + taskId
+func GetTaskBulletKey(taskId string) []byte {
+	return append(taskBulletKeyPrefix, []byte(taskId)...)
 }
