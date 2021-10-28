@@ -37,11 +37,12 @@ message PrepareVoteResource{
 }
 
 message MsgOption{
-  api.protobuf.TaskRole         sender_role = 1;
-  string                        sender_party_id = 2;
-  api.protobuf.TaskRole         receiver_role = 3;
-  string                        receiver_party_id = 4;
-  api.protobuf.TaskOrganization owner = 5;
+  string                        proposal_id = 1;
+  api.protobuf.TaskRole         sender_role = 2;
+  string                        sender_party_id = 3;
+  api.protobuf.TaskRole         receiver_role = 4;
+  string                        receiver_party_id = 5;
+  api.protobuf.TaskOrganization owner = 6;
 }
 
 message PrepareVote{

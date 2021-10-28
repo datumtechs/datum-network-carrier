@@ -87,7 +87,7 @@ func TestUpdateOrgProposalState(t *testing.T) {
 				},
 				PeriodNum: 2,
 			}
-			db.UpdateOrgProposalState(proposalId, sender, orgState)
+			db.StoreOrgProposalState(proposalId, sender, orgState)
 		}
 		if count == 3 {
 			break
@@ -121,7 +121,7 @@ func TestUpdateConfirmTaskPeerInfo(t *testing.T) {
 			},
 		},
 	}
-	db.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
+	db.StoreConfirmTaskPeerInfo(proposalId, peerDesc)
 }
 func TestUpdatePrepareVotes(t *testing.T) {
 	db := generateWalDB()
@@ -154,7 +154,7 @@ func TestUpdatePrepareVotes(t *testing.T) {
 				CreateAt: 2121,
 				Sign:     []byte("this is a test"),
 			}
-			db.UpdatePrepareVotes(vote)
+			db.StorePrepareVote(vote)
 		}
 		count += 1
 		if count == 3 {
@@ -187,7 +187,7 @@ func TestUpdateConfirmVotes(t *testing.T) {
 				CreateAt:   2121,
 				Sign:       []byte("this is a test"),
 			}
-			db.UpdateConfirmVotes(vote)
+			db.StoreConfirmVote(vote)
 		}
 		count += 1
 		if count == 3 {

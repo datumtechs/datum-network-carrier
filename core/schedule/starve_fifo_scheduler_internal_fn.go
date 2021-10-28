@@ -39,6 +39,7 @@ func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) erro
 			bullet.TaskId, bullet.Resched, ReschedMaxCount)
 		heap.Push(sche.queue, bullet)
 	}
+	sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // cover old value with new value into db
 	sche.scheduleMutex.Unlock()
 	return nil
 }

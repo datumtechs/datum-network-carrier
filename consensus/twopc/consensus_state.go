@@ -27,7 +27,6 @@ type state struct {
 	prepareVotesLock    sync.RWMutex
 	confirmVotesLock    sync.RWMutex
 	confirmPeerInfoLock sync.RWMutex
-
 }
 
 func newState(ldb *walDB) *state {
@@ -66,7 +65,6 @@ func (s *state) StoreProposalTaskWithPartyId(partyId string, task *types.Proposa
 	}
 	partyCache[partyId] = task
 	s.proposalTaskCache[task.GetTaskId()] = partyCache
-
 	s.proposalTaskLock.Unlock()
 }
 func (s *state) RemoveProposalTaskWithPartyId(taskId, partyId string) {
@@ -199,7 +197,7 @@ func (s *state) RemoveOrgProposalStateAnyCache(proposalId common.Hash, taskId, p
 	s.RemoveOrgPrepareVoteState(proposalId, partyId)
 	s.RemoveOrgConfirmVoteState(proposalId, partyId)
 	go func() {
-		// TODO 还需要做一个清除 task cache 的 wal key
+		s.wal.DeleteState(s.wal.GetProposalTaskCacheKey(taskId, partyId))
 		s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, partyId))
 		s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId, partyId))
 		s.wal.DeleteState(s.wal.GetProposalSetKey(proposalId, partyId))
@@ -224,12 +222,10 @@ func (s *state) StorePrepareVote(vote *types.PrepareVote) {
 		pvs = newPrepareVoteState()
 	}
 	pvs.addVote(vote)
-	s.wal.UpdatePrepareVotes(vote)
+	s.wal.StorePrepareVote(vote)
 	s.prepareVotes[vote.MsgOption.ProposalId] = pvs
 	s.prepareVotesLock.Unlock()
 }
-
-
 
 func (s *state) GetPrepareVoteArr(proposalId common.Hash) []*types.PrepareVote {
 	s.prepareVotesLock.RLock()
@@ -366,11 +362,9 @@ func (s *state) StoreConfirmVote(vote *types.ConfirmVote) {
 	}
 	cvs.addVote(vote)
 	s.confirmVotes[vote.MsgOption.ProposalId] = cvs
-	s.wal.UpdateConfirmVotes(vote)
+	s.wal.StoreConfirmVote(vote)
 	s.confirmVotesLock.Unlock()
 }
-
-
 
 func (s *state) GetConfirmVoteArr(proposalId common.Hash) []*types.ConfirmVote {
 	s.confirmVotesLock.RLock()
@@ -722,7 +716,7 @@ func (s *state) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopc
 	_, ok := s.proposalPeerInfoCache[proposalId]
 	if !ok {
 		s.proposalPeerInfoCache[proposalId] = peerDesc
-		s.wal.UpdateConfirmTaskPeerInfo(proposalId, peerDesc)
+		s.wal.StoreConfirmTaskPeerInfo(proposalId, peerDesc)
 	}
 	s.confirmPeerInfoLock.Unlock()
 }

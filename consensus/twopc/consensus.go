@@ -181,8 +181,9 @@ func (t *Twopc) OnHandle(task *types.Task, result chan<- *types.TaskConsResult) 
 		task.GetTaskSender(),
 		ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now),
 	)
-	t.state.StoreProposalTaskWithPartyId(task.GetTaskSender().GetPartyId(), types.NewProposalTask(proposalId, task, now))
-
+	proposalTask := types.NewProposalTask(proposalId, task, now)
+	t.state.StoreProposalTaskWithPartyId(task.GetTaskSender().GetPartyId(), proposalTask)
+	t.wal.StoreProposalTask(task.GetTaskSender().GetPartyId(), proposalTask)
 	// Start handle task ...
 	go func() {
 
@@ -266,7 +267,10 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		sender,
 		ctypes.NewOrgProposalState(msg.TaskInfo.GetTaskId(), msg.MsgOption.ReceiverRole, receiver, msg.CreateAt),
 	)
-	t.state.StoreProposalTaskWithPartyId(msg.MsgOption.ReceiverPartyId, types.NewProposalTask(msg.MsgOption.ProposalId, msg.TaskInfo, msg.CreateAt))
+
+	proposalTask := types.NewProposalTask(msg.MsgOption.ProposalId, msg.TaskInfo, msg.CreateAt)
+	t.state.StoreProposalTaskWithPartyId(msg.MsgOption.ReceiverPartyId, proposalTask)
+	t.wal.StoreProposalTask(msg.MsgOption.ReceiverPartyId, proposalTask)
 
 	// Send task to Scheduler to replay sched.
 	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.MsgOption.ReceiverRole, msg.MsgOption.ReceiverPartyId, msg.TaskInfo)

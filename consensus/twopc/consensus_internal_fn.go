@@ -37,7 +37,7 @@ func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sen
 		first = true
 	}
 	pstate.StoreOrgProposalState(orgState)
-	t.wal.UpdateOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
+	t.wal.StoreOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
 	if first {
 		t.state.StoreProposalState(pstate)
 	} else {
@@ -135,6 +135,7 @@ func (t *Twopc) refreshProposalState() {
 					t.state.proposalSet[proposalId] = pstate
 				}
 				go func() { // remove wal record
+					t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
 					t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
 					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
@@ -179,7 +180,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToConfirm(orgState.PeriodStartTime + uint64(ctypes.PrepareMsgVotingDuration.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodConfirm:
@@ -191,7 +192,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToCommit(orgState.PeriodStartTime + uint64(ctypes.ConfirmMsgVotingDuration.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodCommit:
@@ -203,7 +204,7 @@ func (t *Twopc) refreshProposalState() {
 					orgState.ChangeToFinished(orgState.PeriodStartTime + uint64(ctypes.CommitMsgEndingDuration.Milliseconds()))
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 
-					t.wal.UpdateOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
 				}
 
 			case ctypes.PeriodFinished:
@@ -226,6 +227,7 @@ func (t *Twopc) refreshProposalState() {
 						t.state.proposalSet[proposalId] = pstate
 					}
 					go func() { // remove wal record
+						t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
 						t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
 						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
@@ -916,17 +918,17 @@ func (t *Twopc) recoverCache() {
 				}
 				proposalState, ok := t.state.proposalSet[proposalId]
 				if !ok {
-					proposalState = ctypes.NewProposalState(proposalId, libOrgProposalState.TaskId, libOrgProposalState.TaskSender)
+					proposalState = ctypes.NewProposalState(proposalId, libOrgProposalState.GetTaskId(), libOrgProposalState.GetTaskSender())
 				}
 				proposalState.StoreOrgProposalStateUnSafe(&ctypes.OrgProposalState{
-					PrePeriodStartTime: libOrgProposalState.PrePeriodStartTime,
-					PeriodStartTime:    libOrgProposalState.PeriodStartTime,
-					DeadlineDuration:   libOrgProposalState.DeadlineDuration,
-					CreateAt:           libOrgProposalState.CreateAt,
-					TaskId:             libOrgProposalState.TaskId,
-					TaskRole:           libOrgProposalState.TaskRole,
-					TaskOrg:            libOrgProposalState.TaskOrg,
-					PeriodNum:          ctypes.ProposalStatePeriod(libOrgProposalState.PeriodNum),
+					PrePeriodStartTime: libOrgProposalState.GetPrePeriodStartTime(),
+					PeriodStartTime:    libOrgProposalState.GetPeriodStartTime(),
+					DeadlineDuration:   libOrgProposalState.GetDeadlineDuration(),
+					CreateAt:           libOrgProposalState.GetCreateAt(),
+					TaskId:             libOrgProposalState.GetTaskId(),
+					TaskRole:           libOrgProposalState.GetTaskRole(),
+					TaskOrg:            libOrgProposalState.GetTaskOrg(),
+					PeriodNum:          ctypes.ProposalStatePeriod(libOrgProposalState.GetPeriodNum()),
 				})
 				t.state.proposalSet[proposalId] = proposalState
 			}

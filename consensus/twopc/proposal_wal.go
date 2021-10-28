@@ -78,10 +78,6 @@ func (w *walDB) GetProposalSetKey(hash common.Hash, partyId string) []byte {
 	return append(append(proposalSetPrefix, hash.Bytes()...), []byte(partyId)...)
 }
 
-func (w *walDB) GetProposalPeerInfoCacheKey(hash common.Hash) []byte {
-	return append(proposalPeerInfoCachePrefix, hash.Bytes()...)
-}
-
 func (w *walDB) GetPrepareVotesKey(hash common.Hash, partyId string) []byte {
 	return append(append(prepareVotesPrefix, hash.Bytes()...), []byte(partyId)...)
 }
@@ -90,9 +86,29 @@ func (w *walDB) GetConfirmVotesKey(hash common.Hash, partyId string) []byte {
 	return append(append(confirmVotesPrefix, hash.Bytes()...), []byte(partyId)...)
 }
 
-func (w *walDB) UpdateOrgProposalState(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
-	pbObj := &libtypes.OrgProposalState{
-		TaskId:             orgState.TaskId,
+func (w *walDB) GetProposalPeerInfoCacheKey(hash common.Hash) []byte {
+	return append(proposalPeerInfoCachePrefix, hash.Bytes()...)
+}
+
+func (w *walDB) StoreProposalTask(partyId string, task *types.ProposalTask) {
+	data, err := proto.Marshal(&libtypes.ProposalTask{
+		ProposalId: task.GetProposalId().String(),
+		TaskId: task.GetTaskId(),
+		CreateAt: task.GetCreateAt(),
+	})
+	if err != nil {
+		log.WithError(err).Fatalf("marshal proposalTask failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+			task.GetProposalId().String(), task.GetTaskId(), partyId)
+	}
+	if err := w.db.Put(w.GetProposalTaskCacheKey(task.GetTaskId(), partyId), data); err != nil {
+		log.WithError(err).Fatalf("store proposalTask failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+			task.GetProposalId().String(), task.GetTaskId(), partyId)
+	}
+}
+
+func (w *walDB) StoreOrgProposalState(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+	data, err := proto.Marshal(&libtypes.OrgProposalState{
+		TaskId:             orgState.GetTaskId(),
 		TaskSender:         sender,
 		PrePeriodStartTime: orgState.PrePeriodStartTime,
 		PeriodStartTime:    orgState.PeriodStartTime,
@@ -101,29 +117,21 @@ func (w *walDB) UpdateOrgProposalState(proposalId common.Hash, sender *apicommon
 		TaskRole:           orgState.TaskRole,
 		TaskOrg:            orgState.TaskOrg,
 		PeriodNum:          uint32(orgState.PeriodNum),
-	}
-	data, err := proto.Marshal(pbObj)
+	})
 	if err != nil {
-		log.Fatal("marshal org proposalState error: ", err)
+		log.WithError(err).Fatalf("marshal org proposalState failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+			 proposalId.String(), orgState.GetTaskId(), orgState.TaskOrg.GetPartyId())
 	}
 	if err := w.db.Put(w.GetProposalSetKey(proposalId, orgState.TaskOrg.PartyId), data); err != nil {
-		log.Warning("UpdateOrgProposalState to wal fail,proposalId:", proposalId)
+		log.WithError(err).Fatalf("store org proposalState failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+			 proposalId.String(), orgState.GetTaskId(), orgState.TaskOrg.GetPartyId())
 	}
 }
 
-func (w *walDB) UpdateConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
-	data, err := proto.Marshal(peerDesc)
-	if err != nil {
-		log.Fatal("marshal confirmTaskPeerInfo error: ", err)
-	}
-	if err := w.db.Put(w.GetProposalPeerInfoCacheKey(proposalId), data); err != nil {
-		log.Warning("UpdateConfirmTaskPeerInfo to wal fail,proposalId:", proposalId)
-	}
-}
-
-func (w *walDB) UpdatePrepareVotes(vote *types.PrepareVote) {
-	pbObj := &libtypes.PrepareVote{
+func (w *walDB) StorePrepareVote(vote *types.PrepareVote) {
+	data, err := proto.Marshal(&libtypes.PrepareVote{
 		MsgOption: &libtypes.MsgOption{
+			ProposalId:      vote.MsgOption.ProposalId.String(),
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,
 			ReceiverRole:    vote.MsgOption.ReceiverRole,
@@ -139,19 +147,21 @@ func (w *walDB) UpdatePrepareVotes(vote *types.PrepareVote) {
 		},
 		CreateAt: vote.CreateAt,
 		Sign:     vote.Sign,
-	}
-	data, err := proto.Marshal(pbObj)
+	})
 	if err != nil {
-		log.Fatal("marshal prepareVote error: ", err)
+		log.WithError(err).Fatalf("marshal org prepareVote failed, proposalId: {%s}, partyId: {%s}",
+			vote.MsgOption.ProposalId.String(), vote.MsgOption.SenderPartyId)
 	}
 	if err := w.db.Put(w.GetPrepareVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdatePrepareVotes to wal failed,proposalId:", vote.MsgOption.ProposalId)
+		log.WithError(err).Fatalf("store org prepareVote failed, proposalId: {%s}, partyId: {%s}",
+			vote.MsgOption.ProposalId.String(), vote.MsgOption.SenderPartyId)
 	}
 }
 
-func (w *walDB) UpdateConfirmVotes(vote *types.ConfirmVote) {
-	pbObj := &libtypes.ConfirmVote{
+func (w *walDB) StoreConfirmVote(vote *types.ConfirmVote) {
+	data, err := proto.Marshal(&libtypes.ConfirmVote{
 		MsgOption: &libtypes.MsgOption{
+			ProposalId:      vote.MsgOption.ProposalId.String(),
 			SenderRole:      vote.MsgOption.SenderRole,
 			SenderPartyId:   vote.MsgOption.SenderPartyId,
 			ReceiverRole:    vote.MsgOption.ReceiverRole,
@@ -161,13 +171,26 @@ func (w *walDB) UpdateConfirmVotes(vote *types.ConfirmVote) {
 		VoteOption: uint32(vote.VoteOption),
 		CreateAt:   vote.CreateAt,
 		Sign:       vote.Sign,
-	}
-	data, err := proto.Marshal(pbObj)
+	})
 	if err != nil {
-		log.Fatal("marshal confirmVote error: ", err)
+		log.WithError(err).Fatalf("marshal org confirmVote failed, proposalId: {%s}, partyId: {%s}",
+			vote.MsgOption.ProposalId.String(), vote.MsgOption.SenderPartyId)
 	}
 	if err := w.db.Put(w.GetConfirmVotesKey(vote.MsgOption.ProposalId, vote.MsgOption.SenderPartyId), data); err != nil {
-		log.Warning("UpdateConfirmVotes to wal failed,proposalId:", vote.MsgOption.ProposalId)
+		log.WithError(err).Fatalf("store org confirmVote failed, proposalId: {%s}, partyId: {%s}",
+			vote.MsgOption.ProposalId.String(), vote.MsgOption.SenderPartyId)
+	}
+}
+
+func (w *walDB) StoreConfirmTaskPeerInfo(proposalId common.Hash, peerDesc *twopcpb.ConfirmTaskPeerInfo) {
+	data, err := proto.Marshal(peerDesc)
+	if err != nil {
+		log.WithError(err).Fatalf("marshal confirmTaskPeerInfo failed, proposalId: {%s}",
+			proposalId.String())
+	}
+	if err := w.db.Put(w.GetProposalPeerInfoCacheKey(proposalId), data); err != nil {
+		log.WithError(err).Fatalf("store confirmTaskPeerInfo failed, proposalId: {%s}",
+			proposalId.String())
 	}
 }
 
