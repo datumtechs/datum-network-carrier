@@ -15,6 +15,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	fightercommon "github.com/RosettaFlow/Carrier-Go/lib/fighter/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -167,8 +168,8 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task,  senderRole, rec
 		receiver,
 		task,
 		taskActionStatus,
-		nil,
-		nil,
+		&types.PrepareVoteResource{}, // zero value
+		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
 	)
 	return nil
 }
@@ -914,12 +915,10 @@ func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask) {
 	}
 	cache[task.GetLocalTaskOrganization().GetPartyId()] = task
 	m.runningTaskCache[task.GetTask().GetTaskId()] = cache
-	go func() {
-		if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
-			log.WithError(err).Errorf("store needExecuteTask failed, taskId: {%s}, partyId: {%s}",
-				task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-		}
-	}()
+	if err := m.resourceMng.GetDB().StoreNeedExecuteTask(task); nil != err {
+		log.WithError(err).Errorf("store needExecuteTask failed, taskId: {%s}, partyId: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	}
 	m.runningTaskCacheLock.Unlock()
 }
 
