@@ -2,9 +2,11 @@ package handler
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	librpcpb "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"go.opencensus.io/trace"
 )
 
 // Clients who receive a gossip test data on this topic MUST validate the conditions
@@ -16,9 +18,13 @@ func (s *Service) validateGossipTestData(ctx context.Context, pid peer.ID, msg *
 		return pubsub.ValidationAccept
 	}
 
+	ctx, span := trace.StartSpan(ctx, "handler.validateGossipTestData")
+	defer span.End()
+
 	m, err := s.decodePubsubMessage(msg)
 	if err != nil {
 		log.WithError(err).Debug("Could not decode message")
+		traceutil.AnnotateError(span, err)
 		return pubsub.ValidationReject
 	}
 

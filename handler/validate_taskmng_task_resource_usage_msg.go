@@ -16,7 +16,7 @@ func (s *Service) validateTaskResourceUsageMessagePubSub(ctx context.Context, pi
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "sync.TaskResourceUsageMsg")
+	ctx, span := trace.StartSpan(ctx, "handler.validateTaskResourceUsageMessagePubSub")
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)

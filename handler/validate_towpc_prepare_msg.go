@@ -22,7 +22,7 @@ func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID,
 		return pubsub.ValidationIgnore
 	}*/
 
-	ctx, span := trace.StartSpan(ctx, "sync.prepareMessage")
+	ctx, span := trace.StartSpan(ctx, "handler.validatePrepareMessagePubSub")
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)
