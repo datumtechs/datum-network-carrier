@@ -278,7 +278,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 		return errors.New("not find jobNodeId of self vote resource")
 	}
 
-	// clinet *grpclient.DataNodeClient,
+	// clinet *grpclient.JobNodeClient,
 	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
 	if !has {
 		log.Errorf("Failed to query internal job node on `taskManager.executeTaskOnJobNode()`,  taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
@@ -334,8 +334,26 @@ func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 
 func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 
-	// 找到自己的投票
-	dataNodeId := task.GetLocalResource().Id
+	// find dataNodeId with self vote
+	var dataNodeId string
+	dataNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeDataNode)
+	if nil != err {
+		log.Errorf("Failed to query internal dataNode arr on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
+		return errors.New("query internal dataNodes failed")
+	}
+	for _, dataNode := range dataNodes {
+		if dataNode.GetExternalIp() == task.GetLocalResource().Ip && dataNode.GetExternalPort() == task.GetLocalResource().Port {
+			dataNodeId = dataNode.GetId()
+			break
+		}
+	}
+
+	if "" == strings.Trim(dataNodeId, "") {
+		log.Errorf("Failed to find dataNodeId of self vote resource on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
+		return errors.New("not find dataNodeId of self vote resource")
+	}
 
 	// clinet *grpclient.DataNodeClient,
 	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
@@ -378,10 +396,28 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 
 func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 
-	// 找到自己的投票
-	jobNodeId := task.GetLocalResource().Id
+	// find jobNodeId with self vote
+	var jobNodeId string
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(api.PrefixTypeJobNode)
+	if nil != err {
+		log.Errorf("Failed to query internal jobNode arr on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
+		return errors.New("query internal jobNodes failed")
+	}
+	for _, jobNode := range jobNodes {
+		if jobNode.GetExternalIp() == task.GetLocalResource().Ip && jobNode.GetExternalPort() == task.GetLocalResource().Port {
+			jobNodeId = jobNode.GetId()
+			break
+		}
+	}
 
-	// clinet *grpclient.DataNodeClient,
+	if "" == strings.Trim(jobNodeId, "") {
+		log.Errorf("Failed to find jobNodeId of self vote resource on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+			task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
+		return errors.New("not find jobNodeId of self vote resource")
+	}
+
+	// clinet *grpclient.JobNodeClient,
 	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
 	if !has {
 		log.Errorf("Failed to query internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}",
@@ -1095,7 +1131,7 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
 			}
 		case ev.TaskExecuteFailedEOF.Type:
-			log.Infof("Started handle taskEvent with currentIdentity, `event is the task final failed EOF finished`, event: %s", event.String())
+			log.Infof("Started handle taskEvent with currentIdentity, `event is the task final failed EOF finished` will terminate task, event: %s", event.String())
 
 			//
 			if err := m.resourceMng.GetDB().RemoveTaskPartnerPartyIds(event.GetTaskId()); nil != err {
@@ -1147,7 +1183,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask) {
 		task.GetLocalTaskOrganization().GetPartyId() != task.GetTask().GetTaskSender().GetPartyId() {
 		// driving task to executing
 		if err := m.driveTaskForExecute(task); nil != err {
-			log.WithError(err).Errorf("Failed to execute task on internal node, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+			log.WithError(err).Errorf("Failed to execute task on internal node, taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
 			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskFailed.Type, task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("failed to execute task: %s with %s", task.GetConsStatus().String(),
@@ -1171,12 +1207,11 @@ func (m *Manager) expireTaskMonitor() {
 
 				duration = timeutils.UnixMsecUint64() - task.GetTask().GetTaskData().GetStartAt()
 
-
-				// TODO 如果是 sender, 且是的 timeout， 发出 terminateMsg (只断掉自己的)
 				if duration >= task.GetTask().GetTaskData().GetOperationCost().GetDuration() {
 					log.Infof("Has task running expire, taskId: {%s}, partyId: {%s}, current running duration: {%d ms}, need running duration: {%d ms}",
 						taskId, partyId, duration, task.GetTask().GetTaskData().GetOperationCost().GetDuration())
 
+					// 1、 store task expired (failed) event with current party
 					m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 						task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("task running expire"),
 						apicommonpb.TaskState_TaskState_Failed)
@@ -1184,6 +1219,8 @@ func (m *Manager) expireTaskMonitor() {
 					case apicommonpb.TaskRole_TaskRole_Sender:
 						m.publishFinishedTaskToDataCenter(task, true)
 					default:
+						// 2、terminate fighter processor for this task with current party
+						m.driveTaskForTerminate(m.mustQueryNeedExecuteTaskCache(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId()))
 						m.sendTaskResultMsgToTaskSender(task)
 					}
 
@@ -1386,7 +1423,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 			}
 		case ev.TaskExecuteFailedEOF.Type:
 
-			log.Infof("Received task result msg `event is the task final failed EOF finished`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
+			log.Infof("Received task result msg `event is the task final failed EOF finished` will terminate task, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
 				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
 
 

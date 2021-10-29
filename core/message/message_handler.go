@@ -415,8 +415,8 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			continue
 		}
 
-		if err := m.dataCenter.StoreLocalResourceIdByPowerId(msg.GetPowerId(), msg.GetJobNodeId()); nil != err {
-			log.Errorf("Failed to StoreLocalResourceIdByPowerId on MessageHandler with broadcast msg,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+		if err := m.dataCenter.StoreJobNodeIdIdByPowerId(msg.GetPowerId(), msg.GetJobNodeId()); nil != err {
+			log.Errorf("Failed to StoreJobNodeIdByPowerId on MessageHandler with broadcast msg,  powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId(), err)
 			continue
 		}
@@ -471,14 +471,14 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 	for _, revoke := range powerRevokeMsgArr {
 
-		jobNodeId, err := m.dataCenter.QueryLocalResourceIdByPowerId(revoke.GetPowerId())
+		jobNodeId, err := m.dataCenter.QueryJobNodeIdIdByPowerId(revoke.GetPowerId())
 		if nil != err {
-			log.Errorf("Failed to QueryLocalResourceIdByPowerId on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+			log.Errorf("Failed to call QueryJobNodeIdByPowerId() on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}
-		if err := m.dataCenter.RemoveLocalResourceIdByPowerId(revoke.GetPowerId()); nil != err {
-			log.Errorf("Failed to RemoveLocalResourceIdByPowerId on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
+		if err := m.dataCenter.RemoveJobNodeIdByPowerId(revoke.GetPowerId()); nil != err {
+			log.Errorf("Failed to call RemoveJobNodeIdByPowerId() on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}, err: {%s}",
 				revoke.GetPowerId(), jobNodeId, err)
 			continue
 		}

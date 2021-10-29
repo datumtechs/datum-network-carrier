@@ -23,9 +23,9 @@ type LocalStoreCarrierDB interface {
 	QueryLocalResource(jobNodeId string) (*types.LocalResource, error)
 	QueryLocalResourceList() (types.LocalResourceArray, error)
 	// powerId -> jobNodeId
-	StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error
-	RemoveLocalResourceIdByPowerId(powerId string) error
-	QueryLocalResourceIdByPowerId(powerId string) (string, error)
+	StoreJobNodeIdIdByPowerId(powerId, jobNodeId string) error
+	RemoveJobNodeIdByPowerId(powerId string) error
+	QueryJobNodeIdIdByPowerId(powerId string) (string, error)
 
 	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
@@ -132,21 +132,6 @@ type TaskCarrierDB interface {
 	QueryLocalTaskAndEvents(taskId string) (*types.Task, error)
 	QueryLocalTaskAndEventsListByIds(taskIds []string) (types.TaskDataArray, error)
 	QueryLocalTaskAndEventsList() (types.TaskDataArray, error)
-	QueryRunningTaskCountOnCurrentOrg() uint32
-	// about resourceTaskIds Mapping (jobNodeId -> [taskId, taskId, ..., taskId])
-	StoreJobNodeRunningTaskId(jobNodeId, taskId string) error
-	RemoveJobNodeRunningTaskId(jobNodeId, taskId string) error
-	QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
-	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
-	// about resource task party count (prefix + taskId -> n (n: partyId count))
-	IncreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
-	DecreaseResourceTaskPartyIdCount(jobNodeId, taskId string) error
-	QueryResourceTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
-	// about task totalCount on jobNode ever (prefix + jobNodeId -> taskTotalCount)
-	IncreaseResourceTaskTotalCount (jobNodeId string) error
-	DecreaseResourceTaskTotalCount (jobNodeId string) error
-	RemoveResourceTaskTotalCount (jobNodeId string) error
-	QueryResourceTaskTotalCount (jobNodeId string) (uint32, error)
 	// about local task event
 	StoreTaskEvent(event *libtypes.TaskEvent) error
 	QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, error)
@@ -167,6 +152,21 @@ type TaskCarrierDB interface {
 	QueryLocalTaskPowerUsed(taskId, partyId string) (*types.LocalTaskPowerUsed, error)
 	QueryLocalTaskPowerUsedsByTaskId(taskId string) ([]*types.LocalTaskPowerUsed, error)
 	QueryLocalTaskPowerUseds() ([]*types.LocalTaskPowerUsed, error)
+	// about JobNodeTaskPartyId (prefix + jobNodeId + taskId -> [partyId, ..., partyId])
+	StoreJobNodeTaskPartyId(jobNodeId, taskId, partyId string) error
+	RemoveJobNodeTaskPartyId(jobNodeId, taskId, partyId string) error
+	RemoveJobNodeTaskIdAllPartyIds(jobNodeId, taskId string) error
+	QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
+	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
+	QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId string) ([]string, error)
+	HasJobNodeTaskId(jobNodeId, taskId string) (bool, error)
+	HasJobNodeTaskPartyId(jobNodeId, taskId, partyId string) (bool, error)
+	QueryJobNodeTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
+	QueryJobNodeTaskIdCount(jobNodeId string) (uint32, error)
+	// v 2.0 about jobNode history task count (prefix + jobNodeId -> history task count)
+	InscreaseJobNodeHistoryTaskCount (jobNodeId string) error
+	DescreaseJobNodeHistoryTaskCount (jobNodeId string) error
+	QueryJobNodeHistoryTaskCount (jobNodeId string) (uint32, error)
 	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
 	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
 	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)

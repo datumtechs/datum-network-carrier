@@ -33,22 +33,22 @@ func (dc *DataCenter) QueryLocalResourceList() (types.LocalResourceArray, error)
 	return rawdb.QueryAllLocalResource(dc.db)
 }
 
-func (dc *DataCenter) StoreLocalResourceIdByPowerId(powerId, jobNodeId string) error {
+func (dc *DataCenter) StoreJobNodeIdIdByPowerId(powerId, jobNodeId string) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.StoreLocalResourceIdByPowerId(dc.db, powerId, jobNodeId)
+	return rawdb.StoreJobNodeIdByPowerId(dc.db, powerId, jobNodeId)
 }
 
-func (dc *DataCenter) RemoveLocalResourceIdByPowerId(powerId string) error {
+func (dc *DataCenter) RemoveJobNodeIdByPowerId(powerId string) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.RemoveLocalResourceIdByPowerId(dc.db, powerId)
+	return rawdb.RemoveJobNodeIdByPowerId(dc.db, powerId)
 }
 
-func (dc *DataCenter) QueryLocalResourceIdByPowerId(powerId string) (string, error) {
+func (dc *DataCenter) QueryJobNodeIdIdByPowerId(powerId string) (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryLocalResourceIdByPowerId(dc.db, powerId)
+	return rawdb.QueryJobNodeIdByPowerId(dc.db, powerId)
 }
 
 // about power on datacenter

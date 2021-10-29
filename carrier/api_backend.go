@@ -824,14 +824,6 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	}
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryLocalResourceList, machineList: %s", machineList.String())
 
-	// query used of power for local task. : taskId -> {taskId, jobNodeId, slotCount}
-	localTaskPowerUsedList, err := s.carrier.carrierDB.QueryLocalTaskPowerUseds()
-	if err != nil {
-		return nil, err
-	}
-	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryLocalTaskPowerUseds, localTaskPowerUsedList: %s",
-		utilLocalTaskPowerUsedArrString(localTaskPowerUsedList))
-
 	// query slotUnit
 	slotUnit, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
 	if err != nil {
@@ -840,115 +832,102 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
 		slotUnit.String())
 
-	// collected all powerUsed on local jobNode (many powerUsed on one jobNodes, N -> 1)
-	validLocalTaskPowerUsedMap := make(map[string][]*types.LocalTaskPowerUsed, 0)
-	for _, taskPowerUsed := range localTaskPowerUsedList {
-		// condition: jobNode
-		usedArr, ok := validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()]
-		if ok {
-			usedArr = append(usedArr, taskPowerUsed)
-		} else {
-			usedArr = []*types.LocalTaskPowerUsed{taskPowerUsed}
-		}
-		validLocalTaskPowerUsedMap[taskPowerUsed.GetNodeId()] = usedArr
-	}
-
-	log.Debugf("Invoke:GetLocalPowerDetailList, make validLocalTaskPowerUsedMap, validLocalTaskPowerUsedMap: %s",
-		utilLocalTaskPowerUsedMapString(validLocalTaskPowerUsedMap))
-
-	readElement := func(partyId string, task *types.Task) *libtypes.TaskPowerSupplier {
-		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-			if partyId == powerSupplier.GetOrganization().GetPartyId() {
-				return powerSupplier
-			}
-		}
-		return nil
-	}
-
 	buildPowerTaskList := func(jobNodeId string) []*libtypes.PowerTask {
+
 		powerTaskList := make([]*libtypes.PowerTask, 0)
 
-		//  handle task information (about the powerUsed) of jobNode one by one with jobNodeId
-		if usedArr, ok := validLocalTaskPowerUsedMap[jobNodeId]; ok {
+		taskIds, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(jobNodeId)
+		if err != nil {
+			log.WithError(err).Errorf("Failed to query jobNode runningTaskIds on GetLocalPowerDetailList, jobNodeId: {%s}", jobNodeId)
+			return powerTaskList
+		}
 
-			// handle powerUsed one by one
-			for _, powerUsed := range usedArr {
-
-				// query local task information by taskId
-				taskId := powerUsed.GetTaskId()
-				task, err := s.carrier.carrierDB.QueryLocalTask(taskId)
-				if err != nil {
-					log.Errorf("Failed to query local task on GetLocalPowerDetailList, taskId: {%s}, err: {%s}", taskId, err)
-					continue
-				}
-
-				// build powerTask info
-				powerTask := &libtypes.PowerTask{
-					TaskId:   taskId,
-					TaskName: task.GetTaskData().TaskName,
-					Owner: &apicommonpb.Organization{
-						NodeName:   task.GetTaskData().GetNodeName(),
-						NodeId:     task.GetTaskData().GetNodeId(),
-						IdentityId: task.GetTaskData().GetIdentityId(),
-					},
-					Receivers: make([]*apicommonpb.Organization, 0),
-					OperationCost: &apicommonpb.TaskResourceCostDeclare{
-						Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
-						Memory:    task.GetTaskData().GetOperationCost().GetMemory(),
-						Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
-						Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
-					},
-					OperationSpend: nil, // will be culculating after ...
-					CreateAt:       task.GetTaskData().CreateAt,
-				}
-				// build dataSuppliers of task info
-				for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-					powerTask.Partners = append(powerTask.Partners, &apicommonpb.Organization{
-						NodeName:   dataSupplier.GetOrganization().GetNodeName(),
-						NodeId:     dataSupplier.GetOrganization().GetNodeId(),
-						IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
-					})
-				}
-				// build receivers of task info
-				for _, receiver := range task.GetTaskData().GetReceivers() {
-					powerTask.Receivers = append(powerTask.Receivers, &apicommonpb.Organization{
-						NodeName:   receiver.GetNodeName(),
-						NodeId:     receiver.GetNodeId(),
-						IdentityId: receiver.GetIdentityId(),
-					})
-				}
-
-				var (
-					processor uint32
-					memory    uint64
-					bandwidth uint64
-					duration  uint64
-				)
-				// culculate power resource used on task
-				powerSupplier := readElement(powerUsed.GetPartyId(), task)
-				if nil != powerSupplier {
-					processor = powerSupplier.GetResourceUsedOverview().GetUsedProcessor()
-					memory = powerSupplier.GetResourceUsedOverview().GetUsedMem()
-					bandwidth = powerSupplier.GetResourceUsedOverview().GetUsedBandwidth()
-				}
-				if task.GetTaskData().GetStartAt() != 0 {
-					duration = timeutils.UnixMsecUint64() - task.GetTaskData().GetStartAt()
-				}
-				powerTask.OperationSpend = &apicommonpb.TaskResourceCostDeclare{
-					Processor: processor,
-					Memory:    memory,
-					Bandwidth: bandwidth,
-					Duration:  duration,
-				}
-				powerTaskList = append(powerTaskList, powerTask)
+		for _, taskId := range taskIds {
+			// query local task information by taskId
+			task, err := s.carrier.carrierDB.QueryLocalTask(taskId)
+			if err != nil {
+				log.WithError(err).Errorf("Failed to query local task on GetLocalPowerDetailList, taskId: {%s}", taskId)
+				continue
 			}
+
+			partyIds, err := s.carrier.carrierDB.QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId)
+			if err != nil {
+				log.WithError(err).Errorf("Failed to query jobNode runningTask all partyIds on GetLocalPowerDetailList, jobNodeId: {%s}, taskId: {%s}", jobNodeId, taskId)
+				continue
+			}
+			// build powerTask info
+			powerTask := &libtypes.PowerTask{
+				TaskId:   taskId,
+				TaskName: task.GetTaskData().TaskName,
+				Owner: &apicommonpb.Organization{
+					NodeName:   task.GetTaskData().GetNodeName(),
+					NodeId:     task.GetTaskData().GetNodeId(),
+					IdentityId: task.GetTaskData().GetIdentityId(),
+				},
+				Receivers: make([]*apicommonpb.Organization, 0),
+				OperationCost: &apicommonpb.TaskResourceCostDeclare{
+					Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
+					Memory:    task.GetTaskData().GetOperationCost().GetMemory(),
+					Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
+					Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
+				},
+				OperationSpend: nil, // will be culculating after ...
+				CreateAt:       task.GetTaskData().CreateAt,
+			}
+			// build dataSuppliers of task info
+			for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+				powerTask.Partners = append(powerTask.Partners, &apicommonpb.Organization{
+					NodeName:   dataSupplier.GetOrganization().GetNodeName(),
+					NodeId:     dataSupplier.GetOrganization().GetNodeId(),
+					IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
+				})
+			}
+			// build receivers of task info
+			for _, receiver := range task.GetTaskData().GetReceivers() {
+				powerTask.Receivers = append(powerTask.Receivers, &apicommonpb.Organization{
+					NodeName:   receiver.GetNodeName(),
+					NodeId:     receiver.GetNodeId(),
+					IdentityId: receiver.GetIdentityId(),
+				})
+			}
+
+			var (
+				processor uint32
+				memory    uint64
+				bandwidth uint64
+				duration  uint64
+			)
+			// culculate power resource used on task
+			partyIdTmp := make(map[string]struct{}, 0)
+			for _, partyId := range partyIds {
+				partyIdTmp[partyId] = struct{}{}
+			}
+
+			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+				if _, ok := partyIdTmp[powerSupplier.GetOrganization().GetPartyId()]; ok  {
+					processor += powerSupplier.GetResourceUsedOverview().GetUsedProcessor()
+					memory += powerSupplier.GetResourceUsedOverview().GetUsedMem()
+					bandwidth += powerSupplier.GetResourceUsedOverview().GetUsedBandwidth()
+				}
+			}
+
+			if task.GetTaskData().GetStartAt() != 0 {
+				duration = timeutils.UnixMsecUint64() - task.GetTaskData().GetStartAt()
+			}
+			powerTask.OperationSpend = &apicommonpb.TaskResourceCostDeclare{
+				Processor: processor,
+				Memory:    memory,
+				Bandwidth: bandwidth,
+				Duration:  duration,
+			}
+			powerTaskList = append(powerTaskList, powerTask)
 		}
 		return powerTaskList
 	}
 
 	// culculate task history total count on jobNode
 	taskTotalCount := func(jobNodeId string) uint32 {
-		count, err := s.carrier.carrierDB.QueryResourceTaskTotalCount(jobNodeId)
+		count, err := s.carrier.carrierDB.QueryJobNodeHistoryTaskCount(jobNodeId)
 		if err != nil {
 			log.Errorf("Failed to query task totalCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}, err: {%s}", jobNodeId, err)
 			return 0

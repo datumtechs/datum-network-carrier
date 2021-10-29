@@ -16,6 +16,13 @@ var (
 
 	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKeyPrefix:")
+	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
+	jobNodeTaskPartyIdsKeyPrefix = []byte("jobNodeTaskPartyIdsKeyPrefix:")
+	// prefix + jobNodeId -> history task count
+	jobNodeHistoryTaskCountKeyPrefix = []byte("jobNodeHistoryTaskCountKeyPrefix")
+
+
+
 
 	// prefix + dataNodeId -> DataResourceTable{dataNodeId, totalDisk, usedDisk}
 	dataResourceTableKeyPrefix = []byte("dataResourceTableKeyPrefix:")
@@ -27,15 +34,8 @@ var (
 	// key -> [originId, originId, ..., originId]
 	dataResourceFileUploadIdListKey = []byte("dataResourceFileUploadIdListKey")
 
-	// prefix + jobNodeId -> [taskId, taskId, ..., taskId]
-	resourceTaskIdsKeyPrefix = []byte("resourceTaskIdsKeyPrefix:")
-	// prefix + jobNodeId + taskId -> n (n: partyId count)
-	resourceTaskPartyIdCountKeyPrefix = []byte("resourceTaskPartyIdCountKeyPrefix:")
-	// prefix + jobNodeId -> taskTotalCount
-	resourceTaskTotalCountKeyPrefix = []byte("resourceTaskTotalCountKeyPrefix")
-
 	// prefix + powerId -> jobNodeId
-	resourcePowerIdMapingKeyPrefix = []byte("resourcePowerIdMapingKeyPrefix:")
+	powerIdJobNodeIdMapingKeyPrefix = []byte("powerIdJobNodeIdMapingKeyPrefix:")
 	// prefix + metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
 	// prefix + taskId + partyId -> executeStatus
@@ -103,6 +103,21 @@ func GetLocalTaskPowerUsedKeyPrefixByTaskId(taskId string) []byte {
 	return append(localTaskPowerUsedKeyPrefix, []byte(taskId)...)
 }
 
+// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
+func GetJobNodeTaskPartyIdsKey (jobNodeId, taskId string) []byte {
+	return append(append(jobNodeTaskPartyIdsKeyPrefix, []byte(jobNodeId)...), []byte(taskId)...)
+}
+
+// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
+func GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId (jobNodeId string) []byte {
+	return append(jobNodeTaskPartyIdsKeyPrefix, []byte(jobNodeId)...)
+}
+
+// prefix + jobNodeId -> history task count
+func GetJobNodeHistoryTaskCountKey (jobNodeId string) []byte {
+	return append(jobNodeHistoryTaskCountKeyPrefix, []byte(jobNodeId)...)
+}
+
 func GetDataResourceTableKey(dataNodeId string) []byte {
 	return append(dataResourceTableKeyPrefix, []byte(dataNodeId)...)
 }
@@ -116,21 +131,9 @@ func GetDataResourceFileUploadKey(originId string) []byte {
 func GetDataResourceFileUploadIdListKey() []byte {
 	return dataResourceFileUploadIdListKey
 }
-
-func GetResourceTaskIdsKey(jobNodeId string) []byte {
-	return append(resourceTaskIdsKeyPrefix, []byte(jobNodeId)...)
-}
-
-func GetResourceTaskPartyIdCountKey(jobNodeId, taskId string) []byte {
-	return append(append(resourceTaskPartyIdCountKeyPrefix, []byte(jobNodeId)...), []byte(taskId)...)
-}
-
-func GetResourceTaskTotalCountKey(jobNodeId string) []byte {
-	return append(resourceTaskTotalCountKeyPrefix, []byte(jobNodeId)...)
-}
-
-func GetResourcePowerIdMapingKey(powerId string) []byte {
-	return append(resourcePowerIdMapingKeyPrefix, []byte(powerId)...)
+// prefix + powerId -> jobNodeId
+func GetPowerIdJobNodeIdMapingKey(powerId string) []byte {
+	return append(powerIdJobNodeIdMapingKeyPrefix, []byte(powerId)...)
 }
 
 func GetDataResourceDiskUsedKey(metaDataId string) []byte {
