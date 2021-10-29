@@ -18,7 +18,8 @@ func (s *Service) validateGossipTestData(ctx context.Context, pid peer.ID, msg *
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "handler.validateGossipTestData")
+	ctx, span := trace.StartSpanWithRemoteParent(ctx, "handler.validateGossipTestData",
+		traceutil.GenerateParentSpan(pid, msg))
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)

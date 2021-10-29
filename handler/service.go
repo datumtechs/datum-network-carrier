@@ -117,7 +117,7 @@ func (s *Service) Start() error {
 
 	// for testing
 	runutil.RunEvery(s.ctx, 5*time.Second, func() {
-		sendPeer, _ := peer.Decode("16Uiu2HAmKXKJ9QhxtEaAe1eJwKK5Rs6xYjudJW9nWjR8qtjsTvdY")
+		sendPeer, _ := peer.Decode("16Uiu2HAm7pq7heDZwmrmWt9rXV8C1t5ENmyPKtToZAV6pioc1CrW")
 		if s.cfg.P2P.PeerID() == sendPeer {
 			err := s.cfg.P2P.Broadcast(s.ctx, &libp2ppb.GossipTestData{
 				Data:  []byte("data"),
