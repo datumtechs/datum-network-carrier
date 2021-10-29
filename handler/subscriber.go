@@ -112,7 +112,7 @@ func (s *Service) subscribeWithBase(topic string, validator pubsub.ValidatorEx, 
 	pipeline := func(msg *pubsub.Message) {
 		ctx, cancel := context.WithTimeout(s.ctx, pubsubMessageTimeout)
 		defer cancel()
-		ctx, span := trace.StartSpan(ctx, "sync.pubsub")
+		ctx, span := trace.StartSpan(ctx, "handler.pubsub")
 		defer span.End()
 
 		defer func() {

@@ -173,6 +173,7 @@ func (g *Gateway) dialTCP(ctx context.Context, addr string) (*grpc.ClientConn, e
 			return nil, err
 		}
 		security = grpc.WithTransportCredentials(creds)
+		log.Info("Gateway use TLS to dial.")
 	}
 	opts := []grpc.DialOption{
 		security,
