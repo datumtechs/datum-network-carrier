@@ -17,7 +17,7 @@ func (s *Service) validateConfirmMessagePubSub(ctx context.Context, pid peer.ID,
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "sync.confirmMessage")
+	ctx, span := trace.StartSpan(ctx, "handler.validateConfirmMessagePubSub")
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)

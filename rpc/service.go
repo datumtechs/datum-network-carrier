@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	statefeed "github.com/RosettaFlow/Carrier-Go/common/feed/state"
+	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	pbrpc "github.com/RosettaFlow/Carrier-Go/lib/rpc/v1"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -15,6 +16,9 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend/task"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend/yarn"
 	"github.com/RosettaFlow/Carrier-Go/rpc/debug"
+	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
+	recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
+	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/sirupsen/logrus"
 	"go.opencensus.io/plugin/ocgrpc"
@@ -81,22 +85,22 @@ func (s *Service) Start() error {
 
 	opts := []grpc.ServerOption{
 		grpc.StatsHandler(&ocgrpc.ServerHandler{}),
-		/*grpc.StreamInterceptor(middleware.ChainStreamServer(
+		grpc.StreamInterceptor(middleware.ChainStreamServer(
 			recovery.StreamServerInterceptor(
 				recovery.WithRecoveryHandlerContext(traceutil.RecoveryHandlerFunc),
 			),
 			grpc_prometheus.StreamServerInterceptor,
 			grpc_opentracing.StreamServerInterceptor(),
 			s.validatorStreamConnectionInterceptor,
-		)),*/
-		/*grpc.UnaryInterceptor(middleware.ChainUnaryServer(
+		)),
+		grpc.UnaryInterceptor(middleware.ChainUnaryServer(
 			recovery.UnaryServerInterceptor(
 				recovery.WithRecoveryHandlerContext(traceutil.RecoveryHandlerFunc),
 			),
 			grpc_prometheus.UnaryServerInterceptor,
 			grpc_opentracing.UnaryServerInterceptor(),
 			s.validatorUnaryConnectionInterceptor,
-		)),*/
+		)),
 		grpc.MaxRecvMsgSize(s.cfg.MaxMsgSize),
 	}
 	grpc_prometheus.EnableHandlingTimeHistogram()
@@ -194,7 +198,7 @@ func (s *Service) logNewClientConnection(ctx context.Context) {
 		if !s.connectedRPCClients[clientInfo.Addr] {
 			log.WithFields(logrus.Fields{
 				"addr": clientInfo.Addr.String(),
-			}).Infof("New gRPC client connected to carrier node")
+			}).Debug("New gRPC client connected to carrier node")
 			s.connectedRPCClients[clientInfo.Addr] = true
 		}
 	}

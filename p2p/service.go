@@ -166,7 +166,7 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 func (s *Service) Start() error {
 	if s.started {
 		log.Error("Attempted to start p2p service when is was already started")
-		return fmt.Errorf("Attempted to start p2p service when is was already started")
+		return fmt.Errorf("attempted to start p2p service when is was already started")
 	}
 	s.awaitStateInitialized()
 	s.isPreGenesis = false
@@ -210,7 +210,7 @@ func (s *Service) Start() error {
 		}
 		s.connectWithAllPeers(addrs)
 		//todo: need to verify...
-		//peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
+		peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
 	}
 
 	// periodic functions
