@@ -66,6 +66,7 @@ var (
 		flags.P2PTCPPort,
 		flags.P2PUDPPort,
 		flags.NoDiscovery,
+		flags.EnableFakeNetwork,
 		flags.BootstrapNode,
 		flags.EnableUPnPFlag,
 		flags.DisableDiscv5,

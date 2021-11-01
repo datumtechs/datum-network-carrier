@@ -221,6 +221,7 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 		return err
 	}
 	svc, err := p2p.NewService(node.ctx, &p2p.Config{
+		EnableFakeNetwork: cliCtx.Bool(flags.EnableFakeNetwork.Name),
 		NoDiscovery:       cliCtx.Bool(flags.NoDiscovery.Name),
 		StaticPeers:       staticNodeAddrs,
 		BootstrapNodeAddr: bootstrapNodeAddrs,
