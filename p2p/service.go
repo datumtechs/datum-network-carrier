@@ -204,10 +204,15 @@ func (s *Service) Start() error {
 	}
 	s.started = true
 	if len(s.cfg.StaticPeers) > 0 {
+		//todo: Limit the target node for network test.
+		if FakeNetEnable {
+			s.cfg.StaticPeers = MockStaticNode(s.host.ID(), s.cfg.StaticPeers)
+		}
 		addrs, err := peersFromStringAddrs(s.cfg.StaticPeers)
 		if err != nil {
 			log.Errorf("Could not connect to static peer: %v", err)
 		}
+
 		s.connectWithAllPeers(addrs)
 		//todo: need to verify...
 		peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
