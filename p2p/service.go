@@ -205,7 +205,7 @@ func (s *Service) Start() error {
 	s.started = true
 	if len(s.cfg.StaticPeers) > 0 {
 		//todo: Limit the target node for network test.
-		if FakeNetEnable {
+		if s.cfg.EnableFakeNetwork {
 			s.cfg.StaticPeers = MockStaticNode(s.host.ID(), s.cfg.StaticPeers)
 		}
 		addrs, err := peersFromStringAddrs(s.cfg.StaticPeers)

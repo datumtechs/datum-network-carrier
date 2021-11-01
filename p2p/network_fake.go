@@ -4,8 +4,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 )
 
-var FakeNetEnable = true
-
 var indexMock = map[int][]int{
 	1:  []int{2},
 	2:  []int{3},
