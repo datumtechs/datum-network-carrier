@@ -8,8 +8,7 @@ import (
 	"time"
 )
 
-// ENR key used for eth2-related fork data.
-var eth2ENRKey = params.CarrierNetworkConfig().ETH2Key
+var enr2ENRKey = params.CarrierNetworkConfig().EnrKey
 
 // forkDigest returns the current fork digest of the node.
 func (s *Service) forkDigest() ([4]byte, error) {
@@ -26,7 +25,7 @@ func (s *Service) compareForkENR(record *enr.Record) error {
 	return nil
 }
 
-// Adds a fork entry as an ENR record under the eth2EnrKey for
+// Adds a fork entry as an ENR record under the xxxxx for
 // the local node. The fork entry is an ssz-encoded enrForkID type
 // which takes into account the current fork version from the current
 // epoch to create a fork digest, the next fork version,
@@ -39,10 +38,10 @@ func addForkEntry(
 	return node, nil
 }
 
-// Retrieves an enrForkID from an ENR record by key lookup under the eth2EnrKey.
+// Retrieves an enrForkID from an ENR record by key lookup under the xxxxx.
 func forkEntry(record *enr.Record) (*pb.ENRForkID, error) {
 	/*sszEncodedForkEntry := make([]byte, 16)
-	entry := enr.WithEntry(eth2ENRKey, &sszEncodedForkEntry)
+	entry := enr.WithEntry(enr2ENRKey, &sszEncodedForkEntry)
 	err := record.Load(entry)
 	if err != nil {
 		return nil, err
