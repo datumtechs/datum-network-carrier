@@ -267,6 +267,11 @@ func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
 
 func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 
+	// load seed node from bootstrap config file
+
+	// load seed node from default
+
+	// query seed node arr from db
 	seeds , err := s.carrier.carrierDB.QuerySeedNodeList()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call QuerySeedNodeList() on GetSeedNodeList()")
