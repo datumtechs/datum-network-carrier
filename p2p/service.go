@@ -343,13 +343,13 @@ func (s *Service) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
 	multiAddrs := make([]multiaddr.Multiaddr, 0)
 	if len(s.cfg.Discv5BootStrapAddr) != 0 {
 		bootstrap, err := bootstrapStrConvertToMultiAddr(s.cfg.Discv5BootStrapAddr)
-		if err != nil {
+		if err == nil {
 			multiAddrs = append(multiAddrs, bootstrap...)
 		}
 	}
 	if len(s.cfg.StaticPeers) != 0 {
 		staticAddr, err := peersFromStringAddrs(s.cfg.StaticPeers)
-		if err != nil {
+		if err == nil {
 			multiAddrs = append(multiAddrs, staticAddr...)
 		}
 	}
