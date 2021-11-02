@@ -56,6 +56,7 @@ service DataProvider {
 
 message DownloadRequest {
   string file_path = 1;
+  map<string, string> options = 2;  // e.g.: compress: zip
 }
 
 enum TaskStatus {
