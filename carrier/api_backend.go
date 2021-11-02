@@ -285,7 +285,7 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 
 	// query seed node arr from db
 	seeds , err := s.carrier.carrierDB.QuerySeedNodeList()
-	if nil != err {
+	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("Failed to call QuerySeedNodeList() on GetSeedNodeList()")
 		return nil, err
 	}
