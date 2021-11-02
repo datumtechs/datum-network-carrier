@@ -134,6 +134,10 @@ var (
 	}
 
 	// ****************************** P2P module ************************************
+	EnableFakeNetwork = &cli.BoolFlag{
+		Name:  "enable-fake-network",
+		Usage: "Enable only local network p2p and connect to nodes by special.",
+	}
 	// NoDiscovery specifies whether we are running a local network and have no need for connecting
 	// to the bootstrap nodes in the cloud
 	NoDiscovery = &cli.BoolFlag{
