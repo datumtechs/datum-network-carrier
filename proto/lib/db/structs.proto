@@ -8,11 +8,7 @@ import "lib/types/taskdata.proto";
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/db";
 
 message SeedPeerPB {
-    string id            = 1;
-    string node_id       = 2;
-    string internal_ip   = 3;
-    string internal_port = 4;
-    int32  conn_state    = 5;
+    string addr           = 1;
 }
 
 message SeedPeerListPB {
@@ -25,7 +21,6 @@ message RegisteredNodePB {
     string internal_port = 3;
     string external_ip   = 4;
     string external_port = 5;
-    int32  conn_state    = 6;
 }
 
 message RegisteredNodeListPB {

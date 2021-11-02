@@ -110,30 +110,6 @@ func RemoveYarnName(db KeyValueStore) error {
 	return db.Delete(yarnNameKey)
 }
 
-// QuerySeedNode retrieves the seed node with the corresponding nodeId.
-func QuerySeedNode(db DatabaseReader, nodeId string) (*pb.SeedPeer, error) {
-	blob, err := db.Get(seedNodeKey)
-	if nil != err {
-		return nil, err
-	}
-	var seedNodes dbtype.SeedPeerListPB
-	if err := seedNodes.Unmarshal(blob); nil != err {
-		return nil, err
-	}
-	for _, seed := range seedNodes.GetSeedPeerList() {
-		if strings.EqualFold(seed.Id, nodeId) {
-			return &pb.SeedPeer{
-				Id:           seed.Id,
-				NodeId:       seed.NodeId,
-				InternalIp:   seed.InternalIp,
-				InternalPort: seed.InternalPort,
-				ConnState:    pb.ConnState(seed.ConnState),
-			}, nil
-		}
-	}
-	return nil, ErrNotFound
-}
-
 // QueryAllSeedNodes retrieves all the seed nodes in the database.
 // All returned seed nodes are sorted in reverse.
 func QueryAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
@@ -148,11 +124,9 @@ func QueryAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
 	var nodes []*pb.SeedPeer
 	for _, seed := range seedNodes.SeedPeerList {
 		nodes = append(nodes, &pb.SeedPeer{
-			Id:           seed.Id,
-			NodeId:   	  seed.NodeId,
-			InternalIp:   seed.InternalIp,
-			InternalPort: seed.InternalPort,
-			ConnState:    pb.ConnState(seed.ConnState),
+			Addr:      seed.GetAddr(),
+			IsDefault: false,
+			ConnState: pb.ConnState_ConnState_UnConnected,
 		})
 	}
 	return nodes, nil
@@ -175,18 +149,12 @@ func StoreSeedNode(db KeyValueStore, seedNode *pb.SeedPeer) error {
 
 	}
 	for _, s := range seedNodes.GetSeedPeerList() {
-		if strings.EqualFold(s.Id, seedNode.Id) {
-			log.WithFields(logrus.Fields{"id": s.Id}).Info("Skip duplicated seed node")
+		if strings.EqualFold(s.GetAddr(), seedNode.GetAddr()) {
+			log.WithFields(logrus.Fields{"addr": s.GetAddr()}).Info("Skip duplicated seed node")
 			return nil
 		}
 	}
-	seedNodes.SeedPeerList = append(seedNodes.SeedPeerList, &dbtype.SeedPeerPB{
-		Id:           seedNode.Id,
-		NodeId:       seedNode.NodeId,
-		InternalIp:   seedNode.InternalIp,
-		InternalPort: seedNode.InternalPort,
-		ConnState:    int32(seedNode.ConnState),
-	})
+	seedNodes.SeedPeerList = append(seedNodes.SeedPeerList, &dbtype.SeedPeerPB{Addr: seedNode.GetAddr()})
 	// max limit for store seed node.
 	if len(seedNodes.SeedPeerList) > seedNodeToKeep {
 		seedNodes.SeedPeerList = seedNodes.SeedPeerList[:seedNodeToKeep]
@@ -204,7 +172,7 @@ func StoreSeedNode(db KeyValueStore, seedNode *pb.SeedPeer) error {
 }
 
 // RemoveSeedNode deletes the seed nodes from the database with a special id
-func RemoveSeedNode(db KeyValueStore, id string) error {
+func RemoveSeedNode(db KeyValueStore, addr string) error {
 	blob, err := db.Get(seedNodeKey)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -222,7 +190,7 @@ func RemoveSeedNode(db KeyValueStore, id string) error {
 	}
 	// need to test.
 	for idx, s := range seedNodes.GetSeedPeerList() {
-		if strings.EqualFold(s.Id, id) {
+		if strings.EqualFold(s.GetAddr(), addr) {
 			seedNodes.SeedPeerList = append(seedNodes.SeedPeerList[:idx], seedNodes.SeedPeerList[idx+1:]...)
 			break
 		}
@@ -245,7 +213,6 @@ func RemoveSeedNode(db KeyValueStore, id string) error {
 
 // RemoveSeedNodes deletes all the seed nodes from the database
 func RemoveSeedNodes(db KeyValueStore) error {
-
 	has, err := db.Has(seedNodeKey)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -266,7 +233,7 @@ func registryNodeKey(nodeType pb.RegisteredNodeType) []byte {
 	}
 	return key
 }
-
+//  TODO 需要修改 ......... 成单个存储
 // QueryRegisterNode retrieves the register node with the corresponding nodeId.
 func QueryRegisterNode(db DatabaseReader, nodeType pb.RegisteredNodeType, nodeId string) (*pb.YarnRegisteredPeerDetail, error) {
 	blob, err := db.Get(registryNodeKey(nodeType))
@@ -286,13 +253,13 @@ func QueryRegisterNode(db DatabaseReader, nodeType pb.RegisteredNodeType, nodeId
 				InternalPort: registered.InternalPort,
 				ExternalIp:   registered.ExternalIp,
 				ExternalPort: registered.ExternalPort,
-				ConnState:    pb.ConnState(registered.ConnState),
+				ConnState:    pb.ConnState_ConnState_UnConnected,
 			}, nil
 		}
 	}
 	return nil, ErrNotFound
 }
-
+//  TODO 需要修改 ......... 成单个存储
 // QueryAllRegisterNodes retrieves all the registered nodes in the database.
 // All returned registered nodes are sorted in reverse.
 func QueryAllRegisterNodes(db DatabaseReader, nodeType pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
@@ -312,15 +279,15 @@ func QueryAllRegisterNodes(db DatabaseReader, nodeType pb.RegisteredNodeType) ([
 			InternalPort: registered.InternalPort,
 			ExternalIp:   registered.ExternalIp,
 			ExternalPort: registered.ExternalPort,
-			ConnState:    pb.ConnState(registered.ConnState),
+			ConnState:    pb.ConnState_ConnState_UnConnected,
 		})
 	}
 	return nodes, nil
 }
-
+//  TODO 需要修改 ......... 成单个存储
 // StoreRegisterNode serializes the registered node into the database. If the cumulated
 // registered node exceeds the limitation, the oldest will be dropped.
-func StoreRegisterNode (db KeyValueStore, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) error {
+func StoreRegisterNode(db KeyValueStore, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) error {
 
 	key := registryNodeKey(nodeType)
 
@@ -349,7 +316,6 @@ func StoreRegisterNode (db KeyValueStore, nodeType pb.RegisteredNodeType, regist
 		InternalPort: registeredNode.InternalPort,
 		ExternalIp:   registeredNode.ExternalIp,
 		ExternalPort: registeredNode.ExternalPort,
-		ConnState:    int32(registeredNode.ConnState),
 	})
 	// max limit for store seed node.
 	if len(registeredNodes.RegisteredNodeList) > registeredNodeToKeep {
@@ -448,7 +414,7 @@ func QueryTaskEvent(db KeyValueStore, taskId string) ([]*libtypes.TaskEvent, err
 }
 
 // QueryTaskEventByPartyId retrieves the events of task with the corresponding taskId and partyId.
-func QueryTaskEventByPartyId (db DatabaseReader, taskId, partyId string) ([]*libtypes.TaskEvent, error) {
+func QueryTaskEventByPartyId(db DatabaseReader, taskId, partyId string) ([]*libtypes.TaskEvent, error) {
 
 	key := taskEventKey(taskId, partyId)
 
@@ -465,7 +431,7 @@ func QueryTaskEventByPartyId (db DatabaseReader, taskId, partyId string) ([]*lib
 }
 
 // QueryAllTaskEvents retrieves the task event with all (all taskIds and all partyIds).
-func QueryAllTaskEvents (db KeyValueStore) ([]*libtypes.TaskEvent, error) {
+func QueryAllTaskEvents(db KeyValueStore) ([]*libtypes.TaskEvent, error) {
 
 	it := db.NewIteratorWithPrefixAndStart(taskEventPrefix, nil)
 	defer it.Release()
@@ -562,7 +528,7 @@ func QueryLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResour
 		return nil, err
 	}
 	localResource := new(libtypes.LocalResourcePB)
-	if err := localResource.Unmarshal(blob);nil != err {
+	if err := localResource.Unmarshal(blob); nil != err {
 		log.WithError(err).Errorf("Failed to unmarshal local resource")
 		return nil, err
 	}
@@ -750,7 +716,6 @@ func ForEachNeedExecuteTask(db KeyValueStore, f func(key, value []byte) error) e
 	return nil
 }
 
-
 // StoreTaskBullet save scheduled tasks.
 func StoreTaskBullet(db KeyValueStore, bullet *types.TaskBullet) error {
 
@@ -777,8 +742,7 @@ func RemoveTaskBullet(db KeyValueStore, taskId string) error {
 	return db.Delete(key)
 }
 
-
-func ForEachTaskBullets (db KeyValueStore, f func(key, value []byte) error) error {
+func ForEachTaskBullets(db KeyValueStore, f func(key, value []byte) error) error {
 	it := db.NewIteratorWithPrefixAndStart(GetTaskBulletKeyPrefix(), nil)
 	defer it.Release()
 	for it.Next() {
