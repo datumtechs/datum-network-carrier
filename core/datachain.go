@@ -233,9 +233,6 @@ func (dc *DataChain) DeleteSeedNode(id string) error {
 	return nil
 }
 
-func (dc *DataChain) GetSeedNode(id string) (*pb.SeedPeer, error) {
-	return rawdb.QuerySeedNode(dc.db, id)
-}
 
 func (dc *DataChain) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return rawdb.QueryAllSeedNodes(dc.db)
