@@ -21,22 +21,14 @@ type RegisteredNodeType string
 
 func (typ RegisteredNodeType) String() string { return string(typ) }
 
-func (seed *SeedPeer) GenSeedNodeId() string {
-	if "" != seed.GetId() {
-		return seed.GetId()
-	}
-	seed.Id = PrefixSeedNodeId + seed.hashByCreateTime().Hex()
-	return seed.GetId()
-}
-
 func (seed *SeedPeer) hash() (h common.Hash) {
 	hw := sha3.NewKeccak256()
 	d := &struct {
-		InternalIp   string
-		InternalPort string
+		Addr   string
+		IsDefault bool
 	}{
-		InternalIp:   seed.GetInternalIp(),
-		InternalPort: seed.GetInternalPort(),
+		Addr:   seed.GetAddr(),
+		IsDefault: seed.GetIsDefault(),
 	}
 	rlp.Encode(hw, d)
 	hw.Sum(h[:0])
@@ -46,12 +38,12 @@ func (seed *SeedPeer) hash() (h common.Hash) {
 func (seed *SeedPeer) hashByCreateTime() (h common.Hash) {
 	hw := sha3.NewKeccak256()
 	d := &struct {
-		InternalIp   string
-		InternalPort string
+		Addr   string
+		IsDefault bool
 		CreateTime   uint64
 	}{
-		InternalIp:   seed.GetInternalIp(),
-		InternalPort: seed.GetInternalPort(),
+		Addr:   seed.GetAddr(),
+		IsDefault: seed.GetIsDefault(),
 		CreateTime:   timeutils.UnixMsecUint64(),
 	}
 	rlp.Encode(hw, d)

@@ -115,23 +115,16 @@ func (dc *DataCenter) InsertData(blocks types.Blocks) (int, error) {
 }
 
 // on yarn node api
-func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
+func (dc *DataCenter) SetSeedNode(seed *pb.SeedPeer) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	err := rawdb.StoreSeedNode(dc.db, seed)
-	return pb.ConnState_ConnState_UnConnected, err
+	return rawdb.StoreSeedNode(dc.db, seed)
 }
 
-func (dc *DataCenter) RemoveSeedNode(id string) error {
+func (dc *DataCenter) RemoveSeedNode(addr string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveSeedNode(dc.db, id)
-}
-
-func (dc *DataCenter) QuerySeedNode(id string) (*pb.SeedPeer, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QuerySeedNode(dc.db, id)
+	return rawdb.RemoveSeedNode(dc.db, addr)
 }
 
 func (dc *DataCenter) QuerySeedNodeList() ([]*pb.SeedPeer, error) {
@@ -140,11 +133,10 @@ func (dc *DataCenter) QuerySeedNodeList() ([]*pb.SeedPeer, error) {
 	return rawdb.QueryAllSeedNodes(dc.db)
 }
 
-func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error) {
+func (dc *DataCenter) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	err := rawdb.StoreRegisterNode(dc.db, typ, node)
-	return node.ConnState, err
+	return rawdb.StoreRegisterNode(dc.db, typ, node)
 }
 
 func (dc *DataCenter) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {

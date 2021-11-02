@@ -86,7 +86,7 @@ func (m *Manager) tryScheduleTask() error {
 
 		// store task event
 		var (
-			content    string
+			content   string
 			eventType string
 		)
 
@@ -157,7 +157,7 @@ func (m *Manager) tryScheduleTask() error {
 	return nil
 }
 
-func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task,  senderRole, receiverRole apicommonpb.TaskRole,
+func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task, senderRole, receiverRole apicommonpb.TaskRole,
 	sender, receiver *apicommonpb.TaskOrganization, taskActionStatus types.TaskActionStatus) error {
 	m.needExecuteTaskCh <- types.NewNeedExecuteTask(
 		"",
@@ -168,7 +168,7 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task,  senderRole, rec
 		receiver,
 		task,
 		taskActionStatus,
-		&types.PrepareVoteResource{}, // zero value
+		&types.PrepareVoteResource{},   // zero value
 		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
 	)
 	return nil
@@ -823,6 +823,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		DataParty:        dataPartyArr,
 		ComputationParty: powerPartyArr,
 		ResultParty:      receiverPartyArr,
+		Duration:         task.GetTask().GetTaskData().GetOperationCost().GetDuration(),
 	}, nil
 }
 
@@ -1214,7 +1215,7 @@ func (m *Manager) expireTaskMonitor() {
 
 					// clean current party task cache
 					delete(cache, partyId)
-					go m.resourceMng.GetDB().RemoveNeedExecuteTaskByPartyId(taskId,partyId)
+					go m.resourceMng.GetDB().RemoveNeedExecuteTaskByPartyId(taskId, partyId)
 					if len(cache) == 0 {
 						delete(m.runningTaskCache, taskId)
 					} else {
@@ -1387,7 +1388,6 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 
 	for _, event := range msg.TaskEventList {
 
-
 		if "" == strings.Trim(event.GetPartyId(), "") || msg.MsgOption.SenderPartyId != strings.Trim(event.GetPartyId(), "") {
 			continue
 		}
@@ -1424,7 +1424,6 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 			log.Infof("Received task result msg `event is the task final [FAILED] EOF finished` will terminate task, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}, event: %s",
 				msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId, event.String())
 
-
 			//
 			if err := m.resourceMng.GetDB().RemoveTaskPartnerPartyIds(event.GetTaskId()); nil != err {
 				log.WithError(err).Errorf("Failed to remove all partyId of local task's partner arr on `taskManager.OnTaskResultMsg()`, taskId: {%s}",
@@ -1449,7 +1448,7 @@ func (m *Manager) OnTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	return m.onTaskResourceUsageMsg(pid, usageMsg, types.RemoteNetworkMsg)
 }
 
-func (m *Manager) onTaskResourceUsageMsg (pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
+func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskResourceUsageMsg, nmls types.NetworkMsgLocationSymbol) error {
 
 	msg := types.FetchTaskResourceUsageMsg(usageMsg)
 
@@ -1544,7 +1543,6 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 			msg.GetTaskId(), msg.GetMsgOption().ReceiverRole.String(), msg.GetMsgOption().ReceiverPartyId, msg.GetMsgOption().SenderRole.String(), msg.GetMsgOption().SenderPartyId)
 		return err
 	}
-
 
 	receiver := fetchOrgByPartyRole(msg.GetMsgOption().ReceiverPartyId, msg.GetMsgOption().ReceiverRole, task)
 	identity, err := m.resourceMng.GetDB().QueryIdentity()

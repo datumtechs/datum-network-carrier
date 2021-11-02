@@ -14,6 +14,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/multiformats/go-multiaddr"
 	"strings"
 )
 
@@ -32,14 +34,21 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 
 // system (the yarn node self info)
 func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
+
+	seedNodes, err := s.GetSeedNodeList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.Errorf("Failed to query all `seed nodes`, on GetNodeInfo(), err: {%s}", err)
+		return nil, err
+	}
+
 	jobNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed to get all `job nodes`, on GetNodeInfo(), err: {%s}", err)
+		log.Errorf("Failed to query all `job nodes`, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
 	dataNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed to get all `data nodes, on GetNodeInfo(), err: {%s}", err)
+		log.Errorf("Failed to query all `data nodes, on GetNodeInfo(), err: {%s}", err)
 		return nil, err
 	}
 	jobsLen := len(jobNodes)
@@ -48,6 +57,10 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	registerNodes := make([]*pb.YarnRegisteredPeer, length)
 	if len(jobNodes) != 0 {
 		for i, v := range jobNodes {
+			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(v.GetId())
+			if ok && client.IsConnected(){
+				v.ConnState = pb.ConnState_ConnState_Connected
+			}
 			n := &pb.YarnRegisteredPeer{
 				NodeType:   pb.NodeType_NodeType_JobNode,
 				NodeDetail: v,
@@ -57,6 +70,10 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	}
 	if len(dataNodes) != 0 {
 		for i, v := range dataNodes {
+			client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(v.GetId())
+			if ok && client.IsConnected(){
+				v.ConnState = pb.ConnState_ConnState_Connected
+			}
 			n := &pb.YarnRegisteredPeer{
 				NodeType:   pb.NodeType_NodeType_DataNode,
 				NodeDetail: v,
@@ -78,7 +95,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeName = identity.NodeName
 	}
 
-	seedNodes, err := s.carrier.carrierDB.QuerySeedNodeList()
+
 	nodeInfo := &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_NodeType_YarnNode,
 		NodeId:       nodeId,
@@ -88,16 +105,14 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		Peers:        registerNodes,
 		SeedPeers:    seedNodes,
 		State:        pb.YarnNodeState_State_Active,
+		RelatePeers:  uint32(len(s.carrier.config.P2P.Peers().Active())),
 	}
 
-	h := s.carrier.config.P2P.Host()
-	multiAddr := h.Addrs()
+	multiAddr := s.carrier.config.P2P.Host().Addrs()
 	if len(multiAddr) != 0 {
 		// /ip4/192.168.35.1/tcp/16788
 		multiAddrParts := strings.Split(multiAddr[0].String(), "/")
-		nodeInfo.InternalIp = multiAddrParts[2]    // todo rpc server ip ?
 		nodeInfo.ExternalIp = multiAddrParts[2]
-		nodeInfo.InternalPort = multiAddrParts[4]  // todo rpc server port ?
 		nodeInfo.ExternalPort = multiAddrParts[4]
 	}
 	return nodeInfo, nil
@@ -203,21 +218,84 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 }
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
-	//TODO: current node need to connect with seed node.(delay processing)
-	return s.carrier.carrierDB.SetSeedNode(seed)
+	addr, err := multiaddr.NewMultiaddr(seed.GetAddr())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to convert multiAddr from string on SetSeedNode(), addr: {%s}", seed.GetAddr())
+		return pb.ConnState_ConnState_UnConnected, err
+	}
+
+	if err := s.carrier.config.P2P.AddPeer(seed.GetAddr()); nil != err {
+		log.WithError(err).Errorf("Failed to call p2p.AddPeer() with seed.Addr on SetSeedNode(), addr: {%s}", seed.GetAddr())
+		return pb.ConnState_ConnState_UnConnected, err
+	}
+
+	if err := s.carrier.carrierDB.SetSeedNode(seed); nil != err {
+		log.WithError(err).Errorf("Failed to call SetSeedNode() to store seedNode on SetSeedNode(), seed: {%s}", seed.String())
+		return pb.ConnState_ConnState_UnConnected, err
+	}
+	addrInfo, err := peer.AddrInfoFromP2pAddr(addr)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on SetSeedNode(), addr: {%s}", addr.String())
+		return pb.ConnState_ConnState_UnConnected, err
+	}
+	for _, active := range s.carrier.config.P2P.Peers().Active() {
+		if active.String() == addrInfo.ID.String() {
+			return pb.ConnState_ConnState_Connected, nil
+		}
+	}
+	return pb.ConnState_ConnState_UnConnected, nil
 }
 
-func (s *CarrierAPIBackend) DeleteSeedNode(id string) error {
-	//TODO: current node need to disconnect with seed node.(delay processing)
-	return s.carrier.carrierDB.RemoveSeedNode(id)
-}
+func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
+	addr, err := multiaddr.NewMultiaddr(addrStr)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to convert multiAddr from string on DeleteSeedNode(), addr: {%s}", addrStr)
+		return err
+	}
+	addrInfo, err := peer.AddrInfoFromP2pAddr(addr)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on DeleteSeedNode(), addr: {%s}", addr.String())
+		return err
+	}
 
-func (s *CarrierAPIBackend) GetSeedNode(id string) (*pb.SeedPeer, error) {
-	return s.carrier.carrierDB.QuerySeedNode(id)
+	if err := s.carrier.config.P2P.Disconnect(addrInfo.ID); nil != err {
+		log.WithError(err).Errorf("Failed to call p2p.Disconnect() with peerId on DeleteSeedNode(), peerId: {%s}", addrInfo.ID.String())
+		return err
+	}
+	return s.carrier.carrierDB.RemoveSeedNode(addrStr)
 }
 
 func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
-	return s.carrier.carrierDB.QuerySeedNodeList()
+
+	seeds , err := s.carrier.carrierDB.QuerySeedNodeList()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call QuerySeedNodeList() on GetSeedNodeList()")
+		return nil, err
+	}
+
+	peerIds := s.carrier.config.P2P.Peers().Active()
+	tmp := make(map[peer.ID]struct{}, len(peerIds))
+	for _, peerId := range peerIds {
+		tmp[peerId] = struct{}{}
+	}
+
+	for i, seed := range seeds {
+		addr, err := multiaddr.NewMultiaddr(seed.GetAddr())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to convert multiAddr from string on GetSeedNodeList, addr: {%s}", seed.GetAddr())
+			continue
+		}
+		addrInfo, err := peer.AddrInfoFromP2pAddr(addr)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on GetSeedNodeList(), addr: {%s}", addr.String())
+			continue
+		}
+
+		if _, ok := tmp[addrInfo.ID]; ok {
+			seeds[i].ConnState = pb.ConnState_ConnState_Connected
+		}
+	}
+	return seeds, nil
 }
 
 func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
@@ -278,7 +356,6 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
 		}
 	}
-
 	if typ == pb.PrefixTypeDataNode {
 		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
 		if err != nil {
@@ -298,8 +375,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 		}
 	}
 	node.ConnState = pb.ConnState_ConnState_Connected
-	_, err = s.carrier.carrierDB.SetRegisterNode(typ, node)
-	if err != nil {
+	if err = s.carrier.carrierDB.SetRegisterNode(typ, node); err != nil {
 		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("Store registerNode to db failed, %s", err)
 	}
 	return pb.ConnState_ConnState_Connected, nil
@@ -412,9 +488,8 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 	// add new node to db
 	node.ConnState = pb.ConnState_ConnState_Connected
-	_, err = s.carrier.carrierDB.SetRegisterNode(typ, node)
-	if err != nil {
-		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("Store new registerNode to db failed, %s", err)
+	if err = s.carrier.carrierDB.SetRegisterNode(typ, node); err != nil {
+		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("update registerNode to db failed, %s", err)
 	}
 	return pb.ConnState_ConnState_Connected, nil
 }

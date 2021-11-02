@@ -17,8 +17,7 @@ type Backend interface {
 	// local node resource api
 
 	SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
-	DeleteSeedNode(id string) error
-	GetSeedNode(id string) (*pb.SeedPeer, error)
+	DeleteSeedNode(addr string) error
 	GetSeedNodeList() ([]*pb.SeedPeer, error)
 	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
 	UpdateRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) (pb.ConnState, error)
