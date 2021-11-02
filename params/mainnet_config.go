@@ -29,7 +29,7 @@ var mainnetNetworkConfig = &NetworkConfig{
 	MaximumGossipClockDisparity: 500 * time.Millisecond,
 	MessageDomainInvalidSnappy:  [4]byte{00, 00, 00, 00},
 	MessageDomainValidSnappy:    [4]byte{01, 00, 00, 00},
-	ETH2Key:                     "eth2",
+	EnrKey:                      "enr2",
 	AttSubnetKey:                "attnets",
 	MinimumPeersInSubnet:        4,
 	MinimumPeersInSubnetSearch:  20,
