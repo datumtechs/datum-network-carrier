@@ -267,9 +267,21 @@ func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
 
 func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 
-	// load seed node from bootstrap config file
+	// load seed node from default bootstrap
+	multiAddrs, err := s.carrier.config.P2P.BootstrapAddresses()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call p2p.BootstrapAddresses() on GetSeedNodeList()")
+		return nil, err
+	}
 
-	// load seed node from default
+	bootstrapNodes := make([]*pb.SeedPeer, len(multiAddrs))
+	for i, addr := range multiAddrs {
+		bootstrapNodes[i] = &pb.SeedPeer{
+			Addr: addr.String(),
+			IsDefault: true,
+			ConnState: pb.ConnState_ConnState_UnConnected,
+		}
+	}
 
 	// query seed node arr from db
 	seeds , err := s.carrier.carrierDB.QuerySeedNodeList()
@@ -277,6 +289,8 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 		log.WithError(err).Errorf("Failed to call QuerySeedNodeList() on GetSeedNodeList()")
 		return nil, err
 	}
+
+	seeds = append(bootstrapNodes, seeds...)
 
 	peerIds := s.carrier.config.P2P.Peers().Active()
 	tmp := make(map[peer.ID]struct{}, len(peerIds))
