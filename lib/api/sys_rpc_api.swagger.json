@@ -124,7 +124,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/rpcapiDeleteRegisteredNodeRequest"
+              "$ref": "#/definitions/rpcapiDeleteSeedNodeRequest"
             }
           }
         ],
@@ -653,39 +653,6 @@
           "YarnService"
         ]
       }
-    },
-    "/carrier/v1/yarn/updateSeed": {
-      "post": {
-        "summary": "修改种子节点信息",
-        "operationId": "YarnService_UpdateSeedNode",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiSetSeedNodeResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/rpcapiUpdateSeedNodeRequest"
-            }
-          }
-        ],
-        "tags": [
-          "YarnService"
-        ]
-      }
     }
   },
   "definitions": {
@@ -741,6 +708,15 @@
         }
       },
       "title": "删除种子or计算or数据服务node信息 req"
+    },
+    "rpcapiDeleteSeedNodeRequest": {
+      "type": "object",
+      "properties": {
+        "addr": {
+          "type": "string"
+        }
+      },
+      "title": "删除种子节点信息 req"
     },
     "rpcapiGetNodeInfoResponse": {
       "type": "object",
@@ -1015,17 +991,11 @@
     "rpcapiSeedPeer": {
       "type": "object",
       "properties": {
-        "id": {
+        "addr": {
           "type": "string"
         },
-        "node_id": {
-          "type": "string"
-        },
-        "internal_ip": {
-          "type": "string"
-        },
-        "internal_port": {
-          "type": "string"
+        "is_default": {
+          "type": "boolean"
         },
         "conn_state": {
           "$ref": "#/definitions/rpcapiConnState"
@@ -1103,13 +1073,7 @@
     "rpcapiSetSeedNodeRequest": {
       "type": "object",
       "properties": {
-        "node_id": {
-          "type": "string"
-        },
-        "internal_ip": {
-          "type": "string"
-        },
-        "internal_port": {
+        "addr": {
           "type": "string"
         }
       },
@@ -1129,7 +1093,7 @@
           "$ref": "#/definitions/rpcapiSeedPeer"
         }
       },
-      "title": "新增|修改 种子节点信息 resp"
+      "title": "新增 种子节点信息 resp"
     },
     "rpcapiUpdateDataNodeRequest": {
       "type": "object",
@@ -1172,24 +1136,6 @@
         }
       },
       "title": "修改计算服务信息 req"
-    },
-    "rpcapiUpdateSeedNodeRequest": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "node_id": {
-          "type": "string"
-        },
-        "internal_ip": {
-          "type": "string"
-        },
-        "internal_port": {
-          "type": "string"
-        }
-      },
-      "title": "修改种子节点信息 req"
     },
     "rpcapiYarnNodeInfo": {
       "type": "object",
