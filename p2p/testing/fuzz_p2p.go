@@ -81,6 +81,11 @@ func (p *FakeP2P) Peers() *peers.Status {
 	return nil
 }
 
+func (p *FakeP2P) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
+	return nil, nil
+}
+
+
 // PublishToTopic -- fake.
 func (p *FakeP2P) PublishToTopic(_ context.Context, _ string, _ []byte, _ ...pubsub.PubOpt) error {
 	return nil

@@ -89,6 +89,7 @@ type Sender interface {
 //
 type PeersProvider interface {
 	Peers() *peers.Status
+	BootstrapAddresses() ([]multiaddr.Multiaddr, error)
 }
 
 // MetadataProvider returns the metadata related information for the local peer.

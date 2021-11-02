@@ -338,6 +338,24 @@ func (s *Service) Peers() *peers.Status {
 	return s.peers
 }
 
+// BootstrapAddresses returns the bootstrap peer addr.
+func (s *Service) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
+	multiAddrs := make([]multiaddr.Multiaddr, 0)
+	if len(s.cfg.Discv5BootStrapAddr) != 0 {
+		bootstrap, err := bootstrapStrConvertToMultiAddr(s.cfg.Discv5BootStrapAddr)
+		if err != nil {
+			multiAddrs = append(multiAddrs, bootstrap...)
+		}
+	}
+	if len(s.cfg.StaticPeers) != 0 {
+		staticAddr, err := peersFromStringAddrs(s.cfg.StaticPeers)
+		if err != nil {
+			multiAddrs = append(multiAddrs, staticAddr...)
+		}
+	}
+	return multiAddrs, nil
+}
+
 // ENR returns the local node's current ENR.
 func (s *Service) ENR() *enr.Record {
 	if s.dv5Listener == nil {
