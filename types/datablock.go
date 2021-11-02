@@ -139,7 +139,7 @@ func (b *Block) DecodePb(data []byte) error {
 }
 
 
-// EncodePb serializes b into the Ethereum RLP block format.
+// EncodePb serializes b into the RLP block format.
 func (b *Block) EncodePb() ([]byte, error) {
 	blockData := &types.BlockData{
 		Header: b.header.GetHeaderPb(),

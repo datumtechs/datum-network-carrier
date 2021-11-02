@@ -11,6 +11,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/iputils"
 	pbp2p "github.com/RosettaFlow/Carrier-Go/lib/p2p/v1"
 	gcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	iaddr "github.com/ipfs/go-ipfs-addr"
 	"github.com/libp2p/go-libp2p-core/crypto"
@@ -196,4 +197,23 @@ func udpVersionFromIP(ipAddr net.IP) string {
 		return "udp4"
 	}
 	return "udp6"
+}
+
+func bootstrapStrConvertToMultiAddr(bootStrapAddr []string) ([]ma.Multiaddr, error) {
+	nodes := make([]*enode.Node, 0, len(bootStrapAddr))
+	for _, addr := range bootStrapAddr {
+		bootNode, err := enode.Parse(enode.ValidSchemes, addr)
+		if err != nil {
+			return nil, err
+		}
+		if err := bootNode.Record().Load(enr.WithEntry("tcp", new(enr.TCP))); err != nil {
+			if !enr.IsNotFound(err) {
+				log.WithError(err).Error("Could not retrieve tcp port")
+			}
+			continue
+		}
+		nodes = append(nodes, bootNode)
+	}
+	multiAddresses := convertToMultiAddr(nodes)
+	return multiAddresses, nil
 }

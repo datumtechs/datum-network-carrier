@@ -328,6 +328,11 @@ func (p *TestP2P) Peers() *peers.Status {
 	return p.peers
 }
 
+// BootstrapAddresses returns the bootstrap peer addr.
+func (p *TestP2P) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
+	return nil, nil
+}
+
 // FindPeersWithSubnet mocks the p2p func.
 func (p *TestP2P) FindPeersWithSubnet(_ context.Context, _ string, _, _ uint64) (bool, error) {
 	return false, nil
