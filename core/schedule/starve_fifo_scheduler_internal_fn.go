@@ -24,6 +24,7 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 		sche.resourceMng.GetDB().StoreTaskBullet(bullet)
 	}
 	sche.scheduleMutex.Unlock()
+	log.Debugf("Succeed pushed local task into scheduler, taskId: {%s}", bullet.TaskId)
 	return nil
 }
 
@@ -31,13 +32,15 @@ func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) erro
 	sche.scheduleMutex.Lock()
 
 	if bullet.Starve {
-		log.Debugf("repush task into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
-			bullet.TaskId, bullet.Resched, ReschedMaxCount)
 		heap.Push(sche.starveQueue, bullet)
-	} else {
-		log.Debugf("repush task into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+
+		log.Debugf("Succeed repushed task into starve queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
 			bullet.TaskId, bullet.Resched, ReschedMaxCount)
+	} else {
 		heap.Push(sche.queue, bullet)
+
+		log.Debugf("Succeed repushed task into queue, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
+			bullet.TaskId, bullet.Resched, ReschedMaxCount)
 	}
 	sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // cover old value with new value into db
 	sche.scheduleMutex.Unlock()
@@ -52,6 +55,8 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 	if !ok {
 		return nil
 	}
+
+	log.Debugf("Succeed removed local task from scheduler, taskId: {%s}", taskId)
 
 	delete(sche.schedulings, taskId)
 	sche.resourceMng.GetDB().RemoveTaskBullet(taskId)

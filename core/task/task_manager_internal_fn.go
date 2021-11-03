@@ -52,7 +52,7 @@ func (m *Manager) tryScheduleTask() error {
 
 	go func(nonConsTask *types.NeedConsensusTask) {
 
-		log.Debugf("Start need-consensus task to 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+		log.Debugf("Start `NEED-CONSENSUS` task to 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 
 		if err := m.consensusEngine.OnPrepare(nonConsTask.GetTask()); nil != err {
 			log.Errorf("Failed to call `OnPrepare()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, err: {%s}", nonConsTask.GetTask().GetTaskId(), err)
@@ -82,7 +82,7 @@ func (m *Manager) tryScheduleTask() error {
 		}
 
 		result := nonConsTask.ReceiveResult()
-		log.Debugf("Received need-consensus task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
+		log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
 
 		// store task event
 		var (
