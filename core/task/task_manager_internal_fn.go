@@ -177,10 +177,10 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.Task, senderRole, rece
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
-	//// TODO for test
-	//log.Debugf("Start execute task on `taskManager.driveTaskForExecute()`, taskId: {%s}, role: {%s}, partyId: {%s}",
-	//	task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
-	//return nil
+	// TODO for test
+	log.Debugf("Start execute task on `taskManager.driveTaskForExecute()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+		task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
+	return nil
 
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
