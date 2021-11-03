@@ -23,7 +23,7 @@ func IsDBNotFoundErr(err error) bool {
 	return nil != err && err == ErrNotFound
 }
 
-// 操作 本组织 计算服务的资源
+// Resources that operate the organization's jobNode services
 func StoreNodeResource(db KeyValueStore, resource *types.LocalResourceTable) error {
 
 	key := GetNodeResourceKey(resource.GetNodeId())

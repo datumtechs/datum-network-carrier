@@ -132,8 +132,7 @@ func QueryAllSeedNodes(db DatabaseReader) ([]*pb.SeedPeer, error) {
 	return nodes, nil
 }
 
-// StoreSeedNode serializes the seed node into the database. If the cumulated
-// seed node exceeds the limitation, the oldest will be dropped.
+// StoreSeedNode serializes the seed node into the database.
 func StoreSeedNode(db KeyValueStore, seedNode *pb.SeedPeer) error {
 	blob, err := db.Get(seedNodeKey)
 	if IsNoDBNotFoundErr(err) {
@@ -154,18 +153,22 @@ func StoreSeedNode(db KeyValueStore, seedNode *pb.SeedPeer) error {
 			return nil
 		}
 	}
-	seedNodes.SeedPeerList = append(seedNodes.SeedPeerList, &dbtype.SeedPeerPB{Addr: seedNode.GetAddr()})
+
 	// max limit for store seed node.
-	if len(seedNodes.SeedPeerList) > seedNodeToKeep {
-		seedNodes.SeedPeerList = seedNodes.SeedPeerList[:seedNodeToKeep]
+	if len(seedNodes.GetSeedPeerList()) >= seedNodeToKeep {
+		return fmt.Errorf("The number of seed nodes overflows the maximum storage limit, has %d seed nodes", len(seedNodes.GetSeedPeerList()))
 	}
+
+	// append new seed node into arr
+	seedNodes.SeedPeerList = append(seedNodes.SeedPeerList, &dbtype.SeedPeerPB{Addr: seedNode.GetAddr()})
+
 	data, err := seedNodes.Marshal()
 	if nil != err {
-		log.WithError(err).Error("Failed to encode seed node")
+		log.WithError(err).Error("Failed to encode seed nodes")
 		return err
 	}
 	if err := db.Put(seedNodeKey, data); nil != err {
-		log.WithError(err).Error("Failed to write seed node")
+		log.WithError(err).Error("Failed to store seed nodes")
 		return err
 	}
 	return nil
@@ -188,7 +191,7 @@ func RemoveSeedNode(db KeyValueStore, addr string) error {
 			return err
 		}
 	}
-	// need to test.
+	// removed the seed node.
 	for idx, s := range seedNodes.GetSeedPeerList() {
 		if strings.EqualFold(s.GetAddr(), addr) {
 			seedNodes.SeedPeerList = append(seedNodes.SeedPeerList[:idx], seedNodes.SeedPeerList[idx+1:]...)
@@ -196,6 +199,7 @@ func RemoveSeedNode(db KeyValueStore, addr string) error {
 		}
 	}
 
+	// removed emtpy seed nodes structure
 	if len(seedNodes.GetSeedPeerList()) == 0 {
 		return db.Delete(seedNodeKey)
 	}
@@ -223,160 +227,103 @@ func RemoveSeedNodes(db KeyValueStore) error {
 	return db.Delete(seedNodeKey)
 }
 
-func registryNodeKey(nodeType pb.RegisteredNodeType) []byte {
+func registryNodeKeyPrefix(nodeType pb.RegisteredNodeType) []byte {
 	var key []byte
 	if nodeType == pb.PrefixTypeJobNode {
-		key = calcNodeKey
+		key = getJobNodeKeyPrefix()
 	}
 	if nodeType == pb.PrefixTypeDataNode {
-		key = dataNodeKey
+		key = getDataNodeKeyPrefix()
 	}
 	return key
 }
-//  TODO 需要修改 ......... 成单个存储
+
+func registryNodeKey(nodeType pb.RegisteredNodeType, nodeId string) []byte {
+	var key []byte
+	if nodeType == pb.PrefixTypeJobNode {
+		key = getJobNodeKey(nodeId)
+	}
+	if nodeType == pb.PrefixTypeDataNode {
+		key = getDataNodeKey(nodeId)
+	}
+	return key
+}
+
 // QueryRegisterNode retrieves the register node with the corresponding nodeId.
 func QueryRegisterNode(db DatabaseReader, nodeType pb.RegisteredNodeType, nodeId string) (*pb.YarnRegisteredPeerDetail, error) {
-	blob, err := db.Get(registryNodeKey(nodeType))
+	blob, err := db.Get(registryNodeKey(nodeType, nodeId))
 	if nil != err {
 		return nil, err
 	}
-	var registeredNodes dbtype.RegisteredNodeListPB
-	if err := registeredNodes.Unmarshal(blob); nil != err {
+	registeredNode := &dbtype.RegisteredNodePB{}
+	if err := registeredNode.Unmarshal(blob); nil != err {
+		log.WithError(err).Errorf("registeredNode decode failed")
 		return nil, err
 	}
-	lis := registeredNodes.GetRegisteredNodeList()
-	for _, registered := range lis {
-		if strings.EqualFold(registered.Id, nodeId) {
-			return &pb.YarnRegisteredPeerDetail{
-				Id:           registered.Id,
-				InternalIp:   registered.InternalIp,
-				InternalPort: registered.InternalPort,
-				ExternalIp:   registered.ExternalIp,
-				ExternalPort: registered.ExternalPort,
-				ConnState:    pb.ConnState_ConnState_UnConnected,
-			}, nil
-		}
-	}
-	return nil, ErrNotFound
-}
-//  TODO 需要修改 ......... 成单个存储
-// QueryAllRegisterNodes retrieves all the registered nodes in the database.
-// All returned registered nodes are sorted in reverse.
-func QueryAllRegisterNodes(db DatabaseReader, nodeType pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
-	blob, err := db.Get(registryNodeKey(nodeType))
-	if nil != err {
-		return nil, err
-	}
-	var registeredNodes dbtype.RegisteredNodeListPB
-	if err := registeredNodes.Unmarshal(blob); nil != err {
-		return nil, err
-	}
-	var nodes []*pb.YarnRegisteredPeerDetail
-	for _, registered := range registeredNodes.GetRegisteredNodeList() {
-		nodes = append(nodes, &pb.YarnRegisteredPeerDetail{
-			Id:           registered.Id,
-			InternalIp:   registered.InternalIp,
-			InternalPort: registered.InternalPort,
-			ExternalIp:   registered.ExternalIp,
-			ExternalPort: registered.ExternalPort,
-			ConnState:    pb.ConnState_ConnState_UnConnected,
-		})
-	}
-	return nodes, nil
-}
-//  TODO 需要修改 ......... 成单个存储
-// StoreRegisterNode serializes the registered node into the database. If the cumulated
-// registered node exceeds the limitation, the oldest will be dropped.
-func StoreRegisterNode(db KeyValueStore, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) error {
-
-	key := registryNodeKey(nodeType)
-
-	blob, err := db.Get(key)
-	if IsNoDBNotFoundErr(err) {
-		log.WithError(err).Error("Failed to load old registered nodes")
-		return err
-	}
-	var registeredNodes dbtype.RegisteredNodeListPB
-	if len(blob) > 0 {
-		if err := registeredNodes.Unmarshal(blob); nil != err {
-			log.WithError(err).Error("Failed to decode old registered nodes")
-			return err
-		}
-
-	}
-	for _, s := range registeredNodes.GetRegisteredNodeList() {
-		if strings.EqualFold(s.Id, registeredNode.Id) {
-			log.WithFields(logrus.Fields{"id": s.Id}).Info("Skip duplicated registered node")
-			return nil
-		}
-	}
-	registeredNodes.RegisteredNodeList = append(registeredNodes.RegisteredNodeList, &dbtype.RegisteredNodePB{
+	return &pb.YarnRegisteredPeerDetail{
 		Id:           registeredNode.Id,
 		InternalIp:   registeredNode.InternalIp,
 		InternalPort: registeredNode.InternalPort,
 		ExternalIp:   registeredNode.ExternalIp,
 		ExternalPort: registeredNode.ExternalPort,
-	})
-	// max limit for store seed node.
-	if len(registeredNodes.RegisteredNodeList) > registeredNodeToKeep {
-		registeredNodes.RegisteredNodeList = registeredNodes.RegisteredNodeList[:registeredNodeToKeep]
+		ConnState:    pb.ConnState_ConnState_UnConnected,
+	}, nil
+}
+
+// QueryAllRegisterNodes retrieves all the registered nodes in the database.
+// All returned registered nodes are sorted in reverse.
+func QueryAllRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
+
+	it := db.NewIteratorWithPrefixAndStart(registryNodeKeyPrefix(nodeType), nil)
+	defer it.Release()
+
+	arr := make([]*pb.YarnRegisteredPeerDetail, 0)
+	for it.Next() {
+		if blob := it.Value(); len(blob) != 0 {
+			registeredNode := &dbtype.RegisteredNodePB{}
+			if err := registeredNode.Unmarshal(blob); nil != err {
+				log.WithError(err).Warnf("Warning registeredNode decode failed")
+				continue
+			}
+			arr = append(arr, &pb.YarnRegisteredPeerDetail{
+				Id:           registeredNode.Id,
+				InternalIp:   registeredNode.InternalIp,
+				InternalPort: registeredNode.InternalPort,
+				ExternalIp:   registeredNode.ExternalIp,
+				ExternalPort: registeredNode.ExternalPort,
+				ConnState:    pb.ConnState_ConnState_UnConnected,
+			})
+		}
 	}
-	data, err := registeredNodes.Marshal()
+
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
+}
+
+// StoreRegisterNode serializes the registered node into the database. If the cumulated
+// registered node exceeds the limitation, the oldest will be dropped.
+func StoreRegisterNode(db DatabaseWriter, nodeType pb.RegisteredNodeType, registeredNode *pb.YarnRegisteredPeerDetail) error {
+
+	key := registryNodeKey(nodeType, registeredNode.GetId())
+	val := &dbtype.RegisteredNodePB{
+		Id:           registeredNode.Id,
+		InternalIp:   registeredNode.InternalIp,
+		InternalPort: registeredNode.InternalPort,
+		ExternalIp:   registeredNode.ExternalIp,
+		ExternalPort: registeredNode.ExternalPort,
+	}
+	data, err := val.Marshal()
 	if nil != err {
 		log.WithError(err).Error("Failed to encode registered node")
 		return err
 	}
-	if err := db.Put(key, data); nil != err {
-		log.WithError(err).Error("Failed to write registered node")
-		return err
-	}
-	return nil
+	return db.Put(key, data)
 }
 
 func RemoveRegisterNode(db KeyValueStore, nodeType pb.RegisteredNodeType, id string) error {
-
-	key := registryNodeKey(nodeType)
-	blob, err := db.Get(key)
-
-	switch {
-	case IsNoDBNotFoundErr(err):
-		log.WithError(err).Error("Failed to load old registered nodes")
-		return err
-	case IsDBNotFoundErr(err), nil == err && len(blob) == 0:
-		return nil
-	}
-
-	var registeredNodes dbtype.RegisteredNodeListPB
-	if len(blob) > 0 {
-		if err := registeredNodes.Unmarshal(blob); nil != err {
-			log.WithError(err).Fatal("Failed to decode old registered nodes")
-		}
-	}
-	for i, s := range registeredNodes.GetRegisteredNodeList() {
-		if strings.EqualFold(s.Id, id) {
-			registeredNodes.RegisteredNodeList = append(registeredNodes.RegisteredNodeList[:i], registeredNodes.RegisteredNodeList[i+1:]...)
-			break
-		}
-	}
-
-	if len(registeredNodes.GetRegisteredNodeList()) == 0 {
-		return db.Delete(key)
-	}
-
-	data, err := registeredNodes.Marshal()
-	if nil != err {
-		log.WithError(err).Fatal("Failed to encode registered node")
-	}
-	if err := db.Put(key, data); nil != err {
-		log.WithError(err).Fatal("Failed to write registered node")
-	}
-	return nil
-}
-
-// RemoveRegisterNodes deletes all the registered nodes from the database.
-func RemoveRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType) error {
-
-	key := registryNodeKey(nodeType)
+	key := registryNodeKey(nodeType, id)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -385,6 +332,186 @@ func RemoveRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType) error
 		return nil
 	}
 	return db.Delete(key)
+}
+
+// RemoveRegisterNodes deletes all the registered nodes from the database.
+func RemoveRegisterNodes(db KeyValueStore, nodeType pb.RegisteredNodeType) error {
+
+	it := db.NewIteratorWithPrefixAndStart(registryNodeKeyPrefix(nodeType), nil)
+	defer it.Release()
+
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			db.Delete(key)
+		}
+	}
+	return nil
+}
+
+// QueryLocalResource retrieves the resource of local with the corresponding jobNodeId.
+func QueryLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResource, error) {
+	blob, err := db.Get(localResourceKey(jobNodeId))
+	if nil != err {
+		log.WithError(err).Errorf("Failed to read local resource")
+		return nil, err
+	}
+	localResource := new(libtypes.LocalResourcePB)
+	if err := localResource.Unmarshal(blob); nil != err {
+		log.WithError(err).Errorf("Failed to unmarshal local resource")
+		return nil, err
+	}
+	return types.NewLocalResource(localResource), nil
+}
+
+// QueryAllLocalResource retrieves the local resource with all.
+func QueryAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
+	prefix := localResourcePrefix
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+	array := make(types.LocalResourceArray, 0)
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			blob, err := db.Get(key)
+			if nil != err {
+				continue
+			}
+			localResource := new(libtypes.LocalResourcePB)
+			if err := localResource.Unmarshal(blob); nil != err {
+				continue
+			}
+			array = append(array, types.NewLocalResource(localResource))
+		}
+	}
+	return array, nil
+}
+
+// StoreLocalResource serializes the local resource into the database.
+func StoreLocalResource(db KeyValueStore, localResource *types.LocalResource) error {
+	buffer := new(bytes.Buffer)
+	err := localResource.EncodePb(buffer)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to encode local resource")
+		return err
+	}
+	if err := db.Put(localResourceKey(localResource.GetJobNodeId()), buffer.Bytes()); nil != err {
+		log.WithError(err).Errorf("Failed to write local resource")
+		return err
+	}
+	return nil
+}
+
+// RemoveLocalResource deletes the local resource from the database with a special jobNodeId
+func RemoveLocalResource(db KeyValueStore, jobNodeId string) error {
+	key := localResourceKey(jobNodeId)
+
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+// StoreLocalTask serializes the local task into the database.
+func StoreLocalTask(db KeyValueStore, task *types.Task) error {
+
+	key := getLocalTaskKey(task.GetTaskId())
+
+	data, err := task.GetTaskData().Marshal()
+	if nil != err {
+		log.WithError(err).Error("Failed to encode local task node")
+		return err
+	}
+	return db.Put(key, data)
+}
+
+// RemoveLocalTask deletes the local task from the database with a special taskId
+func RemoveLocalTask(db KeyValueStore, taskId string) error {
+	key := getLocalTaskKey(taskId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
+		return nil
+	}
+	return db.Delete(key)
+}
+
+// RemoveLocalAllTask deletes all the local task from the database.
+func RemoveLocalAllTask(db KeyValueStore) error {
+	it := db.NewIteratorWithPrefixAndStart(getLocalTaskKeyPrefix(), nil)
+	defer it.Release()
+
+	for it.Next() {
+		if key := it.Key(); len(key) != 0 {
+			db.Delete(key)
+		}
+	}
+	return nil
+}
+
+// QueryLocalTask retrieves the local task with the corresponding taskId.
+func QueryLocalTask(db DatabaseReader, taskId string) (*types.Task, error) {
+	blob, err := db.Get(getLocalTaskKey(taskId))
+	if nil != err {
+		return nil, err
+	}
+	task := &libtypes.TaskPB{}
+	if err := task.Unmarshal(blob); nil != err {
+		log.WithError(err).Errorf("local task decode failed")
+		return nil, err
+	}
+	return types.NewTask(task), nil
+}
+
+// QueryLocalTaskByIds retrieves the local tasks with the corresponding taskIds.
+func QueryLocalTaskByIds(db KeyValueStore, taskIds []string) (types.TaskDataArray, error) {
+
+	arr := make(types.TaskDataArray, 0)
+	for _, taskId := range taskIds {
+		blob, err := db.Get(getLocalTaskKey(taskId))
+		if nil != err {
+			log.WithError(err).Warnf("Warning load local task failed")
+			continue
+		}
+		task := &libtypes.TaskPB{}
+		if err := task.Unmarshal(blob); nil != err {
+			log.WithError(err).Warnf("Warning local task decode failed")
+			continue
+		}
+		arr = append(arr, types.NewTask(task))
+	}
+
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
+}
+
+// QueryAllLocalTasks retrieves all the local task in the database.
+func QueryAllLocalTasks(db KeyValueStore) (types.TaskDataArray, error) {
+	it := db.NewIteratorWithPrefixAndStart(getLocalTaskKeyPrefix(), nil)
+	defer it.Release()
+
+	arr := make(types.TaskDataArray, 0)
+	for it.Next() {
+		if blob := it.Value(); len(blob) != 0 {
+			task := &libtypes.TaskPB{}
+			if err := task.Unmarshal(blob); nil != err {
+				log.WithError(err).Warnf("Warning local task decode failed")
+				continue
+			}
+			arr = append(arr, types.NewTask(task))
+		}
+	}
+
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+	return arr, nil
 }
 
 // QueryTaskEvent retrieves the evengine of task with the corresponding taskId for all partyIds.
@@ -520,130 +647,6 @@ func RemoveTaskEventByPartyId(db KeyValueStore, taskId, partyId string) error {
 	return db.Delete(key)
 }
 
-// QueryLocalResource retrieves the resource of local with the corresponding jobNodeId.
-func QueryLocalResource(db DatabaseReader, jobNodeId string) (*types.LocalResource, error) {
-	blob, err := db.Get(localResourceKey(jobNodeId))
-	if nil != err {
-		log.WithError(err).Errorf("Failed to read local resource")
-		return nil, err
-	}
-	localResource := new(libtypes.LocalResourcePB)
-	if err := localResource.Unmarshal(blob); nil != err {
-		log.WithError(err).Errorf("Failed to unmarshal local resource")
-		return nil, err
-	}
-	return types.NewLocalResource(localResource), nil
-}
-
-// QueryAllLocalResource retrieves the local resource with all.
-func QueryAllLocalResource(db KeyValueStore) (types.LocalResourceArray, error) {
-	prefix := localResourcePrefix
-	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
-	defer it.Release()
-	array := make(types.LocalResourceArray, 0)
-	for it.Next() {
-		if key := it.Key(); len(key) != 0 {
-			blob, err := db.Get(key)
-			if nil != err {
-				continue
-			}
-			localResource := new(libtypes.LocalResourcePB)
-			if err := localResource.Unmarshal(blob); nil != err {
-				continue
-			}
-			array = append(array, types.NewLocalResource(localResource))
-		}
-	}
-	return array, nil
-}
-
-// StoreLocalResource serializes the local resource into the database.
-func StoreLocalResource(db KeyValueStore, localResource *types.LocalResource) error {
-	buffer := new(bytes.Buffer)
-	err := localResource.EncodePb(buffer)
-	if nil != err {
-		log.WithError(err).Errorf("Failed to encode local resource")
-		return err
-	}
-	if err := db.Put(localResourceKey(localResource.GetJobNodeId()), buffer.Bytes()); nil != err {
-		log.WithError(err).Errorf("Failed to write local resource")
-		return err
-	}
-	return nil
-}
-
-// RemoveLocalResource deletes the local resource from the database with a special jobNodeId
-func RemoveLocalResource(db KeyValueStore, jobNodeId string) error {
-	key := localResourceKey(jobNodeId)
-
-	has, err := db.Has(key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(key)
-}
-
-// QueryLocalTask retrieves the local task with the corresponding taskId.
-func QueryLocalTask(db DatabaseReader, taskId string) (*types.Task, error) {
-	blob, err := db.Get(localTaskKey)
-	if nil != err {
-		return nil, err
-	}
-	var taskList dbtype.TaskArrayPB
-	if err := taskList.Unmarshal(blob); nil != err {
-		return nil, err
-	}
-	for _, task := range taskList.GetTaskList() {
-		if strings.EqualFold(task.TaskId, taskId) {
-			return types.NewTask(task), nil
-		}
-	}
-	return nil, ErrNotFound
-}
-
-// QueryLocalTaskByIds retrieves the local tasks with the corresponding taskIds.
-func QueryLocalTaskByIds(db DatabaseReader, taskIds []string) (types.TaskDataArray, error) {
-	blob, err := db.Get(localTaskKey)
-	if nil != err {
-		return nil, err
-	}
-	var taskList dbtype.TaskArrayPB
-	if err := taskList.Unmarshal(blob); nil != err {
-		return nil, err
-	}
-	tmp := make(map[string]struct{}, 0)
-	taskArr := make(types.TaskDataArray, 0)
-	for _, taskId := range taskIds {
-		tmp[taskId] = struct{}{}
-	}
-	for _, task := range taskList.GetTaskList() {
-		if _, ok := tmp[task.TaskId]; ok {
-			taskArr = append(taskArr, types.NewTask(task))
-		}
-	}
-	return taskArr, nil
-}
-
-// QueryAllLocalTasks retrieves all the local task in the database.
-func QueryAllLocalTasks(db DatabaseReader) (types.TaskDataArray, error) {
-	blob, err := db.Get(localTaskKey)
-	if nil != err {
-		return nil, err
-	}
-	var array dbtype.TaskArrayPB
-	if err := array.Unmarshal(blob); nil != err {
-		return nil, err
-	}
-	result := make(types.TaskDataArray, 0)
-	for _, task := range array.GetTaskList() {
-		result = append(result, types.NewTask(task))
-	}
-	return result, nil
-}
-
 func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 	key := GetNeedExecuteTaskKey(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 
@@ -751,106 +754,6 @@ func ForEachTaskBullets(db KeyValueStore, f func(key, value []byte) error) error
 		}
 	}
 	return nil
-}
-
-// StoreLocalTask serializes the local task into the database.
-func StoreLocalTask(db KeyValueStore, task *types.Task) error {
-	blob, err := db.Get(localTaskKey)
-	if IsNoDBNotFoundErr(err) {
-		log.WithError(err).Error("Failed to load old local task")
-		return err
-	}
-	var array dbtype.TaskArrayPB
-	if len(blob) > 0 {
-		if err := array.Unmarshal(blob); nil != err {
-			log.WithError(err).Fatal("Failed to decode old local task")
-		}
-	}
-
-	var duplicated bool
-	// Check whether there is duplicate data.
-	for i, s := range array.TaskList {
-		if strings.EqualFold(s.TaskId, task.GetTaskId()) {
-			log.WithFields(logrus.Fields{"taskId": s.TaskId}).Info("update duplicated local task")
-			//return
-			array.TaskList[i] = task.GetTaskData()
-			duplicated = true
-			break
-		}
-	}
-
-	// add new task
-	if !duplicated {
-		array.TaskList = append(array.TaskList, task.GetTaskData())
-	}
-
-	data, err := array.Marshal()
-	if nil != err {
-		log.WithError(err).Error("Failed to encode local task")
-		return err
-	}
-	if err := db.Put(localTaskKey, data); nil != err {
-		log.WithError(err).Error("Failed to write local task")
-		return err
-	}
-	return nil
-}
-
-// RemoveLocalTask deletes the local task from the database with a special taskId
-func RemoveLocalTask(db KeyValueStore, taskId string) error {
-	blob, err := db.Get(localTaskKey)
-
-	switch {
-	case IsNoDBNotFoundErr(err):
-		log.WithError(err).Error("Failed to load old local task")
-		return err
-	case IsDBNotFoundErr(err), nil == err && len(blob) == 0:
-		return nil
-	}
-
-	var array dbtype.TaskArrayPB
-	if len(blob) > 0 {
-		if err := array.Unmarshal(blob); nil != err {
-			log.WithError(err).Error("Failed to decode old local task")
-			return err
-		}
-	}
-	// need to test.
-	for idx, s := range array.GetTaskList() {
-		if strings.EqualFold(s.TaskId, taskId) {
-			array.TaskList = append(array.TaskList[:idx], array.TaskList[idx+1:]...)
-			break
-		}
-	}
-
-	if len(array.GetTaskList()) == 0 {
-		return db.Delete(localTaskKey)
-	}
-
-	data, err := array.Marshal()
-	if nil != err {
-		log.WithError(err).Error("Failed to encode local task")
-		return err
-	}
-
-	if err := db.Put(localTaskKey, data); nil != err {
-		log.WithError(err).Error("Failed to write local task")
-		return err
-	}
-	return nil
-}
-
-// RemoveLocalAllTask deletes all the local task from the database.
-func RemoveLocalAllTask(db KeyValueStore) error {
-
-	has, err := db.Has(localTaskKey)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(localTaskKey)
 }
 
 // ================================= Local Metadata ==========================================

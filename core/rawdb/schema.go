@@ -35,13 +35,13 @@ var (
 	// seedNodeKey tracks the seed node list.
 	seedNodeKey = []byte("SeedNodeKey")
 
-	// localTaskKey tracks the local task list.
-	localTaskKey = []byte("LocalTaskKey")
+	// localTaskKeyPrefix tracks the local task list.
+	localTaskKeyPrefix = []byte("LocalTaskKeyPrefix:")
 
-	// resourceNodeKey tracks the node for calc node.
-	calcNodeKey = []byte("CalcNodeKey")
-
-	dataNodeKey = []byte("DataNodeKey")
+	// resourceNodeKey tracks the node for job node.
+	jobNodeKeyPrefix = []byte("JobNodeKeyPrefix:")
+	// resourceNodeKey tracks the node for data node.
+	dataNodeKeyPrefix = []byte("DataNodeKeyPrefix:")
 
 	// taskListKey tracks the running task list.
 	runningTaskKey = []byte("RunningTask")
@@ -202,4 +202,28 @@ func taskDataIdKey(nodeId []byte, typ []byte) []byte {
 // taskDataTypeHashKey = taskDataTypeHashPrefix + type + dataId
 func taskDataTypeHashKey(dataId []byte, typ []byte) []byte {
 	return append(append(taskDataTypeHashPrefix, typ...), dataId...)
+}
+
+func getLocalTaskKeyPrefix() []byte {
+	return localTaskKeyPrefix
+}
+
+func getLocalTaskKey(taskId string) []byte {
+	return append(localTaskKeyPrefix, []byte(taskId)...)
+}
+
+func getJobNodeKeyPrefix() []byte {
+	return jobNodeKeyPrefix
+}
+
+func getDataNodeKeyPrefix() []byte {
+	return dataNodeKeyPrefix
+}
+
+func getJobNodeKey(nodeId string) []byte {
+	return append(jobNodeKeyPrefix, []byte(nodeId)...)
+}
+
+func getDataNodeKey(nodeId string) []byte {
+	return append(dataNodeKeyPrefix, []byte(nodeId)...)
 }
