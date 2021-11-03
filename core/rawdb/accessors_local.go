@@ -760,8 +760,12 @@ func ForEachTaskBullets(db KeyValueStore, f func(key, value []byte) error) error
 // QueryLocalMetadata retrieves the metadata of local with the corresponding metadataId.
 func QueryLocalMetadata(db DatabaseReader, metadataId string) (*types.Metadata, error) {
 	blob, err := db.Get(localMetadataKey(metadataId))
-	if nil != err {
-		log.WithError(err).Error("Failed to read local metadata")
+	if IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("Failed to query local metadata")
+		return nil, err
+	}
+	if IsDBNotFoundErr(err) {
+		log.WithError(err).Warnf("Warning query local metadata not found")
 		return nil, err
 	}
 	localMetadata := new(libtypes.MetadataPB)

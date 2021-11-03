@@ -23,7 +23,7 @@ func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId st
 		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
 		t.state.RemoveOrgProposalStateAnyCache(proposalId, state.GetTaskId(), partyId) // remove task/proposal state/prepare vote/ confirm vote and wal with partyId
 	} else {
-		log.Infof("Start remove confirm taskPeerInfo when proposalState is empty, proposalId {%s}, taskId {%s}, final remove partyId: {%s}", proposalId, state.GetTaskId(), partyId)
+		log.Infof("Start remove confirm taskPeerInfo when proposalState is empty, proposalId {%s}, final remove partyId: {%s}", proposalId, partyId)
 		t.state.RemoveConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
 	}
 }
