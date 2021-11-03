@@ -55,8 +55,21 @@ func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) 
 		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "require addr of seedNode")
 	}
 
+	list, err := svr.B.GetSeedNodeList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Error("RPC-API: call svr.B.GetSeedNodeList() failed on SetSeedNode()")
+		return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "internal err")
+	}
+
+	for _, seed := range list {
+		if seed.GetAddr() ==  strings.Trim(req.GetAddr(), "") {
+			log.WithError(err).Error("RPC-API: call svr.B.GetSeedNodeList() failed on SetSeedNode()")
+			return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "the addr has already exists")
+		}
+	}
+
 	seedNode := &pb.SeedPeer{
-		Addr:      req.GetAddr(),
+		Addr:      strings.Trim(req.GetAddr(), ""),
 		IsDefault: false,
 		ConnState: pb.ConnState_ConnState_UnConnected,
 	}
@@ -81,7 +94,7 @@ func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteSeedNodeReq
 		return nil, backend.NewRpcBizErr(ErrDeleteSeedNodeInfo.Code, "require addr of seedNode")
 	}
 
-	err := svr.B.DeleteSeedNode(req.GetAddr())
+	err := svr.B.DeleteSeedNode(strings.Trim(req.GetAddr(), ""))
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RemoveSeedNode failed, addr: {%s}", req.GetAddr())
 		errMsg := fmt.Sprintf(ErrDeleteSeedNodeInfo.Msg, req.GetAddr())
