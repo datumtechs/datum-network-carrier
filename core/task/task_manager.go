@@ -202,7 +202,11 @@ func (m *Manager) loop() {
 					return
 				}
 
+				// There is no need to store local tasks repeatedly
 				if rawdb.IsDBNotFoundErr(err) {
+
+					log.Infof("Start to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+
 					// store metadata used taskId
 					if err := m.storeMetaUsedTaskId(needReplayScheduleTask.GetTask()); nil != err {
 						log.WithError(err).Errorf("Failed to store metadata used taskId when received remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
@@ -212,6 +216,8 @@ func (m *Manager) loop() {
 						needReplayScheduleTask.SendFailedResult(needReplayScheduleTask.GetTask().GetTaskId(), err)
 						return
 					}
+					log.Infof("Finished to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
+
 				}
 
 				// Start replay schedule remote task ...
@@ -346,7 +352,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), badMsg.GetSenderPartyId(), fmt.Sprintf("failed to parse local taskMsg"))}
 
 			if e := m.storeBadTask(badMsg.Data, events, "failed to parse taskMsg"); nil != e {
-				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.GetTaskId())
+				log.Errorf("Failed to store the err taskMsg on taskManager.SendTaskMsgArr(), taskId: {%s}", badMsg.GetTaskId())
 			}
 		}
 
@@ -364,7 +370,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), badMsg.GetSenderPartyId(), fmt.Sprintf("failed to validate local taskMsg"))}
 
 			if e := m.storeBadTask(badMsg.Data, events, "failed to validate taskMsg"); nil != e {
-				log.Errorf("Failed to store the err taskMsg on taskManager, taskId: {%s}", badMsg.GetTaskId())
+				log.Errorf("Failed to store the err taskMsg on taskManager.SendTaskMsgArr(), taskId: {%s}", badMsg.GetTaskId())
 			}
 		}
 
@@ -377,13 +383,15 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 	for _, msg := range validatedMsgArr {
 
+		log.Infof("Start to store local task on taskManager.SendTaskMsgArr(), taskId: {%s}", msg.GetTaskId())
+
 		go m.resourceMng.GetDB().RemoveTaskMsg(msg.GetTaskId()) // remove from disk if task been handle task
 
 		task := msg.Data
 
 		// store metadata used taskId
 		if err := m.storeMetaUsedTaskId(task); nil != err {
-			log.WithError(err).Errorf("Failed to store metadata used taskId when received local task, taskId: {%s}", task.GetTaskId())
+			log.WithError(err).Errorf("Failed to store metadata used taskId when received local task on taskManager.SendTaskMsgArr(), taskId: {%s}", task.GetTaskId())
 		}
 
 		var storeErrs []string
@@ -400,17 +408,18 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 		if len(storeErrs) != 0 {
 
-			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task, err: %s",
+			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task on taskManager.SendTaskMsgArr(), err: %s",
 				"\n["+strings.Join(storeErrs, ",")+"]")
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type,
 				task.GetTaskId(), task.GetTaskData().GetIdentityId(), task.GetTaskData().GetPartyId(), "store local task failed")}
 			if err := m.storeBadTask(task, events, "store local task failed"); nil != err {
-				log.WithError(err).Errorf("Failed to sending the task to datacenter on taskManager, taskId: {%s}", task.GetTaskId())
+				log.WithError(err).Errorf("Failed to sending the task to datacenter on taskManager.SendTaskMsgArr(), taskId: {%s}", task.GetTaskId())
 			}
 
 		} else {
 
 			taskArr = append(taskArr, task)
+			log.Infof("Finished to store local task on taskManager.SendTaskMsgArr(), taskId: {%s}", msg.GetTaskId())
 		}
 
 	}
