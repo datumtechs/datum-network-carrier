@@ -43,7 +43,6 @@ func P2PPreregistration(cliCtx *cli.Context) (bootstrapNodeAddrs []string, dataD
 			)
 		}
 	}
-
 	return
 }
 

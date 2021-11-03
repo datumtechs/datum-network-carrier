@@ -220,6 +220,15 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+
+	// load local seed node.
+	seedNodeList, err := node.db.QuerySeedNodeList()
+	if err == nil || len(seedNodeList) != 0 {
+		for _, seedNode := range seedNodeList {
+			staticNodeAddrs = append(staticNodeAddrs, seedNode.GetAddr())
+		}
+	}
+
 	svc, err := p2p.NewService(node.ctx, &p2p.Config{
 		EnableFakeNetwork: cliCtx.Bool(flags.EnableFakeNetwork.Name),
 		NoDiscovery:       cliCtx.Bool(flags.NoDiscovery.Name),
