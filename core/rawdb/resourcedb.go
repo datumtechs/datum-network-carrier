@@ -1683,7 +1683,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 			return fmt.Errorf("marshal powerMsg failed, %s", err)
 		}
 
-	case types.MetadataMsg:
+	case *types.MetadataMsg:
 		key = GetMetadataMsgKey(v.GetMetadataId())
 		val, err = proto.Marshal(&libtypes.MetadataMsg{
 			MetadataId:      v.GetMetadataId(),
@@ -1694,7 +1694,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		if nil != err {
 			return fmt.Errorf("marshal metadataMsg failed, %s", err)
 		}
-	case types.MetadataAuthorityMsg:
+	case *types.MetadataAuthorityMsg:
 		key = GetMetadataAuthMsgKey(v.GetMetadataAuthId())
 		val, err = proto.Marshal(&libtypes.MetadataAuthorityMsg{
 			MetadataAuthId: v.GetMetadataAuthId(),
@@ -1707,7 +1707,7 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		if nil != err {
 			return fmt.Errorf("marshal metadataAuthorityMsg failed, %s", err)
 		}
-	case types.TaskMsg:
+	case *types.TaskMsg:
 		key = GetTaskMsgKey(v.GetTaskId())
 		val, err = proto.Marshal(&libtypes.TaskMsg{
 			Data:          v.GetTaskData(),

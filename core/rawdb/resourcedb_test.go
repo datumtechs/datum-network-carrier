@@ -9,11 +9,15 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"gotest.tools/assert"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 )
@@ -60,9 +64,15 @@ func RandStr(length int) string {
 	}
 	return string(result)
 }
-func NeedExecuteTask() KeyValueStore {
+func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 	database := db.NewMemoryDatabase()
+	var taskList dbtype.TaskArrayPB
 	for _, taskId := range taskIds {
+		taskPB := &libtypes.TaskPB{
+			TaskId: taskId,
+		}
+		task := types.NewTask(taskPB)
+		taskList.TaskList = append(taskList.TaskList, taskPB)
 		for _, partyId := range partyIds {
 			remotepid := "remotepid"
 			proposalId := generateProposalId()
@@ -78,7 +88,6 @@ func NeedExecuteTask() KeyValueStore {
 				NodeId:     "NodeId_0002",
 				IdentityId: "IdentityId_0002",
 			}
-			task := &types.Task{}
 			localResource := &types.PrepareVoteResource{
 				Id:      "PrepareVoteResourceId",
 				Ip:      "2.2.2.2",
@@ -94,14 +103,14 @@ func NeedExecuteTask() KeyValueStore {
 			}
 		}
 	}
-	return database
+	return database, taskList
 }
 func TestStoreNeedExecuteTask(t *testing.T) {
 	NeedExecuteTask()
 }
 
 func TestDeleteNeedExecuteTask(t *testing.T) {
-	database := NeedExecuteTask()
+	database, _ := NeedExecuteTask()
 	taskId1 := "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65"
 	taskId2 := "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e66"
 	partyId := "P2"
@@ -115,30 +124,174 @@ func TestDeleteNeedExecuteTask(t *testing.T) {
 	RemoveNeedExecuteTaskByPartyId(database, taskId2, partyId)
 	assert.Equal(t, 11, count-1)
 }
-
+func MockQueryLocalTask(taskList dbtype.TaskArrayPB, taskId string) (*types.Task, error) {
+	for _, task := range taskList.GetTaskList() {
+		if strings.EqualFold(task.TaskId, taskId) {
+			return types.NewTask(task), nil
+		}
+	}
+	return nil, ErrNotFound
+}
 func TestRecoveryNeedExecuteTask(t *testing.T) {
-	//result := RecoveryNeedExecuteTask(NeedExecuteTask())
-	//count := 0
-	//checkRepet := func(partyId string, p []string) bool {
-	//	for _, value := range p {
-	//		if partyId == value {
-	//			return false
-	//		}
-	//	}
-	//	return true
-	//}
-	//taskIdsResult := make([]string, 0)
-	//partyIdsResult := make([]string, 0)
-	//for taskId, value := range result {
-	//	taskIdsResult = append(taskIdsResult, taskId)
-	//	for partyId, _ := range value {
-	//		if true == checkRepet(partyId, partyIdsResult) {
-	//			partyIdsResult = append(partyIdsResult, partyId)
-	//		}
-	//		count++
-	//	}
-	//}
-	//assert.Equal(t, len(taskIds), len(taskIdsResult))
-	//assert.Equal(t, len(partyIds), len(partyIdsResult))
-	//assert.Equal(t, 15, count)
+	prefix := needExecuteTaskKeyPrefix
+	database, localTask := NeedExecuteTask()
+	runningTaskCache := make(map[string]map[string]*types.NeedExecuteTask, 0)
+	if err := ForEachNeedExecuteTask(database, func(key, value []byte) error {
+		if len(key) != 0 && len(value) != 0 {
+
+			// task:${taskId hex} == 5 + 2 + 64 == "taskId:" + "0x" + "e33...fe4"
+			taskId := string(key[len(prefix) : len(prefix)+71])
+			partyId := string(key[len(prefix)+71:])
+
+			task, err := MockQueryLocalTask(localTask, taskId)
+			if nil != err {
+				return fmt.Errorf("query local task failed on recover needExecuteTask from db, %s, taskId: {%s}", err, taskId)
+			}
+
+			var res libtypes.NeedExecuteTask
+
+			if err := proto.Unmarshal(value, &res); nil != err {
+				return fmt.Errorf("Unmarshal needExecuteTask failed, %s", err)
+			}
+
+			cache, ok := runningTaskCache[taskId]
+			if !ok {
+				cache = make(map[string]*types.NeedExecuteTask, 0)
+			}
+			cache[partyId] = types.NewNeedExecuteTask(
+				peer.ID(res.GetRemotePid()),
+				common.HexToHash(res.GetProposalId()),
+				res.GetLocalTaskRole(),
+				res.GetRemoteTaskRole(),
+				res.GetLocalTaskOrganization(),
+				res.GetRemoteTaskOrganization(),
+				task,
+				types.TaskActionStatus(bytesutil.BytesToUint16(res.GetConsStatus())),
+				types.NewPrepareVoteResource(
+					res.GetLocalResource().GetId(),
+					res.GetLocalResource().GetIp(),
+					res.GetLocalResource().GetPort(),
+					res.GetLocalResource().GetPartyId(),
+				),
+				res.GetResources(),
+			)
+			runningTaskCache[taskId] = cache
+		}
+		return nil
+	}); nil != err {
+		log.WithError(err).Fatalf("recover needExecuteTask failed")
+	}
+
+	count := 0
+	checkRepet := func(partyId string, p []string) bool {
+		for _, value := range p {
+			if partyId == value {
+				return false
+			}
+		}
+		return true
+	}
+	taskIdsResult := make([]string, 0)
+	partyIdsResult := make([]string, 0)
+	for taskId, value := range runningTaskCache {
+		taskIdsResult = append(taskIdsResult, taskId)
+		for partyId, _ := range value {
+			if true == checkRepet(partyId, partyIdsResult) {
+				partyIdsResult = append(partyIdsResult, partyId)
+			}
+			count++
+		}
+	}
+	assert.Equal(t, len(taskIds), len(taskIdsResult))
+	assert.Equal(t, len(partyIds), len(partyIdsResult))
+	assert.Equal(t, 15, count)
+}
+
+func TestStoreMessageCache(t *testing.T) {
+	var err error
+	database := db.NewMemoryDatabase()
+	err = StoreMessageCache(database, &types.PowerMsg{
+		PowerId:   "PowerId_111111",
+		JobNodeId: "JobNodeId_222222",
+		CreateAt:  2233,
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = StoreMessageCache(database, &types.MetadataMsg{
+		MetadataId: "MetadataId",
+		MetadataSummary: &libtypes.MetadataSummary{
+			MetadataId: "MetadataId",
+			OriginId:   "OriginId",
+			TableName:  "TestTable",
+			Desc:       "",
+			FilePath:   "/a/b/c",
+			Rows:       4,
+			Columns:    5,
+			Size_:      20,
+			FileType:   1,
+			HasTitle:   false,
+			Industry:   "",
+			State:      2,
+			PublishAt:  3344,
+			UpdateAt:   4455,
+		},
+		ColumnMetas: []*libtypes.MetadataColumn{
+			{
+				CIndex:   22,
+				CName:    "CType",
+				CType:    "CType",
+				CSize:    112,
+				CComment: "CComment",
+			},
+		},
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = StoreMessageCache(database, &types.MetadataAuthorityMsg{
+		MetadataAuthId: "MetadataAuthId",
+		User:           "user1",
+		UserType:       2,
+		Auth:           &libtypes.MetadataAuthority{},
+		Sign:           []byte("sign"),
+		CreateAt:       9988,
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = StoreMessageCache(database, &types.TaskMsg{
+		Data: types.NewTask(&libtypes.TaskPB{
+			TaskId: "task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e65",
+		}),
+		PowerPartyIds: []string{"P1", "P5"},
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
+func TestQueryRemoveMetadataAuthorityMsgArr(t *testing.T) {
+	var err error
+	database := db.NewMemoryDatabase()
+	err = StoreMessageCache(database, &types.MetadataAuthorityMsg{
+		MetadataAuthId: "MetadataAuthId",
+		User:           "user1",
+		UserType:       2,
+		Auth:           &libtypes.MetadataAuthority{},
+		Sign:           []byte("sign"),
+		CreateAt:       9988,
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+	result, _ := QueryMetadataAuthorityMsgArr(database)
+	fmt.Println(result)
+
+	//TestRemove
+	RemoveMetadataAuthMsg(database, "MetadataAuthId")
+	assert.Equal(t, 0, database.Len())
 }
