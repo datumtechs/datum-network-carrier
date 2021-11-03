@@ -28,8 +28,11 @@ func (tv *TaskValidator) validateTaskMsg (msgs types.TaskMsgArr) (types.TaskMsgA
 	badMsgs := make(types.TaskMsgArr, 0)
 	goodMsgs := make(types.TaskMsgArr, 0)
 
+	loop:
 	for _, msg := range msgs {
 		if msg.GetSenderIdentityId() != identity.GetIdentityId() {
+			log.Errorf("Failed to verify sender's identity of task on TaskValidator.validateTaskMsg(), taskId: {%s}, sender's idntityId: {%s}, current identityId: {%s}",
+				msg.GetTaskId(), msg.GetSenderIdentityId(), identity.GetIdentityId())
 			badMsgs = append(badMsgs, msg)
 			continue
 		}
@@ -39,7 +42,7 @@ func (tv *TaskValidator) validateTaskMsg (msgs types.TaskMsgArr) (types.TaskMsgA
 						log.Errorf("Failed to verify metadataAuth of task on TaskValidator.validateTaskMsg(), taskId: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
 							msg.GetTaskId(), dataSupplier.GetOrganization().GetPartyId(), msg.GetUserType(), msg.GetUser(), dataSupplier.GetMetadataId())
 						badMsgs = append(badMsgs, msg)
-						continue
+						continue loop // goto continue next msg...
 					}
 			}
 		}
