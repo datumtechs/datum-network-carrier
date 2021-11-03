@@ -36,6 +36,8 @@ func (tv *TaskValidator) validateTaskMsg (msgs types.TaskMsgArr) (types.TaskMsgA
 		for _, dataSupplier := range msg.GetTaskMetadataSupplierDatas() {
 			if dataSupplier.GetOrganization().GetIdentityId() == identity.GetIdentityId() {
 					if !tv.authMng.VerifyMetadataAuth(msg.GetUserType(), msg.GetUser(), dataSupplier.GetMetadataId()) {
+						log.Errorf("Failed to verify metadataAuth of task on TaskValidator.validateTaskMsg(), taskId: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
+							msg.GetTaskId(), dataSupplier.GetOrganization().GetPartyId(), msg.GetUserType(), msg.GetUser(), dataSupplier.GetMetadataId())
 						badMsgs = append(badMsgs, msg)
 						continue
 					}
@@ -43,6 +45,5 @@ func (tv *TaskValidator) validateTaskMsg (msgs types.TaskMsgArr) (types.TaskMsgA
 		}
 		goodMsgs = append(goodMsgs, msg)
 	}
-
 	return badMsgs, goodMsgs, nil
 }
