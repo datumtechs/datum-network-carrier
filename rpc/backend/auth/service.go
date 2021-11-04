@@ -176,6 +176,50 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		return nil, fmt.Errorf("unknown usageType of the metadataAuth")
 	}
 
+	// ############################################
+	// ############################################
+	// NOTE:
+	// 		check metadataId and identity of authority
+	// ############################################
+	// ############################################
+	ideneityList, err := svr.B.GetIdentityList()
+	if nil != err {
+		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global identity list failed")
+		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global identity list failed")
+	}
+	var valid bool // false
+	for _, identity := range ideneityList {
+		if identity.GetIdentityId() == req.GetAuth().GetOwner().GetIdentityId() {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, not found identity with identityId of auth, identityId: {%s}",
+			req.GetAuth().GetOwner().GetIdentityId())
+		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "not found identity with identityId of auth")
+	}
+	// reset val
+	valid = false
+
+	metadataList, err := svr.B.GetGlobalMetadataDetailList()
+	if nil != err {
+		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global metadata list failed")
+		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global metadata list failed")
+	}
+	for _, metadata := range metadataList {
+		if metadata.GetInformation().GetMetadataSummary().GetMetadataId() == req.GetAuth().GetMetadataId() {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, not found metadata with metadataId of auth, metadataId: {%s}",
+			req.GetAuth().GetMetadataId())
+		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "not found metadata with metadataId of auth")
+	}
+
+	// check the metadataId whether has valid metadataAuth with current userType and user.
 	has, err := svr.B.HasValidMetadataAuth(req.GetUserType(), req.GetUser(), req.GetAuth().GetOwner().GetIdentityId(), req.GetAuth().GetMetadataId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query valid user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
@@ -187,7 +231,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	}
 
 	if has {
-		log.Errorf("RPC-API:ApplyMetadataAuthority failed, has valid metadata, userType: {%s}, user: {%s}, metadataId: {%s}",
+		log.Errorf("RPC-API:ApplyMetadataAuthority failed, has valid metadataAuth exists, userType: {%s}, user: {%s}, metadataId: {%s}",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
 
 		errMsg := fmt.Sprintf(ErrValidMetadataAuthMustCannotExist.Msg,
