@@ -11,6 +11,7 @@ type Config struct {
 	EnableFakeNetwork   bool
 	StaticPeers         []string
 	BootstrapNodeAddr   []string
+	LocalBootstrapAddr   []string
 	Discv5BootStrapAddr []string
 	RelayNodeAddr       string
 	LocalIP             string
