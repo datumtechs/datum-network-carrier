@@ -352,21 +352,8 @@ func (s *Service) Peers() *peers.Status {
 }
 
 // BootstrapAddresses returns the bootstrap peer addr.
-func (s *Service) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
-	multiAddrs := make([]multiaddr.Multiaddr, 0)
-	if len(s.cfg.BootstrapNodeAddr) != 0 {
-		bootstrap, err := bootstrapStrConvertToMultiAddr(s.cfg.BootstrapNodeAddr)
-		if err == nil {
-			multiAddrs = append(multiAddrs, bootstrap...)
-		}
-	}
-	if len(s.cfg.StaticPeers) != 0 {
-		staticAddr, err := peersFromStringAddrs(s.cfg.StaticPeers)
-		if err == nil {
-			multiAddrs = append(multiAddrs, staticAddr...)
-		}
-	}
-	return multiAddrs, nil
+func (s *Service) BootstrapAddresses() ([]string, error) {
+	return s.cfg.BootstrapNodeAddr, nil
 }
 
 // ENR returns the local node's current ENR.
@@ -399,6 +386,10 @@ func (s *Service) MetadataSeq() uint64 {
 // be used to refresh ENR.
 func (s *Service) AddPingMethod(reqFunc func(ctx context.Context, id peer.ID) error) {
 	s.pingMethod = reqFunc
+}
+
+func (s *Service) PeerFromAddress(addrs []string) ([]multiaddr.Multiaddr, error) {
+	return peersFromStringAddrs(addrs)
 }
 
 func (s *Service) pingPeers() {
