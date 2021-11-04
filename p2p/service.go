@@ -96,6 +96,10 @@ func NewService(ctx context.Context, cfg *Config) (*Service, error) {
 		subnetsLock:   make(map[uint64]*sync.RWMutex),
 	}
 	dv5Nodes := parseBootStrapAddrs(s.cfg.BootstrapNodeAddr)
+	dbdv5Nodes := parseBootStrapAddrs(s.cfg.LocalBootstrapAddr)
+	if len(dbdv5Nodes) != 0 {
+		dv5Nodes = append(dv5Nodes, dbdv5Nodes...)
+	}
 	cfg.Discv5BootStrapAddr = dv5Nodes
 
 	ipAddr := ipAddr()
@@ -350,8 +354,8 @@ func (s *Service) Peers() *peers.Status {
 // BootstrapAddresses returns the bootstrap peer addr.
 func (s *Service) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
 	multiAddrs := make([]multiaddr.Multiaddr, 0)
-	if len(s.cfg.Discv5BootStrapAddr) != 0 {
-		bootstrap, err := bootstrapStrConvertToMultiAddr(s.cfg.Discv5BootStrapAddr)
+	if len(s.cfg.BootstrapNodeAddr) != 0 {
+		bootstrap, err := bootstrapStrConvertToMultiAddr(s.cfg.BootstrapNodeAddr)
 		if err == nil {
 			multiAddrs = append(multiAddrs, bootstrap...)
 		}

@@ -2,10 +2,13 @@ package p2p
 
 import (
 	"crypto/ecdsa"
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/p2p/enr"
+	"github.com/ethereum/go-ethereum/rlp"
 	libp2pcrypto "github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/stretchr/testify/require"
@@ -83,4 +86,16 @@ func TestPublicKeyFromID_ID(t *testing.T) {
 	pubkeyHex := hex.EncodeToString(crypto.FromECDSAPub(p)[1:])
 	t.Logf("pubKey: %s", pubkeyHex)
 	assert.Equal(t, pubkeyHex, "887e6ed21139cf609995f6b6964cedefdc458de515991d2dc0b2667889148dfd5dfd011ebcf258303d5d1e0113ba093a06682146d4c5e3be5078dc5ff6e62714")
+}
+
+// Deprecate: Invalid.
+func TestCreateRecord(t *testing.T) {
+	var r enr.Record
+	ipEntry := enr.IP{127, 0, 0, 1}
+	udpEntry := enr.UDP(30303)
+	r.Set(ipEntry)
+	r.Set(udpEntry)
+	enc, _ := rlp.EncodeToBytes(&r)
+	b64 := base64.RawURLEncoding.EncodeToString(enc)
+	t.Log("enr:" + b64)
 }
