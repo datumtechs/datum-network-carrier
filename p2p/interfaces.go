@@ -79,6 +79,7 @@ type PeerManager interface {
 	RefreshENR()
 	FindPeersWithSubnet(ctx context.Context, topic string, index, threshold uint64) (bool, error)
 	AddPingMethod(reqFunc func(ctx context.Context, id peer.ID) error)
+	PeerFromAddress(addrs []string) ([]multiaddr.Multiaddr, error)
 }
 
 // Sender abstracts the sending functionality from libp2p.
@@ -89,7 +90,7 @@ type Sender interface {
 //
 type PeersProvider interface {
 	Peers() *peers.Status
-	BootstrapAddresses() ([]multiaddr.Multiaddr, error)
+	BootstrapAddresses() ([]string, error)
 }
 
 // MetadataProvider returns the metadata related information for the local peer.

@@ -81,7 +81,7 @@ func (p *FakeP2P) Peers() *peers.Status {
 	return nil
 }
 
-func (p *FakeP2P) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
+func (p *FakeP2P) BootstrapAddresses() ([]string, error) {
 	return nil, nil
 }
 

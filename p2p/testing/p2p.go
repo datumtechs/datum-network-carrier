@@ -329,7 +329,7 @@ func (p *TestP2P) Peers() *peers.Status {
 }
 
 // BootstrapAddresses returns the bootstrap peer addr.
-func (p *TestP2P) BootstrapAddresses() ([]multiaddr.Multiaddr, error) {
+func (p *TestP2P) BootstrapAddresses() ([]string, error) {
 	return nil, nil
 }
 
@@ -359,6 +359,10 @@ func (p *TestP2P) MetadataSeq() uint64 {
 // AddPingMethod mocks the p2p func.
 func (p *TestP2P) AddPingMethod(_ func(ctx context.Context, id peer.ID) error) {
 	// no-op
+}
+
+func (p *TestP2P) PeerFromAddress(addrs []string) ([]multiaddr.Multiaddr, error) {
+	return nil, nil
 }
 
 // InterceptPeerDial .
