@@ -17,7 +17,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/multiformats/go-multiaddr"
 	"strings"
 )
 
@@ -232,24 +231,23 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 }
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
-	addr, err := multiaddr.NewMultiaddr(seed.GetAddr())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to convert multiAddr from string on SetSeedNode(), addr: {%s}", seed.GetAddr())
-		return pb.ConnState_ConnState_UnConnected, err
-	}
-
+	// format: enr:-xxxxxx
 	if err := s.carrier.config.P2P.AddPeer(seed.GetAddr()); nil != err {
 		log.WithError(err).Errorf("Failed to call p2p.AddPeer() with seed.Addr on SetSeedNode(), addr: {%s}", seed.GetAddr())
 		return pb.ConnState_ConnState_UnConnected, err
 	}
-
 	if err := s.carrier.carrierDB.SetSeedNode(seed); nil != err {
 		log.WithError(err).Errorf("Failed to call SetSeedNode() to store seedNode on SetSeedNode(), seed: {%s}", seed.String())
 		return pb.ConnState_ConnState_UnConnected, err
 	}
-	addrInfo, err := peer.AddrInfoFromP2pAddr(addr)
+	addr, err := s.carrier.config.P2P.PeerFromAddress([]string{ seed.GetAddr() })
+	if err != nil || len(addr) == 0{
+		log.WithError(err).Errorf("Failed to parse addr")
+		return pb.ConnState_ConnState_UnConnected, err
+	}
+	addrInfo, err := peer.AddrInfoFromP2pAddr(addr[0])
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on SetSeedNode(), addr: {%s}", addr.String())
+		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on SetSeedNode(), addr: {%s}", addr[0].String())
 		return pb.ConnState_ConnState_UnConnected, err
 	}
 	for _, active := range s.carrier.config.P2P.Peers().Active() {
@@ -261,14 +259,14 @@ func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 }
 
 func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
-	addr, err := multiaddr.NewMultiaddr(addrStr)
-	if nil != err {
+	addrs, err := s.carrier.config.P2P.PeerFromAddress([]string{addrStr})
+	if nil != err || len(addrs) == 0 {
 		log.WithError(err).Errorf("Failed to convert multiAddr from string on DeleteSeedNode(), addr: {%s}", addrStr)
 		return err
 	}
-	addrInfo, err := peer.AddrInfoFromP2pAddr(addr)
+	addrInfo, err := peer.AddrInfoFromP2pAddr(addrs[0])
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on DeleteSeedNode(), addr: {%s}", addr.String())
+		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on DeleteSeedNode(), addr: {%s}", addrs[0].String())
 		return err
 	}
 
@@ -280,18 +278,17 @@ func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
 }
 
 func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
-
 	// load seed node from default bootstrap
-	multiAddrs, err := s.carrier.config.P2P.BootstrapAddresses()
+	bootstrapNodeStrs, err := s.carrier.config.P2P.BootstrapAddresses()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call p2p.BootstrapAddresses() on GetSeedNodeList()")
 		return nil, err
 	}
 
-	bootstrapNodes := make([]*pb.SeedPeer, len(multiAddrs))
-	for i, addr := range multiAddrs {
+	bootstrapNodes := make([]*pb.SeedPeer, len(bootstrapNodeStrs))
+	for i, addr := range bootstrapNodeStrs {
 		bootstrapNodes[i] = &pb.SeedPeer{
-			Addr: addr.String(),
+			Addr: addr,
 			IsDefault: true,
 			ConnState: pb.ConnState_ConnState_UnConnected,
 		}
@@ -313,14 +310,14 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	}
 
 	for i, seed := range seeds {
-		addr, err := multiaddr.NewMultiaddr(seed.GetAddr())
-		if nil != err {
+		addrs, err := s.carrier.config.P2P.PeerFromAddress([]string{seed.GetAddr()})
+		if nil != err || len(addrs) == 0 {
 			log.WithError(err).Errorf("Failed to convert multiAddr from string on GetSeedNodeList, addr: {%s}", seed.GetAddr())
 			continue
 		}
-		addrInfo, err := peer.AddrInfoFromP2pAddr(addr)
+		addrInfo, err := peer.AddrInfoFromP2pAddr(addrs[0])
 		if nil != err {
-			log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on GetSeedNodeList(), addr: {%s}", addr.String())
+			log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on GetSeedNodeList(), addr: {%s}", addrs[0].String())
 			continue
 		}
 
