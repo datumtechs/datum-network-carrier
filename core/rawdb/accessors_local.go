@@ -167,11 +167,7 @@ func StoreSeedNode(db KeyValueStore, seedNode *pb.SeedPeer) error {
 		log.WithError(err).Error("Failed to encode seed nodes")
 		return err
 	}
-	if err := db.Put(seedNodeKey, data); nil != err {
-		log.WithError(err).Error("Failed to store seed nodes")
-		return err
-	}
-	return nil
+	return db.Put(seedNodeKey, data)
 }
 
 // RemoveSeedNode deletes the seed nodes from the database with a special id
@@ -208,11 +204,7 @@ func RemoveSeedNode(db KeyValueStore, addr string) error {
 	if nil != err {
 		log.WithError(err).Fatal("Failed to encode seed nodes")
 	}
-	if err := db.Put(seedNodeKey, data); nil != err {
-		log.WithError(err).Error("Failed to write seed nodes")
-		return err
-	}
-	return nil
+	return db.Put(seedNodeKey, data)
 }
 
 // RemoveSeedNodes deletes all the seed nodes from the database
