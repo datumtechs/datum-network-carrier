@@ -84,28 +84,44 @@ func (m *MessageHandler) Stop() error {
 func (m *MessageHandler) recoveryCache()  {
 	taskMsgCache, err := m.dataCenter.QueryTaskMsgArr()
 	if nil != err {
-		log.WithError(err).Warning("Failed to get taskMsgCache from QueryTaskMsgArr.")
+		if rawdb.IsNoDBNotFoundErr(err) {
+			log.WithError(err).Errorf("Failed to get taskMsgCache from QueryTaskMsgArr")
+		} else {
+			log.WithError(err).Warnf("Warning not found taskMsgCache from QueryTaskMsgArr")
+		}
 	} else {
 		m.taskMsgCache = taskMsgCache
 	}
 
 	metadataAuthMsgCache,err:=m.dataCenter.QueryMetadataAuthorityMsgArr()
 	if nil != err {
-		log.WithError(err).Warning("Failed to get metadataAuthMsgCache from QueryMetadataAuthorityMsgArr.")
+		if rawdb.IsNoDBNotFoundErr(err) {
+			log.WithError(err).Errorf("Failed to get metadataAuthMsgCache from QueryMetadataAuthorityMsgArr")
+		} else {
+			log.WithError(err).Warnf("Warning not found metadataAuthMsgCache from QueryMetadataAuthorityMsgArr")
+		}
 	} else {
 		m.metadataAuthMsgCache = metadataAuthMsgCache
 	}
 
 	metadataMsgCache,err:=m.dataCenter.QueryMetadataMsgArr()
 	if nil != err {
-		log.WithError(err).Warning("Failed to get metadataMsgCache from QueryMetadataMsgArr.")
+		if rawdb.IsNoDBNotFoundErr(err) {
+			log.WithError(err).Errorf("Failed to get metadataMsgCache from QueryMetadataMsgArr")
+		} else {
+			log.WithError(err).Warnf("Warning not found metadataMsgCache from QueryMetadataMsgArr")
+		}
 	} else {
 		m.metadataMsgCache=metadataMsgCache
 	}
 
 	powerMsgCache,err:=m.dataCenter.QueryPowerMsgArr()
 	if nil != err {
-		log.WithError(err).Warning("Failed to get powerMsgCache from QueryPowerMsgArr.")
+		if rawdb.IsNoDBNotFoundErr(err) {
+			log.WithError(err).Errorf("Failed to get powerMsgCache from QueryPowerMsgArr")
+		} else {
+			log.WithError(err).Warnf("Warning not found powerMsgCache from QueryPowerMsgArr")
+		}
 	} else {
 		m.powerMsgCache=powerMsgCache
 	}
