@@ -2,6 +2,7 @@ package carrier
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
@@ -14,6 +15,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/multiformats/go-multiaddr"
 	"strings"
@@ -95,6 +97,11 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeName = identity.NodeName
 	}
 
+	// local bootstrap node
+	enr := s.carrier.config.P2P.ENR()
+	enc, _ := rlp.EncodeToBytes(&enr) // always succeeds because record is valid
+	b64 := base64.RawURLEncoding.EncodeToString(enc)
+	enrStr := "enr:" + b64
 
 	nodeInfo := &pb.YarnNodeInfo{
 		NodeType:     pb.NodeType_NodeType_YarnNode,
@@ -106,6 +113,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		SeedPeers:    seedNodes,
 		State:        pb.YarnNodeState_State_Active,
 		RelatePeers:  uint32(len(s.carrier.config.P2P.Peers().Active())),
+		LocalBootstrapNode: enrStr,
 	}
 
 	multiAddr := s.carrier.config.P2P.Host().Addrs()
@@ -115,6 +123,12 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeInfo.ExternalIp = multiAddrParts[2]
 		nodeInfo.ExternalPort = multiAddrParts[4]
 	}
+
+	selfMultiAddrs, _ := s.carrier.config.P2P.DiscoveryAddresses();
+	if len(selfMultiAddrs) != 0 {
+		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
+	}
+
 	return nodeInfo, nil
 }
 
