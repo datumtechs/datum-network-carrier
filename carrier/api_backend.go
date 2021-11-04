@@ -240,14 +240,14 @@ func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 		log.WithError(err).Errorf("Failed to call SetSeedNode() to store seedNode on SetSeedNode(), seed: {%s}", seed.String())
 		return pb.ConnState_ConnState_UnConnected, err
 	}
-	addr, err := s.carrier.config.P2P.PeerFromAddress([]string{ seed.GetAddr() })
-	if err != nil || len(addr) == 0{
+	addrs, err := s.carrier.config.P2P.PeerFromAddress([]string{ seed.GetAddr() })
+	if err != nil || len(addrs) == 0{
 		log.WithError(err).Errorf("Failed to parse addr")
 		return pb.ConnState_ConnState_UnConnected, err
 	}
-	addrInfo, err := peer.AddrInfoFromP2pAddr(addr[0])
+	addrInfo, err := peer.AddrInfoFromP2pAddr(addrs[0])
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on SetSeedNode(), addr: {%s}", addr[0].String())
+		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on SetSeedNode(), addr: {%s}", addrs[0].String())
 		return pb.ConnState_ConnState_UnConnected, err
 	}
 	for _, active := range s.carrier.config.P2P.Peers().Active() {
