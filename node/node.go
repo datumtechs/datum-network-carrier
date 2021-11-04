@@ -223,32 +223,34 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 
 	// load local seed node.
 	seedNodeList, err := node.db.QuerySeedNodeList()
+	localBootstrapAddr := make([]string, 0)
 	if err == nil || len(seedNodeList) != 0 {
 		for _, seedNode := range seedNodeList {
-			staticNodeAddrs = append(staticNodeAddrs, seedNode.GetAddr())
+			localBootstrapAddr = append(localBootstrapAddr, seedNode.GetAddr())
 		}
 	}
 
 	svc, err := p2p.NewService(node.ctx, &p2p.Config{
-		EnableFakeNetwork: cliCtx.Bool(flags.EnableFakeNetwork.Name),
-		NoDiscovery:       cliCtx.Bool(flags.NoDiscovery.Name),
-		StaticPeers:       staticNodeAddrs,
-		BootstrapNodeAddr: bootstrapNodeAddrs,
-		RelayNodeAddr:     cliCtx.String(flags.RelayNode.Name),
-		DataDir:           dataDir,
-		LocalIP:           cliCtx.String(flags.P2PIP.Name),
-		HostAddress:       cliCtx.String(flags.P2PHost.Name),
-		HostDNS:           cliCtx.String(flags.P2PHostDNS.Name),
-		PrivateKey:        cliCtx.String(flags.P2PPrivKey.Name),
-		MetaDataDir:       cliCtx.String(flags.P2PMetadata.Name),
-		TCPPort:           cliCtx.Uint(flags.P2PTCPPort.Name),
-		UDPPort:           cliCtx.Uint(flags.P2PUDPPort.Name),
-		MaxPeers:          cliCtx.Uint(flags.P2PMaxPeers.Name),
-		AllowListCIDR:     cliCtx.String(flags.P2PAllowList.Name),
-		DenyListCIDR:      sliceutil.SplitCommaSeparated(cliCtx.StringSlice(flags.P2PDenyList.Name)),
-		EnableUPnP:        cliCtx.Bool(flags.EnableUPnPFlag.Name),
-		DisableDiscv5:     cliCtx.Bool(flags.DisableDiscv5.Name),
-		StateNotifier:     node,
+		EnableFakeNetwork:  cliCtx.Bool(flags.EnableFakeNetwork.Name),
+		NoDiscovery:        cliCtx.Bool(flags.NoDiscovery.Name),
+		StaticPeers:        staticNodeAddrs,
+		BootstrapNodeAddr:  bootstrapNodeAddrs,
+		LocalBootstrapAddr: localBootstrapAddr,
+		RelayNodeAddr:      cliCtx.String(flags.RelayNode.Name),
+		DataDir:            dataDir,
+		LocalIP:            cliCtx.String(flags.P2PIP.Name),
+		HostAddress:        cliCtx.String(flags.P2PHost.Name),
+		HostDNS:            cliCtx.String(flags.P2PHostDNS.Name),
+		PrivateKey:         cliCtx.String(flags.P2PPrivKey.Name),
+		MetaDataDir:        cliCtx.String(flags.P2PMetadata.Name),
+		TCPPort:            cliCtx.Uint(flags.P2PTCPPort.Name),
+		UDPPort:            cliCtx.Uint(flags.P2PUDPPort.Name),
+		MaxPeers:           cliCtx.Uint(flags.P2PMaxPeers.Name),
+		AllowListCIDR:      cliCtx.String(flags.P2PAllowList.Name),
+		DenyListCIDR:       sliceutil.SplitCommaSeparated(cliCtx.StringSlice(flags.P2PDenyList.Name)),
+		EnableUPnP:         cliCtx.Bool(flags.EnableUPnPFlag.Name),
+		DisableDiscv5:      cliCtx.Bool(flags.DisableDiscv5.Name),
+		StateNotifier:      node,
 	})
 	if err != nil {
 		return err

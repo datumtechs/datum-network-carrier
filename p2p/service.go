@@ -218,6 +218,15 @@ func (s *Service) Start() error {
 		peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
 	}
 
+	if len(s.cfg.LocalBootstrapAddr) > 0 && !s.cfg.EnableFakeNetwork{
+		addrs, err := peersFromStringAddrs(s.cfg.LocalBootstrapAddr)
+		if err != nil {
+			log.Errorf("Could not connect to localDB peer: %v", err)
+		}
+		s.connectWithAllPeers(addrs)
+		peersToWatch = append(peersToWatch, s.cfg.LocalBootstrapAddr...)
+	}
+
 	// periodic functions
 	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().TtfbTimeout, func() {
 		ensurePeerConnections(s.ctx, s.host, peersToWatch...)
