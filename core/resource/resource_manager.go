@@ -236,13 +236,6 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	// 移除partyId 对应的本地 该task 的 ResourceUsage
-	if err := m.dataCenter.RemoveTaskResuorceUsage(taskId, partyId); nil != err {
-		log.Errorf("Failed to remove local task resourceUsage on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}, err: {%s}",
-			taskId, partyId, jobNodeId, freeSlotUnitCount, err)
-		return err
-	}
-
 	// 更新本地 resource 资源信息 [释放资源使用情况]
 	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {

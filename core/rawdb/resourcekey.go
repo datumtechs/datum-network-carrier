@@ -60,8 +60,6 @@ var (
 
 	// prefix + taskId -> resultfile summary (auto build metadataId)
 	taskResultFileMetadataIdKeyPrefix = []byte("taskResultFileMetadataIdKeyPrefix:")
-	//// prefix + taskId + partyId -> resourceUsed (totalProccesor, usedProccesor, totalMemory, usedMemory, totalBandwidth, usedBandwidth, totalDisk, usedDisk)
-	//taskResuorceUsageKeyPrefix = []byte("taskResuorceUsageKeyPrefix:")
 	// prefix + taskId -> powerPartyIds
 	taskPowerPartyIdsKeyPrefix = []byte("taskPowerPartyIdsKeyPrefix:")
 	// prefix + taskId -> [partyId, ..., partyId]  for task sender
