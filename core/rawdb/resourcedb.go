@@ -1501,55 +1501,6 @@ func RemoveTaskUpResultFile(db KeyValueStore, taskId string) error {
 	return db.Delete(key)
 }
 
-func StoreTaskResuorceUsage(db DatabaseWriter, usage *types.TaskResuorceUsage) error {
-	key := GetTaskResuorceUsageKey(usage.GetTaskId(), usage.GetPartyId())
-	val, err := rlp.EncodeToBytes(usage)
-	if nil != err {
-		return err
-	}
-	return db.Put(key, val)
-}
-
-func QueryTaskResuorceUsage(db DatabaseReader, taskId, partyId string) (*types.TaskResuorceUsage, error) {
-	key := GetTaskResuorceUsageKey(taskId, partyId)
-
-	vb, err := db.Get(key)
-	if nil != err {
-		return nil, err
-	}
-	var taskResuorceUsage types.TaskResuorceUsage
-	if err = rlp.DecodeBytes(vb, &taskResuorceUsage); nil != err {
-		return nil, err
-	}
-	return &taskResuorceUsage, nil
-}
-
-func RemoveTaskResuorceUsage(db KeyValueStore, taskId, partyId string) error {
-	key := GetTaskResuorceUsageKey(taskId, partyId)
-	has, err := db.Has(key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(key)
-}
-
-func RemoveTaskResuorceUsageByTaskId(db KeyValueStore, taskId string) error {
-
-	it := db.NewIteratorWithPrefixAndStart(GetTaskResuorceUsageKeyPrefixByTaskId(taskId), nil)
-	defer it.Release()
-
-	for it.Next() {
-		if key := it.Key(); len(key) != 0 {
-			db.Delete(key)
-		}
-	}
-
-	return nil
-}
-
 func StoreTaskPowerPartyIds(db DatabaseWriter, taskId string, powerPartyIds []string) error {
 	key := GetTaskPowerPartyIdsKey(taskId)
 	val, err := rlp.EncodeToBytes(powerPartyIds)

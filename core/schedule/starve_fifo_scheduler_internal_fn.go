@@ -263,12 +263,16 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 					IdentityId: info.GetIdentityId(),
 				},
 				ResourceUsedOverview: &libtypes.ResourceUsageOverview{
-					TotalMem:       r.GetTotalMem(),
-					UsedMem:        cost.Mem,
+					TotalMem:       r.GetTotalMem(),   			// total resource value of org.
+					//UsedMem:        cost.Mem,
+					UsedMem: 0,     							// used resource of this task (real time max used)
 					TotalProcessor: r.GetTotalProcessor(),
-					UsedProcessor:  cost.Processor,
+					//UsedProcessor:  cost.Processor,
+					UsedProcessor: 0,							// used resource of this task (real time max used)
 					TotalBandwidth: r.GetTotalBandWidth(),
-					UsedBandwidth:  cost.Bandwidth,
+					//UsedBandwidth:  cost.Bandwidth,
+					UsedBandwidth: 0, 							// used resource of this task (real time max used)
+					// ignored disk resource total/used for powerSupplier
 				},
 			})
 			i++

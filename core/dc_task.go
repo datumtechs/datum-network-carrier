@@ -368,30 +368,6 @@ func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
 	return rawdb.RemoveTaskUpResultFile(dc.db, taskId)
 }
 
-func (dc *DataCenter) StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.StoreTaskResuorceUsage(dc.db, usage)
-}
-
-func (dc *DataCenter) QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)  {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QueryTaskResuorceUsage(dc.db, taskId, partyId)
-}
-
-func (dc *DataCenter) RemoveTaskResuorceUsage(taskId, partyId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.RemoveTaskResuorceUsage(dc.db, taskId, partyId)
-}
-
-func (dc *DataCenter) RemoveTaskResuorceUsageByTaskId (taskId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.RemoveTaskResuorceUsageByTaskId(dc.db, taskId)
-}
-
 func (dc *DataCenter) StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()

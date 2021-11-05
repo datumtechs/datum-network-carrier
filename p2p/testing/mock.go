@@ -105,4 +105,4 @@ func (m *MockTaskManager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *ta
 }
 func (m *MockTaskManager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error { return nil }
 func (m *MockTaskManager) SendTaskEvent(event *libtypes.TaskEvent) error     { return nil }
-func (m *MockTaskManager) SendTaskResourceUsage(usage *types.TaskResuorceUsage) error { return nil }
+func (m *MockTaskManager) SendTaskResourceUsageToTaskSender(usage *types.TaskResuorceUsage) error { return nil }

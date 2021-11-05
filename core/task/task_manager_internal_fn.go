@@ -1467,12 +1467,6 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return nil
 	}
 
-	// todo 还不清楚需不需要更新本地的  ResourceUsage
-	//if err := m.resourceMng.GetDB().StoreTaskResuorceUsage(msg.GetUsage()); nil != err {
-	//	log.WithError(err).Errorf("Failed to store task resource usage on `OnTaskResourceUsageMsg`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-	//		msg.MsgOption.ProposalId.String(), taskId, msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
-	//	return fmt.Errorf("%s, the local task executing status is not found", ctypes.ErrTaskResourceUsageMsgInvalid)
-	//}
 
 	// Update task resourceUsed of powerSuppliers of local task
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetUsage().GetTaskId())
@@ -1496,6 +1490,8 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
 	}
 
+	var  needUpdate bool
+
 	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 
 		// find power supplier info by identity and partyId with msg from reomte peer
@@ -1504,17 +1500,52 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		if msg.GetMsgOption().SenderPartyId == powerSupplier.GetOrganization().GetPartyId() &&
 			msg.GetMsgOption().Owner.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
 
-			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedMem = msg.GetUsage().GetUsedMem()
-			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedProcessor = msg.GetUsage().GetUsedProcessor()
-			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedBandwidth = msg.GetUsage().GetUsedBandwidth()
-			task.GetTaskData().PowerSuppliers[i].ResourceUsedOverview.UsedDisk = msg.GetUsage().GetUsedDisk()
+			resourceUsage := task.GetTaskData().GetPowerSuppliers()[i].GetResourceUsedOverview()
+			// update ...
+			if msg.GetUsage().GetUsedMem() > resourceUsage.GetUsedMem() {
+				if msg.GetUsage().GetUsedMem() > resourceUsage.GetTotalMem() {
+					resourceUsage.UsedMem = resourceUsage.GetTotalMem()
+				} else {
+					resourceUsage.UsedMem = msg.GetUsage().GetUsedMem()
+				}
+				needUpdate = true
+			}
+			if msg.GetUsage().GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
+				if msg.GetUsage().GetUsedProcessor() > resourceUsage.GetTotalProcessor() {
+					resourceUsage.UsedProcessor = resourceUsage.GetTotalProcessor()
+				} else {
+					resourceUsage.UsedProcessor = msg.GetUsage().GetUsedProcessor()
+				}
+				needUpdate = true
+			}
+			if msg.GetUsage().GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
+				if msg.GetUsage().GetUsedBandwidth() > resourceUsage.GetTotalBandwidth() {
+					resourceUsage.UsedBandwidth = resourceUsage.GetTotalBandwidth()
+				} else {
+					resourceUsage.UsedBandwidth = msg.GetUsage().GetUsedBandwidth()
+				}
+				needUpdate = true
+			}
+			if msg.GetUsage().GetUsedDisk() > resourceUsage.GetUsedDisk() {
+				if msg.GetUsage().GetUsedDisk() > resourceUsage.GetTotalDisk() {
+					resourceUsage.UsedDisk = resourceUsage.GetTotalDisk()
+				} else {
+					resourceUsage.UsedDisk = msg.GetUsage().GetUsedDisk()
+				}
+				needUpdate = true
+			}
+			// update ...
+			task.GetTaskData().GetPowerSuppliers()[i].ResourceUsedOverview = resourceUsage
 		}
 	}
-	err = m.resourceMng.GetDB().StoreLocalTask(task)
-	if nil != err {
-		log.WithError(err).Errorf("Failed to store local task info on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
-		return fmt.Errorf("update local task by usage change failed")
+
+	if needUpdate {
+		// Updata task when resourceUsed change.
+		if err = m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
+			log.WithError(err).Errorf("Failed to store local task info on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+				msg.MsgOption.ProposalId.String(), msg.GetUsage().GetTaskId(), msg.MsgOption.ReceiverRole.String(), msg.MsgOption.ReceiverPartyId, msg.MsgOption.SenderRole.String(), msg.MsgOption.SenderPartyId)
+			return fmt.Errorf("update local task by usage change failed")
+		}
 	}
 
 	return nil

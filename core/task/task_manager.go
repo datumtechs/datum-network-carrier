@@ -443,7 +443,7 @@ func (m *Manager) SendTaskEvent(event *libtypes.TaskEvent) error {
 	return nil
 }
 
-func (m *Manager) SendTaskResourceUsage(usage *types.TaskResuorceUsage) error {
+func (m *Manager) SendTaskResourceUsageToTaskSender(usage *types.TaskResuorceUsage) error {
 
 	task, ok := m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
 	if !ok {

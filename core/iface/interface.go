@@ -171,11 +171,6 @@ type TaskCarrierDB interface {
 	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
 	QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error
-	// V 2.0 about task used resource  (taskId -> partyId -> resourceUsed)
-	StoreTaskResuorceUsage(usage *types.TaskResuorceUsage) error
-	QueryTaskResuorceUsage(taskId, partyId string) (*types.TaskResuorceUsage, error)
-	RemoveTaskResuorceUsage(taskId, partyId string) error
-	RemoveTaskResuorceUsageByTaskId(taskId string) error
 	// v 2.0 about task powerPartyIds (prefix + taskId -> powerPartyIds)
 	StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error
 	QueryTaskPowerPartyIds(taskId string) ([]string, error)
