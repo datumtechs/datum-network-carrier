@@ -1467,7 +1467,6 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return nil
 	}
 
-
 	// Update task resourceUsed of powerSuppliers of local task
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetUsage().GetTaskId())
 	if nil != err {
@@ -1490,7 +1489,7 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
 	}
 
-	var  needUpdate bool
+	var needUpdate bool
 
 	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 
@@ -1503,35 +1502,31 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 			resourceUsage := task.GetTaskData().GetPowerSuppliers()[i].GetResourceUsedOverview()
 			// update ...
 			if msg.GetUsage().GetUsedMem() > resourceUsage.GetUsedMem() {
-				if msg.GetUsage().GetUsedMem() > resourceUsage.GetTotalMem() {
-					resourceUsage.UsedMem = resourceUsage.GetTotalMem()
+				if msg.GetUsage().GetUsedMem() > task.GetTaskData().GetOperationCost().GetMemory() {
+					resourceUsage.UsedMem = task.GetTaskData().GetOperationCost().GetMemory()
 				} else {
 					resourceUsage.UsedMem = msg.GetUsage().GetUsedMem()
 				}
 				needUpdate = true
 			}
 			if msg.GetUsage().GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
-				if msg.GetUsage().GetUsedProcessor() > resourceUsage.GetTotalProcessor() {
-					resourceUsage.UsedProcessor = resourceUsage.GetTotalProcessor()
+				if msg.GetUsage().GetUsedProcessor() > task.GetTaskData().GetOperationCost().GetProcessor() {
+					resourceUsage.UsedProcessor = task.GetTaskData().GetOperationCost().GetProcessor()
 				} else {
 					resourceUsage.UsedProcessor = msg.GetUsage().GetUsedProcessor()
 				}
 				needUpdate = true
 			}
 			if msg.GetUsage().GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
-				if msg.GetUsage().GetUsedBandwidth() > resourceUsage.GetTotalBandwidth() {
-					resourceUsage.UsedBandwidth = resourceUsage.GetTotalBandwidth()
+				if msg.GetUsage().GetUsedBandwidth() > task.GetTaskData().GetOperationCost().GetBandwidth() {
+					resourceUsage.UsedBandwidth = task.GetTaskData().GetOperationCost().GetBandwidth()
 				} else {
 					resourceUsage.UsedBandwidth = msg.GetUsage().GetUsedBandwidth()
 				}
 				needUpdate = true
 			}
 			if msg.GetUsage().GetUsedDisk() > resourceUsage.GetUsedDisk() {
-				if msg.GetUsage().GetUsedDisk() > resourceUsage.GetTotalDisk() {
-					resourceUsage.UsedDisk = resourceUsage.GetTotalDisk()
-				} else {
-					resourceUsage.UsedDisk = msg.GetUsage().GetUsedDisk()
-				}
+				resourceUsage.UsedDisk = msg.GetUsage().GetUsedDisk()
 				needUpdate = true
 			}
 			// update ...
@@ -1643,7 +1638,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 			// 4、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with current party
 			m.sendNeedExecuteTaskByAction(task,
 				msg.GetMsgOption().ReceiverRole, msg.GetMsgOption().SenderRole,
-				task.GetTaskSender(), task.GetTaskSender(),
+				receiver, task.GetTaskSender(),
 				types.TaskTerminate)
 		}
 	}

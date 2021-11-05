@@ -704,35 +704,31 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 			resourceUsage := task.GetTaskData().GetPowerSuppliers()[i].GetResourceUsedOverview()
 			// update ...
 			if usage.GetUsedMem() > resourceUsage.GetUsedMem() {
-				if usage.GetUsedMem() > resourceUsage.GetTotalMem() {
-					resourceUsage.UsedMem = resourceUsage.GetTotalMem()
+				if usage.GetUsedMem() > task.GetTaskData().GetOperationCost().GetMemory() {
+					resourceUsage.UsedMem = task.GetTaskData().GetOperationCost().GetMemory()
 				} else {
 					resourceUsage.UsedMem = usage.GetUsedMem()
 				}
 				needUpdate = true
 			}
 			if usage.GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
-				if usage.GetUsedProcessor() > resourceUsage.GetTotalProcessor() {
-					resourceUsage.UsedProcessor = resourceUsage.GetTotalProcessor()
+				if usage.GetUsedProcessor() > task.GetTaskData().GetOperationCost().GetProcessor() {
+					resourceUsage.UsedProcessor = task.GetTaskData().GetOperationCost().GetProcessor()
 				} else {
 					resourceUsage.UsedProcessor = usage.GetUsedProcessor()
 				}
 				needUpdate = true
 			}
 			if usage.GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
-				if usage.GetUsedBandwidth() > resourceUsage.GetTotalBandwidth() {
-					resourceUsage.UsedBandwidth = resourceUsage.GetTotalBandwidth()
+				if usage.GetUsedBandwidth() > task.GetTaskData().GetOperationCost().GetBandwidth() {
+					resourceUsage.UsedBandwidth = task.GetTaskData().GetOperationCost().GetBandwidth()
 				} else {
 					resourceUsage.UsedBandwidth = usage.GetUsedBandwidth()
 				}
 				needUpdate = true
 			}
 			if usage.GetUsedDisk() > resourceUsage.GetUsedDisk() {
-				if usage.GetUsedDisk() > resourceUsage.GetTotalDisk() {
-					resourceUsage.UsedDisk = resourceUsage.GetTotalDisk()
-				} else {
-					resourceUsage.UsedDisk = usage.GetUsedDisk()
-				}
+				resourceUsage.UsedDisk = usage.GetUsedDisk()
 				needUpdate = true
 			}
 			// update ...
