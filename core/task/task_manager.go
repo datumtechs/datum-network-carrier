@@ -344,38 +344,26 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 		return fmt.Errorf("Receive some empty task msgArr")
 	}
 
-	nonParsedMsgArr, parsedMsgArr, err := m.parser.ParseTask(msgArr)
-	if nil != err {
-		for _, badMsg := range nonParsedMsgArr {
-			go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskId()) // remove from disk if task been non-parsed task
-			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), badMsg.GetSenderPartyId(), fmt.Sprintf("failed to parse local taskMsg"))}
+	nonParsedMsgArr, parsedMsgArr := m.parser.ParseTask(msgArr)
+	for _, badMsg := range nonParsedMsgArr {
 
-			if e := m.storeBadTask(badMsg.Data, events, "failed to parse taskMsg"); nil != e {
-				log.Errorf("Failed to store the err taskMsg on taskManager.SendTaskMsgArr(), taskId: {%s}", badMsg.GetTaskId())
-			}
-		}
+		go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-parsed task
+		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
-		if len(nonParsedMsgArr) == len(msgArr) {
-			return err
+		if e := m.storeBadTask(badMsg.GetTaskMsg().GetTask(), events, "failed to parse taskMsg"); nil != e {
+			log.WithError(e).Errorf("Failed to store the err taskMsg on taskManager.SendTaskMsgArr(), taskId: {%s}", badMsg.GetTaskMsg().GetTaskId())
 		}
 	}
 
-	nonValidatedMsgArr, validatedMsgArr, err := m.validator.validateTaskMsg(parsedMsgArr)
-	if nil != err {
+	nonValidatedMsgArr, validatedMsgArr := m.validator.validateTaskMsg(parsedMsgArr)
+	for _, badMsg := range nonValidatedMsgArr {
+		go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-validated task
+		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
-		for _, badMsg := range nonValidatedMsgArr {
-			go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskId()) // remove from disk if task been non-validated task
-			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
-				badMsg.GetTaskId(), badMsg.GetSenderIdentityId(), badMsg.GetSenderPartyId(), fmt.Sprintf("failed to validate local taskMsg"))}
-
-			if e := m.storeBadTask(badMsg.Data, events, "failed to validate taskMsg"); nil != e {
-				log.Errorf("Failed to store the err taskMsg on taskManager.SendTaskMsgArr(), taskId: {%s}", badMsg.GetTaskId())
-			}
-		}
-
-		if len(nonValidatedMsgArr) == len(parsedMsgArr) {
-			return err
+		if e := m.storeBadTask(badMsg.GetTaskMsg().GetTask(), events, "failed to validate taskMsg"); nil != e {
+			log.WithError(e).Errorf("Failed to store the err taskMsg on taskManager.SendTaskMsgArr(), taskId: {%s}", badMsg.GetTaskMsg().GetTaskId())
 		}
 	}
 

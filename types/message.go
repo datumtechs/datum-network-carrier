@@ -706,6 +706,7 @@ func (msg *TaskMsg) String() string {
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 
+func (msg *TaskMsg) GetTask() *Task                    { return msg.Data }
 func (msg *TaskMsg) GetTaskData() *types.TaskPB        { return msg.Data.GetTaskData() }
 func (msg *TaskMsg) GetUserType() apicommonpb.UserType { return msg.Data.GetTaskData().GetUserType() }
 func (msg *TaskMsg) GetUser() string                   { return msg.Data.GetTaskData().GetUser() }
@@ -866,8 +867,24 @@ func (msg *TaskTerminateMsg) HashByCreateTime() common.Hash {
 	return rlputil.RlpHash(buf.Bytes())
 }
 
+type BadTaskMsg struct {
+	msg *TaskMsg
+	s   string // the error reason
+}
+
+func NewBadTaskMsg(msg *TaskMsg, s string) *BadTaskMsg {
+	return &BadTaskMsg{
+		msg: msg,
+		s:   s,
+	}
+}
+func (bmsg *BadTaskMsg) GetTaskMsg() *TaskMsg { return bmsg.msg }
+func (bmsg *BadTaskMsg) GetErr() error        { return fmt.Errorf(bmsg.s) }
+func (bmsg *BadTaskMsg) GetErrStr() string    { return bmsg.s }
+
 type TaskMsgArr []*TaskMsg
 type TaskTerminateMsgArr []*TaskTerminateMsg
+type BadTaskMsgArr []*BadTaskMsg
 
 // Len returns the length of s.
 func (s TaskMsgArr) Len() int { return len(s) }

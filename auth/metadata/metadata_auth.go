@@ -30,16 +30,16 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	// query metadataAuth with metadataAuthId from dataCenter
 	metadataAuth, err := ma.GetMetadataAuthority(audit.GetMetadataAuthId())
 	if nil != err {
-		log.Errorf("Failed to query old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, err: {%s}",
-			audit.GetMetadataAuthId(), err)
+		log.WithError(err).Errorf("Failed to query old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
+			audit.GetMetadataAuthId())
 		return apicommonpb.AuditMetadataOption_Audit_Pending, err
 	}
 
 	// find metadataAuthId second (from local db)
 	metadataAuthId, err := ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId())
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed to query user metadataAuthId by metadataId on MetadataAuthority.AuditMetadataAuthority(), userType: {%s}, user: {%s}, metadataId: {%s}, err: {%s}",
-			metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId(), err)
+		log.WithError(err).Errorf("Failed to query user metadataAuthId by metadataId on MetadataAuthority.AuditMetadataAuthority(), userType: {%s}, user: {%s}, metadataId: {%s}",
+			metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId())
 		return apicommonpb.AuditMetadataOption_Audit_Pending, err
 	}
 
@@ -89,16 +89,16 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 
 	err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth)
 	if nil != err {
-		log.Errorf("Failed to store metadataAuth after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}, err: {%s}",
-			audit.GetMetadataAuthId(), audit.GetAuditOption().String(), err)
+		log.WithError(err).Errorf("Failed to store metadataAuth after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}",
+			audit.GetMetadataAuthId(), audit.GetAuditOption().String())
 		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("update metadataAuth failed")
 	}
 
 	// prefix + userType + user + metadataId -> metadataAuthId (only one)
 	err = ma.dataCenter.StoreUserMetadataAuthIdByMetadataId(metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetData().GetMetadataAuthId())
 	if nil != err {
-		log.Errorf("Failed to store metadataId and metadataAuthId mapping after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}, err: {%s}",
-			metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetUserType(), metadataAuth.GetUser(), err)
+		log.WithError(err).Errorf("Failed to store metadataId and metadataAuthId mapping after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
+			metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetUserType(), metadataAuth.GetUser())
 		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("store metadataId and last metadataAuthId mapping failed")
 	}
 
@@ -250,7 +250,7 @@ func (ma *MetadataAuthority) HasValidMetadataAuth(userType apicommonpb.UserType,
 		// update the expired metadataAuth into datacenter
 		metadataAuth.GetData().UsedQuo = usedQuo
 		if err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
-			log.Errorf("Failed to update metadataAuth after consume on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			log.WithError(err).Errorf("Failed to update metadataAuth after consume on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, metadataId: {%s}, metadataAuthId: {%s}",
 				userType.String(), user, metadataId, metadataAuth.GetData().GetMetadataAuthId())
 			return false, err
 		}
@@ -273,7 +273,7 @@ func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType apicommonpb.UserTy
 	return true, nil
 }
 
-func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, user, metadataId string) bool {
+func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, user, metadataId string) error {
 
 	log.Debugf("Start verify metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 
@@ -282,12 +282,12 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	if nil != err {
 		log.WithError(err).Errorf("Failed to check internal metadata by metadataId on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}",
 			userType.String(), user, metadataId)
-		return false
+		return fmt.Errorf("check is internal metadata failed, %s", err)
 	}
 	// The internal metadata does not need to verify the authorization information.
 	if flag {
 		log.Debugf("The internal metadata verify the authorization information default `pass`, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
-		return true
+		return nil
 	}
 
 	// query last metadataAuthId of metadataId with userType and user
@@ -295,7 +295,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query user metadataAuthId by metadataId on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}",
 			userType.String(), user, metadataId)
-		return false
+		return fmt.Errorf("query metadataAuthId by metadataId failed, %s", err)
 	}
 
 	// verify
@@ -305,25 +305,25 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	if nil != err {
 		log.WithError(err).Errorf("Failed to QueryMetadataAuthority on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 			userType.String(), user, metadataId, metadataAuthId)
-		return false
+		return fmt.Errorf("query metadataAuth info failed, %s", err)
 	}
 
 	if metadataAuth.GetData().GetAuth().GetMetadataId() != metadataId {
 		log.Errorf("the metadataId of metadataAuth and current metadataId is not same on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 			userType.String(), user, metadataId, metadataAuthId)
-		return false
+		return fmt.Errorf("metadataId of metadataAuth and input params is defferent")
 	}
 
 	if metadataAuth.GetData().GetUserType() != userType || metadataAuth.GetData().GetUser() != user {
 		log.Errorf("the userType or user of metadataAuth and current userType or user is not same on MetadataAuthority.VerifyMetadataAuth(), auth userType: {%s},auth user: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 			metadataAuth.GetData().GetUserType().String(), metadataAuth.GetData().GetUser(), userType.String(), user, metadataId, metadataAuthId)
-		return false
+		return fmt.Errorf("user information of metadataAuth and input params is defferent")
 	}
 
 	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
 		log.Errorf("the old metadataAuth state is not release on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}, state: {%s}",
 			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
-		return false
+		return fmt.Errorf("the metadataAuth state is invalid")
 	}
 
 	usageRule := metadataAuth.GetData().GetAuth().GetUsageRule()
@@ -343,7 +343,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	default:
 		log.Errorf("unknown usageType of the metadataAuth on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 			userType.String(), user, metadataId, metadataAuthId)
-		return false
+		return fmt.Errorf("unknown usageType of the metadataAuth")
 	}
 
 	if usedQuo.Expire == true {
@@ -353,15 +353,15 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 
 		metadataAuth.GetData().UsedQuo = usedQuo
 		if err = ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
-			log.Errorf("Failed to update metadataAuth after verify expire auth on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
+			log.WithError(err).Errorf("Failed to update metadataAuth after verify expire auth on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 				userType.String(), user, metadataId, metadataAuthId)
-			return false
+			return fmt.Errorf("update metadataAuth after verify expire auth failed, %s", err)
 		}
 		// remove the invaid metadataAuthId from local db
 		ma.dataCenter.RemoveUserMetadataAuthIdByMetadataId(userType, user, metadataId)
-		return false
+		return fmt.Errorf("the metadataAuth has expired")
 	}
-	return true
+	return nil
 }
 
 func (ma *MetadataAuthority) QueryMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (string, error) {

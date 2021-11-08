@@ -13,7 +13,7 @@ func newTaskParser (resourceMng *resource.Manager) *TaskParser {
 	return &TaskParser{resourceMng: resourceMng}
 }
 
-func (tp *TaskParser) ParseTask(tasks types.TaskMsgArr) (types.TaskMsgArr, types.TaskMsgArr, error) {
+func (tp *TaskParser) ParseTask(tasks types.TaskMsgArr) (types.BadTaskMsgArr, types.TaskMsgArr) {
 	// nonParsedMsgArr, parsedMsgArr, error
-	return nil, tasks, nil
+	return nil, tasks
 }

@@ -50,7 +50,7 @@ func (am *AuthorityManager)  HasValidMetadataAuth(userType apicommonpb.UserType,
 	return am.metadataAuth.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
-func (am *AuthorityManager) VerifyMetadataAuth (userType apicommonpb.UserType, user, metadataId string) bool {
+func (am *AuthorityManager) VerifyMetadataAuth (userType apicommonpb.UserType, user, metadataId string) error {
 	return am.metadataAuth.VerifyMetadataAuth(userType, user, metadataId)
 }
 

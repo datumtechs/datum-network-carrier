@@ -231,10 +231,10 @@ func (s *Service) Start() error {
 		peersToWatch = append(peersToWatch, s.cfg.LocalBootstrapAddr...)
 	}
 
-	// periodic functions
-	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().TtfbTimeout, func() {
-		ensurePeerConnections(s.ctx, s.host, peersToWatch...)
-	})
+	// periodic functions  todo 先注释掉 ... 等 sunzone 修复
+	//runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().TtfbTimeout, func() {
+	//	ensurePeerConnections(s.ctx, s.host, peersToWatch...)
+	//})
 	runutil.RunEvery(s.ctx, 30*time.Minute, s.Peers().Prune)
 	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().RespTimeout, s.updateMetrics)
 	runutil.RunEvery(s.ctx, 20 * time.Second, func() {

@@ -847,9 +847,10 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask) (string, error
 				metadataId := dataSupplier.GetMetadataId()
 
 				// verify metadataAuth first
-				if !m.authMng.VerifyMetadataAuth(userType, user, metadataId) {
-					return "", fmt.Errorf("verify user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
-						userType, user, metadataId)
+
+				if err := m.authMng.VerifyMetadataAuth(userType, user, metadataId); nil != err {
+					return "", fmt.Errorf("verify user metadataAuth failed, %s, userType: {%s}, user: {%s}, metadataId: {%s}",
+						err, userType, user, metadataId)
 				}
 
 				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataByDataId(metadataId)
