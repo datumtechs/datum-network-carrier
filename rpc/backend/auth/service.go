@@ -169,7 +169,11 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 			return nil, fmt.Errorf("usaageRule endTime of metadataAuth has expire")
 		}
 	case apicommonpb.MetadataUsageType_Usage_Times:
-		// do nothing
+		if req.GetAuth().GetUsageRule().GetTimes() == 0 {
+			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule times of metadataAuth must be greater than zero, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
+				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
+			return nil, fmt.Errorf("usaageRule times of metadataAuth must be greater than zero")
+		}
 	default:
 		log.Errorf("RPC-API:ApplyMetadataAuthority failed, unknown usageType of the metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String())

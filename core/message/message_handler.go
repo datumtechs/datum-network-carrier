@@ -751,7 +751,9 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 				expire = false
 			}
 		case apicommonpb.MetadataUsageType_Usage_Times:
-			// do nothing
+			if msg.GetMetadataAuthority().GetUsageRule().GetTimes() == 0 {
+				state = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			}
 		default:
 			log.Errorf("unknown usageType of the metadataAuth on MessageHandler with broadcast metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
 				msg.GetUserType().String(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId(), msg.GetMetadataAuthority().GetUsageRule().GetUsageType().String())
