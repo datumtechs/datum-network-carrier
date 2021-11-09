@@ -759,7 +759,6 @@ func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libty
 
 func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommon.TaskReadyGoReq, error) {
 
-
 	localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
 	if nil != err {
 		return nil, fmt.Errorf("query local task info failed")
@@ -949,7 +948,8 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 // make terminate rpc req
 func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
 	return &fightercommon.TaskCancelReq{
-		TaskId: task.GetTaskId(),
+		TaskId:  task.GetTaskId(),
+		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
 	}, nil
 }
 
@@ -1136,7 +1136,7 @@ func (m *Manager) handleTaskEventWithCurrentIdentity(event *libtypes.TaskEvent) 
 					log.Debugf("Need to call `publishFinishedTaskToDataCenter` on `taskManager.handleTaskEventWithCurrentIdentity()`, taskId: {%s}, sender partyId: {%s}",
 						event.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 					// handle this task result with current peer
-					m.publishFinishedTaskToDataCenter(senderNeedTask, localTask,true)
+					m.publishFinishedTaskToDataCenter(senderNeedTask, localTask, true)
 					m.removeNeedExecuteTaskCache(event.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 				}
 			} else {

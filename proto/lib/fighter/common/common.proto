@@ -29,6 +29,7 @@ message TaskReadyGoReply {
 
 message TaskCancelReq {
     string task_id = 1;
+    string party_id = 2;
 }
 
 message TaskCancelReply {
