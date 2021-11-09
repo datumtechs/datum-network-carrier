@@ -61,7 +61,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
 	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh :=
-		make(chan types.TaskDataArray, 27),
+		make(chan types.TaskDataArray, 28),
 		make(chan *types.NeedReplayScheduleTask, 100),
 		make(chan *types.NeedExecuteTask, 100)
 

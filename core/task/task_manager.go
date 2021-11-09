@@ -170,6 +170,8 @@ func (m *Manager) loop() {
 		// To schedule local task while received some local task msg
 		case tasks := <-m.localTasksCh:
 
+			log.Infof("Received local task arr on taskManager.loop(), task arr len: %d", len(tasks))
+
 			for _, task := range tasks {
 				if err := m.scheduler.AddTask(task); nil != err {
 					log.WithError(err).Errorf("Failed to add local task into scheduler queue")
@@ -227,8 +229,7 @@ func (m *Manager) loop() {
 
 		// handle task of need to executing, and send it to fighter of myself organization or send the task result msg to remote peer
 		case task := <-m.needExecuteTaskCh:
-
-			// todo  处理 删除  local task
+			
 			localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
 			if nil != err {
 				log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask, taskId: {%s}, partyId: {%s}, status: {%s}",
@@ -424,9 +425,8 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	}
 
 	// transfer `taskMsgs` to Scheduler
-	go func() {
-		m.sendLocalTaskToScheduler(taskArr)
-	}()
+	log.Infof("Need send to scheduler tasks count on taskManager.SendTaskMsgArr(), task arr len: %d", len(taskArr))
+	m.sendLocalTaskToScheduler(taskArr)
 	return nil
 }
 
