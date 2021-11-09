@@ -1,6 +1,9 @@
 package registration
 
 import (
+	"crypto/md5"
+	"errors"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/fileutil"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/common/sliceutil"
@@ -18,21 +21,6 @@ const (
 
 // P2PPreregistration prepares data for p2p.Service's registration.
 func P2PPreregistration(cliCtx *cli.Context) (bootstrapNodeAddrs []string, dataDir string, err error) {
-	// Bootnode ENR may be a filepath to a YAML file
-	bootnodesTemp := params.CarrierNetworkConfig().BootstrapNodes // actual CLI values
-	bootstrapNodeAddrs = make([]string, 0)                       // dest of final list of nodes
-	for _, addr := range bootnodesTemp {
-		if filepath.Ext(addr) == ".yaml" {
-			fileNodes, err := readbootNodes(addr)
-			if err != nil {
-				return nil, "", err
-			}
-			bootstrapNodeAddrs = append(bootstrapNodeAddrs, fileNodes...)
-		} else {
-			bootstrapNodeAddrs = append(bootstrapNodeAddrs, addr)
-		}
-	}
-
 	dataDir = cliCtx.String(flags.DataDirFlag.Name)
 	if dataDir == "" {
 		dataDir = flags.DefaultDataDir()
@@ -43,20 +31,45 @@ func P2PPreregistration(cliCtx *cli.Context) (bootstrapNodeAddrs []string, dataD
 			)
 		}
 	}
+
+	// Bootnode ENR may be a filepath to a YAML file
+	bootnodesTemp := params.CarrierNetworkConfig().BootstrapNodes // actual CLI values
+	bootstrapNodeAddrs = make([]string, 0)                       // dest of final list of nodes
+	for _, addr := range bootnodesTemp {
+		if filepath.Ext(addr) == ".yaml" {
+			fileNodes, md5sum, err := readbootNodes(addr)
+			log.WithField("md5sum", md5sum).Debug("The md5sum of bootstrap.yaml")
+			if err != nil {
+				return nil, "", err
+			}
+			bootstrapNodeAddrs = append(bootstrapNodeAddrs, fileNodes...)
+			// check md5sum for bootstrap.yaml.
+			confMd5sum, err := readbootNodesHash(dataDir, "conf/bootstrap.md5");
+			if err != nil {
+				return nil, "", err
+			}
+			if confMd5sum != md5sum {
+				return nil, "", errors.New("bootstrap checksum failure")
+			}
+		} else {
+			bootstrapNodeAddrs = append(bootstrapNodeAddrs, addr)
+		}
+	}
 	return
 }
 
-func readbootNodes(fileName string) ([]string, error) {
+func readbootNodes(fileName string) ([]string, string, error) {
 	fileContent, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	listNodes := make([]string, 0)
 	err = yaml.Unmarshal(fileContent, &listNodes)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return listNodes, nil
+	md5value := md5.Sum(fileContent)
+	return listNodes, fmt.Sprintf("%x", md5value), nil
 }
 
 func readStaticNodesFromJSON(fileName string) ([]string, error) {
@@ -84,7 +97,7 @@ func P2PStaticNodeAddrs(cliCtx *cli.Context, dataDir string) ([]string, error) {
 		return staticNodeAddrs, nil
 	}
 	if filepath.Ext(path) == ".yaml" {
-		fileNodes, err := readbootNodes(path)
+		fileNodes, _, err := readbootNodes(path)
 		if err != nil {
 			log.WithError(err).Infof("Can't load static node file from YML file %s: %v", path, err)
 			return staticNodeAddrs, nil
@@ -110,4 +123,20 @@ func ResolvePath(dataDir, path string) string {
 		return ""
 	}
 	return filepath.Join(dataDir, path)
+}
+
+func readbootNodesHash(dataDir string, fileName string) (string, error) {
+	path := ResolvePath(dataDir, fileName)
+	log.Debugf("resolve path for bootstrap hash, path: %s", path)
+	if path == "" {
+		return "", errors.New("md5sum file not found")
+	}
+	if _, err := os.Stat(path); err != nil {
+		return "", errors.New("md5sum file not found")
+	}
+	fileContent, err := ioutil.ReadFile(path)
+	if err != nil {
+		return "", err
+	}
+	return string(fileContent), nil
 }
