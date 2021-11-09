@@ -221,20 +221,22 @@ func (s *Service) Start() error {
 		//todo: need to verify...
 		peersToWatch = append(peersToWatch, s.cfg.StaticPeers...)
 	}
-
+	//
 	if len(s.cfg.LocalBootstrapAddr) > 0 && !s.cfg.EnableFakeNetwork{
 		addrs, err := peersFromStringAddrs(s.cfg.LocalBootstrapAddr)
 		if err != nil {
 			log.Errorf("Could not connect to localDB peer: %v", err)
 		}
 		s.connectWithAllPeers(addrs)
-		peersToWatch = append(peersToWatch, s.cfg.LocalBootstrapAddr...)
+		for _, addr := range addrs {
+			peersToWatch = append(peersToWatch, addr.String())
+		}
+
 	}
 
-	// periodic functions  todo 先注释掉 ... 等 sunzone 修复
-	//runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().TtfbTimeout, func() {
-	//	ensurePeerConnections(s.ctx, s.host, peersToWatch...)
-	//})
+	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().TtfbTimeout, func() {
+		ensurePeerConnections(s.ctx, s.host, peersToWatch...)
+	})
 	runutil.RunEvery(s.ctx, 30*time.Minute, s.Peers().Prune)
 	runutil.RunEvery(s.ctx, params.CarrierNetworkConfig().RespTimeout, s.updateMetrics)
 	runutil.RunEvery(s.ctx, 20 * time.Second, func() {
