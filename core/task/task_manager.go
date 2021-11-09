@@ -102,10 +102,10 @@ func (m *Manager) recoveryNeedExecuteTask() {
 			taskId := string(key[len(prefix) : len(prefix)+71])
 			partyId := string(key[len(prefix)+71:])
 
-			task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
-			if nil != err {
-				return fmt.Errorf("query local task failed on recover needExecuteTask from db, %s, taskId: {%s}", err, taskId)
-			}
+			//task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
+			//if nil != err {
+			//	return fmt.Errorf("query local task failed on recover needExecuteTask from db, %s, taskId: {%s}", err, taskId)
+			//}
 
 			var res libtypes.NeedExecuteTask
 
@@ -124,7 +124,7 @@ func (m *Manager) recoveryNeedExecuteTask() {
 				res.GetRemoteTaskRole(),
 				res.GetLocalTaskOrganization(),
 				res.GetRemoteTaskOrganization(),
-				task,
+				taskId,
 				types.TaskActionStatus(bytesutil.BytesToUint16(res.GetConsStatus())),
 				types.NewPrepareVoteResource(
 					res.GetLocalResource().GetId(),
@@ -228,12 +228,20 @@ func (m *Manager) loop() {
 		// handle task of need to executing, and send it to fighter of myself organization or send the task result msg to remote peer
 		case task := <-m.needExecuteTaskCh:
 
+			// todo  处理 删除  local task
+			localTask, err := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
+			if nil != err {
+				log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask, taskId: {%s}, partyId: {%s}, status: {%s}",
+					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
+				return
+			}
+
 			switch task.GetConsStatus() {
 			// sender and partner to handle needExecuteTask when consensus succeed.
 			// sender need to store some cache, partner need to execute task.
 			case types.TaskNeedExecute, types.TaskConsensusFinished:
 				// to execute the task
-				m.handleNeedExecuteTask(task)
+				m.handleNeedExecuteTask(task, localTask)
 
 			// sender and partner to clear local task things after received status: `scheduleFailed` and `interrupt` and `terminate`.
 			// sender need to publish local task and event to datacenter,
@@ -242,13 +250,16 @@ func (m *Manager) loop() {
 			// NOTE:
 			//	sender never received status `interrupt`, and partners never received status `scheduleFailed`.
 			default:
-				m.storeTaskFinalEvent(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+
+				// store a bad event into local db before handle bad task.
+				m.storeTaskFinalEvent(task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
 					task.GetLocalTaskOrganization().GetPartyId(),
 					fmt.Sprintf("execute task: %s with %s", task.GetConsStatus().String(),
 						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
+
 				switch task.GetLocalTaskRole() {
 				case apicommonpb.TaskRole_TaskRole_Sender:
-					m.publishFinishedTaskToDataCenter(task, true)
+					m.publishFinishedTaskToDataCenter(task, localTask, true)
 				default:
 					m.sendTaskResultMsgToTaskSender(task)
 				}
@@ -329,7 +340,7 @@ func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
 		// 2、 remove needExecuteTask cache with sender
 		m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		// 3、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
-		m.sendNeedExecuteTaskByAction(task,
+		m.sendNeedExecuteTaskByAction(task.GetTaskId(),
 			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
 			task.GetTaskSender(), task.GetTaskSender(),
 			types.TaskTerminate)
@@ -437,6 +448,7 @@ func (m *Manager) SendTaskResourceUsageToTaskSender(usage *types.TaskResuorceUsa
 	if !ok {
 		return fmt.Errorf("Can not find `need execute task` cache, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
 	}
+
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
 		return err

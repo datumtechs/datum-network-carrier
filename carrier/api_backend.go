@@ -38,18 +38,18 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 
 	seedNodes, err := s.GetSeedNodeList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed to query all `seed nodes`, on GetNodeInfo(), err: {%s}", err)
+		log.WithError(err).Errorf("Failed to query all `seed nodes`, on GetNodeInfo()")
 		return nil, err
 	}
 
 	jobNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed to query all `job nodes`, on GetNodeInfo(), err: {%s}", err)
+		log.WithError(err).Errorf("Failed to query all `job nodes`, on GetNodeInfo()")
 		return nil, err
 	}
 	dataNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed to query all `data nodes, on GetNodeInfo(), err: {%s}", err)
+		log.WithError(err).Errorf("Failed to query all `data nodes, on GetNodeInfo()")
 		return nil, err
 	}
 	jobsLen := len(jobNodes)
@@ -351,8 +351,8 @@ func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organizatio
 		TotalBandwidth: jobNodeStatus.GetTotalBandwidth(),
 		UsedBandwidth:  0,
 	})); nil != err {
-		log.Errorf("Failed to store power to local on MessageHandler with broadcast, jobNodeId: {%s}, err: {%s}",
-			jobNodeId, err)
+		log.WithError(err).Errorf("Failed to store power to local on MessageHandler with broadcast, jobNodeId: {%s}",
+			jobNodeId)
 		return err
 	}
 	return nil
@@ -810,7 +810,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetada
 	//for i, metadata := range arr {
 	//	count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
 	//	if nil != err {
-	//		log.Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetGlobalMetadataDetailList(), err: {%s}", err)
+	//		log.WithError(err).Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetGlobalMetadataDetailList()")
 	//		continue
 	//	}
 	//	metadata.Information.TotalTaskCount = count
@@ -857,7 +857,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 	for i, metadata := range arr {
 		count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
 		if nil != err {
-			log.Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetLocalMetadataDetailList(), err: {%s}", err)
+			log.WithError(err).Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetLocalMetadataDetailList()")
 			continue
 		}
 		metadata.Information.TotalTaskCount = count
@@ -961,6 +961,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	if err != nil {
 		return nil, err
 	}
+
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
 		slotUnit.String())
 
@@ -1004,11 +1005,11 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 					Duration:  task.GetTaskData().GetOperationCost().GetDuration(),
 				},
 				OperationSpend: nil, // will be culculating after ...
-				CreateAt:       task.GetTaskData().CreateAt,
+				CreateAt:       task.GetTaskData().GetCreateAt(),
 			}
 			// build dataSuppliers of task info
 			for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-				powerTask.Partners = append(powerTask.Partners, &apicommonpb.Organization{
+				powerTask.Partners = append(powerTask.GetPartners(), &apicommonpb.Organization{
 					NodeName:   dataSupplier.GetOrganization().GetNodeName(),
 					NodeId:     dataSupplier.GetOrganization().GetNodeId(),
 					IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
@@ -1016,7 +1017,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			}
 			// build receivers of task info
 			for _, receiver := range task.GetTaskData().GetReceivers() {
-				powerTask.Receivers = append(powerTask.Receivers, &apicommonpb.Organization{
+				powerTask.Receivers = append(powerTask.GetReceivers(), &apicommonpb.Organization{
 					NodeName:   receiver.GetNodeName(),
 					NodeId:     receiver.GetNodeId(),
 					IdentityId: receiver.GetIdentityId(),
@@ -1061,7 +1062,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	taskTotalCount := func(jobNodeId string) uint32 {
 		count, err := s.carrier.carrierDB.QueryJobNodeHistoryTaskCount(jobNodeId)
 		if err != nil {
-			log.Errorf("Failed to query task totalCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}, err: {%s}", jobNodeId, err)
+			log.WithError(err).Errorf("Failed to query task totalCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}", jobNodeId)
 			return 0
 		}
 		return count
@@ -1070,7 +1071,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	taskRunningCount := func(jobNodeId string) uint32 {
 		count, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(jobNodeId)
 		if err != nil {
-			log.Errorf("Failed to query task runningCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}, err: {%s}", jobNodeId, err)
+			log.WithError(err).Errorf("Failed to query task runningCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}", jobNodeId)
 			return 0
 		}
 		return count
@@ -1104,7 +1105,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 				State: resource.GetState(),
 			},
 		}
-		nodePowerDetail.Power.Tasks = buildPowerTaskList(resource.GetJobNodeId())
+		nodePowerDetail.GetPower().Tasks = buildPowerTaskList(resource.GetJobNodeId())
 		result[i] = nodePowerDetail
 	}
 	return result, nil
@@ -1425,8 +1426,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		log.Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}, err: {%s}",
-			taskId, dataNodeId, originId, metadataId, filePath, err)
+		log.WithError(err).Errorf("Failed query local identity on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}",
+			taskId, dataNodeId, originId, metadataId, filePath)
 		return err
 	}
 
@@ -1459,8 +1460,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 	// store dataResourceFileUpload (about task result file)
 	err = s.carrier.carrierDB.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(dataNodeId, originId, metadataId, filePath))
 	if nil != err {
-		log.Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}, err: {%s}",
-			taskId, dataNodeId, originId, metadataId, filePath, err)
+		log.WithError(err).Errorf("Failed store dataResourceFileUpload about task result file on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}",
+			taskId, dataNodeId, originId, metadataId, filePath)
 		return err
 	}
 	// 记录原始数据占用资源大小   StoreDataResourceTable  todo 后续考虑是否加上, 目前不加 因为对于系统生成的元数据暂时不需要记录 disk 使用实况 ??
@@ -1469,8 +1470,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 	// store taskId -> TaskUpResultFile (about task result file)
 	err = s.carrier.carrierDB.StoreTaskUpResultFile(types.NewTaskUpResultFile(taskId, originId, metadataId))
 	if nil != err {
-		log.Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}, err: {%s}",
-			taskId, dataNodeId, originId, metadataId, filePath, err)
+		log.WithError(err).Errorf("Failed store taskUpResultFile on CarrierAPIBackend.StoreTaskResultFileSummary(), taskId: {%s}, dataNodeId: {%s}, originId: {%s}, metadataId: {%s}, filePath: {%s}",
+			taskId, dataNodeId, originId, metadataId, filePath)
 		return err
 	}
 	return nil
@@ -1479,21 +1480,20 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.TaskResultFileSummary, error) {
 	taskUpResultFile, err := s.carrier.carrierDB.QueryTaskUpResultFile(taskId)
 	if nil != err {
-		log.Errorf("Failed query taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, err: {%s}",
-			taskId, err)
+		log.WithError(err).Errorf("Failed query taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}", taskId)
 		return nil, err
 	}
 	dataResourceFileUpload, err := s.carrier.carrierDB.QueryDataResourceFileUpload(taskUpResultFile.GetOriginId())
 	if nil != err {
-		log.Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, err: {%s}",
-			taskId, taskUpResultFile.GetOriginId(), err)
+		log.WithError(err).Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}",
+			taskId, taskUpResultFile.GetOriginId())
 		return nil, err
 	}
 
 	localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataByDataId(taskUpResultFile.GetMetadataId())
 	if nil != err {
-		log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
-			taskId, taskUpResultFile.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)
+		log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummary(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
+			taskId, taskUpResultFile.GetOriginId(), dataResourceFileUpload.GetMetadataId())
 		return nil, err
 	}
 
@@ -1511,7 +1511,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFileSummaryArr, error) {
 	taskResultFileSummaryArr, err := s.carrier.carrierDB.QueryTaskUpResultFileList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.Errorf("Failed query all taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummaryList(), err: {%s}", err)
+		log.WithError(err).Errorf("Failed query all taskUpResultFile on CarrierAPIBackend.QueryTaskResultFileSummaryList()")
 		return nil, err
 	}
 
@@ -1519,15 +1519,15 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 	for _, summarry := range taskResultFileSummaryArr {
 		dataResourceFileUpload, err := s.carrier.carrierDB.QueryDataResourceFileUpload(summarry.GetOriginId())
 		if nil != err {
-			log.Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, err: {%s}",
-				summarry.GetTaskId(), summarry.GetOriginId(), err)
+			log.WithError(err).Errorf("Failed query dataResourceFileUpload on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}",
+				summarry.GetTaskId(), summarry.GetOriginId())
 			continue
 		}
 
 		localMetadata, err := s.carrier.carrierDB.QueryInternalMetadataByDataId(dataResourceFileUpload.GetMetadataId())
 		if nil != err {
-			log.Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}, err: {%s}",
-				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId(), err)
+			log.WithError(err).Errorf("Failed query local metadata on CarrierAPIBackend.QueryTaskResultFileSummaryList(), taskId: {%s}, originId: {%s}, metadataId: {%s}",
+				summarry.GetTaskId(), summarry.GetOriginId(), dataResourceFileUpload.GetMetadataId())
 			continue
 		}
 

@@ -23,13 +23,12 @@ type EventType struct {
 	Msg  string
 }
 
-func (e *EventType) EventInfo() string {
-	return e.Msg
-}
-
 func NewEventType(Type string, text string) *EventType {
 	return &EventType{Type: Type, Msg: text}
 }
+
+func (e *EventType) GetType() string { return e.Type }
+func (e *EventType) GetMsg() string  { return e.Msg }
 
 var IncEventType = errors.New("incorrect evengine type")
 

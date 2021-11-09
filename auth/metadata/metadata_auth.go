@@ -127,8 +127,8 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 	// verify
 	metadataAuth, err := ma.GetMetadataAuthority(metadataAuthId)
 	if nil != err {
-		log.Errorf("Failed to query old metadataAuth on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}, err: {%s}",
-			metadataAuthId, err)
+		log.WithError(err).Errorf("Failed to query old metadataAuth on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}",
+			metadataAuthId)
 		return err
 	}
 
@@ -170,8 +170,8 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 
 	metadataAuth.GetData().UsedQuo = usedQuo
 	if err := ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
-		log.Errorf("Failed to update metadataAuth after consume on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}, err: {%s}",
-			metadataAuthId, err)
+		log.WithError(err).Errorf("Failed to update metadataAuth after consume on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}",
+			metadataAuthId)
 		return err
 	}
 

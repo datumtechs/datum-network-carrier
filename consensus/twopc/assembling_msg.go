@@ -109,65 +109,65 @@ func makeCommitMsg(
 
 func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 
-	if nil == msg || nil == msg.TaskInfo {
+	if nil == msg || nil == msg.GetTaskInfo() {
 		return nil, fmt.Errorf("receive nil prepareMsg or nil taskInfo")
 	}
 
 	task := types.NewTask(&libtypes.TaskPB{})
-	err := task.DecodePb(msg.TaskInfo)
+	err := task.DecodePb(msg.GetTaskInfo())
 	if err != nil {
 		return nil, err
 	}
 	return &types.PrepareMsg{
-			MsgOption: types.FetchMsgOption(msg.MsgOption),
+			MsgOption: types.FetchMsgOption(msg.GetMsgOption()),
 			TaskInfo:  task,
-			CreateAt:  msg.CreateAt,
-			Sign:      msg.Sign,
+			CreateAt:  msg.GetCreateAt(),
+			Sign:      msg.GetSign(),
 		},
 		nil
 }
 func fetchProposalFromPrepareMsg(msg *types.PrepareMsg) *types.ProposalTask {
 	return &types.ProposalTask{
-		ProposalId: msg.MsgOption.ProposalId,
-		Task:       msg.TaskInfo,
-		CreateAt:   msg.CreateAt,
+		ProposalId: msg.GetMsgOption().GetProposalId(),
+		TaskId:     msg.GetTask().GetTaskId(),
+		CreateAt:   msg.GetCreateAt(),
 	}
 }
 
 func fetchPrepareVote(vote *types.PrepareVoteWrap) *types.PrepareVote {
 	return &types.PrepareVote{
-		MsgOption:  types.FetchMsgOption(vote.MsgOption),
-		VoteOption: types.VoteOptionFromBytes(vote.VoteOption),
-		PeerInfo:   types.FetchTaskPeerInfo(vote.PeerInfo),
-		CreateAt:   vote.CreateAt,
-		Sign:       vote.Sign,
+		MsgOption:  types.FetchMsgOption(vote.GetMsgOption()),
+		VoteOption: types.VoteOptionFromBytes(vote.GetVoteOption()),
+		PeerInfo:   types.FetchTaskPeerInfo(vote.GetPeerInfo()),
+		CreateAt:   vote.GetCreateAt(),
+		Sign:       vote.GetSign(),
 	}
 }
 
 func fetchConfirmMsg(msg *types.ConfirmMsgWrap) *types.ConfirmMsg {
 	return &types.ConfirmMsg{
-		MsgOption:     types.FetchMsgOption(msg.MsgOption),
-		ConfirmOption: types.TwopcMsgOptionFromBytes(msg.ConfirmOption),
-		Peers:         msg.Peers,
-		CreateAt:      msg.CreateAt,
-		Sign:          msg.Sign,
+		MsgOption:     types.FetchMsgOption(msg.GetMsgOption()),
+		ConfirmOption: types.TwopcMsgOptionFromBytes(msg.GetConfirmOption()),
+		Peers:         msg.GetPeers(),
+		CreateAt:      msg.GetCreateAt(),
+		Sign:          msg.GetSign(),
 	}
 }
 
 func fetchConfirmVote(vote *types.ConfirmVoteWrap) *types.ConfirmVote {
 	return &types.ConfirmVote{
-		MsgOption:  types.FetchMsgOption(vote.MsgOption),
-		VoteOption: types.VoteOptionFromBytes(vote.VoteOption),
-		CreateAt:   vote.CreateAt,
-		Sign:       vote.Sign,
+		MsgOption:  types.FetchMsgOption(vote.GetMsgOption()),
+		VoteOption: types.VoteOptionFromBytes(vote.GetVoteOption()),
+		CreateAt:   vote.GetCreateAt(),
+		Sign:       vote.GetSign(),
 	}
 }
 
 func fetchCommitMsg(msg *types.CommitMsgWrap) *types.CommitMsg {
 	return &types.CommitMsg{
-		MsgOption:    types.FetchMsgOption(msg.MsgOption),
-		CommitOption: types.TwopcMsgOptionFromBytes(msg.CommitOption),
-		CreateAt:     msg.CreateAt,
-		Sign:         msg.Sign,
+		MsgOption:    types.FetchMsgOption(msg.GetMsgOption()),
+		CommitOption: types.TwopcMsgOptionFromBytes(msg.GetCommitOption()),
+		CreateAt:     msg.GetCreateAt(),
+		Sign:         msg.GetSign(),
 	}
 }

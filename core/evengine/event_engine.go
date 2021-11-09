@@ -30,7 +30,7 @@ func (e *EventEngine) GenerateEvent(typ, taskId, identityId, partyId, extra stri
 
 func (e *EventEngine) StoreEvent(event *libtypes.TaskEvent) {
 	if err := e.dataCenter.StoreTaskEvent(event); nil != err {
-		log.Errorf("Failed to Store task event, taskId: {%s}, evnet: {%s}, err: {%s}", event.TaskId, event.String(), err)
+		log.WithError(err).Errorf("Failed to Store task event, taskId: {%s}, evnet: {%s}", event.TaskId, event.String())
 	}
 	return
 }

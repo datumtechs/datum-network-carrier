@@ -427,12 +427,14 @@ func (dc *DataCenter) StoreLocalTaskExecuteStatusValConsByPartyId(taskId, partyI
 func (dc *DataCenter) StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
+	log.Debugf("Store task execute status, taskId: {%s}, partyId: {%s}", taskId, partyId)
 	return rawdb.StoreLocalTaskExecuteStatusValExecByPartyId(dc.db, taskId, partyId)
 }
 
 func (dc *DataCenter) RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
+	log.Debugf("Remove task execute status, taskId: {%s}, partyId: {%s}", taskId, partyId)
 	return rawdb.RemoveLocalTaskExecuteStatusByPartyId(dc.db, taskId, partyId)
 }
 

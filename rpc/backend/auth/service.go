@@ -284,8 +284,8 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	//// verify
 	//metadataAuth, err := m.authManager.QueryMetadataAuthority(revoke.GetMetadataAuthId())
 	//if nil != err {
-	//	log.Errorf("Failed to query old metadataAuth on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}, err: {%s}",
-	//		revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String(), err)
+	//	log.WithError(err).Errorf("Failed to query old metadataAuth on MessageHandler with revoke, metadataAuthId: {%s}, user:{%s}, userType: {%s}",
+	//		revoke.GetMetadataAuthId(), revoke.GetUser(), revoke.GetUserType().String())
 	//	continue
 	//}
 	//

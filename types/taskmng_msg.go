@@ -15,24 +15,29 @@ type TaskResultMsg struct {
 
 func (msg *TaskResultMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "createAt": %d, "sign": %v}`,
-		msg.MsgOption.String(), msg.CreateAt, msg.Sign)
+		msg.GetMsgOption().String(), msg.GetCreateAt(), msg.GetSign())
 }
+
+func (msg *TaskResultMsg) GetMsgOption() *MsgOption                { return msg.MsgOption }
+func (msg *TaskResultMsg) GetTaskEventList() []*libtypes.TaskEvent { return msg.TaskEventList }
+func (msg *TaskResultMsg) GetCreateAt() uint64                     { return msg.CreateAt }
+func (msg *TaskResultMsg) GetSign() []byte                         { return msg.Sign }
 
 func ConvertTaskResultMsg(msg *TaskResultMsg) *taskmngpb.TaskResultMsg {
 	return &taskmngpb.TaskResultMsg{
-		MsgOption:     ConvertMsgOption(msg.MsgOption),
-		TaskEventList: ConvertTaskEventArr(msg.TaskEventList),
-		CreateAt:      msg.CreateAt,
-		Sign:          msg.Sign,
+		MsgOption:     ConvertMsgOption(msg.GetMsgOption()),
+		TaskEventList: ConvertTaskEventArr(msg.GetTaskEventList()),
+		CreateAt:      msg.GetCreateAt(),
+		Sign:          msg.GetSign(),
 	}
 }
 
 func FetchTaskResultMsg(msg *taskmngpb.TaskResultMsg) *TaskResultMsg {
 	return &TaskResultMsg{
 		MsgOption:     FetchMsgOption(msg.GetMsgOption()),
-		TaskEventList: FetchTaskEventArr(msg.TaskEventList),
-		CreateAt:      msg.CreateAt,
-		Sign:          msg.Sign,
+		TaskEventList: FetchTaskEventArr(msg.GetTaskEventList()),
+		CreateAt:      msg.GetCreateAt(),
+		Sign:          msg.GetSign(),
 	}
 }
 
@@ -45,7 +50,7 @@ type TaskResourceUsageMsg struct {
 
 func (msg *TaskResourceUsageMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "usage": %s, "createAt": %d, "sign": %v}`,
-		msg.MsgOption.String(), msg.Usage.String(), msg.CreateAt, msg.Sign)
+		msg.GetMsgOption().String(), msg.GetUsage().String(), msg.GetCreateAt(), msg.GetSign())
 }
 
 func (msg *TaskResourceUsageMsg) GetMsgOption() *MsgOption     { return msg.MsgOption }
@@ -68,8 +73,8 @@ func FetchTaskResourceUsageMsg(msg *taskmngpb.TaskResourceUsageMsg) *TaskResourc
 			uint32(msg.GetUsage().GetTotalProcessor()),
 			uint32(msg.GetUsage().GetUsedProcessor()),
 		),
-		CreateAt: msg.CreateAt,
-		Sign:     msg.Sign,
+		CreateAt: msg.GetCreateAt(),
+		Sign:     msg.GetSign(),
 	}
 }
 
@@ -82,7 +87,7 @@ type TaskTerminateTaskMngMsg struct {
 
 func (msg *TaskTerminateTaskMngMsg) String() string {
 	return fmt.Sprintf(`{"msgOption": %s, "taskId": %s, "createAt": %d, "sign": %v}`,
-		msg.MsgOption.String(), msg.TaskId, msg.CreateAt, msg.Sign)
+		msg.GetMsgOption().String(), msg.GetTaskId(), msg.GetCreateAt(), msg.GetSign())
 }
 
 func (msg *TaskTerminateTaskMngMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
@@ -94,7 +99,7 @@ func FetchTaskTerminateTaskMngMsg(msg *taskmngpb.TaskTerminateMsg) *TaskTerminat
 	return &TaskTerminateTaskMngMsg{
 		MsgOption: FetchMsgOption(msg.GetMsgOption()),
 		TaskId:    string(msg.GetTaskId()),
-		CreateAt:  msg.CreateAt,
-		Sign:      msg.Sign,
+		CreateAt:  msg.GetCreateAt(),
+		Sign:      msg.GetSign(),
 	}
 }

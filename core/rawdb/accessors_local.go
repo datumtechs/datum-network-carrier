@@ -640,7 +640,7 @@ func RemoveTaskEventByPartyId(db KeyValueStore, taskId, partyId string) error {
 }
 
 func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
-	key := GetNeedExecuteTaskKey(task.GetTask().GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	key := GetNeedExecuteTaskKey(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 
 	val, err := proto.Marshal(&libtypes.NeedExecuteTask{
 		RemotePid:              task.GetRemotePID().String(),
@@ -649,7 +649,7 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 		LocalTaskOrganization:  task.GetLocalTaskOrganization(),
 		RemoteTaskRole:         task.GetRemoteTaskRole(),
 		RemoteTaskOrganization: task.GetRemoteTaskOrganization(),
-		TaskId:                 task.GetTask().GetTaskId(),
+		TaskId:                 task.GetTaskId(),
 		ConsStatus:             bytesutil.Uint16ToBytes(uint16(task.GetConsStatus())),
 		LocalResource: &libtypes.PrepareVoteResource{
 			Id:      task.GetLocalResource().Id,

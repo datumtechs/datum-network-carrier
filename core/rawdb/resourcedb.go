@@ -1475,7 +1475,7 @@ func QueryTaskUpResultFileList(db DatabaseIteratee) ([]*types.TaskUpResultFile, 
 		if value := it.Value(); len(value) != 0 {
 			var taskUpResultFile types.TaskUpResultFile
 			if err := rlp.DecodeBytes(value, &taskUpResultFile); nil != err {
-				log.Errorf("Failed to call QueryAllTaskUpResultFile, decode db val failed, err: {%s}", err)
+				log.WithError(err).Errorf("Failed to call QueryAllTaskUpResultFile, decode db val failed")
 				continue
 			}
 			arr = append(arr, &taskUpResultFile)

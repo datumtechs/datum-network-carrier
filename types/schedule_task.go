@@ -13,20 +13,20 @@ import (
 
 type ProposalTask struct {
 	ProposalId common.Hash
-	*Task
-	CreateAt uint64
+	TaskId     string
+	CreateAt   uint64
 }
 
-func NewProposalTask(proposalId common.Hash, task *Task, createAt uint64) *ProposalTask {
+func NewProposalTask(proposalId common.Hash, taskId string, createAt uint64) *ProposalTask {
 	return &ProposalTask{
 		ProposalId: proposalId,
-		Task:       task,
+		TaskId:     taskId,
 		CreateAt:   createAt,
 	}
 }
 
 func (pt *ProposalTask) GetProposalId() common.Hash { return pt.ProposalId }
-func (pt *ProposalTask) GetTask() *Task             { return pt.Task }
+func (pt *ProposalTask) GetTaskId() string          { return pt.TaskId }
 func (pt *ProposalTask) GetCreateAt() uint64        { return pt.CreateAt }
 
 type TaskActionStatus uint16
@@ -190,7 +190,7 @@ type NeedExecuteTask struct {
 	localTaskOrganization  *apicommonpb.TaskOrganization
 	remoteTaskRole         apicommonpb.TaskRole
 	remoteTaskOrganization *apicommonpb.TaskOrganization
-	task                   *Task
+	taskId                 string
 	consStatus             TaskActionStatus
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
@@ -201,7 +201,8 @@ func NewNeedExecuteTask(
 	proposalId common.Hash,
 	localTaskRole, remoteTaskRole apicommonpb.TaskRole,
 	localTaskOrganization, remoteTaskOrganization *apicommonpb.TaskOrganization,
-	task *Task,
+
+	taskId string,
 	consStatus TaskActionStatus,
 	localResource *PrepareVoteResource,
 	resources *twopcpb.ConfirmTaskPeerInfo,
@@ -213,7 +214,7 @@ func NewNeedExecuteTask(
 		localTaskOrganization:  localTaskOrganization,
 		remoteTaskRole:         remoteTaskRole,
 		remoteTaskOrganization: remoteTaskOrganization,
-		task:                   task,
+		taskId:                 taskId,
 		consStatus:             consStatus,
 		localResource:          localResource,
 		resources:              resources,
@@ -231,15 +232,15 @@ func (net *NeedExecuteTask) GetRemoteTaskRole() apicommonpb.TaskRole { return ne
 func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apicommonpb.TaskOrganization {
 	return net.remoteTaskOrganization
 }
-func (net *NeedExecuteTask) GetTask() *Task                             { return net.task }
+func (net *NeedExecuteTask) GetTaskId() string                          { return net.taskId }
 func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.consStatus }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
 func (net *NeedExecuteTask) String() string {
-	taskStr := "{}"
-	if nil != net.task {
-		taskStr = net.task.GetTaskData().String()
-	}
+	//taskStr := "{}"
+	//if nil != net.task {
+	//	taskStr = net.task.GetTaskData().String()
+	//}
 	localIdentityStr := "{}"
 	if nil != net.localTaskOrganization {
 		localIdentityStr = net.localTaskOrganization.String()
@@ -252,8 +253,8 @@ func (net *NeedExecuteTask) String() string {
 	if nil != net.localResource {
 		localResourceStr = net.localResource.String()
 	}
-	return fmt.Sprintf(`{"remotepid": %s, "proposalId": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "task": %s, "localResource": %s, "resources": %s}`,
-		net.remotepid, net.proposalId.String(), net.localTaskRole.String(), localIdentityStr, net.remoteTaskRole.String(), remoteIdentityStr, taskStr, localResourceStr, ConfirmTaskPeerInfoString(net.resources))
+	return fmt.Sprintf(`{"remotepid": %s, "proposalId": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "taskId": %s, "localResource": %s, "resources": %s}`,
+		net.remotepid, net.proposalId.String(), net.localTaskRole.String(), localIdentityStr, net.remoteTaskRole.String(), remoteIdentityStr, net.taskId, localResourceStr, ConfirmTaskPeerInfoString(net.resources))
 }
 
 func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {

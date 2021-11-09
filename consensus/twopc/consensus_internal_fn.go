@@ -106,7 +106,7 @@ func (t *Twopc) refreshProposalState() {
 
 	identity, err := t.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		//log.Errorf("Failed to query local identity on consensus.refreshProposalState(), err: {%s}", err)
+		//log.WithError(err).Errorf("Failed to query local identity on consensus.refreshProposalState()")
 		return
 	}
 
@@ -121,7 +121,7 @@ func (t *Twopc) refreshProposalState() {
 				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, remove org proposalState and task cache on Consensus, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-				proposalTask, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
+				_, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
 
 				t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
 				pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
@@ -140,19 +140,29 @@ func (t *Twopc) refreshProposalState() {
 					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 				}()
+
+				if !ok {
+					log.Errorf("Not found the proposalTask on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
+						pstate.GetTaskId(), partyId)
+					continue
+				}
+
+				//task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTask.GetTaskId())
+				//if nil != err {
+				//	log.WithError(err).Errorf("Failed to query local task on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
+				//		pstate.GetTaskId(), partyId)
+				//	continue
+				//}
+
 				// release local resource and clean some data  (on task partenr)
 				t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 					Type:       evengine.TaskProposalStateDeadline.Type,
 					IdentityId: identity.GetIdentityId(),
+					PartyId:    partyId,
 					TaskId:     pstate.GetTaskId(),
 					Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 					CreateAt:   timeutils.UnixMsecUint64(),
 				})
-
-				if !ok {
-					continue
-				}
-				task := proposalTask.GetTask()
 
 				t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 					proposalId,
@@ -165,7 +175,7 @@ func (t *Twopc) refreshProposalState() {
 						NodeId:     identity.GetNodeId(),
 						IdentityId: identity.GetIdentityId(),
 					},
-					pstate.GetTaskSender(), task, types.TaskConsensusInterrupt)
+					pstate.GetTaskSender(), types.TaskConsensusInterrupt)
 				continue
 			}
 
@@ -213,7 +223,7 @@ func (t *Twopc) refreshProposalState() {
 					log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
 
-					proposalTask, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
+					_, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
 
 					t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
 					pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
@@ -232,19 +242,29 @@ func (t *Twopc) refreshProposalState() {
 						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
 						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 					}()
+
+					if !ok {
+						log.Errorf("Not found the proposalTask on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
+							pstate.GetTaskId(), partyId)
+						continue
+					}
+
+					//task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTask.GetTaskId())
+					//if nil != err {
+					//	log.WithError(err).Errorf("Failed to query local task on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
+					//		pstate.GetTaskId(), partyId)
+					//	continue
+					//}
+
 					// release local resource and clean some data  (on task partenr)
 					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 						Type:       evengine.TaskProposalStateDeadline.Type,
 						IdentityId: identity.GetIdentityId(),
+						PartyId:    partyId,
 						TaskId:     pstate.GetTaskId(),
 						Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
 						CreateAt:   timeutils.UnixMsecUint64(),
 					})
-
-					if !ok {
-						continue
-					}
-					task := proposalTask.GetTask()
 
 					t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
 						proposalId,
@@ -257,7 +277,7 @@ func (t *Twopc) refreshProposalState() {
 							NodeId:     identity.GetNodeId(),
 							IdentityId: identity.GetIdentityId(),
 						},
-						pstate.GetTaskSender(), task, types.TaskConsensusInterrupt)
+						pstate.GetTaskSender(), types.TaskConsensusInterrupt)
 				}
 
 			default:
@@ -277,7 +297,6 @@ func (t *Twopc) stopTaskConsensus(
 	taskId string,
 	senderRole, receiverRole apicommonpb.TaskRole,
 	sender, receiver *apicommonpb.TaskOrganization,
-	task *types.Task,
 	taskActionStatus  types.TaskActionStatus,
 ) {
 
@@ -306,20 +325,20 @@ func (t *Twopc) stopTaskConsensus(
 		selfvote := t.getPrepareVote(proposalId, sender.GetPartyId())
 		if nil == selfvote {
 			log.Errorf("Failed to find local cache about prepareVote myself internal resource on `2pc.stopTaskConsensus()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
-				proposalId.String(), task.GetTaskId(), senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
+				proposalId.String(), taskId, senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
 			return
 		}
 
 		peers, ok := t.getConfirmTaskPeerInfo(proposalId)
 		if !ok {
 			log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT} on `2pc.stopTaskConsensus()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
-				proposalId.String(), task.GetTaskId(), senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
+				proposalId.String(), taskId, senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
 
 			return
 		}
 
 		log.Debugf("Find vote resources on `2pc.stopTaskConsensus()` proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote: %s, peers: %s",
-			proposalId.String(), task.GetTaskId(), senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName(),
+			proposalId.String(), taskId, senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName(),
 			selfvote.String(), peers.String())
 
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
@@ -329,9 +348,9 @@ func (t *Twopc) stopTaskConsensus(
 			receiverRole,
 			sender,
 			receiver,
-			task,
+			taskId,
 			taskActionStatus,
-			selfvote.PeerInfo,
+			selfvote.GetPeerInfo(),
 			peers,
 		))
 
@@ -346,29 +365,29 @@ func (t *Twopc) driveTask(
 	localTaskOrganization *apicommonpb.TaskOrganization,
 	remoteTaskRole apicommonpb.TaskRole,
 	remoteTaskOrganization *apicommonpb.TaskOrganization,
-	task *types.Task,
+	taskId string,
 ) {
 
 	log.Debugf("Start to call `2pc.driveTask()`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
-		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
+		proposalId.String(), taskId, localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 
 	selfvote := t.getPrepareVote(proposalId, localTaskOrganization.GetPartyId())
 	if nil == selfvote {
 		log.Errorf("Failed to find local cache about prepareVote myself internal resource on `2pc.driveTask()`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
-			proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
+			proposalId.String(), taskId, localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 		return
 	}
 
 	peers, ok := t.getConfirmTaskPeerInfo(proposalId)
 	if !ok {
 		log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT} on `2pc.driveTask()`, proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
-			proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
+			proposalId.String(), taskId, localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName())
 
 		return
 	}
 
 	log.Debugf("Find vote resources on `2pc.driveTask()` proposalId: {%s}, taskId: {%s}, localTaskRole: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote: %s, peers: %s",
-		proposalId.String(), task.GetTaskId(), localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName(),
+		proposalId.String(), taskId, localTaskRole.String(), localTaskOrganization.GetPartyId(), localTaskOrganization.GetIdentityId(), localTaskOrganization.GetNodeName(),
 		selfvote.String(), peers.String())
 
 	// Send task to TaskManager to execute
@@ -379,7 +398,7 @@ func (t *Twopc) driveTask(
 		remoteTaskRole,
 		localTaskOrganization,
 		remoteTaskOrganization,
-		task,
+		taskId,
 		types.TaskNeedExecute,
 		selfvote.PeerInfo,
 		peers,
@@ -493,12 +512,12 @@ func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
 }
 func (t *Twopc) handleTaskConsensusResult(result *types.TaskConsResult) {
 	t.taskResultLock.Lock()
-	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
-	if ch, ok := t.taskResultChSet[result.TaskId]; ok {
-		log.Debugf("Start SendTaskResultCh taskId: {%s}, result: {%s}", result.TaskId, result.String())
+	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
+	if ch, ok := t.taskResultChSet[result.GetTaskId()]; ok {
+		log.Debugf("Start SendTaskResultCh taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
 		ch <- result
 		close(ch)
-		delete(t.taskResultChSet, result.TaskId)
+		delete(t.taskResultChSet, result.GetTaskId())
 	}
 	t.taskResultLock.Unlock()
 }
@@ -882,16 +901,16 @@ func (t *Twopc) recoverCache() {
 					return fmt.Errorf("unmarshal proposalTask failed, %s", err)
 				}
 
-				task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTaskPB.GetTaskId())
-				if nil != err {
-					return fmt.Errorf("query local task failed on recover proposalTask from wal, %s, taskId: {%s}", err, proposalTaskPB.GetTaskId())
-				}
+				//task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTaskPB.GetTaskId())
+				//if nil != err {
+				//	return fmt.Errorf("query local task failed on recover proposalTask from wal, %s, taskId: {%s}", err, proposalTaskPB.GetTaskId())
+				//}
 
 				cache, ok := t.state.proposalTaskCache[taskId]
 				if !ok {
 					cache =make(map[string]*types.ProposalTask, 0)
 				}
-				cache[partyId] =  types.NewProposalTask(common.HexToHash(proposalTaskPB.GetProposalId()), task, proposalTaskPB.GetCreateAt())
+				cache[partyId] =  types.NewProposalTask(common.HexToHash(proposalTaskPB.GetProposalId()), taskId, proposalTaskPB.GetCreateAt())
 				t.state.proposalTaskCache[taskId] = cache
 			}
 			return nil
