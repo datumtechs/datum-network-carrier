@@ -23,7 +23,7 @@ func NewAuthorityManager(dataCenter  core.CarrierDB) *AuthorityManager {
 }
 
 func (am *AuthorityManager) Start() error {
-	go am.loop()
+	//go am.loop()
 	log.Info("Started authorityManager ...")
 	return nil
 }
@@ -141,31 +141,36 @@ func filterMetadataAuth (list types.MetadataAuthArray) (types.MetadataAuthArray,
 }
 
 func (am *AuthorityManager) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
-	metadataAuth, err := am.metadataAuth.GetMetadataAuthority(metadataAuthId)
-	if nil != err {
-		return nil, err
-	}
-	list , err := filterMetadataAuth(types.MetadataAuthArray{metadataAuth})
-	if nil != err {
-		return nil, err
-	}
-	return list[0], nil
+	//metadataAuth, err := am.metadataAuth.GetMetadataAuthority(metadataAuthId)
+	//if nil != err {
+	//	return nil, err
+	//}
+	//list , err := filterMetadataAuth(types.MetadataAuthArray{metadataAuth})
+	//if nil != err {
+	//	return nil, err
+	//}
+	//return list[0], nil
+
+	return am.metadataAuth.GetMetadataAuthority(metadataAuthId)
 }
 
 func (am *AuthorityManager) GetLocalMetadataAuthorityList () (types.MetadataAuthArray, error) {
-	list, err := am.metadataAuth.GetLocalMetadataAuthorityList()
-	if nil != err {
-		return nil, err
-	}
-	return filterMetadataAuth(list)
+	//list, err := am.metadataAuth.GetLocalMetadataAuthorityList()
+	//if nil != err {
+	//	return nil, err
+	//}
+	//return filterMetadataAuth(list)
+
+	return am.metadataAuth.GetLocalMetadataAuthorityList()
 }
 
 func (am *AuthorityManager) GetGlobalMetadataAuthorityList () (types.MetadataAuthArray, error) {
-	list, err := am.metadataAuth.GetGlobalMetadataAuthorityList()
-	if nil != err {
-		return nil, err
-	}
-	return filterMetadataAuth(list)
+	//list, err := am.metadataAuth.GetGlobalMetadataAuthorityList()
+	//if nil != err {
+	//	return nil, err
+	//}
+	//return filterMetadataAuth(list)
+	return am.metadataAuth.GetGlobalMetadataAuthorityList()
 }
 
 func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []string) (types.MetadataAuthArray, error) {
