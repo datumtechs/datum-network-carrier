@@ -752,8 +752,8 @@ func StoreDataResourceDiskUsed(db DatabaseWriter, dataResourceDiskUsed *types.Da
 	return db.Put(key, val)
 }
 
-func RemoveDataResourceDiskUsed(db KeyValueStore, metaDataId string) error {
-	key := GetDataResourceDiskUsedKey(metaDataId)
+func RemoveDataResourceDiskUsed(db KeyValueStore, metadataId string) error {
+	key := GetDataResourceDiskUsedKey(metadataId)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -764,8 +764,8 @@ func RemoveDataResourceDiskUsed(db KeyValueStore, metaDataId string) error {
 	return db.Delete(key)
 }
 
-func QueryDataResourceDiskUsed(db DatabaseReader, metaDataId string) (*types.DataResourceDiskUsed, error) {
-	key := GetDataResourceDiskUsedKey(metaDataId)
+func QueryDataResourceDiskUsed(db DatabaseReader, metadataId string) (*types.DataResourceDiskUsed, error) {
+	key := GetDataResourceDiskUsedKey(metadataId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {
 		return nil, err
