@@ -970,16 +970,18 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 		powerTaskList := make([]*libtypes.PowerTask, 0)
 
 		taskIds, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(jobNodeId)
-		if err != nil {
+		if rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Errorf("Failed to query jobNode runningTaskIds on GetLocalPowerDetailList, jobNodeId: {%s}", jobNodeId)
 			return powerTaskList
 		}
+
+
 
 		for _, taskId := range taskIds {
 			// query local task information by taskId
 			task, err := s.carrier.carrierDB.QueryLocalTask(taskId)
 			if err != nil {
-				log.WithError(err).Errorf("Failed to query local task on GetLocalPowerDetailList, taskId: {%s}", taskId)
+				log.WithError(err).Warnf("Warning query local task on GetLocalPowerDetailList, taskId: {%s}", taskId)
 				continue
 			}
 

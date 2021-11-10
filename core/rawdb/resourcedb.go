@@ -10,6 +10,7 @@ import (
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/gogo/protobuf/proto"
 	leveldberr "github.com/syndtr/goleveldb/leveldb/errors"
+	"strings"
 )
 
 var (
@@ -300,6 +301,7 @@ func StoreJobNodeTaskPartyId(db KeyValueStore, jobNodeId, taskId, partyId string
 	if nil != err {
 		return err
 	}
+	log.Debugf("Call StoreJobNodeTaskPartyId, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, partyIds: %s", jobNodeId, taskId, partyId, strings.Join(partyIds, ","))
 	return db.Put(key, val)
 }
 
@@ -325,13 +327,16 @@ func RemoveJobNodeTaskPartyId(db KeyValueStore, jobNodeId, taskId, partyId strin
 			partyIds = append(partyIds[:i], partyId[i+1:])
 		}
 	}
+
 	if len(partyIds) == 0 {
+		log.Debugf("Call RemoveJobNodeTaskPartyId [clean all partyIds], jobNodeId: {%s}, taskId: {%s}, partyId: {%s}", jobNodeId, taskId, partyId)
 		return db.Delete(key)
 	}
 	val, err = rlp.EncodeToBytes(partyIds)
 	if nil != err {
 		return err
 	}
+	log.Debugf("Call RemoveJobNodeTaskPartyId, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, partyIds: %s", jobNodeId, taskId, partyId, strings.Join(partyIds, ","))
 	return db.Put(key, val)
 }
 
@@ -370,7 +375,7 @@ func QueryJobNodeRunningTaskIds(db KeyValueStore, jobNodeId string) ([]string, e
 	if len(arr) == 0 {
 		return nil, ErrNotFound
 	}
-
+	log.Debugf("Call QueryJobNodeRunningTaskIds, jobNodeId: {%s}, taskIds: %s", jobNodeId, strings.Join(arr, ","))
 	return arr, nil
 }
 
@@ -392,6 +397,7 @@ func QueryJobNodeRunningTaskIdCount(db KeyValueStore, jobNodeId string) (uint32,
 			}
 		}
 	}
+	log.Debugf("Call QueryJobNodeRunningTaskIdCount, jobNodeId: {%s}, taskIds count: %s", jobNodeId, count)
 	return count, nil
 }
 
