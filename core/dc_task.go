@@ -268,30 +268,16 @@ func (dc *DataCenter) RemoveJobNodeTaskIdAllPartyIds(jobNodeId, taskId string) e
 	return rawdb.RemoveJobNodeTaskIdAllPartyIds(dc.db, jobNodeId, taskId)
 }
 
-func (dc *DataCenter) QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	taskIds, err := rawdb.QueryJobNodeTaskIds(dc.db, jobNodeId)
-	if rawdb.IsNoDBNotFoundErr(err) {
-		return 0, err
-	} else if rawdb.IsDBNotFoundErr(err) {
-		return 0, nil
-	}
-	return uint32(len(taskIds)), nil
-}
-
 func (dc *DataCenter) QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	//taskIds, err := rawdb.QueryJobNodeTaskIds(dc.db, jobNodeId)
-	//if nil != err {
-	//	return nil, err
-	//}
-	//if len(taskIds) == 0 {
-	//	return nil, rawdb.ErrNotFound
-	//}
-	//return taskIds, nil
-	return rawdb.QueryJobNodeTaskIds(dc.db, jobNodeId)
+	return rawdb.QueryJobNodeRunningTaskIds(dc.db, jobNodeId)
+}
+
+func (dc *DataCenter) QueryJobNodeRunningTaskIdCount(jobNodeId string) (uint32, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryJobNodeRunningTaskIdCount(dc.db, jobNodeId)
 }
 
 func (dc *DataCenter) QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId string) ([]string, error) {
@@ -300,10 +286,10 @@ func (dc *DataCenter) QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId st
 	return rawdb.QueryJobNodeTaskAllPartyIds(dc.db, jobNodeId, taskId)
 }
 
-func (dc *DataCenter) HasJobNodeTaskId(jobNodeId, taskId string) (bool, error) {
+func (dc *DataCenter) HasJobNodeRunningTaskId(jobNodeId, taskId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.HasJobNodeTaskId(dc.db, jobNodeId, taskId)
+	return rawdb.HasJobNodeRunningTaskId(dc.db, jobNodeId, taskId)
 }
 
 func (dc *DataCenter) HasJobNodeTaskPartyId(jobNodeId, taskId, partyId string) (bool, error) {
@@ -318,23 +304,17 @@ func (dc *DataCenter) QueryJobNodeTaskPartyIdCount(jobNodeId, taskId string) (ui
 	return rawdb.QueryJobNodeTaskPartyIdCount(dc.db, jobNodeId, taskId)
 }
 
-//
-func (dc *DataCenter) QueryJobNodeTaskIdCount(jobNodeId string) (uint32, error) {
+// about jobNode history taskId and count
+func (dc *DataCenter) StoreJobNodeHistoryTaskId (jobNodeId, taskId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	return rawdb.StoreJobNodeHistoryTaskId(dc.db, jobNodeId, taskId)
+}
+
+func (dc *DataCenter) HasJobNodeHistoryTaskId (jobNodeId, taskId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryJobNodeTaskIdCount(dc.db, jobNodeId)
-}
-
-func (dc *DataCenter) InscreaseJobNodeHistoryTaskCount (jobNodeId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.InscreaseJobNodeHistoryTaskCount(dc.db, jobNodeId)
-}
-
-func (dc *DataCenter) DescreaseJobNodeHistoryTaskCount (jobNodeId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.DescreaseJobNodeHistoryTaskCount(dc.db, jobNodeId)
+	return rawdb.HasJobNodeHistoryTaskId(dc.db, jobNodeId, taskId)
 }
 
 func (dc *DataCenter) QueryJobNodeHistoryTaskCount (jobNodeId string) (uint32, error) {

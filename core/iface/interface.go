@@ -63,10 +63,10 @@ type LocalStoreCarrierDB interface {
 	HasUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (bool, error)
 	RemoveUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) error
 	// v 2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
-	StoreMetadataUsedTaskId(metadataId, taskId string) error
-	QueryMetadataUsedTaskIdCount(metadataId string) (uint32, error)
-	QueryMetadataUsedTaskIds(metadataId string) ([]string, error)
-	RemoveAllMetadataUsedTaskId(metadataId string) error
+	StoreMetadataHistoryTaskId(metadataId, taskId string) error
+	HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error)
+	QueryMetadataHistoryTaskIdCount(metadataId string) (uint32, error)
+	QueryMetadataHistoryTaskIds(metadataId string) ([]string, error)
 	// v 2.0 about Message Cache
 	StoreMessageCache(value interface{}) error
 	RemovePowerMsg(powerId string) error
@@ -155,16 +155,15 @@ type TaskCarrierDB interface {
 	StoreJobNodeTaskPartyId(jobNodeId, taskId, partyId string) error
 	RemoveJobNodeTaskPartyId(jobNodeId, taskId, partyId string) error
 	RemoveJobNodeTaskIdAllPartyIds(jobNodeId, taskId string) error
-	QueryRunningTaskCountOnJobNode(jobNodeId string) (uint32, error)
 	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
+	QueryJobNodeRunningTaskIdCount(jobNodeId string) (uint32, error)
 	QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId string) ([]string, error)
-	HasJobNodeTaskId(jobNodeId, taskId string) (bool, error)
+	HasJobNodeRunningTaskId(jobNodeId, taskId string) (bool, error)
 	HasJobNodeTaskPartyId(jobNodeId, taskId, partyId string) (bool, error)
 	QueryJobNodeTaskPartyIdCount(jobNodeId, taskId string) (uint32, error)
-	QueryJobNodeTaskIdCount(jobNodeId string) (uint32, error)
-	// v 2.0 about jobNode history task count (prefix + jobNodeId -> history task count)
-	InscreaseJobNodeHistoryTaskCount (jobNodeId string) error
-	DescreaseJobNodeHistoryTaskCount (jobNodeId string) error
+	// v 2.0 about jobNode history task count (prefix + jobNodeId -> history task count AND prefix + jobNodeId + taskId -> index)
+	StoreJobNodeHistoryTaskId (jobNodeId, taskId string) error
+	HasJobNodeHistoryTaskId (jobNodeId, taskId string) (bool, error)
 	QueryJobNodeHistoryTaskCount (jobNodeId string) (uint32, error)
 	// v 2.0  about TaskResultFileMetadataId  (taskId -> {taskId, originId, metadataId})
 	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error

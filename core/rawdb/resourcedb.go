@@ -26,66 +26,19 @@ func IsDBNotFoundErr(err error) bool {
 // Resources that operate the organization's jobNode services
 func StoreNodeResource(db KeyValueStore, resource *types.LocalResourceTable) error {
 
-	key := GetNodeResourceKey(resource.GetNodeId())
+	item_key := GetNodeResourceKey(resource.GetNodeId())
 	val, err := rlp.EncodeToBytes(resource)
 	if nil != err {
 		return err
 	}
-
-	if err := db.Put(key, val); nil != err {
-		return err
-	}
-
-	has, err := db.Has(GetNodeResourceIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return err
-	}
-
-	var resourceIds []string
-	if !has {
-		resourceIds = []string{resource.GetNodeId()}
-	} else {
-		idsByte, err := db.Get(GetNodeResourceIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &resourceIds); nil != err {
-			return err
-		}
-
-		var include bool
-
-		for _, id := range resourceIds {
-			if id == resource.GetNodeId() {
-				include = true
-				break
-			}
-		}
-		if !include {
-			resourceIds = append(resourceIds, resource.GetNodeId())
-		}
-	}
-
-	index, err := rlp.EncodeToBytes(resourceIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetNodeResourceIdListKey(), index)
+	return db.Put(item_key, val)
 }
 
 func StoreNodeResources(db KeyValueStore, resources []*types.LocalResourceTable) error {
 
-	has, err := db.Has(GetNodeResourceIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return err
-	}
-
-	inputIds := make([]string, len(resources))
-	for i, re := range resources {
-		inputIds[i] = re.GetNodeId()
-		key := GetNodeResourceKey(re.GetNodeId())
-		val, err := rlp.EncodeToBytes(re)
+	for _, resource := range resources {
+		key := GetNodeResourceKey(resource.GetNodeId())
+		val, err := rlp.EncodeToBytes(resource)
 		if nil != err {
 			return err
 		}
@@ -94,78 +47,19 @@ func StoreNodeResources(db KeyValueStore, resources []*types.LocalResourceTable)
 			return err
 		}
 	}
-
-	var resourceIds []string
-	if !has {
-		resourceIds = inputIds
-	} else {
-		idsByte, err := db.Get(GetNodeResourceIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &resourceIds); nil != err {
-			return err
-		}
-
-		tmp := make(map[string]struct{})
-
-		for _, id := range resourceIds {
-			tmp[id] = struct{}{}
-		}
-		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				resourceIds = append(resourceIds, id)
-			}
-		}
-
-	}
-
-	index, err := rlp.EncodeToBytes(resourceIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetNodeResourceIdListKey(), index)
+	return nil
 }
 
 func RemoveNodeResource(db KeyValueStore, resourceId string) error {
-	has, err := db.Has(GetNodeResourceIdListKey())
-	if IsNoDBNotFoundErr(err) {
+	key := GetNodeResourceKey(resourceId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
 		return err
-	}
-
-	var resourceIds []string
-	if !has {
+	case IsDBNotFoundErr(err), nil == err && !has:
 		return nil
-	} else {
-		idsByte, err := db.Get(GetNodeResourceIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &resourceIds); nil != err {
-			return err
-		}
-
-		for i := 0; i < len(resourceIds); i++ {
-			id := resourceIds[i]
-			if id == resourceId {
-				key := GetNodeResourceKey(resourceId)
-				if err := db.Delete(key); nil != err {
-					return err
-				}
-				resourceIds = append(resourceIds[:i], resourceIds[i+1:]...)
-				i--
-				break
-			}
-		}
 	}
-
-	index, err := rlp.EncodeToBytes(resourceIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetNodeResourceIdListKey(), index)
+	return db.Delete(key)
 }
 
 func QueryNodeResource(db DatabaseReader, resourceId string) (*types.LocalResourceTable, error) {
@@ -182,52 +76,38 @@ func QueryNodeResource(db DatabaseReader, resourceId string) (*types.LocalResour
 	return &resource, nil
 }
 
-func QueryNodeResources(db DatabaseReader) ([]*types.LocalResourceTable, error) {
-	has, err := db.Has(GetNodeResourceIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
+func QueryNodeResources(db KeyValueStore) ([]*types.LocalResourceTable, error) {
+
+	prefix := GetNodeResourceKeyPrefix()
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+
+	arr := make([]*types.LocalResourceTable, 0)
+	for it.Next() {
+		if len(it.Key()) != 0 && len(it.Value()) != 0 {
+			// prefix + jobNodeId -> LocalResourceTable
+			var resource types.LocalResourceTable
+			if err := rlp.DecodeBytes(it.Value(), &resource); nil != err {
+				return nil, err
+			}
+			arr = append(arr, &resource)
+		}
 	}
-	if !has {
+
+	if len(arr) == 0 {
 		return nil, ErrNotFound
-	}
-	b, err := db.Get(GetNodeResourceIdListKey())
-	if nil != err {
-		return nil, err
-	}
-	var ids []string
-	if err := rlp.DecodeBytes(b, &ids); nil != err {
-		return nil, err
-	}
-
-	arr := make([]*types.LocalResourceTable, len(ids))
-	for i, id := range ids {
-
-		key := GetNodeResourceKey(id)
-		vb, err := db.Get(key)
-		if nil != err {
-			return nil, err
-		}
-
-		var resource types.LocalResourceTable
-		if err := rlp.DecodeBytes(vb, &resource); nil != err {
-			return nil, err
-		}
-		arr[i] = &resource
 	}
 
 	return arr, nil
 }
 
-// 操作 资源单位定义
+// Operation resource slot unit definition
 func StoreNodeResourceSlotUnit(db DatabaseWriter, slot *types.Slot) error {
 	val, err := rlp.EncodeToBytes(slot)
 	if nil != err {
 		return err
 	}
-	if err := db.Put(GetNodeResourceSlotUnitKey(), val); nil != err {
-		return err
-	}
-	return nil
+	return db.Put(GetNodeResourceSlotUnitKey(), val)
 }
 
 func RemoveNodeResourceSlotUnit(db KeyValueStore) error {
@@ -261,7 +141,7 @@ func QueryNodeResourceSlotUnit(db DatabaseReader) (*types.Slot, error) {
 	return slot, nil
 }
 
-// 操作 本地task 正在使用的 算力资源信息
+// Operate the information of the jobNode resources being used by the local task
 func StoreLocalTaskPowerUsed(db KeyValueStore, taskPowerUsed *types.LocalTaskPowerUsed) error {
 
 	key := GetLocalTaskPowerUsedKey(taskPowerUsed.GetTaskId(), taskPowerUsed.GetPartyId())
@@ -326,6 +206,7 @@ func RemoveLocalTaskPowerUsedByTaskId(db KeyValueStore, taskId string) error {
 }
 
 func QueryLocalTaskPowerUsed(db DatabaseReader, taskId, partyId string) (*types.LocalTaskPowerUsed, error) {
+	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	key := GetLocalTaskPowerUsedKey(taskId, partyId)
 	vb, err := db.Get(key)
 	if nil != err {
@@ -341,6 +222,7 @@ func QueryLocalTaskPowerUsed(db DatabaseReader, taskId, partyId string) (*types.
 }
 
 func QueryLocalTaskPowerUsedsByTaskId(db KeyValueStore, taskId string) ([]*types.LocalTaskPowerUsed, error) {
+	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	it := db.NewIteratorWithPrefixAndStart(GetLocalTaskPowerUsedKeyPrefixByTaskId(taskId), nil)
 	defer it.Release()
 
@@ -362,6 +244,7 @@ func QueryLocalTaskPowerUsedsByTaskId(db KeyValueStore, taskId string) ([]*types
 }
 
 func QueryLocalTaskPowerUseds(db KeyValueStore) ([]*types.LocalTaskPowerUsed, error) {
+	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	it := db.NewIteratorWithPrefixAndStart(GetLocalTaskPowerUsedKeyPrefix(), nil)
 	defer it.Release()
 
@@ -404,13 +287,13 @@ func StoreJobNodeTaskPartyId(db KeyValueStore, jobNodeId, taskId, partyId string
 
 		var find bool
 		for _, id := range partyIds {
-			if id == taskId {
+			if id == partyId {
 				find = true
 				break
 			}
 		}
 		if !find {
-			partyIds = append(partyIds, taskId)
+			partyIds = append(partyIds, partyId)
 		}
 	}
 	val, err := rlp.EncodeToBytes(partyIds)
@@ -465,24 +348,51 @@ func RemoveJobNodeTaskIdAllPartyIds(db KeyValueStore, jobNodeId, taskId string) 
 	return db.Delete(key)
 }
 
-func QueryJobNodeTaskIds(db KeyValueStore, jobNodeId string) ([]string, error) {
+func QueryJobNodeRunningTaskIds(db KeyValueStore, jobNodeId string) ([]string, error) {
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
-	prefix := GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId(jobNodeId)
-	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	prefixAndJobNodeId := GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId(jobNodeId)
+	it := db.NewIteratorWithPrefixAndStart(prefixAndJobNodeId, nil)
 	defer it.Release()
 
 	arr := make([]string, 0)
 	tmp := make(map[string]struct{}, 0)
 	for it.Next() {
 		if len(it.Key()) != 0 && len(it.Value()) != 0 {
-			taskId := string(it.Key()[len(prefix):])
+			// key len == len(prefix) + len([]byte(jobNodeId)) + len([]byte(taskId))
+			taskId := string(it.Key()[len(prefixAndJobNodeId):])
 			if _, ok := tmp[taskId]; !ok {
 				tmp[taskId] = struct{}{}
 				arr = append(arr, taskId)
 			}
 		}
 	}
+
+	if len(arr) == 0 {
+		return nil, ErrNotFound
+	}
+
 	return arr, nil
+}
+
+func QueryJobNodeRunningTaskIdCount(db KeyValueStore, jobNodeId string) (uint32, error) {
+	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
+	prefixAndJobNodeId := GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId(jobNodeId)
+	it := db.NewIteratorWithPrefixAndStart(prefixAndJobNodeId, nil)
+	defer it.Release()
+
+	var count uint32
+	tmp := make(map[string]struct{}, 0)
+	for it.Next() {
+		if len(it.Key()) != 0 && len(it.Value()) != 0 {
+			// key len == len(prefix) + len([]byte(jobNodeId)) + len([]byte(taskId))
+			taskId := string(it.Key()[len(prefixAndJobNodeId):])
+			if _, ok := tmp[taskId]; !ok {
+				tmp[taskId] = struct{}{}
+				count ++
+			}
+		}
+	}
+	return count, nil
 }
 
 func QueryJobNodeTaskAllPartyIds(db KeyValueStore, jobNodeId, taskId string) ([]string, error) {
@@ -494,7 +404,7 @@ func QueryJobNodeTaskAllPartyIds(db KeyValueStore, jobNodeId, taskId string) ([]
 	case IsNoDBNotFoundErr(err):
 		return nil, err
 	case IsDBNotFoundErr(err):
-		return nil, nil
+		return nil, ErrNotFound
 	case nil == err && len(val) != 0:
 		if err := rlp.DecodeBytes(val, &partyIds); nil != err {
 			return nil, err
@@ -503,7 +413,7 @@ func QueryJobNodeTaskAllPartyIds(db KeyValueStore, jobNodeId, taskId string) ([]
 	return partyIds, nil
 }
 
-func HasJobNodeTaskId (db DatabaseReader, jobNodeId, taskId string) (bool, error) {
+func HasJobNodeRunningTaskId(db DatabaseReader, jobNodeId, taskId string) (bool, error) {
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
 	key := GetJobNodeTaskPartyIdsKey(jobNodeId, taskId)
 	has, err := db.Has(key)
@@ -517,7 +427,6 @@ func HasJobNodeTaskId (db DatabaseReader, jobNodeId, taskId string) (bool, error
 	}
 	return true, nil
 }
-
 
 func HasJobNodeTaskPartyId (db DatabaseReader, jobNodeId, taskId, partyId string) (bool, error) {
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
@@ -562,31 +471,25 @@ func QueryJobNodeTaskPartyIdCount(db DatabaseReader, jobNodeId, taskId string) (
 	return uint32(len(partyIds)), nil
 }
 
-func QueryJobNodeTaskIdCount(db KeyValueStore, jobNodeId string) (uint32, error) {
-	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
-	prefix := GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId(jobNodeId)
-	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
-	defer it.Release()
+// about jobNode history task
+func StoreJobNodeHistoryTaskId (db KeyValueStore, jobNodeId, taskId string) error {
 
-	var count uint32
-	tmp := make(map[string]struct{}, 0)
-	for it.Next() {
-		if len(it.Key()) != 0 && len(it.Value()) != 0 {
-			taskId := string(it.Key()[len(prefix):])
-			if _, ok := tmp[taskId]; !ok {
-				tmp[taskId] = struct{}{}
-				count ++
-			}
-		}
+	// prefix + jobNodeId + taskId -> index
+	item_key := GetJobNodeHistoryTaskKey(jobNodeId, taskId)
+	has, err := db.Has(item_key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case nil == err && has:
+		return nil   // It have been exists, don't inscrease count
 	}
-	return count, nil
-}
 
-// JobNodeHistoryTaskCountKey
-func InscreaseJobNodeHistoryTaskCount (db KeyValueStore, jobNodeId string) error {
+	// When taskId have not on jobNode, inscrease jobNode taskId count
+	// and put taskId on jobNodeId mapping.
+	//
 	// prefix + jobNodeId -> history task count
-	key := GetJobNodeHistoryTaskCountKey(jobNodeId)
-	val, err := db.Get(key)
+	count_key := GetJobNodeHistoryTaskCountKey(jobNodeId)
+	count_val, err := db.Get(count_key)
 
 	var count uint32
 
@@ -595,36 +498,35 @@ func InscreaseJobNodeHistoryTaskCount (db KeyValueStore, jobNodeId string) error
 		return err
 	case IsDBNotFoundErr(err):
 		// do nothing
-	case nil == err && len(val) != 0:
-		count = bytesutil.BytesToUint32(val)
+	case nil == err && len(count_val) != 0:
+		count = bytesutil.BytesToUint32(count_val)
 	}
 	count ++
-	return db.Put(key, bytesutil.Uint32ToBytes(count))
+
+	count_val = bytesutil.Uint32ToBytes(count)
+
+	// First: put taskId on jobNode mapping.
+	if err := db.Put(item_key, count_val); nil != err {
+		return err
+	}
+	log.Debugf("InscreaseJobNodeHistoryTaskCount, jobNodeId: {%s}, taskId: {%s}, count: {%d}", jobNodeId, taskId, count)
+	// Second: inscease taskId count on jobNode.
+	return db.Put(count_key, count_val)
 }
 
-func DescreaseJobNodeHistoryTaskCount (db KeyValueStore, jobNodeId string) error {
-	// prefix + jobNodeId -> history task count
-	key := GetJobNodeHistoryTaskCountKey(jobNodeId)
-	val, err := db.Get(key)
+func HasJobNodeHistoryTaskId (db DatabaseReader,jobNodeId, taskId string) (bool, error) {
 
-	var count uint32
-
+	item_key := GetJobNodeHistoryTaskKey(jobNodeId, taskId)
+	has, err := db.Has(item_key)
 	switch {
 	case IsNoDBNotFoundErr(err):
-		return err
+		return false, err
 	case IsDBNotFoundErr(err):
-		return nil
-	case nil == err && len(val) != 0:
-		count = bytesutil.BytesToUint32(val)
+		return false, nil
+	case nil == err && !has:
+		return false, nil
 	}
-	if count == 0 {
-		return  db.Delete(key)
-	}
-	count --
-	if count == 0 {
-		return  db.Delete(key)
-	}
-	return db.Put(key, bytesutil.Uint32ToBytes(count))
+	return true, nil
 }
 
 func QueryJobNodeHistoryTaskCount (db KeyValueStore, jobNodeId string) (uint32, error) {
@@ -645,7 +547,7 @@ func QueryJobNodeHistoryTaskCount (db KeyValueStore, jobNodeId string) (uint32, 
 	return count, nil
 }
 
-// 操作 本地 数据服务 资源信息
+// Operation local dataNode resource information
 func StoreDataResourceTable(db KeyValueStore, dataResourceTable *types.DataResourceTable) error {
 
 	key := GetDataResourceTableKey(dataResourceTable.GetNodeId())
@@ -653,141 +555,34 @@ func StoreDataResourceTable(db KeyValueStore, dataResourceTable *types.DataResou
 	if nil != err {
 		return err
 	}
-
-	if err := db.Put(key, val); nil != err {
-		return err
-	}
-
-	has, err := db.Has(GetDataResourceTableIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return err
-	}
-
-	var nodeIds []string
-	if !has {
-		nodeIds = []string{dataResourceTable.GetNodeId()}
-	} else {
-		idsByte, err := db.Get(GetDataResourceTableIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &nodeIds); nil != err {
-			return err
-		}
-
-		var include bool
-
-		for _, id := range nodeIds {
-			if id == dataResourceTable.GetNodeId() {
-				include = true
-				break
-			}
-		}
-		if !include {
-			nodeIds = append(nodeIds, dataResourceTable.GetNodeId())
-		}
-	}
-
-	index, err := rlp.EncodeToBytes(nodeIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetDataResourceTableIdListKey(), index)
+	return db.Put(key, val)
 }
 
 func StoreDataResourceTables(db KeyValueStore, dataResourceTables []*types.DataResourceTable) error {
 
-	has, err := db.Has(GetDataResourceTableIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return err
-	}
-
-	inputIds := make([]string, len(dataResourceTables))
-	for i, dataResourceTable := range dataResourceTables {
-		inputIds[i] = dataResourceTable.GetNodeId()
+	for _, dataResourceTable := range dataResourceTables {
 		key := GetDataResourceTableKey(dataResourceTable.GetNodeId())
 		val, err := rlp.EncodeToBytes(dataResourceTable)
 		if nil != err {
 			return err
 		}
-
 		if err := db.Put(key, val); nil != err {
 			return err
 		}
 	}
-
-	var nodeIds []string
-	if !has {
-		nodeIds = inputIds
-	} else {
-		idsByte, err := db.Get(GetDataResourceTableIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &nodeIds); nil != err {
-			return err
-		}
-
-		tmp := make(map[string]struct{})
-
-		for _, id := range nodeIds {
-			tmp[id] = struct{}{}
-		}
-		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				nodeIds = append(nodeIds, id)
-			}
-		}
-
-	}
-
-	index, err := rlp.EncodeToBytes(nodeIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetDataResourceTableIdListKey(), index)
+	return nil
 }
 
 func RemoveDataResourceTable(db KeyValueStore, nodeId string) error {
-	has, err := db.Has(GetDataResourceTableIdListKey())
-	if IsNoDBNotFoundErr(err) {
+	key := GetDataResourceTableKey(nodeId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
 		return err
-	}
-
-	var nodeIds []string
-	if !has {
+	case IsDBNotFoundErr(err), nil == err && !has:
 		return nil
-	} else {
-		idsByte, err := db.Get(GetDataResourceTableIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &nodeIds); nil != err {
-			return err
-		}
-
-		for i := 0; i < len(nodeIds); i++ {
-			id := nodeIds[i]
-			if id == nodeId {
-				key := GetDataResourceTableKey(nodeId)
-				if err := db.Delete(key); nil != err {
-					return err
-				}
-				nodeIds = append(nodeIds[:i], nodeIds[i+1:]...)
-				i--
-				break
-			}
-		}
 	}
-
-	index, err := rlp.EncodeToBytes(nodeIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetDataResourceTableIdListKey(), index)
+	return db.Delete(key)
 }
 
 func QueryDataResourceTable(db DatabaseReader, nodeId string) (*types.DataResourceTable, error) {
@@ -805,44 +600,30 @@ func QueryDataResourceTable(db DatabaseReader, nodeId string) (*types.DataResour
 	return &dataResourceTable, nil
 }
 
-func QueryDataResourceTables(db DatabaseReader) ([]*types.DataResourceTable, error) {
-	has, err := db.Has(GetDataResourceTableIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
+func QueryDataResourceTables(db KeyValueStore) ([]*types.DataResourceTable, error) {
+
+	prefix := GetDataResourceTableKeyPrefix()
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+
+	arr := make([]*types.DataResourceTable, 0)
+	for it.Next() {
+		if len(it.Key()) != 0 && len(it.Value()) != 0 {
+			// prefix + jobNodeId -> LocalResourceTable
+			var dataResourceTable types.DataResourceTable
+			if err := rlp.DecodeBytes(it.Value(), &dataResourceTable); nil != err {
+				return nil, err
+			}
+			arr = append(arr, &dataResourceTable)
+		}
 	}
-	if !has {
+	if len(arr) == 0 {
 		return nil, ErrNotFound
 	}
-	b, err := db.Get(GetDataResourceTableIdListKey())
-	if nil != err {
-		return nil, err
-	}
-	var nodeIds []string
-	if err := rlp.DecodeBytes(b, &nodeIds); nil != err {
-		return nil, err
-	}
-
-	arr := make([]*types.DataResourceTable, len(nodeIds))
-	for i, nodeId := range nodeIds {
-
-		key := GetDataResourceTableKey(nodeId)
-		vb, err := db.Get(key)
-		if nil != err {
-			return nil, err
-		}
-
-		var dataResourceTable types.DataResourceTable
-
-		if err := rlp.DecodeBytes(vb, &dataResourceTable); nil != err {
-			return nil, err
-		}
-		arr[i] = &dataResourceTable
-	}
-
 	return arr, nil
 }
 
-// 操作 原始文件Id 所在的 数据服务信息  (originId -> {nodeId/metaDataId/filePath}})
+// The dataNode service information where the operation original file ID is located (originid - > {nodeid / metadataid / filepath})
 func StoreDataResourceFileUpload(db KeyValueStore, dataResourceFileUpload *types.DataResourceFileUpload) error {
 
 	key := GetDataResourceFileUploadKey(dataResourceFileUpload.GetOriginId())
@@ -850,59 +631,12 @@ func StoreDataResourceFileUpload(db KeyValueStore, dataResourceFileUpload *types
 	if nil != err {
 		return err
 	}
-
-	if err := db.Put(key, val); nil != err {
-		return err
-	}
-
-	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return err
-	}
-
-	var originIds []string
-	if !has {
-		originIds = []string{dataResourceFileUpload.GetOriginId()}
-	} else {
-		idsByte, err := db.Get(GetDataResourceFileUploadIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &originIds); nil != err {
-			return err
-		}
-
-		var include bool
-
-		for _, id := range originIds {
-			if id == dataResourceFileUpload.GetOriginId() {
-				include = true
-				break
-			}
-		}
-		if !include {
-			originIds = append(originIds, dataResourceFileUpload.GetOriginId())
-		}
-	}
-
-	index, err := rlp.EncodeToBytes(originIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetDataResourceFileUploadIdListKey(), index)
+	return db.Put(key, val)
 }
 
 func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*types.DataResourceFileUpload) error {
 
-	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return err
-	}
-
-	inputIds := make([]string, len(dataResourceDataUseds))
-	for i, dataResourceDataUsed := range dataResourceDataUseds {
-		inputIds[i] = dataResourceDataUsed.GetOriginId()
+	for _, dataResourceDataUsed := range dataResourceDataUseds {
 		key := GetDataResourceFileUploadKey(dataResourceDataUsed.GetOriginId())
 		val, err := rlp.EncodeToBytes(dataResourceDataUsed)
 		if nil != err {
@@ -913,78 +647,20 @@ func StoreDataResourceFileUploads(db KeyValueStore, dataResourceDataUseds []*typ
 			return err
 		}
 	}
-
-	var originIds []string
-	if !has {
-		originIds = inputIds
-	} else {
-		idsByte, err := db.Get(GetDataResourceFileUploadIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &originIds); nil != err {
-			return err
-		}
-
-		tmp := make(map[string]struct{})
-
-		for _, id := range originIds {
-			tmp[id] = struct{}{}
-		}
-		for _, id := range inputIds {
-			if _, ok := tmp[id]; !ok {
-				originIds = append(originIds, id)
-			}
-		}
-
-	}
-
-	index, err := rlp.EncodeToBytes(originIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetDataResourceFileUploadIdListKey(), index)
+	return nil
 }
 
 func RemoveDataResourceFileUpload(db KeyValueStore, originId string) error {
-	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return err
-	}
 
-	var originIds []string
-	if !has {
+	key := GetDataResourceFileUploadKey(originId)
+	has, err := db.Has(key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err), nil == err && !has:
 		return nil
-	} else {
-		idsByte, err := db.Get(GetDataResourceFileUploadIdListKey())
-		if nil != err {
-			return err
-		}
-		if err := rlp.DecodeBytes(idsByte, &originIds); nil != err {
-			return err
-		}
-
-		for i := 0; i < len(originIds); i++ {
-			id := originIds[i]
-			if id == originId {
-				key := GetDataResourceFileUploadKey(originId)
-				if err := db.Delete(key); nil != err {
-					return err
-				}
-				originIds = append(originIds[:i], originIds[i+1:]...)
-				i--
-				break
-			}
-		}
 	}
-
-	index, err := rlp.EncodeToBytes(originIds)
-	if nil != err {
-		return err
-	}
-
-	return db.Put(GetDataResourceFileUploadIdListKey(), index)
+	return db.Delete(key)
 }
 
 func QueryDataResourceFileUpload(db DatabaseReader, originId string) (*types.DataResourceFileUpload, error) {
@@ -1002,40 +678,26 @@ func QueryDataResourceFileUpload(db DatabaseReader, originId string) (*types.Dat
 	return &dataResourceDataUsed, nil
 }
 
-func QueryDataResourceFileUploads(db DatabaseReader) ([]*types.DataResourceFileUpload, error) {
-	has, err := db.Has(GetDataResourceFileUploadIdListKey())
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
+func QueryDataResourceFileUploads(db KeyValueStore) ([]*types.DataResourceFileUpload, error) {
+
+	prefix := GetDataResourceFileUploadKeyPrefix()
+	it := db.NewIteratorWithPrefixAndStart(prefix, nil)
+	defer it.Release()
+
+	arr := make([]*types.DataResourceFileUpload, 0)
+	for it.Next() {
+		if len(it.Key()) != 0 && len(it.Value()) != 0 {
+			// prefix + originId -> DataResourceFileUpload{originId, dataNodeId, metaDataId, filePath}
+			var dataResourceDataUsed types.DataResourceFileUpload
+			if err := rlp.DecodeBytes(it.Value(), &dataResourceDataUsed); nil != err {
+				return nil, err
+			}
+			arr = append(arr, &dataResourceDataUsed)
+		}
 	}
-	if !has {
+	if len(arr) == 0 {
 		return nil, ErrNotFound
 	}
-	b, err := db.Get(GetDataResourceFileUploadIdListKey())
-	if nil != err {
-		return nil, err
-	}
-	var originIds []string
-	if err := rlp.DecodeBytes(b, &originIds); nil != err {
-		return nil, err
-	}
-
-	arr := make([]*types.DataResourceFileUpload, len(originIds))
-	for i, originId := range originIds {
-
-		key := GetDataResourceFileUploadKey(originId)
-		vb, err := db.Get(key)
-		if nil != err {
-			return nil, err
-		}
-
-		var dataResourceDataUsed types.DataResourceFileUpload
-
-		if err := rlp.DecodeBytes(vb, &dataResourceDataUsed); nil != err {
-			return nil, err
-		}
-		arr[i] = &dataResourceDataUsed
-	}
-
 	return arr, nil
 }
 
@@ -1214,98 +876,15 @@ func HasLocalTaskExecuteStatusValExecByPartyId(db DatabaseReader, taskId, partyI
 	return true, nil
 }
 
-func StoreUserMetadataAauthUsed(db KeyValueStore, userType apicommonpb.UserType, user, metadataAuthId string) error {
-	count_key := GetUserMetadataAuthUsedCountKey(userType, user)
-	val, err := db.Get(count_key)
-
-	var count uint32
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case nil == err && len(val) != 0:
-		count = bytesutil.BytesToUint32(val)
-	}
-
-	count++
-
-	if err := db.Put(count_key, bytesutil.Uint32ToBytes(count)); nil != err {
-		return err
-	}
-
-	item_key := GetUserMetadataAuthUsedKey(userType, user, count)
-
-	item, err := rlp.EncodeToBytes(metadataAuthId)
-	if nil != err {
-		return err
-	}
-	return db.Put(item_key, item)
-}
-
-func QueryUserMetadataAuthUsedCount(db DatabaseReader, userType apicommonpb.UserType, user string) (uint32, error) {
-	count_key := GetUserMetadataAuthUsedCountKey(userType, user)
-	val, err := db.Get(count_key)
-
-	var count uint32
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return 0, err
-	case nil == err && len(val) != 0:
-		count = bytesutil.BytesToUint32(val)
-	}
-	return count, nil
-}
-func QueryUserMetadataAuthUsedByIndex(db DatabaseReader, userType apicommonpb.UserType, user string, index uint32) (string, error) {
-	item_key := GetUserMetadataAuthUsedKey(userType, user, index)
-
-	var metadataAuthId string
-	item_val, err := db.Get(item_key)
-	if nil != err {
-		return "", err
-	}
-
-	if err = rlp.DecodeBytes(item_val, &metadataAuthId); nil != err {
-		return "", err
-	}
-	if "" == metadataAuthId {
-		return "", ErrNotFound
-	}
-
-	return metadataAuthId, nil
-}
-
-func RemoveUserMetadataAuthUsedCount(db KeyValueStore, userType apicommonpb.UserType, user string) error {
-	count_key := GetUserMetadataAuthUsedCountKey(userType, user)
-	has, err := db.Has(count_key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(count_key)
-}
-
-func RemoveUserMetadataAuthUsedByIndex(db KeyValueStore, userType apicommonpb.UserType, user string, index uint32) error {
-	item_key := GetUserMetadataAuthUsedKey(userType, user, index)
-	has, err := db.Has(item_key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(item_key)
-}
-
 func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
-
-	log.Debugf("Store metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAauthId: {%s}", userType.String(), user, metadataId, metadataAuthId)
 
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 	val, err := rlp.EncodeToBytes(metadataAuthId)
 	if nil != err {
 		return err
 	}
+
+	log.Debugf("Store metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, metadataAauthId: {%s}", userType.String(), user, metadataId, metadataAuthId)
 	return db.Put(key, val)
 }
 
@@ -1333,8 +912,6 @@ func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType apicommonpb
 func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType apicommonpb.UserType, user, metadataId string) (bool, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
-	log.Debugf("Has metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
-
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):
@@ -1342,13 +919,12 @@ func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType apicommonpb.U
 	case IsDBNotFoundErr(err), nil == err && !has:
 		return false, nil
 	}
+	log.Debugf("Has metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 	return true, nil
 }
 
 func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType apicommonpb.UserType, user, metadataId string) error {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
-
-	log.Debugf("Remove metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 
 	has, err := db.Has(key)
 	switch {
@@ -1357,90 +933,108 @@ func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType apicommonpb
 	case IsDBNotFoundErr(err), nil == err && !has:
 		return nil
 	}
+	log.Debugf("Remove metadataAuthId, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 	return db.Delete(key)
 }
 
-func StoreMetadataUsedTaskId(db KeyValueStore, metadataId, taskId string) error {
-	count_key := GetMetadataUsedTaskIdCountKey(metadataId)
-	val, err := db.Get(count_key)
-
-	var count uint32
+// about metadata history used task.
+func StoreMetadataHistoryTaskId(db KeyValueStore, metadataId, taskId string) error {
+	// prefix + metadataId + taskId -> index
+	item_key := GetMetadataHistoryTaskKey(metadataId, taskId)
+	has, err := db.Has(item_key)
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return err
-	case nil == err && len(val) != 0:
-		count = bytesutil.BytesToUint32(val)
+	case nil == err && has:
+		return nil   // It have been exists, don't inscrease count
 	}
 
-	count++
-
-	if err := db.Put(count_key, bytesutil.Uint32ToBytes(count)); nil != err {
-		return err
-	}
-
-	item_key := GetMetadataUsedTaskIdKey(metadataId, count)
-
-	item, err := rlp.EncodeToBytes(taskId)
-	if nil != err {
-		return err
-	}
-	return db.Put(item_key, item)
-}
-
-func QueryMetadataUsedTaskIdCount(db DatabaseReader, metadataId string) (uint32, error) {
-	count_key := GetMetadataUsedTaskIdCountKey(metadataId)
-	val, err := db.Get(count_key)
+	// When taskId have not by metadata, inscrease metadata used taskId count
+	// and put taskId on metadataId mapping.
+	//
+	// prefix + metadataId -> history task count
+	count_key := GetMetadataHistoryTaskCountKey(metadataId)
+	count_val, err := db.Get(count_key)
 
 	var count uint32
+
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return err
+	case IsDBNotFoundErr(err):
+		// do nothing
+	case nil == err && len(count_val) != 0:
+		count = bytesutil.BytesToUint32(count_val)
+	}
+	count ++
+
+	count_val = bytesutil.Uint32ToBytes(count)
+
+	// First: put taskId on metadata mapping.
+	if err := db.Put(item_key, count_val); nil != err {
+		return err
+	}
+	log.Debugf("InscreaseMetadataHistoryTaskCount, metadataId: {%s}, taskId: {%s}, count: {%d}", metadataId, taskId, count)
+	// Second: inscease taskId count by metadata.
+	return db.Put(count_key, count_val)
+}
+
+func HasMetadataHistoryTaskId (db DatabaseReader,metadataId, taskId string) (bool, error) {
+
+	item_key := GetMetadataHistoryTaskKey(metadataId, taskId)
+	has, err := db.Has(item_key)
+	switch {
+	case IsNoDBNotFoundErr(err):
+		return false, err
+	case IsDBNotFoundErr(err):
+		return false, nil
+	case nil == err && !has:
+		return false, nil
+	}
+	return true, nil
+}
+
+func QueryMetadataHistoryTaskIdCount(db DatabaseReader, metadataId string) (uint32, error) {
+	// prefix + metadataId -> history task count
+	key := GetMetadataHistoryTaskCountKey(metadataId)
+	val, err := db.Get(key)
+
+	var count uint32
+
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return 0, err
+	case IsDBNotFoundErr(err):
+		return 0, nil
 	case nil == err && len(val) != 0:
 		count = bytesutil.BytesToUint32(val)
 	}
 	return count, nil
 }
-func QueryMetadataUsedTaskIdByIndex(db DatabaseReader, metadataId string, index uint32) (string, error) {
-	item_key := GetMetadataUsedTaskIdKey(metadataId, index)
 
-	var taskId string
-	item_val, err := db.Get(item_key)
-	if nil != err {
-		return "", err
+func QueryMetadataHistoryTaskIds (db KeyValueStore, metadataId string) ([]string, error) {
+	// prefix + metadataId + taskId -> index
+	prefixAndMetadataId := GetMetadataHistoryTaskKeyPrefixByMetadataId(metadataId)
+	it := db.NewIteratorWithPrefixAndStart(prefixAndMetadataId, nil)
+	defer it.Release()
+
+	arr := make([]string, 0)
+	tmp := make(map[string]struct{}, 0)
+	for it.Next() {
+		if len(it.Key()) != 0 && len(it.Value()) != 0 {
+			// key len == len(prefix) + len([]byte(metadataId)) + len([]byte(taskId))
+			taskId := string(it.Key()[len(prefixAndMetadataId):])
+			if _, ok := tmp[taskId]; !ok {
+				tmp[taskId] = struct{}{}
+				arr = append(arr, taskId)
+			}
+		}
+	}
+	if len(arr) == 0 {
+		return nil, ErrNotFound
 	}
 
-	if err = rlp.DecodeBytes(item_val, &taskId); nil != err {
-		return "", err
-	}
-	if "" == taskId {
-		return "", ErrNotFound
-	}
-
-	return taskId, nil
-}
-
-func RemoveMetadataUsedTaskIdCount(db KeyValueStore, metadataId string) error {
-	count_key := GetMetadataUsedTaskIdCountKey(metadataId)
-	has, err := db.Has(count_key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(count_key)
-}
-
-func RemoveMetadataUsedTaskIdByIndex(db KeyValueStore, metadataId string, index uint32) error {
-	item_key := GetMetadataUsedTaskIdKey(metadataId, index)
-	has, err := db.Has(item_key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(item_key)
+	return arr, nil
 }
 
 func StoreTaskUpResultFile(db DatabaseWriter, turf *types.TaskUpResultFile) error {

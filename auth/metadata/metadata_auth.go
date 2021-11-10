@@ -97,7 +97,7 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	metadataAuth.GetData().AuditAt = timeutils.UnixMsecUint64()
 
 	if err := ma.dataCenter.UpdateMetadataAuthority(metadataAuth); nil != err {
-		log.WithError(err).Errorf("Failed to store metadataAuth after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}",
+		log.WithError(err).Errorf("Failed to update metadataAuth after audit on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}",
 			audit.GetMetadataAuthId(), audit.GetAuditOption().String())
 		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("update metadataAuth failed")
 	}
@@ -187,49 +187,7 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
-
-	metadataAuth, err := ma.dataCenter.QueryMetadataAuthority(metadataAuthId)
-	if nil != err {
-		return nil, err
-	}
-	switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-	case apicommonpb.MetadataUsageType_Usage_Period:
-		if timeutils.UnixMsecUint64() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetEndAt() {
-			metadataAuth.GetData().GetUsedQuo().Expire = true
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
-		}
-	case apicommonpb.MetadataUsageType_Usage_Times:
-		if metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
-		}
-	default:
-		log.Errorf("unknown usageType of the old metadataAuth on MetadataAuthority.GetMetadataAuthority(), metadataAuthId: {%s}",
-			metadataAuthId)
-		return nil, fmt.Errorf("unknown usageType of the old metadataAuth")
-	}
-	return metadataAuth, nil
-}
-
-func filterMetadataAuth (list types.MetadataAuthArray) (types.MetadataAuthArray, error) {
-	for i, metadataAuth := range list {
-		switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-		case apicommonpb.MetadataUsageType_Usage_Period:
-			if timeutils.UnixMsecUint64() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetEndAt() {
-				metadataAuth.GetData().GetUsedQuo().Expire = true
-				metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
-			}
-		case apicommonpb.MetadataUsageType_Usage_Times:
-			if metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
-				metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
-			}
-		default:
-			log.Errorf("unknown usageType of the old metadataAuth on MetadataAuthority.filterMetadataAuth(), metadataAuthId: {%s}", metadataAuth.GetData().GetMetadataAuthId())
-			return nil, fmt.Errorf("unknown usageType of the old metadataAuth")
-		}
-
-		list[i] = metadataAuth
-	}
-	return list, nil
+	return ma.dataCenter.QueryMetadataAuthority(metadataAuthId)
 }
 
 func (ma *MetadataAuthority) GetLocalMetadataAuthorityList() (types.MetadataAuthArray, error) {
@@ -237,19 +195,11 @@ func (ma *MetadataAuthority) GetLocalMetadataAuthorityList() (types.MetadataAuth
 	if nil != err {
 		return nil, err
 	}
-	list, err := ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
-	if nil != err {
-		return nil, err
-	}
-	return filterMetadataAuth(list)
+	return ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
 }
 
 func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	list ,err := ma.dataCenter.QueryMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64())
-	if nil != err {
-		return nil, err
-	}
-	return filterMetadataAuth(list)
+	return  ma.dataCenter.QueryMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64())
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
@@ -454,3 +404,10 @@ func (ma *MetadataAuthority) QueryMetadataAuthIdByMetadataId(userType apicommonp
 	return ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
 }
 
+func (ma *MetadataAuthority) UpdateMetadataAuthority (metadataAuth *types.MetadataAuthority) error {
+	return ma.dataCenter.UpdateMetadataAuthority(metadataAuth)
+}
+
+func (ma *MetadataAuthority) RemoveUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) error {
+	return ma.dataCenter.RemoveUserMetadataAuthIdByMetadataId(userType, user, metadataId)
+}

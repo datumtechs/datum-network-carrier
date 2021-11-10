@@ -24,7 +24,7 @@ type Checker interface {
 
 type Engine interface {
 	Start() error
-	Close() error
+	Stop() error
 	OnPrepare(task *types.Task) error
 	OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error
 	OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error

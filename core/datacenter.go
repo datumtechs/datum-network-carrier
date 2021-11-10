@@ -257,76 +257,6 @@ func (dc *DataCenter) QueryDataResourceDiskUsed(metaDataId string) (*types.DataR
 	return rawdb.QueryDataResourceDiskUsed(dc.db, metaDataId)
 }
 
-
-// about UserMetadataAuthUsed
-func (dc *DataCenter) StoreUserMetadataAuthUsed (userType apicommonpb.UserType, user, metadataAuthId string)  error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.StoreUserMetadataAauthUsed(dc.db, userType, user, metadataAuthId)
-}
-
-func (dc *DataCenter) QueryUserMetadataAuthUsedCount (userType apicommonpb.UserType, user string) (uint32, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QueryUserMetadataAuthUsedCount(dc.db, userType, user)
-}
-
-func (dc *DataCenter) QueryUserMetadataAuthUseds (userType apicommonpb.UserType, user string) ([]string, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-
-	count, err := rawdb.QueryUserMetadataAuthUsedCount(dc.db, userType, user)
-	if nil != err {
-		return nil, err
-	}
-
-	if 0 == count {
-		return nil, rawdb.ErrNotFound
-	}
-
-	metadataAuthIds := make([]string, 0)
-
-	for index := 1; index <= int(count); index++ {
-
-		metadataAuthId, err := rawdb.QueryUserMetadataAuthUsedByIndex(dc.db, userType, user, uint32(index))
-		switch {
-		case rawdb.IsNoDBNotFoundErr(err):
-			return nil, err
-		case rawdb.IsDBNotFoundErr(err):
-			continue
-		}
-		metadataAuthIds = append(metadataAuthIds, metadataAuthId)
-	}
-	if len(metadataAuthIds) == 0 {
-		return nil, rawdb.ErrNotFound
-	}
-	return metadataAuthIds, nil
-}
-
-func (dc *DataCenter) RemoveAllUserMetadataAuthUsed (userType apicommonpb.UserType, user string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-
-	count, err := rawdb.QueryUserMetadataAuthUsedCount(dc.db, userType, user)
-	switch {
-	case rawdb.IsNoDBNotFoundErr(err):
-		return err
-	case rawdb.IsDBNotFoundErr(err) || 0 == count:
-		return nil
-	}
-
-	for index := 1; index <= int(count); index++ {
-		err := rawdb.RemoveUserMetadataAuthUsedByIndex(dc.db, userType, user, uint32(index))
-		switch {
-		case rawdb.IsNoDBNotFoundErr(err):
-			return err
-		case rawdb.IsDBNotFoundErr(err):
-			continue
-		}
-	}
-	return rawdb.RemoveUserMetadataAuthUsedCount(dc.db, userType, user)
-}
-
 func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -353,72 +283,28 @@ func (dc *DataCenter) RemoveUserMetadataAuthIdByMetadataId (userType apicommonpb
 
 
 // about metadata used taskId
-func (dc *DataCenter) StoreMetadataUsedTaskId (metadataId, taskId string)  error {
+func (dc *DataCenter) StoreMetadataHistoryTaskId(metadataId, taskId string)  error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.StoreMetadataUsedTaskId(dc.db, metadataId, taskId)
+	return rawdb.StoreMetadataHistoryTaskId(dc.db, metadataId, taskId)
 }
 
-func (dc *DataCenter) QueryMetadataUsedTaskIdCount (metadataId string) (uint32, error) {
+func (dc *DataCenter) HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryMetadataUsedTaskIdCount(dc.db, metadataId)
+	return rawdb.HasMetadataHistoryTaskId(dc.db, metadataId, taskId)
 }
 
-func (dc *DataCenter) QueryMetadataUsedTaskIds (metadataId string) ([]string, error) {
+func (dc *DataCenter) QueryMetadataHistoryTaskIdCount (metadataId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-
-	count, err := rawdb.QueryMetadataUsedTaskIdCount(dc.db, metadataId)
-	if nil != err {
-		return nil, err
-	}
-
-	if 0 == count {
-		return nil, rawdb.ErrNotFound
-	}
-
-	taskIds := make([]string, 0)
-
-	for index := 1; index <= int(count); index++ {
-
-		taskId, err := rawdb.QueryMetadataUsedTaskIdByIndex(dc.db, metadataId, uint32(index))
-		switch {
-		case rawdb.IsNoDBNotFoundErr(err):
-			return nil, err
-		case rawdb.IsDBNotFoundErr(err):
-			continue
-		}
-		taskIds = append(taskIds, taskId)
-	}
-	if len(taskIds) == 0 {
-		return nil, rawdb.ErrNotFound
-	}
-	return taskIds, nil
+	return rawdb.QueryMetadataHistoryTaskIdCount(dc.db, metadataId)
 }
 
-func (dc *DataCenter) RemoveAllMetadataUsedTaskId (metadataId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-
-	count, err := rawdb.QueryMetadataUsedTaskIdCount(dc.db, metadataId)
-	switch {
-	case rawdb.IsNoDBNotFoundErr(err):
-		return err
-	case rawdb.IsDBNotFoundErr(err) || 0 == count:
-		return nil
-	}
-
-	for index := 1; index <= int(count); index++ {
-		err := rawdb.RemoveMetadataUsedTaskIdByIndex(dc.db, metadataId, uint32(index))
-		switch {
-		case rawdb.IsNoDBNotFoundErr(err):
-			return err
-		case rawdb.IsDBNotFoundErr(err):
-			continue
-		}
-	}
-	return rawdb.RemoveMetadataUsedTaskIdCount(dc.db, metadataId)
+func (dc *DataCenter) QueryMetadataHistoryTaskIds(metadataId string) ([]string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryMetadataHistoryTaskIds(dc.db, metadataId)
 }
 
 // about Message Cache

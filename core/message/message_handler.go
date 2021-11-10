@@ -343,7 +343,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 		return
 	}
 	for _, node := range jobNodes {
-		runningTaskCount, err := m.dataCenter.QueryRunningTaskCountOnJobNode(node.Id)
+		runningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskIdCount(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			log.Errorf("query local running taskCount on old jobNode failed on MessageHandler with revoke identity, %s", err)
 			return
@@ -840,7 +840,7 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 			AuditAt:         metadataAuth.GetData().GetAuditAt(),
 			State:           apicommonpb.MetadataAuthorityState_MAState_Revoked,
 		})); nil != err {
-			log.WithError(err).Errorf("Failed to store metadataAuth to dataCenter on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}",
+			log.WithError(err).Errorf("Failed to update metadataAuth to dataCenter on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser())
 			continue
 		}

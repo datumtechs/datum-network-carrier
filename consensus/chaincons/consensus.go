@@ -15,7 +15,7 @@ func (c *Chaincons)Start() error {
 	log.Info("Started chainCons consensus engine ...")
 	return nil
 }
-func (c *Chaincons) Close() error {
+func (c *Chaincons) Stop() error {
 	log.Info("Stopped chainCons consensus engine ...")
 	return nil
 }

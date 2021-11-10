@@ -400,7 +400,7 @@ func (t *Twopc) driveTask(
 		remoteTaskOrganization,
 		taskId,
 		types.TaskNeedExecute,
-		selfvote.PeerInfo,
+		selfvote.GetPeerInfo(),
 		peers,
 	))
 }

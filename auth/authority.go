@@ -1,20 +1,108 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth/metadata"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"time"
 )
 
 type AuthorityManager struct {
 	metadataAuth     *metadata.MetadataAuthority
+	quit  chan struct{}
 }
-
 
 func NewAuthorityManager(dataCenter  core.CarrierDB) *AuthorityManager {
 	return &AuthorityManager{
 		metadataAuth: metadata.NewMetadataAuthority(dataCenter),
+		quit: make(chan struct{}),
+	}
+}
+
+func (am *AuthorityManager) Start() error {
+	go am.loop()
+	log.Info("Started authorityManager ...")
+	return nil
+}
+
+func (am *AuthorityManager) Stop() error {
+	close(am.quit)
+	return nil
+}
+
+func (am *AuthorityManager) loop () {
+	ticker := time.NewTicker(time.Second * 60)
+	for {
+		select {
+		case <-ticker.C:
+			am.refreshMetadataAuthority()
+		case <-am.quit:
+			log.Info("Stopped AuthorityManager ...")
+			return
+		}
+	}
+}
+
+func (am *AuthorityManager) refreshMetadataAuthority () {
+	list, err := am.metadataAuth.GetLocalMetadataAuthorityList()
+	if nil != err {
+		return
+	}
+
+	//log.Debugf("Started call AuthorityManager.refreshMetadataAuthority()")
+
+	for _, metadataAuth := range list {
+
+		// Regularly check the validity of metadata auth information in 'pending' status,
+		// and decide whether to automatically issue 'refused' audit suggestions.
+		if metadataAuth.GetData().GetAuditOption() == apicommonpb.AuditMetadataOption_Audit_Pending {
+			var invalid bool
+
+			switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
+			case apicommonpb.MetadataUsageType_Usage_Period:
+				if timeutils.UnixMsecUint64() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetEndAt() {
+					metadataAuth.GetData().GetUsedQuo().Expire = true
+					metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+					// refuse it for audit suggestion.
+					// update audit things.
+					metadataAuth.GetData().AuditOption = apicommonpb.AuditMetadataOption_Audit_Refused
+					metadataAuth.GetData().AuditSuggestion = "metadataAuth has expired, refused it"
+					metadataAuth.GetData().AuditAt = timeutils.UnixMsecUint64()
+					invalid = true
+				}
+			case apicommonpb.MetadataUsageType_Usage_Times:
+				if metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
+					metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+
+					// refuse it for audit suggestion.
+					// update audit things.
+					metadataAuth.GetData().AuditOption = apicommonpb.AuditMetadataOption_Audit_Refused
+					metadataAuth.GetData().AuditSuggestion = "metadataAuth has no enough remain times, refused it"
+					metadataAuth.GetData().AuditAt = timeutils.UnixMsecUint64()
+					invalid = true
+				}
+			default:
+				log.Errorf("unknown usageType of the old metadataAuth on AuthorityManager.refreshMetadataAuthority(), metadataAuthId: {%s}", metadataAuth.GetData().GetMetadataAuthId())
+				continue
+			}
+
+			if invalid {
+
+				// update the metadataAuth when it was refused audit.
+				if err := am.metadataAuth.UpdateMetadataAuthority(metadataAuth); nil != err {
+					log.WithError(err).Errorf("Failed to update metadataAuth after audit on MetadataAuthority.refreshMetadataAuthority(), metadataAuthId: {%s}, audit option:{%s}",
+						metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuditOption().String())
+				}
+				// remove the invaid metadataAuthId from local db
+				if err := am.metadataAuth.RemoveUserMetadataAuthIdByMetadataId(metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId()); nil != err {
+					log.WithError(err).Errorf("Failed to remove metadataId and metadataAuthId mapping while metadataAuth has invalid on MetadataAuthority.refreshMetadataAuthority(), metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
+						metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetUserType(), metadataAuth.GetUser())
+				}
+			}
+		}
 	}
 }
 
@@ -30,16 +118,54 @@ func (am *AuthorityManager) ConsumeMetadataAuthority (metadataAuthId string) err
 	return am.metadataAuth.ConsumeMetadataAuthority(metadataAuthId)
 }
 
+func filterMetadataAuth (list types.MetadataAuthArray) (types.MetadataAuthArray, error) {
+	for i, metadataAuth := range list {
+		switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
+		case apicommonpb.MetadataUsageType_Usage_Period:
+			if timeutils.UnixMsecUint64() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetEndAt() {
+				metadataAuth.GetData().GetUsedQuo().Expire = true
+				metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			}
+		case apicommonpb.MetadataUsageType_Usage_Times:
+			if metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
+				metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			}
+		default:
+			log.Errorf("unknown usageType of the old metadataAuth on AuthorityManager.filterMetadataAuth(), metadataAuthId: {%s}", metadataAuth.GetData().GetMetadataAuthId())
+			return nil, fmt.Errorf("unknown usageType of the old metadataAuth")
+		}
+
+		list[i] = metadataAuth
+	}
+	return list, nil
+}
+
 func (am *AuthorityManager) GetMetadataAuthority (metadataAuthId string) (*types.MetadataAuthority, error) {
-	return am.metadataAuth.GetMetadataAuthority(metadataAuthId)
+	metadataAuth, err := am.metadataAuth.GetMetadataAuthority(metadataAuthId)
+	if nil != err {
+		return nil, err
+	}
+	list , err := filterMetadataAuth(types.MetadataAuthArray{metadataAuth})
+	if nil != err {
+		return nil, err
+	}
+	return list[0], nil
 }
 
 func (am *AuthorityManager) GetLocalMetadataAuthorityList () (types.MetadataAuthArray, error) {
-	return am.metadataAuth.GetLocalMetadataAuthorityList()
+	list, err := am.metadataAuth.GetLocalMetadataAuthorityList()
+	if nil != err {
+		return nil, err
+	}
+	return filterMetadataAuth(list)
 }
 
 func (am *AuthorityManager) GetGlobalMetadataAuthorityList () (types.MetadataAuthArray, error) {
-	return am.metadataAuth.GetGlobalMetadataAuthorityList()
+	list, err := am.metadataAuth.GetGlobalMetadataAuthorityList()
+	if nil != err {
+		return nil, err
+	}
+	return filterMetadataAuth(list)
 }
 
 func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []string) (types.MetadataAuthArray, error) {

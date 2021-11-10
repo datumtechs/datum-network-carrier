@@ -171,7 +171,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
-			v.TaskCount, _ = s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(v.GetId())
+			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(v.GetId())
 			v.TaskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(v.GetId())
 			v.Duration = duration
 			registeredPeer := &pb.YarnRegisteredPeer{
@@ -215,7 +215,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
-			v.TaskCount, _ = s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(v.GetId())
+			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(v.GetId())
 			v.TaskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(v.GetId())
 			v.Duration = duration
 			registeredPeer := &pb.YarnRegisteredPeer{
@@ -438,7 +438,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		}
 
 		// First check whether there is a task being executed on jobNode
-		runningTaskCount, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(node.Id)
+		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
@@ -551,7 +551,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 		}
 
 		// First check whether there is a task being executed on jobNode
-		runningTaskCount, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(id)
+		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
@@ -635,7 +635,7 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 			} else {
 				connState = pb.ConnState_ConnState_Connected
 			}
-			taskCount, _ = s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(n.GetId())
+			taskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(n.GetId())
 			taskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(n.GetId())
 			fileCount = 0  // todo need implament this logic
 			fileTotalSize = 0  // todo need implament this logic
@@ -855,9 +855,9 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 
 	// set metadata used taskCount
 	for i, metadata := range arr {
-		count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
+		count, err := s.carrier.carrierDB.QueryMetadataHistoryTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
 		if nil != err {
-			log.WithError(err).Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetLocalMetadataDetailList()")
+			log.WithError(err).Warnf("Warn, query metadata history used taskIdCount failed on CarrierAPIBackend.GetLocalMetadataDetailList()")
 			continue
 		}
 		metadata.Information.TotalTaskCount = count
@@ -868,7 +868,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 }
 
 func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error) {
-	taskIds, err := s.carrier.carrierDB.QueryMetadataUsedTaskIds(metadataId)
+	taskIds, err := s.carrier.carrierDB.QueryMetadataHistoryTaskIds(metadataId)
 	if nil != err {
 		return nil, err
 	}
@@ -984,7 +984,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			}
 
 			partyIds, err := s.carrier.carrierDB.QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId)
-			if err != nil {
+			if rawdb.IsNoDBNotFoundErr(err) {
 				log.WithError(err).Errorf("Failed to query jobNode runningTask all partyIds on GetLocalPowerDetailList, jobNodeId: {%s}, taskId: {%s}", jobNodeId, taskId)
 				continue
 			}
@@ -1069,7 +1069,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	}
 	// culculate task current running count on jobNode
 	taskRunningCount := func(jobNodeId string) uint32 {
-		count, err := s.carrier.carrierDB.QueryRunningTaskCountOnJobNode(jobNodeId)
+		count, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(jobNodeId)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to query task runningCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}", jobNodeId)
 			return 0
@@ -1132,19 +1132,19 @@ func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
 // for metadataAuthority
 
 func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error) {
-	return s.carrier.authEngine.AuditMetadataAuthority(audit)
+	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
 func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	return s.carrier.authEngine.GetLocalMetadataAuthorityList()
+	return s.carrier.authManager.GetLocalMetadataAuthorityList()
 }
 
 func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	return s.carrier.authEngine.GetGlobalMetadataAuthorityList()
+	return s.carrier.authManager.GetGlobalMetadataAuthorityList()
 }
 
 func (s *CarrierAPIBackend) HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {
-	return s.carrier.authEngine.HasValidMetadataAuth(userType, user, identityId, metadataId)
+	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
 // task api

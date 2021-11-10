@@ -38,7 +38,7 @@ type Service struct {
 	resourceManager *resource.Manager
 	messageManager  *message.MessageHandler
 	TaskManager     handler.TaskManager
-	authEngine      *auth.AuthorityManager
+	authManager     *auth.AuthorityManager
 	scheduler       schedule.Scheduler
 	runError        error
 
@@ -82,7 +82,6 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 			DatabaseHandles: config.DatabaseHandles,
 		},
 		resourceMng,
-		//authManager,
 		config.P2P,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
@@ -109,7 +108,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		resourceManager:   resourceMng,
 		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager, authManager, resourceClientSet),
 		TaskManager:       taskManager,
-		authEngine:        authManager,
+		authManager:       authManager,
 		resourceClientSet: resourceClientSet,
 	}
 
@@ -142,6 +141,13 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 }
 
 func (s *Service) Start() error {
+
+	if nil != s.authManager {
+		if err := s.authManager.Start(); nil != err {
+			log.WithError(err).Errorf("Failed to start the authManager, err: %v", err)
+		}
+	}
+
 	for typ, engine := range s.Engines {
 		if err := engine.Start(); nil != err {
 			log.WithError(err).Errorf("Cound not start the consensus engine: %s, err: %v", typ.String(), err)
@@ -178,7 +184,7 @@ func (s *Service) Stop() error {
 	s.carrierDB.Stop()
 
 	for typ, engine := range s.Engines {
-		if err := engine.Close(); nil != err {
+		if err := engine.Stop(); nil != err {
 			log.WithError(err).Errorf("Cound not close the consensus engine: %s, err: %v", typ.String(), err)
 		}
 	}
@@ -200,6 +206,12 @@ func (s *Service) Stop() error {
 	if nil != s.scheduler {
 		if err := s.scheduler.Stop(); nil != err {
 			log.WithError(err).Errorf("Failed to stop the schedule, err: %v", err)
+		}
+	}
+
+	if nil != s.authManager {
+		if err := s.authManager.Stop(); nil != err {
+			log.WithError(err).Errorf("Failed to stop the authManager, err: %v", err)
 		}
 	}
 

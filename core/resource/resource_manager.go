@@ -162,11 +162,11 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
 		log.WithError(err).Errorf("Failed to query local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}",
-			task.GetTaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount)
 		return err
 	}
 
-	jobNodeRunningTaskCount, err := m.dataCenter.QueryRunningTaskCountOnJobNode(jobNodeId)
+	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskIdCount(jobNodeId)
 	if nil != err {
 		// rollback useSlot => freeSlot
 		// rollback addPartyTaskPowerUsedOnJobNode
@@ -174,7 +174,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
 		log.WithError(err).Errorf("Failed to query task runningCount in jobNode on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}",
-			task.GetTaskId(), jobNodeId, needSlotCount, err)
+			task.GetTaskId(), jobNodeId, needSlotCount)
 		return err
 	}
 
@@ -244,7 +244,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	jobNodeRunningTaskCount, err := m.dataCenter.QueryRunningTaskCountOnJobNode(jobNodeId)
+	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskIdCount(jobNodeId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query task runningCount in jobNode on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount)
@@ -363,6 +363,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 }
 
 func (m *Manager) addPartyTaskPowerUsedOnJobNode(used *types.LocalTaskPowerUsed) error {
+
 	hasPowerUsed, err := m.dataCenter.HasLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("failed to call HasLocalTaskPowerUsed on addPartyTaskPowerUsedOnJobNode(), used: {%s}", used.String())
@@ -388,7 +389,7 @@ func (m *Manager) addPartyTaskPowerUsedOnJobNode(used *types.LocalTaskPowerUsed)
 				used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
 		}
 
-		hasJobNodeTaskId, err := m.dataCenter.HasJobNodeTaskId(used.GetNodeId(), used.GetTaskId())
+		hasHistoryTaskId, err := m.dataCenter.HasJobNodeHistoryTaskId(used.GetNodeId(), used.GetTaskId())
 		if nil != err {
 			// rollback powerUsed stored
 			m.dataCenter.RemoveLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId())
@@ -398,8 +399,8 @@ func (m *Manager) addPartyTaskPowerUsedOnJobNode(used *types.LocalTaskPowerUsed)
 				used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
 			return err
 		}
-		if !hasJobNodeTaskId {
-			if err := m.dataCenter.InscreaseJobNodeHistoryTaskCount (used.GetNodeId()); nil != err {
+		if !hasHistoryTaskId {
+			if err := m.dataCenter.StoreJobNodeHistoryTaskId (used.GetNodeId(), used.GetTaskId()); nil != err {
 				// rollback powerUsed stored
 				m.dataCenter.RemoveLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId())
 				// roolback JobNodeTaskPartyId stored

@@ -75,7 +75,7 @@ func (t *Twopc) Start() error {
 	log.Info("Started 2pc consensus engine ...")
 	return nil
 }
-func (t *Twopc) Close() error {
+func (t *Twopc) Stop() error {
 	close(t.quit)
 	return nil
 }

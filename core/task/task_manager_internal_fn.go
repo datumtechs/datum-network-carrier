@@ -41,7 +41,7 @@ func (m *Manager) tryScheduleTask() error {
 		if nil != nonConsTask {
 			m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
 		}
-		m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.Type,
+		m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.GetType(),
 			nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
 			nonConsTask.GetTask().GetTaskSender().GetPartyId(), schedule.ErrRescheduleLargeThreshold.Error()))
 		return m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
@@ -62,7 +62,7 @@ func (m *Manager) tryScheduleTask() error {
 					nonConsTask.GetTask().GetTaskId())
 
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
-				m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.Type,
+				m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.GetType(),
 					nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
 					nonConsTask.GetTask().GetTaskSender().GetPartyId(), schedule.ErrRescheduleLargeThreshold.Error()))
 				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
@@ -90,14 +90,14 @@ func (m *Manager) tryScheduleTask() error {
 			eventType string
 		)
 
-		switch result.Status {
+		switch result.GetStatus() {
 		case types.TaskTerminate, types.TaskConsensusFinished:
 			if result.Status == types.TaskTerminate {
 				content = "task was terminated."
-				eventType = ev.TaskTerminated.Type
+				eventType = ev.TaskTerminated.GetType()
 			} else {
 				content = "finished consensus succeed."
-				eventType = ev.TaskFinishedConsensus.Type
+				eventType = ev.TaskFinishedConsensus.GetType()
 			}
 		case types.TaskConsensusInterrupt:
 			if nil != result.Err {
@@ -105,7 +105,7 @@ func (m *Manager) tryScheduleTask() error {
 			} else {
 				content = "consensus was interrupt."
 			}
-			eventType = ev.TaskFailedConsensus.Type
+			eventType = ev.TaskFailedConsensus.GetType()
 		}
 
 		// store task consensus result (failed or succeed) event with sender party
@@ -122,23 +122,23 @@ func (m *Manager) tryScheduleTask() error {
 		// never be `TaskNeedExecute|TaskScheduleFailed`
 		//
 		// Consensus failed, task needs to be suspended and rescheduled
-		switch result.Status {
+		switch result.GetStatus() {
 		case types.TaskTerminate, types.TaskConsensusFinished:
 			// remove task from scheduler.queue|starvequeue after task consensus succeed
 			// Don't send needexecuteTask, because that will be handle in `2pc engine.driveTask()`
 			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
 				log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
-					result.Status.String(), nonConsTask.GetTask().GetTaskId())
+					result.GetStatus().String(), nonConsTask.GetTask().GetTaskId())
 			}
 			m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
 				apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
 				nonConsTask.GetTask().GetTaskSender(), nonConsTask.GetTask().GetTaskSender(),
-				result.Status)
+				result.GetStatus())
 		case types.TaskConsensusInterrupt:
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
 				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
-					result.Status.String(), nonConsTask.GetTask().GetTaskId())
+					result.GetStatus().String(), nonConsTask.GetTask().GetTaskId())
 
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
 				m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.Type,
@@ -150,7 +150,7 @@ func (m *Manager) tryScheduleTask() error {
 					types.TaskScheduleFailed)
 			} else {
 				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
-					result.Status.String(), nonConsTask.GetTask().GetTaskId())
+					result.GetStatus().String(), nonConsTask.GetTask().GetTaskId())
 			}
 		}
 	}(nonConsTask)
@@ -1298,7 +1298,7 @@ func (m *Manager) storeMetaUsedTaskId(task *types.Task) error {
 	}
 	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 		if dataSupplier.GetOrganization().GetIdentityId() == identityId {
-			if err := m.resourceMng.GetDB().StoreMetadataUsedTaskId(dataSupplier.GetMetadataId(), task.GetTaskId()); nil != err {
+			if err := m.resourceMng.GetDB().StoreMetadataHistoryTaskId(dataSupplier.GetMetadataId(), task.GetTaskId()); nil != err {
 				return err
 			}
 		}
