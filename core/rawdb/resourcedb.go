@@ -397,7 +397,7 @@ func QueryJobNodeRunningTaskIdCount(db KeyValueStore, jobNodeId string) (uint32,
 			}
 		}
 	}
-	log.Debugf("Call QueryJobNodeRunningTaskCount, jobNodeId: {%s}, taskIds count: %s", jobNodeId, count)
+	log.Debugf("Call QueryJobNodeRunningTaskCount, jobNodeId: {%s}, taskIds count: %d", jobNodeId, count)
 	return count, nil
 }
 
