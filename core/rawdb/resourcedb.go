@@ -273,35 +273,35 @@ func StoreJobNodeTaskPartyId(db KeyValueStore, jobNodeId, taskId, partyId string
 	if IsNoDBNotFoundErr(err) {
 		return err
 	}
-	var partyIds []string
+	var partyIdArr []string
 	if !has {
-		partyIds = []string{partyId}
+		partyIdArr = []string{partyId}
 	} else {
 
 		val, err := db.Get(key)
 		if nil != err {
 			return err
 		}
-		if err := rlp.DecodeBytes(val, &partyIds); nil != err {
+		if err := rlp.DecodeBytes(val, &partyIdArr); nil != err {
 			return err
 		}
 
 		var find bool
-		for _, id := range partyIds {
+		for _, id := range partyIdArr {
 			if id == partyId {
 				find = true
 				break
 			}
 		}
 		if !find {
-			partyIds = append(partyIds, partyId)
+			partyIdArr = append(partyIdArr, partyId)
 		}
 	}
-	val, err := rlp.EncodeToBytes(partyIds)
+	val, err := rlp.EncodeToBytes(partyIdArr)
 	if nil != err {
 		return err
 	}
-	log.Debugf("Call StoreJobNodeTaskPartyId, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, partyIds: %s", jobNodeId, taskId, partyId, strings.Join(partyIds, ","))
+	log.Debugf("Call StoreJobNodeTaskPartyId, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, partyIds: %s", jobNodeId, taskId, partyId, partyIdArr)
 	return db.Put(key, val)
 }
 
@@ -310,33 +310,43 @@ func RemoveJobNodeTaskPartyId(db KeyValueStore, jobNodeId, taskId, partyId strin
 	key := GetJobNodeTaskPartyIdsKey(jobNodeId, taskId)
 	val, err := db.Get(key)
 
-	var partyIds []string
+	var partyIdArr []string
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return err
 	case IsDBNotFoundErr(err):
 		return nil
 	case nil == err && len(val) != 0:
-		if err := rlp.DecodeBytes(val, &partyIds); nil != err {
+		if err := rlp.DecodeBytes(val, &partyIdArr); nil != err {
 			return err
 		}
 	}
 
-	for i, id := range partyIds {
+	//for i := 0; i < len(partyIdArr); i++ {
+	//
+	//	id := partyIdArr[i]
+	//	if id == partyId {
+	//		partyIdArr = append(partyIdArr[:i], partyIdArr[i+1:]...)
+	//		i--
+	//	}
+	//}
+
+	for i, id := range partyIdArr {
 		if id == partyId {
-			partyIds = append(partyIds[:i], partyId[i+1:])
+			partyIdArr = append(partyIdArr[:i], partyIdArr[i+1:]...)
+			break
 		}
 	}
 
-	if len(partyIds) == 0 {
+	if len(partyIdArr) == 0 {
 		log.Debugf("Call RemoveJobNodeTaskPartyId [clean all partyIds], jobNodeId: {%s}, taskId: {%s}, partyId: {%s}", jobNodeId, taskId, partyId)
 		return db.Delete(key)
 	}
-	val, err = rlp.EncodeToBytes(partyIds)
+	val, err = rlp.EncodeToBytes(partyIdArr)
 	if nil != err {
 		return err
 	}
-	log.Debugf("Call RemoveJobNodeTaskPartyId, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, partyIds: %s", jobNodeId, taskId, partyId, strings.Join(partyIds, ","))
+	log.Debugf("Call RemoveJobNodeTaskPartyId, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, partyIds: %s", jobNodeId, taskId, partyId, partyIdArr)
 	return db.Put(key, val)
 }
 
@@ -405,18 +415,18 @@ func QueryJobNodeTaskAllPartyIds(db KeyValueStore, jobNodeId, taskId string) ([]
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
 	key := GetJobNodeTaskPartyIdsKey(jobNodeId, taskId)
 	val, err := db.Get(key)
-	var partyIds []string
+	var partyIdArr []string
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return nil, err
 	case IsDBNotFoundErr(err):
 		return nil, ErrNotFound
 	case nil == err && len(val) != 0:
-		if err := rlp.DecodeBytes(val, &partyIds); nil != err {
+		if err := rlp.DecodeBytes(val, &partyIdArr); nil != err {
 			return nil, err
 		}
 	}
-	return partyIds, nil
+	return partyIdArr, nil
 }
 
 func HasJobNodeRunningTaskId(db DatabaseReader, jobNodeId, taskId string) (bool, error) {
@@ -438,19 +448,19 @@ func HasJobNodeTaskPartyId (db DatabaseReader, jobNodeId, taskId, partyId string
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
 	key := GetJobNodeTaskPartyIdsKey(jobNodeId, taskId)
 	val, err := db.Get(key)
-	var partyIds []string
+	var partyIdArr []string
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return false, err
 	case IsDBNotFoundErr(err):
 		return false, nil
 	case nil == err && len(val) != 0:
-		if err := rlp.DecodeBytes(val, &partyIds); nil != err {
+		if err := rlp.DecodeBytes(val, &partyIdArr); nil != err {
 			return false, err
 		}
 	}
 
-	for _, id := range partyIds {
+	for _, id := range partyIdArr {
 		if id == partyId {
 			return true, nil
 		}
@@ -463,18 +473,18 @@ func QueryJobNodeTaskPartyIdCount(db DatabaseReader, jobNodeId, taskId string) (
 	key := GetJobNodeTaskPartyIdsKey(jobNodeId, taskId)
 	val, err := db.Get(key)
 
-	var partyIds []string
+	var partyIdArr []string
 	switch {
 	case IsNoDBNotFoundErr(err):
 		return 0, err
 	case IsDBNotFoundErr(err):
 		return 0, nil
 	case nil == err && len(val) != 0:
-		if err := rlp.DecodeBytes(val, &partyIds); nil != err {
+		if err := rlp.DecodeBytes(val, &partyIdArr); nil != err {
 			return 0, err
 		}
 	}
-	return uint32(len(partyIds)), nil
+	return uint32(len(partyIdArr)), nil
 }
 
 // about jobNode history task
@@ -742,11 +752,11 @@ func QueryJobNodeIdByPowerId(db DatabaseReader, powerId string) (string, error) 
 	if nil != err {
 		return "", err
 	}
-	var resourceId string
-	if err := rlp.DecodeBytes(idsByte, &resourceId); nil != err {
+	var jobNodeId string
+	if err := rlp.DecodeBytes(idsByte, &jobNodeId); nil != err {
 		return "", err
 	}
-	return resourceId, nil
+	return jobNodeId, nil
 }
 
 func StoreDataResourceDiskUsed(db DatabaseWriter, dataResourceDiskUsed *types.DataResourceDiskUsed) error {
@@ -1165,11 +1175,11 @@ func QueryTaskPartnerPartyIds(db DatabaseReader, taskId string) ([]string, error
 	if nil != err {
 		return nil, err
 	}
-	var partyIds []string
-	if err = rlp.DecodeBytes(vb, &partyIds); nil != err {
+	var partyIdArr []string
+	if err = rlp.DecodeBytes(vb, &partyIdArr); nil != err {
 		return nil, err
 	}
-	return partyIds, nil
+	return partyIdArr, nil
 }
 
 func RemoveTaskPartnerPartyId(db KeyValueStore, taskId, partyId string) error {
@@ -1182,21 +1192,21 @@ func RemoveTaskPartnerPartyId(db KeyValueStore, taskId, partyId string) error {
 		return nil
 	}
 
-	var partyIds []string
-	if err = rlp.DecodeBytes(vb, &partyIds); nil != err {
+	var partyIdArr []string
+	if err = rlp.DecodeBytes(vb, &partyIdArr); nil != err {
 		return err
 	}
 
-	for i, id := range partyIds {
+	for i, id := range partyIdArr {
 		if id == partyId {
-			partyIds = append(partyIds[:i], partyIds[i+1:]...)
+			partyIdArr = append(partyIdArr[:i], partyIdArr[i+1:]...)
 			break
 		}
 	}
-	if len(partyIds) == 0 {
+	if len(partyIdArr) == 0 {
 		return db.Delete(key)
 	}
-	vb, err = rlp.EncodeToBytes(partyIds)
+	vb, err = rlp.EncodeToBytes(partyIdArr)
 	if nil != err {
 		return err
 	}

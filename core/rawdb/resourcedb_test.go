@@ -96,7 +96,7 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 			}
 			resources := &twopcpb.ConfirmTaskPeerInfo{}
 
-			_task := types.NewNeedExecuteTask(peer.ID(remotepid), proposalId, 1, 2, localTaskOrganization, remoteTaskOrganization, task,
+			_task := types.NewNeedExecuteTask(peer.ID(remotepid), proposalId, 1, 2, localTaskOrganization, remoteTaskOrganization, task.GetTaskId(),
 				3, localResource, resources)
 			if err := StoreNeedExecuteTask(database, _task); err != nil {
 				fmt.Printf("StoreNeedExecuteTask fail,taskId %s\n", taskId)
@@ -116,8 +116,9 @@ func TestDeleteNeedExecuteTask(t *testing.T) {
 	partyId := "P2"
 	RemoveNeedExecuteTask(database, taskId1)
 	count := 0
-	iter := database.NewIteratorWithPrefixAndStart(needExecuteTaskKeyPrefix, nil)
-	for iter.Next() {
+	it := database.NewIteratorWithPrefixAndStart(needExecuteTaskKeyPrefix, nil)
+	defer it.Release()
+	for it.Next() {
 		count++
 	}
 	assert.Equal(t, 12, count)
@@ -165,7 +166,7 @@ func TestRecoveryNeedExecuteTask(t *testing.T) {
 				res.GetRemoteTaskRole(),
 				res.GetLocalTaskOrganization(),
 				res.GetRemoteTaskOrganization(),
-				task,
+				task.GetTaskId(),
 				types.TaskActionStatus(bytesutil.BytesToUint16(res.GetConsStatus())),
 				types.NewPrepareVoteResource(
 					res.GetLocalResource().GetId(),

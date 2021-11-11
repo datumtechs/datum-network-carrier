@@ -159,8 +159,8 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 		log.WithError(err).WithField("taskId", task.GetTaskId()).Errorf("InsertTask failed")
 		return err
 	}
-	if response.Status != 0 {
-		return fmt.Errorf("insert task, taskId: {%s},  error: %s", task.GetTaskId(), response.Msg)
+	if response.GetStatus() != 0 {
+		return fmt.Errorf("insert task, taskId: {%s},  error: %s", task.GetTaskId(), response.GetMsg())
 	}
 	return nil
 }

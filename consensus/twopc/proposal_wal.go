@@ -228,14 +228,15 @@ func (w *walDB)  ForEachKVWithPrefix (prefix []byte, f func(key, value []byte) e
 }
 
 func (w *walDB) UnmarshalTest() {
-	iter := w.db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
+	it := w.db.NewIteratorWithPrefixAndStart(proposalPeerInfoCachePrefix, nil)
+	defer it.Release()
 	proposalPeerInfoCache := make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0)
 	prefixLength := len(proposalPeerInfoCachePrefix)
 	libProposalPeerInfoCache := &twopcpb.ConfirmTaskPeerInfo{}
-	for iter.Next() {
-		key := iter.Key()
+	for it.Next() {
+		key := it.Key()
 		proposalId := common.BytesToHash(key[prefixLength:])
-		if err := proto.Unmarshal(iter.Value(), libProposalPeerInfoCache); err != nil {
+		if err := proto.Unmarshal(it.Value(), libProposalPeerInfoCache); err != nil {
 			log.Fatal("marshaling error: ", err)
 		}
 		proposalPeerInfoCache[proposalId] = libProposalPeerInfoCache
