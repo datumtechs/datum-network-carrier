@@ -557,46 +557,8 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 
 func (m *Manager) sendTaskResourceUsageMsgToTaskSender(task *types.NeedExecuteTask, usage *types.TaskResuorceUsage) {
 
-	msg := &taskmngpb.TaskResourceUsageMsg{
-		MsgOption: &msgcommonpb.MsgOption{
-			ProposalId:      task.GetProposalId().Bytes(),
-			SenderRole:      uint64(task.GetLocalTaskRole()),
-			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
-			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
-			ReceiverPartyId: []byte(task.GetRemoteTaskOrganization().GetPartyId()),
-			MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
-				Name:       []byte(task.GetLocalTaskOrganization().GetNodeName()),
-				NodeId:     []byte(task.GetLocalTaskOrganization().GetNodeId()),
-				IdentityId: []byte(task.GetLocalTaskOrganization().GetIdentityId()),
-				PartyId:    []byte(task.GetLocalTaskOrganization().GetPartyId()),
-			},
-		},
-		TaskId: []byte(task.GetTaskId()),
-		Usage: &msgcommonpb.ResourceUsage{
-			TotalMem:       usage.GetTotalMem(),
-			UsedMem:        usage.GetUsedMem(),
-			TotalProcessor: uint64(usage.GetTotalProcessor()),
-			UsedProcessor:  uint64(usage.GetUsedProcessor()),
-			TotalBandwidth: usage.GetTotalBandwidth(),
-			UsedBandwidth:  usage.GetUsedBandwidth(),
-			TotalDisk:      usage.GetTotalDisk(),
-			UsedDisk:       usage.GetUsedDisk(),
-		},
-		CreateAt: timeutils.UnixMsecUint64(),
-		Sign:     nil,
-	}
 
-	// broadcast `task resource usage msg` to reply remote peer
-	if task.GetLocalTaskOrganization().GetIdentityId() != task.GetRemoteTaskOrganization().GetIdentityId() {
-		// send resource usage quo to remote peer that it will update power supplier resource usage info of task.
-		//
-		//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
-		if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
-			log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
-				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
-			return
-		}
-	} else {
+	/*else {
 
 		// handle resource usage quo on current peer that it will update power supplier resource usage info of task.
 		//
@@ -606,7 +568,7 @@ func (m *Manager) sendTaskResourceUsageMsgToTaskSender(task *types.NeedExecuteTa
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 			return
 		}
-	}
+	}*/
 }
 
 func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
@@ -1579,6 +1541,9 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	}
 
 	if needUpdate {
+
+		log.Debugf("Need to update local task on `taskManager.OnTaskResourceUsageMsg()`, usage: %s", msg.GetUsage().String())
+
 		// Updata task when resourceUsed change.
 		if err = m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 			log.WithError(err).Errorf("Failed to store local task info on `taskManager.OnTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",

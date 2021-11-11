@@ -1,6 +1,7 @@
 package task
 
 import (
+	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common"
@@ -13,6 +14,8 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -442,22 +445,145 @@ func (m *Manager) SendTaskEvent(event *libtypes.TaskEvent) error {
 	return nil
 }
 
-func (m *Manager) SendTaskResourceUsageToTaskSender(usage *types.TaskResuorceUsage) error {
+func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 
-	task, ok := m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
+
+	needExecuteTask, ok := m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
 	if !ok {
-		return fmt.Errorf("Can not find `need execute task` cache, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
+		log.Errorf("Not found needExecuteTask on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+			usage.GetTaskId(), usage.GetPartyId())
+		return fmt.Errorf("Can not find `need execute task` cache")
 	}
 
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
-		return err
-	}
-	if !running {
-		return fmt.Errorf("task is not executed, taskId: {%s}, partyId: {%s}", usage.GetPartyId(), usage.GetPartyId())
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusValExecByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+			usage.GetTaskId(), usage.GetPartyId())
+		return fmt.Errorf("check has `exec` status needExecuteTask failed, %s", err)
 	}
 
-	m.sendTaskResourceUsageMsgToTaskSender(task, usage)
+	if !running {
+		log.Errorf("Not found localTask execute status `exec` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+			usage.GetTaskId(), usage.GetPartyId())
+		return fmt.Errorf("task is not executed")
+	}
+
+	task, err := m.resourceMng.GetDB().QueryLocalTask(usage.GetTaskId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call QueryLocalTask() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+			usage.GetTaskId(), usage.GetPartyId())
+		return fmt.Errorf("query local task failed, %s", err)
+	}
+
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call QueryIdentity() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+			usage.GetTaskId(), usage.GetPartyId())
+		return fmt.Errorf("query local identity failed, %s", err)
+	}
+
+	var needUpdate bool
+
+	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+
+		// find power supplier info by identity and partyId with msg from reomte peer
+		// (find the target power supplier, it maybe local power supplier or remote power supplier)
+		// and update its' resource usage info.
+		if usage.GetPartyId() == powerSupplier.GetOrganization().GetPartyId() &&
+			identity.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
+
+			resourceUsage := task.GetTaskData().GetPowerSuppliers()[i].GetResourceUsedOverview()
+			// update ...
+			if usage.GetUsedMem() > resourceUsage.GetUsedMem() {
+				if usage.GetUsedMem() > task.GetTaskData().GetOperationCost().GetMemory() {
+					resourceUsage.UsedMem = task.GetTaskData().GetOperationCost().GetMemory()
+				} else {
+					resourceUsage.UsedMem = usage.GetUsedMem()
+				}
+				needUpdate = true
+			}
+			if usage.GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
+				if usage.GetUsedProcessor() > task.GetTaskData().GetOperationCost().GetProcessor() {
+					resourceUsage.UsedProcessor = task.GetTaskData().GetOperationCost().GetProcessor()
+				} else {
+					resourceUsage.UsedProcessor = usage.GetUsedProcessor()
+				}
+				needUpdate = true
+			}
+			if usage.GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
+				if usage.GetUsedBandwidth() > task.GetTaskData().GetOperationCost().GetBandwidth() {
+					resourceUsage.UsedBandwidth = task.GetTaskData().GetOperationCost().GetBandwidth()
+				} else {
+					resourceUsage.UsedBandwidth = usage.GetUsedBandwidth()
+				}
+				needUpdate = true
+			}
+			if usage.GetUsedDisk() > resourceUsage.GetUsedDisk() {
+				resourceUsage.UsedDisk = usage.GetUsedDisk()
+				needUpdate = true
+			}
+			// update ...
+			task.GetTaskData().GetPowerSuppliers()[i].ResourceUsedOverview = resourceUsage
+		}
+	}
+
+	// Update local task AND announce task sender to update task.
+	if needUpdate {
+
+		log.Debugf("Need to update local task on taskManager.HandleResourceUsage(), usage: %s", usage.String())
+
+		// Updata task when resourceUsed change.
+		if err = m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
+			log.WithError(err).Errorf("Failed to call StoreLocalTask() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+				usage.GetTaskId(), usage.GetPartyId())
+			return fmt.Errorf("update local task failed, %s", err)
+		}
+
+		msg := &taskmngpb.TaskResourceUsageMsg{
+			MsgOption: &msgcommonpb.MsgOption{
+				ProposalId:      needExecuteTask.GetProposalId().Bytes(),
+				SenderRole:      uint64(needExecuteTask.GetLocalTaskRole()),
+				SenderPartyId:   []byte(needExecuteTask.GetLocalTaskOrganization().GetPartyId()),
+				ReceiverRole:    uint64(needExecuteTask.GetRemoteTaskRole()),
+				ReceiverPartyId: []byte(needExecuteTask.GetRemoteTaskOrganization().GetPartyId()),
+				MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+					Name:       []byte(needExecuteTask.GetLocalTaskOrganization().GetNodeName()),
+					NodeId:     []byte(needExecuteTask.GetLocalTaskOrganization().GetNodeId()),
+					IdentityId: []byte(needExecuteTask.GetLocalTaskOrganization().GetIdentityId()),
+					PartyId:    []byte(needExecuteTask.GetLocalTaskOrganization().GetPartyId()),
+				},
+			},
+			TaskId: []byte(task.GetTaskId()),
+			Usage: &msgcommonpb.ResourceUsage{
+				TotalMem:       usage.GetTotalMem(),
+				UsedMem:        usage.GetUsedMem(),
+				TotalProcessor: uint64(usage.GetTotalProcessor()),
+				UsedProcessor:  uint64(usage.GetUsedProcessor()),
+				TotalBandwidth: usage.GetTotalBandwidth(),
+				UsedBandwidth:  usage.GetUsedBandwidth(),
+				TotalDisk:      usage.GetTotalDisk(),
+				UsedDisk:       usage.GetUsedDisk(),
+			},
+			CreateAt: timeutils.UnixMsecUint64(),
+			Sign:     nil,
+		}
+
+		// broadcast `task resource usage msg` to reply remote peer
+		if needExecuteTask.GetLocalTaskOrganization().GetIdentityId() != needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() {
+			// send resource usage quo to remote peer that it will update power supplier resource usage info of task.
+			//
+			//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
+			if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
+				log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleResourceUsage(), taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
+					task.GetTaskId(), needExecuteTask.GetLocalTaskRole().String(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
+			}
+		}
+	}
+
+	// The local `resourceUasgeMsg` will not be handled,
+	// because the local MSG has already performed the 'Update' operation on the 'localtask'
+	// when it has received the reported 'usage', so there is no need to repeat the operation.
+
 	return nil
 }
 

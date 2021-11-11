@@ -41,5 +41,5 @@ type TaskManager interface {
 	ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
 	OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error
 	SendTaskEvent(event *libtypes.TaskEvent) error
-	SendTaskResourceUsageToTaskSender (usage *types.TaskResuorceUsage) error
+	HandleResourceUsage(usage *types.TaskResuorceUsage) error
 }

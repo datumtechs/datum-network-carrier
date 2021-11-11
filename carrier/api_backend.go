@@ -350,6 +350,8 @@ func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organizatio
 		// unit: byte
 		TotalBandwidth: jobNodeStatus.GetTotalBandwidth(),
 		UsedBandwidth:  0,
+		TotalDisk:      jobNodeStatus.GetTotalDisk(),
+		UsedDisk:       0,
 	})); nil != err {
 		log.WithError(err).Errorf("Failed to store power to local on MessageHandler with broadcast, jobNodeId: {%s}",
 			jobNodeId)
@@ -677,83 +679,11 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *libtypes.TaskEvent) error {
 
 func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error {
 
-	task, err := s.carrier.carrierDB.QueryLocalTask(usage.GetTaskId())
-	if nil != err {
+	if err := s.carrier.TaskManager.HandleResourceUsage(usage); nil != err {
 		log.WithError(err).Errorf("Failed to call QueryLocalTask() on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}",
 			usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port)
 		return err
 	}
-
-	identity, err := s.carrier.carrierDB.QueryIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call QueryIdentity() on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}",
-			usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port)
-		return err
-	}
-
-	var needUpdate bool
-
-	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-
-		// find power supplier info by identity and partyId with msg from reomte peer
-		// (find the target power supplier, it maybe local power supplier or remote power supplier)
-		// and update its' resource usage info.
-		if usage.GetPartyId() == powerSupplier.GetOrganization().GetPartyId() &&
-			identity.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
-
-			resourceUsage := task.GetTaskData().GetPowerSuppliers()[i].GetResourceUsedOverview()
-			// update ...
-			if usage.GetUsedMem() > resourceUsage.GetUsedMem() {
-				if usage.GetUsedMem() > task.GetTaskData().GetOperationCost().GetMemory() {
-					resourceUsage.UsedMem = task.GetTaskData().GetOperationCost().GetMemory()
-				} else {
-					resourceUsage.UsedMem = usage.GetUsedMem()
-				}
-				needUpdate = true
-			}
-			if usage.GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
-				if usage.GetUsedProcessor() > task.GetTaskData().GetOperationCost().GetProcessor() {
-					resourceUsage.UsedProcessor = task.GetTaskData().GetOperationCost().GetProcessor()
-				} else {
-					resourceUsage.UsedProcessor = usage.GetUsedProcessor()
-				}
-				needUpdate = true
-			}
-			if usage.GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
-				if usage.GetUsedBandwidth() > task.GetTaskData().GetOperationCost().GetBandwidth() {
-					resourceUsage.UsedBandwidth = task.GetTaskData().GetOperationCost().GetBandwidth()
-				} else {
-					resourceUsage.UsedBandwidth = usage.GetUsedBandwidth()
-				}
-				needUpdate = true
-			}
-			if usage.GetUsedDisk() > resourceUsage.GetUsedDisk() {
-				resourceUsage.UsedDisk = usage.GetUsedDisk()
-				needUpdate = true
-			}
-			// update ...
-			task.GetTaskData().GetPowerSuppliers()[i].ResourceUsedOverview = resourceUsage
-		}
-	}
-
-	// Update local task AND announce task sender to update task.
-	if needUpdate {
-
-		// Updata task when resourceUsed change.
-		if err = s.carrier.carrierDB.StoreLocalTask(task); nil != err {
-			log.WithError(err).Errorf("Failed to call StoreLocalTask() on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}",
-				usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port)
-			return err
-		}
-
-		// store resource Usage
-		if err := s.carrier.TaskManager.SendTaskResourceUsageToTaskSender(usage); nil != err {
-			log.WithError(err).Errorf("Failed to call SendTaskResourceUsageToTaskSender() on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}",
-				usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port)
-			return err
-		}
-	}
-
 	return nil
 }
 
