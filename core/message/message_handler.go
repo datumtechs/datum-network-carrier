@@ -343,7 +343,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 		return
 	}
 	for _, node := range jobNodes {
-		runningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskIdCount(node.Id)
+		runningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskCount(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			log.Errorf("query local running taskCount on old jobNode failed on MessageHandler with revoke identity, %s", err)
 			return
@@ -484,7 +484,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 	for _, revoke := range powerRevokeMsgArr {
 
-		jobNodeId, err := m.dataCenter.QueryJobNodeIdIdByPowerId(revoke.GetPowerId())
+		jobNodeId, err := m.dataCenter.QueryJobNodeIdByPowerId(revoke.GetPowerId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to call QueryJobNodeIdByPowerId() on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
 				revoke.GetPowerId(), jobNodeId)

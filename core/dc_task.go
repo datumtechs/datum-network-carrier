@@ -274,7 +274,7 @@ func (dc *DataCenter) QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string,
 	return rawdb.QueryJobNodeRunningTaskIds(dc.db, jobNodeId)
 }
 
-func (dc *DataCenter) QueryJobNodeRunningTaskIdCount(jobNodeId string) (uint32, error) {
+func (dc *DataCenter) QueryJobNodeRunningTaskCount(jobNodeId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryJobNodeRunningTaskIdCount(dc.db, jobNodeId)

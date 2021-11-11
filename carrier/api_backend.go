@@ -59,7 +59,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	if len(jobNodes) != 0 {
 		for i, v := range jobNodes {
 			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(v.GetId())
-			if ok && client.IsConnected(){
+			if ok && client.IsConnected() {
 				v.ConnState = pb.ConnState_ConnState_Connected
 			}
 			n := &pb.YarnRegisteredPeer{
@@ -72,7 +72,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	if len(dataNodes) != 0 {
 		for i, v := range dataNodes {
 			client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(v.GetId())
-			if ok && client.IsConnected(){
+			if ok && client.IsConnected() {
 				v.ConnState = pb.ConnState_ConnState_Connected
 			}
 			n := &pb.YarnRegisteredPeer{
@@ -103,15 +103,15 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	enrStr := "enr:" + b64
 
 	nodeInfo := &pb.YarnNodeInfo{
-		NodeType:     pb.NodeType_NodeType_YarnNode,
-		NodeId:       nodeId,
-		IdentityType: types.IDENTITY_TYPE_DID, // default: DID
-		IdentityId:   identityId,
-		Name:         nodeName,
-		Peers:        registerNodes,
-		SeedPeers:    seedNodes,
-		State:        pb.YarnNodeState_State_Active,
-		RelatePeers:  uint32(len(s.carrier.config.P2P.Peers().Active())),
+		NodeType:           pb.NodeType_NodeType_YarnNode,
+		NodeId:             nodeId,
+		IdentityType:       types.IDENTITY_TYPE_DID, // default: DID
+		IdentityId:         identityId,
+		Name:               nodeName,
+		Peers:              registerNodes,
+		SeedPeers:          seedNodes,
+		State:              pb.YarnNodeState_State_Active,
+		RelatePeers:        uint32(len(s.carrier.config.P2P.Peers().Active())),
 		LocalBootstrapNode: enrStr,
 	}
 
@@ -123,7 +123,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		nodeInfo.ExternalPort = multiAddrParts[4]
 	}
 
-	selfMultiAddrs, _ := s.carrier.config.P2P.DiscoveryAddresses();
+	selfMultiAddrs, _ := s.carrier.config.P2P.DiscoveryAddresses()
 	if len(selfMultiAddrs) != 0 {
 		nodeInfo.LocalMultiAddr = selfMultiAddrs[0].String()
 	}
@@ -171,7 +171,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
-			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(v.GetId())
+			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(v.GetId())
 			v.TaskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(v.GetId())
 			v.Duration = duration
 			registeredPeer := &pb.YarnRegisteredPeer{
@@ -194,8 +194,8 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 				duration = uint64(node.RunningDuration())
 			}
 			v.Duration = duration // ms
-			v.FileCount = 0  // todo need implament this logic
-			v.FileTotalSize = 0  // todo need implament this logic
+			v.FileCount = 0       // todo need implament this logic
+			v.FileTotalSize = 0   // todo need implament this logic
 			registeredPeer := &pb.YarnRegisteredPeer{
 				NodeType:   pb.NodeType_NodeType_DataNode,
 				NodeDetail: v,
@@ -215,7 +215,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
-			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(v.GetId())
+			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(v.GetId())
 			v.TaskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(v.GetId())
 			v.Duration = duration
 			registeredPeer := &pb.YarnRegisteredPeer{
@@ -240,8 +240,8 @@ func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 		log.WithError(err).Errorf("Failed to call SetSeedNode() to store seedNode on SetSeedNode(), seed: {%s}", seed.String())
 		return pb.ConnState_ConnState_UnConnected, err
 	}
-	addrs, err := s.carrier.config.P2P.PeerFromAddress([]string{ seed.GetAddr() })
-	if err != nil || len(addrs) == 0{
+	addrs, err := s.carrier.config.P2P.PeerFromAddress([]string{seed.GetAddr()})
+	if err != nil || len(addrs) == 0 {
 		log.WithError(err).Errorf("Failed to parse addr")
 		return pb.ConnState_ConnState_UnConnected, err
 	}
@@ -288,14 +288,14 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	bootstrapNodes := make([]*pb.SeedPeer, len(bootstrapNodeStrs))
 	for i, addr := range bootstrapNodeStrs {
 		bootstrapNodes[i] = &pb.SeedPeer{
-			Addr: addr,
+			Addr:      addr,
 			IsDefault: true,
 			ConnState: pb.ConnState_ConnState_UnConnected,
 		}
 	}
 
 	// query seed node arr from db
-	seeds , err := s.carrier.carrierDB.QuerySeedNodeList()
+	seeds, err := s.carrier.carrierDB.QuerySeedNodeList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("Failed to call QuerySeedNodeList() on GetSeedNodeList()")
 		return nil, err
@@ -343,7 +343,7 @@ func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organizatio
 		State: apicommonpb.PowerState_PowerState_Created,
 		// unit: byte
 		TotalMem: jobNodeStatus.GetTotalMemory(),
-		UsedMem: 0,
+		UsedMem:  0,
 		// number of cpu cores.
 		TotalProcessor: jobNodeStatus.GetTotalCpu(),
 		UsedProcessor:  0,
@@ -438,7 +438,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		}
 
 		// First check whether there is a task being executed on jobNode
-		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(node.Id)
+		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
@@ -551,7 +551,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 		}
 
 		// First check whether there is a task being executed on jobNode
-		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(id)
+		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
@@ -613,12 +613,12 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 
 	for i, n := range nodeList {
 
-		var connState            pb.ConnState
-		var duration             uint64
-		var taskCount            uint32
-		var taskIdList           []string
-		var fileCount            uint32
-		var fileTotalSize        uint32
+		var connState pb.ConnState
+		var duration uint64
+		var taskCount uint32
+		var taskIdList []string
+		var fileCount uint32
+		var fileTotalSize uint32
 
 		if typ == pb.PrefixTypeJobNode {
 			node, has := s.carrier.resourceClientSet.QueryJobNodeClient(n.GetId())
@@ -635,10 +635,10 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 			} else {
 				connState = pb.ConnState_ConnState_Connected
 			}
-			taskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(n.GetId())
+			taskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(n.GetId())
 			taskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(n.GetId())
-			fileCount = 0  // todo need implament this logic
-			fileTotalSize = 0  // todo need implament this logic
+			fileCount = 0     // todo need implament this logic
+			fileTotalSize = 0 // todo need implament this logic
 		} else {
 			node, has := s.carrier.resourceClientSet.QueryDataNodeClient(n.GetId())
 			if has {
@@ -655,8 +655,8 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 			}
 			taskCount = 0
 			taskIdList = nil
-			fileCount = 0  // todo need implament this logic
-			fileTotalSize = 0  // todo need implament this logic
+			fileCount = 0     // todo need implament this logic
+			fileTotalSize = 0 // todo need implament this logic
 		}
 		n.Duration = duration
 		n.ConnState = connState
@@ -691,7 +691,7 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 		return err
 	}
 
-	var  needUpdate bool
+	var needUpdate bool
 
 	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 
@@ -761,7 +761,6 @@ func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, po
 func (s *CarrierAPIBackend) IsInternalMetadata(metadataId string) (bool, error) {
 	return s.carrier.carrierDB.IsInternalMetadataByDataId(metadataId)
 }
-
 
 func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error) {
 
@@ -877,7 +876,6 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 
 // power api
 
-
 func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummaryResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
 	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList()
@@ -921,6 +919,17 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDeta
 	log.Debugf("Query all org's power detail list, len: {%d}", len(resourceList))
 	powerList := make([]*pb.GetGlobalPowerDetailResponse, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
+
+		jobNodeId, _ := s.carrier.carrierDB.QueryJobNodeIdByPowerId(resource.GetDataId())
+		var (
+			totalTaskCount   uint32
+			currentTaskCount uint32
+		)
+		if "" != jobNodeId {
+			totalTaskCount, _ = s.carrier.carrierDB.QueryJobNodeHistoryTaskCount(jobNodeId)
+			currentTaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(jobNodeId)
+		}
+
 		powerList = append(powerList, &pb.GetGlobalPowerDetailResponse{
 			Owner: &apicommonpb.Organization{
 				NodeName:   resource.GetNodeName(),
@@ -929,8 +938,8 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDeta
 			},
 			PowerId: resource.GetDataId(),
 			Power: &libtypes.PowerUsageDetail{
-				TotalTaskCount:   0,
-				CurrentTaskCount: 0,
+				TotalTaskCount:   totalTaskCount,
+				CurrentTaskCount: currentTaskCount,
 				Tasks:            make([]*libtypes.PowerTask, 0),
 				Information: &libtypes.ResourceUsageOverview{
 					TotalMem:       resource.GetTotalMem(),
@@ -939,8 +948,12 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDeta
 					UsedProcessor:  resource.GetUsedProcessor(),
 					TotalBandwidth: resource.GetTotalBandwidth(),
 					UsedBandwidth:  resource.GetUsedBandwidth(),
+					TotalDisk:      resource.GetTotalDisk(),
+					UsedDisk:       resource.GetUsedDisk(),
 				},
-				State: resource.GetState(),
+				State:     resource.GetState(),
+				PublishAt: resource.GetPublishAt(),
+				UpdateAt:  resource.GetUpdateAt(),
 			},
 		})
 	}
@@ -974,8 +987,6 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			log.WithError(err).Errorf("Failed to query jobNode runningTaskIds on GetLocalPowerDetailList, jobNodeId: {%s}", jobNodeId)
 			return powerTaskList
 		}
-
-
 
 		for _, taskId := range taskIds {
 			// query local task information by taskId
@@ -1039,7 +1050,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			}
 
 			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-				if _, ok := partyIdTmp[powerSupplier.GetOrganization().GetPartyId()]; ok  {
+				if _, ok := partyIdTmp[powerSupplier.GetOrganization().GetPartyId()]; ok {
 					processor += powerSupplier.GetResourceUsedOverview().GetUsedProcessor()
 					memory += powerSupplier.GetResourceUsedOverview().GetUsedMem()
 					bandwidth += powerSupplier.GetResourceUsedOverview().GetUsedBandwidth()
@@ -1071,7 +1082,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	}
 	// culculate task current running count on jobNode
 	taskRunningCount := func(jobNodeId string) uint32 {
-		count, err := s.carrier.carrierDB.QueryJobNodeRunningTaskIdCount(jobNodeId)
+		count, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(jobNodeId)
 		if err != nil {
 			log.WithError(err).Errorf("Failed to query task runningCount with jobNodeId on GetLocalPowerDetailList, jobNodeId: {%s}", jobNodeId)
 			return 0
@@ -1163,16 +1174,16 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 		return nil, fmt.Errorf("not found local task")
 	}
 
-	detailShow :=  &pb.TaskDetailShow{
+	detailShow := &pb.TaskDetailShow{
 		TaskId:   localTask.GetTaskId(),
 		TaskName: localTask.GetTaskData().GetTaskName(),
 		UserType: localTask.GetTaskData().GetUserType(),
 		User:     localTask.GetTaskData().GetUser(),
 		Sender: &apicommonpb.TaskOrganization{
-			PartyId:   localTask.GetTaskSender().GetPartyId(),
-			NodeName:  localTask.GetTaskSender().GetNodeName(),
-			NodeId:    localTask.GetTaskSender().GetNodeId(),
-			IdentityId:localTask.GetTaskSender().GetIdentityId(),
+			PartyId:    localTask.GetTaskSender().GetPartyId(),
+			NodeName:   localTask.GetTaskSender().GetNodeName(),
+			NodeId:     localTask.GetTaskSender().GetNodeId(),
+			IdentityId: localTask.GetTaskSender().GetIdentityId(),
 		},
 		AlgoSupplier: &apicommonpb.TaskOrganization{
 			PartyId:    localTask.GetTaskData().GetAlgoSupplier().GetPartyId(),
@@ -1348,7 +1359,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 	return evenList, nil
 }
 
-func (s *CarrierAPIBackend) HasLocalTask () (bool, error) {
+func (s *CarrierAPIBackend) HasLocalTask() (bool, error) {
 	localTasks, err := s.carrier.carrierDB.QueryLocalTaskList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return false, err
@@ -1361,7 +1372,6 @@ func (s *CarrierAPIBackend) HasLocalTask () (bool, error) {
 	}
 	return true, nil
 }
-
 
 // about DataResourceTable
 func (s *CarrierAPIBackend) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {

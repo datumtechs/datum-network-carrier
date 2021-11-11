@@ -166,7 +166,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 		return err
 	}
 
-	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskIdCount(jobNodeId)
+	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskCount(jobNodeId)
 	if nil != err {
 		// rollback useSlot => freeSlot
 		// rollback addPartyTaskPowerUsedOnJobNode
@@ -244,7 +244,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskIdCount(jobNodeId)
+	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskCount(jobNodeId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query task runningCount in jobNode on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeSlotUnitCount: {%d}",
 			taskId, partyId, jobNodeId, freeSlotUnitCount)

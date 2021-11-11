@@ -45,7 +45,7 @@ func (dc *DataCenter) RemoveJobNodeIdByPowerId(powerId string) error {
 	return rawdb.RemoveJobNodeIdByPowerId(dc.db, powerId)
 }
 
-func (dc *DataCenter) QueryJobNodeIdIdByPowerId(powerId string) (string, error) {
+func (dc *DataCenter) QueryJobNodeIdByPowerId(powerId string) (string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryJobNodeIdByPowerId(dc.db, powerId)

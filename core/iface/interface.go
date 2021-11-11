@@ -24,7 +24,7 @@ type LocalStoreCarrierDB interface {
 	// powerId -> jobNodeId
 	StoreJobNodeIdIdByPowerId(powerId, jobNodeId string) error
 	RemoveJobNodeIdByPowerId(powerId string) error
-	QueryJobNodeIdIdByPowerId(powerId string) (string, error)
+	QueryJobNodeIdByPowerId(powerId string) (string, error)
 
 	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
@@ -156,7 +156,7 @@ type TaskCarrierDB interface {
 	RemoveJobNodeTaskPartyId(jobNodeId, taskId, partyId string) error
 	RemoveJobNodeTaskIdAllPartyIds(jobNodeId, taskId string) error
 	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
-	QueryJobNodeRunningTaskIdCount(jobNodeId string) (uint32, error)
+	QueryJobNodeRunningTaskCount(jobNodeId string) (uint32, error)
 	QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId string) ([]string, error)
 	HasJobNodeRunningTaskId(jobNodeId, taskId string) (bool, error)
 	HasJobNodeTaskPartyId(jobNodeId, taskId, partyId string) (bool, error)
