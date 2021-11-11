@@ -17,11 +17,11 @@ func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 	request := &api.RevokeMetadataRequest{
 		Owner: &apicommonpb.Organization{
-			IdentityId: metadata.GetData().IdentityId,
-			NodeId:     metadata.GetData().NodeId,
-			NodeName:   metadata.GetData().NodeName,
+			IdentityId: metadata.GetData().GetIdentityId(),
+			NodeId:     metadata.GetData().GetNodeId(),
+			NodeName:   metadata.GetData().GetNodeName(),
 		},
-		MetadataId: metadata.GetData().DataId,
+		MetadataId: metadata.GetData().GetDataId(),
 	}
 	return request
 }
@@ -36,11 +36,11 @@ func NewPublishPowerRequest(resource *Resource) *api.PublishPowerRequest {
 func RevokePowerRequest(resource *Resource) *api.RevokePowerRequest {
 	request := &api.RevokePowerRequest{
 		Owner: &apicommonpb.Organization{
-			NodeName:   resource.data.GetNodeName(),
-			NodeId:     resource.data.GetNodeId(),
-			IdentityId: resource.data.GetIdentityId(),
+			NodeName:   resource.GetNodeName(),
+			NodeId:     resource.GetNodeId(),
+			IdentityId: resource.GetIdentityId(),
 		},
-		PowerId: resource.data.DataId,
+		PowerId: resource.GetDataId(),
 	}
 	return request
 }
@@ -54,11 +54,11 @@ func NewSyncPowerRequest(resource *LocalResource) *api.SyncPowerRequest {
 func NewSaveIdentityRequest(identity *Identity) *api.SaveIdentityRequest {
 	request := &api.SaveIdentityRequest{
 		Member: &apicommonpb.Organization{
-			NodeName:   identity.data.GetNodeName(),
-			NodeId:     identity.data.GetNodeId(),
-			IdentityId: identity.data.GetIdentityId(),
+			NodeName:   identity.GetName(),
+			NodeId:     identity.GetNodeId(),
+			IdentityId: identity.GetIdentityId(),
 		},
-		Credential: identity.data.GetCredential(),
+		Credential: identity.GetCredential(),
 	}
 	return request
 }
@@ -93,9 +93,11 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 			TotalMem:       v.GetPowerSummary().GetInformation().GetTotalMem(),
 			TotalProcessor: v.GetPowerSummary().GetInformation().GetTotalProcessor(),
 			TotalBandwidth: v.GetPowerSummary().GetInformation().GetTotalBandwidth(),
+			TotalDisk:      v.GetPowerSummary().GetInformation().GetTotalDisk(),
 			UsedMem:        v.GetPowerSummary().GetInformation().GetUsedMem(),
 			UsedProcessor:  v.GetPowerSummary().GetInformation().GetUsedProcessor(),
 			UsedBandwidth:  v.GetPowerSummary().GetInformation().GetUsedBandwidth(),
+			UsedDisk:       v.GetPowerSummary().GetInformation().GetUsedDisk(),
 		})
 		resourceArray = append(resourceArray, resource)
 	}
@@ -125,9 +127,11 @@ func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 		TotalMem:       response.GetPowerSummary().GetInformation().GetTotalMem(),
 		TotalProcessor: response.GetPowerSummary().GetInformation().GetTotalProcessor(),
 		TotalBandwidth: response.GetPowerSummary().GetInformation().GetTotalBandwidth(),
+		TotalDisk:      response.GetPowerSummary().GetInformation().GetTotalDisk(),
 		UsedMem:        response.GetPowerSummary().GetInformation().GetUsedMem(),
 		UsedProcessor:  response.GetPowerSummary().GetInformation().GetUsedProcessor(),
 		UsedBandwidth:  response.GetPowerSummary().GetInformation().GetUsedBandwidth(),
+		UsedDisk:       response.GetPowerSummary().GetInformation().GetUsedDisk(),
 	})
 	resourceArray = append(resourceArray, resource)
 	return resourceArray

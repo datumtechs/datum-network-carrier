@@ -69,6 +69,8 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 				UsedProcessor:  data.GetResourceUsedOverview().GetUsedProcessor(),
 				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
 				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
+				TotalDisk:      data.GetResourceUsedOverview().GetTotalDisk(),
+				UsedDisk:       data.GetResourceUsedOverview().GetUsedDisk(),
 			},
 		})
 	}

@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"strings"
 )
 
 // about task on local
@@ -137,10 +138,22 @@ func (dc *DataCenter) RemoveTaskEventListByPartyId(taskId, partyId string) error
 	return rawdb.RemoveTaskEventByPartyId(dc.db, taskId, partyId)
 }
 
+func sprintPowers (powers []*libtypes.TaskPowerSupplier) string  {
+	arr := make([]string, 0)
+	for _, power := range powers {
+		arr = append(arr, power.String())
+	}
+	if len(arr) != 0 {
+		return "[" + strings.Join(arr, ",") + "]"
+	}
+	return "[]"
+}
+
 // about task on datacenter
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
+	log.Debugf("Start save task to datacenter, taskId: {%s}, powers: %s", task.GetTaskId(), sprintPowers(task.GetTaskData().GetPowerSuppliers()))
 	response, err := dc.client.SaveTask(dc.ctx, types.NewSaveTaskRequest(task))
 	if err != nil {
 		log.WithError(err).WithField("taskId", task.GetTaskId()).Errorf("InsertTask failed")

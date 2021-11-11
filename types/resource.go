@@ -48,17 +48,18 @@ func (m *Resource) Hash() common.Hash {
 	return v
 }
 
-func (m *Resource) GetIdentityId() string { return m.data.IdentityId }
-func (m *Resource) GetNodeId() string { return m.data.NodeId }
+func (m *Resource) GetIdentityId() string                 { return m.data.IdentityId }
+func (m *Resource) GetNodeId() string                     { return m.data.NodeId }
 func (m *Resource) GetNodeName() string                   { return m.data.NodeName }
 func (m *Resource) GetDataStatus() apicommonpb.DataStatus { return m.data.DataStatus }
+func (m *Resource) GetDataId() string                     { return m.data.DataId }
 func (m *Resource) GetState() apicommonpb.PowerState      { return m.data.State }
 func (m *Resource) GetTotalMem() uint64                   { return m.data.TotalMem }
-func (m *Resource) GetUsedMem() uint64 { return m.data.UsedMem }
-func (m *Resource) GetTotalProcessor() uint32 { return m.data.TotalProcessor }
-func (m *Resource) GetUsedProcessor() uint32 { return m.data.UsedProcessor }
-func (m *Resource) GetTotalBandWidth() uint64 { return m.data.TotalBandwidth }
-func (m *Resource) GetUsedBandWidth() uint64 { return m.data.UsedBandwidth }
+func (m *Resource) GetUsedMem() uint64                    { return m.data.UsedMem }
+func (m *Resource) GetTotalProcessor() uint32             { return m.data.TotalProcessor }
+func (m *Resource) GetUsedProcessor() uint32              { return m.data.UsedProcessor }
+func (m *Resource) GetTotalBandWidth() uint64             { return m.data.TotalBandwidth }
+func (m *Resource) GetUsedBandWidth() uint64              { return m.data.UsedBandwidth }
 func (m *Resource) String() string {
 	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "state": %s, "totalMem": %d, "usedMem": %d, "totalProcessor": %d, "usedProcessor": %d, "totalBandWidth": %d, "usedBandWidth": %d}`)
 	return m.data.String()
@@ -79,7 +80,6 @@ func (s ResourceArray) GetPb(i int) []byte {
 	return buffer.Bytes()
 }
 
-
 func NewResourceArray(metadataArr []*libtypes.ResourcePB) ResourceArray {
 	var s ResourceArray
 	for _, v := range metadataArr {
@@ -96,13 +96,13 @@ func (s ResourceArray) To() []*libtypes.ResourcePB {
 	return arr
 }
 
-func  (s ResourceArray) String () string {
+func (s ResourceArray) String() string {
 	arr := make([]string, len(s))
 	for i, iden := range s {
 		arr[i] = iden.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return ""
 }
@@ -121,7 +121,7 @@ func NewLocalResource(data *libtypes.LocalResourcePB) *LocalResource {
 }
 func (m *LocalResource) GetData() *libtypes.LocalResourcePB { return m.data }
 func (m *LocalResource) GetIdentityId() string              { return m.data.IdentityId }
-func (m *LocalResource) GetJobNodeId() string { return m.data.JobNodeId }
+func (m *LocalResource) GetJobNodeId() string               { return m.data.JobNodeId }
 func (m *LocalResource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()
 	if err == nil {
@@ -148,7 +148,6 @@ func (m *LocalResource) Hash() common.Hash {
 	m.hash.Store(v)
 	return v
 }
-
 
 // ResourceArray is a Transaction slice type for basic sorting.
 type LocalResourceArray []*LocalResource
@@ -186,7 +185,7 @@ func (s LocalResourceArray) String() string {
 		arr[i] = r.data.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return ""
 }
