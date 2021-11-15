@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -82,26 +83,6 @@ func (s MetadataAuthArray) ToArray() []*libtypes.MetadataAuthorityPB {
 	return arr
 }
 
-//type MetadataAuthApply struct {
-//	MetadataAuthId string
-//	User           string
-//	UserType       apicommonpb.UserType
-//	Auth           *libtypes.MetadataAuthority
-//}
-//
-//func NewMetadataAuthApply(metadataAuthId, user string, userType apicommonpb.UserType, apply *libtypes.MetadataAuthority) *MetadataAuthApply {
-//	return &MetadataAuthApply{
-//		MetadataAuthId: metadataAuthId,
-//		User:           user,
-//		UserType:       userType,
-//		Auth:           apply,
-//	}
-//}
-//
-//func (maa *MetadataAuthApply) GetMetadataAuthId() string            { return maa.MetadataAuthId }
-//func (maa *MetadataAuthApply) GetUser() string                      { return maa.User }
-//func (maa *MetadataAuthApply) GetUserType() apicommonpb.UserType    { return maa.UserType }
-//func (maa *MetadataAuthApply) GetAuth() *libtypes.MetadataAuthority { return maa.Auth }
 
 type MetadataAuthAudit struct {
 	MetadataAuthId  string
@@ -120,3 +101,8 @@ func NewMetadataAuthAudit(metadataAuthId, suggestion string, option apicommonpb.
 func (maa *MetadataAuthAudit) GetMetadataAuthId() string                       { return maa.MetadataAuthId }
 func (maa *MetadataAuthAudit) GetAuditOption() apicommonpb.AuditMetadataOption { return maa.AuditOption }
 func (maa *MetadataAuthAudit) GetAuditSuggestion() string                      { return maa.AuditSuggestion }
+
+func (maa *MetadataAuthAudit) String() string {
+	return fmt.Sprintf(`{"metadataAuthId": %s, "option": %s, "suggestion": %s}`,
+		maa.GetMetadataAuthId(), maa.GetAuditOption().String(), maa.GetAuditSuggestion())
+}

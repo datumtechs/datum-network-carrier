@@ -312,6 +312,7 @@ type DataResourceTable struct {
 	nodeId    string
 	totalDisk uint64
 	usedDisk  uint64
+	// todo 需要加一个  是否被使用的标识 字段 (因为最开始生成 table 时, 可能该节点已经被用了, 而直接用 remain 决定是否可以删除 dataNode, 可能会导致从来用过,但是删不掉)
 }
 type dataResourceTableRlp struct {
 	NodeId    string
