@@ -98,7 +98,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 
 	// local bootstrap node
 	enr := s.carrier.config.P2P.ENR()
-	enc, _ := rlp.EncodeToBytes(&enr) // always succeeds because record is valid
+	enc, _ := rlp.EncodeToBytes(&enr)
 	b64 := base64.RawURLEncoding.EncodeToString(enc)
 	enrStr := "enr:" + b64
 
