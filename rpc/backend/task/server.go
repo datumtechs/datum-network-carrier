@@ -14,8 +14,8 @@ var (
 	ErrReqMetadataByKeyColumn                 = &backend.RpcBizErr{Code: 13009, Msg: "Publish task request:Not found keyColumn on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}"}
 	ErrReqMetadataBySelectedColumn            = &backend.RpcBizErr{Code: 13010, Msg: "Publish task request:Not found selected column on metadata, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}"}
 	ErrSendTaskMsgByTaskId                    = &backend.RpcBizErr{Code: 13011, Msg: "Failed to send taskMsg, send task msg failed, taskId: {%s}"}
-	ErrPublishTaskDeclare                     = &backend.RpcBizErr{Code: 13012, Msg: "PublishTaskDeclare failed, query local identity failed, can not publish task"}
-	ErrTerminateTask                          = &backend.RpcBizErr{Code: 13013, Msg: "TerminateTask failed, query local identity failed, can not publish task"}
+	ErrPublishTaskDeclare                     = &backend.RpcBizErr{Code: 13012, Msg: "PublishTaskDeclare failed"}
+	ErrTerminateTask                          = &backend.RpcBizErr{Code: 13013, Msg: "TerminateTask failed"}
 	ErrReqUserTypePublishTask                 = &backend.RpcBizErr{Code: 13014, Msg: "Publish task request:Failed to get UserType"}
 	ErrReqUserPublishTask                     = &backend.RpcBizErr{Code: 13015, Msg: "Publish task request:Failed to get User"}
 	ErrReqUserSignPublishTask                 = &backend.RpcBizErr{Code: 13016, Msg: "Publish task request:Failed to get UserSign"}

@@ -342,13 +342,13 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed, can not terminate task")
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
 		return nil, ErrTerminateTask
 	}
 
 	task, err := svr.B.GetLocalTask(req.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local task failed, can not terminate task")
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local task failed")
 		return nil, ErrTerminateTask
 	}
 
