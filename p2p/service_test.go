@@ -13,6 +13,7 @@ import (
 	testp2p "github.com/RosettaFlow/Carrier-Go/p2p/testing"
 	"github.com/ethereum/go-ethereum/p2p/discover"
 	"github.com/ethereum/go-ethereum/p2p/enode"
+	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -360,4 +361,39 @@ func TestService_connectWithPeer(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestParseBootstrapAddr(t *testing.T) {
+	//addr := "enr:-Iu4QD_SEJwOaVx-83zT0rH6Cj12Ip_beR0JXoHm_s7vvNkeSJhzMOrIsQQmgaAXL5GpSNe7QV2-f5NBnOgUaYxIvjQBgmlkgnY0gmlwhMCoCZaJc2VjcDI1NmsxoQK0elDlGXAWiKvlv6R-KWB6TOd5kkcmfUokPij3YcZEDoN0Y3CCRlGDdWRwgko5"
+	//addr := "enr:-Jy4QKph76MvI9dfjJSgxaPmCjDT57ab-4zI8yBHTFJ-Kh-uXnjc0-rj99sXGKNSAW5AJCbGUytw4bn0zDsQcw9BHmUBh2F0dG5ldHOIAAAAAAAAAACCaWSCdjSCaXCEwKh4nolzZWNwMjU2azGhAxCh3ud7cgpnp6fLmu-JrgGgN0hgw87sfpbWpRUo6szWg3RjcIJGUYN1ZHCCSjk"
+	//addr := "enr:-Iu4QCRUBI3lP7m7bImVYXINFkEHrPI-V6172kJa6sVtm7M1O47dM7wgg-YSamiAzqpc26DNs7Z2MacwyI0_iJ_1fPgBgmlkgnY0gmlwhMCoeJ6Jc2VjcDI1NmsxoQMQod7ne3IKZ6eny5rvia4BoDdIYMPO7H6W1qUVKOrM1oN0Y3CCRlGDdWRwgko5"
+	//addr := "enr:-Jy4QHH7vNoZnNnW6gnzTL8xJ9TOGT_37B6WGJM36CAcH9BoLweEQH_PqQE2cIIKBQz_c3VeESWUPV_Js00GRrDmdiwBh2F0dG5ldHOIAAAAAAAAAACCaWSCdjSCaXCEfwAAAYlzZWNwMjU2azGhAiHSglB-eolboB7-RJPtmJazpUbWzhBySOJSePalLpSTg3RjcIJBlIN1ZHCCVs4"
+	//addr := "enr:-Iu4QPLy-Dqk4LoD5dBRfXGc-fO2ppNu0_m4uhrPYAKNfvxIcEA8oFEMCFEOOY_VUfEb9I1ru0BcRRizm09q0pCrltQBgmlkgnY0gmlwhMCoCZaJc2VjcDI1NmsxoQMksSWYikrMQ2BV-1AMHlRYX7fKQ6Gy9jR9_G_17p4HvIN0Y3CCRlGDdWRwgko5"
+	addr := "enr:-Jy4QC4fJdeUmpxz1ReBh8boQVTr3kT9ZjWAXyp1xHIXBUaGdBje61deas8Tmw7Granx8woa721pK10SzgQwzi0rELgBh2F0dG5ldHOIAAAAAAAAAACCaWSCdjSCaXCEwKgJlolzZWNwMjU2azGhAySxJZiKSsxDYFX7UAweVFhft8pDobL2NH38b_Xunge8g3RjcIJGUYN1ZHCCSjk"
+	bootNode, err := enode.Parse(enode.ValidSchemes, addr)
+	if err != nil {
+		t.Error(err)
+	}
+	if err := bootNode.Record().Load(enr.WithEntry("tcp", new(enr.TCP))); err != nil {
+		if !enr.IsNotFound(err) {
+			log.WithError(err).Error("Could not retrieve tcp port")
+		}
+	}
+	var tcp enr.TCP
+	bootNode.Record().Load(enr.WithEntry("tcp", &tcp))
+	t.Log(tcp)
+	var udp enr.UDP
+	bootNode.Record().Load(enr.WithEntry("udp", &udp))
+	t.Log(udp)
+	var ip enr.IP
+	bootNode.Record().Load(enr.WithEntry("ip", &ip))
+	t.Log(ip)
+	var id enr.ID
+	bootNode.Record().Load(enr.WithEntry("id", &id))
+	t.Log(id)
+	var secp256k1 enode.Secp256k1
+	bootNode.Record().Load(enr.WithEntry("secp256k1", &secp256k1))
+	nodeId := PubkeyID((*ecdsa.PublicKey)(&secp256k1))
+	t.Log(nodeId)
+	t.Logf("node: %v", bootNode)
 }

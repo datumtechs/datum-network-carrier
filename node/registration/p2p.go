@@ -13,6 +13,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 const (
@@ -45,10 +46,11 @@ func P2PPreregistration(cliCtx *cli.Context) (bootstrapNodeAddrs []string, dataD
 			bootstrapNodeAddrs = append(bootstrapNodeAddrs, fileNodes...)
 			// check md5sum for bootstrap.yaml.
 			confMd5sum, err := readbootNodesHash(dataDir, "conf/bootstrap.md5");
+			log.WithField("confMd5sum", confMd5sum).Debug("The md5sum of bootstrap.md5")
 			if err != nil {
 				return nil, "", err
 			}
-			if confMd5sum != md5sum {
+			if strings.TrimSpace(confMd5sum) != strings.TrimSpace(md5sum) {
 				return nil, "", errors.New("bootstrap checksum failure")
 			}
 		} else {
