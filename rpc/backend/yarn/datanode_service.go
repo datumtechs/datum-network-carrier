@@ -29,7 +29,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call QueryRegisterNodeList() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 
-		errMsg := fmt.Sprintf(ErrGetRegisterNodeListForReportUpFileSummary.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s", ErrGetRegisterNodeListForReportUpFileSummary.Msg,
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 		return nil, backend.NewRpcBizErr(ErrGetRegisterNodeListForReportUpFileSummary.Code, errMsg)
 	}
@@ -44,7 +44,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 		log.Errorf("RPC-API:ReportUpFileSummary failed, not found resourceId, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf(ErrFoundResourceIdForReportUpFileSummary.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s, ", ErrFoundResourceIdForReportUpFileSummary.Msg,
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 		return nil, backend.NewRpcBizErr(ErrFoundResourceIdForReportUpFileSummary.Code, errMsg)
 	}
@@ -53,7 +53,7 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call StoreDataResourceFileUpload() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf(ErrStoreDataResourceFileUpload.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s", ErrStoreDataResourceFileUpload.Msg,
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 		return nil, backend.NewRpcBizErr(ErrStoreDataResourceFileUpload.Code, errMsg)
 	}
@@ -90,7 +90,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call QueryRegisterNodeList() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 
-		errMsg := fmt.Sprintf(ErrGetRegisterNodeListForReportTaskResultFileSummary.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s", ErrGetRegisterNodeListForReportTaskResultFileSummary.Msg,
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 		return nil, backend.NewRpcBizErr(ErrGetRegisterNodeListForReportTaskResultFileSummary.Code, errMsg)
 	}
@@ -105,7 +105,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 		log.Errorf("RPC-API:ReportTaskResultFileSummary failed, not found resourceId, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf(ErrFoundResourceIdForReportTaskResultFileSummary.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", ErrFoundResourceIdForReportTaskResultFileSummary.Msg,
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 		return nil, backend.NewRpcBizErr(ErrFoundResourceIdForReportTaskResultFileSummary.Code, errMsg)
 	}
@@ -115,7 +115,7 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call StoreTaskResultFileSummary() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf(ErrStoreTaskResultFileSummary.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", ErrStoreTaskResultFileSummary.Msg,
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 		return nil, backend.NewRpcBizErr(ErrStoreTaskResultFileSummary.Code, errMsg)
 	}

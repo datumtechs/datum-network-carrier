@@ -29,7 +29,7 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
 
-		errMsg := fmt.Sprintf(ErrReportTaskEvent.Msg, req.GetTaskEvent().GetPartyId())
+		errMsg := fmt.Sprintf("%s, %s", ErrReportTaskEvent.Msg, req.GetTaskEvent().GetPartyId())
 		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, errMsg)
 	}
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
