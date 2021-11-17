@@ -14,6 +14,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -259,22 +260,19 @@ func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error)
 }
 
 func (s *CarrierAPIBackend) DeleteSeedNode(addrStr string) error {
-	addrs, err := s.carrier.config.P2P.PeerFromAddress([]string{addrStr})
-	if nil != err || len(addrs) == 0 {
-		log.WithError(err).Errorf("Failed to convert multiAddr from string on DeleteSeedNode(), addr: {%s}", addrStr)
-		return err
-	}
-	addrInfo, err := peer.AddrInfoFromP2pAddr(addrs[0])
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on DeleteSeedNode(), addr: {%s}", addrs[0].String())
+
+	if err := s.carrier.carrierDB.RemoveSeedNode(addrStr); nil != err {
+		log.WithError(err).Errorf("Failed to call RemoveSeedNode() with peerId on DeleteSeedNode(), peerId: {%s}", addrStr)
 		return err
 	}
 
-	if err := s.carrier.config.P2P.Disconnect(addrInfo.ID); nil != err {
-		log.WithError(err).Errorf("Failed to call p2p.Disconnect() with peerId on DeleteSeedNode(), peerId: {%s}", addrInfo.ID.String())
+	addrInfo, err := p2p.MakePeer(addrStr)
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call peer.AddrInfoFromP2pAddr() with multiAddr on DeleteSeedNode(), addr: {%s}", addrStr)
 		return err
 	}
-	return s.carrier.carrierDB.RemoveSeedNode(addrStr)
+
+	return s.carrier.config.P2P.Disconnect(addrInfo.ID)
 }
 
 func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
