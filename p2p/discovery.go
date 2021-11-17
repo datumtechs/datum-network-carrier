@@ -28,6 +28,10 @@ type Listener interface {
 
 //
 func (s *Service) AddPeer(addr string) error {
+	err := checkGenericAddrs(addr)
+	if err != nil {
+		return err
+	}
 	allAddrs, err := peersFromStringAddrs([]string{addr})
 	if err != nil {
 		return err
@@ -375,6 +379,21 @@ func peersFromStringAddrs(addrs []string) ([]ma.Multiaddr, error) {
 		allAddrs = append(allAddrs, addr)
 	}
 	return allAddrs, nil
+}
+
+func checkGenericAddrs(addr string) error {
+	if addr == "" {
+		return errors.New("invalid address")
+	}
+	_, err := enode.Parse(enode.ValidSchemes, addr)
+	if err == nil {
+		return nil
+	}
+	_, err = multiAddrFromString(addr)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 
