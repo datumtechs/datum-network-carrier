@@ -386,10 +386,6 @@ func checkGenericAddrs(addr string) error {
 		return errors.New("invalid address")
 	}
 	_, err := enode.Parse(enode.ValidSchemes, addr)
-	if err == nil {
-		return nil
-	}
-	_, err = multiAddrFromString(addr)
 	if err != nil {
 		return err
 	}
