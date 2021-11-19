@@ -31,6 +31,24 @@ func (dc *DataCenter) RemoveLocalTask(taskId string) error {
 	return rawdb.RemoveLocalTask(dc.db, taskId)
 }
 
+func (dc *DataCenter) HasLocalTask(taskId string) (bool, error) {
+	if taskId == "" {
+		return false, nil
+	}
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	//log.Debugf("QueryLocalTask, taskId: {%s}", taskId)
+	_, err := rawdb.QueryLocalTask(dc.db, taskId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return false, err
+	}
+
+	if rawdb.IsDBNotFoundErr(err) {
+		return false, nil
+	}
+	return true, nil
+}
+
 func (dc *DataCenter) QueryLocalTask(taskId string) (*types.Task, error) {
 	if taskId == "" {
 		return nil, errors.New("invalid params taskId for QueryLocalTask")

@@ -137,7 +137,7 @@ func (m *Manager) RemoveLocalResourceTables() error {
 
 func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotCount uint64, task *types.Task) error {
 
-	log.Infof("Start lock local resource with taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
+	log.Infof("Start lock local resource on resourceManager.LockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
 
 	// Lock local resource (jobNode)
 	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {

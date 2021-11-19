@@ -26,7 +26,8 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*
 		}
 		arr[i] = t
 	}
-	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}, json: %s", len(arr), utilTaskDetailResponseArrString(arr))
+	//log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}, json: %s", len(arr), utilTaskDetailResponseArrString(arr))
+	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}", len(arr))
 	return &pb.GetTaskDetailListResponse{
 		Status:   0,
 		Msg:      backend.OK,
@@ -66,7 +67,7 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 		errMsg := fmt.Sprintf(ErrGetNodeTaskEventList.Msg, req.GetTaskIds())
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventList.Code, errMsg)
 	}
-	log.Debugf("RPC-API:QueryTaskEventListByTaskIds succeed, taskId: {%v},  eventList len: {%d}", req.GetTaskIds(), len(events))
+	log.Debugf("RPC-API:QueryTaskEventListByTaskIds succeed, taskIds: %v,  eventList len: {%d}", req.GetTaskIds(), len(events))
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
@@ -318,7 +319,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		return nil, backend.NewRpcBizErr(ErrSendTaskMsgByTaskId.Code, errMsg)
 	}
 	//log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}, taskMsg: %s", taskId, taskMsg.String())
-	log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}", taskId)
+	log.Debugf("RPC-API:PublishTaskDeclare succeed, userType: {%s}, user: {%s}, publish taskId: {%s}", req.GetUserType(), req.GetUser(), taskId)
 	return &pb.PublishTaskDeclareResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -372,7 +373,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 		errMsg := fmt.Sprintf(ErrSendTaskMsg.Msg, req.GetTaskId())
 		return nil, backend.NewRpcBizErr(ErrSendTaskMsg.Code, errMsg)
 	}
-	log.Debugf("RPC-API:TerminateTask succeed, taskId: {%s}", req.GetTaskId())
+	log.Debugf("RPC-API:TerminateTask succeed, userType: {%s}, user: {%s}, taskId: {%s}", req.GetUserType(), req.GetUser(), req.GetTaskId())
 	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,

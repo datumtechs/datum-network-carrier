@@ -96,8 +96,8 @@ func (m *Manager) tryScheduleTask() error {
 				content = "task was terminated."
 				eventType = ev.TaskTerminated.GetType()
 			} else {
-				content = "finished consensus succeed."
-				eventType = ev.TaskFinishedConsensus.GetType()
+				content = "succeed consensus."
+				eventType = ev.TaskSucceedConsensus.GetType()
 			}
 		case types.TaskConsensusInterrupt:
 			if nil != result.Err {
@@ -137,7 +137,7 @@ func (m *Manager) tryScheduleTask() error {
 		case types.TaskConsensusInterrupt:
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
-				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
+				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task consensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
 					result.GetStatus().String(), nonConsTask.GetTask().GetTaskId())
 
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
@@ -204,7 +204,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 		return errors.New("query internal dataNodes failed")
 	}
 	for _, dataNode := range dataNodes {
-		if dataNode.GetExternalIp() == task.GetLocalResource().Ip && dataNode.GetExternalPort() == task.GetLocalResource().Port {
+		if dataNode.GetExternalIp() == task.GetLocalResource().GetIp() && dataNode.GetExternalPort() == task.GetLocalResource().GetPort() {
 			dataNodeId = dataNode.GetId()
 			break
 		}
@@ -266,7 +266,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 		return errors.New("query internal jobNodes failed")
 	}
 	for _, jobNode := range jobNodes {
-		if jobNode.GetExternalIp() == task.GetLocalResource().Ip && jobNode.GetExternalPort() == task.GetLocalResource().Port {
+		if jobNode.GetExternalIp() == task.GetLocalResource().GetIp() && jobNode.GetExternalPort() == task.GetLocalResource().GetPort() {
 			jobNodeId = jobNode.GetId()
 			break
 		}
@@ -343,7 +343,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 		return errors.New("query internal dataNodes failed")
 	}
 	for _, dataNode := range dataNodes {
-		if dataNode.GetExternalIp() == task.GetLocalResource().Ip && dataNode.GetExternalPort() == task.GetLocalResource().Port {
+		if dataNode.GetExternalIp() == task.GetLocalResource().GetIp() && dataNode.GetExternalPort() == task.GetLocalResource().GetPort() {
 			dataNodeId = dataNode.GetId()
 			break
 		}
@@ -405,7 +405,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 		return errors.New("query internal jobNodes failed")
 	}
 	for _, jobNode := range jobNodes {
-		if jobNode.GetExternalIp() == task.GetLocalResource().Ip && jobNode.GetExternalPort() == task.GetLocalResource().Port {
+		if jobNode.GetExternalIp() == task.GetLocalResource().GetIp() && jobNode.GetExternalPort() == task.GetLocalResource().GetPort() {
 			jobNodeId = jobNode.GetId()
 			break
 		}
@@ -555,22 +555,6 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 }
 
-func (m *Manager) sendTaskResourceUsageMsgToTaskSender(task *types.NeedExecuteTask, usage *types.TaskResuorceUsage) {
-
-
-	/*else {
-
-		// handle resource usage quo on current peer that it will update power supplier resource usage info of task.
-		//
-		// send msg to current peer
-		if err := m.onTaskResourceUsageMsg(task.GetRemotePID(), msg, types.LocalNetworkMsg); nil != err {
-			log.WithError(err).Errorf("failed to call `OnTaskResourceUsageMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
-				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
-			return
-		}
-	}*/
-}
-
 func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 	sender := task.GetTaskSender()
@@ -676,6 +660,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 func (m *Manager) sendLocalTaskToScheduler(tasks types.TaskDataArray) {
 	m.localTasksCh <- tasks
+	log.Infof("Succeed send to scheduler tasks count on taskManager.SendTaskMsgArr(), task arr len: %d", len(tasks))
 }
 func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
 	m.eventCh <- event

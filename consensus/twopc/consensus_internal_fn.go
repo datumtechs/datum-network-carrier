@@ -321,26 +321,6 @@ func (t *Twopc) stopTaskConsensus(
 			remotePID = ""
 		}
 
-
-		selfvote := t.getPrepareVote(proposalId, sender.GetPartyId())
-		if nil == selfvote {
-			log.Errorf("Failed to find local cache about prepareVote myself internal resource on `2pc.stopTaskConsensus()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
-				proposalId.String(), taskId, senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
-			return
-		}
-
-		peers, ok := t.getConfirmTaskPeerInfo(proposalId)
-		if !ok {
-			log.Errorf("Failed to find local cache about prepareVote all peer resource {externalIP:externalPORT} on `2pc.stopTaskConsensus()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}",
-				proposalId.String(), taskId, senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName())
-
-			return
-		}
-
-		log.Debugf("Find vote resources on `2pc.stopTaskConsensus()` proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, identityId: {%s}, nodeName: {%s}, self vote: %s, peers: %s",
-			proposalId.String(), taskId, senderRole.String(), sender.GetPartyId(), sender.GetIdentityId(), sender.GetNodeName(),
-			selfvote.String(), peers.String())
-
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
 			remotePID,
 			proposalId,
@@ -350,8 +330,8 @@ func (t *Twopc) stopTaskConsensus(
 			receiver,
 			taskId,
 			taskActionStatus,
-			selfvote.GetPeerInfo(),
-			peers,
+			&types.PrepareVoteResource{},   // zero value
+			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
 		))
 
 		// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)

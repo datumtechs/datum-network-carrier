@@ -201,14 +201,14 @@ func (m *Manager) loop() {
 			go func() {
 
 				// Do duplication check ...
-				_, err := m.resourceMng.GetDB().QueryLocalTask(needReplayScheduleTask.GetTask().GetTaskId())
-				if rawdb.IsNoDBNotFoundErr(err) {
+				has, err := m.resourceMng.GetDB().HasLocalTask(needReplayScheduleTask.GetTask().GetTaskId())
+				if nil != err {
 					log.WithError(err).Errorf("Failed to query local task when received remote task, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
 					return
 				}
 
 				// There is no need to store local tasks repeatedly
-				if rawdb.IsDBNotFoundErr(err) {
+				if !has {
 
 					log.Infof("Start to store local task on taskManager.loop() when received needReplayScheduleTask, taskId: {%s}", needReplayScheduleTask.GetTask().GetTaskId())
 

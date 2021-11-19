@@ -87,8 +87,11 @@ func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
 		return nil
 	}); nil != err {
 		log.WithError(err).Fatalf("recover taskBullet queue/starveQueue/schedulings failed")
+		return
 	}
-	return
+
+	// todo need fill `pending` task into queue ?
+
 }
 func (sche *SchedulerStarveFIFO) Start() error {
 	//go sche.loop()

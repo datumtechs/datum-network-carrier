@@ -11,18 +11,6 @@ import (
 	"strings"
 )
 
-//func (svr *Server) GetMetadataDetail(ctx context.Context, req *pb.GetMetadataDetailRequest) (*pb.GetMetadataDetailResponse, error) {
-//	if req.GetMetadataId() == "" {
-//		return nil, errors.New("required metadataId")
-//	}
-//	metadataDetail, err := svr.B.GetMetadataDetail(req.QueryIdentityId(), req.GetMetadataId())
-//	if nil != err {
-//		log.WithError(err).Error("RPC-API:GetMetadataDetail failed")
-//		return nil, ErrGetMetadataDetail
-//	}
-//	return metadataDetail, nil
-//}
-
 func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetGlobalMetadataDetailListResponse, error) {
 	metadataList, err := svr.B.GetGlobalMetadataDetailList()
 	if nil != err {

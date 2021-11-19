@@ -652,10 +652,10 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 		TaskId:                 task.GetTaskId(),
 		ConsStatus:             bytesutil.Uint16ToBytes(uint16(task.GetConsStatus())),
 		LocalResource: &libtypes.PrepareVoteResource{
-			Id:      task.GetLocalResource().Id,
-			Ip:      task.GetLocalResource().Ip,
-			Port:    task.GetLocalResource().Port,
-			PartyId: task.GetLocalResource().PartyId,
+			Id:      task.GetLocalResource().GetId(),
+			Ip:      task.GetLocalResource().GetIp(),
+			Port:    task.GetLocalResource().GetPort(),
+			PartyId: task.GetLocalResource().GetPartyId(),
 		},
 		Resources: task.GetResources(),
 	})

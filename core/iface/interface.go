@@ -125,6 +125,7 @@ type IdentityCarrierDB interface {
 type TaskCarrierDB interface {
 	StoreLocalTask(task *types.Task) error
 	RemoveLocalTask(taskId string) error
+	HasLocalTask(taskId string) (bool, error)
 	QueryLocalTask(taskId string) (*types.Task, error)
 	QueryLocalTaskListByIds(taskIds []string) (types.TaskDataArray, error)
 	QueryLocalTaskList() (types.TaskDataArray, error)

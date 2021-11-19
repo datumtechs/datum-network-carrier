@@ -17,7 +17,8 @@ func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *emptypb.E
 		log.WithError(err).Error("RPC-API:GetGlobalPowerSummaryList failed")
 		return nil, ErrGetTotalPowerList
 	}
-	log.Debugf("RPC-API:GetGlobalPowerSummaryList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerSummaryResponseArrString(powerList))
+	//log.Debugf("RPC-API:GetGlobalPowerSummaryList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerSummaryResponseArrString(powerList))
+	log.Debugf("RPC-API:GetGlobalPowerSummaryList succeed, powerList: {%d}", len(powerList))
 	return &pb.GetGlobalPowerSummaryListResponse{
 		Status:    0,
 		Msg:       backend.OK,
@@ -31,7 +32,8 @@ func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *emptypb.Em
 		log.WithError(err).Error("RPC-API:GetGlobalPowerDetailList failed")
 		return nil, ErrGetTotalPowerList
 	}
-	log.Debugf("RPC-API:GetGlobalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerDetailResponseArrString(powerList))
+	//log.Debugf("RPC-API:GetGlobalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerDetailResponseArrString(powerList))
+	log.Debugf("RPC-API:GetGlobalPowerDetailList succeed, powerList: {%d}", len(powerList))
 	return &pb.GetGlobalPowerDetailListResponse{
 		Status:    0,
 		Msg:       backend.OK,
@@ -45,7 +47,8 @@ func (svr *Server) GetLocalPowerDetailList(ctx context.Context, req *emptypb.Emp
 		log.WithError(err).Error("RPC-API:GetLocalPowerDetailList failed")
 		return nil, ErrGetSinglePowerList
 	}
-	log.Debugf("RPC-API:GetLocalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetLocalPowerDetailResponseArrString(powerList))
+	//log.Debugf("RPC-API:GetLocalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetLocalPowerDetailResponseArrString(powerList))
+	log.Debugf("RPC-API:GetLocalPowerDetailList succeed, powerList: {%d}", len(powerList))
 	return &pb.GetLocalPowerDetailListResponse{
 		Status:    0,
 		Msg:       backend.OK,

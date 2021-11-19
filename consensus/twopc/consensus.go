@@ -581,7 +581,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	// check msg confirm option value is `start` or `stop` ?
 	if msg.GetConfirmOption() == types.TwopcMsgStop || msg.GetConfirmOption() == types.TwopcMsgUnknown {
-		log.Errorf("Failed to verify confirmMsgOption of confirmMsg on onConfirmMsg, confirmMsgOption is not `Start`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
+		log.Warnf("verify confirmMsgOption is not `Start` of confirmMsg on onConfirmMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetConfirmOption().String())
 		// release local resource and clean some data  (on task partner)
 		t.stopTaskConsensus("on onConfirmMsg", msg.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
@@ -897,7 +897,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 	// check msg commit option value is `start` or `stop` ?
 	if msg.GetCommitOption() == types.TwopcMsgStop || msg.GetCommitOption() == types.TwopcMsgUnknown {
-		log.Errorf("Failed to verify commitMsgOption of commitMsg on onCommitMsg, commitMsgOption is not `Start`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
+		log.Warnf("verify commitMsgOption is not `Start` of commitMsg on onCommitMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetCommitOption().String())
 		// release local resource and clean some data  (on task partner)
 		t.stopTaskConsensus("on onCommitMsg", msg.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
@@ -913,11 +913,11 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 		// store succeed consensus event for partyId
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-			Type:       ev.TaskFinishedConsensus.Type,
+			Type:       ev.TaskSucceedConsensus.Type,
 			TaskId:     proposalTask.GetTaskId(),
 			IdentityId: receiver.GetIdentityId(),
 			PartyId:    receiver.GetPartyId(),
-			Content:    fmt.Sprintf("finished consensus succeed."),
+			Content:    fmt.Sprintf("succeed consensus."),
 			CreateAt:   timeutils.UnixMsecUint64(),
 		})
 		// If receiving `CommitMsg` is successful,
