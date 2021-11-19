@@ -28,6 +28,10 @@ import (
 )
 
 func (m *Manager) tryScheduleTask() error {
+
+	// TODO 一: 需要提前判断下 本地资源 的实况 和 全网的资源实况, 再做决定是否开启调度 ??
+	// TODO 二: 共识中是否区分 interrupt 中止, 和 end 终止 ?? ---- 中止的task可以 repush, 而 终止的task直接 remove ??
+
 	nonConsTask, err := m.scheduler.TrySchedule()
 	if nil == err && nil == nonConsTask {
 		return nil
