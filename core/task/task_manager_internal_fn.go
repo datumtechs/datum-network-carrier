@@ -268,9 +268,9 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 		return err
 	}
-	if !resp.Ok {
-		log.Errorf("Falied to executing task from `data-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
-			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
+	if !resp.GetOk() {
+		log.Errorf("Falied to executing task from `data-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}, resp: %s",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId, resp.String())
 		return nil
 	}
 
@@ -305,13 +305,13 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	// clinet *grpclient.JobNodeClient,
 	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
 	if !has {
-		log.Errorf("Failed to query internal job node on `taskManager.executeTaskOnJobNode()`,  taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+		log.Errorf("Failed to query internal job node on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return errors.New("job node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
-			log.WithError(err).Errorf("Failed to connect internal job node on `taskManager.executeTaskOnJobNode()`,  taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+			log.WithError(err).Errorf("Failed to connect internal job node on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 			return err
 		}
@@ -319,24 +319,24 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 
 	req, err := m.makeTaskReadyGoReq(task)
 	if nil != err {
-		log.WithError(err).Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnJobNode()`,  taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+		log.WithError(err).Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return err
 	}
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
-		log.WithError(err).Errorf("Falied to publish schedTask to `job-Fighter` node to executing,  taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+		log.WithError(err).Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return err
 	}
-	if !resp.Ok {
-		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing the resp code is not `ok`,  taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
-			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
+	if !resp.GetOk() {
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}, resp: %s",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId, resp.String())
 		return nil
 	}
 
-	log.Infof("Success to publish schedTask to `job-Fighter` node to executing,  taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 	return nil
 }
@@ -382,39 +382,39 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 	// clinet *grpclient.DataNodeClient,
 	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
 	if !has {
-		log.Errorf("Failed to query internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}",
-			task.GetTaskId(), dataNodeId)
+		log.Errorf("Failed to query internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 		return errors.New("data node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
-			log.WithError(err).Errorf("Failed to connect internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}",
-				task.GetTaskId(), dataNodeId)
+			log.WithError(err).Errorf("Failed to connect internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 			return err
 		}
 	}
 
 	req, err := m.makeTerminateTaskReq(task)
 	if nil != err {
-		log.WithError(err).Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, dataNodeId: {%s}",
-			task.GetTaskId(), dataNodeId)
+		log.WithError(err).Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 		return err
 	}
 
 	resp, err := client.HandleCancelTask(req)
 	if nil != err {
-		log.WithError(err).Errorf("Falied to call publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, dataNodeId: {%s}",
-			task.GetTaskId(), dataNodeId)
+		log.WithError(err).Errorf("Falied to call publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 		return err
 	}
-	if !resp.Ok {
-		log.Errorf("Falied to executing task from `data-Fighter` node to terminating the resp code is not `ok`, taskId: {%s}, dataNodeId: {%s}, resp: {%s}",
-			task.GetTaskId(), dataNodeId, resp.String())
+	if !resp.GetOk() {
+		log.Errorf("Falied to executing task from `data-Fighter` node to terminating the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}, resp: %s",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId, resp.String())
 		return nil
 	}
 
-	log.Infof("Success to publish schedTask to `data-Fighter` node to terminating,  taskId: {%s}, dataNodeId: {%s}",
-		task.GetTaskId(), dataNodeId)
+	log.Infof("Success to publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
+		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
 	return nil
 }
 
@@ -444,39 +444,39 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 	// clinet *grpclient.JobNodeClient,
 	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
 	if !has {
-		log.Errorf("Failed to query internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}",
-			task.GetTaskId(), jobNodeId)
+		log.Errorf("Failed to query internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return errors.New("job node client not found")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
-			log.WithError(err).Errorf("Failed to connect internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}",
-				task.GetTaskId(), jobNodeId)
+			log.WithError(err).Errorf("Failed to connect internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 			return err
 		}
 	}
 
 	req, err := m.makeTerminateTaskReq(task)
 	if nil != err {
-		log.WithError(err).Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, jobNodeId: {%s}",
-			task.GetTaskId(), jobNodeId)
+		log.WithError(err).Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnJobNode()`,taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return err
 	}
 
 	resp, err := client.HandleCancelTask(req)
 	if nil != err {
-		log.WithError(err).Errorf("Falied to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, jobNodeId: {%s}",
-			task.GetTaskId(), jobNodeId)
+		log.WithError(err).Errorf("Falied to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 		return err
 	}
-	if !resp.Ok {
-		log.Errorf("Falied to publish schedTask to `job-Fighter` node to terminating the resp code is not `ok`, taskId: {%s}, jobNodeId: {%s}",
-			task.GetTaskId(), jobNodeId)
+	if !resp.GetOk() {
+		log.Errorf("Falied to publish schedTask to `job-Fighter` node to terminating the resp code is not `ok`,taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}, resp: %s",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId, resp.String())
 		return nil
 	}
 
-	log.Infof("Success to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, jobNodeId: {%s}",
-		task.GetTaskId(), jobNodeId)
+	log.Infof("Success to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
+		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
 	return nil
 }
 
