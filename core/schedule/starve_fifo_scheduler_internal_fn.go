@@ -140,7 +140,7 @@ func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 	}
 }
 
-func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.YarnRegisteredPeerDetail, error) {
+func (sche *SchedulerStarveFIFO) electionJobNode(needSlotCount uint64) (*pb.YarnRegisteredPeerDetail, error) {
 
 	if nil == sche.internalNodeSet || 0 == sche.internalNodeSet.JobNodeClientSize() {
 		return nil, errors.New("not found alive jobNode")
@@ -152,15 +152,15 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 	if nil != err {
 		return nil, err
 	}
-	log.Debugf("QueryLocalResourceTables on electionComputeNode, localResources: %s", utilLocalResourceArrString(tables))
+	log.Debugf("QueryLocalResourceTables on electionJobNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
 		isEnough := r.IsEnough(uint32(needSlotCount))
-		log.Debugf("Call electionComputeNode, resource: %s, isEnough: %v", r.String(), isEnough)
+		log.Debugf("Call electionJobNode, resource: %s, isEnough: %v", r.String(), isEnough)
 		if isEnough {
 			jobNodeClient, find := sche.internalNodeSet.QueryJobNodeClient(r.GetNodeId())
 			if find && jobNodeClient.IsConnected() {
 				resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
-				log.Debugf("Call electionComputeNode, Append resourceId: %s", r.GetNodeId())
+				log.Debugf("Call electionJobNode, append resourceId: %s", r.GetNodeId())
 			}
 		}
 	}
@@ -180,7 +180,7 @@ func (sche *SchedulerStarveFIFO) electionComputeNode(needSlotCount uint64) (*pb.
 	return jobNode, nil
 }
 
-func (sche *SchedulerStarveFIFO) electionComputeOrg(
+func (sche *SchedulerStarveFIFO) electionPowerOrg(
 	powerPartyIds []string,
 	skipIdentityIdCache map[string]struct{},
 	cost *twopctypes.TaskOperationCost,
@@ -198,7 +198,7 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 		return nil, fmt.Errorf("query identityList count less calculate count")
 	}
 
-	log.Debugf("QueryIdentityList by dataCenter on electionComputeOrg, len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
+	log.Debugf("QueryIdentityList by dataCenter on electionPowerOrg, len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 
@@ -220,7 +220,7 @@ func (sche *SchedulerStarveFIFO) electionComputeOrg(
 		return nil, err
 	}
 	//log.Debugf("GetRemoteResouceTables on electionComputeOrg, globalResources: %s", utilRemoteResourceArrString(globalResources))
-	log.Debugf("GetRemoteResouceTables on electionComputeOrg, len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
+	log.Debugf("GetRemoteResouceTables on electionPowerOrg, len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
 
 	if len(globalResources) < calculateCount {
 		return nil, fmt.Errorf("query org's power resource count less calculate count")

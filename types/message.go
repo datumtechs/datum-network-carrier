@@ -693,10 +693,6 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 		}),
 	}
 }
-func ConvertTaskMsgToTaskWithPowers(task *Task, powers []*libtypes.TaskPowerSupplier) *Task {
-	task.SetResourceSupplierArr(powers)
-	return task
-}
 
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }

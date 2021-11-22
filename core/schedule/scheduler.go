@@ -13,6 +13,6 @@ type Scheduler interface {
 	AddTask(task *types.Task) error
 	RepushTask(task *types.Task) error
 	RemoveTask(taskId string) error
-	TrySchedule() (*types.NeedConsensusTask, error)
+	TrySchedule() (*types.Task, string, error)
 	ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, task *types.Task) *types.ReplayScheduleResult
 }

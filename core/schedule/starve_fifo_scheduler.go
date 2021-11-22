@@ -12,7 +12,6 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"sync"
 )
@@ -25,7 +24,9 @@ const (
 var (
 	ErrEnoughResourceOrgCountLessCalculateCount = fmt.Errorf("the enough resource org count is less calculate count")
 	ErrEnoughInternalResourceCount              = fmt.Errorf("has not enough internal resource count")
-	ErrRescheduleLargeThreshold                 = errors.New("The reschedule count of task bullet is large than max threshold")
+	ErrRescheduleLargeThreshold                 = fmt.Errorf("the reschedule count of task bullet is large than max threshold")
+	ErrAbandonTaskWithNotFoundTask              = fmt.Errorf("the task must be abandoned with not found local task")
+	ErrAbandonTaskWithNotFoundPowerPartyIds     = fmt.Errorf("the task must be abandoned with not found power partyIds of local task")
 )
 
 type SchedulerStarveFIFO struct {
@@ -44,7 +45,6 @@ type SchedulerStarveFIFO struct {
 	eventEngine *evengine.EventEngine
 	//dataCenter      iface.ForResourceDB
 	err error
-
 }
 
 func NewSchedulerStarveFIFO(
@@ -127,40 +127,26 @@ func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {
 	return sche.removeTaskBullet(taskId)
 }
 
-func (sche *SchedulerStarveFIFO) TrySchedule() (needConsensusTask *types.NeedConsensusTask, err error) {
+func (sche *SchedulerStarveFIFO) TrySchedule() (task *types.Task, taskId string, err error) {
 
 	sche.increaseTotalTaskTerm()
 	bullet := sche.popTaskBullet()
-
 	if nil == bullet {
-		return nil, nil
+		return nil, "", nil
 	}
 	bullet.IncreaseResched()
 
-	defer func() {
-		if er := recover(); nil != er {
-			if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
-				needConsensusTask, err =  nil, ErrRescheduleLargeThreshold
-			} else {
-				err =  fmt.Errorf("%s", er)
-			}
-		}
-	}()
-
-	task, err := sche.resourceMng.GetDB().QueryLocalTask(bullet.GetTaskId())
+	task, err = sche.resourceMng.GetDB().QueryLocalTask(bullet.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to QueryLocalTask on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", bullet.GetTaskId())
-		sche.removeTaskBullet(bullet.GetTaskId())
-		panic(err.Error())
+		log.WithError(err).Errorf("Failed to query local task, must abandon it on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", bullet.GetTaskId())
+		return nil, bullet.GetTaskId(), ErrAbandonTaskWithNotFoundTask
 	}
-
-	needConsensusTask = types.NewNeedConsensusTask(task)
 
 	// query the powerPartyIds of this task
 	powerPartyIds, err := sche.resourceMng.GetDB().QueryTaskPowerPartyIds(task.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query powerPartyIds of task on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-		panic(err.Error())
+		log.WithError(err).Errorf("Failed to query power partyIds of local task, must abandon it on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
+		return task, bullet.GetTaskId(), ErrAbandonTaskWithNotFoundPowerPartyIds
 	}
 
 	cost := &ctypes.TaskOperationCost{
@@ -174,22 +160,22 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (needConsensusTask *types.NeedCon
 		task.GetTaskData().TaskId, task.GetTaskData().PartyId, cost.String())
 
 	// election other org's power resources
-	powers, err := sche.electionComputeOrg(powerPartyIds, nil, cost)
+	powers, err := sche.electionPowerOrg(powerPartyIds, nil, cost)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-		panic(err.Error())
+		return task, bullet.GetTaskId(), fmt.Errorf("election powerOrg failed, %s", err)
 	}
 
 	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powers: %s", task.GetTaskId(), utilOrgPowerArrString(powers))
 
 	// Set elected powers into task info, and restore into local db.
-	task = types.ConvertTaskMsgToTaskWithPowers(task, powers)
+	task.SetResourceSupplierArr(powers)
 	// restore task by power
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.WithError(err).Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-		panic(err.Error())
+		return task, bullet.GetTaskId(), fmt.Errorf("update local task failed, %s", err)
 	}
-	return needConsensusTask, nil
+	return task, bullet.GetTaskId(), nil
 }
 func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, task *types.Task) *types.ReplayScheduleResult {
 
@@ -222,7 +208,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 			powerPartyIds[i] = power.GetOrganization().GetPartyId()
 		}
 		// mock election power orgs
-		powers, err := sche.electionComputeOrg(powerPartyIds, nil, cost)
+		powers, err := sche.electionPowerOrg(powerPartyIds, nil, cost)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)
@@ -326,7 +312,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Bandwidth, cost.Processor)
-		jobNode, err := sche.electionComputeNode(needSlotCount)
+		jobNode, err := sche.electionJobNode(needSlotCount)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)
