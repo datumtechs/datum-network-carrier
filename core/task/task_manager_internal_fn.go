@@ -948,6 +948,7 @@ func (m *Manager) removeNeedExecuteTask(taskId string) {
 
 func (m *Manager) removeNeedExecuteTaskCache(taskId, partyId string) {
 	m.runningTaskCacheLock.Lock()
+	defer m.runningTaskCacheLock.Unlock()
 	cache, ok := m.runningTaskCache[taskId]
 	if !ok {
 		return
@@ -959,7 +960,6 @@ func (m *Manager) removeNeedExecuteTaskCache(taskId, partyId string) {
 	} else {
 		m.runningTaskCache[taskId] = cache // restore map[partyId]task if it is not empty
 	}
-	m.runningTaskCacheLock.Unlock()
 }
 
 func (m *Manager) hasNeedExecuteTaskCache(taskId, partyId string) bool {
@@ -991,13 +991,14 @@ func (m *Manager) mustQueryNeedExecuteTaskCache(taskId, partyId string) *types.N
 
 func (m *Manager) ForEachRunningTaskCache(f func(taskId string, task *types.NeedExecuteTask) bool) {
 	m.runningTaskCacheLock.Lock()
+	defer m.runningTaskCacheLock.Unlock()
 	for taskId, cache := range m.runningTaskCache {
 		for _, task := range cache {
 			if ok := f(taskId, task); ok {
 			}
 		}
 	}
-	m.runningTaskCacheLock.Unlock()
+
 }
 
 func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *taskmngpb.TaskResultMsg {
