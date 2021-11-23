@@ -111,10 +111,11 @@ func (t *Twopc) refreshProposalState() {
 	}
 
 	t.state.proposalsLock.Lock()
+	defer t.state.proposalsLock.Unlock()
 
 	for proposalId, pstate := range t.state.proposalSet {
 
-		pstate.MustLock()
+		//pstate.MustLock()
 		for partyId, orgState := range pstate.GetStateCache() {
 
 			if orgState.IsDeadline() {
@@ -285,10 +286,10 @@ func (t *Twopc) refreshProposalState() {
 			}
 		}
 
-		pstate.MustUnLock()
+		//pstate.MustUnLock()
 	}
 
-	t.state.proposalsLock.Unlock()
+
 }
 
 func (t *Twopc) stopTaskConsensus(
