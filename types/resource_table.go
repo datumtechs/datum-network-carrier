@@ -126,7 +126,6 @@ func (r *LocalResourceTable) FreeSlot(count uint32) error {
 func (r *LocalResourceTable) GetTotalSlot() uint32 { return r.slotTotal }
 func (r *LocalResourceTable) GetUsedSlot() uint32  { return r.slotUsed }
 
-//func (r *LocalResourceTable) GetLockedSlot() uint32 { return r.slotLocked }
 func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
 	if r.RemainSlot() < slotCount {
 		return false
