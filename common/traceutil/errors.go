@@ -20,13 +20,37 @@ func AnnotateError(span *trace.Span, err error) {
 	})
 }
 
-func GenerateParentSpan(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+func GenerateParentSpan(pid peer.ID, msg *pubsub.Message, spanId trace.SpanID) trace.SpanContext {
 	h := hashutil.Hash([]byte(msg.String()))
 	traceId := trace.TraceID{}
 	copy(traceId[0:], h[:16])
 	return trace.SpanContext{
 		TraceID:      traceId,
-		SpanID:       trace.SpanID{0, 1, 2, 3, 4, 5, 6, 7},
+		SpanID:       spanId,
 		TraceOptions: 1,
 	}
+}
+
+func GenerateParentSpanWithGossipTestData(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{1, 1, 1, 1, 1, 1, 1, 1})
+}
+
+func GenerateParentSpanWithCommitMsg(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{2, 2, 2, 2, 2, 2, 2, 2})
+}
+
+func GenerateParentSpanWithConfirmMsg(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{3, 3, 3, 3, 3, 3, 3, 3})
+}
+
+func GenerateParentSpanWithConfirmVote(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{4, 4, 4, 4, 4, 4, 4, 4})
+}
+
+func GenerateParentSpanWithPrepareMsg(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{5, 5, 5, 5, 5, 5, 5, 5})
+}
+
+func GenerateParentSpanWithPrepareVote(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{6, 6, 6, 6, 6, 6, 6, 6})
 }
