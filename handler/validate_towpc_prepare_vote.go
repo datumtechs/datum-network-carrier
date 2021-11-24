@@ -17,7 +17,8 @@ func (s *Service) validatePrepareVotePubSub(ctx context.Context, pid peer.ID, ms
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "handler.validatePrepareVotePubSub")
+	ctx, span := trace.StartSpanWithRemoteParent(ctx, "handler.validatePrepareVotePubSub",
+		traceutil.GenerateParentSpanWithPrepareVote(pid, msg))
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)

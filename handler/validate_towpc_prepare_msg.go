@@ -22,7 +22,8 @@ func (s *Service) validatePrepareMessagePubSub(ctx context.Context, pid peer.ID,
 		return pubsub.ValidationIgnore
 	}*/
 
-	ctx, span := trace.StartSpan(ctx, "handler.validatePrepareMessagePubSub")
+	ctx, span := trace.StartSpanWithRemoteParent(ctx, "handler.validatePrepareMessagePubSub",
+		traceutil.GenerateParentSpanWithPrepareMsg(pid, msg))
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)

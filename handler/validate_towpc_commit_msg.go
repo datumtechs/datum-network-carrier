@@ -17,7 +17,8 @@ func (s *Service) validateCommitMessagePubSub(ctx context.Context, pid peer.ID, 
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "handler.validateCommitMessagePubSub")
+	ctx, span := trace.StartSpanWithRemoteParent(ctx, "handler.validateCommitMessagePubSub",
+		traceutil.GenerateParentSpanWithCommitMsg(pid, msg))
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)
