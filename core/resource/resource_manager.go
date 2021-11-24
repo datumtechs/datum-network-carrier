@@ -137,11 +137,11 @@ func (m *Manager) RemoveLocalResourceTables() error {
 
 func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotCount uint64, task *types.Task) error {
 
-	log.Infof("Start lock local resource on resourceManager.LockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
+	log.Infof("Start lock local resource on resourceManager.LockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, needSlotCount {%d}", task.GetTaskId(), partyId, jobNodeId, needSlotCount)
 
 	// Lock local resource (jobNode)
 	if err := m.UseSlot(jobNodeId, uint32(needSlotCount)); nil != err {
-		log.WithError(err).Errorf("Failed to lock internal power resource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}",
+		log.WithError(err).Errorf("Failed to lock internal power resource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needSlotCount: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, needSlotCount)
 		return err
 	}
@@ -161,7 +161,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
-		log.WithError(err).Errorf("Failed to query local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}",
+		log.WithError(err).Errorf("Failed to query local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, needSlotCount: {%d}",
 			task.GetTaskId(), jobNodeId, needSlotCount)
 		return err
 	}
@@ -173,7 +173,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
-		log.WithError(err).Errorf("Failed to query task runningCount in jobNode on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}",
+		log.WithError(err).Errorf("Failed to query task runningCount in jobNode on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, needSlotCount: {%d}",
 			task.GetTaskId(), jobNodeId, needSlotCount)
 		return err
 	}
@@ -195,7 +195,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, needSlotC
 		m.FreeSlot(jobNodeId, uint32(needSlotCount))
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
-		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, usedSlotCount: {%d}",
+		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, jobNodeId: {%s}, needSlotCount: {%d}",
 			task.GetTaskId(), jobNodeId, needSlotCount)
 		return err
 	}

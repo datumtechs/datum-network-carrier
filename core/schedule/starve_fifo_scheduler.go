@@ -312,6 +312,10 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 
 		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Bandwidth, cost.Processor)
+
+		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, slotUnit: %s, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}, return needSlotCount: {%d}",
+			task.GetTaskId(), localTaskRole.String(), localPartyId, sche.resourceMng.GetSlotUnit().String(), cost.Mem, cost.Bandwidth, cost.Processor, needSlotCount)
+
 		jobNode, err := sche.electionJobNode(needSlotCount)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, role: {%s}, partyId: {%s}",

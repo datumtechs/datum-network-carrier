@@ -1,6 +1,8 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Slot struct {
 	Mem       uint64
@@ -12,6 +14,7 @@ func (s *Slot) CalculateSlotCount (mem, bandwidth uint64, processor uint32) uint
 	memCount := mem / s.Mem
 	processorCount := processor / s.Processor
 	bandwidthCount := bandwidth / s.Bandwidth
+
 	return min3number(memCount, uint64(processorCount), bandwidthCount)
 }
 
