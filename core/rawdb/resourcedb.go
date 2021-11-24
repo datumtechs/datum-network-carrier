@@ -144,12 +144,13 @@ func QueryNodeResourceSlotUnit(db DatabaseReader) (*types.Slot, error) {
 
 // Operate the information of the jobNode resources being used by the local task
 func StoreLocalTaskPowerUsed(db KeyValueStore, taskPowerUsed *types.LocalTaskPowerUsed) error {
-
+	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	key := GetLocalTaskPowerUsedKey(taskPowerUsed.GetTaskId(), taskPowerUsed.GetPartyId())
 	val, err := rlp.EncodeToBytes(taskPowerUsed)
 	if nil != err {
 		return err
 	}
+	log.Debugf("Call StoreLocalTaskPowerUsed, taskId: {%s}, partyId: {%s}, used: {%s}", taskPowerUsed.GetTaskId(), taskPowerUsed.GetPartyId(), taskPowerUsed.String())
 	return db.Put(key, val)
 }
 
@@ -219,6 +220,8 @@ func QueryLocalTaskPowerUsed(db DatabaseReader, taskId, partyId string) (*types.
 	if err := rlp.DecodeBytes(vb, &taskPowerUsed); nil != err {
 		return nil, err
 	}
+	used := &taskPowerUsed
+	log.Debugf("Call QueryLocalTaskPowerUsed, taskId: {%s}, partyId: {%s}, used: {%s}", taskId, partyId, used.String())
 	return &taskPowerUsed, nil
 }
 
