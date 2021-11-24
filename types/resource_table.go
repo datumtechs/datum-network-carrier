@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/common/mathutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 )
@@ -72,11 +73,12 @@ func (r *LocalResourceTable) GetAssign() bool      { return r.assign }
 func (r *LocalResourceTable) GetSlotTotal() uint32 { return r.slotTotal }
 func (r *LocalResourceTable) GetSlotUsed() uint32  { return r.slotUsed }
 func (r *LocalResourceTable) SetSlotUnit(slot *Slot) {
-	memCount := r.nodeResource.mem / slot.Mem
-	processorCount := r.nodeResource.processor / slot.Processor
-	bandwidthCount := r.nodeResource.bandwidth / slot.Bandwidth
 
-	min := min3number(memCount, uint64(processorCount), bandwidthCount)
+	memCount := r.nodeResource.mem / slot.GetMem()
+	processorCount := r.nodeResource.processor / slot.GetProcessor()
+	bandwidthCount := r.nodeResource.bandwidth / slot.GetBandwidth()
+
+	min := mathutil.Min3number(memCount, uint64(processorCount), bandwidthCount)
 
 	r.slotTotal = uint32(min)
 }
@@ -84,18 +86,32 @@ func (r *LocalResourceTable) SetSlotUnit(slot *Slot) {
 func (r *LocalResourceTable) RemainSlot() uint32 { return r.slotTotal - r.slotUsed }
 func (r *LocalResourceTable) UseSlot(count uint32) error {
 
+	if count == 0 {
+		return nil
+	}
+
 	if r.RemainSlot() < count {
 		return fmt.Errorf("Failed to lock local resource, slotRemain {%d} less than need lock count {%d}", r.RemainSlot(), count)
 	}
 	r.slotUsed += count
-	r.assign = true
+	if r.slotUsed > 0{
+		r.assign = true
+	}
 	return nil
 }
 func (r *LocalResourceTable) FreeSlot(count uint32) error {
 	if !r.assign {
 		return nil
 	}
-	if r.slotUsed == 0 || r.slotUsed < count {
+
+	if count == 0 {
+		return nil
+	}
+
+	if r.slotUsed == 0 {
+		return nil
+	}
+	if r.slotUsed < count {
 		return fmt.Errorf("Failed to unlock local resource, slotUsed {%d} less than need free count {%d}", r.slotUsed, count)
 	} else {
 		r.slotUsed -= count
@@ -142,20 +158,6 @@ func (r *LocalResourceTable) DecodeRLP(s *rlp.Stream) error {
 			dec.NodeId, dec.PowerId, dec.Assign, dec.SlotTotal, dec.SlotUsed, nodeResource
 	}
 	return err
-}
-
-func min3number(a, b, c uint64) uint64 {
-	var min uint64
-	if a > b {
-		min = b
-	} else {
-		min = a
-	}
-
-	if min > c {
-		min = c
-	}
-	return min
 }
 
 type resource struct {
