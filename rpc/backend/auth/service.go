@@ -160,6 +160,12 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		return nil, ErrReqUserSignForMetadataAuthApply
 	}
 
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query local identity failed")
+		return nil, fmt.Errorf("query local identity failed")
+	}
+
 	now := timeutils.UnixMsecUint64()
 	switch req.GetAuth().GetUsageRule().GetUsageType() {
 	case apicommonpb.MetadataUsageType_Usage_Period:
@@ -277,6 +283,11 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 		return nil, ErrReqUserSignForRevokeMetadataAuth
 	}
 
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local identity failed")
+		return nil, fmt.Errorf("query local identity failed")
+	}
 
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList()
 	if nil != err {
@@ -330,6 +341,12 @@ func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMeta
 
 	if req.GetAudit() == apicommonpb.AuditMetadataOption_Audit_Pending {
 		return nil, ErrValidAuditMetadataOptionMustCannotPending
+	}
+
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:AuditMetadataAuthority failed, query local identity failed")
+		return nil, fmt.Errorf("query local identity failed")
 	}
 
 	option, err := svr.B.AuditMetadataAuthority(types.NewMetadataAuthAudit(req.GetMetadataAuthId(), req.GetSuggestion(), req.GetAudit()))

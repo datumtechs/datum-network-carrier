@@ -37,6 +37,19 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query metadataAuth failed, %s", err)
 	}
 
+	identity, err := ma.dataCenter.QueryIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local identity on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
+			audit.GetMetadataAuthId())
+		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query local identity failed, %s", err)
+	}
+
+	if identity.GetIdentityId() != metadataAuth.GetData().GetAuth().GetOwner().GetIdentityId() {
+		log.Errorf("Failed to verify local identity and identity of metadataAuth owner, they is not same identity on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
+			audit.GetMetadataAuthId())
+		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("metadataAuth did not current own, %s", err)
+	}
+
 	// find metadataAuthId second (from local db)
 	metadataAuthId, err := ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId())
 	if rawdb.IsNoDBNotFoundErr(err) {

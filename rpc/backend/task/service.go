@@ -175,7 +175,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed, can not publish task")
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed")
 		return nil, ErrPublishTaskDeclare
 	}
 
