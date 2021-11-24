@@ -221,7 +221,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	jobNodeId := used.GetNodeId()
 	freeSlotUnitCount := used.GetSlotCount()
 
-	log.Infof("Start unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, slotCount {%d}, used: %s", taskId, partyId, jobNodeId, freeSlotUnitCount, used.String())
+	log.Infof("Start unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, freeSlotUnitCount {%d}, used: %s", taskId, partyId, jobNodeId, freeSlotUnitCount, used.String())
 
 	// Unlock local resource (jobNode)
 	if err := m.FreeSlot(used.GetNodeId(), uint32(freeSlotUnitCount)); nil != err {
