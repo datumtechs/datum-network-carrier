@@ -373,38 +373,39 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 		return pb.ConnState_ConnState_UnConnected, errors.New("invalid nodeType")
 	}
 	if typ == pb.PrefixTypeJobNode {
-		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
+		s.carrier.resourceClientSet.StoreJobNodeClient(node.GetId(), client)
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
 		}
 		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
-		if err = s.storeLocalResource(identity, node.Id, jobNodeStatus); nil != err {
+		if err = s.storeLocalResource(identity, node.GetId(), jobNodeStatus); nil != err {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
 		}
 	}
 	if typ == pb.PrefixTypeDataNode {
-		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
+		s.carrier.resourceClientSet.StoreDataNodeClient(node.GetId(), client)
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add data resource  (disk)
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
 		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
+		log.Debugf("Add dataNode resource table succeed, nodeId: {%s}, totalDisk: {%d}, usedDisk: {%d}", node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk())
 	}
 	node.ConnState = pb.ConnState_ConnState_Connected
 	if err = s.carrier.carrierDB.SetRegisterNode(typ, node); err != nil {
@@ -428,7 +429,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 	if typ == pb.PrefixTypeJobNode {
 
 		// The published jobNode cannot be updated directly
-		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.Id)
+		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(node.GetId())
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local power resource on old jobNode failed, %s", err)
 		}
@@ -440,7 +441,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		}
 
 		// First check whether there is a task being executed on jobNode
-		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(node.Id)
+		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(node.GetId())
 		if rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
 		}
@@ -448,25 +449,25 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
 		}
 
-		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(node.Id); ok {
+		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(node.GetId()); ok {
 			// remove old client instanse
 			client.Close()
-			s.carrier.resourceClientSet.RemoveJobNodeClient(node.Id)
+			s.carrier.resourceClientSet.RemoveJobNodeClient(node.GetId())
 		}
 
 		// generate new client
-		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		client, err := grpclient.NewJobNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreJobNodeClient(node.Id, client)
+		s.carrier.resourceClientSet.StoreJobNodeClient(node.GetId(), client)
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect jobNode query status failed, %s", err)
 		}
 		// add resource usage first, but not own power now (mem, proccessor, bandwidth)
-		if err = s.storeLocalResource(identity, node.Id, jobNodeStatus); nil != err {
+		if err = s.storeLocalResource(identity, node.GetId(), jobNodeStatus); nil != err {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store jobNode local resource failed, %s", err)
 		}
 
@@ -484,37 +485,38 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		//		dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
 		//}
 
-		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(node.Id); ok {
+		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(node.GetId()); ok {
 			// remove old client instanse
 			client.Close()
-			s.carrier.resourceClientSet.RemoveDataNodeClient(node.Id)
+			s.carrier.resourceClientSet.RemoveDataNodeClient(node.GetId())
 		}
 
 		// remove old data resource  (disk)
-		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.Id); rawdb.IsNoDBNotFoundErr(err) {
+		if err := s.carrier.carrierDB.RemoveDataResourceTable(node.GetId()); rawdb.IsNoDBNotFoundErr(err) {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("remove disk summary of old dataNode, %s", err)
 		}
 
-		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+		client, err := grpclient.NewDataNodeClientWithConn(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreDataNodeClient(node.Id, client)
+		s.carrier.resourceClientSet.StoreDataNodeClient(node.GetId(), client)
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add new data resource  (disk)
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
 		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
 		}
+		log.Debugf("Update dataNode resource table succeed, nodeId: {%s}, totalDisk: {%d}, usedDisk: {%d}", node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk())
 	}
 
 	// remove  old jobNode from db
-	if err := s.carrier.carrierDB.DeleteRegisterNode(typ, node.Id); nil != err {
+	if err := s.carrier.carrierDB.DeleteRegisterNode(typ, node.GetId()); nil != err {
 		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("remove old registerNode from db failed, %s", err)
 	}
 
