@@ -11,22 +11,22 @@ var (
 	// TODO 写死的 资源固定消耗 ...
 	multipleNumber  = uint64(8)
 	DefaultSlotUnit = &Slot{
-		Mem:       1024 * 1024 * 2, // 2mb      (byte)
-		Processor: 1,               // 1核      (cpu)
-		Bandwidth: 1024 * 64,       // 64kbps   (bps)  64kbps ÷8 = 8k/s
+		Mem:       1024 * 1024 * 1024 * 1, 			// 1GB        (byte)
+		Processor: 1,               				// 1核        (cpu)
+		Bandwidth: 1024 * 1024 * 4,       			// 4.00 MBP/S      64kbps    (bps)  64kbps ÷8 = 8k/s
 	}
-	DefaultResouece = &resource{
-		mem:       1024 * 1024 * 1024 * multipleNumber,           // 8*gb     (byte)
-		processor: 2 * uint32(multipleNumber),                    // 18 cpu   (cpu)
-		bandwidth: 1024 * 1024 * multipleNumber * multipleNumber, // 64Mbps   (bps)   64Mbps÷8=8M/s，这相当于60兆宽带的下载速度，宽带应该是100兆
-	}
-
-	DefaultDisk = uint64(10 * 1024 * 1024 * 1024 * 1024 * 1024) //10pb
+	//DefaultResouece = &resource{
+	//	mem:       1024 * 1024 * 1024 * multipleNumber,           // 8*gb     (byte)
+	//	processor: 2 * uint32(multipleNumber),                    // 18 cpu   (cpu)
+	//	bandwidth: 1024 * 1024 * multipleNumber * multipleNumber, // 64Mbps   (bps)   64Mbps÷8=8M/s，这相当于60兆宽带的下载速度，宽带应该是100兆
+	//}
+	//
+	//DefaultDisk = uint64(10 * 1024 * 1024 * 1024 * 1024 * 1024) //10pb
 )
 
-func GetDefaultResoueceMem() uint64       { return DefaultResouece.mem }
-func GetDefaultResoueceProcessor() uint32 { return DefaultResouece.processor }
-func GetDefaultResoueceBandwidth() uint64 { return DefaultResouece.bandwidth }
+//func GetDefaultResoueceMem() uint64       { return DefaultResouece.mem }
+//func GetDefaultResoueceProcessor() uint32 { return DefaultResouece.processor }
+//func GetDefaultResoueceBandwidth() uint64 { return DefaultResouece.bandwidth }
 
 type LocalResourceTable struct {
 	nodeId       string    // Resource node id

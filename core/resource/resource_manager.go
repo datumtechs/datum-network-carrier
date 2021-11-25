@@ -39,13 +39,13 @@ func (m *Manager) loop() {
 }
 
 func (m *Manager) Start() error {
-
-	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
-	if nil != err {
-		log.WithError(err).Warnf("Failed to load local slotUnit on resourceManager Start()")
-	} else {
-		m.SetSlotUnit(slotUnit.Mem, slotUnit.Bandwidth, slotUnit.Processor)
-	}
+	//
+	//slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
+	//if nil != err {
+	//	log.WithError(err).Warnf("Failed to load local slotUnit on resourceManager Start()")
+	//} else {
+	//	m.SetSlotUnit(slotUnit.Mem, slotUnit.Bandwidth, slotUnit.Processor)
+	//}
 
 	// store slotUnit
 	if err := m.dataCenter.StoreNodeResourceSlotUnit(m.slotUnit); nil != err {
