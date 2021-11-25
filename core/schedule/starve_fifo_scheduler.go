@@ -193,7 +193,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query self identityInfo on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), localTaskRole.String(), localPartyId)
-		return types.NewReplayScheduleResult(task.GetTaskId(), err, nil)
+		return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("query local identity failed, %s", err), nil)
 	}
 
 	var result *types.ReplayScheduleResult
