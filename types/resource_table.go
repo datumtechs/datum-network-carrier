@@ -94,7 +94,7 @@ func (r *LocalResourceTable) UseSlot(count uint32) error {
 		return fmt.Errorf("Failed to lock local resource, slotRemain {%d} less than need lock count {%d}", r.RemainSlot(), count)
 	}
 	r.slotUsed += count
-	if r.slotUsed > 0{
+	if r.slotUsed > 0 {
 		r.assign = true
 	}
 	return nil
@@ -121,7 +121,6 @@ func (r *LocalResourceTable) FreeSlot(count uint32) error {
 	}
 	return nil
 }
-
 
 func (r *LocalResourceTable) GetTotalSlot() uint32 { return r.slotTotal }
 func (r *LocalResourceTable) GetUsedSlot() uint32  { return r.slotUsed }
@@ -168,7 +167,6 @@ type resource struct {
 func (r *resource) String() string {
 	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d}`, r.mem, r.processor, r.bandwidth)
 }
-
 
 // 给本地 缓存用的
 
@@ -227,12 +225,13 @@ type DataResourceTable struct {
 	nodeId    string
 	totalDisk uint64
 	usedDisk  uint64
-	// todo 需要加一个  是否被使用的标识 字段 (因为最开始生成 table 时, 可能该节点已经被用了, 而直接用 remain 决定是否可以删除 dataNode, 可能会导致从来用过,但是删不掉)
+	//isUsed    bool
 }
 type dataResourceTableRlp struct {
 	NodeId    string
 	TotalDisk uint64
 	UsedDisk  uint64
+	//IsUsed    bool
 }
 
 func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResourceTable {
@@ -240,6 +239,7 @@ func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResour
 		nodeId:    nodeId,
 		totalDisk: totalDisk,
 		usedDisk:  usedDisk,
+		//isUsed:    false,
 	}
 }
 
