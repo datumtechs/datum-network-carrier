@@ -474,15 +474,15 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 	if typ == pb.PrefixTypeDataNode {
 
-		// First verify whether the dataNode has been used
-		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
-		if rawdb.IsNoDBNotFoundErr(err) {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
-		}
-		if dataNodeTable.IsNotEmpty() /* && dataNodeTable.IsUsed()*/ {
-			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
-				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
-		}
+		//// First verify whether the dataNode has been used
+		//dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
+		//if rawdb.IsNoDBNotFoundErr(err) {
+		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
+		//}
+		//if dataNodeTable.IsNotEmpty() /* && dataNodeTable.IsUsed()*/ {
+		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
+		//		dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
+		//}
 
 		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(node.Id); ok {
 			// remove old client instanse
@@ -574,15 +574,15 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 
 	if typ == pb.PrefixTypeDataNode {
 
-		// First verify whether the dataNode has been used
-		dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
-		if rawdb.IsNoDBNotFoundErr(err) {
-			return fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
-		}
-		if dataNodeTable.IsNotEmpty() /* && dataNodeTable.IsUsed()*/ {
-			return fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
-				dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
-		}
+		//// First verify whether the dataNode has been used
+		//dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
+		//if rawdb.IsNoDBNotFoundErr(err) {
+		//	return fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
+		//}
+		//if dataNodeTable.IsNotEmpty() /* && dataNodeTable.IsUsed()*/ {
+		//	return fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
+		//		dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
+		//}
 
 		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
 			client.Close()
