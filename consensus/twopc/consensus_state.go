@@ -744,5 +744,5 @@ func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 	s.confirmPeerInfoLock.Lock()
 	delete(s.proposalPeerInfoCache, proposalId)
 	s.confirmPeerInfoLock.Unlock()
-	go s.wal.DeleteState(s.wal.GetProposalPeerInfoCacheKey(proposalId))
+	s.wal.DeleteState(s.wal.GetProposalPeerInfoCacheKey(proposalId))
 }

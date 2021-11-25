@@ -99,7 +99,7 @@ func (pstate *ProposalState) RemoveOrgProposalState(partyId string) {
 	pstate.lock.Unlock()
 }
 func (pstate *ProposalState) RemoveOrgProposalStateUnSafe(partyId string) {
-	log.Debugf("Start Remove org proposalState whit unsafe, partyId: {%s}", partyId)
+	log.Debugf("Start Remove org proposalState whith unsafe, partyId: {%s}", partyId)
 	delete(pstate.stateCache, partyId)
 }
 
