@@ -125,9 +125,6 @@ func (s *Service) Start() error {
 	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
 
-	// add logrus instanse to gRPC loggerV2 interface implements.
-	grpclog.SetLoggerV2(NewRPCdebugLogger(log.Logger))
-
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")
 		debugServer := &debug.Server{
@@ -135,6 +132,9 @@ func (s *Service) Start() error {
 			PeersFetcher: s.cfg.PeersFetcher,
 		}
 		pbrpc.RegisterDebugServer(s.grpcServer, debugServer)
+
+		// add logrus instanse to gRPC loggerV2 interface implements.
+		grpclog.SetLoggerV2(NewRPCdebugLogger(log.Logger))
 	}
 	// Register reflection service on gRPC server.
 	reflection.Register(s.grpcServer)
