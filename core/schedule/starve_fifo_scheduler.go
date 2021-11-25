@@ -160,7 +160,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (task *types.Task, taskId string,
 		task.GetTaskData().TaskId, task.GetTaskData().PartyId, cost.String())
 
 	// election other org's power resources
-	powers, err := sche.electionPowerOrg(powerPartyIds, nil, cost)
+	powers, err := sche.electionPowerOrg(powerPartyIds, nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 		return task, bullet.GetTaskId(), fmt.Errorf("election powerOrg failed, %s", err)
@@ -208,7 +208,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 			powerPartyIds[i] = power.GetOrganization().GetPartyId()
 		}
 		// mock election power orgs
-		powers, err := sche.electionPowerOrg(powerPartyIds, nil, cost)
+		powers, err := sche.electionPowerOrg(powerPartyIds, nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)
@@ -311,12 +311,10 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	// 如果 当前参与方为 PowerSupplier  [选出自己的 内部 power 资源, 并锁定, todo 在最后 DoneXxxxWrap 中解锁]
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 
-		needSlotCount := sche.resourceMng.GetSlotUnit().CalculateSlotCount(cost.Mem, cost.Bandwidth, cost.Processor)
+		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
+			task.GetTaskId(), localTaskRole.String(), localPartyId, cost.Mem, cost.Bandwidth, cost.Processor)
 
-		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, slotUnit: %s, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}, return needSlotCount: {%d}",
-			task.GetTaskId(), localTaskRole.String(), localPartyId, sche.resourceMng.GetSlotUnit().String(), cost.Mem, cost.Bandwidth, cost.Processor, needSlotCount)
-
-		jobNode, err := sche.electionJobNode(needSlotCount)
+		jobNode, err := sche.electionJobNode(cost.Mem, cost.Bandwidth, 0, cost.Processor)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)
@@ -327,7 +325,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		log.Debugf("Succeed election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, jobNode: %s",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, jobNode.String())
 
-		if err := sche.resourceMng.LockLocalResourceWithTask(localPartyId, jobNode.Id, needSlotCount, task); nil != err {
+		if err := sche.resourceMng.LockLocalResourceWithTask(localPartyId, jobNode.Id, cost.Mem, cost.Bandwidth, 0, cost.Processor, task); nil != err {
 			log.WithError(err).Errorf("Failed to Lock LocalResource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId, jobNode.Id)
 

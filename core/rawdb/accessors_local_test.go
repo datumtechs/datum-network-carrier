@@ -67,17 +67,11 @@ func TestSeedNode(t *testing.T) {
 	// write seed
 	database := db.NewMemoryDatabase()
 	seedNodeInfo := &pb.SeedPeer{
-		Id:           "id",
-		InternalIp:   "internalIp",
-		InternalPort: "9999",
+		Addr:"addr1",
+		IsDefault: false,
 		ConnState:    1,
 	}
 	StoreSeedNode(database, seedNodeInfo)
-
-	// get seed
-	rseed, _ := QuerySeedNode(database, "id")
-	t.Logf("seed info : %v", rseed)
-	assert.Assert(t, strings.EqualFold("id", rseed.Id))
 
 	// read all
 	seedNodes, _ := QueryAllSeedNodes(database)

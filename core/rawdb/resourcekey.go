@@ -9,7 +9,7 @@ var (
 	nodeResourceKeyPrefix = []byte("NodeResourceKeyPrefix:")
 
 	// key -> SlotUnit
-	nodeResourceSlotUnitKey = []byte("nodeResourceSlotUnitKey")
+	//nodeResourceSlotUnitKey = []byte("nodeResourceSlotUnitKey")
 
 	// prefix + taskId + partyId -> LocalTaskPowerUsed
 	localTaskPowerUsedKeyPrefix = []byte("localTaskPowerUsedKeyPrefix:")
@@ -73,9 +73,9 @@ func GetNodeResourceKey(jobNodeId string) []byte {
 	return append(nodeResourceKeyPrefix, []byte(jobNodeId)...)
 }
 
-func GetNodeResourceSlotUnitKey() []byte {
-	return nodeResourceSlotUnitKey
-}
+//func GetNodeResourceSlotUnitKey() []byte {
+//	return nodeResourceSlotUnitKey
+//}
 
 func GetLocalTaskPowerUsedKey(taskId, partyId string) []byte {
 	return append(append(localTaskPowerUsedKeyPrefix, []byte(taskId)...), []byte(partyId)...)

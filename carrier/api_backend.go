@@ -901,15 +901,6 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 	}
 	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryLocalResourceList, machineList: %s", machineList.String())
 
-	// query slotUnit
-	slotUnit, err := s.carrier.carrierDB.QueryNodeResourceSlotUnit()
-	if err != nil {
-		return nil, err
-	}
-
-	log.Debugf("Invoke:GetLocalPowerDetailList, call QueryNodeResourceSlotUnit, slotUint: %s",
-		slotUnit.String())
-
 	buildPowerTaskList := func(jobNodeId string) []*libtypes.PowerTask {
 
 		powerTaskList := make([]*libtypes.PowerTask, 0)

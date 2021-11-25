@@ -19,6 +19,9 @@ type TaskOperationCost struct {
 func (cost *TaskOperationCost) String() string {
 	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "duration": %d}`, cost.Mem, cost.Processor, cost.Bandwidth, cost.Duration)
 }
+func (cost *TaskOperationCost) GetMem() uint64       { return cost.Mem }
+func (cost *TaskOperationCost) GetBandwidth() uint64 { return cost.Bandwidth }
+func (cost *TaskOperationCost) GetProcessor() uint32 { return cost.Processor }
 
 type ProposalStatePeriod uint32
 

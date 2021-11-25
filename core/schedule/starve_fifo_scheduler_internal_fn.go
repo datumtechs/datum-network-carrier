@@ -4,7 +4,6 @@ import (
 	"container/heap"
 	"errors"
 	"fmt"
-	twopctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -140,7 +139,7 @@ func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 	}
 }
 
-func (sche *SchedulerStarveFIFO) electionJobNode(needSlotCount uint64) (*pb.YarnRegisteredPeerDetail, error) {
+func (sche *SchedulerStarveFIFO) electionJobNode(mem, bandwidth, disk uint64, processor uint32) (*pb.YarnRegisteredPeerDetail, error) {
 
 	if nil == sche.internalNodeSet || 0 == sche.internalNodeSet.JobNodeClientSize() {
 		return nil, errors.New("not found alive jobNode")
@@ -154,8 +153,9 @@ func (sche *SchedulerStarveFIFO) electionJobNode(needSlotCount uint64) (*pb.Yarn
 	}
 	log.Debugf("QueryLocalResourceTables on electionJobNode, localResources: %s", utilLocalResourceArrString(tables))
 	for _, r := range tables {
-		isEnough := r.IsEnough(uint32(needSlotCount))
-		log.Debugf("Call electionJobNode, resource: %s, r.RemainSlot(): %d, needSlotCount: %d, isEnough: %v", r.String(), r.RemainSlot(), needSlotCount, isEnough)
+		isEnough := r.IsEnough(mem, bandwidth, disk, processor)
+		log.Debugf("Call electionJobNode, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v",
+			r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough)
 		if isEnough {
 			jobNodeClient, find := sche.internalNodeSet.QueryJobNodeClient(r.GetNodeId())
 			if find && jobNodeClient.IsConnected() {
@@ -183,7 +183,7 @@ func (sche *SchedulerStarveFIFO) electionJobNode(needSlotCount uint64) (*pb.Yarn
 func (sche *SchedulerStarveFIFO) electionPowerOrg(
 	powerPartyIds []string,
 	skipIdentityIdCache map[string]struct{},
-	cost *twopctypes.TaskOperationCost,
+	mem, bandwidth, disk uint64, processor uint32,
 ) ([]*libtypes.TaskPowerSupplier, error) {
 
 	calculateCount := len(powerPartyIds)
@@ -243,15 +243,16 @@ func (sche *SchedulerStarveFIFO) electionPowerOrg(
 
 		// Find one, if have enough resource
 		rMem, rBandwidth, rProcessor := r.GetTotalMem()-r.GetUsedMem(), r.GetTotalBandWidth()-r.GetUsedBandWidth(), r.GetTotalProcessor()-r.GetUsedProcessor()
-		if rMem < cost.Mem {
+		if rMem < mem {
 			continue
 		}
-		if rProcessor < cost.Processor {
+		if rProcessor < processor {
 			continue
 		}
-		if rBandwidth < cost.Bandwidth {
+		if rBandwidth < bandwidth {
 			continue
 		}
+		// ignore disk for power resource.
 
 		// append one, if it enouph
 		if info, ok := identityInfoTmp[r.GetIdentityId()]; ok {
@@ -264,15 +265,13 @@ func (sche *SchedulerStarveFIFO) electionPowerOrg(
 				},
 				ResourceUsedOverview: &libtypes.ResourceUsageOverview{
 					TotalMem:       r.GetTotalMem(),   			// total resource value of org.
-					//UsedMem:        cost.Mem,
 					UsedMem: 0,     							// used resource of this task (real time max used)
-					TotalProcessor: r.GetTotalProcessor(),
-					//UsedProcessor:  cost.Processor,
-					UsedProcessor: 0,							// used resource of this task (real time max used)
 					TotalBandwidth: r.GetTotalBandWidth(),
-					//UsedBandwidth:  cost.Bandwidth,
 					UsedBandwidth: 0, 							// used resource of this task (real time max used)
-					// ignored disk resource total/used for powerSupplier
+					TotalDisk:      r.GetTotalDisk(),
+					UsedDisk:       0,
+					TotalProcessor: r.GetTotalProcessor(),
+					UsedProcessor: 0,							// used resource of this task (real time max used)
 				},
 			})
 			i++

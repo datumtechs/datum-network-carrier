@@ -188,9 +188,7 @@ func TestStoreProposalTask(t *testing.T) {
 	for index, _ := range partyIds {
 		proposalTask := &types.ProposalTask{
 			ProposalId: generateProposalId(),
-			Task: types.NewTask(&libtypes.TaskPB{
-				TaskId: taskIds[index],
-			}),
+			TaskId: taskIds[index],
 		}
 		db.StoreProposalTask(partyIds[index], proposalTask)
 	}

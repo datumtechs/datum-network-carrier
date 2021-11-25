@@ -24,6 +24,7 @@ import (
 	"go.opencensus.io/plugin/ocgrpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -123,6 +124,9 @@ func (s *Service) Start() error {
 	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
+
+	// add logrus instanse to gRPC loggerV2 interface implements.
+	grpclog.SetLoggerV2(NewRPCdebugLogger(log.Logger))
 
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")
