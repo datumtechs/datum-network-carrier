@@ -135,6 +135,15 @@ func (s *Service) Start() error {
 
 		// add logrus instanse to gRPC loggerV2 interface implements.
 		grpclog.SetLoggerV2(NewRPCdebugLogger(log.Logger))
+
+		//// open grpc trace
+		//go func() {
+		//	trace.AuthRequest = func(req *http.Request) (any, sensitive bool) {
+		//		return true, true
+		//	}
+		//	go http.ListenAndServe(":50051", nil)
+		//	grpclog.Println("Trace listen on 50051")
+		//}()
 	}
 	// Register reflection service on gRPC server.
 	reflection.Register(s.grpcServer)
