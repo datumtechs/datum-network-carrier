@@ -76,6 +76,9 @@ func (r *LocalResourceTable) UseSlot(mem, bandwidth, disk uint64, processor uint
 		return fmt.Errorf("Failed to lock local resource, processor remain {%d} less than need lock count {%d}", r.RemainProcessor(), processor)
 	}
 
+	log.Debugf("Used JobNode LocalResourceTable before, table: %s, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+		r.String(), mem, bandwidth, disk, processor)
+
 	r.used.mem += mem
 	r.used.bandwidth += bandwidth
 	r.used.disk += disk
@@ -84,6 +87,9 @@ func (r *LocalResourceTable) UseSlot(mem, bandwidth, disk uint64, processor uint
 	if r.used.mem > 0 || r.used.bandwidth > 0 || r.used.disk == 0 || r.used.processor > 0 {
 		r.assign = true
 	}
+	log.Debugf("Used JobNode LocalResourceTable after, table: %s, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+		r.String(), mem, bandwidth, disk, processor)
+
 	return nil
 }
 func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uint32) error {
@@ -111,6 +117,9 @@ func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uin
 		return fmt.Errorf("Failed to unlock local resource, processor used {%d} less than need free count {%d}", r.used.processor, processor)
 	}
 
+	log.Debugf("Free JobNode LocalResourceTable before, table: %s, freeMem: {%d}, freeBandwidth: {%d}, freeDisk: {%d}, freeProcessor: {%d}",
+		r.String(), mem, bandwidth, disk, processor)
+
 	r.used.mem -= mem
 	r.used.bandwidth -= bandwidth
 	r.used.disk -= disk
@@ -119,6 +128,10 @@ func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uin
 	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0  && r.used.processor == 0 {
 		r.assign = false
 	}
+
+	log.Debugf("Free JobNode LocalResourceTable after, table: %s, freeMem: {%d}, freeBandwidth: {%d}, freeDisk: {%d}, freeProcessor: {%d}",
+		r.String(), mem, bandwidth, disk, processor)
+
 	return nil
 }
 
