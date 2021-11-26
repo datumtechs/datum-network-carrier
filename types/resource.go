@@ -56,10 +56,12 @@ func (m *Resource) GetDataId() string                     { return m.data.DataId
 func (m *Resource) GetState() apicommonpb.PowerState      { return m.data.State }
 func (m *Resource) GetTotalMem() uint64                   { return m.data.TotalMem }
 func (m *Resource) GetUsedMem() uint64                    { return m.data.UsedMem }
-func (m *Resource) GetTotalProcessor() uint32             { return m.data.TotalProcessor }
-func (m *Resource) GetUsedProcessor() uint32              { return m.data.UsedProcessor }
 func (m *Resource) GetTotalBandWidth() uint64             { return m.data.TotalBandwidth }
 func (m *Resource) GetUsedBandWidth() uint64              { return m.data.UsedBandwidth }
+func (m *Resource) GetTotalDisk() uint64                  { return m.data.TotalDisk }
+func (m *Resource) GetUsedDisk() uint64                   { return m.data.UsedDisk }
+func (m *Resource) GetTotalProcessor() uint32             { return m.data.TotalProcessor }
+func (m *Resource) GetUsedProcessor() uint32              { return m.data.UsedProcessor }
 func (m *Resource) String() string {
 	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "state": %s, "totalMem": %d, "usedMem": %d, "totalProcessor": %d, "usedProcessor": %d, "totalBandWidth": %d, "usedBandWidth": %d}`)
 	return m.data.String()

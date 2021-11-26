@@ -135,12 +135,10 @@ func (t *Twopc) refreshProposalState() {
 				} else {
 					t.state.proposalSet[proposalId] = pstate
 				}
-				go func() { // remove wal record
-					t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
-					t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
-					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
-					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
-				}()
+				t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
+				t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+				t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+				t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 
 				if !ok {
 					log.Errorf("Not found the proposalTask on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
@@ -148,12 +146,6 @@ func (t *Twopc) refreshProposalState() {
 					continue
 				}
 
-				//task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTask.GetTaskId())
-				//if nil != err {
-				//	log.WithError(err).Errorf("Failed to query local task on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
-				//		pstate.GetTaskId(), partyId)
-				//	continue
-				//}
 
 				// release local resource and clean some data  (on task partenr)
 				t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
@@ -237,25 +229,16 @@ func (t *Twopc) refreshProposalState() {
 					} else {
 						t.state.proposalSet[proposalId] = pstate
 					}
-					go func() { // remove wal record
-						t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
-						t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
-						t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
-						t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
-					}()
+					t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
+					t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
+					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
 
 					if !ok {
 						log.Errorf("Not found the proposalTask on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
 							pstate.GetTaskId(), partyId)
 						continue
 					}
-
-					//task, err := t.resourceMng.GetDB().QueryLocalTask(proposalTask.GetTaskId())
-					//if nil != err {
-					//	log.WithError(err).Errorf("Failed to query local task on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
-					//		pstate.GetTaskId(), partyId)
-					//	continue
-					//}
 
 					// release local resource and clean some data  (on task partenr)
 					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
@@ -910,6 +893,8 @@ func (t *Twopc) recoverCache() {
 		if err := t.wal.ForEachKVWithPrefix(proposalSetPrefix, func(key, value []byte) error {
 
 			if len(key) != 0 && len(value) != 0 {
+
+				// prefix + len(common.Hash) == prefix + len(proposalId)
 				proposalId := common.BytesToHash(key[prefixLength:prefixLength+32])
 
 				libOrgProposalState := &libtypes.OrgProposalState{}

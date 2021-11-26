@@ -61,7 +61,7 @@ func TestBootStrapNodeFile(t *testing.T) {
 	sampleNode2 := "- enr:-TESTNODE3"
 	err = ioutil.WriteFile(file.Name(), []byte(sampleNode0+"\n"+sampleNode1+"\n"+sampleNode2), 0644)
 	require.NoError(t, err, "Error in WriteFile call")
-	nodeList, err := readbootNodes(file.Name())
+	nodeList, _, err := readbootNodes(file.Name())
 	require.NoError(t, err, "Error in readbootNodes call")
 	assert.Equal(t, sampleNode0[2:], nodeList[0], "Unexpected nodes")
 	assert.Equal(t, sampleNode1[2:], nodeList[1], "Unexpected nodes")

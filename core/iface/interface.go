@@ -32,10 +32,6 @@ type LocalStoreCarrierDB interface {
 	StoreLocalResourceTables(resources []*types.LocalResourceTable) error
 	QueryLocalResourceTable(resourceId string) (*types.LocalResourceTable, error)
 	QueryLocalResourceTables() ([]*types.LocalResourceTable, error)
-	// about slotUnit (key -> slotUnit)
-	StoreNodeResourceSlotUnit(slot *types.Slot) error
-	RemoveNodeResourceSlotUnit() error
-	QueryNodeResourceSlotUnit() (*types.Slot, error)
 	// about DataResourceTable (dataNodeId -> {dataNodeId, totalDisk, usedDisk})
 	StoreDataResourceTable(StoreDataResourceTables *types.DataResourceTable) error
 	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error

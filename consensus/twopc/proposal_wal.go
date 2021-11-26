@@ -74,20 +74,20 @@ func (w *walDB) GetProposalTaskCacheKey(taskId, partyId string) []byte {
 	return append(append(proposalTaskCachePrefix, []byte(taskId)...), []byte(partyId)...)
 }
 
-func (w *walDB) GetProposalSetKey(hash common.Hash, partyId string) []byte {
-	return append(append(proposalSetPrefix, hash.Bytes()...), []byte(partyId)...)
+func (w *walDB) GetProposalSetKey(proposalId common.Hash, partyId string) []byte {
+	return append(append(proposalSetPrefix, proposalId.Bytes()...), []byte(partyId)...)
 }
 
-func (w *walDB) GetPrepareVotesKey(hash common.Hash, partyId string) []byte {
-	return append(append(prepareVotesPrefix, hash.Bytes()...), []byte(partyId)...)
+func (w *walDB) GetPrepareVotesKey(proposalId common.Hash, partyId string) []byte {
+	return append(append(prepareVotesPrefix, proposalId.Bytes()...), []byte(partyId)...)
 }
 
-func (w *walDB) GetConfirmVotesKey(hash common.Hash, partyId string) []byte {
-	return append(append(confirmVotesPrefix, hash.Bytes()...), []byte(partyId)...)
+func (w *walDB) GetConfirmVotesKey(proposalId common.Hash, partyId string) []byte {
+	return append(append(confirmVotesPrefix, proposalId.Bytes()...), []byte(partyId)...)
 }
 
-func (w *walDB) GetProposalPeerInfoCacheKey(hash common.Hash) []byte {
-	return append(proposalPeerInfoCachePrefix, hash.Bytes()...)
+func (w *walDB) GetProposalPeerInfoCacheKey(proposalId common.Hash) []byte {
+	return append(proposalPeerInfoCachePrefix, proposalId.Bytes()...)
 }
 
 func (w *walDB) StoreProposalTask(partyId string, task *types.ProposalTask) {

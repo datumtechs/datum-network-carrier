@@ -445,7 +445,7 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryDataResourceTables failed, fileType: {%s}, fileSize: {%d}",
 			req.GetFileType(), req.GetFileSize())
 
-		errMsg := fmt.Sprintf("%s, %s, %s", ErrQueryDataResourceTableList.Msg, req.GetFileType(), req.GetFileSize())
+		errMsg := fmt.Sprintf("%s, %s, %d", ErrQueryDataResourceTableList.Msg, req.GetFileType(), req.GetFileSize())
 		return nil, backend.NewRpcBizErr(ErrQueryDataResourceTableList.Code, errMsg)
 	}
 
@@ -462,7 +462,7 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 		log.WithError(err).Errorf("RPC-API:QueryAvailableDataNode-QueryRegisterNode failed, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}",
 			req.GetFileType(), req.GetFileSize(), nodeId)
 
-		errMsg := fmt.Sprintf("%s, %s, %s, %s", ErrGetDataNodeInfoForQueryAvailableDataNode.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %d, %s", ErrGetDataNodeInfoForQueryAvailableDataNode.Msg,
 			req.GetFileType(), req.GetFileSize(), nodeId)
 		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoForQueryAvailableDataNode.Code, errMsg)
 	}

@@ -389,12 +389,6 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 		return
 	}
 
-	slotUnit, err := m.dataCenter.QueryNodeResourceSlotUnit()
-	if nil != err {
-		log.WithError(err).Errorf("query local slotUnit failed")
-		return
-	}
-
 	for _, msg := range powerMsgArr {
 
 		go m.dataCenter.RemovePowerMsg(msg.GetPowerId()) // remove from disk if msg been handle
@@ -416,9 +410,9 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			msg.GetPowerId(),
 			resource.GetData().GetTotalMem(),
 			resource.GetData().GetTotalBandwidth(),
+			resource.GetData().GetTotalDisk(),
 			resource.GetData().GetTotalProcessor(),
 		)
-		resourceTable.SetSlotUnit(slotUnit)
 
 		log.Debugf("Publish msg, StoreLocalResourceTable, %s", resourceTable.String())
 		if err := m.dataCenter.StoreLocalResourceTable(resourceTable); nil != err {
@@ -453,12 +447,15 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			// unit: byte
 			TotalMem: resource.GetData().GetTotalMem(),
 			UsedMem:  0,
-			// number of cpu cores.
-			TotalProcessor: resource.GetData().GetTotalProcessor(),
-			UsedProcessor:  0,
 			// unit: byte
 			TotalBandwidth: resource.GetData().GetTotalBandwidth(),
 			UsedBandwidth:  0,
+			// disk sixe
+			TotalDisk:  resource.GetData().GetTotalDisk(),
+			UsedDisk: 0,
+			// number of cpu cores.
+			TotalProcessor: resource.GetData().GetTotalProcessor(),
+			UsedProcessor:  0,
 			PublishAt:      timeutils.UnixMsecUint64(),
 			UpdateAt:       timeutils.UnixMsecUint64(),
 		})); nil != err {

@@ -157,25 +157,6 @@ func (dc *DataCenter) QueryRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.Ya
 	return rawdb.QueryAllRegisterNodes(dc.db, typ)
 }
 
-// about slotUnit
-func (dc *DataCenter) StoreNodeResourceSlotUnit(slot *types.Slot) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.StoreNodeResourceSlotUnit(dc.db, slot)
-}
-
-func (dc *DataCenter) RemoveNodeResourceSlotUnit() error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.RemoveNodeResourceSlotUnit(dc.db)
-}
-
-func (dc *DataCenter) QueryNodeResourceSlotUnit() (*types.Slot, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QueryNodeResourceSlotUnit(dc.db)
-}
-
 // about DataResourceTable
 func (dc *DataCenter) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
 	dc.mu.Lock()

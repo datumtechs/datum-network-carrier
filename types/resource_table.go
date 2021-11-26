@@ -2,131 +2,161 @@ package types
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/mathutil"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
 )
 
-var (
-	// TODO 写死的 资源固定消耗 ...
-	multipleNumber  = uint64(8)
-	DefaultSlotUnit = &Slot{
-		Mem:       1024 * 1024 * 2, // 2mb      (byte)
-		Processor: 1,               // 1核      (cpu)
-		Bandwidth: 1024 * 64,       // 64kbps   (bps)  64kbps ÷8 = 8k/s
-	}
-	DefaultResouece = &resource{
-		mem:       1024 * 1024 * 1024 * multipleNumber,           // 8*gb     (byte)
-		processor: 2 * uint32(multipleNumber),                    // 18 cpu   (cpu)
-		bandwidth: 1024 * 1024 * multipleNumber * multipleNumber, // 64Mbps   (bps)   64Mbps÷8=8M/s，这相当于60兆宽带的下载速度，宽带应该是100兆
-	}
-
-	DefaultDisk = uint64(10 * 1024 * 1024 * 1024 * 1024 * 1024) //10pb
-)
-
-func GetDefaultResoueceMem() uint64       { return DefaultResouece.mem }
-func GetDefaultResoueceProcessor() uint32 { return DefaultResouece.processor }
-func GetDefaultResoueceBandwidth() uint64 { return DefaultResouece.bandwidth }
-
 type LocalResourceTable struct {
-	nodeId       string    // Resource node id
-	powerId      string    // powerId
-	nodeResource *resource // The total resource on the node
-	assign       bool      // Whether to assign the slot tag
-	slotTotal    uint32    // The total number of slots are allocated on the resource of this node
-	slotUsed     uint32    // The number of slots that have been used on the resource of the node
+	nodeId  string    // Resource node id
+	powerId string    // powerId
+	total   *resource // The total resource on the node
+	used    *resource // the used resource on the node
+	assign  bool      // Whether to assign the slot tag
+
 }
 type localResourceTableRlp struct {
-	NodeId    string // node id
-	PowerId   string
-	Mem       uint64
-	Processor uint32
-	Bandwidth uint64
-	Assign    bool   // Whether to assign the slot tag
-	SlotTotal uint32 // The total number of slots are allocated on the resource of this node
-	SlotUsed  uint32 // The number of slots that have been used on the resource of the node
+	NodeId         string // node id
+	PowerId        string
+	TotalProcessor uint32
+	UsedProcessor  uint32
+	TotalMem       uint64
+	TotalBandwidth uint64
+	TotalDisk      uint64
+	UsedMem        uint64
+	UsedBandwidth  uint64
+	UsedDisk       uint64
+	Assign         bool // Whether to assign the slot tag
 }
 
-func NewLocalResourceTable(nodeId, powerId string, mem, bandwidth uint64, processor uint32) *LocalResourceTable {
+func NewLocalResourceTable(nodeId, powerId string, mem, bandwidth, disk uint64, processor uint32) *LocalResourceTable {
 	return &LocalResourceTable{
 		nodeId:  nodeId,
 		powerId: powerId,
-		nodeResource: &resource{
-			mem:       mem,
-			processor: processor,
-			bandwidth: bandwidth,
-		},
-		assign: false,
+		total:   newResource(mem, bandwidth, disk, processor),
+		used:    &resource{},
+		assign:  false,
 	}
 }
 
 func (r *LocalResourceTable) String() string {
-	return fmt.Sprintf(`{"nodeId": "%s", "powerId": "%s", "nodeResource": %s, "assign": %v, "slotTotal":%d, "slotUsed": %d}`,
-		r.nodeId, r.powerId, r.nodeResource.String(), r.assign, r.slotTotal, r.slotUsed)
+	return fmt.Sprintf(`{"nodeId": "%s", "powerId": "%s", "total": %s, "used": %s, "assign": %v}`,
+		r.nodeId, r.powerId, r.total.String(), r.used.String(), r.assign)
 }
-func (r *LocalResourceTable) GetNodeId() string    { return r.nodeId }
-func (r *LocalResourceTable) GetPowerId() string   { return r.powerId }
-func (r *LocalResourceTable) GetMem() uint64       { return r.nodeResource.mem }
-func (r *LocalResourceTable) GetProcessor() uint32 { return r.nodeResource.processor }
-func (r *LocalResourceTable) GetBandwidth() uint64 { return r.nodeResource.bandwidth }
-func (r *LocalResourceTable) GetAssign() bool      { return r.assign }
-func (r *LocalResourceTable) GetSlotTotal() uint32 { return r.slotTotal }
-func (r *LocalResourceTable) GetSlotUsed() uint32  { return r.slotUsed }
-func (r *LocalResourceTable) SetSlotUnit(slot *Slot) {
+func (r *LocalResourceTable) GetNodeId() string         { return r.nodeId }
+func (r *LocalResourceTable) GetPowerId() string        { return r.powerId }
+func (r *LocalResourceTable) GetTotalMem() uint64       { return r.total.mem }
+func (r *LocalResourceTable) GetTotalProcessor() uint32 { return r.total.processor }
+func (r *LocalResourceTable) GetTotalBandwidth() uint64 { return r.total.bandwidth }
+func (r *LocalResourceTable) GetTotalDisk() uint64      { return r.total.disk }
+func (r *LocalResourceTable) GetUsedMem() uint64        { return r.used.mem }
+func (r *LocalResourceTable) GetUsedProcessor() uint32  { return r.used.processor }
+func (r *LocalResourceTable) GetUsedBandwidth() uint64  { return r.used.bandwidth }
+func (r *LocalResourceTable) GetUsedDisk() uint64       { return r.used.disk }
+func (r *LocalResourceTable) GetAssign() bool           { return r.assign }
+func (r *LocalResourceTable) RemainProcessor() uint32   { return r.total.processor - r.used.processor }
+func (r *LocalResourceTable) RemainMem() uint64         { return r.total.mem - r.used.mem }
+func (r *LocalResourceTable) RemainBandwidth() uint64   { return r.total.bandwidth - r.used.bandwidth }
+func (r *LocalResourceTable) RemainDisk() uint64        { return r.total.disk - r.used.disk }
+func (r *LocalResourceTable) UseSlot(mem, bandwidth, disk uint64, processor uint32) error {
 
-	memCount := r.nodeResource.mem / slot.GetMem()
-	processorCount := r.nodeResource.processor / slot.GetProcessor()
-	bandwidthCount := r.nodeResource.bandwidth / slot.GetBandwidth()
-
-	min := mathutil.Min3number(memCount, uint64(processorCount), bandwidthCount)
-
-	r.slotTotal = uint32(min)
-}
-
-func (r *LocalResourceTable) RemainSlot() uint32 { return r.slotTotal - r.slotUsed }
-func (r *LocalResourceTable) UseSlot(count uint32) error {
-
-	if count == 0 {
+	if mem == 0 && bandwidth == 0 && disk == 0 && processor == 0 {
 		return nil
 	}
 
-	if r.RemainSlot() < count {
-		return fmt.Errorf("Failed to lock local resource, slotRemain {%d} less than need lock count {%d}", r.RemainSlot(), count)
+	if r.RemainMem() < mem {
+		return fmt.Errorf("Failed to lock local resource, mem remain {%d} less than need lock count {%d}", r.RemainMem(), mem)
 	}
-	r.slotUsed += count
-	if r.slotUsed > 0 {
+	if r.RemainBandwidth() < bandwidth {
+		return fmt.Errorf("Failed to lock local resource, bandwidth remain {%d} less than need lock count {%d}", r.RemainBandwidth(), bandwidth)
+	}
+	if r.RemainDisk() < disk {
+		return fmt.Errorf("Failed to lock local resource, disk remain {%d} less than need lock count {%d}", r.RemainDisk(), disk)
+	}
+	if r.RemainProcessor() < processor {
+		return fmt.Errorf("Failed to lock local resource, processor remain {%d} less than need lock count {%d}", r.RemainProcessor(), processor)
+	}
+
+	r.used.mem += mem
+	r.used.bandwidth += bandwidth
+	r.used.disk += disk
+	r.used.processor += processor
+
+	if r.used.mem > 0 || r.used.bandwidth > 0 || r.used.disk == 0 || r.used.processor > 0 {
 		r.assign = true
 	}
 	return nil
 }
-func (r *LocalResourceTable) FreeSlot(count uint32) error {
+func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uint32) error {
 	if !r.assign {
 		return nil
 	}
 
-	if count == 0 {
+	if mem == 0 && bandwidth == 0  && disk == 0  && processor == 0 {
+		return nil
+	}
+	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0  && r.used.processor == 0 {
 		return nil
 	}
 
-	if r.slotUsed == 0 {
-		return nil
+	if r.used.mem < mem {
+		return fmt.Errorf("Failed to unlock local resource, mem used {%d} less than need free count {%d}", r.used.mem, mem)
 	}
-	if r.slotUsed < count {
-		return fmt.Errorf("Failed to unlock local resource, slotUsed {%d} less than need free count {%d}", r.slotUsed, count)
-	} else {
-		r.slotUsed -= count
+	if r.used.bandwidth < bandwidth {
+		return fmt.Errorf("Failed to unlock local resource, bandwidth used {%d} less than need free count {%d}", r.used.bandwidth, bandwidth)
 	}
-	if r.slotUsed == 0 {
+	if r.used.disk < disk {
+		return fmt.Errorf("Failed to unlock local resource, disk used {%d} less than need free count {%d}", r.used.disk, disk)
+	}
+	if r.used.processor < processor {
+		return fmt.Errorf("Failed to unlock local resource, processor used {%d} less than need free count {%d}", r.used.processor, processor)
+	}
+
+	r.used.mem -= mem
+	r.used.bandwidth -= bandwidth
+	r.used.disk -= disk
+	r.used.processor -= processor
+
+	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0  && r.used.processor == 0 {
 		r.assign = false
 	}
 	return nil
 }
 
-func (r *LocalResourceTable) GetTotalSlot() uint32 { return r.slotTotal }
-func (r *LocalResourceTable) GetUsedSlot() uint32  { return r.slotUsed }
-
-func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
-	if r.RemainSlot() < slotCount {
+func (r *LocalResourceTable) IsEnoughMem(mem uint64) bool {
+	if r.RemainMem() < mem {
+		return false
+	}
+	return true
+}
+func (r *LocalResourceTable) IsEnoughBandwidth(bandwidth uint64) bool {
+	if r.RemainBandwidth() < bandwidth {
+		return false
+	}
+	return true
+}
+func (r *LocalResourceTable) IsEnoughDisk(disk uint64) bool {
+	if r.RemainDisk() < disk {
+		return false
+	}
+	return true
+}
+func (r *LocalResourceTable) IsEnoughProcessor(processor uint32) bool {
+	if r.RemainProcessor() < processor {
+		return false
+	}
+	return true
+}
+func (r *LocalResourceTable) IsEnough(mem, bandwidth, disk uint64, processor uint32) bool {
+	if !r.IsEnoughMem(mem) {
+		return false
+	}
+	if !r.IsEnoughBandwidth(bandwidth) {
+		return false
+	}
+	if !r.IsEnoughDisk(disk) {
+		return false
+	}
+	if !r.IsEnoughProcessor(processor) {
 		return false
 	}
 	return true
@@ -135,14 +165,17 @@ func (r *LocalResourceTable) IsEnough(slotCount uint32) bool {
 // EncodeRLP implements rlp.Encoder.
 func (r *LocalResourceTable) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, localResourceTableRlp{
-		NodeId:    r.nodeId,
-		PowerId:   r.powerId,
-		Mem:       r.nodeResource.mem,
-		Processor: r.nodeResource.processor,
-		Bandwidth: r.nodeResource.bandwidth,
-		Assign:    r.assign,
-		SlotTotal: r.slotTotal,
-		SlotUsed:  r.slotUsed,
+		NodeId:         r.nodeId,
+		PowerId:        r.powerId,
+		TotalProcessor: r.total.processor,
+		TotalMem:       r.total.mem,
+		TotalBandwidth: r.total.bandwidth,
+		TotalDisk:      r.total.disk,
+		UsedProcessor:  r.used.processor,
+		UsedMem:        r.used.mem,
+		UsedBandwidth:  r.used.bandwidth,
+		UsedDisk:       r.used.disk,
+		Assign:         r.assign,
 	})
 }
 
@@ -151,55 +184,69 @@ func (r *LocalResourceTable) DecodeRLP(s *rlp.Stream) error {
 	var dec localResourceTableRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		nodeResource := &resource{mem: dec.Mem, processor: dec.Processor, bandwidth: dec.Bandwidth}
-		r.nodeId, r.powerId, r.assign, r.slotTotal, r.slotUsed, r.nodeResource =
-			dec.NodeId, dec.PowerId, dec.Assign, dec.SlotTotal, dec.SlotUsed, nodeResource
+		total := newResource(dec.TotalMem, dec.TotalBandwidth, dec.TotalDisk, dec.TotalProcessor)
+		used := newResource(dec.UsedMem, dec.UsedBandwidth, dec.UsedDisk, dec.UsedProcessor)
+		r.nodeId, r.powerId, r.assign, r.total, r.used =
+			dec.NodeId, dec.PowerId, dec.Assign, total, used
 	}
 	return err
 }
 
 type resource struct {
 	mem       uint64
-	processor uint32
 	bandwidth uint64
+	disk      uint64
+	processor uint32
+}
+
+func newResource(mem, bandwidth, disk uint64, processor uint32) *resource {
+	return &resource{
+		mem:       mem,
+		bandwidth: bandwidth,
+		disk:      disk,
+		processor: processor,
+	}
 }
 
 func (r *resource) String() string {
-	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d}`, r.mem, r.processor, r.bandwidth)
+	return fmt.Sprintf(`{"mem": %d, "processor": %d, "bandwidth": %d, "disk": %d}`, r.mem, r.processor, r.bandwidth, r.disk)
 }
 
-// 给本地 缓存用的
-
-// 本地任务所占用的 资源缓存
 type LocalTaskPowerUsed struct {
-	taskId    string
-	partyId   string
-	nodeId    string
-	slotCount uint64
+	taskId  string
+	partyId string
+	nodeId  string
+	used    *resource
 }
 type localTaskPowerUsedRlp struct {
-	TaskId    string
-	PartyId   string
-	NodeId    string
-	SlotCount uint64
+	TaskId        string
+	PartyId       string
+	NodeId        string
+	UsedProcessor uint32
+	UsedMem       uint64
+	UsedBandwidth uint64
+	UsedDisk      uint64
 }
 
-func NewLocalTaskPowerUsed(taskId, partyId, nodeId string, slotCount uint64) *LocalTaskPowerUsed {
+func NewLocalTaskPowerUsed(taskId, partyId, nodeId string, mem, bandwidth, disk uint64, processor uint32) *LocalTaskPowerUsed {
 	return &LocalTaskPowerUsed{
-		taskId:    taskId,
-		partyId:   partyId,
-		nodeId:    nodeId,
-		slotCount: slotCount,
+		taskId:  taskId,
+		partyId: partyId,
+		nodeId:  nodeId,
+		used:    newResource(mem, bandwidth, disk, processor),
 	}
 }
 
 // EncodeRLP implements rlp.Encoder.
 func (pcache *LocalTaskPowerUsed) EncodeRLP(w io.Writer) error {
 	return rlp.Encode(w, localTaskPowerUsedRlp{
-		TaskId:    pcache.taskId,
-		PartyId:   pcache.partyId,
-		NodeId:    pcache.nodeId,
-		SlotCount: pcache.slotCount,
+		TaskId:        pcache.taskId,
+		PartyId:       pcache.partyId,
+		NodeId:        pcache.nodeId,
+		UsedProcessor: pcache.used.processor,
+		UsedMem:       pcache.used.mem,
+		UsedBandwidth: pcache.used.bandwidth,
+		UsedDisk:      pcache.used.disk,
 	})
 }
 
@@ -208,30 +255,34 @@ func (pcache *LocalTaskPowerUsed) DecodeRLP(s *rlp.Stream) error {
 	var dec localTaskPowerUsedRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		pcache.taskId, pcache.partyId, pcache.nodeId, pcache.slotCount = dec.TaskId, dec.PartyId, dec.NodeId, dec.SlotCount
+		used := newResource(dec.UsedMem, dec.UsedBandwidth, dec.UsedDisk, dec.UsedProcessor)
+		pcache.taskId, pcache.partyId, pcache.nodeId, pcache.used = dec.TaskId, dec.PartyId, dec.NodeId, used
 	}
 	return err
 }
-func (pcache *LocalTaskPowerUsed) GetTaskId() string    { return pcache.taskId }
-func (pcache *LocalTaskPowerUsed) GetPartyId() string   { return pcache.partyId }
-func (pcache *LocalTaskPowerUsed) GetNodeId() string    { return pcache.nodeId }
-func (pcache *LocalTaskPowerUsed) GetSlotCount() uint64 { return pcache.slotCount }
+func (pcache *LocalTaskPowerUsed) GetTaskId() string        { return pcache.taskId }
+func (pcache *LocalTaskPowerUsed) GetPartyId() string       { return pcache.partyId }
+func (pcache *LocalTaskPowerUsed) GetNodeId() string        { return pcache.nodeId }
+func (pcache *LocalTaskPowerUsed) GetUsedMem() uint64       { return pcache.used.mem }
+func (pcache *LocalTaskPowerUsed) GetUsedBandwidth() uint64 { return pcache.used.bandwidth }
+func (pcache *LocalTaskPowerUsed) GetUsedDisk() uint64      { return pcache.used.disk }
+func (pcache *LocalTaskPowerUsed) GetUsedProcessor() uint32 { return pcache.used.processor }
 func (pcache *LocalTaskPowerUsed) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "partyId": %s, "nodeId": %s, "slotCount":, %d}`,
-		pcache.taskId, pcache.partyId, pcache.nodeId, pcache.slotCount)
+	return fmt.Sprintf(`{"taskId": %s, "partyId": %s, "nodeId": %s, "used":, %s}`,
+		pcache.taskId, pcache.partyId, pcache.nodeId, pcache.used.String())
 }
 
 type DataResourceTable struct {
 	nodeId    string
 	totalDisk uint64
 	usedDisk  uint64
-	//isUsed    bool
+	isUsed    bool // When the node is used for the first time (when there is data / file upload), this value is given "true"
 }
 type dataResourceTableRlp struct {
 	NodeId    string
 	TotalDisk uint64
 	UsedDisk  uint64
-	//IsUsed    bool
+	IsUsed    bool
 }
 
 func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResourceTable {
@@ -239,7 +290,7 @@ func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResour
 		nodeId:    nodeId,
 		totalDisk: totalDisk,
 		usedDisk:  usedDisk,
-		//isUsed:    false,
+		isUsed:    false,
 	}
 }
 
@@ -249,6 +300,7 @@ func (drt *DataResourceTable) EncodeRLP(w io.Writer) error {
 		NodeId:    drt.nodeId,
 		TotalDisk: drt.totalDisk,
 		UsedDisk:  drt.usedDisk,
+		IsUsed:    drt.isUsed,
 	})
 }
 
@@ -257,20 +309,20 @@ func (drt *DataResourceTable) DecodeRLP(s *rlp.Stream) error {
 	var dec dataResourceTableRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		drt.nodeId, drt.totalDisk, drt.usedDisk = dec.NodeId, dec.TotalDisk, dec.UsedDisk
+		drt.nodeId, drt.totalDisk, drt.usedDisk, drt.isUsed = dec.NodeId, dec.TotalDisk, dec.UsedDisk, dec.IsUsed
 	}
 	return err
 }
 
 func (drt *DataResourceTable) String() string {
-	return fmt.Sprintf(`{"nodeId": %s, "totalDisk": %d, "usedDisk": %d}`,
-		drt.nodeId, drt.totalDisk, drt.usedDisk)
+	return fmt.Sprintf(`{"nodeId": %s, "totalDisk": %d, "usedDisk": %d, "isUsed": %v}`,
+		drt.nodeId, drt.totalDisk, drt.usedDisk, drt.isUsed)
 }
 func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
 func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
 func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
 func (drt *DataResourceTable) RemainDisk() uint64   { return drt.totalDisk - drt.usedDisk }
-func (drt *DataResourceTable) IsUsed() bool         { return drt.usedDisk != 0 }
+func (drt *DataResourceTable) IsUsed() bool         { return drt.isUsed && drt.usedDisk != 0 }
 func (drt *DataResourceTable) IsNotUsed() bool      { return !drt.IsUsed() }
 func (drt *DataResourceTable) IsEmpty() bool        { return nil == drt }
 func (drt *DataResourceTable) IsNotEmpty() bool     { return !drt.IsEmpty() }
@@ -280,12 +332,18 @@ func (drt *DataResourceTable) UseDisk(use uint64) {
 	} else {
 		drt.usedDisk = drt.totalDisk
 	}
+	if !drt.isUsed {
+		drt.isUsed = true
+	}
 }
 func (drt *DataResourceTable) FreeDisk(use uint64) {
 	if drt.usedDisk > use {
 		drt.usedDisk -= use
 	} else {
 		drt.usedDisk = 0
+	}
+	if drt.usedDisk == 0 {
+		drt.isUsed = false
 	}
 }
 

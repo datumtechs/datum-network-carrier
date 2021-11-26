@@ -196,12 +196,11 @@ func (s *state) RemoveOrgProposalStateAnyCache(proposalId common.Hash, taskId, p
 	s.RemoveOrgProposalState(proposalId, partyId)
 	s.RemoveOrgPrepareVoteState(proposalId, partyId)
 	s.RemoveOrgConfirmVoteState(proposalId, partyId)
-	go func() {
-		s.wal.DeleteState(s.wal.GetProposalTaskCacheKey(taskId, partyId))
-		s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, partyId))
-		s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId, partyId))
-		s.wal.DeleteState(s.wal.GetProposalSetKey(proposalId, partyId))
-	}()
+	// wal
+	s.wal.DeleteState(s.wal.GetProposalTaskCacheKey(taskId, partyId))
+	s.wal.DeleteState(s.wal.GetProposalSetKey(proposalId, partyId))
+	s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, partyId))
+	s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId, partyId))
 }
 
 // ---------------- PrepareVote ----------------
@@ -744,5 +743,5 @@ func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 	s.confirmPeerInfoLock.Lock()
 	delete(s.proposalPeerInfoCache, proposalId)
 	s.confirmPeerInfoLock.Unlock()
-	go s.wal.DeleteState(s.wal.GetProposalPeerInfoCacheKey(proposalId))
+	s.wal.DeleteState(s.wal.GetProposalPeerInfoCacheKey(proposalId))
 }

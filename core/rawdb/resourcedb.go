@@ -102,45 +102,45 @@ func QueryNodeResources(db KeyValueStore) ([]*types.LocalResourceTable, error) {
 	return arr, nil
 }
 
-// Operation resource slot unit definition
-func StoreNodeResourceSlotUnit(db DatabaseWriter, slot *types.Slot) error {
-	val, err := rlp.EncodeToBytes(slot)
-	if nil != err {
-		return err
-	}
-	return db.Put(GetNodeResourceSlotUnitKey(), val)
-}
-
-func RemoveNodeResourceSlotUnit(db KeyValueStore) error {
-	key := GetNodeResourceSlotUnitKey()
-	has, err := db.Has(key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(key)
-}
-
-func QueryNodeResourceSlotUnit(db DatabaseReader) (*types.Slot, error) {
-	has, err := db.Has(GetNodeResourceSlotUnitKey())
-	if IsNoDBNotFoundErr(err) {
-		return nil, err
-	}
-	if !has {
-		return nil, ErrNotFound
-	}
-	b, err := db.Get(GetNodeResourceSlotUnitKey())
-	if nil != err {
-		return nil, err
-	}
-	var slot *types.Slot
-	if err := rlp.DecodeBytes(b, &slot); nil != err {
-		return nil, err
-	}
-	return slot, nil
-}
+//// Operation resource slot unit definition
+//func StoreNodeResourceSlotUnit(db DatabaseWriter, slot *types.Slot) error {
+//	val, err := rlp.EncodeToBytes(slot)
+//	if nil != err {
+//		return err
+//	}
+//	return db.Put(GetNodeResourceSlotUnitKey(), val)
+//}
+//
+//func RemoveNodeResourceSlotUnit(db KeyValueStore) error {
+//	key := GetNodeResourceSlotUnitKey()
+//	has, err := db.Has(key)
+//	switch {
+//	case IsNoDBNotFoundErr(err):
+//		return err
+//	case IsDBNotFoundErr(err), nil == err && !has:
+//		return nil
+//	}
+//	return db.Delete(key)
+//}
+//
+//func QueryNodeResourceSlotUnit(db DatabaseReader) (*types.Slot, error) {
+//	has, err := db.Has(GetNodeResourceSlotUnitKey())
+//	if IsNoDBNotFoundErr(err) {
+//		return nil, err
+//	}
+//	if !has {
+//		return nil, ErrNotFound
+//	}
+//	b, err := db.Get(GetNodeResourceSlotUnitKey())
+//	if nil != err {
+//		return nil, err
+//	}
+//	var slot *types.Slot
+//	if err := rlp.DecodeBytes(b, &slot); nil != err {
+//		return nil, err
+//	}
+//	return slot, nil
+//}
 
 // Operate the information of the jobNode resources being used by the local task
 func StoreLocalTaskPowerUsed(db KeyValueStore, taskPowerUsed *types.LocalTaskPowerUsed) error {
