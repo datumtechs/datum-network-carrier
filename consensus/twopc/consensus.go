@@ -280,7 +280,10 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	log.Debugf("Received the reschedule task result from `schedule.ReplaySchedule()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, the result: %s",
 		msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), replayTaskResult.String())
 
-	var vote *twopcpb.PrepareVote
+	var (
+		vote    *twopcpb.PrepareVote
+		content string
+	)
 
 	if nil != replayTaskResult.GetErr() {
 		vote = makePrepareVote(
@@ -294,6 +297,8 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			&types.PrepareVoteResource{},
 			timeutils.UnixMsecUint64(),
 		)
+		content = fmt.Sprintf("prepare voting `No`, as %s", replayTaskResult.GetErr())
+
 		log.WithError(replayTaskResult.GetErr()).Warnf("Failed to replay schedule task on onPrepareMsg, replay result has err, will vote `No`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 	} else {
@@ -313,9 +318,21 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			),
 			timeutils.UnixMsecUint64(),
 		)
-		log.Infof("Succeed to replay schedule task on onPrepareMsg, will vote `YES`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		content = "prepare voting `Yes`"
+
+		log.Infof("Succeed to replay schedule task on onPrepareMsg, will vote `Yes`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 	}
+
+	// store event about prepare vote
+	t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+		Type:       ev.TaskConsensusPrepareEpoch.GetType(),
+		TaskId:     proposalTask.GetTaskId(),
+		IdentityId: receiver.GetIdentityId(),
+		PartyId:    receiver.GetPartyId(),
+		Content:    content,
+		CreateAt:   timeutils.UnixMsecUint64(),
+	})
 
 	// Store current peer own vote for checking whether to vote already
 	if nmls == types.RemoteNetworkMsg {
@@ -406,7 +423,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 	// Voter <the vote sender> voted repeatedly
 	if t.state.HasPrepareVoting(vote.GetMsgOption().GetProposalId(), sender) {
 		log.Errorf("%s on onPrepareVote, they are not same, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, vote sender role: {%s}, vote sender partyId: {%s}",
-			ctypes.ErrPrepareVoteRepeatedly,  vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId(),
+			ctypes.ErrPrepareVoteRepeatedly, vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId(),
 			vote.GetMsgOption().GetSenderRole().String(), vote.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 			ctypes.ErrPrepareVoteRepeatedly, proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetOwner().GetIdentityId(), vote.GetMsgOption().GetReceiverPartyId())
@@ -428,7 +445,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 	// verify resource of `YES` vote
 	if vote.VoteOption == types.Yes && vote.PeerInfoEmpty() {
 		log.Errorf("%s on onPrepareVote, they are not same, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-			ctypes.ErrProposalPrepareVoteResourceInvalid,  vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
+			ctypes.ErrProposalPrepareVoteResourceInvalid, vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s, on the prepare vote [taskId: %s, taskRole: %s, identity: %s, partyId: %s]",
 			ctypes.ErrProposalPrepareVoteResourceInvalid, proposalTask.GetTaskId(), vote.GetMsgOption().GetSenderRole().String(), sender.GetIdentityId(), sender.GetPartyId())
 	}
@@ -481,7 +498,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 			go func() {
 
 				log.Infof("PrepareVoting failed on consensus prepare epoch, the `Yes` vote count is no enough, will send `Stop` confirm msg, the `Yes` vote count: {%d}, need total count: {%d}, with proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
-					yesVoteCount, totalNeedVoteCount,  vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
+					yesVoteCount, totalNeedVoteCount, vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
 
 				if err := t.sendConfirmMsg(vote.GetMsgOption().GetProposalId(), task, t.makeEmptyConfirmTaskPeerDesc(), types.TwopcMsgStop, now); nil != err {
 					log.Errorf("Failed to call `sendConfirmMsg` with `stop` consensus prepare epoch on `onPrepareVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, err: \n%s",
@@ -590,7 +607,10 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 		return ctypes.ErrConsensusMsgInvalid
 	}
 
-	var vote *twopcpb.ConfirmVote
+	var (
+		vote    *twopcpb.ConfirmVote
+		content string
+	)
 
 	// verify peers resources
 	if msg.PeersEmpty() {
@@ -605,6 +625,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 			types.No,
 			timeutils.UnixMsecUint64(),
 		)
+		content = "confirm voting `No`, as received empty peers on confirm msg"
 
 		log.Warnf("Failed to verify peers resources of confirmMsg on onConfirmMsg, the peerDesc reources is empty, will vote `No`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetConfirmOption().String())
@@ -625,11 +646,22 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 			types.Yes,
 			timeutils.UnixMsecUint64(),
 		)
+		content = "confirm voting `Yes`"
 
 		log.Infof("Succeed to verify peers resources of confirmMsg on onConfirmMsg, will vote `Yes`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetConfirmOption().String())
 
 	}
+
+	// store event about confirm vote
+	t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+		Type:       ev.TaskConsensusConfirmEpoch.GetType(),
+		TaskId:     proposalTask.GetTaskId(),
+		IdentityId: receiver.GetIdentityId(),
+		PartyId:    receiver.GetPartyId(),
+		Content:    content,
+		CreateAt:   timeutils.UnixMsecUint64(),
+	})
 
 	// Store current peer own vote for checking whether to vote already
 	if nmls == types.RemoteNetworkMsg {
@@ -913,7 +945,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 		// store succeed consensus event for partyId
 		t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-			Type:       ev.TaskSucceedConsensus.Type,
+			Type:       ev.TaskSucceedConsensus.GetType(),
 			TaskId:     proposalTask.GetTaskId(),
 			IdentityId: receiver.GetIdentityId(),
 			PartyId:    receiver.GetPartyId(),

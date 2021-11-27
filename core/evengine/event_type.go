@@ -54,6 +54,9 @@ var (
 	TaskFailedConsensus        = NewEventType("0101002", "The task was failed consensus")
 	TaskProposalStateDeadline  = NewEventType("0101003", "The task proposalState was deadline")
 	TaskSucceedConsensus       = NewEventType("0101004", "The task was succeed consensus")
+	TaskConsensusPrepareEpoch  = NewEventType("0101005", "The task was consensus prepare epoch")
+	TaskConsensusConfirmEpoch  = NewEventType("0101006", "The task was consensus confirm epoch")
+	TaskConsensusCommitEpoch   = NewEventType("0101007", "The task was consensus commit epoch")
 )
 
 var ScheduleEvent = map[string]string{

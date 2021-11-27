@@ -23,7 +23,7 @@ func (e *EventEngine) GenerateEvent(typ, taskId, identityId, partyId, extra stri
 		TaskId:     taskId,
 		IdentityId: identityId,
 		PartyId:    partyId,
-		Content:    fmt.Sprintf("%s, reason: {%s}", ScheduleEvent[typ], extra),
+		Content:    fmt.Sprintf("%s, %s", ScheduleEvent[typ], extra),
 		CreateAt:   timeutils.UnixMsecUint64(),
 	}
 }

@@ -21,7 +21,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/p2p"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/pkg/errors"
 	"strconv"
 	"strings"
 	"sync"
@@ -115,7 +114,7 @@ func (m *Manager) tryScheduleTask() error {
 
 		switch result.GetStatus() {
 		case types.TaskTerminate, types.TaskConsensusFinished:
-			if result.Status == types.TaskTerminate {
+			if result.GetStatus() == types.TaskTerminate {
 				content = "task was terminated."
 				eventType = ev.TaskTerminated.GetType()
 			} else {
@@ -123,10 +122,10 @@ func (m *Manager) tryScheduleTask() error {
 				eventType = ev.TaskSucceedConsensus.GetType()
 			}
 		case types.TaskConsensusInterrupt:
-			if nil != result.Err {
-				content = result.Err.Error()
+			if nil != result.GetErr() {
+				content = result.GetErr().Error()
 			} else {
-				content = "consensus was interrupt."
+				content = "consensus was interrupted."
 			}
 			eventType = ev.TaskFailedConsensus.GetType()
 		}
@@ -201,11 +200,6 @@ func (m *Manager) sendNeedExecuteTaskByAction(taskId string, senderRole, receive
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
-	//// TODO for test
-	//log.Debugf("Start execute task on `taskManager.driveTaskForExecute()`, taskId: {%s}, role: {%s}, partyId: {%s}",
-	//	task.GetTask().GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
-	//return nil
-
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task)
@@ -213,7 +207,7 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 		return m.executeTaskOnJobNode(task)
 	default:
 		log.Errorf("Faided to driveTaskForExecute(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTaskId(), task.GetLocalTaskRole().String())
-		return errors.New("Unknown resource node type")
+		return fmt.Errorf("Unknown fighter node type when ready to execute task")
 	}
 }
 
@@ -225,7 +219,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
-		return errors.New("query internal dataNodes failed")
+		return fmt.Errorf("query internal dataNodes failed when ready to execute task")
 	}
 	for _, dataNode := range dataNodes {
 		if dataNode.GetExternalIp() == task.GetLocalResource().GetIp() && dataNode.GetExternalPort() == task.GetLocalResource().GetPort() {
@@ -237,7 +231,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if "" == strings.Trim(dataNodeId, "") {
 		log.Errorf("Failed to find dataNodeId of self vote resource on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return errors.New("not find dataNodeId of self vote resource")
+		return fmt.Errorf("not find dataNodeId of self vote resource when ready to execute task")
 	}
 
 	// clinet *grpclient.DataNodeClient,
@@ -245,13 +239,13 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if !has {
 		log.Errorf("Failed to query internal data node on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return errors.New("data node client not found")
+		return fmt.Errorf("dataNode client not found when ready to execute task")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.WithError(err).Errorf("Failed to connect internal data node on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-			return err
+			return fmt.Errorf("the dataNode is not connected when ready to execute task")
 		}
 	}
 
@@ -259,19 +253,19 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.WithError(err).Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return err
+		return fmt.Errorf("make dataNode rpc req failed when ready to execute task")
 	}
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
 		log.WithError(err).Errorf("Falied to call publish schedTask to `data-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return err
+		return fmt.Errorf("call dataNode rpc api failed when ready to execute task")
 	}
 	if !resp.GetOk() {
 		log.Errorf("Falied to executing task from `data-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId, resp.String())
-		return nil
+		return fmt.Errorf("dataNode rpc api wrong resp %s when ready to execute task", resp.GetMsg())
 	}
 
 	log.Infof("Success to publish schedTask to `data-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
@@ -287,7 +281,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
-		return errors.New("query internal jobNodes failed")
+		return fmt.Errorf("query internal jobNodes failed when ready to execute task")
 	}
 	for _, jobNode := range jobNodes {
 		if jobNode.GetExternalIp() == task.GetLocalResource().GetIp() && jobNode.GetExternalPort() == task.GetLocalResource().GetPort() {
@@ -299,7 +293,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if "" == strings.Trim(jobNodeId, "") {
 		log.Errorf("Failed to find jobNodeId of self vote resource on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return errors.New("not find jobNodeId of self vote resource")
+		return fmt.Errorf("not find jobNodeId of self vote resource when ready to execute task")
 	}
 
 	// clinet *grpclient.JobNodeClient,
@@ -307,13 +301,13 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if !has {
 		log.Errorf("Failed to query internal job node on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return errors.New("job node client not found")
+		return fmt.Errorf("jobNode client not found when ready to execute task")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.WithError(err).Errorf("Failed to connect internal job node on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-			return err
+			return fmt.Errorf("the jobNode is not connected when ready to execute task")
 		}
 	}
 
@@ -321,19 +315,19 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.WithError(err).Errorf("Falied to make TaskReadyGoReq on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return err
+		return fmt.Errorf("make jobNode rpc req failed when ready to execute task")
 	}
 
 	resp, err := client.HandleTaskReadyGo(req)
 	if nil != err {
 		log.WithError(err).Errorf("Falied to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return err
+		return fmt.Errorf("call jobNode rpc api failed when ready to execute task")
 	}
 	if !resp.GetOk() {
 		log.Errorf("Falied to publish schedTask to `job-Fighter` node to executing the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId, resp.String())
-		return nil
+		return fmt.Errorf("jobNode rpc api wrong resp %s when ready to execute task", resp.GetMsg())
 	}
 
 	log.Infof("Success to publish schedTask to `job-Fighter` node to executing, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
@@ -352,7 +346,7 @@ func (m *Manager) driveTaskForTerminate(task *types.NeedExecuteTask) error {
 		return m.terminateTaskOnJobNode(task)
 	default:
 		log.Errorf("Faided to driveTaskForTerminate(), Unknown task role, taskId: {%s}, taskRole: {%s}", task.GetTaskId(), task.GetLocalTaskRole().String())
-		return errors.New("Unknown resource node type")
+		return fmt.Errorf("Unknown resource node type when ready to terminate task")
 	}
 }
 
@@ -364,7 +358,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.Errorf("Failed to query internal dataNode arr on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
-		return errors.New("query internal dataNodes failed")
+		return fmt.Errorf("query internal dataNodes failed when ready to terminate task")
 	}
 	for _, dataNode := range dataNodes {
 		if dataNode.GetExternalIp() == task.GetLocalResource().GetIp() && dataNode.GetExternalPort() == task.GetLocalResource().GetPort() {
@@ -376,7 +370,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if "" == strings.Trim(dataNodeId, "") {
 		log.Errorf("Failed to find dataNodeId of self vote resource on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return errors.New("not find dataNodeId of self vote resource")
+		return fmt.Errorf("not find dataNodeId of self vote resource when ready to terminate task")
 	}
 
 	// clinet *grpclient.DataNodeClient,
@@ -384,13 +378,13 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if !has {
 		log.Errorf("Failed to query internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return errors.New("data node client not found")
+		return fmt.Errorf("dataNode client not found when ready to terminate task")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.WithError(err).Errorf("Failed to connect internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-			return err
+			return fmt.Errorf("the dataNode is not connected when ready to terminate task")
 		}
 	}
 
@@ -398,19 +392,19 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.WithError(err).Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return err
+		return fmt.Errorf("make dataNode rpc req failed when ready to terminate task")
 	}
 
 	resp, err := client.HandleCancelTask(req)
 	if nil != err {
 		log.WithError(err).Errorf("Falied to call publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
-		return err
+		return fmt.Errorf("call dataNode rpc api failed when ready to terminate task")
 	}
 	if !resp.GetOk() {
 		log.Errorf("Falied to executing task from `data-Fighter` node to terminating the resp code is not `ok`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId, resp.String())
-		return nil
+		return fmt.Errorf("dataNode rpc api wrong resp %s when ready to terminate task", resp.GetMsg())
 	}
 
 	log.Infof("Success to publish schedTask to `data-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
@@ -426,7 +420,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.Errorf("Failed to query internal jobNode arr on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
-		return errors.New("query internal jobNodes failed")
+		return fmt.Errorf("query internal jobNodes failed when ready to terminate task")
 	}
 	for _, jobNode := range jobNodes {
 		if jobNode.GetExternalIp() == task.GetLocalResource().GetIp() && jobNode.GetExternalPort() == task.GetLocalResource().GetPort() {
@@ -438,7 +432,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if "" == strings.Trim(jobNodeId, "") {
 		log.Errorf("Failed to find jobNodeId of self vote resource on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return errors.New("not find jobNodeId of self vote resource")
+		return fmt.Errorf("not find jobNodeId of self vote resource when ready to terminate task")
 	}
 
 	// clinet *grpclient.JobNodeClient,
@@ -446,13 +440,13 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if !has {
 		log.Errorf("Failed to query internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return errors.New("job node client not found")
+		return fmt.Errorf("jobNode client not found when ready to terminate task")
 	}
 	if client.IsNotConnected() {
 		if err := client.Reconnect(); nil != err {
 			log.WithError(err).Errorf("Failed to connect internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-			return err
+			return fmt.Errorf("the jobNode is not connected when ready to terminate task")
 		}
 	}
 
@@ -460,19 +454,19 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 	if nil != err {
 		log.WithError(err).Errorf("Falied to make TaskCancelReq on `taskManager.terminateTaskOnJobNode()`,taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return err
+		return fmt.Errorf("make jobNode rpc req failed when ready to terminate task")
 	}
 
 	resp, err := client.HandleCancelTask(req)
 	if nil != err {
 		log.WithError(err).Errorf("Falied to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
-		return err
+		return fmt.Errorf("call jobNode rpc api failed when ready to terminate task")
 	}
 	if !resp.GetOk() {
 		log.Errorf("Falied to publish schedTask to `job-Fighter` node to terminating the resp code is not `ok`,taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}, resp: %s",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId, resp.String())
-		return nil
+		return fmt.Errorf("jobNode rpc api wrong resp %s when ready to terminate task", resp.GetMsg())
 	}
 
 	log.Infof("Success to publish schedTask to `job-Fighter` node to terminating, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
@@ -1174,7 +1168,8 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 			log.WithError(err).Errorf("Failed to execute task on internal node, taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
-			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("execute task failed: %s with %s", task.GetConsStatus().String(),
+			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), task.GetLocalTaskOrganization().GetPartyId(),
+				fmt.Sprintf("execute task failed: %s with %s", err,
 				task.GetLocalTaskOrganization().GetPartyId())))
 		}
 	}
