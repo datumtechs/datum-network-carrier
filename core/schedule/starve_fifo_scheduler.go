@@ -129,6 +129,10 @@ func (sche *SchedulerStarveFIFO) RemoveTask(taskId string) error {
 
 func (sche *SchedulerStarveFIFO) TrySchedule() (task *types.Task, taskId string, err error) {
 
+	// todo 先检查先全网的资源, 再决定是否调度
+
+	// todo 使用 vrf 选举, 然后数据参与方只需要校验下 vrf 的真实性? 资源的足够与否交给 算力方自己投票 ...
+
 	sche.increaseTotalTaskTerm()
 	bullet := sche.popTaskBullet()
 	if nil == bullet {
