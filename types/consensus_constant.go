@@ -14,42 +14,42 @@ type VoteOption uint8
 func (v VoteOption) Bytes() []byte { return []byte{byte(v)} }
 func (v VoteOption) String() string {
 	switch v {
-	case Yes:
-		return "Yes"
-	case No:
-		return "No"
+	case YES:
+		return "YES"
+	case NO:
+		return "NO"
 	default:
-		return "Abstention"
+		return "ABSTENTION"
 	}
 }
 
 const (
 	VoteUnknown VoteOption = 0x00
-	Yes         VoteOption = 0x01
-	No          VoteOption = 0x02
-	Abstention  VoteOption = 0x03
+	YES         VoteOption = 0x01
+	NO          VoteOption = 0x02
+	ABSTENTION  VoteOption = 0x03
 )
 
 func VoteOptionFromUint8(option uint8) VoteOption {
 	switch option {
 	case 0x01:
-		return Yes
+		return YES
 	case 0x02:
-		return No
+		return NO
 	case 0x03:
-		return Abstention
+		return ABSTENTION
 	default:
 		return VoteUnknown
 	}
 }
 func VoteOptionFromStr(option string) VoteOption {
 	switch option {
-	case "Yes":
-		return Yes
-	case "No":
-		return No
-	case "Abstention":
-		return Abstention
+	case "YES":
+		return YES
+	case "NO":
+		return NO
+	case "ABSTENTION":
+		return ABSTENTION
 	default:
 		return VoteUnknown
 	}
@@ -70,11 +70,11 @@ func (c TwopcMsgOption) Bytes() []byte { return []byte{byte(c)} }
 func (c TwopcMsgOption) String() string {
 	switch c {
 	case TwopcMsgStart:
-		return "Start"
+		return "START"
 	case TwopcMsgStop:
-		return "Stop"
+		return "STOP"
 	default:
-		return "Unknown"
+		return "UNKNOWN"
 	}
 }
 
@@ -96,9 +96,9 @@ func TwopcMsgOptionFromUint8(option uint8) TwopcMsgOption {
 }
 func TwopcMsgOptionFromStr(option string) TwopcMsgOption {
 	switch option {
-	case "Start":
+	case "START":
 		return TwopcMsgStart
-	case "Stop":
+	case "STOP":
 		return TwopcMsgStop
 	default:
 		return TwopcMsgUnknown

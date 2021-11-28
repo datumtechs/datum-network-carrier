@@ -517,11 +517,11 @@ func (st *prepareVoteState) addVote(vote *types.PrepareVote) {
 	}
 	st.votes[vote.MsgOption.SenderPartyId] = vote
 	if count, ok := st.yesVotes[vote.MsgOption.SenderRole]; ok {
-		if vote.VoteOption == types.Yes {
+		if vote.VoteOption == types.YES {
 			st.yesVotes[vote.MsgOption.SenderRole] = count + 1
 		}
 	} else {
-		if vote.VoteOption == types.Yes {
+		if vote.VoteOption == types.YES {
 			st.yesVotes[vote.MsgOption.SenderRole] = 1
 		}
 	}
@@ -544,7 +544,7 @@ func (st *prepareVoteState) removeVote(partyId string, role apicommonpb.TaskRole
 	delete(st.votes, partyId)
 
 	if count, ok := st.yesVotes[role]; ok {
-		if vote.VoteOption == types.Yes && count != 0 {
+		if vote.VoteOption == types.YES && count != 0 {
 			st.yesVotes[role] = count - 1
 		}
 	}
@@ -631,11 +631,11 @@ func (st *confirmVoteState) addVote(vote *types.ConfirmVote) {
 
 	st.votes[vote.MsgOption.SenderPartyId] = vote
 	if count, ok := st.yesVotes[vote.MsgOption.SenderRole]; ok {
-		if vote.VoteOption == types.Yes {
+		if vote.VoteOption == types.YES {
 			st.yesVotes[vote.MsgOption.SenderRole] = count + 1
 		}
 	} else {
-		if vote.VoteOption == types.Yes {
+		if vote.VoteOption == types.YES {
 			st.yesVotes[vote.MsgOption.SenderRole] = 1
 		}
 	}
@@ -659,7 +659,7 @@ func (st *confirmVoteState) removeVote(partyId string, role apicommonpb.TaskRole
 	delete(st.votes, partyId)
 
 	if count, ok := st.yesVotes[role]; ok {
-		if vote.VoteOption == types.Yes && count != 0 {
+		if vote.VoteOption == types.YES && count != 0 {
 			st.yesVotes[role] = count - 1
 		}
 	}
