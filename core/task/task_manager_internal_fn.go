@@ -514,15 +514,11 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 			return
 		}
-
-		if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
-			log.WithError(err).Errorf("Failed to remove task executing status on publishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}",
-				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+		if err := m.RemoveExecuteTaskStateAfterExecuteTask("on taskManager.publishFinishedTaskToDataCenter()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption()); nil != err {
+			log.WithError(err).Errorf("Failed to call RemoveExecuteTaskStateAfterExecuteTask() on publishFinishedTaskToDataCenter(), taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
+				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 			return
 		}
-		// clean local task cache
-		m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.publishFinishedTaskToDataCenter()",
-			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption())
 
 		log.Debugf("Finished pulishFinishedTaskToDataCenter, taskId: {%s}, partyId: {%s}, taskState: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), taskState)
@@ -540,21 +536,6 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 	log.Debugf("Start sendTaskResultMsgToTaskSender, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 
-	// broadcast `task result msg` to reply remote peer
-	if task.GetLocalTaskOrganization().GetIdentityId() != task.GetRemoteTaskOrganization().GetIdentityId() {
-		//if err := handler.SendTaskResultMsg(context.TODO(), m.p2p, task.GetRemotePID(), m.makeTaskResultMsgWithEventList(task)); nil != err {
-		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultMsgWithEventList(task)); nil != err {
-			log.WithError(err).Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
-				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
-		}
-	}
-
-	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
-		log.WithError(err).Errorf("Failed to remove task executing status on sendTaskResultMsgToTaskSender, taskId: {%s}, taskRole: {%s}, partyId: {%s}, remote pid: {%s}",
-			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
-		return
-	}
-
 	var option resource.ReleaseResourceOption
 
 	// when other task partner and task sender is same identity,
@@ -563,14 +544,65 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 		option = resource.SetUnlockLocalResorce() // unlock local resource of partyId, but don't remove local task and events of partyId
 	} else {
 		option = resource.SetAllReleaseResourceOption() // unlock local resource and remove local task and events
+		// broadcast `task result msg` to reply remote peer
+		if err := m.p2p.Broadcast(context.TODO(), m.makeTaskResultMsgWithEventList(task)); nil != err {
+			log.WithError(err).Errorf("failed to call `SendTaskResultMsg`, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
+				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
+		}
 	}
-
-	// clean local task cache
-	m.resourceMng.ReleaseLocalResourceWithTask("on taskManager.sendTaskResultMsgToTaskSender()",
-		task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), option)
-
+	if err := m.RemoveExecuteTaskStateAfterExecuteTask("on sendTaskResultMsgToTaskSender()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), option); nil != err {
+		log.WithError(err).Errorf("Failed to call RemoveExecuteTaskStateAfterExecuteTask() on sendTaskResultMsgToTaskSender(), taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
+			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
+		return
+	}
 	log.Debugf("Finished sendTaskResultMsgToTaskSender, taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
+}
+
+
+func (m *Manager) StoreExecuteTaskStateBeforeExecuteTask (logdesc, taskId, partyId string) error {
+	// Store task exec status
+	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId); nil != err {
+		log.WithError(err).Errorf("Failed to store local task about `exec` status %s, taskId: {%s}, partyId: {%s}",
+			logdesc, taskId, partyId)
+		return err
+	}
+	used, err := m.resourceMng.GetDB().QueryLocalTaskPowerUsed(taskId, partyId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("Failed to call QueryLocalTaskPowerUsed %s, used: {%s}", logdesc, used.String())
+		return err
+	}
+	if nil == err && nil != used {
+		if err := m.resourceMng.StoreJobNodeExecuteTaskId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
+			log.WithError(err).Errorf("Failed to store execute taskId into jobNode %s, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+				logdesc, used.GetNodeId(), taskId, partyId)
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyId string, option resource.ReleaseResourceOption) error {
+	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId); nil != err {
+		log.WithError(err).Errorf("Failed to remove task executing status %s, taskId: {%s} partyId: {%s}",
+			logdesc, taskId, partyId)
+		return err
+	}
+	used, err := m.resourceMng.GetDB().QueryLocalTaskPowerUsed(taskId, partyId)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("Failed to call QueryLocalTaskPowerUsed %s, used: {%s}", logdesc, used.String())
+		return err
+	}
+	if nil == err && nil != used {
+		if err := m.resourceMng.RemoveJobNodeExecuteTaskId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
+			log.WithError(err).Errorf("Failed to remove execute taskId into jobNode %s, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+				logdesc, used.GetNodeId(), taskId, partyId)
+			return err
+		}
+	}
+	// clean local task cache
+	m.resourceMng.ReleaseLocalResourceWithTask(logdesc, taskId, partyId, option)
+	return nil
 }
 
 func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
@@ -1140,8 +1172,8 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
 	// Store task exec status
-	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValExecByPartyId(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
-		log.WithError(err).Errorf("Failed to store local task about `exec` status, taskId: {%s}, role: {%s}, partyId: {%s}",
+	if err := m.StoreExecuteTaskStateBeforeExecuteTask("on handleNeedExecuteTask()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()); nil != err {
+		log.WithError(err).Errorf("Failed to call StoreExecuteTaskStateBeforeExecuteTask() on handleNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 		return
 	}

@@ -266,19 +266,6 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 		return
 	}
 
-
-	//used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
-	//if nil != err {
-	//	log.WithError(err).Errorf("Failed to query local task powerUsed,taskId {%s}, partyId: {%s}", taskId, partyId)
-	//	return
-	//}
-	//// query partyId count on jobNode with jobNodeId and taskId.
-	//count, err := m.dataCenter.QueryJobNodeTaskPartyIdCount(used.GetNodeId(), used.GetTaskId())
-	//if nil != err {
-	//	log.WithError(err).Errorf("failed to query resuorce task party count, used: {%s}", used.String())
-	//	return
-	//}
-
 	if option.IsUnlockLocalResorce() {
 		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
 			logdesc, taskId, partyId, option)
@@ -343,42 +330,8 @@ func (m *Manager) addPartyTaskPowerUsedOnJobNode(used *types.LocalTaskPowerUsed)
 		if err := m.dataCenter.StoreLocalTaskPowerUsed(used); nil != err {
 			log.WithError(err).Errorf("failed to call StoreLocalTaskPowerUsed on addPartyTaskPowerUsedOnJobNode(), used: {%s}", used.String())
 			return err
-		} else {
-			log.Debugf("Succeed store powerUsed on addPartyTaskPowerUsedOnJobNode(), used: {%s}", used.String())
 		}
-
-		if err :=  m.dataCenter.StoreJobNodeTaskPartyId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
-			// rollback powerUsed stored
-			m.dataCenter.RemoveLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId())
-			log.WithError(err).Errorf("failed to call StoreJobNodeTaskPartyId on addPartyTaskPowerUsedOnJobNode(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-				used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
-			return err
-		} else {
-			log.Debugf("Succeed store JobNodeId runningTask partyId on addPartyTaskPowerUsedOnJobNode(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-				used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
-		}
-
-		hasHistoryTaskId, err := m.dataCenter.HasJobNodeHistoryTaskId(used.GetNodeId(), used.GetTaskId())
-		if nil != err {
-			// rollback powerUsed stored
-			m.dataCenter.RemoveLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId())
-			// roolback JobNodeTaskPartyId stored
-			m.dataCenter.RemoveJobNodeTaskPartyId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
-			log.WithError(err).Errorf("failed to check JobNode taskId whether exists on addPartyTaskPowerUsedOnJobNode(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-				used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
-			return err
-		}
-		if !hasHistoryTaskId {
-			if err := m.dataCenter.StoreJobNodeHistoryTaskId (used.GetNodeId(), used.GetTaskId()); nil != err {
-				// rollback powerUsed stored
-				m.dataCenter.RemoveLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId())
-				// roolback JobNodeTaskPartyId stored
-				m.dataCenter.RemoveJobNodeTaskPartyId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
-				log.WithError(err).Errorf("failed to inscrease JobNode history task count on addPartyTaskPowerUsedOnJobNode(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-					used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
-				return err
-			}
-		}
+		log.Debugf("Succeed store powerUsed on addPartyTaskPowerUsedOnJobNode(), used: {%s}", used.String())
 	}
 	return nil
 }
@@ -394,24 +347,48 @@ func (m *Manager) removePartyTaskPowerUsedOnJobNode(used *types.LocalTaskPowerUs
 		if err := m.dataCenter.RemoveLocalTaskPowerUsed(used.GetTaskId(), used.GetPartyId()); nil != err {
 			log.WithError(err).Errorf("failed to call RemoveLocalTaskPowerUsed on removePartyTaskPowerUsedOnJobNode(), used: {%s}", used.String())
 			return err
-		} else {
-			log.Debugf("Succeed remove powerUsed on removePartyTaskPowerUsedOnJobNode(), used: {%s}", used.String())
 		}
+		log.Debugf("Succeed remove powerUsed on removePartyTaskPowerUsedOnJobNode(), used: {%s}", used.String())
+	}
+	return nil
+}
 
-		if err :=  m.dataCenter.RemoveJobNodeTaskPartyId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
-			// rollback powerUsed removed
-			m.dataCenter.StoreLocalTaskPowerUsed(used)
-			log.WithError(err).Errorf("failed to call RemoveJobNodeTaskPartyId on addPartyTaskPowerUsedOnJobNode(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-				used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
+func (m *Manager) StoreJobNodeExecuteTaskId (jobNodeId, taskId, partyId string) error {
+	if err :=  m.dataCenter.StoreJobNodeTaskPartyId(jobNodeId, taskId, partyId); nil != err {
+		log.WithError(err).Errorf("failed to call StoreJobNodeTaskPartyId on StoreJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+			jobNodeId, taskId, partyId)
+		return err
+	}
+	log.Debugf("Succeed store JobNodeId runningTask partyId on StoreJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+		jobNodeId, taskId, partyId)
+
+	hasHistoryTaskId, err := m.dataCenter.HasJobNodeHistoryTaskId(jobNodeId, taskId)
+	if nil != err {
+		log.WithError(err).Errorf("failed to check JobNode taskId whether exists on StoreJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+			jobNodeId, taskId, partyId)
+		return err
+	}
+	if !hasHistoryTaskId {
+		if err := m.dataCenter.StoreJobNodeHistoryTaskId (jobNodeId, taskId); nil != err {
+			log.WithError(err).Errorf("failed to inscrease JobNode history task count on StoreJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+				jobNodeId, taskId, partyId)
 			return err
-		} else {
-			log.Debugf("Succeed remove JobNodeId runningTask partyId on addPartyTaskPowerUsedOnJobNode(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-				used.GetNodeId(), used.GetTaskId(), used.GetPartyId())
 		}
 	}
 	return nil
 }
 
+func (m *Manager) RemoveJobNodeExecuteTaskId (jobNodeId, taskId, partyId string) error {
+
+	if err :=  m.dataCenter.RemoveJobNodeTaskPartyId(jobNodeId, taskId, partyId); nil != err {
+		log.WithError(err).Errorf("failed to call RemoveJobNodeTaskPartyId on RemoveJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+			jobNodeId, taskId, partyId)
+		return err
+	}
+	log.Debugf("Succeed remove JobNodeId runningTask partyId on RemoveJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+		jobNodeId, taskId, partyId)
+	return nil
+}
 
 func (m *Manager) IsMockIdentityId (identityId string) bool {
 	if _, ok := m.mockIdentityIdsCache[identityId]; ok {
