@@ -159,7 +159,7 @@ service AuthService {
   }
 
   // 查询(本组织)的所有元数据的授权申请及审核结果详情列表
-  rpc GetLocalMetadataAuthorityList(google.protobuf.Empty) returns (GetMetadataAuthorityListResponse) {
+  rpc GetLocalMetadataAuthorityList(GetMetadataAuthorityListRequest) returns (GetMetadataAuthorityListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/auth/localMetadataAuthList"
     };
