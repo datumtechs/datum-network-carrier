@@ -29,6 +29,10 @@ message GetGlobalMetadataDetailResponse {
   types.MetadataDetail      information = 2;        // 元文件详情主体
 }
 
+message GetGlobalMetadataDetailListRequest {
+  uint64 last_updated = 1;  // 毫秒级时间戳，上一次最后一条数据的时间戳
+}
+
 // 查看 全网元数据列表  resp
 message GetGlobalMetadataDetailListResponse {
   int32                                     status = 1;                      // 响应码
@@ -84,7 +88,7 @@ message GetMetadataUsedTaskIdListResponse {
 service MetadataService {
 
   // 查看 全网元数据列表
-  rpc GetGlobalMetadataDetailList (google.protobuf.Empty) returns (GetGlobalMetadataDetailListResponse) {
+  rpc GetGlobalMetadataDetailList (GetGlobalMetadataDetailListRequest) returns (GetGlobalMetadataDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/metadata/globalList"
     };
