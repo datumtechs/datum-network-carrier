@@ -664,13 +664,13 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 	//		so the data legitimacy is verified again
 	// ############################################
 	// ############################################
-	ideneityList, err := m.dataCenter.QueryIdentityList()
+	ideneityList, err := m.dataCenter.QueryIdentityList(timeutils.BeforeYearUnixMsecUint64())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query global identity list on MessageHandler with broadcast metadataAuth")
 		return
 	}
-
-	metadataList, err := m.dataCenter.QueryMetadataList()
+	//todo: need checking...
+	metadataList, err := m.dataCenter.QueryMetadataList(timeutils.BeforeYearUnixMsecUint64())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query global metadata list on MessageHandler with broadcast metadataAuth")
 		return

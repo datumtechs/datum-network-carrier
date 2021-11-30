@@ -121,8 +121,8 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 	}, nil
 }
 
-func (svr *Server) GetIdentityList(ctx context.Context, req *emptypb.Empty) (*pb.GetIdentityListResponse, error) {
-	identityList, err := svr.B.GetIdentityList()
+func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListRequest) (*pb.GetIdentityListResponse, error) {
+	identityList, err := svr.B.GetIdentityList(req.LastUpdated)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:QueryIdentityList failed")
 		return nil, ErrGetIdentityList
@@ -192,7 +192,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	// 		check metadataId and identity of authority
 	// ############################################
 	// ############################################
-	ideneityList, err := svr.B.GetIdentityList()
+	ideneityList, err := svr.B.GetIdentityList(timeutils.BeforeYearUnixMsecUint64())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global identity list failed")
 		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global identity list failed")
@@ -212,7 +212,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	// reset val
 	valid = false
 
-	metadataList, err := svr.B.GetGlobalMetadataDetailList()
+	metadataList, err := svr.B.GetGlobalMetadataDetailList(timeutils.BeforeYearUnixMsecUint64())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global metadata list failed")
 		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global metadata list failed")
@@ -367,7 +367,7 @@ func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMeta
 	}, nil
 }
 
-func (svr *Server) GetLocalMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
+func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.GetMetadataAuthorityListRequest) (*pb.GetMetadataAuthorityListResponse, error) {
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataAuthorityList failed")
@@ -396,9 +396,9 @@ func (svr *Server) GetLocalMetadataAuthorityList(context.Context, *emptypb.Empty
 	}, nil
 }
 
-func (svr *Server) GetGlobalMetadataAuthorityList(context.Context, *emptypb.Empty) (*pb.GetMetadataAuthorityListResponse, error) {
+func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.GetMetadataAuthorityListRequest) (*pb.GetMetadataAuthorityListResponse, error) {
 
-	authorityList, err := svr.B.GetGlobalMetadataAuthorityList()
+	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.LastUpdated)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList

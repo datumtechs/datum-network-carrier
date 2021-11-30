@@ -151,6 +151,15 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -174,6 +183,15 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -197,6 +215,15 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
         "tags": [
           "AuthService"
         ]
@@ -341,6 +368,10 @@
         "status": {
           "$ref": "#/definitions/protobufCommonStatus",
           "title": "the status for organization(deleted/normal)"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
         }
       },
       "description": "A represents the basic information of the organization."
@@ -499,6 +530,10 @@
         },
         "state": {
           "$ref": "#/definitions/protobufMetadataAuthorityState"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
         }
       },
       "title": "当前组织的某个用户对单个元数据的授权申请及审核结果详情"

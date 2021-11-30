@@ -2,7 +2,6 @@ package core
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -78,11 +77,11 @@ func (dc *DataCenter) QueryMetadataByDataId(dataId string) (*types.Metadata, err
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
-func (dc *DataCenter) QueryMetadataList() (types.MetadataArray, error) {
+func (dc *DataCenter) QueryMetadataList(lastUpdate uint64) (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.ListMetadataRequest{
-		LastUpdated: uint64(timeutils.Now().Unix()),
+		LastUpdated: lastUpdate,
 	})
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }

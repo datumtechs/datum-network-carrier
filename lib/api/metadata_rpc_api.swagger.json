@@ -29,6 +29,15 @@
             }
           }
         },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          }
+        ],
         "tags": [
           "MetadataService"
         ]
@@ -209,6 +218,10 @@
         "status": {
           "$ref": "#/definitions/protobufCommonStatus",
           "title": "the status for organization(deleted/normal)"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64"
         }
       },
       "description": "A represents the basic information of the organization."

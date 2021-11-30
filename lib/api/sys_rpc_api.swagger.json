@@ -1188,6 +1188,12 @@
         "relate_peers": {
           "type": "integer",
           "format": "int64"
+        },
+        "local_bootstrap_node": {
+          "type": "string"
+        },
+        "local_multi_addr": {
+          "type": "string"
         }
       },
       "title": "调度服务的信息"
