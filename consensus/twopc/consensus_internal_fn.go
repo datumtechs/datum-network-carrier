@@ -146,7 +146,6 @@ func (t *Twopc) refreshProposalState() {
 					continue
 				}
 
-
 				// release local resource and clean some data  (on task partenr)
 				t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 					Type:       evengine.TaskProposalStateDeadline.Type,
@@ -157,7 +156,7 @@ func (t *Twopc) refreshProposalState() {
 					CreateAt:   timeutils.UnixMsecUint64(),
 				})
 
-				t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
+				t.stopTaskConsensus("the proposalState had been deadline",
 					proposalId,
 					pstate.GetTaskId(),
 					orgState.GetTaskRole(),
@@ -250,7 +249,7 @@ func (t *Twopc) refreshProposalState() {
 						CreateAt:   timeutils.UnixMsecUint64(),
 					})
 
-					t.stopTaskConsensus("on `twopc.refreshProposalState()`, then the proposalState direct be deadline,",
+					t.stopTaskConsensus("the proposalState had been deadline",
 						proposalId,
 						pstate.GetTaskId(),
 						orgState.GetTaskRole(),
@@ -272,23 +271,22 @@ func (t *Twopc) refreshProposalState() {
 		//pstate.MustUnLock()
 	}
 
-
 }
 
 func (t *Twopc) stopTaskConsensus(
-	logdesc string,
+	reason string,
 	proposalId common.Hash,
 	taskId string,
 	senderRole, receiverRole apicommonpb.TaskRole,
 	sender, receiver *apicommonpb.TaskOrganization,
-	taskActionStatus  types.TaskActionStatus,
+	taskActionStatus types.TaskActionStatus,
 ) {
 
 	log.Debugf("Call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}, taskActionStatus: {%s}",
-		logdesc, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId(), taskActionStatus.String())
+		reason, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId(), taskActionStatus.String())
 	// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 	if senderRole == apicommonpb.TaskRole_TaskRole_Sender {
-		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, taskActionStatus, fmt.Errorf(logdesc)))
+		t.replyTaskConsensusResult(types.NewTaskConsResult(taskId, taskActionStatus, fmt.Errorf(reason)))
 	} else {
 
 		var remotePID peer.ID
@@ -297,17 +295,13 @@ func (t *Twopc) stopTaskConsensus(
 			receiverPID, err := p2p.HexPeerID(receiver.GetNodeId())
 			if nil != err {
 				log.WithError(err).Errorf("Failed to convert nodeId to remote pid receiver identity when call stopTaskConsensus() to interrupt consensus msg %s with role is %s, proposalId: {%s}, taskId: {%s}, partyId: {%s}, remote partyId: {%s}",
-				logdesc, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId())
+					reason, senderRole, proposalId.String(), taskId, sender.GetPartyId(), receiver.GetPartyId())
 			}
 			remotePID = receiverPID
-		} else {
-			// local task (call native func direct)
-			remotePID = ""
 		}
 
 		t.sendNeedExecuteTask(types.NewNeedExecuteTask(
 			remotePID,
-			proposalId,
 			senderRole,
 			receiverRole,
 			sender,
@@ -316,8 +310,8 @@ func (t *Twopc) stopTaskConsensus(
 			taskActionStatus,
 			&types.PrepareVoteResource{},   // zero value
 			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			fmt.Errorf(reason),
 		))
-
 		// Finally, release local task cache that task manager will do it. (to call `resourceMng.ReleaseLocalResourceWithTask()` by taskManager)
 	}
 }
@@ -357,7 +351,6 @@ func (t *Twopc) driveTask(
 	// Send task to TaskManager to execute
 	t.sendNeedExecuteTask(types.NewNeedExecuteTask(
 		remotePid,
-		proposalId,
 		localTaskRole,
 		remoteTaskRole,
 		localTaskOrganization,
@@ -366,11 +359,14 @@ func (t *Twopc) driveTask(
 		types.TaskNeedExecute,
 		selfvote.GetPeerInfo(),
 		peers,
+		nil,
 	))
 }
 
-func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTime uint64) error {
+func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedConsensusTask, startTime uint64) error {
 
+
+	task := nonConsTask.GetTask()
 	sender := task.GetTaskSender()
 
 	sendTaskFn := func(wg *sync.WaitGroup, sender, receiver *apicommonpb.TaskOrganization, senderRole, receiverRole apicommonpb.TaskRole, errCh chan<- error) {
@@ -384,7 +380,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, task *types.Task, startTi
 			return
 		}
 
-		prepareMsg, err := makePrepareMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), task, startTime)
+		prepareMsg, err := makePrepareMsg(proposalId, senderRole, receiverRole, sender.GetPartyId(), receiver.GetPartyId(), nonConsTask, startTime)
 
 		if nil != err {
 			errCh <- fmt.Errorf("failed to make prepareMsg, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
@@ -872,9 +868,9 @@ func (t *Twopc) recoverCache() {
 
 				cache, ok := t.state.proposalTaskCache[taskId]
 				if !ok {
-					cache =make(map[string]*types.ProposalTask, 0)
+					cache = make(map[string]*types.ProposalTask, 0)
 				}
-				cache[partyId] =  types.NewProposalTask(common.HexToHash(proposalTaskPB.GetProposalId()), taskId, proposalTaskPB.GetCreateAt())
+				cache[partyId] = types.NewProposalTask(common.HexToHash(proposalTaskPB.GetProposalId()), taskId, proposalTaskPB.GetCreateAt())
 				t.state.proposalTaskCache[taskId] = cache
 			}
 			return nil
@@ -895,7 +891,7 @@ func (t *Twopc) recoverCache() {
 			if len(key) != 0 && len(value) != 0 {
 
 				// prefix + len(common.Hash) == prefix + len(proposalId)
-				proposalId := common.BytesToHash(key[prefixLength:prefixLength+32])
+				proposalId := common.BytesToHash(key[prefixLength : prefixLength+32])
 
 				libOrgProposalState := &libtypes.OrgProposalState{}
 				if err := proto.Unmarshal(value, libOrgProposalState); err != nil {

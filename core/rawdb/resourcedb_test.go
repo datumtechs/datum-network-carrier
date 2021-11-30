@@ -75,7 +75,6 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 		taskList.TaskList = append(taskList.TaskList, taskPB)
 		for _, partyId := range partyIds {
 			remotepid := "remotepid"
-			proposalId := generateProposalId()
 			localTaskOrganization := &apicommonpb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   "NodeName",
@@ -96,8 +95,8 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 			}
 			resources := &twopcpb.ConfirmTaskPeerInfo{}
 
-			_task := types.NewNeedExecuteTask(peer.ID(remotepid), proposalId, 1, 2, localTaskOrganization, remoteTaskOrganization, task.GetTaskId(),
-				3, localResource, resources)
+			_task := types.NewNeedExecuteTask(peer.ID(remotepid),1, 2, localTaskOrganization, remoteTaskOrganization, task.GetTaskId(),
+				3, localResource, resources, nil)
 			if err := StoreNeedExecuteTask(database, _task); err != nil {
 				fmt.Printf("StoreNeedExecuteTask fail,taskId %s\n", taskId)
 			}
@@ -161,7 +160,6 @@ func TestRecoveryNeedExecuteTask(t *testing.T) {
 			}
 			cache[partyId] = types.NewNeedExecuteTask(
 				peer.ID(res.GetRemotePid()),
-				common.HexToHash(res.GetProposalId()),
 				res.GetLocalTaskRole(),
 				res.GetRemoteTaskRole(),
 				res.GetLocalTaskOrganization(),
@@ -175,6 +173,7 @@ func TestRecoveryNeedExecuteTask(t *testing.T) {
 					res.GetLocalResource().GetPartyId(),
 				),
 				res.GetResources(),
+				nil,
 			)
 			runningTaskCache[taskId] = cache
 		}

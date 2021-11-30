@@ -20,6 +20,6 @@ func (c *Chaincons) Stop() error {
 	return nil
 }
 func (c *Chaincons)OnPrepare(task *types.Task) error {return nil}
-func (c *Chaincons)OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error {return nil}
+func (c *Chaincons)OnHandle(task *types.NeedConsensusTask, result chan<- *types.TaskConsResult) error {return nil}
 func (c *Chaincons) OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error {return nil}
 func (c *Chaincons) OnError() error  {return nil}

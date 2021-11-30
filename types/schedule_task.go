@@ -8,6 +8,7 @@ import (
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"math/big"
 	"strings"
 )
 
@@ -34,17 +35,17 @@ type TaskActionStatus uint16
 func (t TaskActionStatus) String() string {
 	switch t {
 	case TaskConsensusFinished:
-		return "TaskConsensusFinished"
+		return "task consensus finished"
 	case TaskConsensusInterrupt:
-		return "TaskConsensusInterrupt"
+		return "task consensus interrupt"
 	case TaskTerminate:
-		return "TaskTerminate"
+		return "task terminate"
 	case TaskNeedExecute:
-		return "TaskNeedExecute"
+		return "task need execute"
 	case TaskScheduleFailed:
-		return "TaskScheduleFailed"
+		return "task schedule failed"
 	default:
-		return "UnknownTaskResultStatus"
+		return "unknown task result status"
 	}
 }
 
@@ -78,27 +79,47 @@ func (res *TaskConsResult) String() string {
 
 // ================================================= V2.0 =================================================
 
-// 需要被 进行共识的 local task (已经调度好的, 还未共识的)
+// Local tasks that need to be agreed (scheduled but not yet agreed)
 type NeedConsensusTask struct {
 	task     *Task
+	nonce    []byte
+	weights  [][]byte
 	resultCh chan *TaskConsResult
 }
 
-func NewNeedConsensusTask(task *Task) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task, nonce []byte, weights [][]byte) *NeedConsensusTask {
 	return &NeedConsensusTask{
 		task:     task,
+		nonce:    nonce,
+		weights:  weights,
 		resultCh: make(chan *TaskConsResult),
 	}
 }
 
 func (nct *NeedConsensusTask) GetTask() *Task                    { return nct.task }
+func (nct *NeedConsensusTask) GetNonce() []byte                  { return nct.nonce }
+func (nct *NeedConsensusTask) GetWeights() [][]byte             { return nct.weights }
 func (nct *NeedConsensusTask) GetResultCh() chan *TaskConsResult { return nct.resultCh }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
 		taskStr = nct.task.GetTaskData().String()
 	}
-	return fmt.Sprintf(`{"task": %s, "resultCh": %p}`, taskStr, nct.resultCh)
+
+	nonceStr := "0x"
+	if len(nct.nonce) != 0 {
+		nonceStr = common.BytesToHash(nct.nonce).Hex()
+	}
+
+	weightsStr := "[]"
+	if len(nct.weights) != 0 {
+		arr := make([]string, len(nct.weights))
+		for i, weight := range nct.weights {
+			arr[i] = new(big.Int).SetBytes(weight).String()
+		}
+		weightsStr = "[" + strings.Join(arr, ",") + "]"
+	}
+	return fmt.Sprintf(`{"task": %s, "nonce": %s, "weights": %s, "resultCh": %p}`, taskStr, nonceStr, weightsStr, nct.resultCh)
 }
 func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
 	nct.resultCh <- result
@@ -111,19 +132,24 @@ func (nct *NeedConsensusTask) Close() {
 	close(nct.resultCh)
 }
 
-// 需要 重演调度的 remote task (接收到对端发来的 proposal 中的, 处于共识过程中的, 需要重演调度的)
+// Remote tasks that need to be scheduled again
+// (those that are in the process of consensus and need to be scheduled again after receiving the proposal from the opposite end)
 type NeedReplayScheduleTask struct {
 	localTaskRole apicommonpb.TaskRole
 	localPartyId  string
 	task          *Task
+	nonce         []byte
+	weights       [][]byte
 	resultCh      chan *ReplayScheduleResult
 }
 
-func NewNeedReplayScheduleTask(role apicommonpb.TaskRole, partyId string, task *Task) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role apicommonpb.TaskRole, partyId string, task *Task, nonce []byte, weights [][]byte) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
 		localTaskRole: role,
 		localPartyId:  partyId,
 		task:          task,
+		nonce:         nonce,
+		weights:       weights,
 		resultCh:      make(chan *ReplayScheduleResult),
 	}
 }
@@ -143,14 +169,29 @@ func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apicommonpb.TaskRole  { return nrst.localTaskRole }
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.localPartyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
+func (nrst *NeedReplayScheduleTask) GetNonce() []byte                        { return nrst.nonce }
+func (nrst *NeedReplayScheduleTask) GetWeights() [][]byte                   { return nrst.weights }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"
 	if nil != nrst.task {
 		taskStr = nrst.task.GetTaskData().String()
 	}
-	return fmt.Sprintf(`{"taskRole": %s, "localPartyId": %s, "task": %s, "resultCh": %p}`,
-		nrst.localTaskRole.String(), nrst.localPartyId, taskStr, nrst.resultCh)
+	nonceStr := "0x"
+	if len(nrst.nonce) != 0 {
+		nonceStr = common.BytesToHash(nrst.nonce).Hex()
+	}
+
+	weightsStr := "[]"
+	if len(nrst.weights) != 0 {
+		arr := make([]string, len(nrst.weights))
+		for i, weight := range nrst.weights {
+			arr[i] = new(big.Int).SetBytes(weight).String()
+		}
+		weightsStr = "[" + strings.Join(arr, ",") + "]"
+	}
+	return fmt.Sprintf(`{"taskRole": %s, "localPartyId": %s, "task": %s, "nonce": %s, "weights": %s, "resultCh": %p}`,
+		nrst.localTaskRole.String(), nrst.localPartyId, taskStr, nonceStr, weightsStr, nrst.resultCh)
 }
 
 type ReplayScheduleResult struct {
@@ -182,34 +223,32 @@ func (rsr *ReplayScheduleResult) String() string {
 		rsr.taskId, errStr, resourceStr)
 }
 
-// 需要被执行的 task (local 和 remote, 已经被共识完成的, 可以下发 fighter 去执行的)
+// Tasks to be executed (local and remote, which have been completed by consensus and can be executed by issuing fighter)
 type NeedExecuteTask struct {
 	remotepid              peer.ID
-	proposalId             common.Hash
 	localTaskRole          apicommonpb.TaskRole
 	localTaskOrganization  *apicommonpb.TaskOrganization
 	remoteTaskRole         apicommonpb.TaskRole
 	remoteTaskOrganization *apicommonpb.TaskOrganization
-	taskId                 string
 	consStatus             TaskActionStatus
 	localResource          *PrepareVoteResource
 	resources              *twopcpb.ConfirmTaskPeerInfo
+	taskId                 string
+	err                    error
 }
 
 func NewNeedExecuteTask(
 	remotepid peer.ID,
-	proposalId common.Hash,
 	localTaskRole, remoteTaskRole apicommonpb.TaskRole,
 	localTaskOrganization, remoteTaskOrganization *apicommonpb.TaskOrganization,
-
 	taskId string,
 	consStatus TaskActionStatus,
 	localResource *PrepareVoteResource,
 	resources *twopcpb.ConfirmTaskPeerInfo,
+	err error,
 ) *NeedExecuteTask {
 	return &NeedExecuteTask{
 		remotepid:              remotepid,
-		proposalId:             proposalId,
 		localTaskRole:          localTaskRole,
 		localTaskOrganization:  localTaskOrganization,
 		remoteTaskRole:         remoteTaskRole,
@@ -218,17 +257,17 @@ func NewNeedExecuteTask(
 		consStatus:             consStatus,
 		localResource:          localResource,
 		resources:              resources,
+		err:                    err,
 	}
 }
-func (net *NeedExecuteTask) HasRemotePID() bool                     { return strings.Trim(string(net.remotepid), "") != "" }
-func (net *NeedExecuteTask) HasEmptyRemotePID() bool                { return !net.HasRemotePID() }
-func (net *NeedExecuteTask) GetRemotePID() peer.ID                  { return net.remotepid }
-func (net *NeedExecuteTask) GetProposalId() common.Hash             { return net.proposalId }
-func (net *NeedExecuteTask) GetLocalTaskRole() apicommonpb.TaskRole { return net.localTaskRole }
+func (net *NeedExecuteTask) HasRemotePID() bool                      { return strings.Trim(string(net.remotepid), "") != "" }
+func (net *NeedExecuteTask) HasEmptyRemotePID() bool                 { return !net.HasRemotePID() }
+func (net *NeedExecuteTask) GetRemotePID() peer.ID                   { return net.remotepid }
+func (net *NeedExecuteTask) GetLocalTaskRole() apicommonpb.TaskRole  { return net.localTaskRole }
+func (net *NeedExecuteTask) GetRemoteTaskRole() apicommonpb.TaskRole { return net.remoteTaskRole }
 func (net *NeedExecuteTask) GetLocalTaskOrganization() *apicommonpb.TaskOrganization {
 	return net.localTaskOrganization
 }
-func (net *NeedExecuteTask) GetRemoteTaskRole() apicommonpb.TaskRole { return net.remoteTaskRole }
 func (net *NeedExecuteTask) GetRemoteTaskOrganization() *apicommonpb.TaskOrganization {
 	return net.remoteTaskOrganization
 }
@@ -236,11 +275,8 @@ func (net *NeedExecuteTask) GetTaskId() string                          { return
 func (net *NeedExecuteTask) GetConsStatus() TaskActionStatus            { return net.consStatus }
 func (net *NeedExecuteTask) GetLocalResource() *PrepareVoteResource     { return net.localResource }
 func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return net.resources }
+func (net *NeedExecuteTask) GetErr() error                              { return net.err }
 func (net *NeedExecuteTask) String() string {
-	//taskStr := "{}"
-	//if nil != net.task {
-	//	taskStr = net.task.GetTaskData().String()
-	//}
 	localIdentityStr := "{}"
 	if nil != net.localTaskOrganization {
 		localIdentityStr = net.localTaskOrganization.String()
@@ -253,8 +289,8 @@ func (net *NeedExecuteTask) String() string {
 	if nil != net.localResource {
 		localResourceStr = net.localResource.String()
 	}
-	return fmt.Sprintf(`{"remotepid": %s, "proposalId": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "taskId": %s, "localResource": %s, "resources": %s}`,
-		net.remotepid, net.proposalId.String(), net.localTaskRole.String(), localIdentityStr, net.remoteTaskRole.String(), remoteIdentityStr, net.taskId, localResourceStr, ConfirmTaskPeerInfoString(net.resources))
+	return fmt.Sprintf(`{"remotepid": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "taskId": %s, "localResource": %s, "resources": %s, "err": %s}`,
+		net.remotepid, net.localTaskRole.String(), localIdentityStr, net.remoteTaskRole.String(), remoteIdentityStr, net.taskId, localResourceStr, ConfirmTaskPeerInfoString(net.resources), net.err)
 }
 
 func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {

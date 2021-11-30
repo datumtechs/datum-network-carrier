@@ -28,117 +28,73 @@ import (
 
 func (m *Manager) tryScheduleTask() error {
 
-	// TODO 一: 需要提前判断下 本地资源 的实况 和 全网的资源实况, 再做决定是否开启调度 ??
-	// TODO 二: 共识中是否区分 interrupt 中止, 和 end 终止 ?? ---- 中止的task可以 repush, 而 终止的task直接 remove ??
 
-	task, taskId, err := m.scheduler.TrySchedule()
-	if nil == err && nil == task {
+	// TODO 二: 共识中是否区分 interrupt 中止, 和 end （针对, 任意多次共识一定不会成功的）终止 ?? ---- 中止的task可以 repush, 而 终止的task直接 remove ??
+
+	nonConsTask, taskId, err := m.scheduler.TrySchedule()
+	if nil == err && nil == nonConsTask {
 		return nil
 	} else if nil != err && err == schedule.ErrAbandonTaskWithNotFoundTask {
 		m.scheduler.RemoveTask(taskId)
 	}  else if nil != err && err == schedule.ErrAbandonTaskWithNotFoundPowerPartyIds {
 		m.scheduler.RemoveTask(taskId)
-		m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.GetType(),
-			task.GetTaskId(), task.GetTaskSender().GetIdentityId(),
-			task.GetTaskSender().GetPartyId(), schedule.ErrAbandonTaskWithNotFoundPowerPartyIds.Error()))
-		return m.sendNeedExecuteTaskByAction(task.GetTaskId(),
+		return m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
 			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
-			task.GetTaskSender(), task.GetTaskSender(),
-			types.TaskScheduleFailed)
+			nonConsTask.GetTask().GetTaskSender(), nonConsTask.GetTask().GetTaskSender(),
+			types.TaskScheduleFailed, fmt.Errorf("schedule failed: " + schedule.ErrAbandonTaskWithNotFoundPowerPartyIds.Error()))
 
 	} else if nil != err {
-		if nil != task {
+		if nil != nonConsTask {
 
-			m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.GetType(),
-				task.GetTaskId(), task.GetTaskSender().GetIdentityId(),
-				task.GetTaskSender().GetPartyId(), err.Error()))
+			m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.GetType(),
+				nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
+				nonConsTask.GetTask().GetTaskSender().GetPartyId(), "schedule failed: " +  err.Error()))
 
-			if er := m.scheduler.RepushTask(task); er == schedule.ErrRescheduleLargeThreshold {
+			if er := m.scheduler.RepushTask(nonConsTask.GetTask()); er == schedule.ErrRescheduleLargeThreshold {
 				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after trySchedule failed %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
-					err, task.GetTaskId())
+					err, nonConsTask.GetTask().GetTaskId())
 
-				m.scheduler.RemoveTask(task.GetTaskId())
-				m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.GetType(),
-					task.GetTaskId(), task.GetTaskSender().GetIdentityId(),
-					task.GetTaskSender().GetPartyId(), schedule.ErrRescheduleLargeThreshold.Error()))
-				m.sendNeedExecuteTaskByAction(task.GetTaskId(),
+				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
+				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
 					apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
-					task.GetTaskSender(), task.GetTaskSender(),
-					types.TaskScheduleFailed)
+					nonConsTask.GetTask().GetTaskSender(), nonConsTask.GetTask().GetTaskSender(),
+					types.TaskScheduleFailed, fmt.Errorf( "schedule failed: " + err.Error() + " and " + schedule.ErrRescheduleLargeThreshold.Error()))
 			}
 		}
 		return err
 	}
 
 
-	go func(task *types.Task) {
+	go func(nonConsTask *types.NeedConsensusTask) {
 
-		log.Debugf("Start `NEED-CONSENSUS` task to 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", task.GetTaskId())
+		log.Debugf("Start `NEED-CONSENSUS` task to 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 
-		if err := m.consensusEngine.OnPrepare(task); nil != err {
-			log.WithError(err).Errorf("Failed to call `OnPrepare()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", task.GetTaskId())
+		if err := m.consensusEngine.OnPrepare(nonConsTask.GetTask()); nil != err {
+			log.WithError(err).Errorf("Failed to call `OnPrepare()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 			// re push task into queue ,if anything else
-			if err := m.scheduler.RepushTask(task); err == schedule.ErrRescheduleLargeThreshold {
+			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
 				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after call `consensus.onPrepare()` on `taskManager.tryScheduleTask()`, taskId: {%s}",
-					task.GetTaskId())
+					nonConsTask.GetTask().GetTaskId())
 
-				m.scheduler.RemoveTask(task.GetTaskId())
-				m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.GetType(),
-					task.GetTaskId(), task.GetTaskSender().GetIdentityId(),
-					task.GetTaskSender().GetPartyId(), schedule.ErrRescheduleLargeThreshold.Error()))
-				m.sendNeedExecuteTaskByAction(task.GetTaskId(),
+				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
+				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
 					apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
-					task.GetTaskSender(), task.GetTaskSender(),
-					types.TaskScheduleFailed)
+					nonConsTask.GetTask().GetTaskSender(), nonConsTask.GetTask().GetTaskSender(),
+					types.TaskScheduleFailed, fmt.Errorf( "consensus onPrepare failed: " + err.Error() + " and " + schedule.ErrRescheduleLargeThreshold.Error()))
 			} else {
 				log.Debugf("Succeed to repush local task into queue/starve queue after call `consensus.onPrepare()` on `taskManager.tryScheduleTask()`, taskId: {%s}",
-					task.GetTaskId())
+					nonConsTask.GetTask().GetTaskId())
 			}
 			return
 		}
 
-
-		nonConsTask := types.NewNeedConsensusTask(task)
-		if err := m.consensusEngine.OnHandle(nonConsTask.GetTask(), nonConsTask.GetResultCh()); nil != err {
+		if err := m.consensusEngine.OnHandle(nonConsTask, nonConsTask.GetResultCh()); nil != err {
 			log.WithError(err).Errorf("Failed to call `OnHandle()` of 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
 		}
 
 		result := nonConsTask.ReceiveResult()
 		log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
 
-		// store task event
-		var (
-			content   string
-			eventType string
-		)
-
-		switch result.GetStatus() {
-		case types.TaskTerminate, types.TaskConsensusFinished:
-			if result.GetStatus() == types.TaskTerminate {
-				content = "task was terminated."
-				eventType = ev.TaskTerminated.GetType()
-			} else {
-				content = "succeed consensus."
-				eventType = ev.TaskSucceedConsensus.GetType()
-			}
-		case types.TaskConsensusInterrupt:
-			if nil != result.GetErr() {
-				content = result.GetErr().Error()
-			} else {
-				content = "consensus was interrupted."
-			}
-			eventType = ev.TaskFailedConsensus.GetType()
-		}
-
-		// store task consensus result (failed or succeed) event with sender party
-		m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-			Type:       eventType,
-			TaskId:     nonConsTask.GetTask().GetTaskId(),
-			IdentityId: nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
-			PartyId:    nonConsTask.GetTask().GetTaskSender().GetPartyId(),
-			Content:    content,
-			CreateAt:   timeutils.UnixMsecUint64(),
-		})
 
 		// received status must be `TaskConsensusFinished|TaskConsensusInterrupt|TaskTerminate` from consensus engine
 		// never be `TaskNeedExecute|TaskScheduleFailed`
@@ -146,6 +102,18 @@ func (m *Manager) tryScheduleTask() error {
 		// Consensus failed, task needs to be suspended and rescheduled
 		switch result.GetStatus() {
 		case types.TaskTerminate, types.TaskConsensusFinished:
+
+			if result.GetStatus() == types.TaskConsensusFinished {
+				// store task consensus result (failed or succeed) event with sender party
+				m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+					Type:       ev.TaskSucceedConsensus.GetType(),
+					TaskId:     nonConsTask.GetTask().GetTaskId(),
+					IdentityId: nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
+					PartyId:    nonConsTask.GetTask().GetTaskSender().GetPartyId(),
+					Content:    "succeed consensus.",
+					CreateAt:   timeutils.UnixMsecUint64(),
+				})
+			}
 			// remove task from scheduler.queue|starvequeue after task consensus succeed
 			// Don't send needexecuteTask, because that will be handle in `2pc engine.driveTask()`
 			if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
@@ -155,7 +123,7 @@ func (m *Manager) tryScheduleTask() error {
 			m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
 				apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
 				nonConsTask.GetTask().GetTaskSender(), nonConsTask.GetTask().GetTaskSender(),
-				result.GetStatus())
+				result.GetStatus(), result.GetErr())
 		case types.TaskConsensusInterrupt:
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
@@ -163,28 +131,23 @@ func (m *Manager) tryScheduleTask() error {
 					result.GetStatus().String(), nonConsTask.GetTask().GetTaskId())
 
 				m.scheduler.RemoveTask(nonConsTask.GetTask().GetTaskId())
-				m.eventEngine.StoreEvent(m.eventEngine.GenerateEvent(ev.TaskScheduleFailed.Type,
-					nonConsTask.GetTask().GetTaskId(), nonConsTask.GetTask().GetTaskSender().GetIdentityId(),
-					nonConsTask.GetTask().GetTaskSender().GetPartyId(), schedule.ErrRescheduleLargeThreshold.Error()))
 				m.sendNeedExecuteTaskByAction(nonConsTask.GetTask().GetTaskId(),
 					apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
 					nonConsTask.GetTask().GetTaskSender(), nonConsTask.GetTask().GetTaskSender(),
-					types.TaskScheduleFailed)
+					types.TaskScheduleFailed, fmt.Errorf("consensus interrupted: " + result.GetErr().Error() + " and " + schedule.ErrRescheduleLargeThreshold.Error()))
 			} else {
 				log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
 					result.GetStatus().String(), nonConsTask.GetTask().GetTaskId())
 			}
 		}
-	}(task)
-
+	}(nonConsTask)
 	return nil
 }
 
 func (m *Manager) sendNeedExecuteTaskByAction(taskId string, senderRole, receiverRole apicommonpb.TaskRole,
-	sender, receiver *apicommonpb.TaskOrganization, taskActionStatus types.TaskActionStatus) error {
+	sender, receiver *apicommonpb.TaskOrganization, taskActionStatus types.TaskActionStatus, err error) error {
 	m.needExecuteTaskCh <- types.NewNeedExecuteTask(
 		"",
-		common.Hash{},
 		senderRole,
 		receiverRole,
 		sender,
@@ -193,6 +156,7 @@ func (m *Manager) sendNeedExecuteTaskByAction(taskId string, senderRole, receive
 		taskActionStatus,
 		&types.PrepareVoteResource{},   // zero value
 		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+		err,
 	)
 	return nil
 }
@@ -1042,7 +1006,7 @@ func (m *Manager) makeTaskResultMsgWithEventList(task *types.NeedExecuteTask) *t
 	}
 	return &taskmngpb.TaskResultMsg{
 		MsgOption: &msgcommonpb.MsgOption{
-			ProposalId:      task.GetProposalId().Bytes(),
+			ProposalId:      common.Hash{}.Bytes(),
 			SenderRole:      uint64(task.GetLocalTaskRole()),
 			SenderPartyId:   []byte(task.GetLocalTaskOrganization().GetPartyId()),
 			ReceiverRole:    uint64(task.GetRemoteTaskRole()),
@@ -1684,7 +1648,7 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 			m.sendNeedExecuteTaskByAction(task.GetTaskId(),
 				msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetSenderRole(),
 				receiver, task.GetTaskSender(),
-				types.TaskTerminate)
+				types.TaskTerminate, fmt.Errorf("task was terminated."))
 		}
 	}
 	return nil

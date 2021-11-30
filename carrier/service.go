@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/election"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -68,7 +69,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)
-	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng, authManager)
+	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceClientSet, resourceMng), eventEngine, resourceMng, authManager)
 	twopcEngine := twopc.New(
 		&twopc.Config{
 			Option: &twopc.OptionConfig{

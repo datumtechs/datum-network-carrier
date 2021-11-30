@@ -14,18 +14,19 @@ func makePrepareMsg(
 	proposalId common.Hash,
 	senderRole, receiverRole apicommonpb.TaskRole,
 	senderPartyId, receiverPartyId string,
-	task *types.Task,
+	nonConsTaks *types.NeedConsensusTask,
 	startTime uint64,
 ) (*twopcpb.PrepareMsg, error) {
 
+
 	// region receivers come from task.Receivers
 	bys := new(bytes.Buffer)
-	err := task.EncodePb(bys)
+	err := nonConsTaks.GetTask().EncodePb(bys)
 	if err != nil {
 		return nil, err
 	}
 	return &twopcpb.PrepareMsg{
-		MsgOption: types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, task.GetTaskSender()),
+		MsgOption: types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, nonConsTaks.GetTask().GetTaskSender()),
 		TaskInfo:  bys.Bytes(),
 		CreateAt:  startTime,
 		Sign:      nil,

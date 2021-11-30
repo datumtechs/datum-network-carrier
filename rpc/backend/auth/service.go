@@ -312,6 +312,22 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth state was not released")
 				return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "the metadataAuth state was not released")
 			}
+
+			switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
+			case apicommonpb.MetadataUsageType_Usage_Period:
+				if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
+					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been expire")
+					return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "the metadataAuth had been expire")
+				}
+			case apicommonpb.MetadataUsageType_Usage_Times:
+				if auth.GetData().GetUsedQuo().GetUsedTimes() >= auth.GetData().GetAuth().GetUsageRule().GetTimes() {
+					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been not enough times")
+					return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "the metadataAuth had been not enough times")
+				}
+			default:
+				log.Errorf("unknown usageType of the old metadataAuth on AuthorityManager.filterMetadataAuth(), metadataAuthId: {%s}", auth.GetData().GetMetadataAuthId())
+				return nil, fmt.Errorf("unknown usageType of the old metadataAuth")
+			}
 		}
 	}
 

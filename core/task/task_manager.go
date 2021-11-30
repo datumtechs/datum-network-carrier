@@ -32,17 +32,6 @@ const (
 	senderExecuteTaskExpire     = 10 * time.Second
 )
 
-//type Scheduler interface {
-//	Start() error
-//	Stop() error
-//	Error() error
-//	Name() string
-//	AddTask(task *types.Task) error
-//	RemoveTask(taskId string) error
-//	TrySchedule() (*types.NeedConsensusTask, error)
-//	ReplaySchedule(myPartyId string, myTaskRole apipb.TaskRole, task *types.Task) *types.ReplayScheduleResult
-//}
-
 type Manager struct {
 	p2p             p2p.P2P
 	scheduler       schedule.Scheduler
@@ -105,11 +94,6 @@ func (m *Manager) recoveryNeedExecuteTask() {
 			taskId := string(key[len(prefix) : len(prefix)+71])
 			partyId := string(key[len(prefix)+71:])
 
-			//task, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
-			//if nil != err {
-			//	return fmt.Errorf("query local task failed on recover needExecuteTask from db, %s, taskId: {%s}", err, taskId)
-			//}
-
 			var res libtypes.NeedExecuteTask
 
 			if err := proto.Unmarshal(value, &res); nil != err {
@@ -120,9 +104,12 @@ func (m *Manager) recoveryNeedExecuteTask() {
 			if !ok {
 				cache = make(map[string]*types.NeedExecuteTask, 0)
 			}
+			var err error
+			if strings.Trim(res.GetErrStr(), "") != "" {
+				err = fmt.Errorf(strings.Trim(res.GetErrStr(), ""))
+			}
 			cache[partyId] = types.NewNeedExecuteTask(
 				peer.ID(res.GetRemotePid()),
-				common.HexToHash(res.GetProposalId()),
 				res.GetLocalTaskRole(),
 				res.GetRemoteTaskRole(),
 				res.GetLocalTaskOrganization(),
@@ -136,6 +123,7 @@ func (m *Manager) recoveryNeedExecuteTask() {
 					res.GetLocalResource().GetPartyId(),
 				),
 				res.GetResources(),
+				err,
 			)
 			m.runningTaskCache[taskId] = cache
 		}
@@ -226,7 +214,7 @@ func (m *Manager) loop() {
 				}
 
 				// Start replay schedule remote task ...
-				result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask.GetTask())
+				result := m.scheduler.ReplaySchedule(needReplayScheduleTask.GetLocalPartyId(), needReplayScheduleTask.GetLocalTaskRole(), needReplayScheduleTask)
 				needReplayScheduleTask.SendResult(result)
 			}()
 
@@ -347,7 +335,7 @@ func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
 		m.sendNeedExecuteTaskByAction(task.GetTaskId(),
 			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
 			task.GetTaskSender(), task.GetTaskSender(),
-			types.TaskTerminate)
+			types.TaskTerminate, fmt.Errorf("task was terminated."))
 	}
 
 	return m.sendTaskTerminateMsg(task)
@@ -541,7 +529,7 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 
 		msg := &taskmngpb.TaskResourceUsageMsg{
 			MsgOption: &msgcommonpb.MsgOption{
-				ProposalId:      needExecuteTask.GetProposalId().Bytes(),
+				ProposalId:      common.Hash{}.Bytes(),
 				SenderRole:      uint64(needExecuteTask.GetLocalTaskRole()),
 				SenderPartyId:   []byte(needExecuteTask.GetLocalTaskOrganization().GetPartyId()),
 				ReceiverRole:    uint64(needExecuteTask.GetRemoteTaskRole()),
