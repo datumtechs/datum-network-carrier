@@ -7,7 +7,6 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
 
@@ -29,8 +28,8 @@ func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *pb.GetG
 	}, nil
 }
 
-func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetLocalMetadataDetailListResponse, error) {
-	metadataList, err := svr.B.GetLocalMetadataDetailList()
+func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *pb.GetLocalMetadataDetailListRequest) (*pb.GetLocalMetadataDetailListResponse, error) {
+	metadataList, err := svr.B.GetLocalMetadataDetailList(req.LastUpdated)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
