@@ -723,14 +723,14 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 }
 
 // GetMetadataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailList() ([]*pb.GetGlobalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailList executing...")
 	var (
 		arr []*pb.GetGlobalMetadataDetailResponse
 		err error
 	)
 
-	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList()
+	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(lastUpdate)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found global metadata arr failed, " + err.Error())
 	}
@@ -770,7 +770,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadata
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
 
-	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList()
+	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.UnixMsecUint64())
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found global metadata arr failed on query local metadata arr, " + err.Error())
 	}
@@ -808,9 +808,9 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 
 // power api
 
-func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummaryResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64) ([]*pb.GetGlobalPowerSummaryResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList()
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList(lastUpdate)
 	if err != nil {
 		return nil, err
 	}
@@ -842,9 +842,9 @@ func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSum
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64) ([]*pb.GetGlobalPowerDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList()
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList(lastUpdate)
 	if err != nil {
 		return nil, err
 	}
@@ -892,7 +892,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList() ([]*pb.GetGlobalPowerDeta
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalPowerDetailList(lastUpdate uint64) ([]*pb.GetLocalPowerDetailResponse, error) {
 	log.Debug("Invoke:GetLocalPowerDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.QueryLocalResourceList()
@@ -1061,8 +1061,8 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	}), err
 }
 
-func (s *CarrierAPIBackend) GetIdentityList() ([]*types.Identity, error) {
-	return s.carrier.carrierDB.QueryIdentityList()
+func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64) ([]*types.Identity, error) {
+	return s.carrier.carrierDB.QueryIdentityList(lastUpdate)
 }
 
 // for metadataAuthority
@@ -1075,8 +1075,8 @@ func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList() (types.MetadataAuthA
 	return s.carrier.authManager.GetLocalMetadataAuthorityList()
 }
 
-func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	return s.carrier.authManager.GetGlobalMetadataAuthorityList()
+func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
+	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate)
 }
 
 func (s *CarrierAPIBackend) HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {
@@ -1167,7 +1167,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 	return detailShow, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate uint64) ([]*pb.TaskDetailShow, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {

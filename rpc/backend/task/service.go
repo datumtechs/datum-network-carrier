@@ -8,12 +8,11 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
 
-func (svr *Server) GetTaskDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetTaskDetailListResponse, error) {
-	tasks, err := svr.B.GetTaskDetailList()
+func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailListRequest) (*pb.GetTaskDetailListResponse, error) {
+	tasks, err := svr.B.GetTaskDetailList(req.LastUpdated)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
 		return nil, ErrGetNodeTaskList

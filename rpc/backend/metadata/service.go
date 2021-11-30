@@ -11,8 +11,8 @@ import (
 	"strings"
 )
 
-func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetGlobalMetadataDetailListResponse, error) {
-	metadataList, err := svr.B.GetGlobalMetadataDetailList()
+func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *pb.GetGlobalMetadataDetailListRequest) (*pb.GetGlobalMetadataDetailListResponse, error) {
+	metadataList, err := svr.B.GetGlobalMetadataDetailList(req.LastUpdated)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList

@@ -87,14 +87,14 @@ type MetadataCarrierDB interface {
 	InsertMetadata(metadata *types.Metadata) error
 	RevokeMetadata(metadata *types.Metadata) error
 	QueryMetadataByDataId(dataId string) (*types.Metadata, error)
-	QueryMetadataList() (types.MetadataArray, error)
+	QueryMetadataList(lastUpdate uint64) (types.MetadataArray, error)
 }
 
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
-	QueryGlobalResourceSummaryList() (types.ResourceArray, error)
-	QueryGlobalResourceDetailList() (types.ResourceArray, error)
+	QueryGlobalResourceSummaryList(lastUpdate uint64) (types.ResourceArray, error)
+	QueryGlobalResourceDetailList(lastUpdate uint64) (types.ResourceArray, error)
 	SyncPowerUsed(resource *types.LocalResource) error
 }
 
@@ -105,7 +105,7 @@ type IdentityCarrierDB interface {
 	QueryIdentityId() (string, error)
 	QueryIdentity() (*apicommonpb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
-	QueryIdentityList() (types.IdentityArray, error)
+	QueryIdentityList(lastUpdate uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	HasIdentity(identity *apicommonpb.Organization) (bool, error)
 	// v2.0

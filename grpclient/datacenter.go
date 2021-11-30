@@ -5,7 +5,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
 )
 
@@ -57,10 +56,10 @@ func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.SaveMetadat
 	return gc.metadataService.SaveMetadata(ctx, request)
 }
 
-func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context) (*api.ListMetadataSummaryResponse, error) {
+func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context, request *api.ListMetadataSummaryRequest) (*api.ListMetadataSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
 	defer cancel()
-	return gc.metadataService.ListMetadataSummary(ctx, &emptypb.Empty{})
+	return gc.metadataService.ListMetadataSummary(ctx, request)
 }
 
 func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.ListMetadataRequest) (*api.ListMetadataResponse, error) {
@@ -108,10 +107,10 @@ func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *
 	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request)
 }
 
-func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context) (*api.ListPowerSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context, request *api.ListPowerSummaryRequest) (*api.ListPowerSummaryResponse, error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
-	return gc.resourceService.ListPowerSummary(ctx, &emptypb.Empty{})
+	return gc.resourceService.ListPowerSummary(ctx, request)
 }
 
 func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.ListPowerRequest) (*api.ListPowerResponse, error) {
