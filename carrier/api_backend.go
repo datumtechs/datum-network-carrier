@@ -750,7 +750,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64) ([]*p
 	return arr, err
 }
 
-func (s *CarrierAPIBackend) GetLocalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64) ([]*pb.GetLocalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetLocalMetadataDetailList executing...")
 
 	var (

@@ -35,7 +35,7 @@ type Backend interface {
 	IsInternalMetadata(metadataId string) (bool, error)
 	GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error)
 	GetGlobalMetadataDetailList(lastUpdate uint64) ([]*pb.GetGlobalMetadataDetailResponse, error)
-	GetLocalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error)
+	GetLocalMetadataDetailList(lastUpdate uint64) ([]*pb.GetLocalMetadataDetailResponse, error)
 	GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error)
 
 	// metadataAuthority api
