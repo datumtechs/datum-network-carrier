@@ -48,6 +48,25 @@ $ carrier --datadir ./data --grpc-datacenter-host 192.168.10.146 --grpc-datacent
 *Note: For more flags settings, please use the `carrier --help` command to view*
 
 
+### Docker quick start
+
+One of the quickest ways to get Carrier up and running on your machine is by using
+Docker:
+
+```shell
+docker run -d --name carrier-node -v /Users/alice/carrier:/root \
+           -p 3500:3500 -p 13000:13000 -p 12000:12000 \
+           carrier/metis-carrier
+```
+
+This will start `carrier` with a DB memory allowance of 1GB just as the
+above command does.  It will also create a persistent volume in your home directory for
+saving your data as well as map the default ports. 
+
+Do not forget `--rpc-host 0.0.0.0`, if you want to access GRPC from other containers
+and/or hosts. 
+
+
 ### Programmatically interfacing `carrier` nodes
 
 As a developer, sooner rather than later you'll want to start interacting with `carrier`. To aid
