@@ -16,10 +16,12 @@ message SaveTaskRequest {
 message ListTaskByIdentityRequest {
     string identity_id      = 1;
     uint64 last_updated = 2;
+    uint64 page_size = 3; // 单次批量数据的返回条数
 }
 
 message ListTaskRequest {
     uint64 last_updated = 1;
+    uint64 page_size = 2; // 单次批量数据的返回条数
 }
 
 message ListTaskResponse {

@@ -22,6 +22,7 @@ message RevokeIdentityRequest {
 message ListIdentityRequest {
   // 同步时间点，用于进行数据增量拉去
   uint64 last_updated = 1;
+  uint64 page_size = 2; // 单次批量数据的返回条数
 }
 
 message ListIdentityResponse {
@@ -38,6 +39,7 @@ message MetadataAuthorityRequest {
 message ListMetadataAuthorityRequest {
   string identity_id = 1;   // 组织标识
   uint64 last_updated = 2;   // 最后同步时间（毫秒级时间戳）
+  uint64 page_size = 3; // 单次批量数据的返回条数
 }
 
 message ListMetadataAuthorityResponse {

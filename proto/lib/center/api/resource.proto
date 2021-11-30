@@ -74,6 +74,7 @@ message GetPowerSummaryByIdentityRequest {
 
 message ListPowerRequest {
   uint64 last_updated = 1;
+  uint64 page_size = 2; // 单次批量数据的返回条数
 }
 
 message ListPowerResponse {
@@ -87,6 +88,7 @@ message SyncPowerRequest {
 
 message ListPowerSummaryRequest {
   uint64 last_updated = 1;
+  uint64 page_size = 2; // 单次批量数据的返回条数
 }
 
 // 资源（算力）接口定义
