@@ -276,7 +276,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	t.wal.StoreProposalTask(msg.GetMsgOption().GetReceiverPartyId(), proposalTask)
 
 	// Send task to Scheduler to replay sched.
-	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask())
+	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetExtra().GetNonce(), msg.GetExtra().GetWeights())
 	t.sendNeedReplayScheduleTask(needReplayScheduleTask)
 	replayTaskResult := needReplayScheduleTask.ReceiveResult()
 

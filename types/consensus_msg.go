@@ -6,6 +6,8 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
+	"math/big"
+	"strings"
 )
 
 type ConsensusEngineType string
@@ -185,6 +187,7 @@ func FetchMsgOption(option *msgcommonpb.MsgOption) *MsgOption {
 type PrepareMsg struct {
 	MsgOption *MsgOption
 	TaskInfo  *Task
+	Extra     *PrepareMsgExtra
 	CreateAt  uint64
 	Sign      []byte
 }
@@ -194,14 +197,56 @@ func (msg *PrepareMsg) String() string {
 		msg.GetMsgOption().String(), msg.GetCreateAt(), msg.GetSign())
 }
 func (msg *PrepareMsg) StringWithTask() string {
-	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "createAt": %d, "sign": %v}`,
-		msg.GetMsgOption().String(), msg.GetTask().GetTaskData().String(), msg.GetCreateAt(), msg.GetSign())
+	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "extra": %s, "createAt": %d, "sign": %v}`,
+		msg.GetMsgOption().String(), msg.GetTask().GetTaskData().String(), msg.GetExtra().String(), msg.GetCreateAt(), msg.GetSign())
 }
 
-func (msg *PrepareMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
-func (msg *PrepareMsg) GetTask() *Task           { return msg.TaskInfo }
-func (msg *PrepareMsg) GetCreateAt() uint64      { return msg.CreateAt }
-func (msg *PrepareMsg) GetSign() []byte          { return msg.Sign }
+func (msg *PrepareMsg) GetMsgOption() *MsgOption   { return msg.MsgOption }
+func (msg *PrepareMsg) GetTask() *Task             { return msg.TaskInfo }
+func (msg *PrepareMsg) GetExtra() *PrepareMsgExtra { return msg.Extra }
+func (msg *PrepareMsg) GetCreateAt() uint64        { return msg.CreateAt }
+func (msg *PrepareMsg) GetSign() []byte            { return msg.Sign }
+
+type PrepareMsgExtra struct {
+	Nonce   []byte
+	Weights [][]byte
+}
+func (msg *PrepareMsgExtra) String() string {
+	nonceStr := "0x"
+	if len(msg.Nonce) != 0 {
+		nonceStr = common.BytesToHash(msg.Nonce).Hex()
+	}
+	weightsStr := "[]"
+	if len(msg.Weights) != 0 {
+		arr := make([]string, len(msg.Weights))
+		for i, weight := range msg.Weights {
+			arr[i] = new(big.Int).SetBytes(weight).String()
+		}
+		weightsStr = "[" + strings.Join(arr, ",") + "]"
+	}
+	return fmt.Sprintf(`{"nonce": %s, "Weights": %s}`,
+		nonceStr, weightsStr)
+}
+func (msg *PrepareMsgExtra) GetNonce() []byte { return msg.Nonce }
+func (msg *PrepareMsgExtra) GetWeights() [][]byte { return msg.Weights }
+func (msg *PrepareMsgExtra) GetNonceHex() string {
+	nonceStr := "0x"
+	if len(msg.Nonce) != 0 {
+		nonceStr = common.BytesToHash(msg.Nonce).Hex()
+	}
+	return nonceStr
+}
+
+func (msg *PrepareMsgExtra) GetWeightsBigInt() []*big.Int {
+	var weights []*big.Int
+	if len(msg.Weights) != 0 {
+		weights = make([]*big.Int, len(msg.Weights))
+		for i, weight := range msg.Weights {
+			weights[i] = new(big.Int).SetBytes(weight)
+		}
+	}
+	return weights
+}
 
 type PrepareVote struct {
 	MsgOption  *MsgOption
@@ -345,10 +390,10 @@ func (msg *CommitMsg) String() string {
 		msg.GetMsgOption().String(), msg.GetCommitOption().String(), msg.GetCreateAt(), msg.GetSign())
 }
 
-func (msg *CommitMsg) GetMsgOption() *MsgOption  { return msg.MsgOption }
+func (msg *CommitMsg) GetMsgOption() *MsgOption        { return msg.MsgOption }
 func (msg *CommitMsg) GetCommitOption() TwopcMsgOption { return msg.CommitOption }
-func (msg *CommitMsg) GetCreateAt() uint64       { return msg.CreateAt }
-func (msg *CommitMsg) GetSign() []byte           { return msg.Sign }
+func (msg *CommitMsg) GetCreateAt() uint64             { return msg.CreateAt }
+func (msg *CommitMsg) GetSign() []byte                 { return msg.Sign }
 
 func ConvertCommitMsg(msg *CommitMsg) *twopcpb.CommitMsg {
 	return &twopcpb.CommitMsg{

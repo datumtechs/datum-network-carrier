@@ -18,18 +18,21 @@ func makePrepareMsg(
 	startTime uint64,
 ) (*twopcpb.PrepareMsg, error) {
 
-
 	// region receivers come from task.Receivers
-	bys := new(bytes.Buffer)
-	err := nonConsTaks.GetTask().EncodePb(bys)
+	taskBytes := new(bytes.Buffer)
+	err := nonConsTaks.GetTask().EncodePb(taskBytes)
 	if err != nil {
 		return nil, err
 	}
 	return &twopcpb.PrepareMsg{
 		MsgOption: types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, nonConsTaks.GetTask().GetTaskSender()),
-		TaskInfo:  bys.Bytes(),
-		CreateAt:  startTime,
-		Sign:      nil,
+		TaskInfo:  taskBytes.Bytes(),
+		Extra: &twopcpb.PrepareMsgExtra{
+			Nonce:   nonConsTaks.GetNonce(),
+			Weights: nonConsTaks.GetWeights(),
+		},
+		CreateAt: startTime,
+		Sign:     nil,
 	}, nil
 }
 
@@ -122,11 +125,16 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 	return &types.PrepareMsg{
 			MsgOption: types.FetchMsgOption(msg.GetMsgOption()),
 			TaskInfo:  task,
-			CreateAt:  msg.GetCreateAt(),
-			Sign:      msg.GetSign(),
+			Extra: &types.PrepareMsgExtra{
+				Nonce:   msg.GetExtra().GetNonce(),
+				Weights: msg.GetExtra().GetWeights(),
+			},
+			CreateAt: msg.GetCreateAt(),
+			Sign:     msg.GetSign(),
 		},
 		nil
 }
+
 func fetchProposalFromPrepareMsg(msg *types.PrepareMsg) *types.ProposalTask {
 	return &types.ProposalTask{
 		ProposalId: msg.GetMsgOption().GetProposalId(),
