@@ -562,8 +562,8 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 			//
 			//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
 			if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
-				log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleResourceUsage(), taskId: {%s}, taskRole: {%s},  partyId: {%s}, remote pid: {%s}",
-					task.GetTaskId(), needExecuteTask.GetLocalTaskRole().String(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
+				log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
+					task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 			}
 		}
 	}
