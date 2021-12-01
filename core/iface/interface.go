@@ -87,7 +87,7 @@ type MetadataCarrierDB interface {
 	InsertMetadata(metadata *types.Metadata) error
 	RevokeMetadata(metadata *types.Metadata) error
 	QueryMetadataByDataId(dataId string) (*types.Metadata, error)
-	QueryMetadataList(lastUpdate uint64) (types.MetadataArray, error)
+	QueryMetadataList(lastUpdate uint64, pageSize uint64) (types.MetadataArray, error)
 }
 
 type ResourceCarrierDB interface {

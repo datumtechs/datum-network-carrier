@@ -14,6 +14,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -723,14 +724,14 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 }
 
 // GetMetadataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailList executing...")
 	var (
 		arr []*pb.GetGlobalMetadataDetailResponse
 		err error
 	)
 
-	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(lastUpdate)
+	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(lastUpdate, pageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found global metadata arr failed, " + err.Error())
 	}
@@ -750,7 +751,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64) ([]*p
 	return arr, err
 }
 
-func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64) ([]*pb.GetLocalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetLocalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetLocalMetadataDetailList executing...")
 
 	var (
@@ -770,7 +771,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64) ([]*pb
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
 
-	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.UnixMsecUint64())
+	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.UnixMsecUint64(), backend.DefaultMaxPageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found global metadata arr failed on query local metadata arr, " + err.Error())
 	}
