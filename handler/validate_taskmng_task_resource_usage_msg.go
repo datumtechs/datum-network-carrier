@@ -3,8 +3,10 @@ package handler
 import (
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	taskmngcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"
@@ -33,7 +35,7 @@ func (s *Service) validateTaskResourceUsageMessagePubSub(ctx context.Context, pi
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenTaskResourceUsageMsg(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId, message.MsgOption.ReceiverPartyId) {
+	if s.hasSeenTaskResourceUsageMsg(msg) {
 		return pubsub.ValidationIgnore
 	}
 
@@ -48,20 +50,18 @@ func (s *Service) validateTaskResourceUsageMessagePubSub(ctx context.Context, pi
 }
 
 // Returns true if the node has already received a prepare message request for the validator with index `proposalId`.
-func (s *Service) hasSeenTaskResourceUsageMsg(proposalId []byte, senderPartId []byte, receivePartId []byte) bool {
+func (s *Service) hasSeenTaskResourceUsageMsg(msg proto.Message) bool {
 	s.seenTaskResourceUsageMsgLock.RLock()
 	defer s.seenTaskResourceUsageMsgLock.RUnlock()
-	v := append(proposalId, senderPartId...)
-	v = append(v, receivePartId...)
-	_, seen := s.seenTaskResourceUsageMsgCache.Get(string(v))
+	v := hashutil.Hash([]byte(msg.String()))
+	_, seen := s.seenTaskResourceUsageMsgCache.Get(common.Bytes2Hex(v[0:]))
 	return seen
 }
 
 // Set proposalId in seen exit request cache.
-func (s *Service) setTaskResourceUsageMsgSeen(proposalId []byte, senderPartId []byte, receivePartId []byte) {
+func (s *Service) setTaskResourceUsageMsgSeen(msg proto.Message) {
 	s.seenTaskResourceUsageMsgLock.Lock()
 	defer s.seenTaskResourceUsageMsgLock.Unlock()
-	v := append(proposalId, senderPartId...)
-	v = append(v, receivePartId...)
-	s.seenTaskResourceUsageMsgCache.Add(string(v), true)
+	v := hashutil.Hash([]byte(msg.String()))
+	s.seenTaskResourceUsageMsgCache.Add(common.Bytes2Hex(v[0:]), true)
 }
