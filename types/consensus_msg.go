@@ -187,31 +187,13 @@ func FetchMsgOption(option *msgcommonpb.MsgOption) *MsgOption {
 type PrepareMsg struct {
 	MsgOption *MsgOption
 	TaskInfo  *Task
-	Extra     *PrepareMsgExtra
+	Nonce     []byte
+	Weights   [][]byte
 	CreateAt  uint64
 	Sign      []byte
 }
 
 func (msg *PrepareMsg) String() string {
-	return fmt.Sprintf(`{"msgOption": %s, "createAt": %d, "sign": %v}`,
-		msg.GetMsgOption().String(), msg.GetCreateAt(), msg.GetSign())
-}
-func (msg *PrepareMsg) StringWithTask() string {
-	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "extra": %s, "createAt": %d, "sign": %v}`,
-		msg.GetMsgOption().String(), msg.GetTask().GetTaskData().String(), msg.GetExtra().String(), msg.GetCreateAt(), msg.GetSign())
-}
-
-func (msg *PrepareMsg) GetMsgOption() *MsgOption   { return msg.MsgOption }
-func (msg *PrepareMsg) GetTask() *Task             { return msg.TaskInfo }
-func (msg *PrepareMsg) GetExtra() *PrepareMsgExtra { return msg.Extra }
-func (msg *PrepareMsg) GetCreateAt() uint64        { return msg.CreateAt }
-func (msg *PrepareMsg) GetSign() []byte            { return msg.Sign }
-
-type PrepareMsgExtra struct {
-	Nonce   []byte
-	Weights [][]byte
-}
-func (msg *PrepareMsgExtra) String() string {
 	nonceStr := "0x"
 	if len(msg.Nonce) != 0 {
 		nonceStr = common.BytesToHash(msg.Nonce).Hex()
@@ -224,12 +206,31 @@ func (msg *PrepareMsgExtra) String() string {
 		}
 		weightsStr = "[" + strings.Join(arr, ",") + "]"
 	}
-	return fmt.Sprintf(`{"nonce": %s, "Weights": %s}`,
-		nonceStr, weightsStr)
+	return fmt.Sprintf(`{"msgOption": %s, "nonce": %s, "weights": %s, "createAt": %d, "sign": %v}`,
+		msg.GetMsgOption().String(), nonceStr, weightsStr, msg.GetCreateAt(), msg.GetSign())
 }
-func (msg *PrepareMsgExtra) GetNonce() []byte { return msg.Nonce }
-func (msg *PrepareMsgExtra) GetWeights() [][]byte { return msg.Weights }
-func (msg *PrepareMsgExtra) GetNonceHex() string {
+func (msg *PrepareMsg) StringWithTask() string {
+	nonceStr := "0x"
+	if len(msg.Nonce) != 0 {
+		nonceStr = common.BytesToHash(msg.Nonce).Hex()
+	}
+	weightsStr := "[]"
+	if len(msg.Weights) != 0 {
+		arr := make([]string, len(msg.Weights))
+		for i, weight := range msg.Weights {
+			arr[i] = new(big.Int).SetBytes(weight).String()
+		}
+		weightsStr = "[" + strings.Join(arr, ",") + "]"
+	}
+	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "nonce": %s, "weights": %s, "createAt": %d, "sign": %v}`,
+		msg.GetMsgOption().String(), msg.GetTask().GetTaskData().String(), nonceStr, weightsStr, msg.GetCreateAt(), msg.GetSign())
+}
+
+func (msg *PrepareMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
+func (msg *PrepareMsg) GetTask() *Task           { return msg.TaskInfo }
+func (msg *PrepareMsg) GetNonce() []byte         { return msg.Nonce }
+func (msg *PrepareMsg) GetWeights() [][]byte     { return msg.Weights }
+func (msg *PrepareMsg) GetNonceHex() string {
 	nonceStr := "0x"
 	if len(msg.Nonce) != 0 {
 		nonceStr = common.BytesToHash(msg.Nonce).Hex()
@@ -237,7 +238,7 @@ func (msg *PrepareMsgExtra) GetNonceHex() string {
 	return nonceStr
 }
 
-func (msg *PrepareMsgExtra) GetWeightsBigInt() []*big.Int {
+func (msg *PrepareMsg) GetWeightsBigInt() []*big.Int {
 	var weights []*big.Int
 	if len(msg.Weights) != 0 {
 		weights = make([]*big.Int, len(msg.Weights))
@@ -247,6 +248,49 @@ func (msg *PrepareMsgExtra) GetWeightsBigInt() []*big.Int {
 	}
 	return weights
 }
+func (msg *PrepareMsg) GetCreateAt() uint64 { return msg.CreateAt }
+func (msg *PrepareMsg) GetSign() []byte     { return msg.Sign }
+
+//type PrepareMsgExtra struct {
+//	Nonce   []byte
+//	Weights [][]byte
+//}
+//func (msg *PrepareMsgExtra) String() string {
+//	nonceStr := "0x"
+//	if len(msg.Nonce) != 0 {
+//		nonceStr = common.BytesToHash(msg.Nonce).Hex()
+//	}
+//	weightsStr := "[]"
+//	if len(msg.Weights) != 0 {
+//		arr := make([]string, len(msg.Weights))
+//		for i, weight := range msg.Weights {
+//			arr[i] = new(big.Int).SetBytes(weight).String()
+//		}
+//		weightsStr = "[" + strings.Join(arr, ",") + "]"
+//	}
+//	return fmt.Sprintf(`{"nonce": %s, "Weights": %s}`,
+//		nonceStr, weightsStr)
+//}
+//func (msg *PrepareMsgExtra) GetNonce() []byte { return msg.Nonce }
+//func (msg *PrepareMsgExtra) GetWeights() [][]byte { return msg.Weights }
+//func (msg *PrepareMsgExtra) GetNonceHex() string {
+//	nonceStr := "0x"
+//	if len(msg.Nonce) != 0 {
+//		nonceStr = common.BytesToHash(msg.Nonce).Hex()
+//	}
+//	return nonceStr
+//}
+//
+//func (msg *PrepareMsgExtra) GetWeightsBigInt() []*big.Int {
+//	var weights []*big.Int
+//	if len(msg.Weights) != 0 {
+//		weights = make([]*big.Int, len(msg.Weights))
+//		for i, weight := range msg.Weights {
+//			weights[i] = new(big.Int).SetBytes(weight)
+//		}
+//	}
+//	return weights
+//}
 
 type PrepareVote struct {
 	MsgOption  *MsgOption

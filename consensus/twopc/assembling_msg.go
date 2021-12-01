@@ -24,15 +24,21 @@ func makePrepareMsg(
 	if err != nil {
 		return nil, err
 	}
+
+	weights := make([]*twopcpb.Weight, len(nonConsTaks.GetWeights()))
+	for i, weight := range nonConsTaks.GetWeights() {
+		weights[i] = &twopcpb.Weight{
+			Value: weight,
+		}
+	}
+
 	return &twopcpb.PrepareMsg{
 		MsgOption: types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, nonConsTaks.GetTask().GetTaskSender()),
 		TaskInfo:  taskBytes.Bytes(),
-		Extra: &twopcpb.PrepareMsgExtra{
-			Nonce:   nonConsTaks.GetNonce(),
-			Weights: nonConsTaks.GetWeights(),
-		},
-		CreateAt: startTime,
-		Sign:     nil,
+		Nonce:     nonConsTaks.GetNonce(),
+		Weights:   weights,
+		CreateAt:  startTime,
+		Sign:      nil,
 	}, nil
 }
 
@@ -122,15 +128,19 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	weights := make([][]byte, len(msg.GetWeights()))
+	for i, weight := range msg.GetWeights() {
+		weights[i] = weight.GetValue()
+	}
+
 	return &types.PrepareMsg{
 			MsgOption: types.FetchMsgOption(msg.GetMsgOption()),
 			TaskInfo:  task,
-			Extra: &types.PrepareMsgExtra{
-				Nonce:   msg.GetExtra().GetNonce(),
-				Weights: msg.GetExtra().GetWeights(),
-			},
-			CreateAt: msg.GetCreateAt(),
-			Sign:     msg.GetSign(),
+			Nonce:     msg.GetNonce(),
+			Weights:   weights,
+			CreateAt:  msg.GetCreateAt(),
+			Sign:      msg.GetSign(),
 		},
 		nil
 }
