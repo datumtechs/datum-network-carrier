@@ -16,7 +16,8 @@ func (s *Service) validateTaskResourceUsageMessagePubSub(ctx context.Context, pi
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "handler.validateTaskResourceUsageMessagePubSub")
+	ctx, span := trace.StartSpanWithRemoteParent(ctx, "handler.validateTaskResourceUsageMessagePubSub",
+		traceutil.GenerateParentSpanWithTaskResourceUsageMessage(pid, msg))
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)

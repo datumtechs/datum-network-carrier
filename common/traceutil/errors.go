@@ -82,3 +82,7 @@ func GenerateParentSpanWithTaskTerminateMessage(pid peer.ID, msg *pubsub.Message
 func GenerateParentSpanWithTaskResultMessage(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
 	return GenerateParentSpan(pid, msg, trace.SpanID{8, 8, 8, 8, 8, 8, 8, 8})
 }
+
+func GenerateParentSpanWithTaskResourceUsageMessage(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{9, 9, 9, 9, 9, 9, 9, 9})
+}
