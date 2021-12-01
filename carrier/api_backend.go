@@ -809,9 +809,9 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 
 // power api
 
-func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64) ([]*pb.GetGlobalPowerSummaryResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerSummaryResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList(lastUpdate)
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList(lastUpdate, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -843,9 +843,9 @@ func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64) ([]*pb.
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64) ([]*pb.GetGlobalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList(lastUpdate)
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList(lastUpdate, pageSize)
 	if err != nil {
 		return nil, err
 	}

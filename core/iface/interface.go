@@ -93,8 +93,8 @@ type MetadataCarrierDB interface {
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
-	QueryGlobalResourceSummaryList(lastUpdate uint64) (types.ResourceArray, error)
-	QueryGlobalResourceDetailList(lastUpdate uint64) (types.ResourceArray, error)
+	QueryGlobalResourceSummaryList(lastUpdate uint64, pageSize uint64) (types.ResourceArray, error)
+	QueryGlobalResourceDetailList(lastUpdate uint64, pageSize uint64) (types.ResourceArray, error)
 	SyncPowerUsed(resource *types.LocalResource) error
 }
 
