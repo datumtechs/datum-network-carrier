@@ -33,6 +33,13 @@ func GenerateTraceID(msg proto.Message) string{
 	return traceId.String()
 }
 
+func GenerateTraceIDForPub(msg *pubsub.Message) string{
+	h := hashutil.Hash(msg.GetData())
+	traceId := trace.TraceID{}
+	copy(traceId[0:], h[:16])
+	return traceId.String()
+}
+
 func GenerateParentSpan(pid peer.ID, msg *pubsub.Message, spanId trace.SpanID) trace.SpanContext {
 	h := hashutil.Hash(msg.GetData())
 	traceId := trace.TraceID{}
