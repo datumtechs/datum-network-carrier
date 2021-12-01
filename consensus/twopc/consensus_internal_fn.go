@@ -153,7 +153,7 @@ func (t *Twopc) refreshProposalState() {
 					IdentityId: identity.GetIdentityId(),
 					PartyId:    partyId,
 					TaskId:     pstate.GetTaskId(),
-					Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
+					Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.String(), evengine.TaskProposalStateDeadline.Msg),
 					CreateAt:   timeutils.UnixMsecUint64(),
 				})
 
@@ -246,7 +246,7 @@ func (t *Twopc) refreshProposalState() {
 						IdentityId: identity.GetIdentityId(),
 						PartyId:    partyId,
 						TaskId:     pstate.GetTaskId(),
-						Content:    fmt.Sprintf("%s for myself", evengine.TaskProposalStateDeadline.Msg),
+						Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.String(), evengine.TaskProposalStateDeadline.Msg),
 						CreateAt:   timeutils.UnixMsecUint64(),
 					})
 
