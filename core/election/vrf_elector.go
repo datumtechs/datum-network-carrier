@@ -233,6 +233,8 @@ func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskP
 
 	input := rlputil.RlpHash(extra) // extra just is a taskId + electionAt
 
+	log.Debugf("Verify vrt nonce, nodeId: %s, pubKey: %s%s, input: %s, nonce: %v", nodeId.String(), pubKey.X.String(), pubKey.Y.String(), input.String(), nonce)
+
 	flag, err := vrf.Verify(pubKey, nonce, input.Bytes())
 	if nil != err {
 		return false, fmt.Errorf("verify vrf nonce <proof + rand> failed, %s", err)
@@ -293,6 +295,7 @@ func (s *VrfElector) vrfNonce(data []byte) ([]byte, error) {
 	if nil != err {
 		return nil, fmt.Errorf("Failed to generate vrf proof, %s", err)
 	}
+	log.Debugf("Generate vrt nonce, privateKey: %s, input: %s, nonce: %v", s.privateKey.D.String(), input.String(), nonce)
 	return nonce, nil
 }
 

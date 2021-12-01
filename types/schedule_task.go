@@ -37,9 +37,9 @@ func (t TaskActionStatus) String() string {
 	case TaskConsensusFinished:
 		return "task consensus finished"
 	case TaskConsensusInterrupt:
-		return "task consensus interrupt"
+		return "task consensus interrupted"
 	case TaskTerminate:
-		return "task terminate"
+		return "task terminated"
 	case TaskNeedExecute:
 		return "task need execute"
 	case TaskScheduleFailed:
@@ -176,6 +176,7 @@ func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { r
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetNonce() []byte                        { return nrst.nonce }
 func (nrst *NeedReplayScheduleTask) GetWeights() [][]byte                    { return nrst.weights }
+func (nrst *NeedReplayScheduleTask) GetElectionAt() uint64                   { return nrst.electionAt }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"

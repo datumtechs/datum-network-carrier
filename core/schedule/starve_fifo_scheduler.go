@@ -210,14 +210,13 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		for i, power := range task.GetTaskData().GetPowerSuppliers() {
 			powerPartyIds[i] = power.GetOrganization().GetPartyId()
 		}
-		now := timeutils.UnixMsecUint64()
-		vrfInput := append([]byte(task.GetTaskId()), bytesutil.Uint64ToBytes(now)...)  // input == taskId + nowtime
+		vrfInput := append([]byte(task.GetTaskId()), bytesutil.Uint64ToBytes(replayTask.GetElectionAt())...)  // input == taskId + nowtime
 		// verify power orgs of task
 		agree, err := sche.elector.VerifyElectionOrganization(task.GetTaskData().GetPowerSuppliers(), task.GetTaskSender().GetNodeId(), vrfInput, replayTask.GetNonce(), replayTask.GetWeights())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to verify election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)
-			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when election powerOrg", err), nil)
+			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when election power organization", err), nil)
 		}
 
 		log.Debugf("Succeed to verify election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, agree: %s",
