@@ -13,7 +13,7 @@ func (p *PrepareMsg) MarshalSSZ() ([]byte, error) {
 // MarshalSSZTo ssz marshals the PrepareMsg object to a target array
 func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = buf
-	offset := int(20)
+	offset := int(28)
 
 	// Offset (0) 'MsgOption'
 	dst = ssz.WriteOffset(dst, offset)
@@ -26,10 +26,21 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.TaskInfo)
 
-	// Field (2) 'CreateAt'
+	// Offset (2) 'Nonce'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(p.Nonce)
+
+	// Offset (3) 'Weights'
+	dst = ssz.WriteOffset(dst, offset)
+	for ii := 0; ii < len(p.Weights); ii++ {
+		offset += 4
+		offset += p.Weights[ii].SizeSSZ()
+	}
+
+	// Field (4) 'CreateAt'
 	dst = ssz.MarshalUint64(dst, p.CreateAt)
 
-	// Offset (3) 'Sign'
+	// Offset (5) 'Sign'
 	dst = ssz.WriteOffset(dst, offset)
 	offset += len(p.Sign)
 
@@ -45,7 +56,32 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 	}
 	dst = append(dst, p.TaskInfo...)
 
-	// Field (3) 'Sign'
+	// Field (2) 'Nonce'
+	if len(p.Nonce) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, p.Nonce...)
+
+	// Field (3) 'Weights'
+	if len(p.Weights) > 16777216 {
+		err = ssz.ErrListTooBig
+		return
+	}
+	{
+		offset = 4 * len(p.Weights)
+		for ii := 0; ii < len(p.Weights); ii++ {
+			dst = ssz.WriteOffset(dst, offset)
+			offset += p.Weights[ii].SizeSSZ()
+		}
+	}
+	for ii := 0; ii < len(p.Weights); ii++ {
+		if dst, err = p.Weights[ii].MarshalSSZTo(dst); err != nil {
+			return
+		}
+	}
+
+	// Field (5) 'Sign'
 	if len(p.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
@@ -59,19 +95,19 @@ func (p *PrepareMsg) MarshalSSZTo(buf []byte) (dst []byte, err error) {
 func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 	var err error
 	size := uint64(len(buf))
-	if size < 20 {
+	if size < 28 {
 		return ssz.ErrSize
 	}
 
 	tail := buf
-	var o0, o1, o3 uint64
+	var o0, o1, o2, o3, o5 uint64
 
 	// Offset (0) 'MsgOption'
 	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
 		return ssz.ErrOffset
 	}
 
-	if o0 < 20 {
+	if o0 < 28 {
 		return ssz.ErrInvalidVariableOffset
 	}
 
@@ -80,11 +116,21 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 		return ssz.ErrOffset
 	}
 
-	// Field (2) 'CreateAt'
-	p.CreateAt = ssz.UnmarshallUint64(buf[8:16])
+	// Offset (2) 'Nonce'
+	if o2 = ssz.ReadOffset(buf[8:12]); o2 > size || o1 > o2 {
+		return ssz.ErrOffset
+	}
 
-	// Offset (3) 'Sign'
-	if o3 = ssz.ReadOffset(buf[16:20]); o3 > size || o1 > o3 {
+	// Offset (3) 'Weights'
+	if o3 = ssz.ReadOffset(buf[12:16]); o3 > size || o2 > o3 {
+		return ssz.ErrOffset
+	}
+
+	// Field (4) 'CreateAt'
+	p.CreateAt = ssz.UnmarshallUint64(buf[16:24])
+
+	// Offset (5) 'Sign'
+	if o5 = ssz.ReadOffset(buf[24:28]); o5 > size || o3 > o5 {
 		return ssz.ErrOffset
 	}
 
@@ -101,7 +147,7 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 
 	// Field (1) 'TaskInfo'
 	{
-		buf = tail[o1:o3]
+		buf = tail[o1:o2]
 		if len(buf) > 16777216 {
 			return ssz.ErrBytesLength
 		}
@@ -111,9 +157,43 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 		p.TaskInfo = append(p.TaskInfo, buf...)
 	}
 
-	// Field (3) 'Sign'
+	// Field (2) 'Nonce'
 	{
-		buf = tail[o3:]
+		buf = tail[o2:o3]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(p.Nonce) == 0 {
+			p.Nonce = make([]byte, 0, len(buf))
+		}
+		p.Nonce = append(p.Nonce, buf...)
+	}
+
+	// Field (3) 'Weights'
+	{
+		buf = tail[o3:o5]
+		num, err := ssz.DecodeDynamicLength(buf, 16777216)
+		if err != nil {
+			return err
+		}
+		p.Weights = make([]*Weight, num)
+		err = ssz.UnmarshalDynamic(buf, num, func(indx int, buf []byte) (err error) {
+			if p.Weights[indx] == nil {
+				p.Weights[indx] = new(Weight)
+			}
+			if err = p.Weights[indx].UnmarshalSSZ(buf); err != nil {
+				return err
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	// Field (5) 'Sign'
+	{
+		buf = tail[o5:]
 		if len(buf) > 1024 {
 			return ssz.ErrBytesLength
 		}
@@ -127,7 +207,7 @@ func (p *PrepareMsg) UnmarshalSSZ(buf []byte) error {
 
 // SizeSSZ returns the ssz encoded size in bytes for the PrepareMsg object
 func (p *PrepareMsg) SizeSSZ() (size int) {
-	size = 20
+	size = 28
 
 	// Field (0) 'MsgOption'
 	if p.MsgOption == nil {
@@ -138,7 +218,16 @@ func (p *PrepareMsg) SizeSSZ() (size int) {
 	// Field (1) 'TaskInfo'
 	size += len(p.TaskInfo)
 
-	// Field (3) 'Sign'
+	// Field (2) 'Nonce'
+	size += len(p.Nonce)
+
+	// Field (3) 'Weights'
+	for ii := 0; ii < len(p.Weights); ii++ {
+		size += 4
+		size += p.Weights[ii].SizeSSZ()
+	}
+
+	// Field (5) 'Sign'
 	size += len(p.Sign)
 
 	return
@@ -165,15 +254,126 @@ func (p *PrepareMsg) HashTreeRootWith(hh *ssz.Hasher) (err error) {
 	}
 	hh.PutBytes(p.TaskInfo)
 
-	// Field (2) 'CreateAt'
+	// Field (2) 'Nonce'
+	if len(p.Nonce) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(p.Nonce)
+
+	// Field (3) 'Weights'
+	{
+		subIndx := hh.Index()
+		num := uint64(len(p.Weights))
+		if num > 16777216 {
+			err = ssz.ErrIncorrectListSize
+			return
+		}
+		for i := uint64(0); i < num; i++ {
+			if err = p.Weights[i].HashTreeRootWith(hh); err != nil {
+				return
+			}
+		}
+		hh.MerkleizeWithMixin(subIndx, num, 16777216)
+	}
+
+	// Field (4) 'CreateAt'
 	hh.PutUint64(p.CreateAt)
 
-	// Field (3) 'Sign'
+	// Field (5) 'Sign'
 	if len(p.Sign) > 1024 {
 		err = ssz.ErrBytesLength
 		return
 	}
 	hh.PutBytes(p.Sign)
+
+	hh.Merkleize(indx)
+	return
+}
+
+// MarshalSSZ ssz marshals the Weight object
+func (w *Weight) MarshalSSZ() ([]byte, error) {
+	return ssz.MarshalSSZ(w)
+}
+
+// MarshalSSZTo ssz marshals the Weight object to a target array
+func (w *Weight) MarshalSSZTo(buf []byte) (dst []byte, err error) {
+	dst = buf
+	offset := int(4)
+
+	// Offset (0) 'Value'
+	dst = ssz.WriteOffset(dst, offset)
+	offset += len(w.Value)
+
+	// Field (0) 'Value'
+	if len(w.Value) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	dst = append(dst, w.Value...)
+
+	return
+}
+
+// UnmarshalSSZ ssz unmarshals the Weight object
+func (w *Weight) UnmarshalSSZ(buf []byte) error {
+	var err error
+	size := uint64(len(buf))
+	if size < 4 {
+		return ssz.ErrSize
+	}
+
+	tail := buf
+	var o0 uint64
+
+	// Offset (0) 'Value'
+	if o0 = ssz.ReadOffset(buf[0:4]); o0 > size {
+		return ssz.ErrOffset
+	}
+
+	if o0 < 4 {
+		return ssz.ErrInvalidVariableOffset
+	}
+
+	// Field (0) 'Value'
+	{
+		buf = tail[o0:]
+		if len(buf) > 1024 {
+			return ssz.ErrBytesLength
+		}
+		if cap(w.Value) == 0 {
+			w.Value = make([]byte, 0, len(buf))
+		}
+		w.Value = append(w.Value, buf...)
+	}
+	return err
+}
+
+// SizeSSZ returns the ssz encoded size in bytes for the Weight object
+func (w *Weight) SizeSSZ() (size int) {
+	size = 4
+
+	// Field (0) 'Value'
+	size += len(w.Value)
+
+	return
+}
+
+// HashTreeRoot ssz hashes the Weight object
+func (w *Weight) HashTreeRoot() ([32]byte, error) {
+	return ssz.HashWithDefaultHasher(w)
+}
+
+// HashTreeRootWith ssz hashes the Weight object with a hasher
+func (w *Weight) HashTreeRootWith(hh *ssz.Hasher) (err error) {
+	indx := hh.Index()
+
+	// Field (0) 'Value'
+	if len(w.Value) > 1024 {
+		err = ssz.ErrBytesLength
+		return
+	}
+	hh.PutBytes(w.Value)
 
 	hh.Merkleize(indx)
 	return
