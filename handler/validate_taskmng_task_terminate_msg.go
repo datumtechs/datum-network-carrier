@@ -16,7 +16,8 @@ func (s *Service) validateTaskTerminateMessagePubSub(ctx context.Context, pid pe
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "handler.validateTaskTerminateMessagePubSub")
+	ctx, span := trace.StartSpanWithRemoteParent(ctx, "handler.validateTaskTerminateMessagePubSub",
+		traceutil.GenerateParentSpanWithTaskTerminateMessage(pid, msg))
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)
