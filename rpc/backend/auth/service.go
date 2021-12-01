@@ -398,7 +398,7 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 
 func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.GetMetadataAuthorityListRequest) (*pb.GetMetadataAuthorityListResponse, error) {
 
-	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.LastUpdated)
+	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.LastUpdated, backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList

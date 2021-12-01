@@ -151,11 +151,12 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, 
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
-func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
+func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
 		LastUpdated: lastUpdate,
+		PageSize: pageSize,
 	})
 	if err != nil {
 		return nil, err

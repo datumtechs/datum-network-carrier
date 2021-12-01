@@ -238,8 +238,8 @@ func (ma *MetadataAuthority) GetLocalMetadataAuthorityList() (types.MetadataAuth
 	return ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
 }
 
-func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
-	return  ma.dataCenter.QueryMetadataAuthorityList(lastUpdate)
+func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
+	return  ma.dataCenter.QueryMetadataAuthorityList(lastUpdate, pageSize)
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {

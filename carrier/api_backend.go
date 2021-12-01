@@ -1075,8 +1075,8 @@ func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList() (types.MetadataAuthA
 	return s.carrier.authManager.GetLocalMetadataAuthorityList()
 }
 
-func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
-	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate)
+func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
+	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
 func (s *CarrierAPIBackend) HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {
