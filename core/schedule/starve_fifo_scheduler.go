@@ -3,6 +3,8 @@ package schedule
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
+	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/election"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
@@ -144,7 +146,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	powerPartyIds, err := sche.resourceMng.GetDB().QueryTaskPowerPartyIds(task.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query power partyIds of local task, must abandon it on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-		return types.NewNeedConsensusTask(task, nil, nil), bullet.GetTaskId(), ErrAbandonTaskWithNotFoundPowerPartyIds
+		return types.NewNeedConsensusTask(task, nil, nil, 0), bullet.GetTaskId(), ErrAbandonTaskWithNotFoundPowerPartyIds
 	}
 
 	cost := &ctypes.TaskOperationCost{
@@ -157,11 +159,13 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	log.Debugf("Call SchedulerStarveFIFO.TrySchedule() start, taskId: {%s}, partyId: {%s}, taskCost: {%s}",
 		task.GetTaskData().GetTaskId(), task.GetTaskData().GetPartyId(), cost.String())
 
+	now := timeutils.UnixMsecUint64()
+	vrfInput := append([]byte(bullet.GetTaskId()), bytesutil.Uint64ToBytes(now)...)  // input == taskId + nowtime
 	// election other org's power resources
-	powers, nonce, weights, err := sche.elector.ElectionOrganization (powerPartyIds, nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), bullet.GetTaskId())
+	powers, nonce, weights, err := sche.elector.ElectionOrganization (powerPartyIds, nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-		return types.NewNeedConsensusTask(task, nonce, weights), bullet.GetTaskId(), fmt.Errorf("election powerOrg failed, %s", err)
+		return types.NewNeedConsensusTask(task, nonce, weights, now), bullet.GetTaskId(), fmt.Errorf("election powerOrg failed, %s", err)
 	}
 
 	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powers: %s", task.GetTaskId(), types.UtilOrgPowerArrString(powers))
@@ -171,9 +175,9 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	// restore task by power
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.WithError(err).Errorf("Failed tp update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
-		return types.NewNeedConsensusTask(task, nonce, weights), bullet.GetTaskId(), fmt.Errorf("update local task failed, %s", err)
+		return types.NewNeedConsensusTask(task, nonce, weights, now), bullet.GetTaskId(), fmt.Errorf("update local task failed, %s", err)
 	}
-	return types.NewNeedConsensusTask(task, nonce, weights), bullet.GetTaskId(), nil
+	return types.NewNeedConsensusTask(task, nonce, weights, now), bullet.GetTaskId(), nil
 }
 func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, replayTask *types.NeedReplayScheduleTask) *types.ReplayScheduleResult {
 
@@ -206,8 +210,10 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		for i, power := range task.GetTaskData().GetPowerSuppliers() {
 			powerPartyIds[i] = power.GetOrganization().GetPartyId()
 		}
+		now := timeutils.UnixMsecUint64()
+		vrfInput := append([]byte(task.GetTaskId()), bytesutil.Uint64ToBytes(now)...)  // input == taskId + nowtime
 		// verify power orgs of task
-		agree, err := sche.elector.VerifyElectionOrganization(task.GetTaskData().GetPowerSuppliers(), task.GetTaskSender().GetNodeId(), task.GetTaskId(), replayTask.GetNonce(), replayTask.GetWeights())
+		agree, err := sche.elector.VerifyElectionOrganization(task.GetTaskData().GetPowerSuppliers(), task.GetTaskSender().GetNodeId(), vrfInput, replayTask.GetNonce(), replayTask.GetWeights())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to verify election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)

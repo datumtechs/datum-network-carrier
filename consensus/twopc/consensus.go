@@ -165,14 +165,13 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask, result chan<- *ty
 		return err
 	}
 
-	now := timeutils.UnixMsecUint64()
 
 	var buf bytes.Buffer
 	buf.Write(t.config.Option.NodeID.Bytes())
 	buf.Write([]byte(task.GetTaskId()))
 	buf.Write([]byte(task.GetTaskData().GetTaskName()))
 	buf.Write(bytesutil.Uint64ToBytes(task.GetTaskData().GetCreateAt()))
-	buf.Write(bytesutil.Uint64ToBytes(now))
+	buf.Write(bytesutil.Uint64ToBytes(nonConsTask.GetElectionAt()))
 	proposalId := rlputil.RlpHash(buf.Bytes())
 
 	log.Infof("Generate proposal, proposalId: {%s}, taskId: {%s}, partyId: {%s}", proposalId.String(), task.GetTaskId(), task.GetTaskSender().GetPartyId())
@@ -182,15 +181,15 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask, result chan<- *ty
 		proposalId,
 		task.GetTaskId(),
 		task.GetTaskSender(),
-		ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), now),
+		ctypes.NewOrgProposalState(task.GetTaskId(), apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), nonConsTask.GetElectionAt()),
 	)
-	proposalTask := types.NewProposalTask(proposalId, task.GetTaskId(), now)
+	proposalTask := types.NewProposalTask(proposalId, task.GetTaskId(), nonConsTask.GetElectionAt())
 	t.state.StoreProposalTaskWithPartyId(task.GetTaskSender().GetPartyId(), proposalTask)
 	t.wal.StoreProposalTask(task.GetTaskSender().GetPartyId(), proposalTask)
 	// Start handle task ...
 	go func() {
 
-		if err := t.sendPrepareMsg(proposalId, nonConsTask, now); nil != err {
+		if err := t.sendPrepareMsg(proposalId, nonConsTask, nonConsTask.GetElectionAt()); nil != err {
 			log.Errorf("Failed to call `sendPrepareMsg`, consensus epoch finished, proposalId: {%s}, taskId: {%s}, partyId: {%s}, err: \n%s",
 				proposalId.String(), task.GetTaskId(), task.GetTaskSender().GetPartyId(), err)
 			// Send consensus result to Scheduler
@@ -211,6 +210,15 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		return err
 	}
 	log.Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
+
+	// the prepareMsg is too late.
+	now := timeutils.UnixMsecUint64()
+	if (now - msg.GetCreateAt()) >= uint64(ctypes.PrepareMsgVotingDuration.Milliseconds()) {
+		log.Errorf("received the prepareMsg is too late on onPrepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, now: {%d}, msgCreateAt: {%d}, duration: {%d}, valid duration: {%d}",
+			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(),
+			now, msg.GetCreateAt(), now - msg.GetCreateAt(), ctypes.PrepareMsgVotingDuration.Milliseconds())
+		return ctypes.ErrProposalIllegal
+	}
 
 	if t.state.HasOrgProposalWithPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been not exist on onPrepareMsg, but it's alreay exist, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
@@ -276,7 +284,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	t.wal.StoreProposalTask(msg.GetMsgOption().GetReceiverPartyId(), proposalTask)
 
 	// Send task to Scheduler to replay sched.
-	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetNonce(), msg.GetWeights())
+	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetNonce(), msg.GetWeights(), msg.GetCreateAt())
 	t.sendNeedReplayScheduleTask(needReplayScheduleTask)
 	replayTaskResult := needReplayScheduleTask.ReceiveResult()
 

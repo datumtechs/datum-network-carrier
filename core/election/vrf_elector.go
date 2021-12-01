@@ -39,7 +39,7 @@ func (s *VrfElector) ElectionOrganization(
 	powerPartyIds []string,
 	skipIdentityIdCache map[string]struct{},
 	mem, bandwidth, disk uint64, processor uint32,
-	extra string,
+	extra []byte,
 ) ([]*libtypes.TaskPowerSupplier, []byte, [][]byte, error) {
 
 	calculateCount := len(powerPartyIds)
@@ -54,7 +54,7 @@ func (s *VrfElector) ElectionOrganization(
 		return nil, nil, nil, fmt.Errorf("query identityList count less calculate count")
 	}
 
-	log.Debugf("QueryIdentityList by dataCenter on electionPowerOrg, len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
+	log.Debugf("QueryIdentityList by dataCenter on VrfElector.ElectionOrganization(), len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 
@@ -75,7 +75,7 @@ func (s *VrfElector) ElectionOrganization(
 	if nil != err {
 		return nil, nil, nil, err
 	}
-	log.Debugf("GetRemoteResouceTables on electionPowerOrg, len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
+	log.Debugf("GetRemoteResouceTables on VrfElector.ElectionOrganization(), len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
 
 	if len(globalResources) < calculateCount {
 		return nil, nil, nil, fmt.Errorf("query org's power resource count less calculate count")
@@ -212,7 +212,7 @@ func (s *VrfElector) EnoughAvailableOrganization(calculateCount int, mem, bandwi
 	return true, nil
 }
 
-func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskPowerSupplier, nodeIdStr, extra string, nonce []byte, weights [][]byte) (bool, error) {
+func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskPowerSupplier, nodeIdStr string, extra, nonce []byte, weights [][]byte) (bool, error) {
 
 	if len(powerSuppliers) != len(weights) {
 		return false, fmt.Errorf("powerSuppliers count is invalid, powerSuppliers count : %d, weights count: %d", len(powerSuppliers), len(weights))
@@ -231,9 +231,9 @@ func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskP
 		return false, fmt.Errorf("fetch publicKey from nodeId failed, %s", err)
 	}
 
-	th := rlputil.RlpHash(extra) // extra just is a taskId
+	input := rlputil.RlpHash(extra) // extra just is a taskId + electionAt
 
-	flag, err := vrf.Verify(pubKey, nonce, th.Bytes())
+	flag, err := vrf.Verify(pubKey, nonce, input.Bytes())
 	if nil != err {
 		return false, fmt.Errorf("verify vrf nonce <proof + rand> failed, %s", err)
 	}
@@ -248,24 +248,48 @@ func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskP
 
 	rand := vrf.ProofToHash(nonce) // nonce == proof + rand , len(rand) == 32
 
+	identityIdMap := make(map[string]struct{}, len(powerSuppliers))
 	for _, powerSupplier := range powerSuppliers {
 		dh := rlputil.RlpHash(powerSupplier.GetOrganization().GetIdentityId()) // len(dh) == 32
 		value := new(big.Int).Xor(new(big.Int).SetBytes(dh.Bytes()), new(big.Int).SetBytes(rand)).String()
 		if _, ok := weightMap[value]; !ok {
 			return false, fmt.Errorf("not found vrf xor weight value of powerSupplier, identity: %s, weight: %s", powerSupplier.GetOrganization().GetIdentityId(), value)
 		}
+		identityIdMap[powerSupplier.GetOrganization().GetIdentityId()] = struct{}{}
 	}
 
+	// Find global power resources
+	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
+	if nil != err {
+		return false, fmt.Errorf("query global resource summary list failed, %s", err)
+	}
+	log.Debugf("GetRemoteResouceTables on VrfElector.VerifyElectionOrganization(), len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
+
+	if len(globalResources) < len(powerSuppliers) {
+		return false, fmt.Errorf("query org's power resource count less calculate count")
+	}
+	queue, reweights := s.vrfElectionOrganizationResourceQueue(globalResources, nonce, len(powerSuppliers))
+	for _, powerSupplier := range queue {
+		if _, ok := identityIdMap[powerSupplier.GetIdentityId()]; !ok {
+			return false, fmt.Errorf("not found identityId of powerSupplier when reElectionOrganizationResource, identity: %s", powerSupplier.GetIdentityId())
+		}
+	}
+	for _, weight := range reweights {
+		value := new(big.Int).SetBytes(weight).String()
+		if _, ok := weightMap[value]; !ok {
+			return false, fmt.Errorf("not found reweight value of powerSupplier when reElectionOrganizationResource, weight: %s", value)
+		}
+	}
 	return true, nil
 }
 
 // data is taskId
-func (s *VrfElector) vrfNonce(data string) ([]byte, error) {
+func (s *VrfElector) vrfNonce(data []byte) ([]byte, error) {
 	if nil == s.privateKey {
 		return nil, fmt.Errorf("not found privateKey of current node")
 	}
-	th := rlputil.RlpHash(data)
-	nonce, err := vrf.Prove(s.privateKey, th.Bytes()) // nonce == proof + rand
+	input := rlputil.RlpHash(data)
+	nonce, err := vrf.Prove(s.privateKey, input.Bytes()) // nonce == proof + rand
 	if nil != err {
 		return nil, fmt.Errorf("Failed to generate vrf proof, %s", err)
 	}
@@ -300,29 +324,36 @@ func (r randomIdenQueue) Less(i, j int) bool { // from max to min
 	a, b := r[i], r[j]
 	if a.value.Cmp(b.value) < 0 {
 		return false
-	} else {  // >= 0
-		flag := 1
-		if a.totalMem >= b.totalMem {
-			flag &= 1
-		} else {
-			flag &= 0
-		}
-		if a.totalBandwidth >= b.totalBandwidth {
-			flag &= 1
-		} else {
-			flag &= 0
-		}
-		if a.totalProcessor >= b.totalProcessor {
-			flag &= 1
-		} else {
-			flag &= 0
-		}
-		if flag != 1 {
-			return false
-		} else {
-			return true
-		}
+	} else if  a.value.Cmp(b.value) > 0 {
+		return true
+	} else {
+		return new(big.Int).SetBytes(rlputil.RlpHash(a.data.GetIdentityId()).Bytes()).Cmp(new(big.Int).SetBytes(rlputil.RlpHash(b.data.GetIdentityId()).Bytes())) >= 0
 	}
+	//if a.value.Cmp(b.value) < 0 {
+	//	return false
+	//} else {  // >= 0
+	//	flag := 1
+	//	if a.totalMem >= b.totalMem {
+	//		flag &= 1
+	//	} else {
+	//		flag &= 0
+	//	}
+	//	if a.totalBandwidth >= b.totalBandwidth {
+	//		flag &= 1
+	//	} else {
+	//		flag &= 0
+	//	}
+	//	if a.totalProcessor >= b.totalProcessor {
+	//		flag &= 1
+	//	} else {
+	//		flag &= 0
+	//	}
+	//	if flag != 1 {
+	//		return false
+	//	} else {
+	//		return true
+	//	}
+	//}
 }
 
 func (r randomIdenQueue) Swap(i, j int) {

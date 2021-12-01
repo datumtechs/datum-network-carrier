@@ -81,24 +81,27 @@ func (res *TaskConsResult) String() string {
 
 // Local tasks that need to be agreed (scheduled but not yet agreed)
 type NeedConsensusTask struct {
-	task     *Task
-	nonce    []byte
-	weights  [][]byte
-	resultCh chan *TaskConsResult
+	task       *Task
+	nonce      []byte
+	weights    [][]byte
+	electionAt uint64
+	resultCh   chan *TaskConsResult
 }
 
-func NewNeedConsensusTask(task *Task, nonce []byte, weights [][]byte) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task, nonce []byte, weights [][]byte, electionAt uint64) *NeedConsensusTask {
 	return &NeedConsensusTask{
-		task:     task,
-		nonce:    nonce,
-		weights:  weights,
-		resultCh: make(chan *TaskConsResult),
+		task:       task,
+		nonce:      nonce,
+		weights:    weights,
+		electionAt: electionAt,
+		resultCh:   make(chan *TaskConsResult),
 	}
 }
 
 func (nct *NeedConsensusTask) GetTask() *Task                    { return nct.task }
 func (nct *NeedConsensusTask) GetNonce() []byte                  { return nct.nonce }
-func (nct *NeedConsensusTask) GetWeights() [][]byte             { return nct.weights }
+func (nct *NeedConsensusTask) GetWeights() [][]byte              { return nct.weights }
+func (nct *NeedConsensusTask) GetElectionAt() uint64             { return nct.electionAt }
 func (nct *NeedConsensusTask) GetResultCh() chan *TaskConsResult { return nct.resultCh }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
@@ -119,7 +122,7 @@ func (nct *NeedConsensusTask) String() string {
 		}
 		weightsStr = "[" + strings.Join(arr, ",") + "]"
 	}
-	return fmt.Sprintf(`{"task": %s, "nonce": %s, "weights": %s, "resultCh": %p}`, taskStr, nonceStr, weightsStr, nct.resultCh)
+	return fmt.Sprintf(`{"task": %s, "nonce": %s, "weights": %s, "electionAt": %d, "resultCh": %p}`, taskStr, nonceStr, weightsStr, nct.electionAt, nct.resultCh)
 }
 func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
 	nct.resultCh <- result
@@ -140,16 +143,18 @@ type NeedReplayScheduleTask struct {
 	task          *Task
 	nonce         []byte
 	weights       [][]byte
+	electionAt    uint64
 	resultCh      chan *ReplayScheduleResult
 }
 
-func NewNeedReplayScheduleTask(role apicommonpb.TaskRole, partyId string, task *Task, nonce []byte, weights [][]byte) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role apicommonpb.TaskRole, partyId string, task *Task, nonce []byte, weights [][]byte, electionAt uint64) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
 		localTaskRole: role,
 		localPartyId:  partyId,
 		task:          task,
 		nonce:         nonce,
 		weights:       weights,
+		electionAt:    electionAt,
 		resultCh:      make(chan *ReplayScheduleResult),
 	}
 }
@@ -170,7 +175,7 @@ func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() apicommonpb.TaskRole  { r
 func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.localPartyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
 func (nrst *NeedReplayScheduleTask) GetNonce() []byte                        { return nrst.nonce }
-func (nrst *NeedReplayScheduleTask) GetWeights() [][]byte                   { return nrst.weights }
+func (nrst *NeedReplayScheduleTask) GetWeights() [][]byte                    { return nrst.weights }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"
