@@ -516,7 +516,7 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 				log.WithError(err).Errorf("failed to call `SendTaskResultMsg` on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 			} else {
-				log.WithField("hash", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
+				log.WithField("traceId", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Succeed broadcast taskResultMsg to taskSender on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 			}
 		}
@@ -628,7 +628,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 		//	return
 		//}
 
-		log.Debugf("Succceed to call`sendTaskTerminateMsg.%s` taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
+		log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succceed to call`sendTaskTerminateMsg.%s` taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
 			logdesc, task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
 
 	}
@@ -1358,7 +1358,7 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 
 	taskId := msg.GetTaskEventList()[0].GetTaskId()
 
-	log.Debugf("Received remote taskResultMsg, remote pid: {%s}, taskId: {%s}, taskResultMsg: %s", pid, taskId, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(taskResultMsg)).Debugf("Received remote taskResultMsg, remote pid: {%s}, taskId: {%s}, taskResultMsg: %s", pid, taskId, msg.String())
 
 	// While task is consensus or executing, handle task resultMsg.
 	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusByPartyId(taskId, msg.GetMsgOption().GetReceiverPartyId())
@@ -1473,7 +1473,7 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 
 	msg := types.FetchTaskResourceUsageMsg(usageMsg)
 
-	log.Debugf("Received taskResourceUsageMsg, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Received taskResourceUsageMsg, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s", nmls.String(), pid, msg.String())
 
 	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
 	if nil != err {
@@ -1580,7 +1580,7 @@ func (m *Manager) OnTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 
 func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg, nmls types.NetworkMsgLocationSymbol) error {
 	msg := types.FetchTaskTerminateTaskMngMsg(terminateMsg)
-	log.Debugf("Received taskTerminateMsg, consensusSymbol: {%s}, remote pid: {%s}, taskTerminateMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Received taskTerminateMsg, consensusSymbol: {%s}, remote pid: {%s}, taskTerminateMsg: %s", nmls.String(), pid, msg.String())
 
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetTaskId())
 	if nil != err {

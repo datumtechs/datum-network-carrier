@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	"github.com/RosettaFlow/Carrier-Go/consensus"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
@@ -560,9 +561,11 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 		if needExecuteTask.GetLocalTaskOrganization().GetIdentityId() != needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() {
 			// send resource usage quo to remote peer that it will update power supplier resource usage info of task.
 			//
-			//if err := handler.SendTaskResourceUsageMsg(context.TODO(), m.p2p, task.GetRemotePID(), msg); nil != err {
 			if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
 				log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
+					task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
+			} else {
+				log.WithField("traceId", traceutil.GenerateTraceID(msg)).Debugf("Succeed to call `SendTaskResourceUsageMsg` on taskManager.HandleResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
 					task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 			}
 		}

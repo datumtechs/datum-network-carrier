@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -209,7 +210,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	if nil != err {
 		return err
 	}
-	log.Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(prepareMsg.PrepareMsg)).Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
 
 	// the prepareMsg is too late.
 	now := timeutils.UnixMsecUint64()
@@ -354,7 +355,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 				msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetSenderRole(), receiver, sender, types.TaskConsensusInterrupt)
 			t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId())
 		} else {
-			log.Debugf("Succceed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}",
+			log.WithField("traceId", traceutil.GenerateTraceID(vote)).Debugf("Succceed to call `sendPrepareVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}",
 				msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(),
 				msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId(), pid)
 		}
@@ -367,7 +368,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 
 	vote := fetchPrepareVote(prepareVote)
 
-	log.Debugf("Received prepareVote, consensusSymbol: {%s}, remote pid: {%s}, prepareVote: %s", nmls.String(), pid, vote.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(prepareVote.PrepareVote)).Debugf("Received prepareVote, consensusSymbol: {%s}, remote pid: {%s}, prepareVote: %s", nmls.String(), pid, vote.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onPrepareVote, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
@@ -525,7 +526,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	msg := fetchConfirmMsg(confirmMsg)
 
-	log.Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg.ConfirmMsg)).Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onConfirmMsg, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
@@ -684,7 +685,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 				msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetSenderRole(), receiver, sender, types.TaskConsensusInterrupt)
 			t.removeOrgProposalStateAndTask(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId())
 		} else {
-			log.Debugf("Succceed to call `sendConfirmVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}",
+			log.WithField("traceId", traceutil.GenerateTraceID(vote)).Debugf("Succceed to call `sendConfirmVote`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, receiver role:{%s}, receiver partyId:{%s}, receiver peerId: {%s}",
 				msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId(), pid)
 		}
 	}()
@@ -697,7 +698,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 	vote := fetchConfirmVote(confirmVote)
 
-	log.Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, comfirmVote: %s", nmls.String(), pid, vote.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(confirmVote.ConfirmVote)).Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, comfirmVote: %s", nmls.String(), pid, vote.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onConfirmVote, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
@@ -855,7 +856,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 	msg := fetchCommitMsg(cimmitMsg)
 
-	log.Debugf("Received commitMsg, consensusSymbol: {%s}, remote pid: {%s}, commitMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(cimmitMsg.CommitMsg)).Debugf("Received commitMsg, consensusSymbol: {%s}, remote pid: {%s}, commitMsg: %s", nmls.String(), pid, msg.String())
 
 	if t.state.HasNotOrgProposalWithPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist on onCommitMsg, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
