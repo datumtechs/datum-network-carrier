@@ -105,7 +105,7 @@ type IdentityCarrierDB interface {
 	QueryIdentityId() (string, error)
 	QueryIdentity() (*apicommonpb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
-	QueryIdentityList(lastUpdate uint64) (types.IdentityArray, error)
+	QueryIdentityList(lastUpdate uint64, pageSize uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	HasIdentity(identity *apicommonpb.Organization) (bool, error)
 	// v2.0

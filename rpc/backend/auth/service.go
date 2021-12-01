@@ -122,7 +122,7 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 }
 
 func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListRequest) (*pb.GetIdentityListResponse, error) {
-	identityList, err := svr.B.GetIdentityList(req.LastUpdated)
+	identityList, err := svr.B.GetIdentityList(req.LastUpdated, backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:QueryIdentityList failed")
 		return nil, ErrGetIdentityList
@@ -192,7 +192,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	// 		check metadataId and identity of authority
 	// ############################################
 	// ############################################
-	ideneityList, err := svr.B.GetIdentityList(timeutils.BeforeYearUnixMsecUint64())
+	ideneityList, err := svr.B.GetIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global identity list failed")
 		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global identity list failed")

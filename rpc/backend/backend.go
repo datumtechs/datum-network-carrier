@@ -53,7 +53,7 @@ type Backend interface {
 	// identity api
 
 	GetNodeIdentity() (*types.Identity, error)
-	GetIdentityList(lastUpdate uint64) ([]*types.Identity, error)
+	GetIdentityList(lastUpdate uint64, pageSize uint64) ([]*types.Identity, error)
 
 	// task api
 	GetLocalTask(taskId string) (*pb.TaskDetailShow, error)

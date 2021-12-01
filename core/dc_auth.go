@@ -87,10 +87,10 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
-func (dc *DataCenter) QueryIdentityList(lastUpdate uint64) (types.IdentityArray, error) {
+func (dc *DataCenter) QueryIdentityList(lastUpdate uint64, pageSize uint64) (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: lastUpdate})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: lastUpdate, PageSize: pageSize})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 

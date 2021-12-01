@@ -1061,8 +1061,8 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	}), err
 }
 
-func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64) ([]*types.Identity, error) {
-	return s.carrier.carrierDB.QueryIdentityList(lastUpdate)
+func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64, pageSize uint64) ([]*types.Identity, error) {
+	return s.carrier.carrierDB.QueryIdentityList(lastUpdate, pageSize)
 }
 
 // for metadataAuthority
