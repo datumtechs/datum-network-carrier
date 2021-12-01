@@ -1213,6 +1213,12 @@ func (s *CarrierAPIBackend) GetTaskDetailList() ([]*pb.TaskDetailShow, error) {
 			}
 		}
 
+		// For the initiator's local task, when the task has not started execution
+		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Pending {
+			task.RemoveResourceSupplierArr() // clean powerSupplier when before return.
+		}
+
 		if taskView := makeTaskViewFn(task); nil != taskView {
 			result = append(result, taskView)
 		}

@@ -74,6 +74,9 @@ func (m *Task) SetMetadataSupplierArr(arr []*libtypes.TaskDataSupplier) {
 func (m *Task) SetResourceSupplierArr(arr []*libtypes.TaskPowerSupplier) {
 	m.data.PowerSuppliers = arr
 }
+func (m *Task) RemoveResourceSupplierArr() {
+	m.data.PowerSuppliers = make([]*libtypes.TaskPowerSupplier, 0)
+}
 func (m *Task) SetReceivers(arr []*apicommonpb.TaskOrganization) {
 	m.data.Receivers = arr
 }

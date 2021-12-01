@@ -126,6 +126,14 @@ func (m *Manager) tryScheduleTask() error {
 				nonConsTask.GetTask().GetTaskSender(), nonConsTask.GetTask().GetTaskSender(),
 				result.GetStatus(), result.GetErr())
 		case types.TaskConsensusInterrupt:
+
+			// clean old powerSuppliers and update local task
+			nonConsTask.GetTask().RemoveResourceSupplierArr()
+			// restore task by power
+			if err := m.resourceMng.GetDB().StoreLocalTask(nonConsTask.GetTask()); nil != err {
+				log.WithError(err).Errorf("Failed to update local task whit clean powers after consensus interrupted on `taskManager.tryScheduleTask()`, taskId: {%s}", nonConsTask.GetTask().GetTaskId())
+			}
+
 			// re push task into queue ,if anything else
 			if err := m.scheduler.RepushTask(nonConsTask.GetTask()); err == schedule.ErrRescheduleLargeThreshold {
 				log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task consensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
