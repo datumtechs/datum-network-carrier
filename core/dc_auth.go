@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 )
@@ -45,7 +46,8 @@ func (dc *DataCenter) HasIdentity(identity *apicommonpb.Organization) (bool, err
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	responses, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{
-		LastUpdated: uint64(timeutils.Now().Second()),
+		LastUpdated: timeutils.BeforeYearUnixMsecUint64(),
+		PageSize: backend.DefaultMaxPageSize,
 	})
 	if err != nil {
 		return false, err
@@ -87,10 +89,10 @@ func (dc *DataCenter) RevokeIdentity(identity *types.Identity) error {
 	return nil
 }
 
-func (dc *DataCenter) QueryIdentityList(lastUpdate uint64) (types.IdentityArray, error) {
+func (dc *DataCenter) QueryIdentityList(lastUpdate uint64, pageSize uint64) (types.IdentityArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: lastUpdate})
+	identityListResponse, err := dc.client.GetIdentityList(dc.ctx, &api.ListIdentityRequest{LastUpdated: lastUpdate, PageSize: pageSize})
 	return types.NewIdentityArrayFromIdentityListResponse(identityListResponse), err
 }
 
@@ -138,12 +140,13 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIds(metadataAuthIds []string) 
 	return nil, nil
 }
 
-func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
+func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
 		IdentityId:  identityId,
 		LastUpdated: lastUpdate,
+		PageSize: pageSize,
 	})
 	if err != nil {
 		return nil, err
@@ -151,11 +154,12 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, 
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
-func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
+func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
 		LastUpdated: lastUpdate,
+		PageSize: pageSize,
 	})
 	if err != nil {
 		return nil, err

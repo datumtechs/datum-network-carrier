@@ -164,13 +164,13 @@ func (am *AuthorityManager) GetLocalMetadataAuthorityList () (types.MetadataAuth
 	return am.metadataAuth.GetLocalMetadataAuthorityList()
 }
 
-func (am *AuthorityManager) GetGlobalMetadataAuthorityList (lastUpdate uint64) (types.MetadataAuthArray, error) {
+func (am *AuthorityManager) GetGlobalMetadataAuthorityList (lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
 	//list, err := am.metadataAuth.GetGlobalMetadataAuthorityList()
 	//if nil != err {
 	//	return nil, err
 	//}
 	//return filterMetadataAuth(list)
-	return am.metadataAuth.GetGlobalMetadataAuthorityList(lastUpdate)
+	return am.metadataAuth.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
 func (am *AuthorityManager) GetMetadataAuthorityListByIds (metadataAuthIds  []string) (types.MetadataAuthArray, error) {

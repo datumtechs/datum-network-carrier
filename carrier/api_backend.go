@@ -14,6 +14,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -723,14 +724,14 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 }
 
 // GetMetadataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailList executing...")
 	var (
 		arr []*pb.GetGlobalMetadataDetailResponse
 		err error
 	)
 
-	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(lastUpdate)
+	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(lastUpdate, pageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found global metadata arr failed, " + err.Error())
 	}
@@ -750,7 +751,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64) ([]*p
 	return arr, err
 }
 
-func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64) ([]*pb.GetLocalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetLocalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetLocalMetadataDetailList executing...")
 
 	var (
@@ -770,7 +771,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64) ([]*pb
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
 
-	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.UnixMsecUint64())
+	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.UnixMsecUint64(), backend.DefaultMaxPageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found global metadata arr failed on query local metadata arr, " + err.Error())
 	}
@@ -808,9 +809,9 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 
 // power api
 
-func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64) ([]*pb.GetGlobalPowerSummaryResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerSummaryResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList(lastUpdate)
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList(lastUpdate, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -842,9 +843,9 @@ func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64) ([]*pb.
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64) ([]*pb.GetGlobalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList(lastUpdate)
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList(lastUpdate, pageSize)
 	if err != nil {
 		return nil, err
 	}
@@ -1061,8 +1062,8 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 	}), err
 }
 
-func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64) ([]*types.Identity, error) {
-	return s.carrier.carrierDB.QueryIdentityList(lastUpdate)
+func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64, pageSize uint64) ([]*types.Identity, error) {
+	return s.carrier.carrierDB.QueryIdentityList(lastUpdate, pageSize)
 }
 
 // for metadataAuthority
@@ -1075,8 +1076,8 @@ func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList() (types.MetadataAuthA
 	return s.carrier.authManager.GetLocalMetadataAuthorityList()
 }
 
-func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
-	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate)
+func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
+	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
 func (s *CarrierAPIBackend) HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {

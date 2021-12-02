@@ -34,26 +34,26 @@ type Backend interface {
 	// metadata api
 	IsInternalMetadata(metadataId string) (bool, error)
 	GetMetadataDetail(identityId, metadataId string) (*types.Metadata, error)
-	GetGlobalMetadataDetailList(lastUpdate uint64) ([]*pb.GetGlobalMetadataDetailResponse, error)
-	GetLocalMetadataDetailList(lastUpdate uint64) ([]*pb.GetLocalMetadataDetailResponse, error)
+	GetGlobalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error)
+	GetLocalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetLocalMetadataDetailResponse, error)
 	GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error)
 
 	// metadataAuthority api
 
 	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error)
 	GetLocalMetadataAuthorityList() (types.MetadataAuthArray, error)
-	GetGlobalMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error)
+	GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error)
 	HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error)
 
 	// power api
-	GetGlobalPowerSummaryList(lastUpdate uint64) ([]*pb.GetGlobalPowerSummaryResponse, error)
-	GetGlobalPowerDetailList(lastUpdate uint64) ([]*pb.GetGlobalPowerDetailResponse, error)
+	GetGlobalPowerSummaryList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerSummaryResponse, error)
+	GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerDetailResponse, error)
 	GetLocalPowerDetailList(lastUpdate uint64) ([]*pb.GetLocalPowerDetailResponse, error)
 
 	// identity api
 
 	GetNodeIdentity() (*types.Identity, error)
-	GetIdentityList(lastUpdate uint64) ([]*types.Identity, error)
+	GetIdentityList(lastUpdate uint64, pageSize uint64) ([]*types.Identity, error)
 
 	// task api
 	GetLocalTask(taskId string) (*pb.TaskDetailShow, error)

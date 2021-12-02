@@ -105,7 +105,7 @@ service PowerService {
   }
 
   // 本组织的所有(宿主机)算力信息列表 (包含【未发布】和【已发布】的)
-  rpc GetLocalPowerDetailList (GetLocalPowerDetailListRequest) returns (GetLocalPowerDetailListResponse) {
+  rpc GetLocalPowerDetailList (google.protobuf.Empty) returns (GetLocalPowerDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/power/localDetailList"
     };

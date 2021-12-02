@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 )
@@ -187,8 +188,9 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDa
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
-		LastUpdated: timeutils.UnixMsecUint64(),
 		IdentityId:  identityId,
+		LastUpdated: timeutils.BeforeYearUnixMsecUint64(),
+		PageSize: backend.DefaultMaxPageSize,
 	})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }

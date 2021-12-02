@@ -8,6 +8,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 
 	log "github.com/sirupsen/logrus"
@@ -190,7 +191,7 @@ func (sche *SchedulerStarveFIFO) electionPowerOrg(
 	calculateCount := len(powerPartyIds)
 
 	// Find global identitys
-	identityInfoArr, err := sche.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64())
+	identityInfoArr, err := sche.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		return nil, err
 	}
@@ -216,7 +217,7 @@ func (sche *SchedulerStarveFIFO) electionPowerOrg(
 	}
 
 	// Find global power resources
-	globalResources, err := sche.resourceMng.GetDB().QueryGlobalResourceSummaryList(timeutils.BeforeYearUnixMsecUint64())
+	globalResources, err := sche.resourceMng.GetDB().QueryGlobalResourceSummaryList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		return nil, err
 	}

@@ -122,7 +122,7 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 }
 
 func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListRequest) (*pb.GetIdentityListResponse, error) {
-	identityList, err := svr.B.GetIdentityList(req.LastUpdated)
+	identityList, err := svr.B.GetIdentityList(req.LastUpdated, backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:QueryIdentityList failed")
 		return nil, ErrGetIdentityList
@@ -192,7 +192,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	// 		check metadataId and identity of authority
 	// ############################################
 	// ############################################
-	ideneityList, err := svr.B.GetIdentityList(timeutils.BeforeYearUnixMsecUint64())
+	ideneityList, err := svr.B.GetIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global identity list failed")
 		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global identity list failed")
@@ -212,7 +212,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	// reset val
 	valid = false
 
-	metadataList, err := svr.B.GetGlobalMetadataDetailList(timeutils.BeforeYearUnixMsecUint64())
+	metadataList, err := svr.B.GetGlobalMetadataDetailList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global metadata list failed")
 		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global metadata list failed")
@@ -398,7 +398,7 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 
 func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.GetMetadataAuthorityListRequest) (*pb.GetMetadataAuthorityListResponse, error) {
 
-	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.LastUpdated)
+	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.LastUpdated, backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList

@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
@@ -235,11 +236,11 @@ func (ma *MetadataAuthority) GetLocalMetadataAuthorityList() (types.MetadataAuth
 	if nil != err {
 		return nil, err
 	}
-	return ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
+	return ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 }
 
-func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
-	return  ma.dataCenter.QueryMetadataAuthorityList(lastUpdate)
+func (ma *MetadataAuthority) GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
+	return  ma.dataCenter.QueryMetadataAuthorityList(lastUpdate, pageSize)
 }
 
 func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error) {
@@ -250,7 +251,7 @@ func (ma *MetadataAuthority) HasValidMetadataAuth(userType apicommonpb.UserType,
 
 
 	// query metadataAuthList with target identityId (metadataId of target org)
-	metadataAuthList, err := ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64())
+	metadataAuthList, err := ma.dataCenter.QueryMetadataAuthorityListByIdentityId(identityId, timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to QueryMetadataAuthorityListByIdentityId() on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, identityId: {%s}, metadataId: {%s}",
 			userType.String(), user, identityId,  metadataId)
