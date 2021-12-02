@@ -323,10 +323,10 @@ func TestWriteScheduling(t *testing.T) {
 	}
 	fmt.Println("-----------starveQueue--------------")
 	for _, value := range starveQueue {
-		fmt.Println(value.Starve,value.TaskId)
+		fmt.Println(value.IsStarve(),value.GetTaskId())
 	}
 	fmt.Println("-----------queue--------------------")
 	for _,value:=range queue{
-		fmt.Println(value.Starve,value.TaskId)
+		fmt.Println(value.IsStarve(),value.GetTaskId())
 	}
 }

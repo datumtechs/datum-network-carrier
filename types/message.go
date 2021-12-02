@@ -589,10 +589,11 @@ func (s MetadataAuthorityRevokeMsgArr) Less(i, j int) bool { return s[i].CreateA
 // ------------------- task -------------------
 
 type TaskBullet struct {
-	TaskId  string
-	Starve  bool
-	Term    uint32
-	Resched uint32
+	TaskId      string
+	Starve      bool
+	Term        uint32
+	Resched     uint32
+	InQueueFlag bool // true: in queue/starveQueue,  false: was pop ?
 }
 
 func NewTaskBullet(taskId string) *TaskBullet {
@@ -601,25 +602,27 @@ func NewTaskBullet(taskId string) *TaskBullet {
 	}
 }
 
-func (b *TaskBullet) GetTaskId() string  { return b.TaskId }
-func (b *TaskBullet) IsStarve() bool     { return b.Starve }
-func (b *TaskBullet) GetTerm() uint32    { return b.Term }
-func (b *TaskBullet) GetResched() uint32 { return b.Resched }
+func (b *TaskBullet) GetTaskId() string    { return b.TaskId }
+func (b *TaskBullet) IsStarve() bool       { return b.Starve }
+func (b *TaskBullet) GetTerm() uint32      { return b.Term }
+func (b *TaskBullet) GetResched() uint32   { return b.Resched }
+func (b *TaskBullet) GetInQueueFlag() bool { return b.InQueueFlag }
 
 func (b *TaskBullet) IncreaseResched() { b.Resched++ }
 func (b *TaskBullet) DecreaseResched() {
-	if b.Resched > 0 {
+	if b.GetResched() > 0 {
 		b.Resched--
 	}
 }
+
 func (b *TaskBullet) IncreaseTerm() { b.Term++ }
 func (b *TaskBullet) DecreaseTerm() {
-	if b.Term > 0 {
+	if b.GetTerm() > 0 {
 		b.Term--
 	}
 }
 func (b *TaskBullet) IsOverlowReschedThreshold(reschedMaxCount uint32) bool {
-	if b.Resched >= reschedMaxCount {
+	if b.GetResched() >= reschedMaxCount {
 		return true
 	}
 	return false
@@ -628,7 +631,7 @@ func (b *TaskBullet) IsOverlowReschedThreshold(reschedMaxCount uint32) bool {
 type TaskBullets []*TaskBullet
 
 func (h TaskBullets) Len() int           { return len(h) }
-func (h TaskBullets) Less(i, j int) bool { return h[i].Term > h[j].Term } // term:  a.3 > c.2 > b.1,  So order is: a c b
+func (h TaskBullets) Less(i, j int) bool { return h[i].GetTerm() > h[j].GetTerm() } // term:  a.3 > c.2 > b.1,  So order is: a c b
 func (h TaskBullets) Swap(i, j int)      { h[i], h[j] = h[j], h[i] }
 
 func (h *TaskBullets) Push(x interface{}) {

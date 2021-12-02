@@ -18,7 +18,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -28,21 +27,17 @@ const (
 )
 
 type Twopc struct {
-	config      *Config
-	p2p         p2p.P2P
-	state       *state
-	resourceMng *resource.Manager
-	// send remote task to `Scheduler` to replay
-	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
-	// send has was consensus remote tasks to taskManager
-	needExecuteTaskCh chan *types.NeedExecuteTask
-	asyncCallCh       chan func()
-	quit              chan struct{}
-	taskResultBusCh   chan *types.TaskConsResult
-	taskResultChSet   map[string]chan<- *types.TaskConsResult
-	taskResultLock    sync.Mutex
-	wal               *walDB
-	Errs              []error
+	config                   *Config
+	p2p                      p2p.P2P
+	state                    *state
+	resourceMng              *resource.Manager
+	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask // send remote task to `Scheduler` to replay
+	needExecuteTaskCh        chan *types.NeedExecuteTask        // send has was consensus remote tasks to taskManager
+	asyncCallCh              chan func()
+	quit                     chan struct{}
+	taskConsResultCh         chan *types.TaskConsResult
+	wal                      *walDB
+	Errs                     []error
 }
 
 func New(
@@ -51,7 +46,7 @@ func New(
 	p2p p2p.P2P,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
-
+	taskConsResultCh chan *types.TaskConsResult,
 ) *Twopc {
 	newWalDB := newWal(conf)
 	return &Twopc{
@@ -63,8 +58,7 @@ func New(
 		needExecuteTaskCh:        needExecuteTaskCh,
 		asyncCallCh:              make(chan func(), conf.PeerMsgQueueSize),
 		quit:                     make(chan struct{}),
-		taskResultBusCh:          make(chan *types.TaskConsResult, 100),
-		taskResultChSet:          make(map[string]chan<- *types.TaskConsResult, 100),
+		taskConsResultCh:         taskConsResultCh,
 		wal:                      newWalDB,
 		Errs:                     make([]error, 0),
 	}
@@ -87,12 +81,6 @@ func (t *Twopc) loop() {
 
 		case fn := <-t.asyncCallCh:
 			fn()
-
-		case res := <-t.taskResultBusCh:
-			if nil == res {
-				return
-			}
-			t.handleTaskConsensusResult(res)
 
 		case <-refreshProposalStateTicker.C:
 
@@ -139,15 +127,13 @@ func (t *Twopc) OnError() error {
 	return fmt.Errorf("%s", strings.Join(errStrs, "\n"))
 }
 
-func (t *Twopc) OnPrepare(task *types.Task) error {
+func (t *Twopc) OnPrepare(task *types.NeedConsensusTask) error {
 
 	return nil
 }
-func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask, result chan<- *types.TaskConsResult) error {
+func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 
 	task := nonConsTask.GetTask()
-	t.addTaskResultCh(task.GetTaskId(), result)
-
 	if t.state.HasProposalTaskWithPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
 		log.Errorf("Failed to check org proposalTask whether have been not exist on OnHandle, but it's alreay exist, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
@@ -166,7 +152,6 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask, result chan<- *ty
 			types.TaskConsensusInterrupt)
 		return err
 	}
-
 
 	var buf bytes.Buffer
 	buf.Write(t.config.Option.NodeID.Bytes())
@@ -218,7 +203,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	if (now - msg.GetCreateAt()) >= uint64(ctypes.PrepareMsgVotingDuration.Milliseconds()) {
 		log.Errorf("received the prepareMsg is too late on onPrepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, now: {%d}, msgCreateAt: {%d}, duration: {%d}, valid duration: {%d}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(),
-			now, msg.GetCreateAt(), now - msg.GetCreateAt(), ctypes.PrepareMsgVotingDuration.Milliseconds())
+			now, msg.GetCreateAt(), now-msg.GetCreateAt(), ctypes.PrepareMsgVotingDuration.Milliseconds())
 		return ctypes.ErrProposalIllegal
 	}
 
@@ -294,10 +279,10 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), replayTaskResult.String())
 
 	var (
-		vote    *twopcpb.PrepareVote
-		content string
+		vote       *twopcpb.PrepareVote
+		content    string
 		voteOption types.VoteOption
-		resource  *types.PrepareVoteResource
+		resource   *types.PrepareVoteResource
 	)
 
 	if nil != replayTaskResult.GetErr() {
@@ -615,15 +600,15 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 	}
 
 	var (
-		vote    *twopcpb.ConfirmVote
-		content string
-		voteOption  types.VoteOption
+		vote       *twopcpb.ConfirmVote
+		content    string
+		voteOption types.VoteOption
 	)
 
 	// verify peers resources
 	if msg.PeersEmpty() {
 		voteOption = types.NO
-		content = fmt.Sprintf("confirm voting `NO` for proposal '%s', as received empty peers on confirm msg",  msg.GetMsgOption().GetProposalId().TerminalString())
+		content = fmt.Sprintf("confirm voting `NO` for proposal '%s', as received empty peers on confirm msg", msg.GetMsgOption().GetProposalId().TerminalString())
 
 		log.Warnf("Failed to verify peers resources of confirmMsg on onConfirmMsg, the peerDesc reources is empty, will vote `NO`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetConfirmOption().String())
@@ -632,7 +617,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 		// store confirm peers resource info
 		t.storeConfirmTaskPeerInfo(msg.GetMsgOption().GetProposalId(), msg.GetPeers())
 		voteOption = types.YES
-		content =  fmt.Sprintf(  "confirm voting `YES` for proposal '%s'", msg.GetMsgOption().GetProposalId().TerminalString())
+		content = fmt.Sprintf("confirm voting `YES` for proposal '%s'", msg.GetMsgOption().GetProposalId().TerminalString())
 
 		log.Infof("Succeed to verify peers resources of confirmMsg on onConfirmMsg, will vote `YES`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetConfirmOption().String())

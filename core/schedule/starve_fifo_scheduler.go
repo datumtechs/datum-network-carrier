@@ -78,7 +78,7 @@ func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
 				return fmt.Errorf("decode taskBullet failed, %s, taskId: {%s}", err, taskId)
 			}
 			sche.schedulings[taskId] = &result
-			if result.Starve == true {
+			if result.IsStarve() {
 				sche.starveQueue.Push(result)
 			} else {
 				sche.queue.Push(result)
@@ -116,6 +116,7 @@ func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
 	if !ok {
 		return nil
 	}
+
 	if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
 		return ErrRescheduleLargeThreshold
 	}

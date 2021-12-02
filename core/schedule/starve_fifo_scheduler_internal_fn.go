@@ -11,32 +11,39 @@ import (
 func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error {
 	sche.scheduleMutex.Lock()
 	// The bullet is first into queue
-	_, ok := sche.schedulings[bullet.TaskId]
+	_, ok := sche.schedulings[bullet.GetTaskId()]
 	if !ok {
+
+		bullet.InQueueFlag = true
 		heap.Push(sche.queue, bullet)
-		sche.schedulings[bullet.TaskId] = bullet
+		sche.schedulings[bullet.GetTaskId()] = bullet
 		sche.resourceMng.GetDB().StoreTaskBullet(bullet)
 	}
 	sche.scheduleMutex.Unlock()
-	log.Debugf("Succeed pushed local task into queue on scheduler, taskId: {%s}", bullet.TaskId)
+	log.Debugf("Succeed pushed local task into queue on scheduler, taskId: {%s}", bullet.GetTaskId())
 	return nil
 }
 
 func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) error {
 	sche.scheduleMutex.Lock()
 
-	if bullet.Starve {
+	if bullet.GetInQueueFlag() {
+		return nil
+	}
+
+	bullet.InQueueFlag = true
+	if bullet.IsStarve() {
 		heap.Push(sche.starveQueue, bullet)
 
 		log.Debugf("Succeed repushed task into starve queue on scheduler, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
-			bullet.TaskId, bullet.Resched, ReschedMaxCount)
+			bullet.GetTaskId(), bullet.GetResched(), ReschedMaxCount)
 	} else {
 		heap.Push(sche.queue, bullet)
 
 		log.Debugf("Succeed repushed task into queue on scheduler, taskId: {%s}, reschedCount: {%d}, max threshold: {%d}",
-			bullet.TaskId, bullet.Resched, ReschedMaxCount)
+			bullet.GetTaskId(), bullet.GetResched(), ReschedMaxCount)
 	}
-	sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // cover old value with new value into db
+	sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // update bullet into wal
 	sche.scheduleMutex.Unlock()
 	return nil
 }
@@ -94,16 +101,18 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 	sche.scheduleMutex.Lock()
 
 	var bullet *types.TaskBullet
-
 	if sche.starveQueue.Len() != 0 {
 		x := heap.Pop(sche.starveQueue)
 		bullet = x.(*types.TaskBullet)
+		bullet.InQueueFlag = false
 	} else {
 		if sche.queue.Len() != 0 {
 			x := heap.Pop(sche.queue)
 			bullet = x.(*types.TaskBullet)
+			bullet.InQueueFlag = false
 		}
 	}
+
 	sche.scheduleMutex.Unlock()
 	return bullet
 }
@@ -122,7 +131,7 @@ func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 		bullet.IncreaseTerm()
 
 		// When the task in the queue meets hunger, it will be transferred to starveQueue
-		if bullet.Term >= StarveTerm {
+		if bullet.GetTerm() >= StarveTerm {
 			bullet.Starve = true
 			heap.Push(sche.starveQueue, bullet)
 			heap.Remove(sche.queue, i)

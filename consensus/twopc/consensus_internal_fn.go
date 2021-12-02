@@ -456,31 +456,8 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 	return nil
 }
 
-func (t *Twopc) addTaskResultCh(taskId string, resultCh chan<- *types.TaskConsResult) {
-	t.taskResultLock.Lock()
-	log.Debugf("AddTaskResultCh taskId: {%s}", taskId)
-	t.taskResultChSet[taskId] = resultCh
-	t.taskResultLock.Unlock()
-}
-func (t *Twopc) removeTaskResultCh(taskId string) {
-	t.taskResultLock.Lock()
-	log.Debugf("RemoveTaskResultCh taskId: {%s}", taskId)
-	delete(t.taskResultChSet, taskId)
-	t.taskResultLock.Unlock()
-}
 func (t *Twopc) replyTaskConsensusResult (result *types.TaskConsResult) {
-	t.taskResultBusCh <- result
-}
-func (t *Twopc) handleTaskConsensusResult (result *types.TaskConsResult) {
-	t.taskResultLock.Lock()
-	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
-	if ch, ok := t.taskResultChSet[result.GetTaskId()]; ok {
-		log.Debugf("Start SendTaskResultCh taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
-		ch <- result
-		close(ch)
-		delete(t.taskResultChSet, result.GetTaskId())
-	}
-	t.taskResultLock.Unlock()
+	t.taskConsResultCh <- result
 }
 
 func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {

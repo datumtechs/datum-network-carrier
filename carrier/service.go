@@ -61,10 +61,11 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
-	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh :=
+	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
 		make(chan types.TaskDataArray, 28),
 		make(chan *types.NeedReplayScheduleTask, 100),
-		make(chan *types.NeedExecuteTask, 100)
+		make(chan *types.NeedExecuteTask, 100),
+		make(chan *types.TaskConsResult, 100)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
@@ -86,6 +87,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		config.P2P,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
+		taskConsResultCh,
 	)
 	taskManager := task.NewTaskManager(
 		config.P2P,
@@ -98,6 +100,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		localTaskMsgCh,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
+		taskConsResultCh,
 	)
 
 	s := &Service{
