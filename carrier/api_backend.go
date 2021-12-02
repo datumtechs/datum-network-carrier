@@ -771,7 +771,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSi
 		return nil, errors.New("found local metadata arr failed, " + err.Error())
 	}
 
-	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.UnixMsecUint64(), backend.DefaultMaxPageSize)
+	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, errors.New("found global metadata arr failed on query local metadata arr, " + err.Error())
 	}
