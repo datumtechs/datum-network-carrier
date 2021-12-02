@@ -85,7 +85,6 @@ type NeedConsensusTask struct {
 	nonce      []byte
 	weights    [][]byte
 	electionAt uint64
-	resultCh   chan *TaskConsResult
 }
 
 func NewNeedConsensusTask(task *Task, nonce []byte, weights [][]byte, electionAt uint64) *NeedConsensusTask {
@@ -94,7 +93,6 @@ func NewNeedConsensusTask(task *Task, nonce []byte, weights [][]byte, electionAt
 		nonce:      nonce,
 		weights:    weights,
 		electionAt: electionAt,
-		resultCh:   make(chan *TaskConsResult),
 	}
 }
 
@@ -102,7 +100,6 @@ func (nct *NeedConsensusTask) GetTask() *Task                    { return nct.ta
 func (nct *NeedConsensusTask) GetNonce() []byte                  { return nct.nonce }
 func (nct *NeedConsensusTask) GetWeights() [][]byte              { return nct.weights }
 func (nct *NeedConsensusTask) GetElectionAt() uint64             { return nct.electionAt }
-func (nct *NeedConsensusTask) GetResultCh() chan *TaskConsResult { return nct.resultCh }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
@@ -122,17 +119,7 @@ func (nct *NeedConsensusTask) String() string {
 		}
 		weightsStr = "[" + strings.Join(arr, ",") + "]"
 	}
-	return fmt.Sprintf(`{"task": %s, "nonce": %s, "weights": %s, "electionAt": %d, "resultCh": %p}`, taskStr, nonceStr, weightsStr, nct.electionAt, nct.resultCh)
-}
-func (nct *NeedConsensusTask) SendResult(result *TaskConsResult) {
-	nct.resultCh <- result
-	close(nct.resultCh)
-}
-func (nct *NeedConsensusTask) ReceiveResult() *TaskConsResult {
-	return <-nct.resultCh
-}
-func (nct *NeedConsensusTask) Close() {
-	close(nct.resultCh)
+	return fmt.Sprintf(`{"task": %s, "nonce": %s, "weights": %s, "electionAt": %d}`, taskStr, nonceStr, weightsStr, nct.electionAt)
 }
 
 // Remote tasks that need to be scheduled again
