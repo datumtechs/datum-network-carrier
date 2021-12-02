@@ -60,7 +60,7 @@ message ListMetadataRequest {
 
 message ListMetadataResponse {
     repeated types.MetadataPB metadata    = 1;
-    uint64            last_updated = 2;
+    //uint64            last_updated = 2;
 }
 
 message FindMetadataByIdRequest {

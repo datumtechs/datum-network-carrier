@@ -79,7 +79,7 @@ message ListPowerRequest {
 
 message ListPowerResponse {
   repeated types.ResourcePB powers  = 1;
-  uint64 last_updated               = 2;
+  //uint64 last_updated               = 2;
 }
 
 message SyncPowerRequest {
