@@ -19,4 +19,5 @@ message IdentityPB {
   api.protobuf.CommonStatus status = 6;
   // json format for credential
   string credential = 7;
+  uint64 update_at = 8;         // UTC毫秒数
 }
