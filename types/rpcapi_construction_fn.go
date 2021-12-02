@@ -164,6 +164,7 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 			NodeName:   organization.GetNodeName(),
 			DataId:     organization.GetIdentityId(),
 			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+			UpdateAt:   organization.GetUpdateAt(),
 		}))
 	}
 	return result
