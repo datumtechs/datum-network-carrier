@@ -117,7 +117,6 @@ func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
 		return nil
 	}
 	if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
-		sche.removeTaskBullet(bullet.GetTaskId())
 		return ErrRescheduleLargeThreshold
 	}
 	return sche.repushTaskBullet(bullet)
@@ -245,7 +244,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		// check the metadata whether internal metadata
 		internalMetadataFlag, err := sche.resourceMng.GetDB().IsInternalMetadataByDataId(metadataId)
 		if nil != err {
-			log.Errorf("failed check metadata whether internal metadata by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
+			log.WithError(err).Errorf("failed check metadata whether internal metadata by metaDataId when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
 			return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("check metadata whether internal failed, %s", err), nil)
 		}

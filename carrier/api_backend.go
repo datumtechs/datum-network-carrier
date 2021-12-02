@@ -1088,7 +1088,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 	// the task is executing.
 	localTask, err := s.carrier.carrierDB.QueryLocalTask(taskId)
 	if nil != err {
-		log.Errorf("Failed to query local task on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}", taskId)
+		log.WithError(err).Errorf("Failed to query local task on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}", taskId)
 		return nil, err
 	}
 

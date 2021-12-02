@@ -468,10 +468,10 @@ func (t *Twopc) removeTaskResultCh(taskId string) {
 	delete(t.taskResultChSet, taskId)
 	t.taskResultLock.Unlock()
 }
-func (t *Twopc) replyTaskConsensusResult(result *types.TaskConsResult) {
+func (t *Twopc) replyTaskConsensusResult (result *types.TaskConsResult) {
 	t.taskResultBusCh <- result
 }
-func (t *Twopc) handleTaskConsensusResult(result *types.TaskConsResult) {
+func (t *Twopc) handleTaskConsensusResult (result *types.TaskConsResult) {
 	t.taskResultLock.Lock()
 	log.Debugf("Need SendTaskResultCh taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
 	if ch, ok := t.taskResultChSet[result.GetTaskId()]; ok {

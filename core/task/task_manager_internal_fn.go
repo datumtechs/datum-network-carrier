@@ -29,9 +29,6 @@ import (
 
 func (m *Manager) tryScheduleTask() error {
 
-
-	// TODO 二: 共识中是否区分 interrupt 中止, 和 end （针对, 任意多次共识一定不会成功的）终止 ?? ---- 中止的task可以 repush, 而 终止的task直接 remove ??
-
 	nonConsTask, taskId, err := m.scheduler.TrySchedule()
 	if nil == err && nil == nonConsTask {
 		return nil
@@ -97,7 +94,7 @@ func (m *Manager) tryScheduleTask() error {
 		log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", nonConsTask.GetTask().GetTaskId(), result.String())
 
 
-		// received status must be `TaskConsensusFinished|TaskConsensusInterrupt|TaskTerminate` from consensus engine
+		// received status must be `TaskConsensusFinished` & `TaskConsensusInterrupt` & `TaskTerminate` from consensus engine
 		// never be `TaskNeedExecute|TaskScheduleFailed`
 		//
 		// Consensus failed, task needs to be suspended and rescheduled
@@ -868,6 +865,8 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 					// ConsumeMetadataAuthority
 					if err = m.authMng.ConsumeMetadataAuthority(metadataAuthId); nil != err {
 						return "", fmt.Errorf("consume metadataAuth failed %s, metadataAuthId: {%s}", err, metadataAuthId)
+					} else {
+						log.Debugf("Succeed consume metadataAuth, taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
 					}
 				}
 

@@ -145,8 +145,8 @@ func (m *Manager) Stop() error {
 }
 
 func (m *Manager) loop() {
-	taskMonitorTicker := time.NewTicker(taskMonitorInterval)
-	taskTicker := time.NewTicker(defaultScheduleTaskInterval)
+	taskMonitorTicker := time.NewTicker(taskMonitorInterval)  // 30 s
+	taskTicker := time.NewTicker(defaultScheduleTaskInterval) // 2 s
 
 	for {
 		select {

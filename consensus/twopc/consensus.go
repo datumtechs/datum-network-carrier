@@ -81,7 +81,7 @@ func (t *Twopc) Stop() error {
 	return nil
 }
 func (t *Twopc) loop() {
-	refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal)
+	refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal) // 300 ms
 	for {
 		select {
 
@@ -95,7 +95,8 @@ func (t *Twopc) loop() {
 			t.handleTaskConsensusResult(res)
 
 		case <-refreshProposalStateTicker.C:
-			go t.refreshProposalState()
+
+			t.refreshProposalState()
 
 		case <-t.quit:
 			log.Info("Stopped 2pc consensus engine ...")
@@ -581,7 +582,6 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-
 		log.Errorf("Failed to verify receiver identityId of confirmMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 		return ctypes.ErrConsensusMsgInvalid
