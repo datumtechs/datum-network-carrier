@@ -158,7 +158,7 @@ func (m *Manager) loop() {
 		case event := <-m.eventCh:
 			go func(event *libtypes.TaskEvent) {
 				if err := m.handleTaskEventWithCurrentOranization(event); nil != err {
-					log.WithError(err).Errorf("Failed to call handleTaskEventWithCurrentOranization() on TaskManager, taskId: {%s}, event: %s", event.GetTaskId(), event.String())
+					log.WithError(err).Errorf("Failed to call handleTaskEventWithCurrentOranization() on taskManager.loop(), taskId: {%s}, event: %s", event.GetTaskId(), event.String())
 				}
 			}(event)
 
@@ -195,11 +195,11 @@ func (m *Manager) loop() {
 
 			go func(result *types.TaskConsResult) {
 
-				log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
+				log.Debugf("Received `NEED-CONSENSUS` task result from 2pc consensus engine when received `NEED-CONSENSUS` task result, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
 
 				task, err := m.resourceMng.GetDB().QueryLocalTask(result.GetTaskId())
 				if nil != err {
-					log.WithError(err).Errorf("Failed to query local task when received `NEED-CONSENSUS` task result on `taskManager.tryScheduleTask()`, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
+					log.WithError(err).Errorf("Failed to query local task when received `NEED-CONSENSUS` task result, taskId: {%s}, result: {%s}", result.GetTaskId(), result.String())
 					return
 				}
 
@@ -224,7 +224,7 @@ func (m *Manager) loop() {
 					// remove task from scheduler.queue|starvequeue after task consensus succeed
 					// Don't send needexecuteTask, because that will be handle in `2pc engine.driveTask()`
 					if err := m.scheduler.RemoveTask(result.GetTaskId()); nil != err {
-						log.WithError(err).Errorf("Failed to remove local task from queue/starve queue after %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
+						log.WithError(err).Errorf("Failed to remove local task from queue/starve queue %s when received `NEED-CONSENSUS` task result, taskId: {%s}",
 							result.GetStatus().String(), task.GetTaskId())
 					}
 					m.sendNeedExecuteTaskByAction(task.GetTaskId(),
@@ -237,12 +237,12 @@ func (m *Manager) loop() {
 					task.RemoveResourceSupplierArr()
 					// restore task by power
 					if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
-						log.WithError(err).Errorf("Failed to update local task whit clean powers after consensus interrupted on `taskManager.tryScheduleTask()`, taskId: {%s}", task.GetTaskId())
+						log.WithError(err).Errorf("Failed to update local task whit clean powers after consensus interrupted when received `NEED-CONSENSUS` task result, taskId: {%s}", task.GetTaskId())
 					}
 
 					// re push task into queue ,if anything else
 					if err := m.scheduler.RepushTask(task); err == schedule.ErrRescheduleLargeThreshold {
-						log.WithError(err).Errorf("Failed to repush local task into queue/starve queue after task consensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
+						log.WithError(err).Errorf("Failed to repush local task into queue/starve queue %s when received `NEED-CONSENSUS` task result, taskId: {%s}",
 							result.GetStatus().String(), task.GetTaskId())
 
 						m.scheduler.RemoveTask(task.GetTaskId())
@@ -251,7 +251,7 @@ func (m *Manager) loop() {
 							task.GetTaskSender(), task.GetTaskSender(),
 							types.TaskScheduleFailed, fmt.Errorf("consensus interrupted: " + result.GetErr().Error() + " and " + schedule.ErrRescheduleLargeThreshold.Error()))
 					} else {
-						log.Debugf("Succeed to repush local task into queue/starve queue after task cnsensus %s on `taskManager.tryScheduleTask()`, taskId: {%s}",
+						log.Debugf("Succeed to repush local task into queue/starve queue %s when received `NEED-CONSENSUS` task result, taskId: {%s}",
 							result.GetStatus().String(), task.GetTaskId())
 					}
 				}
