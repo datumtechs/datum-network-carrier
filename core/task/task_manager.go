@@ -154,8 +154,8 @@ func (m *Manager) loop() {
 		// handle reported event from fighter of self organization
 		case event := <-m.eventCh:
 			go func() {
-				if err := m.handleTaskEventWithCurrentIdentity(event); nil != err {
-					log.WithError(err).Errorf("Failed to call handleTaskEventWithCurrentIdentity() on TaskManager, taskId: {%s}, event: %s", event.GetTaskId(), event.String())
+				if err := m.handleTaskEventWithCurrentOranization(event); nil != err {
+					log.WithError(err).Errorf("Failed to call handleTaskEventWithCurrentOranization() on TaskManager, taskId: {%s}, event: %s", event.GetTaskId(), event.String())
 				}
 			}()
 
@@ -245,10 +245,14 @@ func (m *Manager) loop() {
 			default:
 
 				// store a bad event into local db before handle bad task.
-				m.storeTaskFinalEvent(task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-					task.GetLocalTaskOrganization().GetPartyId(),
-					fmt.Sprintf("execute task: %s with %s", task.GetConsStatus().String(),
-						task.GetLocalTaskOrganization().GetPartyId()), apicommonpb.TaskState_TaskState_Failed)
+				var eventTyp string
+				if task.GetConsStatus() == types.TaskConsensusInterrupt {
+					eventTyp  = ev.TaskFailedConsensus.GetType()
+				} else {
+					eventTyp  = ev.TaskFailed.GetType()  // then the task status was `scheduleFailed` and `terminate`.
+				}
+				m.resourceMng.GetDB().StoreTaskEvent(m.eventEngine.GenerateEvent(eventTyp, task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+					task.GetLocalTaskOrganization().GetPartyId(), task.GetErr().Error()))
 
 				switch task.GetLocalTaskRole() {
 				case apicommonpb.TaskRole_TaskRole_Sender:
