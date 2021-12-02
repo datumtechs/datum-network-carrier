@@ -212,7 +212,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	// reset val
 	valid = false
 
-	metadataList, err := svr.B.GetGlobalMetadataDetailList(timeutils.BeforeYearUnixMsecUint64())
+	metadataList, err := svr.B.GetGlobalMetadataDetailList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global metadata list failed")
 		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global metadata list failed")

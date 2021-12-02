@@ -93,15 +93,6 @@
             }
           }
         },
-        "parameters": [
-          {
-            "name": "last_updated",
-            "in": "query",
-            "required": false,
-            "type": "string",
-            "format": "uint64"
-          }
-        ],
         "tags": [
           "PowerService"
         ]

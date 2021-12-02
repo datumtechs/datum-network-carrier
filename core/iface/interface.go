@@ -114,7 +114,7 @@ type IdentityCarrierDB interface {
 	//RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	QueryMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error)
 	QueryMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error)
-	QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error)
+	QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error)
 	QueryMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error)
 }
 

@@ -12,6 +12,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
 	"time"
@@ -664,13 +665,13 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 	//		so the data legitimacy is verified again
 	// ############################################
 	// ############################################
-	ideneityList, err := m.dataCenter.QueryIdentityList(timeutils.BeforeYearUnixMsecUint64())
+	ideneityList, err := m.dataCenter.QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query global identity list on MessageHandler with broadcast metadataAuth")
 		return
 	}
 	//todo: need checking...
-	metadataList, err := m.dataCenter.QueryMetadataList(timeutils.BeforeYearUnixMsecUint64())
+	metadataList, err := m.dataCenter.QueryMetadataList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query global metadata list on MessageHandler with broadcast metadataAuth")
 		return
