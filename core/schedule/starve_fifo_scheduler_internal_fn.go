@@ -112,7 +112,9 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 			bullet.InQueueFlag = false
 		}
 	}
-	sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // update bullet into wal
+	if nil != bullet {
+		sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // update bullet into wal
+	}
 	sche.scheduleMutex.Unlock()
 	return bullet
 }
