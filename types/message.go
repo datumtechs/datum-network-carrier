@@ -656,6 +656,21 @@ func (h *TaskBullets) DecreaseTerm() {
 	}
 }
 
+func (h *TaskBullets) IncreaseTermByCallbackFn(f func (b *TaskBullet)) {
+	for i := range *h {
+		b := (*h)[i]
+		b.IncreaseTerm()
+		f(b)
+	}
+}
+func (h *TaskBullets) DecreaseTermByCallbackFn(f func (b *TaskBullet)) {
+	for i := range *h {
+		b := (*h)[i]
+		b.DecreaseTerm()
+		f(b)
+	}
+}
+
 type TaskMsg struct {
 	Data          *Task
 	PowerPartyIds []string `json:"powerPartyIds"`

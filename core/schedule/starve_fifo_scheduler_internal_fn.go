@@ -68,13 +68,13 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		if i == sche.queue.Len() {
 			break
 		}
-		qbullet := (*(sche.queue))[i]
+		bullet := (*(sche.queue))[i]
 		// When found the bullet with taskId, removed it from queue.
-		if qbullet.GetTaskId() == taskId {
+		if bullet.GetTaskId() == taskId {
 			heap.Remove(sche.queue, i)
 			return nil
 		}
-		(*(sche.queue))[i] = qbullet
+		(*(sche.queue))[i] = bullet
 		i++
 	}
 
@@ -84,14 +84,14 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 		if i == sche.starveQueue.Len() {
 			break
 		}
-		qbullet := (*(sche.starveQueue))[i]
+		bullet := (*(sche.starveQueue))[i]
 
 		// When found the bullet with taskId, removed it from starveQueue.
-		if qbullet.GetTaskId() == taskId {
+		if bullet.GetTaskId() == taskId {
 			heap.Remove(sche.starveQueue, i)
 			return nil
 		}
-		(*(sche.starveQueue))[i] = qbullet
+		(*(sche.starveQueue))[i] = bullet
 		i++
 	}
 	return nil
@@ -112,14 +112,16 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 			bullet.InQueueFlag = false
 		}
 	}
-
+	sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // update bullet into wal
 	sche.scheduleMutex.Unlock()
 	return bullet
 }
 
 func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 	// handle starve queue
-	sche.starveQueue.IncreaseTerm()
+	sche.starveQueue.IncreaseTermByCallbackFn(func(bullet *types.TaskBullet) {
+		sche.resourceMng.GetDB().StoreTaskBullet(bullet)  		// update bullet into wal
+	})
 
 	// handle queue
 	i := 0
@@ -133,12 +135,14 @@ func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 		// When the task in the queue meets hunger, it will be transferred to starveQueue
 		if bullet.GetTerm() >= StarveTerm {
 			bullet.Starve = true
-			heap.Push(sche.starveQueue, bullet)
-			heap.Remove(sche.queue, i)
+			heap.Push(sche.starveQueue, bullet)   				// push it into `starve queue`
+			heap.Remove(sche.queue, i)							// remove it from `queue`
+			sche.resourceMng.GetDB().StoreTaskBullet(bullet)  	// update bullet into wal
 			i = 0
 			continue
 		}
 		(*(sche.queue))[i] = bullet
+		sche.resourceMng.GetDB().StoreTaskBullet(bullet)  		// update bullet into wal
 		i++
 	}
 }

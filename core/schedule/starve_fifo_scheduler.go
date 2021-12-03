@@ -1,6 +1,7 @@
 package schedule
 
 import (
+	"container/heap"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
@@ -71,17 +72,19 @@ func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
 	prefix := rawdb.GetTaskBulletKeyPrefix()
 	if err := sche.resourceMng.GetDB().ForEachTaskBullets(func(key, value []byte) error {
 		if len(key) != 0 && len(value) != 0 {
-			var result types.TaskBullet
+			var bullet types.TaskBullet
 			taskId := string(key[len(prefix):])
 
-			if err := rlp.DecodeBytes(value, &result); nil != err {
+			if err := rlp.DecodeBytes(value, &bullet); nil != err {
 				return fmt.Errorf("decode taskBullet failed, %s, taskId: {%s}", err, taskId)
 			}
-			sche.schedulings[taskId] = &result
-			if result.IsStarve() {
-				sche.starveQueue.Push(result)
-			} else {
-				sche.queue.Push(result)
+			sche.schedulings[taskId] = &bullet
+			if (&bullet).GetInQueueFlag() { // push into queue/starve queue
+				if (&bullet).IsStarve() {
+					heap.Push(sche.starveQueue, &bullet)
+				} else {
+					heap.Push(sche.queue, &bullet)
+				}
 			}
 		}
 		return nil
