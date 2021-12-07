@@ -114,7 +114,7 @@ func (s *Service) taskResultMessageSubscriber(ctx context.Context, pid peer.ID, 
 		return fmt.Errorf("wrong type, expected: *taskmngpb.TaskResultMsg got: %T", msg)
 	}
 
-	s.setTaskResultMsgSeen(m.MsgOption.ProposalId, m.MsgOption.SenderPartyId, m.MsgOption.ReceiverPartyId)
+	s.setTaskResultMsgSeen(msg)
 
 	// handle TaskResultMsg
 	if err := s.onTaskResultMsg(pid, m); err != nil {
@@ -130,7 +130,7 @@ func (s *Service) taskResourceUsageMessageSubscriber(ctx context.Context, pid pe
 		return fmt.Errorf("wrong type, expected: *taskmngpb.TaskResourceUsageMsg got: %T", msg)
 	}
 
-	s.setTaskResourceUsageMsgSeen(m.MsgOption.ProposalId, m.MsgOption.SenderPartyId, m.MsgOption.ReceiverPartyId)
+	s.setTaskResourceUsageMsgSeen(msg)
 
 	// handle TaskResourceUsageMsg
 	if err := s.onTaskResourceUsageMsg(pid, m); err != nil {
@@ -146,7 +146,7 @@ func (s *Service) taskTerminateMessageSubscriber(ctx context.Context, pid peer.I
 		return fmt.Errorf("wrong type, expected: *taskmngpb.TaskTerminateMsg got: %T", msg)
 	}
 
-	s.setTaskTerminateMsgSeen(m.MsgOption.ProposalId, m.MsgOption.SenderPartyId, m.MsgOption.ReceiverPartyId)
+	s.setTaskTerminateMsgSeen(msg)
 
 	// handle TaskTerminateMsg
 	if err := s.onTaskTerminateMsg(pid, m); err != nil {

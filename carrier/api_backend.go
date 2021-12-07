@@ -1089,7 +1089,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 	// the task is executing.
 	localTask, err := s.carrier.carrierDB.QueryLocalTask(taskId)
 	if nil != err {
-		log.Errorf("Failed to query local task on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}", taskId)
+		log.WithError(err).Errorf("Failed to query local task on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}", taskId)
 		return nil, err
 	}
 
@@ -1212,6 +1212,12 @@ func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate uint64) ([]*pb.TaskDeta
 					}
 				}
 			}
+		}
+
+		// For the initiator's local task, when the task has not started execution
+		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Pending {
+			task.RemoveResourceSupplierArr() // clean powerSupplier when before return.
 		}
 
 		if taskView := makeTaskViewFn(task); nil != taskView {

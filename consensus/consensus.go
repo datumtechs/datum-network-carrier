@@ -10,8 +10,8 @@ import (
 type Engine interface {
 	Start() error
 	Stop() error
-	OnPrepare(task *types.Task) error
-	OnHandle(task *types.Task, result chan<- *types.TaskConsResult) error
+	OnPrepare(task *types.NeedConsensusTask) error
+	OnHandle(task *types.NeedConsensusTask) error
 	OnConsensusMsg(pid peer.ID, msg types.ConsensusMsg) error
 	OnError() error
 }

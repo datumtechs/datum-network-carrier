@@ -5,8 +5,10 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	taskmngcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
+	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"github.com/prysmaticlabs/prysm/shared/hashutil"
 	"go.opencensus.io/trace"
 )
 
@@ -18,7 +20,8 @@ func (s *Service) validateTaskResultMessagePubSub(ctx context.Context, pid peer.
 		return pubsub.ValidationAccept
 	}
 
-	ctx, span := trace.StartSpan(ctx, "handler.validateTaskResultMessagePubSub")
+	ctx, span := trace.StartSpanWithRemoteParent(ctx, "handler.validateTaskResultMessagePubSub",
+		traceutil.GenerateParentSpanWithTaskResultMessage(pid, msg))
 	defer span.End()
 
 	m, err := s.decodePubsubMessage(msg)
@@ -34,7 +37,7 @@ func (s *Service) validateTaskResultMessagePubSub(ctx context.Context, pid peer.
 		return pubsub.ValidationReject
 	}
 
-	if s.hasSeenTaskResultMsg(message.MsgOption.ProposalId, message.MsgOption.SenderPartyId, message.MsgOption.ReceiverPartyId) {
+	if s.hasSeenTaskResultMsg(msg) {
 		return pubsub.ValidationIgnore
 	}
 
@@ -49,20 +52,18 @@ func (s *Service) validateTaskResultMessagePubSub(ctx context.Context, pid peer.
 }
 
 // Returns true if the node has already received a prepare message request for the validator with index `proposalId`.
-func (s *Service) hasSeenTaskResultMsg(proposalId []byte, senderPartId []byte, receivePartId []byte) bool {
+func (s *Service) hasSeenTaskResultMsg(msg proto.Message) bool {
 	s.seenTaskResultMsgLock.RLock()
 	defer s.seenTaskResultMsgLock.RUnlock()
-	v := append(proposalId, senderPartId...)
-	v = append(v, receivePartId...)
-	_, seen := s.seenTaskResultMsgCache.Get(string(v))
+	v := hashutil.Hash([]byte(msg.String()))
+	_, seen := s.seenTaskResultMsgCache.Get(common.Bytes2Hex(v[0:]))
 	return seen
 }
 
 // Set proposalId in seen exit request cache.
-func (s *Service) setTaskResultMsgSeen(proposalId []byte, senderPartId []byte, receivePartId []byte) {
+func (s *Service) setTaskResultMsgSeen(msg proto.Message) {
 	s.seenTaskResultMsgLock.Lock()
 	defer s.seenTaskResultMsgLock.Unlock()
-	v := append(proposalId, senderPartId...)
-	v = append(v, receivePartId...)
-	s.seenTaskResultMsgCache.Add(string(v), true)
+	v := hashutil.Hash([]byte(msg.String()))
+	s.seenTaskResultMsgCache.Add(common.Bytes2Hex(v[0:]), true)
 }

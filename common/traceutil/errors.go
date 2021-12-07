@@ -1,7 +1,10 @@
 package traceutil
 
 import (
+	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common/hashutil"
+	"github.com/RosettaFlow/Carrier-Go/p2p/encoder"
+	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"go.opencensus.io/trace"
@@ -20,8 +23,25 @@ func AnnotateError(span *trace.Span, err error) {
 	})
 }
 
+func GenerateTraceID(msg proto.Message) string{
+	encoder := &encoder.SszNetworkEncoder{}
+	buf := new(bytes.Buffer)
+	encoder.EncodeGossip(buf, msg);
+	h := hashutil.Hash(buf.Bytes())
+	traceId := trace.TraceID{}
+	copy(traceId[0:], h[:16])
+	return traceId.String()
+}
+
+func GenerateTraceIDForPub(msg *pubsub.Message) string{
+	h := hashutil.Hash(msg.GetData())
+	traceId := trace.TraceID{}
+	copy(traceId[0:], h[:16])
+	return traceId.String()
+}
+
 func GenerateParentSpan(pid peer.ID, msg *pubsub.Message, spanId trace.SpanID) trace.SpanContext {
-	h := hashutil.Hash([]byte(msg.String()))
+	h := hashutil.Hash(msg.GetData())
 	traceId := trace.TraceID{}
 	copy(traceId[0:], h[:16])
 	return trace.SpanContext{
@@ -53,4 +73,16 @@ func GenerateParentSpanWithPrepareMsg(pid peer.ID, msg *pubsub.Message) trace.Sp
 
 func GenerateParentSpanWithPrepareVote(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
 	return GenerateParentSpan(pid, msg, trace.SpanID{6, 6, 6, 6, 6, 6, 6, 6})
+}
+
+func GenerateParentSpanWithTaskTerminateMessage(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{7, 7, 7, 7, 7, 7, 7, 7})
+}
+
+func GenerateParentSpanWithTaskResultMessage(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{8, 8, 8, 8, 8, 8, 8, 8})
+}
+
+func GenerateParentSpanWithTaskResourceUsageMessage(pid peer.ID, msg *pubsub.Message) trace.SpanContext {
+	return GenerateParentSpan(pid, msg, trace.SpanID{9, 9, 9, 9, 9, 9, 9, 9})
 }

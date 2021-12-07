@@ -642,9 +642,12 @@ func RemoveTaskEventByPartyId(db KeyValueStore, taskId, partyId string) error {
 func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 	key := GetNeedExecuteTaskKey(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 
+	var errStr string
+	if nil != task.GetErr() {
+		errStr = task.GetErr().Error()
+	}
 	val, err := proto.Marshal(&libtypes.NeedExecuteTask{
 		RemotePid:              task.GetRemotePID().String(),
-		ProposalId:             task.GetProposalId().String(),
 		LocalTaskRole:          task.GetLocalTaskRole(),
 		LocalTaskOrganization:  task.GetLocalTaskOrganization(),
 		RemoteTaskRole:         task.GetRemoteTaskRole(),
@@ -658,6 +661,7 @@ func StoreNeedExecuteTask(db KeyValueStore, task *types.NeedExecuteTask) error {
 			PartyId: task.GetLocalResource().GetPartyId(),
 		},
 		Resources: task.GetResources(),
+		ErrStr:    errStr,
 	})
 	if nil != err {
 		return fmt.Errorf("marshal needExecuteTask failed, %s", err)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	"github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -31,7 +32,7 @@ func TestValidateTwopc_ValidTaskResult(t *testing.T) {
 	}
 
 	buf := new(bytes.Buffer)
-	_, err = p.Encoding().EncodeGossip(buf, &taskmng.TaskResultMsg{
+	pbmsg := &taskmng.TaskResultMsg{
 		MsgOption: &common.MsgOption{
 			ProposalId:      []byte("proposalId"),
 			SenderRole:      0,
@@ -42,7 +43,8 @@ func TestValidateTwopc_ValidTaskResult(t *testing.T) {
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 		Sign:     []byte("sign"),
-	})
+	}
+	_, err = p.Encoding().EncodeGossip(buf, pbmsg)
 	require.NoError(t, err)
 
 	topic := p2p.GossipTypeMapping[reflect.TypeOf(&taskmng.TaskResultMsg{})]
@@ -52,6 +54,8 @@ func TestValidateTwopc_ValidTaskResult(t *testing.T) {
 			Topic: &topic,
 		},
 	}
+	t.Log(traceutil.GenerateTraceID(pbmsg))
+	t.Log(traceutil.GenerateTraceIDForPub(msg))
 	valid := r.validateTaskResultMessagePubSub(ctx, "foobar", msg) == pubsub.ValidationIgnore
 	//todo: Need to add validation against consensus modules at a later stage.
 	assert.Equal(t, true, valid, "Failed Validation")

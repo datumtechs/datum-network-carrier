@@ -7,6 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
+	"github.com/RosettaFlow/Carrier-Go/core/election"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/message"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
@@ -60,15 +61,16 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
 	// TODO 这些 Ch 的大小目前都是写死的 ...
-	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh :=
+	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
 		make(chan types.TaskDataArray, 28),
 		make(chan *types.NeedReplayScheduleTask, 100),
-		make(chan *types.NeedExecuteTask, 100)
+		make(chan *types.NeedExecuteTask, 100),
+		make(chan *types.TaskConsResult, 100)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)
-	scheduler := schedule.NewSchedulerStarveFIFO(resourceClientSet, eventEngine, resourceMng, authManager)
+	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceClientSet, resourceMng), eventEngine, resourceMng, authManager)
 	twopcEngine := twopc.New(
 		&twopc.Config{
 			Option: &twopc.OptionConfig{
@@ -85,6 +87,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		config.P2P,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
+		taskConsResultCh,
 	)
 	taskManager := task.NewTaskManager(
 		config.P2P,
@@ -97,6 +100,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		localTaskMsgCh,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
+		taskConsResultCh,
 	)
 
 	s := &Service{

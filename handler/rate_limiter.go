@@ -119,7 +119,7 @@ func (l *limiter) add(stream network.Stream, amt int64) {
 
 	collector, err := l.retrieveCollector(topic)
 	if err != nil {
-		log.Errorf("collector with topic '%s' does not exist", topic)
+		log.WithError(err).Errorf("collector with topic '%s' does not exist", topic)
 		return
 	}
 	key := stream.Conn().RemotePeer().String()
@@ -136,7 +136,7 @@ func (l *limiter) addRawStream(stream network.Stream) {
 
 	collector, err := l.retrieveCollector(topic)
 	if err != nil {
-		log.Errorf("collector with topic '%s' does not exist", topic)
+		log.WithError(err).Errorf("collector with topic '%s' does not exist", topic)
 		return
 	}
 	key := stream.Conn().RemotePeer().String()
