@@ -47,7 +47,7 @@ func (s *VrfElector) ElectionOrganization(
 	calculateCount := len(powerPartyIds)
 
 	// Find global identitys
-	identityInfoArr, err := s.resourceMng.GetDB().QueryIdentityList()
+	identityInfoArr, err := s.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		return nil, nil, nil, err
 	}
