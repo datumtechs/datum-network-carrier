@@ -148,28 +148,31 @@ func (t *Twopc) refreshProposalState() {
 					continue
 				}
 
-				// release local resource and clean some data  (on task partenr)
-				t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-					Type:       evengine.TaskProposalStateDeadline.Type,
-					IdentityId: identity.GetIdentityId(),
-					PartyId:    partyId,
-					TaskId:     pstate.GetTaskId(),
-					Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.TerminalString(), evengine.TaskProposalStateDeadline.Msg),
-					CreateAt:   timeutils.UnixMsecUint64(),
-				})
-
-				t.stopTaskConsensus("the proposalState had been deadline",
-					proposalId,
-					pstate.GetTaskId(),
-					orgState.GetTaskRole(),
-					apicommonpb.TaskRole_TaskRole_Sender,
-					&apicommonpb.TaskOrganization{
-						PartyId:    partyId,
-						NodeName:   identity.GetNodeName(),
-						NodeId:     identity.GetNodeId(),
+				_, err := t.resourceMng.GetDB().QueryLocalTask(pstate.GetTaskId())
+				if nil == err {
+					// release local resource and clean some data  (on task partenr)
+					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+						Type:       evengine.TaskProposalStateDeadline.Type,
 						IdentityId: identity.GetIdentityId(),
-					},
-					pstate.GetTaskSender(), types.TaskConsensusInterrupt)
+						PartyId:    partyId,
+						TaskId:     pstate.GetTaskId(),
+						Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.TerminalString(), evengine.TaskProposalStateDeadline.Msg),
+						CreateAt:   timeutils.UnixMsecUint64(),
+					})
+
+					t.stopTaskConsensus("the proposalState had been deadline",
+						proposalId,
+						pstate.GetTaskId(),
+						orgState.GetTaskRole(),
+						apicommonpb.TaskRole_TaskRole_Sender,
+						&apicommonpb.TaskOrganization{
+							PartyId:    partyId,
+							NodeName:   identity.GetNodeName(),
+							NodeId:     identity.GetNodeId(),
+							IdentityId: identity.GetIdentityId(),
+						},
+						pstate.GetTaskSender(), types.TaskConsensusInterrupt)
+				}
 				continue
 			}
 
@@ -241,28 +244,31 @@ func (t *Twopc) refreshProposalState() {
 						continue
 					}
 
-					// release local resource and clean some data  (on task partenr)
-					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-						Type:       evengine.TaskProposalStateDeadline.Type,
-						IdentityId: identity.GetIdentityId(),
-						PartyId:    partyId,
-						TaskId:     pstate.GetTaskId(),
-						Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.TerminalString(), evengine.TaskProposalStateDeadline.Msg),
-						CreateAt:   timeutils.UnixMsecUint64(),
-					})
-
-					t.stopTaskConsensus("the proposalState had been deadline",
-						proposalId,
-						pstate.GetTaskId(),
-						orgState.GetTaskRole(),
-						apicommonpb.TaskRole_TaskRole_Sender,
-						&apicommonpb.TaskOrganization{
-							PartyId:    partyId,
-							NodeName:   identity.GetNodeName(),
-							NodeId:     identity.GetNodeId(),
+					_, err := t.resourceMng.GetDB().QueryLocalTask(pstate.GetTaskId())
+					if nil == err {
+						// release local resource and clean some data  (on task partenr)
+						t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+							Type:       evengine.TaskProposalStateDeadline.Type,
 							IdentityId: identity.GetIdentityId(),
-						},
-						pstate.GetTaskSender(), types.TaskConsensusInterrupt)
+							PartyId:    partyId,
+							TaskId:     pstate.GetTaskId(),
+							Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.TerminalString(), evengine.TaskProposalStateDeadline.Msg),
+							CreateAt:   timeutils.UnixMsecUint64(),
+						})
+
+						t.stopTaskConsensus("the proposalState had been deadline",
+							proposalId,
+							pstate.GetTaskId(),
+							orgState.GetTaskRole(),
+							apicommonpb.TaskRole_TaskRole_Sender,
+							&apicommonpb.TaskOrganization{
+								PartyId:    partyId,
+								NodeName:   identity.GetNodeName(),
+								NodeId:     identity.GetNodeId(),
+								IdentityId: identity.GetIdentityId(),
+							},
+							pstate.GetTaskSender(), types.TaskConsensusInterrupt)
+					}
 				}
 
 			default:
