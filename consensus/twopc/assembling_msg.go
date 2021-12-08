@@ -126,7 +126,7 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 	task := types.NewTask(&libtypes.TaskPB{})
 	err := task.DecodePb(msg.GetTaskInfo())
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("decode task info failed from prepareMsg, %s", err)
 	}
 
 	weights := make([][]byte, len(msg.GetWeights()))
