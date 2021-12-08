@@ -50,7 +50,7 @@ func (m *Manager) Start() error {
 	}
 
 
-	go m.loop()
+	//go m.loop()
 	log.Info("Started resourceManager ...")
 	return nil
 }

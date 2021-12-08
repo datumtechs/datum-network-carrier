@@ -123,7 +123,6 @@ func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
 func (s *state) StoreProposalState(proposalState *ctypes.ProposalState) {
 	s.proposalsLock.Lock()
 	s.proposalSet[proposalState.GetProposalId()] = proposalState
-
 	s.proposalsLock.Unlock()
 }
 func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {

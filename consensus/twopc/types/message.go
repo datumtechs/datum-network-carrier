@@ -74,10 +74,10 @@ func NewProposalState(proposalId common.Hash, taskId string, sender *apicommonpb
 	}
 }
 
-func (pstate *ProposalState) MustLock()                                    { pstate.lock.Lock() }
-func (pstate *ProposalState) MustUnLock()                                  { pstate.lock.Unlock() }
-func (pstate *ProposalState) MustRLock()                                   { pstate.lock.RLock() }
-func (pstate *ProposalState) MustRUnLock()                                 { pstate.lock.RUnlock() }
+//func (pstate *ProposalState) MustLock()                                    { pstate.lock.Lock() }
+//func (pstate *ProposalState) MustUnLock()                                  { pstate.lock.Unlock() }
+//func (pstate *ProposalState) MustRLock()                                   { pstate.lock.RLock() }
+//func (pstate *ProposalState) MustRUnLock()                                 { pstate.lock.RUnlock() }
 func (pstate *ProposalState) GetProposalId() common.Hash                   { return pstate.proposalId }
 func (pstate *ProposalState) GetTaskId() string                            { return pstate.taskId }
 func (pstate *ProposalState) GetTaskSender() *apicommonpb.TaskOrganization { return pstate.taskSender }

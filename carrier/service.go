@@ -60,12 +60,12 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 	pool := message.NewMempool(&message.MempoolConfig{NodeId: nodeIdStr})
 	eventEngine := evengine.NewEventEngine(config.CarrierDB)
 
-	// TODO 这些 Ch 的大小目前都是写死的 ...
+	// TODO The size of these ch is currently written dead ...
 	localTaskMsgCh, needReplayScheduleTaskCh, needExecuteTaskCh, taskConsResultCh :=
-		make(chan types.TaskDataArray, 28),
-		make(chan *types.NeedReplayScheduleTask, 100),
-		make(chan *types.NeedExecuteTask, 100),
-		make(chan *types.TaskConsResult, 100)
+		make(chan types.TaskDataArray, 100),
+		make(chan *types.NeedReplayScheduleTask, 600),
+		make(chan *types.NeedExecuteTask, 600),
+		make(chan *types.TaskConsResult, 600)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
 	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)

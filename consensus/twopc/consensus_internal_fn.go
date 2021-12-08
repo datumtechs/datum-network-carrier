@@ -8,6 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/traceutil"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/evengine"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -457,15 +458,21 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 }
 
 func (t *Twopc) replyTaskConsensusResult (result *types.TaskConsResult) {
-	t.taskConsResultCh <- result
+	go func(result *types.TaskConsResult) { // asynchronous transmission to reduce Chan blocking
+		t.taskConsResultCh <- result
+	}(result)
 }
 
 func (t *Twopc) sendNeedReplayScheduleTask(task *types.NeedReplayScheduleTask) {
-	t.needReplayScheduleTaskCh <- task
+	go func(task *types.NeedReplayScheduleTask) { // asynchronous transmission to reduce Chan blocking
+		t.needReplayScheduleTaskCh <- task
+	}(task)
 }
 
 func (t *Twopc) sendNeedExecuteTask(task *types.NeedExecuteTask) {
-	t.needExecuteTaskCh <- task
+	go func(task *types.NeedExecuteTask) {  // asynchronous transmission to reduce Chan blocking
+		t.needExecuteTaskCh <- task
+	}(task)
 }
 
 func (t *Twopc) sendPrepareVote(pid peer.ID, sender, receiver *apicommonpb.TaskOrganization, req *twopcpb.PrepareVote) error {
@@ -687,6 +694,31 @@ func verifyPartyRole(partyId string, role apicommonpb.TaskRole, task *types.Task
 		}
 	}
 	return false
+}
+
+func fetchLocalIdentityAndOriganizationFromMsg (resourceMng *resource.Manager, option *types.MsgOption, task *types.Task) (*apicommonpb.Organization, *apicommonpb.TaskOrganization, *apicommonpb.TaskOrganization, error) {
+	identity, err := resourceMng.GetDB().QueryIdentity()
+	if nil != err {
+		//log.WithError(err).Errorf("Failed to call `QueryIdentity()` %s, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		//	logdesc, option.GetProposalId().String(), task.GetTaskId(), option.GetReceiverRole().String(), option.GetReceiverPartyId())
+		return nil, nil, nil, fmt.Errorf("query local identity failed, %s", err)
+	}
+
+	sender := fetchOrgByPartyRole(option.GetSenderPartyId(), option.GetSenderRole(), task)
+	receiver := fetchOrgByPartyRole(option.GetReceiverPartyId(), option.GetReceiverRole(), task)
+	if nil == sender || nil == receiver {
+		//log.Errorf("Failed to check msg.MsgOption sender and receiver %s, someone is empty, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		//	logdesc, option.GetProposalId().String(), task.GetTaskId(), option.GetReceiverRole().String(), option.GetReceiverPartyId())
+		return nil, nil, nil, fmt.Errorf("%s, sender and receiver of msg that someone is empty", ctypes.ErrConsensusMsgInvalid)
+	}
+
+	// verify the receiver is myself ?
+	if identity.GetIdentityId() != receiver.GetIdentityId() {
+		//log.Errorf("Failed to verify receiver identityId of msg %s, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, my identityId: {%s}, receiver identityId: {%s}",
+		//	logdesc, option.GetProposalId().String(), task.GetTaskId(), option.GetReceiverRole().String(), option.GetReceiverPartyId(), identity.GetIdentityId(), receiver.GetIdentityId())
+		return nil, nil, nil, fmt.Errorf("%s, receiver is not current identity", ctypes.ErrConsensusMsgInvalid)
+	}
+	return identity, sender, receiver, nil
 }
 
 func fetchOrgByPartyRole(partyId string, role apicommonpb.TaskRole, task *types.Task) *apicommonpb.TaskOrganization {

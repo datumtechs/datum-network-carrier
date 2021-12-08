@@ -16,6 +16,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
+	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -79,7 +80,7 @@ func NewTaskManager(
 		resourceClientSet:        resourceClientSet,
 		parser:                   newTaskParser(resourceMng),
 		validator:                newTaskValidator(resourceMng, authMng),
-		eventCh:                  make(chan *libtypes.TaskEvent, 10),
+		eventCh:                  make(chan *libtypes.TaskEvent, 800),
 		localTasksCh:             localTasksCh,
 		needReplayScheduleTaskCh: needReplayScheduleTaskCh,
 		needExecuteTaskCh:        needExecuteTaskCh,
@@ -187,10 +188,10 @@ func (m *Manager) loop() {
 				log.WithError(err).Errorf("Failed to try schedule local task when taskTicker")
 			}
 
-		case res := <- m.taskConsResultCh:
+		case res := <- m.taskConsResultCh:  // received the task consensus result by task sender
 
 			if nil == res {
-				return
+				continue
 			}
 
 			go func(result *types.TaskConsResult) {
@@ -227,10 +228,18 @@ func (m *Manager) loop() {
 						log.WithError(err).Errorf("Failed to remove local task from queue/starve queue %s when received `NEED-CONSENSUS` task result, taskId: {%s}",
 							result.GetStatus().String(), task.GetTaskId())
 					}
-					m.sendNeedExecuteTaskByAction(task.GetTaskId(),
-						apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
-						task.GetTaskSender(), task.GetTaskSender(),
-						result.GetStatus(), result.GetErr())
+					m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
+						"",
+						apicommonpb.TaskRole_TaskRole_Sender,
+						apicommonpb.TaskRole_TaskRole_Sender,
+						task.GetTaskSender(),
+						task.GetTaskSender(),
+						task.GetTaskId(),
+						result.GetStatus(),
+						&types.PrepareVoteResource{},   // zero value
+						&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+						result.GetErr(),
+					))
 				case types.TaskConsensusInterrupt:
 
 					// clean old powerSuppliers and update local task
@@ -246,10 +255,18 @@ func (m *Manager) loop() {
 							result.GetStatus().String(), task.GetTaskId())
 
 						m.scheduler.RemoveTask(task.GetTaskId())
-						m.sendNeedExecuteTaskByAction(task.GetTaskId(),
-							apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
-							task.GetTaskSender(), task.GetTaskSender(),
-							types.TaskScheduleFailed, fmt.Errorf("consensus interrupted: " + result.GetErr().Error() + " and " + schedule.ErrRescheduleLargeThreshold.Error()))
+						m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
+							"",
+							apicommonpb.TaskRole_TaskRole_Sender,
+							apicommonpb.TaskRole_TaskRole_Sender,
+							task.GetTaskSender(),
+							task.GetTaskSender(),
+							task.GetTaskId(),
+							types.TaskScheduleFailed,
+							&types.PrepareVoteResource{},   // zero value
+							&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+							fmt.Errorf("consensus interrupted: " + result.GetErr().Error() + " and " + schedule.ErrRescheduleLargeThreshold.Error()),
+						))
 					} else {
 						log.Debugf("Succeed to repush local task into queue/starve queue %s when received `NEED-CONSENSUS` task result, taskId: {%s}",
 							result.GetStatus().String(), task.GetTaskId())
@@ -299,7 +316,7 @@ func (m *Manager) loop() {
 			if nil != err {
 				log.WithError(err).Errorf("Failed to query local task info on taskManager.loop() when received needExecuteTask, taskId: {%s}, partyId: {%s}, status: {%s}",
 					task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetConsStatus().String())
-				return
+				continue
 			}
 
 			switch task.GetConsStatus() {
@@ -410,10 +427,18 @@ func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
 		// 2、 remove needExecuteTask cache with sender
 		m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		// 3、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
-		m.sendNeedExecuteTaskByAction(task.GetTaskId(),
-			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender,
-			task.GetTaskSender(), task.GetTaskSender(),
-			types.TaskTerminate, fmt.Errorf("task was terminated."))
+		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
+			"",
+			apicommonpb.TaskRole_TaskRole_Sender,
+			apicommonpb.TaskRole_TaskRole_Sender,
+			task.GetTaskSender(),
+			task.GetTaskSender(),
+			task.GetTaskId(),
+			types.TaskTerminate,
+			&types.PrepareVoteResource{},   // zero value
+			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+			fmt.Errorf("task was terminated."),
+		))
 	}
 
 	return m.sendTaskTerminateMsg(task)
