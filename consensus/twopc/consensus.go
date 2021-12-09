@@ -337,7 +337,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 		var errStr string
 
-		if  voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
+		if voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
 			errStr = "send `NO` prepareVote when replay schedule task failed"
 		}
 		if nil != err {
@@ -669,7 +669,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 		var errStr string
 
-		if  voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
+		if voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
 			errStr = "send `NO` confirmVote when received empty peers confirmMsg"
 		}
 		if nil != err {
