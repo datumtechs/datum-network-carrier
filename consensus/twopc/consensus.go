@@ -289,7 +289,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	if nil != replayTaskResult.GetErr() {
 		voteOption = types.NO
 		resource = &types.PrepareVoteResource{}
-		content = fmt.Sprintf("prepare voting `NO` for proposal '%s', as %s", msg.GetMsgOption().GetProposalId().TerminalString(), replayTaskResult.GetErr())
+		content = fmt.Sprintf("will prepare voting `NO` for proposal '%s', as %s", msg.GetMsgOption().GetProposalId().TerminalString(), replayTaskResult.GetErr())
 
 		log.WithError(replayTaskResult.GetErr()).Warnf("Failed to replay schedule task when received prepareMsg, replay result has err, will vote `NO`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
@@ -301,7 +301,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 			replayTaskResult.GetResource().GetPort(),
 			replayTaskResult.GetResource().GetPartyId(),
 		)
-		content = fmt.Sprintf("prepare voting `YES` for proposal '%s'", msg.GetMsgOption().GetProposalId().TerminalString())
+		content = fmt.Sprintf("will prepare voting `YES` for proposal '%s'", msg.GetMsgOption().GetProposalId().TerminalString())
 
 		log.Infof("Succeed to replay schedule task when received prepareMsg, will vote `YES`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
@@ -337,7 +337,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 		var errStr string
 
-		if  voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
+		if voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
 			errStr = "send `NO` prepareVote when replay schedule task failed"
 		}
 		if nil != err {
@@ -620,7 +620,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 	// verify peers resources
 	if msg.PeersEmpty() {
 		voteOption = types.NO
-		content = fmt.Sprintf("confirm voting `NO` for proposal '%s', as received empty peers on confirm msg", msg.GetMsgOption().GetProposalId().TerminalString())
+		content = fmt.Sprintf("will confirm voting `NO` for proposal '%s', as received empty peers on confirm msg", msg.GetMsgOption().GetProposalId().TerminalString())
 
 		log.Warnf("Failed to verify peers resources of confirmMsg when received confirmMsg, the peerDesc reources is empty, will vote `NO`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetConfirmOption().String())
@@ -629,7 +629,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 		// store confirm peers resource info
 		t.storeConfirmTaskPeerInfo(msg.GetMsgOption().GetProposalId(), msg.GetPeers())
 		voteOption = types.YES
-		content = fmt.Sprintf("confirm voting `YES` for proposal '%s'", msg.GetMsgOption().GetProposalId().TerminalString())
+		content = fmt.Sprintf("will confirm voting `YES` for proposal '%s'", msg.GetMsgOption().GetProposalId().TerminalString())
 
 		log.Infof("Succeed to verify peers resources of confirmMsg when received confirmMsg, will vote `YES`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, confirmMsgOption: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetConfirmOption().String())
@@ -669,7 +669,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 		var errStr string
 
-		if  voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
+		if voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
 			errStr = "send `NO` confirmVote when received empty peers confirmMsg"
 		}
 		if nil != err {

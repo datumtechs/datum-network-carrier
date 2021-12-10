@@ -439,7 +439,8 @@ func (m *Manager) publishFinishedTaskToDataCenter(task *types.NeedExecuteTask, l
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 			return
 		}
-		if err := m.RemoveExecuteTaskStateAfterExecuteTask("on taskManager.publishFinishedTaskToDataCenter()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption()); nil != err {
+		if err := m.RemoveExecuteTaskStateAfterExecuteTask("on taskManager.publishFinishedTaskToDataCenter()", task.GetTaskId(),
+			task.GetLocalTaskOrganization().GetPartyId(), resource.SetAllReleaseResourceOption(), true); nil != err {
 			log.WithError(err).Errorf("Failed to call RemoveExecuteTaskStateAfterExecuteTask() on publishFinishedTaskToDataCenter(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
 				task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 			return
@@ -481,7 +482,8 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 			}
 		}
 	}
-	if err := m.RemoveExecuteTaskStateAfterExecuteTask("on sendTaskResultMsgToTaskSender()", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), option); nil != err {
+	if err := m.RemoveExecuteTaskStateAfterExecuteTask("on sendTaskResultMsgToTaskSender()", task.GetTaskId(),
+		task.GetLocalTaskOrganization().GetPartyId(), option, false); nil != err {
 		log.WithError(err).Errorf("Failed to call RemoveExecuteTaskStateAfterExecuteTask() on sendTaskResultMsgToTaskSender(), taskId: {%s}, partyId: {%s}, remote pid: {%s}",
 			task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId(), task.GetRemotePID())
 		return
@@ -513,10 +515,10 @@ func (m *Manager) StoreExecuteTaskStateBeforeExecuteTask (logdesc, taskId, party
 	return nil
 }
 
-func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyId string, option resource.ReleaseResourceOption) error {
+func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyId string, option resource.ReleaseResourceOption, isSender bool) error {
 	if err := m.resourceMng.GetDB().RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId); nil != err {
-		log.WithError(err).Errorf("Failed to remove task executing status %s, taskId: {%s} partyId: {%s}",
-			logdesc, taskId, partyId)
+		log.WithError(err).Errorf("Failed to remove task executing status %s, taskId: {%s} partyId: {%s}, isSender: {%v}",
+			logdesc, taskId, partyId, isSender)
 		return err
 	}
 	used, err := m.resourceMng.GetDB().QueryLocalTaskPowerUsed(taskId, partyId)
@@ -526,13 +528,13 @@ func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyI
 	}
 	if nil == err && nil != used {
 		if err := m.resourceMng.RemoveJobNodeExecuteTaskId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
-			log.WithError(err).Errorf("Failed to remove execute taskId into jobNode %s, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-				logdesc, used.GetNodeId(), taskId, partyId)
+			log.WithError(err).Errorf("Failed to remove execute taskId into jobNode %s, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, isSender: {%v}",
+				logdesc, used.GetNodeId(), taskId, partyId, isSender)
 			return err
 		}
 	}
 	// clean local task cache
-	m.resourceMng.ReleaseLocalResourceWithTask(logdesc, taskId, partyId, option)
+	m.resourceMng.ReleaseLocalResourceWithTask(logdesc, taskId, partyId, option, isSender)
 	return nil
 }
 
@@ -1120,8 +1122,8 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 			log.WithError(err).Errorf("Failed to execute task on internal node, taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
-			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-				task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("execute task failed: %s with %s", err,
+			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskExecuteFailedEOF.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+				task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("%s, %s with %s", ev.TaskExecuteFailedEOF.GetMsg(), err,
 				task.GetLocalTaskOrganization().GetPartyId())))
 		}
 	}

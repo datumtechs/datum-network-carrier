@@ -249,43 +249,51 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	return nil
 }
 
-func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, option ReleaseResourceOption) {
+func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, option ReleaseResourceOption, isSender bool) {
 
-	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}", logdesc, taskId, partyId, option)
+	log.Debugf("Start ReleaseLocalResourceWithTask %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}", logdesc, taskId, partyId, option, isSender)
 
 	has, err := m.dataCenter.HasLocalTaskExecuteStatusByPartyId(taskId, partyId)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query local task exec status with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
-			logdesc, taskId, partyId, option)
+		log.WithError(err).Errorf("Failed to query local task exec status with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+			logdesc, taskId, partyId, option, isSender)
 		return
 	}
 
 	if has {
-		log.Debugf("The local task have been executing, don't `ReleaseLocalResourceWithTask` %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
-			logdesc, taskId, partyId, option)
+		log.Debugf("The local task have been executing, don't `ReleaseLocalResourceWithTask` %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+			logdesc, taskId, partyId, option, isSender)
 		return
 	}
 
 	if option.IsUnlockLocalResorce() {
-		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
-			logdesc, taskId, partyId, option)
+		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+			logdesc, taskId, partyId, option, isSender)
 		if err := m.UnLockLocalResourceWithTask(taskId, partyId); nil != err {
-			log.WithError(err).Warnf("Warning unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
-				logdesc, taskId, partyId, option)
+			log.WithError(err).Warnf("Warning unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+				logdesc, taskId, partyId, option, isSender)
 		}
 	}
 
 	if option.IsRemoveLocalTask() {
 
+		var  removeAll bool
+
 		has, err := m.dataCenter.HasLocalTaskExecuteStatusParty(taskId)
 		if nil != err {
-			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusParty(), when remove all things about this local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
-				logdesc, taskId, partyId, option)
+			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusParty(), when remove all things about this local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+				logdesc, taskId, partyId, option, isSender)
 		}
-
 		// When tasks in current organization, including sender and other partners, do not have an 'executestatus' symbol.
 		// It means that no one is handling the task
-		if nil == err && !has {
+		if !isSender && (nil == err && !has) {
+			removeAll = true
+		}
+		if isSender {
+			removeAll = true
+		}
+
+		if removeAll {
 
 			log.Debugf("start remove all things about this local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
 				logdesc, taskId, partyId, option)
@@ -316,9 +324,9 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 	}
 
 	if option.IsRemoveLocalTaskEvents() {
-		log.Debugf("start remove party event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
+		log.Debugf("start remove party event list of task  %s, taskId: {%s}, partyId: {%s}, isSender: {%v}", logdesc, taskId, partyId, isSender)
 		if err := m.dataCenter.RemoveTaskEventListByPartyId(taskId, partyId); nil != err {
-			log.WithError(err).Errorf("Failed to clean party event list of task  %s, taskId: {%s}, partyId: {%s}", logdesc, taskId, partyId)
+			log.WithError(err).Errorf("Failed to clean party event list of task  %s, taskId: {%s}, partyId: {%s}, isSender: {%v}", logdesc, taskId, partyId, isSender)
 		}
 	}
 }

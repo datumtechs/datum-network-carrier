@@ -10,11 +10,6 @@ type EventSysCode string
 func (code EventSysCode) String() string { return string(code) }
 
 const (
-	SysCode_Common    EventSysCode = "00"
-	SysCode_YarnNode  EventSysCode = "01"
-	SysCode_DataNode  EventSysCode = "02"
-	SysCode_PowerNode EventSysCode = "03"
-
 	EventTypeCharLen = 7
 )
 
@@ -35,28 +30,28 @@ var IncEventType = errors.New("incorrect evengine type")
 // 系统码
 var (
 	// 任务最终成功
-	TaskExecuteSucceedEOF = NewEventType("0008000", "GetTask execute succeed EOF")
-	TaskExecuteFailedEOF  = NewEventType("0008001", "GetTask execute failed EOF")
+	TaskExecuteSucceedEOF = NewEventType("0008000", "task was executed succeed EOF")
+	TaskExecuteFailedEOF  = NewEventType("0008001", "task was executed failed EOF")
 )
 
 // 调度服务事件
 var (
-	TaskCreate                 = NewEventType("0100000", "Create GetTask")
-	TaskNeedRescheduled        = NewEventType("0100001", "The task need rescheduled")
-	TaskDiscarded              = NewEventType("0100002", "The task was discarded")
-	TaskStarted                = NewEventType("0100003", "The task was started")
-	TaskFailed                 = NewEventType("0100004", "The task was failed")
-	TaskSucceed                = NewEventType("0100005", "The task was succeed")
-	TaskResourceElectionFailed = NewEventType("0100006", "The resource of task was failed on election")
-	TaskScheduleFailed         = NewEventType("0100007", "The task was scheduled failed")
-	TaskTerminated             = NewEventType("0100008", "The task was terminated")
-	TaskStartConsensus         = NewEventType("0101001", "The task was started consensus")
-	TaskFailedConsensus        = NewEventType("0101002", "The task was failed consensus")
-	TaskProposalStateDeadline  = NewEventType("0101003", "The task proposalState was deadline")
-	TaskSucceedConsensus       = NewEventType("0101004", "The task was succeed consensus")
-	TaskConsensusPrepareEpoch  = NewEventType("0101005", "The task was consensus prepare epoch")
-	TaskConsensusConfirmEpoch  = NewEventType("0101006", "The task was consensus confirm epoch")
-	TaskConsensusCommitEpoch   = NewEventType("0101007", "The task was consensus commit epoch")
+	TaskCreate                 = NewEventType("0100000", "created task")
+	TaskNeedRescheduled        = NewEventType("0100001", "the task need rescheduled")
+	TaskDiscarded              = NewEventType("0100002", "the task was discarded")
+	TaskStarted                = NewEventType("0100003", "the task was started")
+	TaskFailed                 = NewEventType("0100004", "the task was failed")
+	TaskSucceed                = NewEventType("0100005", "the task was succeed")
+	TaskResourceElectionFailed = NewEventType("0100006", "the resource of task was failed on election")
+	TaskScheduleFailed         = NewEventType("0100007", "the task was scheduled failed")
+	TaskTerminated             = NewEventType("0100008", "the task was terminated")
+	TaskStartConsensus         = NewEventType("0101001", "the task was started consensus")
+	TaskFailedConsensus        = NewEventType("0101002", "the task was failed consensus")
+	TaskProposalStateDeadline  = NewEventType("0101003", "the task proposalState was deadline")
+	TaskSucceedConsensus       = NewEventType("0101004", "the task was succeed consensus")
+	TaskConsensusPrepareEpoch  = NewEventType("0101005", "the task was consensus prepare epoch")
+	TaskConsensusConfirmEpoch  = NewEventType("0101006", "the task was consensus confirm epoch")
+	TaskConsensusCommitEpoch   = NewEventType("0101007", "the task was consensus commit epoch")
 )
 
 var ScheduleEvent = map[string]string{
@@ -80,47 +75,47 @@ func MakeScheduleEventInfo(event *libtypes.TaskEvent) (*libtypes.TaskEvent, erro
 
 // 数据服务事件
 var (
-	SourceUpLoadSucceed   = NewEventType("0207000", "Source data uploaded successfully.")
-	SourceUpLoadFailed    = NewEventType("0207001", "Source data upload failed.")
-	SourceDownloadSucceed = NewEventType("0207002", "Source data downloaded successfully.")
-	SourceDownloadFailed  = NewEventType("0207003", "Source data downloaded failed.")
-	SourceDeleteSucceed   = NewEventType("0207004", "Source data deleted successfully.")
-	SourceDeleteFailed    = NewEventType("0207005", "Source data deleted failed.")
-	StartDataShard        = NewEventType("0207006", "Start data sharding.")
-	GetDataFileSucceed    = NewEventType("0207007", "GetData file/directory retrieved successfully.")
-	GetDataFileFailed     = NewEventType("0207008", "GetData file/directory retrieved failed.")
+	SourceUpLoadSucceed      = NewEventType("0207000", "source data uploaded successfully.")
+	SourceUpLoadFailed       = NewEventType("0207001", "source data upload failed.")
+	SourceDownloadSucceed    = NewEventType("0207002", "source data downloaded successfully.")
+	SourceDownloadFailed     = NewEventType("0207003", "source data downloaded failed.")
+	SourceDeleteSucceed      = NewEventType("0207004", "source data deleted successfully.")
+	SourceDeleteFailed       = NewEventType("0207005", "source data deleted failed.")
+	StartDataShard           = NewEventType("0207006", "start data sharding.")
+	RetrievedDataFileSucceed = NewEventType("0207007", "data file/directory retrieved successfully.")
+	RetrievedDataFileFailed  = NewEventType("0207008", "data file/directory retrieved failed.")
 )
 
 var DataServiceEvent = map[string]string{
-	SourceUpLoadSucceed.Type:   SourceUpLoadSucceed.Msg,
-	SourceUpLoadFailed.Type:    SourceUpLoadFailed.Msg,
-	SourceDownloadSucceed.Type: SourceDownloadSucceed.Msg,
-	SourceDownloadFailed.Type:  SourceDownloadFailed.Msg,
-	SourceDeleteSucceed.Type:   SourceDeleteSucceed.Msg,
-	SourceDeleteFailed.Type:    SourceDeleteFailed.Msg,
-	StartDataShard.Type:        StartDataShard.Msg,
-	GetDataFileSucceed.Type:    GetDataFileSucceed.Msg,
-	GetDataFileFailed.Type:     GetDataFileFailed.Msg,
+	SourceUpLoadSucceed.Type:      SourceUpLoadSucceed.Msg,
+	SourceUpLoadFailed.Type:       SourceUpLoadFailed.Msg,
+	SourceDownloadSucceed.Type:    SourceDownloadSucceed.Msg,
+	SourceDownloadFailed.Type:     SourceDownloadFailed.Msg,
+	SourceDeleteSucceed.Type:      SourceDeleteSucceed.Msg,
+	SourceDeleteFailed.Type:       SourceDeleteFailed.Msg,
+	StartDataShard.Type:           StartDataShard.Msg,
+	RetrievedDataFileSucceed.Type: RetrievedDataFileSucceed.Msg,
+	RetrievedDataFileFailed.Type:  RetrievedDataFileFailed.Msg,
 }
 
 // 计算服务事件
 var (
-	ReportComputeRes      = NewEventType("0308000", "Report computing resources.")
-	StartNewTask          = NewEventType("0309000", "Start a new task.")
-	DownloadCodeSucceed   = NewEventType("0309001", "The contract code was downloaded successfully.")
-	DownloadCodeFailed    = NewEventType("0309002", "The contract code was downloaded failed.")
-	StartBuildTaskEnv     = NewEventType("0309003", "Start building the computing task environment.")
-	CreateIoSucceed       = NewEventType("0309004", "Create network IO successfully.")
-	CreateIoFailed        = NewEventType("0309005", "Create network IO failed.")
-	RegisterViaSucceed    = NewEventType("0309006", "Successfully registered with VIA service.")
-	RegisterViaFailed     = NewEventType("0309007", "Failed to register with VIA service.")
-	BuildTaskEnvSucceed   = NewEventType("0309008", "Build computational task environment successfully.")
-	StartComputeTask      = NewEventType("0309009", "Starts the computation task.")
-	CancelComputeTask     = NewEventType("0309010", "Cancel the execution of a computation task.")
-	ExecuteComputeSucceed = NewEventType("0309011", "The computation task executed successfully.") // 计算成功
-	ExecuteComputeFailed  = NewEventType("0309012", "The computation task failed to execute.")     // 计算失败
-	ReportComputeResult   = NewEventType("0309013", "Report of calculation results.")
-	ReportTaskUsage       = NewEventType("0309014", "Resource usage for reporting tasks.")
+	ReportComputeRes      = NewEventType("0308000", "report computing resources.")
+	StartNewTask          = NewEventType("0309000", "start a new task.")
+	DownloadCodeSucceed   = NewEventType("0309001", "the contract code was downloaded successfully.")
+	DownloadCodeFailed    = NewEventType("0309002", "the contract code was downloaded failed.")
+	StartBuildTaskEnv     = NewEventType("0309003", "start building the computing task environment.")
+	CreateIoSucceed       = NewEventType("0309004", "create network IO successfully.")
+	CreateIoFailed        = NewEventType("0309005", "create network IO failed.")
+	RegisterViaSucceed    = NewEventType("0309006", "successfully registered with VIA service.")
+	RegisterViaFailed     = NewEventType("0309007", "failed to register with VIA service.")
+	BuildTaskEnvSucceed   = NewEventType("0309008", "build computational task environment successfully.")
+	StartComputeTask      = NewEventType("0309009", "starts the computation task.")
+	CancelComputeTask     = NewEventType("0309010", "cancel the execution of a computation task.")
+	ExecuteComputeSucceed = NewEventType("0309011", "the computation task executed successfully.")
+	ExecuteComputeFailed  = NewEventType("0309012", "the computation task failed to execute.")
+	ReportComputeResult   = NewEventType("0309013", "report of calculation results.")
+	ReportTaskUsage       = NewEventType("0309014", "resource usage for reporting tasks.")
 )
 
 var ComputerServiceEvent = map[string]string{
