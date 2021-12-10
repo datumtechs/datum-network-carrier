@@ -1122,8 +1122,8 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 			log.WithError(err).Errorf("Failed to execute task on internal node, taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
-			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
-				task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("execute task failed: %s with %s", err,
+			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskExecuteFailedEOF.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),
+				task.GetLocalTaskOrganization().GetPartyId(), fmt.Sprintf("%s, %s with %s", ev.TaskExecuteFailedEOF.GetMsg(), err,
 				task.GetLocalTaskOrganization().GetPartyId())))
 		}
 	}
