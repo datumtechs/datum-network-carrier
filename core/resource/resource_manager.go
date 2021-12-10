@@ -278,6 +278,11 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 	if option.IsRemoveLocalTask() {
 
 		has, err := m.dataCenter.HasLocalTaskExecuteStatusParty(taskId)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusParty(), when remove all things about this local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
+				logdesc, taskId, partyId, option)
+		}
+
 		// When tasks in current organization, including sender and other partners, do not have an 'executestatus' symbol.
 		// It means that no one is handling the task
 		if nil == err && !has {
