@@ -205,6 +205,7 @@ func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.Tas
 	if nil == taskEventResponse {
 		return nil, rawdb.ErrNotFound
 	}
+	log.Debugf("Succeed call datacenter rpcapi ListTaskEvent() by once with taskId: {%s}, request: %s", taskId, taskEventResponse.String())
 	return taskEventResponse.GetTaskEvents(), nil
 }
 
@@ -225,6 +226,7 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 			//return nil, rawdb.ErrNotFound
 			continue
 		}
+		log.Debugf("Succeed call datacenter rpcapi ListTaskEvent() by loop with taskId: {%s}, request: %s", taskId, taskEventResponse.String())
 		eventList = append(eventList, taskEventResponse.GetTaskEvents()...)
 	}
 	return eventList, nil

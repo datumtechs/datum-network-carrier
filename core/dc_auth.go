@@ -148,6 +148,7 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, 
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Succeed call datacenter rpcapi ListMetadataAuthority() with identityId: {%s}, response: %s", identityId, response.String())
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
@@ -160,5 +161,6 @@ func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64) (types.Metad
 	if err != nil {
 		return nil, err
 	}
+	log.Debugf("Succeed call datacenter rpcapi ListMetadataAuthority() with global, response: %s", response.String())
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }

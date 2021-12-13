@@ -164,6 +164,7 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, 600 * time.Second)
 	defer cancel()
+	log.Debugf("Start call datacenter rpcapi ListMetadataAuthority(), request: %s", request.String())
 	return gc.identityService.ListMetadataAuthority(ctx, request)
 }
 
@@ -207,5 +208,6 @@ func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.ListTaskEv
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, 600 * time.Second)
 	defer cancel()
+	log.Debugf("Start call datacenter rpcapi ListTaskEvent(), request: %s", request.String())
 	return gc.taskService.ListTaskEvent(ctx, request)
 }
