@@ -9,6 +9,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
+	"time"
 )
 
 // about identity on local
@@ -141,6 +142,7 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIds(metadataAuthIds []string) 
 func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
+	start := time.Now()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
 		IdentityId:  identityId,
 		LastUpdated: lastUpdate,
@@ -148,19 +150,20 @@ func (dc *DataCenter) QueryMetadataAuthorityListByIdentityId(identityId string, 
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Succeed call datacenter rpcapi ListMetadataAuthority() with identityId: {%s}, response: %s", identityId, response.String())
+	log.Debugf("Succeed call datacenter rpcapi ListMetadataAuthority() with identityId: {%s}, duration: %d ms", identityId, time.Since(start).Milliseconds())
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
 
 func (dc *DataCenter) QueryMetadataAuthorityList(lastUpdate uint64) (types.MetadataAuthArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
+	start := time.Now()
 	response, err := dc.client.GetMetadataAuthorityList(dc.ctx, &api.ListMetadataAuthorityRequest{
 		LastUpdated: lastUpdate,
 	})
 	if err != nil {
 		return nil, err
 	}
-	log.Debugf("Succeed call datacenter rpcapi ListMetadataAuthority() with global, response: %s", response.String())
+	log.Debugf("Succeed call datacenter rpcapi ListMetadataAuthority() with global, duration: %d ms", time.Since(start).Milliseconds())
 	return types.NewMetadataAuthArrayFromResponse(response.GetMetadataAuthorities()), nil
 }
