@@ -102,7 +102,8 @@ func (s *Service) Start() error {
 			grpc_opentracing.UnaryServerInterceptor(),
 			s.validatorUnaryConnectionInterceptor,
 		)),
-		grpc.MaxRecvMsgSize(s.cfg.MaxMsgSize),
+		grpc.MaxRecvMsgSize(1 << 23), // 1 << 23 == 1024*1024*8 == 8388608 == 8mb
+		grpc.MaxSendMsgSize(1 << 23),
 	}
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	if s.cfg.CertFlag != "" && s.cfg.KeyFlag != "" {
@@ -119,11 +120,11 @@ func (s *Service) Start() error {
 	s.grpcServer = grpc.NewServer(opts...)
 
 	// init server instance and register server.
-	pb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{ B: s.cfg.BackendAPI, RpcSvrIp: s.cfg.Host, RpcSvrPort: s.cfg.Port})
-	pb.RegisterMetadataServiceServer(s.grpcServer, &metadata.Server{ B: s.cfg.BackendAPI })
-	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
-	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
-	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
+	pb.RegisterYarnServiceServer(s.grpcServer, &yarn.Server{B: s.cfg.BackendAPI, RpcSvrIp: s.cfg.Host, RpcSvrPort: s.cfg.Port})
+	pb.RegisterMetadataServiceServer(s.grpcServer, &metadata.Server{B: s.cfg.BackendAPI})
+	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{B: s.cfg.BackendAPI})
+	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{B: s.cfg.BackendAPI})
+	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{B: s.cfg.BackendAPI})
 
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")

@@ -481,7 +481,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 		go m.resourceMng.GetDB().RemoveTaskMsg(msg.GetTaskId()) // remove from disk if task been handle task
 
-		task := msg.Data
+		task := msg.GetTask()
 
 		// store metadata used taskId
 		if err := m.storeMetaUsedTaskId(task); nil != err {
