@@ -113,6 +113,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager, authManager, resourceClientSet),
 		TaskManager:       taskManager,
 		authManager:       authManager,
+		scheduler:         scheduler,
 		resourceClientSet: resourceClientSet,
 	}
 
