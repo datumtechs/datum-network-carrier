@@ -78,6 +78,7 @@ func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
 			if err := rlp.DecodeBytes(value, &bullet); nil != err {
 				return fmt.Errorf("decode taskBullet failed, %s, taskId: {%s}", err, taskId)
 			}
+			log.Debugf("Recovery taskBullet, taskId: {%s}, inQueueFlag: {%v}", taskId, (&bullet).GetInQueueFlag())
 			sche.schedulings[taskId] = &bullet
 			if (&bullet).GetInQueueFlag() { // push into queue/starve queue
 				if (&bullet).IsStarve() {
