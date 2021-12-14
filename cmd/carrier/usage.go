@@ -52,6 +52,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.CertFlag,
 			flags.KeyFlag,
 			flags.GrpcMaxCallRecvMsgSizeFlag,
+			flags.GrpcMaxCallSendMsgSizeFlag,
 			flags.SetGCPercent,
 		},
 	},

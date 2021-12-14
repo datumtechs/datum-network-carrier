@@ -52,6 +52,7 @@ var (
 		flags.GRPCDataCenterHost,
 		flags.GRPCDataCenterPort,
 		flags.GrpcMaxCallRecvMsgSizeFlag,
+		flags.GrpcMaxCallSendMsgSizeFlag,
 	}
 
 	p2pFlags = []cli.Flag{

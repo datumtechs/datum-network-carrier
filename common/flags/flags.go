@@ -59,8 +59,14 @@ var (
 	// GrpcMaxCallRecvMsgSizeFlag defines the max call message size for GRPC
 	GrpcMaxCallRecvMsgSizeFlag = &cli.IntFlag{
 		Name:  "grpc-max-msg-size",
-		Usage: "Integer to define max recieve message call size (default: 4194304 (for 4MB))",
-		Value: 1 << 22,
+		Usage: "Integer to define max receive message call size (default: /*4194304*/ 8388608 (for 8MB))",
+		Value: 1 << 23,
+	}
+	// GrpcMaxCallSendMsgSizeFlag defines the max call message size for GRPC
+	GrpcMaxCallSendMsgSizeFlag = &cli.IntFlag{
+		Name:  "grpc-max-send-msg-size",
+		Usage: "Integer to define max send message call size (default: /*4194304*/ 8388608 (for 8MB))",
+		Value: 1 << 23,
 	}
 	// EnableDebugRPCEndpoints
 	EnableDebugRPCEndpoints = &cli.BoolFlag{
