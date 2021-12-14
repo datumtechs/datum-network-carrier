@@ -115,6 +115,10 @@ func (sche *SchedulerStarveFIFO) AddTask(task *types.Task) error {
 }
 
 func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
+
+	sche.scheduleMutex.Lock()
+	defer sche.scheduleMutex.Unlock()
+
 	bullet, ok := sche.schedulings[task.GetTaskId()]
 	if !ok {
 		return nil
@@ -123,6 +127,7 @@ func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
 	if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
 		return ErrRescheduleLargeThreshold
 	}
+
 	return sche.repushTaskBullet(bullet)
 }
 

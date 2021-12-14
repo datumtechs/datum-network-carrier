@@ -34,8 +34,10 @@ func (m *Manager) tryScheduleTask() error {
 		return nil
 	} else if nil != err && err == schedule.ErrAbandonTaskWithNotFoundTask {
 		m.scheduler.RemoveTask(taskId)
+		log.WithError(err).Errorf("Failed to call scheduler.TrySchedule(), then remove bullet task, taskId: {%s}", taskId)
 	}  else if nil != err && err == schedule.ErrAbandonTaskWithNotFoundPowerPartyIds {
 		m.scheduler.RemoveTask(taskId)
+		log.WithError(err).Errorf("Failed to call scheduler.TrySchedule(), then remove bullet task, taskId: {%s}", taskId)
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
 			apicommonpb.TaskRole_TaskRole_Sender,
