@@ -14,11 +14,6 @@ const (
 	DefaultGrpcDialTimeout    = 2 * time.Second // Default timeout time for Grpc's dial-up.
 )
 
-var (
-	RPCMaxCallRecvMsgSize = grpc.MaxCallRecvMsgSize(1 << 23) // 1 << 23 == 1024*1024*8 == 8388608 == 8mb
-	MaxCallSendMsgSize    = grpc.MaxCallSendMsgSize(1 << 23)
-)
-
 // Client defines typed wrapper for the CenterData GRPC API.
 type GrpcClient struct {
 	c *grpc.ClientConn

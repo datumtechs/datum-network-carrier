@@ -102,8 +102,8 @@ func (s *Service) Start() error {
 			grpc_opentracing.UnaryServerInterceptor(),
 			s.validatorUnaryConnectionInterceptor,
 		)),
-		grpc.MaxRecvMsgSize(1 << 23), // 1 << 23 == 1024*1024*8 == 8388608 == 8mb
-		grpc.MaxSendMsgSize(1 << 23),
+		//grpc.MaxRecvMsgSize(1 << 23), // 1 << 23 == 1024*1024*8 == 8388608 == 8mb
+		//grpc.MaxSendMsgSize(1 << 23),
 	}
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	if s.cfg.CertFlag != "" && s.cfg.KeyFlag != "" {
