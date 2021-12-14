@@ -59,6 +59,7 @@ type Config struct {
 	StateNotifier           statefeed.Notifier
 	BackendAPI              backend.Backend
 	MaxMsgSize              int
+	MaxSendMsgSize          int
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -102,8 +103,8 @@ func (s *Service) Start() error {
 			grpc_opentracing.UnaryServerInterceptor(),
 			s.validatorUnaryConnectionInterceptor,
 		)),
-		//grpc.MaxRecvMsgSize(1 << 23), // 1 << 23 == 1024*1024*8 == 8388608 == 8mb
-		//grpc.MaxSendMsgSize(1 << 23),
+		grpc.MaxRecvMsgSize(s.cfg.MaxMsgSize), // 1 << 23 == 1024*1024*8 == 8388608 == 8mb
+		grpc.MaxSendMsgSize(s.cfg.MaxSendMsgSize),
 	}
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	if s.cfg.CertFlag != "" && s.cfg.KeyFlag != "" {
