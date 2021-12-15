@@ -591,9 +591,9 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
 
-			m.dataCenter.RemoveDataResourceDiskUsed(msg.GetMetadataId())
-			dataResourceTable.FreeDisk(msg.GetSize())
-			m.dataCenter.StoreDataResourceTable(dataResourceTable)
+			//m.dataCenter.RemoveDataResourceDiskUsed(msg.GetMetadataId())
+			//dataResourceTable.FreeDisk(msg.GetSize())
+			//m.dataCenter.StoreDataResourceTable(dataResourceTable)
 
 			continue
 		}
