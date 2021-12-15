@@ -80,12 +80,21 @@ func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
 			}
 			log.Debugf("Recovery taskBullet, taskId: {%s}, inQueueFlag: {%v}", taskId, (&bullet).GetInQueueFlag())
 			sche.schedulings[taskId] = &bullet
-			if (&bullet).GetInQueueFlag() { // push into queue/starve queue
-				if (&bullet).IsStarve() {
-					heap.Push(sche.starveQueue, &bullet)
+			
+
+			if !(&bullet).GetInQueueFlag() {
+				if (&bullet).IsOverlowReschedThreshold(ReschedMaxCount) {
+					delete(sche.schedulings, taskId)
+					sche.resourceMng.GetDB().RemoveTaskBullet(taskId)
 				} else {
-					heap.Push(sche.queue, &bullet)
+					(&bullet).InQueueFlag = true
 				}
+			}
+			// push into queue/starve queue
+			if (&bullet).IsStarve() {
+				heap.Push(sche.starveQueue, &bullet)
+			} else {
+				heap.Push(sche.queue, &bullet)
 			}
 		}
 		return nil
