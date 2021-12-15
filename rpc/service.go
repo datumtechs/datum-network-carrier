@@ -16,6 +16,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend/task"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend/yarn"
 	"github.com/RosettaFlow/Carrier-Go/rpc/debug"
+	health_check "github.com/RosettaFlow/Carrier-Go/service/discovery"
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_opentracing "github.com/grpc-ecosystem/go-grpc-middleware/tracing/opentracing"
@@ -25,6 +26,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
+	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -124,7 +126,7 @@ func (s *Service) Start() error {
 	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
-
+	grpc_health_v1.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")
 		debugServer := &debug.Server{

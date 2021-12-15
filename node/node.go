@@ -261,7 +261,7 @@ func (node *CarrierNode) registerP2P(cliCtx *cli.Context) error {
 func (node *CarrierNode) registerBackendService(carrierConfig *carrier.Config, mockIdentityIdsFile ,consensusStateFile string) error {
 	carrierConfig.CarrierDB = node.db
 	carrierConfig.P2P = node.fetchP2P()
-	backendService, err := carrier.NewService(node.ctx, carrierConfig, mockIdentityIdsFile,consensusStateFile)
+	backendService, err := carrier.NewService(node.ctx,node.cliCtx, carrierConfig, mockIdentityIdsFile,consensusStateFile)
 	if err != nil {
 		return errors.Wrap(err, "could not register backend service")
 	}
