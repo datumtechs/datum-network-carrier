@@ -78,13 +78,23 @@ func (sche *SchedulerStarveFIFO) recoveryQueueSchedulings() {
 			if err := rlp.DecodeBytes(value, &bullet); nil != err {
 				return fmt.Errorf("decode taskBullet failed, %s, taskId: {%s}", err, taskId)
 			}
+			log.Debugf("Recovery taskBullet, taskId: {%s}, inQueueFlag: {%v}", taskId, (&bullet).GetInQueueFlag())
 			sche.schedulings[taskId] = &bullet
-			if (&bullet).GetInQueueFlag() { // push into queue/starve queue
-				if (&bullet).IsStarve() {
-					heap.Push(sche.starveQueue, &bullet)
+			
+
+			if !(&bullet).GetInQueueFlag() {
+				if (&bullet).IsOverlowReschedThreshold(ReschedMaxCount) {
+					delete(sche.schedulings, taskId)
+					sche.resourceMng.GetDB().RemoveTaskBullet(taskId)
 				} else {
-					heap.Push(sche.queue, &bullet)
+					(&bullet).InQueueFlag = true
 				}
+			}
+			// push into queue/starve queue
+			if (&bullet).IsStarve() {
+				heap.Push(sche.starveQueue, &bullet)
+			} else {
+				heap.Push(sche.queue, &bullet)
 			}
 		}
 		return nil
@@ -115,6 +125,10 @@ func (sche *SchedulerStarveFIFO) AddTask(task *types.Task) error {
 }
 
 func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
+
+	sche.scheduleMutex.Lock()
+	defer sche.scheduleMutex.Unlock()
+
 	bullet, ok := sche.schedulings[task.GetTaskId()]
 	if !ok {
 		return nil
@@ -123,6 +137,7 @@ func (sche *SchedulerStarveFIFO) RepushTask(task *types.Task) error {
 	if bullet.IsOverlowReschedThreshold(ReschedMaxCount) {
 		return ErrRescheduleLargeThreshold
 	}
+
 	return sche.repushTaskBullet(bullet)
 }
 

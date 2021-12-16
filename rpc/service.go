@@ -26,7 +26,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/health/grpc_health_v1"
+	service_discover_health "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/reflection"
 	"net"
@@ -61,6 +61,7 @@ type Config struct {
 	StateNotifier           statefeed.Notifier
 	BackendAPI              backend.Backend
 	MaxMsgSize              int
+	MaxSendMsgSize          int
 }
 
 // NewService instantiates a new RPC service instance that will
@@ -104,7 +105,8 @@ func (s *Service) Start() error {
 			grpc_opentracing.UnaryServerInterceptor(),
 			s.validatorUnaryConnectionInterceptor,
 		)),
-		grpc.MaxRecvMsgSize(s.cfg.MaxMsgSize),
+		grpc.MaxRecvMsgSize(s.cfg.MaxMsgSize), // 1 << 23 == 1024*1024*8 == 8388608 == 8mb
+		grpc.MaxSendMsgSize(s.cfg.MaxSendMsgSize),
 	}
 	grpc_prometheus.EnableHandlingTimeHistogram()
 	if s.cfg.CertFlag != "" && s.cfg.KeyFlag != "" {
@@ -126,7 +128,8 @@ func (s *Service) Start() error {
 	pb.RegisterPowerServiceServer(s.grpcServer, &power.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterAuthServiceServer(s.grpcServer, &auth.Server{ B: s.cfg.BackendAPI })
 	pb.RegisterTaskServiceServer(s.grpcServer, &task.Server{ B: s.cfg.BackendAPI })
-	grpc_health_v1.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
+	service_discover_health.RegisterHealthServer(s.grpcServer, &health_check.HealthCheck{})
+
 	if s.cfg.EnableDebugRPCEndpoints {
 		log.Info("Enabled debug gRPC endpoints")
 		debugServer := &debug.Server{

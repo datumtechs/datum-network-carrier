@@ -381,9 +381,9 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 
 		defer wg.Done()
 
-		var pid, err = p2p.HexPeerID(receiver.NodeId)
+		var pid, err = p2p.HexPeerID(receiver.GetNodeId())
 		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
+			errCh <- fmt.Errorf("failed to nodeId => peerId when send prepareMsg, proposalId: %s, taskId: %s, other peer taskRole: %s, other peer taskPartyId: %s, identityId: %s, pid: %s, err: %s",
 				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
 			return
 		}
@@ -498,9 +498,9 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 
 		defer wg.Done()
 
-		pid, err := p2p.HexPeerID(receiver.NodeId)
+		pid, err := p2p.HexPeerID(receiver.GetNodeId())
 		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
+			errCh <- fmt.Errorf("failed to nodeId => peerId when send confirmMsg, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s, err: %s",
 				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
 			return
 		}
@@ -594,9 +594,9 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 
 		defer wg.Done()
 
-		pid, err := p2p.HexPeerID(receiver.NodeId)
+		pid, err := p2p.HexPeerID(receiver.GetNodeId())
 		if nil != err {
-			errCh <- fmt.Errorf("failed to nodeId => peerId, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
+			errCh <- fmt.Errorf("failed to nodeId => peerId when send commitMsg, proposalId: %s, taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, identityId: %s, pid: %s, err: %s",
 				proposalId.String(), task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid, err)
 			return
 		}

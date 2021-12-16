@@ -226,16 +226,16 @@ func (dc *DataCenter) StoreDataResourceDiskUsed(dataResourceDiskUsed *types.Data
 	return rawdb.StoreDataResourceDiskUsed(dc.db, dataResourceDiskUsed)
 }
 
-func (dc *DataCenter) RemoveDataResourceDiskUsed(metaDataId string) error {
+func (dc *DataCenter) RemoveDataResourceDiskUsed(metadataId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
-	return rawdb.RemoveDataResourceDiskUsed(dc.db, metaDataId)
+	return rawdb.RemoveDataResourceDiskUsed(dc.db, metadataId)
 }
 
-func (dc *DataCenter) QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error) {
+func (dc *DataCenter) QueryDataResourceDiskUsed(metadataId string) (*types.DataResourceDiskUsed, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryDataResourceDiskUsed(dc.db, metaDataId)
+	return rawdb.QueryDataResourceDiskUsed(dc.db, metadataId)
 }
 
 func (dc *DataCenter) StoreUserMetadataAuthIdByMetadataId (userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {

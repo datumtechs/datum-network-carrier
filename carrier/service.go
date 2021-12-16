@@ -172,6 +172,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager, authManager, resourceClientSet),
 		TaskManager:       taskManager,
 		authManager:       authManager,
+		scheduler:         scheduler,
 		resourceClientSet: resourceClientSet,
 		consulManager:     consul,
 	}
@@ -186,18 +187,18 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 	jobNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if err == nil {
 		for _, node := range jobNodeList {
-			client, err := grpclient.NewJobNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+			client, err := grpclient.NewJobNodeClient(ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 			if err == nil {
-				s.resourceClientSet.StoreJobNodeClient(node.Id, client)
+				s.resourceClientSet.StoreJobNodeClient(node.GetId(), client)
 			}
 		}
 	}
 	dataNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 	if err == nil {
 		for _, node := range dataNodeList {
-			client, err := grpclient.NewDataNodeClient(ctx, fmt.Sprintf("%s:%s", node.InternalIp, node.InternalPort), node.Id)
+			client, err := grpclient.NewDataNodeClient(ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 			if err == nil {
-				s.resourceClientSet.StoreDataNodeClient(node.Id, client)
+				s.resourceClientSet.StoreDataNodeClient(node.GetId(), client)
 			}
 		}
 	}

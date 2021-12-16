@@ -453,7 +453,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	nonParsedMsgArr, parsedMsgArr := m.parser.ParseTask(msgArr)
 	for _, badMsg := range nonParsedMsgArr {
 
-		go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-parsed task
+		m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-parsed task
 		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
@@ -464,7 +464,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 	nonValidatedMsgArr, validatedMsgArr := m.validator.validateTaskMsg(parsedMsgArr)
 	for _, badMsg := range nonValidatedMsgArr {
-		go m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-validated task
+		m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-validated task
 		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
 			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
@@ -479,9 +479,9 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 
 		log.Infof("Start to store local task on taskManager.SendTaskMsgArr(), taskId: {%s}", msg.GetTaskId())
 
-		go m.resourceMng.GetDB().RemoveTaskMsg(msg.GetTaskId()) // remove from disk if task been handle task
+		m.resourceMng.GetDB().RemoveTaskMsg(msg.GetTaskId()) // remove from disk if task been handle task
 
-		task := msg.Data
+		task := msg.GetTask()
 
 		// store metadata used taskId
 		if err := m.storeMetaUsedTaskId(task); nil != err {

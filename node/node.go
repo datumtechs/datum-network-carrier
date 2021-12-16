@@ -287,6 +287,7 @@ func (node *CarrierNode) registerRPCService() error {
 	key := node.cliCtx.String(flags.KeyFlag.Name)
 	enableDebugRPCEndpoints := node.cliCtx.Bool(flags.EnableDebugRPCEndpoints.Name)
 	maxMsgSize := node.cliCtx.Int(flags.GrpcMaxCallRecvMsgSizeFlag.Name)
+	maxSendMsgSize := node.cliCtx.Int(flags.GrpcMaxCallSendMsgSizeFlag.Name)
 
 	p2pService := node.fetchP2P()
 
@@ -303,6 +304,7 @@ func (node *CarrierNode) registerRPCService() error {
 		StateNotifier:           node,
 		BackendAPI:              backend,
 		MaxMsgSize:              maxMsgSize,
+		MaxSendMsgSize:          maxSendMsgSize,
 	})
 	return node.services.RegisterService(rpcService)
 }

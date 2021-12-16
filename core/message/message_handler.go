@@ -143,7 +143,7 @@ func (m *MessageHandler) loop() {
 				m.lockPower.Lock()
 				m.powerMsgCache.Len()
 				m.powerMsgCache = append(m.powerMsgCache, msg.Msg)
-				go m.dataCenter.StoreMessageCache(msg.Msg) // backup into disk
+				m.dataCenter.StoreMessageCache(msg.Msg) // backup power msg into disk
 				if len(m.powerMsgCache) >= defaultPowerMsgsCacheSize {
 					m.BroadcastPowerMsgArr(m.powerMsgCache)
 					m.powerMsgCache = make(types.PowerMsgArr, 0)
@@ -160,7 +160,7 @@ func (m *MessageHandler) loop() {
 					if revoke.Msg.GetPowerId() == msg.GetPowerId() {
 						flag = true
 						m.powerMsgCache = append(m.powerMsgCache[:i], m.powerMsgCache[i+1:]...)
-						go m.dataCenter.RemovePowerMsg(msg.GetPowerId()) // remove from disk
+						m.dataCenter.RemovePowerMsg(msg.GetPowerId()) // remove from disk
 						i--
 					}
 				}
@@ -174,7 +174,7 @@ func (m *MessageHandler) loop() {
 				msg := event.Data.(*types.MetadataMsgEvent)
 				m.lockMetadata.Lock()
 				m.metadataMsgCache = append(m.metadataMsgCache, msg.Msg)
-				go m.dataCenter.StoreMessageCache(msg.Msg) // backup into disk
+				m.dataCenter.StoreMessageCache(msg.Msg) // backup metadata msg into disk
 				if len(m.metadataMsgCache) >= defaultMetadataMsgsCacheSize {
 					m.BroadcastMetadataMsgArr(m.metadataMsgCache)
 					m.metadataMsgCache = make(types.MetadataMsgArr, 0)
@@ -192,7 +192,7 @@ func (m *MessageHandler) loop() {
 					if revoke.Msg.GetMetadataId() == msg.GetMetadataId() {
 						flag = true
 						m.metadataMsgCache = append(m.metadataMsgCache[:i], m.metadataMsgCache[i+1:]...)
-						go m.dataCenter.RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk
+						m.dataCenter.RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk
 						i--
 					}
 				}
@@ -207,7 +207,7 @@ func (m *MessageHandler) loop() {
 				msg := event.Data.(*types.MetadataAuthMsgEvent)
 				m.lockMetadataAuth.Lock()
 				m.metadataAuthMsgCache = append(m.metadataAuthMsgCache, msg.Msg)
-				go m.dataCenter.StoreMessageCache(msg.Msg) // backup into disk
+				m.dataCenter.StoreMessageCache(msg.Msg) // backup metadataAuth into disk
 				if len(m.metadataAuthMsgCache) >= defaultMetadataAuthMsgsCacheSize {
 					m.BroadcastMetadataAuthMsgArr(m.metadataAuthMsgCache)
 					m.metadataAuthMsgCache = make(types.MetadataAuthorityMsgArr, 0)
@@ -225,7 +225,7 @@ func (m *MessageHandler) loop() {
 					if revoke.Msg.GetMetadataAuthId() == msg.GetMetadataAuthId() {
 						flag = true
 						m.metadataAuthMsgCache = append(m.metadataAuthMsgCache[:i], m.metadataAuthMsgCache[i+1:]...)
-						go m.dataCenter.RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk
+						m.dataCenter.RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk
 						i--
 					}
 				}
@@ -240,7 +240,7 @@ func (m *MessageHandler) loop() {
 				msg := event.Data.(*types.TaskMsgEvent)
 				m.lockTask.Lock()
 				m.taskMsgCache = append(m.taskMsgCache, msg.Msg)
-				go m.dataCenter.StoreMessageCache(msg.Msg) // backup into disk
+				m.dataCenter.StoreMessageCache(msg.Msg) // backup task msg into disk
 				if len(m.taskMsgCache) >= defaultTaskMsgsCacheSize {
 					m.BroadcastTaskMsgArr(m.taskMsgCache)
 					m.taskMsgCache = make(types.TaskMsgArr, 0)
@@ -258,7 +258,7 @@ func (m *MessageHandler) loop() {
 					if terminate.Msg.GetTaskId() == msg.GetTaskId() {
 						flag = true
 						m.taskMsgCache = append(m.taskMsgCache[:i], m.taskMsgCache[i+1:]...)
-						go m.dataCenter.RemoveTaskMsg(msg.GetTaskId()) // remove from disk
+						m.dataCenter.RemoveTaskMsg(msg.GetTaskId()) // remove from disk
 						i--
 					}
 				}
@@ -392,7 +392,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 	for _, msg := range powerMsgArr {
 
-		go m.dataCenter.RemovePowerMsg(msg.GetPowerId()) // remove from disk if msg been handle
+		m.dataCenter.RemovePowerMsg(msg.GetPowerId()) // remove from disk if msg been handle
 		// query local resource
 		resource, err := m.dataCenter.QueryLocalResource(msg.GetJobNodeId())
 		if nil != err {
@@ -460,12 +460,12 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			PublishAt:      timeutils.UnixMsecUint64(),
 			UpdateAt:       timeutils.UnixMsecUint64(),
 		})); nil != err {
-			log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
+			log.WithError(err).Errorf("Failed to store power msg to dataCenter on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
 			continue
 		}
 
-		log.Debugf("broadcast msg msg succeed, powerId: {%s}, jobNodeId: {%s}", msg.GetPowerId(), msg.GetJobNodeId())
+		log.Debugf("broadcast power msg succeed, powerId: {%s}, jobNodeId: {%s}", msg.GetPowerId(), msg.GetJobNodeId())
 
 	}
 	return
@@ -548,7 +548,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 	for _, msg := range metadataMsgArr {
 
-		go m.dataCenter.RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk if msg been handle
+		m.dataCenter.RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk if msg been handle
 
 		// maintain the orginId and metadataId relationship of the local data service
 		dataResourceFileUpload, err := m.dataCenter.QueryDataResourceFileUpload(msg.GetOriginId())
@@ -592,14 +592,14 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 			log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
 
-			m.dataCenter.RemoveDataResourceDiskUsed(msg.GetMetadataId())
-			dataResourceTable.FreeDisk(msg.GetSize())
-			m.dataCenter.StoreDataResourceTable(dataResourceTable)
+			//m.dataCenter.RemoveDataResourceDiskUsed(msg.GetMetadataId())
+			//dataResourceTable.FreeDisk(msg.GetSize())
+			//m.dataCenter.StoreDataResourceTable(dataResourceTable)
 
 			continue
 		}
 
-		log.Debugf("broadcast msg msg succeed, originId: {%s}, metadataId: {%s}", msg.GetOriginId(), msg.GetMetadataId())
+		log.Debugf("broadcast metadata msg succeed, originId: {%s}, metadataId: {%s}", msg.GetOriginId(), msg.GetMetadataId())
 	}
 
 	return
@@ -644,7 +644,7 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 
 		// revoke from global
 		if err := m.dataCenter.RevokeMetadata(revoke.ToDataCenter(identity)); nil != err {
-			log.WithError(err).Errorf("Failed to store metadata to dataCenter on MessageHandler with revoke metadata, metadataId: {%s}",
+			log.WithError(err).Errorf("Failed to revoke metadata to dataCenter on MessageHandler with revoke metadata, metadataId: {%s}",
 				revoke.GetMetadataId())
 			continue
 		}
@@ -679,7 +679,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 
 	for _, msg := range metadataAuthMsgArr {
 
-		go m.dataCenter.RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk if msg been handle
+		m.dataCenter.RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk if msg been handle
 
 		// ############################################
 		// ############################################

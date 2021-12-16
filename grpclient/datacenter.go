@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	DefaultGrpcRequestTimeout = 2 * time.Second		// Default timeout time for a grpc request.
-	DefaultGrpcDialTimeout    = 2 * time.Second 	// Default timeout time for Grpc's dial-up.
+	DefaultGrpcRequestTimeout = 2 * time.Second // Default timeout time for a grpc request.
+	DefaultGrpcDialTimeout    = 2 * time.Second // Default timeout time for Grpc's dial-up.
 )
 
 // Client defines typed wrapper for the CenterData GRPC API.
@@ -21,7 +21,7 @@ type GrpcClient struct {
 	metadataService api.MetadataServiceClient
 	resourceService api.ResourceServiceClient
 	identityService api.IdentityServiceClient
-	taskService 	api.TaskServiceClient
+	taskService     api.TaskServiceClient
 }
 
 // NewClient creates a client that uses the given GRPC client.
@@ -33,7 +33,7 @@ func NewGrpcClient(ctx context.Context, addr string) (*GrpcClient, error) {
 		return nil, err
 	}
 	return &GrpcClient{
-		c: conn,
+		c:               conn,
 		metadataService: api.NewMetadataServiceClient(conn),
 		resourceService: api.NewResourceServiceClient(conn),
 		identityService: api.NewIdentityServiceClient(conn),
@@ -57,20 +57,21 @@ func (gc *GrpcClient) SaveMetadata(ctx context.Context, request *api.SaveMetadat
 }
 
 func (gc *GrpcClient) GetMetadataSummaryList(ctx context.Context, request *api.ListMetadataSummaryRequest) (*api.ListMetadataSummaryResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.metadataService.ListMetadataSummary(ctx, request)
+	return gc.metadataService.ListMetadataSummary(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.ListMetadataRequest) (*api.ListMetadataResponse, error) {
 	// TODO: Requests take too long, consider stream processing
-	ctx, cancel := context.WithTimeout(ctx, 600 * time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.metadataService.ListMetadata(ctx, request)
+	return gc.metadataService.ListMetadata(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.FindMetadataByIdRequest) (*api.FindMetadataByIdResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	return gc.metadataService.FindMetadataById(ctx, request)
 }
@@ -102,21 +103,23 @@ func (gc *GrpcClient) RevokeResource(ctx context.Context, request *api.RevokePow
 }
 
 func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *api.GetPowerSummaryByIdentityRequest) (*api.PowerSummaryResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, DefaultGrpcRequestTimeout)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
-	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request)
+	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context, request *api.ListPowerSummaryRequest) (*api.ListPowerSummaryResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.resourceService.ListPowerSummary(ctx, request)
+	return gc.resourceService.ListPowerSummary(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.ListPowerRequest) (*api.ListPowerResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.resourceService.ListPower(ctx, request)
+	return gc.resourceService.ListPower(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 // ************************************** Identity module *******************************************************
@@ -134,7 +137,7 @@ func (gc *GrpcClient) RevokeIdentityJoin(ctx context.Context, request *api.Revok
 }
 
 func (gc *GrpcClient) GetIdentityList(ctx context.Context, request *api.ListIdentityRequest) (*api.ListIdentityResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 	return gc.identityService.ListIdentity(ctx, request)
 }
@@ -157,13 +160,16 @@ func (gc *GrpcClient) UpdateMetadataAuthority(ctx context.Context, request *api.
 // 获取数据授权申请列表
 // 规则：参数存在时根据条件获取，参数不存在时全量返回
 func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api.ListMetadataAuthorityRequest) (*api.ListMetadataAuthorityResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.identityService.ListMetadataAuthority(ctx, request)
+	log.Debugf("Start call datacenter rpcapi ListMetadataAuthority(), request: %s", request.String())
+	return gc.identityService.ListMetadataAuthority(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) FindMetadataAuthority(ctx context.Context, request *api.FindMetadataAuthorityRequest) (*api.FindMetadataAuthorityResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
 	return gc.identityService.FindMetadataAuthority(ctx, request)
 }
@@ -177,25 +183,30 @@ func (gc *GrpcClient) SaveTask(ctx context.Context, request *api.SaveTaskRequest
 }
 
 func (gc *GrpcClient) GetDetailTask(ctx context.Context, request *api.GetTaskDetailRequest) (*api.GetTaskDetailResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx,20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
 	return gc.taskService.GetTaskDetail(ctx, request)
 }
 
 func (gc *GrpcClient) ListTask(ctx context.Context, request *api.ListTaskRequest) (*api.ListTaskResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.taskService.ListTask(ctx, request)
+	return gc.taskService.ListTask(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.ListTaskByIdentityRequest) (*api.ListTaskResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.taskService.ListTaskByIdentity(ctx, request)
+	return gc.taskService.ListTaskByIdentity(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.ListTaskEventRequest) (*api.ListTaskEventResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 20*time.Second)
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, 600*time.Second)
 	defer cancel()
-	return gc.taskService.ListTaskEvent(ctx, request)
+	log.Debugf("Start call datacenter rpcapi ListTaskEvent(), request: %s", request.String())
+	return gc.taskService.ListTaskEvent(ctx, request, RPCMaxCallRecvMsgSize)
 }

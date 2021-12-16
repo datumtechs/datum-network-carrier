@@ -10,6 +10,7 @@ import (
 
 func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error {
 	sche.scheduleMutex.Lock()
+	defer sche.scheduleMutex.Unlock()
 	// The bullet is first into queue
 	_, ok := sche.schedulings[bullet.GetTaskId()]
 	if !ok {
@@ -19,15 +20,15 @@ func (sche *SchedulerStarveFIFO) pushTaskBullet(bullet *types.TaskBullet) error 
 		sche.schedulings[bullet.GetTaskId()] = bullet
 		sche.resourceMng.GetDB().StoreTaskBullet(bullet)
 	}
-	sche.scheduleMutex.Unlock()
 	log.Debugf("Succeed pushed local task into queue on scheduler, taskId: {%s}", bullet.GetTaskId())
 	return nil
 }
 
 func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) error {
-	sche.scheduleMutex.Lock()
 
 	if bullet.GetInQueueFlag() {
+		log.Warnf("Warning repush local bullet task on scheduler, task was not exist in schedulings map, taskId: {%s}, inQueueFlag: {%v}",
+			bullet.GetTaskId(), bullet.GetInQueueFlag())
 		return nil
 	}
 
@@ -44,7 +45,7 @@ func (sche *SchedulerStarveFIFO) repushTaskBullet(bullet *types.TaskBullet) erro
 			bullet.GetTaskId(), bullet.GetResched(), ReschedMaxCount)
 	}
 	sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // update bullet into wal
-	sche.scheduleMutex.Unlock()
+
 	return nil
 }
 
@@ -54,13 +55,14 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 
 	_ ,ok := sche.schedulings[taskId]
 	if !ok {
+		log.Warnf("Warning removed local bullet task on scheduler, task was not exist in schedulings map, taskId: {%s}", taskId)
 		return nil
 	}
 
-	log.Debugf("Succeed removed local bullet task on scheduler, taskId: {%s}", taskId)
-
 	delete(sche.schedulings, taskId)
 	sche.resourceMng.GetDB().RemoveTaskBullet(taskId)
+
+	log.Debugf("Succeed removed local bullet task on scheduler, taskId: {%s}", taskId)
 
 	// traversal the queue to remove task bullet, first.
 	i := 0
@@ -98,7 +100,6 @@ func (sche *SchedulerStarveFIFO) removeTaskBullet(taskId string) error {
 }
 
 func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
-	sche.scheduleMutex.Lock()
 
 	var bullet *types.TaskBullet
 	if sche.starveQueue.Len() != 0 {
@@ -115,7 +116,7 @@ func (sche *SchedulerStarveFIFO) popTaskBullet() *types.TaskBullet {
 	if nil != bullet {
 		sche.resourceMng.GetDB().StoreTaskBullet(bullet)  // update bullet into wal
 	}
-	sche.scheduleMutex.Unlock()
+
 	return bullet
 }
 

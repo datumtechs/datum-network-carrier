@@ -54,10 +54,7 @@ func (pool *Mempool) Add(msg types.Msg) error {
 
 	switch m := msg.(type) {
 	case *types.IdentityMsg:
-		//identity, ok := msg.(*types.IdentityMsg)
-		//if !ok {
-		//	return ErrIdentityMsgConvert
-		//}
+
 		// set local nodeId first
 		m.SetOwnerNodeId(pool.cfg.NodeId)
 		// We've directly injected a replacement identityMsg, notify subsystems
@@ -67,10 +64,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.IdentityRevokeMsg:
-		//identityRevoke, ok := msg.(*types.IdentityRevokeMsg)
-		//if !ok {
-		//	return ErrIdentityRevokeMsgConvert
-		//}
 
 		// We've directly injected a replacement identityMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -79,10 +72,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.PowerMsg:
-		//power, ok := msg.(*types.PowerMsg)
-		//if !ok {
-		//	return ErrPowerMsgConvert
-		//}
 
 		// We've directly injected a replacement identityRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -91,10 +80,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.PowerRevokeMsg:
-		//powerRevoke, ok := msg.(*types.PowerRevokeMsg)
-		//if !ok {
-		//	return ErrPowerRevokeMsgConvert
-		//}
 
 		// We've directly injected a replacement powerRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -103,10 +88,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.MetadataMsg:
-		//metaData, ok := msg.(*types.MetadataMsg)
-		//if !ok {
-		//	return ErrMetadataMsgConvert
-		//}
 
 		// We've directly injected a replacement metaDataMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -115,10 +96,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.MetadataRevokeMsg:
-		//metaDataRevoke, ok := msg.(*types.MetadataRevokeMsg)
-		//if !ok {
-		//	return ErrMetadataRevokeMsgConvert
-		//}
 
 		// We've directly injected a replacement metaDataRevokeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -127,10 +104,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.MetadataAuthorityMsg:
-		//metadataAuthorityMsg, ok := msg.(*types.MetadataAuthorityMsg)
-		//if !ok {
-		//	return ErrMetadataAuthMsgConvert
-		//}
 
 		// We've directly injected a replacement metadata authority msg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -140,11 +113,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 
 	case *types.MetadataAuthorityRevokeMsg:
 
-		//metadataAuthorityRevokeMsg, ok := msg.(*types.MetadataAuthorityRevokeMsg)
-		//if !ok {
-		//	return ErrMetadataAuthRevokeMsgConvert
-		//}
-
 		// We've directly injected a replacement metadata authority rovkeMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
 			Type: types.RevokeMetadataAuth,
@@ -152,10 +120,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.TaskMsg:
-		//task, ok := msg.(*types.TaskMsg)
-		//if !ok {
-		//	return ErrTaskMsgConvert
-		//}
 
 		// We've directly injected a replacement taskMsg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
@@ -164,10 +128,6 @@ func (pool *Mempool) Add(msg types.Msg) error {
 		})
 
 	case *types.TaskTerminateMsg:
-		//taskTerminate, ok := msg.(*types.TaskTerminateMsg)
-		//if !ok {
-		//	return ErrTaskMsgConvert
-		//}
 
 		// We've directly injected a replacement taskTerminate msg, notify subsystems
 		pool.msgFeed.Send(&feed.Event{
