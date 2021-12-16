@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/auth"
+	"github.com/RosettaFlow/Carrier-Go/common/flags"
 	"github.com/RosettaFlow/Carrier-Go/consensus/chaincons"
 	"github.com/RosettaFlow/Carrier-Go/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/core"
@@ -18,7 +19,11 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/RosettaFlow/Carrier-Go/service/discovery"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"github.com/urfave/cli/v2"
+	"strconv"
+	"strings"
 	"sync"
 )
 
@@ -41,6 +46,7 @@ type Service struct {
 	TaskManager     handler.TaskManager
 	authManager     *auth.AuthorityManager
 	scheduler       schedule.Scheduler
+	consulManager   *discovery.ConnectConsul
 	runError        error
 
 	// internal resource node set (Fighter node grpc client set)
@@ -49,7 +55,7 @@ type Service struct {
 
 // NewService creates a new CarrierServer object (including the
 // initialisation of the common Carrier object)
-func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consensusStateFile string) (*Service, error) {
+func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockIdentityIdsFile, consensusStateFile string) (*Service, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	_ = cancel // govet fix for lost cancel. Cancel is handled in service.Stop()
 
@@ -77,11 +83,11 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 				NodePriKey: config.P2P.PirKey(),
 				NodeID:     nodeId,
 			},
-			PeerMsgQueueSize: 1024,
-			ConsensusStateFile: consensusStateFile,
+			PeerMsgQueueSize:    1024,
+			ConsensusStateFile:  consensusStateFile,
 			DefaultConsensusWal: config.DefaultConsensusWal,
-			DatabaseCache: config.DatabaseCache,
-			DatabaseHandles: config.DatabaseHandles,
+			DatabaseCache:       config.DatabaseCache,
+			DatabaseHandles:     config.DatabaseHandles,
 		},
 		resourceMng,
 		config.P2P,
@@ -103,6 +109,59 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		taskConsResultCh,
 	)
 
+	port, _ := strconv.Atoi(cliCtx.String(flags.RPCPort.Name))
+	ip := cliCtx.String(flags.RPCHost.Name)
+
+	serverIp := cliCtx.String("discovery-server-ip")
+	if serverIp == "" {
+		serverIp = "127.0.0.1"
+	}
+	serverPort := cliCtx.String("discovery-server-port")
+	if serverPort == "" {
+		serverPort = "8500"
+	}
+	healthCheckInterval := cliCtx.Int("discovery-health-check-interval")
+	if healthCheckInterval <= 0 {
+		healthCheckInterval = 3
+	}
+	healthCheckDeregister := cliCtx.Int("discovery-health-check-deregister")
+	if healthCheckDeregister <= 0 {
+		healthCheckDeregister = 1
+	}
+	serviceName := cliCtx.String("discovery-service-name")
+	if serviceName == "" {
+		serviceName = "carrier"
+	}
+	serviceId := cliCtx.String("discovery-service-id")
+	if serviceId == "" {
+		serviceId = "carrier"
+	}
+	serviceTags := cliCtx.String("discovery-service-tags")
+	tagArray := make([]string, 0)
+	if serviceTags == "" {
+		tagArray = append(tagArray, "carrier")
+	} else {
+		serviceTags = strings.Replace(serviceTags, " ", "", -1)
+		for _, value := range strings.Split(serviceTags, ",") {
+			tagArray = append(tagArray, value)
+		}
+	}
+	consul := discovery.New(&discovery.ConsulService{
+		IP:         ip,
+		Port:       port,
+		Tags:       tagArray,
+		Name:       serviceName,
+		Id:         serviceId,
+		Interval:   healthCheckInterval,
+		Deregister: healthCheckDeregister,
+	},
+		serverIp,
+		serverPort,
+	)
+	err := consul.RegisterDiscoveryService()
+	if err != nil {
+		log.WithError(err).Fatal("RegisterDiscoveryService fail!")
+	}
 	s := &Service{
 		ctx:               ctx,
 		cancel:            cancel,
@@ -114,6 +173,7 @@ func NewService(ctx context.Context, config *Config, mockIdentityIdsFile,consens
 		TaskManager:       taskManager,
 		authManager:       authManager,
 		resourceClientSet: resourceClientSet,
+		consulManager:     consul,
 	}
 
 	//s.APIBackend = &CarrierAPIBackend{carrier: s}
