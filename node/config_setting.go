@@ -25,8 +25,8 @@ func makeConfig(cliCtx *cli.Context) carrierConfig {
 	cfg := carrierConfig{
 		Carrier:             carrier.DefaultConfig,
 		Node:                defaultNodeConfig(),
-		MockIdentityIdsFile: cliCtx.String(flags.MockIdentityIdFileFlag.Name),
-		ConsensusStateFile:  cliCtx.String(flags.ConsensusStateStoreFlag.Name),
+		MockIdentityIdsFile: cliCtx.String(flags.MockIdentityIdFile.Name),
+		ConsensusStateFile:  cliCtx.String(flags.ConsensusStateWalDir.Name),
 	}
 
 	// todo: file conf load for config.

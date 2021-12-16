@@ -15,7 +15,8 @@ func UseMainnetConfig() {
 
 // the default config for main network.
 var mainnetCarrierConfig = &CarrierChainConfig{
-
+	DiscoveryServiceName: "carrierService",
+	DiscoveryServiceTags: []string{"carrier"},
 }
 
 var mainnetNetworkConfig = &NetworkConfig{

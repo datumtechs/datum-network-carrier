@@ -12,4 +12,7 @@ type CarrierChainConfig struct {
 	Port           uint64     // Port is the port of the data service center.
 	SlotsPerEpoch  types.Slot // SlotsPerEpoch is the number of slots in an epoch.
 	SecondsPerSlot uint64     // SecondsPerSlot is how many seconds are in a single slot.
+
+	DiscoveryServiceName string
+	DiscoveryServiceTags []string
 }

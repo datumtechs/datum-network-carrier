@@ -22,8 +22,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/service/discovery"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/urfave/cli/v2"
-	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -109,59 +107,6 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		taskConsResultCh,
 	)
 
-	port, _ := strconv.Atoi(cliCtx.String(flags.RPCPort.Name))
-	ip := cliCtx.String(flags.RPCHost.Name)
-
-	serverIp := cliCtx.String("discovery-server-ip")
-	if serverIp == "" {
-		serverIp = "127.0.0.1"
-	}
-	serverPort := cliCtx.String("discovery-server-port")
-	if serverPort == "" {
-		serverPort = "8500"
-	}
-	healthCheckInterval := cliCtx.Int("discovery-health-check-interval")
-	if healthCheckInterval <= 0 {
-		healthCheckInterval = 3
-	}
-	healthCheckDeregister := cliCtx.Int("discovery-health-check-deregister")
-	if healthCheckDeregister <= 0 {
-		healthCheckDeregister = 1
-	}
-	serviceName := cliCtx.String("discovery-service-name")
-	if serviceName == "" {
-		serviceName = "carrier"
-	}
-	serviceId := cliCtx.String("discovery-service-id")
-	if serviceId == "" {
-		serviceId = "carrier"
-	}
-	serviceTags := cliCtx.String("discovery-service-tags")
-	tagArray := make([]string, 0)
-	if serviceTags == "" {
-		tagArray = append(tagArray, "carrier")
-	} else {
-		serviceTags = strings.Replace(serviceTags, " ", "", -1)
-		for _, value := range strings.Split(serviceTags, ",") {
-			tagArray = append(tagArray, value)
-		}
-	}
-	consul := discovery.New(&discovery.ConsulService{
-		IP:         ip,
-		Port:       port,
-		Tags:       tagArray,
-		Name:       serviceName,
-		Id:         serviceId,
-		Interval:   healthCheckInterval,
-		Deregister: healthCheckDeregister,
-	},
-		serverIp,
-		serverPort,
-	)
-	err := consul.RegisterDiscoveryService()
-	if err != nil {
-		log.WithError(err).Fatal("RegisterDiscoveryService fail!")
-	}
 	s := &Service{
 		ctx:               ctx,
 		cancel:            cancel,
@@ -174,7 +119,18 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		authManager:       authManager,
 		scheduler:         scheduler,
 		resourceClientSet: resourceClientSet,
-		consulManager:     consul,
+		consulManager: discovery.New(&discovery.ConsulService{
+			ServiceIP:   cliCtx.String(flags.RPCHost.Name),
+			ServicePort: cliCtx.String(flags.RPCPort.Name),
+			Tags:        cliCtx.StringSlice(flags.DiscoveryServerTags.Name),
+			Name:        cliCtx.String(flags.DiscoveryServiceName.Name),
+			Id:          cliCtx.String(flags.DiscoveryServiceId.Name),
+			Interval:    cliCtx.Int(flags.DiscoveryServiceHealthCheckInterval.Name),
+			Deregister:  cliCtx.Int(flags.DiscoveryServiceHealthCheckDeregister.Name),
+		},
+			cliCtx.String(flags.DiscoveryServerIP.Name),
+			cliCtx.String(flags.DiscoveryServerPort.Name),
+		),
 	}
 
 	//s.APIBackend = &CarrierAPIBackend{carrier: s}
@@ -209,36 +165,41 @@ func (s *Service) Start() error {
 
 	if nil != s.authManager {
 		if err := s.authManager.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the authManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to start the authManager")
 		}
 	}
 
 	for typ, engine := range s.Engines {
 		if err := engine.Start(); nil != err {
-			log.WithError(err).Errorf("Cound not start the consensus engine: %s, err: %v", typ.String(), err)
+			log.WithError(err).Errorf("Cound not start the consensus engine: %s", typ.String())
 		}
 	}
 	if nil != s.resourceManager {
 		if err := s.resourceManager.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the resourceManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to start the resourceManager")
 		}
 	}
 	if nil != s.messageManager {
 		if err := s.messageManager.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the messageManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to start the messageManager")
 		}
 	}
 	if nil != s.TaskManager {
 		if err := s.TaskManager.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the TaskManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to start the TaskManager")
 		}
 	}
 	if nil != s.scheduler {
 		if err := s.scheduler.Start(); nil != err {
-			log.WithError(err).Errorf("Failed to start the schedule, err: %v", err)
+			log.WithError(err).Errorf("Failed to start the schedule")
 		}
 	}
-
+	if nil != s.consulManager {
+		err := s.consulManager.RegisterDiscoveryService()
+		if err != nil {
+			log.WithError(err).Fatal("Failed to register discovery service to discovery center")
+		}
+	}
 	return nil
 }
 

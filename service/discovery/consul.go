@@ -6,6 +6,8 @@ import (
 	"github.com/hashicorp/consul/api"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/health/grpc_health_v1"
+	"strconv"
+	"strings"
 
 	"time"
 )
@@ -15,13 +17,13 @@ var log = logrus.WithField("prefix", "discovery-consul")
 type HealthCheck struct{}
 
 type ConsulService struct {
-	IP         string //carrier grpc ip
-	Port       int    //carrier grpc port
-	Tags       []string
-	Name       string
-	Id         string
-	Interval   int
-	Deregister int
+	ServiceIP   string   //carrier grpc server ip
+	ServicePort string   //carrier grpc server port
+	Tags        []string // carrier service []tags on discovery center
+	Name        string   // carrier service name on discovery center
+	Id          string   // carrier service id on discovery center
+	Interval    int      // Health check interval between service discovery center and this service (default: 3s)
+	Deregister  int      // When the service leaves, the service discovery center removes the service information (default: 1min)
 }
 type ConnectConsul struct {
 	Client *api.Client
@@ -44,6 +46,10 @@ func (h *HealthCheck) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc_healt
 }
 
 func New(consulSvr *ConsulService, consulIp, consulPort string) *ConnectConsul {
+	if "" == consulIp || "" == consulPort {
+
+	}
+
 	// consulIp is consul server ip,consulPort is consul server address
 	consulConfig := api.DefaultConfig()
 	consulConfig.Address = fmt.Sprintf("%s:%s", consulIp, consulPort)
@@ -60,27 +66,27 @@ func New(consulSvr *ConsulService, consulIp, consulPort string) *ConnectConsul {
 }
 func (ca *ConnectConsul) RegisterDiscoveryService() error {
 	// ca is consul "IP:PORT"
-
-	interval := time.Duration(ca.Interval) * time.Second
-	deregister := time.Duration(ca.Deregister) * time.Minute
-
+	servicePort, _ := strconv.Atoi(ca.ServicePort)
+	if "" == ca.Id {
+		ca.Id = strings.Join([]string{"carrierService", ca.ServiceIP, ca.ServicePort}, "_")
+	}
 	//register consul
 	reg := &api.AgentServiceRegistration{
 		ID:      ca.Id,
 		Name:    ca.Name,
 		Tags:    ca.Tags,
-		Port:    ca.Port,
-		Address: ca.IP,
+		Port:    servicePort,
+		Address: ca.ServiceIP,
 		Check: &api.AgentServiceCheck{
-			Interval:                       interval.String(),
-			GRPC:                           fmt.Sprintf("%v:%v/%v", ca.IP, ca.Port, ca.Name),
-			DeregisterCriticalServiceAfter: deregister.String(),
+			Interval:                       (time.Duration(ca.Interval)*time.Millisecond).String(),
+			GRPC:                           fmt.Sprintf("%s:%d/%s", ca.ServiceIP, servicePort, ca.Name),
+			DeregisterCriticalServiceAfter: (time.Duration(ca.Deregister)*time.Millisecond).String(),
 		},
 	}
 
-	log.Info("Begin RegisterDiscoveryService", ca)
+	log.Infof("Start RegisterDiscoveryService, %v", ca)
 	if err := ca.Client.Agent().ServiceRegister(reg); err != nil {
-		log.Errorf("Service Register error %v\n", err)
+		log.WithError(err).Errorf("Failed to register carrier service to discovery center")
 		return err
 	}
 	return nil

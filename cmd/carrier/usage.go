@@ -73,7 +73,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.TracingProcessNameFlag,
 			flags.TracingEndpointFlag,
 			flags.TraceSampleFractionFlag,
-			flags.MockIdentityIdFileFlag,
+			flags.MockIdentityIdFile,
 		},
 	},
 	{
@@ -87,7 +87,7 @@ var appHelpFlagGroups = []flagGroup{
 			flags.RestoreSourceFileFlag,
 			flags.RestoreTargetDirFlag,
 			flags.ConfigFileFlag,
-			flags.ConsensusStateStoreFlag,
+			flags.ConsensusStateWalDir,
 		},
 	},
 	{

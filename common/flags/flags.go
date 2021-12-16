@@ -272,17 +272,61 @@ var (
 		Value: 0.20,
 	}
 
+	// .StringSlice{}  ""  "discovery-service-tags"
+	// ================================= Service Discovery Center Flags ===========================================
+	DiscoveryServerIP = &cli.StringFlag{
+		Name:  "discovery-server-ip",
+		Usage: "The ip of discovery center",
+		Value: "",
+	}
+
+	DiscoveryServerPort = &cli.StringFlag{
+		Name:  "discovery-server-port",
+		Usage: "The port of discovery center",
+		Value: "",
+	}
+
+	DiscoveryServiceId = &cli.StringFlag{
+		Name:  "discovery-service-id",
+		Usage: "The id of the current service registered with the discovery center",
+		Value: "",
+	}
+
+	DiscoveryServiceName = &cli.StringFlag{
+		Name:  "discovery-service-name",
+		Usage: "The name of the current service registered with the discovery center",
+		Value: params.CarrierConfig().DiscoveryServiceName,
+	}
+
+	DiscoveryServerTags = &cli.StringSliceFlag{
+		Name:  "discovery-service-tags",
+		Usage: "Tags registered with the service discovery center",
+		Value: cli.NewStringSlice(params.CarrierConfig().DiscoveryServiceTags...),
+	}
+
+	DiscoveryServiceHealthCheckInterval = &cli.IntFlag{
+		Name:  "discovery-service-health-check-interval",
+		Usage: "Health check interval between service discovery center and this service (default: 3s)",
+		Value: 3000,
+	}
+
+	DiscoveryServiceHealthCheckDeregister = &cli.IntFlag{
+		Name:  "discovery-service-health-check-deregister",
+		Usage: "When the service leaves, the service discovery center removes the service information (default: 1min)",
+		Value: 60000,
+	}
+
 	// +++++++++++++++++++++++++++++++++++++++++ Mock Flags +++++++++++++++++++++++++++++++++++++++++
-	MockIdentityIdFileFlag = &cli.StringFlag{
+	MockIdentityIdFile = &cli.StringFlag{
 		Name:  "mock-identity-file",
 		Usage: "Specifies the file path of the identityid information required by mock.",
 		Value: "",
 	}
 
 	// consensus state
-	ConsensusStateStoreFlag = &cli.StringFlag{
-		Name:  "consensus-state-file",
-		Usage: "Configuration files required to persist the consensus state.",
+	ConsensusStateWalDir = &cli.StringFlag{
+		Name:  "consensus-state-wal-dir",
+		Usage: "Configuration dir required to persist the consensus state.",
 		Value: "",
 	}
 )

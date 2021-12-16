@@ -93,11 +93,11 @@ var (
 	}
 
 	mockFlags = []cli.Flag{
-		flags.MockIdentityIdFileFlag,
+		flags.MockIdentityIdFile,
 	}
 
 	consensusFlags = []cli.Flag{
-		flags.ConsensusStateStoreFlag,
+		flags.ConsensusStateWalDir,
 	}
 )
 
