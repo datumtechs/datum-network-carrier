@@ -312,8 +312,8 @@ var (
 
 	DiscoveryServiceHealthCheckDeregister = &cli.IntFlag{
 		Name:  "discovery-service-health-check-deregister",
-		Usage: "When the service leaves, the service discovery center removes the service information (default: 1min)",
-		Value: 60000,
+		Usage: "When the service leaves, the service discovery center removes the service information (default: 10s)",
+		Value: 10000,
 	}
 
 	// +++++++++++++++++++++++++++++++++++++++++ Mock Flags +++++++++++++++++++++++++++++++++++++++++
