@@ -6,8 +6,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"net"
+	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 type server struct{}
@@ -15,6 +17,8 @@ type server struct{}
 const (
 	consulIp   = "192.168.235.155"
 	consulPort = "8500"
+	grpcIp     = "192.168.21.188"
+	grpcPort   = "9999"
 )
 
 func (s *server) SayHello(ctx context.Context, in *HelloRequest) (*HelloReply, error) {
@@ -26,7 +30,7 @@ func TestNew(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
-		lis, err := net.Listen("tcp", ":9999")
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%s", grpcPort))
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
@@ -40,13 +44,13 @@ func TestNew(t *testing.T) {
 	}()
 	// REGISTER GRPC SERVER TO CONSUL
 	serverInfo := &ConsulService{
-		IP:         "192.168.21.188",
-		Port:       9999,
-		Tags:       []string{"carrier"},
-		Name:       "carrier",
-		Id:         "carrier",
-		Interval:   2,
-		Deregister: 3,
+		ServiceIP:   grpcIp,
+		ServicePort: grpcPort,
+		Tags:        []string{"carrier"},
+		Name:        "carrier",
+		Id:          strings.Join([]string{"carrierService", grpcIp, grpcPort}, "_"),
+		Interval:    2,
+		Deregister:  3,
 	}
 	conn := New(serverInfo, consulIp, consulPort)
 	err := conn.RegisterDiscoveryService()
@@ -70,5 +74,8 @@ func TestNew(t *testing.T) {
 		panic(err)
 	}
 	fmt.Println(value)
+	time.Sleep(10 * time.Second)
+
+	_ = conn.Stop()
 	wg.Wait()
 }

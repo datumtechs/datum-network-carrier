@@ -47,7 +47,7 @@ func (h *HealthCheck) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc_healt
 
 func New(consulSvr *ConsulService, consulIp, consulPort string) *ConnectConsul {
 	if "" == consulIp || "" == consulPort {
-
+		log.Fatalf("consulIp is %s,consulPort is %s", consulIp, consulPort)
 	}
 
 	// consulIp is consul server ip,consulPort is consul server address
@@ -64,11 +64,24 @@ func New(consulSvr *ConsulService, consulIp, consulPort string) *ConnectConsul {
 	}
 	return connectCon
 }
+func (ca *ConnectConsul) CheckDoesItExistCarrierRegister(tags []string) bool {
+	for _, tag := range tags {
+		exits, err := ca.QueryServiceInfoByFilter(fmt.Sprintf("%s in Tags", tag))
+		if err == nil && len(exits) != 0 {
+			return true
+		}
+	}
+	return false
+}
 func (ca *ConnectConsul) RegisterDiscoveryService() error {
 	// ca is consul "IP:PORT"
 	servicePort, _ := strconv.Atoi(ca.ServicePort)
 	if "" == ca.Id {
 		ca.Id = strings.Join([]string{"carrierService", ca.ServiceIP, ca.ServicePort}, "_")
+	}
+	checkResult := ca.CheckDoesItExistCarrierRegister(ca.Tags)
+	if checkResult {
+		log.Fatalf("alerady exits carrier register! there can only be one carrier.")
 	}
 	//register consul
 	reg := &api.AgentServiceRegistration{
@@ -78,9 +91,9 @@ func (ca *ConnectConsul) RegisterDiscoveryService() error {
 		Port:    servicePort,
 		Address: ca.ServiceIP,
 		Check: &api.AgentServiceCheck{
-			Interval:                       (time.Duration(ca.Interval)*time.Millisecond).String(),
+			Interval:                       (time.Duration(ca.Interval) * time.Millisecond).String(),
 			GRPC:                           fmt.Sprintf("%s:%d/%s", ca.ServiceIP, servicePort, ca.Name),
-			DeregisterCriticalServiceAfter: (time.Duration(ca.Deregister)*time.Millisecond).String(),
+			DeregisterCriticalServiceAfter: (time.Duration(ca.Deregister) * time.Millisecond).String(),
 		},
 	}
 
@@ -118,6 +131,21 @@ func (ca *ConnectConsul) PutKV(key string, value []byte) error {
 	_, err := kv.Put(p, nil)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (ca *ConnectConsul) Stop() error {
+	serviceId := strings.Join([]string{"carrierService", ca.ServiceIP, ca.ServicePort}, "_")
+	log.Infof("Stop service,it serive id is %s", serviceId)
+	result, err := ca.QueryServiceInfoByFilter(fmt.Sprintf("ID==\"%s\"", serviceId))
+	if err != nil {
+		return err
+	}
+	if len(result) != 0 {
+		if err := ca.Client.Agent().ServiceDeregister(serviceId); err != nil {
+			return err
+		}
 	}
 	return nil
 }

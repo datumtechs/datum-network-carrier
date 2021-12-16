@@ -240,7 +240,11 @@ func (s *Service) Stop() error {
 			log.WithError(err).Errorf("Failed to stop the authManager, err: %v", err)
 		}
 	}
-
+	if nil != s.consulManager {
+		if err := s.consulManager.Stop(); nil != err {
+			log.WithError(err).Errorf("ServiceDeregister fail,serviceId is %v", err)
+		}
+	}
 	return nil
 }
 
