@@ -211,38 +211,38 @@ func (s *Service) Stop() error {
 
 	for typ, engine := range s.Engines {
 		if err := engine.Stop(); nil != err {
-			log.WithError(err).Errorf("Cound not close the consensus engine: %s, err: %v", typ.String(), err)
+			log.WithError(err).Errorf("Cound not close the consensus engine: %s", typ.String())
 		}
 	}
 	if nil != s.resourceManager {
 		if err := s.resourceManager.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the resourceManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to stop the resourceManager")
 		}
 	}
 	if nil != s.messageManager {
 		if err := s.messageManager.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the messageManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to stop the messageManager")
 		}
 	}
 	if nil != s.TaskManager {
 		if err := s.TaskManager.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the TaskManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to stop the TaskManager")
 		}
 	}
 	if nil != s.scheduler {
 		if err := s.scheduler.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the schedule, err: %v", err)
+			log.WithError(err).Errorf("Failed to stop the schedule")
 		}
 	}
 
 	if nil != s.authManager {
 		if err := s.authManager.Stop(); nil != err {
-			log.WithError(err).Errorf("Failed to stop the authManager, err: %v", err)
+			log.WithError(err).Errorf("Failed to stop the authManager")
 		}
 	}
 	if nil != s.consulManager {
-		if err := s.consulManager.Stop(); nil != err {
-			log.WithError(err).Errorf("ServiceDeregister fail,serviceId is %v", err)
+		if err := s.consulManager.DeregisterDiscoveryService(); nil != err {
+			log.WithError(err).Errorf("Failed to deregister discover service")
 		}
 	}
 	return nil

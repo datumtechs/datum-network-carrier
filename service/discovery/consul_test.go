@@ -76,6 +76,6 @@ func TestNew(t *testing.T) {
 	fmt.Println(value)
 	time.Sleep(10 * time.Second)
 
-	_ = conn.Stop()
+	_ = conn.DeregisterDiscoveryService()
 	wg.Wait()
 }

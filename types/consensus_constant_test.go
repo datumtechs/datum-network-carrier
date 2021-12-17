@@ -9,9 +9,9 @@ func TestTwopcMsgOption(t *testing.T) {
 	start := TwopcMsgStart
 	unknown := TwopcMsgUnknown
 	stop := TwopcMsgStop
-	require.Equal(t, start.String(), "Start")
-	require.Equal(t, stop.String(), "Stop")
-	require.Equal(t, unknown.String(), "Unknown")
+	require.Equal(t, start.String(), "START")
+	require.Equal(t, stop.String(), "STOP")
+	require.Equal(t, unknown.String(), "UNKNOWN")
 
 	require.Equal(t, TwopcMsgOptionFromUint8(0), unknown)
 	require.Equal(t, TwopcMsgOptionFromUint8(1), start)
