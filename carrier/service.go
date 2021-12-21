@@ -39,16 +39,15 @@ type Service struct {
 	dataDb     db.Database
 	APIBackend *CarrierAPIBackend
 
-	resourceManager *resource.Manager
-	messageManager  *message.MessageHandler
-	TaskManager     handler.TaskManager
-	authManager     *auth.AuthorityManager
-	scheduler       schedule.Scheduler
-	consulManager   *discovery.ConnectConsul
-	runError        error
-
-	// internal resource node set (Fighter node grpc client set)
-	resourceClientSet *grpclient.InternalResourceClientSet
+	resourceManager   *resource.Manager
+	messageManager    *message.MessageHandler
+	TaskManager       handler.TaskManager
+	authManager       *auth.AuthorityManager
+	scheduler         schedule.Scheduler
+	consulManager     *discovery.ConnectConsul
+	runError          error
+	resourceClientSet *grpclient.InternalResourceClientSet // internal resource node set (Fighter node grpc client set)
+	quit              chan struct{}
 }
 
 // NewService creates a new CarrierServer object (including the
@@ -131,6 +130,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 			cliCtx.String(flags.DiscoveryServerIP.Name),
 			cliCtx.String(flags.DiscoveryServerPort.Name),
 		),
+		quit: make(chan struct{}),
 	}
 
 	//s.APIBackend = &CarrierAPIBackend{carrier: s}
@@ -194,11 +194,8 @@ func (s *Service) Start() error {
 			log.WithError(err).Errorf("Failed to start the schedule")
 		}
 	}
-	if nil != s.consulManager {
-		err := s.consulManager.RegisterDiscoveryService()
-		if err != nil {
-			log.WithError(err).Fatal("Failed to register discovery service to discovery center")
-		}
+	if err := s.initServicesWithDiscoveryCenter(); nil != err {
+		log.Fatal(err)
 	}
 	return nil
 }
@@ -241,10 +238,13 @@ func (s *Service) Stop() error {
 		}
 	}
 	if nil != s.consulManager {
-		if err := s.consulManager.DeregisterDiscoveryService(); nil != err {
+		if err := s.consulManager.DeregisterService2DiscoveryCenter(); nil != err {
 			log.WithError(err).Errorf("Failed to deregister discover service")
 		}
 	}
+
+	// stop service loop gorutine
+	close(s.quit)
 	return nil
 }
 

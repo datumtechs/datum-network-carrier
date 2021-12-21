@@ -127,18 +127,6 @@ var (
 		Usage: "Ropsten network: pre-configured proof-of-work test network",
 	}
 
-	// Data Center
-	GRPCDataCenterHost = &cli.StringFlag{
-		Name:  "grpc-datacenter-host",
-		Usage: "The host on which the datacenter server runs on",
-		Value: "192.168.112.32",
-	}
-	GRPCDataCenterPort = &cli.IntFlag{
-		Name:  "grpc-datacenter-port",
-		Usage: "The port on which the datacenter server runs on",
-		Value: 9099,
-	}
-
 	// ****************************** P2P module ************************************
 	EnableFakeNetwork = &cli.BoolFlag{
 		Name:  "enable-fake-network",

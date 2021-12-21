@@ -17,7 +17,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/handler"
 	"github.com/RosettaFlow/Carrier-Go/node/registration"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
-	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/rpc"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/pkg/errors"
@@ -118,7 +117,7 @@ func New(cliCtx *cli.Context) (*CarrierNode, error) {
 	return node, nil
 }
 
-func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) error {
+func (node *CarrierNode) startDB (cliCtx *cli.Context, config *carrier.Config) error {
 	dbPath := filepath.Join(node.config.DataDir, "datachain")
 	log.WithField("database-path", dbPath).Info("Checking DB")
 	config.DefaultConsensusWal = node.config.DataDir
@@ -126,19 +125,8 @@ func (node *CarrierNode) startDB(cliCtx *cli.Context, config *carrier.Config) er
 	if err != nil {
 		return err
 	}
-
-	datacenterHost := cliCtx.String(flags.GRPCDataCenterHost.Name)
-	datacenterPort := cliCtx.Uint64(flags.GRPCDataCenterPort.Name)
-
 	// setting database
-	carrierDB, err := core.NewDataCenter(node.ctx, db, &params.CarrierChainConfig{
-		GrpcUrl: datacenterHost,
-		Port:    datacenterPort,
-	})
-	if err != nil {
-		return err
-	}
-	node.db = carrierDB
+	node.db = core.NewDataCenter(node.ctx, db)
 	return nil
 }
 

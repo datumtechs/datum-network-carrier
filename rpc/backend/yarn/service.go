@@ -7,6 +7,7 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
+	"github.com/RosettaFlow/Carrier-Go/service/discovery"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
@@ -142,7 +143,8 @@ func (svr *Server) SetDataNode(ctx context.Context, req *pb.SetDataNodeRequest) 
 		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	node.GenDataNodeId()
+	node.Id = strings.Join([]string{discovery.DataNodeConsulServiceIdPrefix, req.GetInternalIp(), req.GetInternalPort()}, discovery.ConsulServiceIdSeparator)
+
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeDataNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:SetDataNode failed, dataNodeId:{%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
@@ -198,9 +200,6 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeReq
 		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	// delete and insert.
-	//svr.B.RemoveRegisterNode(types.PrefixTypeDataNode, node.Id)
-	//status, err := svr.B.SetRegisterNode(types.PrefixTypeDataNode, node)
 	status, err := svr.B.UpdateRegisterNode(pb.PrefixTypeDataNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateDataNode failed, dataNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
@@ -301,7 +300,8 @@ func (svr *Server) SetJobNode(ctx context.Context, req *pb.SetJobNodeRequest) (*
 		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	node.GenJobNodeId()
+	node.Id = strings.Join([]string{discovery.JobNodeConsulServiceIdPrefix, req.GetInternalIp(), req.GetInternalPort()}, discovery.ConsulServiceIdSeparator)
+
 	status, err := svr.B.SetRegisterNode(pb.PrefixTypeJobNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:SetJobNode failed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",
@@ -358,8 +358,6 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeReque
 		ExternalPort: req.GetExternalPort(),
 		ConnState:    pb.ConnState_ConnState_UnConnected,
 	}
-	//svr.B.RemoveRegisterNode(types.PrefixTypeJobNode, node.Id)
-	//status, err := svr.B.SetRegisterNode(types.PrefixTypeJobNode, node)
 	status, err := svr.B.UpdateRegisterNode(pb.PrefixTypeJobNode, node)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:UpdateJobNode failed, jobNodeId: {%s}, internalIp: {%s}, internalPort: {%s}, externalIp: {%s}, externalPort: {%s}",

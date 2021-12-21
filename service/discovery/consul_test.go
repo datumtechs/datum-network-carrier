@@ -15,9 +15,9 @@ import (
 type server struct{}
 
 const (
-	consulIp   = "192.168.235.155"
+	consulIp   = "10.1.1.10"
 	consulPort = "8500"
-	grpcIp     = "192.168.21.188"
+	grpcIp     = "192.168.21.187"
 	grpcPort   = "9999"
 )
 
@@ -53,12 +53,12 @@ func TestNew(t *testing.T) {
 		Deregister:  3,
 	}
 	conn := New(serverInfo, consulIp, consulPort)
-	err := conn.RegisterDiscoveryService()
+	err := conn.RegisterService2DiscoveryCenter()
 	if err != nil {
 		fmt.Println("register successful")
 	}
 	// QUERY SERVICE
-	result, _ := conn.QueryServiceInfoByFilter("carrier in Tags")
+	result, _ := conn.QueryServiceInfoByFilter(fmt.Sprintf(ConsulServiceTagFuzzQueryExpression, "carrier"))
 	for _, value := range result {
 		fmt.Println(value.Address, value.Port)
 	}
@@ -76,6 +76,6 @@ func TestNew(t *testing.T) {
 	fmt.Println(value)
 	time.Sleep(10 * time.Second)
 
-	_ = conn.DeregisterDiscoveryService()
+	_ = conn.DeregisterService2DiscoveryCenter()
 	wg.Wait()
 }

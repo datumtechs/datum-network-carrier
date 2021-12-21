@@ -32,22 +32,11 @@ type DataCenter struct {
 }
 
 // NewDataCenter returns a fully initialised data center using information available in the database.
-func NewDataCenter(ctx context.Context, db db.Database, config *params.CarrierChainConfig) (*DataCenter, error) {
-	if config.GrpcUrl == "" || config.Port == 0 {
-		panic("Invalid Grpc Config.")
-	}
-	client, err := grpclient.NewGrpcClient(ctx, fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
-	if err != nil {
-		log.WithError(err).Error("dial grpc server failed")
-		return nil, err
-	}
-	dc := &DataCenter{
+func NewDataCenter(ctx context.Context, db db.Database) *DataCenter{
+	return &DataCenter{
 		ctx:    ctx,
-		config: config,
-		client: client,
 		db:     db,
 	}
-	return dc, nil
 }
 
 func (dc *DataCenter) getProcInterrupt() bool {
@@ -62,6 +51,19 @@ func (dc *DataCenter) SetProcessor(processor Processor) {
 
 func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
 	return dc.client
+}
+
+func (dc *DataCenter) SetConfig (config *params.CarrierChainConfig) error {
+	if config.GrpcUrl == "" || config.Port == 0 {
+		panic("Invalid Grpc Config.")
+	}
+	client, err := grpclient.NewGrpcClient(dc.ctx, fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
+	if nil != err {
+		return fmt.Errorf("dial grpc server failed, %s", err)
+	}
+	dc.config = config
+	dc.client = client
+	return nil
 }
 
 // ************************************* public api (datachain) *******************************************

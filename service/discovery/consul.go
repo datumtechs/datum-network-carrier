@@ -13,7 +13,20 @@ import (
 )
 
 const (
-	CarrierConsuleServiceIdPrefix = "carrierService"
+	// service Id separator
+	ConsulServiceIdSeparator = "_"
+	// service Id prefix
+	CarrierConsulServiceIdPrefix        = "carrierService"
+	JobNodeConsulServiceIdPrefix        = "jobService"
+	DataNodeConsulServiceIdPrefix        = "dataService"
+
+	// tag
+	JobNodeConsulServiceTag             = "job"
+	DataNodeConsulServiceTag            = "data"
+
+	// expression
+	ConsulServiceTagFuzzQueryExpression = "%s in Tags"
+	ConsulServiceIdEquelQueryExpression = `ID=="%s"`
 )
 
 var log = logrus.WithField("prefix", "discovery-consul")
@@ -51,7 +64,7 @@ func (h *HealthCheck) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc_healt
 
 func New(consulSvr *ConsulService, consulIp, consulPort string) *ConnectConsul {
 	if "" == consulIp || "" == consulPort {
-		log.Fatalf("consulIp is %s,consulPort is %s", consulIp, consulPort)
+		log.Fatalf("Failed to check consul server ip: %s, consul server port %s", consulIp, consulPort)
 	}
 
 	// consulIp is consul server ip,consulPort is consul server address
@@ -68,9 +81,9 @@ func New(consulSvr *ConsulService, consulIp, consulPort string) *ConnectConsul {
 	}
 	return connectCon
 }
-func (ca *ConnectConsul) IsExistSerivces (tags []string) bool {
+func (ca *ConnectConsul) IsExistSerivces(tags []string) bool {
 	for _, tag := range tags {
-		filterReq := fmt.Sprintf("%s in Tags", tag)
+		filterReq := fmt.Sprintf(ConsulServiceTagFuzzQueryExpression, tag)
 		exits, err := ca.QueryServiceInfoByFilter(filterReq)
 		if nil != err {
 			log.WithError(err).Fatalf("Failed to query carrier service from discovery center when check discovery service whether exist, filter req: %s", filterReq)
@@ -81,9 +94,9 @@ func (ca *ConnectConsul) IsExistSerivces (tags []string) bool {
 	}
 	return false
 }
-func (ca *ConnectConsul) RegisterDiscoveryService() error {
+func (ca *ConnectConsul) RegisterService2DiscoveryCenter() error {
 	if "" == ca.Id {
-		ca.Id = strings.Join([]string{CarrierConsuleServiceIdPrefix, ca.ServiceIP, ca.ServicePort}, "_")
+		ca.Id = strings.Join([]string{CarrierConsulServiceIdPrefix, ca.ServiceIP, ca.ServicePort}, ConsulServiceIdSeparator)
 	}
 	servicePort, _ := strconv.Atoi(ca.ServicePort)
 	if ca.IsExistSerivces(ca.Tags) {
@@ -140,9 +153,9 @@ func (ca *ConnectConsul) PutKV(key string, value []byte) error {
 	return nil
 }
 
-func (ca *ConnectConsul) DeregisterDiscoveryService() error {
-	serviceId := strings.Join([]string{CarrierConsuleServiceIdPrefix, ca.ServiceIP, ca.ServicePort}, "_")
-	filterReq := fmt.Sprintf("ID==\"%s\"", serviceId)
+func (ca *ConnectConsul) DeregisterService2DiscoveryCenter() error {
+	serviceId := strings.Join([]string{CarrierConsulServiceIdPrefix, ca.ServiceIP, ca.ServicePort}, ConsulServiceIdSeparator)
+	filterReq := fmt.Sprintf(ConsulServiceIdEquelQueryExpression, serviceId)
 	result, err := ca.QueryServiceInfoByFilter(filterReq)
 	if err != nil {
 		log.WithError(err).Errorf("Failed to query carrier service from discovery center before deregister discovery service, filter req: %s", filterReq)
@@ -156,4 +169,12 @@ func (ca *ConnectConsul) DeregisterDiscoveryService() error {
 		}
 	}
 	return nil
+}
+
+func (ca *ConnectConsul) QueryDataNodeServices() (map[string]*api.AgentService, error) {
+	return ca.QueryServiceInfoByFilter(fmt.Sprintf(ConsulServiceTagFuzzQueryExpression, DataNodeConsulServiceTag))
+}
+
+func (ca *ConnectConsul) QueryJobNodeServices() (map[string]*api.AgentService, error) {
+	return ca.QueryServiceInfoByFilter(fmt.Sprintf(ConsulServiceTagFuzzQueryExpression, JobNodeConsulServiceTag))
 }

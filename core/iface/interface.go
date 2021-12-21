@@ -4,10 +4,14 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 type LocalStoreCarrierDB interface {
+	// about datacenter config
+	SetConfig (config *params.CarrierChainConfig) error
+	// about carrier
 	QueryYarnName() (string, error)
 	SetSeedNode(seed *pb.SeedPeer) error
 	RemoveSeedNode(addr string) error

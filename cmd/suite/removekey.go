@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	"github.com/RosettaFlow/Carrier-Go/params"
 )
 
 func main() {
@@ -31,14 +30,7 @@ func main() {
 		return
 	}
 
-	carrierDB, err := core.NewDataCenter(context.TODO(), db, &params.CarrierChainConfig{
-		GrpcUrl: datacenterHost,
-		Port:    datacenterPort,
-	})
-	if err != nil {
-		fmt.Printf("Failed to call NewDataCenter, %s\n", err)
-		return
-	}
+	carrierDB := core.NewDataCenter(context.TODO(), db)
 
 	// Remove the only task that everyone refers to together
 	if err := carrierDB.RemoveLocalTask(taskId); nil != err {
