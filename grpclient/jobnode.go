@@ -27,35 +27,25 @@ type JobNodeClient struct {
 	computeProviderClient computesvc.ComputeProviderClient
 }
 
-func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
+func NewJobNodeClient (ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
 	ctx, cancel := context.WithCancel(ctx)
+	conn, err := dialContext(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
 	client := &JobNodeClient{
-		ctx:    ctx,
-		cancel: cancel,
-		addr:   addr,
-		nodeId: nodeId,
+		ctx:                   ctx,
+		cancel:                cancel,
+		addr:                  addr,
+		nodeId:                nodeId,
+		conn:                  conn,
+		computeProviderClient: computesvc.NewComputeProviderClient(conn),
 	}
 	// try to connect grpc server.
 	runutil.RunEvery(client.ctx, 10*time.Second, func() {
 		client.connecting()
 	})
 	return client, nil
-}
-
-func NewJobNodeClientWithConn(ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
-	ctx, cancel := context.WithCancel(ctx)
-	conn, err := dialContext(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-	return &JobNodeClient{
-		ctx:                   ctx,
-		cancel:                cancel,
-		conn:                  conn,
-		addr:                  addr,
-		nodeId:                nodeId,
-		computeProviderClient: computesvc.NewComputeProviderClient(conn),
-	}, nil
 }
 
 func (c *JobNodeClient) Close() {

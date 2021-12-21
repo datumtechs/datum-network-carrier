@@ -29,35 +29,25 @@ type DataNodeClient struct {
 	dataProviderClient datasvc.DataProviderClient
 }
 
-func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
+func NewDataNodeClient (ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
 	ctx, cancel := context.WithCancel(ctx)
+	conn, err := dialContext(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
 	client := &DataNodeClient{
-		ctx:    ctx,
-		cancel: cancel,
-		addr:   addr,
-		nodeId: nodeId,
+		ctx:                ctx,
+		cancel:             cancel,
+		addr:               addr,
+		nodeId:             nodeId,
+		conn:               conn,
+		dataProviderClient: datasvc.NewDataProviderClient(conn),
 	}
 	// try to connect grpc server.
 	runutil.RunEvery(client.ctx, 10*time.Second, func() {
 		client.connecting()
 	})
 	return client, nil
-}
-
-func NewDataNodeClientWithConn(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
-	ctx, cancel := context.WithCancel(ctx)
-	conn, err := dialContext(ctx, addr)
-	if err != nil {
-		return nil, err
-	}
-	return &DataNodeClient{
-		ctx:                ctx,
-		cancel:             cancel,
-		conn:               conn,
-		addr:               addr,
-		nodeId:             nodeId,
-		dataProviderClient: datasvc.NewDataProviderClient(conn),
-	}, nil
 }
 
 func (c *DataNodeClient) Close() {
