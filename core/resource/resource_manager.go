@@ -124,7 +124,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		return err
 	}
 
-	// 更新本地 resource 资源信息 [添加资源使用情况]
+	// Update local resource resource information [increase resource usage]
 	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
 		// rollback useSlot => freeSlot
@@ -149,7 +149,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		return err
 	}
 
-	// 更新 本地 jobNodeResource 的资源使用信息
+	// Update the resource usage information of the local jobNode resource
 	jobNodeResource.GetData().UsedMem += mem
 	jobNodeResource.GetData().UsedProcessor += processor
 	jobNodeResource.GetData().UsedBandwidth += bandwidth
@@ -168,7 +168,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		return err
 	}
 
-	// 还需要 将资源使用实况 实时上报给  dataCenter  [添加资源使用情况]
+	// Report resource usage to datacenter in real time [increase resource usage]
 	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
 		log.WithError(err).Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
@@ -196,6 +196,12 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	log.Infof("Start unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, used: %s",
 		taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, used.String())
 
+	if err := m.removePartyTaskPowerUsedOnJobNode(used); nil != err {
+		log.WithError(err).Errorf("Failed to remove partyTaskPowerUsed on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
+			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+		return err
+	}
+
 	// Unlock local resource (jobNode)
 	if err := m.FreeSlot(used.GetNodeId(), freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount); nil != err {
 		log.WithError(err).Errorf("Failed to freeSlot withJobNodeId on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
@@ -203,13 +209,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	if err := m.removePartyTaskPowerUsedOnJobNode(used); nil != err {
-		log.WithError(err).Errorf("Failed to remove partyTaskPowerUsed on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
-			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
-		return err
-	}
-
-	// 更新本地 resource 资源信息 [释放资源使用情况]
+	// Update local resource resource information [release resource usage]
 	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
@@ -237,7 +237,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	// 还需要 将资源使用实况 实时上报给  dataCenter  [释放资源使用情况]
+	// Report resource usage to datacenter in real time [release resource usage]
 	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
 		log.WithError(err).Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
