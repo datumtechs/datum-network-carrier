@@ -50,20 +50,27 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 		return fmt.Errorf("Failed to init services with discorvery center, consul manager is nil")
 	}
 
-	// First: register carrier service to discorvery center
+	// 1. register carrier service to discorvery center
 	if err := s.consulManager.RegisterService2DiscoveryCenter(); nil != err {
 		return fmt.Errorf("Failed to register discovery service to discovery center, %s", err)
 	}
 
-	// second: fetch datacenter and via and all jobnodes and datanodes from discorvery center
-	datacenterIP, err := s.consulManager.GetKV("datacenterIP", nil)
+	// 2. fetch datacenter ip&port config from discorvery center
+	datacenterIpAndPort, err := s.consulManager.GetKV(discovery.DataCenterConsulServiceAddressKey, nil)
 	if nil == err {
-		return fmt.Errorf("Failed to query datacenter IP from discovery center, %s", err)
+		return fmt.Errorf("Failed to query datacenter IP and PORT KVconfig from discovery center, %s", err)
 	}
-	datacenterPortStr, err := s.consulManager.GetKV("datacenterPort", nil)
-	if nil == err {
-		return fmt.Errorf("Failed to query datacenter Port from discovery center, %s", err)
+	if "" == datacenterIpAndPort {
+		return fmt.Errorf("datacenter IP and PORT KVconfig is empty from discovery center")
 	}
+	configArr := strings.Split(datacenterIpAndPort, discovery.ConsulServiceIdSeparator)
+
+	if len(configArr) != 2 {
+		return fmt.Errorf("datacenter IP and PORT lack one on KVconfig from discovery center")
+	}
+
+	datacenterIP, datacenterPortStr := configArr[0], configArr[1]
+
 	datacenterPort, err := strconv.Atoi(datacenterPortStr)
 	if nil == err {
 		return fmt.Errorf("invalid datacenter Port from discovery center, %s", err)
@@ -89,20 +96,29 @@ func (s *Service) refreshResourceNodes() error {
 		return fmt.Errorf("Failed to refresh internal resource nodes, consul manager is nil")
 	}
 
-	viaExternalIP, err := s.consulManager.GetKV("viaExternalIP", nil)
-	if nil == err {
-		return fmt.Errorf("Failed to query via external IP from discovery center, %s", err)
-	}
-	viaExternalPort, err := s.consulManager.GetKV("viaExternalPort", nil)
-	if nil == err {
-		return fmt.Errorf("Failed to query via external Port from discovery center, %s", err)
-	}
-
+	// 1. check whether the current organization is connected to the network.
+	//    if it is not connected to the network, without subsequent processing and short circuit.
 	identity, err := s.carrierDB.QueryIdentity()
 	if nil != err {
 		//log.WithError(err).Warnf("Failed to query local identity")
 		return nil
 	}
+
+	// 2. fetch via external ip&port config from discorvery center
+	viaExternalIpAndPort, err := s.consulManager.GetKV(discovery.ViaNodeConsulServiceExternalAddressKey, nil)
+	if nil == err {
+		return fmt.Errorf("Failed to query via external IP and PORT KVconfig from discovery center, %s", err)
+	}
+	if "" == viaExternalIpAndPort {
+		return fmt.Errorf("via external IP and PORT KVconfig is empty from discovery center")
+	}
+	configArr := strings.Split(viaExternalIpAndPort, discovery.ConsulServiceIdSeparator)
+
+	if len(configArr) != 2 {
+		return fmt.Errorf("via external IP and PORT lack one on KVconfig from discovery center")
+	}
+
+	viaExternalIP, viaExternalPort := configArr[0], configArr[1]
 
 	storeLocalResourceFn := func(identity *apicommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
 		// store into local db
