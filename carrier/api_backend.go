@@ -608,7 +608,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 
 		// 1. remove data resource  (disk)
 		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); rawdb.IsNoDBNotFoundErr(err) {
-			log.WithError(err).Errorf("Failed to remove disk summary of old dataNode on service.refreshResourceNodes()")
+			log.WithError(err).Errorf("Failed to remove disk summary of old dataNode on RemoveRegisterNode")
 			return err
 		}
 		// 2. remove rpc client
