@@ -20,6 +20,10 @@ const (
 	JobNodeConsulServiceIdPrefix        = "jobService"
 	DataNodeConsulServiceIdPrefix        = "dataService"
 
+	// config prefix
+	
+
+
 	// tag
 	JobNodeConsulServiceTag             = "job"
 	DataNodeConsulServiceTag            = "data"
