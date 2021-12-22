@@ -35,16 +35,6 @@ on how you can run your own `carrier` instance.
 
 ### Full node
 
-The start of the node needs to know the address information of the data center service in advance, and the program will take the initiative to conduct 
-a link communication test with the data service after it is started. If the connection fails, the program fails to start, and vice versa.
-
-```shell
-$ carrier --datadir ./data --grpc-datacenter-host 192.168.10.146 --grpc-datacenter-port 9098
-```
-
-* `--grpc-datacenter-host` Data Service listening interface (default: `192.168.112.32`)
-* `--grpc-datacenter-port` Data Service listening port (default: `9099`)
-
 *Note: For more flags settings, please use the `carrier --help` command to view*
 
 

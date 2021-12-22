@@ -144,7 +144,7 @@ func (s *Service) refreshResourceNodes() error {
 			TotalDisk:      jobNodeStatus.GetTotalDisk(),
 			UsedDisk:       0,
 		})); nil != err {
-			log.WithError(err).Errorf("Failed to store power to local on MessageHandler with broadcast, jobNodeId: {%s}",
+			log.WithError(err).Errorf("Failed to store power to local on service.refreshResourceNodes(), jobNodeId: {%s}",
 				jobNodeId)
 			return err
 		}
@@ -166,7 +166,7 @@ func (s *Service) refreshResourceNodes() error {
 		// load stored jobNode
 		jobNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 		if nil != err && rawdb.IsNoDBNotFoundErr(err) {
-			log.WithError(err).Warnf("query jobNodes from local db failed")
+			log.WithError(err).Warnf("query jobNodes from local db failed on service.refreshResourceNodes()")
 		} else if nil == err {
 			for _, node := range jobNodeList {
 				jobNodeCache[node.GetId()] = node
@@ -239,7 +239,7 @@ func (s *Service) refreshResourceNodes() error {
 				// The published jobNode cannot be updated directly
 				resourceTable, err := s.carrierDB.QueryLocalResourceTable(jobNodeId)
 				if rawdb.IsNoDBNotFoundErr(err) {
-					log.WithError(err).Errorf("query local power resource on old jobNode failed")
+					log.WithError(err).Errorf("Failed to query local power resource on old jobNode on service.refreshResourceNodes()")
 					continue
 				}
 				if nil != resourceTable {
@@ -293,8 +293,9 @@ func (s *Service) refreshResourceNodes() error {
 				// 2. remove local jobNode reource
 				// remove jobNode local resource
 				if err = s.carrierDB.RemoveLocalResource(jobNodeId); nil != err {
-					log.WithError(err).Errorf("remove jobNode local resource failed, jobNodeId: {%s}",
+					log.WithError(err).Errorf("Failed to remove jobNode local resource on service.refreshResourceNodes(), jobNodeId: {%s}",
 						jobNodeId)
+					continue
 				}
 				// 3. remove rpc client
 				if client, ok := s.resourceClientSet.QueryJobNodeClient(jobNodeId); ok {
@@ -324,7 +325,7 @@ func (s *Service) refreshResourceNodes() error {
 		// load stored dataNode
 		dataNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 		if nil != err && rawdb.IsNoDBNotFoundErr(err) {
-			log.WithError(err).Warnf("query dataNodes from local db failed")
+			log.WithError(err).Warnf("query dataNodes from local db failed on service.refreshResourceNodes()")
 		} else if nil == err {
 			for _, node := range dataNodeList {
 				dataNodeCache[node.GetId()] = node
@@ -395,7 +396,7 @@ func (s *Service) refreshResourceNodes() error {
 
 				// 1. remove data resource  (disk)
 				if err := s.carrierDB.RemoveDataResourceTable(dataNodeId); rawdb.IsNoDBNotFoundErr(err) {
-					log.WithError(err).Errorf("Failed to remove disk summary of old dataNode")
+					log.WithError(err).Errorf("Failed to remove disk summary of old dataNode on service.refreshResourceNodes()")
 					continue
 				}
 				// 2. remove rpc client

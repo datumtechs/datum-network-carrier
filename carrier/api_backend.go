@@ -476,16 +476,6 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 	if typ == pb.PrefixTypeDataNode {
 
-		//// First verify whether the dataNode has been used
-		//dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(node.Id)
-		//if rawdb.IsNoDBNotFoundErr(err) {
-		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
-		//}
-		//if dataNodeTable.IsNotEmpty() /* && dataNodeTable.IsUsed()*/ {
-		//	return pb.ConnState_ConnState_UnConnected, fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
-		//		dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
-		//}
-
 		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(node.GetId()); ok {
 			// remove old client instanse
 			client.Close()
@@ -531,7 +521,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error {
 
-	_, err := s.carrier.carrierDB.QueryIdentity()
+	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
@@ -550,52 +540,85 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 		}
 
 		if nil != resourceTable {
-			log.Debugf("still have the published computing power information on old jobNode on RemoveRegisterNode, %s", resourceTable.String())
-			return fmt.Errorf("still have the published computing power information on old jobNode failed,input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
-				id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
-		}
+			//log.Debugf("still have the published computing power information on old jobNode on RemoveRegisterNode, %s", resourceTable.String())
+			//return fmt.Errorf("still have the published computing power information on old jobNode failed,input jobNodeId: {%s}, old jobNodeId: {%s}, old powerId: {%s}",
+			//	id, resourceTable.GetNodeId(), resourceTable.GetPowerId())
+			log.Warnf("still have the published computing power information by the jobNode, that need revoke power short circuit on RemoveRegisterNode, %s",
+				resourceTable.String())
+			// ##############################
+			// A. remove power about jobNode
+			// ##############################
 
-		// First check whether there is a task being executed on jobNode
-		runningTaskCount, err := s.carrier.carrierDB.QueryJobNodeRunningTaskCount(id)
-		if rawdb.IsNoDBNotFoundErr(err) {
-			return fmt.Errorf("query local running taskCount on old jobNode failed, %s", err)
-		}
-		if runningTaskCount > 0 {
-			return fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
-		}
+			// 1. remove jobNodeId and powerId mapping
+			if err := s.carrier.carrierDB.RemoveJobNodeIdByPowerId(resourceTable.GetPowerId()); nil != err {
+				log.WithError(err).Errorf("Failed to call RemoveJobNodeIdByPowerId() on RemoveRegisterNode with revoke power, powerId: {%s}, jobNodeId: {%s}",
+					resourceTable.GetPowerId(), id)
+				return err
+			}
 
+			// 2. remove local jobNode resource table
+			if err := s.carrier.carrierDB.RemoveLocalResourceTable(id); nil != err {
+				log.WithError(err).Errorf("Failed to RemoveLocalResourceTable on RemoveRegisterNode with revoke power, powerId: {%s}, jobNodeId: {%s}",
+					resourceTable.GetPowerId(), id)
+				return err
+			}
+
+			// 3. revoke power about jobNode from global
+			if err := s.carrier.carrierDB.RevokeResource(types.NewResource(&libtypes.ResourcePB{
+				IdentityId: identity.GetIdentityId(),
+				NodeId:     identity.GetNodeId(),
+				NodeName:   identity.GetNodeName(),
+				DataId:     resourceTable.GetPowerId(),
+				// the status of data, N means normal, D means deleted.
+				DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+				// resource status, eg: create/release/revoke
+				State:    apicommonpb.PowerState_PowerState_Revoked,
+				UpdateAt: timeutils.UnixMsecUint64(),
+			})); nil != err {
+				log.WithError(err).Errorf("Failed to remove dataCenter resource on RemoveRegisterNode with revoke power, powerId: {%s}, jobNodeId: {%s}",
+					resourceTable.GetPowerId(), id)
+				return err
+			}
+		}
+		// ##############################
+		// B. remove except power things about jobNode
+		// ##############################
+
+		// 1. remove all running task
+		taskIdList, _ := s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(id)
+		for _, taskId := range taskIdList {
+			s.carrier.carrierDB.RemoveJobNodeTaskIdAllPartyIds(id, taskId)
+		}
+		// 2. remove local jobNode reource
+		// remove jobNode local resource
+		if err = s.carrier.carrierDB.RemoveLocalResource(id); nil != err {
+			log.WithError(err).Errorf("Failed to remove jobNode local resource on RemoveRegisterNode, jobNodeId: {%s}",
+				id)
+			return err
+		}
+		// 3. remove rpc client
 		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
 			client.Close()
 			s.carrier.resourceClientSet.RemoveJobNodeClient(id)
 		}
-
-		// remove jobNode local resource
-		if err = s.carrier.carrierDB.RemoveLocalResource(id); nil != err {
-			return fmt.Errorf("remove jobNode local resource failed, %s", err)
-		}
+		// 4. goto `Finally`
 	}
 
 	if typ == pb.PrefixTypeDataNode {
 
-		//// First verify whether the dataNode has been used
-		//dataNodeTable, err := s.carrier.carrierDB.QueryDataResourceTable(id)
-		//if rawdb.IsNoDBNotFoundErr(err) {
-		//	return fmt.Errorf("query disk used summary on old dataNode failed, %s", err)
-		//}
-		//if dataNodeTable.IsNotEmpty() /* && dataNodeTable.IsUsed()*/ {
-		//	return fmt.Errorf("the disk of old dataNode was used, don't remove it, totalDisk: {%d byte}, usedDisk: {%d byte}, remainDisk: {%d byte}",
-		//		dataNodeTable.GetTotalDisk(), dataNodeTable.GetUsedDisk(), dataNodeTable.RemainDisk())
-		//}
-
+		// 1. remove data resource  (disk)
+		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); rawdb.IsNoDBNotFoundErr(err) {
+			log.WithError(err).Errorf("Failed to remove disk summary of old dataNode on service.refreshResourceNodes()")
+			return err
+		}
+		// 2. remove rpc client
 		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
 			client.Close()
 			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
 		}
-		// remove data resource  (disk)
-		if err := s.carrier.carrierDB.RemoveDataResourceTable(id); rawdb.IsNoDBNotFoundErr(err) {
-			return fmt.Errorf("remove disk summary of old registerNode, %s", err)
-		}
+		// 3. goto `Finally`
 	}
+	// `Finally`: remove local jobNode info
 	return s.carrier.carrierDB.DeleteRegisterNode(typ, id)
 }
 
