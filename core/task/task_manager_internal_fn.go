@@ -584,7 +584,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 			logdesc = "Broadcast()"
 		}
 
-		log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succceed to call`sendTaskTerminateMsg.%s` taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
+		log.WithField("traceId", traceutil.GenerateTraceID(terminateMsg)).Debugf("Succeed to call`sendTaskTerminateMsg.%s` taskId: %s, other peer's taskRole: %s, other peer's partyId: %s, other identityId: %s, pid: %s",
 			logdesc, task.GetTaskId(), receiverRole.String(), receiver.GetPartyId(), receiver.GetIdentityId(), pid)
 
 	}

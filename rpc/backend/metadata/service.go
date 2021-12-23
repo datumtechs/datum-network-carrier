@@ -11,7 +11,7 @@ import (
 )
 
 func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *pb.GetGlobalMetadataDetailListRequest) (*pb.GetGlobalMetadataDetailListResponse, error) {
-	metadataList, err := svr.B.GetGlobalMetadataDetailList(req.LastUpdated, backend.DefaultPageSize)
+	metadataList, err := svr.B.GetGlobalMetadataDetailList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
@@ -29,7 +29,7 @@ func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *pb.GetG
 }
 
 func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *pb.GetLocalMetadataDetailListRequest) (*pb.GetLocalMetadataDetailListResponse, error) {
-	metadataList, err := svr.B.GetLocalMetadataDetailList(req.LastUpdated, backend.DefaultPageSize)
+	metadataList, err := svr.B.GetLocalMetadataDetailList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList

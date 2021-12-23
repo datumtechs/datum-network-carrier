@@ -366,6 +366,8 @@ func (m *Manager) loop() {
 
 func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 
+	log.Infof("Start terminate task, userType: {%s}, user: {%s}, taskId: {%s}", terminate.GetUserType(), terminate.GetUser(), terminate.GetTaskId())
+
 	// Why load 'local task' instead of 'needexecutetask'?
 	//
 	// Because the task may still be in the `consensus phase` rather than the `execution phase`,

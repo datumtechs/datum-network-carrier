@@ -38,6 +38,7 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
 			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
+		UpdateAt:
 	}
 
 	// DataSupplier

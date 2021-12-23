@@ -916,7 +916,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalPowerDetailList(lastUpdate uint64) ([]*pb.GetLocalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalPowerDetailList(lastUpdate, pageSize uint64) ([]*pb.GetLocalPowerDetailResponse, error) {
 	log.Debug("Invoke:GetLocalPowerDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.QueryLocalResourceList()
@@ -1191,7 +1191,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 	return detailShow, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate uint64) ([]*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
@@ -1210,7 +1210,7 @@ func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate uint64) ([]*pb.TaskDeta
 	}
 
 	// the task has been executed.
-	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByIdentityId(localIdentityId)
+	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByIdentityId(localIdentityId, lastUpdate, pageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}

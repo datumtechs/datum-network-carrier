@@ -3,11 +3,9 @@ package core
 import (
 	"errors"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 	"time"
@@ -140,10 +138,10 @@ func (dc *DataCenter) QueryTaskEventList(taskId string) ([]*libtypes.TaskEvent, 
 	return rawdb.QueryTaskEvent(dc.db, taskId)
 }
 
-func (dc *DataCenter) QueryTaskEventListByPartyId (taskId, partyId string) ([]*libtypes.TaskEvent, error) {
+func (dc *DataCenter) QueryTaskEventListByPartyId(taskId, partyId string) ([]*libtypes.TaskEvent, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.QueryTaskEventByPartyId (dc.db, taskId, partyId)
+	return rawdb.QueryTaskEventByPartyId(dc.db, taskId, partyId)
 }
 
 func (dc *DataCenter) RemoveTaskEventList(taskId string) error {
@@ -158,7 +156,7 @@ func (dc *DataCenter) RemoveTaskEventListByPartyId(taskId, partyId string) error
 	return rawdb.RemoveTaskEventByPartyId(dc.db, taskId, partyId)
 }
 
-func sprintPowers (powers []*libtypes.TaskPowerSupplier) string  {
+func sprintPowers(powers []*libtypes.TaskPowerSupplier) string {
 	arr := make([]string, 0)
 	for _, power := range powers {
 		arr = append(arr, power.String())
@@ -185,13 +183,13 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	return nil
 }
 
-func (dc *DataCenter) QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error) {
+func (dc *DataCenter) QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
 	taskListResponse, err := dc.client.ListTaskByIdentity(dc.ctx, &api.ListTaskByIdentityRequest{
 		IdentityId:  identityId,
-		LastUpdated: timeutils.BeforeYearUnixMsecUint64(),
-		PageSize: backend.DefaultMaxPageSize,
+		LastUpdated: lastUpdate,
+		PageSize:    pageSize,
 	})
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
@@ -236,7 +234,6 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 	}
 	return eventList, nil
 }
-
 
 // about TaskPowerUsed
 func (dc *DataCenter) StoreLocalTaskPowerUsed(taskPowerUsed *types.LocalTaskPowerUsed) error {
@@ -343,38 +340,38 @@ func (dc *DataCenter) QueryJobNodeTaskPartyIdCount(jobNodeId, taskId string) (ui
 }
 
 // about jobNode history taskId and count
-func (dc *DataCenter) StoreJobNodeHistoryTaskId (jobNodeId, taskId string) error {
+func (dc *DataCenter) StoreJobNodeHistoryTaskId(jobNodeId, taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreJobNodeHistoryTaskId(dc.db, jobNodeId, taskId)
 }
 
-func (dc *DataCenter) HasJobNodeHistoryTaskId (jobNodeId, taskId string) (bool, error) {
+func (dc *DataCenter) HasJobNodeHistoryTaskId(jobNodeId, taskId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.HasJobNodeHistoryTaskId(dc.db, jobNodeId, taskId)
 }
 
-func (dc *DataCenter) QueryJobNodeHistoryTaskCount (jobNodeId string) (uint32, error) {
+func (dc *DataCenter) QueryJobNodeHistoryTaskCount(jobNodeId string) (uint32, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryJobNodeHistoryTaskCount(dc.db, jobNodeId)
 }
 
 // about TaskResultFileMetadataId
-func (dc *DataCenter) StoreTaskUpResultFile(turf *types.TaskUpResultFile)  error {
+func (dc *DataCenter) StoreTaskUpResultFile(turf *types.TaskUpResultFile) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreTaskUpResultFile(dc.db, turf)
 }
 
-func (dc *DataCenter) QueryTaskUpResultFile(taskId string)  (*types.TaskUpResultFile, error) {
+func (dc *DataCenter) QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryTaskUpResultFile(dc.db, taskId)
 }
 
-func (dc *DataCenter) QueryTaskUpResultFileList () ([]*types.TaskUpResultFile, error) {
+func (dc *DataCenter) QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.QueryTaskUpResultFileList(dc.db)
@@ -398,7 +395,7 @@ func (dc *DataCenter) QueryTaskPowerPartyIds(taskId string) ([]string, error) {
 	return rawdb.QueryTaskPowerPartyIds(dc.db, taskId)
 }
 
-func (dc *DataCenter) RemoveTaskPowerPartyIds (taskId string) error {
+func (dc *DataCenter) RemoveTaskPowerPartyIds(taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveTaskPowerPartyIds(dc.db, taskId)
@@ -422,14 +419,14 @@ func (dc *DataCenter) QueryTaskPartnerPartyIds(taskId string) ([]string, error) 
 	return rawdb.QueryTaskPartnerPartyIds(dc.db, taskId)
 }
 
-func (dc *DataCenter) RemoveTaskPartnerPartyId (taskId, partyId string) error {
+func (dc *DataCenter) RemoveTaskPartnerPartyId(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	log.Debugf("Start remove partyId of local task's partner arr, taskId: {%s}, partyId: {%s}", taskId, partyId)
 	return rawdb.RemoveTaskPartnerPartyId(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) RemoveTaskPartnerPartyIds (taskId string) error {
+func (dc *DataCenter) RemoveTaskPartnerPartyIds(taskId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.RemoveTaskPartnerPartyIds(dc.db, taskId)
@@ -499,13 +496,13 @@ func (dc *DataCenter) RemoveNeedExecuteTask(taskId string) error {
 	return rawdb.RemoveNeedExecuteTask(dc.db, taskId)
 }
 
-func (dc *DataCenter) ForEachNeedExecuteTaskWwithPrefix (prifix []byte, f func(key, value []byte) error) error {
+func (dc *DataCenter) ForEachNeedExecuteTaskWwithPrefix(prifix []byte, f func(key, value []byte) error) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ForEachNeedExecuteTaskWwithPrefix(dc.db, prifix, f)
 }
 
-func (dc *DataCenter) ForEachNeedExecuteTask (f func(key, value []byte) error) error {
+func (dc *DataCenter) ForEachNeedExecuteTask(f func(key, value []byte) error) error {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.ForEachNeedExecuteTask(dc.db, f)

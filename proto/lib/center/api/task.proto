@@ -14,39 +14,40 @@ message SaveTaskRequest {
 }
 
 message ListTaskByIdentityRequest {
-    string identity_id      = 1;
-    uint64 last_updated = 2;
-    uint64 page_size = 3; // 单次批量数据的返回条数
+  string identity_id = 1;
+  uint64 last_updated = 2;    // 从对应updateAt那条记录开始拉
+  uint64 page_size = 3;       // 单次批量数据的返回条数
 }
 
 message ListTaskRequest {
-    uint64 last_updated = 1;
-    uint64 page_size = 2; // 单次批量数据的返回条数
+  uint64 last_updated = 1;  // 从对应updateAt那条记录开始拉
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 message ListTaskResponse {
-    repeated types.TaskPB tasks = 1;
+  repeated types.TaskPB     tasks = 1;
+  uint64                    last_updated = 2; // 本次resp所有记录中的最新那条记录的updateAt
 }
 
 message GetTaskDetailRequest {
-    string task_id = 1;
+  string task_id = 1;
 }
 
 message GetTaskDetailResponse {
-    types.TaskPB task = 1;
+  types.TaskPB task = 1;
 }
 
 message ListTaskEventRequest {
-    string task_id = 1;
+  string task_id = 1;
 }
 
 message ListTaskEventResponse {
   // 错误码，0 成功，1 异常
-    int32 status = 1;
+  int32 status = 1;
   // 错误信息
-    string msg = 2;
+  string msg = 2;
   // 事件列表
-    repeated types.TaskEvent task_events = 3;
+  repeated types.TaskEvent task_events = 3;
 }
 
 // TaskService defines the interface to interact with the central data service.

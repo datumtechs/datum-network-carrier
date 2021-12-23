@@ -25,11 +25,10 @@ type LocalStoreCarrierDB interface {
 	RemoveLocalResource(jobNodeId string) error
 	QueryLocalResource(jobNodeId string) (*types.LocalResource, error)
 	QueryLocalResourceList() (types.LocalResourceArray, error)
-	// powerId -> jobNodeId
+	// about powerId -> jobNodeId
 	StoreJobNodeIdIdByPowerId(powerId, jobNodeId string) error
 	RemoveJobNodeIdByPowerId(powerId string) error
 	QueryJobNodeIdByPowerId(powerId string) (string, error)
-
 	// about jobRerource   (jobNodeId -> {jobNodeId, powerId, resource, slotTotal, slotUsed})
 	StoreLocalResourceTable(resource *types.LocalResourceTable) error
 	RemoveLocalResourceTable(resourceId string) error
@@ -52,11 +51,6 @@ type LocalStoreCarrierDB interface {
 	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
-	// v2.0  about user metadataAuthUsed (userType + user -> metadataAuthId ...)
-	//StoreUserMetadataAuthUsed(userType apicommonpb.UserType, user, metadataAuthId string) error
-	//QueryUserMetadataAuthUsedCount(userType apicommonpb.UserType, user string) (uint32, error)
-	//QueryUserMetadataAuthUseds(userType apicommonpb.UserType, user string) ([]string, error)
-	//RemoveAllUserMetadataAuthUsed(userType apicommonpb.UserType, user string) error
 	// v 2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
 	StoreUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error
 	QueryUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (string, error)
@@ -91,14 +85,14 @@ type MetadataCarrierDB interface {
 	InsertMetadata(metadata *types.Metadata) error
 	RevokeMetadata(metadata *types.Metadata) error
 	QueryMetadataByDataId(dataId string) (*types.Metadata, error)
-	QueryMetadataList(lastUpdate uint64, pageSize uint64) (types.MetadataArray, error)
+	QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error)
 }
 
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
-	QueryGlobalResourceSummaryList(lastUpdate uint64, pageSize uint64) (types.ResourceArray, error)
-	QueryGlobalResourceDetailList(lastUpdate uint64, pageSize uint64) (types.ResourceArray, error)
+	QueryGlobalResourceSummaryList(lastUpdate, pageSize uint64) (types.ResourceArray, error)
+	QueryGlobalResourceDetailList(lastUpdate, pageSize uint64) (types.ResourceArray, error)
 	SyncPowerUsed(resource *types.LocalResource) error
 }
 
@@ -109,7 +103,7 @@ type IdentityCarrierDB interface {
 	QueryIdentityId() (string, error)
 	QueryIdentity() (*apicommonpb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
-	QueryIdentityList(lastUpdate uint64, pageSize uint64) (types.IdentityArray, error)
+	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
 	HasIdentity(identity *apicommonpb.Organization) (bool, error)
 	// v2.0
@@ -118,8 +112,8 @@ type IdentityCarrierDB interface {
 	//RevokeMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	QueryMetadataAuthority(metadataAuthId string) (*types.MetadataAuthority, error)
 	QueryMetadataAuthorityListByIds(metadataAuthIds []string) (types.MetadataAuthArray, error)
-	QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error)
-	QueryMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error)
+	QueryMetadataAuthorityListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
+	QueryMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
 }
 
 type TaskCarrierDB interface {
@@ -140,7 +134,7 @@ type TaskCarrierDB interface {
 	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	// about task on datacenter
 	InsertTask(task *types.Task) error
-	QueryTaskListByIdentityId(identityId string) (types.TaskDataArray, error)
+	QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 	// v 1.0 about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})

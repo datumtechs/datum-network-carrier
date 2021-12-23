@@ -122,7 +122,7 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 }
 
 func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListRequest) (*pb.GetIdentityListResponse, error) {
-	identityList, err := svr.B.GetIdentityList(req.LastUpdated, backend.DefaultPageSize)
+	identityList, err := svr.B.GetIdentityList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:QueryIdentityList failed")
 		return nil, ErrGetIdentityList
@@ -414,7 +414,7 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 
 func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.GetMetadataAuthorityListRequest) (*pb.GetMetadataAuthorityListResponse, error) {
 
-	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.LastUpdated, backend.DefaultPageSize)
+	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList

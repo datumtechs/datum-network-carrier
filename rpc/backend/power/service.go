@@ -13,7 +13,7 @@ import (
 )
 
 func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *pb.GetGlobalPowerSummaryListRequest) (*pb.GetGlobalPowerSummaryListResponse, error) {
-	powerList, err := svr.B.GetGlobalPowerSummaryList(req.LastUpdated, backend.DefaultPageSize)
+	powerList, err := svr.B.GetGlobalPowerSummaryList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalPowerSummaryList failed")
 		return nil, ErrGetTotalPowerList
@@ -28,7 +28,7 @@ func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *pb.GetGlo
 }
 
 func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *pb.GetGlobalPowerDetailListRequest) (*pb.GetGlobalPowerDetailListResponse, error) {
-	powerList, err := svr.B.GetGlobalPowerDetailList(req.LastUpdated, backend.DefaultPageSize)
+	powerList, err := svr.B.GetGlobalPowerDetailList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalPowerDetailList failed")
 		return nil, ErrGetTotalPowerList
@@ -43,7 +43,7 @@ func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *pb.GetGlob
 }
 
 func (svr *Server) GetLocalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetLocalPowerDetailListResponse, error) {
-	powerList, err := svr.B.GetLocalPowerDetailList(timeutils.BeforeYearUnixMsecUint64())
+	powerList, err := svr.B.GetLocalPowerDetailList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalPowerDetailList failed")
 		return nil, ErrGetSinglePowerList

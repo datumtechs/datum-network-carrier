@@ -189,12 +189,11 @@ func (m *ListIdentityRequest) GetPageSize() uint64 {
 }
 
 type ListIdentityResponse struct {
-	Identities []*common.Organization `protobuf:"bytes,1,rep,name=identities,proto3" json:"identities,omitempty"`
-	// 数据的最后更新点（毫秒级时间戳）
-	LastUpdated          uint64   `protobuf:"varint,2,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	Identities           []*common.Organization `protobuf:"bytes,1,rep,name=identities,proto3" json:"identities,omitempty"`
+	LastUpdated          uint64                 `protobuf:"varint,2,opt,name=last_updated,json=lastUpdated,proto3" json:"last_updated,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
+	XXX_unrecognized     []byte                 `json:"-"`
+	XXX_sizecache        int32                  `json:"-"`
 }
 
 func (m *ListIdentityResponse) Reset()         { *m = ListIdentityResponse{} }

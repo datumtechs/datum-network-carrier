@@ -46,18 +46,18 @@ type Backend interface {
 	HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error)
 
 	// power api
-	GetGlobalPowerSummaryList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerSummaryResponse, error)
-	GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerDetailResponse, error)
-	GetLocalPowerDetailList(lastUpdate uint64) ([]*pb.GetLocalPowerDetailResponse, error)
+	GetGlobalPowerSummaryList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalPowerSummaryResponse, error)
+	GetGlobalPowerDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalPowerDetailResponse, error)
+	GetLocalPowerDetailList(lastUpdate, pageSize uint64) ([]*pb.GetLocalPowerDetailResponse, error)
 
 	// identity api
 
 	GetNodeIdentity() (*types.Identity, error)
-	GetIdentityList(lastUpdate uint64, pageSize uint64) ([]*types.Identity, error)
+	GetIdentityList(lastUpdate, pageSize uint64) ([]*types.Identity, error)
 
 	// task api
 	GetLocalTask(taskId string) (*pb.TaskDetailShow, error)
-	GetTaskDetailList(lastUpdate uint64) ([]*pb.TaskDetailShow, error)
+	GetTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error)
 	GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error)
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
 	HasLocalTask () (bool, error)

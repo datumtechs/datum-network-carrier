@@ -12,7 +12,7 @@ import (
 )
 
 func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailListRequest) (*pb.GetTaskDetailListResponse, error) {
-	tasks, err := svr.B.GetTaskDetailList(req.LastUpdated)
+	tasks, err := svr.B.GetTaskDetailList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
 		return nil, ErrGetNodeTaskList
