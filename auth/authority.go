@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"time"
 )
@@ -47,7 +48,7 @@ func (am *AuthorityManager) loop () {
 }
 
 func (am *AuthorityManager) refreshMetadataAuthority () {
-	list, err := am.metadataAuth.GetLocalMetadataAuthorityList()
+	list, err := am.metadataAuth.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		return
 	}
@@ -154,14 +155,14 @@ func (am *AuthorityManager) GetMetadataAuthority (metadataAuthId string) (*types
 	return am.metadataAuth.GetMetadataAuthority(metadataAuthId)
 }
 
-func (am *AuthorityManager) GetLocalMetadataAuthorityList () (types.MetadataAuthArray, error) {
+func (am *AuthorityManager) GetLocalMetadataAuthorityList (lastUpdate, pageSize uint64) (types.MetadataAuthArray, error) {
 	//list, err := am.metadataAuth.GetLocalMetadataAuthorityList()
 	//if nil != err {
 	//	return nil, err
 	//}
 	//return filterMetadataAuth(list)
 
-	return am.metadataAuth.GetLocalMetadataAuthorityList()
+	return am.metadataAuth.GetLocalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
 func (am *AuthorityManager) GetGlobalMetadataAuthorityList (lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {

@@ -87,6 +87,16 @@ func (gc *GrpcClient) GetMetadataList(ctx context.Context, request *api.ListMeta
 	return gc.metadataService.ListMetadata(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
+func (gc *GrpcClient) GetMetadataListByIdentityId(ctx context.Context, request *api.ListMetadataByIdentityIdRequest) (*api.ListMetadataResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
+	defer cancel()
+	return gc.metadataService.ListMetadataByIdentityId(ctx, request, RPCMaxCallRecvMsgSize)
+}
+
 func (gc *GrpcClient) GetMetadataById(ctx context.Context, request *api.FindMetadataByIdRequest) (*api.FindMetadataByIdResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
@@ -222,7 +232,6 @@ func (gc *GrpcClient) GetMetadataAuthorityList(ctx context.Context, request *api
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
-	log.Debugf("Start call datacenter rpcapi ListMetadataAuthority(), request: %s", request.String())
 	return gc.identityService.ListMetadataAuthority(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
@@ -284,6 +293,5 @@ func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.ListTaskEv
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
-	log.Debugf("Start call datacenter rpcapi ListTaskEvent(), request: %s", request.String())
 	return gc.taskService.ListTaskEvent(ctx, request, RPCMaxCallRecvMsgSize)
 }

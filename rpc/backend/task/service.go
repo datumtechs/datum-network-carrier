@@ -25,7 +25,6 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailL
 		}
 		arr[i] = t
 	}
-	//log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}, json: %s", len(arr), utilTaskDetailResponseArrString(arr))
 	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}", len(arr))
 	return &pb.GetTaskDetailListResponse{
 		Status:   0,

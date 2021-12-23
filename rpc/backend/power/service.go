@@ -3,7 +3,6 @@ package power
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -12,8 +11,8 @@ import (
 	"strings"
 )
 
-func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *pb.GetGlobalPowerSummaryListRequest) (*pb.GetGlobalPowerSummaryListResponse, error) {
-	powerList, err := svr.B.GetGlobalPowerSummaryList(req.GetLastUpdated(), backend.DefaultPageSize)
+func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *emptypb.Empty) (*pb.GetGlobalPowerSummaryListResponse, error) {
+	powerList, err := svr.B.GetGlobalPowerSummaryList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalPowerSummaryList failed")
 		return nil, ErrGetTotalPowerList
@@ -43,7 +42,7 @@ func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *pb.GetGlob
 }
 
 func (svr *Server) GetLocalPowerDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetLocalPowerDetailListResponse, error) {
-	powerList, err := svr.B.GetLocalPowerDetailList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	powerList, err := svr.B.GetLocalPowerDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalPowerDetailList failed")
 		return nil, ErrGetSinglePowerList

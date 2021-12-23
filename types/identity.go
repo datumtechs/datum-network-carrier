@@ -70,8 +70,20 @@ func (m *Identity) GetIdentityId() string {
 	return m.data.GetIdentityId()
 }
 
+func (m *Identity) GetImageUrl() string {
+	return m.data.GetImageUrl()
+}
+
+func (m *Identity) GetDetails() string {
+	return m.data.GetDetails()
+}
+
 func (m *Identity) GetCredential() string {
 	return m.data.GetCredential()
+}
+
+func (m *Identity) GetUpdateAt() uint64 {
+	return m.data.GetUpdateAt()
 }
 
 func (m *Identity) String() string {

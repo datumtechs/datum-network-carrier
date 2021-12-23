@@ -120,6 +120,7 @@ service AuthService {
       body: "*"
     };
   }
+
   // 查询自己组织的identity信息
   rpc GetNodeIdentity (google.protobuf.Empty)returns (GetNodeIdentityResponse) {
     option (google.api.http) = {

@@ -30,21 +30,12 @@ func QueryLocalIdentity(db DatabaseReader) (*apicommonpb.Organization, error) {
 	if err := blob.Unmarshal(enc); nil != err {
 		return nil, err
 	}
-	return &apicommonpb.Organization{
-		NodeName:   blob.GetNodeName(),
-		NodeId:     blob.GetNodeId(),
-		IdentityId: blob.GetIdentityId(),
-	}, nil
+	return &blob, nil
 }
 
 // StoreLocalIdentity stores the local identity.
-func StoreLocalIdentity(db DatabaseWriter, localIdentity *apicommonpb.Organization) error {
-	pb := &apicommonpb.Organization{
-		IdentityId: localIdentity.GetIdentityId(),
-		NodeId:     localIdentity.GetNodeId(),
-		NodeName:   localIdentity.GetNodeName(),
-	}
-	enc, err := pb.Marshal()
+func StoreLocalIdentity(db DatabaseWriter, identity *apicommonpb.Organization) error {
+	enc, err := identity.Marshal()
 	if nil != err {
 		return err
 	}

@@ -46,6 +46,11 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 	}
 
 	identityMsg := types.NewIdentityMessageFromRequest(req)
+	if err := identityMsg.CheckLength(); nil != err {
+		errMsg := fmt.Sprintf("check fields len failed, %s , identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
+			err, identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
+		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
+	}
 	err = svr.B.SendMsg(identityMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
@@ -117,6 +122,9 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 			NodeName:   identity.GetName(),
 			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
+			ImageUrl:   identity.GetImageUrl(),
+			Details:    identity.GetDetails(),
+			UpdateAt:   identity.GetUpdateAt(),
 		},
 	}, nil
 }
@@ -133,6 +141,9 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 			NodeName:   identity.GetName(),
 			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
+			ImageUrl:   identity.GetImageUrl(),
+			Details:    identity.GetDetails(),
+			UpdateAt:   identity.GetUpdateAt(),
 		}
 		arr[i] = iden
 	}
@@ -212,9 +223,9 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	// reset val
 	valid = false
 
-	metadataList, err := svr.B.GetGlobalMetadataDetailList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	metadataList, err := svr.B.GetGlobalMetadataDetailListByIdentityId(req.GetAuth().GetOwner().GetIdentityId(), timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global metadata list failed")
+		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global metadata list by identityId failed, identityId: {%s}", req.GetAuth().GetOwner().GetIdentityId())
 		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global metadata list failed")
 	}
 	for _, metadata := range metadataList {
@@ -289,7 +300,7 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 		return nil, fmt.Errorf("query local identity failed")
 	}
 
-	authorityList, err := svr.B.GetLocalMetadataAuthorityList()
+	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local metadataAuth list failed, %s", err)
 		return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "query local metadataAuth list failed")
@@ -384,7 +395,7 @@ func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMeta
 }
 
 func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.GetMetadataAuthorityListRequest) (*pb.GetMetadataAuthorityListResponse, error) {
-	authorityList, err := svr.B.GetLocalMetadataAuthorityList()
+	authorityList, err := svr.B.GetLocalMetadataAuthorityList(req.GetLastUpdated(), backend.DefaultPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataAuthorityList failed")
 		return nil, ErrGetAuthorityList
@@ -402,6 +413,7 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 			ApplyAt:         auth.GetData().GetApplyAt(),
 			AuditAt:         auth.GetData().GetAuditAt(),
 			State: 			 auth.GetData().GetState(),
+			UpdateAt:        auth.GetData().GetUpdateAt(),
 		}
 	}
 	log.Debugf("RPC-API:GetLocalMetadataAuthorityList succeed, metadata authority list, len: {%d}", len(authorityList))
@@ -432,6 +444,7 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 			ApplyAt:         auth.GetData().GetApplyAt(),
 			AuditAt:         auth.GetData().GetAuditAt(),
 			State: 			 auth.GetData().GetState(),
+			UpdateAt:        auth.GetData().GetUpdateAt(),
 		}
 	}
 	log.Debugf("RPC-API:GetGlobalMetadataAuthorityList succeed, metadata authority list, len: {%d}", len(authorityList))

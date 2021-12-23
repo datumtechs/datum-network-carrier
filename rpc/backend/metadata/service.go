@@ -16,15 +16,11 @@ func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *pb.GetG
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
 	}
-	respList := make([]*pb.GetGlobalMetadataDetailResponse, len(metadataList))
-	for i, metadataDetail := range metadataList {
-		respList[i] = metadataDetail
-	}
-	log.Debugf("Query all org's metadata list, len: {%d}", len(respList))
+	log.Debugf("Query all org's metadata list, len: {%d}", len(metadataList))
 	return &pb.GetGlobalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
-		MetadataList: respList,
+		MetadataList: metadataList,
 	}, nil
 }
 
@@ -34,15 +30,11 @@ func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *pb.GetLo
 		log.WithError(err).Error("RPC-API:GetLocalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
 	}
-	respList := make([]*pb.GetLocalMetadataDetailResponse, len(metadataList))
-	for i, metadataDetail := range metadataList {
-		respList[i] = metadataDetail
-	}
-	log.Debugf("Query current org's metadata list, len: {%d}", len(respList))
+	log.Debugf("Query current org's metadata list, len: {%d}", len(metadataList))
 	return &pb.GetLocalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
-		MetadataList: respList,
+		MetadataList: metadataList,
 	}, nil
 }
 

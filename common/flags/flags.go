@@ -260,7 +260,6 @@ var (
 		Value: 0.20,
 	}
 
-	// .StringSlice{}  ""  "discovery-service-tags"
 	// ================================= Service Discovery Center Flags ===========================================
 	DiscoveryServerIP = &cli.StringFlag{
 		Name:  "discovery-server-ip",

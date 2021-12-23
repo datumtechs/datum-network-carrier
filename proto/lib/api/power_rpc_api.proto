@@ -19,10 +19,6 @@ message GetGlobalPowerSummaryResponse {
   types.PowerUsageDetail    power = 2;                  // 算力单个摘要
 }
 
-message GetGlobalPowerSummaryListRequest {
-  uint64 last_updated = 1;  // 毫秒级时间戳，上一次最后一条数据的时间戳
-}
-
 // 查看全网各个组织的总算力(累加)详情列表 resp
 message GetGlobalPowerSummaryListResponse {
   int32                                 status = 1;       // 响应码
@@ -91,7 +87,7 @@ message RevokePowerRequest {
 service PowerService {
 
   // 查看全网各个组织的总算力(累加)详情列表
-  rpc GetGlobalPowerSummaryList (GetGlobalPowerSummaryListRequest) returns (GetGlobalPowerSummaryListResponse) {
+  rpc GetGlobalPowerSummaryList (google.protobuf.Empty) returns (GetGlobalPowerSummaryListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/power/globalSummaryList"
     };

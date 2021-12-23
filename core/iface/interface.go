@@ -86,12 +86,13 @@ type MetadataCarrierDB interface {
 	RevokeMetadata(metadata *types.Metadata) error
 	QueryMetadataByDataId(dataId string) (*types.Metadata, error)
 	QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error)
+	QueryMetadataListByIdentity(identityId string, lastUpdate, pageSize uint64) (types.MetadataArray, error)
 }
 
 type ResourceCarrierDB interface {
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
-	QueryGlobalResourceSummaryList(lastUpdate, pageSize uint64) (types.ResourceArray, error)
+	QueryGlobalResourceSummaryList() (types.ResourceArray, error)
 	QueryGlobalResourceDetailList(lastUpdate, pageSize uint64) (types.ResourceArray, error)
 	SyncPowerUsed(resource *types.LocalResource) error
 }

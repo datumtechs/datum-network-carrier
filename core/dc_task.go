@@ -8,7 +8,6 @@ import (
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
-	"time"
 )
 
 // about task on local
@@ -197,7 +196,6 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string, lastUpdate, p
 func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
-	start := time.Now()
 	taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
 		TaskId: taskId,
 	})
@@ -207,7 +205,6 @@ func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.Tas
 	if nil == taskEventResponse {
 		return nil, rawdb.ErrNotFound
 	}
-	log.Debugf("Succeed call datacenter rpcapi ListTaskEvent() by once with taskId: {%s}, duration: %d ms", taskId, time.Since(start).Milliseconds())
 	return taskEventResponse.GetTaskEvents(), nil
 }
 
@@ -217,7 +214,6 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 
 	eventList := make([]*libtypes.TaskEvent, 0)
 	for _, taskId := range taskIds {
-		start := time.Now()
 		taskEventResponse, err := dc.client.ListTaskEvent(dc.ctx, &api.ListTaskEventRequest{
 			TaskId: taskId,
 		})
@@ -229,7 +225,6 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 			//return nil, rawdb.ErrNotFound
 			continue
 		}
-		log.Debugf("Succeed call datacenter rpcapi ListTaskEvent() by loop with taskId: {%s}, duration: %d ms", taskId, time.Since(start).Milliseconds())
 		eventList = append(eventList, taskEventResponse.GetTaskEvents()...)
 	}
 	return eventList, nil

@@ -77,12 +77,23 @@ func (dc *DataCenter) QueryMetadataByDataId(dataId string) (*types.Metadata, err
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }
 
-func (dc *DataCenter) QueryMetadataList(lastUpdate uint64, pageSize uint64) (types.MetadataArray, error) {
+func (dc *DataCenter) QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	metaDataListResponse, err := dc.client.GetMetadataList(dc.ctx, &api.ListMetadataRequest{
 		LastUpdated: lastUpdate,
-		PageSize: pageSize,
+		PageSize:    pageSize,
+	})
+	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
+}
+
+func (dc *DataCenter) QueryMetadataListByIdentity(identityId string, lastUpdate, pageSize uint64) (types.MetadataArray, error) {
+	dc.serviceMu.Lock()
+	defer dc.serviceMu.Unlock()
+	metaDataListResponse, err := dc.client.GetMetadataListByIdentityId(dc.ctx, &api.ListMetadataByIdentityIdRequest{
+		LastUpdated: lastUpdate,
+		PageSize:    pageSize,
+		IdentityId:  identityId,
 	})
 	return types.NewMetadataArrayFromDetailListResponse(metaDataListResponse), err
 }

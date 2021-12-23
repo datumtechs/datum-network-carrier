@@ -98,6 +98,7 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 			UsedProcessor:  v.GetPowerSummary().GetInformation().GetUsedProcessor(),
 			UsedBandwidth:  v.GetPowerSummary().GetInformation().GetUsedBandwidth(),
 			UsedDisk:       v.GetPowerSummary().GetInformation().GetUsedDisk(),
+			// todo Summary is aggregate information and does not require paging, so there are no `publishat` and `updateat`
 		})
 		resourceArray = append(resourceArray, resource)
 	}
@@ -162,6 +163,8 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 			IdentityId: organization.GetIdentityId(),
 			NodeId:     organization.GetNodeId(),
 			NodeName:   organization.GetNodeName(),
+			ImageUrl:   organization.GetImageUrl(),
+			Details:    organization.GetDetails(),
 			DataId:     organization.GetIdentityId(),
 			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 			UpdateAt:   organization.GetUpdateAt(),

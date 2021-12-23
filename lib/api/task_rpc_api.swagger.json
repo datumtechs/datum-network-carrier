@@ -220,7 +220,16 @@
         },
         "update_at": {
           "type": "string",
-          "format": "uint64"
+          "format": "uint64",
+          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+        },
+        "image_url": {
+          "type": "string",
+          "title": "the link of face image (with a length limit)"
+        },
+        "details": {
+          "type": "string",
+          "title": "description of the node (with a length limit)"
         }
       },
       "description": "A represents the basic information of the organization."

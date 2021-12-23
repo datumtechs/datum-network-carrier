@@ -834,7 +834,7 @@
         "task_id": {
           "type": "string"
         },
-        "file_name": {
+        "table_name": {
           "type": "string"
         },
         "metadata_id": {

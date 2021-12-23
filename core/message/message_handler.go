@@ -670,12 +670,6 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		log.WithError(err).Errorf("Failed to query global identity list on MessageHandler with broadcast metadataAuth")
 		return
 	}
-	//todo: need checking...
-	metadataList, err := m.dataCenter.QueryMetadataList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
-	if nil != err {
-		log.WithError(err).Errorf("Failed to query global metadata list on MessageHandler with broadcast metadataAuth")
-		return
-	}
 
 	for _, msg := range metadataAuthMsgArr {
 
@@ -703,6 +697,15 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 				msg.GetUserType(), msg.GetUser(), msg.GetMetadataAuthority().GetMetadataId())
 			continue
 		}
+
+		//todo: need checking...
+		metadataList, err := m.dataCenter.QueryMetadataListByIdentity(msg.GetMetadataAuthority().GetOwner().GetIdentityId(), timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to query global metadata list by identityId on MessageHandler with broadcast metadataAuth, identityId: {%s}",
+				msg.GetMetadataAuthority().GetOwner().GetIdentityId())
+			return
+		}
+
 		// reset val
 		valid = false
 		for _, metadata := range metadataList {

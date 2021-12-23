@@ -3,7 +3,6 @@ package carrier
 import (
 	"bytes"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
@@ -14,7 +13,6 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -371,7 +369,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
-		return pb.ConnState_ConnState_UnConnected, errors.New("invalid nodeType")
+		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("invalid nodeType")
 	}
 	if typ == pb.PrefixTypeJobNode {
 		client, err := grpclient.NewJobNodeClient(s.carrier.ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
@@ -425,7 +423,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
-		return pb.ConnState_ConnState_UnConnected, errors.New("invalid nodeType")
+		return pb.ConnState_ConnState_UnConnected, fmt.Errorf("invalid nodeType")
 	}
 	if typ == pb.PrefixTypeJobNode {
 
@@ -529,7 +527,7 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 	switch typ {
 	case pb.PrefixTypeDataNode, pb.PrefixTypeJobNode:
 	default:
-		return errors.New("invalid nodeType")
+		return fmt.Errorf("invalid nodeType")
 	}
 	if typ == pb.PrefixTypeJobNode {
 
@@ -729,7 +727,7 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 	if "" == identityId {
 		metadata, err = s.carrier.carrierDB.QueryInternalMetadataByDataId(metadataId)
 		if rawdb.IsNoDBNotFoundErr(err) {
-			return nil, errors.New("not found local metadata by special Id, " + err.Error())
+			return nil, fmt.Errorf("not found local metadata by special Id, %s", err)
 		}
 		if nil != metadata {
 			return metadata, nil
@@ -737,17 +735,17 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 	}
 	metadata, err = s.carrier.carrierDB.QueryMetadataByDataId(metadataId)
 	if nil != err {
-		return nil, errors.New("not found local metadata by special Id, " + err.Error())
+		return nil, fmt.Errorf("not found local metadata by special Id, %s", err)
 	}
 
 	if nil == metadata {
-		return nil, errors.New("not found local metadata by special Id, metadata is empty")
+		return nil, fmt.Errorf("not found local metadata by special Id, metadata is empty")
 	}
 	return metadata, nil
 }
 
 // GetMetadataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailList executing...")
 	var (
 		arr []*pb.GetGlobalMetadataDetailResponse
@@ -756,7 +754,35 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate uint64, pageS
 
 	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(lastUpdate, pageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, errors.New("found global metadata arr failed, " + err.Error())
+		return nil, fmt.Errorf("found global metadata arr failed, %s", err)
+	}
+	if len(publishMetadataArr) != 0 {
+		arr = append(arr, types.NewGlobalMetadataInfoArrayFromMetadataArray(publishMetadataArr)...)
+	}
+	//// set metadata used taskCount
+	//for i, metadata := range arr {
+	//	count, err := s.carrier.carrierDB.QueryMetadataUsedTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
+	//	if nil != err {
+	//		log.WithError(err).Warnf("Warn, query metadata used taskIdCount failed on CarrierAPIBackend.GetGlobalMetadataDetailList()")
+	//		continue
+	//	}
+	//	metadata.Information.TotalTaskCount = count
+	//	arr[i] = metadata
+	//}
+	return arr, err
+}
+
+// GetGlobalMetadataDetailListByIdentityId returns a list of all metadata details in the network by identityId.
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
+	log.Debug("Invoke: GetGlobalMetadataDetailListByIdentityId executing...")
+	var (
+		arr []*pb.GetGlobalMetadataDetailResponse
+		err error
+	)
+
+	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataListByIdentity(identityId, lastUpdate, pageSize)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, fmt.Errorf("found global metadata arr by identityId failed, %s, identityId: {%s}", err, identityId)
 	}
 	if len(publishMetadataArr) != 0 {
 		arr = append(arr, types.NewGlobalMetadataInfoArrayFromMetadataArray(publishMetadataArr)...)
@@ -785,26 +811,26 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSi
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		if nil != err {
-			return nil, errors.New("found local identity failed, " + err.Error())
+			return nil, fmt.Errorf("found local identity failed, %s", err)
 		}
 	}
 
 	internalMetadataArr, err := s.carrier.carrierDB.QueryInternalMetadataList()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, errors.New("found local metadata arr failed, " + err.Error())
+		return nil, fmt.Errorf("found local metadata arr failed, %s", err)
 	}
 
-	globalMetadataArr, err := s.carrier.carrierDB.QueryMetadataList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataListByIdentity(identity.GetIdentityId(), lastUpdate, pageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, errors.New("found global metadata arr failed on query local metadata arr, " + err.Error())
+		return nil, fmt.Errorf("found global metadata arr failed on query local metadata arr, %s", err)
 	}
 
-	publishMetadataArr := make(types.MetadataArray, 0)
-	for _, metadata := range globalMetadataArr {
-		if identity.GetIdentityId() == metadata.GetData().GetIdentityId() {
-			publishMetadataArr = append(publishMetadataArr, metadata)
-		}
-	}
+	//publishMetadataArr := make(types.MetadataArray, 0)
+	//for _, metadata := range publishedMetadataArr {
+	//	if identity.GetIdentityId() == metadata.GetData().GetIdentityId() {
+	//		publishMetadataArr = append(publishMetadataArr, metadata)
+	//	}
+	//}
 
 	arr = append(arr, types.NewLocalMetadataInfoArrayFromMetadataArray(internalMetadataArr, publishMetadataArr)...)
 
@@ -832,9 +858,9 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 
 // power api
 
-func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerSummaryResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummaryResponse, error) {
 	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
-	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList(lastUpdate, pageSize)
+	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList()
 	if err != nil {
 		return nil, err
 	}
@@ -860,6 +886,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerSummaryList(lastUpdate uint64, pageSiz
 					UsedBandwidth:  resource.GetUsedBandwidth(),
 				},
 				State: resource.GetState(),
+				// todo Summary is aggregate information and does not require paging, so there are no `publishat` and `updateat`
 			},
 		})
 	}
@@ -916,7 +943,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalPowerDetailList(lastUpdate, pageSize uint64) ([]*pb.GetLocalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetailResponse, error) {
 	log.Debug("Invoke:GetLocalPowerDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.QueryLocalResourceList()
@@ -1082,6 +1109,8 @@ func (s *CarrierAPIBackend) GetNodeIdentity() (*types.Identity, error) {
 		IdentityId: nodeAlias.GetIdentityId(),
 		NodeId:     nodeAlias.GetNodeId(),
 		NodeName:   nodeAlias.GetNodeName(),
+		ImageUrl:   nodeAlias.GetImageUrl(),
+		Details:    nodeAlias.GetDetails(),
 	}), err
 }
 
@@ -1095,11 +1124,11 @@ func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudi
 	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
-func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList() (types.MetadataAuthArray, error) {
-	return s.carrier.authManager.GetLocalMetadataAuthorityList()
+func (s *CarrierAPIBackend) GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error) {
+	return s.carrier.authManager.GetLocalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
-func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate uint64, pageSize uint64) (types.MetadataAuthArray, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error) {
 	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
