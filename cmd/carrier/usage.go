@@ -52,6 +52,13 @@ var appHelpFlagGroups = []flagGroup{
 			flags.GrpcMaxCallRecvMsgSizeFlag,
 			flags.GrpcMaxCallSendMsgSizeFlag,
 			flags.SetGCPercent,
+			flags.DiscoveryServerIP,
+			flags.DiscoveryServerPort,
+			flags.DiscoveryServiceId,
+			flags.DiscoveryServiceName,
+			flags.DiscoveryServerTags,
+			flags.DiscoveryServiceHealthCheckDeregister,
+			flags.DiscoveryServiceHealthCheckInterval,
 		},
 	},
 	{
