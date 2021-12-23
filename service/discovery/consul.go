@@ -144,6 +144,9 @@ func (ca *ConnectConsul) GetKV(key string, q *api.QueryOptions) (string, error) 
 	if err != nil {
 		return "", err
 	}
+	if nil == pair {
+		return "", fmt.Errorf("not found value by key: %s", key)
+	}
 	return string(pair.Value), nil
 }
 
