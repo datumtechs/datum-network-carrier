@@ -47,8 +47,6 @@ var appHelpFlagGroups = []flagGroup{
 			flags.GPRCGatewayCorsDomain,
 			flags.GRPCGatewayHost,
 			flags.GRPCGatewayPort,
-			flags.GRPCDataCenterHost,
-			flags.GRPCDataCenterPort,
 			flags.CertFlag,
 			flags.KeyFlag,
 			flags.GrpcMaxCallRecvMsgSizeFlag,
