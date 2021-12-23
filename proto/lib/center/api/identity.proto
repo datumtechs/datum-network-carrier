@@ -28,7 +28,7 @@ message ListIdentityRequest {
 message ListIdentityResponse {
   repeated api.protobuf.Organization identities = 1;
   // 数据的最后更新点（毫秒级时间戳）
-  uint64 last_updated = 2;
+  //uint64 last_updated = 2;
 }
 
 // 定义：元数据授权申请记录
