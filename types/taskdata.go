@@ -122,17 +122,17 @@ func (s TaskDataArray) To() []*libtypes.TaskPB {
 
 type TaskResultFileSummary struct {
 	TaskId     string
-	FileName   string
+	TableName  string
 	MetadataId string
 	OriginId   string
 	FilePath   string
 	NodeId     string
 }
 
-func NewTaskResultFileSummary(taskId, fileName, metadataId, originId, filePath, id string) *TaskResultFileSummary {
+func NewTaskResultFileSummary(taskId, tableName, metadataId, originId, filePath, id string) *TaskResultFileSummary {
 	return &TaskResultFileSummary{
 		TaskId:     taskId,
-		FileName:   fileName,
+		TableName:  tableName,
 		MetadataId: metadataId,
 		OriginId:   originId,
 		FilePath:   filePath,
@@ -140,7 +140,7 @@ func NewTaskResultFileSummary(taskId, fileName, metadataId, originId, filePath, 
 	}
 }
 func (trfs *TaskResultFileSummary) GetTaskId() string     { return trfs.TaskId }
-func (trfs *TaskResultFileSummary) GetFileName() string   { return trfs.FileName }
+func (trfs *TaskResultFileSummary) GetTableName() string  { return trfs.TableName }
 func (trfs *TaskResultFileSummary) GetMetadataId() string { return trfs.MetadataId }
 func (trfs *TaskResultFileSummary) GetOriginId() string   { return trfs.OriginId }
 func (trfs *TaskResultFileSummary) GetFilePath() string   { return trfs.FilePath }

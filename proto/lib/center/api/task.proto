@@ -26,7 +26,6 @@ message ListTaskRequest {
 
 message ListTaskResponse {
   repeated types.TaskPB     tasks = 1;
-  uint64                    last_updated = 2; // 本次resp所有记录中的最新那条记录的updateAt
 }
 
 message GetTaskDetailRequest {

@@ -109,7 +109,7 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 	err = svr.B.SendMsg(powerMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.GetJobNodeId(), powerId)
-		errMsg := fmt.Sprintf(ErrSendPowerMsgByNidAndPowerId.Msg, req.GetJobNodeId(), powerId)
+		errMsg := fmt.Sprintf("%s, jobNodeId:{%s}, powerId:{%s}", ErrSendPowerMsgByNidAndPowerId.Msg, req.GetJobNodeId(), powerId)
 		return nil, backend.NewRpcBizErr(ErrSendPowerMsgByNidAndPowerId.Code, errMsg)
 	}
 	log.Debugf("RPC-API:PublishPower succeed, jobNodeId: {%s}, powerId: {%s}", req.GetJobNodeId(), powerId)
@@ -139,7 +139,7 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	err = svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.PowerId)
-		errMsg := fmt.Sprintf(ErrSendPowerRevokeMsgByPowerId.Msg, req.PowerId)
+		errMsg := fmt.Sprintf("%s, powerId:{%s}", ErrSendPowerRevokeMsgByPowerId.Msg, req.PowerId)
 		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)
 	}
 	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.PowerId)

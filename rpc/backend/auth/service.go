@@ -22,7 +22,7 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 
-		errMsg := fmt.Sprintf(ErrSendIdentityMsg.Msg, "ApplyIdentityJoin failed, query local identity failed",
+		errMsg := fmt.Sprintf("query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
@@ -31,7 +31,7 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 		log.Errorf("RPC-API:ApplyIdentityJoin failed, identity was already exist, old identityId: {%s}, old nodeId: {%s}, old nodeName: {%s}",
 			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
 
-		errMsg := fmt.Sprintf(ErrSendIdentityMsg.Msg, "ApplyIdentityJoin failed, identity was already exist",
+		errMsg := fmt.Sprintf("identity was already exist, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
@@ -51,7 +51,7 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 
-		errMsg := fmt.Sprintf(ErrSendIdentityMsg.Msg, "ApplyIdentityJoin failed",
+		errMsg := fmt.Sprintf("%s, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", ErrSendIdentityMsg.Msg,
 			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
@@ -69,7 +69,7 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 	if rawdb.IsDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
 
-		errMsg := fmt.Sprintf(ErrSendIdentityRevokeMsg.Msg, "the identity was not exist, can not revoke identity")
+		errMsg := fmt.Sprintf("%s, the identity was not exist, can not revoke identity", ErrSendIdentityRevokeMsg.Msg)
 		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
 	}
 
@@ -78,14 +78,14 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, can not check has local task")
 
-		errMsg := fmt.Sprintf(ErrSendIdentityRevokeMsg.Msg, "can not check has local task")
+		errMsg := fmt.Sprintf("%s, can not check has local task", ErrSendIdentityRevokeMsg.Msg)
 		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
 	}
 
 	if has {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, don't revoke identity when has local task")
 
-		errMsg := fmt.Sprintf(ErrSendIdentityRevokeMsg.Msg, "don't revoke identity when has local task")
+		errMsg := fmt.Sprintf("%s, don't revoke identity when has local task", ErrSendIdentityRevokeMsg.Msg)
 		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
 	}
 
@@ -94,7 +94,7 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 	if nil != err {
 		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")
 
-		errMsg := fmt.Sprintf(ErrSendIdentityRevokeMsg.Msg, "send identity revoke msg failed")
+		errMsg := fmt.Sprintf("%s, send identity revoke msg failed", ErrSendIdentityRevokeMsg.Msg)
 		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
 	}
 	log.Debug("RPC-API:RevokeIdentityJoin succeed SendMsg")
@@ -244,7 +244,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		log.Errorf("RPC-API:ApplyMetadataAuthority failed, has valid metadataAuth exists, userType: {%s}, user: {%s}, metadataId: {%s}",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
 
-		errMsg := fmt.Sprintf(ErrValidMetadataAuthMustCannotExist.Msg,
+		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, metadataId: {%s}", ErrValidMetadataAuthMustCannotExist.Msg,
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
 		return nil, backend.NewRpcBizErr(ErrValidMetadataAuthMustCannotExist.Code, errMsg)
 	}
@@ -337,7 +337,7 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	if err := svr.B.SendMsg(metadataAuthorityRevokeMsg); nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetadataAuthority failed")
 
-		errMsg := fmt.Sprintf(ErrRevokeMetadataAuthority.Msg,
+		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, MetadataAuthId: {%s}", ErrRevokeMetadataAuthority.Msg,
 			req.GetUserType().String(), req.GetUser(), req.GetMetadataAuthId())
 		return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, errMsg)
 	}
@@ -369,7 +369,7 @@ func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMeta
 	if nil != err {
 		log.WithError(err).Error("RPC-API:AuditMetadataAuthority failed")
 
-		errMsg := fmt.Sprintf(ErrAuditMetadataAuth.Msg,
+		errMsg := fmt.Sprintf("%s, metadataAuthId: {%s}, audit option: {%s}, audit suggestion: {%s}", ErrAuditMetadataAuth.Msg,
 			req.GetMetadataAuthId(), req.GetAudit().String(), req.GetSuggestion())
 		return nil, backend.NewRpcBizErr(ErrAuditMetadataAuth.Code, errMsg)
 	}

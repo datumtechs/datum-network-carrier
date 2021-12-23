@@ -43,7 +43,7 @@ func (svr *Server) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventLis
 	events, err := svr.B.GetTaskEventList(req.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryTaskEventList failed, taskId: {%s}", req.GetTaskId())
-		errMsg := fmt.Sprintf(ErrGetNodeTaskEventList.Msg, req.GetTaskId())
+		errMsg := fmt.Sprintf("%s, taskId: {%s}", ErrGetNodeTaskEventList.Msg, req.GetTaskId())
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventList.Code, errMsg)
 	}
 	log.Debugf("RPC-API:QueryTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.GetTaskId(), len(events))
@@ -63,7 +63,7 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 	events, err := svr.B.GetTaskEventListByTaskIds(req.GetTaskIds())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryTaskEventListByTaskIds failed, taskId: {%v}", req.GetTaskIds())
-		errMsg := fmt.Sprintf(ErrGetNodeTaskEventList.Msg, req.GetTaskIds())
+		errMsg := fmt.Sprintf("%s, taskId: {%s}", ErrGetNodeTaskEventList.Msg, req.GetTaskIds())
 		return nil, backend.NewRpcBizErr(ErrGetNodeTaskEventList.Code, errMsg)
 	}
 	log.Debugf("RPC-API:QueryTaskEventListByTaskIds succeed, taskIds: %v,  eventList len: {%d}", req.GetTaskIds(), len(events))
@@ -213,7 +213,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, check metadata whether internal metadata failed, identityId: {%s}, metadataId: {%s}",
 					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 
-				errMsg := fmt.Sprintf(ErrReqMetadataDetailForPublishTask.Msg,
+				errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg,
 					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 				return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
 			}
@@ -225,7 +225,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
 				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 
-			errMsg := fmt.Sprintf(ErrReqMetadataDetailForPublishTask.Msg,
+			errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg,
 				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 			return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
 		}
@@ -245,7 +245,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			if col, ok := colTmp[v.GetMetadataInfo().GetKeyColumn()]; ok {
 				keyColumn = col
 			} else {
-				errMsg := fmt.Sprintf(ErrReqMetadataByKeyColumn.Msg, v.GetOrganization().GetIdentityId(),
+				errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}", ErrReqMetadataByKeyColumn.Msg, v.GetOrganization().GetIdentityId(),
 					v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetKeyColumn())
 				log.Errorf("RPC-API:PublishTaskDeclare failed, check columns colIndex of keyColumn, this colIndex is not exist, partyId: {%s}, colIndex: {%d}",
 					v.GetOrganization().GetPartyId(), v.GetMetadataInfo().GetKeyColumn())
@@ -258,7 +258,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				if col, ok := colTmp[colIndex]; ok {
 					selectedColumns[j] = col
 				} else {
-					errMsg := fmt.Sprintf(ErrReqMetadataBySelectedColumn.Msg,
+					errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}", ErrReqMetadataBySelectedColumn.Msg,
 						v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), colIndex)
 					log.Errorf("RPC-API:PublishTaskDeclare failed, check columns colIndex of selectedColumns, this colIndex is not exist, partyId: {%s}, colIndex: {%d}",
 						v.GetOrganization().GetPartyId(), colIndex)
@@ -314,7 +314,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, send task msg failed, taskId: {%s}",
 			taskId)
-		errMsg := fmt.Sprintf(ErrSendTaskMsgByTaskId.Msg, taskId)
+		errMsg := fmt.Sprintf("%s, taskId: {%s}", ErrSendTaskMsgByTaskId.Msg, taskId)
 		return nil, backend.NewRpcBizErr(ErrSendTaskMsgByTaskId.Code, errMsg)
 	}
 	//log.Debugf("RPC-API:PublishTaskDeclare succeed, taskId: {%s}, taskMsg: %s", taskId, taskMsg.String())
@@ -369,8 +369,8 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, send task terminate msg failed, taskId: {%s}",
 			req.GetTaskId())
 
-		errMsg := fmt.Sprintf(ErrSendTaskMsg.Msg, req.GetTaskId())
-		return nil, backend.NewRpcBizErr(ErrSendTaskMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, taskId: {%s}", ErrTerminateTaskMsg.Msg, req.GetTaskId())
+		return nil, backend.NewRpcBizErr(ErrTerminateTaskMsg.Code, errMsg)
 	}
 	log.Debugf("RPC-API:TerminateTask succeed, userType: {%s}, user: {%s}, taskId: {%s}", req.GetUserType(), req.GetUser(), req.GetTaskId())
 	return &apicommonpb.SimpleResponse{

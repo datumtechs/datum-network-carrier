@@ -63,7 +63,7 @@ func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) 
 	}
 
 	for _, seed := range list {
-		if seed.GetAddr() ==  strings.Trim(req.GetAddr(), "") {
+		if seed.GetAddr() == strings.Trim(req.GetAddr(), "") {
 			log.WithError(err).Error("RPC-API: call svr.B.GetSeedNodeList() failed on SetSeedNode()")
 			return nil, backend.NewRpcBizErr(ErrSetSeedNodeInfo.Code, "the addr has already exists")
 		}
@@ -85,7 +85,7 @@ func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) 
 	return &pb.SetSeedNodeResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Node: seedNode,
+		Node:   seedNode,
 	}, nil
 }
 
@@ -529,11 +529,11 @@ func (svr *Server) GetTaskResultFileSummary(ctx context.Context, req *pb.GetTask
 	}
 
 	log.Debugf("RPC-API:GetTaskResultFileSummary Succeed, taskId: {%s}, return dataNodeIp: {%s}, dataNodePort: {%s}, metadataId: {%s}, originId: {%s}, fileName: {%s}, filePath: {%s}",
-		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), taskResultFileSummary.GetMetadataId(), taskResultFileSummary.GetOriginId(), taskResultFileSummary.GetFileName(), taskResultFileSummary.GetFilePath())
+		req.GetTaskId(), dataNode.GetInternalIp(), dataNode.GetInternalPort(), taskResultFileSummary.GetMetadataId(), taskResultFileSummary.GetOriginId(), taskResultFileSummary.GetTableName(), taskResultFileSummary.GetFilePath())
 
 	return &pb.GetTaskResultFileSummaryResponse{
 		TaskId:     taskResultFileSummary.GetTaskId(),
-		FileName:   taskResultFileSummary.GetFileName(),
+		TableName:  taskResultFileSummary.GetTableName(),
 		MetadataId: taskResultFileSummary.GetMetadataId(),
 		OriginId:   taskResultFileSummary.GetOriginId(),
 		FilePath:   taskResultFileSummary.GetFilePath(),
@@ -559,7 +559,7 @@ func (svr *Server) GetTaskResultFileSummaryList(ctx context.Context, empty *empt
 		}
 		arr = append(arr, &pb.GetTaskResultFileSummaryResponse{
 			TaskId:     summary.GetTaskId(),
-			FileName:   summary.GetFileName(),
+			TableName:  summary.GetTableName(),
 			MetadataId: summary.GetMetadataId(),
 			OriginId:   summary.GetOriginId(),
 			FilePath:   summary.GetFilePath(),
