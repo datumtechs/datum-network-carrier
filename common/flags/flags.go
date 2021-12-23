@@ -267,10 +267,10 @@ var (
 		Value: "",
 	}
 
-	DiscoveryServerPort = &cli.StringFlag{
+	DiscoveryServerPort = &cli.IntFlag{
 		Name:  "discovery-server-port",
 		Usage: "The port of discovery center",
-		Value: "",
+		Value: 0,
 	}
 
 	DiscoveryServiceId = &cli.StringFlag{

@@ -128,7 +128,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 			Deregister:  cliCtx.Int(flags.DiscoveryServiceHealthCheckDeregister.Name),
 		},
 			cliCtx.String(flags.DiscoveryServerIP.Name),
-			cliCtx.String(flags.DiscoveryServerPort.Name),
+			cliCtx.Int(flags.DiscoveryServerPort.Name),
 		),
 		quit: make(chan struct{}),
 	}
