@@ -49,10 +49,17 @@ var (
 		flags.GPRCGatewayCorsDomain,
 		flags.GRPCGatewayHost,
 		flags.GRPCGatewayPort,
-		flags.GRPCDataCenterHost,
-		flags.GRPCDataCenterPort,
+		//flags.GRPCDataCenterHost,
+		//flags.GRPCDataCenterPort,
 		flags.GrpcMaxCallRecvMsgSizeFlag,
 		flags.GrpcMaxCallSendMsgSizeFlag,
+		flags.DiscoveryServerIP,
+		flags.DiscoveryServerPort,
+		flags.DiscoveryServiceId,
+		flags.DiscoveryServiceName,
+		flags.DiscoveryServerTags,
+		flags.DiscoveryServiceHealthCheckDeregister,
+		flags.DiscoveryServiceHealthCheckInterval,
 	}
 
 	p2pFlags = []cli.Flag{
