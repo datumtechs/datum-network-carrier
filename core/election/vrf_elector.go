@@ -73,7 +73,7 @@ func (s *VrfElector) ElectionOrganization(
 	}
 
 	// Find global power resources
-	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
 	if nil != err {
 		return nil, nil, nil, err
 	}
@@ -178,7 +178,7 @@ func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32,
 func (s *VrfElector) EnoughAvailableOrganization(calculateCount int, mem, bandwidth, disk uint64, processor uint32) (bool, error) {
 
 	// Find global power resources
-	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
 	if nil != err {
 		return false, err
 	}
@@ -263,7 +263,7 @@ func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskP
 	}
 
 	// Find global power resources
-	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
 	if nil != err {
 		return false, fmt.Errorf("query global resource summary list failed, %s", err)
 	}
