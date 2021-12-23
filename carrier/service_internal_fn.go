@@ -50,12 +50,7 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 		return fmt.Errorf("Failed to init services with discorvery center, consul manager is nil")
 	}
 
-	// 1. register carrier service to discorvery center
-	if err := s.consulManager.RegisterService2DiscoveryCenter(); nil != err {
-		return fmt.Errorf("Failed to register discovery service to discovery center, %s", err)
-	}
-
-	// 2. fetch datacenter ip&port config from discorvery center
+	// 1. fetch datacenter ip&port config from discorvery center
 	datacenterIpAndPort, err := s.consulManager.GetKV(discovery.DataCenterConsulServiceAddressKey, nil)
 	if nil == err {
 		return fmt.Errorf("Failed to query datacenter IP and PORT KVconfig from discovery center, %s", err)
@@ -81,6 +76,11 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 		Port:    uint64(datacenterPort),
 	}); nil != err {
 		return fmt.Errorf("connot setConfig of carrierDB, %s", err)
+	}
+
+	// 2. register carrier service to discorvery center
+	if err := s.consulManager.RegisterService2DiscoveryCenter(); nil != err {
+		return fmt.Errorf("Failed to register discovery service to discovery center, %s", err)
 	}
 
 	return nil
