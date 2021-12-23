@@ -38,7 +38,7 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
 			Duration:  taskData.GetOperationCost().GetDuration(),
 		},
-		UpdateAt: taskData.GetCreateAt(), // The createAt of the task is the updateAt in the data center database
+		UpdateAt: taskData.GetEndAt(), // The endAt of the task is the updateAt in the data center database
 	}
 
 	// DataSupplier
