@@ -5,7 +5,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	"github.com/RosettaFlow/Carrier-Go/types"
-	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 // about power on local
@@ -106,7 +105,7 @@ func (dc *DataCenter) GetResourceListByIdentityId(identityId string) (types.Reso
 func (dc *DataCenter) QueryGlobalResourceSummaryList() (types.ResourceArray, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	powerListRequest, err := dc.client.GetPowerGlobalSummaryList(dc.ctx, &emptypb.Empty{})
+	powerListRequest, err := dc.client.GetPowerGlobalSummaryList(dc.ctx)
 	return types.NewResourceArrayFromPowerTotalSummaryListResponse(powerListRequest), err
 }
 

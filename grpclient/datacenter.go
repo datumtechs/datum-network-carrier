@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
 )
 
@@ -153,14 +154,14 @@ func (gc *GrpcClient) GetPowerSummaryByIdentityId(ctx context.Context, request *
 	return gc.resourceService.GetPowerSummaryByIdentityId(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
-func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context, request *api.ListPowerSummaryRequest) (*api.ListPowerSummaryResponse, error) {
+func (gc *GrpcClient) GetPowerGlobalSummaryList(ctx context.Context) (*api.ListPowerSummaryResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")
 	}
 	// TODO: Requests take too long, consider stream processing
 	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
 	defer cancel()
-	return gc.resourceService.ListPowerSummary(ctx, request, RPCMaxCallRecvMsgSize)
+	return gc.resourceService.ListPowerSummary(ctx, &emptypb.Empty{}, RPCMaxCallRecvMsgSize)
 }
 
 func (gc *GrpcClient) GetPowerList(ctx context.Context, request *api.ListPowerRequest) (*api.ListPowerResponse, error) {
