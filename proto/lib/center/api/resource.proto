@@ -73,8 +73,8 @@ message GetPowerSummaryByIdentityRequest {
 }
 
 message ListPowerRequest {
-  uint64 last_updated = 1;
-  uint64 page_size = 2; // 单次批量数据的返回条数
+  uint64 last_updated = 1;  // 从对应updateAt那条记录开始拉
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 message ListPowerResponse {

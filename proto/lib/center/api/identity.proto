@@ -21,8 +21,8 @@ message RevokeIdentityRequest {
 
 message ListIdentityRequest {
   // 同步时间点，用于进行数据增量拉去
-  uint64 last_updated = 1;
-  uint64 page_size = 2; // 单次批量数据的返回条数
+  uint64 last_updated = 1;  // 从对应updateAt那条记录开始拉
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 message ListIdentityResponse {

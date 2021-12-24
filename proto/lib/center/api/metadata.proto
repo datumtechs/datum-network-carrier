@@ -20,8 +20,8 @@ message RevokeMetadataRequest {
 }
 
 message ListMetadataSummaryRequest {
-  uint64 last_updated = 1;
-  uint64 page_size = 2; // 单次批量数据的返回条数
+  uint64 last_updated = 1;  // 从对应updateAt那条记录开始拉
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 // 获取元数据摘要列表响应参数
@@ -54,13 +54,13 @@ message ListMetadataSummaryByStateResponse {
 }*/
 
 message ListMetadataRequest {
-  uint64 last_updated = 1;
-  uint64 page_size = 2; // 单次批量数据的返回条数
+  uint64 last_updated = 1;  // 从对应updateAt那条记录开始拉
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 message ListMetadataByIdentityIdRequest {
-  uint64 last_updated = 1;
-  uint64 page_size = 2; // 单次批量数据的返回条数
+  uint64 last_updated = 1;  // 从对应updateAt那条记录开始拉
+  uint64 page_size = 2;     // 单次批量数据的返回条数
   string identityId = 3;
 }
 

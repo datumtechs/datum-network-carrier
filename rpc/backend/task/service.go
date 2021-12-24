@@ -12,7 +12,11 @@ import (
 )
 
 func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailListRequest) (*pb.GetTaskDetailListResponse, error) {
-	tasks, err := svr.B.GetTaskDetailList(req.GetLastUpdated(), backend.DefaultPageSize)
+	pageSize := req.GetPageSize()
+	if pageSize == 0 {
+		pageSize = backend.DefaultPageSize
+	}
+	tasks, err := svr.B.GetTaskDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
 		return nil, ErrGetNodeTaskList
@@ -26,6 +30,33 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailL
 		arr[i] = t
 	}
 	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}", len(arr))
+	return &pb.GetTaskDetailListResponse{
+		Status:   0,
+		Msg:      backend.OK,
+		TaskList: arr,
+	}, nil
+}
+
+func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *pb.GetTaskDetailListByTaskIdsRequest) (*pb.GetTaskDetailListResponse, error) {
+
+	if len(req.GetTaskIds()) == 0 {
+		return nil, fmt.Errorf("%s, required taskIds", ErrGetNodeTaskList.Msg)
+	}
+
+	tasks, err := svr.B.GetTaskDetailListByTaskIds(req.GetTaskIds())
+	if nil != err {
+		log.WithError(err).Error("RPC-API:GetTaskDetailListByTaskIds failed")
+		return nil, ErrGetNodeTaskList
+	}
+
+	arr := make([]*pb.GetTaskDetailResponse, len(tasks))
+	for i, task := range tasks {
+		t := &pb.GetTaskDetailResponse{
+			Information: task,
+		}
+		arr[i] = t
+	}
+	log.Debugf("RPC-API:GetTaskDetailListByTaskIds succeed, taskIds len: {%d}, taskList len: {%d}", len(req.GetTaskIds()), len(arr))
 	return &pb.GetTaskDetailListResponse{
 		Status:   0,
 		Msg:      backend.OK,

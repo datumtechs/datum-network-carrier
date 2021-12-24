@@ -27,7 +27,11 @@ func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *emptypb.E
 }
 
 func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *pb.GetGlobalPowerDetailListRequest) (*pb.GetGlobalPowerDetailListResponse, error) {
-	powerList, err := svr.B.GetGlobalPowerDetailList(req.GetLastUpdated(), backend.DefaultPageSize)
+	pageSize := req.GetPageSize()
+	if pageSize == 0 {
+		pageSize = backend.DefaultPageSize
+	}
+	powerList, err := svr.B.GetGlobalPowerDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalPowerDetailList failed")
 		return nil, ErrGetTotalPowerList

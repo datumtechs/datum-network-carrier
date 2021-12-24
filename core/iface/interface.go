@@ -136,6 +136,7 @@ type TaskCarrierDB interface {
 	// about task on datacenter
 	InsertTask(task *types.Task) error
 	QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error)
+	QueryTaskListByTaskIds(taskIds []string) (types.TaskDataArray, error)
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)
 	QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes.TaskEvent, error)
 	// v 1.0 about TaskPowerUsed  (prefix + taskId + partyId -> {taskId, partId, jobNodeId, slotCount})

@@ -287,6 +287,16 @@ func (gc *GrpcClient) ListTaskByIdentity(ctx context.Context, request *api.ListT
 	return gc.taskService.ListTaskByIdentity(ctx, request, RPCMaxCallRecvMsgSize)
 }
 
+func (gc *GrpcClient) ListTaskByTaskIds(ctx context.Context, request *api.ListTaskByTaskIdsRequest) (*api.ListTaskResponse, error) {
+	if nil == gc {
+		return nil, fmt.Errorf("datacenter rpc client is nil")
+	}
+	// TODO: Requests take too long, consider stream processing
+	ctx, cancel := context.WithTimeout(ctx, TweentySecondGrpcRequestTimeout)
+	defer cancel()
+	return gc.taskService.ListTaskByTaskIds(ctx, request, RPCMaxCallRecvMsgSize)
+}
+
 func (gc *GrpcClient) ListTaskEvent(ctx context.Context, request *api.ListTaskEventRequest) (*api.ListTaskEventResponse, error) {
 	if nil == gc {
 		return nil, fmt.Errorf("datacenter rpc client is nil")

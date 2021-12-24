@@ -1284,6 +1284,86 @@ func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate, pageSize uint64) ([]*p
 	return result, err
 }
 
+// v3.0
+func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.TaskDetailShow, error) {
+
+	identity, err := s.carrier.carrierDB.QueryIdentity()
+	if nil != err {
+		return nil, fmt.Errorf("query local identity failed, %s", err)
+	}
+
+	// the task is executing.
+	localTaskArray, err := s.carrier.carrierDB.QueryLocalTaskList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+
+	taskIdCache := make(map[string]struct{}, 0)
+	for _, taskId := range taskIds {
+		taskIdCache[taskId] = struct{}{}
+	}
+
+	for _, task := range localTaskArray {
+		if _, ok := taskIdCache[task.GetTaskId()]; ok {
+			delete(taskIdCache, task.GetTaskId())
+		}
+	}
+
+	var ids []string
+	if len(taskIds) == len(taskIdCache) {
+		ids = taskIds
+	} else {
+		for taskId, _ := range taskIdCache {
+			ids = append(ids, taskId)
+		}
+	}
+
+	// the task has been executed.
+	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByTaskIds(ids)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+
+	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
+		return types.NewTaskDetailShowFromTaskData(task)
+	}
+
+	result := make([]*pb.TaskDetailShow, 0)
+
+next:
+	for _, task := range localTaskArray {
+
+		// Filter out the local tasks belonging to the computing power provider that have not been started
+		// (Note: the tasks under consensus are also tasks that have not been started)
+		if identity.GetIdentityId() != task.GetTaskSender().GetIdentityId() {
+			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
+				if identity.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
+					has, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusValExecByPartyId(task.GetTaskId(), powerSupplier.GetOrganization().GetPartyId())
+					if nil != err || !has {
+						continue next // goto next task, if has one party of current identity is  still not executing this task.
+					}
+				}
+			}
+		}
+
+		// For the initiator's local task, when the task has not started execution
+		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Pending {
+			task.RemoveResourceSupplierArr() // clean powerSupplier when before return.
+		}
+
+		if taskView := makeTaskViewFn(task); nil != taskView {
+			result = append(result, taskView)
+		}
+	}
+	for _, networkTask := range networkTaskList {
+		if taskView := makeTaskViewFn(networkTask); nil != taskView {
+			result = append(result, taskView)
+		}
+	}
+	return result, err
+}
+
 func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()

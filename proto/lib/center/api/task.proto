@@ -13,6 +13,10 @@ message SaveTaskRequest {
   types.TaskPB task = 1;
 }
 
+message ListTaskByTaskIdsRequest {
+  repeated string task_ids = 1;   // 任务Id列表
+}
+
 message ListTaskByIdentityRequest {
   string identity_id = 1;
   uint64 last_updated = 2;    // 从对应updateAt那条记录开始拉
@@ -63,6 +67,9 @@ service TaskService {
 
   // 根据组织身份查询任务列表
   rpc ListTaskByIdentity(ListTaskByIdentityRequest) returns (ListTaskResponse);
+
+  // 根据任务Ids查询任务列表 (v3.0)
+  rpc ListTaskByTaskIds(ListTaskByTaskIdsRequest) returns (ListTaskResponse);
 
   // 查询任务的事件列表
   rpc ListTaskEvent(ListTaskEventRequest) returns (ListTaskEventResponse);

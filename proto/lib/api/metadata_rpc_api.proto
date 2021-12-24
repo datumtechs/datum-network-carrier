@@ -19,6 +19,7 @@ message GetGlobalMetadataDetailResponse {
 
 message GetGlobalMetadataDetailListRequest {
   uint64 last_updated = 1;  // 毫秒级时间戳，上一次最后一条数据的时间戳
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 // 查看 全网元数据列表  resp
@@ -37,6 +38,7 @@ message GetLocalMetadataDetailResponse {
 
 message GetLocalMetadataDetailListRequest {
   uint64 last_updated = 1;  // 毫秒级时间戳，上一次最后一条数据的时间戳
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 // 查看 本组织元数据列表  resp

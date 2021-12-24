@@ -35,6 +35,7 @@ message GetGlobalPowerDetailResponse {
 
 message GetGlobalPowerDetailListRequest {
   uint64 last_updated = 1;  // 毫秒级时间戳，上一次最后一条数据的时间戳
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 // 全网各个组织的各个算力列表 resp
@@ -54,6 +55,7 @@ message GetLocalPowerDetailResponse {
 
 message GetLocalPowerDetailListRequest {
   uint64 last_updated = 1;  // UTC毫秒级时间戳，上一次最后一条数据的时间戳
+  uint64 page_size = 2;     // 单次批量数据的返回条数
 }
 
 // 本组织的多个(宿主机)算力信息 (包含【未发布】和【已发布】的)

@@ -20,7 +20,7 @@ func (s *server) SayHello(ctx context.Context, in *HelloRequest) (*HelloReply, e
 	return &HelloReply{Message: "Hello " + in.Name}, nil
 }
 
-func TestNew(t *testing.T) {
+func TestConsulClientFlow(t *testing.T) {
 
 	var (
 		consulIp           = "10.1.1.10"

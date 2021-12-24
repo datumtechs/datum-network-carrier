@@ -193,6 +193,15 @@ func (dc *DataCenter) QueryTaskListByIdentityId(identityId string, lastUpdate, p
 	return types.NewTaskArrayFromResponse(taskListResponse), err
 }
 
+func (dc *DataCenter) QueryTaskListByTaskIds(taskIds []string) (types.TaskDataArray, error) {
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
+	taskListResponse, err := dc.client.ListTaskByTaskIds(dc.ctx, &api.ListTaskByTaskIdsRequest{
+		TaskIds: taskIds,
+	})
+	return types.NewTaskArrayFromResponse(taskListResponse), err
+}
+
 func (dc *DataCenter) QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
