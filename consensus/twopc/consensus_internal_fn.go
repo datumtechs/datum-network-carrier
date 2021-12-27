@@ -87,14 +87,14 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.Confirm
 
 	for _, vote := range t.state.GetPrepareVoteArr(proposalId) {
 
-		if vote.MsgOption.SenderRole == apicommonpb.TaskRole_TaskRole_DataSupplier && nil != vote.PeerInfo {
-			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+		if vote.GetMsgOption().GetSenderRole() == apicommonpb.TaskRole_TaskRole_DataSupplier && nil != vote.GetPeerInfo() {
+			dataSuppliers = append(dataSuppliers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
-		if vote.MsgOption.SenderRole == apicommonpb.TaskRole_TaskRole_PowerSupplier && nil != vote.PeerInfo {
-			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+		if vote.GetMsgOption().GetSenderRole() == apicommonpb.TaskRole_TaskRole_PowerSupplier && nil != vote.GetPeerInfo() {
+			powerSuppliers = append(powerSuppliers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
-		if vote.MsgOption.SenderRole == apicommonpb.TaskRole_TaskRole_Receiver && nil != vote.PeerInfo {
-			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.PeerInfo))
+		if vote.GetMsgOption().GetSenderRole() == apicommonpb.TaskRole_TaskRole_Receiver && nil != vote.GetPeerInfo() {
+			receivers = append(receivers, types.ConvertTaskPeerInfo(vote.GetPeerInfo()))
 		}
 	}
 	return &twopcpb.ConfirmTaskPeerInfo{

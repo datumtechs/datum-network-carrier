@@ -127,10 +127,8 @@ func (t *Twopc) OnError() error {
 	return fmt.Errorf("%s", strings.Join(errStrs, "\n"))
 }
 
-func (t *Twopc) OnPrepare(task *types.NeedConsensusTask) error {
+func (t *Twopc) OnPrepare(task *types.NeedConsensusTask) error { return nil }
 
-	return nil
-}
 func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 
 	task := nonConsTask.GetTask()
@@ -234,7 +232,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrConsensusMsgInvalid)
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(prepareMsg.PrepareMsg)).Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(prepareMsg.GetData())).Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
 
 	org := &apicommonpb.TaskOrganization{
 		PartyId:    msg.GetMsgOption().GetReceiverPartyId(),
@@ -423,7 +421,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 		return fmt.Errorf("%s when received prepareVote", ctypes.ErrConsensusMsgInvalid)
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(prepareVote.PrepareVote)).Debugf("Received prepareVote, consensusSymbol: {%s}, remote pid: {%s}, prepareVote: %s", nmls.String(), pid, vote.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(prepareVote.GetData())).Debugf("Received prepareVote, consensusSymbol: {%s}, remote pid: {%s}, prepareVote: %s", nmls.String(), pid, vote.String())
 
 	// Voter <the vote sender> voted repeatedly
 	if t.state.HasPrepareVoting(vote.GetMsgOption().GetProposalId(), sender) {
@@ -582,7 +580,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 		return fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg.ConfirmMsg)).Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg.GetData())).Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
 
 	org := &apicommonpb.TaskOrganization{
 		PartyId:    msg.GetMsgOption().GetReceiverPartyId(),
@@ -762,7 +760,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 		return fmt.Errorf("%s when received confirmVote", ctypes.ErrConsensusMsgInvalid)
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(confirmVote.ConfirmVote)).Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, comfirmVote: %s", nmls.String(), pid, vote.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(confirmVote.GetData())).Debugf("Received confirmVote, consensusSymbol: {%s}, remote pid: {%s}, comfirmVote: %s", nmls.String(), pid, vote.String())
 
 	// Voter <the vote sender> voted repeatedly
 	if t.state.HasConfirmVoting(vote.GetMsgOption().GetProposalId(), sender) {
@@ -921,7 +919,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 		return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(cimmitMsg.CommitMsg)).Debugf("Received commitMsg, consensusSymbol: {%s}, remote pid: {%s}, commitMsg: %s", nmls.String(), pid, msg.String())
+	log.WithField("traceId", traceutil.GenerateTraceID(cimmitMsg.GetData())).Debugf("Received commitMsg, consensusSymbol: {%s}, remote pid: {%s}, commitMsg: %s", nmls.String(), pid, msg.String())
 
 	// check msg commit option value is `start` or `stop` ?
 	if msg.GetCommitOption() == types.TwopcMsgStop || msg.GetCommitOption() == types.TwopcMsgUnknown {

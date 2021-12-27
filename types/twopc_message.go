@@ -36,6 +36,8 @@ type PrepareMsgWrap struct {
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
+func (msg *PrepareMsgWrap) GetData() *twopcpb.PrepareMsg { return msg.PrepareMsg }
+
 func (msg *PrepareMsgWrap) String() string {
 	result, err := json.Marshal(msg)
 	if err != nil {
@@ -86,6 +88,8 @@ type PrepareVoteWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
+
+func (msg *PrepareVoteWrap) GetData () *twopcpb.PrepareVote { return msg.PrepareVote }
 
 func (msg *PrepareVoteWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -141,6 +145,8 @@ type ConfirmMsgWrap struct {
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
 
+func (msg *ConfirmMsgWrap) GetData () *twopcpb.ConfirmMsg { return msg.ConfirmMsg }
+
 func (msg *ConfirmMsgWrap) String() string {
 	result, err := json.Marshal(msg)
 	if err != nil {
@@ -190,6 +196,8 @@ type ConfirmVoteWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
+
+func (msg *ConfirmVoteWrap) GetData () *twopcpb.ConfirmVote { return msg.ConfirmVote }
 
 func (msg *ConfirmVoteWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -241,6 +249,8 @@ type CommitMsgWrap struct {
 	sealHash atomic.Value `json:"-" rlp:"-"`
 	hash     atomic.Value `json:"-" rlp:"-"`
 }
+
+func (msg *CommitMsgWrap) GetData() *twopcpb.CommitMsg { return msg.CommitMsg }
 
 func (msg *CommitMsgWrap) String() string {
 	result, err := json.Marshal(msg)
@@ -339,51 +349,3 @@ func (msg *TerminateConsensusMsgWrap) Hash() common.Hash {
 	return v
 }
 func (msg *TerminateConsensusMsgWrap) Signature() []byte { return nil }
-
-//// ------------------------------- About TaskResultMsg -------------------------------
-//type TaskResultMsgWrap struct {
-//	*twopcpb.TaskResultMsg
-//	// caches
-//	sealHash atomic.Value `json:"-" rlp:"-"`
-//	hash     atomic.Value `json:"-" rlp:"-"`
-//}
-//func (msg *TaskResultMsgWrap) String() string {
-//	result, err := json.Marshal(msg)
-//	if err != nil{
-//		return "Failed to generate string"
-//	}
-//	return string(result)
-//}
-//func (msg *TaskResultMsgWrap) SealHash() common.Hash {
-//	if sealHash := msg.sealHash.Load(); sealHash != nil {
-//		return sealHash.(common.Hash)
-//	}
-//	v := msg._sealHash()
-//	msg.sealHash.Store(v)
-//	return v
-//}
-//func (msg *TaskResultMsgWrap) _sealHash() (hash common.Hash) {
-//	hasher := sha3.NewKeccak256()
-//	rlp.Encode(hasher, []interface{}{
-//		msg.GetMsgOption().GetProposalId(),
-//		msg.GetMsgOption().GetSenderRole(),
-//		msg.GetMsgOption().GetReceiverRole(),
-//		msg.GetMsgOption().GetSenderPartyId(),
-//		msg.GetMsgOption().GetReceiverPartyId(),
-//		msg.GetMsgOption().GetMsgOwner(),
-//		msg.TaskEventList,
-//		msg.GetCreateAt,
-//	})
-//
-//	hasher.Sum(hash[:0])
-//	return hash
-//}
-//func (msg *TaskResultMsgWrap) Hash() common.Hash {
-//	if hash := msg.hash.Load(); hash != nil {
-//		return hash.(common.Hash)
-//	}
-//	v := rlputil.RlpHash(msg)
-//	msg.hash.Store(v)
-//	return v
-//}
-//func (msg *TaskResultMsgWrap) Signature() []byte {return msg.Sign}
