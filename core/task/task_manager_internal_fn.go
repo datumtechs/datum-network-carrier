@@ -742,6 +742,9 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 		ComputationParty: powerPartyArr,
 		ResultParty:      receiverPartyArr,
 		Duration:         localTask.GetTaskData().GetOperationCost().GetDuration(),
+		Memory:  		  localTask.GetTaskData().GetOperationCost().GetMemory(),
+		Processor:        localTask.GetTaskData().GetOperationCost().GetProcessor(),
+		Bandwidth:        localTask.GetTaskData().GetOperationCost().GetBandwidth(),
 	}, nil
 }
 
