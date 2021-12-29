@@ -293,13 +293,13 @@ var (
 
 	DiscoveryServiceHealthCheckInterval = &cli.IntFlag{
 		Name:  "discovery-service-health-check-interval",
-		Usage: "Health check interval between service discovery center and this service (default: 3s)",
+		Usage: "Health check interval between service discovery center and this service (unit: ms, default 3s)",
 		Value: 3000,
 	}
 
 	DiscoveryServiceHealthCheckDeregister = &cli.IntFlag{
 		Name:  "discovery-service-health-check-deregister",
-		Usage: "When the service leaves, the service discovery center removes the service information (default: 10s)",
+		Usage: "When the service leaves, the service discovery center removes the service information (unit: ms, default 10s)",
 		Value: 10000,
 	}
 

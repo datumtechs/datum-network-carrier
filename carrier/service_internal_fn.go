@@ -18,12 +18,12 @@ import (
 )
 
 const (
-	defaultRefreshResourceNodesInternal = 30 * time.Millisecond
+	defaultRefreshResourceNodesInternal = 6 * time.Second
 )
 
 func (s *Service) loop() {
 
-	refreshResourceNodesTicker := time.NewTicker(defaultRefreshResourceNodesInternal) // 30 ms
+	refreshResourceNodesTicker := time.NewTicker(defaultRefreshResourceNodesInternal) // 6 s
 
 	for {
 
