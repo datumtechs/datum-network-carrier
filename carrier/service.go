@@ -197,6 +197,7 @@ func (s *Service) Start() error {
 	if err := s.initServicesWithDiscoveryCenter(); nil != err {
 		log.Fatal(err)
 	}
+	go s.loop()
 	return nil
 }
 
