@@ -31,7 +31,9 @@ func (s *Service) loop() {
 
 		case <-refreshResourceNodesTicker.C:
 
-			s.refreshResourceNodes()
+			if err := s.refreshResourceNodes(); nil != err {
+				log.WithError(err).Errorf("Failed to call service.refreshResourceNodes() on service.loop()")
+			}
 
 		case <-s.quit:
 			log.Info("Stopped carrier service ...")
