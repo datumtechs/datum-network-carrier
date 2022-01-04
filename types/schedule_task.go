@@ -10,6 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math/big"
 	"strings"
+	"time"
 )
 
 type ProposalTask struct {
@@ -96,10 +97,10 @@ func NewNeedConsensusTask(task *Task, nonce []byte, weights [][]byte, electionAt
 	}
 }
 
-func (nct *NeedConsensusTask) GetTask() *Task                    { return nct.task }
-func (nct *NeedConsensusTask) GetNonce() []byte                  { return nct.nonce }
-func (nct *NeedConsensusTask) GetWeights() [][]byte              { return nct.weights }
-func (nct *NeedConsensusTask) GetElectionAt() uint64             { return nct.electionAt }
+func (nct *NeedConsensusTask) GetTask() *Task        { return nct.task }
+func (nct *NeedConsensusTask) GetNonce() []byte      { return nct.nonce }
+func (nct *NeedConsensusTask) GetWeights() [][]byte  { return nct.weights }
+func (nct *NeedConsensusTask) GetElectionAt() uint64 { return nct.electionAt }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
@@ -271,20 +272,39 @@ func (net *NeedExecuteTask) GetResources() *twopcpb.ConfirmTaskPeerInfo { return
 func (net *NeedExecuteTask) GetErr() error                              { return net.err }
 func (net *NeedExecuteTask) String() string {
 	localIdentityStr := "{}"
-	if nil != net.localTaskOrganization {
-		localIdentityStr = net.localTaskOrganization.String()
+	if nil != net.GetLocalTaskOrganization() {
+		localIdentityStr = net.GetLocalTaskOrganization().String()
 	}
 	remoteIdentityStr := "{}"
-	if nil != net.remoteTaskOrganization {
-		remoteIdentityStr = net.remoteTaskOrganization.String()
+	if nil != net.GetRemoteTaskOrganization() {
+		remoteIdentityStr = net.GetRemoteTaskOrganization().String()
 	}
 	localResourceStr := "{}"
-	if nil != net.localResource {
-		localResourceStr = net.localResource.String()
+	if nil != net.GetLocalResource() {
+		localResourceStr = net.GetLocalResource().String()
 	}
 	return fmt.Sprintf(`{"remotepid": %s, "localTaskRole": %s, "localTaskOrganization": %s, "remoteTaskRole": %s, "remoteTaskOrganization": %s, "taskId": %s, "localResource": %s, "resources": %s, "err": %s}`,
-		net.remotepid, net.localTaskRole.String(), localIdentityStr, net.remoteTaskRole.String(), remoteIdentityStr, net.taskId, localResourceStr, ConfirmTaskPeerInfoString(net.resources), net.err)
+		net.GetRemotePID(), net.GetLocalTaskRole().String(), localIdentityStr, net.GetRemoteTaskRole().String(), remoteIdentityStr, net.GetTaskId(), localResourceStr, ConfirmTaskPeerInfoString(net.GetResources()), net.GetErr())
 }
+
+type ExecuteTaskTimeout struct {
+	taskId  string
+	partyId string
+	when    time.Time
+}
+
+func NewExecuteTaskTimeout(taskId, partyId string, when time.Time) *ExecuteTaskTimeout {
+	return &ExecuteTaskTimeout{
+		taskId:  taskId,
+		partyId: partyId,
+		when:    when,
+	}
+}
+func (ett *ExecuteTaskTimeout) GetTaskId() string  { return ett.taskId }
+func (ett *ExecuteTaskTimeout) GetPartyId() string { return ett.partyId }
+func (ett *ExecuteTaskTimeout) GetWhen() time.Time { return ett.when }
+
+type ExecuteTaskTimeoutQueue []*ExecuteTaskTimeout
 
 func ConfirmTaskPeerInfoString(resources *twopcpb.ConfirmTaskPeerInfo) string {
 	if nil == resources {

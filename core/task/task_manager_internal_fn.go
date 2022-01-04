@@ -1144,7 +1144,7 @@ func (m *Manager) expireTaskMonitor() {
 		localTask, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
 		if nil != err {
 			for partyId, _ := range cache {
-				log.WithError(err).Warnf("Warning query local task info failed, clean current party task cache short circuit AND skip it, on `taskManager.expireTaskMonitor()`, taskId: {%s}, partyId: {%s}",
+				log.WithError(err).Warnf("Can not query local task info, clean current party task cache short circuit AND skip it, on `taskManager.expireTaskMonitor()`, taskId: {%s}, partyId: {%s}",
 					taskId, partyId)
 				// clean current party task cache short circuit.
 				delete(cache, partyId)

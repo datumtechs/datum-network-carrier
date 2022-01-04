@@ -53,6 +53,7 @@ type Manager struct {
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
+	priotyHeap               types.ExecuteTaskTimeoutQueue
 	runningTaskCacheLock     sync.RWMutex
 }
 
@@ -188,7 +189,7 @@ func (m *Manager) loop() {
 				log.WithError(err).Errorf("Failed to try schedule local task when taskTicker")
 			}
 
-		case res := <- m.taskConsResultCh:  // received the task consensus result by task sender
+		case res := <-m.taskConsResultCh: // received the task consensus result by task sender
 
 			if nil == res {
 				continue
@@ -265,7 +266,7 @@ func (m *Manager) loop() {
 							types.TaskScheduleFailed,
 							&types.PrepareVoteResource{},   // zero value
 							&twopcpb.ConfirmTaskPeerInfo{}, // zero value
-							fmt.Errorf("consensus interrupted: " + result.GetErr().Error() + " and " + schedule.ErrRescheduleLargeThreshold.Error()),
+							fmt.Errorf("consensus interrupted: "+result.GetErr().Error()+" and "+schedule.ErrRescheduleLargeThreshold.Error()),
 						))
 					} else {
 						log.Debugf("Succeed to repush local task into queue/starve queue %s when received `NEED-CONSENSUS` task result, taskId: {%s}",
