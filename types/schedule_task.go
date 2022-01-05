@@ -346,7 +346,7 @@ rerun:
 	return math.MaxInt32
 }
 
-func (syncQueue *SyncExecuteTaskMonitorQueue) Size() int { return len(*(syncQueue.queue))}
+func (syncQueue *SyncExecuteTaskMonitorQueue) Size() int { return len(*(syncQueue.queue)) }
 
 func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) {
 	syncQueue.lock.Lock()
@@ -360,7 +360,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) 
 	syncQueue.siftUpMonitor(i)
 }
 
-func (syncQueue *SyncExecuteTaskMonitorQueue) DelMonitor (taskId, partyId string) {
+func (syncQueue *SyncExecuteTaskMonitorQueue) DelMonitor(taskId, partyId string) {
 	syncQueue.lock.Lock()
 	defer syncQueue.lock.Unlock()
 

@@ -914,7 +914,7 @@ func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask, timeoutDu
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) handleExpireTask (task *types.NeedExecuteTask, localTask *types.Task) {
+func (m *Manager) handleExpireTask(task *types.NeedExecuteTask, localTask *types.Task) {
 
 	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
 

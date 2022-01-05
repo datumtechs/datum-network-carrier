@@ -101,8 +101,6 @@ func (m *Manager) recoveryNeedExecuteTask() {
 			taskId := string(key[len(prefix) : len(prefix)+71])
 			partyId := string(key[len(prefix)+71:])
 
-
-
 			var res libtypes.NeedExecuteTask
 
 			if err := proto.Unmarshal(value, &res); nil != err {
@@ -199,11 +197,11 @@ func (m *Manager) loop() {
 	taskTicker := time.NewTicker(defaultScheduleTaskInterval) // 2 s
 
 	var taskMonitorTicker *time.Timer
-	future := time.Duration(m.syncExecuteTaskMonitors.TimeSleepUntil()-timeutils.UnixMsec())
+	future := time.Duration(m.syncExecuteTaskMonitors.TimeSleepUntil() - timeutils.UnixMsec())
 	if future <= 0 {
 		future = 0
 	}
-	taskMonitorTicker = time.NewTimer(future* time.Millisecond)
+	taskMonitorTicker = time.NewTimer(future * time.Millisecond)
 
 	for {
 		select {
