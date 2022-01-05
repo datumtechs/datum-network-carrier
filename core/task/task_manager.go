@@ -53,7 +53,7 @@ type Manager struct {
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask
 	needExecuteTaskCh        chan *types.NeedExecuteTask
 	runningTaskCache         map[string]map[string]*types.NeedExecuteTask //  taskId -> {partyId -> task}
-	priotyHeap               types.ExecuteTaskTimeoutQueue
+	syncExecuteTaskMonitors  *types.SyncExecuteTaskMonitorQueue
 	runningTaskCacheLock     sync.RWMutex
 }
 
@@ -87,6 +87,7 @@ func NewTaskManager(
 		needExecuteTaskCh:        needExecuteTaskCh,
 		taskConsResultCh:         taskConsResultCh,
 		runningTaskCache:         make(map[string]map[string]*types.NeedExecuteTask, 0), // taskId -> partyId -> needExecuteTask
+		syncExecuteTaskMonitors:  types.NewSyncExecuteTaskMonitorQueue(0),
 		quit:                     make(chan struct{}),
 	}
 	return m
@@ -100,21 +101,29 @@ func (m *Manager) recoveryNeedExecuteTask() {
 			taskId := string(key[len(prefix) : len(prefix)+71])
 			partyId := string(key[len(prefix)+71:])
 
+
+
 			var res libtypes.NeedExecuteTask
 
 			if err := proto.Unmarshal(value, &res); nil != err {
 				return fmt.Errorf("Unmarshal needExecuteTask failed, %s", err)
 			}
 
+			localTask, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
+			if nil != err {
+				return fmt.Errorf("found local task about needExecuteTask failed, %s", err)
+			}
+
 			cache, ok := m.runningTaskCache[taskId]
 			if !ok {
 				cache = make(map[string]*types.NeedExecuteTask, 0)
 			}
-			var err error
+			var taskErr error
 			if strings.Trim(res.GetErrStr(), "") != "" {
-				err = fmt.Errorf(strings.Trim(res.GetErrStr(), ""))
+				taskErr = fmt.Errorf(strings.Trim(res.GetErrStr(), ""))
 			}
-			cache[partyId] = types.NewNeedExecuteTask(
+
+			task := types.NewNeedExecuteTask(
 				peer.ID(res.GetRemotePid()),
 				res.GetLocalTaskRole(),
 				res.GetRemoteTaskRole(),
@@ -129,9 +138,45 @@ func (m *Manager) recoveryNeedExecuteTask() {
 					res.GetLocalResource().GetPartyId(),
 				),
 				res.GetResources(),
-				err,
+				taskErr,
 			)
+			cache[partyId] = task
 			m.runningTaskCache[taskId] = cache
+
+			timeoutDuration := timeutils.UnixMsecUint64() - localTask.GetTaskData().GetStartAt()
+
+			//if localTask.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Running && localTask.GetTaskData().GetStartAt() != 0 {
+			//	if timeoutDuration >= localTask.GetTaskData().GetOperationCost().GetDuration() {
+			//		m.handleExpireTask(task, localTask)
+			//	}
+			//}
+			m.syncExecuteTaskMonitors.AddMonitor(
+				types.NewExecuteTaskMonitor(taskId, partyId, timeutils.UnixMsec()+int64(timeoutDuration), func() {
+
+					m.runningTaskCacheLock.Lock()
+					defer m.runningTaskCacheLock.Unlock()
+
+					localTask, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
+					if nil != err {
+						for pid, _ := range cache {
+							log.WithError(err).Warnf("Can not query local task info, clean current party task cache short circuit AND skip it, on `taskManager.expireTaskMonitor()`, taskId: {%s}, partyId: {%s}",
+								taskId, pid)
+							// clean current party task cache short circuit.
+							delete(cache, pid)
+							go m.resourceMng.GetDB().RemoveNeedExecuteTaskByPartyId(taskId, pid)
+							if len(cache) == 0 {
+								delete(m.runningTaskCache, taskId)
+							} else {
+								m.runningTaskCache[taskId] = cache
+							}
+							log.Debugf("Call expireTaskMonitor remove NeedExecuteTask as query local task info failed when task was expired, taskId: {%s}, partyId: {%s}", taskId, partyId)
+							continue
+						}
+						return
+					}
+					m.handleExpireTask(task, localTask)
+
+				}))
 		}
 		return nil
 	}); nil != err {
@@ -150,8 +195,15 @@ func (m *Manager) Stop() error {
 }
 
 func (m *Manager) loop() {
-	taskMonitorTicker := time.NewTicker(taskMonitorInterval)  // 30 s
+	//taskMonitorTicker := time.NewTicker(taskMonitorInterval)  // 30 s
 	taskTicker := time.NewTicker(defaultScheduleTaskInterval) // 2 s
+
+	var taskMonitorTicker *time.Timer
+	future := time.Duration(m.syncExecuteTaskMonitors.TimeSleepUntil()-timeutils.UnixMsec())
+	if future <= 0 {
+		future = 0
+	}
+	taskMonitorTicker = time.NewTimer(future* time.Millisecond)
 
 	for {
 		select {
@@ -356,7 +408,9 @@ func (m *Manager) loop() {
 		// handle the executing expire tasks
 		case <-taskMonitorTicker.C:
 
-			m.expireTaskMonitor()
+			//m.expireTaskMonitor()
+			future := m.checkNeedExecuteTaskMonitors(timeutils.UnixMsec())
+			taskMonitorTicker.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")
