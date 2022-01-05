@@ -196,12 +196,11 @@ func (m *Manager) loop() {
 	//taskMonitorTicker := time.NewTicker(taskMonitorInterval)  // 30 s
 	taskTicker := time.NewTicker(defaultScheduleTaskInterval) // 2 s
 
-	var taskMonitorTicker *time.Timer
 	future := time.Duration(m.syncExecuteTaskMonitors.TimeSleepUntil() - timeutils.UnixMsec())
 	if future <= 0 {
 		future = 0
 	}
-	taskMonitorTicker = time.NewTimer(future * time.Millisecond)
+	taskMonitorTicker := time.NewTimer(future * time.Millisecond)
 
 	for {
 		select {

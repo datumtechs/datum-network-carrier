@@ -21,6 +21,8 @@ type state struct {
 	proposalPeerInfoCache map[common.Hash]*twopcpb.ConfirmTaskPeerInfo
 	// wal
 	wal *walDB
+	// v 0.3.0 monitors
+	syncProposalStateMonitors *ctypes.SyncProposalStateMonitorQueue
 
 	proposalTaskLock    sync.RWMutex
 	proposalsLock       sync.RWMutex
@@ -31,12 +33,13 @@ type state struct {
 
 func newState(ldb *walDB) *state {
 	return &state{
-		proposalTaskCache:     make(map[string]map[string]*types.ProposalTask),
-		proposalSet:           make(map[common.Hash]*ctypes.ProposalState, 0),
-		prepareVotes:          make(map[common.Hash]*prepareVoteState, 0),
-		confirmVotes:          make(map[common.Hash]*confirmVoteState, 0),
-		proposalPeerInfoCache: make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
-		wal:                   ldb,
+		proposalTaskCache:         make(map[string]map[string]*types.ProposalTask),
+		proposalSet:               make(map[common.Hash]*ctypes.ProposalState, 0),
+		prepareVotes:              make(map[common.Hash]*prepareVoteState, 0),
+		confirmVotes:              make(map[common.Hash]*confirmVoteState, 0),
+		proposalPeerInfoCache:     make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
+		syncProposalStateMonitors: ctypes.NewSyncProposalStateMonitorQueue(0),
+		wal:                       ldb,
 	}
 }
 func (s *state) IsEmpty() bool    { return nil == s }
@@ -162,7 +165,7 @@ func (s *state) ChangeToConfirm(proposalId common.Hash, partyId string, startTim
 	if !ok {
 		return
 	}
-	orgProposalState.ChangeToConfirm(startTime)
+	orgProposalState.ChangeToConfirm()
 	proposalState.StoreOrgProposalState(orgProposalState)
 
 	log.Debugf("Succeed to call `ChangeToConfirm`, proposalId: {%s}, partyId: {%s}, startTime: {%d}", proposalId.String(), partyId, startTime)
@@ -182,7 +185,7 @@ func (s *state) ChangeToCommit(proposalId common.Hash, partyId string, startTime
 	if !ok {
 		return
 	}
-	orgProposalState.ChangeToCommit(startTime)
+	orgProposalState.ChangeToCommit()
 	proposalState.StoreOrgProposalState(orgProposalState)
 
 	log.Debugf("Succeed to call `ChangeToCommit`, proposalId: {%s}, partyId: {%s}, startTime: {%d}", proposalId.String(), partyId, startTime)
@@ -200,6 +203,8 @@ func (s *state) RemoveOrgProposalStateAnyCache(proposalId common.Hash, taskId, p
 	s.wal.DeleteState(s.wal.GetProposalSetKey(proposalId, partyId))
 	s.wal.DeleteState(s.wal.GetPrepareVotesKey(proposalId, partyId))
 	s.wal.DeleteState(s.wal.GetConfirmVotesKey(proposalId, partyId))
+	// v 0.3.0 delete proposal state monitor
+	s.DelMonitor(proposalId, partyId)
 }
 
 // ---------------- PrepareVote ----------------
@@ -743,4 +748,18 @@ func (s *state) RemoveConfirmTaskPeerInfo(proposalId common.Hash) {
 	delete(s.proposalPeerInfoCache, proposalId)
 	s.confirmPeerInfoLock.Unlock()
 	s.wal.DeleteState(s.wal.GetProposalPeerInfoCacheKey(proposalId))
+}
+
+// v 0.3.0 proposal state monitor
+func (s *state) CheckProposalStateMonitors(now int64) int64 {
+	return s.syncProposalStateMonitors.CheckMonitors(now)
+}
+func (s *state) TimeSleepUntil() int64 {
+	return s.syncProposalStateMonitors.TimeSleepUntil()
+}
+func (s *state) AddMonitor(m *ctypes.ProposalStateMonitor) {
+	s.syncProposalStateMonitors.AddMonitor(m)
+}
+func (s *state) DelMonitor(proposalId common.Hash, partyId string) {
+	s.syncProposalStateMonitors.DelMonitor(proposalId, partyId)
 }

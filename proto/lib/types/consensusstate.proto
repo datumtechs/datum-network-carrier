@@ -18,15 +18,14 @@ message ProposalTask {
 }
 
 message OrgProposalState{
-  uint64                        pre_period_start_time = 1;
-  uint64                        period_start_time = 2;
-  uint64                        deadline_duration = 3;
-  uint64                        create_at = 4;
-  api.protobuf.TaskRole         task_role = 5;
-  api.protobuf.TaskOrganization task_org = 6;
-  uint32                        period_num = 7;
-  string                        task_id = 8;
-  api.protobuf.TaskOrganization task_sender = 9;
+  uint64                        start_at = 1;
+  uint64                        deadline_duration = 2;
+  uint64                        create_at = 3;
+  api.protobuf.TaskRole         task_role = 4;
+  api.protobuf.TaskOrganization task_org = 5;
+  uint32                        period_num = 6;
+  string                        task_id = 7;
+  api.protobuf.TaskOrganization task_sender = 8;
 }
 
 message PrepareVoteResource{

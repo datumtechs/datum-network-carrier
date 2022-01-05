@@ -110,13 +110,12 @@ func (w *walDB) StoreOrgProposalState(proposalId common.Hash, sender *apicommonp
 	data, err := proto.Marshal(&libtypes.OrgProposalState{
 		TaskId:             orgState.GetTaskId(),
 		TaskSender:         sender,
-		PrePeriodStartTime: orgState.PrePeriodStartTime,
-		PeriodStartTime:    orgState.PeriodStartTime,
-		DeadlineDuration:   orgState.DeadlineDuration,
-		CreateAt:           orgState.CreateAt,
-		TaskRole:           orgState.TaskRole,
-		TaskOrg:            orgState.TaskOrg,
-		PeriodNum:          uint32(orgState.PeriodNum),
+		StartAt:            orgState.GetStartAt(),
+		DeadlineDuration:   orgState.GetDeadlineDuration(),
+		CreateAt:           orgState.GetCreateAt(),
+		TaskRole:           orgState.GetTaskRole(),
+		TaskOrg:            orgState.GetTaskOrg(),
+		PeriodNum:          uint32(orgState.GetPeriodNum()),
 	})
 	if err != nil {
 		log.WithError(err).Fatalf("marshal org proposalState failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",

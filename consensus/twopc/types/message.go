@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"math"
 	"sync"
 	"time"
 )
@@ -43,10 +44,6 @@ const (
 	PrepareMsgVotingDuration = 3 * time.Second // 3s
 	ConfirmMsgVotingDuration = 1 * time.Second // 1s
 	CommitMsgEndingDuration  = 1 * time.Second // 1s
-
-	//ConfirmEpochUnknown ConfirmEpoch = 0
-	//ConfirmEpochFirst   ConfirmEpoch = 1
-	//ConfirmEpochSecond  ConfirmEpoch = 2
 
 )
 
@@ -123,14 +120,13 @@ func (pstate *ProposalState) IsEmpty() bool {
 func (pstate *ProposalState) IsNotEmpty() bool { return !pstate.IsEmpty() }
 
 type OrgProposalState struct {
-	PrePeriodStartTime uint64
-	PeriodStartTime    uint64 // the timestemp
-	DeadlineDuration   uint64 // Clear `ProposalState` , when the current time is greater than the `DeadlineDuration` createAt of proposalState
-	CreateAt           uint64
-	TaskId             string
-	TaskRole           apicommonpb.TaskRole
-	TaskOrg            *apicommonpb.TaskOrganization
-	PeriodNum          ProposalStatePeriod
+	DeadlineDuration uint64 // Clear `ProposalState` , when the current time is greater than the `DeadlineDuration` createAt of proposalState
+	CreateAt         uint64 // the time is that the proposal state was created on current iden
+	StartAt          uint64 // the time is that the proposal state was created on task sender iden
+	TaskId           string
+	TaskRole         apicommonpb.TaskRole
+	TaskOrg          *apicommonpb.TaskOrganization
+	PeriodNum        ProposalStatePeriod
 }
 
 func NewOrgProposalState(
@@ -145,17 +141,32 @@ func NewOrgProposalState(
 		TaskRole:         taskRole,
 		TaskOrg:          taskOrg,
 		PeriodNum:        PeriodPrepare,
-		PeriodStartTime:  startTime,
 		DeadlineDuration: ProposalDeadlineDuration,
 		CreateAt:         timeutils.UnixMsecUint64(),
+		StartAt:          startTime,
 	}
 }
 
-func (pstate *OrgProposalState) GetTaskId() string                 { return pstate.TaskId }
-func (pstate *OrgProposalState) GetTaskRole() apicommonpb.TaskRole { return pstate.TaskRole }
-func (pstate *OrgProposalState) CurrPeriodNum() ProposalStatePeriod {
-	return pstate.PeriodNum
+func (pstate *OrgProposalState) GetTaskId() string                         { return pstate.TaskId }
+func (pstate *OrgProposalState) GetTaskRole() apicommonpb.TaskRole         { return pstate.TaskRole }
+func (pstate *OrgProposalState) GetTaskOrg() *apicommonpb.TaskOrganization { return pstate.TaskOrg }
+func (pstate *OrgProposalState) GetPeriodNum() ProposalStatePeriod         { return pstate.PeriodNum }
+func (pstate *OrgProposalState) GetDeadlineDuration() uint64               { return pstate.DeadlineDuration }
+func (pstate *OrgProposalState) GetCreateAt() uint64                       { return pstate.CreateAt }
+func (pstate *OrgProposalState) GetStartAt() uint64                        { return pstate.StartAt }
+func (pstate *OrgProposalState) GetPrepareExpireTime() int64 {
+	return int64(pstate.StartAt) + PrepareMsgVotingDuration.Milliseconds()
 }
+func (pstate *OrgProposalState) GetConfirmExpireTime() int64 {
+	return int64(pstate.StartAt) + PrepareMsgVotingDuration.Milliseconds() + ConfirmMsgVotingDuration.Milliseconds()
+}
+func (pstate *OrgProposalState) GetCommitExpireTime() int64 {
+	return int64(pstate.StartAt) + PrepareMsgVotingDuration.Milliseconds() + ConfirmMsgVotingDuration.Milliseconds() + CommitMsgEndingDuration.Milliseconds()
+}
+func (pstate *OrgProposalState) GetDeadlineExpireTime() int64 {
+	return int64(pstate.StartAt + pstate.DeadlineDuration)
+}
+
 func (pstate *OrgProposalState) GetPeriodStr() string {
 	switch pstate.PeriodNum {
 	case PeriodPrepare:
@@ -171,12 +182,6 @@ func (pstate *OrgProposalState) GetPeriodStr() string {
 	}
 }
 
-func (pstate *OrgProposalState) SetDeadlineDuration(deadline uint64) {
-	pstate.DeadlineDuration = deadline
-}
-func (pstate *OrgProposalState) AddDeadlineDuration(duration uint64) {
-	pstate.DeadlineDuration += duration
-}
 func (pstate *OrgProposalState) IsPreparePeriod() bool     { return pstate.PeriodNum == PeriodPrepare }
 func (pstate *OrgProposalState) IsConfirmPeriod() bool     { return pstate.PeriodNum == PeriodConfirm }
 func (pstate *OrgProposalState) IsCommitPeriod() bool      { return pstate.PeriodNum == PeriodCommit }
@@ -192,86 +197,294 @@ func (pstate *OrgProposalState) IsDeadline() bool {
 
 func (pstate *OrgProposalState) IsPrepareTimeout() bool {
 
-	if !pstate.IsPreparePeriod() {
-		return true
-	}
-
 	now := timeutils.UnixMsecUint64()
 	duration := uint64(PrepareMsgVotingDuration.Milliseconds())
 
-	// Due to the time boundary problem, the value `==`
-	if pstate.IsPreparePeriod() && (now-pstate.PeriodStartTime) >= duration {
+	if pstate.IsPreparePeriod() && (now-pstate.StartAt) >= duration {
 		return true
 	}
 	return false
 }
 func (pstate *OrgProposalState) IsConfirmTimeout() bool {
 
-	if pstate.IsPreparePeriod() {
-		return false
-	}
-	if pstate.IsConfirmPeriod() {
-		return false
-	}
-	if pstate.IsCommitPeriod() {
-		return true
-	}
-	if pstate.IsFinishedPeriod() {
-		return true
-	}
-
 	now := timeutils.UnixMsecUint64()
-	duration := uint64(ConfirmMsgVotingDuration.Milliseconds())
+	duration := uint64(PrepareMsgVotingDuration.Milliseconds()) + uint64(ConfirmMsgVotingDuration.Milliseconds())
 
-	if pstate.IsConfirmPeriod() && (now-pstate.PeriodStartTime) >= duration {
+	if pstate.IsConfirmPeriod() && (now-pstate.StartAt) >= duration {
 		return true
 	}
 	return false
 }
 
 func (pstate *OrgProposalState) IsCommitTimeout() bool {
-	if pstate.IsPreparePeriod() {
-		return false
-	}
-	if pstate.IsConfirmPeriod() {
-		return false
-	}
-	if pstate.IsFinishedPeriod() {
-		return true
-	}
 
 	now := timeutils.UnixMsecUint64()
-	duration := uint64(CommitMsgEndingDuration.Milliseconds())
+	duration := uint64(PrepareMsgVotingDuration.Milliseconds()) + uint64(ConfirmMsgVotingDuration.Milliseconds()) + uint64(CommitMsgEndingDuration.Milliseconds())
 
-	// Due to the time boundary problem, the value `==`
-	if pstate.IsCommitPeriod() && (now-pstate.PeriodStartTime) >= duration {
+	if pstate.IsCommitPeriod() && (now-pstate.StartAt) >= duration {
 		return true
 	}
 	return false
 }
 
-func (pstate *OrgProposalState) ChangeToConfirm(startTime uint64) {
+func (pstate *OrgProposalState) ChangeToConfirm() {
 	if pstate.PeriodNum == PeriodPrepare {
-		pstate.PrePeriodStartTime = pstate.PeriodStartTime
-		pstate.PeriodStartTime = startTime
 		pstate.PeriodNum = PeriodConfirm
 	}
-	//pstate.ConfirmEpoch = ConfirmEpochFirst
 }
 
-func (pstate *OrgProposalState) ChangeToCommit(startTime uint64) {
+func (pstate *OrgProposalState) ChangeToCommit() {
 	if pstate.PeriodNum == PeriodConfirm {
-		pstate.PrePeriodStartTime = pstate.PeriodStartTime
-		pstate.PeriodStartTime = startTime
 		pstate.PeriodNum = PeriodCommit
 	}
-	//pstate.ConfirmEpoch = ConfirmEpochUnknown
 }
-func (pstate *OrgProposalState) ChangeToFinished(startTime uint64) {
+func (pstate *OrgProposalState) ChangeToFinished() {
 	if pstate.PeriodNum == PeriodCommit {
-		pstate.PrePeriodStartTime = pstate.PeriodStartTime
-		pstate.PeriodStartTime = startTime
 		pstate.PeriodNum = PeriodFinished
 	}
-	//pstate.ConfirmEpoch = ConfirmEpochUnknown
+}
+
+// v 0.3.0 proposal state expire monitor
+type ProposalStateMonitor struct {
+	proposalId common.Hash
+	partyId    string
+	sender     *apicommonpb.TaskOrganization
+	orgState   *OrgProposalState
+	when       int64 // target timestamp
+	next       int64
+	fn         func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)
+}
+
+func NewProposalStateMonitor(proposalId common.Hash, partyId string, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState, when, next int64, fn func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)) *ProposalStateMonitor {
+	return &ProposalStateMonitor{
+		proposalId: proposalId,
+		partyId:    partyId,
+		sender:     sender,
+		orgState:   orgState,
+		when:       when,
+		next:       next,
+		fn:         fn,
+	}
+}
+func (psm *ProposalStateMonitor) GetProposalId() common.Hash { return psm.proposalId }
+func (psm *ProposalStateMonitor) GetPartyId() string         { return psm.partyId }
+func (psm *ProposalStateMonitor) GetWhen() int64             { return psm.when }
+func (psm *ProposalStateMonitor) SetCallBackFn(f func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)) {
+	psm.fn = f
+}
+func (psm *ProposalStateMonitor) SetNext(next int64) { psm.next = next }
+
+type proposalStateMonitorQueue []*ProposalStateMonitor
+
+type SyncProposalStateMonitorQueue struct {
+	lock  sync.Mutex
+	queue *proposalStateMonitorQueue
+}
+
+func NewSyncProposalStateMonitorQueue(size int) *SyncProposalStateMonitorQueue {
+	queue := make(proposalStateMonitorQueue, size)
+	return &SyncProposalStateMonitorQueue{
+		queue: &(queue),
+	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) CheckMonitors(now int64) int64 {
+
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	// Note that runMonitor may temporarily unlock queue.Lock.
+rerun:
+	for len(*(syncQueue.queue)) > 0 {
+		if future := syncQueue.runMonitor(now); future != 0 {
+			if future > 0 {
+				now = timeutils.UnixMsec()
+				if future > now {
+					return future
+				} else {
+					continue rerun
+				}
+			}
+		}
+	}
+	return math.MaxInt32
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) Size() int { return len(*(syncQueue.queue)) }
+
+func (syncQueue *SyncProposalStateMonitorQueue) AddMonitor(m *ProposalStateMonitor) {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	// when must never be negative;
+	if m.when-timeutils.UnixMsec() < 0 {
+		panic("target time is negative number")
+	}
+	i := len(*(syncQueue.queue))
+	*(syncQueue.queue) = append(*(syncQueue.queue), m)
+	syncQueue.siftUpMonitor(i)
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) UpdateMonitor(proposalId common.Hash, partyId string, when, next int64) {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	// when must never be negative;
+	if when-timeutils.UnixMsec() < 0 {
+		panic("target time is negative number")
+	}
+	for i := 0; i < len(*(syncQueue.queue)); i++ {
+		m := (*(syncQueue.queue))[i]
+		if m.GetProposalId() == proposalId && m.GetPartyId() == partyId {
+			// Leave in heap but adjust next time to fire.
+			m.when = when
+			m.next = next // maybe is zero value.
+			syncQueue.siftDownMonitor(0)
+			return
+		}
+	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) DelMonitor(proposalId common.Hash, partyId string) {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+
+	for i := 0; i < len(*(syncQueue.queue)); i++ {
+		m := (*(syncQueue.queue))[i]
+		if m.GetProposalId() == proposalId && m.GetPartyId() == partyId {
+			syncQueue.delMonitorWithIndex(i)
+			return
+		}
+	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) delMonitorWithIndex(i int) {
+
+	last := len(*(syncQueue.queue)) - 1
+	if i != last {
+		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[last]
+	}
+	(*(syncQueue.queue))[last] = nil
+	*(syncQueue.queue) = (*(syncQueue.queue))[:last]
+	if i != last {
+		// Moving to i may have moved the last monitor to a new parent,
+		// so sift up to preserve the heap guarantee.
+		syncQueue.siftUpMonitor(i)
+		syncQueue.siftDownMonitor(i)
+	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) delMonitor0() {
+
+	last := len(*(syncQueue.queue)) - 1
+	if last > 0 {
+		(*(syncQueue.queue))[0] = (*(syncQueue.queue))[last]
+	}
+	(*(syncQueue.queue))[last] = nil
+	*(syncQueue.queue) = (*(syncQueue.queue))[:last]
+
+	if last > 0 {
+		syncQueue.siftDownMonitor(0)
+	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) runMonitor(now int64) int64 {
+	m := (*(syncQueue.queue))[0]
+	if m.when > now {
+		// Not ready to run.
+		return m.when
+	}
+	f := m.fn
+	proposalId := m.proposalId
+	sender := m.sender
+	orgState := m.orgState
+
+	if m.next > 0 {
+		// when must never be negative;
+		if m.next-timeutils.UnixMsec() < 0 {
+			panic("target time is negative number")
+		}
+		// Leave in heap but adjust next time to fire.
+		m.when = m.next
+		m.next = 0 // clean old next time, a new next time will set in the callback func (the monitor field `fn`)
+		syncQueue.siftDownMonitor(0)
+
+	} else {
+		// Remove from heap.
+		syncQueue.delMonitor0()
+	}
+
+	syncQueue.lock.Unlock()
+	f(proposalId, sender, orgState)
+	syncQueue.lock.Lock()
+	return 0
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) TimeSleepUntil() int64 {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	if len(*(syncQueue.queue)) > 0 {
+		return (*(syncQueue.queue))[0].when
+	} else {
+		return -1
+	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) siftUpMonitor(i int) {
+
+	if i >= len(*(syncQueue.queue)) {
+		panic("queue data corruption")
+	}
+	when := (*(syncQueue.queue))[i].when
+	tmp := (*(syncQueue.queue))[i]
+	for i > 0 {
+
+		p := (i - 1) / 4 // parent
+		if when >= (*(syncQueue.queue))[p].when {
+			break
+		}
+		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[p]
+		i = p
+	}
+	if tmp != (*(syncQueue.queue))[i] {
+		(*(syncQueue.queue))[i] = tmp
+	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) siftDownMonitor(i int) {
+
+	n := len(*(syncQueue.queue))
+	if i >= n {
+		panic("queue data corruption")
+	}
+	when := (*(syncQueue.queue))[i].when
+	tmp := (*(syncQueue.queue))[i]
+	for {
+		c := i*4 + 1 // left child
+		c3 := c + 2  // mid child
+		if c >= n {
+			break
+		}
+		w := (*(syncQueue.queue))[c].when
+		if c+1 < n && (*(syncQueue.queue))[c+1].when < w {
+			w = (*(syncQueue.queue))[c+1].when
+			c++
+		}
+		if c3 < n {
+			w3 := (*(syncQueue.queue))[c3].when
+			if c3+1 < n && (*(syncQueue.queue))[c3+1].when < w3 {
+				w3 = (*(syncQueue.queue))[c3+1].when
+				c3++
+			}
+			if w3 < w {
+				w = w3
+				c = c3
+			}
+		}
+		if w >= when {
+			break
+		}
+		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[c]
+		i = c
+	}
+	if tmp != (*(syncQueue.queue))[i] {
+		(*(syncQueue.queue))[i] = tmp
+	}
 }

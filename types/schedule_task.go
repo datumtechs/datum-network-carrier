@@ -297,8 +297,6 @@ type ExecuteTaskMonitor struct {
 }
 
 func NewExecuteTaskMonitor(taskId, partyId string, when int64, fn func()) *ExecuteTaskMonitor {
-	fmt.Printf("New a monitor, taskId: %s, partyId: %s ", taskId, partyId)
-	fn()
 	return &ExecuteTaskMonitor{
 		taskId:  taskId,
 		partyId: partyId,
@@ -306,9 +304,9 @@ func NewExecuteTaskMonitor(taskId, partyId string, when int64, fn func()) *Execu
 		fn:      fn,
 	}
 }
-func (ett *ExecuteTaskMonitor) GetTaskId() string  { return ett.taskId }
-func (ett *ExecuteTaskMonitor) GetPartyId() string { return ett.partyId }
-func (ett *ExecuteTaskMonitor) GetWhen() int64     { return ett.when }
+func (etm *ExecuteTaskMonitor) GetTaskId() string  { return etm.taskId }
+func (etm *ExecuteTaskMonitor) GetPartyId() string { return etm.partyId }
+func (etm *ExecuteTaskMonitor) GetWhen() int64     { return etm.when }
 
 type executeTaskMonitorQueue []*ExecuteTaskMonitor
 
@@ -328,7 +326,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) CheckMonitors(now int64) int64 {
 
 	syncQueue.lock.Lock()
 	defer syncQueue.lock.Unlock()
-
+	// Note that runMonitor may temporarily unlock queue.Lock.
 rerun:
 	for len(*(syncQueue.queue)) > 0 {
 		if future := syncQueue.runMonitor(now); future != 0 {
@@ -342,7 +340,6 @@ rerun:
 			}
 		}
 	}
-
 	return math.MaxInt32
 }
 

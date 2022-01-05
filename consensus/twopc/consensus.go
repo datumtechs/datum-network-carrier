@@ -75,7 +75,12 @@ func (t *Twopc) Stop() error {
 	return nil
 }
 func (t *Twopc) loop() {
-	refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal) // 300 ms
+	//refreshProposalStateTicker := time.NewTicker(defaultRefreshProposalStateInternal) // 300 ms
+	future := time.Duration(t.state.TimeSleepUntil() - timeutils.UnixMsec())
+	if future <= 0 {
+		future = 0
+	}
+	refreshProposalStateTicker := time.NewTimer(future * time.Millisecond)
 	for {
 		select {
 
@@ -84,7 +89,9 @@ func (t *Twopc) loop() {
 
 		case <-refreshProposalStateTicker.C:
 
-			t.refreshProposalState()
+			//t.refreshProposalState()
+			future := t.checkProposalStateMonitors(timeutils.UnixMsec())
+			refreshProposalStateTicker.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
 
 		case <-t.quit:
 			log.Info("Stopped 2pc consensus engine ...")
@@ -992,7 +999,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsen
 	}
 
 	orgProposalState := t.mustGetOrgProposalState(proposalTask.GetProposalId(), msgOption.GetReceiverPartyId())
-	switch orgProposalState.CurrPeriodNum() {
+	switch orgProposalState.GetPeriodNum() {
 	case ctypes.PeriodPrepare:
 		// remove `proposal state` and `task cache` AND inerrupt consensus with sender OR release local locked resource with partner
 		t.stopTaskConsensus("interrupt consensus with terminate task while prepare epoch", proposalTask.GetProposalId(), msg.GetTaskId(),
