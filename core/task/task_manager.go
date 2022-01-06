@@ -141,40 +141,8 @@ func (m *Manager) recoveryNeedExecuteTask() {
 			cache[partyId] = task
 			m.runningTaskCache[taskId] = cache
 
-			timeoutDuration := timeutils.UnixMsecUint64() - localTask.GetTaskData().GetStartAt()
-
-			//if localTask.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Running && localTask.GetTaskData().GetStartAt() != 0 {
-			//	if timeoutDuration >= localTask.GetTaskData().GetOperationCost().GetDuration() {
-			//		m.handleExpireTask(task, localTask)
-			//	}
-			//}
-			m.syncExecuteTaskMonitors.AddMonitor(
-				types.NewExecuteTaskMonitor(taskId, partyId, timeutils.UnixMsec()+int64(timeoutDuration), func() {
-
-					m.runningTaskCacheLock.Lock()
-					defer m.runningTaskCacheLock.Unlock()
-
-					localTask, err := m.resourceMng.GetDB().QueryLocalTask(taskId)
-					if nil != err {
-						for pid, _ := range cache {
-							log.WithError(err).Warnf("Can not query local task info, clean current party task cache short circuit AND skip it, on `taskManager.expireTaskMonitor()`, taskId: {%s}, partyId: {%s}",
-								taskId, pid)
-							// clean current party task cache short circuit.
-							delete(cache, pid)
-							go m.resourceMng.GetDB().RemoveNeedExecuteTaskByPartyId(taskId, pid)
-							if len(cache) == 0 {
-								delete(m.runningTaskCache, taskId)
-							} else {
-								m.runningTaskCache[taskId] = cache
-							}
-							log.Debugf("Call expireTaskMonitor remove NeedExecuteTask as query local task info failed when task was expired, taskId: {%s}, partyId: {%s}", taskId, partyId)
-							continue
-						}
-						return
-					}
-					m.handleExpireTask(task, localTask)
-
-				}))
+			// v 0.3.0 add NeedExecuteTask Expire Monitor
+			m.addmonitor(task, int64(localTask.GetTaskData().GetStartAt() + localTask.GetTaskData().GetOperationCost().GetDuration()))
 		}
 		return nil
 	}); nil != err {

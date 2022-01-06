@@ -400,14 +400,20 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) delMonitor0() {
 	}
 }
 
+// NOTE: runMonitor() must be used in a logic between calling lock() and unlock().
 func (syncQueue *SyncExecuteTaskMonitorQueue) runMonitor(now int64) int64 {
+
+	if len(*(syncQueue.queue)) == 0 {
+		return 0
+	}
+
 	m := (*(syncQueue.queue))[0]
 	if m.when > now {
 		// Not ready to run.
 		return m.when
 	}
 	f := m.fn
-	// Remove from heap.
+	// Remove top member from heap.
 	syncQueue.delMonitor0()
 	syncQueue.lock.Unlock()
 	f()

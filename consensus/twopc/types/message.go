@@ -155,16 +155,16 @@ func (pstate *OrgProposalState) GetDeadlineDuration() uint64               { ret
 func (pstate *OrgProposalState) GetCreateAt() uint64                       { return pstate.CreateAt }
 func (pstate *OrgProposalState) GetStartAt() uint64                        { return pstate.StartAt }
 func (pstate *OrgProposalState) GetPrepareExpireTime() int64 {
-	return int64(pstate.StartAt) + PrepareMsgVotingDuration.Milliseconds()
+	return int64(pstate.GetStartAt()) + PrepareMsgVotingDuration.Milliseconds()
 }
 func (pstate *OrgProposalState) GetConfirmExpireTime() int64 {
-	return int64(pstate.StartAt) + PrepareMsgVotingDuration.Milliseconds() + ConfirmMsgVotingDuration.Milliseconds()
+	return int64(pstate.GetStartAt()) + PrepareMsgVotingDuration.Milliseconds() + ConfirmMsgVotingDuration.Milliseconds()
 }
 func (pstate *OrgProposalState) GetCommitExpireTime() int64 {
-	return int64(pstate.StartAt) + PrepareMsgVotingDuration.Milliseconds() + ConfirmMsgVotingDuration.Milliseconds() + CommitMsgEndingDuration.Milliseconds()
+	return int64(pstate.GetStartAt()) + PrepareMsgVotingDuration.Milliseconds() + ConfirmMsgVotingDuration.Milliseconds() + CommitMsgEndingDuration.Milliseconds()
 }
 func (pstate *OrgProposalState) GetDeadlineExpireTime() int64 {
-	return int64(pstate.StartAt + pstate.DeadlineDuration)
+	return int64(pstate.GetStartAt() + pstate.GetDeadlineDuration())
 }
 
 func (pstate *OrgProposalState) GetPeriodStr() string {
@@ -192,7 +192,7 @@ func (pstate *OrgProposalState) IsNotCommitPeriod() bool   { return !pstate.IsCo
 func (pstate *OrgProposalState) IsNotFinishedPeriod() bool { return !pstate.IsFinishedPeriod() }
 func (pstate *OrgProposalState) IsDeadline() bool {
 	now := timeutils.UnixMsecUint64()
-	return (now - pstate.CreateAt) >= ProposalDeadlineDuration
+	return (now - pstate.GetStartAt()) >= ProposalDeadlineDuration
 }
 
 func (pstate *OrgProposalState) IsPrepareTimeout() bool {
@@ -200,17 +200,18 @@ func (pstate *OrgProposalState) IsPrepareTimeout() bool {
 	now := timeutils.UnixMsecUint64()
 	duration := uint64(PrepareMsgVotingDuration.Milliseconds())
 
-	if pstate.IsPreparePeriod() && (now-pstate.StartAt) >= duration {
+	if pstate.IsPreparePeriod() && (now-pstate.GetStartAt()) >= duration {
 		return true
 	}
 	return false
 }
+
 func (pstate *OrgProposalState) IsConfirmTimeout() bool {
 
 	now := timeutils.UnixMsecUint64()
 	duration := uint64(PrepareMsgVotingDuration.Milliseconds()) + uint64(ConfirmMsgVotingDuration.Milliseconds())
 
-	if pstate.IsConfirmPeriod() && (now-pstate.StartAt) >= duration {
+	if pstate.IsConfirmPeriod() && (now-pstate.GetStartAt()) >= duration {
 		return true
 	}
 	return false
@@ -221,7 +222,7 @@ func (pstate *OrgProposalState) IsCommitTimeout() bool {
 	now := timeutils.UnixMsecUint64()
 	duration := uint64(PrepareMsgVotingDuration.Milliseconds()) + uint64(ConfirmMsgVotingDuration.Milliseconds()) + uint64(CommitMsgEndingDuration.Milliseconds())
 
-	if pstate.IsCommitPeriod() && (now-pstate.StartAt) >= duration {
+	if pstate.IsCommitPeriod() && (now-pstate.GetStartAt()) >= duration {
 		return true
 	}
 	return false
@@ -272,6 +273,7 @@ func (psm *ProposalStateMonitor) GetWhen() int64             { return psm.when }
 func (psm *ProposalStateMonitor) SetCallBackFn(f func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)) {
 	psm.fn = f
 }
+func (psm *ProposalStateMonitor) SetWhen(when int64) { psm.when = when }
 func (psm *ProposalStateMonitor) SetNext(next int64) { psm.next = next }
 
 type proposalStateMonitorQueue []*ProposalStateMonitor
@@ -385,7 +387,13 @@ func (syncQueue *SyncProposalStateMonitorQueue) delMonitor0() {
 	}
 }
 
+// NOTE: runMonitor() must be used in a logic between calling lock() and unlock().
 func (syncQueue *SyncProposalStateMonitorQueue) runMonitor(now int64) int64 {
+
+	if len(*(syncQueue.queue)) == 0 {
+		return 0
+	}
+
 	m := (*(syncQueue.queue))[0]
 	if m.when > now {
 		// Not ready to run.
@@ -403,11 +411,11 @@ func (syncQueue *SyncProposalStateMonitorQueue) runMonitor(now int64) int64 {
 		}
 		// Leave in heap but adjust next time to fire.
 		m.when = m.next
-		m.next = 0 // clean old next time, a new next time will set in the callback func (the monitor field `fn`)
+		m.next = 0 // NOTE: clean old next time, a new next time will set in the callback func (the monitor field `fn`)
 		syncQueue.siftDownMonitor(0)
 
 	} else {
-		// Remove from heap.
+		// Remove top member from heap.
 		syncQueue.delMonitor0()
 	}
 
