@@ -51,6 +51,7 @@ func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sen
 }
 
 func (t *Twopc) addmonitor (pstate *ctypes.ProposalState, proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+
 	monitor := ctypes.NewProposalStateMonitor(proposalId, orgState.TaskOrg.GetPartyId(), sender, orgState,
 		orgState.GetPrepareExpireTime(), orgState.GetConfirmExpireTime(), nil)
 
