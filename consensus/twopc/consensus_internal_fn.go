@@ -159,7 +159,6 @@ func (t *Twopc) addmonitor (pstate *ctypes.ProposalState, proposalId common.Hash
 						},
 						pstate.GetTaskSender(), types.TaskConsensusInterrupt)
 				}
-				//return // NOTE: As long as it is `deadline time`, there is no need to worry about `commit timeout`, short circuit.
 			} else {
 				// OR epoch is commit but time just is commit time out
 				if orgState.IsCommitTimeout() {
