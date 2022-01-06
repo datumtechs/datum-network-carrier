@@ -56,7 +56,7 @@ func (h *HealthCheck) Check(ctx context.Context, req *grpc_health_v1.HealthCheck
 	and there can also be more complex health check strategies, such as returning based on server load.
 	grpc health check detail see https://github.com/grpc/grpc/blob/master/doc/health-checking.md
 	*/
-	log.Debugf("discovery consul health checking")
+	log.Debugf("discovery consul health checking...")
 	return &grpc_health_v1.HealthCheckResponse{
 		Status: grpc_health_v1.HealthCheckResponse_SERVING,
 	}, nil

@@ -182,6 +182,9 @@ func (s *Service) refreshResourceNodes() error {
 
 			for _, jobNodeService := range jobNodeServices {
 				if node, ok := jobNodeCache[jobNodeService.ID]; !ok { // add new registered jobNode service
+
+					log.Infof("Discovered a new jobNode from consul server, jobNodeServiceId: {%s}, jobNodeService: {%s:%d}", jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
+
 					client, err := grpclient.NewJobNodeClient(s.ctx, fmt.Sprintf("%s:%d", jobNodeService.Address, jobNodeService.Port), jobNodeService.ID)
 					if nil != err {
 						log.WithError(err).Errorf("Failed to connect new jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
@@ -220,12 +223,18 @@ func (s *Service) refreshResourceNodes() error {
 					if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeJobNode, node); nil != err {
 						log.WithError(err).Errorf("Failed to store registerNode into local db on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
 							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
+						continue
 					}
+
+					log.Infof("Succeed add a new jobNode from consul server, jobNodeServiceId: {%s}, jobNodeService: {%s:%d}", jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
 
 				} else {
 					// check the  via external ip and port comparing old infomation,
 					// if it is, update the some things about jobNode.
 					if node.GetExternalIp() != viaExternalIP || node.GetExternalPort() != viaExternalPort {
+						oldIp := node.GetExternalIp()
+						oldPort := node.GetExternalPort()
+
 						// update jobNode info that was need to store local db
 						node.ExternalIp = viaExternalIP
 						node.ExternalPort = viaExternalPort
@@ -234,7 +243,11 @@ func (s *Service) refreshResourceNodes() error {
 						if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeJobNode, node); nil != err {
 							log.WithError(err).Errorf("Failed to update jobNode into local db on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
 								jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
+							continue
 						}
+
+						log.Infof("Succeed update a old jobNode external ip and port from consul server, jobNodeServiceId: {%s}, jobNodeService: {%s:%d}, old externalIp: {%s}, old externalPort: {%s}, new externalIp: {%s}, new externalPort: {%s}",
+							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port, oldIp, oldPort, node.GetExternalIp(), node.GetExternalPort())
 					}
 					delete(jobNodeCache, jobNodeService.ID)
 				}
@@ -242,6 +255,8 @@ func (s *Service) refreshResourceNodes() error {
 
 			// delete old deregistered jobNode service
 			for jobNodeId, _ := range jobNodeCache {
+
+				log.Infof("Disappeared a old jobNode from consul server, jobNodeId: {%s}", jobNodeId)
 
 				// The published jobNode cannot be updated directly
 				resourceTable, err := s.carrierDB.QueryLocalResourceTable(jobNodeId)
@@ -313,7 +328,10 @@ func (s *Service) refreshResourceNodes() error {
 				if err = s.carrierDB.DeleteRegisterNode(pb.PrefixTypeJobNode, jobNodeId); nil != err {
 					log.WithError(err).Errorf("Failed to remove jobNode into local db on service.refreshResourceNodes(), jobNodeId: {%s}",
 						jobNodeId)
+					continue
 				}
+
+				log.Infof("Succeed remove a old jobNode, jobNodeId: {%s}", jobNodeId)
 			}
 		}
 	}
@@ -340,6 +358,10 @@ func (s *Service) refreshResourceNodes() error {
 
 			for _, dataNodeService := range dataNodeServices {
 				if node, ok := dataNodeCache[dataNodeService.ID]; !ok { // add new registered dataNode service
+
+					log.Infof("Discovered a new dataNode from consul server, dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+						dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
+
 					client, err := grpclient.NewDataNodeClient(s.ctx, fmt.Sprintf("%s:%d", dataNodeService.Address, dataNodeService.Port), dataNodeService.ID)
 					if nil != err {
 						log.WithError(err).Errorf("Failed to connect new dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
@@ -377,12 +399,20 @@ func (s *Service) refreshResourceNodes() error {
 					if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeDataNode, node); nil != err {
 						log.WithError(err).Errorf("Failed to store dataNode into local db on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
+						continue
 					}
+
+					log.Infof("Succeed add a new dataNode from consul server, dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+						dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
 
 				} else {
 					// check the  via external ip and port comparing old infomation,
 					// if it is, update the some things about dataNode.
 					if node.GetExternalIp() != viaExternalIP || node.GetExternalPort() != viaExternalPort {
+
+						oldIp := node.GetExternalIp()
+						oldPort := node.GetExternalPort()
+
 						// update dataNode info that was need to store local db
 						node.ExternalIp = viaExternalIP
 						node.ExternalPort = viaExternalPort
@@ -391,7 +421,11 @@ func (s *Service) refreshResourceNodes() error {
 						if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeDataNode, node); nil != err {
 							log.WithError(err).Errorf("Failed to update dataNode into local db on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 								dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
+							continue
 						}
+
+						log.Infof("Succeed update a old dataNode external ip and port from consul server, dataNodeServiceId: {%s}, dataNodeService: {%s:%d}, old externalIp: {%s}, old externalPort: {%s}, new externalIp: {%s}, new externalPort: {%s}",
+							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port, oldIp, oldPort, node.GetExternalIp(), node.GetExternalPort())
 					}
 					delete(dataNodeCache, dataNodeService.ID)
 				}
@@ -399,6 +433,8 @@ func (s *Service) refreshResourceNodes() error {
 
 			// delete old deregistered dataNode service
 			for dataNodeId, _ := range dataNodeCache {
+
+				log.Infof("Disappeared a old dataNode from consul server, dataNodeId: {%s}", dataNodeId)
 
 				// 1. remove data resource  (disk)
 				if err := s.carrierDB.RemoveDataResourceTable(dataNodeId); rawdb.IsNoDBNotFoundErr(err) {
@@ -414,7 +450,10 @@ func (s *Service) refreshResourceNodes() error {
 				if err = s.carrierDB.DeleteRegisterNode(pb.PrefixTypeDataNode, dataNodeId); nil != err {
 					log.WithError(err).Errorf("Failed to remove dataNode into local db on service.refreshResourceNodes(), dataNodeId: {%s}",
 						dataNodeId)
+					continue
 				}
+
+				log.Infof("Succeed remove a old dataNode, dataNodeId: {%s}", dataNodeId)
 			}
 		}
 	}
