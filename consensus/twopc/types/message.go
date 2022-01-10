@@ -280,14 +280,22 @@ type proposalStateMonitorQueue []*ProposalStateMonitor
 
 type SyncProposalStateMonitorQueue struct {
 	lock  sync.Mutex
+	timer *time.Timer
 	queue *proposalStateMonitorQueue
 }
 
 func NewSyncProposalStateMonitorQueue(size int) *SyncProposalStateMonitorQueue {
 	queue := make(proposalStateMonitorQueue, size)
+	timer := time.NewTimer(0)
+	<- timer.C
 	return &SyncProposalStateMonitorQueue{
 		queue: &(queue),
+		timer: timer,
 	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) Timer() *time.Timer {
+	return syncQueue.timer
 }
 
 func (syncQueue *SyncProposalStateMonitorQueue) CheckMonitors(now int64) int64 {
@@ -323,6 +331,19 @@ func (syncQueue *SyncProposalStateMonitorQueue) AddMonitor(m *ProposalStateMonit
 	i := len(*(syncQueue.queue))
 	*(syncQueue.queue) = append(*(syncQueue.queue), m)
 	syncQueue.siftUpMonitor(i)
+
+	// reset the timer
+	var until int64
+	if len(*(syncQueue.queue)) > 0 {
+		until =  (*(syncQueue.queue))[0].when
+	} else {
+		until = -1
+	}
+	future := time.Duration(until - timeutils.UnixMsec())
+	if future <= 0 {
+		future = 0
+	}
+	syncQueue.timer.Reset(future * time.Millisecond)
 }
 
 func (syncQueue *SyncProposalStateMonitorQueue) UpdateMonitor(proposalId common.Hash, partyId string, when, next int64) {

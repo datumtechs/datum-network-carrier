@@ -7,6 +7,7 @@ import (
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"sync"
+	"time"
 )
 
 type state struct {
@@ -762,4 +763,7 @@ func (s *state) AddMonitor(m *ctypes.ProposalStateMonitor) {
 }
 func (s *state) DelMonitor(proposalId common.Hash, partyId string) {
 	s.syncProposalStateMonitors.DelMonitor(proposalId, partyId)
+}
+func (s *state) Timer() *time.Timer {
+	return s.syncProposalStateMonitors.Timer()
 }

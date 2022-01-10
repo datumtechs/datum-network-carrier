@@ -25,6 +25,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 func (m *Manager) tryScheduleTask() error {
@@ -1678,6 +1679,9 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 
 func (m *Manager) checkNeedExecuteTaskMonitors(now int64) int64 {
 	return m.syncExecuteTaskMonitors.CheckMonitors(now)
+}
+func (m *Manager) needExecuteTaskMonitorTimer() *time.Timer {
+	return m.syncExecuteTaskMonitors.Timer()
 }
 
 func fetchOrgByPartyRole(partyId string, role apicommonpb.TaskRole, task *types.Task) *apicommonpb.TaskOrganization {

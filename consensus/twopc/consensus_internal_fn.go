@@ -18,6 +18,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
 	"sync"
+	"time"
 )
 
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
@@ -234,6 +235,10 @@ func (t *Twopc) makeConfirmTaskPeerDesc(proposalId common.Hash) *twopcpb.Confirm
 
 func (t *Twopc) checkProposalStateMonitors(now int64) int64 {
 	return t.state.CheckProposalStateMonitors(now)
+}
+
+func (t *Twopc) proposalStateMonitorTimer() *time.Timer {
+	return t.state.Timer()
 }
 
 //func (t *Twopc) refreshProposalState() {

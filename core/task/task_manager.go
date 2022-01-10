@@ -163,12 +163,7 @@ func (m *Manager) Stop() error {
 func (m *Manager) loop() {
 	//taskMonitorTicker := time.NewTicker(taskMonitorInterval)  // 30 s
 	taskTicker := time.NewTicker(defaultScheduleTaskInterval) // 2 s
-
-	future := time.Duration(m.syncExecuteTaskMonitors.TimeSleepUntil() - timeutils.UnixMsec())
-	if future <= 0 {
-		future = 0
-	}
-	taskMonitorTicker := time.NewTimer(future * time.Millisecond)
+	taskMonitorTimer := m.needExecuteTaskMonitorTimer()
 
 	for {
 		select {
@@ -371,11 +366,11 @@ func (m *Manager) loop() {
 			}
 
 		// handle the executing expire tasks
-		case <-taskMonitorTicker.C:
+		case <-taskMonitorTimer.C:
 
 			//m.expireTaskMonitor()
 			future := m.checkNeedExecuteTaskMonitors(timeutils.UnixMsec())
-			taskMonitorTicker.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
+			taskMonitorTimer.Reset(time.Duration(future-timeutils.UnixMsec()) * time.Millisecond)
 
 		case <-m.quit:
 			log.Info("Stopped taskManager ...")

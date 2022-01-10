@@ -13,6 +13,7 @@ import (
 	"math/big"
 	"strings"
 	"sync"
+	"time"
 )
 
 type ProposalTask struct {
@@ -312,14 +313,22 @@ type executeTaskMonitorQueue []*ExecuteTaskMonitor
 
 type SyncExecuteTaskMonitorQueue struct {
 	lock  sync.Mutex
+	timer *time.Timer
 	queue *executeTaskMonitorQueue
 }
 
 func NewSyncExecuteTaskMonitorQueue(size int) *SyncExecuteTaskMonitorQueue {
 	queue := make(executeTaskMonitorQueue, size)
+	timer := time.NewTimer(0)
+	<- timer.C
 	return &SyncExecuteTaskMonitorQueue{
 		queue: &(queue),
+		timer: timer,
 	}
+}
+
+func (syncQueue *SyncExecuteTaskMonitorQueue) Timer() *time.Timer {
+	return syncQueue.timer
 }
 
 func (syncQueue *SyncExecuteTaskMonitorQueue) CheckMonitors(now int64) int64 {
@@ -355,6 +364,19 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) 
 	i := len(*(syncQueue.queue))
 	*(syncQueue.queue) = append(*(syncQueue.queue), m)
 	syncQueue.siftUpMonitor(i)
+
+	// reset the timer
+	var until int64
+	if len(*(syncQueue.queue)) > 0 {
+		until =  (*(syncQueue.queue))[0].when
+	} else {
+		until = -1
+	}
+	future := time.Duration(until - timeutils.UnixMsec())
+	if future <= 0 {
+		future = 0
+	}
+	syncQueue.timer.Reset(future * time.Millisecond)
 }
 
 func (syncQueue *SyncExecuteTaskMonitorQueue) DelMonitor(taskId, partyId string) {
