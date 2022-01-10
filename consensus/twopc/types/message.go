@@ -256,7 +256,10 @@ type ProposalStateMonitor struct {
 	fn         func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)
 }
 
-func NewProposalStateMonitor(proposalId common.Hash, partyId string, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState, when, next int64, fn func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)) *ProposalStateMonitor {
+func NewProposalStateMonitor(proposalId common.Hash, partyId string, sender *apicommonpb.TaskOrganization,
+	orgState *OrgProposalState, when, next int64,
+	fn func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)) *ProposalStateMonitor {
+
 	return &ProposalStateMonitor{
 		proposalId: proposalId,
 		partyId:    partyId,
@@ -292,6 +295,12 @@ func NewSyncProposalStateMonitorQueue(size int) *SyncProposalStateMonitorQueue {
 		queue: &(queue),
 		timer: timer,
 	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) Len () int {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	return len(*(syncQueue.queue))
 }
 
 func (syncQueue *SyncProposalStateMonitorQueue) Timer() *time.Timer {

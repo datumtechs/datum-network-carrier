@@ -767,3 +767,6 @@ func (s *state) DelMonitor(proposalId common.Hash, partyId string) {
 func (s *state) Timer() *time.Timer {
 	return s.syncProposalStateMonitors.Timer()
 }
+func (s *state) MonitorsLen() int {
+	return s.syncProposalStateMonitors.Len()
+}

@@ -75,12 +75,11 @@ func TestUpdateOrgProposalState(t *testing.T) {
 			IdentityId: value + "IdentityId",
 		}
 		orgState := &ctypes.OrgProposalState{
-			PrePeriodStartTime: 1111,
-			PeriodStartTime:    2222,
-			DeadlineDuration:   3333,
-			CreateAt:           4444,
-			TaskId:             "TASK001",
-			TaskRole:           3,
+			StartAt:          2222,
+			DeadlineDuration: 3333,
+			CreateAt:         4444,
+			TaskId:           "TASK001",
+			TaskRole:         3,
 			TaskOrg: &apicommonpb.TaskOrganization{
 				PartyId:    value + "P2",
 				NodeName:   value + "NodeName",
@@ -188,7 +187,7 @@ func TestStoreProposalTask(t *testing.T) {
 	for index, _ := range partyIds {
 		proposalTask := &types.ProposalTask{
 			ProposalId: generateProposalId(),
-			TaskId: taskIds[index],
+			TaskId:     taskIds[index],
 		}
 		db.StoreProposalTask(partyIds[index], proposalTask)
 	}
@@ -226,14 +225,13 @@ func TestRecoveryState(t *testing.T) {
 					proposalState = ctypes.NewProposalState(proposalId, libOrgProposalState.GetTaskId(), libOrgProposalState.GetTaskSender())
 				}
 				proposalState.StoreOrgProposalStateUnSafe(&ctypes.OrgProposalState{
-					PrePeriodStartTime: libOrgProposalState.GetPrePeriodStartTime(),
-					PeriodStartTime:    libOrgProposalState.GetPeriodStartTime(),
-					DeadlineDuration:   libOrgProposalState.GetDeadlineDuration(),
-					CreateAt:           libOrgProposalState.GetCreateAt(),
-					TaskId:             libOrgProposalState.GetTaskId(),
-					TaskRole:           libOrgProposalState.GetTaskRole(),
-					TaskOrg:            libOrgProposalState.GetTaskOrg(),
-					PeriodNum:          ctypes.ProposalStatePeriod(libOrgProposalState.GetPeriodNum()),
+					StartAt:          libOrgProposalState.GetStartAt(),
+					DeadlineDuration: libOrgProposalState.GetDeadlineDuration(),
+					CreateAt:         libOrgProposalState.GetCreateAt(),
+					TaskId:           libOrgProposalState.GetTaskId(),
+					TaskRole:         libOrgProposalState.GetTaskRole(),
+					TaskOrg:          libOrgProposalState.GetTaskOrg(),
+					PeriodNum:        ctypes.ProposalStatePeriod(libOrgProposalState.GetPeriodNum()),
 				})
 				//t.state.proposalSet[proposalId] = proposalState
 				proposalSet[proposalId] = proposalState

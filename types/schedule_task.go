@@ -327,6 +327,12 @@ func NewSyncExecuteTaskMonitorQueue(size int) *SyncExecuteTaskMonitorQueue {
 	}
 }
 
+func (syncQueue *SyncExecuteTaskMonitorQueue) Len () int {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	return len(*(syncQueue.queue))
+}
+
 func (syncQueue *SyncExecuteTaskMonitorQueue) Timer() *time.Timer {
 	return syncQueue.timer
 }

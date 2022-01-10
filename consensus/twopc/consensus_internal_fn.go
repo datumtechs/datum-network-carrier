@@ -241,6 +241,10 @@ func (t *Twopc) proposalStateMonitorTimer() *time.Timer {
 	return t.state.Timer()
 }
 
+func (t *Twopc) proposalStateMonitorsLen() int {
+	return t.state.MonitorsLen()
+}
+
 //func (t *Twopc) refreshProposalState() {
 //
 //	identity, err := t.resourceMng.GetDB().QueryIdentity()
