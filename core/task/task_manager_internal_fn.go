@@ -889,7 +889,7 @@ func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask, when int6
 	m.runningTaskCacheLock.Unlock()
 }
 
-func (m *Manager) addmonitor (task *types.NeedExecuteTask, when int64)  {
+func (m *Manager) addmonitor(task *types.NeedExecuteTask, when int64) {
 
 	taskId, partyId := task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId()
 
@@ -1189,7 +1189,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 	}
 
 	// store local cache
-	m.addNeedExecuteTaskCache(task, int64(localTask.GetTaskData().GetStartAt() + localTask.GetTaskData().GetOperationCost().GetDuration()))
+	m.addNeedExecuteTaskCache(task, int64(localTask.GetTaskData().GetStartAt()+localTask.GetTaskData().GetOperationCost().GetDuration()))
 
 	// The task sender will not execute the task
 	if task.GetLocalTaskRole() != apicommonpb.TaskRole_TaskRole_Sender &&

@@ -48,8 +48,8 @@ const (
 )
 
 var (
-	// during 60s, if the proposal haven't been done, kill it
-	ProposalDeadlineDuration = uint64(60 * (time.Second.Milliseconds()))
+	// during 10s, if the proposal haven't been done, kill it
+	ProposalDeadlineDuration = uint64(10 * (time.Second.Milliseconds()))
 )
 
 type ProposalState struct {
@@ -96,7 +96,7 @@ func (pstate *ProposalState) RemoveOrgProposalState(partyId string) {
 	pstate.lock.Unlock()
 }
 func (pstate *ProposalState) RemoveOrgProposalStateUnSafe(partyId string) {
-	log.Debugf("Start Remove org proposalState whith unsafe, partyId: {%s}", partyId)
+	//log.Debugf("Start Remove org proposalState whith unsafe, partyId: {%s}", partyId)
 	delete(pstate.stateCache, partyId)
 }
 
@@ -228,12 +228,12 @@ func (pstate *OrgProposalState) IsCommitTimeout() bool {
 	return false
 }
 
-func printTime(loghead string, pstate *OrgProposalState)  {
+func printTime(loghead string, pstate *OrgProposalState) {
 	now := time.Now()
 	log.Debugf("%s: now {%d<==>%s}, startAt: {%d<==>%s}, duration: %d ms",
 		loghead, now.UnixNano()/1e6, now.Format("2006-01-02 15:04:05"),
 		pstate.GetStartAt(), time.Unix(int64(pstate.GetStartAt())/1000, 0).Format("2006-01-02 15:04:05"),
-		now.UnixNano()/1e6 - int64(pstate.GetStartAt()))
+		now.UnixNano()/1e6-int64(pstate.GetStartAt()))
 }
 
 func (pstate *OrgProposalState) ChangeToConfirm() {
@@ -301,14 +301,14 @@ type SyncProposalStateMonitorQueue struct {
 func NewSyncProposalStateMonitorQueue(size int) *SyncProposalStateMonitorQueue {
 	queue := make(proposalStateMonitorQueue, size)
 	timer := time.NewTimer(0)
-	<- timer.C
+	<-timer.C
 	return &SyncProposalStateMonitorQueue{
 		queue: &(queue),
 		timer: timer,
 	}
 }
 
-func (syncQueue *SyncProposalStateMonitorQueue) Len () int {
+func (syncQueue *SyncProposalStateMonitorQueue) Len() int {
 	syncQueue.lock.Lock()
 	defer syncQueue.lock.Unlock()
 	return len(*(syncQueue.queue))
@@ -355,7 +355,7 @@ func (syncQueue *SyncProposalStateMonitorQueue) AddMonitor(m *ProposalStateMonit
 	// reset the timer
 	var until int64
 	if len(*(syncQueue.queue)) > 0 {
-		until =  (*(syncQueue.queue))[0].when
+		until = (*(syncQueue.queue))[0].when
 	} else {
 		until = -1
 	}

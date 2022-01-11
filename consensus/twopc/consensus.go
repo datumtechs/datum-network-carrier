@@ -338,7 +338,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 		var errStr string
 
-		if voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
+		if voteOption == types.NO { // In any case, as long as voting 'NO', Need to clean the local cache
 			errStr = "send `NO` prepareVote when replay schedule task failed"
 		}
 		if nil != err {
@@ -477,6 +477,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 
 			// change state from prepare epoch to confirm epoch
 			t.state.ChangeToConfirm(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId(), now)
+			t.wal.StoreOrgProposalState(vote.GetMsgOption().GetProposalId(), task.GetTaskSender(), orgProposalState)
 
 			// store confirm peers resource info
 			peers := t.makeConfirmTaskPeerDesc(vote.GetMsgOption().GetProposalId())
@@ -664,13 +665,14 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	// change state from prepare epoch to confirm epoch
 	t.state.ChangeToConfirm(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetCreateAt())
+	t.wal.StoreOrgProposalState(msg.GetMsgOption().GetProposalId(), task.GetTaskSender(), orgProposalState)
 
 	go func() {
 		err := t.sendConfirmVote(pid, receiver, sender, vote)
 
 		var errStr string
 
-		if voteOption == types.NO {  // In any case, as long as voting 'NO', Need to clean the local cache
+		if voteOption == types.NO { // In any case, as long as voting 'NO', Need to clean the local cache
 			errStr = "send `NO` confirmVote when received empty peers confirmMsg"
 		}
 		if nil != err {
@@ -698,7 +700,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, nmls types.NetworkMsgLocationSymbol) error {
 
 	vote := fetchConfirmVote(confirmVote)
-	
+
 	if t.state.HasNotOrgProposalWithPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist when received confirmVote, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			vote.GetMsgOption().GetProposalId().String(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
@@ -807,6 +809,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 			// change state from confirm epoch to commit epoch
 			t.state.ChangeToCommit(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId(), now)
+			t.wal.StoreOrgProposalState(vote.GetMsgOption().GetProposalId(), task.GetTaskSender(), orgProposalState)
 
 			go func() {
 
@@ -937,6 +940,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 	// change state from confirm epoch to commit epoch
 	t.state.ChangeToCommit(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetCreateAt())
+	t.wal.StoreOrgProposalState(msg.GetMsgOption().GetProposalId(), task.GetTaskSender(), orgProposalState)
 
 	go func() {
 

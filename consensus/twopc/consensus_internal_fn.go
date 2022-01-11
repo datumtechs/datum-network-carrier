@@ -51,7 +51,7 @@ func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sen
 	}
 }
 
-func (t *Twopc) addmonitor (pstate *ctypes.ProposalState, proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
 
 	monitor := ctypes.NewProposalStateMonitor(proposalId, orgState.TaskOrg.GetPartyId(), sender, orgState,
 		orgState.GetPrepareExpireTime(), orgState.GetConfirmExpireTime(), nil)
@@ -91,6 +91,7 @@ func (t *Twopc) addmonitor (pstate *ctypes.ProposalState, proposalId common.Hash
 				monitor.SetNext(orgState.GetDeadlineExpireTime()) // Ensure that the next expire time is `dealine time`.
 				pstate.StoreOrgProposalStateUnSafe(orgState)
 				t.wal.StoreOrgProposalState(proposalId, sender, orgState)
+
 			} else {
 				// There is only one possibility that the `confirm epoch` expire time is set incorrectly,
 				// and the monitor arrived early. At this time, you need to ensure the `confirm epoch` expire time again (reset).
@@ -168,9 +169,10 @@ func (t *Twopc) addmonitor (pstate *ctypes.ProposalState, proposalId common.Hash
 						pstate.GetProposalId().String(), pstate.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
 					orgState.ChangeToFinished()
-					monitor.SetNext(0)  // clean next target timestamp, let monitor would been able to clean from monitor queue.
+					monitor.SetNext(0) // clean next target timestamp, let monitor would been able to clean from monitor queue.
 					pstate.StoreOrgProposalStateUnSafe(orgState)
 					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+
 				} else {
 					// There is only one possibility that the `commit epoch` expire time is set incorrectly,
 					// and the monitor arrived early. At this time, you need to ensure the `commit epoch` expire time again (reset).
