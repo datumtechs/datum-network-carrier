@@ -34,7 +34,7 @@ service Debug {
   // Add a new peer with the specified
   rpc AddPeer(PeerRequest) returns (DebugPeerAddResponse) {
     option (google.api.http) = {
-      get: "/carrier/v1/debug/add"
+      get: "/carrier/v1/debug/addPeer"
     };
   }
 
@@ -42,6 +42,31 @@ service Debug {
   rpc GetPeerCount(google.protobuf.Empty) returns (DebugPeerCountResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/debug/peerCount"
+    };
+  }
+
+  // Return 2pc consnesus proposal state <当前是第几轮， proposalId   taskId 耗时等信息>
+  rpc Get2pcProposalStateByTaskId(Get2pcProposalStateByTaskIdRequest) returns (Get2pcProposalStateResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/debug/2pcProposalStateByTaskId"
+    };
+  }
+  // <当前是第几轮， proposalId   taskId 耗时等信息>
+  rpc Get2pcProposalStateByProposalId(Get2pcProposalStateByProposalIdRequest) returns (Get2pcProposalStateResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/debug/2pcProposalStateByProposalId"
+    };
+  }
+  // 根据proposalId查询当前 prepare轮的状态信息 (耗时, 得票信息，成功与否等信息)
+  rpc Get2pcProposalPrepare(Get2pcProposalPrepareRequest) returns (Get2pcProposalPrepareResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/debug/2pcProposalPrepare"
+    };
+  }
+  // 根据proposalId查询当前 confirm轮的状态信息 (耗时, 得票信息，成功与否等信息)
+  rpc Get2pcProposalConfirm(Get2pcProposalConfirmRequest) returns (Get2pcProposalConfirmResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/debug/2pcProposalConfirm"
     };
   }
 }
@@ -153,3 +178,13 @@ message TopicScoreSnapshot {
   // This is the number of invalid messages in the topic from the peer.
     float invalid_message_deliveries = 4;
 }
+
+// about 2pc consensus
+
+message Get2pcProposalStateByTaskIdRequest{}
+message Get2pcProposalStateByProposalIdRequest{}
+message Get2pcProposalStateResponse{}
+message Get2pcProposalPrepareRequest{}
+message Get2pcProposalPrepareResponse{}
+message Get2pcProposalConfirmRequest{}
+message Get2pcProposalConfirmResponse{}
