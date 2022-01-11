@@ -228,20 +228,31 @@ func (pstate *OrgProposalState) IsCommitTimeout() bool {
 	return false
 }
 
+func printTime(loghead string, pstate *OrgProposalState)  {
+	now := time.Now()
+	log.Debugf("%s: now {%d<==>%s}, startAt: {%d<==>%s}, duration: %d ms",
+		loghead, now.UnixNano()/1e6, now.Format("2006-01-02 15:04:05"),
+		pstate.GetStartAt(), time.Unix(int64(pstate.GetStartAt())/1000, 0).Format("2006-01-02 15:04:05"),
+		now.UnixNano()/1e6 - int64(pstate.GetStartAt()))
+}
+
 func (pstate *OrgProposalState) ChangeToConfirm() {
 	if pstate.PeriodNum == PeriodPrepare {
 		pstate.PeriodNum = PeriodConfirm
+		printTime("Change Prepare To Confirm:", pstate)
 	}
 }
 
 func (pstate *OrgProposalState) ChangeToCommit() {
 	if pstate.PeriodNum == PeriodConfirm {
 		pstate.PeriodNum = PeriodCommit
+		printTime("Change Confirm To Commit:", pstate)
 	}
 }
 func (pstate *OrgProposalState) ChangeToFinished() {
 	if pstate.PeriodNum == PeriodCommit {
 		pstate.PeriodNum = PeriodFinished
+		printTime("Change Commit To Finished:", pstate)
 	}
 }
 
