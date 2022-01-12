@@ -63,6 +63,8 @@ func NewIdentityMessageFromRequest(req *pb.ApplyIdentityJoinRequest) *IdentityMs
 			NodeName:   req.GetMember().GetNodeName(),
 			NodeId:     req.GetMember().GetNodeId(),
 			IdentityId: req.GetMember().GetIdentityId(),
+			ImageUrl:   req.GetMember().GetImageUrl(),
+			Details:    req.GetMember().GetDetails(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 	}

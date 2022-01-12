@@ -21,14 +21,15 @@ import (
 
 // Inception, go generate calls the script itself that then deals with generation.
 // This is only done because go:generate does not support wildcards in paths.
-//go:generate go run generate.go lib/db lib/types lib/api lib/center/api lib/p2p/v1 lib/rpc/v1 lib/netmsg/common lib/netmsg/consensus/twopc lib/netmsg/taskmng lib/fighter/computesvc lib/fighter/datasvc lib/fighter/common lib/common
+//go:generate go run generate.go lib/db lib/types lib/api lib/center/api lib/p2p/v1 lib/rpc/debug/v1 lib/netmsg/common lib/netmsg/consensus/twopc lib/netmsg/taskmng lib/fighter/computesvc lib/fighter/datasvc lib/fighter/common lib/common
 
 // final, generate grpc gateway stub.
-//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/rpc/v1/debug.proto
-//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/rpc/v1/debug.proto
+//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/rpc/debug/v1/debug.proto
+//go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/rpc/debug/v1/debug.proto
 
-// go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/api/*.proto
 // go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --grpc-gateway_out=logtostderr=true:./.. ./lib/api/*.proto
+// go:generate protoc -I ../ -I . -I ../repos/grpc-gateway/third_party/googleapis --swagger_out=logtostderr=true:./.. ./lib/api/*.proto
+
 
 func main() {
 	for _, path := range os.Args[1:] {

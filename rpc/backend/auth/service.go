@@ -19,26 +19,32 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 
 	identity, err := svr.B.GetNodeIdentity()
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
+		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
+			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
 
-		errMsg := fmt.Sprintf("query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
+		errMsg := fmt.Sprintf("query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
+			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
 
 	if nil != identity {
-		log.Errorf("RPC-API:ApplyIdentityJoin failed, identity was already exist, old identityId: {%s}, old nodeId: {%s}, old nodeName: {%s}",
-			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
+		log.Errorf("RPC-API:ApplyIdentityJoin failed, identity was already exist, old identityId: {%s}, old nodeId: {%s}, old nodeName: {%s}, old imgUrl: {%s}, old details: {%s}",
+			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName(), identity.GetImageUrl(), identity.GetDetails())
 
-		errMsg := fmt.Sprintf("identity was already exist, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
+		errMsg := fmt.Sprintf("identity was already exist, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
+			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName(), identity.GetImageUrl(), identity.GetDetails())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
+
 
 	if req.GetMember() == nil {
 		return nil, ErrReqMemberParams
 	}
+
+	//// todo should remove this default img url
+	//if "" == strings.Trim(req.GetMember().GetImageUrl(), "") {
+	//	req.GetMember().ImageUrl = "https://pica.zhimg.com/v2-f2af5e9e6f2d26b4c31e070c6a38c380_1440w.jpg"
+	//}
 
 	if "" == strings.Trim(req.GetMember().GetIdentityId(), "") ||
 		"" == strings.Trim(req.GetMember().GetNodeName(), "") {
@@ -47,21 +53,21 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 
 	identityMsg := types.NewIdentityMessageFromRequest(req)
 	if err := identityMsg.CheckLength(); nil != err {
-		errMsg := fmt.Sprintf("check fields len failed, %s , identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-			err, identity.GetIdentityId(), identity.GetNodeId(), identity.GetName())
+		errMsg := fmt.Sprintf("check fields len failed, %s , identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
+			err, identity.GetIdentityId(), identity.GetNodeId(), identity.GetName(), identity.GetImageUrl(), identity.GetDetails())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
 	err = svr.B.SendMsg(identityMsg)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
+		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
+			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
 
 		errMsg := fmt.Sprintf("%s, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", ErrSendIdentityMsg.Msg,
 			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
-	log.Debugf("RPC-API:ApplyIdentityJoin succeed SendMsg, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
-		req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
+	log.Debugf("RPC-API:ApplyIdentityJoin succeed SendMsg, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
+		req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
 	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
