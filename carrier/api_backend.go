@@ -1457,6 +1457,17 @@ func (s *CarrierAPIBackend) HasLocalTask() (bool, error) {
 	return true, nil
 }
 
+// about jobResource
+func  (s *CarrierAPIBackend) QueryPowerRunningTaskList(powerId string) ([]string, error) {
+
+	jobNodeId, err := s.carrier.carrierDB.QueryJobNodeIdByPowerId(powerId)
+	if nil != err {
+		log.WithError(err).Errorf("Failed query jobNodeId by powerId on CarrierAPIBackend.QueryPowerRunningTaskList(), powerId: {%s}", powerId)
+		return nil, err
+	}
+	return s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(jobNodeId)
+}
+
 // about DataResourceTable
 func (s *CarrierAPIBackend) StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error {
 	return s.carrier.carrierDB.StoreDataResourceTable(dataResourceTable)

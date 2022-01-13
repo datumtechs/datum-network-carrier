@@ -63,8 +63,10 @@ type Backend interface {
 	GetTaskEventListByTaskIds(taskIds []string) ([]*pb.TaskEventShow, error)
 	HasLocalTask () (bool, error)
 
-	// about DataResourceTable
+	// about jobResource
+	QueryPowerRunningTaskList(powerId string) ([]string, error)
 
+	// about DataResourceTable
 	StoreDataResourceTable(dataResourceTable *types.DataResourceTable) error
 	StoreDataResourceTables(dataResourceTables []*types.DataResourceTable) error
 	RemoveDataResourceTable(nodeId string) error
@@ -72,7 +74,6 @@ type Backend interface {
 	QueryDataResourceTables() ([]*types.DataResourceTable, error)
 
 	// about DataResourceFileUpload
-
 	StoreDataResourceFileUpload(dataResourceDataUsed *types.DataResourceFileUpload) error
 	StoreDataResourceFileUploads(dataResourceDataUseds []*types.DataResourceFileUpload) error
 	RemoveDataResourceFileUpload(originId string) error
@@ -80,7 +81,6 @@ type Backend interface {
 	QueryDataResourceFileUploads() ([]*types.DataResourceFileUpload, error)
 
 	// about task result file
-
 	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
 	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error

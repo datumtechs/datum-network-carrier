@@ -3,6 +3,7 @@ package power
 import (
 	"context"
 	"fmt"
+	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
@@ -135,6 +136,19 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
 		return nil, ErrSendPowerRevokeMsg
+	}
+
+	// First check whether there is a task being executed on jobNode
+	taskIdList, err := svr.B.QueryPowerRunningTaskList(req.GetPowerId())
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local running taskIdList failed, powerId: {%s}", req.GetPowerId())
+		errMsg := fmt.Sprintf("query local running taskIdList failed, powerId:{%s}", req.GetPowerId())
+		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)
+	}
+	if len(taskIdList) > 0 {
+		log.WithError(err).Errorf("RPC-API:RevokePower failed, the old jobNode have been running {%d} task current, don't revoke it, powerId: {%s}", req.GetPowerId())
+		errMsg := fmt.Sprintf("the old jobNode have been running {%d} task current, don't revoke it, powerId: {%s}", len(taskIdList), req.GetPowerId())
+		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)
 	}
 
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
