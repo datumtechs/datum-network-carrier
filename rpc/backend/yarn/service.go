@@ -449,10 +449,20 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 
 	var nodeId string
 	for _, resource := range dataResourceTables {
+		log.Debugf("QueryAvailableDataNode, dataResourceTable: %s, need disk: %d, remain disk: %d", resource.String(), req.GetFileSize(), resource.RemainDisk())
 		if req.GetFileSize() < resource.RemainDisk() {
 			nodeId = resource.GetNodeId()
 			break
 		}
+	}
+
+	if "" == strings.Trim(nodeId, "") {
+		log.Errorf("RPC-API:QueryAvailableDataNode-QueryRegisterNode failed, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}",
+			req.GetFileType(), req.GetFileSize(), nodeId)
+
+		errMsg := fmt.Sprintf("%s, %s, %d, %s", ErrGetDataNodeInfoForQueryAvailableDataNode.Msg,
+			req.GetFileType(), req.GetFileSize(), nodeId)
+		return nil, backend.NewRpcBizErr(ErrGetDataNodeInfoForQueryAvailableDataNode.Code, errMsg)
 	}
 
 	dataNode, err := svr.B.GetRegisterNode(pb.PrefixTypeDataNode, nodeId)
