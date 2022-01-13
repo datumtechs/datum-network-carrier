@@ -810,9 +810,7 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSi
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
-		if nil != err {
-			return nil, fmt.Errorf("found local identity failed, %s", err)
-		}
+		return nil, fmt.Errorf("found local identity failed, %s", err)
 	}
 
 	internalMetadataArr, err := s.carrier.carrierDB.QueryInternalMetadataList()
