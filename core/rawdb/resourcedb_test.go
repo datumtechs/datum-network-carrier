@@ -295,3 +295,18 @@ func TestQueryRemoveMetadataAuthorityMsgArr(t *testing.T) {
 	RemoveMetadataAuthMsg(database, "MetadataAuthId")
 	assert.Equal(t, 0, database.Len())
 }
+
+func TestDataResourceTable(t *testing.T) {
+	database := db.NewMemoryDatabase()
+
+	dataNodeId := "dataService_192.168.10.150_8700"
+	err := StoreDataResourceTable(database, types.NewDataResourceTable(dataNodeId, 63141883904, 23408070656))
+	assert.NilError(t, err, "Failed to call StoreDataResourceTable()")
+
+	arr, err := QueryDataResourceTables(database)
+
+	assert.NilError(t, err, "Failed to call QueryDataResourceTables()")
+	assert.Equal(t, len(arr), 1, "Not found dataNodes")
+	assert.Equal(t, dataNodeId, arr[0].GetNodeId(), fmt.Sprintf("executed %s, but actual %s", dataNodeId, arr[0].GetNodeId()))
+	t.Log("dataNode", arr[0].String())
+}

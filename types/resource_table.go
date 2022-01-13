@@ -329,11 +329,12 @@ func (drt *DataResourceTable) DecodeRLP(s *rlp.Stream) error {
 
 func (drt *DataResourceTable) String() string {
 	return fmt.Sprintf(`{"nodeId": %s, "totalDisk": %d, "usedDisk": %d, "isUsed": %v}`,
-		drt.nodeId, drt.totalDisk, drt.usedDisk, drt.isUsed)
+		drt.GetNodeId(), drt.GetTotalDisk(), drt.GetUsedDisk(), drt.GetIsUsed())
 }
 func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
 func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
 func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
+func (drt *DataResourceTable) GetIsUsed() bool  { return drt.isUsed }
 func (drt *DataResourceTable) RemainDisk() uint64   { return drt.totalDisk - drt.usedDisk }
 func (drt *DataResourceTable) IsUsed() bool         { return drt.isUsed && drt.usedDisk != 0 }
 func (drt *DataResourceTable) IsNotUsed() bool      { return !drt.IsUsed() }

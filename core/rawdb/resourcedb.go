@@ -628,7 +628,7 @@ func QueryDataResourceTables(db KeyValueStore) ([]*types.DataResourceTable, erro
 	arr := make([]*types.DataResourceTable, 0)
 	for it.Next() {
 		if len(it.Key()) != 0 && len(it.Value()) != 0 {
-			// prefix + jobNodeId -> LocalResourceTable
+			// prefix + dataNodeId -> LocalResourceTable
 			var dataResourceTable types.DataResourceTable
 			if err := rlp.DecodeBytes(it.Value(), &dataResourceTable); nil != err {
 				return nil, err

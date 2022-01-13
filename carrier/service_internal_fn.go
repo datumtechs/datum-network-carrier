@@ -375,7 +375,7 @@ func (s *Service) refreshResourceNodes() error {
 						continue
 					}
 					// 1. add data resource  (disk)
-					err = s.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+					err = s.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(dataNodeService.ID, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
 					if nil != err {
 						log.WithError(err).Errorf("Failed to store disk summary of new dataNode")
 						continue
