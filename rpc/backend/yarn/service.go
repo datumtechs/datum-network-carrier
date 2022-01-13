@@ -457,7 +457,7 @@ func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvai
 	}
 
 	if "" == strings.Trim(nodeId, "") {
-		log.Errorf("RPC-API:QueryAvailableDataNode-QueryRegisterNode failed, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}",
+		log.Errorf("RPC-API:QueryAvailableDataNode, not found available dataNodeId of dataNode, fileType: {%s}, fileSize: {%d}, dataNodeId: {%s}",
 			req.GetFileType(), req.GetFileSize(), nodeId)
 
 		errMsg := fmt.Sprintf("%s, %s, %d, %s", ErrGetDataNodeInfoForQueryAvailableDataNode.Msg,
