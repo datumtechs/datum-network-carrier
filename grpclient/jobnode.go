@@ -27,7 +27,7 @@ type JobNodeClient struct {
 	computeProviderClient computesvc.ComputeProviderClient
 }
 
-func NewJobNodeClient (ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
+func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNodeClient, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	conn, err := dialContext(ctx, addr)
 	if err != nil {
@@ -39,6 +39,7 @@ func NewJobNodeClient (ctx context.Context, addr string, nodeId string) (*JobNod
 		addr:                  addr,
 		nodeId:                nodeId,
 		conn:                  conn,
+		connStartAt:           timeutils.UnixMsec(),
 		computeProviderClient: computesvc.NewComputeProviderClient(conn),
 	}
 	// try to connect grpc server.
@@ -120,7 +121,7 @@ func (c *JobNodeClient) GetStatus() (*computesvc.GetStatusReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	in := new(emptypb.Empty)
-	return c.computeProviderClient.GetStatus(ctx,  in)
+	return c.computeProviderClient.GetStatus(ctx, in)
 }
 
 func (c *JobNodeClient) GetTaskDetails(ctx context.Context, taskIds []string) (*computesvc.GetTaskDetailsReply, error) {
@@ -137,7 +138,7 @@ func (c *JobNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.T
 	return c.computeProviderClient.HandleTaskReadyGo(ctx, req)
 }
 
-func (c *JobNodeClient) HandleCancelTask (req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
+func (c *JobNodeClient) HandleCancelTask(req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.computeProviderClient.HandleCancelTask(ctx, req)

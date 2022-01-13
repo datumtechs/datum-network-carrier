@@ -29,7 +29,7 @@ type DataNodeClient struct {
 	dataProviderClient datasvc.DataProviderClient
 }
 
-func NewDataNodeClient (ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
+func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNodeClient, error) {
 	ctx, cancel := context.WithCancel(ctx)
 	conn, err := dialContext(ctx, addr)
 	if err != nil {
@@ -41,6 +41,7 @@ func NewDataNodeClient (ctx context.Context, addr string, nodeId string) (*DataN
 		addr:               addr,
 		nodeId:             nodeId,
 		conn:               conn,
+		connStartAt:        timeutils.UnixMsec(),
 		dataProviderClient: datasvc.NewDataProviderClient(conn),
 	}
 	// try to connect grpc server.
@@ -99,7 +100,7 @@ func (c *DataNodeClient) IsConnected() bool {
 	}
 }
 
-func (c *DataNodeClient) IsNotConnected() bool { return !c.IsConnected()}
+func (c *DataNodeClient) IsNotConnected() bool { return !c.IsConnected() }
 
 func (c *DataNodeClient) Reconnect() error {
 	err := c.connecting()
@@ -118,12 +119,11 @@ func (c *DataNodeClient) RunningDuration() int64 {
 	return timeutils.UnixMsec() - c.connStartAt
 }
 
-
 func (c *DataNodeClient) GetStatus() (*datasvc.GetStatusReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	in := new(emptypb.Empty)
-	return c.dataProviderClient.GetStatus(ctx,  in)
+	return c.dataProviderClient.GetStatus(ctx, in)
 }
 
 func (c *DataNodeClient) ListData() (*datasvc.ListDataReply, error) {
@@ -156,7 +156,7 @@ func (c *DataNodeClient) HandleTaskReadyGo(req *common.TaskReadyGoReq) (*common.
 	return c.dataProviderClient.HandleTaskReadyGo(ctx, req)
 }
 
-func (c *DataNodeClient) HandleCancelTask (req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
+func (c *DataNodeClient) HandleCancelTask(req *common.TaskCancelReq) (*common.TaskCancelReply, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, 20*defaultRequestTime)
 	defer cancel()
 	return c.dataProviderClient.HandleCancelTask(ctx, req)
