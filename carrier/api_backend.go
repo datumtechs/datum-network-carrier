@@ -1088,6 +1088,10 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 					UsedBandwidth:  resource.GetUsedBandwidth(),
 				},
 				State: resource.GetState(),
+				// local resource power need not they (publishAt and updateAt).
+				//PublishAt: ,
+				//UpdateAt: ,
+
 			},
 		}
 		nodePowerDetail.GetPower().Tasks = buildPowerTaskList(resource.GetJobNodeId())

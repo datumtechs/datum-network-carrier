@@ -155,11 +155,11 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 
 	err = svr.B.SendMsg(powerRevokeMsg)
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.PowerId)
-		errMsg := fmt.Sprintf("%s, powerId:{%s}", ErrSendPowerRevokeMsgByPowerId.Msg, req.PowerId)
+		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.GetPowerId())
+		errMsg := fmt.Sprintf("%s, powerId:{%s}", ErrSendPowerRevokeMsgByPowerId.Msg, req.GetPowerId())
 		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)
 	}
-	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.PowerId)
+	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.GetPowerId())
 	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
