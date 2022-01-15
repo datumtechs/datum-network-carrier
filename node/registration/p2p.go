@@ -36,6 +36,9 @@ func P2PPreregistration(cliCtx *cli.Context) (bootstrapNodeAddrs []string, dataD
 	bootnodesTemp := params.CarrierNetworkConfig().BootstrapNodes // actual CLI values
 	bootstrapNodeAddrs = make([]string, 0)                       // dest of final list of nodes
 	for _, addr := range bootnodesTemp {
+
+		log.Debugf("load bootstrap node content: %s", addr)
+
 		if filepath.Ext(addr) == ".yaml" {
 			fileNodes, md5sum, err := readbootNodes(addr)
 			log.WithField("md5sum", md5sum).Debug("The md5sum of bootstrap.yaml")

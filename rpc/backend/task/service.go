@@ -243,7 +243,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 				log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, check metadata whether internal metadata failed, identityId: {%s}, metadataId: {%s}",
 					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 
-				errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg,
+				errMsg := fmt.Sprintf("%s: %s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg, err,
 					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 				return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
 			}
@@ -255,7 +255,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
 				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 
-			errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg,
+			errMsg := fmt.Sprintf("%s: %s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg, err,
 				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
 			return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
 		}
