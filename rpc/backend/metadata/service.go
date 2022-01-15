@@ -57,10 +57,16 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 		return nil, ErrReqMetaColumnsForPublishMetadata
 	}
 
+
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, query local identity failed, can not publish metadata")
+		return nil, fmt.Errorf("query local identity failed")
+	}
+
 	metadataMsg := types.NewMetadataMessageFromRequest(req)
 
-	err := svr.B.SendMsg(metadataMsg)
-	if nil != err {
+	if err := svr.B.SendMsg(metadataMsg); nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadata failed")
 
 		errMsg := fmt.Sprintf("%s, originId: {%s}, metadataId: {%s}", ErrSendMetadataMsg.Msg,
@@ -82,10 +88,15 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 		return nil, backend.NewRpcBizErr(ErrSendMetadataRevokeMsg.Code, "require metadataId")
 	}
 
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
+		return nil, fmt.Errorf("query local identity failed")
+	}
+
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
 
-	err := svr.B.SendMsg(metadataRevokeMsg)
-	if nil != err {
+	if err := svr.B.SendMsg(metadataRevokeMsg); nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetadata failed")
 
 		errMsg := fmt.Sprintf("%s, metadataId: {%s}", ErrSendMetadataRevokeMsg.Msg, req.GetMetadataId())

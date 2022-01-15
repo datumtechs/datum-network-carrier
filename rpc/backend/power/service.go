@@ -104,14 +104,13 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power")
-		return nil, ErrSendPowerMsg
+		return nil, fmt.Errorf("query local identity failed")
 	}
 
 	powerMsg := types.NewPowerMessageFromRequest(req)
 	powerId := powerMsg.GenPowerId()
 
-	err = svr.B.SendMsg(powerMsg)
-	if nil != err {
+	if err = svr.B.SendMsg(powerMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.GetJobNodeId(), powerId)
 		errMsg := fmt.Sprintf("%s, jobNodeId:{%s}, powerId:{%s}", ErrSendPowerMsgByNidAndPowerId.Msg, req.GetJobNodeId(), powerId)
 		return nil, backend.NewRpcBizErr(ErrSendPowerMsgByNidAndPowerId.Code, errMsg)
@@ -135,7 +134,7 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
-		return nil, ErrSendPowerRevokeMsg
+		return nil, fmt.Errorf("query local identity failed")
 	}
 
 	// First check whether there is a task being executed on jobNode
@@ -153,8 +152,7 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 
-	err = svr.B.SendMsg(powerRevokeMsg)
-	if nil != err {
+	if err = svr.B.SendMsg(powerRevokeMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.GetPowerId())
 		errMsg := fmt.Sprintf("%s, powerId:{%s}", ErrSendPowerRevokeMsgByPowerId.Msg, req.GetPowerId())
 		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)

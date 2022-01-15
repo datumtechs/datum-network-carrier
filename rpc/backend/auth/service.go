@@ -57,8 +57,8 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 			err, identity.GetIdentityId(), identity.GetNodeId(), identity.GetName(), identity.GetImageUrl(), identity.GetDetails())
 		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
 	}
-	err = svr.B.SendMsg(identityMsg)
-	if nil != err {
+
+	if err = svr.B.SendMsg(identityMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
 			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
 
@@ -101,8 +101,8 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 	}
 
 	identityRevokeMsg := types.NewIdentityRevokeMessage()
-	err = svr.B.SendMsg(identityRevokeMsg)
-	if nil != err {
+
+	if err = svr.B.SendMsg(identityRevokeMsg); nil != err {
 		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")
 
 		errMsg := fmt.Sprintf("%s, send identity revoke msg failed", ErrSendIdentityRevokeMsg.Msg)
@@ -273,8 +273,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
 	metadataAuthId := metadataAuthorityMsg.GetMetadataAuthId()
 
-	err = svr.B.SendMsg(metadataAuthorityMsg)
-	if nil != err {
+	if err = svr.B.SendMsg(metadataAuthorityMsg); nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed")
 
 		errMsg := fmt.Sprintf(ErrApplyMetadataAuthority.Msg, "send metadata authority msg failed",

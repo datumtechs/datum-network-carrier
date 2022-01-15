@@ -205,7 +205,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed")
-		return nil, ErrPublishTaskDeclare
+		return nil, fmt.Errorf("query local identity failed")
 	}
 
 	taskMsg := types.NewTaskMessageFromRequest(req)
@@ -340,8 +340,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	// add taskId
 	taskId := taskMsg.GenTaskId()
 
-	err = svr.B.SendMsg(taskMsg)
-	if nil != err {
+	if err = svr.B.SendMsg(taskMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, send task msg failed, taskId: {%s}",
 			taskId)
 		errMsg := fmt.Sprintf("%s, taskId: {%s}", ErrSendTaskMsgByTaskId.Msg, taskId)
@@ -373,7 +372,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
-		return nil, ErrTerminateTask
+		return nil, fmt.Errorf("query local identity failed")
 	}
 
 	task, err := svr.B.GetLocalTask(req.GetTaskId())
@@ -394,8 +393,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 
 	taskTerminateMsg := types.NewTaskTerminateMsg(req.GetUserType(), req.GetUser(), req.GetTaskId(), req.GetSign())
 
-	err = svr.B.SendMsg(taskTerminateMsg)
-	if nil != err {
+	if err = svr.B.SendMsg(taskTerminateMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, send task terminate msg failed, taskId: {%s}",
 			req.GetTaskId())
 
