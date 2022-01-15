@@ -6,6 +6,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"math"
+	"strings"
 	"sync"
 	"time"
 )
@@ -147,6 +148,10 @@ func NewOrgProposalState(
 	}
 }
 
+func (pstate *OrgProposalState) String() string {
+	return fmt.Sprintf(`{"taskId": %s, "taskRole": %s, "taskOrg": %s, "periodNum": %s, "deadlineDuration": %d, "startAt": %d, "createAt": %d}`,
+		pstate.GetTaskId(), pstate.GetTaskRole().String(), pstate.GetTaskOrg().String(), pstate.GetPeriodStr(), pstate.GetDeadlineDuration(), pstate.GetStartAt(), pstate.GetCreateAt())
+}
 func (pstate *OrgProposalState) GetTaskId() string                         { return pstate.TaskId }
 func (pstate *OrgProposalState) GetTaskRole() apicommonpb.TaskRole         { return pstate.TaskRole }
 func (pstate *OrgProposalState) GetTaskOrg() *apicommonpb.TaskOrganization { return pstate.TaskOrg }
@@ -264,6 +269,7 @@ type ProposalStateMonitor struct {
 	orgState   *OrgProposalState
 	when       int64 // target timestamp
 	next       int64
+	index      int
 	fn         func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)
 }
 
@@ -281,9 +287,18 @@ func NewProposalStateMonitor(proposalId common.Hash, partyId string, sender *api
 		fn:         fn,
 	}
 }
-func (psm *ProposalStateMonitor) GetProposalId() common.Hash { return psm.proposalId }
-func (psm *ProposalStateMonitor) GetPartyId() string         { return psm.partyId }
-func (psm *ProposalStateMonitor) GetWhen() int64             { return psm.when }
+
+func (psm *ProposalStateMonitor) String() string {
+	return fmt.Sprintf(`{"index": %d, "proposalId":, %s, "partyId": %s, "sender": %s, "orgState": %s, "when": %d, "next": %d}`,
+		psm.GetIndex(), psm.GetProposalId().String(), psm.GetPartyId(), psm.GetTaskSender().String(), psm.GetOrgState().String(), psm.GetWhen(), psm.GetNext())
+}
+func (psm *ProposalStateMonitor) GetIndex() int                                { return psm.index }
+func (psm *ProposalStateMonitor) GetProposalId() common.Hash                   { return psm.proposalId }
+func (psm *ProposalStateMonitor) GetPartyId() string                           { return psm.partyId }
+func (psm *ProposalStateMonitor) GetTaskSender() *apicommonpb.TaskOrganization { return psm.sender }
+func (psm *ProposalStateMonitor) GetOrgState() *OrgProposalState               { return psm.orgState }
+func (psm *ProposalStateMonitor) GetWhen() int64                               { return psm.when }
+func (psm *ProposalStateMonitor) GetNext() int64                               { return psm.next }
 func (psm *ProposalStateMonitor) SetCallBackFn(f func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *OrgProposalState)) {
 	psm.fn = f
 }
@@ -291,6 +306,14 @@ func (psm *ProposalStateMonitor) SetWhen(when int64) { psm.when = when }
 func (psm *ProposalStateMonitor) SetNext(next int64) { psm.next = next }
 
 type proposalStateMonitorQueue []*ProposalStateMonitor
+
+func (queue *proposalStateMonitorQueue) String() string {
+	arr := make([]string, len(*queue))
+	for i, ett := range *queue {
+		arr[i] = ett.String()
+	}
+	return "[" + strings.Join(arr, ",") +  "]"
+}
 
 type SyncProposalStateMonitorQueue struct {
 	lock  sync.Mutex
@@ -306,6 +329,12 @@ func NewSyncProposalStateMonitorQueue(size int) *SyncProposalStateMonitorQueue {
 		queue: &(queue),
 		timer: timer,
 	}
+}
+
+func (syncQueue *SyncProposalStateMonitorQueue) QueueString() string {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	return syncQueue.queue.String()
 }
 
 func (syncQueue *SyncProposalStateMonitorQueue) Len() int {
@@ -349,6 +378,7 @@ func (syncQueue *SyncProposalStateMonitorQueue) AddMonitor(m *ProposalStateMonit
 		panic("target time is negative number")
 	}
 	i := len(*(syncQueue.queue))
+	m.index = i
 	*(syncQueue.queue) = append(*(syncQueue.queue), m)
 	syncQueue.siftUpMonitor(i)
 
@@ -402,6 +432,7 @@ func (syncQueue *SyncProposalStateMonitorQueue) delMonitorWithIndex(i int) {
 
 	last := len(*(syncQueue.queue)) - 1
 	if i != last {
+		(*(syncQueue.queue))[last].index = i
 		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[last]
 	}
 	(*(syncQueue.queue))[last] = nil
@@ -418,6 +449,7 @@ func (syncQueue *SyncProposalStateMonitorQueue) delMonitor0() {
 
 	last := len(*(syncQueue.queue)) - 1
 	if last > 0 {
+		(*(syncQueue.queue))[last].index = 0
 		(*(syncQueue.queue))[0] = (*(syncQueue.queue))[last]
 	}
 	(*(syncQueue.queue))[last] = nil
@@ -489,10 +521,12 @@ func (syncQueue *SyncProposalStateMonitorQueue) siftUpMonitor(i int) {
 		if when >= (*(syncQueue.queue))[p].when {
 			break
 		}
+		(*(syncQueue.queue))[p].index = i
 		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[p]
 		i = p
 	}
 	if tmp != (*(syncQueue.queue))[i] {
+		tmp.index = i
 		(*(syncQueue.queue))[i] = tmp
 	}
 }
@@ -530,10 +564,12 @@ func (syncQueue *SyncProposalStateMonitorQueue) siftDownMonitor(i int) {
 		if w >= when {
 			break
 		}
+		(*(syncQueue.queue))[c].index = i
 		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[c]
 		i = c
 	}
 	if tmp != (*(syncQueue.queue))[i] {
+		tmp.index = i
 		(*(syncQueue.queue))[i] = tmp
 	}
 }

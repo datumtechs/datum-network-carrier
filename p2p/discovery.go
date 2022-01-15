@@ -184,7 +184,7 @@ func (s *Service) startDiscoveryV5(addr net.IP, privKey *ecdsa.PrivateKey) (*dis
 		return nil, errors.Wrap(err, "could not create listener")
 	}
 	record := listener.Self()
-	log.WithField("ENR", record.String()).Info("Started discovery v5")
+	log.WithField("current node ENR", record.String()).Info("Started discovery v5")
 	return listener, nil
 }
 

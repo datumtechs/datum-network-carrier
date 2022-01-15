@@ -203,7 +203,7 @@ func (s *Service) Start() error {
 		serializedEnr, err := SerializeENRByRawURLEncoding(s.ENR())
 		if err == nil {
 			enr := "enr:" + serializedEnr
-			log.Infof("P2P service startup done, local node info: %s", enr)
+			log.Infof("P2P service startup done, current node info: %s", enr)
 		}
 	}
 	s.started = true

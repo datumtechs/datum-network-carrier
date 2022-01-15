@@ -294,6 +294,7 @@ type ExecuteTaskMonitor struct {
 	taskId  string
 	partyId string
 	when    int64 // target timestamp
+	index   int
 	fn      func()
 }
 
@@ -305,11 +306,26 @@ func NewExecuteTaskMonitor(taskId, partyId string, when int64, fn func()) *Execu
 		fn:      fn,
 	}
 }
+
+
+func (etm *ExecuteTaskMonitor) String() string      {
+	return fmt.Sprintf(`{"index": %d, "taskId": %s, "partyId": %s, "when": %d}`,
+		etm.GetIndex(), etm.GetTaskId(), etm.GetPartyId(), etm.GetWhen())
+}
+func (etm *ExecuteTaskMonitor) GetIndex() int      { return etm.index }
 func (etm *ExecuteTaskMonitor) GetTaskId() string  { return etm.taskId }
 func (etm *ExecuteTaskMonitor) GetPartyId() string { return etm.partyId }
 func (etm *ExecuteTaskMonitor) GetWhen() int64     { return etm.when }
 
 type executeTaskMonitorQueue []*ExecuteTaskMonitor
+
+func (queue *executeTaskMonitorQueue) String() string {
+	arr := make([]string, len(*queue))
+	for i, ett := range *queue {
+		arr[i] = ett.String()
+	}
+	return "[" + strings.Join(arr, ",") +  "]"
+}
 
 type SyncExecuteTaskMonitorQueue struct {
 	lock  sync.Mutex
@@ -320,14 +336,20 @@ type SyncExecuteTaskMonitorQueue struct {
 func NewSyncExecuteTaskMonitorQueue(size int) *SyncExecuteTaskMonitorQueue {
 	queue := make(executeTaskMonitorQueue, size)
 	timer := time.NewTimer(0)
-	<- timer.C
+	<-timer.C
 	return &SyncExecuteTaskMonitorQueue{
 		queue: &(queue),
 		timer: timer,
 	}
 }
 
-func (syncQueue *SyncExecuteTaskMonitorQueue) Len () int {
+func (syncQueue *SyncExecuteTaskMonitorQueue) QueueString() string {
+	syncQueue.lock.Lock()
+	defer syncQueue.lock.Unlock()
+	return syncQueue.queue.String()
+}
+
+func (syncQueue *SyncExecuteTaskMonitorQueue) Len() int {
 	syncQueue.lock.Lock()
 	defer syncQueue.lock.Unlock()
 	return len(*(syncQueue.queue))
@@ -368,13 +390,14 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) 
 		panic("target time is negative number")
 	}
 	i := len(*(syncQueue.queue))
+	m.index = i
 	*(syncQueue.queue) = append(*(syncQueue.queue), m)
 	syncQueue.siftUpMonitor(i)
 
 	// reset the timer
 	var until int64
 	if len(*(syncQueue.queue)) > 0 {
-		until =  (*(syncQueue.queue))[0].when
+		until = (*(syncQueue.queue))[0].when
 	} else {
 		until = -1
 	}
@@ -402,6 +425,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) delMonitorWithIndex(i int) {
 
 	last := len(*(syncQueue.queue)) - 1
 	if i != last {
+		(*(syncQueue.queue))[last].index = i
 		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[last]
 	}
 	(*(syncQueue.queue))[last] = nil
@@ -418,6 +442,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) delMonitor0() {
 
 	last := len(*(syncQueue.queue)) - 1
 	if last > 0 {
+		(*(syncQueue.queue))[last].index = 0
 		(*(syncQueue.queue))[0] = (*(syncQueue.queue))[last]
 	}
 	(*(syncQueue.queue))[last] = nil
@@ -472,10 +497,12 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) siftUpMonitor(i int) {
 		if when >= (*(syncQueue.queue))[p].when {
 			break
 		}
+		(*(syncQueue.queue))[p].index = i
 		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[p]
 		i = p
 	}
 	if tmp != (*(syncQueue.queue))[i] {
+		tmp.index = i
 		(*(syncQueue.queue))[i] = tmp
 	}
 }
@@ -513,10 +540,12 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) siftDownMonitor(i int) {
 		if w >= when {
 			break
 		}
+		(*(syncQueue.queue))[c].index = i
 		(*(syncQueue.queue))[i] = (*(syncQueue.queue))[c]
 		i = c
 	}
 	if tmp != (*(syncQueue.queue))[i] {
+		tmp.index = i
 		(*(syncQueue.queue))[i] = tmp
 	}
 }
