@@ -3,7 +3,6 @@ package node
 import (
 	"github.com/RosettaFlow/Carrier-Go/carrier"
 	"github.com/RosettaFlow/Carrier-Go/common/flags"
-	"github.com/RosettaFlow/Carrier-Go/common/sliceutil"
 	"github.com/RosettaFlow/Carrier-Go/common/tracing"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/urfave/cli/v2"
@@ -45,10 +44,9 @@ func defaultNodeConfig() Config {
 }
 
 func configureNetwork(cliCtx *cli.Context) {
-	if cliCtx.IsSet(flags.BootstrapNode.Name) {
+	if cliCtx.IsSet(flags.BootstrapNode.Name) || cliCtx.Value(flags.BootstrapNode.Name) != nil {
 		c := params.CarrierNetworkConfig()
-		c.BootstrapNodes = sliceutil.SplitCommaSeparated([]string{cliCtx.String(flags.BootstrapNode.Name)})
-		//c.BootstrapNodes = cliCtx.StringSlice(flags.BootstrapNode.Name)
+		c.BootstrapNodes = cliCtx.StringSlice(flags.BootstrapNode.Name)
 		params.OverrideCarrierNetworkConfig(c)
 	}
 }
