@@ -629,7 +629,37 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 }
 
 func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error) {
-	return s.carrier.carrierDB.QueryRegisterNode(typ, id)
+	node, err := s.carrier.carrierDB.QueryRegisterNode(typ, id)
+	if nil != err {
+		return nil, err
+	}
+
+	if typ == pb.PrefixTypeJobNode {
+
+		client, ok := s.carrier.resourceManager.QueryJobNodeClient(id)
+		if !ok {
+			node.ConnState = pb.ConnState_ConnState_UnConnected
+		}
+		if !client.IsConnected() {
+			node.ConnState = pb.ConnState_ConnState_UnConnected
+		} else {
+			node.ConnState = pb.ConnState_ConnState_Connected
+		}
+
+	} else {
+
+		client, ok := s.carrier.resourceManager.QueryDataNodeClient(id)
+		if !ok {
+			node.ConnState = pb.ConnState_ConnState_UnConnected
+		}
+		if !client.IsConnected() {
+			node.ConnState = pb.ConnState_ConnState_UnConnected
+		} else {
+			node.ConnState = pb.ConnState_ConnState_Connected
+		}
+
+	}
+	return node, nil
 }
 
 func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error) {
@@ -655,14 +685,12 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 		var fileTotalSize uint32
 
 		if typ == pb.PrefixTypeJobNode {
-			node, has := s.carrier.resourceManager.QueryJobNodeClient(n.GetId())
-			if has {
-				duration = uint64(node.RunningDuration())
-			}
 
 			client, ok := s.carrier.resourceManager.QueryJobNodeClient(n.GetId())
 			if !ok {
 				connState = pb.ConnState_ConnState_UnConnected
+			} else {
+				duration = uint64(client.RunningDuration())
 			}
 			if !client.IsConnected() {
 				connState = pb.ConnState_ConnState_UnConnected
@@ -674,13 +702,12 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 			fileCount = 0     // todo need implament this logic
 			fileTotalSize = 0 // todo need implament this logic
 		} else {
-			node, has := s.carrier.resourceManager.QueryDataNodeClient(n.GetId())
-			if has {
-				duration = uint64(node.RunningDuration())
-			}
+
 			client, ok := s.carrier.resourceManager.QueryDataNodeClient(n.GetId())
 			if !ok {
 				connState = pb.ConnState_ConnState_UnConnected
+			} else {
+				duration = uint64(client.RunningDuration())
 			}
 			if !client.IsConnected() {
 				connState = pb.ConnState_ConnState_UnConnected

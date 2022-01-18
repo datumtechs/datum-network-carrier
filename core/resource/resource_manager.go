@@ -610,10 +610,13 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 	if nil != resourceTable && !resourceTable.GetAlive() {
 		resourceTable.SetAlive(true)
 		if err := m.dataCenter.StoreLocalResourceTable(resourceTable); nil != err {
-			log.WithError(err).Errorf("Failed to update alive flag of local jobNode resource on resourceManager.UpdateDiscoveryJobNodeResource(), powerId: {%s}, jobNodeId: {%s}",
+			log.WithError(err).Errorf("Failed to update alive flag of old jobNode resource on resourceManager.UpdateDiscoveryJobNodeResource(), powerId: {%s}, jobNodeId: {%s}",
 				resourceTable.GetPowerId(), jobNodeId)
 			return err
 		}
+
+		log.Infof("Succeed update alive flag of old jobNode resource on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+			jobNodeId, jobNodeIP, jobNodePort)
 	}
 
 	// check jobNode resource wether have change?
@@ -624,6 +627,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 			jobNodeId, jobNodeIP, jobNodePort)
 		return err
 	}
+
 	if nil != resource {
 		client, ok := m.QueryJobNodeClient(jobNodeId)
 		if !ok {
@@ -666,20 +670,20 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 		}
 	}
 
-	// check connection status,
-	// if it be changed, update the connState value about jobNode
-	if old.GetConnState() != pb.ConnState_ConnState_Connected {
-
-		old.ConnState = pb.ConnState_ConnState_Connected
-		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
-			log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-				jobNodeId, jobNodeIP, jobNodePort)
-			return err
-		}
-
-		log.Infof("Succeed update jobNode ConnState to `connected` on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-			jobNodeId, jobNodeIP, jobNodePort)
-	}
+	//// check connection status,
+	//// if it be changed, update the connState value about jobNode
+	//if old.GetConnState() != pb.ConnState_ConnState_Connected {
+	//
+	//	old.ConnState = pb.ConnState_ConnState_Connected
+	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
+	//		log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+	//			jobNodeId, jobNodeIP, jobNodePort)
+	//		return err
+	//	}
+	//
+	//	log.Infof("Succeed update jobNode ConnState to `connected` on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+	//		jobNodeId, jobNodeIP, jobNodePort)
+	//}
 
 	return nil
 }
@@ -709,6 +713,9 @@ func (m *Manager) RemoveDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 				resourceTable.GetPowerId(), jobNodeId)
 			return err
 		}
+
+		log.Infof("Succeed update alive status of jobNode local resource on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeId: {%s}",
+			jobNodeId)
 	}
 
 	// ##############################
@@ -735,19 +742,19 @@ func (m *Manager) RemoveDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 		client.Close()
 		m.RemoveJobNodeClient(jobNodeId)
 	}
-	// 4. update connState of local jobNode info
-	if old.GetConnState() != pb.ConnState_ConnState_UnConnected {
-
-		old.ConnState = pb.ConnState_ConnState_UnConnected
-		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
-			log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-				jobNodeId, jobNodeIP, jobNodePort)
-			return err
-		}
-
-		log.Infof("Succeed update jobNode ConnState to `unconnected` on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-			jobNodeId, jobNodeIP, jobNodePort)
-	}
+	//// 4. update connState of local jobNode info
+	//if old.GetConnState() != pb.ConnState_ConnState_UnConnected {
+	//
+	//	old.ConnState = pb.ConnState_ConnState_UnConnected
+	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
+	//		log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+	//			jobNodeId, jobNodeIP, jobNodePort)
+	//		return err
+	//	}
+	//
+	//	log.Infof("Succeed update jobNode ConnState to `unconnected` on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+	//		jobNodeId, jobNodeIP, jobNodePort)
+	//}
 
 	log.Infof("Succeed remove a old jobNode, jobNodeId: {%s}", jobNodeId)
 
@@ -836,27 +843,30 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 	if nil != resourceTable && !resourceTable.GetAlive() {
 		resourceTable.SetAlive(true)
 		if err := m.dataCenter.StoreDataResourceTable(resourceTable); nil != err {
-			log.WithError(err).Errorf("Failed to update alive flag of local dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+			log.WithError(err).Errorf("Failed to update alive flag of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 				dataNodeId, dataNodeIP, dataNodePort)
 			return err
 		}
-	}
 
-	// check connection status,
-	// if it be changed, update the connState value about jobNode
-	if old.GetConnState() != pb.ConnState_ConnState_Connected {
-
-		old.ConnState = pb.ConnState_ConnState_Connected
-		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
-			log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-				dataNodeId, dataNodeIP, dataNodePort)
-			return err
-
-		}
-
-		log.Infof("Succeed update dataNode ConnState to `connected` on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+		log.Infof("Succeed update alive flag of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 			dataNodeId, dataNodeIP, dataNodePort)
 	}
+
+	//// check connection status,
+	//// if it be changed, update the connState value about jobNode
+	//if old.GetConnState() != pb.ConnState_ConnState_Connected {
+	//
+	//	old.ConnState = pb.ConnState_ConnState_Connected
+	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
+	//		log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+	//			dataNodeId, dataNodeIP, dataNodePort)
+	//		return err
+	//
+	//	}
+	//
+	//	log.Infof("Succeed update dataNode ConnState to `connected` on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+	//		dataNodeId, dataNodeIP, dataNodePort)
+	//}
 
 	return nil
 }
@@ -885,6 +895,9 @@ func (m *Manager) RemoveDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 				dataNodeId, dataNodeIP, dataNodePort)
 			return err
 		}
+
+		log.Infof("Succeed update alive flag of old dataNode resource on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+			dataNodeId, dataNodeIP, dataNodePort)
 	}
 
 	// ##############################
@@ -896,19 +909,19 @@ func (m *Manager) RemoveDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 		client.Close()
 		m.RemoveDataNodeClient(dataNodeId)
 	}
-	// 3. update connState of local dataNode info
-	if old.GetConnState() != pb.ConnState_ConnState_UnConnected {
-
-		old.ConnState = pb.ConnState_ConnState_UnConnected
-		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
-			log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-				dataNodeId, dataNodeIP, dataNodePort)
-			return err
-		}
-
-		log.Infof("Succeed update dataNode ConnState to `unconnected` on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-			dataNodeId, dataNodeIP, dataNodePort)
-	}
+	//// 3. update connState of local dataNode info
+	//if old.GetConnState() != pb.ConnState_ConnState_UnConnected {
+	//
+	//	old.ConnState = pb.ConnState_ConnState_UnConnected
+	//	if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
+	//		log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+	//			dataNodeId, dataNodeIP, dataNodePort)
+	//		return err
+	//	}
+	//
+	//	log.Infof("Succeed update dataNode ConnState to `unconnected` on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+	//		dataNodeId, dataNodeIP, dataNodePort)
+	//}
 
 	log.Infof("Succeed remove a old dataNode, dataNodeId: {%s}", dataNodeId)
 

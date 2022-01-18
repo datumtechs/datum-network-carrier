@@ -113,7 +113,8 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 		return nil, fmt.Errorf("query jobNode failed")
 	}
 	if jobNode.GetConnState() != pb.ConnState_ConnState_Connected {
-		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNode was not connected, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNode was not connected, can not publish power, jonNodeId: {%s}， connState: {%s}",
+			req.GetJobNodeId(), jobNode.GetConnState().String())
 		return nil, fmt.Errorf("jobNode was not connected")
 	}
 
