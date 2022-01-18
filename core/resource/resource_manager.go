@@ -599,21 +599,8 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 		log.Infof("Succeed update a old jobNode external ip and port from consul server on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}, old externalIp: {%s}, old externalPort: {%s}, new externalIp: {%s}, new externalPort: {%s}",
 			jobNodeId, jobNodeIP, jobNodePort, oldIp, oldPort, old.GetExternalIp(), old.GetExternalPort())
 	}
-	// check connection status,
-	// if it be changed, update the connState value about jobNode
-	if old.GetConnState() != pb.ConnState_ConnState_Connected {
 
-		old.ConnState = pb.ConnState_ConnState_Connected
-		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
-			log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-				jobNodeId, jobNodeIP, jobNodePort)
-			return err
-		}
-
-		log.Infof("Succeed update jobNode ConnState to `connected` on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-			jobNodeId, jobNodeIP, jobNodePort)
-	}
-
+	// check alive status of jobNode local resource table
 	resourceTable, err := m.dataCenter.QueryLocalResourceTable(jobNodeId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("Failed to query local power resource on old jobNode on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
@@ -678,6 +665,22 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 				jobNodeId, jobNodeIP, jobNodePort)
 		}
 	}
+
+	// check connection status,
+	// if it be changed, update the connState value about jobNode
+	if old.GetConnState() != pb.ConnState_ConnState_Connected {
+
+		old.ConnState = pb.ConnState_ConnState_Connected
+		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeJobNode, old); nil != err {
+			log.WithError(err).Errorf("Failed to update jobNode into local db on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+				jobNodeId, jobNodeIP, jobNodePort)
+			return err
+		}
+
+		log.Infof("Succeed update jobNode ConnState to `connected` on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+			jobNodeId, jobNodeIP, jobNodePort)
+	}
+
 	return nil
 }
 

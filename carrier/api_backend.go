@@ -531,6 +531,14 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 	}
 	if typ == pb.PrefixTypeJobNode {
 
+
+		// release resource of jobNode by jobNodeId
+		if err = s.carrier.resourceManager.UnLockLocalResourceWithJobNodeId(id); nil != err {
+			log.WithError(err).Errorf("Failed to unlock local resource with jobNodeId on RemoveRegisterNode(), jobNodeId: {%s}",
+				id)
+			return fmt.Errorf("unlock jobnode local resource failed, %d", err)
+		}
+
 		// The published jobNode cannot be updated directly
 		resourceTable, err := s.carrier.carrierDB.QueryLocalResourceTable(id)
 		if rawdb.IsNoDBNotFoundErr(err) {
