@@ -391,14 +391,6 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 		m.resourceMng.GetDB().RemovePowerMsg(msg.GetPowerId()) // remove from disk if msg been handle
 
-		// check jobNode wether connected?
-		jobNode, err := m.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeJobNode, msg.GetJobNodeId())
-		if nil != err {
-			log.WithError(err).Errorf("Failed to query local jobNode info on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
-				msg.GetPowerId(), msg.GetJobNodeId())
-			continue
-		}
-
 		// query local resource
 		resource, err := m.resourceMng.GetDB().QueryLocalResource(msg.GetJobNodeId())
 		if nil != err {
@@ -411,10 +403,9 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 		resource.GetData().DataId = msg.GetPowerId()
 		resource.GetData().State = apicommonpb.PowerState_PowerState_Released
 
-		var alive bool
-		if jobNode.GetConnState() == pb.ConnState_ConnState_Connected {
-			alive = true
-		}
+
+		// check jobNode wether connected?
+		client, ok := m.resourceMng.QueryJobNodeClient(msg.GetJobNodeId())
 
 		// store local resource with totally
 		resourceTable := types.NewLocalResourceTable(
@@ -424,7 +415,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			resource.GetData().GetTotalBandwidth(),
 			resource.GetData().GetTotalDisk(),
 			resource.GetData().GetTotalProcessor(),
-			alive,
+			ok && client.IsConnected(), // true OR  false ?
 		)
 
 		log.Debugf("Publish msg, StoreLocalResourceTable, %s", resourceTable.String())
