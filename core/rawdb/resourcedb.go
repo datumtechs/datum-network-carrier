@@ -414,6 +414,38 @@ func QueryJobNodeRunningTaskIdCount(db KeyValueStore, jobNodeId string) (uint32,
 	return count, nil
 }
 
+func QueryJobNodeRunningTaskIdsAndPartyIdsPairs(db KeyValueStore, jobNodeId string) (map[string][]string, error) {
+	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
+	prefixAndJobNodeId := GetJobNodeTaskPartyIdsKeyPrefixByJobNodeId(jobNodeId)
+	it := db.NewIteratorWithPrefixAndStart(prefixAndJobNodeId, nil)
+	defer it.Release()
+
+	res := make(map[string][]string, 0)
+	tmp := make(map[string]struct{}, 0)
+	for it.Next() {
+		if len(it.Key()) != 0 && len(it.Value()) != 0 {
+			// key len == len(prefix) + len([]byte(jobNodeId)) + len([]byte(taskId))
+			taskId := string(it.Key()[len(prefixAndJobNodeId):])
+			if _, ok := tmp[taskId]; !ok {
+
+				tmp[taskId] = struct{}{}
+
+				var partyIdArr []string
+				if err := rlp.DecodeBytes(it.Value(), &partyIdArr); nil != err {
+					return nil, err
+				}
+				res[taskId] = partyIdArr
+			}
+		}
+	}
+
+	if len(res) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return res, nil
+}
+
 func QueryJobNodeTaskAllPartyIds(db KeyValueStore, jobNodeId, taskId string) ([]string, error) {
 	// prefix + jobNodeId + taskId -> [partyId, ..., partyId]
 	key := GetJobNodeTaskPartyIdsKey(jobNodeId, taskId)

@@ -13,7 +13,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/schedule"
-	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
@@ -43,8 +42,6 @@ type Manager struct {
 	authMng         *auth.AuthorityManager
 	parser          *TaskParser
 	validator       *TaskValidator
-	// internal resource node set (Fighter node grpc client set)
-	resourceClientSet *grpclient.InternalResourceClientSet
 	eventCh           chan *libtypes.TaskEvent
 	quit              chan struct{}
 	// send the validated taskMsgs to scheduler
@@ -64,7 +61,6 @@ func NewTaskManager(
 	eventEngine *ev.EventEngine,
 	resourceMng *resource.Manager,
 	authMng *auth.AuthorityManager,
-	resourceClientSet *grpclient.InternalResourceClientSet,
 	localTasksCh chan types.TaskDataArray,
 	needReplayScheduleTaskCh chan *types.NeedReplayScheduleTask,
 	needExecuteTaskCh chan *types.NeedExecuteTask,
@@ -78,7 +74,6 @@ func NewTaskManager(
 		eventEngine:              eventEngine,
 		resourceMng:              resourceMng,
 		authMng:                  authMng,
-		resourceClientSet:        resourceClientSet,
 		parser:                   newTaskParser(resourceMng),
 		validator:                newTaskValidator(resourceMng, authMng),
 		eventCh:                  make(chan *libtypes.TaskEvent, 800),

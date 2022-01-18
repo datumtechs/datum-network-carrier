@@ -7,7 +7,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/crypto/vrf"
-	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -25,14 +24,12 @@ var (
 
 type VrfElector struct {
 	privateKey      *ecdsa.PrivateKey // privateKey of current node
-	internalNodeSet *grpclient.InternalResourceClientSet
 	resourceMng     *resource.Manager
 }
 
-func NewVrfElector(privateKey *ecdsa.PrivateKey, internalNodeSet *grpclient.InternalResourceClientSet, resourceMng *resource.Manager) *VrfElector {
+func NewVrfElector(privateKey *ecdsa.PrivateKey, resourceMng *resource.Manager) *VrfElector {
 	return &VrfElector{
 		privateKey:      privateKey,
-		internalNodeSet: internalNodeSet,
 		resourceMng:     resourceMng,
 	}
 }
@@ -136,7 +133,7 @@ func (s *VrfElector) ElectionOrganization(
 
 func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32, extra string) (*pb.YarnRegisteredPeerDetail, error) {
 
-	if nil == s.internalNodeSet || 0 == s.internalNodeSet.JobNodeClientSize() {
+	if s.resourceMng.HasNotInternalJobNodeClientSet() {
 		return nil, fmt.Errorf("not found alive jobNode")
 	}
 
@@ -144,15 +141,16 @@ func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32,
 
 	tables, err := s.resourceMng.QueryLocalResourceTables()
 	if nil != err {
-		return nil, err
+		return nil, fmt.Errorf("query local resource tables failed, %s", err)
 	}
 	log.Debugf("QueryLocalResourceTables on electionJobNode, localResources: %s", types.UtilLocalResourceArrString(tables))
 	for _, r := range tables {
+
 		isEnough := r.IsEnough(mem, bandwidth, disk, processor)
 		log.Debugf("Call electionJobNode, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v",
 			r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough)
-		if isEnough {
-			jobNodeClient, find := s.internalNodeSet.QueryJobNodeClient(r.GetNodeId())
+		if isEnough && r.GetAlive() {
+			jobNodeClient, find := s.resourceMng.QueryJobNodeClient(r.GetNodeId())
 			if find && jobNodeClient.IsConnected() {
 				resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
 				log.Debugf("Call electionJobNode, append resourceId: %s", r.GetNodeId())
@@ -167,7 +165,7 @@ func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32,
 	resourceId := resourceNodeIdArr[len(resourceNodeIdArr)-1]
 	jobNode, err := s.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeJobNode, resourceId)
 	if nil != err {
-		return nil, err
+		return nil, fmt.Errorf("query jobNode info failed, %s", err)
 	}
 	if nil == jobNode {
 		return nil, fmt.Errorf("not found jobNode information")

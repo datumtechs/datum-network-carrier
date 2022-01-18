@@ -154,6 +154,7 @@ type TaskCarrierDB interface {
 	RemoveJobNodeTaskIdAllPartyIds(jobNodeId, taskId string) error
 	QueryJobNodeRunningTaskIdList(jobNodeId string) ([]string, error)
 	QueryJobNodeRunningTaskCount(jobNodeId string) (uint32, error)
+	QueryJobNodeRunningTaskIdsAndPartyIdsPairs(jobNodeId string) (map[string][]string, error)
 	QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId string) ([]string, error)
 	HasJobNodeRunningTaskId(jobNodeId, taskId string) (bool, error)
 	HasJobNodeTaskPartyId(jobNodeId, taskId, partyId string) (bool, error)

@@ -57,7 +57,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	registerNodes := make([]*pb.YarnRegisteredPeer, length)
 	if len(jobNodes) != 0 {
 		for i, v := range jobNodes {
-			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(v.GetId())
+			client, ok := s.carrier.resourceManager.QueryJobNodeClient(v.GetId())
 			if ok && client.IsConnected() {
 				v.ConnState = pb.ConnState_ConnState_Connected
 			}
@@ -70,7 +70,7 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	}
 	if len(dataNodes) != 0 {
 		for i, v := range dataNodes {
-			client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(v.GetId())
+			client, ok := s.carrier.resourceManager.QueryDataNodeClient(v.GetId())
 			if ok && client.IsConnected() {
 				v.ConnState = pb.ConnState_ConnState_Connected
 			}
@@ -143,7 +143,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 		// handle dataNodes
 		for _, v := range dataNodes {
 			var duration uint64
-			node, has := s.carrier.resourceClientSet.QueryDataNodeClient(v.GetId())
+			node, has := s.carrier.resourceManager.QueryDataNodeClient(v.GetId())
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
@@ -166,7 +166,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 		// handle jobNodes
 		for _, v := range jobNodes {
 			var duration uint64
-			node, has := s.carrier.resourceClientSet.QueryJobNodeClient(v.GetId())
+			node, has := s.carrier.resourceManager.QueryJobNodeClient(v.GetId())
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
@@ -188,7 +188,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 		// handle dataNodes
 		for _, v := range dataNodes {
 			var duration uint64
-			node, has := s.carrier.resourceClientSet.QueryDataNodeClient(v.GetId())
+			node, has := s.carrier.resourceManager.QueryDataNodeClient(v.GetId())
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
@@ -210,7 +210,7 @@ func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.Yarn
 		// handle jobNodes
 		for _, v := range jobNodes {
 			var duration uint64
-			node, has := s.carrier.resourceClientSet.QueryJobNodeClient(v.GetId())
+			node, has := s.carrier.resourceManager.QueryJobNodeClient(v.GetId())
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
@@ -376,7 +376,7 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreJobNodeClient(node.GetId(), client)
+		s.carrier.resourceManager.StoreJobNodeClient(node.GetId(), client)
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
@@ -392,14 +392,14 @@ func (s *CarrierAPIBackend) SetRegisterNode(typ pb.RegisteredNodeType, node *pb.
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreDataNodeClient(node.GetId(), client)
+		s.carrier.resourceManager.StoreDataNodeClient(node.GetId(), client)
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add data resource  (disk)
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk(), true))
 		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
@@ -448,10 +448,10 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("the old jobNode have been running {%d} task current, don't remove it", runningTaskCount)
 		}
 
-		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(node.GetId()); ok {
+		if client, ok := s.carrier.resourceManager.QueryJobNodeClient(node.GetId()); ok {
 			// remove old client instanse
 			client.Close()
-			s.carrier.resourceClientSet.RemoveJobNodeClient(node.GetId())
+			s.carrier.resourceManager.RemoveJobNodeClient(node.GetId())
 		}
 
 		// generate new client
@@ -459,7 +459,7 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new jobNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreJobNodeClient(node.GetId(), client)
+		s.carrier.resourceManager.StoreJobNodeClient(node.GetId(), client)
 
 		jobNodeStatus, err := client.GetStatus()
 		if err != nil {
@@ -474,10 +474,10 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 
 	if typ == pb.PrefixTypeDataNode {
 
-		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(node.GetId()); ok {
+		if client, ok := s.carrier.resourceManager.QueryDataNodeClient(node.GetId()); ok {
 			// remove old client instanse
 			client.Close()
-			s.carrier.resourceClientSet.RemoveDataNodeClient(node.GetId())
+			s.carrier.resourceManager.RemoveDataNodeClient(node.GetId())
 		}
 
 		// remove old data resource  (disk)
@@ -489,14 +489,14 @@ func (s *CarrierAPIBackend) UpdateRegisterNode(typ pb.RegisteredNodeType, node *
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect new dataNode failed, %s", err)
 		}
-		s.carrier.resourceClientSet.StoreDataNodeClient(node.GetId(), client)
+		s.carrier.resourceManager.StoreDataNodeClient(node.GetId(), client)
 
 		dataNodeStatus, err := client.GetStatus()
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("connect dataNode query status failed, %s", err)
 		}
 		// add new data resource  (disk)
-		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
+		err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.GetId(), dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk(), true))
 		//err = s.carrier.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(node.Id, types.DefaultDisk, 0))
 		if err != nil {
 			return pb.ConnState_ConnState_UnConnected, fmt.Errorf("store disk summary of new dataNode failed, %s", err)
@@ -595,9 +595,9 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 			return err
 		}
 		// 3. remove rpc client
-		if client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(id); ok {
+		if client, ok := s.carrier.resourceManager.QueryJobNodeClient(id); ok {
 			client.Close()
-			s.carrier.resourceClientSet.RemoveJobNodeClient(id)
+			s.carrier.resourceManager.RemoveJobNodeClient(id)
 		}
 		// 4. goto `Finally`
 	}
@@ -610,9 +610,9 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 			return err
 		}
 		// 2. remove rpc client
-		if client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(id); ok {
+		if client, ok := s.carrier.resourceManager.QueryDataNodeClient(id); ok {
 			client.Close()
-			s.carrier.resourceClientSet.RemoveDataNodeClient(id)
+			s.carrier.resourceManager.RemoveDataNodeClient(id)
 		}
 		// 3. goto `Finally`
 	}
@@ -647,12 +647,12 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 		var fileTotalSize uint32
 
 		if typ == pb.PrefixTypeJobNode {
-			node, has := s.carrier.resourceClientSet.QueryJobNodeClient(n.GetId())
+			node, has := s.carrier.resourceManager.QueryJobNodeClient(n.GetId())
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
 
-			client, ok := s.carrier.resourceClientSet.QueryJobNodeClient(n.GetId())
+			client, ok := s.carrier.resourceManager.QueryJobNodeClient(n.GetId())
 			if !ok {
 				connState = pb.ConnState_ConnState_UnConnected
 			}
@@ -666,11 +666,11 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 			fileCount = 0     // todo need implament this logic
 			fileTotalSize = 0 // todo need implament this logic
 		} else {
-			node, has := s.carrier.resourceClientSet.QueryDataNodeClient(n.GetId())
+			node, has := s.carrier.resourceManager.QueryDataNodeClient(n.GetId())
 			if has {
 				duration = uint64(node.RunningDuration())
 			}
-			client, ok := s.carrier.resourceClientSet.QueryDataNodeClient(n.GetId())
+			client, ok := s.carrier.resourceManager.QueryDataNodeClient(n.GetId())
 			if !ok {
 				connState = pb.ConnState_ConnState_UnConnected
 			}

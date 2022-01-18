@@ -44,6 +44,7 @@ func NewDataNodeClient(ctx context.Context, addr string, nodeId string) (*DataNo
 		connStartAt:        timeutils.UnixMsec(),
 		dataProviderClient: datasvc.NewDataProviderClient(conn),
 	}
+	log.Debugf("New a dataNode Client, dataNodeId: {%s}, timestamp: {%d}", nodeId, client.connStartAt)
 	// try to connect grpc server.
 	runutil.RunEvery(client.ctx, 10*time.Second, func() {
 		client.connecting()
@@ -75,6 +76,7 @@ func (c *DataNodeClient) connecting() error {
 	c.dataProviderClient = datasvc.NewDataProviderClient(conn)
 	c.conn = conn
 	c.connStartAt = timeutils.UnixMsec()
+	log.Debugf("Update a dataNode Client, dataNodeId: {%s}, timestamp: {%d}", c.nodeId, c.connStartAt)
 	return nil
 }
 
@@ -114,8 +116,11 @@ func (c *DataNodeClient) Reconnect() error {
 func (c *DataNodeClient) RunningDuration() int64 {
 	if c.IsNotConnected() {
 		c.connStartAt = 0
+		log.Warnf("Call dataNodeClient.RunningDuration(), the dataNode Client was not connected, dataNodeId: {%s}, timestamp: {%d}, connStatus: {%s}",
+			c.nodeId, c.connStartAt, c.ConnStatus().String())
 		return 0
 	}
+	log.Debugf("Call dataNodeClient.RunningDuration(), dataNodeId: {%s}, timestamp: {%d}, now: {%d}", c.nodeId, c.connStartAt, timeutils.UnixMsec())
 	return timeutils.UnixMsec() - c.connStartAt
 }
 

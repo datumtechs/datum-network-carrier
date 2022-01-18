@@ -162,7 +162,7 @@ func (m *Manager) executeTaskOnDataNode(task *types.NeedExecuteTask) error {
 	}
 
 	// clinet *grpclient.DataNodeClient,
-	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
+	client, has := m.resourceMng.QueryDataNodeClient(dataNodeId)
 	if !has {
 		log.Errorf("Failed to query internal data node on `taskManager.executeTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
@@ -224,7 +224,7 @@ func (m *Manager) executeTaskOnJobNode(task *types.NeedExecuteTask) error {
 	}
 
 	// clinet *grpclient.JobNodeClient,
-	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
+	client, has := m.resourceMng.QueryJobNodeClient(jobNodeId)
 	if !has {
 		log.Errorf("Failed to query internal job node on `taskManager.executeTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)
@@ -301,7 +301,7 @@ func (m *Manager) terminateTaskOnDataNode(task *types.NeedExecuteTask) error {
 	}
 
 	// clinet *grpclient.DataNodeClient,
-	client, has := m.resourceClientSet.QueryDataNodeClient(dataNodeId)
+	client, has := m.resourceMng.QueryDataNodeClient(dataNodeId)
 	if !has {
 		log.Errorf("Failed to query internal data node on `taskManager.terminateTaskOnDataNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, dataNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), dataNodeId)
@@ -363,7 +363,7 @@ func (m *Manager) terminateTaskOnJobNode(task *types.NeedExecuteTask) error {
 	}
 
 	// clinet *grpclient.JobNodeClient,
-	client, has := m.resourceClientSet.QueryJobNodeClient(jobNodeId)
+	client, has := m.resourceMng.QueryJobNodeClient(jobNodeId)
 	if !has {
 		log.Errorf("Failed to query internal job node on `taskManager.terminateTaskOnJobNode()`, taskId: {%s}, role: {%s}, partyId: {%s}, jobNodeId: {%s}",
 			task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId(), jobNodeId)

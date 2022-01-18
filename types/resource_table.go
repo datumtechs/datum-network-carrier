@@ -7,12 +7,12 @@ import (
 )
 
 type LocalResourceTable struct {
-	nodeId  string    // Resource node id
+	nodeId  string    // resource node id
 	powerId string    // powerId
 	total   *resource // The total resource on the node
 	used    *resource // the used resource on the node
-	assign  bool      // Whether to assign the slot tag
-
+	assign  bool      // whether to assign the slot tag
+	alive   bool      // indicates whether the corresponding jobnode leaves (e.g. downtime)
 }
 type localResourceTableRlp struct {
 	NodeId         string // node id
@@ -26,15 +26,17 @@ type localResourceTableRlp struct {
 	UsedBandwidth  uint64
 	UsedDisk       uint64
 	Assign         bool // Whether to assign the slot tag
+	Alive          bool // Indicates whether the corresponding jobnode leaves (e.g. downtime)
 }
 
-func NewLocalResourceTable(nodeId, powerId string, mem, bandwidth, disk uint64, processor uint32) *LocalResourceTable {
+func NewLocalResourceTable(nodeId, powerId string, mem, bandwidth, disk uint64, processor uint32, alive bool) *LocalResourceTable {
 	return &LocalResourceTable{
 		nodeId:  nodeId,
 		powerId: powerId,
 		total:   newResource(mem, bandwidth, disk, processor),
 		used:    &resource{},
 		assign:  false,
+		alive:   alive,
 	}
 }
 
@@ -53,6 +55,8 @@ func (r *LocalResourceTable) GetUsedProcessor() uint32  { return r.used.processo
 func (r *LocalResourceTable) GetUsedBandwidth() uint64  { return r.used.bandwidth }
 func (r *LocalResourceTable) GetUsedDisk() uint64       { return r.used.disk }
 func (r *LocalResourceTable) GetAssign() bool           { return r.assign }
+func (r *LocalResourceTable) GetAlive() bool            { return r.alive }
+func (r *LocalResourceTable) SetAlive(alive bool)       { r.alive = alive }
 func (r *LocalResourceTable) RemainProcessor() uint32   { return r.total.processor - r.used.processor }
 func (r *LocalResourceTable) RemainMem() uint64         { return r.total.mem - r.used.mem }
 func (r *LocalResourceTable) RemainBandwidth() uint64   { return r.total.bandwidth - r.used.bandwidth }
@@ -97,10 +101,10 @@ func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uin
 		return nil
 	}
 
-	if mem == 0 && bandwidth == 0  && disk == 0  && processor == 0 {
+	if mem == 0 && bandwidth == 0 && disk == 0 && processor == 0 {
 		return nil
 	}
-	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0  && r.used.processor == 0 {
+	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0 && r.used.processor == 0 {
 		return nil
 	}
 
@@ -125,7 +129,7 @@ func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uin
 	r.used.disk -= disk
 	r.used.processor -= processor
 
-	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0  && r.used.processor == 0 {
+	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0 && r.used.processor == 0 {
 		r.assign = false
 	}
 
@@ -189,6 +193,7 @@ func (r *LocalResourceTable) EncodeRLP(w io.Writer) error {
 		UsedBandwidth:  r.used.bandwidth,
 		UsedDisk:       r.used.disk,
 		Assign:         r.assign,
+		Alive:          r.alive,
 	})
 }
 
@@ -199,8 +204,8 @@ func (r *LocalResourceTable) DecodeRLP(s *rlp.Stream) error {
 	if err == nil {
 		total := newResource(dec.TotalMem, dec.TotalBandwidth, dec.TotalDisk, dec.TotalProcessor)
 		used := newResource(dec.UsedMem, dec.UsedBandwidth, dec.UsedDisk, dec.UsedProcessor)
-		r.nodeId, r.powerId, r.assign, r.total, r.used =
-			dec.NodeId, dec.PowerId, dec.Assign, total, used
+		r.nodeId, r.powerId, r.assign, r.total, r.used, r.alive =
+			dec.NodeId, dec.PowerId, dec.Assign, total, used, dec.Alive
 	}
 	return err
 }
@@ -289,21 +294,24 @@ type DataResourceTable struct {
 	nodeId    string
 	totalDisk uint64
 	usedDisk  uint64
-	isUsed    bool // When the node is used for the first time (when there is data / file upload), this value is given "true"
+	isUsed    bool // when the node is used for the first time (when there is data / file upload), this value is given "true"
+	alive     bool // indicates whether the corresponding datanode leaves (e.g. downtime)
 }
 type dataResourceTableRlp struct {
 	NodeId    string
 	TotalDisk uint64
 	UsedDisk  uint64
 	IsUsed    bool
+	Alive     bool  // Indicates whether the corresponding datanode leaves (e.g. downtime)
 }
 
-func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64) *DataResourceTable {
+func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64, alive bool) *DataResourceTable {
 	return &DataResourceTable{
 		nodeId:    nodeId,
 		totalDisk: totalDisk,
 		usedDisk:  usedDisk,
 		isUsed:    false,
+		alive:     alive,
 	}
 }
 
@@ -314,6 +322,7 @@ func (drt *DataResourceTable) EncodeRLP(w io.Writer) error {
 		TotalDisk: drt.totalDisk,
 		UsedDisk:  drt.usedDisk,
 		IsUsed:    drt.isUsed,
+		Alive:     drt.alive,
 	})
 }
 
@@ -322,7 +331,7 @@ func (drt *DataResourceTable) DecodeRLP(s *rlp.Stream) error {
 	var dec dataResourceTableRlp
 	err := s.Decode(&dec)
 	if err == nil {
-		drt.nodeId, drt.totalDisk, drt.usedDisk, drt.isUsed = dec.NodeId, dec.TotalDisk, dec.UsedDisk, dec.IsUsed
+		drt.nodeId, drt.totalDisk, drt.usedDisk, drt.isUsed, drt.alive = dec.NodeId, dec.TotalDisk, dec.UsedDisk, dec.IsUsed, dec.Alive
 	}
 	return err
 }
@@ -334,10 +343,12 @@ func (drt *DataResourceTable) String() string {
 func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
 func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
 func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
-func (drt *DataResourceTable) GetIsUsed() bool  { return drt.isUsed }
+func (drt *DataResourceTable) GetIsUsed() bool      { return drt.isUsed }
 func (drt *DataResourceTable) RemainDisk() uint64   { return drt.totalDisk - drt.usedDisk }
 func (drt *DataResourceTable) IsUsed() bool         { return drt.isUsed && drt.usedDisk != 0 }
 func (drt *DataResourceTable) IsNotUsed() bool      { return !drt.IsUsed() }
+func (drt *DataResourceTable) GetAlive() bool       { return drt.alive }
+func (drt *DataResourceTable) SetAlive(alive bool)  { drt.alive = alive }
 func (drt *DataResourceTable) IsEmpty() bool        { return nil == drt }
 func (drt *DataResourceTable) IsNotEmpty() bool     { return !drt.IsEmpty() }
 func (drt *DataResourceTable) UseDisk(use uint64) {

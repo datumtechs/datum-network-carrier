@@ -4,11 +4,10 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/auth"
 	"github.com/RosettaFlow/Carrier-Go/common/feed"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
-	"github.com/RosettaFlow/Carrier-Go/core/iface"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
+	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	"github.com/RosettaFlow/Carrier-Go/core/task"
 	"github.com/RosettaFlow/Carrier-Go/event"
-	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -32,12 +31,11 @@ const (
 
 type MessageHandler struct {
 	pool       *Mempool
-	dataCenter iface.ForHandleDB
+	resourceMng *resource.Manager
 	// Send taskMsg to taskManager
 	taskManager *task.Manager
 	authManager *auth.AuthorityManager
 	// internal resource node set (Fighter node grpc client set)
-	resourceClientSet *grpclient.InternalResourceClientSet
 	msgChannel        chan *feed.Event
 	quit              chan struct{}
 
@@ -54,13 +52,12 @@ type MessageHandler struct {
 	lockTask         sync.Mutex
 }
 
-func NewHandler(pool *Mempool, dataCenter iface.ForHandleDB, taskManager *task.Manager, authManager *auth.AuthorityManager, resourceClientSet *grpclient.InternalResourceClientSet) *MessageHandler {
+func NewHandler(pool *Mempool, resourceMng *resource.Manager, taskManager *task.Manager, authManager *auth.AuthorityManager) *MessageHandler {
 	m := &MessageHandler{
 		pool:              pool,
-		dataCenter:        dataCenter,
+		resourceMng:        resourceMng,
 		taskManager:       taskManager,
 		authManager:       authManager,
-		resourceClientSet: resourceClientSet,
 		msgChannel:        make(chan *feed.Event, 5),
 		quit:              make(chan struct{}),
 	}
@@ -80,7 +77,7 @@ func (m *MessageHandler) Stop() error {
 }
 
 func (m *MessageHandler) recoveryCache() {
-	taskMsgCache, err := m.dataCenter.QueryTaskMsgArr()
+	taskMsgCache, err := m.resourceMng.GetDB().QueryTaskMsgArr()
 	if nil != err {
 		if rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Errorf("Failed to get taskMsgCache from QueryTaskMsgArr")
@@ -91,7 +88,7 @@ func (m *MessageHandler) recoveryCache() {
 		m.taskMsgCache = taskMsgCache
 	}
 
-	metadataAuthMsgCache, err := m.dataCenter.QueryMetadataAuthorityMsgArr()
+	metadataAuthMsgCache, err := m.resourceMng.GetDB().QueryMetadataAuthorityMsgArr()
 	if nil != err {
 		if rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Errorf("Failed to get metadataAuthMsgCache from QueryMetadataAuthorityMsgArr")
@@ -102,7 +99,7 @@ func (m *MessageHandler) recoveryCache() {
 		m.metadataAuthMsgCache = metadataAuthMsgCache
 	}
 
-	metadataMsgCache, err := m.dataCenter.QueryMetadataMsgArr()
+	metadataMsgCache, err := m.resourceMng.GetDB().QueryMetadataMsgArr()
 	if nil != err {
 		if rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Errorf("Failed to get metadataMsgCache from QueryMetadataMsgArr")
@@ -113,7 +110,7 @@ func (m *MessageHandler) recoveryCache() {
 		m.metadataMsgCache = metadataMsgCache
 	}
 
-	powerMsgCache, err := m.dataCenter.QueryPowerMsgArr()
+	powerMsgCache, err := m.resourceMng.GetDB().QueryPowerMsgArr()
 	if nil != err {
 		if rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Errorf("Failed to get powerMsgCache from QueryPowerMsgArr")
@@ -143,7 +140,7 @@ func (m *MessageHandler) loop() {
 				m.lockPower.Lock()
 				m.powerMsgCache.Len()
 				m.powerMsgCache = append(m.powerMsgCache, msg.Msg)
-				m.dataCenter.StoreMessageCache(msg.Msg) // backup power msg into disk
+				m.resourceMng.GetDB().StoreMessageCache(msg.Msg) // backup power msg into disk
 				if len(m.powerMsgCache) >= defaultPowerMsgsCacheSize {
 					m.BroadcastPowerMsgArr(m.powerMsgCache)
 					m.powerMsgCache = make(types.PowerMsgArr, 0)
@@ -160,7 +157,7 @@ func (m *MessageHandler) loop() {
 					if revoke.Msg.GetPowerId() == msg.GetPowerId() {
 						flag = true
 						m.powerMsgCache = append(m.powerMsgCache[:i], m.powerMsgCache[i+1:]...)
-						m.dataCenter.RemovePowerMsg(msg.GetPowerId()) // remove from disk
+						m.resourceMng.GetDB().RemovePowerMsg(msg.GetPowerId()) // remove from disk
 						i--
 					}
 				}
@@ -174,7 +171,7 @@ func (m *MessageHandler) loop() {
 				msg := event.Data.(*types.MetadataMsgEvent)
 				m.lockMetadata.Lock()
 				m.metadataMsgCache = append(m.metadataMsgCache, msg.Msg)
-				m.dataCenter.StoreMessageCache(msg.Msg) // backup metadata msg into disk
+				m.resourceMng.GetDB().StoreMessageCache(msg.Msg) // backup metadata msg into disk
 				if len(m.metadataMsgCache) >= defaultMetadataMsgsCacheSize {
 					m.BroadcastMetadataMsgArr(m.metadataMsgCache)
 					m.metadataMsgCache = make(types.MetadataMsgArr, 0)
@@ -192,7 +189,7 @@ func (m *MessageHandler) loop() {
 					if revoke.Msg.GetMetadataId() == msg.GetMetadataId() {
 						flag = true
 						m.metadataMsgCache = append(m.metadataMsgCache[:i], m.metadataMsgCache[i+1:]...)
-						m.dataCenter.RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk
+						m.resourceMng.GetDB().RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk
 						i--
 					}
 				}
@@ -207,7 +204,7 @@ func (m *MessageHandler) loop() {
 				msg := event.Data.(*types.MetadataAuthMsgEvent)
 				m.lockMetadataAuth.Lock()
 				m.metadataAuthMsgCache = append(m.metadataAuthMsgCache, msg.Msg)
-				m.dataCenter.StoreMessageCache(msg.Msg) // backup metadataAuth into disk
+				m.resourceMng.GetDB().StoreMessageCache(msg.Msg) // backup metadataAuth into disk
 				if len(m.metadataAuthMsgCache) >= defaultMetadataAuthMsgsCacheSize {
 					m.BroadcastMetadataAuthMsgArr(m.metadataAuthMsgCache)
 					m.metadataAuthMsgCache = make(types.MetadataAuthorityMsgArr, 0)
@@ -225,7 +222,7 @@ func (m *MessageHandler) loop() {
 					if revoke.Msg.GetMetadataAuthId() == msg.GetMetadataAuthId() {
 						flag = true
 						m.metadataAuthMsgCache = append(m.metadataAuthMsgCache[:i], m.metadataAuthMsgCache[i+1:]...)
-						m.dataCenter.RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk
+						m.resourceMng.GetDB().RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk
 						i--
 					}
 				}
@@ -240,7 +237,7 @@ func (m *MessageHandler) loop() {
 				msg := event.Data.(*types.TaskMsgEvent)
 				m.lockTask.Lock()
 				m.taskMsgCache = append(m.taskMsgCache, msg.Msg)
-				m.dataCenter.StoreMessageCache(msg.Msg) // backup task msg into disk
+				m.resourceMng.GetDB().StoreMessageCache(msg.Msg) // backup task msg into disk
 				if len(m.taskMsgCache) >= defaultTaskMsgsCacheSize {
 					m.BroadcastTaskMsgArr(m.taskMsgCache)
 					m.taskMsgCache = make(types.TaskMsgArr, 0)
@@ -258,7 +255,7 @@ func (m *MessageHandler) loop() {
 					if terminate.Msg.GetTaskId() == msg.GetTaskId() {
 						flag = true
 						m.taskMsgCache = append(m.taskMsgCache[:i], m.taskMsgCache[i+1:]...)
-						m.dataCenter.RemoveTaskMsg(msg.GetTaskId()) // remove from disk
+						m.resourceMng.GetDB().RemoveTaskMsg(msg.GetTaskId()) // remove from disk
 						i--
 					}
 				}
@@ -312,13 +309,13 @@ func (m *MessageHandler) loop() {
 func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 
 	// add identity to local db
-	if err := m.dataCenter.StoreIdentity(msg.GetOrganization()); nil != err {
+	if err := m.resourceMng.GetDB().StoreIdentity(msg.GetOrganization()); nil != err {
 		log.WithError(err).Errorf("Failed to store local org identity on MessageHandler with broadcast identity, identityId: {%s}", msg.GetOwnerIdentityId())
 		return
 	}
 
 	// send identity to datacenter
-	if err := m.dataCenter.InsertIdentity(msg.ToDataCenter()); nil != err {
+	if err := m.resourceMng.GetDB().InsertIdentity(msg.ToDataCenter()); nil != err {
 		log.WithError(err).Errorf("Failed to broadcast org org identity on MessageHandler with broadcast identity, identityId: {%s}, nodeId: {%s}, nodeName: {%s}",
 			msg.GetOwnerIdentityId(), msg.GetOwnerNodeId(), msg.GetOwnerName())
 		return
@@ -330,20 +327,20 @@ func (m *MessageHandler) BroadcastIdentityMsg(msg *types.IdentityMsg) {
 func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 
 	// query local identity
-	identity, err := m.dataCenter.QueryIdentity()
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to get local org identity on MessageHandler with revoke identity, identityId: {%s}", identity.GetIdentityId())
 		return
 	}
 
 	// what if running task, can not revoke identity
-	jobNodes, err := m.dataCenter.QueryRegisterNodeList(pb.PrefixTypeJobNode)
+	jobNodes, err := m.resourceMng.GetDB().QueryRegisterNodeList(pb.PrefixTypeJobNode)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("query all jobNode failed")
 		return
 	}
 	for _, node := range jobNodes {
-		runningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskCount(node.Id)
+		runningTaskCount, err := m.resourceMng.GetDB().QueryJobNodeRunningTaskCount(node.Id)
 		if rawdb.IsNoDBNotFoundErr(err) {
 			log.Errorf("query local running taskCount on old jobNode failed on MessageHandler with revoke identity, %s", err)
 			return
@@ -359,13 +356,13 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 	// todo what if metadata publish
 
 	// remove local identity
-	if err := m.dataCenter.RemoveIdentity(); nil != err {
+	if err := m.resourceMng.GetDB().RemoveIdentity(); nil != err {
 		log.WithError(err).Errorf("Failed to delete org identity to local on MessageHandler with revoke identity, identityId: {%s}", identity.GetIdentityId())
 		return
 	}
 
 	// remove identity from dataCenter
-	if err := m.dataCenter.RevokeIdentity(
+	if err := m.resourceMng.GetDB().RevokeIdentity(
 		types.NewIdentity(&libtypes.IdentityPB{
 			NodeName:   identity.GetNodeName(),
 			NodeId:     identity.GetNodeId(),
@@ -384,7 +381,7 @@ func (m *MessageHandler) BroadcastIdentityRevokeMsg() {
 
 func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
-	identity, err := m.dataCenter.QueryIdentity()
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("query local identityInfo failed on MessageHandler with broadcast power msg")
 		return
@@ -392,9 +389,18 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 	for _, msg := range powerMsgArr {
 
-		m.dataCenter.RemovePowerMsg(msg.GetPowerId()) // remove from disk if msg been handle
+		m.resourceMng.GetDB().RemovePowerMsg(msg.GetPowerId()) // remove from disk if msg been handle
+
+		// check jobNode wether connected?
+		jobNode, err := m.resourceMng.GetDB().QueryRegisterNode(pb.PrefixTypeJobNode, msg.GetJobNodeId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to query local jobNode info on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
+				msg.GetPowerId(), msg.GetJobNodeId())
+			continue
+		}
+
 		// query local resource
-		resource, err := m.dataCenter.QueryLocalResource(msg.GetJobNodeId())
+		resource, err := m.resourceMng.GetDB().QueryLocalResource(msg.GetJobNodeId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local resource on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
@@ -405,6 +411,11 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 		resource.GetData().DataId = msg.GetPowerId()
 		resource.GetData().State = apicommonpb.PowerState_PowerState_Released
 
+		var alive bool
+		if jobNode.GetConnState() == pb.ConnState_ConnState_Connected {
+			alive = true
+		}
+
 		// store local resource with totally
 		resourceTable := types.NewLocalResourceTable(
 			msg.GetJobNodeId(),
@@ -413,30 +424,31 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 			resource.GetData().GetTotalBandwidth(),
 			resource.GetData().GetTotalDisk(),
 			resource.GetData().GetTotalProcessor(),
+			alive,
 		)
 
 		log.Debugf("Publish msg, StoreLocalResourceTable, %s", resourceTable.String())
-		if err := m.dataCenter.StoreLocalResourceTable(resourceTable); nil != err {
+		if err := m.resourceMng.GetDB().StoreLocalResourceTable(resourceTable); nil != err {
 			log.WithError(err).Errorf("Failed to StoreLocalResourceTable on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
 			continue
 		}
 
-		if err := m.dataCenter.StoreJobNodeIdIdByPowerId(msg.GetPowerId(), msg.GetJobNodeId()); nil != err {
+		if err := m.resourceMng.GetDB().StoreJobNodeIdIdByPowerId(msg.GetPowerId(), msg.GetJobNodeId()); nil != err {
 			log.WithError(err).Errorf("Failed to StoreJobNodeIdByPowerId on MessageHandler with broadcast msg,  powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
 			continue
 		}
 
 		// update local resource
-		if err := m.dataCenter.InsertLocalResource(resource); nil != err {
+		if err := m.resourceMng.GetDB().InsertLocalResource(resource); nil != err {
 			log.WithError(err).Errorf("Failed to update local resource with powerId to local on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
 			continue
 		}
 
 		// publish to global
-		if err := m.dataCenter.InsertResource(types.NewResource(&libtypes.ResourcePB{
+		if err := m.resourceMng.GetDB().InsertResource(types.NewResource(&libtypes.ResourcePB{
 			IdentityId: identity.GetIdentityId(),
 			NodeId:     identity.GetNodeId(),
 			NodeName:   identity.GetNodeName(),
@@ -473,7 +485,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 
 func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.PowerRevokeMsgArr) {
 
-	identity, err := m.dataCenter.QueryIdentity()
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("failed to query local identityInfo failed on MessageHandler with revoke power msg")
 		return
@@ -481,25 +493,25 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 	for _, revoke := range powerRevokeMsgArr {
 
-		jobNodeId, err := m.dataCenter.QueryJobNodeIdByPowerId(revoke.GetPowerId())
+		jobNodeId, err := m.resourceMng.GetDB().QueryJobNodeIdByPowerId(revoke.GetPowerId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to call QueryJobNodeIdByPowerId() on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
 				revoke.GetPowerId(), jobNodeId)
 			continue
 		}
-		if err := m.dataCenter.RemoveJobNodeIdByPowerId(revoke.GetPowerId()); nil != err {
+		if err := m.resourceMng.GetDB().RemoveJobNodeIdByPowerId(revoke.GetPowerId()); nil != err {
 			log.WithError(err).Errorf("Failed to call RemoveJobNodeIdByPowerId() on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
 				revoke.GetPowerId(), jobNodeId)
 			continue
 		}
-		if err := m.dataCenter.RemoveLocalResourceTable(jobNodeId); nil != err {
+		if err := m.resourceMng.GetDB().RemoveLocalResourceTable(jobNodeId); nil != err {
 			log.WithError(err).Errorf("Failed to RemoveLocalResourceTable on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
 				revoke.GetPowerId(), jobNodeId)
 			continue
 		}
 
 		// query local resource
-		resource, err := m.dataCenter.QueryLocalResource(jobNodeId)
+		resource, err := m.resourceMng.GetDB().QueryLocalResource(jobNodeId)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local resource on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
 				revoke.GetPowerId(), jobNodeId)
@@ -509,15 +521,21 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 		// remove powerId from local resource and change state
 		resource.GetData().DataId = ""
 		resource.GetData().State = apicommonpb.PowerState_PowerState_Revoked
+		// clean used resource value
+		resource.GetData().UsedBandwidth = 0
+		resource.GetData().UsedDisk = 0
+		resource.GetData().UsedProcessor = 0
+		resource.GetData().UsedMem = 0
+
 		// update local resource
-		if err := m.dataCenter.InsertLocalResource(resource); nil != err {
+		if err := m.resourceMng.GetDB().InsertLocalResource(resource); nil != err {
 			log.WithError(err).Errorf("Failed to update local resource with powerId to local on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
 				revoke.GetPowerId(), jobNodeId)
 			continue
 		}
 
 		// remove from global
-		if err := m.dataCenter.RevokeResource(types.NewResource(&libtypes.ResourcePB{
+		if err := m.resourceMng.GetDB().RevokeResource(types.NewResource(&libtypes.ResourcePB{
 			IdentityId: identity.GetIdentityId(),
 			NodeId:     identity.GetNodeId(),
 			NodeName:   identity.GetNodeName(),
@@ -540,7 +558,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 
 func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMsgArr) {
 
-	identity, err := m.dataCenter.QueryIdentity()
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local identity on MessageHandler with broadcast metadata msg")
 		return
@@ -548,10 +566,10 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 	for _, msg := range metadataMsgArr {
 
-		m.dataCenter.RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk if msg been handle
+		m.resourceMng.GetDB().RemoveMetadataMsg(msg.GetMetadataId()) // remove from disk if msg been handle
 
 		// maintain the orginId and metadataId relationship of the local data service
-		dataResourceFileUpload, err := m.dataCenter.QueryDataResourceFileUpload(msg.GetOriginId())
+		dataResourceFileUpload, err := m.resourceMng.GetDB().QueryDataResourceFileUpload(msg.GetOriginId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to QueryDataResourceFileUpload on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId())
@@ -560,13 +578,13 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 		// Update metadataId in fileupload information
 		dataResourceFileUpload.SetMetadataId(msg.GetMetadataId())
-		if err := m.dataCenter.StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
+		if err := m.resourceMng.GetDB().StoreDataResourceFileUpload(dataResourceFileUpload); nil != err {
 			log.WithError(err).Errorf("Failed to StoreDataResourceFileUpload on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
 			continue
 		}
 		// Record the size of the resources occupied by the original data
-		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
+		dataResourceTable, err := m.resourceMng.GetDB().QueryDataResourceTable(dataResourceFileUpload.GetNodeId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to QueryDataResourceTable on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
@@ -574,13 +592,13 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 		}
 		// update disk used of data resource table
 		dataResourceTable.UseDisk(msg.GetSize())
-		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
+		if err := m.resourceMng.GetDB().StoreDataResourceTable(dataResourceTable); nil != err {
 			log.WithError(err).Errorf("Failed to StoreDataResourceTable on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
 			continue
 		}
 		// Separately record the GetSize of the metaData and the dataNodeId where it is located
-		if err := m.dataCenter.StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
+		if err := m.resourceMng.GetDB().StoreDataResourceDiskUsed(types.NewDataResourceDiskUsed(
 			msg.GetMetadataId(), dataResourceFileUpload.GetNodeId(), msg.GetSize())); nil != err {
 			log.WithError(err).Errorf("Failed to StoreDataResourceDiskUsed on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
@@ -588,13 +606,13 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 		}
 
 		// publish msg information
-		if err := m.dataCenter.InsertMetadata(msg.ToDataCenter(identity)); nil != err {
+		if err := m.resourceMng.GetDB().InsertMetadata(msg.ToDataCenter(identity)); nil != err {
 			log.WithError(err).Errorf("Failed to store msg to dataCenter on MessageHandler with broadcast msg, originId: {%s}, metadataId: {%s}, dataNodeId: {%s}",
 				msg.GetOriginId(), msg.GetMetadataId(), dataResourceFileUpload.GetNodeId())
 
-			//m.dataCenter.RemoveDataResourceDiskUsed(msg.GetMetadataId())
+			//m.resourceMng.GetDB().RemoveDataResourceDiskUsed(msg.GetMetadataId())
 			//dataResourceTable.FreeDisk(msg.GetSize())
-			//m.dataCenter.StoreDataResourceTable(dataResourceTable)
+			//m.resourceMng.GetDB().StoreDataResourceTable(dataResourceTable)
 
 			continue
 		}
@@ -607,7 +625,7 @@ func (m *MessageHandler) BroadcastMetadataMsgArr(metadataMsgArr types.MetadataMs
 
 func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr types.MetadataRevokeMsgArr) {
 
-	identity, err := m.dataCenter.QueryIdentity()
+	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local identity on MessageHandler with revoke metadata msg")
 		return
@@ -615,35 +633,35 @@ func (m *MessageHandler) BroadcastMetadataRevokeMsgArr(metadataRevokeMsgArr type
 
 	for _, revoke := range metadataRevokeMsgArr {
 		// (metaDataId -> {metaDataId, dataNodeId, diskUsed})
-		dataResourceDiskUsed, err := m.dataCenter.QueryDataResourceDiskUsed(revoke.GetMetadataId())
+		dataResourceDiskUsed, err := m.resourceMng.GetDB().QueryDataResourceDiskUsed(revoke.GetMetadataId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to QueryDataResourceDiskUsed on MessageHandler with revoke metadata, metadataId: {%s}",
 				revoke.GetMetadataId())
 			continue
 		}
 		// update dataNode table (dataNodeId -> {dataNodeId, totalDisk, usedDisk})
-		dataResourceTable, err := m.dataCenter.QueryDataResourceTable(dataResourceDiskUsed.GetNodeId())
+		dataResourceTable, err := m.resourceMng.GetDB().QueryDataResourceTable(dataResourceDiskUsed.GetNodeId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to QueryDataResourceTable on MessageHandler with revoke metadata, metadataId: {%s}, dataNodeId: {%s}",
 				revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId())
 			continue
 		}
 		dataResourceTable.FreeDisk(dataResourceDiskUsed.GetDiskUsed())
-		if err := m.dataCenter.StoreDataResourceTable(dataResourceTable); nil != err {
+		if err := m.resourceMng.GetDB().StoreDataResourceTable(dataResourceTable); nil != err {
 			log.WithError(err).Errorf("Failed to StoreDataResourceTable on MessageHandler with revoke metadata, metadataId: {%s}, dataNodeId: {%s}",
 				revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId())
 			continue
 		}
 
 		// remove dataNodeDiskUsed (metaDataId -> {metaDataId, dataNodeId, diskUsed})
-		if err := m.dataCenter.RemoveDataResourceDiskUsed(revoke.GetMetadataId()); nil != err {
+		if err := m.resourceMng.GetDB().RemoveDataResourceDiskUsed(revoke.GetMetadataId()); nil != err {
 			log.WithError(err).Errorf("Failed to RemoveDataResourceDiskUsed on MessageHandler with revoke metadata, metadataId: {%s}, dataNodeId: {%s}",
 				revoke.GetMetadataId(), dataResourceDiskUsed.GetNodeId())
 			continue
 		}
 
 		// revoke from global
-		if err := m.dataCenter.RevokeMetadata(revoke.ToDataCenter(identity)); nil != err {
+		if err := m.resourceMng.GetDB().RevokeMetadata(revoke.ToDataCenter(identity)); nil != err {
 			log.WithError(err).Errorf("Failed to revoke metadata to dataCenter on MessageHandler with revoke metadata, metadataId: {%s}",
 				revoke.GetMetadataId())
 			continue
@@ -665,7 +683,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 	//		so the data legitimacy is verified again
 	// ############################################
 	// ############################################
-	ideneityList, err := m.dataCenter.QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	ideneityList, err := m.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query global identity list on MessageHandler with broadcast metadataAuth")
 		return
@@ -673,7 +691,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 
 	for _, msg := range metadataAuthMsgArr {
 
-		m.dataCenter.RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk if msg been handle
+		m.resourceMng.GetDB().RemoveMetadataAuthMsg(msg.GetMetadataAuthId()) // remove from disk if msg been handle
 
 		// ############################################
 		// ############################################
@@ -699,7 +717,7 @@ func (m *MessageHandler) BroadcastMetadataAuthMsgArr(metadataAuthMsgArr types.Me
 		}
 
 		//todo: need checking...
-		metadataList, err := m.dataCenter.QueryMetadataListByIdentity(msg.GetMetadataAuthority().GetOwner().GetIdentityId(), timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+		metadataList, err := m.resourceMng.GetDB().QueryMetadataListByIdentity(msg.GetMetadataAuthority().GetOwner().GetIdentityId(), timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query global metadata list by identityId on MessageHandler with broadcast metadataAuth, identityId: {%s}",
 				msg.GetMetadataAuthority().GetOwner().GetIdentityId())
@@ -797,7 +815,7 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 			continue
 		}
 
-		if err := m.dataCenter.UpdateMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
+		if err := m.resourceMng.GetDB().UpdateMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
 			MetadataAuthId:  revoke.GetMetadataAuthId(),
 			User:            revoke.GetUser(),
 			UserType:        revoke.GetUserType(),

@@ -46,7 +46,6 @@ type Service struct {
 	scheduler         schedule.Scheduler
 	consulManager     *discovery.ConnectConsul
 	runError          error
-	resourceClientSet *grpclient.InternalResourceClientSet // internal resource node set (Fighter node grpc client set)
 	quit              chan struct{}
 }
 
@@ -71,9 +70,9 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		make(chan *types.TaskConsResult, 600)
 
 	resourceClientSet := grpclient.NewInternalResourceNodeSet()
-	resourceMng := resource.NewResourceManager(config.CarrierDB, mockIdentityIdsFile)
+	resourceMng := resource.NewResourceManager(config.CarrierDB, resourceClientSet, mockIdentityIdsFile)
 	authManager := auth.NewAuthorityManager(config.CarrierDB)
-	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceClientSet, resourceMng), eventEngine, resourceMng, authManager)
+	scheduler := schedule.NewSchedulerStarveFIFO(election.NewVrfElector(config.P2P.PirKey(), resourceMng), eventEngine, resourceMng, authManager)
 	twopcEngine := twopc.New(
 		&twopc.Config{
 			Option: &twopc.OptionConfig{
@@ -99,7 +98,6 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		eventEngine,
 		resourceMng,
 		authManager,
-		resourceClientSet,
 		localTaskMsgCh,
 		needReplayScheduleTaskCh,
 		needExecuteTaskCh,
@@ -113,11 +111,10 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		carrierDB:         config.CarrierDB,
 		mempool:           pool,
 		resourceManager:   resourceMng,
-		messageManager:    message.NewHandler(pool, config.CarrierDB, taskManager, authManager, resourceClientSet),
+		messageManager:    message.NewHandler(pool, resourceMng, taskManager, authManager),
 		TaskManager:       taskManager,
 		authManager:       authManager,
 		scheduler:         scheduler,
-		resourceClientSet: resourceClientSet,
 		consulManager: discovery.New(&discovery.ConsulService{
 			ServiceIP:   cliCtx.String(flags.RPCHost.Name),
 			ServicePort: cliCtx.String(flags.RPCPort.Name),
@@ -145,7 +142,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		for _, node := range jobNodeList {
 			client, err := grpclient.NewJobNodeClient(ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 			if err == nil {
-				s.resourceClientSet.StoreJobNodeClient(node.GetId(), client)
+				s.resourceManager.StoreJobNodeClient(node.GetId(), client)
 			}
 		}
 	}
@@ -154,7 +151,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		for _, node := range dataNodeList {
 			client, err := grpclient.NewDataNodeClient(ctx, fmt.Sprintf("%s:%s", node.GetInternalIp(), node.GetInternalPort()), node.GetId())
 			if err == nil {
-				s.resourceClientSet.StoreDataNodeClient(node.GetId(), client)
+				s.resourceManager.StoreDataNodeClient(node.GetId(), client)
 			}
 		}
 	}

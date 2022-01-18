@@ -103,8 +103,18 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power")
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
 		return nil, fmt.Errorf("query local identity failed")
+	}
+
+	jobNode, err := svr.B.GetRegisterNode(pb.PrefixTypeJobNode, req.GetJobNodeId())
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, query jobNode failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
+		return nil, fmt.Errorf("query jobNode failed")
+	}
+	if jobNode.GetConnState() != pb.ConnState_ConnState_Connected {
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNode was not connected, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
+		return nil, fmt.Errorf("jobNode was not connected")
 	}
 
 	powerMsg := types.NewPowerMessageFromRequest(req)

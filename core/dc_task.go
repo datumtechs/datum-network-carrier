@@ -319,6 +319,13 @@ func (dc *DataCenter) QueryJobNodeRunningTaskCount(jobNodeId string) (uint32, er
 	return rawdb.QueryJobNodeRunningTaskIdCount(dc.db, jobNodeId)
 }
 
+
+func (dc *DataCenter) QueryJobNodeRunningTaskIdsAndPartyIdsPairs(jobNodeId string) (map[string][]string, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.QueryJobNodeRunningTaskIdsAndPartyIdsPairs(dc.db, jobNodeId)
+}
+
 func (dc *DataCenter) QueryJobNodeRunningTaskAllPartyIdList(jobNodeId, taskId string) ([]string, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()

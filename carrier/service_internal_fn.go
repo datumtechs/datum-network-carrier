@@ -2,16 +2,10 @@ package carrier
 
 import (
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/service/discovery"
-	"github.com/RosettaFlow/Carrier-Go/types"
 	"strconv"
 	"strings"
 	"time"
@@ -128,37 +122,6 @@ func (s *Service) refreshResourceNodes() error {
 
 	viaExternalIP, viaExternalPort := configArr[0], configArr[1]
 
-	storeLocalResourceFn := func(identity *apicommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
-		// store into local db
-		if err := s.carrierDB.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
-			IdentityId: identity.GetIdentityId(),
-			NodeId:     identity.GetNodeId(),
-			NodeName:   identity.GetNodeName(),
-			JobNodeId:  jobNodeId,
-			DataId:     "", // can not own powerId now, because power have not publish
-			// the status of data, N means normal, D means deleted.
-			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-			// resource status, eg: create/release/revoke
-			State: apicommonpb.PowerState_PowerState_Created,
-			// unit: byte
-			TotalMem: jobNodeStatus.GetTotalMemory(),
-			UsedMem:  0,
-			// number of cpu cores.
-			TotalProcessor: jobNodeStatus.GetTotalCpu(),
-			UsedProcessor:  0,
-			// unit: byte
-			TotalBandwidth: jobNodeStatus.GetTotalBandwidth(),
-			UsedBandwidth:  0,
-			TotalDisk:      jobNodeStatus.GetTotalDisk(),
-			UsedDisk:       0,
-		})); nil != err {
-			log.WithError(err).Errorf("Failed to store power to local on service.refreshResourceNodes(), jobNodeId: {%s}",
-				jobNodeId)
-			return err
-		}
-		return nil
-	}
-
 	// ##########################
 	// ##########################
 	// ABOUT JOBNODE SERVICES
@@ -170,168 +133,53 @@ func (s *Service) refreshResourceNodes() error {
 		log.WithError(err).Warnf("query jobNodeServices failed from discovery center on service.refreshResourceNodes()")
 	} else {
 
-		jobNodeCache := make(map[string]*pb.YarnRegisteredPeerDetail, 0)
+		jobNodeDBCache := make(map[string]*pb.YarnRegisteredPeerDetail, 0)
 		// load stored jobNode
 		jobNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
 		if nil != err && rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Warnf("query jobNodes failed from local db on service.refreshResourceNodes()")
 		} else {
 			for _, node := range jobNodeList {
-				jobNodeCache[node.GetId()] = node
+				jobNodeDBCache[node.GetId()] = node
 			}
 
 			for _, jobNodeService := range jobNodeServices {
-				if node, ok := jobNodeCache[jobNodeService.ID]; !ok { // add new registered jobNode service
 
-					log.Infof("Discovered a new jobNode from consul server, jobNodeServiceId: {%s}, jobNodeService: {%s:%d}", jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
+				if node, ok := jobNodeDBCache[jobNodeService.ID]; !ok { // add new registered jobNode service
 
-					client, err := grpclient.NewJobNodeClient(s.ctx, fmt.Sprintf("%s:%d", jobNodeService.Address, jobNodeService.Port), jobNodeService.ID)
-					if nil != err {
-						log.WithError(err).Errorf("Failed to connect new jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
+					if err = s.resourceManager.AddDiscoveryJobNodeResource(
+						identity, jobNodeService.ID, jobNodeService.Address, strconv.Itoa(jobNodeService.Port),
+						viaExternalIP, viaExternalPort); nil != err {
+						log.WithError(err).Errorf("Failed to store a new jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
 							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
 						continue
 					}
-					jobNodeStatus, err := client.GetStatus()
-					if nil != err {
-						log.WithError(err).Errorf("Failed to connect jobNode to query status on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
-							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
-						continue
-					}
-					// 1. add local jobNode resource
-					// add resource usage first, but not own power now (mem, proccessor, bandwidth)
-					if err = storeLocalResourceFn(identity, jobNodeService.ID, jobNodeStatus); nil != err {
-						log.WithError(err).Errorf("Failed to store jobNode local resource on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
-							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
-						continue
-					}
-
-					// 2. add rpc client
-					s.resourceClientSet.StoreJobNodeClient(jobNodeService.ID, client)
-
-					// 3. add local jobNode info
-					// build new jobNode info that was need to store local db
-					node = &pb.YarnRegisteredPeerDetail{
-						InternalIp:   jobNodeService.Address,
-						InternalPort: strconv.Itoa(jobNodeService.Port),
-						ExternalIp:   viaExternalIP,
-						ExternalPort: viaExternalPort,
-						ConnState:    pb.ConnState_ConnState_Connected,
-					}
-					node.Id = strings.Join([]string{discovery.JobNodeConsulServiceIdPrefix, jobNodeService.Address,
-						strconv.Itoa(jobNodeService.Port)}, discovery.ConsulServiceIdSeparator)
-					// 4. store jobNode ip port into local db
-					if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeJobNode, node); nil != err {
-						log.WithError(err).Errorf("Failed to store registerNode into local db on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
-							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
-						continue
-					}
-
-					log.Infof("Succeed add a new jobNode from consul server, jobNodeServiceId: {%s}, jobNodeService: {%s:%d}", jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
 
 				} else {
-					// check the  via external ip and port comparing old infomation,
-					// if it is, update the some things about jobNode.
-					if node.GetExternalIp() != viaExternalIP || node.GetExternalPort() != viaExternalPort {
-						oldIp := node.GetExternalIp()
-						oldPort := node.GetExternalPort()
 
-						// update jobNode info that was need to store local db
-						node.ExternalIp = viaExternalIP
-						node.ExternalPort = viaExternalPort
-						// 1. update local jobNode info
-						// update jobNode ip port into local db
-						if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeJobNode, node); nil != err {
-							log.WithError(err).Errorf("Failed to update jobNode into local db on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
-								jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
-							continue
-						}
-
-						log.Infof("Succeed update a old jobNode external ip and port from consul server, jobNodeServiceId: {%s}, jobNodeService: {%s:%d}, old externalIp: {%s}, old externalPort: {%s}, new externalIp: {%s}, new externalPort: {%s}",
-							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port, oldIp, oldPort, node.GetExternalIp(), node.GetExternalPort())
+					if err = s.resourceManager.UpdateDiscoveryJobNodeResource(
+						identity, jobNodeService.ID, jobNodeService.Address, strconv.Itoa(jobNodeService.Port),
+						viaExternalIP, viaExternalPort, node); nil != err {
+						log.WithError(err).Errorf("Failed to update a old jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
+							jobNodeService.ID, jobNodeService.Address, jobNodeService.Port)
+						continue
 					}
-					delete(jobNodeCache, jobNodeService.ID)
+
+					delete(jobNodeDBCache, jobNodeService.ID)
 				}
 			}
 
 			// delete old deregistered jobNode service
-			for jobNodeId, _ := range jobNodeCache {
+			for jobNodeId, node := range jobNodeDBCache {
 
-				log.Infof("Disappeared a old jobNode from consul server, jobNodeId: {%s}", jobNodeId)
-
-				// The published jobNode cannot be updated directly
-				resourceTable, err := s.carrierDB.QueryLocalResourceTable(jobNodeId)
-				if rawdb.IsNoDBNotFoundErr(err) {
-					log.WithError(err).Errorf("Failed to query local power resource on old jobNode on service.refreshResourceNodes()")
-					continue
-				}
-				if nil != resourceTable {
-					log.Warnf("still have the published computing power information by the jobNode, that need revoke power short circuit on service.refreshResourceNodes(), %s",
-						resourceTable.String())
-					// ##############################
-					// A. remove power about jobNode
-					// ##############################
-
-					// 1. remove jobNodeId and powerId mapping
-					if err := s.carrierDB.RemoveJobNodeIdByPowerId(resourceTable.GetPowerId()); nil != err {
-						log.WithError(err).Errorf("Failed to call RemoveJobNodeIdByPowerId() on service.refreshResourceNodes() with revoke power, powerId: {%s}, jobNodeId: {%s}",
-							resourceTable.GetPowerId(), jobNodeId)
-						continue
-					}
-
-					// 2. remove local jobNode resource table
-					if err := s.carrierDB.RemoveLocalResourceTable(jobNodeId); nil != err {
-						log.WithError(err).Errorf("Failed to call RemoveLocalResourceTable() on service.refreshResourceNodes() with revoke power, powerId: {%s}, jobNodeId: {%s}",
-							resourceTable.GetPowerId(), jobNodeId)
-						continue
-					}
-
-					// 3. revoke power about jobNode from global
-					if err := s.carrierDB.RevokeResource(types.NewResource(&libtypes.ResourcePB{
-						IdentityId: identity.GetIdentityId(),
-						NodeId:     identity.GetNodeId(),
-						NodeName:   identity.GetNodeName(),
-						DataId:     resourceTable.GetPowerId(),
-						// the status of data, N means normal, D means deleted.
-						DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
-						// resource status, eg: create/release/revoke
-						State:    apicommonpb.PowerState_PowerState_Revoked,
-						UpdateAt: timeutils.UnixMsecUint64(),
-					})); nil != err {
-						log.WithError(err).Errorf("Failed to remove dataCenter resource on service.refreshResourceNodes() with revoke power, powerId: {%s}, jobNodeId: {%s}",
-							resourceTable.GetPowerId(), jobNodeId)
-						continue
-					}
-				}
-
-				// ##############################
-				// B. remove except power things about jobNode
-				// ##############################
-
-				// 1. remove all running task
-				taskIdList, _ := s.carrierDB.QueryJobNodeRunningTaskIdList(jobNodeId)
-				for _, taskId := range taskIdList {
-					s.carrierDB.RemoveJobNodeTaskIdAllPartyIds(jobNodeId, taskId)
-				}
-				// 2. remove local jobNode reource
-				// remove jobNode local resource
-				if err = s.carrierDB.RemoveLocalResource(jobNodeId); nil != err {
-					log.WithError(err).Errorf("Failed to remove jobNode local resource on service.refreshResourceNodes(), jobNodeId: {%s}",
-						jobNodeId)
-					continue
-				}
-				// 3. remove rpc client
-				if client, ok := s.resourceClientSet.QueryJobNodeClient(jobNodeId); ok {
-					client.Close()
-					s.resourceClientSet.RemoveJobNodeClient(jobNodeId)
-				}
-				// 4. remove local jobNode info
-				if err = s.carrierDB.DeleteRegisterNode(pb.PrefixTypeJobNode, jobNodeId); nil != err {
-					log.WithError(err).Errorf("Failed to remove jobNode into local db on service.refreshResourceNodes(), jobNodeId: {%s}",
-						jobNodeId)
+				if err = s.resourceManager.RemoveDiscoveryJobNodeResource(
+					identity, jobNodeId, node.GetInternalIp(), node.GetInternalPort(),
+					viaExternalIP, viaExternalPort, node); nil != err {
+					log.WithError(err).Errorf("Failed to removed a old jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
+						jobNodeId, node.GetInternalIp(), node.GetInternalPort())
 					continue
 				}
 
-				log.Infof("Succeed remove a old jobNode, jobNodeId: {%s}", jobNodeId)
 			}
 		}
 	}
@@ -346,114 +194,52 @@ func (s *Service) refreshResourceNodes() error {
 		log.WithError(err).Warnf("query dataNodeServices from discovery center failed on service.refreshResourceNodes()")
 	} else {
 
-		dataNodeCache := make(map[string]*pb.YarnRegisteredPeerDetail, 0)
+		dataNodeDBCache := make(map[string]*pb.YarnRegisteredPeerDetail, 0)
 		// load stored dataNode
 		dataNodeList, err := s.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
 		if nil != err && rawdb.IsNoDBNotFoundErr(err) {
 			log.WithError(err).Warnf("query dataNodes from local db failed on service.refreshResourceNodes()")
 		} else {
 			for _, node := range dataNodeList {
-				dataNodeCache[node.GetId()] = node
+				dataNodeDBCache[node.GetId()] = node
 			}
 
 			for _, dataNodeService := range dataNodeServices {
-				if node, ok := dataNodeCache[dataNodeService.ID]; !ok { // add new registered dataNode service
+				if node, ok := dataNodeDBCache[dataNodeService.ID]; !ok { // add new registered dataNode service
 
-					log.Infof("Discovered a new dataNode from consul server, dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-						dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
-
-					client, err := grpclient.NewDataNodeClient(s.ctx, fmt.Sprintf("%s:%d", dataNodeService.Address, dataNodeService.Port), dataNodeService.ID)
-					if nil != err {
-						log.WithError(err).Errorf("Failed to connect new dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+					if err = s.resourceManager.AddDiscoveryDataNodeResource(
+						identity, dataNodeService.ID, dataNodeService.Address, strconv.Itoa(dataNodeService.Port),
+						viaExternalIP, viaExternalPort); nil != err {
+						log.WithError(err).Errorf("Failed to store a new dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
 						continue
 					}
-					dataNodeStatus, err := client.GetStatus()
-					if nil != err {
-						log.WithError(err).Errorf("Failed to connect jobNode to query status on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
-						continue
-					}
-					// 1. add data resource  (disk)
-					err = s.carrierDB.StoreDataResourceTable(types.NewDataResourceTable(dataNodeService.ID, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk()))
-					if nil != err {
-						log.WithError(err).Errorf("Failed to store disk summary of new dataNode")
-						continue
-					}
-
-					// 2. add rpc client
-					s.resourceClientSet.StoreDataNodeClient(dataNodeService.ID, client)
-
-					// 3. add local dataNode info
-					// build new dataNode info that was need to store local db
-					node = &pb.YarnRegisteredPeerDetail{
-						InternalIp:   dataNodeService.Address,
-						InternalPort: strconv.Itoa(dataNodeService.Port),
-						ExternalIp:   viaExternalIP,
-						ExternalPort: viaExternalPort,
-						ConnState:    pb.ConnState_ConnState_Connected,
-					}
-					node.Id = strings.Join([]string{discovery.DataNodeConsulServiceIdPrefix, dataNodeService.Address,
-						strconv.Itoa(dataNodeService.Port)}, discovery.ConsulServiceIdSeparator)
-					// 4. store dataNode ip port into local db
-					if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeDataNode, node); nil != err {
-						log.WithError(err).Errorf("Failed to store dataNode into local db on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
-						continue
-					}
-
-					log.Infof("Succeed add a new dataNode from consul server, dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-						dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
 
 				} else {
-					// check the  via external ip and port comparing old infomation,
-					// if it is, update the some things about dataNode.
-					if node.GetExternalIp() != viaExternalIP || node.GetExternalPort() != viaExternalPort {
 
-						oldIp := node.GetExternalIp()
-						oldPort := node.GetExternalPort()
-
-						// update dataNode info that was need to store local db
-						node.ExternalIp = viaExternalIP
-						node.ExternalPort = viaExternalPort
-						// 1. update local dataNode info
-						// update dataNode ip port into local db
-						if err = s.carrierDB.SetRegisterNode(pb.PrefixTypeDataNode, node); nil != err {
-							log.WithError(err).Errorf("Failed to update dataNode into local db on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-								dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
-							continue
-						}
-
-						log.Infof("Succeed update a old dataNode external ip and port from consul server, dataNodeServiceId: {%s}, dataNodeService: {%s:%d}, old externalIp: {%s}, old externalPort: {%s}, new externalIp: {%s}, new externalPort: {%s}",
-							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port, oldIp, oldPort, node.GetExternalIp(), node.GetExternalPort())
+					if err = s.resourceManager.UpdateDiscoveryDataNodeResource(
+						identity, dataNodeService.ID, dataNodeService.Address, strconv.Itoa(dataNodeService.Port),
+						viaExternalIP, viaExternalPort, node); nil != err {
+						log.WithError(err).Errorf("Failed to update a old dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+							dataNodeService.ID, dataNodeService.Address, dataNodeService.Port)
+						continue
 					}
-					delete(dataNodeCache, dataNodeService.ID)
+
+					delete(dataNodeDBCache, dataNodeService.ID)
 				}
 			}
 
 			// delete old deregistered dataNode service
-			for dataNodeId, _ := range dataNodeCache {
+			for dataNodeId, node := range dataNodeDBCache {
 
-				log.Infof("Disappeared a old dataNode from consul server, dataNodeId: {%s}", dataNodeId)
-
-				// 1. remove data resource  (disk)
-				if err := s.carrierDB.RemoveDataResourceTable(dataNodeId); rawdb.IsNoDBNotFoundErr(err) {
-					log.WithError(err).Errorf("Failed to remove disk summary of old dataNode on service.refreshResourceNodes()")
-					continue
-				}
-				// 2. remove rpc client
-				if client, ok := s.resourceClientSet.QueryDataNodeClient(dataNodeId); ok {
-					client.Close()
-					s.resourceClientSet.RemoveDataNodeClient(dataNodeId)
-				}
-				// 3. remove local dataNode info
-				if err = s.carrierDB.DeleteRegisterNode(pb.PrefixTypeDataNode, dataNodeId); nil != err {
-					log.WithError(err).Errorf("Failed to remove dataNode into local db on service.refreshResourceNodes(), dataNodeId: {%s}",
-						dataNodeId)
+				if err = s.resourceManager.RemoveDiscoveryDataNodeResource(
+					identity, dataNodeId, node.GetInternalIp(), node.GetInternalPort(),
+					viaExternalIP, viaExternalPort, node); nil != err {
+					log.WithError(err).Errorf("Failed to removed a old dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+						dataNodeId, node.GetInternalIp(), node.GetInternalPort())
 					continue
 				}
 
-				log.Infof("Succeed remove a old dataNode, dataNodeId: {%s}", dataNodeId)
 			}
 		}
 	}

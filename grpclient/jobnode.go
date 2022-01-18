@@ -42,6 +42,7 @@ func NewJobNodeClient(ctx context.Context, addr string, nodeId string) (*JobNode
 		connStartAt:           timeutils.UnixMsec(),
 		computeProviderClient: computesvc.NewComputeProviderClient(conn),
 	}
+	log.Debugf("New a jobNode Client, jobNodeId: {%s}, timestamp: {%d}", nodeId, client.connStartAt)
 	// try to connect grpc server.
 	runutil.RunEvery(client.ctx, 10*time.Second, func() {
 		client.connecting()
@@ -74,6 +75,7 @@ func (c *JobNodeClient) connecting() error {
 	c.computeProviderClient = computesvc.NewComputeProviderClient(conn)
 	c.conn = conn
 	c.connStartAt = timeutils.UnixMsec()
+	log.Debugf("Update a jobNode Client, jobNodeId: {%s}, timestamp: {%d}", c.nodeId, c.connStartAt)
 	return nil
 }
 
@@ -112,8 +114,11 @@ func (c *JobNodeClient) Reconnect() error {
 func (c *JobNodeClient) RunningDuration() int64 {
 	if c.IsNotConnected() {
 		c.connStartAt = 0
+		log.Warnf("Call jobNodeClient.RunningDuration(), the jobNode Client was not connected, jobNodeId: {%s}, timestamp: {%d}, connStatus: {%s}",
+			c.nodeId, c.connStartAt, c.ConnStatus().String())
 		return 0
 	}
+	log.Debugf("Call jobNodeClient.RunningDuration(), jobNodeId: {%s}, timestamp: {%d}, now: {%d}", c.nodeId, c.connStartAt, timeutils.UnixMsec())
 	return timeutils.UnixMsec() - c.connStartAt
 }
 
