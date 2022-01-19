@@ -1147,7 +1147,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 	}
 }
 
-func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLocationSymbol, event *libtypes.TaskEvent, task *types.NeedExecuteTask, localTask *types.Task) error {
+func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLocationSymbol, event *libtypes.TaskEvent, localNeedtask *types.NeedExecuteTask, localTask *types.Task) error {
 
 
 	if err := m.resourceMng.GetDB().StoreTaskEvent(event); nil != err {
@@ -1175,15 +1175,15 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 
 		if publish {
 
-			//1、 handle last party
-			// send this task result to remote target peer,
-			// but they belong to same organization, call local msg.
+			// 1、 handle last party
+			//   send this task result to remote target peer,
+			//   but they belong to same organization, call local msg.
 			if symbol == types.LocalNetworkMsg {
-				m.sendTaskResultMsgToTaskSender(task)
+				m.sendTaskResultMsgToTaskSender(localNeedtask)
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
 			}
 
-			//2、 handle sender party
+			// 2、 handle sender party
 			senderNeedTask, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 			if ok {
 				log.Debugf("Need to call `publishFinishedTaskToDataCenter` %s, taskId: {%s}, sender partyId: {%s}",
@@ -1195,7 +1195,7 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 		} else {
 			if symbol == types.LocalNetworkMsg {
 				// send this task result to remote target peer
-				m.sendTaskResultMsgToTaskSender(task)
+				m.sendTaskResultMsgToTaskSender(localNeedtask)
 				m.removeNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId())
 			}
 		}
@@ -1373,10 +1373,8 @@ func (m *Manager) OnTaskResultMsg(pid peer.ID, taskResultMsg *taskmngpb.TaskResu
 			continue
 		}
 
-		if task, ok := m.queryNeedExecuteTaskCache(event.GetTaskId(), event.GetPartyId()); ok {
-			if err := m.executeTaskEvent("on `taskManager.OnTaskResultMsg()`", types.RemoteNetworkMsg, event, task, localTask); nil != err {
-				return err
-			}
+		if err := m.executeTaskEvent("on `taskManager.OnTaskResultMsg()`", types.RemoteNetworkMsg, event, nil, localTask); nil != err {
+			return err
 		}
 	}
 	return nil
