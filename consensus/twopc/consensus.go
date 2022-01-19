@@ -230,7 +230,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId of prepareMsg, receiver is not me when received prepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, my identityId: {%s}, receiver identityId: {%s}",
+		log.Warnf("Warning verify receiver identityId of prepareMsg, receiver is not me when received prepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, my identityId: {%s}, receiver identityId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), identity.GetIdentityId(), receiver.GetIdentityId())
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrConsensusMsgInvalid)
 	}
@@ -419,7 +419,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 	}
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId of prepareVote, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Warnf("Warning verify receiver identityId of prepareVote, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received prepareVote", ctypes.ErrConsensusMsgInvalid)
 	}
@@ -579,7 +579,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId of confirmMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Warnf("Warning verify receiver identityId of confirmMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received confirmMsg", ctypes.ErrConsensusMsgInvalid)
 	}
@@ -760,7 +760,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 	}
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId of confirmVote, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Warnf("Warning verify receiver identityId of confirmVote, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received confirmVote", ctypes.ErrConsensusMsgInvalid)
 	}
@@ -920,7 +920,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Errorf("Failed to verify receiver identityId of commitMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
+		log.Warnf("Warning verify receiver identityId of commitMsg, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
 	}

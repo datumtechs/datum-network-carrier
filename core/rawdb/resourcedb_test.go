@@ -300,7 +300,7 @@ func TestDataResourceTable(t *testing.T) {
 	database := db.NewMemoryDatabase()
 
 	dataNodeId := "dataService_192.168.10.150_8700"
-	err := StoreDataResourceTable(database, types.NewDataResourceTable(dataNodeId, 63141883904, 23408070656))
+	err := StoreDataResourceTable(database, types.NewDataResourceTable(dataNodeId, 63141883904, 23408070656, true))
 	assert.NilError(t, err, "Failed to call StoreDataResourceTable()")
 
 	arr, err := QueryDataResourceTables(database)
@@ -309,4 +309,22 @@ func TestDataResourceTable(t *testing.T) {
 	assert.Equal(t, len(arr), 1, "Not found dataNodes")
 	assert.Equal(t, dataNodeId, arr[0].GetNodeId(), fmt.Sprintf("executed %s, but actual %s", dataNodeId, arr[0].GetNodeId()))
 	t.Log("dataNode", arr[0].String())
+}
+
+func TestLocalTaskExecuteStatus(t *testing.T) {
+	v := []byte{}
+
+
+	val := bytesutil.BytesToUint32(v)
+	val |= OnConsensusExecuteTaskStatus.Uint32()
+
+	assert.Equal(t, OnConsensusExecuteTaskStatus.Uint32(), val, "failed test")
+
+	v = bytesutil.Uint32ToBytes(OnConsensusExecuteTaskStatus.Uint32())
+
+	val = bytesutil.BytesToUint32(v)
+	val |= OnRunningExecuteStatus.Uint32()
+
+	assert.Equal(t, OnConsensusExecuteTaskStatus.Uint32()|OnRunningExecuteStatus.Uint32(), val, "failed test")
+	assert.Equal(t, val&OnRunningExecuteStatus.Uint32(), OnRunningExecuteStatus.Uint32(), "failed test")
 }

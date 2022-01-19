@@ -457,6 +457,13 @@ func (dc *DataCenter) StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyI
 	return rawdb.StoreLocalTaskExecuteStatusValExecByPartyId(dc.db, taskId, partyId)
 }
 
+func (dc *DataCenter) StoreLocalTaskExecuteStatusValTerminateByPartyId(taskId, partyId string) error {
+	dc.mu.Lock()
+	defer dc.mu.Unlock()
+	log.Debugf("Store task terminate status, taskId: {%s}, partyId: {%s}", taskId, partyId)
+	return rawdb.StoreLocalTaskExecuteStatusValTerminateByPartyId(dc.db, taskId, partyId)
+}
+
 func (dc *DataCenter) RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
@@ -486,6 +493,12 @@ func (dc *DataCenter) HasLocalTaskExecuteStatusValExecByPartyId(taskId, partyId 
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
 	return rawdb.HasLocalTaskExecuteStatusValExecByPartyId(dc.db, taskId, partyId)
+}
+
+func (dc *DataCenter) HasLocalTaskExecuteStatusValTerminateByPartyId(taskId, partyId string) (bool, error) {
+	dc.mu.RLock()
+	defer dc.mu.RUnlock()
+	return rawdb.HasLocalTaskExecuteStatusValTerminateByPartyId(dc.db, taskId, partyId)
 }
 
 // v 2.0 about local needExecuteTask

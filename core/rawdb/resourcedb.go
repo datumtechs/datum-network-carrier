@@ -1,7 +1,6 @@
 package rawdb
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
@@ -836,11 +835,46 @@ func QueryDataResourceDiskUsed(db DatabaseReader, metadataId string) (*types.Dat
 	return &dataResourceDiskUsed, nil
 }
 
-func StoreLocalTaskExecuteStatusValConsByPartyId(db DatabaseWriter, taskId, partyId string) error {
-	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), GetLocalTaskExecuteStatusValCons())
+func StoreLocalTaskExecuteStatusValConsByPartyId(db KeyValueStore, taskId, partyId string) error {
+
+	key := GetLocalTaskExecuteStatus(taskId, partyId)
+
+	v, err := db.Get(key)
+	if IsNoDBNotFoundErr(err) {
+		return err
+	}
+
+	val := bytesutil.BytesToUint32(v)
+	val |= OnConsensusExecuteTaskStatus.Uint32()
+
+	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), bytesutil.Uint32ToBytes(val))
 }
-func StoreLocalTaskExecuteStatusValExecByPartyId(db DatabaseWriter, taskId, partyId string) error {
-	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), GetLocalTaskExecuteStatusValExec())
+func StoreLocalTaskExecuteStatusValExecByPartyId(db KeyValueStore, taskId, partyId string) error {
+	key := GetLocalTaskExecuteStatus(taskId, partyId)
+
+	v, err := db.Get(key)
+	if IsNoDBNotFoundErr(err) {
+		return err
+	}
+
+	val := bytesutil.BytesToUint32(v)
+	val |= OnRunningExecuteStatus.Uint32()
+
+	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), bytesutil.Uint32ToBytes(val))
+}
+
+func StoreLocalTaskExecuteStatusValTerminateByPartyId(db KeyValueStore, taskId, partyId string) error {
+	key := GetLocalTaskExecuteStatus(taskId, partyId)
+
+	v, err := db.Get(key)
+	if IsNoDBNotFoundErr(err) {
+		return err
+	}
+
+	val := bytesutil.BytesToUint32(v)
+	val |= OnTerminingExecuteStatus.Uint32()
+
+	return db.Put(GetLocalTaskExecuteStatus(taskId, partyId), bytesutil.Uint32ToBytes(val))
 }
 
 func RemoveLocalTaskExecuteStatusByPartyId(db KeyValueStore, taskId, partyId string) error {
@@ -902,11 +936,12 @@ func HasLocalTaskExecuteStatusValConsByPartyId(db DatabaseReader, taskId, partyI
 	if nil != err {
 		return false, err
 	}
-	if bytes.Compare(vb, GetLocalTaskExecuteStatusValCons()) != 0 {
+	if bytesutil.BytesToUint32(vb)&OnConsensusExecuteTaskStatus.Uint32() == OnConsensusExecuteTaskStatus.Uint32() {
 		return false, nil
 	}
 	return true, nil
 }
+
 func HasLocalTaskExecuteStatusValExecByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
@@ -921,7 +956,27 @@ func HasLocalTaskExecuteStatusValExecByPartyId(db DatabaseReader, taskId, partyI
 	if nil != err {
 		return false, err
 	}
-	if bytes.Compare(vb, GetLocalTaskExecuteStatusValExec()) != 0 {
+	if bytesutil.BytesToUint32(vb)&OnRunningExecuteStatus.Uint32() == OnRunningExecuteStatus.Uint32() {
+		return false, nil
+	}
+	return true, nil
+}
+
+func HasLocalTaskExecuteStatusValTerminateByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
+	key := GetLocalTaskExecuteStatus(taskId, partyId)
+	has, err := db.Has(key)
+	if IsNoDBNotFoundErr(err) {
+		return false, err
+	}
+	if !has {
+		return false, nil
+	}
+
+	vb, err := db.Get(key)
+	if nil != err {
+		return false, err
+	}
+	if bytesutil.BytesToUint32(vb)&OnTerminingExecuteStatus.Uint32() == OnTerminingExecuteStatus.Uint32() {
 		return false, nil
 	}
 	return true, nil

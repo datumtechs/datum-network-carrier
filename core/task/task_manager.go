@@ -393,15 +393,30 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 		return
 	}
 
-	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
-	// While task is consensus or executing, can terminate.
-	has, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValConsByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
+	// ## 1、 check wether task status is `terminate`
+	hasTerminate, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValTerminateByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute `cons` status on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to query local task execute `termining` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		return
 	}
-	if has {
+	if hasTerminate {
+		log.Warnf("Warning query local task execute status has `termining` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+			task.GetTaskId(), task.GetTaskSender().GetPartyId())
+		return
+	}
+
+	// ## 2、 check wether task status is `consensus`
+
+	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
+	// While task is consensus or executing, can terminate.
+	hasCons, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValConsByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local task execute status has `cons` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+			task.GetTaskId(), task.GetTaskSender().GetPartyId())
+		return
+	}
+	if hasCons {
 		if err = m.consensusEngine.OnConsensusMsg(
 			"", types.NewInterruptMsgWrap(task.GetTaskId(),
 				types.MakeMsgOption(common.Hash{},
@@ -438,7 +453,12 @@ func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
 
 		// 2、 remove needExecuteTask cache with sender
 		m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId())
-		// 3、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
+		// 3、Set the execution status of the task to being terminated`
+		if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValTerminateByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()); nil != err {
+			log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` with task sender, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetTaskSender().GetPartyId())
+		}
+		// 4、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with sender
 		m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
 			"",
 			apicommonpb.TaskRole_TaskRole_Sender,

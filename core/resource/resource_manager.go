@@ -603,12 +603,13 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 	// add rpc client to set
 	client, ok := m.QueryJobNodeClient(jobNodeId)
 	if !ok {
-		client, err := grpclient.NewJobNodeClient(context.Background(), fmt.Sprintf("%s:%s", jobNodeIP, jobNodePort), jobNodeId)
+		c, err := grpclient.NewJobNodeClient(context.Background(), fmt.Sprintf("%s:%s", jobNodeIP, jobNodePort), jobNodeId)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to connect new jobNode on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 				jobNodeId, jobNodeIP, jobNodePort)
 			return err
 		}
+		client = c
 		//  add rpc client
 		m.StoreJobNodeClient(jobNodeId, client)
 	} else {
@@ -847,12 +848,13 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 	// add rpc client to set
 	client, ok := m.QueryDataNodeClient(dataNodeId)
 	if !ok {
-		client, err := grpclient.NewDataNodeClient(context.Background(), fmt.Sprintf("%s:%s", dataNodeIP, dataNodePort), dataNodeId)
+		c, err := grpclient.NewDataNodeClient(context.Background(), fmt.Sprintf("%s:%s", dataNodeIP, dataNodePort), dataNodeId)
 		if nil != err {
 			log.WithError(err).Errorf("Failed to connect new dataNode on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 				dataNodeId, dataNodeIP, dataNodePort)
 			return err
 		}
+		client = c
 		//  add rpc client
 		m.StoreDataNodeClient(dataNodeId, client)
 	} else {

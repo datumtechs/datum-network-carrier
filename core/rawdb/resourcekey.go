@@ -31,10 +31,8 @@ var (
 	powerIdJobNodeIdMapingKeyPrefix = []byte("powerIdJobNodeIdMapingKeyPrefix:")
 	// prefix + metaDataId -> DataResourceDiskUsed{metaDataId, dataNodeId, diskUsed}
 	dataResourceDiskUsedKeyPrefix = []byte("DataResourceDiskUsedKeyPrefix:")
-	// prefix + taskId + partyId -> executeStatus
+	// prefix + taskId + partyId -> executeStatus (uint64)
 	localTaskExecuteStatusKeyPrefix = []byte("localTaskExecuteStatusKeyPrefix:")
-	localTaskExecuteStatusValCons   = []byte("cons") // start consensus
-	localTaskExecuteStatusValExec   = []byte("exec") // start execute
 
 	// prefix + userType + user + metadataId -> metadataAuthId (only one)
 	userMetadataAuthByMetadataIdKeyPrefix = []byte("userMetadataAuthByMetadataIdKeyPrefix:")
@@ -64,6 +62,25 @@ var (
 )
 
 
+const (
+	/**
+	######   ######   ######   ######   ######
+	#   THE LOCAL NEEDEXECUTE TASK STATUS    #
+	######   ######   ######   ######   ######
+	*/
+	OnConsensusExecuteTaskStatus   LocalTaskExecuteStatus = 1 << iota 	// 0001: the execute task is on consensus period now.
+	OnRunningExecuteStatus                               				// 0010: the execute task is running now.
+	OnTerminingExecuteStatus                               				// 0010: the execute task is termining now.
+	UnKnownExecuteTaskStatus       = 0        							// 0000: the execute task status is unknown.
+)
+
+type LocalTaskExecuteStatus uint32
+
+func (s LocalTaskExecuteStatus) Uint32() uint32 { return uint32(s) }
+
+/// -- keys ... --
+
+//
 func GetNodeResourceKeyPrefix() []byte {
 	return nodeResourceKeyPrefix
 }
@@ -137,12 +154,6 @@ func GetDataResourceDiskUsedKey(metaDataId string) []byte {
 
 func GetLocalTaskExecuteStatus(taskId, partyId string) []byte {
 	return append(append(localTaskExecuteStatusKeyPrefix, []byte(taskId)...), []byte(partyId)...)
-}
-func GetLocalTaskExecuteStatusValCons() []byte {
-	return localTaskExecuteStatusValCons
-}
-func GetLocalTaskExecuteStatusValExec() []byte {
-	return localTaskExecuteStatusValExec
 }
 
 func GetUserMetadataAuthByMetadataIdKey(userType apicommonpb.UserType, user, metadataId string) []byte {

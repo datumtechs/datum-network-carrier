@@ -862,7 +862,7 @@ func fetchLocalIdentityAndOriganizationFromMsg(resourceMng *resource.Manager, op
 
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		//log.Errorf("Failed to verify receiver identityId of msg %s, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, my identityId: {%s}, receiver identityId: {%s}",
+		//log.Warnf("Warning verify receiver identityId of msg %s, receiver is not me, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, my identityId: {%s}, receiver identityId: {%s}",
 		//	logdesc, option.GetProposalId().String(), task.GetTaskId(), option.GetReceiverRole().String(), option.GetReceiverPartyId(), identity.GetIdentityId(), receiver.GetIdentityId())
 		return nil, nil, nil, fmt.Errorf("%s, receiver is not current identity", ctypes.ErrConsensusMsgInvalid)
 	}
