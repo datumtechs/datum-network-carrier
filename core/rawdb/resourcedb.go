@@ -936,7 +936,7 @@ func HasLocalTaskExecuteStatusValConsByPartyId(db DatabaseReader, taskId, partyI
 	if nil != err {
 		return false, err
 	}
-	if bytesutil.BytesToUint32(vb)&OnConsensusExecuteTaskStatus.Uint32() == OnConsensusExecuteTaskStatus.Uint32() {
+	if bytesutil.BytesToUint32(vb)&OnConsensusExecuteTaskStatus.Uint32() != OnConsensusExecuteTaskStatus.Uint32() {
 		return false, nil
 	}
 	return true, nil
@@ -956,7 +956,7 @@ func HasLocalTaskExecuteStatusValExecByPartyId(db DatabaseReader, taskId, partyI
 	if nil != err {
 		return false, err
 	}
-	if bytesutil.BytesToUint32(vb)&OnRunningExecuteStatus.Uint32() == OnRunningExecuteStatus.Uint32() {
+	if bytesutil.BytesToUint32(vb)&OnRunningExecuteStatus.Uint32() != OnRunningExecuteStatus.Uint32() {
 		return false, nil
 	}
 	return true, nil
@@ -976,7 +976,7 @@ func HasLocalTaskExecuteStatusValTerminateByPartyId(db DatabaseReader, taskId, p
 	if nil != err {
 		return false, err
 	}
-	if bytesutil.BytesToUint32(vb)&OnTerminingExecuteStatus.Uint32() == OnTerminingExecuteStatus.Uint32() {
+	if bytesutil.BytesToUint32(vb)&OnTerminingExecuteStatus.Uint32() != OnTerminingExecuteStatus.Uint32() {
 		return false, nil
 	}
 	return true, nil

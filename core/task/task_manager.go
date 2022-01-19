@@ -577,6 +577,19 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 		return fmt.Errorf("Can not find `need execute task` cache")
 	}
 
+	terminate, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValTerminateByPartyId(usage.GetTaskId(), usage.GetPartyId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusValTerminateByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+			usage.GetTaskId(), usage.GetPartyId())
+		return fmt.Errorf("check has `terminate` status needExecuteTask failed, %s", err)
+	}
+
+	if terminate {
+		log.Warnf("the localTask execute status has `terminate` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+			usage.GetTaskId(), usage.GetPartyId())
+		return fmt.Errorf("task was terminated")
+	}
+
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusValExecByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
@@ -585,7 +598,7 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 	}
 
 	if !running {
-		log.Errorf("Not found localTask execute status `exec` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.Warnf("Not found localTask execute status `exec` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return fmt.Errorf("task is not executed")
 	}
