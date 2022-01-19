@@ -29,27 +29,6 @@ func (svr *Server) GetNodeInfo(ctx context.Context, req *emptypb.Empty) (*pb.Get
 	}, nil
 }
 
-func (svr *Server) GetRegisteredPeers(ctx context.Context, req *pb.GetRegisteredPeersRequest) (*pb.GetRegisteredPeersResponse, error) {
-
-	if req.GetNodeType() == pb.NodeType_NodeType_YarnNode ||
-		req.GetNodeType() == pb.NodeType_NodeType_SeedNode {
-		log.Errorf("RPC-API:GetRegisteredPeers failed, invalid nodeType from req, nodeType: {%s}", req.GetNodeType().String())
-		return nil, ErrGetRegisteredPeers
-	}
-
-	registerNodes, err := svr.B.GetRegisteredPeers(req.GetNodeType())
-	if nil != err {
-		log.WithError(err).Error("RPC-API:GetRegisteredPeers failed")
-		return nil, ErrGetRegisteredPeers
-	}
-	log.Debugf("RPC-API:GetRegisteredPeers succeed, node len: {%d}", len(registerNodes))
-	return &pb.GetRegisteredPeersResponse{
-		Status: 0,
-		Msg:    backend.OK,
-		Nodes:  registerNodes,
-	}, nil
-}
-
 func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) (*pb.SetSeedNodeResponse, error) {
 
 	if "" == strings.Trim(req.GetAddr(), "") {
@@ -411,12 +390,17 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.
 		d := &pb.YarnRegisteredPeer{
 			NodeType: pb.NodeType_NodeType_JobNode,
 			NodeDetail: &pb.YarnRegisteredPeerDetail{
-				Id:           v.GetId(),
-				InternalIp:   v.GetInternalIp(),
-				InternalPort: v.GetInternalPort(),
-				ExternalIp:   v.GetExternalIp(),
-				ExternalPort: v.GetExternalPort(),
-				ConnState:    v.GetConnState(),
+				Id:            v.GetId(),
+				InternalIp:    v.GetInternalIp(),
+				InternalPort:  v.GetInternalPort(),
+				ExternalIp:    v.GetExternalIp(),
+				ExternalPort:  v.GetExternalPort(),
+				ConnState:     v.GetConnState(),
+				Duration:      v.GetDuration(),
+				TaskCount:     v.GetTaskCount(),
+				TaskIdList:    v.GetTaskIdList(),
+				FileCount:     v.GetFileCount(),
+				FileTotalSize: v.GetFileTotalSize(),
 			},
 		}
 		jobs[i] = d

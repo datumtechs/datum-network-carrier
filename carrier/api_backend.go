@@ -35,53 +35,6 @@ func (s *CarrierAPIBackend) SendMsg(msg types.Msg) error {
 // system (the yarn node self info)
 func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 
-	seedNodes, err := s.GetSeedNodeList()
-	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query all `seed nodes`, on GetNodeInfo()")
-		return nil, err
-	}
-
-	jobNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
-	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query all `job nodes`, on GetNodeInfo()")
-		return nil, err
-	}
-	dataNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
-	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query all `data nodes, on GetNodeInfo()")
-		return nil, err
-	}
-	jobsLen := len(jobNodes)
-	datasLen := len(dataNodes)
-	length := jobsLen + datasLen
-	registerNodes := make([]*pb.YarnRegisteredPeer, length)
-	if len(jobNodes) != 0 {
-		for i, v := range jobNodes {
-			client, ok := s.carrier.resourceManager.QueryJobNodeClient(v.GetId())
-			if ok && client.IsConnected() {
-				v.ConnState = pb.ConnState_ConnState_Connected
-			}
-			n := &pb.YarnRegisteredPeer{
-				NodeType:   pb.NodeType_NodeType_JobNode,
-				NodeDetail: v,
-			}
-			registerNodes[i] = n
-		}
-	}
-	if len(dataNodes) != 0 {
-		for i, v := range dataNodes {
-			client, ok := s.carrier.resourceManager.QueryDataNodeClient(v.GetId())
-			if ok && client.IsConnected() {
-				v.ConnState = pb.ConnState_ConnState_Connected
-			}
-			n := &pb.YarnRegisteredPeer{
-				NodeType:   pb.NodeType_NodeType_DataNode,
-				NodeDetail: v,
-			}
-			registerNodes[jobsLen+i] = n
-		}
-	}
-
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		log.WithError(err).Warnf("Warn to get identity, on GetNodeInfo()")
@@ -107,8 +60,6 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 		IdentityType:       types.IDENTITY_TYPE_DID, // default: DID
 		IdentityId:         identityId,
 		Name:               nodeName,
-		Peers:              registerNodes,
-		SeedPeers:          seedNodes,
 		State:              pb.YarnNodeState_State_Active,
 		RelatePeers:        uint32(len(s.carrier.config.P2P.Peers().Active())),
 		LocalBootstrapNode: enrStr,
@@ -130,104 +81,6 @@ func (s *CarrierAPIBackend) GetNodeInfo() (*pb.YarnNodeInfo, error) {
 	return nodeInfo, nil
 }
 
-func (s *CarrierAPIBackend) GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.YarnRegisteredPeer, error) {
-
-	result := make([]*pb.YarnRegisteredPeer, 0)
-	switch nodeType {
-	case pb.NodeType_NodeType_Unknown:
-		// all dataNodes on yarnNode
-		dataNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
-		if nil != err {
-			return nil, err
-		}
-		// handle dataNodes
-		for _, v := range dataNodes {
-			var duration uint64
-			node, has := s.carrier.resourceManager.QueryDataNodeClient(v.GetId())
-			if has {
-				duration = uint64(node.RunningDuration())
-			}
-			v.Duration = duration // ms
-			v.FileCount = 0
-			v.FileTotalSize = 0
-			registeredPeer := &pb.YarnRegisteredPeer{
-				NodeType:   pb.NodeType_NodeType_DataNode,
-				NodeDetail: v,
-			}
-			result = append(result, registeredPeer)
-		}
-
-		// all jobNodes on yarnNode
-		jobNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
-		if nil != err {
-			return nil, err
-		}
-
-		// handle jobNodes
-		for _, v := range jobNodes {
-			var duration uint64
-			node, has := s.carrier.resourceManager.QueryJobNodeClient(v.GetId())
-			if has {
-				duration = uint64(node.RunningDuration())
-			}
-			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(v.GetId())
-			v.TaskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(v.GetId())
-			v.Duration = duration
-			registeredPeer := &pb.YarnRegisteredPeer{
-				NodeType:   pb.NodeType_NodeType_JobNode,
-				NodeDetail: v,
-			}
-			result = append(result, registeredPeer)
-		}
-	case pb.NodeType_NodeType_DataNode:
-		// all dataNodes on yarnNode
-		dataNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeDataNode)
-		if nil != err {
-			return nil, err
-		}
-		// handle dataNodes
-		for _, v := range dataNodes {
-			var duration uint64
-			node, has := s.carrier.resourceManager.QueryDataNodeClient(v.GetId())
-			if has {
-				duration = uint64(node.RunningDuration())
-			}
-			v.Duration = duration // ms
-			v.FileCount = 0       // todo need implament this logic
-			v.FileTotalSize = 0   // todo need implament this logic
-			registeredPeer := &pb.YarnRegisteredPeer{
-				NodeType:   pb.NodeType_NodeType_DataNode,
-				NodeDetail: v,
-			}
-			result = append(result, registeredPeer)
-		}
-	case pb.NodeType_NodeType_JobNode:
-		// all jobNodes on yarnNode
-		jobNodes, err := s.carrier.carrierDB.QueryRegisterNodeList(pb.PrefixTypeJobNode)
-		if nil != err {
-			return nil, err
-		}
-		// handle jobNodes
-		for _, v := range jobNodes {
-			var duration uint64
-			node, has := s.carrier.resourceManager.QueryJobNodeClient(v.GetId())
-			if has {
-				duration = uint64(node.RunningDuration())
-			}
-			v.TaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(v.GetId())
-			v.TaskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(v.GetId())
-			v.Duration = duration
-			registeredPeer := &pb.YarnRegisteredPeer{
-				NodeType:   pb.NodeType_NodeType_JobNode,
-				NodeDetail: v,
-			}
-			result = append(result, registeredPeer)
-		}
-	default:
-		return nil, fmt.Errorf("Invalid nodeType")
-	}
-	return result, nil
-}
 
 func (s *CarrierAPIBackend) SetSeedNode(seed *pb.SeedPeer) (pb.ConnState, error) {
 	// format: enr:-xxxxxx
@@ -639,24 +492,28 @@ func (s *CarrierAPIBackend) GetRegisterNode(typ pb.RegisteredNodeType, id string
 		client, ok := s.carrier.resourceManager.QueryJobNodeClient(id)
 		if !ok {
 			node.ConnState = pb.ConnState_ConnState_UnConnected
-		}
-		if !client.IsConnected() {
-			node.ConnState = pb.ConnState_ConnState_UnConnected
 		} else {
-			node.ConnState = pb.ConnState_ConnState_Connected
+			if !client.IsConnected() {
+				node.ConnState = pb.ConnState_ConnState_UnConnected
+			} else {
+				node.ConnState = pb.ConnState_ConnState_Connected
+			}
 		}
+
 
 	} else {
 
 		client, ok := s.carrier.resourceManager.QueryDataNodeClient(id)
 		if !ok {
 			node.ConnState = pb.ConnState_ConnState_UnConnected
-		}
-		if !client.IsConnected() {
-			node.ConnState = pb.ConnState_ConnState_UnConnected
 		} else {
-			node.ConnState = pb.ConnState_ConnState_Connected
+			if !client.IsConnected() {
+				node.ConnState = pb.ConnState_ConnState_UnConnected
+			} else {
+				node.ConnState = pb.ConnState_ConnState_Connected
+			}
 		}
+
 
 	}
 	return node, nil
@@ -691,12 +548,13 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 				connState = pb.ConnState_ConnState_UnConnected
 			} else {
 				duration = uint64(client.RunningDuration())
+				if !client.IsConnected() {
+					connState = pb.ConnState_ConnState_UnConnected
+				} else {
+					connState = pb.ConnState_ConnState_Connected
+				}
 			}
-			if !client.IsConnected() {
-				connState = pb.ConnState_ConnState_UnConnected
-			} else {
-				connState = pb.ConnState_ConnState_Connected
-			}
+
 			taskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(n.GetId())
 			taskIdList, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskIdList(n.GetId())
 			fileCount = 0     // todo need implament this logic
@@ -708,12 +566,13 @@ func (s *CarrierAPIBackend) GetRegisterNodeList(typ pb.RegisteredNodeType) ([]*p
 				connState = pb.ConnState_ConnState_UnConnected
 			} else {
 				duration = uint64(client.RunningDuration())
+				if !client.IsConnected() {
+					connState = pb.ConnState_ConnState_UnConnected
+				} else {
+					connState = pb.ConnState_ConnState_Connected
+				}
 			}
-			if !client.IsConnected() {
-				connState = pb.ConnState_ConnState_UnConnected
-			} else {
-				connState = pb.ConnState_ConnState_Connected
-			}
+
 			taskCount = 0
 			taskIdList = nil
 			fileCount = 0     // todo need implament this logic

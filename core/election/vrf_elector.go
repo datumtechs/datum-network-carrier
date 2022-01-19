@@ -149,7 +149,7 @@ func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32,
 		isEnough := r.IsEnough(mem, bandwidth, disk, processor)
 		log.Debugf("Call electionJobNode, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v",
 			r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough)
-		if isEnough && r.GetAlive() {
+		if isEnough {
 			jobNodeClient, find := s.resourceMng.QueryJobNodeClient(r.GetNodeId())
 			if find && jobNodeClient.IsConnected() {
 				resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())

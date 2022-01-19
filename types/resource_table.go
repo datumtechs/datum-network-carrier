@@ -302,7 +302,7 @@ type dataResourceTableRlp struct {
 	TotalDisk uint64
 	UsedDisk  uint64
 	IsUsed    bool
-	Alive     bool  // Indicates whether the corresponding datanode leaves (e.g. downtime)
+	Alive     bool // Indicates whether the corresponding datanode leaves (e.g. downtime)
 }
 
 func NewDataResourceTable(nodeId string, totalDisk, usedDisk uint64, alive bool) *DataResourceTable {
@@ -340,17 +340,18 @@ func (drt *DataResourceTable) String() string {
 	return fmt.Sprintf(`{"nodeId": %s, "totalDisk": %d, "usedDisk": %d, "isUsed": %v}`,
 		drt.GetNodeId(), drt.GetTotalDisk(), drt.GetUsedDisk(), drt.GetIsUsed())
 }
-func (drt *DataResourceTable) GetNodeId() string    { return drt.nodeId }
-func (drt *DataResourceTable) GetTotalDisk() uint64 { return drt.totalDisk }
-func (drt *DataResourceTable) GetUsedDisk() uint64  { return drt.usedDisk }
-func (drt *DataResourceTable) GetIsUsed() bool      { return drt.isUsed }
-func (drt *DataResourceTable) RemainDisk() uint64   { return drt.totalDisk - drt.usedDisk }
-func (drt *DataResourceTable) IsUsed() bool         { return drt.isUsed && drt.usedDisk != 0 }
-func (drt *DataResourceTable) IsNotUsed() bool      { return !drt.IsUsed() }
-func (drt *DataResourceTable) GetAlive() bool       { return drt.alive }
-func (drt *DataResourceTable) SetAlive(alive bool)  { drt.alive = alive }
-func (drt *DataResourceTable) IsEmpty() bool        { return nil == drt }
-func (drt *DataResourceTable) IsNotEmpty() bool     { return !drt.IsEmpty() }
+func (drt *DataResourceTable) GetNodeId() string             { return drt.nodeId }
+func (drt *DataResourceTable) GetTotalDisk() uint64          { return drt.totalDisk }
+func (drt *DataResourceTable) SetTotalDisk(totalDisk uint64) { drt.totalDisk = totalDisk }
+func (drt *DataResourceTable) GetUsedDisk() uint64           { return drt.usedDisk }
+func (drt *DataResourceTable) GetIsUsed() bool               { return drt.isUsed }
+func (drt *DataResourceTable) RemainDisk() uint64            { return drt.totalDisk - drt.usedDisk }
+func (drt *DataResourceTable) IsUsed() bool                  { return drt.isUsed && drt.usedDisk != 0 }
+func (drt *DataResourceTable) IsNotUsed() bool               { return !drt.IsUsed() }
+func (drt *DataResourceTable) GetAlive() bool                { return drt.alive }
+func (drt *DataResourceTable) SetAlive(alive bool)           { drt.alive = alive }
+func (drt *DataResourceTable) IsEmpty() bool                 { return nil == drt }
+func (drt *DataResourceTable) IsNotEmpty() bool              { return !drt.IsEmpty() }
 func (drt *DataResourceTable) UseDisk(use uint64) {
 	if drt.RemainDisk() > use {
 		drt.usedDisk += use

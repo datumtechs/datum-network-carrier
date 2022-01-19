@@ -12,7 +12,6 @@ type Backend interface {
 
 	// system (the yarn node self info)
 	GetNodeInfo() (*pb.YarnNodeInfo, error)
-	GetRegisteredPeers(nodeType pb.NodeType) ([]*pb.YarnRegisteredPeer, error)
 
 	// local node resource api
 

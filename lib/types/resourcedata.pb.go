@@ -197,7 +197,7 @@ func (m *ResourcePB) GetUpdateAt() uint64 {
 	return 0
 }
 
-// 单个组织中的单台服务的算力信息
+// 单个组织中的单台服务的算力信息 (比 resource 多了 jobNodeId)
 type LocalResourcePB struct {
 	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
 	NodeId     string `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`

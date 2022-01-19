@@ -245,39 +245,6 @@
         ]
       }
     },
-    "/carrier/v1/yarn/registeredPeers": {
-      "post": {
-        "summary": "查看自身调度服务的 peer注册信息",
-        "operationId": "YarnService_GetRegisteredPeers",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetRegisteredPeersResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/runtimeError"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/rpcapiGetRegisteredPeersRequest"
-            }
-          }
-        ],
-        "tags": [
-          "YarnService"
-        ]
-      }
-    },
     "/carrier/v1/yarn/reportTaskEvent": {
       "post": {
         "summary": "about report\n数据/计算服务 上报任务事件",
@@ -753,34 +720,6 @@
       },
       "title": "查询数据 or 计算 服务列表 resp"
     },
-    "rpcapiGetRegisteredPeersRequest": {
-      "type": "object",
-      "properties": {
-        "node_type": {
-          "$ref": "#/definitions/rpcapiNodeType"
-        }
-      },
-      "title": "查看自身调度服务的 peer注册信息 req"
-    },
-    "rpcapiGetRegisteredPeersResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "nodes": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiYarnRegisteredPeer"
-          }
-        }
-      },
-      "title": "查看自身调度服务的 peer注册信息 resp"
-    },
     "rpcapiGetSeedNodeListResponse": {
       "type": "object",
       "properties": {
@@ -1166,18 +1105,6 @@
         },
         "resource_used": {
           "$ref": "#/definitions/typesResourceUsageOverview"
-        },
-        "peers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiYarnRegisteredPeer"
-          }
-        },
-        "seed_peers": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiSeedPeer"
-          }
         },
         "state": {
           "$ref": "#/definitions/rpcapiYarnNodeState"

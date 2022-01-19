@@ -600,6 +600,28 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 			jobNodeId, jobNodeIP, jobNodePort, oldIp, oldPort, old.GetExternalIp(), old.GetExternalPort())
 	}
 
+	// add rpc client to set
+	client, ok := m.QueryJobNodeClient(jobNodeId)
+	if !ok {
+		client, err := grpclient.NewJobNodeClient(context.Background(), fmt.Sprintf("%s:%s", jobNodeIP, jobNodePort), jobNodeId)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to connect new jobNode on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+				jobNodeId, jobNodeIP, jobNodePort)
+			return err
+		}
+		//  add rpc client
+		m.StoreJobNodeClient(jobNodeId, client)
+	} else {
+		if client.IsNotConnected() {
+			if err := client.Reconnect(); nil != err {
+				log.WithError(err).Errorf("Failed to connect internal jobNode on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+					jobNodeId, jobNodeIP, jobNodePort)
+				return err
+			}
+		}
+	}
+
+
 	// check alive status of jobNode local resource table
 	resourceTable, err := m.dataCenter.QueryLocalResourceTable(jobNodeId)
 	if rawdb.IsNoDBNotFoundErr(err) {
@@ -629,19 +651,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 	}
 
 	if nil != resource {
-		client, ok := m.QueryJobNodeClient(jobNodeId)
-		if !ok {
-			log.WithError(err).Errorf("can not find jobNode rpc client on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-				jobNodeId, jobNodeIP, jobNodePort)
-			return err
-		}
-		if client.IsNotConnected() {
-			if err := client.Reconnect(); nil != err {
-				log.WithError(err).Errorf("Failed to connect internal jobNode on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-					jobNodeId, jobNodeIP, jobNodePort)
-				return err
-			}
-		}
+
 		jobNodeStatus, err := client.GetStatus()
 		if nil != err {
 			log.WithError(err).Errorf("Failed to connect jobNode to query status on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
@@ -834,22 +844,63 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 			dataNodeId, dataNodeIP, dataNodePort, oldIp, oldPort, old.GetExternalIp(), old.GetExternalPort())
 	}
 
+	// add rpc client to set
+	client, ok := m.QueryDataNodeClient(dataNodeId)
+	if !ok {
+		client, err := grpclient.NewDataNodeClient(context.Background(), fmt.Sprintf("%s:%s", dataNodeIP, dataNodePort), dataNodeId)
+		if nil != err {
+			log.WithError(err).Errorf("Failed to connect new dataNode on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
+				dataNodeId, dataNodeIP, dataNodePort)
+			return err
+		}
+		//  add rpc client
+		m.StoreDataNodeClient(dataNodeId, client)
+	} else {
+		if client.IsNotConnected() {
+			if err := client.Reconnect(); nil != err {
+				log.WithError(err).Errorf("Failed to connect internal dataNode on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
+					dataNodeId, dataNodeIP, dataNodePort)
+				return err
+			}
+		}
+	}
+
 	resourceTable, err := m.dataCenter.QueryDataResourceTable (dataNodeId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("Failed to query disk summary of old dataNode on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
 			dataNodeId, dataNodeIP, dataNodePort)
 		return err
 	}
-	if nil != resourceTable && !resourceTable.GetAlive() {
-		resourceTable.SetAlive(true)
-		if err := m.dataCenter.StoreDataResourceTable(resourceTable); nil != err {
-			log.WithError(err).Errorf("Failed to update alive flag of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+	if nil != resourceTable {
+
+		dataNodeStatus, err := client.GetStatus()
+		if nil != err {
+			log.WithError(err).Errorf("Failed to connect dataNode to query status on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 				dataNodeId, dataNodeIP, dataNodePort)
 			return err
 		}
 
-		log.Infof("Succeed update alive flag of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
-			dataNodeId, dataNodeIP, dataNodePort)
+		var update bool
+		if  !resourceTable.GetAlive() {
+			resourceTable.SetAlive(true)
+			update = true
+		}
+
+		if resourceTable.GetTotalDisk() != dataNodeStatus.GetTotalDisk() {
+			resourceTable.SetTotalDisk(dataNodeStatus.GetTotalDisk())
+			update = true
+		}
+
+		if update {
+			if err := m.dataCenter.StoreDataResourceTable(resourceTable); nil != err {
+				log.WithError(err).Errorf("Failed to update alive flag of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+					dataNodeId, dataNodeIP, dataNodePort)
+				return err
+			}
+
+			log.Infof("Succeed update alive flag OR total resource value of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+				dataNodeId, dataNodeIP, dataNodePort)
+		}
 	}
 
 	//// check connection status,
