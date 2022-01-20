@@ -375,7 +375,8 @@ func (syncQueue *SyncProposalStateMonitorQueue) AddMonitor(m *ProposalStateMonit
 	defer syncQueue.lock.Unlock()
 	// when must never be negative;
 	if m.when-timeutils.UnixMsec() < 0 {
-		panic("target time is negative number")
+		log.Warnf("target when time is negative number, proposalId: %s, taskId: %s, partyId: %s, when: %d, now: %d",
+			m.GetProposalId().String(), m.GetOrgState().GetTaskId(), m.GetPartyId(), m.when, timeutils.UnixMsec())
 	}
 	i := len(*(syncQueue.queue))
 	m.index = i
@@ -480,7 +481,8 @@ func (syncQueue *SyncProposalStateMonitorQueue) runMonitor(now int64) int64 {
 	if m.next > 0 {
 		// when must never be negative;
 		if m.next-timeutils.UnixMsec() < 0 {
-			panic("target time is negative number")
+			log.Warnf("target next time is negative number, proposalId: %s, taskId: %s, partyId: %s, next: %d, now: %d",
+				m.GetProposalId().String(), m.GetOrgState().GetTaskId(), m.GetPartyId(), m.next, timeutils.UnixMsec())
 		}
 		// Leave in heap but adjust next time to fire.
 		m.when = m.next

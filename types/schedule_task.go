@@ -387,7 +387,8 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) 
 	defer syncQueue.lock.Unlock()
 	// when must never be negative;
 	if m.when-timeutils.UnixMsec() < 0 {
-		panic("target time is negative number")
+		log.Warnf("target time is negative number, taskId: %s, partyId: %s, when: %d, now: %d",
+			 m.GetTaskId(), m.GetPartyId(), m.when, timeutils.UnixMsec())
 	}
 	i := len(*(syncQueue.queue))
 	m.index = i

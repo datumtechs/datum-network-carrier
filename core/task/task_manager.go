@@ -493,29 +493,10 @@ func (m *Manager) onTerminateExecuteTask(taskId,  partyId string, task *types.Ta
 		}
 	} else {
 
+		// When the partner and sender of the current task do not belong to the same organization,
+		// we terminate the task of our own party.
 		if needExecuteTask, has := m.queryNeedExecuteTaskCache(taskId, partyId); has {
-
-			 // #### mock task sender send terminateMsg to self
-			if err := m.onTaskTerminateMsg("", &taskmngpb.TaskTerminateMsg{
-				MsgOption: &msgcommonpb.MsgOption{
-					ProposalId:      common.Hash{}.Bytes(),
-					SenderRole:      uint64(apicommonpb.TaskRole_TaskRole_Sender),
-					SenderPartyId:   []byte(task.GetTaskSender().GetPartyId()),
-					ReceiverRole:    uint64(needExecuteTask.GetLocalTaskRole()),
-					ReceiverPartyId: []byte(needExecuteTask.GetLocalTaskOrganization().GetPartyId()),
-					MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
-						Name:       []byte(task.GetTaskSender().GetNodeName()),
-						NodeId:     []byte(task.GetTaskSender().GetNodeId()),
-						IdentityId: []byte(task.GetTaskSender().GetIdentityId()),
-						PartyId:    []byte(task.GetTaskSender().GetPartyId()),
-					},
-				},
-				TaskId:   []byte(task.GetTaskId()),
-				CreateAt: timeutils.UnixMsecUint64(),
-				Sign:     nil,
-			}, types.RemoteNetworkMsg); nil != err {
-				return err
-			}
+			return m.startTerminateWithNeedExecuteTask(needExecuteTask)
 		}
 	}
 

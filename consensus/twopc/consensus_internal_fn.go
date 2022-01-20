@@ -53,8 +53,36 @@ func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sen
 
 func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
 
+	var (
+		when int64
+		next int64
+	)
+
+	switch orgState.GetPeriodNum() {
+
+	case ctypes.PeriodPrepare:
+		when = orgState.GetPrepareExpireTime()
+		next = orgState.GetConfirmExpireTime()
+	case ctypes.PeriodConfirm:
+		when = orgState.GetConfirmExpireTime()
+		next = orgState.GetCommitExpireTime()
+	case ctypes.PeriodCommit, ctypes.PeriodFinished:
+		if !orgState.IsDeadline() {
+			if orgState.IsCommitTimeout() {
+				when = orgState.GetDeadlineExpireTime()
+				next = 0
+			} else {
+				when = orgState.GetCommitExpireTime()
+				next = orgState.GetDeadlineExpireTime()
+			}
+		}
+	default:
+		log.Warnf("It is a unknown period org state")
+		return
+	}
+
 	monitor := ctypes.NewProposalStateMonitor(proposalId, orgState.TaskOrg.GetPartyId(), sender, orgState,
-		orgState.GetPrepareExpireTime(), orgState.GetConfirmExpireTime(), nil)
+		when, next, nil)
 
 	monitor.SetCallBackFn(func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
 

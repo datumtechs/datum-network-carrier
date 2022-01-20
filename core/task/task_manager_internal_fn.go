@@ -1555,54 +1555,8 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 	}
 
 	// ## 2、 check whether the task is running.
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
-	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query local task execute `exec` status on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-			msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-		return err
-	}
-	// If it is, we will terminate the task
-	if running {
-
-		if needExecuteTask, ok := m.queryNeedExecuteTaskCache(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId()); ok {
-			// 1、terminate fighter processor for this task with current party
-			if err := m.driveTaskForTerminate(needExecuteTask); nil != err {
-				log.WithError(err).Errorf("Failed to call driveTaskForTerminate() on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-					msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-				return err
-			}
-			// 2、 store task terminate (failed or succeed) event with current party
-			m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-				Type:       ev.TaskTerminated.GetType(),
-				TaskId:     task.GetTaskId(),
-				IdentityId: receiver.GetIdentityId(),
-				PartyId:    receiver.GetPartyId(),
-				Content:    "task was terminated.",
-				CreateAt:   timeutils.UnixMsecUint64(),
-			})
-
-			// 3、 remove needExecuteTask cache with current party
-			m.removeNeedExecuteTaskCache(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
-			// 4、Set the execution status of the task to being terminated`
-			if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValTerminateByPartyId(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId()); nil != err {
-				log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` on `taskManager.OnTaskTerminateMsg()`, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
-					msg.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
-			}
-			// 5、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with current party
-			m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
-				"",
-				msg.GetMsgOption().GetReceiverRole(),
-				msg.GetMsgOption().GetSenderRole(),
-				receiver,
-				task.GetTaskSender(),
-				task.GetTaskId(),
-				types.TaskTerminate,
-				&types.PrepareVoteResource{},   // zero value
-				&twopcpb.ConfirmTaskPeerInfo{}, // zero value
-				fmt.Errorf("task was terminated."),
-			))
-		}
-		return nil
+	if needExecuteTask, ok := m.queryNeedExecuteTaskCache(task.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId()); ok {
+		return m.startTerminateWithNeedExecuteTask(needExecuteTask)
 	}
 
 	// ## 3、 check whether the task is in consensus
@@ -1627,6 +1581,78 @@ func (m *Manager) onTaskTerminateMsg(pid peer.ID, terminateMsg *taskmngpb.TaskTe
 
 	return nil
 }
+
+
+func (m *Manager) startTerminateWithNeedExecuteTask (needExecuteTask *types.NeedExecuteTask) error {
+
+	// ## 1、 check whether the task has been terminated
+
+	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local task execute `termining` status on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
+			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+		return err
+	}
+	// If so, we will directly short circuit
+	if terminating {
+		log.Warnf("Warning query local task execute status has `termining` on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
+			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+		return nil
+	}
+
+	// ## 2、 check whether the task is running.
+	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+	if rawdb.IsNoDBNotFoundErr(err) {
+		log.WithError(err).Errorf("Failed to query local task execute `exec` status on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
+			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+		return err
+	}
+	// If it is, we will terminate the task
+	if !running {
+		log.Warnf("the local task execute status is not `running` on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, partyId: {%s}",
+			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+		return fmt.Errorf("the task is not running")
+	}
+
+	// 1、terminate fighter processor for this task with current party
+	if err := m.driveTaskForTerminate(needExecuteTask); nil != err {
+		log.WithError(err).Errorf("Failed to call driveTaskForTerminate() on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskRole().String(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+		return err
+	}
+	// 2、 store task terminate (failed or succeed) event with current party
+	m.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
+		Type:       ev.TaskTerminated.GetType(),
+		TaskId:     needExecuteTask.GetTaskId(),
+		IdentityId: needExecuteTask.GetLocalTaskOrganization().GetIdentityId(),
+		PartyId:    needExecuteTask.GetLocalTaskOrganization().GetPartyId(),
+		Content:    "task was terminated.",
+		CreateAt:   timeutils.UnixMsecUint64(),
+	})
+
+	// 3、 remove needExecuteTask cache with current party
+	m.removeNeedExecuteTaskCache(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+	// 4、Set the execution status of the task to being terminated`
+	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValTerminateByPartyId(needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId()); nil != err {
+		log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` on `taskManager.startTerminateWithNeedExecuteTask()`, taskId: {%s}, role: {%s}, partyId: {%s}",
+			needExecuteTask.GetTaskId(), needExecuteTask.GetLocalTaskRole().String(), needExecuteTask.GetLocalTaskOrganization().GetPartyId())
+	}
+	// 5、 send a new needExecuteTask(status: types.TaskTerminate) for terminate with current party
+	m.sendNeedExecuteTaskByAction(types.NewNeedExecuteTask(
+		"",
+		needExecuteTask.GetLocalTaskRole(),
+		needExecuteTask.GetRemoteTaskRole(),
+		needExecuteTask.GetLocalTaskOrganization(),
+		needExecuteTask.GetRemoteTaskOrganization(),
+		needExecuteTask.GetTaskId(),
+		types.TaskTerminate,
+		&types.PrepareVoteResource{},   // zero value
+		&twopcpb.ConfirmTaskPeerInfo{}, // zero value
+		fmt.Errorf("task was terminated."),
+	))
+	return nil
+}
+
 
 func (m *Manager) checkNeedExecuteTaskMonitors(now int64) int64 {
 	return m.syncExecuteTaskMonitors.CheckMonitors(now)
