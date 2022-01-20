@@ -389,34 +389,49 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 	}
 
 	if nil == task {
-		log.Errorf("Not found local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
+		log.Warnf("Not found local task on `taskManager.TerminateTask()`, taskId: {%s}", terminate.GetTaskId())
 		return
 	}
 
 	// ## 1、 check wether task status is `terminate`
-	hasTerminate, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValTerminateByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
+	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task execute `termining` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		return
 	}
-	if hasTerminate {
+	if terminating {
 		log.Warnf("Warning query local task execute status has `termining` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		return
 	}
 
-	// ## 2、 check wether task status is `consensus`
-
-	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
-	// While task is consensus or executing, can terminate.
-	hasCons, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValConsByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
+	// ## 2、 check wether task status is `running`
+	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local task execute status has `cons` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		return
 	}
-	if hasCons {
+	// (While task is consensus or executing, can terminate.)
+	if running {
+		if err := m.onTerminateExecuteTask(task); nil != err {
+			log.Errorf("Failed to call `onTerminateExecuteTask()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", task.GetTaskId(), err)
+		}
+		return
+	}
+
+	// ## 3、 check wether task status is `consensus`
+
+	// The task sender only makes consensus, so interrupt consensus while need terminate task with task sender
+	// (While task is consensus or executing, can terminate.)
+	consensusing, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusConsensusByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
+	if nil != err {
+		log.WithError(err).Errorf("Failed to query local task execute status has `cons` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+			task.GetTaskId(), task.GetTaskSender().GetPartyId())
+		return
+	}
+	if consensusing {
 		if err = m.consensusEngine.OnConsensusMsg(
 			"", types.NewInterruptMsgWrap(task.GetTaskId(),
 				types.MakeMsgOption(common.Hash{},
@@ -427,14 +442,8 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 					task.GetTaskSender()))); nil != err {
 			log.WithError(err).Errorf("Failed to call `OnConsensusMsg()` on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetTaskSender().GetPartyId())
-			return
 		}
 	}
-
-	if err := m.onTerminateExecuteTask(task); nil != err {
-		log.Errorf("Failed to call `onTerminateExecuteTask()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", task.GetTaskId(), err)
-	}
-
 }
 
 func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
@@ -577,26 +586,26 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 		return fmt.Errorf("Can not find `need execute task` cache")
 	}
 
-	terminate, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValTerminateByPartyId(usage.GetTaskId(), usage.GetPartyId())
+	// ## 1、 check whether task status is terminate ?
+	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusValTerminateByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return fmt.Errorf("check has `terminate` status needExecuteTask failed, %s", err)
 	}
-
-	if terminate {
+	if terminating {
 		log.Warnf("the localTask execute status has `terminate` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return fmt.Errorf("task was terminated")
 	}
 
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusValExecByPartyId(usage.GetTaskId(), usage.GetPartyId())
+	// ## 2、 check whether task status is running ?
+	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusValExecByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return fmt.Errorf("check has `exec` status needExecuteTask failed, %s", err)
 	}
-
 	if !running {
 		log.Warnf("Not found localTask execute status `exec` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())

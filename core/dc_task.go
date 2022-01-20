@@ -483,22 +483,22 @@ func (dc *DataCenter) HasLocalTaskExecuteStatusByPartyId(taskId, partyId string)
 	return rawdb.HasLocalTaskExecuteStatusByPartyId(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) HasLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) (bool, error) {
+func (dc *DataCenter) HasLocalTaskExecuteStatusConsensusByPartyId(taskId, partyId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.HasLocalTaskExecuteStatusValConsByPartyId(dc.db, taskId, partyId)
+	return rawdb.HasLocalTaskExecuteStatusConsensusByPartyId(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) HasLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) (bool, error) {
+func (dc *DataCenter) HasLocalTaskExecuteStatusRunningByPartyId(taskId, partyId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.HasLocalTaskExecuteStatusValExecByPartyId(dc.db, taskId, partyId)
+	return rawdb.HasLocalTaskExecuteStatusRunningByPartyId(dc.db, taskId, partyId)
 }
 
-func (dc *DataCenter) HasLocalTaskExecuteStatusValTerminateByPartyId(taskId, partyId string) (bool, error) {
+func (dc *DataCenter) HasLocalTaskExecuteStatusTerminateByPartyId(taskId, partyId string) (bool, error) {
 	dc.mu.RLock()
 	defer dc.mu.RUnlock()
-	return rawdb.HasLocalTaskExecuteStatusValTerminateByPartyId(dc.db, taskId, partyId)
+	return rawdb.HasLocalTaskExecuteStatusTerminateByPartyId(dc.db, taskId, partyId)
 }
 
 // v 2.0 about local needExecuteTask

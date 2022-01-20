@@ -185,9 +185,9 @@ type TaskCarrierDB interface {
 	RemoveLocalTaskExecuteStatusByPartyId(taskId, partyId string) error
 	HasLocalTaskExecuteStatusParty(taskId string) (bool, error)
 	HasLocalTaskExecuteStatusByPartyId(taskId, partyId string) (bool, error)
-	HasLocalTaskExecuteStatusValConsByPartyId(taskId, partyId string) (bool, error)
-	HasLocalTaskExecuteStatusValExecByPartyId(taskId, partyId string) (bool, error)
-	HasLocalTaskExecuteStatusValTerminateByPartyId(taskId, partyId string) (bool, error) // add by v 0.3.0
+	HasLocalTaskExecuteStatusConsensusByPartyId(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusRunningByPartyId(taskId, partyId string) (bool, error)
+	HasLocalTaskExecuteStatusTerminateByPartyId(taskId, partyId string) (bool, error) // add by v 0.3.0
 	// v 2.0 about NeedExecuteTask
 	StoreNeedExecuteTask(task *types.NeedExecuteTask) error
 	RemoveNeedExecuteTaskByPartyId(taskId, partyId string) error

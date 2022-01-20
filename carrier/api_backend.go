@@ -1154,9 +1154,9 @@ func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate, pageSize uint64) ([]*p
 		if identity.GetIdentityId() != task.GetTaskSender().GetIdentityId() {
 			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 				if identity.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
-					has, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusValExecByPartyId(task.GetTaskId(), powerSupplier.GetOrganization().GetPartyId())
-					if nil != err || !has {
-						continue next // goto next task, if has one party of current identity is  still not executing this task.
+					running, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), powerSupplier.GetOrganization().GetPartyId())
+					if nil != err || !running {
+						continue next // goto next task, if running one party of current identity is  still not executing this task.
 					}
 				}
 			}
@@ -1234,9 +1234,9 @@ next:
 		if identity.GetIdentityId() != task.GetTaskSender().GetIdentityId() {
 			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 				if identity.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
-					has, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusValExecByPartyId(task.GetTaskId(), powerSupplier.GetOrganization().GetPartyId())
-					if nil != err || !has {
-						continue next // goto next task, if has one party of current identity is  still not executing this task.
+					running, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), powerSupplier.GetOrganization().GetPartyId())
+					if nil != err || !running {
+						continue next // goto next task, if running one party of current identity is  still not executing this task.
 					}
 				}
 			}

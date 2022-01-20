@@ -922,7 +922,7 @@ func HasLocalTaskExecuteStatusByPartyId(db DatabaseReader, taskId, partyId strin
 	return true, nil
 }
 
-func HasLocalTaskExecuteStatusValConsByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
+func HasLocalTaskExecuteStatusConsensusByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {
@@ -942,7 +942,7 @@ func HasLocalTaskExecuteStatusValConsByPartyId(db DatabaseReader, taskId, partyI
 	return true, nil
 }
 
-func HasLocalTaskExecuteStatusValExecByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
+func HasLocalTaskExecuteStatusRunningByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {
@@ -962,7 +962,7 @@ func HasLocalTaskExecuteStatusValExecByPartyId(db DatabaseReader, taskId, partyI
 	return true, nil
 }
 
-func HasLocalTaskExecuteStatusValTerminateByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
+func HasLocalTaskExecuteStatusTerminateByPartyId(db DatabaseReader, taskId, partyId string) (bool, error) {
 	key := GetLocalTaskExecuteStatus(taskId, partyId)
 	has, err := db.Has(key)
 	if IsNoDBNotFoundErr(err) {
