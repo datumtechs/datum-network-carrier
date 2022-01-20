@@ -68,10 +68,10 @@ func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash,
 		next = orgState.GetCommitExpireTime()
 	case ctypes.PeriodCommit, ctypes.PeriodFinished:
 		if !orgState.IsDeadline() {
-			if orgState.IsCommitTimeout() {
+			if orgState.IsCommitTimeout() { // finished period => when: deadline, next: 0
 				when = orgState.GetDeadlineExpireTime()
 				next = 0
-			} else {
+			} else { // commit period => when: commit, next: deadline
 				when = orgState.GetCommitExpireTime()
 				next = orgState.GetDeadlineExpireTime()
 			}
