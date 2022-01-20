@@ -415,7 +415,7 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 	}
 	// (While task is consensus or executing, can terminate.)
 	if running {
-		if err := m.onTerminateExecuteTask(task); nil != err {
+		if err := m.onTerminateExecuteTask(task.GetTaskId(), task.GetTaskSender().GetPartyId(), task); nil != err {
 			log.Errorf("Failed to call `onTerminateExecuteTask()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", task.GetTaskId(), err)
 		}
 		return
@@ -446,7 +446,13 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 	}
 }
 
-func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
+func (m *Manager) onTerminateExecuteTask(taskId,  partyId string, task *types.Task) error {
+
+	if taskId != task.GetTaskId() {
+		log.Warnf("taskId has not match, %s and %s is not same one", taskId, task.GetTaskId())
+		return fmt.Errorf("taskId has not match, %s and %s is not same one", taskId, task.GetTaskId())
+	}
+
 	// what if find the needExecuteTask(status: types.TaskConsensusFinished) with sender
 	if m.hasNeedExecuteTaskCache(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
 
@@ -480,9 +486,40 @@ func (m *Manager) onTerminateExecuteTask(task *types.Task) error {
 			&twopcpb.ConfirmTaskPeerInfo{}, // zero value
 			fmt.Errorf("task was terminated."),
 		))
+
+		if err := m.sendTaskTerminateMsg(task); nil != err {
+			log.WithError(err).Errorf("Failed to store needExecute task status to `terminate` with task sender, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetTaskSender().GetPartyId())
+		}
+	} else {
+
+		if needExecuteTask, has := m.queryNeedExecuteTaskCache(taskId, partyId); has {
+
+			 // #### mock task sender send terminateMsg to self
+			if err := m.onTaskTerminateMsg("", &taskmngpb.TaskTerminateMsg{
+				MsgOption: &msgcommonpb.MsgOption{
+					ProposalId:      common.Hash{}.Bytes(),
+					SenderRole:      uint64(apicommonpb.TaskRole_TaskRole_Sender),
+					SenderPartyId:   []byte(task.GetTaskSender().GetPartyId()),
+					ReceiverRole:    uint64(needExecuteTask.GetLocalTaskRole()),
+					ReceiverPartyId: []byte(needExecuteTask.GetLocalTaskOrganization().GetPartyId()),
+					MsgOwner: &msgcommonpb.TaskOrganizationIdentityInfo{
+						Name:       []byte(task.GetTaskSender().GetNodeName()),
+						NodeId:     []byte(task.GetTaskSender().GetNodeId()),
+						IdentityId: []byte(task.GetTaskSender().GetIdentityId()),
+						PartyId:    []byte(task.GetTaskSender().GetPartyId()),
+					},
+				},
+				TaskId:   []byte(task.GetTaskId()),
+				CreateAt: timeutils.UnixMsecUint64(),
+				Sign:     nil,
+			}, types.RemoteNetworkMsg); nil != err {
+				return err
+			}
+		}
 	}
 
-	return m.sendTaskTerminateMsg(task)
+	return nil
 }
 
 func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {

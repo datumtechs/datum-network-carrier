@@ -1220,7 +1220,7 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 			return nil
 		}
 
-		if err := m.onTerminateExecuteTask(localTask); nil != err {
+		if err := m.onTerminateExecuteTask(event.GetTaskId(), event.GetPartyId(), localTask); nil != err {
 			log.Errorf("Failed to call `onTerminateExecuteTask()` %s, taskId: {%s}, err: \n%s", logkeyword, localTask.GetTaskId(), err)
 		}
 	}
