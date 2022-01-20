@@ -127,6 +127,9 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 	if err := m.addPartyTaskPowerUsedOnJobNode(used); nil != err {
 		// rollback useSlot => freeSlot
 		m.FreeSlot(jobNodeId, mem, bandwidth, disk, processor)
+
+		log.WithError(err).Errorf("Failed to call addPartyTaskPowerUsedOnJobNode() on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 		return err
 	}
 
@@ -161,6 +164,8 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 	jobNodeResource.GetData().UsedBandwidth += bandwidth
 	jobNodeResource.GetData().UsedDisk += disk
 	if jobNodeRunningTaskCount > 0 {
+		log.Debugf("Update jobNode localResource state to `Occupation` sate on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, jobNodeRunningTaskCount)
 		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Occupation
 	}
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
@@ -181,7 +186,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		return err
 	}
 
-	log.Infof("Finished lock local resource with, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+	log.Infof("Finished lock local resource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
 		task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
 	return nil
 }
@@ -235,6 +240,8 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	jobNodeResource.GetData().UsedBandwidth -= freeBandwidthCount
 	jobNodeResource.GetData().UsedDisk -= freeDiskCount
 	if jobNodeRunningTaskCount == 0 {
+		log.Debugf("Update jobNode localResource state to `Released` sate on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
+			taskId, partyId, jobNodeId, jobNodeRunningTaskCount)
 		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Released
 	}
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
@@ -250,7 +257,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	log.Infof("Finished unlock local resource with, taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
+	log.Infof("Finished unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
 		taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
 	return nil
 }
@@ -335,6 +342,9 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 			log.WithError(err).Errorf("Failed to clean party event list of task  %s, taskId: {%s}, partyId: {%s}, isSender: {%v}", logdesc, taskId, partyId, isSender)
 		}
 	}
+
+	log.Debugf("Finished ReleaseLocalResourceWithTask %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}", logdesc, taskId, partyId, option, isSender)
+
 }
 
 func (m *Manager) UnLockLocalResourceWithJobNodeId(jobNodeId string) error {
