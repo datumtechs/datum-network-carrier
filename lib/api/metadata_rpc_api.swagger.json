@@ -50,9 +50,32 @@
         ]
       }
     },
+    "/carrier/v1/metadata/localInternalList": {
+      "get": {
+        "summary": "查看 本组织(内部的/未发布的/系统生成的)元数据列表",
+        "operationId": "MetadataService_GetLocalInternalMetadataDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetLocalMetadataDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "tags": [
+          "MetadataService"
+        ]
+      }
+    },
     "/carrier/v1/metadata/localList": {
       "get": {
-        "summary": "查看 本组织元数据列表",
+        "summary": "查看 本组织(已发布的)元数据列表",
         "operationId": "MetadataService_GetLocalMetadataDetailList",
         "responses": {
           "200": {

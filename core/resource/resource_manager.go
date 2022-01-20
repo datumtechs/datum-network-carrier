@@ -662,9 +662,11 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 
 		// update jobNode local resource total
 		if jobNodeStatus.GetTotalBandwidth() != resource.GetData().GetTotalBandwidth() ||
-			jobNodeStatus.GetTotalCpu() != resource.GetData().GetTotalProcessor() ||
 			jobNodeStatus.GetTotalMemory() != resource.GetData().GetTotalMem() ||
-			jobNodeStatus.GetUsedDisk() != resource.GetData().GetTotalDisk() {
+			jobNodeStatus.GetTotalCpu() != resource.GetData().GetTotalProcessor() ||
+			jobNodeStatus.GetTotalDisk() != resource.GetData().GetTotalDisk() {
+
+			// totalBandwidth: %d, totalMem: %d, totalProcessor: %d, totalDisk: %d, oldTotalBandwidth: %d, oldTotalMem: %d, oldTotalProcessor: %d, oldTotalDisk: %d
 
 			resource.GetData().TotalBandwidth = jobNodeStatus.GetTotalBandwidth()
 			resource.GetData().TotalMem = jobNodeStatus.GetTotalMemory()
@@ -676,8 +678,10 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 					jobNodeId, jobNodeIP, jobNodePort)
 				return err
 			}
-			log.Infof("Succeed update jobNode local total resource on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
-				jobNodeId, jobNodeIP, jobNodePort)
+			log.Infof("Succeed update jobNode local total resource on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}, totalBandwidth: %d, totalMem: %d, totalProcessor: %d, totalDisk: %d, oldTotalBandwidth: %d, oldTotalMem: %d, oldTotalProcessor: %d, oldTotalDisk: %d",
+				jobNodeId, jobNodeIP, jobNodePort,
+				jobNodeStatus.GetTotalBandwidth(), jobNodeStatus.GetTotalMemory(), jobNodeStatus.GetTotalCpu(), jobNodeStatus.GetTotalDisk(),
+				resource.GetData().GetTotalBandwidth(), resource.GetData().GetTotalMem(), resource.GetData().GetTotalProcessor(), resource.GetData().GetTotalDisk())
 		}
 	}
 

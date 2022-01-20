@@ -5,6 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
+	"gotest.tools/assert"
 	"reflect"
 	"testing"
 )
@@ -65,4 +66,12 @@ func TestMetadata(t *testing.T) {
 		}
 	}
 	check("hash", dmetadata.Hash(), metadata.Hash())
+}
+
+func TestMetadataArrLen(t *testing.T)  {
+	var metadataArray MetadataArray = nil
+
+	t.Log(metadataArray.Len())
+	// Len returns the length of s.
+	assert.Equal(t, metadataArray.Len(), 0)
 }

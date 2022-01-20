@@ -7,6 +7,7 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
+	"google.golang.org/protobuf/types/known/emptypb"
 	"strings"
 )
 
@@ -38,7 +39,22 @@ func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *pb.GetLo
 		log.WithError(err).Error("RPC-API:GetLocalMetadataDetailList failed")
 		return nil, ErrGetMetadataDetailList
 	}
-	log.Debugf("Query current org's metadata list, len: {%d}", len(metadataList))
+	log.Debugf("Query current org's global metadata list, len: {%d}", len(metadataList))
+	return &pb.GetLocalMetadataDetailListResponse{
+		Status:       0,
+		Msg:          backend.OK,
+		MetadataList: metadataList,
+	}, nil
+}
+
+func (svr *Server) GetLocalInternalMetadataDetailList(ctx context.Context, req *emptypb.Empty) (*pb.GetLocalMetadataDetailListResponse, error) {
+
+	metadataList, err := svr.B.GetLocalInternalMetadataDetailList()
+	if nil != err {
+		log.WithError(err).Error("RPC-API:GetLocalInternalMetadataDetailList failed")
+		return nil, ErrGetMetadataDetailList
+	}
+	log.Debugf("Query current org's internal metadata list, len: {%d}", len(metadataList))
 	return &pb.GetLocalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,

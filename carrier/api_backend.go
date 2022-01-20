@@ -707,30 +707,18 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSi
 		return nil, fmt.Errorf("found local identity failed, %s", err)
 	}
 
-	internalMetadataArr, err := s.carrier.carrierDB.QueryInternalMetadataList()
-	if rawdb.IsNoDBNotFoundErr(err) {
-		return nil, fmt.Errorf("found local metadata arr failed, %s", err)
-	}
-
 	publishMetadataArr, err := s.carrier.carrierDB.QueryMetadataListByIdentity(identity.GetIdentityId(), lastUpdate, pageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, fmt.Errorf("found global metadata arr failed on query local metadata arr, %s", err)
 	}
 
-	//publishMetadataArr := make(types.MetadataArray, 0)
-	//for _, metadata := range publishedMetadataArr {
-	//	if identity.GetIdentityId() == metadata.GetData().GetIdentityId() {
-	//		publishMetadataArr = append(publishMetadataArr, metadata)
-	//	}
-	//}
-
-	arr = append(arr, types.NewLocalMetadataInfoArrayFromMetadataArray(internalMetadataArr, publishMetadataArr)...)
+	arr = append(arr, types.NewLocalMetadataInfoArrayFromMetadataArray(nil, publishMetadataArr)...)
 
 	// set metadata used taskCount
 	for i, metadata := range arr {
 		count, err := s.carrier.carrierDB.QueryMetadataHistoryTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
 		if nil != err {
-			log.WithError(err).Warnf("Warn, query metadata history used taskIdCount failed on CarrierAPIBackend.GetLocalMetadataDetailList()")
+			log.WithError(err).Warnf("Warn, query global metadata history used taskIdCount failed on CarrierAPIBackend.GetLocalMetadataDetailList()")
 			continue
 		}
 		metadata.Information.TotalTaskCount = count
@@ -739,6 +727,41 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSi
 
 	return arr, nil
 }
+
+func (s *CarrierAPIBackend) GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error) {
+	log.Debug("Invoke: GetLocalInternalMetadataDetailList executing...")
+
+	var (
+		arr []*pb.GetLocalMetadataDetailResponse
+		err error
+	)
+
+	_, err = s.carrier.carrierDB.QueryIdentity()
+	if nil != err {
+		return nil, fmt.Errorf("found local identity failed, %s", err)
+	}
+
+	internalMetadataArr, err := s.carrier.carrierDB.QueryInternalMetadataList()
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, fmt.Errorf("found local internal metadata arr failed, %s", err)
+	}
+
+	arr = append(arr, types.NewLocalMetadataInfoArrayFromMetadataArray(internalMetadataArr, nil)...)
+
+	// set metadata used taskCount
+	for i, metadata := range arr {
+		count, err := s.carrier.carrierDB.QueryMetadataHistoryTaskIdCount(metadata.GetInformation().GetMetadataSummary().GetMetadataId())
+		if nil != err {
+			log.WithError(err).Warnf("Warn, query internal metadata history used taskIdCount failed on CarrierAPIBackend.GetLocalInternalMetadataDetailList()")
+			continue
+		}
+		metadata.Information.TotalTaskCount = count
+		arr[i] = metadata
+	}
+
+	return arr, nil
+}
+
 
 func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error) {
 	taskIds, err := s.carrier.carrierDB.QueryMetadataHistoryTaskIds(metadataId)
@@ -1456,6 +1479,8 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
 		// metaData status, eg: create/release/revoke
 		State: apicommonpb.MetadataState_MetadataState_Created,
+		PublishAt: 0,  // have not publish
+		UpdateAt: timeutils.UnixMsecUint64(),
 	}))
 
 	// todo whether need to store a dataResourceDiskUsed (metadataId. dataNodeId, diskUsed) ??? 后面需要上传 磁盘使用空间在弄吧

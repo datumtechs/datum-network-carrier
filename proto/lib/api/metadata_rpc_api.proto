@@ -88,10 +88,17 @@ service MetadataService {
     };
   }
 
-  // 查看 本组织元数据列表
+  // 查看 本组织(已发布的)元数据列表
   rpc GetLocalMetadataDetailList (GetLocalMetadataDetailListRequest) returns (GetLocalMetadataDetailListResponse) {
     option (google.api.http) = {
       get: "/carrier/v1/metadata/localList"
+    };
+  }
+
+  // 查看 本组织(内部的/未发布的/系统生成的)元数据列表
+  rpc GetLocalInternalMetadataDetailList (google.protobuf.Empty) returns (GetLocalMetadataDetailListResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/metadata/localInternalList"
     };
   }
 
