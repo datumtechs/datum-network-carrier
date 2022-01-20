@@ -127,6 +127,13 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
+	// TODO mock
+
+	//m.RemoveExecuteTaskStateAfterExecuteTask()
+	m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+
+	return nil
+
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
 		return m.executeTaskOnDataNode(task)
