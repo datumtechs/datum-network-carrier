@@ -496,22 +496,13 @@ func (m *Manager) sendTaskResultMsgToTaskSender(task *types.NeedExecuteTask) {
 func (m *Manager) StoreExecuteTaskStateBeforeExecuteTask(logdesc, taskId, partyId string) error {
 	// Store task exec status
 	if err := m.resourceMng.GetDB().StoreLocalTaskExecuteStatusValExecByPartyId(taskId, partyId); nil != err {
-		log.WithError(err).Errorf("Failed to store local task about `exec` status %s, taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to store local task about `running` status %s, taskId: {%s}, partyId: {%s}",
 			logdesc, taskId, partyId)
 		return err
 	}
-	used, err := m.resourceMng.GetDB().QueryLocalTaskPowerUsed(taskId, partyId)
-	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to call QueryLocalTaskPowerUsed %s, used: {%s}", logdesc, used.String())
-		return err
-	}
-	if nil == err && nil != used {
-		if err := m.resourceMng.StoreJobNodeExecuteTaskId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
-			log.WithError(err).Errorf("Failed to store execute taskId into jobNode %s, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
-				logdesc, used.GetNodeId(), taskId, partyId)
-			return err
-		}
-	}
+	log.Debugf("Succeed store local task about `running` status %s, taskId: {%s}, partyId: {%s}",
+		logdesc, taskId, partyId)
+	// do anythings else?
 	return nil
 }
 
@@ -521,18 +512,10 @@ func (m *Manager) RemoveExecuteTaskStateAfterExecuteTask(logdesc, taskId, partyI
 			logdesc, taskId, partyId, isSender)
 		return err
 	}
-	used, err := m.resourceMng.GetDB().QueryLocalTaskPowerUsed(taskId, partyId)
-	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to call QueryLocalTaskPowerUsed %s, used: {%s}", logdesc, used.String())
-		return err
-	}
-	if nil == err && nil != used {
-		if err := m.resourceMng.RemoveJobNodeExecuteTaskId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
-			log.WithError(err).Errorf("Failed to remove execute taskId into jobNode %s, jobNodeId: {%s}, taskId: {%s}, partyId: {%s}, isSender: {%v}",
-				logdesc, used.GetNodeId(), taskId, partyId, isSender)
-			return err
-		}
-	}
+
+	log.Debugf("Succeed remove task executing status %s, taskId: {%s} partyId: {%s}, isSender: {%v}",
+		logdesc, taskId, partyId, isSender)
+
 	// clean local task cache
 	m.resourceMng.ReleaseLocalResourceWithTask(logdesc, taskId, partyId, option, isSender)
 	return nil
@@ -1107,7 +1090,7 @@ func (m *Manager) handleTaskEventWithCurrentOranization(event *libtypes.TaskEven
 
 func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *types.Task) {
 
-	log.Debugf("Start handle needExecuteTask, taskId: {%s}, role: {%s}, partyId: {%s}",
+	log.Debugf("Start handle needExecuteTask on handleNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 		task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
 	// Store task exec status
@@ -1123,7 +1106,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		localTask.GetTaskData().State = apicommonpb.TaskState_TaskState_Running
 		localTask.GetTaskData().StartAt = timeutils.UnixMsecUint64()
 		if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
-			log.WithError(err).Errorf("Failed to update local task state before executing task, taskId: {%s}, need update state: {%s}",
+			log.WithError(err).Errorf("Failed to update local task state before executing task on handleNeedExecuteTask(), taskId: {%s}, need update state: {%s}",
 				task.GetTaskId(), apicommonpb.TaskState_TaskState_Running.String())
 		}
 	}
@@ -1136,7 +1119,7 @@ func (m *Manager) handleNeedExecuteTask(task *types.NeedExecuteTask, localTask *
 		task.GetLocalTaskOrganization().GetPartyId() != localTask.GetTaskSender().GetPartyId() {
 		// driving task to executing
 		if err := m.driveTaskForExecute(task); nil != err {
-			log.WithError(err).Errorf("Failed to execute task on internal node, taskId: {%s}, role: {%s}, partyId: {%s}",
+			log.WithError(err).Errorf("Failed to execute task on internal node on handleNeedExecuteTask(), taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), task.GetLocalTaskRole().String(), task.GetLocalTaskOrganization().GetPartyId())
 
 			m.SendTaskEvent(m.eventEngine.GenerateEvent(ev.TaskExecuteFailedEOF.GetType(), task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(),

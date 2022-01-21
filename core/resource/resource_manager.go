@@ -133,6 +133,17 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		return err
 	}
 
+	// store taskId (it will be run) to jobNode
+	if err := m.StoreJobNodeExecuteTaskId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
+		log.WithError(err).Errorf("Failed to store execute taskId into jobNode on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+		return err
+	} else {
+		log.Debugf("Succeed store execute taskId into jobNode on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+	}
+
+
 	// Update local resource resource information [increase resource usage]
 	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
@@ -164,7 +175,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 	jobNodeResource.GetData().UsedBandwidth += bandwidth
 	jobNodeResource.GetData().UsedDisk += disk
 	if jobNodeRunningTaskCount > 0 {
-		log.Debugf("Update jobNode localResource state to `Occupation` sate on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
+		log.Debugf("Update jobNode localResource state to `Occupation` state on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
 			task.GetTaskId(), partyId, jobNodeId, jobNodeRunningTaskCount)
 		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Occupation
 	}
@@ -194,8 +205,19 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
 	if nil != err {
-		log.WithError(err).Warnf("Warning query local task powerUsed on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}", taskId, partyId)
+		log.WithError(err).Warnf("Warning query local task powerUsed on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}",
+			taskId, partyId)
 		return err
+	}
+
+	// remove taskId (it will be finished) to jobNode
+	if err := m.RemoveJobNodeExecuteTaskId(used.GetNodeId(), used.GetTaskId(), used.GetPartyId()); nil != err {
+		log.WithError(err).Errorf("Failed to remove execute taskId into jobNode on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId: {%s}",
+			taskId, partyId, used.GetNodeId())
+		return err
+	} else {
+		log.Debugf("Succeed remove execute taskId into jobNode on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}, jobNodeId: {%s}",
+			taskId, partyId, used.GetNodeId())
 	}
 
 	jobNodeId := used.GetNodeId()
@@ -240,7 +262,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	jobNodeResource.GetData().UsedBandwidth -= freeBandwidthCount
 	jobNodeResource.GetData().UsedDisk -= freeDiskCount
 	if jobNodeRunningTaskCount == 0 {
-		log.Debugf("Update jobNode localResource state to `Released` sate on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
+		log.Debugf("Update jobNode localResource state to `Released` state on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
 			taskId, partyId, jobNodeId, jobNodeRunningTaskCount)
 		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Released
 	}
@@ -430,6 +452,9 @@ func (m *Manager) StoreJobNodeExecuteTaskId(jobNodeId, taskId, partyId string) e
 			log.WithError(err).Errorf("failed to inscrease JobNode history task count on StoreJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
 				jobNodeId, taskId, partyId)
 			return err
+		} else {
+			log.Debugf("Succeed inscrease JobNode history task count on StoreJobNodeExecuteTaskId(), jobNodeId: {%s}, taskId: {%s}, partyId: {%s}",
+				jobNodeId, taskId, partyId)
 		}
 	}
 	return nil
