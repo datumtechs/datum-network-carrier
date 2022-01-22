@@ -104,5 +104,5 @@ func (m *MockTaskManager) ValidateTaskTerminateMsg(pid peer.ID, terminateMsg *ta
 	return errors.New("invalid check")
 }
 func (m *MockTaskManager) OnTaskTerminateMsg (pid peer.ID, terminateMsg *taskmngpb.TaskTerminateMsg) error { return nil }
-func (m *MockTaskManager) SendTaskEvent(event *libtypes.TaskEvent) error     { return nil }
-func (m *MockTaskManager) HandleResourceUsage(usage *types.TaskResuorceUsage) error { return nil }
+func (m *MockTaskManager) SendTaskEvent(event *libtypes.TaskEvent) error                  { return nil }
+func (m *MockTaskManager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) error { return nil }

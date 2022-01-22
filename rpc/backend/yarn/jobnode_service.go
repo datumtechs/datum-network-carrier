@@ -2,6 +2,7 @@ package yarn
 
 import (
 	"context"
+	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 
 	"errors"
@@ -11,7 +12,6 @@ import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
-	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*apicommonpb.SimpleResponse, error) {
@@ -25,8 +25,14 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 	}
 
 	log.Debugf("RPC-API:ReportTaskEvent, req: {%v}", req)
-	err := svr.B.SendTaskEvent(req.GetTaskEvent())
+
+	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
+		log.WithError(err).Errorf("RPC-API:ReportTaskEvent failed, query local identity failed, can not handle report event")
+		return nil, fmt.Errorf("query local identity failed")
+	}
+
+	if err := svr.B.SendTaskEvent(req.GetTaskEvent()); nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
 
 		errMsg := fmt.Sprintf("%s, %s", ErrReportTaskEvent.Msg, req.GetTaskEvent().GetPartyId())
@@ -58,7 +64,14 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 		return nil, errors.New("require resource usage")
 	}
 
-	err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetIp(), req.GetPort(),
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:ReportTaskResourceUsage failed, query local identity failed, can not handle report usage, taskId: {%s}, partyId: {%s}",
+			req.GetTaskId(), req.GetPartyId())
+		return nil, fmt.Errorf("query local identity failed")
+	}
+	
+	if err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetIp(), req.GetPort(),
 		types.NewTaskResuorceUsage(
 			req.GetTaskId(),
 			req.GetPartyId(),
@@ -69,8 +82,7 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 			req.GetUsage().GetUsedBandwidth(),
 			req.GetUsage().GetUsedDisk(),
 			req.GetUsage().GetTotalProcessor(),
-			req.GetUsage().GetUsedProcessor()))
-	if nil != err {
+			req.GetUsage().GetUsedProcessor())); nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskResourceUsage failed")
 		return nil, ErrReportTaskResourceExpense
 	}

@@ -595,111 +595,42 @@ func (m *Manager) SendTaskEvent(event *libtypes.TaskEvent) error {
 	return nil
 }
 
-func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
+func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) error {
+
+	identityId, err := m.resourceMng.GetDB().QueryIdentityId()
+	if nil != err {
+		return fmt.Errorf("query local identityId failed, %s", err)
+	}
 
 	needExecuteTask, ok := m.queryNeedExecuteTaskCache(usage.GetTaskId(), usage.GetPartyId())
 	if !ok {
-		log.Errorf("Not found needExecuteTask on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.Warnf("Not found needExecuteTask on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return fmt.Errorf("Can not find `need execute task` cache")
 	}
 
-	// ## 1、 check whether task status is terminate ?
-	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), usage.GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+	if identityId != needExecuteTask.GetLocalTaskOrganization().GetIdentityId() {
+		log.Errorf("iedntityId od local identity AND identityId of needExecuteTask is not same on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
-		return fmt.Errorf("check has `terminate` status needExecuteTask failed, %s", err)
-	}
-	if terminating {
-		log.Warnf("the localTask execute status has `terminate` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
-			usage.GetTaskId(), usage.GetPartyId())
-		return fmt.Errorf("task was terminated")
-	}
-
-	// ## 2、 check whether task status is running ?
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), usage.GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
-			usage.GetTaskId(), usage.GetPartyId())
-		return fmt.Errorf("check has `exec` status needExecuteTask failed, %s", err)
-	}
-	if !running {
-		log.Warnf("Not found localTask execute status `exec` on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
-			usage.GetTaskId(), usage.GetPartyId())
-		return fmt.Errorf("task is not executed")
+		return fmt.Errorf("invalid needExecuteTask local identityId")
 	}
 
 	task, err := m.resourceMng.GetDB().QueryLocalTask(usage.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call QueryLocalTask() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call QueryLocalTask() on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return fmt.Errorf("query local task failed, %s", err)
 	}
 
-	identity, err := m.resourceMng.GetDB().QueryIdentity()
+	needUpdate, err := m.handleResourceUsage(needExecuteTask, needExecuteTask.GetLocalTaskOrganization().GetIdentityId(), usage, task)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call QueryIdentity() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
-			usage.GetTaskId(), usage.GetPartyId())
-		return fmt.Errorf("query local identity failed, %s", err)
-	}
-
-	var needUpdate bool
-
-	for i, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-
-		// find power supplier info by identity and partyId with msg from reomte peer
-		// (find the target power supplier, it maybe local power supplier or remote power supplier)
-		// and update its' resource usage info.
-		if usage.GetPartyId() == powerSupplier.GetOrganization().GetPartyId() &&
-			identity.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
-
-			resourceUsage := task.GetTaskData().GetPowerSuppliers()[i].GetResourceUsedOverview()
-			// update ...
-			if usage.GetUsedMem() > resourceUsage.GetUsedMem() {
-				if usage.GetUsedMem() > task.GetTaskData().GetOperationCost().GetMemory() {
-					resourceUsage.UsedMem = task.GetTaskData().GetOperationCost().GetMemory()
-				} else {
-					resourceUsage.UsedMem = usage.GetUsedMem()
-				}
-				needUpdate = true
-			}
-			if usage.GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
-				if usage.GetUsedProcessor() > task.GetTaskData().GetOperationCost().GetProcessor() {
-					resourceUsage.UsedProcessor = task.GetTaskData().GetOperationCost().GetProcessor()
-				} else {
-					resourceUsage.UsedProcessor = usage.GetUsedProcessor()
-				}
-				needUpdate = true
-			}
-			if usage.GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
-				if usage.GetUsedBandwidth() > task.GetTaskData().GetOperationCost().GetBandwidth() {
-					resourceUsage.UsedBandwidth = task.GetTaskData().GetOperationCost().GetBandwidth()
-				} else {
-					resourceUsage.UsedBandwidth = usage.GetUsedBandwidth()
-				}
-				needUpdate = true
-			}
-			if usage.GetUsedDisk() > resourceUsage.GetUsedDisk() {
-				resourceUsage.UsedDisk = usage.GetUsedDisk()
-				needUpdate = true
-			}
-			// update ...
-			task.GetTaskData().GetPowerSuppliers()[i].ResourceUsedOverview = resourceUsage
-		}
+		return err
 	}
 
 	// Update local task AND announce task sender to update task.
-	if needUpdate {
-
-		log.Debugf("Need to update local task on taskManager.HandleResourceUsage(), usage: %s", usage.String())
-
-		// Updata task when resourceUsed change.
-		if err = m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
-			log.WithError(err).Errorf("Failed to call StoreLocalTask() on taskManager.HandleResourceUsage(), taskId: {%s}, partyId: {%s}",
-				usage.GetTaskId(), usage.GetPartyId())
-			return fmt.Errorf("update local task failed, %s", err)
-		}
+	if needUpdate &&
+		needExecuteTask.GetLocalTaskOrganization().GetIdentityId() != identityId &&
+		needExecuteTask.GetLocalTaskOrganization().GetIdentityId() != needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() {
 
 		msg := &taskmngpb.TaskResourceUsageMsg{
 			MsgOption: &msgcommonpb.MsgOption{
@@ -731,17 +662,16 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 		}
 
 		// broadcast `task resource usage msg` to reply remote peer
-		if needExecuteTask.GetLocalTaskOrganization().GetIdentityId() != needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() {
-			// send resource usage quo to remote peer that it will update power supplier resource usage info of task.
-			//
-			if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
-				log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
-					task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
-			} else {
-				log.WithField("traceId", traceutil.GenerateTraceID(msg)).Debugf("Succeed to call `SendTaskResourceUsageMsg` on taskManager.HandleResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
-					task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
-			}
+		// send resource usage quo to remote peer that it will update power supplier resource usage info of task.
+		//
+		if err := m.p2p.Broadcast(context.TODO(), msg); nil != err {
+			log.WithError(err).Errorf("failed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
+				task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
+		} else {
+			log.WithField("traceId", traceutil.GenerateTraceID(msg)).Debugf("Succeed to call `SendTaskResourceUsageMsg` on taskManager.HandleReportResourceUsage(), taskId: {%s},  partyId: {%s}, remote pid: {%s}",
+				task.GetTaskId(), needExecuteTask.GetLocalTaskOrganization().GetPartyId(), needExecuteTask.GetRemotePID())
 		}
+
 	}
 
 	// The local `resourceUasgeMsg` will not be handled,
@@ -750,6 +680,7 @@ func (m *Manager) HandleResourceUsage(usage *types.TaskResuorceUsage) error {
 
 	return nil
 }
+
 
 func (m *Manager) storeTaskHanlderPartyIds(task *types.Task, powerPartyIds []string) error {
 	partyIds := make([]string, 0)

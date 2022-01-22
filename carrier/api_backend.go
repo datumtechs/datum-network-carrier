@@ -597,8 +597,8 @@ func (s *CarrierAPIBackend) SendTaskEvent(event *libtypes.TaskEvent) error {
 
 func (s *CarrierAPIBackend) ReportTaskResourceUsage(nodeType pb.NodeType, ip, port string, usage *types.TaskResuorceUsage) error {
 
-	if err := s.carrier.TaskManager.HandleResourceUsage(usage); nil != err {
-		log.WithError(err).Errorf("Failed to call HandleResourceUsage() on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}",
+	if err := s.carrier.TaskManager.HandleReportResourceUsage(usage); nil != err {
+		log.WithError(err).Errorf("Failed to call HandleReportResourceUsage() on CarrierAPIBackend.ReportTaskResourceUsage(), taskId: {%s}, partyId: {%s}, nodeType: {%s}, ip:{%s}, port: {%s}",
 			usage.GetTaskId(), usage.GetPartyId(), nodeType.String(), ip, port)
 		return err
 	}
