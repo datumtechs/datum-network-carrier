@@ -11,9 +11,9 @@ import (
 )
 
 type state struct {
-	proposalTaskCache map[string]map[string]*types.ProposalTask // (taskId -> partyId -> task)
-	// Proposal being processed (proposalId -> proposalState)
-	proposalSet map[common.Hash]*ctypes.ProposalState
+	proposalTaskCache map[string]map[string]*ctypes.ProposalTask // (taskId -> partyId -> task)
+	// Proposal being processed (proposalId -> partyId -> proposalState)
+	proposalSet map[common.Hash]map[string]*ctypes.OrgProposalState
 	// About the voting state of prepareMsg for proposal
 	prepareVotes map[common.Hash]*prepareVoteState
 	// About the voting state of confirmMsg for proposal
@@ -34,8 +34,8 @@ type state struct {
 
 func newState(ldb *walDB) *state {
 	return &state{
-		proposalTaskCache:         make(map[string]map[string]*types.ProposalTask),
-		proposalSet:               make(map[common.Hash]*ctypes.ProposalState, 0),
+		proposalTaskCache:         make(map[string]map[string]*ctypes.ProposalTask),
+		proposalSet:               make(map[common.Hash]map[string]*ctypes.OrgProposalState, 0),
 		prepareVotes:              make(map[common.Hash]*prepareVoteState, 0),
 		confirmVotes:              make(map[common.Hash]*confirmVoteState, 0),
 		proposalPeerInfoCache:     make(map[common.Hash]*twopcpb.ConfirmTaskPeerInfo, 0),
@@ -46,43 +46,7 @@ func newState(ldb *walDB) *state {
 func (s *state) IsEmpty() bool    { return nil == s }
 func (s *state) IsNotEmpty() bool { return !s.IsEmpty() }
 
-func (s *state) HasOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
-	s.proposalsLock.RLock()
-	defer s.proposalsLock.RUnlock()
-
-	if st, ok := s.proposalSet[proposalId]; ok {
-		if _, has := st.GetOrgProposalState(partyId); has {
-			return true
-		}
-	}
-	return false
-}
-func (s *state) HasNotOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
-	return !s.HasOrgProposalWithPartyId(proposalId, partyId)
-}
-
-func (s *state) StoreProposalTaskWithPartyId(partyId string, task *types.ProposalTask) {
-	s.proposalTaskLock.Lock()
-	partyCache, ok := s.proposalTaskCache[task.GetTaskId()]
-	if !ok {
-		partyCache = make(map[string]*types.ProposalTask, 0)
-	}
-	partyCache[partyId] = task
-	s.proposalTaskCache[task.GetTaskId()] = partyCache
-	s.proposalTaskLock.Unlock()
-}
-func (s *state) RemoveProposalTaskWithPartyId(taskId, partyId string) {
-	s.proposalTaskLock.Lock()
-	partyCache, ok := s.proposalTaskCache[taskId]
-	if ok {
-		delete(partyCache, partyId)
-		if len(partyCache) == 0 {
-			delete(s.proposalTaskCache, taskId)
-		}
-	}
-	s.proposalTaskLock.Unlock()
-}
-
+// about proposalTask
 func (s *state) HasProposalTaskWithPartyId(taskId, partyId string) bool {
 	s.proposalTaskLock.RLock()
 	defer s.proposalTaskLock.RUnlock()
@@ -99,8 +63,63 @@ func (s *state) HasProposalTaskWithPartyId(taskId, partyId string) bool {
 func (s *state) HasNotProposalTaskWithPartyId(taskId, partyId string) bool {
 	return !s.HasProposalTaskWithPartyId(taskId, partyId)
 }
+func (s *state) StoreProposalTaskWithPartyId(partyId string, task *ctypes.ProposalTask) {
+	s.proposalTaskLock.Lock()
+	partyCache, ok := s.proposalTaskCache[task.GetTaskId()]
+	if !ok {
+		partyCache = make(map[string]*ctypes.ProposalTask, 0)
+	}
+	partyCache[partyId] = task
+	s.proposalTaskCache[task.GetTaskId()] = partyCache
+	s.proposalTaskLock.Unlock()
+}
+func (s *state) StoreProposalTaskWithPartyIdUnsafe(partyId string, task *ctypes.ProposalTask) {
 
-func (s *state) GetProposalTaskWithPartyId(taskId, partyId string) (*types.ProposalTask, bool) {
+	partyCache, ok := s.proposalTaskCache[task.GetTaskId()]
+	if !ok {
+		partyCache = make(map[string]*ctypes.ProposalTask, 0)
+	}
+	partyCache[partyId] = task
+	s.proposalTaskCache[task.GetTaskId()] = partyCache
+
+}
+func (s *state) RemoveProposalTaskWithTaskId(taskId string) {
+	s.proposalTaskLock.Lock()
+	delete(s.proposalTaskCache, taskId)
+	s.proposalTaskLock.Unlock()
+}
+func (s *state) RemoveProposalTaskWithTaskIdUnsafe(taskId string) {
+
+	delete(s.proposalTaskCache, taskId)
+
+}
+func (s *state) RemoveProposalTaskWithPartyId(taskId, partyId string) {
+	s.proposalTaskLock.Lock()
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if ok {
+		delete(partyCache, partyId)
+		if len(partyCache) == 0 {
+			delete(s.proposalTaskCache, taskId)
+		} else {
+			s.proposalTaskCache[taskId] = partyCache
+		}
+	}
+	s.proposalTaskLock.Unlock()
+}
+func (s *state) RemoveProposalTaskWithPartyIdUnsafe(taskId, partyId string) {
+
+	partyCache, ok := s.proposalTaskCache[taskId]
+	if ok {
+		delete(partyCache, partyId)
+		if len(partyCache) == 0 {
+			delete(s.proposalTaskCache, taskId)
+		} else {
+			s.proposalTaskCache[taskId] = partyCache
+		}
+	}
+
+}
+func (s *state) QueryProposalTaskWithPartyId(taskId, partyId string) (*ctypes.ProposalTask, bool) {
 	s.proposalTaskLock.RLock()
 	defer s.proposalTaskLock.RUnlock()
 	partyCache, ok := s.proposalTaskCache[taskId]
@@ -110,88 +129,142 @@ func (s *state) GetProposalTaskWithPartyId(taskId, partyId string) (*types.Propo
 	task, ok := partyCache[partyId]
 	return task, ok
 }
-
-func (s *state) MustGetProposalTaskWithPartyId(taskId, partyId string) *types.ProposalTask {
+func (s *state) MustQueryProposalTaskWithPartyId(taskId, partyId string) *ctypes.ProposalTask {
 	s.proposalTaskLock.RLock()
-	task, _ := s.GetProposalTaskWithPartyId(taskId, partyId)
+	task, _ := s.QueryProposalTaskWithPartyId(taskId, partyId)
 	s.proposalTaskLock.RUnlock()
 	return task
 }
 
-func (s *state) GetProposalState(proposalId common.Hash) *ctypes.ProposalState {
+// about orgProposalState
+func (s *state) HasOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
 	s.proposalsLock.RLock()
-	proposalState := s.proposalSet[proposalId]
-	s.proposalsLock.RUnlock()
-	return proposalState
-}
-func (s *state) StoreProposalState(proposalState *ctypes.ProposalState) {
-	s.proposalsLock.Lock()
-	s.proposalSet[proposalState.GetProposalId()] = proposalState
-	s.proposalsLock.Unlock()
-}
-func (s *state) UpdateProposalState(proposalState *ctypes.ProposalState) {
-	s.proposalsLock.Lock()
-	if _, ok := s.proposalSet[proposalState.GetProposalId()]; ok {
-		s.proposalSet[proposalState.GetProposalId()] = proposalState
+	defer s.proposalsLock.RUnlock()
+
+	if cache, ok := s.proposalSet[proposalId]; ok {
+		if _, has := cache[partyId]; has {
+			return true
+		}
 	}
+	return false
+}
+func (s *state) HasNotOrgProposalWithPartyId(proposalId common.Hash, partyId string) bool {
+	return !s.HasOrgProposalWithPartyId(proposalId, partyId)
+}
+func (s *state) StoreOrgProposalState(orgState *ctypes.OrgProposalState) {
+	s.proposalsLock.Lock()
+
+	cache, ok := s.proposalSet[orgState.GetProposalId()]
+	if  !ok {
+		cache = make(map[string]*ctypes.OrgProposalState, 0)
+	}
+	cache[orgState.GetTaskOrg().GetPartyId()] = orgState
+	s.proposalSet[orgState.GetProposalId()] = cache
+
 	s.proposalsLock.Unlock()
 }
-func (s *state) RemoveProposalState(proposalId common.Hash) {
+func (s *state) StoreOrgProposalStateUnsafe(orgState *ctypes.OrgProposalState) {
+
+	cache, ok := s.proposalSet[orgState.GetProposalId()]
+	if  !ok {
+		cache = make(map[string]*ctypes.OrgProposalState, 0)
+	}
+	cache[orgState.GetTaskOrg().GetPartyId()] = orgState
+	s.proposalSet[orgState.GetProposalId()] = cache
+
+}
+func (s *state) RemoveProposalStateWithProposalId(proposalId common.Hash) {
 	s.proposalsLock.Lock()
 	delete(s.proposalSet, proposalId)
 	s.proposalsLock.Unlock()
 }
+func (s *state) RemoveProposalStateWithProposalIdUnsafe(proposalId common.Hash) {
+	delete(s.proposalSet, proposalId)
+}
 func (s *state) RemoveOrgProposalState(proposalId common.Hash, partyId string) {
 	s.proposalsLock.Lock()
-	if pstate, ok := s.proposalSet[proposalId]; ok {
-		pstate.RemoveOrgProposalState(partyId)
-		if pstate.IsEmpty() {
+	if cache, ok := s.proposalSet[proposalId]; ok {
+
+		delete(cache, partyId)
+
+		if len(cache) == 0 {
 			delete(s.proposalSet, proposalId)
 		} else {
-			s.proposalSet[proposalId] = pstate
+			s.proposalSet[proposalId] = cache
 		}
 	}
 	s.proposalsLock.Unlock()
+}
+func (s *state) RemoveOrgProposalStateUnsafe(proposalId common.Hash, partyId string) {
+
+	if cache, ok := s.proposalSet[proposalId]; ok {
+
+		delete(cache, partyId)
+
+		if len(cache) == 0 {
+			delete(s.proposalSet, proposalId)
+		} else {
+			s.proposalSet[proposalId] = cache
+		}
+	}
+
+}
+func (s *state) QueryOrgProposalState(proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
+	s.proposalsLock.Lock()
+	defer s.proposalsLock.Unlock()
+
+	cache, ok := s.proposalSet[proposalId]
+	if !ok {
+		return nil, false
+	}
+	orgState, ok := cache[partyId]
+	return orgState, ok
+}
+func (s *state) MustQueryOrgProposalState(proposalId common.Hash, partyId string) *ctypes.OrgProposalState {
+	s.proposalsLock.Lock()
+	orgState, _ := s.QueryOrgProposalState(proposalId, partyId)
+	s.proposalsLock.Unlock()
+	return orgState
 }
 
 func (s *state) ChangeToConfirm(proposalId common.Hash, partyId string, startTime uint64) {
 	s.proposalsLock.Lock()
 	defer s.proposalsLock.Unlock()
 
-	proposalState, ok := s.proposalSet[proposalId]
+	cache, ok := s.proposalSet[proposalId]
 	if !ok {
 		return
 	}
-	orgProposalState, ok := proposalState.GetOrgProposalState(partyId)
+	orgProposalState, ok := cache[partyId]
 	if !ok {
 		return
 	}
 	orgProposalState.ChangeToConfirm()
-	proposalState.StoreOrgProposalState(orgProposalState)
+	cache[partyId] = orgProposalState
 
 	log.Debugf("Succeed to call `ChangeToConfirm`, proposalId: {%s}, partyId: {%s}, startTime: {%d}", proposalId.String(), partyId, startTime)
 
-	s.proposalSet[proposalId] = proposalState
+	s.proposalSet[proposalId] = cache
 }
 
 func (s *state) ChangeToCommit(proposalId common.Hash, partyId string, startTime uint64) {
 	s.proposalsLock.Lock()
 	defer s.proposalsLock.Unlock()
 
-	proposalState, ok := s.proposalSet[proposalId]
+	cache, ok := s.proposalSet[proposalId]
 	if !ok {
 		return
 	}
-	orgProposalState, ok := proposalState.GetOrgProposalState(partyId)
+	orgProposalState, ok := cache[partyId]
 	if !ok {
 		return
 	}
 	orgProposalState.ChangeToCommit()
-	proposalState.StoreOrgProposalState(orgProposalState)
+	cache[partyId] = orgProposalState
 
 	log.Debugf("Succeed to call `ChangeToCommit`, proposalId: {%s}, partyId: {%s}, startTime: {%d}", proposalId.String(), partyId, startTime)
 
-	s.proposalSet[proposalId] = proposalState
+	s.proposalSet[proposalId] = cache
 }
 
 func (s *state) RemoveOrgProposalStateAnyCache(proposalId common.Hash, taskId, partyId string) {

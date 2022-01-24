@@ -22,36 +22,31 @@ import (
 )
 
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
-	if state := t.state.GetProposalState(proposalId); state.IsNotEmpty() {
-		log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}", proposalId, state.GetTaskId(), partyId)
-		t.state.RemoveOrgProposalStateAnyCache(proposalId, state.GetTaskId(), partyId) // remove task/proposal state/prepare vote/ confirm vote and wal with partyId
+	if cache, ok := t.state.proposalSet[proposalId]; ok {
+		if orgState, ok := cache[partyId]; ok {
+			log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}",
+				proposalId, orgState.GetTaskId(), partyId)
+			t.state.RemoveOrgProposalStateAnyCache(proposalId, orgState.GetTaskId(), partyId) // remove task/proposal state/prepare vote/ confirm vote and wal with partyId
+		}
 	} else {
 		log.Infof("Start remove confirm taskPeerInfo when proposalState is empty, proposalId {%s}, final remove partyId: {%s}", proposalId, partyId)
 		t.state.RemoveConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
 	}
 }
 
-func (t *Twopc) storeOrgProposalState(proposalId common.Hash, taskId string, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+func (t *Twopc) storeOrgProposalState(orgState *ctypes.OrgProposalState) {
 
-	pstate := t.state.GetProposalState(proposalId)
+	first := t.state.HasNotOrgProposalWithPartyId(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())
 
-	var first bool
-	if pstate.IsEmpty() {
-		pstate = ctypes.NewProposalState(proposalId, taskId, sender)
-		first = true
-	}
-	pstate.StoreOrgProposalState(orgState)
-	t.wal.StoreOrgProposalState(proposalId, pstate.GetTaskSender(), orgState)
+	t.state.StoreOrgProposalState(orgState)
+	t.wal.StoreOrgProposalState(orgState)
 	if first {
-		t.state.StoreProposalState(pstate)
 		// v 0.3.0 add proposal state monitor
-		t.addmonitor(pstate, proposalId, sender, orgState)
-	} else {
-		t.state.UpdateProposalState(pstate)
+		t.addmonitor(orgState)
 	}
 }
 
-func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 
 	var (
 		when int64
@@ -77,14 +72,13 @@ func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash,
 			}
 		}
 	default:
-		log.Warnf("It is a unknown period org state")
+		log.Warnf("It is a unknown period org state on twopc.refreshProposalStateMonitor")
 		return
 	}
 
-	monitor := ctypes.NewProposalStateMonitor(proposalId, orgState.TaskOrg.GetPartyId(), sender, orgState,
-		when, next, nil)
+	monitor := ctypes.NewProposalStateMonitor(orgState, when, next, nil)
 
-	monitor.SetCallBackFn(func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+	monitor.SetCallBackFn(func(orgState *ctypes.OrgProposalState) {
 
 		t.state.proposalsLock.Lock()
 		defer t.state.proposalsLock.Unlock()
@@ -94,13 +88,13 @@ func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash,
 		case ctypes.PeriodPrepare:
 
 			if orgState.IsPrepareTimeout() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					proposalId.String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
 				orgState.ChangeToConfirm()
 				monitor.SetNext(orgState.GetCommitExpireTime())
-				pstate.StoreOrgProposalStateUnSafe(orgState)
-				t.wal.StoreOrgProposalState(proposalId, sender, orgState)
+				t.state.StoreOrgProposalStateUnsafe(orgState)
+				t.wal.StoreOrgProposalState(orgState)
 
 			} else {
 				// There is only one possibility that the `prepare epoch` expire time is set incorrectly,
@@ -112,13 +106,13 @@ func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash,
 		case ctypes.PeriodConfirm:
 
 			if orgState.IsConfirmTimeout() {
-				log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					proposalId.String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
 				orgState.ChangeToCommit()
 				monitor.SetNext(orgState.GetDeadlineExpireTime()) // Ensure that the next expire time is `dealine time`.
-				pstate.StoreOrgProposalStateUnSafe(orgState)
-				t.wal.StoreOrgProposalState(proposalId, sender, orgState)
+				t.state.StoreOrgProposalStateUnsafe(orgState)
+				t.wal.StoreOrgProposalState(orgState)
 
 			} else {
 				// There is only one possibility that the `confirm epoch` expire time is set incorrectly,
@@ -133,53 +127,50 @@ func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash,
 			if orgState.IsDeadline() {
 				identity, err := t.resourceMng.GetDB().QueryIdentity()
 				if nil != err {
-					log.WithError(err).Errorf("Failed to query local identity on proposate monitor expire deadline, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-						proposalId.String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+					log.WithError(err).Errorf("Failed to query local identity on proposate monitor expire deadline on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+						orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 					return
 				}
 
-				log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-					proposalId.String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
-				_, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				_, ok := t.state.QueryProposalTaskWithPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
-				t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), orgState.GetTaskOrg().GetPartyId()) // remove proposal task with partyId
-				pstate.RemoveOrgProposalStateUnSafe(orgState.GetTaskOrg().GetPartyId())                       // remove state with partyId
-				t.state.RemoveOrgPrepareVoteState(proposalId, orgState.GetTaskOrg().GetPartyId())             // remove prepare vote with partyId
-				t.state.RemoveOrgConfirmVoteState(proposalId, orgState.GetTaskOrg().GetPartyId())             // remove confirm vote with partyId
+				t.state.RemoveProposalTaskWithPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())    // remove proposal task with partyId
+				t.state.RemoveOrgProposalStateUnsafe(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()) // remove state with partyId
+				t.state.RemoveOrgPrepareVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())    // remove prepare vote with partyId
+				t.state.RemoveOrgConfirmVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())    // remove confirm vote with partyId
 
-				if pstate.IsEmpty() {
-					delete(t.state.proposalSet, proposalId)
-					t.removeConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
-				} else {
-					t.state.proposalSet[proposalId] = pstate
+				if _, has := t.state.proposalSet[orgState.GetProposalId()]; !has {
+					t.removeConfirmTaskPeerInfo(orgState.GetProposalId()) // remove confirm peers and wal
 				}
-				t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), orgState.GetTaskOrg().GetPartyId()))
-				t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, orgState.GetTaskOrg().GetPartyId()))
-				t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, orgState.GetTaskOrg().GetPartyId()))
-				t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, orgState.GetTaskOrg().GetPartyId()))
+				t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId()))
+				t.wal.DeleteState(t.wal.GetPrepareVotesKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
+				t.wal.DeleteState(t.wal.GetConfirmVotesKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
+				t.wal.DeleteState(t.wal.GetProposalSetKey(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()))
 
 				if !ok {
-					log.Errorf("Not found the proposalTask on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
+					log.Errorf("Not found the proposalTask, skip this proposal state on twopc.refreshProposalStateMonitor, taskId: {%s}, partyId: {%s}",
 						orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 					return
 				}
 
-				_, err = t.resourceMng.GetDB().QueryLocalTask(pstate.GetTaskId())
+				_, err = t.resourceMng.GetDB().QueryLocalTask(orgState.GetTaskId())
 				if nil == err {
 					// release local resource and clean some data  (on task partenr)
 					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
 						Type:       evengine.TaskProposalStateDeadline.GetType(),
 						IdentityId: identity.GetIdentityId(),
 						PartyId:    orgState.GetTaskOrg().GetPartyId(),
-						TaskId:     pstate.GetTaskId(),
-						Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.TerminalString(), evengine.TaskProposalStateDeadline.GetMsg()),
+						TaskId:     orgState.GetTaskId(),
+						Content:    fmt.Sprintf("proposalId: %s, %s for myself", orgState.GetProposalId().TerminalString(), evengine.TaskProposalStateDeadline.GetMsg()),
 						CreateAt:   timeutils.UnixMsecUint64(),
 					})
 
 					t.stopTaskConsensus("the proposalState had been deadline",
-						proposalId,
-						pstate.GetTaskId(),
+						orgState.GetProposalId(),
+						orgState.GetTaskId(),
 						orgState.GetTaskRole(),
 						apicommonpb.TaskRole_TaskRole_Sender,
 						&apicommonpb.TaskOrganization{
@@ -188,18 +179,18 @@ func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash,
 							NodeId:     identity.GetNodeId(),
 							IdentityId: identity.GetIdentityId(),
 						},
-						pstate.GetTaskSender(), types.TaskConsensusInterrupt)
+						orgState.GetTaskSender(), types.TaskConsensusInterrupt)
 				}
 			} else {
 				// OR epoch is commit but time just is commit time out
 				if orgState.IsCommitTimeout() {
-					log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-						pstate.GetProposalId().String(), pstate.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+					log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+						orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
 					orgState.ChangeToFinished()
 					monitor.SetNext(0) // clean next target timestamp, let monitor would been able to clean from monitor queue.
-					pstate.StoreOrgProposalStateUnSafe(orgState)
-					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
+					t.state.StoreOrgProposalStateUnsafe(orgState)
+					t.wal.StoreOrgProposalState(orgState)
 
 				} else {
 					// There is only one possibility that the `commit epoch` expire time is set incorrectly,
@@ -210,26 +201,11 @@ func (t *Twopc) addmonitor(pstate *ctypes.ProposalState, proposalId common.Hash,
 			}
 
 		default:
-			log.Errorf("Unknown the proposalState period,  proposalId: {%s}, taskId: {%s}, partyId: {%s}", pstate.GetProposalId().String(), pstate.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+			log.Errorf("Unknown the proposalState period on twopc.refreshProposalStateMonitor,  proposalId: {%s}, taskId: {%s}, partyId: {%s}",
+				orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 		}
 	})
 	t.state.AddMonitor(monitor)
-}
-
-func (t *Twopc) getOrgProposalState(proposalId common.Hash, partyId string) (*ctypes.OrgProposalState, bool) {
-	pstate := t.state.GetProposalState(proposalId)
-	if pstate.IsEmpty() {
-		return nil, false
-	}
-	return pstate.GetOrgProposalState(partyId)
-}
-
-func (t *Twopc) mustGetOrgProposalState(proposalId common.Hash, partyId string) *ctypes.OrgProposalState {
-	pstate := t.state.GetProposalState(proposalId)
-	if pstate.IsEmpty() {
-		return nil
-	}
-	return pstate.MustGetOrgProposalState(partyId)
 }
 
 func (t *Twopc) makeEmptyConfirmTaskPeerDesc() *twopcpb.ConfirmTaskPeerInfo {
@@ -274,183 +250,6 @@ func (t *Twopc) proposalStateMonitorTimer() *time.Timer {
 func (t *Twopc) proposalStateMonitorsLen() int {
 	return t.state.MonitorsLen()
 }
-
-//func (t *Twopc) refreshProposalState() {
-//
-//	identity, err := t.resourceMng.GetDB().QueryIdentity()
-//	if nil != err {
-//		//log.WithError(err).Errorf("Failed to query local identity on consensus.refreshProposalState()")
-//		return
-//	}
-//
-//	t.state.proposalsLock.Lock()
-//	defer t.state.proposalsLock.Unlock()
-//
-//	for proposalId, pstate := range t.state.proposalSet {
-//
-//		//pstate.MustLock()
-//		for partyId, orgState := range pstate.GetStateCache() {
-//
-//			if orgState.IsDeadline() {
-//				log.Debugf("Started refresh proposalState loop, the proposalState direct be deadline, remove org proposalState and task cache on Consensus, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-//					pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-//
-//				_, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
-//
-//				t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
-//				pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
-//				t.state.RemoveOrgPrepareVoteState(proposalId, partyId)             // remove prepare vote with partyId
-//				t.state.RemoveOrgConfirmVoteState(proposalId, partyId)             // remove confirm vote with partyId
-//
-//				if pstate.IsEmpty() {
-//					delete(t.state.proposalSet, proposalId)
-//					t.removeConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
-//				} else {
-//					t.state.proposalSet[proposalId] = pstate
-//				}
-//				t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
-//				t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
-//				t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
-//				t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
-//
-//				if !ok {
-//					log.Errorf("Not found the proposalTask on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
-//						pstate.GetTaskId(), partyId)
-//					continue
-//				}
-//
-//				_, err := t.resourceMng.GetDB().QueryLocalTask(pstate.GetTaskId())
-//				if nil == err {
-//					// release local resource and clean some data  (on task partenr)
-//					t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-//						Type:       evengine.TaskProposalStateDeadline.Type,
-//						IdentityId: identity.GetIdentityId(),
-//						PartyId:    partyId,
-//						TaskId:     pstate.GetTaskId(),
-//						Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.TerminalString(), evengine.TaskProposalStateDeadline.Msg),
-//						CreateAt:   timeutils.UnixMsecUint64(),
-//					})
-//
-//					t.stopTaskConsensus("the proposalState had been deadline",
-//						proposalId,
-//						pstate.GetTaskId(),
-//						orgState.GetTaskRole(),
-//						apicommonpb.TaskRole_TaskRole_Sender,
-//						&apicommonpb.TaskOrganization{
-//							PartyId:    partyId,
-//							NodeName:   identity.GetNodeName(),
-//							NodeId:     identity.GetNodeId(),
-//							IdentityId: identity.GetIdentityId(),
-//						},
-//						pstate.GetTaskSender(), types.TaskConsensusInterrupt)
-//				}
-//				continue
-//			}
-//
-//			switch orgState.GetPeriodNum() {
-//
-//			case ctypes.PeriodPrepare:
-//
-//				if orgState.IsPrepareTimeout() {
-//					log.Debugf("Started refresh org proposalState, the org proposalState was prepareTimeout, change to confirm epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-//						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-//
-//					orgState.ChangeToConfirm()
-//					pstate.StoreOrgProposalStateUnSafe(orgState)
-//
-//					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
-//				}
-//
-//			case ctypes.PeriodConfirm:
-//
-//				if orgState.IsConfirmTimeout() {
-//					log.Debugf("Started refresh org proposalState, the org proposalState was confirmTimeout, change to commit epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-//						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-//
-//					orgState.ChangeToCommit()
-//					pstate.StoreOrgProposalStateUnSafe(orgState)
-//
-//					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
-//				}
-//
-//			case ctypes.PeriodCommit:
-//
-//				if orgState.IsCommitTimeout() {
-//					log.Debugf("Started refresh org proposalState, the org proposalState was commitTimeout, change to finished epoch, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-//						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-//
-//					orgState.ChangeToFinished()
-//					pstate.StoreOrgProposalStateUnSafe(orgState)
-//
-//					t.wal.StoreOrgProposalState(pstate.GetProposalId(), pstate.GetTaskSender(), orgState)
-//				}
-//
-//			case ctypes.PeriodFinished:
-//
-//				if orgState.IsDeadline() {
-//					log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-//						pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-//
-//					_, ok := t.state.GetProposalTaskWithPartyId(pstate.GetTaskId(), partyId)
-//
-//					t.state.RemoveProposalTaskWithPartyId(pstate.GetTaskId(), partyId) // remove proposal task with partyId
-//					pstate.RemoveOrgProposalStateUnSafe(partyId)                       // remove state with partyId
-//					t.state.RemoveOrgPrepareVoteState(proposalId, partyId)             // remove prepare vote with partyId
-//					t.state.RemoveOrgConfirmVoteState(proposalId, partyId)             // remove confirm vote with partyId
-//
-//					if pstate.IsEmpty() {
-//						delete(t.state.proposalSet, proposalId)
-//						t.removeConfirmTaskPeerInfo(proposalId) // remove confirm peers and wal
-//					} else {
-//						t.state.proposalSet[proposalId] = pstate
-//					}
-//					t.wal.DeleteState(t.wal.GetProposalTaskCacheKey(pstate.GetTaskId(), partyId))
-//					t.wal.DeleteState(t.wal.GetPrepareVotesKey(proposalId, partyId))
-//					t.wal.DeleteState(t.wal.GetConfirmVotesKey(proposalId, partyId))
-//					t.wal.DeleteState(t.wal.GetProposalSetKey(proposalId, partyId))
-//
-//					if !ok {
-//						log.Errorf("Not found the proposalTask on `twopc.refreshProposalState()`, skip this proposal state, taskId: {%s}, partyId: {%s}",
-//							pstate.GetTaskId(), partyId)
-//						continue
-//					}
-//
-//					_, err := t.resourceMng.GetDB().QueryLocalTask(pstate.GetTaskId())
-//					if nil == err {
-//						// release local resource and clean some data  (on task partenr)
-//						t.resourceMng.GetDB().StoreTaskEvent(&libtypes.TaskEvent{
-//							Type:       evengine.TaskProposalStateDeadline.Type,
-//							IdentityId: identity.GetIdentityId(),
-//							PartyId:    partyId,
-//							TaskId:     pstate.GetTaskId(),
-//							Content:    fmt.Sprintf("proposalId: %s, %s for myself", proposalId.TerminalString(), evengine.TaskProposalStateDeadline.Msg),
-//							CreateAt:   timeutils.UnixMsecUint64(),
-//						})
-//
-//						t.stopTaskConsensus("the proposalState had been deadline",
-//							proposalId,
-//							pstate.GetTaskId(),
-//							orgState.GetTaskRole(),
-//							apicommonpb.TaskRole_TaskRole_Sender,
-//							&apicommonpb.TaskOrganization{
-//								PartyId:    partyId,
-//								NodeName:   identity.GetNodeName(),
-//								NodeId:     identity.GetNodeId(),
-//								IdentityId: identity.GetIdentityId(),
-//							},
-//							pstate.GetTaskSender(), types.TaskConsensusInterrupt)
-//					}
-//				}
-//
-//			default:
-//				log.Errorf("Unknown the proposalState period,  proposalId: {%s}, taskId: {%s}, partyId: {%s}", pstate.GetProposalId().String(), pstate.GetTaskId(), partyId)
-//			}
-//		}
-//
-//		//pstate.MustUnLock()
-//	}
-//
-//}
 
 func (t *Twopc) stopTaskConsensus(
 	reason string,
@@ -1049,9 +848,9 @@ func (t *Twopc) recoverCache() {
 
 				cache, ok := t.state.proposalTaskCache[taskId]
 				if !ok {
-					cache = make(map[string]*types.ProposalTask, 0)
+					cache = make(map[string]*ctypes.ProposalTask, 0)
 				}
-				cache[partyId] = types.NewProposalTask(common.HexToHash(proposalTaskPB.GetProposalId()), taskId, proposalTaskPB.GetCreateAt())
+				cache[partyId] = ctypes.NewProposalTask(common.HexToHash(proposalTaskPB.GetProposalId()), taskId, proposalTaskPB.GetCreateAt())
 				t.state.proposalTaskCache[taskId] = cache
 			}
 			return nil
@@ -1078,25 +877,21 @@ func (t *Twopc) recoverCache() {
 				if err := proto.Unmarshal(value, libOrgProposalState); err != nil {
 					return fmt.Errorf("unmarshal org proposalState failed, %s", err)
 				}
-				pstate, ok := t.state.proposalSet[proposalId]
-				if !ok {
-					pstate = ctypes.NewProposalState(proposalId, libOrgProposalState.GetTaskId(), libOrgProposalState.GetTaskSender())
-				}
 
-				orgState := &ctypes.OrgProposalState{
-					StartAt:          libOrgProposalState.GetStartAt(),
-					DeadlineDuration: libOrgProposalState.GetDeadlineDuration(),
-					CreateAt:         libOrgProposalState.GetCreateAt(),
-					TaskId:           libOrgProposalState.GetTaskId(),
-					TaskRole:         libOrgProposalState.GetTaskRole(),
-					TaskOrg:          libOrgProposalState.GetTaskOrg(),
-					PeriodNum:        ctypes.ProposalStatePeriod(libOrgProposalState.GetPeriodNum()),
-				}
-				pstate.StoreOrgProposalStateUnSafe(orgState)
-				t.state.proposalSet[proposalId] = pstate
+				orgState := ctypes.NewOrgProposalStateWithFields(
+					proposalId,
+					libOrgProposalState.GetTaskId(),
+					libOrgProposalState.GetTaskRole(),
+					libOrgProposalState.GetTaskSender(),
+					libOrgProposalState.GetTaskOrg(),
+					ctypes.ProposalStatePeriod(libOrgProposalState.GetPeriodNum()),
+					libOrgProposalState.GetDeadlineDuration(),
+					libOrgProposalState.GetCreateAt(),
+					libOrgProposalState.GetStartAt())
 
+				t.state.StoreOrgProposalStateUnsafe(orgState)
 				// v 0.3.0 add proposal state monitor
-				t.addmonitor(pstate, proposalId, libOrgProposalState.GetTaskSender(), orgState)
+				t.addmonitor(orgState)
 			}
 			return nil
 		}); nil != err {

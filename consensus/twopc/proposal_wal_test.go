@@ -67,28 +67,24 @@ func TestUpdateOrgProposalState(t *testing.T) {
 	db := generateWalDB()
 	partyIds := []string{"p1", "p2", "p3"}
 	for _, value := range partyIds {
-		proposalId := generateProposalId()
-		sender := &apicommonpb.TaskOrganization{
-			PartyId:    value + "",
-			NodeName:   value + "NodeName",
-			NodeId:     value + "NodeId",
-			IdentityId: value + "IdentityId",
-		}
-		orgState := &ctypes.OrgProposalState{
-			StartAt:          2222,
-			DeadlineDuration: 3333,
-			CreateAt:         4444,
-			TaskId:           "TASK001",
-			TaskRole:         3,
-			TaskOrg: &apicommonpb.TaskOrganization{
+		db.StoreOrgProposalState(ctypes.NewOrgProposalState(
+			generateProposalId(),
+			"TASK001",
+			3,
+			&apicommonpb.TaskOrganization{
+				PartyId:    value + "",
+				NodeName:   value + "NodeName",
+				NodeId:     value + "NodeId",
+				IdentityId: value + "IdentityId",
+			},
+			&apicommonpb.TaskOrganization{
 				PartyId:    value + "P2",
 				NodeName:   value + "NodeName",
 				NodeId:     value + "NodeId",
 				IdentityId: value + "IdentityId",
 			},
-			PeriodNum: 2,
-		}
-		db.StoreOrgProposalState(proposalId, sender, orgState)
+			2222,
+		))
 	}
 }
 
@@ -185,7 +181,7 @@ func TestStoreProposalTask(t *testing.T) {
 		"task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e66",
 		"task:0xe7bdb5af4de9d851351c680fb0a9bfdff72bdc4ea86da3c2006d6a7a7d335e67"}
 	for index, _ := range partyIds {
-		proposalTask := &types.ProposalTask{
+		proposalTask := &ctypes.ProposalTask{
 			ProposalId: generateProposalId(),
 			TaskId:     taskIds[index],
 		}
@@ -209,7 +205,7 @@ func TestRecoveryState(t *testing.T) {
 		defer wg.Done()
 
 		prefixLength := len(proposalSetPrefix)
-		proposalSet := make(map[common.Hash]*ctypes.ProposalState, 0)
+		proposalSet := make(map[common.Hash]map[string]*ctypes.OrgProposalState, 0)
 		if err := db.ForEachKVWithPrefix(proposalSetPrefix, func(key, value []byte) error {
 
 			if len(key) != 0 && len(value) != 0 {
@@ -220,21 +216,21 @@ func TestRecoveryState(t *testing.T) {
 					return fmt.Errorf("unmarshal org proposalState failed, %s", err)
 				}
 				//proposalState, ok := t.state.proposalSet[proposalId]
-				proposalState, ok := proposalSet[proposalId]
+				cache, ok := proposalSet[proposalId]
 				if !ok {
-					proposalState = ctypes.NewProposalState(proposalId, libOrgProposalState.GetTaskId(), libOrgProposalState.GetTaskSender())
+					cache = make(map[string]*ctypes.OrgProposalState, 0)
 				}
-				proposalState.StoreOrgProposalStateUnSafe(&ctypes.OrgProposalState{
-					StartAt:          libOrgProposalState.GetStartAt(),
-					DeadlineDuration: libOrgProposalState.GetDeadlineDuration(),
-					CreateAt:         libOrgProposalState.GetCreateAt(),
-					TaskId:           libOrgProposalState.GetTaskId(),
-					TaskRole:         libOrgProposalState.GetTaskRole(),
-					TaskOrg:          libOrgProposalState.GetTaskOrg(),
-					PeriodNum:        ctypes.ProposalStatePeriod(libOrgProposalState.GetPeriodNum()),
-				})
+				cache[libOrgProposalState.GetTaskOrg().GetPartyId()] = ctypes.NewOrgProposalState(
+					proposalId,
+					libOrgProposalState.GetTaskId(),
+					libOrgProposalState.GetTaskRole(),
+					libOrgProposalState.GetTaskSender(),
+					libOrgProposalState.GetTaskOrg(),
+					libOrgProposalState.GetStartAt(),
+				)
+
 				//t.state.proposalSet[proposalId] = proposalState
-				proposalSet[proposalId] = proposalState
+				proposalSet[proposalId] = cache
 			}
 			return nil
 		}); nil != err {

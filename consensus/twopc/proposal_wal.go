@@ -6,7 +6,6 @@ import (
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -90,7 +89,7 @@ func (w *walDB) GetProposalPeerInfoCacheKey(proposalId common.Hash) []byte {
 	return append(proposalPeerInfoCachePrefix, proposalId.Bytes()...)
 }
 
-func (w *walDB) StoreProposalTask(partyId string, task *types.ProposalTask) {
+func (w *walDB) StoreProposalTask(partyId string, task *ctypes.ProposalTask) {
 	data, err := proto.Marshal(&libtypes.ProposalTask{
 		ProposalId: task.GetProposalId().String(),
 		TaskId: task.GetTaskId(),
@@ -106,10 +105,10 @@ func (w *walDB) StoreProposalTask(partyId string, task *types.ProposalTask) {
 	}
 }
 
-func (w *walDB) StoreOrgProposalState(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+func (w *walDB) StoreOrgProposalState(orgState *ctypes.OrgProposalState) {
 	data, err := proto.Marshal(&libtypes.OrgProposalState{
 		TaskId:             orgState.GetTaskId(),
-		TaskSender:         sender,
+		TaskSender:         orgState.GetTaskSender(),
 		StartAt:            orgState.GetStartAt(),
 		DeadlineDuration:   orgState.GetDeadlineDuration(),
 		CreateAt:           orgState.GetCreateAt(),
@@ -119,11 +118,11 @@ func (w *walDB) StoreOrgProposalState(proposalId common.Hash, sender *apicommonp
 	})
 	if err != nil {
 		log.WithError(err).Fatalf("marshal org proposalState failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-			 proposalId.String(), orgState.GetTaskId(), orgState.TaskOrg.GetPartyId())
+			orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 	}
-	if err := w.db.Put(w.GetProposalSetKey(proposalId, orgState.TaskOrg.PartyId), data); err != nil {
+	if err := w.db.Put(w.GetProposalSetKey(orgState.GetProposalId(), orgState.GetTaskOrg().PartyId), data); err != nil {
 		log.WithError(err).Fatalf("store org proposalState failed, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
-			 proposalId.String(), orgState.GetTaskId(), orgState.TaskOrg.GetPartyId())
+			orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 	}
 }
 

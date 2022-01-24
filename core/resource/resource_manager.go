@@ -205,7 +205,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 	used, err := m.dataCenter.QueryLocalTaskPowerUsed(taskId, partyId)
 	if nil != err {
-		log.WithError(err).Warnf("Warning query local task powerUsed on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}",
+		log.WithError(err).Warnf("Warning can not query local task powerUsed on resourceManager.UnLockLocalResourceWithTask(), taskId {%s}, partyId: {%s}",
 			taskId, partyId)
 		return err
 	}
@@ -296,7 +296,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 	}
 
 	if has {
-		log.Debugf("The local task have been executing, don't `ReleaseLocalResourceWithTask` %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+		log.Debugf("The local task have been `running`, don't `ReleaseLocalResourceWithTask` %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
 			logdesc, taskId, partyId, option, isSender)
 		return
 	}
@@ -305,7 +305,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 		log.Debugf("start unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
 			logdesc, taskId, partyId, option, isSender)
 		if err := m.UnLockLocalResourceWithTask(taskId, partyId); nil != err {
-			log.WithError(err).Warnf("Warning unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+			log.WithError(err).Warnf("Warning can not unlock local resource with task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
 				logdesc, taskId, partyId, option, isSender)
 		}
 	}
@@ -316,7 +316,7 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 
 		has, err := m.dataCenter.HasLocalTaskExecuteStatusParty(taskId)
 		if nil != err {
-			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusParty(), when remove all things about this local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
+			log.WithError(err).Warnf("Warning call HasLocalTaskExecuteStatusParty(), when remove all things about this local task %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}, isSender: {%v}",
 				logdesc, taskId, partyId, option, isSender)
 		}
 		// When tasks in current organization, including sender and other partners, do not have an 'executestatus' symbol.

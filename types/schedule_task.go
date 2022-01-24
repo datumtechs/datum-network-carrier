@@ -16,24 +16,6 @@ import (
 	"time"
 )
 
-type ProposalTask struct {
-	ProposalId common.Hash
-	TaskId     string
-	CreateAt   uint64
-}
-
-func NewProposalTask(proposalId common.Hash, taskId string, createAt uint64) *ProposalTask {
-	return &ProposalTask{
-		ProposalId: proposalId,
-		TaskId:     taskId,
-		CreateAt:   createAt,
-	}
-}
-
-func (pt *ProposalTask) GetProposalId() common.Hash { return pt.ProposalId }
-func (pt *ProposalTask) GetTaskId() string          { return pt.TaskId }
-func (pt *ProposalTask) GetCreateAt() uint64        { return pt.CreateAt }
-
 type TaskActionStatus uint16
 
 func (t TaskActionStatus) String() string {
@@ -407,6 +389,9 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) 
 		future = 0
 	}
 	syncQueue.timer.Reset(future * time.Millisecond)
+
+	log.Debugf("Add needExecuteTask monitor, taskId: {%s}, partyId: {%s}, when: {%d}, now: {%d}",
+		m.GetTaskId(), m.GetPartyId(), m.GetWhen(), timeutils.UnixMsec())
 }
 
 func (syncQueue *SyncExecuteTaskMonitorQueue) DelMonitor(taskId, partyId string) {
@@ -417,6 +402,8 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) DelMonitor(taskId, partyId string)
 		m := (*(syncQueue.queue))[i]
 		if m.GetTaskId() == taskId && m.GetPartyId() == partyId {
 			syncQueue.delMonitorWithIndex(i)
+			log.Debugf("Delete needExecuteTask monitor, taskId: {%s}, partyId: {%s}, when: {%d}, now: {%d}, index: {%d}",
+				m.GetTaskId(), m.GetPartyId(), m.GetWhen(), timeutils.UnixMsec(), i)
 			return
 		}
 	}
@@ -469,6 +456,9 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) runMonitor(now int64) int64 {
 	f := m.fn
 	// Remove top member from heap.
 	syncQueue.delMonitor0()
+	log.Debugf("Delete heap top0 needExecuteTask monitor, taskId: {%s}, partyId: {%s}, when: {%d}, now: {%d}",
+		m.GetTaskId(), m.GetPartyId(), m.GetWhen(), timeutils.UnixMsec())
+
 	syncQueue.lock.Unlock()
 	f()
 	syncQueue.lock.Lock()

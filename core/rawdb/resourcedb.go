@@ -878,7 +878,7 @@ func StoreLocalTaskExecuteStatusValTerminateByPartyId(db KeyValueStore, taskId, 
 }
 
 func RemoveLocalTaskExecuteStatusByPartyId(db KeyValueStore, taskId, partyId string) error {
-	key := GetLocalTaskExecuteStatus(taskId, partyId)
+	key := GetLocalTaskExecuteStatus(taskId, partyId) // prefix + taskId + partyId -> executeStatus (uint64)
 	has, err := db.Has(key)
 	switch {
 	case IsNoDBNotFoundErr(err):

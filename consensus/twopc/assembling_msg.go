@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -145,8 +146,8 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 		nil
 }
 
-func fetchProposalFromPrepareMsg(msg *types.PrepareMsg) *types.ProposalTask {
-	return &types.ProposalTask{
+func fetchProposalFromPrepareMsg(msg *types.PrepareMsg) *ctypes.ProposalTask {
+	return &ctypes.ProposalTask{
 		ProposalId: msg.GetMsgOption().GetProposalId(),
 		TaskId:     msg.GetTask().GetTaskId(),
 		CreateAt:   msg.GetCreateAt(),
