@@ -1210,12 +1210,12 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 		terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to query local task execute `termining` status with task sender %s, taskId: {%s}, partyId: {%s}",
-				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 			return err
 		}
 		if terminating {
 			log.Warnf("Warning query local task execute status has `termining` with task sender %s, taskId: {%s}, partyId: {%s}",
-				localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
 			return nil
 		}
 

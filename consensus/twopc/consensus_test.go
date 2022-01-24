@@ -3,10 +3,8 @@ package twopc
 import (
 	"context"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"gotest.tools/assert"
 	"math"
 	"sync/atomic"
@@ -69,9 +67,8 @@ func TestProposalStateMonitor(t *testing.T) {
 	go func(queue *ctypes.SyncProposalStateMonitorQueue) {
 		t.Log("Start add new one member into 2pc consensus proposalState monitor queue")
 		for _, tm := range arr {
-			queue.AddMonitor(ctypes.NewProposalStateMonitor(common.Hash{}, "partyId:"+fmt.Sprint(tm.UnixNano()),
-				nil, nil, tm.UnixNano()/1e6, tm.UnixNano()/1e6+1000,
-				func(proposalId common.Hash, sender *apicommonpb.TaskOrganization, orgState *ctypes.OrgProposalState) {
+			queue.AddMonitor(ctypes.NewProposalStateMonitor(nil, tm.UnixNano()/1e6, tm.UnixNano()/1e6+1000,
+				func(orgState *ctypes.OrgProposalState) {
 					atomic.AddUint32(&count, 1)
 				}))
 		}

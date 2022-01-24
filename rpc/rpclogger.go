@@ -13,7 +13,7 @@ func NewRPCdebugLogger(logger *logrus.Logger) *RPCdebugLogger {
 
 // Info returns
 func (rdl *RPCdebugLogger) Info(args ...interface{}) {
-	rdl.logger.Info(args)
+	rdl.logger.Info(args...)
 }
 
 // Infoln returns

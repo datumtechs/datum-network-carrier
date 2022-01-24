@@ -813,25 +813,25 @@ func (m *Manager) RemoveDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 
 func (m *Manager) AddDiscoveryDataNodeResource(identity *apicommonpb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string) error {
 
-	log.Infof("Discovered a new dataNode from consul server, add dataNode resource on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+	log.Infof("Discovered a new dataNode from consul server, add dataNode resource on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 		dataNodeId, dataNodeIP, dataNodePort)
 
 	client, err := grpclient.NewDataNodeClient(context.Background(), fmt.Sprintf("%s:%s", dataNodeIP, dataNodePort), dataNodeId)
 	if nil != err {
-		log.WithError(err).Errorf("Failed to connect new dataNode on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+		log.WithError(err).Errorf("Failed to connect new dataNode on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
 		return err
 	}
 	dataNodeStatus, err := client.GetStatus()
 	if nil != err {
-		log.WithError(err).Errorf("Failed to connect jobNode to query status on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+		log.WithError(err).Errorf("Failed to connect jobNode to query status on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
 		return err
 	}
 	// 1. add data resource  (disk)
 	err = m.dataCenter.StoreDataResourceTable(types.NewDataResourceTable(dataNodeId, dataNodeStatus.GetTotalDisk(), dataNodeStatus.GetUsedDisk(), true))
 	if nil != err {
-		log.WithError(err).Errorf("Failed to store disk summary of new dataNode on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+		log.WithError(err).Errorf("Failed to store disk summary of new dataNode on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
 		return err
 	}
@@ -850,12 +850,12 @@ func (m *Manager) AddDiscoveryDataNodeResource(identity *apicommonpb.Organizatio
 			ExternalPort: dataNodeExternalPort,
 			ConnState:    pb.ConnState_ConnState_Connected,
 		}); nil != err {
-		log.WithError(err).Errorf("Failed to store dataNode into local db on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+		log.WithError(err).Errorf("Failed to store dataNode into local db on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
 		return err
 	}
 
-	log.Infof("Succeed add a new dataNode from consul server, add dataNode resource  on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+	log.Infof("Succeed add a new dataNode from consul server, add dataNode resource  on resourceManager.AddDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 		dataNodeId, dataNodeIP, dataNodePort)
 
 	return nil
@@ -875,12 +875,12 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 		// 1. update local dataNode info
 		// update dataNode ip port into local db
 		if err := m.dataCenter.SetRegisterNode(pb.PrefixTypeDataNode, old); nil != err {
-			log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+			log.WithError(err).Errorf("Failed to update dataNode into local db on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 				dataNodeId, dataNodeIP, dataNodePort)
 			return err
 		}
 
-		log.Infof("Succeed update a old dataNode external ip and port from consul server on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}, old externalIp: {%s}, old externalPort: {%s}, new externalIp: {%s}, new externalPort: {%s}",
+		log.Infof("Succeed update a old dataNode external ip and port from consul server on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}, old externalIp: {%s}, old externalPort: {%s}, new externalIp: {%s}, new externalPort: {%s}",
 			dataNodeId, dataNodeIP, dataNodePort, oldIp, oldPort, old.GetExternalIp(), old.GetExternalPort())
 	}
 
@@ -908,7 +908,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 
 	resourceTable, err := m.dataCenter.QueryDataResourceTable (dataNodeId)
 	if rawdb.IsNoDBNotFoundErr(err) {
-		log.WithError(err).Errorf("Failed to query disk summary of old dataNode on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+		log.WithError(err).Errorf("Failed to query disk summary of old dataNode on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
 		return err
 	}
@@ -934,12 +934,12 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 
 		if update {
 			if err := m.dataCenter.StoreDataResourceTable(resourceTable); nil != err {
-				log.WithError(err).Errorf("Failed to update alive flag of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+				log.WithError(err).Errorf("Failed to update alive flag of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 					dataNodeId, dataNodeIP, dataNodePort)
 				return err
 			}
 
-			log.Infof("Succeed update alive flag OR total resource value of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+			log.Infof("Succeed update alive flag OR total resource value of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 				dataNodeId, dataNodeIP, dataNodePort)
 		}
 	}
@@ -983,12 +983,12 @@ func (m *Manager) RemoveDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 		// 1. update resource table
 		resourceTable.SetAlive(false)
 		if err := m.dataCenter.StoreDataResourceTable(resourceTable); nil != err {
-			log.WithError(err).Errorf("Failed to update alive flag of local dataNode resource on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+			log.WithError(err).Errorf("Failed to update alive flag of local dataNode resource on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 				dataNodeId, dataNodeIP, dataNodePort)
 			return err
 		}
 
-		log.Infof("Succeed update alive flag of old dataNode resource on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+		log.Infof("Succeed update alive flag of old dataNode resource on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
 	}
 

@@ -175,7 +175,7 @@ func (s *Service) refreshResourceNodes() error {
 				if err = s.resourceManager.RemoveDiscoveryJobNodeResource(
 					identity, jobNodeId, node.GetInternalIp(), node.GetInternalPort(),
 					viaExternalIP, viaExternalPort, node); nil != err {
-					log.WithError(err).Errorf("Failed to removed a old jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%d}",
+					log.WithError(err).Errorf("Failed to removed a old jobNode on service.refreshResourceNodes(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 						jobNodeId, node.GetInternalIp(), node.GetInternalPort())
 					continue
 				}
@@ -235,7 +235,7 @@ func (s *Service) refreshResourceNodes() error {
 				if err = s.resourceManager.RemoveDiscoveryDataNodeResource(
 					identity, dataNodeId, node.GetInternalIp(), node.GetInternalPort(),
 					viaExternalIP, viaExternalPort, node); nil != err {
-					log.WithError(err).Errorf("Failed to removed a old dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%d}",
+					log.WithError(err).Errorf("Failed to removed a old dataNode on service.refreshResourceNodes(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 						dataNodeId, node.GetInternalIp(), node.GetInternalPort())
 					continue
 				}
