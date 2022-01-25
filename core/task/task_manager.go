@@ -627,7 +627,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		return err
 	}
 
-	log.Debugf("Finished local ResourceUsage on taskManager.HandleReportResourceUsage(), needUpdate: %v, currentOrganization: %s, taskSender: %s, remoteOrganization: %s",
+	log.Debugf("Finished handle local resourceUsage on taskManager.HandleReportResourceUsage(), needUpdate: %v, currentOrganization: %s, taskSender: %s, remoteOrganization: %s",
 		needUpdate, identityId, task.GetTaskSender().GetIdentityId(), needExecuteTask.GetRemoteTaskOrganization().GetIdentityId())
 
 	// Update local task AND announce task sender to update task.
