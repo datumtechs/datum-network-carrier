@@ -622,10 +622,13 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		return fmt.Errorf("query local task failed, %s", err)
 	}
 
-	needUpdate, err := m.handleResourceUsage(needExecuteTask, needExecuteTask.GetLocalTaskOrganization().GetIdentityId(), usage, task)
+	needUpdate, err := m.handleResourceUsage(needExecuteTask.GetLocalTaskOrganization().GetIdentityId(), usage, task)
 	if nil != err {
 		return err
 	}
+
+	log.Debugf("Finished local ResourceUsage on taskManager.HandleReportResourceUsage(), needUpdate: %v, currentOrganization: %s, taskSender: %s, remoteOrganization: %s",
+		needUpdate, identityId, task.GetTaskSender().GetIdentityId(), needExecuteTask.GetRemoteTaskOrganization().GetIdentityId())
 
 	// Update local task AND announce task sender to update task.
 	if needUpdate &&

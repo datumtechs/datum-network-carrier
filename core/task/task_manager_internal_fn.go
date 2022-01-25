@@ -1287,17 +1287,17 @@ func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *lib
 	return true, nil
 }
 
-func (m *Manager) handleResourceUsage(needExecuteTask *types.NeedExecuteTask, usageIdentityId string, usage *types.TaskResuorceUsage, localTask *types.Task) (bool, error) {
+func (m *Manager) handleResourceUsage(usageIdentityId string, usage *types.TaskResuorceUsage, localTask *types.Task) (bool, error) {
 
 	// ## 1、 check whether task status is terminate ?
 	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.handleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return false, fmt.Errorf("check has `terminate` status needExecuteTask failed, %s", err)
 	}
 	if terminating {
-		log.Warnf("the localTask execute status has `terminate` on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.Warnf("the localTask execute status has `terminate` on taskManager.handleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return false, fmt.Errorf("task was terminated")
 	}
@@ -1305,12 +1305,12 @@ func (m *Manager) handleResourceUsage(needExecuteTask *types.NeedExecuteTask, us
 	// ## 2、 check whether task status is running ?
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), usage.GetPartyId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return false, fmt.Errorf("check has `exec` status needExecuteTask failed, %s", err)
 	}
 	if !running {
-		log.Warnf("Not found localTask execute status `exec` on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
+		log.Warnf("Not found localTask execute status `exec` on taskManager.handleResourceUsage(), taskId: {%s}, partyId: {%s}",
 			usage.GetTaskId(), usage.GetPartyId())
 		return false, fmt.Errorf("task is not executed")
 	}
@@ -1361,11 +1361,11 @@ func (m *Manager) handleResourceUsage(needExecuteTask *types.NeedExecuteTask, us
 	}
 
 	if needUpdate {
-		log.Debugf("Need to update local task on taskManager.HandleReportResourceUsage(), usage: %s", usage.String())
+		log.Debugf("Need to update local task on taskManager.handleResourceUsage(), usage: %s", usage.String())
 
 		// Updata task when resourceUsed change.
-		if err = m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
-			log.WithError(err).Errorf("Failed to call StoreLocalTask() on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}",
+		if err := m.resourceMng.GetDB().StoreLocalTask(localTask); nil != err {
+			log.WithError(err).Errorf("Failed to call StoreLocalTask() on taskManager.handleResourceUsage(), taskId: {%s}, partyId: {%s}",
 				usage.GetTaskId(), usage.GetPartyId())
 			return false, fmt.Errorf("update local task by usage change failed, %s", err)
 		}
@@ -1523,7 +1523,7 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 
 	log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Received taskResourceUsageMsg on `taskManager.onTaskResourceUsageMsg()`, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s", nmls.String(), pid, msg.String())
 
-	_, err = m.handleResourceUsage(needExecuteTask, msg.GetMsgOption().GetOwner().GetIdentityId(), msg.GetUsage(), task)
+	_, err = m.handleResourceUsage(msg.GetMsgOption().GetOwner().GetIdentityId(), msg.GetUsage(), task)
 	if nil != err {
 		return err
 	}
