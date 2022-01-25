@@ -1525,14 +1525,14 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
 	}
 
-	//// Check whether the sender of the message is the same organization as the sender of the task.
-	//// If not, this message is illegal.
-	//if task.GetTaskSender().GetIdentityId() != sender.GetIdentityId() ||
-	//	task.GetTaskSender().GetPartyId() != sender.GetPartyId() {
-	//	log.Warnf("Warning the sender of the message is not the same organization as the sender of the task when received commitMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, msg sender: %s, task sender: %s",
-	//		msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), sender.String(), task.GetTaskSender().String())
-	//	return fmt.Errorf("%s when received commitMsg", ctypes.ErrConsensusMsgInvalid)
-	//}
+	// Check whether the receiver of the message is the same organization as the sender of the task.
+	// If not, this message is illegal.
+	if task.GetTaskSender().GetIdentityId() != receiver.GetIdentityId() ||
+		task.GetTaskSender().GetPartyId() != receiver.GetPartyId() {
+		log.Warnf("Warning the receiver of the message is not the same organization as the sender of the task when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, msg receiver: %s, task sender: %s",
+			msg.GetMsgOption().GetProposalId().String(), task.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), receiver.String(), task.GetTaskSender().String())
+		return fmt.Errorf("receiver is not task sender of taskResourceUsageMsg")
+	}
 
 	log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Received taskResourceUsageMsg on `taskManager.onTaskResourceUsageMsg()`, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s",
 		nmls.String(), pid, msg.String())
