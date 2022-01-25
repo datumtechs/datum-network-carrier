@@ -629,8 +629,10 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 
 	// Update local task AND announce task sender to update task.
 	if needUpdate &&
-		needExecuteTask.GetLocalTaskOrganization().GetIdentityId() != identityId &&
-		needExecuteTask.GetLocalTaskOrganization().GetIdentityId() != needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() {
+		// If remote organization AND current organization is not same.
+		// send usageMsg to remote organization. (NOTE: the remote organization must be task sender)
+		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() != identityId &&
+		needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() == task.GetTaskSender().GetIdentityId() {
 
 		msg := &taskmngpb.TaskResourceUsageMsg{
 			MsgOption: &msgcommonpb.MsgOption{
