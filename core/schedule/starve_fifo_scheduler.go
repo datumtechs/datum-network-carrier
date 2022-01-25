@@ -180,7 +180,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	now := timeutils.UnixMsecUint64()
 	vrfInput := append([]byte(bullet.GetTaskId()), bytesutil.Uint64ToBytes(now)...)  // input == taskId + nowtime
 	// election other org's power resources
-	powers, nonce, weights, err := sche.elector.ElectionOrganization (powerPartyIds, nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput)
+	powers, nonce, weights, err := sche.elector.ElectionOrganization (bullet.GetTaskId(), powerPartyIds, nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 		return types.NewNeedConsensusTask(task, nonce, weights, now), bullet.GetTaskId(), fmt.Errorf("election powerOrg failed, %s", err)
@@ -230,7 +230,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		}
 		vrfInput := append([]byte(task.GetTaskId()), bytesutil.Uint64ToBytes(replayTask.GetElectionAt())...)  // input == taskId + nowtime
 		// verify power orgs of task
-		agree, err := sche.elector.VerifyElectionOrganization(task.GetTaskData().GetPowerSuppliers(), task.GetTaskSender().GetNodeId(), vrfInput, replayTask.GetNonce(), replayTask.GetWeights())
+		agree, err := sche.elector.VerifyElectionOrganization(task.GetTaskId(), task.GetTaskData().GetPowerSuppliers(), task.GetTaskSender().GetNodeId(), vrfInput, replayTask.GetNonce(), replayTask.GetWeights())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to verify election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)
@@ -310,7 +310,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, cost.Mem, cost.Bandwidth, cost.Processor)
 
-		jobNode, err := sche.elector.ElectionNode(cost.Mem, cost.Bandwidth, 0, cost.Processor, "")
+		jobNode, err := sche.elector.ElectionNode(task.GetTaskId(), cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), "")
 		if nil != err {
 			log.WithError(err).Errorf("Failed to election internal power resource when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(),taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)

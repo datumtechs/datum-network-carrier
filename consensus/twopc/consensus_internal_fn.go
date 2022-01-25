@@ -205,6 +205,8 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 		}
 	})
+
+	// add monitor to queue
 	t.state.AddMonitor(monitor)
 }
 

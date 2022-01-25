@@ -35,6 +35,7 @@ func NewVrfElector(privateKey *ecdsa.PrivateKey, resourceMng *resource.Manager) 
 }
 
 func (s *VrfElector) ElectionOrganization(
+	taskId string,
 	powerPartyIds []string,
 	skipIdentityIdCache map[string]struct{},
 	mem, bandwidth, disk uint64, processor uint32,
@@ -53,7 +54,7 @@ func (s *VrfElector) ElectionOrganization(
 		return nil, nil, nil, fmt.Errorf("query identityList count less calculate count")
 	}
 
-	log.Debugf("QueryIdentityList by dataCenter on VrfElector.ElectionOrganization(), len: {%d}, identityList: %s", len(identityInfoArr), identityInfoArr.String())
+	log.Debugf("QueryIdentityList by dataCenter on VrfElector.ElectionOrganization(), taskId: {%s}, len: {%d}, identityList: %s", taskId, len(identityInfoArr), identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
 
@@ -74,7 +75,7 @@ func (s *VrfElector) ElectionOrganization(
 	if nil != err {
 		return nil, nil, nil, err
 	}
-	log.Debugf("GetRemoteResouceTables on VrfElector.ElectionOrganization(), len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
+	log.Debugf("GetRemoteResouceTables on VrfElector.ElectionOrganization(), taskId: {%s}, len: {%d}, globalResources: %s", taskId, len(globalResources), globalResources.String())
 
 	if len(globalResources) < calculateCount {
 		return nil, nil, nil, fmt.Errorf("query org's power resource count less calculate count")
@@ -131,7 +132,7 @@ func (s *VrfElector) ElectionOrganization(
 	return orgs, nonce, weights, nil
 }
 
-func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32, extra string) (*pb.YarnRegisteredPeerDetail, error) {
+func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, processor uint32, extra string) (*pb.YarnRegisteredPeerDetail, error) {
 
 	if s.resourceMng.HasNotInternalJobNodeClientSet() {
 		return nil, fmt.Errorf("not found alive jobNode")
@@ -143,18 +144,21 @@ func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32,
 	if nil != err {
 		return nil, fmt.Errorf("query local resource tables failed, %s", err)
 	}
-	log.Debugf("QueryLocalResourceTables on electionJobNode, localResources: %s", types.UtilLocalResourceArrString(tables))
+	log.Debugf("QueryLocalResourceTables on electionJobNode, taskId: {%s}, localResources: %s", taskId, types.UtilLocalResourceArrString(tables))
 	for _, r := range tables {
-
 		isEnough := r.IsEnough(mem, bandwidth, disk, processor)
-		log.Debugf("Call electionJobNode, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v",
-			r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough)
 		if isEnough {
+			log.Debugf("Call electionJobNode find resource enough jobNode, taskId: {%s}, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v",
+				taskId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough)
 			jobNodeClient, find := s.resourceMng.QueryJobNodeClient(r.GetNodeId())
 			if find && jobNodeClient.IsConnected() {
 				resourceNodeIdArr = append(resourceNodeIdArr, r.GetNodeId())
-				log.Debugf("Call electionJobNode, append resourceId: %s", r.GetNodeId())
+				log.Debugf("Call electionJobNode collect jobNode, append jobNodeId: %s", r.GetNodeId())
 			}
+		} else {
+			taskIds, _ := s.resourceMng.GetDB().QueryJobNodeRunningTaskIdList(r.GetNodeId())
+			log.Debugf("Call electionJobNode it is a not enough resource jobNode, taskId: {%s}, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v, was running taskIds: %v",
+				taskId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough, taskIds)
 		}
 	}
 
@@ -173,7 +177,7 @@ func (s *VrfElector) ElectionNode(mem, bandwidth, disk uint64, processor uint32,
 	return jobNode, nil
 }
 
-func (s *VrfElector) EnoughAvailableOrganization(calculateCount int, mem, bandwidth, disk uint64, processor uint32) (bool, error) {
+func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount int, mem, bandwidth, disk uint64, processor uint32) (bool, error) {
 
 	// Find global power resources
 	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
@@ -212,7 +216,7 @@ func (s *VrfElector) EnoughAvailableOrganization(calculateCount int, mem, bandwi
 	return true, nil
 }
 
-func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskPowerSupplier, nodeIdStr string, extra, nonce []byte, weights [][]byte) (bool, error) {
+func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libtypes.TaskPowerSupplier, nodeIdStr string, extra, nonce []byte, weights [][]byte) (bool, error) {
 
 	if len(powerSuppliers) != len(weights) {
 		return false, fmt.Errorf("powerSuppliers count is invalid, powerSuppliers count : %d, weights count: %d", len(powerSuppliers), len(weights))
@@ -233,7 +237,8 @@ func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskP
 
 	input := rlputil.RlpHash(extra) // extra just is a taskId + electionAt
 
-	//log.Debugf("Verify vrt nonce, nodeId: %s, pubKey: %s%s, input: %s, nonce: %v", nodeId.String(), pubKey.X.String(), pubKey.Y.String(), input.String(), nonce)
+	//log.Debugf("Verify vrt nonce, taskId: %s, nodeId: %s, pubKey: %s%s, input: %s, nonce: %v",
+	//taskId, nodeId.String(), pubKey.X.String(), pubKey.Y.String(), input.String(), nonce)
 
 	flag, err := vrf.Verify(pubKey, nonce, input.Bytes())
 	if nil != err {
@@ -265,7 +270,7 @@ func (s *VrfElector) VerifyElectionOrganization(powerSuppliers []*libtypes.TaskP
 	if nil != err {
 		return false, fmt.Errorf("query global resource summary list failed, %s", err)
 	}
-	log.Debugf("GetRemoteResouceTables on VrfElector.VerifyElectionOrganization(), len: {%d}, globalResources: %s", len(globalResources), globalResources.String())
+	log.Debugf("GetRemoteResouceTables on VrfElector.VerifyElectionOrganization(), taskId: {%s}, len: {%d}, globalResources: %s", taskId, len(globalResources), globalResources.String())
 
 	if len(globalResources) < len(powerSuppliers) {
 		return false, fmt.Errorf("query org's power resource count less calculate count")
