@@ -1220,8 +1220,19 @@ func (m *Manager) executeTaskEvent(logkeyword string, symbol types.NetworkMsgLoc
 			return nil
 		}
 
-		if err := m.onTerminateExecuteTask(event.GetTaskId(), event.GetPartyId(), localTask); nil != err {
-			log.Errorf("Failed to call `onTerminateExecuteTask()` %s, taskId: {%s}, err: \n%s", logkeyword, localTask.GetTaskId(), err)
+		// ## 2、 check wether task status is `running`
+		running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to query local task execute status has `running` with task sender %s, taskId: {%s}, partyId: {%s}",
+				logkeyword, localTask.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+			return err
+			return err
+		}
+		// (While task is consensus or running, can terminate.)
+		if running {
+			if err := m.onTerminateExecuteTask(event.GetTaskId(), event.GetPartyId(), localTask); nil != err {
+				log.Errorf("Failed to call `onTerminateExecuteTask()` %s, taskId: {%s}, err: \n%s", logkeyword, localTask.GetTaskId(), err)
+			}
 		}
 	}
 	return nil
@@ -1485,19 +1496,12 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return fmt.Errorf("invalid partyId of usageMsg")
 	}
 
-	needExecuteTask, ok := m.queryNeedExecuteTaskCache(msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
+	// Note: the needexecutetask obtained here is generally the needexecutetask of the task sender, so the remoteorganization is also the task sender.
+	_, ok := m.queryNeedExecuteTaskCache(msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
 	if !ok {
 		log.Warnf("Not found needExecuteTask on `taskManager.onTaskResourceUsageMsg()`, taskId: {%s}, partyId: {%s}",
 			msg.GetUsage().GetTaskId(),  msg.GetUsage().GetPartyId())
 		return fmt.Errorf("Can not find `need execute task` cache")
-	}
-
-	if needExecuteTask.GetRemoteTaskOrganization().GetIdentityId() != msg.GetMsgOption().GetOwner().GetIdentityId() ||
-		needExecuteTask.GetRemoteTaskOrganization().GetPartyId() != msg.GetMsgOption().GetSenderPartyId() {
-		log.Errorf("identityId/partyId of needExecuteTask.RemoteTaskOrganization AND identityId/partyId of usageMsg is not same on `taskManager.onTaskResourceUsageMsg()`, taskId: {%s}, remoteIdentityId: {%s}, usageMsgIdentityId: {%s}, remotePartyId: {%s}, usageMsgPartyId: {%s}",
-			msg.GetUsage().GetTaskId(), needExecuteTask.GetRemoteTaskOrganization().GetIdentityId(), msg.GetMsgOption().GetOwner().GetIdentityId(),
-			needExecuteTask.GetRemoteTaskOrganization().GetPartyId(), msg.GetMsgOption().GetSenderPartyId())
-		return fmt.Errorf("invalid identityId/partyId of usageMsg")
 	}
 
 	// Update task resourceUsed of powerSuppliers of local task

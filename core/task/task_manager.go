@@ -409,11 +409,11 @@ func (m *Manager) TerminateTask(terminate *types.TaskTerminateMsg) {
 	// ## 2、 check wether task status is `running`
 	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to query local task execute status has `cons` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
+		log.WithError(err).Errorf("Failed to query local task execute status has `running` with task sender on `taskManager.TerminateTask()`, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		return
 	}
-	// (While task is consensus or executing, can terminate.)
+	// (While task is consensus or running, can terminate.)
 	if running {
 		if err := m.onTerminateExecuteTask(task.GetTaskId(), task.GetTaskSender().GetPartyId(), task); nil != err {
 			log.Errorf("Failed to call `onTerminateExecuteTask()` on `taskManager.TerminateTask()`, taskId: {%s}, err: \n%s", task.GetTaskId(), err)
@@ -627,8 +627,8 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		return err
 	}
 
-	log.Debugf("Finished handle local resourceUsage on taskManager.HandleReportResourceUsage(), needUpdate: %v, currentOrganization: %s, taskSender: %s, remoteOrganization: %s",
-		needUpdate, identityId, task.GetTaskSender().GetIdentityId(), needExecuteTask.GetRemoteTaskOrganization().GetIdentityId())
+	log.Debugf("Finished handle local resourceUsage on taskManager.HandleReportResourceUsage(), taskId: {%s}, partyId: {%s}, needUpdate: %v, currentOrganization: %s, taskSender: %s, remoteOrganization: %s",
+		usage.GetTaskId(), usage.GetPartyId(), needUpdate, identityId, task.GetTaskSender().GetIdentityId(), needExecuteTask.GetRemoteTaskOrganization().GetIdentityId())
 
 	// Update local task AND announce task sender to update task.
 	if needUpdate &&
