@@ -135,7 +135,7 @@ func (t *Twopc) OnPrepare(task *types.NeedConsensusTask) error { return nil }
 func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 
 	task := nonConsTask.GetTask()
-	if t.state.HasProposalTaskWithPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
+	if t.state.HasProposalTaskWithTaskIdAndPartyId(task.GetTaskId(), task.GetTaskSender().GetPartyId()) {
 		log.Errorf("Failed to check org proposalTask whether have been not exist on OnHandle, but it's alreay exist, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		t.stopTaskConsensus(ctypes.ErrPrososalTaskIsProcessed.Error(), common.Hash{}, task.GetTaskId(),
@@ -208,7 +208,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalIllegal)
 	}
 
-	if t.state.HasOrgProposalWithPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
+	if t.state.HasOrgProposalWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been not exist when received prepareMsg, but it's alreay exist, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalAlreadyProcessed)
@@ -380,12 +380,12 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 
 	vote := fetchPrepareVote(prepareVote)
 
-	if t.state.HasNotOrgProposalWithPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId()) {
+	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist when received prepareVote, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			vote.GetMsgOption().GetProposalId().String(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received prepareVote", ctypes.ErrProposalNotFound)
 	}
-	orgProposalState := t.state.MustQueryOrgProposalState(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
+	orgProposalState := t.state.MustQueryOrgProposalStateWithProposalIdAndPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 
 	// The vote in the consensus prepare epoch can be processed only if the current state is the prepare state
 	if orgProposalState.IsNotPreparePeriod() {
@@ -395,7 +395,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.state.QueryProposalTaskWithPartyId(orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+	proposalTask, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 	if !ok {
 		log.Errorf("%s when received prepareVote, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
@@ -539,13 +539,13 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	msg := fetchConfirmMsg(confirmMsg)
 
-	if t.state.HasNotOrgProposalWithPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
+	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist when received confirmMsg, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received confirmMsg", ctypes.ErrProposalNotFound)
 	}
 
-	orgProposalState := t.state.MustQueryOrgProposalState(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId())
+	orgProposalState := t.state.MustQueryOrgProposalStateWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId())
 
 	// The vote in the consensus prepare epoch or confirm epoch can be processed just if the current state is the prepare state or confirm state.
 	if orgProposalState.IsCommitPeriod() {
@@ -555,7 +555,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.state.QueryProposalTaskWithPartyId(orgProposalState.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
+	proposalTask, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
 	if !ok {
 		log.Errorf("%s when received confirmMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
@@ -723,12 +723,12 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 	vote := fetchConfirmVote(confirmVote)
 
-	if t.state.HasNotOrgProposalWithPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId()) {
+	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist when received confirmVote, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			vote.GetMsgOption().GetProposalId().String(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received confirmVote", ctypes.ErrProposalNotFound)
 	}
-	orgProposalState := t.state.MustQueryOrgProposalState(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
+	orgProposalState := t.state.MustQueryOrgProposalStateWithProposalIdAndPartyId(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 
 	// The vote in the consensus confirm epoch can be processed only if the current state is the confirm state
 	if orgProposalState.IsPreparePeriod() {
@@ -743,7 +743,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.state.QueryProposalTaskWithPartyId(orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
+	proposalTask, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), vote.GetMsgOption().GetReceiverPartyId())
 	if !ok {
 		log.Errorf("%s when received confirmVote, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			ctypes.ErrProposalTaskNotFound, vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId())
@@ -882,13 +882,13 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 
 	msg := fetchCommitMsg(cimmitMsg)
 
-	if t.state.HasNotOrgProposalWithPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
+	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist when received commitMsg, but it's not exist, proposalId: {%s}, role: {%s}, partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("%s when received commitMsg", ctypes.ErrProposalNotFound)
 	}
 
-	orgProposalState := t.state.MustQueryOrgProposalState(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId())
+	orgProposalState := t.state.MustQueryOrgProposalStateWithProposalIdAndPartyId(msg.GetMsgOption().GetProposalId(), msg.GetMsgOption().GetReceiverPartyId())
 
 	// The vote in the consensus confirm epoch or commit epoch can be processed just if the current state is the confirm state or commit state
 	if orgProposalState.IsPreparePeriod() {
@@ -903,7 +903,7 @@ func (t *Twopc) onCommitMsg(pid peer.ID, cimmitMsg *types.CommitMsgWrap, nmls ty
 	}
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.state.QueryProposalTaskWithPartyId(orgProposalState.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
+	proposalTask, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgProposalState.GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
 	if !ok {
 		log.Errorf("%s when received commitMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}",
 			ctypes.ErrProposalTaskNotFound, msg.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId())
@@ -1001,7 +1001,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsen
 	log.Infof("Start terminate task consensus when received terminateConsensusMsg , taskId: {%s}, partyId: {%s}", msg.GetTaskId(), msgOption.GetReceiverPartyId())
 
 	// find the task of proposal on proposalTask
-	proposalTask, ok := t.state.QueryProposalTaskWithPartyId(msg.GetTaskId(), msgOption.GetReceiverPartyId())
+	proposalTask, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(msg.GetTaskId(), msgOption.GetReceiverPartyId())
 	if !ok {
 		log.Errorf("%s when received terminateConsensusMsg, taskId: {%s}, partyId: {%s}", ctypes.ErrProposalTaskNotFound, msg.GetTaskId(), msgOption.GetReceiverPartyId())
 		return fmt.Errorf("%s, when received terminateConsensusMsg [taskId: %s, partyId: %s]",
@@ -1015,7 +1015,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsen
 			msg.GetTaskId(), msgOption.GetReceiverPartyId())
 	}
 
-	if t.state.HasNotOrgProposalWithPartyId(proposalTask.GetProposalId(), msgOption.GetReceiverPartyId()) {
+	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(proposalTask.GetProposalId(), msgOption.GetReceiverPartyId()) {
 		log.Errorf("Failed to check org proposalState whether have been exist when received terminateConsensusMsg, but it's not exist, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 			proposalTask.GetProposalId().String(), msg.GetTaskId(), msgOption.GetReceiverPartyId())
 		return fmt.Errorf("%s, when received terminateConsensusMsg", ctypes.ErrProposalNotFound)
@@ -1056,7 +1056,7 @@ func (t *Twopc) onTerminateTaskConsensus(pid peer.ID, msg *types.TerminateConsen
 		return fmt.Errorf("%s when received terminateConsensusMsg", ctypes.ErrConsensusMsgInvalid)
 	}
 
-	orgProposalState := t.state.MustQueryOrgProposalState(proposalTask.GetProposalId(), msgOption.GetReceiverPartyId())
+	orgProposalState := t.state.MustQueryOrgProposalStateWithProposalIdAndPartyId(proposalTask.GetProposalId(), msgOption.GetReceiverPartyId())
 	switch orgProposalState.GetPeriodNum() {
 	case ctypes.PeriodPrepare:
 		// remove `proposal state` and `task cache` AND inerrupt consensus with sender OR release local locked resource with partner

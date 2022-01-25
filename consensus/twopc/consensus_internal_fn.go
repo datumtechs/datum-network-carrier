@@ -22,8 +22,10 @@ import (
 )
 
 func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId string) {
-	if cache, ok := t.state.proposalSet[proposalId]; ok {
-		if orgState, ok := cache[partyId]; ok {
+
+	if hasCache := t.state.HasOrgProposalWithProposalId(proposalId); hasCache {
+		orgState, hasOrgState := t.state.QueryOrgProposalStateWithProposalIdAndPartyId(proposalId, partyId)
+		if hasOrgState {
 			log.Infof("Start remove org proposalState and task cache on Consensus, proposalId {%s}, taskId {%s}, partyId: {%s}",
 				proposalId, orgState.GetTaskId(), partyId)
 			t.state.RemoveOrgProposalStateAnyCache(proposalId, orgState.GetTaskId(), partyId) // remove task/proposal state/prepare vote/ confirm vote and wal with partyId
@@ -36,7 +38,7 @@ func (t *Twopc) removeOrgProposalStateAndTask(proposalId common.Hash, partyId st
 
 func (t *Twopc) storeOrgProposalState(orgState *ctypes.OrgProposalState) {
 
-	first := t.state.HasNotOrgProposalWithPartyId(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())
+	first := t.state.HasNotOrgProposalWithProposalIdAndPartyId(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())
 
 	t.state.StoreOrgProposalState(orgState)
 	t.wal.StoreOrgProposalState(orgState)
@@ -135,12 +137,12 @@ func (t *Twopc) addmonitor(orgState *ctypes.OrgProposalState) {
 				log.Debugf("Started refresh org proposalState, the org proposalState was finished, but coming deadline now on twopc.refreshProposalStateMonitor, proposalId: {%s}, taskId: {%s}, partyId: {%s}",
 					orgState.GetProposalId().String(), orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
-				_, ok := t.state.QueryProposalTaskWithPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
+				_, ok := t.state.QueryProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())
 
-				t.state.RemoveProposalTaskWithPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())    // remove proposal task with partyId
-				t.state.RemoveOrgProposalStateUnsafe(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()) // remove state with partyId
-				t.state.RemoveOrgPrepareVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())    // remove prepare vote with partyId
-				t.state.RemoveOrgConfirmVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())    // remove confirm vote with partyId
+				t.state.RemoveProposalTaskWithTaskIdAndPartyId(orgState.GetTaskId(), orgState.GetTaskOrg().GetPartyId())                   // remove proposal task with partyId
+				t.state.RemoveOrgProposalStateWithProposalIdAndPartyIdUnsafe(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId()) // remove state with partyId
+				t.state.RemoveOrgPrepareVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())                            // remove prepare vote with partyId
+				t.state.RemoveOrgConfirmVoteState(orgState.GetProposalId(), orgState.GetTaskOrg().GetPartyId())                            // remove confirm vote with partyId
 
 				if _, has := t.state.proposalSet[orgState.GetProposalId()]; !has {
 					t.removeConfirmTaskPeerInfo(orgState.GetProposalId()) // remove confirm peers and wal
@@ -816,11 +818,11 @@ func (t *Twopc) hasConfirmTaskPeerInfo(proposalId common.Hash) bool {
 }
 
 func (t *Twopc) getConfirmTaskPeerInfo(proposalId common.Hash) (*twopcpb.ConfirmTaskPeerInfo, bool) {
-	return t.state.GetConfirmTaskPeerInfo(proposalId)
+	return t.state.QueryConfirmTaskPeerInfo(proposalId)
 }
 
 func (t *Twopc) mustGetConfirmTaskPeerInfo(proposalId common.Hash) *twopcpb.ConfirmTaskPeerInfo {
-	return t.state.MustGetConfirmTaskPeerInfo(proposalId)
+	return t.state.MustQueryConfirmTaskPeerInfo(proposalId)
 }
 
 func (t *Twopc) removeConfirmTaskPeerInfo(proposalId common.Hash) {

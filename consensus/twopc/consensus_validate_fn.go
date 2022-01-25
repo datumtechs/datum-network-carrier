@@ -128,7 +128,7 @@ package twopc
 //
 //	proposalId := vote.MsgOption.ProposalId
 //	partyId := vote.MsgOption.ReceiverPartyId
-//	if t.state.HasNotOrgProposalWithPartyId(proposalId, partyId) {
+//	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(proposalId, partyId) {
 //		return fmt.Errorf("%s validatePrepareVote", ctypes.ErrProposalNotFound)
 //	}
 //	// (On publisher)
@@ -181,7 +181,7 @@ package twopc
 //func (t *Twopc) validateConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap) error {
 //
 //	proposalId := common.BytesToHash(confirmMsg.ProposalId)
-//	if t.state.HasNotOrgProposalWithPartyId(proposalId) {
+//	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(proposalId) {
 //		return fmt.Errorf("%s validateConfirmMsg", ctypes.ErrProposalNotFound)
 //	}
 //
@@ -230,7 +230,7 @@ package twopc
 //// With publisher
 //func (t *Twopc) validateConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap) error {
 //	proposalId := common.BytesToHash(confirmVote.ProposalId)
-//	if t.state.HasNotOrgProposalWithPartyId(proposalId) {
+//	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(proposalId) {
 //		return fmt.Errorf("%s validateConfirmVote", ctypes.ErrProposalNotFound)
 //	}
 //
@@ -281,7 +281,7 @@ package twopc
 //func (t *Twopc) validateCommitMsg(pid peer.ID, commitMsg *types.CommitMsgWrap) error {
 //
 //	proposalId := common.BytesToHash(commitMsg.ProposalId)
-//	if t.state.HasNotOrgProposalWithPartyId(proposalId) {
+//	if t.state.HasNotOrgProposalWithProposalIdAndPartyId(proposalId) {
 //		return fmt.Errorf("%s validateCommitMsg", ctypes.ErrProposalNotFound)
 //	}
 //
