@@ -129,6 +129,7 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
 	// todo mock
 	// ######
+	log.Debugf("Satrt mock flow, taskId: {%s}, partyId: {%s}", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
 	localTask, _ := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
 	m.handleResourceUsage(task, task.GetLocalTaskOrganization().GetIdentityId(),
 		types.NewTaskResuorceUsage(
