@@ -127,22 +127,22 @@ func (m *Manager) sendNeedExecuteTaskByAction(task *types.NeedExecuteTask) {
 // To execute task
 func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 
-	// todo mock
-	// ######
-	log.Debugf("Satrt mock flow, taskId: {%s}, partyId: {%s}", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	localTask, _ := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
-	m.handleResourceUsage(task, task.GetLocalTaskOrganization().GetIdentityId(),
-		types.NewTaskResuorceUsage(
-			task.GetTaskId(),
-			task.GetLocalTaskOrganization().GetPartyId(),
-			0, 0, 0,
-			1147483648, 30000000, 100,
-			0, 2),
-			localTask)
-	//m.RemoveExecuteTaskStateAfterExecuteTask()
-	m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
-	return nil
-	//  ######
+	//// todo mock
+	//// ######
+	//log.Debugf("Satrt mock flow, taskId: {%s}, partyId: {%s}", task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	//localTask, _ := m.resourceMng.GetDB().QueryLocalTask(task.GetTaskId())
+	//m.handleResourceUsage(task, task.GetLocalTaskOrganization().GetIdentityId(),
+	//	types.NewTaskResuorceUsage(
+	//		task.GetTaskId(),
+	//		task.GetLocalTaskOrganization().GetPartyId(),
+	//		0, 0, 0,
+	//		1147483648, 30000000, 100,
+	//		0, 2),
+	//		localTask)
+	////m.RemoveExecuteTaskStateAfterExecuteTask()
+	//m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
+	//return nil
+	////  ######
 
 	switch task.GetLocalTaskRole() {
 	case apicommonpb.TaskRole_TaskRole_DataSupplier, apicommonpb.TaskRole_TaskRole_Receiver:
