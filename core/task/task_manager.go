@@ -622,7 +622,7 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 		return fmt.Errorf("query local task failed, %s", err)
 	}
 
-	needUpdate, err := m.handleResourceUsage("when handle report local resourceUsage",  needExecuteTask.GetLocalTaskOrganization().GetIdentityId(), usage, task)
+	needUpdate, err := m.handleResourceUsage("when handle report local resourceUsage",  needExecuteTask.GetLocalTaskOrganization().GetIdentityId(), usage, task, types.LocalNetworkMsg)
 	if nil != err {
 		return err
 	}

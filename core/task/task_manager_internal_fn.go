@@ -1298,31 +1298,62 @@ func (m *Manager) checkTaskSenderPublishOpportunity(task *types.Task, event *lib
 	return true, nil
 }
 
-func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *types.TaskResuorceUsage, localTask *types.Task) (bool, error) {
+func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *types.TaskResuorceUsage, localTask *types.Task, nmls types.NetworkMsgLocationSymbol) (bool, error) {
 
-	// ## 1、 check whether task status is terminate ?
-	terminating, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), usage.GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
-		return false, fmt.Errorf("check has `terminate` status needExecuteTask failed, %s", err)
+	var (
+		terminating bool
+		running bool
+	)
+
+	if nmls == types.LocalNetworkMsg {
+		// ## 1、 check whether task status is terminate (with party self) ?
+		tflag, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), usage.GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
+				keyword, usage.GetTaskId(), usage.GetPartyId())
+			return false, fmt.Errorf("check current party has `terminate` status needExecuteTask failed, %s", err)
+		}
+		terminating = tflag
+	} else {
+		// ## 1、 check whether task status is terminate (with task sender)?
+		tflag, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusTerminateByPartyId(usage.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusTerminateByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, task sender partyId: {%s}",
+				keyword, usage.GetTaskId(), usage.GetPartyId(), localTask.GetTaskSender().GetPartyId())
+			return false, fmt.Errorf("check task sender has `terminate` status needExecuteTask failed, %s", err)
+		}
+		terminating = tflag
 	}
+
 	if terminating {
-		log.Warnf("the localTask execute status has `terminate` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
+		log.Warnf("the localTask execute status has `terminate` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, task sender partyId: {%s}",
+			keyword, usage.GetTaskId(), usage.GetPartyId(), localTask.GetTaskSender().GetPartyId())
 		return false, fmt.Errorf("task was terminated")
 	}
 
-	// ## 2、 check whether task status is running ?
-	running, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), usage.GetPartyId())
-	if nil != err {
-		log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
-		return false, fmt.Errorf("check has `exec` status needExecuteTask failed, %s", err)
+	if nmls == types.LocalNetworkMsg {
+		// ## 2、 check whether task status is running (with current party self)?
+		rflag, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), usage.GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
+				keyword, usage.GetTaskId(), usage.GetPartyId())
+			return false, fmt.Errorf("check current party has `running` status needExecuteTask failed, %s", err)
+		}
+		running = rflag
+	} else {
+		// ## 2、 check whether task status is running (with task sender)?
+		rflag, err := m.resourceMng.GetDB().HasLocalTaskExecuteStatusRunningByPartyId(usage.GetTaskId(), localTask.GetTaskSender().GetPartyId())
+		if nil != err {
+			log.WithError(err).Errorf("Failed to call HasLocalTaskExecuteStatusRunningByPartyId() on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, task sender partyId: {%s}",
+				keyword, usage.GetTaskId(), usage.GetPartyId(), localTask.GetTaskSender().GetPartyId())
+			return false, fmt.Errorf("check task sender has `running` status needExecuteTask failed, %s", err)
+		}
+		running = rflag
 	}
+
 	if !running {
-		log.Warnf("Not found localTask execute status `running` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}",
-			keyword, usage.GetTaskId(), usage.GetPartyId())
+		log.Warnf("Not found localTask execute status `running` on taskManager.handleResourceUsage() %s, taskId: {%s}, partyId: {%s}, task sender partyId: {%s}",
+			keyword, usage.GetTaskId(), usage.GetPartyId(), localTask.GetTaskSender().GetPartyId())
 		return false, fmt.Errorf("task is not executed")
 	}
 
@@ -1491,7 +1522,7 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	msg := types.FetchTaskResourceUsageMsg(usageMsg)
 
 	if msg.GetMsgOption().GetSenderPartyId() != msg.GetUsage().GetPartyId() {
-		log.Errorf("sender partyId of usageMsg AND partyId of usageMsg is not same on `taskManager.onTaskResourceUsageMsg()`, taskId: {%s}, sender partyId: {%s}, usagemsgPartyId: {%s}",
+		log.Errorf("sender partyId of usageMsg AND partyId of usageMsg is not same when received taskResourceUsageMsg, taskId: {%s}, sender partyId: {%s}, usagemsgPartyId: {%s}",
 			msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetSenderPartyId(), msg.GetUsage().GetPartyId())
 		return fmt.Errorf("invalid partyId of usageMsg")
 	}
@@ -1499,7 +1530,7 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	// Note: the needexecutetask obtained here is generally the needexecutetask of the task sender, so the remoteorganization is also the task sender.
 	_, ok := m.queryNeedExecuteTaskCache(msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverPartyId())
 	if !ok {
-		log.Warnf("Not found needExecuteTask on `taskManager.onTaskResourceUsageMsg()`, taskId: {%s}, partyId: {%s}",
+		log.Warnf("Not found needExecuteTask when received taskResourceUsageMsg, taskId: {%s}, partyId: {%s}",
 			msg.GetUsage().GetTaskId(),  msg.GetUsage().GetPartyId())
 		return fmt.Errorf("Can not find `need execute task` cache")
 	}
@@ -1507,20 +1538,20 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 	// Update task resourceUsed of powerSuppliers of local task
 	task, err := m.resourceMng.GetDB().QueryLocalTask(msg.GetUsage().GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` on `taskManager.onTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call `QueryLocalTask()` when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("query local task failed, %s", err)
 	}
 	receiver := fetchOrgByPartyRole(msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetReceiverRole(), task)
 	identity, err := m.resourceMng.GetDB().QueryIdentity()
 	if nil != err {
-		log.WithError(err).Errorf("Failed to call `QueryIdentity()` on `taskManager.onTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+		log.WithError(err).Errorf("Failed to call `QueryIdentity()` when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("query local identity failed, %s", err)
 	}
 	// verify the receiver is myself ?
 	if identity.GetIdentityId() != receiver.GetIdentityId() {
-		log.Warnf("Warning verify receiver identityId of taskResourceUsageMsg, receiver is not me on `taskManager.onTaskResourceUsageMsg()`, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
+		log.Warnf("Warning verify receiver identityId of taskResourceUsageMsg, receiver is not me when received taskResourceUsageMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, remote role: {%s}, remote partyId: {%s}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetUsage().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetMsgOption().GetSenderRole().String(), msg.GetMsgOption().GetSenderPartyId())
 		return fmt.Errorf("receiver is not me of taskResourceUsageMsg")
 	}
@@ -1534,16 +1565,16 @@ func (m *Manager) onTaskResourceUsageMsg(pid peer.ID, usageMsg *taskmngpb.TaskRe
 		return fmt.Errorf("receiver is not task sender of taskResourceUsageMsg")
 	}
 
-	log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Received taskResourceUsageMsg on `taskManager.onTaskResourceUsageMsg()`, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s",
+	log.WithField("traceId", traceutil.GenerateTraceID(usageMsg)).Debugf("Received taskResourceUsageMsg when received taskResourceUsageMsg, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s",
 		nmls.String(), pid, msg.String())
 
-	needUpdate, err := m.handleResourceUsage("when received remote resourceUsage", msg.GetMsgOption().GetOwner().GetIdentityId(), msg.GetUsage(), task)
+	needUpdate, err := m.handleResourceUsage("when received remote resourceUsage", msg.GetMsgOption().GetOwner().GetIdentityId(), msg.GetUsage(), task, types.RemoteNetworkMsg)
 	if nil != err {
 		return err
 	}
 
 	if needUpdate {
-		log.Debugf("Succeed handle remote resourceUsage on `taskManager.onTaskResourceUsageMsg()`, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s", nmls.String(), pid, msg.String())
+		log.Debugf("Succeed handle remote resourceUsage when received taskResourceUsageMsg, consensusSymbol: {%s}, remote pid: {%s}, taskResourceUsageMsg: %s", nmls.String(), pid, msg.String())
 	}
 	return nil
 }
