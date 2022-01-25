@@ -135,8 +135,8 @@ func (m *Manager) driveTaskForExecute(task *types.NeedExecuteTask) error {
 			task.GetTaskId(),
 			task.GetLocalTaskOrganization().GetPartyId(),
 			0, 0, 0,
-			100, 100, 100,
-			0, 1),
+			1147483648, 30000000, 100,
+			0, 2),
 			localTask)
 	//m.RemoveExecuteTaskStateAfterExecuteTask()
 	m.removeNeedExecuteTaskCache(task.GetTaskId(), task.GetLocalTaskOrganization().GetPartyId())
@@ -883,7 +883,7 @@ func (m *Manager) addNeedExecuteTaskCache(task *types.NeedExecuteTask, when int6
 	// v0.3.0 add NeedExecuteTask Expire Monitor
 	m.addmonitor(task, when)
 
-	log.Debugf("Call addNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
+	log.Debugf("Succeed call addNeedExecuteTaskCache, taskId: {%s}, partyId: {%s}", taskId, partyId)
 	m.runningTaskCacheLock.Unlock()
 }
 

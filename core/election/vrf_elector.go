@@ -15,6 +15,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"math/big"
 	"sort"
+	"strings"
 )
 
 var (
@@ -158,7 +159,7 @@ func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, pr
 		} else {
 			taskIds, _ := s.resourceMng.GetDB().QueryJobNodeRunningTaskIdList(r.GetNodeId())
 			log.Debugf("Call electionJobNode it is a not enough resource jobNode, taskId: {%s}, resource: %s, r.RemainMem(): %d, r.RemainBandwidth(): %d, r.RemainDisk(): %d, r.RemainProcessor(): %d, needMem: %d, needBandwidth: %d, needDisk: %d, needProcessor: %d, isEnough: %v, was running taskIds: %v",
-				taskId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough, taskIds)
+				taskId, r.String(), r.RemainMem(), r.RemainBandwidth(), r.RemainDisk(), r.RemainProcessor(), mem, bandwidth, disk, processor, isEnough, "[" + strings.Join(taskIds, ",") + "]")
 		}
 	}
 

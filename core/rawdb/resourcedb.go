@@ -387,7 +387,7 @@ func QueryJobNodeRunningTaskIds(db KeyValueStore, jobNodeId string) ([]string, e
 	if len(arr) == 0 {
 		return nil, ErrNotFound
 	}
-	log.Debugf("Call QueryJobNodeRunningTaskIds, jobNodeId: {%s}, taskIds: %s", jobNodeId, strings.Join(arr, ","))
+	log.Debugf("Call QueryJobNodeRunningTaskIds, jobNodeId: {%s}, taskIds: %s", jobNodeId, "[" + strings.Join(arr, ",") + "]")
 	return arr, nil
 }
 
