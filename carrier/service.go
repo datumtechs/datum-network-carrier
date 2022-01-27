@@ -116,7 +116,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		authManager:       authManager,
 		scheduler:         scheduler,
 		consulManager: discovery.NewConsulClient(&discovery.ConsulService{
-			ServiceIP:   cliCtx.String(p2p.IpAddr().String()),
+			ServiceIP:   p2p.IpAddr().String(),
 			ServicePort: cliCtx.String(flags.RPCPort.Name),
 			Tags:        cliCtx.StringSlice(flags.DiscoveryServerTags.Name),
 			Name:        cliCtx.String(flags.DiscoveryServiceName.Name),
