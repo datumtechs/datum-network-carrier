@@ -164,6 +164,9 @@ func ipAddr() net.IP {
 	}
 	return net.ParseIP(ip)
 }
+func IpAddr() net.IP {
+	return ipAddr()
+}
 
 // Attempt to dial an address to verify its connectivity
 func verifyConnectivity(addr string, port uint, protocol string) {

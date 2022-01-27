@@ -61,7 +61,7 @@ func TestConsulClientFlow(t *testing.T) {
 		Interval:    2,
 		Deregister:  3,
 	}
-	conn := New(serverInfo, consulIp, consulPort)
+	conn := NewConsulClient(serverInfo, consulIp, consulPort)
 
 	err := conn.RegisterService2DiscoveryCenter()
 	assert.NilError(t, err, "register service succeed")

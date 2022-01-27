@@ -66,7 +66,7 @@ func (h *HealthCheck) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc_healt
 	return nil
 }
 
-func New(consulSvr *ConsulService, consulIp string, consulPort int) *ConnectConsul {
+func NewConsulClient(consulSvr *ConsulService, consulIp string, consulPort int) *ConnectConsul {
 	if "" == consulIp || 0 == consulPort {
 		log.Fatalf("Failed to check consul server ip: %s, consul server port %d", consulIp, consulPort)
 	}
