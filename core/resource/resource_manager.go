@@ -14,6 +14,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	log "github.com/sirupsen/logrus"
 	"strings"
+	"sync/atomic"
 	"time"
 )
 
@@ -144,7 +145,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 	}
 
 
-	// Update local resource resource information [increase resource usage]
+	// Query old local resource information [before increase resource usage]
 	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
 		// rollback useSlot => freeSlot
@@ -157,6 +158,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		return err
 	}
 
+	// Query jobNode running task count [before increase resource usage]
 	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskCount(jobNodeId)
 	if nil != err {
 		// rollback useSlot => freeSlot
@@ -169,14 +171,47 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		return err
 	}
 
-	// Update the resource usage information of the local jobNode resource
-	jobNodeResource.GetData().UsedMem += mem
-	jobNodeResource.GetData().UsedProcessor += processor
-	jobNodeResource.GetData().UsedBandwidth += bandwidth
-	jobNodeResource.GetData().UsedDisk += disk
+	log.Infof("Before increase localResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}, old LocalResource: %s",
+		task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor, jobNodeResource.GetData().String())
+
+	// Increase the resource usage information of the local jobNode resource
+	oldMem := jobNodeResource.GetData().GetUsedMem()
+	if oldMem + mem > jobNodeResource.GetData().GetTotalMem() {
+		log.Errorf("Failed to increase localResource, the increased mem used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+		return fmt.Errorf("the increased mem used value exceeds the total value")
+	} else {
+		atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedMem), oldMem, oldMem + mem)
+	}
+	oldProcessor := jobNodeResource.GetData().GetUsedProcessor()
+	if oldProcessor + processor > jobNodeResource.GetData().GetTotalProcessor() {
+		log.Errorf("Failed to increase localResource, the increased processor used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+		return fmt.Errorf("the increased processor used value exceeds the total value")
+	} else {
+		atomic.CompareAndSwapUint32(&(jobNodeResource.GetData().UsedProcessor), oldProcessor, oldProcessor + processor)
+	}
+	oldBandwidth := jobNodeResource.GetData().GetUsedBandwidth()
+	if oldBandwidth + bandwidth > jobNodeResource.GetData().GetTotalBandwidth() {
+		log.Errorf("Failed to increase localResource, the increased bandwidth used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+		return fmt.Errorf("the increased bandwidth used value exceeds the total value")
+	} else {
+		atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedBandwidth), oldBandwidth, oldBandwidth + bandwidth)
+	}
+	oldDisk := jobNodeResource.GetData().GetUsedDisk()
+	if oldDisk + disk > jobNodeResource.GetData().GetTotalDisk() {
+		log.Errorf("Failed to increase localResource, the increased disk used value exceeds the total value on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+		return fmt.Errorf("the increased disk used value exceeds the total value")
+	} else {
+		atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedDisk), oldDisk, oldDisk + disk)
+	}
+	// check the jobNode running task count
 	if jobNodeRunningTaskCount > 0 {
-		log.Debugf("Update jobNode localResource state to `Occupation` state on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
-			task.GetTaskId(), partyId, jobNodeId, jobNodeRunningTaskCount)
+		log.Debugf("Update jobNode localResource state to `Occupation` state on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}, LocalResource: %s",
+			task.GetTaskId(), partyId, jobNodeId, jobNodeRunningTaskCount, jobNodeResource.GetData().String())
+
 		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Occupation
 	}
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
@@ -185,20 +220,20 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 		m.FreeSlot(jobNodeId, mem, bandwidth, disk, processor)
 		m.removePartyTaskPowerUsedOnJobNode(used)
 
-		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
-			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}, LocalResource: %s",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor, jobNodeResource.GetData().String())
 		return err
 	}
 
 	// Report resource usage to datacenter in real time [increase resource usage]
 	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
-		log.WithError(err).Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
-			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+		log.WithError(err).Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}, LocalResource: %s",
+			task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor, jobNodeResource.GetData().String())
 		return err
 	}
 
-	log.Infof("Finished lock local resource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
-		task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
+	log.Infof("Finished lock local resource on resourceManager.LockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}, LocalResource: %s",
+		task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor, jobNodeResource.GetData().String())
 	return nil
 }
 
@@ -242,7 +277,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	// Update local resource resource information [release resource usage]
+	// Query old local resource information [before decrease resource usage]
 	jobNodeResource, err := m.dataCenter.QueryLocalResource(jobNodeId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
@@ -250,6 +285,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
+	// Query jobNode running task count [before decrease resource usage]
 	jobNodeRunningTaskCount, err := m.dataCenter.QueryJobNodeRunningTaskCount(jobNodeId)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query task runningCount in jobNode on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
@@ -257,30 +293,65 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 		return err
 	}
 
-	jobNodeResource.GetData().UsedMem -= freeMemCount
-	jobNodeResource.GetData().UsedProcessor -= freeProcessorCount
-	jobNodeResource.GetData().UsedBandwidth -= freeBandwidthCount
-	jobNodeResource.GetData().UsedDisk -= freeDiskCount
+	log.Infof("Before decrease localResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, old LocalResource: %s",
+		taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
+
+	// Decrease the resource usage information of the local jobNode resource
+	oldMem := jobNodeResource.GetData().GetUsedMem()
+	if oldMem < freeMemCount {
+		log.Errorf("Failed to decrease localResource, the mem value to be decreased exceeds the used value on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
+			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+		return fmt.Errorf("the mem value to be decreased exceeds the used value")
+	} else {
+		atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedMem), oldMem, oldMem - freeMemCount)
+	}
+	oldProcessor := jobNodeResource.GetData().GetUsedProcessor()
+	if oldProcessor < freeProcessorCount {
+		log.Errorf("Failed to decrease localResource, the processor value to be decreased exceeds the used value on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
+			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+		return fmt.Errorf("the processor value to be decreased exceeds the used value")
+	} else {
+		atomic.CompareAndSwapUint32(&(jobNodeResource.GetData().UsedProcessor), oldProcessor, oldProcessor - freeProcessorCount)
+	}
+	oldBandwidth := jobNodeResource.GetData().GetUsedBandwidth()
+	if oldBandwidth < freeBandwidthCount {
+		log.Errorf("Failed to decrease localResource, the bandwidth value to be decreased exceeds the used value on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
+			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+		return fmt.Errorf("the bandwidth value to be decreased exceeds the used value")
+	} else {
+		atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedBandwidth), oldBandwidth, oldBandwidth - freeBandwidthCount)
+	}
+	oldDisk := jobNodeResource.GetData().GetUsedDisk()
+	if oldDisk < freeDiskCount {
+		log.Errorf("Failed to decrease localResource, the disk value to be decreased exceeds the used value on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
+			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+		return fmt.Errorf("the disk value to be decreased exceeds the used value")
+	} else {
+		atomic.CompareAndSwapUint64(&(jobNodeResource.GetData().UsedDisk), oldDisk, oldDisk - freeDiskCount)
+	}
+
+	// check the jobNode running task count
 	if jobNodeRunningTaskCount == 0 {
-		log.Debugf("Update jobNode localResource state to `Released` state on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}",
-			taskId, partyId, jobNodeId, jobNodeRunningTaskCount)
+		log.Debugf("Update jobNode localResource state to `Released` state on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, jobNodeTaskCount: {%d}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
+			taskId, partyId, jobNodeId, jobNodeRunningTaskCount, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
+
 		jobNodeResource.GetData().State = apicommonpb.PowerState_PowerState_Released
 	}
 	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
-		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
-			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
+			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
 		return err
 	}
 
 	// Report resource usage to datacenter in real time [release resource usage]
 	if err := m.dataCenter.SyncPowerUsed(jobNodeResource); nil != err {
-		log.WithError(err).Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
-			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+		log.WithError(err).Errorf("Failed to sync jobNodeResource to dataCenter on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
+			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
 		return err
 	}
 
-	log.Infof("Finished unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}",
-		taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount)
+	log.Infof("Finished unlock local resource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
+		taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
 	return nil
 }
 
