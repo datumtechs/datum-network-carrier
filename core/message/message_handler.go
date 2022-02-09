@@ -806,18 +806,10 @@ func (m *MessageHandler) BroadcastMetadataAuthRevokeMsgArr(metadataAuthRevokeMsg
 			continue
 		}
 
-		if err := m.resourceMng.GetDB().UpdateMetadataAuthority(types.NewMetadataAuthority(&libtypes.MetadataAuthorityPB{
-			MetadataAuthId:  revoke.GetMetadataAuthId(),
-			User:            revoke.GetUser(),
-			UserType:        revoke.GetUserType(),
-			Auth:            &libtypes.MetadataAuthority{},
-			AuditOption:     metadataAuth.GetData().GetAuditOption(),
-			AuditSuggestion: metadataAuth.GetData().GetAuditSuggestion(),
-			UsedQuo:         metadataAuth.GetData().GetUsedQuo(),
-			ApplyAt:         metadataAuth.GetData().GetApplyAt(),
-			AuditAt:         metadataAuth.GetData().GetAuditAt(),
-			State:           apicommonpb.MetadataAuthorityState_MAState_Revoked,
-		})); nil != err {
+		// change state of metadataAuth from `release` to `revoke`
+		metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Revoked
+		// update metadataAuth from datacenter
+		if err := m.resourceMng.GetDB().UpdateMetadataAuthority(metadataAuth); nil != err {
 			log.WithError(err).Errorf("Failed to update metadataAuth to dataCenter on MessageHandler with revoke metadataAuth, metadataAuthId: {%s}, user:{%s}",
 				revoke.GetMetadataAuthId(), revoke.GetUser())
 			continue
