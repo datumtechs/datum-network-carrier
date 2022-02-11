@@ -57,6 +57,8 @@ func NewSaveIdentityRequest(identity *Identity) *api.SaveIdentityRequest {
 			NodeName:   identity.GetName(),
 			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
+			ImageUrl:   identity.GetImageUrl(),
+			Details:    identity.GetDetails(),
 		},
 		Credential: identity.GetCredential(),
 	}

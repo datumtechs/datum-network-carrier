@@ -57,7 +57,7 @@ require (
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	go.opencensus.io v0.23.0
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
-	golang.org/x/net v0.0.0-20210525063256-abc453219eb5 // indirect
+	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
 	golang.org/x/sys v0.0.0-20210831042530-f4d43177bf5e // indirect
 	google.golang.org/genproto v0.0.0-20210825212027-de86158e7fda
 	google.golang.org/grpc v1.40.0
