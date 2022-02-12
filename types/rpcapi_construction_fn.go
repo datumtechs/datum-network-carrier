@@ -169,7 +169,9 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 			Details:    organization.GetDetails(),
 			DataId:     organization.GetIdentityId(),
 			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+			Status:     organization.GetStatus(),
 			UpdateAt:   organization.GetUpdateAt(),
+			Credential: "",
 		}))
 	}
 	return result

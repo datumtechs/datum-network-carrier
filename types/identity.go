@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/RosettaFlow/Carrier-Go/common"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"strings"
@@ -38,7 +39,6 @@ func IdentityDataTojson(identity *Identity) string {
 	return string(result)
 }
 
-
 func (m *Identity) DecodePb(data []byte) error {
 	if m.data == nil {
 		m.data = new(libtypes.IdentityPB)
@@ -58,33 +58,16 @@ func (m *Identity) Hash() common.Hash {
 	return v
 }
 
-func (m *Identity) GetName() string {
-	return m.data.GetNodeName()
-}
-
-func (m *Identity) GetNodeId() string {
-	return m.data.GetNodeId()
-}
-
-func (m *Identity) GetIdentityId() string {
-	return m.data.GetIdentityId()
-}
-
-func (m *Identity) GetImageUrl() string {
-	return m.data.GetImageUrl()
-}
-
-func (m *Identity) GetDetails() string {
-	return m.data.GetDetails()
-}
-
-func (m *Identity) GetCredential() string {
-	return m.data.GetCredential()
-}
-
-func (m *Identity) GetUpdateAt() uint64 {
-	return m.data.GetUpdateAt()
-}
+func (m *Identity) GetName() string { return m.data.GetNodeName() }
+func (m *Identity) GetNodeId() string { return m.data.GetNodeId() }
+func (m *Identity) GetIdentityId() string { return m.data.GetIdentityId() }
+func (m *Identity) GetImageUrl() string { return m.data.GetImageUrl() }
+func (m *Identity) GetDetails() string { return m.data.GetDetails() }
+func (m *Identity) GetCredential() string { return m.data.GetCredential() }
+func (m *Identity) GetUpdateAt() uint64 { return m.data.GetUpdateAt() }
+func (m *Identity) GetStatus() apicommonpb.CommonStatus { return m.data.GetStatus() }
+func (m *Identity) GetDataStatus() apicommonpb.DataStatus { return m.data.GetDataStatus() }
+func (m *Identity) GetDataId() string { return m.data.GetDataId() }
 
 func (m *Identity) String() string {
 	//return fmt.Sprintf(`{"identity": %s, "nodeId": %s, "nodeName": %s, "dataId": %s, "dataStatus": %s, "status": %s}`,
@@ -123,14 +106,13 @@ func (s IdentityArray) To() []*libtypes.IdentityPB {
 	return arr
 }
 
-func  (s IdentityArray) String () string {
+func (s IdentityArray) String() string {
 	arr := make([]string, len(s))
 	for i, iden := range s {
 		arr[i] = iden.String()
 	}
 	if len(arr) != 0 {
-		return "[" +  strings.Join(arr, ",") + "]"
+		return "[" + strings.Join(arr, ",") + "]"
 	}
 	return ""
 }
-

@@ -41,11 +41,6 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 		return nil, ErrReqMemberParams
 	}
 
-	//// todo should remove this default img url
-	//if "" == strings.Trim(req.GetMember().GetImageUrl(), "") {
-	//	req.GetMember().ImageUrl = "https://pica.zhimg.com/v2-f2af5e9e6f2d26b4c31e070c6a38c380_1440w.jpg"
-	//}
-
 	if "" == strings.Trim(req.GetMember().GetIdentityId(), "") ||
 		"" == strings.Trim(req.GetMember().GetNodeName(), "") {
 		return nil, ErrReqMemberIdentityIdOrNameParams
@@ -154,6 +149,7 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 			ImageUrl:   identity.GetImageUrl(),
 			Details:    identity.GetDetails(),
 			UpdateAt:   identity.GetUpdateAt(),
+			Status:     identity.GetStatus(),
 		}
 		arr[i] = iden
 	}

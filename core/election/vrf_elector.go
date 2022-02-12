@@ -58,7 +58,10 @@ func (s *VrfElector) ElectionOrganization(
 	log.Debugf("QueryIdentityList by dataCenter on VrfElector.ElectionOrganization(), taskId: {%s}, len: {%d}, identityList: %s", taskId, len(identityInfoArr), identityInfoArr.String())
 	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
 	for _, identityInfo := range identityInfoArr {
-
+		// Skip the invalid organization
+		if identityInfo.GetStatus() == apicommonpb.CommonStatus_CommonStatus_NonNormal || identityInfo.GetDataStatus() == apicommonpb.DataStatus_DataStatus_Deleted {
+			continue
+		}
 		// Skip the mock identityId
 		if s.resourceMng.IsMockIdentityId(identityInfo.GetIdentityId()) {
 			continue

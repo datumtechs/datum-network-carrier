@@ -244,7 +244,8 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		var metadataId string
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			if selfIdentityId == dataSupplier.GetOrganization().GetIdentityId() && localPartyId == dataSupplier.GetOrganization().GetPartyId() {
-				metadataId = dataSupplier.MetadataId
+				metadataId = dataSupplier.GetMetadataId()
+				break
 			}
 		}
 
