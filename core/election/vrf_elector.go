@@ -35,107 +35,6 @@ func NewVrfElector(privateKey *ecdsa.PrivateKey, resourceMng *resource.Manager) 
 	}
 }
 
-func (s *VrfElector) ElectionOrganization(
-	taskId string,
-	powerPartyIds []string,
-	skipIdentityIdCache map[string]struct{},
-	mem, bandwidth, disk uint64, processor uint32,
-	extra []byte,
-) ([]*libtypes.TaskPowerSupplier, []byte, [][]byte, error) {
-
-	calculateCount := len(powerPartyIds)
-
-	// Find global identitys
-	identityInfoArr, err := s.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
-	if nil != err {
-		return nil, nil, nil, err
-	}
-
-	if len(identityInfoArr) < calculateCount {
-		return nil, nil, nil, fmt.Errorf("query identityList count less calculate count")
-	}
-
-	log.Debugf("QueryIdentityList by dataCenter on VrfElector.ElectionOrganization(), taskId: {%s}, len: {%d}, identityList: %s", taskId, len(identityInfoArr), identityInfoArr.String())
-	identityInfoTmp := make(map[string]*types.Identity, calculateCount)
-	for _, identityInfo := range identityInfoArr {
-		// Skip the invalid organization
-		if identityInfo.GetStatus() == apicommonpb.CommonStatus_CommonStatus_NonNormal || identityInfo.GetDataStatus() == apicommonpb.DataStatus_DataStatus_Deleted {
-			continue
-		}
-		// Skip the mock identityId
-		if s.resourceMng.IsMockIdentityId(identityInfo.GetIdentityId()) {
-			continue
-		}
-
-		identityInfoTmp[identityInfo.GetIdentityId()] = identityInfo
-	}
-
-	if len(identityInfoTmp) < calculateCount {
-		return nil, nil, nil, fmt.Errorf("find valid identityIds count less calculate count")
-	}
-
-	// Find global power resources
-	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
-	if nil != err {
-		return nil, nil, nil, err
-	}
-	log.Debugf("GetRemoteResouceTables on VrfElector.ElectionOrganization(), taskId: {%s}, len: {%d}, globalResources: %s", taskId, len(globalResources), globalResources.String())
-
-	if len(globalResources) < calculateCount {
-		return nil, nil, nil, fmt.Errorf("query org's power resource count less calculate count")
-	}
-
-	nonce, err := s.vrfNonce(extra)
-	if nil != err {
-		return nil, nil, nil, err
-	}
-	queue, weights := s.vrfElectionOrganizationResourceQueue(globalResources, nonce, calculateCount)
-
-	orgs := make([]*libtypes.TaskPowerSupplier, 0)
-	i := 0
-	for _, r := range queue {
-
-		if i == calculateCount {
-			break
-		}
-
-		// skip
-		if len(skipIdentityIdCache) != 0 {
-			if _, ok := skipIdentityIdCache[r.GetIdentityId()]; ok {
-				continue
-			}
-		}
-
-		// append one, if it enouph
-		if info, ok := identityInfoTmp[r.GetIdentityId()]; ok {
-			orgs = append(orgs, &libtypes.TaskPowerSupplier{
-				Organization: &apicommonpb.TaskOrganization{
-					PartyId:    powerPartyIds[i],
-					NodeName:   info.GetName(),
-					NodeId:     info.GetNodeId(),
-					IdentityId: info.GetIdentityId(),
-				},
-				ResourceUsedOverview: &libtypes.ResourceUsageOverview{
-					TotalMem:       r.GetTotalMem(), // total resource value of org.
-					UsedMem:        0,               // used resource of this task (real time max used)
-					TotalBandwidth: r.GetTotalBandWidth(),
-					UsedBandwidth:  0, // used resource of this task (real time max used)
-					TotalDisk:      r.GetTotalDisk(),
-					UsedDisk:       0,
-					TotalProcessor: r.GetTotalProcessor(),
-					UsedProcessor:  0, // used resource of this task (real time max used)
-				},
-			})
-			i++
-		}
-	}
-
-	if len(orgs) < calculateCount {
-		return nil, nil, nil, ErrEnoughResourceOrgCountLessCalculateCount
-	}
-	return orgs, nonce, weights, nil
-}
-
 func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, processor uint32, extra string) (*pb.YarnRegisteredPeerDetail, error) {
 
 	if s.resourceMng.HasNotInternalJobNodeClientSet() {
@@ -181,19 +80,92 @@ func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, pr
 	return jobNode, nil
 }
 
+
+
+func (s *VrfElector) ElectionOrganization(
+	taskId string,
+	powerPartyIds []string,
+	skipIdentityIdCache map[string]struct{},
+	mem, bandwidth, disk uint64, processor uint32,
+	extra []byte,
+) ([]*libtypes.TaskPowerSupplier, []byte, [][]byte, error) {
+
+	calculateCount := len(powerPartyIds)
+
+
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("ElectionOrganization()", taskId)
+	if nil != err {
+		return nil, nil, nil, err
+	}
+
+	if len(globalpowerSummarys) < calculateCount {
+		return nil, nil, nil, fmt.Errorf("query valid org's power resource count less calculate count")
+	}
+
+	nonce, err := s.vrfNonce(extra)
+	if nil != err {
+		return nil, nil, nil, err
+	}
+	queue, weights := s.vrfElectionOrganizationResourceQueue(globalpowerSummarys, nonce, calculateCount)
+
+	orgs := make([]*libtypes.TaskPowerSupplier, 0)
+	i := 0
+	for _, r := range queue {
+
+		if i == calculateCount {
+			break
+		}
+
+		// skip
+		if len(skipIdentityIdCache) != 0 {
+			if _, ok := skipIdentityIdCache[r.GetIdentityId()]; ok {
+				continue
+			}
+		}
+
+		// append one, if it enouph
+		orgs = append(orgs, &libtypes.TaskPowerSupplier{
+			Organization: &apicommonpb.TaskOrganization{
+				PartyId:    powerPartyIds[i],
+				NodeName:   r.GetNodeName(),
+				NodeId:     r.GetNodeId(),
+				IdentityId: r.GetIdentityId(),
+			},
+			ResourceUsedOverview: &libtypes.ResourceUsageOverview{
+				TotalMem:       r.GetTotalMem(), // total resource value of org.
+				UsedMem:        0,               // used resource of this task (real time max used)
+				TotalBandwidth: r.GetTotalBandWidth(),
+				UsedBandwidth:  0, // used resource of this task (real time max used)
+				TotalDisk:      r.GetTotalDisk(),
+				UsedDisk:       0,
+				TotalProcessor: r.GetTotalProcessor(),
+				UsedProcessor:  0, // used resource of this task (real time max used)
+			},
+		})
+		i++
+	}
+
+	if len(orgs) < calculateCount {
+		return nil, nil, nil, ErrEnoughResourceOrgCountLessCalculateCount
+	}
+	return orgs, nonce, weights, nil
+}
+
+
 func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount int, mem, bandwidth, disk uint64, processor uint32) (bool, error) {
 
-	// Find global power resources
-	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
+	// Find valid global power resources
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("EnoughAvailableOrganization()", taskId)
 	if nil != err {
 		return false, err
 	}
-	if len(globalResources) < calculateCount {
-		return false, fmt.Errorf("query org's power resource count less calculate count")
+
+	if len(globalpowerSummarys) < calculateCount {
+		return false, fmt.Errorf("query valid org's power resource count less calculate count")
 	}
 
 	i := 0
-	for _, r := range globalResources {
+	for _, r := range globalpowerSummarys {
 
 		if i == calculateCount {
 			break
@@ -270,16 +242,17 @@ func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []
 	}
 
 	// Find global power resources
-	globalResources, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("EnoughAvailableOrganization()", taskId)
 	if nil != err {
-		return false, fmt.Errorf("query global resource summary list failed, %s", err)
+		return false, err
 	}
-	log.Debugf("GetRemoteResouceTables on VrfElector.VerifyElectionOrganization(), taskId: {%s}, len: {%d}, globalResources: %s", taskId, len(globalResources), globalResources.String())
 
-	if len(globalResources) < len(powerSuppliers) {
-		return false, fmt.Errorf("query org's power resource count less calculate count")
+	log.Debugf("GetRemoteResouceTables on VrfElector.VerifyElectionOrganization(), taskId: {%s}, len: {%d}, globalpowerSummarys: %s", taskId, len(globalpowerSummarys), globalpowerSummarys.String())
+
+	if len(globalpowerSummarys) < len(powerSuppliers) {
+		return false, fmt.Errorf("query valid org's power resource count less calculate count")
 	}
-	queue, reweights := s.vrfElectionOrganizationResourceQueue(globalResources, nonce, len(powerSuppliers))
+	queue, reweights := s.vrfElectionOrganizationResourceQueue(globalpowerSummarys, nonce, len(powerSuppliers))
 	for _, powerSupplier := range queue {
 		if _, ok := identityIdMap[powerSupplier.GetIdentityId()]; !ok {
 			return false, fmt.Errorf("not found identityId of powerSupplier when reElectionOrganizationResource, identity: %s", powerSupplier.GetIdentityId())
@@ -307,6 +280,74 @@ func (s *VrfElector) vrfNonce(data []byte) ([]byte, error) {
 	//log.Debugf("Generate vrt nonce, privateKey: %s, input: %s, nonce: %v", s.privateKey.D.String(), input.String(), nonce)
 	return nonce, nil
 }
+
+func (s *VrfElector) vrfElectionOrganizationResourceQueue(resources types.ResourceArray, nonce []byte, count int) (types.ResourceArray, [][]byte) {
+
+	rand := vrf.ProofToHash(nonce) // nonce == proof + rand , len(rand) == 32
+
+	queue := make(randomIdenQueue, len(resources))
+	for i, resource := range resources {
+		dh := rlputil.RlpHash(resource.GetIdentityId()) // len(dh) == 32
+		value := new(big.Int).Xor(new(big.Int).SetBytes(dh.Bytes()), new(big.Int).SetBytes(rand))
+		queue[i] = newRandomIden(resource, value,  resource.GetTotalMem(), resource.GetTotalBandWidth(), resource.GetTotalProcessor())
+	}
+	sort.Sort(queue)
+
+	res := make(types.ResourceArray, count)
+	bs := make([][]byte, count)
+	for i, riden := range queue {
+		if i == count {
+			break
+		}
+		res[i] = riden.data
+		bs[i] = riden.value.Bytes()
+	}
+	return res, bs
+}
+
+
+func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (types.ResourceArray, error) {
+
+	// Find global identitys
+	identityInfoArr, err := s.resourceMng.GetDB().QueryIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
+	if nil != err {
+		return nil, fmt.Errorf("query global identity list failed, %s", err)
+	}
+
+	log.Debugf("QueryIdentityList by dataCenter on VrfElector.%s, taskId: {%s}, len: {%d}, identityList: %s", logkeyword, taskId, len(identityInfoArr), identityInfoArr.String())
+
+	identityInfoCache := make(map[string]*types.Identity, len(identityInfoArr))
+
+	for _, identityInfo := range identityInfoArr {
+		// Skip the invalid organization
+		if identityInfo.GetStatus() == apicommonpb.CommonStatus_CommonStatus_NonNormal || identityInfo.GetDataStatus() == apicommonpb.DataStatus_DataStatus_Deleted {
+			continue
+		}
+		// Skip the mock identityId
+		if s.resourceMng.IsMockIdentityId(identityInfo.GetIdentityId()) {
+			continue
+		}
+
+		identityInfoCache[identityInfo.GetIdentityId()] = identityInfo
+	}
+
+	// Find global power resources
+	globalpowerSummarys, err := s.resourceMng.GetDB().QueryGlobalResourceSummaryList()
+	if nil != err {
+		return nil, fmt.Errorf("query global powerSummary list failed, %s", err)
+	}
+	log.Debugf("GetRemoteResouceTables on VrfElector.%s, taskId: {%s}, len: {%d}, globalpowerSummarys: %s", logkeyword, taskId, len(globalpowerSummarys), globalpowerSummarys.String())
+
+	// filter global powerSummary list without invalid identityId
+	validGlobalpowerSummarys := make(types.ResourceArray, 0)
+	for _, powerSummary := range globalpowerSummarys {
+		if _, ok := identityInfoCache[powerSummary.GetIdentityId()]; ok {
+			validGlobalpowerSummarys = append(validGlobalpowerSummarys, powerSummary)
+		}
+	}
+	return validGlobalpowerSummarys, nil
+}
+
 
 type randomIden struct {
 	data            *types.Resource
@@ -370,28 +411,4 @@ func (r randomIdenQueue) Less(i, j int) bool { // from max to min
 
 func (r randomIdenQueue) Swap(i, j int) {
 	r[i], r[j] = r[j], r[i]
-}
-
-func (s *VrfElector) vrfElectionOrganizationResourceQueue(resources types.ResourceArray, nonce []byte, count int) (types.ResourceArray, [][]byte) {
-
-	rand := vrf.ProofToHash(nonce) // nonce == proof + rand , len(rand) == 32
-
-	queue := make(randomIdenQueue, len(resources))
-	for i, resource := range resources {
-		dh := rlputil.RlpHash(resource.GetIdentityId()) // len(dh) == 32
-		value := new(big.Int).Xor(new(big.Int).SetBytes(dh.Bytes()), new(big.Int).SetBytes(rand))
-		queue[i] = newRandomIden(resource, value,  resource.GetTotalMem(), resource.GetTotalBandWidth(), resource.GetTotalProcessor())
-	}
-	sort.Sort(queue)
-
-	res := make(types.ResourceArray, count)
-	bs := make([][]byte, count)
-	for i, riden := range queue {
-		if i == count {
-			break
-		}
-		res[i] = riden.data
-		bs[i] = riden.value.Bytes()
-	}
-	return res, bs
 }
