@@ -242,7 +242,7 @@ func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []
 	}
 
 	// Find global power resources
-	globalpowerSummarys, err := s.queryValidGlobalPowerList("EnoughAvailableOrganization()", taskId)
+	globalpowerSummarys, err := s.queryValidGlobalPowerList("VerifyElectionOrganization()", taskId)
 	if nil != err {
 		return false, err
 	}
