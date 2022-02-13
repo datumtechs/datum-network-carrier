@@ -316,7 +316,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 
 	log.Debugf("QueryIdentityList by dataCenter on VrfElector.%s, taskId: {%s}, len: {%d}, identityList: %s", logkeyword, taskId, len(identityInfoArr), identityInfoArr.String())
 
-	identityInfoCache := make(map[string]*types.Identity, len(identityInfoArr))
+	identityInfoCache := make(map[string]struct{}, len(identityInfoArr))
 
 	for _, identityInfo := range identityInfoArr {
 		// Skip the invalid organization
@@ -328,7 +328,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 			continue
 		}
 
-		identityInfoCache[identityInfo.GetIdentityId()] = identityInfo
+		identityInfoCache[identityInfo.GetIdentityId()] = struct{}{}
 	}
 
 	// Find global power resources
