@@ -43,7 +43,7 @@ func (s *VrfElector) ElectionNode(taskId string, mem, bandwidth, disk uint64, pr
 
 	resourceNodeIdArr := make([]string, 0)
 
-	tables, err := s.resourceMng.QueryLocalResourceTables()
+	tables, err := s.resourceMng.GetDB().QueryLocalResourceTables()
 	if nil != err {
 		return nil, fmt.Errorf("query local resource tables failed, %s", err)
 	}

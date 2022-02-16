@@ -21,7 +21,7 @@ func (e *EngineManager) handleMsg() error {
 
 	switch {
 
-	// TODO 处理 Msg.Code
+	// TODO hanlde Msg.Code
 	
 	}
 	

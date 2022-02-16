@@ -305,7 +305,10 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(dataNode.Id, dataNode.ExternalIp, dataNode.ExternalPort, localPartyId))
 
-	// 如果 当前参与方为 PowerSupplier  [选出自己的 内部 power 资源, 并锁定, 在最后 DoneXxxxWrap 中解锁]
+	// If the current participant is powersupplier.
+	// select your own internal power resource and lock it,
+	// and finally click 'publishfinishedtasktodatacenter'
+	// or 'sendtaskresultmsgtotasksender' in taskmnager.
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 
 		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
@@ -329,7 +332,8 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 		result = types.NewReplayScheduleResult(task.GetTaskId(), nil, types.NewPrepareVoteResource(jobNode.Id, jobNode.ExternalIp, jobNode.ExternalPort, localPartyId))
 
-	// 如果 当前参与方为 ResultSupplier  [仅仅是选出自己可用的 dataNode]
+	// If the current participant is resultsupplier.
+	// just select their own available datanodes.
 	case apicommonpb.TaskRole_TaskRole_Receiver:
 
 		dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()

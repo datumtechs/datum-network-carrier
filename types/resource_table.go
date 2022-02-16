@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ethereum/go-ethereum/rlp"
 	"io"
+	"sync/atomic"
 )
 
 type LocalResourceTable struct {
@@ -61,11 +62,13 @@ func (r *LocalResourceTable) RemainProcessor() uint32   { return r.total.process
 func (r *LocalResourceTable) RemainMem() uint64         { return r.total.mem - r.used.mem }
 func (r *LocalResourceTable) RemainBandwidth() uint64   { return r.total.bandwidth - r.used.bandwidth }
 func (r *LocalResourceTable) RemainDisk() uint64        { return r.total.disk - r.used.disk }
-func (r *LocalResourceTable) UseSlot(mem, bandwidth, disk uint64, processor uint32) error {
+func (r *LocalResourceTable) UseSlot(taskId, partId string, mem, bandwidth, disk uint64, processor uint32) error {
 
 	if mem == 0 && bandwidth == 0 && disk == 0 && processor == 0 {
 		return nil
 	}
+
+
 
 	if r.RemainMem() < mem {
 		return fmt.Errorf("Failed to lock local resource, mem remain {%d} less than need lock count {%d}", r.RemainMem(), mem)
@@ -80,23 +83,41 @@ func (r *LocalResourceTable) UseSlot(mem, bandwidth, disk uint64, processor uint
 		return fmt.Errorf("Failed to lock local resource, processor remain {%d} less than need lock count {%d}", r.RemainProcessor(), processor)
 	}
 
-	log.Debugf("Call UseSlot JobNode LocalResourceTable before, table: %s, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
-		r.String(), mem, bandwidth, disk, processor)
+	log.Debugf("Call useSlot JobNode LocalResourceTable before, taskId: {%s}, partId: {%s}, table: %s, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+		taskId, partId, r.String(), mem, bandwidth, disk, processor)
 
-	r.used.mem += mem
-	r.used.bandwidth += bandwidth
-	r.used.disk += disk
-	r.used.processor += processor
+	oldMem := r.used.mem
+	oldBandwidth := r.used.bandwidth
+	oldDisk := r.used.disk
+	oldProcessor := r.used.processor
+
+	if !atomic.CompareAndSwapUint64(&(r.used.mem), oldMem, oldMem + mem) {
+		return fmt.Errorf("useSlot: compareAndSwap mem used value failed")
+	}
+	if !atomic.CompareAndSwapUint64(&(r.used.bandwidth), oldBandwidth, oldBandwidth + bandwidth) {
+		return fmt.Errorf("useSlot: compareAndSwap bandwidth used value failed")
+	}
+	if !atomic.CompareAndSwapUint64(&(r.used.disk), oldDisk, oldDisk + disk) {
+		return fmt.Errorf("useSlot: compareAndSwap disk used value failed")
+	}
+	if !atomic.CompareAndSwapUint32(&(r.used.processor), oldProcessor, oldProcessor + processor) {
+		return fmt.Errorf("useSlot: compareAndSwap processor used value failed")
+	}
+
+	//r.used.mem += mem
+	//r.used.bandwidth += bandwidth
+	//r.used.disk += disk
+	//r.used.processor += processor
 
 	if r.used.mem > 0 || r.used.bandwidth > 0 || r.used.disk == 0 || r.used.processor > 0 {
 		r.assign = true
 	}
-	log.Debugf("Call UseSlot JobNode LocalResourceTable after, table: %s, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
-		r.String(), mem, bandwidth, disk, processor)
+	log.Debugf("Call useSlot JobNode LocalResourceTable after, taskId: {%s}, partId: {%s}, table: %s, needMem: {%d}, needBandwidth: {%d}, needDisk: {%d}, needProcessor: {%d}",
+		taskId, partId, r.String(), mem, bandwidth, disk, processor)
 
 	return nil
 }
-func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uint32) error {
+func (r *LocalResourceTable) FreeSlot(taskId, partId string, mem, bandwidth, disk uint64, processor uint32) error {
 	if !r.assign {
 		return nil
 	}
@@ -121,20 +142,38 @@ func (r *LocalResourceTable) FreeSlot(mem, bandwidth, disk uint64, processor uin
 		return fmt.Errorf("Failed to unlock local resource, processor used {%d} less than need free count {%d}", r.used.processor, processor)
 	}
 
-	log.Debugf("Call FreeSlot JobNode LocalResourceTable before, table: %s, freeMem: {%d}, freeBandwidth: {%d}, freeDisk: {%d}, freeProcessor: {%d}",
-		r.String(), mem, bandwidth, disk, processor)
+	log.Debugf("Call freeSlot JobNode LocalResourceTable before, taskId: {%s}, partId: {%s}, table: %s, freeMem: {%d}, freeBandwidth: {%d}, freeDisk: {%d}, freeProcessor: {%d}",
+		taskId, partId, r.String(), mem, bandwidth, disk, processor)
 
-	r.used.mem -= mem
-	r.used.bandwidth -= bandwidth
-	r.used.disk -= disk
-	r.used.processor -= processor
+	oldMem := r.used.mem
+	oldBandwidth := r.used.bandwidth
+	oldDisk := r.used.disk
+	oldProcessor := r.used.processor
+
+	if !atomic.CompareAndSwapUint64(&(r.used.mem), oldMem, oldMem - mem) {
+		return fmt.Errorf("freeSlot: compareAndSwap mem used value failed")
+	}
+	if !atomic.CompareAndSwapUint64(&(r.used.bandwidth), oldBandwidth, oldBandwidth - bandwidth) {
+		return fmt.Errorf("freeSlot: compareAndSwap bandwidth used value failed")
+	}
+	if !atomic.CompareAndSwapUint64(&(r.used.disk), oldDisk, oldDisk - disk) {
+		return fmt.Errorf("freeSlot: compareAndSwap disk used value failed")
+	}
+	if !atomic.CompareAndSwapUint32(&(r.used.processor), oldProcessor, oldProcessor - processor) {
+		return fmt.Errorf("freeSlot: compareAndSwap processor used value failed")
+	}
+
+	//r.used.mem -= mem
+	//r.used.bandwidth -= bandwidth
+	//r.used.disk -= disk
+	//r.used.processor -= processor
 
 	if r.used.mem == 0 && r.used.bandwidth == 0 && r.used.disk == 0 && r.used.processor == 0 {
 		r.assign = false
 	}
 
-	log.Debugf("Call FreeSlot JobNode LocalResourceTable after, table: %s, freeMem: {%d}, freeBandwidth: {%d}, freeDisk: {%d}, freeProcessor: {%d}",
-		r.String(), mem, bandwidth, disk, processor)
+	log.Debugf("Call freeSlot JobNode LocalResourceTable after, taskId: {%s}, partId: {%s}, table: %s, freeMem: {%d}, freeBandwidth: {%d}, freeDisk: {%d}, freeProcessor: {%d}",
+		taskId, partId, r.String(), mem, bandwidth, disk, processor)
 
 	return nil
 }

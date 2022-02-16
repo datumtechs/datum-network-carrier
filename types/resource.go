@@ -109,7 +109,7 @@ func (s ResourceArray) String() string {
 	return ""
 }
 
-// 新增 local Resource
+// add local Resource
 type LocalResource struct {
 	data *libtypes.LocalResourcePB
 

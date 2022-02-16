@@ -22,7 +22,7 @@ func dialContext(ctx context.Context, grpcurl string) (*grpc.ClientConn, error) 
 		grpc.WithInsecure(),
 		grpc.WithReturnConnectionError(),
 		grpc.WithDefaultCallOptions(RPCMaxCallRecvMsgSize),
-		grpc.WithTimeout(2 * time.Second), // todo 默认 grpc client 连接内部资源, 先给 2s 超时
+		grpc.WithTimeout(2 * time.Second), // todo By default, grpc client connects to internal resources and gives 2S timeout first
 	}
 	c, err := grpc.DialContext(ctx, grpcurl, opts...)
 	if err != nil {
@@ -40,7 +40,7 @@ func dialContextWithSecure(ctx context.Context, addr string, remoteCert string) 
 	opts := []grpc.DialOption{
 		security,
 		grpc.WithReturnConnectionError(),
-		grpc.WithTimeout(2 * time.Second), // todo 默认 grpc client 连接内部资源, 先给 2s 超时
+		grpc.WithTimeout(2 * time.Second), // todo By default, grpc client connects to internal resources and gives 2S timeout first
 	}
 	c, err := grpc.DialContext(ctx, addr, opts...)
 	if err != nil {
