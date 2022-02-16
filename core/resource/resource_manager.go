@@ -16,11 +16,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"time"
-)
-
-const (
-	defaultRefreshOrgResourceInterval = 30 * time.Second
 )
 
 type Manager struct {
