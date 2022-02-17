@@ -38,6 +38,8 @@ func (s *Service) loop() {
 
 func (s *Service) initServicesWithDiscoveryCenter() error {
 
+	log.Infof("Start init Services with discoveryCenter...")
+
 	if nil == s.carrierDB {
 		return fmt.Errorf("init services with discorvery center failed, carrier local db is nil")
 	}
@@ -81,7 +83,7 @@ func (s *Service) initServicesWithDiscoveryCenter() error {
 	if err := s.consulManager.RegisterService2DiscoveryCenter(); nil != err {
 		return fmt.Errorf("register discovery service to discovery center failed, %s", err)
 	}
-
+	log.Infof("Succeed init Services with discoveryCenter...")
 	return nil
 }
 

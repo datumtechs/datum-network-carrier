@@ -54,6 +54,7 @@ func (dc *DataCenter) GrpcClient() *grpclient.GrpcClient {
 }
 
 func (dc *DataCenter) SetConfig (config *params.CarrierChainConfig) error {
+	log.Infof("Start build datacenter rpcClient, %s", fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
 	if config.GrpcUrl == "" || config.Port == 0 {
 		panic("Invalid Grpc Config.")
 	}
@@ -61,8 +62,13 @@ func (dc *DataCenter) SetConfig (config *params.CarrierChainConfig) error {
 	if nil != err {
 		return fmt.Errorf("dial grpc server failed, %s", err)
 	}
+	if nil == client {
+		log.Warnf("Warn build datacenter rpcClient, %s, rpcClient is nil", fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
+	}
+
 	dc.config = config
 	dc.client = client
+	log.Infof("Succeed build datacenter rpcClient, %s", fmt.Sprintf("%v:%v", config.GrpcUrl, config.Port))
 	return nil
 }
 

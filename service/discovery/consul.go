@@ -128,6 +128,7 @@ func (ca *ConnectConsul) RegisterService2DiscoveryCenter() error {
 		log.WithError(err).Errorf("Failed to register carrier service to discovery center")
 		return err
 	}
+	log.Infof("Succeed register carrier service ...")
 	return nil
 }
 
