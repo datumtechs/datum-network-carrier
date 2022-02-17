@@ -92,6 +92,14 @@ func (c *JobNodeClient) ConnStatus() connectivity.State {
 	return c.conn.GetState()
 }
 
+func (c *JobNodeClient) GetAddress() string {
+	return c.addr
+}
+
+func (c *JobNodeClient) GetConnStartAt() int64 {
+	return c.connStartAt
+}
+
 func (c *JobNodeClient) IsConnected() bool {
 	switch c.ConnStatus() {
 	case connectivity.Ready, connectivity.Idle:

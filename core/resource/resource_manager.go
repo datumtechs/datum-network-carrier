@@ -621,6 +621,8 @@ func (m *Manager) HasInternalDataNodeClientSet() bool {
 
 func (m *Manager) StoreJobNodeClient(nodeId string, client *grpclient.JobNodeClient) {
 	m.resourceClientSet.StoreJobNodeClient(nodeId, client)
+	log.Debugf("Succeed store jobNode client into resourceClientSet, nodeId: {%s}, address: {%s}, startAt: {%d}, connStatus: {%s}",
+		nodeId, client.GetAddress(), client.GetConnStartAt(), client.ConnStatus().String())
 }
 
 func (m *Manager) QueryJobNodeClient(nodeId string) (*grpclient.JobNodeClient, bool) {
@@ -633,6 +635,7 @@ func (m *Manager) QueryJobNodeClients() []*grpclient.JobNodeClient {
 
 func (m *Manager) RemoveJobNodeClient(nodeId string) {
 	m.resourceClientSet.RemoveJobNodeClient(nodeId)
+	log.Debugf("Succeed remove jobNode client into resourceClientSet, nodeId: {%s}", nodeId)
 }
 
 func (m *Manager) JobNodeClientSize() int {
@@ -641,6 +644,8 @@ func (m *Manager) JobNodeClientSize() int {
 
 func (m *Manager) StoreDataNodeClient(nodeId string, client *grpclient.DataNodeClient) {
 	m.resourceClientSet.StoreDataNodeClient(nodeId, client)
+	log.Debugf("Succeed store dataNode client into resourceClientSet, nodeId: {%s}, address: {%s}, startAt: {%d}, connStatus: {%s}",
+		nodeId, client.GetAddress(), client.GetConnStartAt(), client.ConnStatus().String())
 }
 
 func (m *Manager) QueryDataNodeClient(nodeId string) (*grpclient.DataNodeClient, bool) {
@@ -653,6 +658,7 @@ func (m *Manager) QueryDataNodeClients() []*grpclient.DataNodeClient {
 
 func (m *Manager) RemoveDataNodeClient(nodeId string) {
 	m.resourceClientSet.RemoveDataNodeClient(nodeId)
+	log.Debugf("Succeed remove dataNode client into resourceClientSet, nodeId: {%s}", nodeId)
 }
 
 func (m *Manager) DataNodeClientSize() int {
@@ -793,7 +799,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 			return err
 		}
 
-		log.Infof("Succeed update alive flag of old jobNode resource on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
+		log.Infof("Succeed update alive `true` flag of old jobNode resource on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 			jobNodeId, jobNodeIP, jobNodePort)
 	}
 
@@ -860,8 +866,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 
 func (m *Manager) RemoveDiscoveryJobNodeResource(identity *apicommonpb.Organization, jobNodeId, jobNodeIP, jobNodePort, jobNodeExternalIP, jobNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
 
-	log.Infof("Disappeared a old jobNode from consul server, jobNodeId: {%s}", jobNodeId)
-
+	log.Infof("Disappeared a old jobNode from consul server on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeId: {%s}", jobNodeId)
 
 	resourceTable, err := m.dataCenter.QueryLocalResourceTable(jobNodeId)
 	if rawdb.IsNoDBNotFoundErr(err) {
@@ -884,7 +889,7 @@ func (m *Manager) RemoveDiscoveryJobNodeResource(identity *apicommonpb.Organizat
 			return err
 		}
 
-		log.Infof("Succeed update alive status of jobNode local resource on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeId: {%s}",
+		log.Infof("Succeed update alive `false` status of jobNode local resource on resourceManager.RemoveDiscoveryJobNodeResource(), jobNodeId: {%s}",
 			jobNodeId)
 	}
 
@@ -1059,7 +1064,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 				return err
 			}
 
-			log.Infof("Succeed update alive flag OR total resource value of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
+			log.Infof("Succeed update `true` alive flag OR total resource value of old dataNode resource on resourceManager.UpdateDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 				dataNodeId, dataNodeIP, dataNodePort)
 		}
 	}
@@ -1085,7 +1090,7 @@ func (m *Manager) UpdateDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 
 func (m *Manager) RemoveDiscoveryDataNodeResource(identity *apicommonpb.Organization, dataNodeId, dataNodeIP, dataNodePort, dataNodeExternalIP, dataNodeExternalPort string, old *pb.YarnRegisteredPeerDetail) error {
 
-	log.Infof("Disappeared a old dataNode from consul server, dataNodeId: {%s}", dataNodeId)
+	log.Infof("Disappeared a old dataNode from consul server on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeId: {%s}", dataNodeId)
 
 	resourceTable, err := m.dataCenter.QueryDataResourceTable(dataNodeId)
 	if rawdb.IsNoDBNotFoundErr(err) {
@@ -1094,7 +1099,7 @@ func (m *Manager) RemoveDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 		return err
 	}
 	if nil != resourceTable && resourceTable.GetAlive() {
-		log.Warnf("still have used dataNode information on resourceManager.RemoveDiscoveryDataNodeResource(), %s",
+		log.Warnf("Maybe still have used dataNode information on resourceManager.RemoveDiscoveryDataNodeResource(), %s",
 			resourceTable.String())
 		// ##############################
 		// A. update alive status of resource table about dataNode
@@ -1108,7 +1113,7 @@ func (m *Manager) RemoveDiscoveryDataNodeResource(identity *apicommonpb.Organiza
 			return err
 		}
 
-		log.Infof("Succeed update alive flag of old dataNode resource on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
+		log.Infof("Succeed update alive `false` flag of old dataNode resource on resourceManager.RemoveDiscoveryDataNodeResource(), dataNodeServiceId: {%s}, dataNodeService: {%s:%s}",
 			dataNodeId, dataNodeIP, dataNodePort)
 	}
 

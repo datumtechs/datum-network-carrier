@@ -93,6 +93,14 @@ func (c *DataNodeClient) ConnStatus() connectivity.State {
 	return c.conn.GetState()
 }
 
+func (c *DataNodeClient) GetAddress() string {
+	return c.addr
+}
+
+func (c *DataNodeClient) GetConnStartAt() int64 {
+	return c.connStartAt
+}
+
 func (c *DataNodeClient) IsConnected() bool {
 	switch c.ConnStatus() {
 	case connectivity.Ready, connectivity.Idle:

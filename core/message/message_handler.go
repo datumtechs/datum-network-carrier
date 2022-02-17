@@ -68,7 +68,7 @@ func (m *MessageHandler) Start() error {
 	m.msgSub = m.pool.SubscribeNewMessageEvent(m.msgChannel)
 	m.recoveryCache()
 	go m.loop()
-	log.Info("Started message handler ...")
+	log.Info("Started messageHandler ...")
 	return nil
 }
 func (m *MessageHandler) Stop() error {

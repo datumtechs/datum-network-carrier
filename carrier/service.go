@@ -22,6 +22,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/service/discovery"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/urfave/cli/v2"
+	"strconv"
 	"sync"
 )
 
@@ -117,7 +118,7 @@ func NewService(ctx context.Context, cliCtx *cli.Context, config *Config, mockId
 		scheduler:         scheduler,
 		consulManager: discovery.NewConsulClient(&discovery.ConsulService{
 			ServiceIP:   p2p.IpAddr().String(),
-			ServicePort: cliCtx.String(flags.RPCPort.Name),
+			ServicePort: strconv.Itoa(cliCtx.Int(flags.RPCPort.Name)),
 			Tags:        cliCtx.StringSlice(flags.DiscoveryServerTags.Name),
 			Name:        cliCtx.String(flags.DiscoveryServiceName.Name),
 			Id:          cliCtx.String(flags.DiscoveryServiceId.Name),
