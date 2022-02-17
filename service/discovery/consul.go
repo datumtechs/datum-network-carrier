@@ -67,6 +67,9 @@ func (h *HealthCheck) Watch(req *grpc_health_v1.HealthCheckRequest, w grpc_healt
 }
 
 func NewConsulClient(consulSvr *ConsulService, consulIp string, consulPort int) *ConnectConsul {
+
+	log.Infof("Start new consul client, consulIp: {%s}, consulPort: {%d}", consulIp, consulPort)
+
 	if "" == consulIp || 0 == consulPort {
 		log.Fatalf("Failed to check consul server ip: %s, consul server port: %d", consulIp, consulPort)
 	}
@@ -82,6 +85,7 @@ func NewConsulClient(consulSvr *ConsulService, consulIp string, consulPort int) 
 		Client:        client,
 		ConsulService: *consulSvr,
 	}
+	log.Infof("Succeed new consul client, consulIp: {%s}, consulPort: {%d}", consulIp, consulPort)
 	return connectCon
 }
 func (ca *ConnectConsul) IsExistSerivces(tags []string) bool {
