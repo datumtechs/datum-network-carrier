@@ -57,7 +57,6 @@ message TaskEventShow {
 // 查看本组织参与过的全部任务详情列表
 message GetTaskDetailResponse {
   TaskDetailShow                     information = 1;                  // 任务(展示)详情
-  //repeated api.protobuf.TaskRole     roles = 2;                         // 我在任务中的角色 (0: 未知角色; 1: 任务发起方; 2: 数据提供方: 3: 算力提供方; 4: 结果接收方; 5: 算法提供方)
 }
 
 message GetTaskDetailListRequest {
@@ -98,27 +97,22 @@ message PublishTaskDeclareRequest {
   api.protobuf.UserType                     user_type = 3;                        //  用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
   api.protobuf.TaskOrganization             sender = 4;                           //  任务发起者 组织信息
   api.protobuf.TaskOrganization             algo_supplier = 5;                    //  任务算法提供方 组织信息
-  repeated TaskDataSupplierDeclare          data_suppliers = 6;                   //  任务的数据提供方 (包含发起者和参与方)
-  repeated string                           power_party_ids = 7;                  //  算力提供方未来要用的 标签
-  repeated api.protobuf.TaskOrganization    receivers = 8;                        //  任务结果接受者 (包含发起者和参与方)
-  api.protobuf.TaskResourceCostDeclare      operation_cost = 9;                   //  任务所需资源声明
-  string                                    calculate_contract_code = 10;          //  计算合约代码
-  string                                    data_split_contract_code = 11;        //  数据分片合约代码
-  string                                    contract_extra_params = 12;           //  合约调用的额外可变入参 (json 字符串, 根据算法来)
-  bytes                                     sign = 13;                            //  发起任务的账户的签名
-  string                                    desc = 14;                            //  任务描述 (非必须)
+  repeated api.protobuf.TaskOrganization    data_suppliers = 6;                   //  任务的数据提供方 (包含发起者和参与方)
+  repeated api.protobuf.TaskOrganization    receivers = 7;                        //  任务结果接受者 (包含发起者和参与方)
+  uint32                                    data_policy_type = 8;                 //  任务的数据提供方选择数据策略的类型
+  string                                    data_policy_option = 9;               //  任务的数据提供方选择数据策略的内容 (json字符串, 和 data_policy_type 配套使用)
+  uint32                                    power_policy_type = 10;               //  任务的算力提供方选择算力策略的类型
+  string                                    power_policy_option = 11;             //  任务的算力提供方选择算力策略的内容 (json字符串, 和 power_policy_type 配套使用)
+  uint32                                    data_flow_policy_type = 12;           //  任务的数据流向策略的类型
+  string                                    data_flow_policy_option = 13;         //  任务的数据流向策略的内容 (json字符串, 和 data_flow_policy_type 配套使用)
+  api.protobuf.TaskResourceCostDeclare      operation_cost = 14;                  //  任务所需资源声明
+  string                                    algorithm_code = 15;                  //  算法代码 (在不使用 算法市场前提下用)
+  string                                    meta_algorithm_id = 16;               //  算法元数据Id (为了后续支持 算法市场而用)
+  string                                    contract_extra_params = 17;           //  合约调用的额外可变入参 (json 字符串, 根据算法来)
+  bytes                                     sign = 18;                            //  发起任务的账户的签名
+  string                                    desc = 19;                            //  任务描述 (非必须)
 }
 
-// 任务数据供应者信息 (任务详情定义用)
-message TaskDataSupplierDeclare {
-  api.protobuf.TaskOrganization organization = 1;                         // 身份信息
-  TaskMetadataDeclare           metadata_info = 2;                        // 任务使用的元数据信息
-}
-message TaskMetadataDeclare {
-  string          metadata_id = 1;                                            // 元数据id
-  uint32          key_column = 2;                                             // 该任务用来作为计算时数据表的索引列 (类比数据库中的id列意思)
-  repeated uint32 selected_columns = 3;                                       // 该任务用来参与计算的原始数据的第几列数组 (类比数据库中非id列意思)
-}
 // 发布任务 resp
 message PublishTaskDeclareResponse {
   int32  status = 1;

@@ -12,8 +12,8 @@ message Organization  {
   string node_id = 2;
   // the identity for org
   string identity_id = 3;
-  // the status for organization(deleted/normal)
-  CommonStatus status = 4;
+  // the status for organization(1 means valid, 2 means invalid)
+  DataStatus status = 4;
   //v 3.0
   // the last_update time of corresponding datacenter (unit: UTC ms)
   uint64 update_at = 5;
@@ -48,18 +48,18 @@ enum UserType {
   User_3 = 3;
 }
 
-// the status of data, N means normal, D means deleted.
+// the status of data for local storage, 1 means valid, 2 means invalid
 enum DataStatus {
   DataStatus_Unknown = 0;
-  DataStatus_Normal = 1;
-  DataStatus_Deleted = 2;
+  DataStatus_Valid = 1;
+  DataStatus_Invalid = 2;
 }
 
-// Y : normal, N non-normal
+// the status of data for datacenter, 1 means valid, 2 means invalid
 enum CommonStatus {
   CommonStatus_Unknown = 0;
-  CommonStatus_Normal = 1;
-  CommonStatus_NonNormal = 2;
+  CommonStatus_Valid = 1;
+  CommonStatus_Invalid = 2;
 }
 
 enum AuditMetadataOption {

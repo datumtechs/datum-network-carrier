@@ -199,8 +199,14 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 		return err
 	}
 
-	// the prepareMsg is too late.
+	// the prepareMsg is future msg.
 	now := timeutils.UnixMsecUint64()
+	if now < msg.GetCreateAt() {
+		log.Errorf("received the prepareMsg is future msg when received prepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, now: {%d}, msgCreateAt: {%d}",
+			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(), now, msg.GetCreateAt())
+		return fmt.Errorf("%s when received prepareMsg", ctypes.ErrProposalIllegal)
+	}
+	// the prepareMsg is too late.
 	if (now - msg.GetCreateAt()) >= uint64(ctypes.PrepareMsgVotingDuration.Milliseconds()) {
 		log.Errorf("received the prepareMsg is too late when received prepareMsg, proposalId: {%s}, taskId: {%s}, role: {%s}, partyId: {%s}, now: {%d}, msgCreateAt: {%d}, duration: {%d}, valid duration: {%d}",
 			msg.GetMsgOption().GetProposalId().String(), msg.GetTask().GetTaskId(), msg.GetMsgOption().GetReceiverRole().String(), msg.GetMsgOption().GetReceiverPartyId(),

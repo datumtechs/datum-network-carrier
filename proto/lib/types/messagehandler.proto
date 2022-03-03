@@ -31,7 +31,6 @@ message MetadataMsg {
    */
   string                    metadata_id = 1;
   MetadataSummary           metadata_summary = 2;
-  repeated MetadataColumn   column_metas = 3;
   uint64                    create_at = 4;
 }
 

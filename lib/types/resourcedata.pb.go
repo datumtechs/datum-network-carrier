@@ -25,28 +25,26 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // 单个组织的总算力信息
 type ResourcePB struct {
-	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	NodeId     string `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	NodeName   string `protobuf:"bytes,3,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
-	DataId     string `protobuf:"bytes,4,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	// the status of data, N means normal, D means deleted.
-	DataStatus common.DataStatus `protobuf:"varint,5,opt,name=data_status,json=dataStatus,proto3,enum=api.protobuf.DataStatus" json:"data_status,omitempty"`
+	Owner  *common.Organization `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	DataId string               `protobuf:"bytes,2,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	// the status of data
+	DataStatus common.DataStatus `protobuf:"varint,3,opt,name=data_status,json=dataStatus,proto3,enum=api.protobuf.DataStatus" json:"data_status,omitempty"`
 	// resource status, eg: create/release/revoke
-	State common.PowerState `protobuf:"varint,6,opt,name=state,proto3,enum=api.protobuf.PowerState" json:"state,omitempty"`
+	State common.PowerState `protobuf:"varint,4,opt,name=state,proto3,enum=api.protobuf.PowerState" json:"state,omitempty"`
 	// unit: byte
-	TotalMem uint64 `protobuf:"varint,7,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
+	TotalMem uint64 `protobuf:"varint,5,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
 	// unit: byte
-	UsedMem uint64 `protobuf:"varint,8,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
+	UsedMem uint64 `protobuf:"varint,6,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
 	// number of cpu cores.
-	TotalProcessor uint32 `protobuf:"varint,9,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
-	UsedProcessor  uint32 `protobuf:"varint,10,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
+	TotalProcessor uint32 `protobuf:"varint,7,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
+	UsedProcessor  uint32 `protobuf:"varint,8,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
 	// unit: byte
-	TotalBandwidth       uint64   `protobuf:"varint,11,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
-	UsedBandwidth        uint64   `protobuf:"varint,12,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
-	TotalDisk            uint64   `protobuf:"varint,13,opt,name=total_disk,json=totalDisk,proto3" json:"total_disk,omitempty"`
-	UsedDisk             uint64   `protobuf:"varint,14,opt,name=used_disk,json=usedDisk,proto3" json:"used_disk,omitempty"`
-	PublishAt            uint64   `protobuf:"varint,15,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
-	UpdateAt             uint64   `protobuf:"varint,16,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	TotalBandwidth       uint64   `protobuf:"varint,9,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
+	UsedBandwidth        uint64   `protobuf:"varint,10,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
+	TotalDisk            uint64   `protobuf:"varint,11,opt,name=total_disk,json=totalDisk,proto3" json:"total_disk,omitempty"`
+	UsedDisk             uint64   `protobuf:"varint,12,opt,name=used_disk,json=usedDisk,proto3" json:"used_disk,omitempty"`
+	PublishAt            uint64   `protobuf:"varint,13,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
+	UpdateAt             uint64   `protobuf:"varint,14,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -85,25 +83,11 @@ func (m *ResourcePB) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_ResourcePB proto.InternalMessageInfo
 
-func (m *ResourcePB) GetIdentityId() string {
+func (m *ResourcePB) GetOwner() *common.Organization {
 	if m != nil {
-		return m.IdentityId
+		return m.Owner
 	}
-	return ""
-}
-
-func (m *ResourcePB) GetNodeId() string {
-	if m != nil {
-		return m.NodeId
-	}
-	return ""
-}
-
-func (m *ResourcePB) GetNodeName() string {
-	if m != nil {
-		return m.NodeName
-	}
-	return ""
+	return nil
 }
 
 func (m *ResourcePB) GetDataId() string {
@@ -199,29 +183,27 @@ func (m *ResourcePB) GetUpdateAt() uint64 {
 
 // 单个组织中的单台服务的算力信息 (比 resource 多了 jobNodeId)
 type LocalResourcePB struct {
-	IdentityId string `protobuf:"bytes,1,opt,name=identity_id,json=identityId,proto3" json:"identity_id,omitempty"`
-	NodeId     string `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
-	NodeName   string `protobuf:"bytes,3,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
-	DataId     string `protobuf:"bytes,4,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	// the status of data, N means normal, D means deleted.
-	DataStatus common.DataStatus `protobuf:"varint,5,opt,name=data_status,json=dataStatus,proto3,enum=api.protobuf.DataStatus" json:"data_status,omitempty"`
+	Owner  *common.Organization `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	DataId string               `protobuf:"bytes,2,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
+	// the status of data.
+	DataStatus common.DataStatus `protobuf:"varint,3,opt,name=data_status,json=dataStatus,proto3,enum=api.protobuf.DataStatus" json:"data_status,omitempty"`
 	// resource status, eg: create/release/revoke
-	State common.PowerState `protobuf:"varint,6,opt,name=state,proto3,enum=api.protobuf.PowerState" json:"state,omitempty"`
+	State common.PowerState `protobuf:"varint,4,opt,name=state,proto3,enum=api.protobuf.PowerState" json:"state,omitempty"`
 	// unit: byte
-	TotalMem uint64 `protobuf:"varint,7,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
+	TotalMem uint64 `protobuf:"varint,5,opt,name=total_mem,json=totalMem,proto3" json:"total_mem,omitempty"`
 	// unit: byte
-	UsedMem uint64 `protobuf:"varint,8,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
+	UsedMem uint64 `protobuf:"varint,6,opt,name=used_mem,json=usedMem,proto3" json:"used_mem,omitempty"`
 	// number of cpu cores.
-	TotalProcessor uint32 `protobuf:"varint,9,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
-	UsedProcessor  uint32 `protobuf:"varint,10,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
+	TotalProcessor uint32 `protobuf:"varint,7,opt,name=total_processor,json=totalProcessor,proto3" json:"total_processor,omitempty"`
+	UsedProcessor  uint32 `protobuf:"varint,8,opt,name=used_processor,json=usedProcessor,proto3" json:"used_processor,omitempty"`
 	// unit: byte
-	TotalBandwidth       uint64   `protobuf:"varint,11,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
-	UsedBandwidth        uint64   `protobuf:"varint,12,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
-	TotalDisk            uint64   `protobuf:"varint,13,opt,name=total_disk,json=totalDisk,proto3" json:"total_disk,omitempty"`
-	UsedDisk             uint64   `protobuf:"varint,14,opt,name=used_disk,json=usedDisk,proto3" json:"used_disk,omitempty"`
-	PublishAt            uint64   `protobuf:"varint,15,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
-	UpdateAt             uint64   `protobuf:"varint,16,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	JobNodeId            string   `protobuf:"bytes,17,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
+	TotalBandwidth       uint64   `protobuf:"varint,9,opt,name=total_bandwidth,json=totalBandwidth,proto3" json:"total_bandwidth,omitempty"`
+	UsedBandwidth        uint64   `protobuf:"varint,10,opt,name=used_bandwidth,json=usedBandwidth,proto3" json:"used_bandwidth,omitempty"`
+	TotalDisk            uint64   `protobuf:"varint,11,opt,name=total_disk,json=totalDisk,proto3" json:"total_disk,omitempty"`
+	UsedDisk             uint64   `protobuf:"varint,12,opt,name=used_disk,json=usedDisk,proto3" json:"used_disk,omitempty"`
+	PublishAt            uint64   `protobuf:"varint,13,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
+	UpdateAt             uint64   `protobuf:"varint,14,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	JobNodeId            string   `protobuf:"bytes,15,opt,name=job_node_id,json=jobNodeId,proto3" json:"job_node_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -260,25 +242,11 @@ func (m *LocalResourcePB) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LocalResourcePB proto.InternalMessageInfo
 
-func (m *LocalResourcePB) GetIdentityId() string {
+func (m *LocalResourcePB) GetOwner() *common.Organization {
 	if m != nil {
-		return m.IdentityId
+		return m.Owner
 	}
-	return ""
-}
-
-func (m *LocalResourcePB) GetNodeId() string {
-	if m != nil {
-		return m.NodeId
-	}
-	return ""
-}
-
-func (m *LocalResourcePB) GetNodeName() string {
-	if m != nil {
-		return m.NodeName
-	}
-	return ""
+	return nil
 }
 
 func (m *LocalResourcePB) GetDataId() string {
@@ -780,59 +748,58 @@ func init() {
 func init() { proto.RegisterFile("lib/types/resourcedata.proto", fileDescriptor_8efe43321c6120dd) }
 
 var fileDescriptor_8efe43321c6120dd = []byte{
-	// 830 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0x4f, 0x6f, 0xe3, 0x44,
-	0x14, 0x97, 0x9b, 0x38, 0x7f, 0x9e, 0x69, 0x1a, 0x46, 0x5a, 0x61, 0xca, 0x6e, 0x89, 0x22, 0x2d,
-	0x44, 0x02, 0x12, 0x54, 0x24, 0xc4, 0x5e, 0x90, 0xb6, 0xad, 0x40, 0x95, 0x96, 0x6e, 0xe5, 0x85,
-	0x0b, 0x97, 0x68, 0x6c, 0xbf, 0x6d, 0x67, 0x1b, 0x7b, 0xac, 0x99, 0x71, 0xa3, 0xe5, 0xcb, 0xf0,
-	0x01, 0xf8, 0x00, 0x7b, 0xe3, 0xcc, 0x91, 0x0f, 0xc0, 0x01, 0xf5, 0x93, 0xa0, 0x79, 0xe3, 0xd8,
-	0x4d, 0xb5, 0x6a, 0xc2, 0xbd, 0xb7, 0xce, 0xef, 0xcf, 0xcb, 0xcc, 0x7b, 0xcf, 0x3f, 0x15, 0x1e,
-	0x2f, 0x44, 0x3c, 0x33, 0x6f, 0x0b, 0xd4, 0x33, 0x85, 0x5a, 0x96, 0x2a, 0xc1, 0x94, 0x1b, 0x3e,
-	0x2d, 0x94, 0x34, 0x92, 0xf9, 0xc4, 0xec, 0x3f, 0xb2, 0xa2, 0x44, 0x66, 0x99, 0xcc, 0x67, 0x31,
-	0xd7, 0xe8, 0xd8, 0x35, 0xb8, 0x31, 0x8d, 0xdf, 0xb5, 0x01, 0xa2, 0xaa, 0xd6, 0xf9, 0x11, 0xfb,
-	0x14, 0x02, 0x91, 0x62, 0x6e, 0x84, 0x79, 0x3b, 0x17, 0x69, 0xe8, 0x8d, 0xbc, 0x49, 0x3f, 0x82,
-	0x15, 0x74, 0x9a, 0xb2, 0x8f, 0xa0, 0x9b, 0xcb, 0x14, 0x2d, 0xb9, 0x43, 0x64, 0xc7, 0x1e, 0x4f,
-	0x53, 0xf6, 0x09, 0xf4, 0x89, 0xc8, 0x79, 0x86, 0x61, 0x8b, 0xa8, 0x9e, 0x05, 0xce, 0x78, 0x86,
-	0xd6, 0x65, 0x7f, 0xd3, 0xba, 0xda, 0xce, 0x65, 0x8f, 0xa7, 0x29, 0x7b, 0x06, 0x01, 0x11, 0xda,
-	0x70, 0x53, 0xea, 0xd0, 0x1f, 0x79, 0x93, 0xc1, 0x61, 0x38, 0xe5, 0x85, 0x70, 0xf7, 0x8b, 0xcb,
-	0xd7, 0xd3, 0x13, 0x6e, 0xf8, 0x2b, 0xe2, 0x23, 0x48, 0xeb, 0xbf, 0xd9, 0x14, 0x7c, 0xeb, 0xc2,
-	0xb0, 0xf3, 0x3e, 0xd3, 0xb9, 0x5c, 0xa2, 0xb2, 0x4a, 0x8c, 0x9c, 0xcc, 0x5e, 0xd0, 0x48, 0xc3,
-	0x17, 0xf3, 0x0c, 0xb3, 0xb0, 0x3b, 0xf2, 0x26, 0xed, 0xa8, 0x47, 0xc0, 0x4f, 0x98, 0xb1, 0x8f,
-	0xa1, 0x57, 0x6a, 0x4c, 0x89, 0xeb, 0x11, 0xd7, 0xb5, 0x67, 0x4b, 0x7d, 0x0e, 0x7b, 0xce, 0x57,
-	0x28, 0x99, 0xa0, 0xd6, 0x52, 0x85, 0xfd, 0x91, 0x37, 0xd9, 0x8d, 0x06, 0x04, 0x9f, 0xaf, 0x50,
-	0xf6, 0x14, 0x06, 0x54, 0xa3, 0xd1, 0x01, 0xe9, 0x76, 0x2d, 0xda, 0xc8, 0xea, 0x7a, 0x31, 0xcf,
-	0xd3, 0xa5, 0x48, 0xcd, 0x65, 0x18, 0xd0, 0x2f, 0xba, 0x7a, 0x47, 0x2b, 0xb4, 0xae, 0xd7, 0xe8,
-	0x3e, 0x20, 0x1d, 0xd5, 0x6b, 0x64, 0x4f, 0x00, 0x5c, 0xbd, 0x54, 0xe8, 0xab, 0x70, 0x97, 0x24,
-	0xee, 0xa5, 0x27, 0x42, 0x5f, 0xd9, 0x67, 0x53, 0x15, 0x62, 0x07, 0xee, 0xd9, 0x16, 0x20, 0xf2,
-	0x09, 0x40, 0x51, 0xc6, 0x0b, 0xa1, 0x2f, 0xe7, 0xdc, 0x84, 0x7b, 0xce, 0x5b, 0x21, 0xcf, 0x0d,
-	0x79, 0x8b, 0x94, 0x1b, 0xb4, 0xec, 0xb0, 0xf2, 0x12, 0xf0, 0xdc, 0x8c, 0xff, 0x69, 0xc3, 0xde,
-	0x0b, 0x99, 0xf0, 0xc5, 0xc3, 0xfa, 0x3c, 0xac, 0xcf, 0xff, 0x5e, 0x1f, 0x76, 0x00, 0xc1, 0x1b,
-	0x19, 0xcf, 0x57, 0xdb, 0xf0, 0x21, 0xcd, 0xb5, 0xff, 0x46, 0xc6, 0x67, 0xb4, 0x10, 0xe3, 0x77,
-	0x1e, 0xf8, 0x34, 0x85, 0xbb, 0x4a, 0xef, 0x8e, 0xd2, 0x36, 0xbf, 0xb0, 0xc2, 0x66, 0xa9, 0xba,
-	0x74, 0x3e, 0x4d, 0xd9, 0xb1, 0xed, 0x01, 0xbf, 0xc0, 0xb9, 0xbc, 0x46, 0x75, 0x2d, 0x70, 0x49,
-	0xab, 0x15, 0x1c, 0x3e, 0x9e, 0x52, 0x56, 0x4e, 0x57, 0xab, 0xfb, 0x8b, 0x15, 0xbd, 0xac, 0x34,
-	0xb6, 0x43, 0xb7, 0x8e, 0xcd, 0xa6, 0xb4, 0xb7, 0xda, 0x94, 0xf1, 0x9f, 0x3b, 0x30, 0x24, 0x94,
-	0xaa, 0x9e, 0xa0, 0xe1, 0x62, 0xc1, 0xbe, 0x87, 0x40, 0xe4, 0xaf, 0xa5, 0xca, 0xb8, 0x11, 0x32,
-	0xa7, 0x47, 0x6c, 0xba, 0xc6, 0x6d, 0x03, 0x9b, 0xc0, 0xd0, 0x8d, 0xc9, 0x70, 0x7d, 0x35, 0x4f,
-	0x64, 0x99, 0x1b, 0x7a, 0xec, 0x6a, 0x8f, 0x7e, 0xe6, 0xfa, 0xea, 0xd8, 0xa2, 0xec, 0x4b, 0x60,
-	0x49, 0xa9, 0x14, 0xe6, 0xe6, 0xb6, 0xb6, 0x45, 0xda, 0x61, 0xc5, 0x34, 0xea, 0xcf, 0xc0, 0xb7,
-	0x2a, 0x1d, 0xb6, 0x47, 0xad, 0x49, 0x70, 0x38, 0xac, 0x6e, 0x44, 0xf7, 0xb7, 0xaa, 0xc8, 0xd1,
-	0x4d, 0x13, 0xfc, 0xed, 0x3e, 0x97, 0xf5, 0xd5, 0xe8, 0xdc, 0xbb, 0x1a, 0xdd, 0x3b, 0xc9, 0xf2,
-	0x7b, 0x0b, 0xfa, 0xf5, 0x05, 0xec, 0xc7, 0x4f, 0xef, 0xa8, 0x47, 0xdf, 0xb1, 0x47, 0x17, 0x19,
-	0x44, 0x50, 0x64, 0xb8, 0xc1, 0xf7, 0x2c, 0x40, 0x91, 0xf1, 0x35, 0xf8, 0x72, 0x99, 0xa3, 0xaa,
-	0x06, 0xbe, 0xbf, 0x7e, 0xdf, 0x97, 0xea, 0x82, 0xe7, 0xe2, 0x37, 0x6a, 0x6d, 0xe4, 0x84, 0xec,
-	0x5b, 0xe8, 0x15, 0x5c, 0x99, 0x1c, 0xd5, 0xaa, 0x19, 0xf7, 0x99, 0x6a, 0x2d, 0xfb, 0x0e, 0xfa,
-	0x0a, 0x13, 0x14, 0xd7, 0xd6, 0xe8, 0x6f, 0x34, 0x36, 0x62, 0xf6, 0x02, 0x06, 0xb2, 0x40, 0x45,
-	0xf8, 0x3c, 0x91, 0xda, 0xf5, 0x29, 0x38, 0x7c, 0xba, 0x6e, 0xa7, 0x31, 0x54, 0x1b, 0x72, 0x2c,
-	0xb5, 0x39, 0xc1, 0x64, 0xc1, 0x15, 0x46, 0xbb, 0xb5, 0xd9, 0xa2, 0xec, 0x0c, 0xf6, 0x9a, 0x6a,
-	0xba, 0xc0, 0x3c, 0xa5, 0xc6, 0x6e, 0x5d, 0xae, 0xb9, 0xcb, 0x2b, 0x6b, 0x66, 0xfb, 0xd0, 0x4b,
-	0x14, 0xd2, 0x44, 0xaa, 0x4c, 0xab, 0xcf, 0xe3, 0x3f, 0x76, 0xe0, 0xd1, 0x7b, 0x97, 0x76, 0x3d,
-	0x26, 0xbd, 0x7b, 0x62, 0x72, 0x67, 0x63, 0x4c, 0xb6, 0xb6, 0x8c, 0xc9, 0xf6, 0x96, 0x31, 0xe9,
-	0x6f, 0x19, 0x93, 0x9d, 0xcd, 0x31, 0xd9, 0xbd, 0x37, 0x26, 0x7b, 0xeb, 0x31, 0x79, 0xf4, 0xec,
-	0xaf, 0x9b, 0x03, 0xef, 0xef, 0x9b, 0x03, 0xef, 0xdf, 0x9b, 0x03, 0xef, 0xd7, 0x2f, 0x2e, 0x84,
-	0xb9, 0x2c, 0xe3, 0x69, 0x22, 0xb3, 0x59, 0x24, 0x35, 0x1a, 0xc3, 0x7f, 0x58, 0xc8, 0xe5, 0xec,
-	0x98, 0x2b, 0x25, 0x50, 0x7d, 0xf5, 0xa3, 0x9c, 0xd5, 0xff, 0xe6, 0xc5, 0x1d, 0x1a, 0xdb, 0x37,
-	0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x03, 0x85, 0xd6, 0x04, 0xfa, 0x09, 0x00, 0x00,
+	// 803 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xdd, 0x8e, 0xdb, 0x44,
+	0x14, 0x96, 0x37, 0x71, 0x7e, 0x8e, 0xc9, 0x8f, 0x46, 0xaa, 0x30, 0x4b, 0x1b, 0x45, 0x91, 0x0a,
+	0x91, 0x80, 0x04, 0x05, 0x09, 0xd1, 0x1b, 0xa4, 0x6e, 0x22, 0x50, 0xa4, 0xb2, 0x5d, 0xb9, 0x70,
+	0xc3, 0x4d, 0x34, 0xb6, 0x4f, 0x77, 0xdd, 0xc4, 0x1e, 0x6b, 0x66, 0xbc, 0x11, 0x3c, 0x06, 0x2f,
+	0xc0, 0x03, 0xf0, 0x00, 0xbd, 0xe3, 0x9a, 0x4b, 0x1e, 0x01, 0xed, 0x93, 0xa0, 0x39, 0x76, 0xec,
+	0x64, 0x55, 0x65, 0xd3, 0xfb, 0xde, 0xed, 0x7c, 0xe7, 0xfb, 0xce, 0xce, 0x9c, 0xf3, 0xf9, 0x53,
+	0xe0, 0xf1, 0x26, 0xf2, 0xa7, 0xfa, 0xb7, 0x14, 0xd5, 0x54, 0xa2, 0x12, 0x99, 0x0c, 0x30, 0xe4,
+	0x9a, 0x4f, 0x52, 0x29, 0xb4, 0x60, 0x36, 0x55, 0xce, 0x1f, 0x19, 0x52, 0x20, 0xe2, 0x58, 0x24,
+	0x53, 0x9f, 0x2b, 0xcc, 0xab, 0x07, 0x70, 0x25, 0x1a, 0xfd, 0x51, 0x07, 0xf0, 0x8a, 0x5e, 0x57,
+	0x17, 0xec, 0x6b, 0xb0, 0xc5, 0x36, 0x41, 0xe9, 0x5a, 0x43, 0x6b, 0xec, 0xcc, 0xce, 0x27, 0x3c,
+	0x8d, 0x72, 0xa6, 0x9f, 0xbd, 0x9e, 0xbc, 0x94, 0xd7, 0x3c, 0x89, 0x7e, 0xe7, 0x3a, 0x12, 0x89,
+	0x97, 0x13, 0xd9, 0xc7, 0xd0, 0x34, 0xed, 0x56, 0x51, 0xe8, 0x9e, 0x0d, 0xad, 0x71, 0xdb, 0x6b,
+	0x98, 0xe3, 0x32, 0x64, 0xcf, 0xc0, 0xa1, 0x82, 0xd2, 0x5c, 0x67, 0xca, 0xad, 0x0d, 0xad, 0x71,
+	0x77, 0xe6, 0x1e, 0x36, 0x5c, 0x70, 0xcd, 0x5f, 0x51, 0xdd, 0x83, 0xb0, 0xfc, 0x9b, 0x4d, 0xc0,
+	0x36, 0x2a, 0x74, 0xeb, 0xef, 0x12, 0x5d, 0x89, 0x2d, 0x4a, 0xc3, 0x44, 0x2f, 0xa7, 0xb1, 0x4f,
+	0xa1, 0xad, 0x85, 0xe6, 0x9b, 0x55, 0x8c, 0xb1, 0x6b, 0x0f, 0xad, 0x71, 0xdd, 0x6b, 0x11, 0xf0,
+	0x13, 0xc6, 0xec, 0x13, 0x68, 0x65, 0x0a, 0x43, 0xaa, 0x35, 0xa8, 0xd6, 0x34, 0x67, 0x53, 0xfa,
+	0x1c, 0x7a, 0xb9, 0x2e, 0x95, 0x22, 0x40, 0xa5, 0x84, 0x74, 0x9b, 0x43, 0x6b, 0xdc, 0xf1, 0xba,
+	0x04, 0x5f, 0xed, 0x50, 0xf6, 0x14, 0xba, 0xd4, 0xa3, 0xe2, 0xb5, 0x88, 0xd7, 0x31, 0x68, 0x45,
+	0x2b, 0xfb, 0xf9, 0x3c, 0x09, 0xb7, 0x51, 0xa8, 0x6f, 0xdc, 0x36, 0xfd, 0xc7, 0xbc, 0xdf, 0xc5,
+	0x0e, 0x2d, 0xfb, 0x55, 0x3c, 0x20, 0x1e, 0xf5, 0xab, 0x68, 0x4f, 0x00, 0xf2, 0x7e, 0x61, 0xa4,
+	0xd6, 0xae, 0x43, 0x94, 0xfc, 0xa5, 0x8b, 0x48, 0xad, 0xcd, 0xb3, 0xa9, 0x0b, 0x55, 0x3f, 0xca,
+	0x9f, 0x6d, 0x00, 0x2a, 0x3e, 0x01, 0x48, 0x33, 0x7f, 0x13, 0xa9, 0x9b, 0x15, 0xd7, 0x6e, 0x27,
+	0xd7, 0x16, 0xc8, 0x73, 0x4d, 0xda, 0x34, 0xe4, 0x1a, 0x4d, 0xb5, 0x5b, 0x68, 0x09, 0x78, 0xae,
+	0x47, 0x6f, 0xeb, 0xd0, 0x7b, 0x21, 0x02, 0xbe, 0xf9, 0xe0, 0x8c, 0x0f, 0xce, 0xd8, 0x77, 0x06,
+	0x1b, 0x80, 0xf3, 0x46, 0xf8, 0xab, 0x44, 0x84, 0x68, 0xf6, 0xda, 0xa3, 0xbd, 0xb6, 0xdf, 0x08,
+	0xff, 0x52, 0x84, 0xb8, 0x0c, 0x47, 0x6f, 0x2d, 0xb0, 0x69, 0x0b, 0xf7, 0x99, 0xd6, 0x3d, 0xa6,
+	0x19, 0x7e, 0x6a, 0x88, 0x95, 0x3d, 0x9a, 0x74, 0x5e, 0x86, 0x6c, 0x6e, 0x66, 0xc0, 0xaf, 0x71,
+	0x25, 0x6e, 0x51, 0xde, 0x46, 0xb8, 0x25, 0x8b, 0x38, 0xb3, 0xc7, 0x13, 0x4a, 0xb8, 0xc9, 0xce,
+	0x95, 0xbf, 0x18, 0xd2, 0xcb, 0x82, 0x63, 0x26, 0xb4, 0x77, 0x7c, 0x5f, 0xa7, 0x8c, 0xfe, 0x3e,
+	0x83, 0x3e, 0xa1, 0xd4, 0x75, 0x81, 0x9a, 0x47, 0x1b, 0xf6, 0x3d, 0x38, 0x51, 0xf2, 0x5a, 0xc8,
+	0x98, 0x8c, 0x5d, 0x58, 0xff, 0xf8, 0x35, 0xf6, 0x05, 0x6c, 0x0c, 0xfd, 0x7c, 0x4d, 0x9a, 0xab,
+	0xf5, 0x2a, 0x10, 0x59, 0xa2, 0xe9, 0xb1, 0x3b, 0x1f, 0xfd, 0xcc, 0xd5, 0x7a, 0x6e, 0x50, 0xf6,
+	0x25, 0xb0, 0x20, 0x93, 0x12, 0x13, 0xbd, 0xcf, 0xad, 0x11, 0xb7, 0x5f, 0x54, 0x2a, 0xf6, 0x67,
+	0x60, 0x1b, 0x96, 0x72, 0xeb, 0xc3, 0xda, 0xd8, 0x99, 0xf5, 0x8b, 0x1b, 0xd1, 0xfd, 0x0d, 0xcb,
+	0xcb, 0xcb, 0xd5, 0x10, 0xec, 0xd3, 0x3e, 0x97, 0x43, 0x6b, 0x34, 0x8e, 0x5a, 0xa3, 0x79, 0x2f,
+	0x34, 0xfe, 0xac, 0x41, 0xbb, 0xbc, 0x80, 0xf9, 0xf8, 0xe9, 0x1d, 0xe5, 0xea, 0x1b, 0xe6, 0xb8,
+	0x0c, 0xe9, 0x8b, 0x34, 0x85, 0x84, 0xc7, 0x58, 0x2c, 0xbe, 0x65, 0x80, 0x4b, 0x1e, 0x63, 0x15,
+	0x32, 0xb5, 0x53, 0x43, 0xe6, 0x5b, 0x68, 0xa5, 0x5c, 0xea, 0x04, 0xe5, 0x6e, 0x18, 0xc7, 0x44,
+	0x25, 0x97, 0x7d, 0x07, 0x6d, 0x89, 0x01, 0x46, 0xb7, 0x46, 0x68, 0x3f, 0x28, 0xac, 0xc8, 0xec,
+	0x05, 0x74, 0x45, 0x8a, 0x92, 0xf0, 0x55, 0x20, 0x54, 0x3e, 0x27, 0x67, 0xf6, 0xf4, 0x50, 0x4e,
+	0x6b, 0x28, 0x1c, 0x32, 0x17, 0x4a, 0x2f, 0x30, 0xd8, 0x70, 0x89, 0x5e, 0xa7, 0x14, 0x1b, 0x94,
+	0x5d, 0x42, 0xaf, 0xea, 0xa6, 0x52, 0x4c, 0x42, 0x1a, 0xec, 0xc9, 0xed, 0xaa, 0xbb, 0xbc, 0x32,
+	0x62, 0x76, 0x0e, 0xad, 0x40, 0x22, 0x6d, 0x84, 0x92, 0xa8, 0xee, 0x95, 0xe7, 0xd1, 0x5f, 0x67,
+	0xf0, 0xe8, 0x9d, 0xa6, 0x3d, 0x8c, 0x49, 0xeb, 0x48, 0x4c, 0x9e, 0x3d, 0x18, 0x93, 0xb5, 0x13,
+	0x63, 0xb2, 0x7e, 0x62, 0x4c, 0xda, 0x27, 0xc6, 0x64, 0xe3, 0xe1, 0x98, 0x6c, 0x1e, 0x8d, 0xc9,
+	0xd6, 0x61, 0x4c, 0x5e, 0x3c, 0xfb, 0xe7, 0x6e, 0x60, 0xfd, 0x7b, 0x37, 0xb0, 0xfe, 0xbb, 0x1b,
+	0x58, 0xbf, 0x7e, 0x71, 0x1d, 0xe9, 0x9b, 0xcc, 0x9f, 0x04, 0x22, 0x9e, 0x7a, 0x42, 0xa1, 0xd6,
+	0xfc, 0x87, 0x8d, 0xd8, 0x4e, 0xe7, 0x5c, 0xca, 0x08, 0xe5, 0x57, 0x3f, 0x8a, 0x69, 0xf9, 0xe3,
+	0xcc, 0x6f, 0xd0, 0xda, 0xbe, 0xf9, 0x3f, 0x00, 0x00, 0xff, 0xff, 0x12, 0x5f, 0x62, 0xdf, 0xb0,
+	0x09, 0x00, 0x00,
 }
 
 func (m *ResourcePB) Marshal() (dAtA []byte, err error) {
@@ -862,90 +829,79 @@ func (m *ResourcePB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.UpdateAt != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UpdateAt))
 		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0x80
+		dAtA[i] = 0x70
 	}
 	if m.PublishAt != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.PublishAt))
 		i--
-		dAtA[i] = 0x78
+		dAtA[i] = 0x68
 	}
 	if m.UsedDisk != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedDisk))
 		i--
-		dAtA[i] = 0x70
+		dAtA[i] = 0x60
 	}
 	if m.TotalDisk != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalDisk))
 		i--
-		dAtA[i] = 0x68
+		dAtA[i] = 0x58
 	}
 	if m.UsedBandwidth != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedBandwidth))
 		i--
-		dAtA[i] = 0x60
+		dAtA[i] = 0x50
 	}
 	if m.TotalBandwidth != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalBandwidth))
 		i--
-		dAtA[i] = 0x58
+		dAtA[i] = 0x48
 	}
 	if m.UsedProcessor != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedProcessor))
 		i--
-		dAtA[i] = 0x50
+		dAtA[i] = 0x40
 	}
 	if m.TotalProcessor != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalProcessor))
 		i--
-		dAtA[i] = 0x48
+		dAtA[i] = 0x38
 	}
 	if m.UsedMem != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedMem))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x30
 	}
 	if m.TotalMem != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalMem))
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x28
 	}
 	if m.State != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.State))
 		i--
-		dAtA[i] = 0x30
+		dAtA[i] = 0x20
 	}
 	if m.DataStatus != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.DataStatus))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x18
 	}
 	if len(m.DataId) > 0 {
 		i -= len(m.DataId)
 		copy(dAtA[i:], m.DataId)
 		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.DataId)))
 		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.NodeName) > 0 {
-		i -= len(m.NodeName)
-		copy(dAtA[i:], m.NodeName)
-		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.NodeName)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.NodeId) > 0 {
-		i -= len(m.NodeId)
-		copy(dAtA[i:], m.NodeId)
-		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.NodeId)))
-		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.IdentityId) > 0 {
-		i -= len(m.IdentityId)
-		copy(dAtA[i:], m.IdentityId)
-		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.IdentityId)))
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0xa
 	}
@@ -981,97 +937,84 @@ func (m *LocalResourcePB) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.JobNodeId)
 		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.JobNodeId)))
 		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0x8a
+		dAtA[i] = 0x7a
 	}
 	if m.UpdateAt != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UpdateAt))
 		i--
-		dAtA[i] = 0x1
-		i--
-		dAtA[i] = 0x80
+		dAtA[i] = 0x70
 	}
 	if m.PublishAt != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.PublishAt))
 		i--
-		dAtA[i] = 0x78
+		dAtA[i] = 0x68
 	}
 	if m.UsedDisk != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedDisk))
 		i--
-		dAtA[i] = 0x70
+		dAtA[i] = 0x60
 	}
 	if m.TotalDisk != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalDisk))
 		i--
-		dAtA[i] = 0x68
+		dAtA[i] = 0x58
 	}
 	if m.UsedBandwidth != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedBandwidth))
 		i--
-		dAtA[i] = 0x60
+		dAtA[i] = 0x50
 	}
 	if m.TotalBandwidth != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalBandwidth))
 		i--
-		dAtA[i] = 0x58
+		dAtA[i] = 0x48
 	}
 	if m.UsedProcessor != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedProcessor))
 		i--
-		dAtA[i] = 0x50
+		dAtA[i] = 0x40
 	}
 	if m.TotalProcessor != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalProcessor))
 		i--
-		dAtA[i] = 0x48
+		dAtA[i] = 0x38
 	}
 	if m.UsedMem != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.UsedMem))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x30
 	}
 	if m.TotalMem != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.TotalMem))
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x28
 	}
 	if m.State != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.State))
 		i--
-		dAtA[i] = 0x30
+		dAtA[i] = 0x20
 	}
 	if m.DataStatus != 0 {
 		i = encodeVarintResourcedata(dAtA, i, uint64(m.DataStatus))
 		i--
-		dAtA[i] = 0x28
+		dAtA[i] = 0x18
 	}
 	if len(m.DataId) > 0 {
 		i -= len(m.DataId)
 		copy(dAtA[i:], m.DataId)
 		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.DataId)))
 		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.NodeName) > 0 {
-		i -= len(m.NodeName)
-		copy(dAtA[i:], m.NodeName)
-		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.NodeName)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.NodeId) > 0 {
-		i -= len(m.NodeId)
-		copy(dAtA[i:], m.NodeId)
-		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.NodeId)))
-		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.IdentityId) > 0 {
-		i -= len(m.IdentityId)
-		copy(dAtA[i:], m.IdentityId)
-		i = encodeVarintResourcedata(dAtA, i, uint64(len(m.IdentityId)))
+	if m.Owner != nil {
+		{
+			size, err := m.Owner.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintResourcedata(dAtA, i, uint64(size))
+		}
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1408,16 +1351,8 @@ func (m *ResourcePB) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.IdentityId)
-	if l > 0 {
-		n += 1 + l + sovResourcedata(uint64(l))
-	}
-	l = len(m.NodeId)
-	if l > 0 {
-		n += 1 + l + sovResourcedata(uint64(l))
-	}
-	l = len(m.NodeName)
-	if l > 0 {
+	if m.Owner != nil {
+		l = m.Owner.Size()
 		n += 1 + l + sovResourcedata(uint64(l))
 	}
 	l = len(m.DataId)
@@ -1458,7 +1393,7 @@ func (m *ResourcePB) Size() (n int) {
 		n += 1 + sovResourcedata(uint64(m.PublishAt))
 	}
 	if m.UpdateAt != 0 {
-		n += 2 + sovResourcedata(uint64(m.UpdateAt))
+		n += 1 + sovResourcedata(uint64(m.UpdateAt))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1472,16 +1407,8 @@ func (m *LocalResourcePB) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.IdentityId)
-	if l > 0 {
-		n += 1 + l + sovResourcedata(uint64(l))
-	}
-	l = len(m.NodeId)
-	if l > 0 {
-		n += 1 + l + sovResourcedata(uint64(l))
-	}
-	l = len(m.NodeName)
-	if l > 0 {
+	if m.Owner != nil {
+		l = m.Owner.Size()
 		n += 1 + l + sovResourcedata(uint64(l))
 	}
 	l = len(m.DataId)
@@ -1522,11 +1449,11 @@ func (m *LocalResourcePB) Size() (n int) {
 		n += 1 + sovResourcedata(uint64(m.PublishAt))
 	}
 	if m.UpdateAt != 0 {
-		n += 2 + sovResourcedata(uint64(m.UpdateAt))
+		n += 1 + sovResourcedata(uint64(m.UpdateAt))
 	}
 	l = len(m.JobNodeId)
 	if l > 0 {
-		n += 2 + l + sovResourcedata(uint64(l))
+		n += 1 + l + sovResourcedata(uint64(l))
 	}
 	if m.XXX_unrecognized != nil {
 		n += len(m.XXX_unrecognized)
@@ -1718,9 +1645,9 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IdentityId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResourcedata
@@ -1730,89 +1657,29 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthResourcedata
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthResourcedata
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.IdentityId = string(dAtA[iNdEx:postIndex])
+			if m.Owner == nil {
+				m.Owner = &common.Organization{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowResourcedata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.NodeId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NodeName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowResourcedata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.NodeName = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataId", wireType)
 			}
@@ -1844,7 +1711,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 			}
 			m.DataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataStatus", wireType)
 			}
@@ -1863,7 +1730,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
@@ -1882,7 +1749,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 7:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalMem", wireType)
 			}
@@ -1901,7 +1768,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 8:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedMem", wireType)
 			}
@@ -1920,7 +1787,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 9:
+		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalProcessor", wireType)
 			}
@@ -1939,7 +1806,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 10:
+		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedProcessor", wireType)
 			}
@@ -1958,7 +1825,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 11:
+		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalBandwidth", wireType)
 			}
@@ -1977,7 +1844,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 12:
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedBandwidth", wireType)
 			}
@@ -1996,7 +1863,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 13:
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalDisk", wireType)
 			}
@@ -2015,7 +1882,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 14:
+		case 12:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedDisk", wireType)
 			}
@@ -2034,7 +1901,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 15:
+		case 13:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PublishAt", wireType)
 			}
@@ -2053,7 +1920,7 @@ func (m *ResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 16:
+		case 14:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UpdateAt", wireType)
 			}
@@ -2125,9 +1992,9 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IdentityId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
-			var stringLen uint64
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowResourcedata
@@ -2137,89 +2004,29 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if msglen < 0 {
 				return ErrInvalidLengthResourcedata
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + msglen
 			if postIndex < 0 {
 				return ErrInvalidLengthResourcedata
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.IdentityId = string(dAtA[iNdEx:postIndex])
+			if m.Owner == nil {
+				m.Owner = &common.Organization{}
+			}
+			if err := m.Owner.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NodeId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowResourcedata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.NodeId = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NodeName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowResourcedata
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthResourcedata
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.NodeName = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataId", wireType)
 			}
@@ -2251,7 +2058,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 			}
 			m.DataId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DataStatus", wireType)
 			}
@@ -2270,7 +2077,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 6:
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field State", wireType)
 			}
@@ -2289,7 +2096,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 7:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalMem", wireType)
 			}
@@ -2308,7 +2115,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 8:
+		case 6:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedMem", wireType)
 			}
@@ -2327,7 +2134,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 9:
+		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalProcessor", wireType)
 			}
@@ -2346,7 +2153,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 10:
+		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedProcessor", wireType)
 			}
@@ -2365,7 +2172,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 11:
+		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalBandwidth", wireType)
 			}
@@ -2384,7 +2191,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 12:
+		case 10:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedBandwidth", wireType)
 			}
@@ -2403,7 +2210,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 13:
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalDisk", wireType)
 			}
@@ -2422,7 +2229,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 14:
+		case 12:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UsedDisk", wireType)
 			}
@@ -2441,7 +2248,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 15:
+		case 13:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PublishAt", wireType)
 			}
@@ -2460,7 +2267,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 16:
+		case 14:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UpdateAt", wireType)
 			}
@@ -2479,7 +2286,7 @@ func (m *LocalResourcePB) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 17:
+		case 15:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field JobNodeId", wireType)
 			}

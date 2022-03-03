@@ -29,9 +29,9 @@ type IdentityPB struct {
 	NodeId     string `protobuf:"bytes,2,opt,name=node_id,json=nodeId,proto3" json:"node_id,omitempty"`
 	NodeName   string `protobuf:"bytes,3,opt,name=node_name,json=nodeName,proto3" json:"node_name,omitempty"`
 	DataId     string `protobuf:"bytes,4,opt,name=data_id,json=dataId,proto3" json:"data_id,omitempty"`
-	// N means normal, D means deleted
+	// the status of data for local storage, 1 means valid, 2 means invalid
 	DataStatus common.DataStatus `protobuf:"varint,5,opt,name=data_status,json=dataStatus,proto3,enum=api.protobuf.DataStatus" json:"data_status,omitempty"`
-	// Y : normal, N non-normal
+	// the status of data for datacenter, 1 means valid, 2 means invalid
 	Status common.CommonStatus `protobuf:"varint,6,opt,name=status,proto3,enum=api.protobuf.CommonStatus" json:"status,omitempty"`
 	// json format for credential
 	Credential string `protobuf:"bytes,7,opt,name=credential,proto3" json:"credential,omitempty"`

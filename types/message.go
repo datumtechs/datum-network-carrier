@@ -269,7 +269,6 @@ func (s PowerRevokeMsgArr) Less(i, j int) bool { return s[i].GetCreateAt() < s[j
 type MetadataMsg struct {
 	MetadataId      string                    `json:"metadataId"`
 	MetadataSummary *libtypes.MetadataSummary `json:"metadataSummary"`
-	ColumnMetas     []*types.MetadataColumn   `json:"columnMetas"`
 	CreateAt        uint64                    `json:"createAt"`
 	// caches
 	hash atomic.Value
@@ -278,64 +277,45 @@ type MetadataMsg struct {
 func NewMetadataMessageFromRequest(req *pb.PublishMetadataRequest) *MetadataMsg {
 	metadataMsg := &MetadataMsg{
 		MetadataSummary: &libtypes.MetadataSummary{
-			MetadataId: req.GetInformation().GetMetadataSummary().GetMetadataId(),
-			OriginId:   req.GetInformation().GetMetadataSummary().GetOriginId(),
-			TableName:  req.GetInformation().GetMetadataSummary().GetTableName(),
-			Desc:       req.GetInformation().GetMetadataSummary().GetDesc(),
-			FilePath:   req.GetInformation().GetMetadataSummary().GetFilePath(),
-			Rows:       req.GetInformation().GetMetadataSummary().GetRows(),
-			Columns:    req.GetInformation().GetMetadataSummary().GetColumns(),
-			Size_:      req.GetInformation().GetMetadataSummary().GetSize_(),
-			FileType:   req.GetInformation().GetMetadataSummary().GetFileType(),
-			HasTitle:   req.GetInformation().GetMetadataSummary().GetHasTitle(),
-			Industry:   req.GetInformation().GetMetadataSummary().GetIndustry(),
-			State:      req.GetInformation().GetMetadataSummary().GetState(),
+			MetadataId:     req.GetInformation().GetMetadataSummary().GetMetadataId(),
+			MetadataName:   req.GetInformation().GetMetadataSummary().GetMetadataName(),
+			MetadataType:   req.GetInformation().GetMetadataSummary().GetMetadataType(),
+			FileHash:       req.GetInformation().GetMetadataSummary().GetFileHash(),
+			Desc:           req.GetInformation().GetMetadataSummary().GetDesc(),
+			FileType:       req.GetInformation().GetMetadataSummary().GetFileType(),
+			Industry:       req.GetInformation().GetMetadataSummary().GetIndustry(),
+			State:          req.GetInformation().GetMetadataSummary().GetState(),
+			PublishAt:      req.GetInformation().GetMetadataSummary().GetPublishAt(),
+			UpdateAt:       req.GetInformation().GetMetadataSummary().GetUpdateAt(),
+			Nonce:          req.GetInformation().GetMetadataSummary().GetNonce(),
+			MetadataOption: req.GetInformation().GetMetadataSummary().GetMetadataOption(),
 		},
-		ColumnMetas: make([]*types.MetadataColumn, 0),
-		CreateAt:    timeutils.UnixMsecUint64(),
+		CreateAt: timeutils.UnixMsecUint64(),
 	}
 
-	ColumnMetas := make([]*libtypes.MetadataColumn, len(req.GetInformation().GetMetadataColumns()))
-	for i, v := range req.GetInformation().GetMetadataColumns() {
-		ColumnMeta := &libtypes.MetadataColumn{
-			CIndex:   v.GetCIndex(),
-			CName:    v.GetCName(),
-			CType:    v.GetCType(),
-			CSize:    v.GetCSize(),
-			CComment: v.GetCComment(),
-		}
-		ColumnMetas[i] = ColumnMeta
-	}
-	metadataMsg.ColumnMetas = ColumnMetas
 	metadataMsg.GenMetadataId()
-
 	return metadataMsg
 }
 
 func (msg *MetadataMsg) ToDataCenter(identity *apicommonpb.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
-		MetadataId:      msg.GetMetadataId(),
-		IdentityId:      identity.GetIdentityId(),
-		NodeId:          identity.GetNodeId(),
-		NodeName:        identity.GetNodeName(),
-		DataId:          msg.GetMetadataId(),
-		OriginId:        msg.GetOriginId(),
-		TableName:       msg.GetTableName(),
-		FilePath:        msg.GetFilePath(),
-		FileType:        msg.GetFileType(),
-		Desc:            msg.GetDesc(),
-		Rows:            msg.GetRows(),
-		Columns:         msg.GetColumns(),
-		Size_:           msg.GetSize(),
-		HasTitle:        msg.GetHasTitle(),
-		MetadataColumns: msg.GetColumnMetas(),
-		Industry:        msg.GetIndustry(),
-		// the status of data, N means normal, D means deleted.
-		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+
+		MetadataId:   msg.GetMetadataId(),
+		Owner:        identity,
+		DataId:       msg.GetMetadataId(),
+		DataStatus:   apicommonpb.DataStatus_DataStatus_Valid,
+		MetadataName: msg.GetMetadataName(),
+		MetadataType: msg.GetMetadataType(),
+		FileHash:     msg.GetFileHash(),
+		Desc:         msg.GetDesc(),
+		FileType:     msg.GetFileType(),
+		Industry:     msg.GetIndustry(),
 		// metaData status, eg: create/release/revoke
-		State:     apicommonpb.MetadataState_MetadataState_Released,
-		PublishAt: timeutils.UnixMsecUint64(),
-		UpdateAt:  timeutils.UnixMsecUint64(),
+		State:          apicommonpb.MetadataState_MetadataState_Released,
+		PublishAt:      timeutils.UnixMsecUint64(),
+		UpdateAt:       timeutils.UnixMsecUint64(),
+		Nonce:          msg.GetNonce(),
+		MetadataOption: msg.GetMetadataOption(),
 	})
 }
 func (msg *MetadataMsg) Marshal() ([]byte, error) { return nil, nil }
@@ -351,26 +331,22 @@ func (msg *MetadataMsg) MsgType() string { return MSG_METADATA }
 func (msg *MetadataMsg) GetMetadataSummary() *libtypes.MetadataSummary {
 	return msg.MetadataSummary
 }
-func (msg *MetadataMsg) GetOriginId() string  { return msg.GetMetadataSummary().OriginId }
-func (msg *MetadataMsg) GetTableName() string { return msg.GetMetadataSummary().TableName }
-func (msg *MetadataMsg) GetDesc() string      { return msg.GetMetadataSummary().Desc }
-func (msg *MetadataMsg) GetFilePath() string  { return msg.GetMetadataSummary().FilePath }
-func (msg *MetadataMsg) GetRows() uint32      { return msg.GetMetadataSummary().Rows }
-func (msg *MetadataMsg) GetColumns() uint32   { return msg.GetMetadataSummary().Columns }
-func (msg *MetadataMsg) GetSize() uint64      { return msg.GetMetadataSummary().Size_ }
+
+func (msg *MetadataMsg) GetMetadataName() string { return msg.GetMetadataSummary().MetadataName }
+func (msg *MetadataMsg) GetMetadataType() uint32 { return msg.GetMetadataSummary().MetadataType }
+func (msg *MetadataMsg) GetFileHash() string     { return msg.GetMetadataSummary().FileHash }
+func (msg *MetadataMsg) GetDesc() string         { return msg.GetMetadataSummary().Desc }
 func (msg *MetadataMsg) GetFileType() apicommonpb.OriginFileType {
 	return msg.GetMetadataSummary().FileType
 }
-func (msg *MetadataMsg) GetHasTitle() bool { return msg.GetMetadataSummary().HasTitle }
+func (msg *MetadataMsg) GetNonce() uint64 { return msg.GetMetadataSummary().Nonce }
 func (msg *MetadataMsg) GetState() apicommonpb.MetadataState {
 	return msg.GetMetadataSummary().State
 }
-func (msg *MetadataMsg) GetColumnMetas() []*types.MetadataColumn {
-	return msg.ColumnMetas
-}
-func (msg *MetadataMsg) GetIndustry() string   { return msg.GetMetadataSummary().Industry }
-func (msg *MetadataMsg) GetCreateAt() uint64   { return msg.CreateAt }
-func (msg *MetadataMsg) GetMetadataId() string { return msg.MetadataId }
+func (msg *MetadataMsg) GetIndustry() string       { return msg.GetMetadataSummary().Industry }
+func (msg *MetadataMsg) GetMetadataOption() string { return msg.GetMetadataSummary().MetadataOption }
+func (msg *MetadataMsg) GetCreateAt() uint64       { return msg.CreateAt }
+func (msg *MetadataMsg) GetMetadataId() string     { return msg.MetadataId }
 
 func (msg *MetadataMsg) GenMetadataId() string {
 	if "" != msg.GetMetadataId() {
@@ -385,19 +361,16 @@ func (msg *MetadataMsg) Hash() common.Hash {
 	}
 
 	var buf bytes.Buffer
-	buf.Write([]byte(msg.GetOriginId()))
-	buf.Write([]byte(msg.GetTableName()))
-	buf.Write([]byte(msg.GetDesc()))
-	buf.Write([]byte(msg.GetFilePath()))
-	buf.Write([]byte(msg.GetIndustry()))
 	buf.Write([]byte(msg.GetMetadataId()))
-	buf.Write([]byte(msg.GetState().String()))
-	buf.Write([]byte(fmt.Sprint(msg.GetHasTitle())))
+	buf.Write([]byte(msg.GetMetadataName()))
+	buf.Write(bytesutil.Uint32ToBytes(msg.GetMetadataType()))
+	buf.Write([]byte(msg.GetFileHash()))
+	buf.Write([]byte(msg.GetDesc()))
 	buf.Write([]byte(msg.GetFileType().String()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetRows()))
-	buf.Write(bytesutil.Uint32ToBytes(msg.GetColumns()))
-	buf.Write(bytesutil.Uint64ToBytes(msg.GetSize()))
-	buf.Write([]byte(msg.GetTableName()))
+	buf.Write([]byte(msg.GetIndustry()))
+	buf.Write([]byte(msg.GetState().String()))
+	buf.Write(bytesutil.Uint64ToBytes(msg.GetNonce()))
+	buf.Write([]byte(msg.GetMetadataOption()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
 	v := rlputil.RlpHash(buf.Bytes())
 	msg.hash.Store(v)
@@ -406,7 +379,7 @@ func (msg *MetadataMsg) Hash() common.Hash {
 
 func (msg *MetadataMsg) HashByCreateTime() common.Hash {
 	var buf bytes.Buffer
-	buf.Write([]byte(msg.GetOriginId()))
+	buf.Write([]byte(msg.GetFileHash()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
 	return rlputil.RlpHash(buf.Bytes())
 }
@@ -428,12 +401,9 @@ func (msg *MetadataRevokeMsg) GetCreateAt() uint64   { return msg.CreateAt }
 func (msg *MetadataRevokeMsg) ToDataCenter(identity *apicommonpb.Organization) *Metadata {
 	return NewMetadata(&libtypes.MetadataPB{
 		MetadataId: msg.GetMetadataId(),
-		IdentityId: identity.GetIdentityId(),
-		NodeId:     identity.GetNodeId(),
-		NodeName:   identity.GetNodeName(),
+		Owner:      identity,
 		DataId:     msg.GetMetadataId(),
-		// the status of data, N means normal, D means deleted.
-		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+		DataStatus: apicommonpb.DataStatus_DataStatus_Invalid,
 		// metaData status, eg: create/release/revoke
 		State:    apicommonpb.MetadataState_MetadataState_Revoked,
 		UpdateAt: timeutils.UnixMsecUint64(),
@@ -705,35 +675,29 @@ func (h *TaskBullets) DecreaseTermByCallbackFn(f func(b *TaskBullet)) {
 
 type TaskMsg struct {
 	Data          *Task
-	PowerPartyIds []string `json:"powerPartyIds"`
 	// caches
 	hash atomic.Value
 }
 
 func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 	return &TaskMsg{
-		PowerPartyIds: req.GetPowerPartyIds(),
 		Data: NewTask(&libtypes.TaskPB{
 			TaskId:       "",
 			TaskName:     req.GetTaskName(),
 			UserType:     req.GetUserType(),
 			User:         req.GetUser(),
-			PartyId:      req.GetSender().GetPartyId(),
-			IdentityId:   req.GetSender().GetIdentityId(),
-			NodeId:       req.GetSender().GetNodeId(),
-			NodeName:     req.GetSender().GetNodeName(),
+			Sender:       req.GetSender(),
 			DataId:       "",
-			DataStatus:   apicommonpb.DataStatus_DataStatus_Normal,
+			DataStatus:   apicommonpb.DataStatus_DataStatus_Valid,
 			State:        apicommonpb.TaskState_TaskState_Pending,
 			Reason:       "",
-			EventCount:   0,
 			Desc:         req.GetDesc(),
 			CreateAt:     timeutils.UnixMsecUint64(),
 			EndAt:        0,
 			StartAt:      0,
 			AlgoSupplier: req.GetAlgoSupplier(),
-			//DataSuppliers:
-			PowerSuppliers:        make([]*libtypes.TaskPowerSupplier, 0),
+			DataSuppliers: req.GetDataSuppliers(),
+			//PowerSuppliers: ,
 			Receivers:             req.GetReceivers(),
 			OperationCost:         req.GetOperationCost(),
 			CalculateContractCode: req.GetCalculateContractCode(),
@@ -757,7 +721,7 @@ func (msg *TaskMsg) GetTaskData() *types.TaskPB { return msg.GetTask().GetTaskDa
 func (msg *TaskMsg) GetUserType() apicommonpb.UserType {
 	return msg.GetTask().GetTaskData().GetUserType()
 }
-func (msg *TaskMsg) GetUser() string            { return msg.GetTask().GetTaskData().GetUser() }
+func (msg *TaskMsg) GetUser() string { return msg.GetTask().GetTaskData().GetUser() }
 func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {
 	return &apicommonpb.TaskOrganization{
 		PartyId:    msg.GetTask().GetTaskData().GetPartyId(),

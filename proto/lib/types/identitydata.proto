@@ -13,9 +13,9 @@ message IdentityPB {
   string node_id = 2;
   string node_name = 3;
   string data_id = 4;
-  // N means normal, D means deleted
+  // the status of data for local storage, 1 means valid, 2 means invalid
   api.protobuf.DataStatus data_status = 5;
-  // Y : normal, N non-normal
+  // the status of data for datacenter, 1 means valid, 2 means invalid
   api.protobuf.CommonStatus status = 6;
   // json format for credential
   string credential = 7;
