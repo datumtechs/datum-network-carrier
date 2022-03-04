@@ -43,37 +43,57 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 
 	// DataSupplier
 	for _, dataSupplier := range taskData.GetDataSuppliers() {
-		detailShow.DataSuppliers = append(detailShow.DataSuppliers, &pb.TaskDataSupplierShow{
+		metadataId, err := FetchMetedataIdByPartyId(dataSupplier.GetPartyId(), taskData.GetDataPolicyType(), taskData.GetDataPolicyOption())
+		if nil != err {
+			log.WithError(err).Errorf("failed to fetch metadataId by partyId from DataPolicyOption, taskId: {%s}, partyId: {%s}",
+				taskData.GetTaskId(), dataSupplier.GetPartyId())
+		}
+		metadataName, err := FetchMetedataNameByPartyId(dataSupplier.GetPartyId(), taskData.GetDataPolicyType(), taskData.GetDataPolicyOption())
+		if nil != err {
+			log.WithError(err).Errorf("failed to fetch metadataName by partyId from DataPolicyOption, taskId: {%s}, partyId: {%s}",
+				taskData.GetTaskId(), dataSupplier.GetPartyId())
+		}
+		supplier := &pb.TaskDataSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    dataSupplier.GetOrganization().GetPartyId(),
-				NodeName:   dataSupplier.GetOrganization().GetNodeName(),
-				NodeId:     dataSupplier.GetOrganization().GetNodeId(),
-				IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
+				PartyId:    dataSupplier.GetPartyId(),
+				NodeName:   dataSupplier.GetNodeName(),
+				NodeId:     dataSupplier.GetNodeId(),
+				IdentityId: dataSupplier.GetIdentityId(),
 			},
-			MetadataId:   dataSupplier.GetMetadataId(),
-			MetadataName: dataSupplier.GetMetadataName(),
-		})
+			MetadataId:  metadataId,
+			MetadataName: metadataName,
+		}
+		detailShow.DataSuppliers = append(detailShow.DataSuppliers, supplier)
 	}
 	// powerSupplier
 	for _, data := range taskData.GetPowerSuppliers() {
-		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
+
+		var option *libtypes.TaskPowerResourceOption
+		for _, op := range taskData.GetPowerResourceOptions() {
+			if data.GetPartyId() == op.GetPartyId() {
+				option = op
+				break
+			}
+		}
+		supplier := &pb.TaskPowerSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    data.GetOrganization().GetPartyId(),
-				NodeName:   data.GetOrganization().GetNodeName(),
-				NodeId:     data.GetOrganization().GetNodeId(),
-				IdentityId: data.GetOrganization().GetIdentityId(),
+				PartyId:    data.GetPartyId(),
+				NodeName:   data.GetNodeName(),
+				NodeId:     data.GetNodeId(),
+				IdentityId: data.GetIdentityId(),
 			},
 			PowerInfo: &libtypes.ResourceUsageOverview{
-				TotalMem:       data.GetResourceUsedOverview().GetTotalMem(),
-				UsedMem:        data.GetResourceUsedOverview().GetUsedMem(),
-				TotalProcessor: data.GetResourceUsedOverview().GetTotalProcessor(),
-				UsedProcessor:  data.GetResourceUsedOverview().GetUsedProcessor(),
-				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
-				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
-				TotalDisk:      data.GetResourceUsedOverview().GetTotalDisk(),
-				UsedDisk:       data.GetResourceUsedOverview().GetUsedDisk(),
+				TotalMem:       option.GetResourceUsedOverview().GetTotalMem(),
+				UsedMem:        option.GetResourceUsedOverview().GetUsedMem(),
+				TotalProcessor: option.GetResourceUsedOverview().GetTotalProcessor(),
+				UsedProcessor:  option.GetResourceUsedOverview().GetUsedProcessor(),
+				TotalBandwidth: option.GetResourceUsedOverview().GetTotalBandwidth(),
+				UsedBandwidth:  option.GetResourceUsedOverview().GetUsedBandwidth(),
+				TotalDisk:      option.GetResourceUsedOverview().GetTotalDisk(),
+				UsedDisk:       option.GetResourceUsedOverview().GetUsedDisk(),
 			},
-		})
+		}
+		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, supplier)
 	}
 	return detailShow
 }
@@ -97,29 +117,33 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 
 func NewGlobalMetadataInfoFromMetadata(input *Metadata) *pb.GetGlobalMetadataDetailResponse {
 	response := &pb.GetGlobalMetadataDetailResponse{
-		Owner: &apicommonpb.Organization{
-			NodeName:   input.data.GetNodeName(),
-			NodeId:     input.data.GetNodeId(),
-			IdentityId: input.data.GetIdentityId(),
-		},
+		Owner: input.GetData().GetOwner(),
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
+				/**
+				MetadataId   string
+				MetadataName string
+				MetadataType uint32
+				FileHash     string
+				Desc         string
+				FileType     common.OriginFileType
+				Industry     string
+				State        common.MetadataState
+				// v 2.0
+				PublishAt            uint64   `pro
+				UpdateAt             uint64   `pro
+				Nonce                uint64   `pro
+				MetadataOption       string   `pro
+				 */
 				MetadataId: input.GetData().GetMetadataId(),
-				OriginId:   input.GetData().GetOriginId(),
-				TableName:  input.GetData().GetTableName(),
+				MetadataName: input.GetData().GetMetadataName(),
 				Desc:       input.GetData().GetDesc(),
-				FilePath:   input.GetData().GetFilePath(),
-				Rows:       input.GetData().GetRows(),
-				Columns:    input.GetData().GetColumns(),
-				Size_:      input.GetData().GetSize_(),
 				FileType:   input.GetData().GetFileType(),
-				HasTitle:   input.GetData().GetHasTitle(),
 				Industry:   input.GetData().GetIndustry(),
 				State:      input.GetData().GetState(),
 				PublishAt:  input.GetData().GetPublishAt(),
 				UpdateAt:   input.GetData().GetUpdateAt(),
 			},
-			MetadataColumns: input.GetData().GetMetadataColumns(),
 		},
 	}
 	return response

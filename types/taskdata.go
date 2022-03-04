@@ -57,25 +57,17 @@ func (m *Task) GetTaskData() *libtypes.TaskPB {
 }
 
 func (m *Task) GetTaskSender() *apicommonpb.TaskOrganization {
-	return &apicommonpb.TaskOrganization{
-		PartyId:    m.data.GetPartyId(),
-		NodeName:   m.data.GetNodeName(),
-		NodeId:     m.data.GetNodeId(),
-		IdentityId: m.data.GetIdentityId(),
-	}
+	return m.data.GetSender()
 }
 
 func (m *Task) SetEventList(eventList []*libtypes.TaskEvent) {
 	m.data.TaskEvents = eventList
 }
-func (m *Task) SetMetadataSupplierArr(arr []*libtypes.TaskDataSupplier) {
-	m.data.DataSuppliers = arr
-}
-func (m *Task) SetResourceSupplierArr(arr []*libtypes.TaskPowerSupplier) {
+func (m *Task) SetPowerSuppliers(arr []*apicommonpb.TaskOrganization) {
 	m.data.PowerSuppliers = arr
 }
-func (m *Task) RemoveResourceSupplierArr() {
-	m.data.PowerSuppliers = make([]*libtypes.TaskPowerSupplier, 0)
+func (m *Task) RemovePowerSuppliers() {
+	m.data.PowerSuppliers = make([]*apicommonpb.TaskOrganization, 0)
 }
 func (m *Task) SetReceivers(arr []*apicommonpb.TaskOrganization) {
 	m.data.Receivers = arr

@@ -189,7 +189,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powers: %s", task.GetTaskId(), types.UtilOrgPowerArrString(powers))
 
 	// Set elected powers into task info, and restore into local db.
-	task.SetResourceSupplierArr(powers)
+	task.SetPowerSuppliers(powers)
 	// restore task by power
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.WithError(err).Errorf("Failed to update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())

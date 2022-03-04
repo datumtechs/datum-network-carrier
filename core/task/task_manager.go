@@ -251,7 +251,7 @@ func (m *Manager) loop() {
 				case types.TaskConsensusInterrupt:
 
 					// clean old powerSuppliers and update local task
-					task.RemoveResourceSupplierArr()
+					task.RemovePowerSuppliers()
 					// restore task by power
 					if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 						log.WithError(err).Errorf("Failed to update local task whit clean powers after consensus interrupted when received `NEED-CONSENSUS` task result, taskId: {%s}", task.GetTaskId())

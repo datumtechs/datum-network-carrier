@@ -12,7 +12,6 @@ import (
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"strings"
 	"sync/atomic"
 )
 
@@ -78,8 +77,8 @@ func (msg *IdentityMsg) ToDataCenter() *Identity {
 		ImageUrl:   msg.GetOrganization().GetImageUrl(),
 		Details:    msg.GetOrganization().GetDetails(),
 		DataId:     "",
-		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-		Status:     apicommonpb.CommonStatus_CommonStatus_Normal,
+		DataStatus: apicommonpb.DataStatus_DataStatus_Valid,
+		Status:     apicommonpb.CommonStatus_CommonStatus_Valid,
 		Credential: "",
 	})
 }
@@ -674,7 +673,7 @@ func (h *TaskBullets) DecreaseTermByCallbackFn(f func(b *TaskBullet)) {
 }
 
 type TaskMsg struct {
-	Data          *Task
+	Data *Task
 	// caches
 	hash atomic.Value
 }
@@ -682,28 +681,37 @@ type TaskMsg struct {
 func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 	return &TaskMsg{
 		Data: NewTask(&libtypes.TaskPB{
-			TaskId:       "",
-			TaskName:     req.GetTaskName(),
-			UserType:     req.GetUserType(),
-			User:         req.GetUser(),
-			Sender:       req.GetSender(),
-			DataId:       "",
-			DataStatus:   apicommonpb.DataStatus_DataStatus_Valid,
-			State:        apicommonpb.TaskState_TaskState_Pending,
-			Reason:       "",
-			Desc:         req.GetDesc(),
-			CreateAt:     timeutils.UnixMsecUint64(),
-			EndAt:        0,
-			StartAt:      0,
-			AlgoSupplier: req.GetAlgoSupplier(),
+
+			TaskId:        "",
+			DataId:        "",
+			DataStatus:    apicommonpb.DataStatus_DataStatus_Valid,
+			User:          req.GetUser(),
+			UserType:      req.GetUserType(),
+			TaskName:      req.GetTaskName(),
+			Sender:        req.GetSender(),
+			AlgoSupplier:  req.GetAlgoSupplier(),
 			DataSuppliers: req.GetDataSuppliers(),
-			//PowerSuppliers: ,
-			Receivers:             req.GetReceivers(),
-			OperationCost:         req.GetOperationCost(),
-			CalculateContractCode: req.GetCalculateContractCode(),
-			DataSplitContractCode: req.GetDataSplitContractCode(),
-			ContractExtraParams:   req.GetContractExtraParams(),
-			Sign:                  req.GetSign(),
+			// PowerSuppliers: ,
+			Receivers:            req.GetReceivers(),
+			DataPolicyType:       req.GetDataPolicyType(),
+			DataPolicyOption:     req.GetDataPolicyOption(),
+			PowerPolicyType:      req.GetPowerPolicyType(),
+			PowerPolicyOption:    req.GetPowerPolicyOption(),
+			DataFlowPolicyType:   req.GetDataFlowPolicyType(),
+			DataFlowPolicyOption: req.GetDataFlowPolicyOption(),
+			OperationCost:        req.GetOperationCost(),
+			AlgorithmCode:        req.GetAlgorithmCode(),
+			MetaAlgorithmId:      req.GetMetaAlgorithmId(),
+			ContractExtraParams:  req.GetContractExtraParams(),
+			// PowerResourceOptions:
+			State:    apicommonpb.TaskState_TaskState_Pending,
+			Reason:   "",
+			Desc:     req.GetDesc(),
+			CreateAt: timeutils.UnixMsecUint64(),
+			EndAt:    0,
+			StartAt:  0,
+			// TaskEvents:
+			Sign: req.GetSign(),
 		}),
 	}
 }
@@ -711,31 +719,25 @@ func NewTaskMessageFromRequest(req *pb.PublishTaskDeclareRequest) *TaskMsg {
 func (msg *TaskMsg) Marshal() ([]byte, error) { return nil, nil }
 func (msg *TaskMsg) Unmarshal(b []byte) error { return nil }
 func (msg *TaskMsg) String() string {
-	return fmt.Sprintf(`{"taskId": %s, "powerPartyIds": %s, "task": %s}`,
-		msg.GetTask().GetTaskId(), "["+strings.Join(msg.PowerPartyIds, ",")+"]", msg.GetTask().GetTaskData().String())
+	return fmt.Sprintf(`{"taskId": %s, "task": %s}`, msg.GetTask().GetTaskId(), msg.GetTask().GetTaskData().String())
 }
 func (msg *TaskMsg) MsgType() string { return MSG_TASK }
 
 func (msg *TaskMsg) GetTask() *Task             { return msg.Data }
 func (msg *TaskMsg) GetTaskData() *types.TaskPB { return msg.GetTask().GetTaskData() }
+func (msg *TaskMsg) GetTaskId() string          { return msg.GetTask().GetTaskData().GetTaskId() }
+func (msg *TaskMsg) GetUser() string            { return msg.GetTask().GetTaskData().GetUser() }
 func (msg *TaskMsg) GetUserType() apicommonpb.UserType {
 	return msg.GetTask().GetTaskData().GetUserType()
 }
-func (msg *TaskMsg) GetUser() string { return msg.GetTask().GetTaskData().GetUser() }
+func (msg *TaskMsg) GetTaskName() string { return msg.GetTask().GetTaskData().GetTaskName() }
 func (msg *TaskMsg) GetSender() *apicommonpb.TaskOrganization {
-	return &apicommonpb.TaskOrganization{
-		PartyId:    msg.GetTask().GetTaskData().GetPartyId(),
-		NodeName:   msg.GetTask().GetTaskData().GetNodeName(),
-		NodeId:     msg.GetTask().GetTaskData().GetNodeId(),
-		IdentityId: msg.GetTask().GetTaskData().GetIdentityId(),
-	}
+	return msg.GetTask().GetTaskSender()
 }
-func (msg *TaskMsg) GetSenderName() string       { return msg.GetTask().GetTaskData().GetNodeName() }
-func (msg *TaskMsg) GetSenderNodeId() string     { return msg.GetTask().GetTaskData().GetNodeId() }
-func (msg *TaskMsg) GetSenderIdentityId() string { return msg.GetTask().GetTaskData().GetIdentityId() }
-func (msg *TaskMsg) GetSenderPartyId() string    { return msg.GetTask().GetTaskData().GetPartyId() }
-func (msg *TaskMsg) GetTaskId() string           { return msg.GetTask().GetTaskData().GetTaskId() }
-func (msg *TaskMsg) GetTaskName() string         { return msg.GetTask().GetTaskData().GetTaskName() }
+func (msg *TaskMsg) GetSenderName() string       { return msg.GetTask().GetTaskSender().GetNodeName() }
+func (msg *TaskMsg) GetSenderNodeId() string     { return msg.GetTask().GetTaskSender().GetNodeId() }
+func (msg *TaskMsg) GetSenderIdentityId() string { return msg.GetTask().GetTaskSender().GetIdentityId() }
+func (msg *TaskMsg) GetSenderPartyId() string    { return msg.GetTask().GetTaskSender().GetPartyId() }
 func (msg *TaskMsg) GetAlgoSupplier() *apicommonpb.TaskOrganization {
 	return &apicommonpb.TaskOrganization{
 		PartyId:    msg.GetTask().GetTaskData().GetAlgoSupplier().GetPartyId(),
@@ -744,57 +746,46 @@ func (msg *TaskMsg) GetAlgoSupplier() *apicommonpb.TaskOrganization {
 		IdentityId: msg.GetTask().GetTaskData().GetAlgoSupplier().GetIdentityId(),
 	}
 }
-func (msg *TaskMsg) GetTaskMetadataSuppliers() []*apicommonpb.TaskOrganization {
-
-	partners := make([]*apicommonpb.TaskOrganization, len(msg.GetTask().GetTaskData().GetDataSuppliers()))
-	for i, v := range msg.Data.GetTaskData().GetDataSuppliers() {
-
-		partners[i] = &apicommonpb.TaskOrganization{
-			PartyId:    v.GetOrganization().GetPartyId(),
-			NodeName:   v.GetOrganization().GetNodeName(),
-			NodeId:     v.GetOrganization().GetNodeId(),
-			IdentityId: v.GetOrganization().GetIdentityId(),
-		}
-	}
-	return partners
-}
-func (msg *TaskMsg) GetTaskMetadataSupplierDatas() []*libtypes.TaskDataSupplier {
+func (msg *TaskMsg) GetDataSuppliers() []*apicommonpb.TaskOrganization {
 	return msg.GetTask().GetTaskData().GetDataSuppliers()
 }
-
-func (msg *TaskMsg) GetTaskResourceSuppliers() []*apicommonpb.TaskOrganization {
-	powers := make([]*apicommonpb.TaskOrganization, len(msg.GetTask().GetTaskData().GetPowerSuppliers()))
-	for i, v := range msg.GetTask().GetTaskData().GetPowerSuppliers() {
-		powers[i] = &apicommonpb.TaskOrganization{
-			PartyId:    v.GetOrganization().GetPartyId(),
-			NodeName:   v.GetOrganization().GetNodeName(),
-			NodeId:     v.GetOrganization().GetNodeId(),
-			IdentityId: v.GetOrganization().GetIdentityId(),
-		}
-	}
-	return powers
-}
-func (msg *TaskMsg) GetTaskResourceSupplierDatas() []*libtypes.TaskPowerSupplier {
+func (msg *TaskMsg) GetPowerSuppliers() []*apicommonpb.TaskOrganization {
 	return msg.Data.GetTaskData().GetPowerSuppliers()
 }
-func (msg *TaskMsg) GetPowerPartyIds() []string { return msg.PowerPartyIds }
 func (msg *TaskMsg) GetReceivers() []*apicommonpb.TaskOrganization {
 	return msg.Data.GetTaskData().GetReceivers()
 }
-
-func (msg *TaskMsg) GetCalculateContractCode() string {
-	return msg.Data.GetTaskData().GetCalculateContractCode()
+func (msg *TaskMsg) GetDataPolicyType() uint32   { return msg.Data.GetTaskData().GetDataPolicyType() }
+func (msg *TaskMsg) GetDataPolicyOption() string { return msg.Data.GetTaskData().GetDataPolicyOption() }
+func (msg *TaskMsg) GetPowerPolicyType() uint32  { return msg.Data.GetTaskData().GetPowerPolicyType() }
+func (msg *TaskMsg) GetPowerPolicyOption() string {
+	return msg.Data.GetTaskData().GetPowerPolicyOption()
 }
-func (msg *TaskMsg) GetDataSplitContractCode() string {
-	return msg.Data.GetTaskData().GetDataSplitContractCode()
+func (msg *TaskMsg) GetDataFlowPolicyType() uint32 {
+	return msg.Data.GetTaskData().GetDataFlowPolicyType()
 }
-func (msg *TaskMsg) GetContractExtraParams() string {
-	return msg.Data.GetTaskData().GetContractExtraParams()
+func (msg *TaskMsg) GetDataFlowPolicyOption() string {
+	return msg.Data.GetTaskData().GetDataFlowPolicyOption()
 }
 func (msg *TaskMsg) GetOperationCost() *apicommonpb.TaskResourceCostDeclare {
 	return msg.Data.GetTaskData().GetOperationCost()
 }
-func (msg *TaskMsg) GetCreateAt() uint64 { return msg.GetTask().GetTaskData().GetCreateAt() }
+func (msg *TaskMsg) GetAlgorithmCode() string   { return msg.Data.GetTaskData().GetAlgorithmCode() }
+func (msg *TaskMsg) GetMetaAlgorithmId() string { return msg.Data.GetTaskData().GetMetaAlgorithmId() }
+func (msg *TaskMsg) GetContractExtraParams() string {
+	return msg.Data.GetTaskData().GetContractExtraParams()
+}
+func (msg *TaskMsg) GetPowerResourceOptions() []*libtypes.TaskPowerResourceOption {
+	return msg.Data.GetTaskData().GetPowerResourceOptions()
+}
+func (msg *TaskMsg) GetState() apicommonpb.TaskState { return msg.Data.GetTaskData().GetState() }
+func (msg *TaskMsg) GetReason() string               { return msg.Data.GetTaskData().GetReason() }
+func (msg *TaskMsg) GetDesc() string                 { return msg.Data.GetTaskData().GetDesc() }
+func (msg *TaskMsg) GetCreateAt() uint64             { return msg.GetTask().GetTaskData().GetCreateAt() }
+func (msg *TaskMsg) GetEndAt() uint64                { return msg.GetTask().GetTaskData().GetEndAt() }
+func (msg *TaskMsg) GetStartAt() uint64              { return msg.GetTask().GetTaskData().GetStartAt() }
+func (msg *TaskMsg) GetSign() []byte                 { return msg.Data.GetTaskData().GetSign() }
+
 func (msg *TaskMsg) GenTaskId() string {
 	if "" != msg.GetTask().GetTaskId() {
 		return msg.GetTask().GetTaskId()
@@ -813,10 +804,10 @@ func (msg *TaskMsg) Hash() common.Hash {
 
 func (msg *TaskMsg) HashByCreateTime() common.Hash {
 	var buf bytes.Buffer
-	buf.Write([]byte(msg.GetTask().GetTaskData().GetIdentityId()))
+	buf.Write([]byte(msg.GetTask().GetTaskSender().GetIdentityId()))
 	buf.Write([]byte(msg.GetTask().GetTaskData().GetUserType().String()))
 	buf.Write([]byte(msg.GetTask().GetTaskData().GetUser()))
-	buf.Write([]byte(msg.GetTask().GetTaskData().GetPartyId()))
+	buf.Write([]byte(msg.GetTask().GetTaskSender().GetPartyId()))
 	buf.Write([]byte(msg.GetTask().GetTaskData().GetTaskName()))
 	buf.Write(bytesutil.Uint64ToBytes(timeutils.UnixMsecUint64()))
 	return rlputil.RlpHash(buf.Bytes())

@@ -25,6 +25,7 @@ message MetadataPB {
   uint64                      update_at = 13;                 // 元数据更新时间
   uint64                      nonce = 14;                     // 元数据的 nonce 用来标识该 元数据
   string                      metadata_option = 15;           // 元数据的选项，和 file_type 配套使用.
+  string                      token_address = 16;             // 元数据对应的 dataToken 合约的地址
 }
 
 // 元数据申请记录实体
