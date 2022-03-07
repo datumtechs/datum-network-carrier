@@ -595,7 +595,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier.GetOrganization()
+		receiver := dataSupplier
 		go sendTerminateMsgFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
@@ -603,7 +603,7 @@ func (m *Manager) sendTaskTerminateMsg(task *types.Task) error {
 
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier.GetOrganization()
+		receiver := powerSupplier
 		go sendTerminateMsgFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
@@ -646,7 +646,6 @@ func (m *Manager) sendTaskEvent(event *libtypes.TaskEvent) {
 
 func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, reason string) error {
 	task.GetTaskData().TaskEvents = events
-	task.GetTaskData().EventCount = uint32(len(events))
 	task.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
 	task.GetTaskData().Reason = reason
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
@@ -660,7 +659,6 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 
 func (m *Manager) convertScheduleTaskToTask(task *types.Task, eventList []*libtypes.TaskEvent, state apicommonpb.TaskState) *types.Task {
 	task.GetTaskData().TaskEvents = eventList
-	task.GetTaskData().EventCount = uint32(len(eventList))
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 	task.GetTaskData().State = state
 	return task
@@ -730,7 +728,7 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 	log.Debugf("Succeed make contractCfg, taskId:{%s}, contractCfg: %s", task.GetTaskId(), contractExtraParams)
 	return &fightercommon.TaskReadyGoReq{
 		TaskId:     task.GetTaskId(),
-		ContractId: localTask.GetTaskData().GetCalculateContractCode(),
+		ContractId: localTask.GetTaskData().GetAlgorithmCode(),
 		//DataId: "",
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),
 		//EnvId: "",
@@ -759,7 +757,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 		var find bool
 
 		for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
-			if partyId == dataSupplier.GetOrganization().GetPartyId() {
+			if partyId == dataSupplier.GetPartyId() {
 
 				userType := localTask.GetTaskData().GetUserType()
 				user := localTask.GetTaskData().GetUser()
