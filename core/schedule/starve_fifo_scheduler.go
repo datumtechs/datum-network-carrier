@@ -13,6 +13,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
 	log "github.com/sirupsen/logrus"
@@ -175,21 +176,24 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	}
 
 	log.Debugf("Call SchedulerStarveFIFO.TrySchedule() start, taskId: {%s}, partyId: {%s}, taskCost: {%s}",
-		task.GetTaskData().GetTaskId(), task.GetTaskData().GetPartyId(), cost.String())
+		task.GetTaskData().GetTaskId(), task.GetTaskData().GetSender().GetPartyId(), cost.String())
 
 	now := timeutils.UnixMsecUint64()
 	vrfInput := append([]byte(bullet.GetTaskId()), bytesutil.Uint64ToBytes(now)...)  // input == taskId + nowtime
 	// election other org's power resources
-	powers, nonce, weights, err := sche.elector.ElectionOrganization (bullet.GetTaskId(), powerPartyIds, nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput)
+	powerOrgs, powerResources, nonce, weights, err := sche.elector.ElectionOrganization (bullet.GetTaskId(), powerPartyIds,
+		nil, cost.GetMem(), cost.GetBandwidth(), 0, cost.GetProcessor(), vrfInput)
 	if nil != err {
 		log.WithError(err).Errorf("Failed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
 		return types.NewNeedConsensusTask(task, nonce, weights, now), bullet.GetTaskId(), fmt.Errorf("election powerOrg failed, %s", err)
 	}
 
-	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powers: %s", task.GetTaskId(), types.UtilOrgPowerArrString(powers))
+	log.Debugf("Succeed to election powers org on SchedulerStarveFIFO.TrySchedule(), taskId {%s}, powerOrgs: %s, powerResources: %s",
+		task.GetTaskId(), types.UtilOrgPowerArrString(powerOrgs), types.UtilOrgPowerResourceArrString(powerResources))
 
 	// Set elected powers into task info, and restore into local db.
-	task.SetPowerSuppliers(powers)
+	task.SetPowerSuppliers(powerOrgs)
+	task.SetPowerResources(powerResources)
 	// restore task by power
 	if err := sche.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 		log.WithError(err).Errorf("Failed to update local task by election powers on SchedulerStarveFIFO.TrySchedule(), taskId: {%s}", task.GetTaskId())
@@ -226,11 +230,12 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 		powerPartyIds := make([]string, len(task.GetTaskData().GetPowerSuppliers()))
 		for i, power := range task.GetTaskData().GetPowerSuppliers() {
-			powerPartyIds[i] = power.GetOrganization().GetPartyId()
+			powerPartyIds[i] = power.GetPartyId()
 		}
 		vrfInput := append([]byte(task.GetTaskId()), bytesutil.Uint64ToBytes(replayTask.GetElectionAt())...)  // input == taskId + nowtime
 		// verify power orgs of task
-		agree, err := sche.elector.VerifyElectionOrganization(task.GetTaskId(), task.GetTaskData().GetPowerSuppliers(), task.GetTaskSender().GetNodeId(), vrfInput, replayTask.GetNonce(), replayTask.GetWeights())
+		agree, err := sche.elector.VerifyElectionOrganization(task.GetTaskId(), task.GetTaskData().GetPowerSuppliers(),
+			task.GetTaskData().GetPowerResourceOptions(), task.GetTaskSender().GetNodeId(), vrfInput, replayTask.GetNonce(), replayTask.GetWeights())
 		if nil != err {
 			log.WithError(err).Errorf("Failed to verify election powers org when role is dataSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}",
 				task.GetTaskId(), localTaskRole.String(), localPartyId)
@@ -243,8 +248,14 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 		// Find metadataId of current identyt of task with current partyId.
 		var metadataId string
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			if selfIdentityId == dataSupplier.GetOrganization().GetIdentityId() && localPartyId == dataSupplier.GetOrganization().GetPartyId() {
-				metadataId = dataSupplier.GetMetadataId()
+			if selfIdentityId == dataSupplier.GetIdentityId() && localPartyId == dataSupplier.GetPartyId() {
+				mId, err := policy.FetchMetedataIdByPartyId(localPartyId, task.GetTaskData().GetDataPolicyType(), task.GetTaskData().GetDataPolicyOption())
+				if nil != err {
+					log.WithError(err).Errorf("not fetch metadataId from task dataPolicy on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}",
+						task.GetTaskId(), localTaskRole.String(), localPartyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser())
+					return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when fetch metadataId from task dataPolicy", err), nil)
+				}
+				metadataId = mId
 				break
 			}
 		}
@@ -275,7 +286,14 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 					task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)
 				return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("query internal metadata by metadataId failed, %s", err), nil)
 			}
-			dataResourceFileUpload, err := sche.resourceMng.GetDB().QueryDataResourceFileUpload(internalMetadata.GetData().GetOriginId())
+
+			fileOriginId, err := policy.FetchOriginId(internalMetadata.GetData().GetFileType(), internalMetadata.GetData().GetMetadataOption())
+			if nil != err {
+				log.WithError(err).Errorf("not fetch internalMetadata originId from task metadataOption on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
+					task.GetTaskId(), localTaskRole.String(), localPartyId, task.GetTaskData().GetUserType(), task.GetTaskData().GetUser(), internalMetadata.GetData().GetMetadataId())
+				return types.NewReplayScheduleResult(task.GetTaskId(), fmt.Errorf("%s when fetch metadataId from task dataPolicy", err), nil)
+			}
+			dataResourceFileUpload, err := sche.resourceMng.GetDB().QueryDataResourceFileUpload(fileOriginId)
 			if nil != err {
 				log.WithError(err).Errorf("Failed query dataResourceFileUpload on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, metadataId: {%s}",
 					task.GetTaskId(), localTaskRole.String(), localPartyId, metadataId)

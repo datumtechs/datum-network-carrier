@@ -1,11 +1,23 @@
 package types
 
 import (
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"strings"
 )
 
-func UtilOrgPowerArrString(powers []*libtypes.TaskPowerSupplier) string {
+func UtilOrgPowerArrString(powers []*apicommonpb.TaskOrganization) string {
+	arr := make([]string, len(powers))
+	for i, power := range powers {
+		arr[i] = power.String()
+	}
+	if len(arr) != 0 {
+		return "[" + strings.Join(arr, ",") + "]"
+	}
+	return "[]"
+}
+
+func UtilOrgPowerResourceArrString(powers []*libtypes.TaskPowerResourceOption) string {
 	arr := make([]string, len(powers))
 	for i, power := range powers {
 		arr[i] = power.String()

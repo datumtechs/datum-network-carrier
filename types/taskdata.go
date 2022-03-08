@@ -66,6 +66,9 @@ func (m *Task) SetEventList(eventList []*libtypes.TaskEvent) {
 func (m *Task) SetPowerSuppliers(arr []*apicommonpb.TaskOrganization) {
 	m.data.PowerSuppliers = arr
 }
+func (m *Task) SetPowerResources (arr []*libtypes.TaskPowerResourceOption) {
+	m.data.PowerResourceOptions = arr
+}
 func (m *Task) RemovePowerSuppliers() {
 	m.data.PowerSuppliers = make([]*apicommonpb.TaskOrganization, 0)
 }

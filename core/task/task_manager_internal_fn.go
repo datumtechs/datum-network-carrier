@@ -20,6 +20,7 @@ import (
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strconv"
@@ -761,8 +762,11 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 
 				userType := localTask.GetTaskData().GetUserType()
 				user := localTask.GetTaskData().GetUser()
-				metadataId := dataSupplier.GetMetadataId()
 
+				metadataId, err := policy.FetchMetedataIdByPartyId(partyId, localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
+				if nil != err {
+					return "", fmt.Errorf("not fetch metadataId from task dataPolicy, %s, partyId: {%s}", err, partyId)
+				}
 				// verify metadataAuth first
 
 				if err := m.authMng.VerifyMetadataAuth(userType, user, metadataId); nil != err {
@@ -792,7 +796,11 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 					}
 				}
 
-				filePath = metadata.GetData().GetFilePath()
+				fp, err := policy.FetchFilePath(metadata.GetData().GetFileType(), metadata.GetData().GetMetadataOption())
+				if nil != err {
+					return "", fmt.Errorf("not fetch filePath from metadataOption, %s, metadataId: {%s}", err, metadataId)
+				}
+				filePath = fp
 
 				keyColumn = dataSupplier.GetKeyColumn().GetCName()
 				selectedColumns = make([]string, len(dataSupplier.GetSelectedColumns()))
@@ -1242,8 +1250,13 @@ func (m *Manager) storeMetaUsedTaskId(task *types.Task) error {
 		return err
 	}
 	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-		if dataSupplier.GetOrganization().GetIdentityId() == identityId {
-			if err := m.resourceMng.GetDB().StoreMetadataHistoryTaskId(dataSupplier.GetMetadataId(), task.GetTaskId()); nil != err {
+		if dataSupplier.GetIdentityId() == identityId {
+
+			metadataId, err := policy.FetchMetedataIdByPartyId(dataSupplier.GetPartyId(), task.GetTaskData().GetDataPolicyType(), task.GetTaskData().GetDataPolicyOption())
+			if nil != err {
+				return fmt.Errorf("not fetch metadataId from task dataPolicy, %s, partyId: {%s}", err, dataSupplier.GetPartyId())
+			}
+			if err := m.resourceMng.GetDB().StoreMetadataHistoryTaskId(metadataId, task.GetTaskId()); nil != err {
 				return err
 			}
 		}
@@ -1357,46 +1370,59 @@ func (m *Manager) handleResourceUsage(keyword, usageIdentityId string, usage *ty
 
 	var needUpdate bool
 
-	for i, powerSupplier := range localTask.GetTaskData().GetPowerSuppliers() {
+	//resourceCache := make(map[string]*libtypes.TaskPowerResourceOption)
+	//for _, powerOption := range localTask.GetTaskData().GetPowerResourceOptions() {
+	//	resourceCache[powerOption.GetPartyId()] = powerOption
+	//}
 
-		// find power supplier info by identity and partyId with msg from reomte peer
-		// (find the target power supplier, it maybe local power supplier or remote power supplier)
-		// and update its' resource usage info.
-		if usage.GetPartyId() == powerSupplier.GetOrganization().GetPartyId() &&
-			usageIdentityId == powerSupplier.GetOrganization().GetIdentityId() {
+	powerCache := make(map[string]*apicommonpb.TaskOrganization)
+	for _, power := range localTask.GetTaskData().GetPowerSuppliers() {
+		powerCache[power.GetPartyId()] = power
+	}
 
-			resourceUsage := localTask.GetTaskData().GetPowerSuppliers()[i].GetResourceUsedOverview()
-			// update ...
-			if usage.GetUsedMem() > resourceUsage.GetUsedMem() {
-				if usage.GetUsedMem() > localTask.GetTaskData().GetOperationCost().GetMemory() {
-					resourceUsage.UsedMem = localTask.GetTaskData().GetOperationCost().GetMemory()
-				} else {
-					resourceUsage.UsedMem = usage.GetUsedMem()
+	for i, powerOption := range localTask.GetTaskData().GetPowerResourceOptions() {
+
+		power, ok := powerCache[powerOption.GetPartyId()]
+		if ok {
+			// find power supplier info by identity and partyId with msg from reomte peer
+			// (find the target power supplier, it maybe local power supplier or remote power supplier)
+			// and update its' resource usage info.
+			if usage.GetPartyId() == powerOption.GetPartyId() &&
+				usageIdentityId == power.GetIdentityId() {
+
+				resourceUsage := localTask.GetTaskData().GetPowerResourceOptions()[i].GetResourceUsedOverview()
+				// update ...
+				if usage.GetUsedMem() > resourceUsage.GetUsedMem() {
+					if usage.GetUsedMem() > localTask.GetTaskData().GetOperationCost().GetMemory() {
+						resourceUsage.UsedMem = localTask.GetTaskData().GetOperationCost().GetMemory()
+					} else {
+						resourceUsage.UsedMem = usage.GetUsedMem()
+					}
+					needUpdate = true
 				}
-				needUpdate = true
-			}
-			if usage.GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
-				if usage.GetUsedProcessor() > localTask.GetTaskData().GetOperationCost().GetProcessor() {
-					resourceUsage.UsedProcessor = localTask.GetTaskData().GetOperationCost().GetProcessor()
-				} else {
-					resourceUsage.UsedProcessor = usage.GetUsedProcessor()
+				if usage.GetUsedProcessor() > resourceUsage.GetUsedProcessor() {
+					if usage.GetUsedProcessor() > localTask.GetTaskData().GetOperationCost().GetProcessor() {
+						resourceUsage.UsedProcessor = localTask.GetTaskData().GetOperationCost().GetProcessor()
+					} else {
+						resourceUsage.UsedProcessor = usage.GetUsedProcessor()
+					}
+					needUpdate = true
 				}
-				needUpdate = true
-			}
-			if usage.GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
-				if usage.GetUsedBandwidth() > localTask.GetTaskData().GetOperationCost().GetBandwidth() {
-					resourceUsage.UsedBandwidth = localTask.GetTaskData().GetOperationCost().GetBandwidth()
-				} else {
-					resourceUsage.UsedBandwidth = usage.GetUsedBandwidth()
+				if usage.GetUsedBandwidth() > resourceUsage.GetUsedBandwidth() {
+					if usage.GetUsedBandwidth() > localTask.GetTaskData().GetOperationCost().GetBandwidth() {
+						resourceUsage.UsedBandwidth = localTask.GetTaskData().GetOperationCost().GetBandwidth()
+					} else {
+						resourceUsage.UsedBandwidth = usage.GetUsedBandwidth()
+					}
+					needUpdate = true
 				}
-				needUpdate = true
+				if usage.GetUsedDisk() > resourceUsage.GetUsedDisk() {
+					resourceUsage.UsedDisk = usage.GetUsedDisk()
+					needUpdate = true
+				}
+				// update ...
+				localTask.GetTaskData().GetPowerResourceOptions()[i].ResourceUsedOverview = resourceUsage
 			}
-			if usage.GetUsedDisk() > resourceUsage.GetUsedDisk() {
-				resourceUsage.UsedDisk = usage.GetUsedDisk()
-				needUpdate = true
-			}
-			// update ...
-			localTask.GetTaskData().GetPowerSuppliers()[i].ResourceUsedOverview = resourceUsage
 		}
 	}
 
@@ -1747,14 +1773,14 @@ func fetchOrgByPartyRole(partyId string, role apicommonpb.TaskRole, task *types.
 		}
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			if partyId == dataSupplier.GetOrganization().GetPartyId() {
-				return dataSupplier.GetOrganization()
+			if partyId == dataSupplier.GetPartyId() {
+				return dataSupplier
 			}
 		}
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-			if partyId == powerSupplier.GetOrganization().GetPartyId() {
-				return powerSupplier.GetOrganization()
+			if partyId == powerSupplier.GetPartyId() {
+				return powerSupplier
 			}
 		}
 	case apicommonpb.TaskRole_TaskRole_Receiver:

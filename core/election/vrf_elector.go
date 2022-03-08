@@ -88,27 +88,29 @@ func (s *VrfElector) ElectionOrganization(
 	skipIdentityIdCache map[string]struct{},
 	mem, bandwidth, disk uint64, processor uint32,
 	extra []byte,
-) ([]*libtypes.TaskPowerSupplier, []byte, [][]byte, error) {
+) ([]*apicommonpb.TaskOrganization, []*libtypes.TaskPowerResourceOption, []byte, [][]byte, error) {
 
 	calculateCount := len(powerPartyIds)
 
 
 	globalpowerSummarys, err := s.queryValidGlobalPowerList("ElectionOrganization()", taskId)
 	if nil != err {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	if len(globalpowerSummarys) < calculateCount {
-		return nil, nil, nil, fmt.Errorf("query valid org's power resource count less calculate count")
+		return nil, nil, nil, nil, fmt.Errorf("query valid org's power resource count less calculate count")
 	}
 
 	nonce, err := s.vrfNonce(extra)
 	if nil != err {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	queue, weights := s.vrfElectionOrganizationResourceQueue(globalpowerSummarys, nonce, calculateCount)
 
-	orgs := make([]*libtypes.TaskPowerSupplier, 0)
+	orgs := make([]*apicommonpb.TaskOrganization, 0)
+	resources := make([]*libtypes.TaskPowerResourceOption, 0)
+
 	i := 0
 	for _, r := range queue {
 
@@ -124,13 +126,14 @@ func (s *VrfElector) ElectionOrganization(
 		}
 
 		// append one, if it enouph
-		orgs = append(orgs, &libtypes.TaskPowerSupplier{
-			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    powerPartyIds[i],
-				NodeName:   r.GetNodeName(),
-				NodeId:     r.GetNodeId(),
-				IdentityId: r.GetIdentityId(),
-			},
+		orgs = append(orgs, &apicommonpb.TaskOrganization{
+			PartyId:    powerPartyIds[i],
+			NodeName:   r.GetNodeName(),
+			NodeId:     r.GetNodeId(),
+			IdentityId: r.GetIdentityId(),
+		})
+		resources = append(resources, &libtypes.TaskPowerResourceOption{
+			PartyId: powerPartyIds[i],
 			ResourceUsedOverview: &libtypes.ResourceUsageOverview{
 				TotalMem:       r.GetTotalMem(), // total resource value of org.
 				UsedMem:        0,               // used resource of this task (real time max used)
@@ -144,11 +147,10 @@ func (s *VrfElector) ElectionOrganization(
 		})
 		i++
 	}
-
 	if len(orgs) < calculateCount {
-		return nil, nil, nil, ErrEnoughResourceOrgCountLessCalculateCount
+		return nil, nil, nil, nil, ErrEnoughResourceOrgCountLessCalculateCount
 	}
-	return orgs, nonce, weights, nil
+	return orgs, resources, nonce, weights, nil
 }
 
 
@@ -192,7 +194,7 @@ func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount i
 	return true, nil
 }
 
-func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libtypes.TaskPowerSupplier, nodeIdStr string, extra, nonce []byte, weights [][]byte) (bool, error) {
+func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*apicommonpb.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte) (bool, error) {
 
 	if len(powerSuppliers) != len(weights) {
 		return false, fmt.Errorf("powerSuppliers count is invalid, powerSuppliers count : %d, weights count: %d", len(powerSuppliers), len(weights))
@@ -233,12 +235,12 @@ func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []
 
 	identityIdMap := make(map[string]struct{}, len(powerSuppliers))
 	for _, powerSupplier := range powerSuppliers {
-		dh := rlputil.RlpHash(powerSupplier.GetOrganization().GetIdentityId()) // len(dh) == 32
+		dh := rlputil.RlpHash(powerSupplier.GetIdentityId()) // len(dh) == 32
 		value := new(big.Int).Xor(new(big.Int).SetBytes(dh.Bytes()), new(big.Int).SetBytes(rand)).String()
 		if _, ok := weightMap[value]; !ok {
-			return false, fmt.Errorf("not found vrf xor weight value of powerSupplier, identity: %s, weight: %s", powerSupplier.GetOrganization().GetIdentityId(), value)
+			return false, fmt.Errorf("not found vrf xor weight value of powerSupplier, identity: %s, weight: %s", powerSupplier.GetIdentityId(), value)
 		}
-		identityIdMap[powerSupplier.GetOrganization().GetIdentityId()] = struct{}{}
+		identityIdMap[powerSupplier.GetIdentityId()] = struct{}{}
 	}
 
 	// Find global power resources
@@ -320,7 +322,7 @@ func (s *VrfElector) queryValidGlobalPowerList (logkeyword, taskId string) (type
 
 	for _, identityInfo := range identityInfoArr {
 		// Skip the invalid organization
-		if identityInfo.GetStatus() == apicommonpb.CommonStatus_CommonStatus_NonNormal || identityInfo.GetDataStatus() == apicommonpb.DataStatus_DataStatus_Deleted {
+		if identityInfo.GetStatus() == apicommonpb.CommonStatus_CommonStatus_Invalid || identityInfo.GetDataStatus() == apicommonpb.DataStatus_DataStatus_Invalid {
 			continue
 		}
 		// Skip the mock identityId

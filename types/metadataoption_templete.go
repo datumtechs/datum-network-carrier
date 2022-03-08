@@ -1,6 +1,14 @@
 package types
 
-import apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+import (
+	"fmt"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+)
+
+
+var (
+	CannotMatchMetadataOption = fmt.Errorf("cannot match metadata option")
+)
 
 func IsRowAndColumnData(fileType apicommonpb.OriginFileType) bool {
 	if fileType == apicommonpb.OriginFileType_FileType_CSV {

@@ -1,12 +1,13 @@
-package types
+package policy
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
+	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
-func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
+func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 	taskData := input.GetTaskData()
 	detailShow := &pb.TaskDetailShow{
 		TaskId:   taskData.GetTaskId(),
@@ -60,7 +61,7 @@ func NewTaskDetailShowFromTaskData(input *Task) *pb.TaskDetailShow {
 				NodeId:     dataSupplier.GetNodeId(),
 				IdentityId: dataSupplier.GetIdentityId(),
 			},
-			MetadataId:  metadataId,
+			MetadataId:   metadataId,
 			MetadataName: metadataName,
 		}
 		detailShow.DataSuppliers = append(detailShow.DataSuppliers, supplier)
@@ -115,72 +116,55 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 	return result
 }
 
-func NewGlobalMetadataInfoFromMetadata(input *Metadata) *pb.GetGlobalMetadataDetailResponse {
+func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetadataDetailResponse {
 	response := &pb.GetGlobalMetadataDetailResponse{
 		Owner: input.GetData().GetOwner(),
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
-				/**
-				MetadataId   string
-				MetadataName string
-				MetadataType uint32
-				FileHash     string
-				Desc         string
-				FileType     common.OriginFileType
-				Industry     string
-				State        common.MetadataState
-				// v 2.0
-				PublishAt            uint64   `pro
-				UpdateAt             uint64   `pro
-				Nonce                uint64   `pro
-				MetadataOption       string   `pro
-				 */
-				MetadataId: input.GetData().GetMetadataId(),
-				MetadataName: input.GetData().GetMetadataName(),
-				Desc:       input.GetData().GetDesc(),
-				FileType:   input.GetData().GetFileType(),
-				Industry:   input.GetData().GetIndustry(),
-				State:      input.GetData().GetState(),
-				PublishAt:  input.GetData().GetPublishAt(),
-				UpdateAt:   input.GetData().GetUpdateAt(),
+				MetadataId:     input.GetData().GetDataId(),
+				MetadataName:   input.GetData().GetMetadataName(),
+				MetadataType:   input.GetData().GetMetadataType(),
+				FileHash:       input.GetData().GetFileHash(),
+				Desc:           input.GetData().GetDesc(),
+				FileType:       input.GetData().GetFileType(),
+				Industry:       input.GetData().GetIndustry(),
+				State:          input.GetData().GetState(),
+				PublishAt:      input.GetData().GetPublishAt(),
+				UpdateAt:       input.GetData().GetUpdateAt(),
+				Nonce:          input.GetData().GetNonce(),
+				MetadataOption: input.GetData().GetMetadataOption(),
 			},
 		},
 	}
 	return response
 }
 
-func NewLocalMetadataInfoFromMetadata(isInternal bool, input *Metadata) *pb.GetLocalMetadataDetailResponse {
+func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *pb.GetLocalMetadataDetailResponse {
 	response := &pb.GetLocalMetadataDetailResponse{
-		Owner: &apicommonpb.Organization{
-			NodeName:   input.data.GetNodeName(),
-			NodeId:     input.data.GetNodeId(),
-			IdentityId: input.data.GetIdentityId(),
-		},
+		Owner: input.GetData().GetOwner(),
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
-				MetadataId: input.GetData().GetDataId(),
-				OriginId:   input.GetData().GetOriginId(),
-				TableName:  input.GetData().GetTableName(),
-				Desc:       input.GetData().GetDesc(),
-				FilePath:   input.GetData().GetFilePath(),
-				Rows:       input.GetData().GetRows(),
-				Columns:    input.GetData().GetColumns(),
-				Size_:      input.GetData().GetSize_(),
-				FileType:   input.GetData().GetFileType(),
-				HasTitle:   input.GetData().GetHasTitle(),
-				Industry:   input.GetData().GetIndustry(),
-				State:      input.GetData().GetState(),
-				PublishAt:  input.GetData().GetPublishAt(),
-				UpdateAt:   input.GetData().GetUpdateAt(),
+				MetadataId:     input.GetData().GetDataId(),
+				MetadataName:   input.GetData().GetMetadataName(),
+				MetadataType:   input.GetData().GetMetadataType(),
+				FileHash:       input.GetData().GetFileHash(),
+				Desc:           input.GetData().GetDesc(),
+				FileType:       input.GetData().GetFileType(),
+				Industry:       input.GetData().GetIndustry(),
+				State:          input.GetData().GetState(),
+				PublishAt:      input.GetData().GetPublishAt(),
+				UpdateAt:       input.GetData().GetUpdateAt(),
+				Nonce:          input.GetData().GetNonce(),
+				MetadataOption: input.GetData().GetMetadataOption(),
 			},
-			MetadataColumns: input.GetData().GetMetadataColumns(),
+			//TotalTaskCount: ,
 		},
 		IsInternal: isInternal,
 	}
 	return response
 }
 
-func NewGlobalMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetGlobalMetadataDetailResponse {
+func NewGlobalMetadataInfoArrayFromMetadataArray(input types.MetadataArray) []*pb.GetGlobalMetadataDetailResponse {
 	result := make([]*pb.GetGlobalMetadataDetailResponse, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
@@ -191,7 +175,7 @@ func NewGlobalMetadataInfoArrayFromMetadataArray(input MetadataArray) []*pb.GetG
 	return result
 }
 
-func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr MetadataArray) []*pb.GetLocalMetadataDetailResponse {
+func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr types.MetadataArray) []*pb.GetLocalMetadataDetailResponse {
 	result := make([]*pb.GetLocalMetadataDetailResponse, 0, internalArr.Len()+publishArr.Len())
 
 	for _, metadata := range internalArr {
