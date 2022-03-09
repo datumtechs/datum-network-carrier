@@ -17,9 +17,9 @@ func NewMetadataSaveRequest(metadata *Metadata) *api.SaveMetadataRequest {
 func NewMetadataRevokeRequest(metadata *Metadata) *api.RevokeMetadataRequest {
 	request := &api.RevokeMetadataRequest{
 		Owner: &apicommonpb.Organization{
-			IdentityId: metadata.GetData().GetIdentityId(),
-			NodeId:     metadata.GetData().GetNodeId(),
-			NodeName:   metadata.GetData().GetNodeName(),
+			IdentityId: metadata.GetData().GetOwner().GetIdentityId(),
+			NodeId:     metadata.GetData().GetOwner().GetNodeId(),
+			NodeName:   metadata.GetData().GetOwner().GetNodeName(),
 		},
 		MetadataId: metadata.GetData().GetDataId(),
 	}
@@ -86,11 +86,9 @@ func NewResourceArrayFromPowerTotalSummaryListResponse(response *api.ListPowerSu
 	resourceArray := make(ResourceArray, 0, len(response.GetPowers()))
 	for _, v := range response.GetPowers() {
 		resource := NewResource(&libtypes.ResourcePB{
-			IdentityId:     v.GetOwner().GetIdentityId(),
-			NodeId:         v.GetOwner().GetNodeId(),
-			NodeName:       v.GetOwner().GetNodeName(),
+			Owner: v.GetOwner(),
 			DataId:         "", // todo: to be determined
-			DataStatus:     apicommonpb.DataStatus_DataStatus_Normal,
+			DataStatus:     apicommonpb.DataStatus_DataStatus_Valid,
 			State:          v.GetPowerSummary().GetState(),
 			TotalMem:       v.GetPowerSummary().GetInformation().GetTotalMem(),
 			TotalProcessor: v.GetPowerSummary().GetInformation().GetTotalProcessor(),
@@ -121,11 +119,9 @@ func NewResourceArrayFromPowerDetailListResponse(response *api.ListPowerResponse
 func NewResourceFromResponse(response *api.PowerSummaryResponse) ResourceArray {
 	resourceArray := make(ResourceArray, 0)
 	resource := NewResource(&libtypes.ResourcePB{
-		IdentityId:     response.GetOwner().GetIdentityId(),
-		NodeId:         response.GetOwner().GetNodeId(),
-		NodeName:       response.GetOwner().GetNodeName(),
+		Owner: response.GetOwner(),
 		DataId:         "", // todo: to be determined
-		DataStatus:     apicommonpb.DataStatus_DataStatus_Normal,
+		DataStatus:     apicommonpb.DataStatus_DataStatus_Valid,
 		State:          response.GetPowerSummary().GetState(),
 		TotalMem:       response.GetPowerSummary().GetInformation().GetTotalMem(),
 		TotalProcessor: response.GetPowerSummary().GetInformation().GetTotalProcessor(),
@@ -168,8 +164,8 @@ func NewIdentityArrayFromIdentityListResponse(response *api.ListIdentityResponse
 			ImageUrl:   organization.GetImageUrl(),
 			Details:    organization.GetDetails(),
 			DataId:     organization.GetIdentityId(),
-			DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-			Status:     organization.GetStatus(),
+			DataStatus: organization.GetStatus(),
+			//Status:     organization.GetStatus(),
 			UpdateAt:   organization.GetUpdateAt(),
 			Credential: "",
 		}))

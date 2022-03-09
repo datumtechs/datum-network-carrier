@@ -48,9 +48,9 @@ func (m *Resource) Hash() common.Hash {
 	return v
 }
 
-func (m *Resource) GetIdentityId() string                 { return m.data.IdentityId }
-func (m *Resource) GetNodeId() string                     { return m.data.NodeId }
-func (m *Resource) GetNodeName() string                   { return m.data.NodeName }
+func (m *Resource) GetIdentityId() string                 { return m.data.GetOwner().IdentityId }
+func (m *Resource) GetNodeId() string                     { return m.data.GetOwner().NodeId }
+func (m *Resource) GetNodeName() string                   { return m.data.GetOwner().NodeName }
 func (m *Resource) GetDataStatus() apicommonpb.DataStatus { return m.data.DataStatus }
 func (m *Resource) GetDataId() string                     { return m.data.DataId }
 func (m *Resource) GetState() apicommonpb.PowerState      { return m.data.State }
@@ -122,7 +122,7 @@ func NewLocalResource(data *libtypes.LocalResourcePB) *LocalResource {
 	return &LocalResource{data: data}
 }
 func (m *LocalResource) GetData() *libtypes.LocalResourcePB { return m.data }
-func (m *LocalResource) GetIdentityId() string              { return m.data.IdentityId }
+func (m *LocalResource) GetIdentityId() string              { return m.data.GetOwner().IdentityId }
 func (m *LocalResource) GetJobNodeId() string               { return m.data.JobNodeId }
 func (m *LocalResource) EncodePb(w io.Writer) error {
 	data, err := m.data.Marshal()

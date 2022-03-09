@@ -921,13 +921,11 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 				partyIdTmp[partyId] = struct{}{}
 			}
 
-			resourceCache := make()
-
-			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-				if _, ok := partyIdTmp[powerSupplier.GetPartyId()]; ok {
-					processor += powerSupplier.GetResourceUsedOverview().GetUsedProcessor()
-					memory += powerSupplier.GetResourceUsedOverview().GetUsedMem()
-					bandwidth += powerSupplier.GetResourceUsedOverview().GetUsedBandwidth()
+			for _, option := range task.GetTaskData().PowerResourceOptions {
+				if _, ok := partyIdTmp[option.GetPartyId()]; ok {
+					processor += option.GetResourceUsedOverview().GetUsedProcessor()
+					memory += option.GetResourceUsedOverview().GetUsedMem()
+					bandwidth += option.GetResourceUsedOverview().GetUsedBandwidth()
 				}
 			}
 
@@ -972,11 +970,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 		nodePowerDetail := &pb.GetLocalPowerDetailResponse{
 			JobNodeId: resource.GetJobNodeId(),
 			PowerId:   resource.GetDataId(),
-			Owner: &apicommonpb.Organization{
-				NodeName:   resource.GetNodeName(),
-				NodeId:     resource.GetNodeId(),
-				IdentityId: resource.GetIdentityId(),
-			},
+			Owner:     resource.GetOwner(),
 			Power: &libtypes.PowerUsageDetail{
 				TotalTaskCount:   taskTotalCount(resource.GetJobNodeId()),
 				CurrentTaskCount: taskRunningCount(resource.GetJobNodeId()),
@@ -1088,12 +1082,15 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 
 	// DataSupplier
 	for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
+
+		//////////
+
 		detailShow.DataSuppliers = append(detailShow.DataSuppliers, &pb.TaskDataSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    dataSupplier.GetOrganization().GetPartyId(),
-				NodeName:   dataSupplier.GetOrganization().GetNodeName(),
-				NodeId:     dataSupplier.GetOrganization().GetNodeId(),
-				IdentityId: dataSupplier.GetOrganization().GetIdentityId(),
+				PartyId:    dataSupplier.GetPartyId(),
+				NodeName:   dataSupplier.GetNodeName(),
+				NodeId:     dataSupplier.GetNodeId(),
+				IdentityId: dataSupplier.GetIdentityId(),
 			},
 			MetadataId:   dataSupplier.GetMetadataId(),
 			MetadataName: dataSupplier.GetMetadataName(),
