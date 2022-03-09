@@ -5,7 +5,10 @@ import (
 )
 
 var (
+	// about data policy
 	NotFoundMetadataPolicy = fmt.Errorf("not found metadata policy")
+	// about power policy
+	NotFoundPowerPolicy = fmt.Errorf("not found power policy")
 )
 
 type TaskMetadataPolicy interface {
@@ -16,7 +19,15 @@ type TaskMetadataPolicy interface {
 
 
 const (
+	// data policy
 	TASK_METADATA_POLICY_ROW_COLUMN = 1
+
+	// power policy
+	TASK_POWER_POLICY_ASSIGNMENT_LABEL = 1
+
+	// dataFlow policy
+
+
 )
 
 /**
@@ -39,3 +50,5 @@ func (p *TaskMetadataPolicyRowAndColumn) QueryMetadataId () string {
 func (p *TaskMetadataPolicyRowAndColumn) QueryMetadataName () string {
 	return p.MetadataName
 }
+
+

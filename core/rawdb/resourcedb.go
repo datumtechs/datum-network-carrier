@@ -1339,7 +1339,6 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		val, err = proto.Marshal(&libtypes.MetadataMsg{
 			MetadataId:      v.GetMetadataId(),
 			MetadataSummary: v.GetMetadataSummary(),
-			ColumnMetas:     v.GetColumnMetas(),
 			CreateAt:        v.GetCreateAt(),
 		})
 		if nil != err {
@@ -1362,7 +1361,6 @@ func StoreMessageCache(db KeyValueStore, value interface{}) error {
 		key = GetTaskMsgKey(v.GetTaskId())
 		val, err = proto.Marshal(&libtypes.TaskMsg{
 			Data:          v.GetTaskData(),
-			PowerPartyIds: v.GetPowerPartyIds(),
 		})
 		if nil != err {
 			return fmt.Errorf("marshal taskMsg failed, %s", err)
@@ -1508,7 +1506,6 @@ func QueryMetadataMsgArr(db KeyValueStore) (types.MetadataMsgArr, error) {
 			arr = append(arr, &types.MetadataMsg{
 				MetadataId:      res.GetMetadataId(),
 				MetadataSummary: res.GetMetadataSummary(),
-				ColumnMetas:     res.GetColumnMetas(),
 				CreateAt:        res.GetCreateAt(),
 			})
 		}
@@ -1561,7 +1558,6 @@ func QueryTaskMsgArr(db KeyValueStore) (types.TaskMsgArr, error) {
 			}
 			arr = append(arr, &types.TaskMsg{
 				Data:          types.NewTask(res.GetData()),
-				PowerPartyIds: res.GetPowerPartyIds(),
 			})
 		}
 	}

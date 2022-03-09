@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
+	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -155,7 +156,18 @@ func (dc *DataCenter) RemoveTaskEventListByPartyId(taskId, partyId string) error
 	return rawdb.RemoveTaskEventByPartyId(dc.db, taskId, partyId)
 }
 
-func sprintPowers(powers []*libtypes.TaskPowerSupplier) string {
+func sprintPowerOrgs(powers []*apicommonpb.TaskOrganization) string {
+	arr := make([]string, 0)
+	for _, power := range powers {
+		arr = append(arr, power.String())
+	}
+	if len(arr) != 0 {
+		return "[" + strings.Join(arr, ",") + "]"
+	}
+	return "[]"
+}
+
+func sprintPowerResources(powers []*libtypes.TaskPowerResourceOption) string {
 	arr := make([]string, 0)
 	for _, power := range powers {
 		arr = append(arr, power.String())
@@ -170,7 +182,8 @@ func sprintPowers(powers []*libtypes.TaskPowerSupplier) string {
 func (dc *DataCenter) InsertTask(task *types.Task) error {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
-	log.Debugf("Start save task to datacenter, taskId: {%s}, powers: %s", task.GetTaskId(), sprintPowers(task.GetTaskData().GetPowerSuppliers()))
+	log.Debugf("Start save task to datacenter, taskId: {%s}, powerOrgs: %s, powerResources: %s",
+		task.GetTaskId(), sprintPowerOrgs(task.GetTaskData().GetPowerSuppliers()), sprintPowerResources(task.GetTaskData().GetPowerResourceOptions()))
 	response, err := dc.client.SaveTask(dc.ctx, types.NewSaveTaskRequest(task))
 	if err != nil {
 		log.WithError(err).WithField("taskId", task.GetTaskId()).Errorf("InsertTask failed")

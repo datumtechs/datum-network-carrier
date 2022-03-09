@@ -398,7 +398,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier.GetOrganization()
+		receiver := dataSupplier
 		go sendTaskFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
@@ -406,7 +406,7 @@ func (t *Twopc) sendPrepareMsg(proposalId common.Hash, nonConsTask *types.NeedCo
 
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier.GetOrganization()
+		receiver := powerSupplier
 		go sendTaskFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
@@ -512,7 +512,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier.GetOrganization()
+		receiver := dataSupplier
 		go sendConfirmMsgFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
@@ -520,7 +520,7 @@ func (t *Twopc) sendConfirmMsg(proposalId common.Hash, task *types.Task, peers *
 
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier.GetOrganization()
+		receiver := powerSupplier
 		go sendConfirmMsgFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
@@ -608,7 +608,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 
 		wg.Add(1)
 		dataSupplier := task.GetTaskData().GetDataSuppliers()[i]
-		receiver := dataSupplier.GetOrganization()
+		receiver := dataSupplier
 		go sendCommitMsgFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_DataSupplier, errCh)
 
 	}
@@ -616,7 +616,7 @@ func (t *Twopc) sendCommitMsg(proposalId common.Hash, task *types.Task, option t
 
 		wg.Add(1)
 		powerSupplier := task.GetTaskData().GetPowerSuppliers()[i]
-		receiver := powerSupplier.GetOrganization()
+		receiver := powerSupplier
 		go sendCommitMsgFn(&wg, sender, receiver, apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_PowerSupplier, errCh)
 
 	}
@@ -655,13 +655,13 @@ func verifyPartyRole(partyId string, role apicommonpb.TaskRole, task *types.Task
 		}
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			if partyId == dataSupplier.GetOrganization().GetPartyId() {
+			if partyId == dataSupplier.GetPartyId() {
 				return true
 			}
 		}
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-			if partyId == powerSupplier.GetOrganization().GetPartyId() {
+			if partyId == powerSupplier.GetPartyId() {
 				return true
 			}
 		}
@@ -709,14 +709,14 @@ func fetchOrgByPartyRole(partyId string, role apicommonpb.TaskRole, task *types.
 		}
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-			if partyId == dataSupplier.GetOrganization().GetPartyId() {
-				return dataSupplier.GetOrganization()
+			if partyId == dataSupplier.GetPartyId() {
+				return dataSupplier
 			}
 		}
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-			if partyId == powerSupplier.GetOrganization().GetPartyId() {
-				return powerSupplier.GetOrganization()
+			if partyId == powerSupplier.GetPartyId() {
+				return powerSupplier
 			}
 		}
 	case apicommonpb.TaskRole_TaskRole_Receiver:
@@ -735,7 +735,7 @@ func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, r
 	case apicommonpb.TaskRole_TaskRole_DataSupplier:
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			// identity + partyId
-			if dataSupplier.GetOrganization().GetIdentityId() == identityId && dataSupplier.GetOrganization().GetPartyId() == partyId {
+			if dataSupplier.GetIdentityId() == identityId && dataSupplier.GetPartyId() == partyId {
 				find = true
 				break
 			}
@@ -743,7 +743,7 @@ func (t *Twopc) verifyPrepareVoteRoleIsTaskPartner(identityId, partyId string, r
 	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			// identity + partyId
-			if powerSupplier.GetOrganization().GetIdentityId() == identityId && powerSupplier.GetOrganization().GetPartyId() == partyId {
+			if powerSupplier.GetIdentityId() == identityId && powerSupplier.GetPartyId() == partyId {
 				find = true
 				break
 			}
@@ -770,7 +770,7 @@ func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, r
 
 		for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
 			// identity + partyId
-			if dataSupplier.GetOrganization().GetIdentityId() == identityId && dataSupplier.GetOrganization().GetPartyId() == partyId {
+			if dataSupplier.GetIdentityId() == identityId && dataSupplier.GetPartyId() == partyId {
 				identityValid = true
 				break
 			}
@@ -779,7 +779,7 @@ func (t *Twopc) verifyConfirmVoteRoleIsTaskPartner(identityId, partyId string, r
 
 		for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
 			// identity + partyId
-			if powerSupplier.GetOrganization().GetIdentityId() == identityId && powerSupplier.GetOrganization().GetPartyId() == partyId {
+			if powerSupplier.GetIdentityId() == identityId && powerSupplier.GetPartyId() == partyId {
 				identityValid = true
 				break
 			}

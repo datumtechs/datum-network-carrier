@@ -687,13 +687,11 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *apicommonpb.Organization
 	// add resource usage first, but not own power now (mem, proccessor, bandwidth)
 	// store into local db
 	if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
-		IdentityId: identity.GetIdentityId(),
-		NodeId:     identity.GetNodeId(),
-		NodeName:   identity.GetNodeName(),
+		Owner: identity,
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
 		// the status of data, N means normal, D means deleted.
-		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+		DataStatus: apicommonpb.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
 		State: apicommonpb.PowerState_PowerState_Created,
 		// unit: byte

@@ -69,9 +69,6 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	if req.GetInformation().GetMetadataSummary() == nil {
 		return nil, ErrReqMetaSummaryForPublishMetadata
 	}
-	if len(req.GetInformation().GetMetadataColumns()) == 0 {
-		return nil, ErrReqMetaColumnsForPublishMetadata
-	}
 
 
 	_, err := svr.B.GetNodeIdentity()
@@ -85,12 +82,10 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	if err := svr.B.SendMsg(metadataMsg); nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadata failed")
 
-		errMsg := fmt.Sprintf("%s, originId: {%s}, metadataId: {%s}", ErrSendMetadataMsg.Msg,
-			req.GetInformation().GetMetadataSummary().GetOriginId(), metadataMsg.GetMetadataId())
+		errMsg := fmt.Sprintf("%s, metadataId: {%s}", ErrSendMetadataMsg.Msg, metadataMsg.GetMetadataId())
 		return nil, backend.NewRpcBizErr(ErrSendMetadataMsg.Code, errMsg)
 	}
-	log.Debugf("RPC-API:PublishMetadata succeed, originId: {%s}, return metadataId: {%s}",
-		req.GetInformation().GetMetadataSummary().GetOriginId(), metadataMsg.GetMetadataId())
+	log.Debugf("RPC-API:PublishMetadata succeed, return metadataId: {%s}", metadataMsg.GetMetadataId())
 	return &pb.PublishMetadataResponse{
 		Status:     0,
 		Msg:        backend.OK,

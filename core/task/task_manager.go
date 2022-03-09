@@ -19,6 +19,7 @@ import (
 	taskmngpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/taskmng"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/gogo/protobuf/proto"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -551,11 +552,8 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 		if err := m.resourceMng.GetDB().StoreLocalTask(task); nil != err {
 			storeErrs = append(storeErrs, err.Error())
 		}
-		if err := m.resourceMng.GetDB().StoreTaskPowerPartyIds(task.GetTaskId(), msg.GetPowerPartyIds()); nil != err {
-			storeErrs = append(storeErrs, err.Error())
-		}
 
-		if err := m.storeTaskHanlderPartyIds(task, msg.GetPowerPartyIds()); nil != err {
+		if err := m.storeTaskHanlderPartyIds(task, msg.GetPowerPolicyType(), msg.GetPowerPolicyOption()); nil != err {
 			storeErrs = append(storeErrs, err.Error())
 		}
 
@@ -564,7 +562,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 			log.Errorf("failed to call StoreLocalTask on taskManager with schedule task on taskManager.SendTaskMsgArr(), err: %s",
 				"\n["+strings.Join(storeErrs, ",")+"]")
 			events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskDiscarded.Type,
-				task.GetTaskId(), task.GetTaskData().GetIdentityId(), task.GetTaskData().GetPartyId(), "store local task failed")}
+				task.GetTaskId(), task.GetTaskSender().GetIdentityId(), task.GetTaskSender().GetPartyId(), "store local task failed")}
 			if err := m.storeBadTask(task, events, "store local task failed"); nil != err {
 				log.WithError(err).Errorf("Failed to sending the task to datacenter on taskManager.SendTaskMsgArr(), taskId: {%s}", task.GetTaskId())
 			}
@@ -687,13 +685,21 @@ func (m *Manager) HandleReportResourceUsage(usage *types.TaskResuorceUsage) erro
 }
 
 
-func (m *Manager) storeTaskHanlderPartyIds(task *types.Task, powerPartyIds []string) error {
-	partyIds := make([]string, 0)
+func (m *Manager) storeTaskHanlderPartyIds(task *types.Task, powerPolicyType uint32, powerPolicyOption string) error {
 
-	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-		partyIds = append(partyIds, dataSupplier.GetOrganization().GetPartyId())
+	// partyId of powerSuppliers
+	partyIds, err := policy.FetchPowerPartyIds(powerPolicyType, powerPolicyOption)
+	if nil != err {
+		log.WithError(err).Errorf("not fetch partyIds from powerPolicy, taskId: {%s}", task.GetTaskId())
+		return err
 	}
-	partyIds = append(partyIds, powerPartyIds...)
+
+	// partyId of dataSuppliers
+	for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
+		partyIds = append(partyIds, dataSupplier.GetPartyId())
+	}
+
+	// partyId of receivers
 	for _, receiver := range task.GetTaskData().GetReceivers() {
 		partyIds = append(partyIds, receiver.GetPartyId())
 	}

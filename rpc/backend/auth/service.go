@@ -149,7 +149,7 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 			ImageUrl:   identity.GetImageUrl(),
 			Details:    identity.GetDetails(),
 			UpdateAt:   identity.GetUpdateAt(),
-			Status:     identity.GetStatus(),
+			Status:     identity.GetDataStatus(),
 		}
 		arr[i] = iden
 	}

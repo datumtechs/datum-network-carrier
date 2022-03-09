@@ -5,7 +5,6 @@ package rawdb
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
-	"github.com/RosettaFlow/Carrier-Go/types"
 )
 
 // ReadDataLookupEntry retrieves the positional metadata associated with a metadata/resource/identity/task
@@ -25,38 +24,38 @@ func ReadDataLookupEntry(db DatabaseReader, hash common.Hash) (common.Hash, uint
 
 // WriteDataLookupEntries stores a positional metadata for every metadata/resource/identity from
 // a block, enabling dataId hash based metadata、resource、identity and task lookups.
-func WriteDataLookupEntries(db DatabaseWriter, block *libtypes.BlockData) {
-	header := (*types.Header)(block.Header)
-	// todo: what is the type means???
-	for i, metadata := range block.Metadata {
-		writeDataLookupEntries(db, header.Hash(),
-			block.Header.Version, uint64(i), metadata.NodeId, "", metadata.DataId)
-		// store extra data for metadata
-	}
-	for i, resource := range block.Resourcedata {
-		writeDataLookupEntries(db, header.Hash(),
-			block.Header.Version, uint64(i), resource.NodeId, "", resource.DataId)
-		// store extra data for resource
-	}
-	for i, identity := range block.Identitydata {
-		writeDataLookupEntries(db, header.Hash(),
-			block.Header.Version, uint64(i), identity.NodeId, "", identity.DataId)
-		// store extra data for identity
-	}
-	for i, task := range block.Taskdata {
-		writeDataLookupEntries(db, header.Hash(),
-			block.Header.Version, uint64(i), task.NodeId, "", task.DataId)
-		// store extra data for task
-	}
-}
-
-// writeMetadata save detailed data separately for metadata.
-func writeMetadata(db DatabaseWriter, number uint64, index uint64, metadata *libtypes.MetadataPB) {
-	// todo: need to update, the param is wrong.
-	WriteMetadataHash(db, number, index, common.Hash{})
-	WriteMetadataId(db, metadata.NodeId, common.Hash{}, metadata.DataId)
-	WriteMetadataTypeHash(db, metadata.DataId, "", common.Hash{})
-}
+//func WriteDataLookupEntries(db DatabaseWriter, block *libtypes.BlockData) {
+//	header := (*types.Header)(block.Header)
+//	// todo: what is the type means???
+//	for i, metadata := range block.Metadata {
+//		writeDataLookupEntries(db, header.Hash(),
+//			block.Header.Version, uint64(i), metadata.NodeId, "", metadata.DataId)
+//		// store extra data for metadata
+//	}
+//	for i, resource := range block.Resourcedata {
+//		writeDataLookupEntries(db, header.Hash(),
+//			block.Header.Version, uint64(i), resource.NodeId, "", resource.DataId)
+//		// store extra data for resource
+//	}
+//	for i, identity := range block.Identitydata {
+//		writeDataLookupEntries(db, header.Hash(),
+//			block.Header.Version, uint64(i), identity.NodeId, "", identity.DataId)
+//		// store extra data for identity
+//	}
+//	for i, task := range block.Taskdata {
+//		writeDataLookupEntries(db, header.Hash(),
+//			block.Header.Version, uint64(i), task.NodeId, "", task.DataId)
+//		// store extra data for task
+//	}
+//}
+//
+//// writeMetadata save detailed data separately for metadata.
+//func writeMetadata(db DatabaseWriter, number uint64, index uint64, metadata *libtypes.MetadataPB) {
+//	// todo: need to update, the param is wrong.
+//	WriteMetadataHash(db, number, index, common.Hash{})
+//	WriteMetadataId(db, metadata.NodeId, common.Hash{}, metadata.DataId)
+//	WriteMetadataTypeHash(db, metadata.DataId, "", common.Hash{})
+//}
 
 func writeDataLookupEntries(db DatabaseWriter, hash common.Hash, number uint64,
 							index uint64, nodeId string, typ string, dataId string)  {

@@ -1083,7 +1083,16 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 	// DataSupplier
 	for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
 
-		//////////
+		metadataId, err := policy.FetchMetedataIdByPartyId(dataSupplier.GetPartyId(), localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
+		if nil != err {
+			log.Errorf("not fetch metadataId of local task dataPolicy on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}, patyId: {%s}", taskId, dataSupplier.GetPartyId())
+			return nil, fmt.Errorf("not fetch metadataId")
+		}
+		metadataName, err := policy.FetchMetedataNameByPartyId(dataSupplier.GetPartyId(), localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
+		if nil != err {
+			log.Errorf("not fetch metadataName of local task dataPolicy on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}, patyId: {%s}", taskId, dataSupplier.GetPartyId())
+			return nil, fmt.Errorf("not fetch metadataName")
+		}
 
 		detailShow.DataSuppliers = append(detailShow.DataSuppliers, &pb.TaskDataSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
@@ -1092,28 +1101,39 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 				NodeId:     dataSupplier.GetNodeId(),
 				IdentityId: dataSupplier.GetIdentityId(),
 			},
-			MetadataId:   dataSupplier.GetMetadataId(),
-			MetadataName: dataSupplier.GetMetadataName(),
+			MetadataId:   metadataId,
+			MetadataName: metadataName,
 		})
 	}
 	// powerSupplier
+	powerResourceCache := make(map[string]*libtypes.TaskPowerResourceOption, 0)
+	for _, option := range localTask.GetTaskData().GetPowerResourceOptions() {
+		powerResourceCache[option.GetPartyId()] = option
+	}
 	for _, data := range localTask.GetTaskData().GetPowerSuppliers() {
+
+		option, ok := powerResourceCache[data.GetPartyId()]
+		if !ok {
+			log.Errorf("not found power resource option of local task dataPolicy on `CarrierAPIBackend.GetLocalTask()`, taskId: {%s}, patyId: {%s}", taskId, data.GetPartyId())
+			return nil, fmt.Errorf("not found power resource option")
+		}
+
 		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
 			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    data.GetOrganization().GetPartyId(),
-				NodeName:   data.GetOrganization().GetNodeName(),
-				NodeId:     data.GetOrganization().GetNodeId(),
-				IdentityId: data.GetOrganization().GetIdentityId(),
+				PartyId:    data.GetPartyId(),
+				NodeName:   data.GetNodeName(),
+				NodeId:     data.GetNodeId(),
+				IdentityId: data.GetIdentityId(),
 			},
 			PowerInfo: &libtypes.ResourceUsageOverview{
-				TotalMem:       data.GetResourceUsedOverview().GetTotalMem(),
-				UsedMem:        data.GetResourceUsedOverview().GetUsedMem(),
-				TotalProcessor: data.GetResourceUsedOverview().GetTotalProcessor(),
-				UsedProcessor:  data.GetResourceUsedOverview().GetUsedProcessor(),
-				TotalBandwidth: data.GetResourceUsedOverview().GetTotalBandwidth(),
-				UsedBandwidth:  data.GetResourceUsedOverview().GetUsedBandwidth(),
-				TotalDisk:      data.GetResourceUsedOverview().GetTotalDisk(),
-				UsedDisk:       data.GetResourceUsedOverview().GetUsedDisk(),
+				TotalMem:       option.GetResourceUsedOverview().GetTotalMem(),
+				UsedMem:        option.GetResourceUsedOverview().GetUsedMem(),
+				TotalProcessor: option.GetResourceUsedOverview().GetTotalProcessor(),
+				UsedProcessor:  option.GetResourceUsedOverview().GetUsedProcessor(),
+				TotalBandwidth: option.GetResourceUsedOverview().GetTotalBandwidth(),
+				UsedBandwidth:  option.GetResourceUsedOverview().GetUsedBandwidth(),
+				TotalDisk:      option.GetResourceUsedOverview().GetTotalDisk(),
+				UsedDisk:       option.GetResourceUsedOverview().GetUsedDisk(),
 			},
 		})
 	}
@@ -1238,8 +1258,8 @@ next:
 		// (Note: the tasks under consensus are also tasks that have not been started)
 		if identity.GetIdentityId() != task.GetTaskSender().GetIdentityId() {
 			for _, powerSupplier := range task.GetTaskData().GetPowerSuppliers() {
-				if identity.GetIdentityId() == powerSupplier.GetOrganization().GetIdentityId() {
-					running, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), powerSupplier.GetOrganization().GetPartyId())
+				if identity.GetIdentityId() == powerSupplier.GetIdentityId() {
+					running, err := s.carrier.carrierDB.HasLocalTaskExecuteStatusRunningByPartyId(task.GetTaskId(), powerSupplier.GetPartyId())
 					if nil != err || !running {
 						continue next // goto next task, if running one party of current identity is  still not executing this task.
 					}
@@ -1423,7 +1443,7 @@ func (s *CarrierAPIBackend) RemoveTaskUpResultFile(taskId string) error {
 	return s.carrier.carrierDB.RemoveTaskUpResultFile(taskId)
 }
 
-func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error {
+func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, fileHash, filePath, dataNodeId string) error {
 	// generate metadataId
 	var buf bytes.Buffer
 	buf.Write([]byte(originId))
@@ -1441,28 +1461,23 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, filePat
 
 	// store local metadata (about task result file)
 	s.carrier.carrierDB.StoreInternalMetadata(types.NewMetadata(&libtypes.MetadataPB{
-		MetadataId:      metadataId,
-		IdentityId:      identity.GetIdentityId(),
-		NodeId:          identity.GetNodeId(),
-		NodeName:        identity.GetNodeName(),
-		DataId:          metadataId,
-		OriginId:        originId,
-		TableName:       fmt.Sprintf("task `%s` result file", taskId),
-		FilePath:        filePath,
-		FileType:        apicommonpb.OriginFileType_FileType_Unknown,
-		Desc:            fmt.Sprintf("the task `%s` result file after executed", taskId),
-		Rows:            0,
-		Columns:         0,
-		Size_:           0,
-		HasTitle:        false,
-		MetadataColumns: nil,
-		Industry:        "Unknown",
-		// the status of data, N means normal, D means deleted.
-		DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
+		MetadataId:   metadataId,
+		Owner:        identity,
+		DataId:       metadataId,
+		DataStatus:   apicommonpb.DataStatus_DataStatus_Valid,
+		MetadataName: fmt.Sprintf("task `%s` result file", taskId),
+		MetadataType: 2,  // It means this is a module.
+		FileHash:     "", // todo fill it.
+		Desc:         fmt.Sprintf("the task `%s` result file after executed", taskId),
+		FileType:     apicommonpb.OriginFileType_FileType_Unknown,
+		Industry:     "Unknown",
 		// metaData status, eg: create/release/revoke
-		State:     apicommonpb.MetadataState_MetadataState_Created,
-		PublishAt: 0, // have not publish
-		UpdateAt:  timeutils.UnixMsecUint64(),
+		State:          apicommonpb.MetadataState_MetadataState_Created,
+		PublishAt:      0, // have not publish
+		UpdateAt:       timeutils.UnixMsecUint64(),
+		Nonce:          0,
+		MetadataOption: "",
+		TokenAddress:   "",
 	}))
 
 	// todo whether need to store a dataResourceDiskUsed (metadataId. dataNodeId, diskUsed) ??? 后面需要上传 磁盘使用空间在弄吧
@@ -1509,7 +1524,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummary(taskId string) (*types.Ta
 
 	return types.NewTaskResultFileSummary(
 		taskUpResultFile.GetTaskId(),
-		localMetadata.GetData().GetTableName(),
+		localMetadata.GetData().GetMetadataName(),
 		dataResourceFileUpload.GetMetadataId(),
 		dataResourceFileUpload.GetOriginId(),
 		dataResourceFileUpload.GetFilePath(),
@@ -1543,7 +1558,7 @@ func (s *CarrierAPIBackend) QueryTaskResultFileSummaryList() (types.TaskResultFi
 
 		arr = append(arr, types.NewTaskResultFileSummary(
 			summarry.GetTaskId(),
-			localMetadata.GetData().GetTableName(),
+			localMetadata.GetData().GetMetadataName(),
 			dataResourceFileUpload.GetMetadataId(),
 			dataResourceFileUpload.GetOriginId(),
 			dataResourceFileUpload.GetFilePath(),

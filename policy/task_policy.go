@@ -36,3 +36,15 @@ func FetchMetedataNameByPartyId (partyId string, policyType uint32, policyOption
 	return "", types.NotFoundMetadataPolicy
 }
 
+func FetchPowerPartyIds(policyType uint32, policyOption string) ([]string, error) {
+	switch policyType {
+	case types.TASK_POWER_POLICY_ASSIGNMENT_LABEL:
+		var policys []string
+		if err := json.Unmarshal([]byte(policyOption), &policys); nil != err {
+			return nil, err
+		}
+		return policys, nil
+	}
+	return nil, types.NotFoundPowerPolicy
+}
+

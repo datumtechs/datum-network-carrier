@@ -5,7 +5,6 @@ import (
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
-	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -104,74 +103,7 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 	}, nil
 }
 
-func taskJsonReq (req *pb.PublishTaskDeclareRequest) string {
-
-	sender := fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
-		req.GetSender().GetPartyId(), req.GetSender().GetNodeName(), req.GetSender().GetNodeId(),
-		req.GetSender().GetIdentityId())
-
-	algoSupplier := fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
-		req.GetAlgoSupplier().GetPartyId(), req.GetAlgoSupplier().GetNodeName(),
-		req.GetAlgoSupplier().GetNodeId(), req.GetAlgoSupplier().GetIdentityId())
-
-	dataSuppliers := "[]"
-	dataSupplierArr := make([]string, len(req.GetDataSuppliers()))
-	for i, dataSupplier := range req.GetDataSuppliers() {
-
-		organization :=  fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
-			dataSupplier.GetOrganization().GetPartyId(), dataSupplier.GetOrganization().GetNodeName(),
-			dataSupplier.GetOrganization().GetNodeId(), dataSupplier.GetOrganization().GetIdentityId())
-
-
-		selectedColumns := "[]"
-		selectedColumnArr := make([]string, len(dataSupplier.GetMetadataInfo().GetSelectedColumns()))
-		for j, selectedColumn := range dataSupplier.GetMetadataInfo().GetSelectedColumns() {
-			selectedColumnArr[j] = fmt.Sprint(selectedColumn)
-		}
-		if len(selectedColumnArr) != 0 {
-			selectedColumns = "[" + strings.Join(selectedColumnArr, ",") + "]"
-		}
-
-		metadataInfo := fmt.Sprintf(`{"metadataId": "%s", "keyColumn": %d, "selectedColumns": %s}`,
-			dataSupplier.GetMetadataInfo().GetMetadataId(), dataSupplier.GetMetadataInfo().GetKeyColumn(), selectedColumns)
-
-		dataSupplierArr[i] = fmt.Sprintf(`{"organization": %s, "metadataInfo": %s}`,
-			organization, metadataInfo)
-	}
-	if len(dataSupplierArr) != 0 {
-		dataSuppliers = "[" + strings.Join(dataSupplierArr, ",") + "]"
-	}
-
-	powerPartyIds := "[]"
-	powerPartyIdArr := make([]string, len(req.GetPowerPartyIds()))
-	for i, partyId := range req.GetPowerPartyIds() {
-		powerPartyIdArr[i] = `"` + partyId + `"`
-	}
-	if len(powerPartyIdArr) != 0 {
-		powerPartyIds = "[" + strings.Join(powerPartyIdArr, ",") + "]"
-	}
-
-	receivers := "[]"
-	receiverArr := make([]string, len(req.GetReceivers()))
-	for i, receiver := range req.GetReceivers() {
-		receiverArr[i] = fmt.Sprintf(`{"partyId": "%s", "nodeName": "%s", "nodeId": "%s", "identityId": "%s"}`,
-			receiver.GetPartyId(), receiver.GetNodeName(),
-			receiver.GetNodeId(), receiver.GetIdentityId())
-	}
-	if len(receiverArr) != 0 {
-		receivers = "[" + strings.Join(receiverArr, ",") + "]"
-	}
-
-	operationCost := fmt.Sprintf(`{"memory": %d, "processor": %d, "bandwidth": %d, "duration": %d}`,
-		req.GetOperationCost().GetMemory(), req.GetOperationCost().GetProcessor(), req.GetOperationCost().GetBandwidth(), req.GetOperationCost().GetDuration())
-
-	return fmt.Sprintf(`{"taskName": "%s", "user": "%s", "userType": %d, "sender": %s, "algoSupplier": %s, "dataSuppliers": %s, "powerPartyIds": %s, "receivers": %s, "operationCost": %s, "calculateContractCode": "%s", "dataSplitContractCode": "%s", "contractExtraParams": "%s", "sign": "%s", "desc": "%s"}`,
-		req.GetTaskName(), req.GetUser(), req.GetUserType(), sender, algoSupplier, dataSuppliers, powerPartyIds, receivers, operationCost, req.GetCalculateContractCode(), req.GetDataSplitContractCode(), req.GetContractExtraParams(), string(req.GetSign()), req.GetDesc())
-}
-
 func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
-
-	//log.Debugf("Received Publish task req: %s", taskJsonReq(req))
 
 	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check userType failed, wrong userType: {%s}", req.GetUserType().String())
@@ -197,12 +129,12 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check dataSuppliers failed, dataSuppliers is empty")
 		return nil, ErrReqDataSuppliersForPublishTask
 	}
-	if "" == req.GetCalculateContractCode() {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check CalculateContractCode failed, CalculateContractCode is empty")
+	if "" == req.GetAlgorithmCode() && "" == req.GetMetaAlgorithmId() {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check AlgorithmCode AND MetaAlgorithmId failed, AlgorithmCode AND MetaAlgorithmId is empty")
 		return nil, ErrReqCalculateContractCodeForPublishTask
 	}
 
-	identity, err := svr.B.GetNodeIdentity()
+	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed")
 		return nil, fmt.Errorf("query local identity failed")
@@ -219,114 +151,6 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on algoSupplier, partyId: {%s}", req.GetAlgoSupplier().GetPartyId())
 	}
 	checkPartyIdCache[req.GetAlgoSupplier().GetPartyId()] = struct{}{}
-
-	// add  dataSuppliers
-	dataSuppliers := make([]*libtypes.TaskDataSupplier, len(req.GetDataSuppliers()))
-	for i, v := range req.GetDataSuppliers() {
-
-		if _, ok := checkPartyIdCache[v.GetOrganization().GetPartyId()]; ok {
-			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of dataSupplier failed, this partyId has alreay exist, partyId: {%s}",
-				v.GetOrganization().GetPartyId())
-			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on dataSuppliers, partyId: {%s}", v.GetOrganization().GetPartyId())
-		}
-		checkPartyIdCache[v.GetOrganization().GetPartyId()] = struct{}{}
-
-		var (
-			identityId string
-			internalMetadata bool
-		)
-		if v.GetOrganization().GetIdentityId() != identity.GetIdentityId() { // Is not current identity
-			identityId = v.GetOrganization().GetIdentityId()
-		} else {  //  current identity
-			internalMetadata, err = svr.B.IsInternalMetadata(v.GetMetadataInfo().GetMetadataId())
-			if nil != err {
-				log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, check metadata whether internal metadata failed, identityId: {%s}, metadataId: {%s}",
-					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
-
-				errMsg := fmt.Sprintf("%s: %s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg, err,
-					v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
-				return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
-			}
-		}
-
-
-		metadata, err := svr.B.GetMetadataDetail(identityId, v.GetMetadataInfo().GetMetadataId())
-		if nil != err {
-			log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query metadata of partner failed, identityId: {%s}, metadataId: {%s}",
-				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
-
-			errMsg := fmt.Sprintf("%s: %s, identityId: {%s}, metadataId: {%s}", ErrReqMetadataDetailForPublishTask.Msg, err,
-				v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId())
-			return nil, backend.NewRpcBizErr(ErrReqMetadataDetailForPublishTask.Code, errMsg)
-		}
-
-		var (
-		 	keyColumn *libtypes.MetadataColumn
-			selectedColumns []*libtypes.MetadataColumn
-		)
-
-		// handle publish metadata columns
-		if !internalMetadata {
-			colTmp := make(map[uint32]*libtypes.MetadataColumn, len(metadata.GetData().GetMetadataColumns()))
-			for _, col := range metadata.GetData().GetMetadataColumns() {
-				colTmp[col.GetCIndex()] = col
-			}
-
-			if col, ok := colTmp[v.GetMetadataInfo().GetKeyColumn()]; ok {
-				keyColumn = col
-			} else {
-				errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}", ErrReqMetadataByKeyColumn.Msg, v.GetOrganization().GetIdentityId(),
-					v.GetMetadataInfo().GetMetadataId(), v.GetMetadataInfo().GetKeyColumn())
-				log.Errorf("RPC-API:PublishTaskDeclare failed, check columns colIndex of keyColumn, this colIndex is not exist, partyId: {%s}, colIndex: {%d}",
-					v.GetOrganization().GetPartyId(), v.GetMetadataInfo().GetKeyColumn())
-				return nil, backend.NewRpcBizErr(ErrReqMetadataByKeyColumn.Code, errMsg)
-			}
-
-			selectedColumns = make([]*libtypes.MetadataColumn, len(v.GetMetadataInfo().GetSelectedColumns()))
-
-			for j, colIndex := range v.GetMetadataInfo().GetSelectedColumns() {
-				if col, ok := colTmp[colIndex]; ok {
-					selectedColumns[j] = col
-				} else {
-					errMsg := fmt.Sprintf("%s, identityId: {%s}, metadataId: {%s}, columnIndex: {%d}", ErrReqMetadataBySelectedColumn.Msg,
-						v.GetOrganization().GetIdentityId(), v.GetMetadataInfo().GetMetadataId(), colIndex)
-					log.Errorf("RPC-API:PublishTaskDeclare failed, check columns colIndex of selectedColumns, this colIndex is not exist, partyId: {%s}, colIndex: {%d}",
-						v.GetOrganization().GetPartyId(), colIndex)
-					return nil, backend.NewRpcBizErr(ErrReqMetadataBySelectedColumn.Code, errMsg)
-				}
-			}
-		} else {
-			// take it zero value
-			keyColumn = &libtypes.MetadataColumn{}
-			selectedColumns = make([]*libtypes.MetadataColumn, 0)
-		}
-
-
-
-		dataSuppliers[i] = &libtypes.TaskDataSupplier{
-			Organization: &apicommonpb.TaskOrganization{
-				PartyId:    v.GetOrganization().GetPartyId(),
-				NodeName:   v.GetOrganization().GetNodeName(),
-				NodeId:     v.GetOrganization().GetNodeId(),
-				IdentityId: v.GetOrganization().GetIdentityId(),
-			},
-			MetadataId:      v.GetMetadataInfo().GetMetadataId(),
-			MetadataName:    metadata.GetData().GetTableName(),
-			KeyColumn:       keyColumn,
-			SelectedColumns: selectedColumns,
-		}
-	}
-	// add dataSuppliers
-	taskMsg.Data.SetMetadataSupplierArr(dataSuppliers)
-
-	for _, partyId := range req.GetPowerPartyIds() {
-		if _, ok := checkPartyIdCache[partyId]; ok {
-			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSupplier failed, this partyId has alreay exist, partyId: {%s}",
-				partyId)
-			return nil, fmt.Errorf("The partyId of the task participants cannot be repeated on powerPartyIds, partyId: {%s}", partyId)
-		}
-		checkPartyIdCache[partyId] = struct{}{}
-	}
 
 	for _, v := range req.GetReceivers() {
 		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
