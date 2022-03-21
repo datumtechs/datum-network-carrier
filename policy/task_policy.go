@@ -13,8 +13,8 @@ func FetchMetedataIdByPartyId (partyId string, policyType uint32, policyOption s
 			return "", err
 		}
 		for _, policy := range policys {
-			if policy.QueryPartyId() == partyId {
-				return policy.QueryMetadataId(), nil
+			if policy.GetPartyId() == partyId {
+				return policy.GetMetadataId(), nil
 			}
 		}
 	}
@@ -28,8 +28,8 @@ func FetchMetedataNameByPartyId (partyId string, policyType uint32, policyOption
 			return "", err
 		}
 		for _, policy := range policys {
-			if policy.QueryPartyId() == partyId {
-				return policy.QueryMetadataName(), nil
+			if policy.GetPartyId() == partyId {
+				return policy.GetMetadataName(), nil
 			}
 		}
 	}

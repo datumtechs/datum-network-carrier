@@ -10,6 +10,7 @@ var (
 	CannotMatchMetadataOption = fmt.Errorf("cannot match metadata option")
 )
 
+func IsNotRowAndColumnData(fileType apicommonpb.OriginFileType) bool { return !IsRowAndColumnData(fileType) }
 func IsRowAndColumnData(fileType apicommonpb.OriginFileType) bool {
 	if fileType == apicommonpb.OriginFileType_FileType_CSV {
 		return true
@@ -58,14 +59,14 @@ func (option *MetadataOptionRowAndColumn) GetMetadataColumns() []*MetadataColumn
 }
 
 type MetadataColumn struct {
-	Index   string
+	Index   uint32
 	Name    string
 	Type    string
 	Comment string
 	Size    uint64
 }
 
-func (mc *MetadataColumn) GetIndex() string   { return mc.Index }
+func (mc *MetadataColumn) GetIndex() uint32   { return mc.Index }
 func (mc *MetadataColumn) GetName() string    { return mc.Name }
 func (mc *MetadataColumn) GetType() string    { return mc.Type }
 func (mc *MetadataColumn) GetComment() string { return mc.Comment }

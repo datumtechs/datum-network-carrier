@@ -11,11 +11,11 @@ var (
 	NotFoundPowerPolicy = fmt.Errorf("not found power policy")
 )
 
-type TaskMetadataPolicy interface {
-	QueryPartyId() string
-	QueryMetadataId() string
-	QueryMetadataName() string
-}
+//type TaskMetadataPolicy interface {
+//	GetPartyId() string
+//	GetMetadataId() string
+//	GetMetadataName() string
+//}
 
 
 const (
@@ -41,14 +41,20 @@ type TaskMetadataPolicyRowAndColumn struct {
 	SelectedColumns []uint32
 }
 
-func (p *TaskMetadataPolicyRowAndColumn) QueryPartyId () string {
+func (p *TaskMetadataPolicyRowAndColumn) GetPartyId() string {
 	return p.PartyId
 }
-func (p *TaskMetadataPolicyRowAndColumn) QueryMetadataId () string {
+func (p *TaskMetadataPolicyRowAndColumn) GetMetadataId() string {
 	return p.MetadataId
 }
-func (p *TaskMetadataPolicyRowAndColumn) QueryMetadataName () string {
+func (p *TaskMetadataPolicyRowAndColumn) GetMetadataName() string {
 	return p.MetadataName
+}
+func (p *TaskMetadataPolicyRowAndColumn) QueryKeyColumn () uint32 {
+	return p.KeyColumn
+}
+func (p *TaskMetadataPolicyRowAndColumn) QuerySelectedColumns () []uint32 {
+	return p.SelectedColumns
 }
 
 

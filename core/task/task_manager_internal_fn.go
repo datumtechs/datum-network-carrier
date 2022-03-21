@@ -746,6 +746,15 @@ func (m *Manager) makeTaskReadyGoReq(task *types.NeedExecuteTask) (*fightercommo
 }
 
 func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
+	switch localTask.GetTaskData().GetDataPolicyType() {
+	case types.TASK_METADATA_POLICY_ROW_COLUMN:
+		return m.metadataPolicyRowColumn(task, localTask)
+	default:
+		return "", fmt.Errorf("unknown dataPolicy type, taskId: {%s}, dataPolicyType: {%d}", task.GetTaskId(), localTask.GetTaskData().GetDataPolicyType())
+	}
+}
+
+func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask *types.Task) (string, error) {
 
 	partyId := task.GetLocalTaskOrganization().GetPartyId()
 
@@ -755,7 +764,26 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 
 	if task.GetLocalTaskRole() == apicommonpb.TaskRole_TaskRole_DataSupplier {
 
-		var find bool
+
+		// find dataPolicyOption
+		var dataPolicyArr []*types.TaskMetadataPolicyRowAndColumn
+
+		if err := json.Unmarshal([]byte(localTask.GetTaskData().GetDataPolicyOption()), &dataPolicyArr); nil != err {
+			return "", fmt.Errorf("can not unmarshal dataPolicyOption, %s, taskId: {%s}", err, localTask.GetTaskId())
+		}
+
+		var dataPolicy *types.TaskMetadataPolicyRowAndColumn
+
+		for _, po := range dataPolicyArr {
+			if po.GetPartyId() == partyId {
+				dataPolicy = po
+				break
+			}
+		}
+
+		if nil == dataPolicy {
+			return "", fmt.Errorf("not find dataPolicyOption with partyId, taskId: {%s}, partyId: {%s}", localTask.GetTaskId(), partyId)
+		}
 
 		for _, dataSupplier := range localTask.GetTaskData().GetDataSuppliers() {
 			if partyId == dataSupplier.GetPartyId() {
@@ -765,18 +793,19 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 
 				metadataId, err := policy.FetchMetedataIdByPartyId(partyId, localTask.GetTaskData().GetDataPolicyType(), localTask.GetTaskData().GetDataPolicyOption())
 				if nil != err {
-					return "", fmt.Errorf("not fetch metadataId from task dataPolicy, %s, partyId: {%s}", err, partyId)
+					return "", fmt.Errorf("not fetch metadataId from task dataPolicy, %s, taskId: {%s}, partyId: {%s}",
+						err, localTask.GetTaskId(), partyId)
 				}
 				// verify metadataAuth first
-
 				if err := m.authMng.VerifyMetadataAuth(userType, user, metadataId); nil != err {
-					return "", fmt.Errorf("verify user metadataAuth failed, %s, userType: {%s}, user: {%s}, metadataId: {%s}",
-						err, userType, user, metadataId)
+					return "", fmt.Errorf("verify user metadataAuth failed, %s, userType: {%s}, user: {%s}, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+						err, userType, user, localTask.GetTaskId(), partyId, metadataId)
 				}
 
 				internalMetadataFlag, err := m.resourceMng.GetDB().IsInternalMetadataByDataId(metadataId)
 				if nil != err {
-					return "", fmt.Errorf("check metadata whether internal metadata failed %s, metadataId: {%s}", err, metadataId)
+					return "", fmt.Errorf("check metadata whether internal metadata failed %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+						err, localTask.GetTaskId(), partyId, metadataId)
 				}
 
 				var metadata *types.Metadata
@@ -786,26 +815,58 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 					// query internal metadata
 					metadata, err = m.resourceMng.GetDB().QueryInternalMetadataByDataId(metadataId)
 					if nil != err {
-						return "", fmt.Errorf("query internale metadata failed %s, metadataId: {%s}", err, metadataId)
+						return "", fmt.Errorf("query internale metadata failed %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+							err, localTask.GetTaskId(), partyId, metadataId)
 					}
 				} else {
 					// query published metadata
 					metadata, err = m.resourceMng.GetDB().QueryMetadataByDataId(metadataId)
 					if nil != err {
-						return "", fmt.Errorf("query publish metadata failed %s, metadataId: {%s}", err, metadataId)
+						return "", fmt.Errorf("query publish metadata failed %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+							err, localTask.GetTaskId(), partyId, metadataId)
 					}
 				}
 
-				fp, err := policy.FetchFilePath(metadata.GetData().GetFileType(), metadata.GetData().GetMetadataOption())
-				if nil != err {
-					return "", fmt.Errorf("not fetch filePath from metadataOption, %s, metadataId: {%s}", err, metadataId)
+				if types.IsNotRowAndColumnData(metadata.GetData().GetFileType()) {
+					return "", fmt.Errorf("the metadataOption and dataPolicyOption of task is not match, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+						err, localTask.GetTaskId(), partyId, metadataId)
 				}
-				filePath = fp
 
-				keyColumn = dataSupplier.GetKeyColumn().GetCName()
-				selectedColumns = make([]string, len(dataSupplier.GetSelectedColumns()))
-				for i, col := range dataSupplier.GetSelectedColumns() {
-					selectedColumns[i] = col.GetCName()
+				var metadataOption *types.MetadataOptionRowAndColumn
+				if err := json.Unmarshal([]byte(metadata.GetData().GetMetadataOption()), &metadataOption); nil != err {
+					return "", fmt.Errorf("can not unmarshal metadataOption, %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+						err, localTask.GetTaskId(), partyId, metadataId)
+				}
+
+				// collection all the column name cache
+				columnNameCache := make(map[uint32]string, 0)
+				for _, mdop := range metadataOption.GetMetadataColumns() {
+					columnNameCache[mdop.GetIndex()] = mdop.GetName()
+				}
+				// find key column name
+				if kname, ok := columnNameCache[dataPolicy.QueryKeyColumn()]; ok {
+					keyColumn = kname
+				} else {
+					return "", fmt.Errorf("not found the keyColumn of task dataPolicy on metadataOption, taskId: {%s}, partyId: {%s}, metadataId: {%s}, columnIndex: {%d}",
+						localTask.GetTaskId(), partyId, metadataId, dataPolicy.QueryKeyColumn())
+				}
+
+				// find all select column names
+				selectedColumns = make([]string, len(dataPolicy.QuerySelectedColumns()))
+				for i, selectedColumnIndex := range dataPolicy.QuerySelectedColumns() {
+
+					if sname, ok := columnNameCache[selectedColumnIndex]; ok {
+						selectedColumns[i] = sname
+					} else {
+						return "", fmt.Errorf("not found the selectColumn of task dataPolicy on metadataOption, taskId: {%s}, partyId: {%s}, metadataId: {%s}, columnIndex: {%d}",
+							localTask.GetTaskId(), partyId, metadataId, selectedColumnIndex)
+					}
+				}
+
+				filePath = metadataOption.GetFilePath()
+				if strings.Trim(filePath, "") == "" {
+					return "", fmt.Errorf("not found the filePath of task dataPolicy on metadataOption, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
+						localTask.GetTaskId(), partyId, metadataId)
 				}
 
 				// only consume metadata auth when metadata is not internal metadata.
@@ -822,15 +883,8 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 						log.Debugf("Succeed consume metadataAuth, taskId: {%s}, metadataAuthId: {%s}", task.GetTaskId(), metadataAuthId)
 					}
 				}
-
-				find = true
 				break
 			}
-		}
-
-		if !find {
-			return "", fmt.Errorf("can not find the dataSupplier for find originFilePath, taskId: {%s}, self.IdentityId: {%s}, seld.PartyId: {%s}",
-				task.GetTaskId(), task.GetLocalTaskOrganization().GetIdentityId(), task.GetLocalTaskOrganization().GetPartyId())
 		}
 	}
 
@@ -864,6 +918,7 @@ func (m *Manager) makeContractParams(task *types.NeedExecuteTask, localTask *typ
 	}
 	return string(b), nil
 }
+
 
 // make terminate rpc req
 func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {

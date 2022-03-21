@@ -32,23 +32,12 @@ func (tv *TaskValidator) validateTaskMsg (msgs types.TaskMsgArr) (types.BadTaskM
 		return badMsgs, goodMsgs
 	}
 
-	next:
 	for _, msg := range msgs {
 		if msg.GetSenderIdentityId() != identity.GetIdentityId() {
 			log.Errorf("Failed to check sender's identity of task, is not current identity on TaskValidator.validateTaskMsg(), taskId: {%s}, sender's idntityId: {%s}, current identityId: {%s}",
 				msg.GetTaskId(), msg.GetSenderIdentityId(), identity.GetIdentityId())
 			badMsgs = append(badMsgs, types.NewBadTaskMsg(msg, fmt.Sprintf("the sender identity of task is not current identity")))
 			continue
-		}
-		for _, dataSupplier := range msg.GetTaskMetadataSupplierDatas() {
-			if dataSupplier.GetIdentityId() == identity.GetIdentityId() {
-					if err := tv.authMng.VerifyMetadataAuth(msg.GetUserType(), msg.GetUser(), dataSupplier.GetMetadataId()); nil != err {
-						log.WithError(err).Errorf("Failed to verify metadataAuth of task on TaskValidator.validateTaskMsg(), taskId: {%s}, partyId: {%s}, userType: {%s}, user: {%s}, metadataId: {%s}",
-							msg.GetTaskId(), dataSupplier.GetPartyId(), msg.GetUserType(), msg.GetUser(), dataSupplier.GetMetadataId())
-						badMsgs = append(badMsgs, types.NewBadTaskMsg(msg, fmt.Sprintf("verify metadataAuth of party %s failed, %s", dataSupplier.GetOrganization().GetPartyId(), err)))
-						continue next // goto continue next msg...
-					}
-			}
 		}
 		goodMsgs = append(goodMsgs, msg)
 	}

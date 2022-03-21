@@ -84,7 +84,7 @@ type Backend interface {
 	StoreTaskUpResultFile(turf *types.TaskUpResultFile) error
 	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error
-	StoreTaskResultFileSummary(taskId, originId, filePath, dataNodeId string) error
+	StoreTaskResultFileSummary(taskId, originId, fileHash, filePath, dataNodeId string) error
 	QueryTaskResultFileSummary (taskId string) (*types.TaskResultFileSummary, error)
 	QueryTaskResultFileSummaryList () (types.TaskResultFileSummaryArr, error)
 }
