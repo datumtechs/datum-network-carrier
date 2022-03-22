@@ -20,11 +20,11 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 	identity, err := svr.B.GetNodeIdentity()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
-			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
+			req.GetInformation().GetIdentityId(), req.GetInformation().GetNodeId(), req.GetInformation().GetNodeName(), req.GetInformation().GetImageUrl(), req.GetInformation().GetDetails())
 
 		errMsg := fmt.Sprintf("query local identity failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
-			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
+			req.GetInformation().GetIdentityId(), req.GetInformation().GetNodeId(), req.GetInformation().GetNodeName(), req.GetInformation().GetImageUrl(), req.GetInformation().GetDetails())
+		return &apicommonpb.SimpleResponse{Status: backend.ErrApplyIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
 	if nil != identity {
@@ -33,36 +33,35 @@ func (svr *Server) ApplyIdentityJoin(ctx context.Context, req *pb.ApplyIdentityJ
 
 		errMsg := fmt.Sprintf("identity was already exist, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
 			identity.GetIdentityId(), identity.GetNodeId(), identity.GetName(), identity.GetImageUrl(), identity.GetDetails())
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
+		return &apicommonpb.SimpleResponse{Status: backend.ErrApplyIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
-
-	if req.GetMember() == nil {
-		return nil, ErrReqMemberParams
+	if nil == req.GetInformation() {
+		return &apicommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
 	}
 
-	if "" == strings.Trim(req.GetMember().GetIdentityId(), "") ||
-		"" == strings.Trim(req.GetMember().GetNodeName(), "") {
-		return nil, ErrReqMemberIdentityIdOrNameParams
+	if "" == strings.Trim(req.GetInformation().GetIdentityId(), "") ||
+		"" == strings.Trim(req.GetInformation().GetNodeName(), "") {
+		return &apicommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
 	}
 
 	identityMsg := types.NewIdentityMessageFromRequest(req)
 	if err := identityMsg.CheckLength(); nil != err {
 		errMsg := fmt.Sprintf("check fields len failed, %s , identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
 			err, identity.GetIdentityId(), identity.GetNodeId(), identity.GetName(), identity.GetImageUrl(), identity.GetDetails())
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
+		return &apicommonpb.SimpleResponse{Status: backend.ErrApplyIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
 	if err = svr.B.SendMsg(identityMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyIdentityJoin failed, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
-			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
+			req.GetInformation().GetIdentityId(), req.GetInformation().GetNodeId(), req.GetInformation().GetNodeName(), req.GetInformation().GetImageUrl(), req.GetInformation().GetDetails())
 
-		errMsg := fmt.Sprintf("%s, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", ErrSendIdentityMsg.Msg,
-			req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName())
-		return nil, backend.NewRpcBizErr(ErrSendIdentityMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, identityId: {%s}, nodeId: {%s}, nodeName: {%s}", backend.ErrApplyIdentityMsg.Error(),
+			req.GetInformation().GetIdentityId(), req.GetInformation().GetNodeId(), req.GetInformation().GetNodeName())
+		return &apicommonpb.SimpleResponse{Status: backend.ErrApplyIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:ApplyIdentityJoin succeed SendMsg, identityId: {%s}, nodeId: {%s}, nodeName: {%s}, imgUrl: {%s}, details: {%s}",
-		req.GetMember().GetIdentityId(), req.GetMember().GetNodeId(), req.GetMember().GetNodeName(), req.GetMember().GetImageUrl(), req.GetMember().GetDetails())
+		req.GetInformation().GetIdentityId(), req.GetInformation().GetNodeId(), req.GetInformation().GetNodeName(), req.GetInformation().GetImageUrl(), req.GetInformation().GetDetails())
 	return &apicommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
@@ -74,25 +73,24 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 	_, err := svr.B.GetNodeIdentity()
 	if rawdb.IsDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, the identity was not exist, can not revoke identity")
-
-		errMsg := fmt.Sprintf("%s, the identity was not exist, can not revoke identity", ErrSendIdentityRevokeMsg.Msg)
-		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, the identity was not exist, can not revoke identity", backend.ErrRevokeIdentityMsg.Error())
+		return &apicommonpb.SimpleResponse{Status: backend.ErrRevokeIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
 	// what if local task we can not revoke identity
-	has, err := svr.B.HasLocalTask ()
+	has, err := svr.B.HasLocalTask()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, can not check has local task")
 
-		errMsg := fmt.Sprintf("%s, can not check has local task", ErrSendIdentityRevokeMsg.Msg)
-		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, can not check has local task", backend.ErrRevokeIdentityMsg.Error())
+		return &apicommonpb.SimpleResponse{Status: backend.ErrRevokeIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
 	if has {
 		log.WithError(err).Errorf("RPC-API:RevokeIdentityJoin failed, don't revoke identity when has local task")
 
-		errMsg := fmt.Sprintf("%s, don't revoke identity when has local task", ErrSendIdentityRevokeMsg.Msg)
-		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, don't revoke identity when has local task", backend.ErrRevokeIdentityMsg.Error())
+		return &apicommonpb.SimpleResponse{Status: backend.ErrRevokeIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
 	identityRevokeMsg := types.NewIdentityRevokeMessage()
@@ -100,8 +98,8 @@ func (svr *Server) RevokeIdentityJoin(ctx context.Context, req *emptypb.Empty) (
 	if err = svr.B.SendMsg(identityRevokeMsg); nil != err {
 		log.WithError(err).Error("RPC-API:RevokeIdentityJoin failed")
 
-		errMsg := fmt.Sprintf("%s, send identity revoke msg failed", ErrSendIdentityRevokeMsg.Msg)
-		return nil, backend.NewRpcBizErr(ErrSendIdentityRevokeMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, send identity revoke msg failed", backend.ErrRevokeIdentityMsg.Error())
+		return &apicommonpb.SimpleResponse{Status: backend.ErrRevokeIdentityMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debug("RPC-API:RevokeIdentityJoin succeed SendMsg")
 	return &apicommonpb.SimpleResponse{
@@ -114,12 +112,12 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetNodeIdentity failed")
-		return nil, ErrGetNodeIdentity
+		return &pb.GetNodeIdentityResponse{Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 	return &pb.GetNodeIdentityResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		Owner: &apicommonpb.Organization{
+		Information: &apicommonpb.Organization{
 			NodeName:   identity.GetName(),
 			NodeId:     identity.GetNodeId(),
 			IdentityId: identity.GetIdentityId(),
@@ -138,7 +136,7 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 	identityList, err := svr.B.GetIdentityList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:QueryIdentityList failed")
-		return nil, ErrGetIdentityList
+		return &pb.GetIdentityListResponse{Status: backend.ErrGetIdentityList.ErrCode(), Msg: backend.ErrGetIdentityList.Error()}, nil
 	}
 	arr := make([]*apicommonpb.Organization, len(identityList))
 	for i, identity := range identityList {
@@ -155,9 +153,9 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 	}
 	log.Debugf("Query all org's identity list, len: {%d}", len(identityList))
 	return &pb.GetIdentityListResponse{
-		Status:     0,
-		Msg:        backend.OK,
-		MemberList: arr,
+		Status:    0,
+		Msg:       backend.OK,
+		Identitys: arr,
 	}, nil
 }
 
@@ -165,22 +163,22 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 
 func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMetadataAuthorityRequest) (*pb.ApplyMetadataAuthorityResponse, error) {
 	if req.GetUser() == "" {
-		return nil, ErrReqGetUserForMetadataAuthApply
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user is empty"}, nil
 	}
 	if !verifyUserType(req.GetUserType()) {
-		return nil, ErrVerifyUserTypeForMetadataAuthApply
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user type is wrong"}, nil
 	}
 	if req.GetAuth() == nil {
-		return nil, ErrReqAuthForMetadataAuthApply
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the metadata auth is nil"}, nil
 	}
 	if len(req.GetSign()) == 0 {
-		return nil, ErrReqUserSignForMetadataAuthApply
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
 	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query local identity failed")
-		return nil, fmt.Errorf("query local identity failed")
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 
 	now := timeutils.UnixMsecUint64()
@@ -189,18 +187,18 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		if now >= req.GetAuth().GetUsageRule().GetEndAt() {
 			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule endTime of metadataAuth has expire, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
 				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
-			return nil, fmt.Errorf("usaageRule endTime of metadataAuth has expire")
+			return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "usaageRule endTime of metadataAuth has expire"}, nil
 		}
 	case apicommonpb.MetadataUsageType_Usage_Times:
 		if req.GetAuth().GetUsageRule().GetTimes() == 0 {
 			log.Errorf("RPC-API:ApplyMetadataAuthority failed, usaageRule times of metadataAuth must be greater than zero, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}, usageEndTime: {%d}, now: {%d}",
 				req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String(), req.GetAuth().GetUsageRule().GetEndAt(), now)
-			return nil, fmt.Errorf("usaageRule times of metadataAuth must be greater than zero")
+			return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "usaageRule times of metadataAuth must be greater than zero"}, nil
 		}
 	default:
 		log.Errorf("RPC-API:ApplyMetadataAuthority failed, unknown usageType of the metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}, usageType: {%s}",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().GetUsageType().String())
-		return nil, fmt.Errorf("unknown usageType of the metadataAuth")
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "unknown usageType of the metadataAuth"}, nil
 	}
 
 	// ############################################
@@ -212,7 +210,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	ideneityList, err := svr.B.GetIdentityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed, query global identity list failed")
-		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global identity list failed")
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "query global identity list failed"}, nil
 	}
 	var valid bool // false
 	for _, identity := range ideneityList {
@@ -224,7 +222,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	if !valid {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, not found identity with identityId of auth, identityId: {%s}",
 			req.GetAuth().GetOwner().GetIdentityId())
-		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "not found identity with identityId of auth")
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "not found identity with identityId of auth"}, nil
 	}
 	// reset val
 	valid = false
@@ -232,7 +230,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	metadataList, err := svr.B.GetGlobalMetadataDetailListByIdentityId(req.GetAuth().GetOwner().GetIdentityId(), timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query global metadata list by identityId failed, identityId: {%s}", req.GetAuth().GetOwner().GetIdentityId())
-		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "query global metadata list failed")
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "query global metadata list failed"}, nil
 	}
 	for _, metadata := range metadataList {
 		if metadata.GetInformation().GetMetadataSummary().GetMetadataId() == req.GetAuth().GetMetadataId() {
@@ -243,7 +241,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	if !valid {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, not found metadata with metadataId of auth, metadataId: {%s}",
 			req.GetAuth().GetMetadataId())
-		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, "not found metadata with metadataId of auth")
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "not found metadata with metadataId of auth"}, nil
 	}
 
 	// check the metadataId whether has valid metadataAuth with current userType and user.
@@ -252,18 +250,18 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query valid user metadataAuth failed, userType: {%s}, user: {%s}, metadataId: {%s}",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
 
-		errMsg := fmt.Sprintf(ErrApplyMetadataAuthority.Msg, "query valid user metadataAuth failed",
+		errMsg := fmt.Sprintf(backend.ErrApplyMetadataAuthority.Error(), "query valid user metadataAuth failed",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
-		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, errMsg)
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: errMsg}, nil
 	}
 
 	if has {
 		log.Errorf("RPC-API:ApplyMetadataAuthority failed, has valid metadataAuth exists, userType: {%s}, user: {%s}, metadataId: {%s}",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
 
-		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, metadataId: {%s}", ErrValidMetadataAuthMustCannotExist.Msg,
+		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, metadataId: {%s}", backend.ErrApplyMetadataAuthority.Error(),
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
-		return nil, backend.NewRpcBizErr(ErrValidMetadataAuthMustCannotExist.Code, errMsg)
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: errMsg}, nil
 	}
 
 	metadataAuthorityMsg := types.NewMetadataAuthorityMessageFromRequest(req)
@@ -272,9 +270,9 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	if err = svr.B.SendMsg(metadataAuthorityMsg); nil != err {
 		log.WithError(err).Error("RPC-API:ApplyMetadataAuthority failed")
 
-		errMsg := fmt.Sprintf(ErrApplyMetadataAuthority.Msg, "send metadata authority msg failed",
+		errMsg := fmt.Sprintf(backend.ErrApplyMetadataAuthority.Error(), "send metadata authority msg failed",
 			req.GetUserType().String(), req.GetUser(), req.GetAuth().GetMetadataId())
-		return nil, backend.NewRpcBizErr(ErrApplyMetadataAuthority.Code, errMsg)
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:ApplyMetadataAuthority succeed, userType: {%s}, user: {%s}, metadataOwner: {%s}, metadataId: {%s}, usageRule: {%s},  return metadataAuthId: {%s}",
 		req.GetUserType().String(), req.GetUser(), req.GetAuth().GetOwner().String(), req.GetAuth().GetMetadataId(), req.GetAuth().GetUsageRule().String(), metadataAuthId)
@@ -287,28 +285,28 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 
 func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
 	if req.GetUser() == "" {
-		return nil, ErrReqGetUserForRevokeMetadataAuth
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user is empty"}, nil
 	}
 	if !verifyUserType(req.GetUserType()) {
-		return nil, ErrVerifyUserTypeForRevokeMetadataAuth
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user type is wrong"}, nil
 	}
 	if req.GetMetadataAuthId() == "" {
-		return nil, ErrReqAuthIDForRevokeMetadataAuth
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadata auth is nil"}, nil
 	}
 	if len(req.GetSign()) == 0 {
-		return nil, ErrReqUserSignForRevokeMetadataAuth
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
 	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local identity failed")
-		return nil, fmt.Errorf("query local identity failed")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local metadataAuth list failed, %s", err)
-		return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "query local metadataAuth list failed")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "query local metadataAuth list failed"}, nil
 	}
 
 	for _, auth := range authorityList {
@@ -317,32 +315,31 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 			auth.GetUser() == req.GetUser() &&
 			auth.GetData().GetMetadataAuthId() == req.GetMetadataAuthId() {
 
-
 			// The data authorization application information that has been audited and cannot be revoked
 			if auth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Pending {
 				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth was audited")
-				return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "the metadataAuth state was audited")
+				return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was audited"}, nil
 			}
 
 			if auth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
 				log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth state was not released")
-				return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "the metadataAuth state was not released")
+				return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth state was not released"}, nil
 			}
 
 			switch auth.GetData().GetAuth().GetUsageRule().GetUsageType() {
 			case apicommonpb.MetadataUsageType_Usage_Period:
 				if timeutils.UnixMsecUint64() >= auth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been expire")
-					return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "the metadataAuth had been expire")
+					return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been expire"}, nil
 				}
 			case apicommonpb.MetadataUsageType_Usage_Times:
 				if auth.GetData().GetUsedQuo().GetUsedTimes() >= auth.GetData().GetAuth().GetUsageRule().GetTimes() {
 					log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, the metadataAuth had been not enough times")
-					return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, "the metadataAuth had been not enough times")
+					return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the metadataAuth had been not enough times"}, nil
 				}
 			default:
 				log.Errorf("unknown usageType of the old metadataAuth on AuthorityManager.filterMetadataAuth(), metadataAuthId: {%s}", auth.GetData().GetMetadataAuthId())
-				return nil, fmt.Errorf("unknown usageType of the old metadataAuth")
+				return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "unknown usageType of the old metadataAuth"}, nil
 			}
 		}
 	}
@@ -353,9 +350,9 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	if err := svr.B.SendMsg(metadataAuthorityRevokeMsg); nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetadataAuthority failed")
 
-		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, MetadataAuthId: {%s}", ErrRevokeMetadataAuthority.Msg,
+		errMsg := fmt.Sprintf("%s, userType: {%s}, user: {%s}, MetadataAuthId: {%s}", backend.ErrRevokeMetadataAuthority.Error(),
 			req.GetUserType().String(), req.GetUser(), req.GetMetadataAuthId())
-		return nil, backend.NewRpcBizErr(ErrRevokeMetadataAuthority.Code, errMsg)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:RevokeMetadataAuthority succeed, userType: {%s}, user: {%s}, metadataAuthId: {%s}",
 		req.GetUserType().String(), req.GetUser(), metadataAuthId)
@@ -368,26 +365,26 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
 
 	if "" == req.GetMetadataAuthId() {
-		return nil, ErrReqAuthIDForAuditMetadataAuth
+		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrAuditMetadataAuth.ErrCode(), Msg: "the metadataAuth Id is empty"}, nil
 	}
 
 	if req.GetAudit() == apicommonpb.AuditMetadataOption_Audit_Pending {
-		return nil, ErrValidAuditMetadataOptionMustCannotPending
+		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrAuditMetadataAuth.ErrCode(), Msg: "the valid audit metadata option must cannot pending"}, nil
 	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:AuditMetadataAuthority failed, query local identity failed")
-		return nil, fmt.Errorf("query local identity failed")
+		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 
 	option, err := svr.B.AuditMetadataAuthority(types.NewMetadataAuthAudit(req.GetMetadataAuthId(), req.GetSuggestion(), req.GetAudit()))
 	if nil != err {
 		log.WithError(err).Error("RPC-API:AuditMetadataAuthority failed")
 
-		errMsg := fmt.Sprintf("%s, metadataAuthId: {%s}, audit option: {%s}, audit suggestion: {%s}", ErrAuditMetadataAuth.Msg,
+		errMsg := fmt.Sprintf("%s, metadataAuthId: {%s}, audit option: {%s}, audit suggestion: {%s}", backend.ErrAuditMetadataAuth.Error(),
 			req.GetMetadataAuthId(), req.GetAudit().String(), req.GetSuggestion())
-		return nil, backend.NewRpcBizErr(ErrAuditMetadataAuth.Code, errMsg)
+		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrAuditMetadataAuth.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:AuditMetadataAuthority succeed, metadataAuthId: {%s}, audit option: {%s}, audit suggestion: {%s}",
 		req.GetMetadataAuthId(), req.GetAudit().String(), req.GetSuggestion())
@@ -407,7 +404,7 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataAuthorityList failed")
-		return nil, ErrGetAuthorityList
+		return &pb.GetMetadataAuthorityListResponse{ Status: backend.ErrGetAuthorityList.ErrCode(), Msg: backend.ErrGetAuthorityList.Error()}, nil
 	}
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
@@ -416,12 +413,12 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 			User:            auth.GetData().GetUser(),
 			UserType:        auth.GetData().GetUserType(),
 			Auth:            auth.GetData().GetAuth(),
-			AuditOption: 	 auth.GetData().GetAuditOption(),
+			AuditOption:     auth.GetData().GetAuditOption(),
 			AuditSuggestion: auth.GetData().GetAuditSuggestion(),
 			UsedQuo:         auth.GetData().GetUsedQuo(),
 			ApplyAt:         auth.GetData().GetApplyAt(),
 			AuditAt:         auth.GetData().GetAuditAt(),
-			State: 			 auth.GetData().GetState(),
+			State:           auth.GetData().GetState(),
 			UpdateAt:        auth.GetData().GetUpdateAt(),
 		}
 	}
@@ -429,7 +426,7 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		List:   arr,
+		MetadataAuths:   arr,
 	}, nil
 }
 
@@ -441,7 +438,7 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataAuthorityList failed")
-		return nil, ErrGetAuthorityList
+		return &pb.GetMetadataAuthorityListResponse{ Status: backend.ErrGetAuthorityList.ErrCode(), Msg: backend.ErrGetAuthorityList.Error()}, nil
 	}
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
@@ -450,12 +447,12 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 			User:            auth.GetData().GetUser(),
 			UserType:        auth.GetData().GetUserType(),
 			Auth:            auth.GetData().GetAuth(),
-			AuditOption: 	 auth.GetData().GetAuditOption(),
+			AuditOption:     auth.GetData().GetAuditOption(),
 			AuditSuggestion: auth.GetData().GetAuditSuggestion(),
 			UsedQuo:         auth.GetData().GetUsedQuo(),
 			ApplyAt:         auth.GetData().GetApplyAt(),
 			AuditAt:         auth.GetData().GetAuditAt(),
-			State: 			 auth.GetData().GetState(),
+			State:           auth.GetData().GetState(),
 			UpdateAt:        auth.GetData().GetUpdateAt(),
 		}
 	}
@@ -463,7 +460,7 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 	return &pb.GetMetadataAuthorityListResponse{
 		Status: 0,
 		Msg:    backend.OK,
-		List:   arr,
+		MetadataAuths:   arr,
 	}, nil
 }
 

@@ -5,8 +5,6 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
 
-	"errors"
-
 	"fmt"
 
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
@@ -17,11 +15,11 @@ import (
 func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventRequest) (*apicommonpb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetTaskEvent().GetTaskId(), "") {
-		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, "require taskId")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
 	if "" == strings.Trim(req.GetTaskEvent().GetPartyId(), "") {
-		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, "require partyId")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require partyId"}, nil
 	}
 
 	log.Debugf("RPC-API:ReportTaskEvent, req: {%v}", req)
@@ -35,8 +33,8 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 	if err := svr.B.SendTaskEvent(req.GetTaskEvent()); nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskEvent failed")
 
-		errMsg := fmt.Sprintf("%s, %s", ErrReportTaskEvent.Msg, req.GetTaskEvent().GetPartyId())
-		return nil, backend.NewRpcBizErr(ErrReportTaskEvent.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, %s", backend.ErrReportTaskEvent.Error(), req.GetTaskEvent().GetPartyId())
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportTaskEvent.ErrCode(), Msg: errMsg}, nil
 	}
 	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
@@ -45,30 +43,30 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportTaskResourceUsageRequest) (*apicommonpb.SimpleResponse, error) {
 
 	if req.GetTaskId() == "" {
-		return nil, errors.New("require taskId")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
 	if req.GetPartyId() == "" {
-		return nil, errors.New("require partyId")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require partyId"}, nil
 	}
 
 	if req.GetIp() == "" || req.GetPort() == "" {
-		return nil, errors.New("require ip and port")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 
 	if req.GetNodeType() != pb.NodeType_NodeType_JobNode && req.GetNodeType() != pb.NodeType_NodeType_DataNode {
-		return nil, errors.New("invalid node type")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown nodeType"}, nil
 	}
 
 	if nil == req.GetUsage() {
-		return nil, errors.New("require resource usage")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown resourceUsage"}, nil
 	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ReportTaskResourceUsage failed, query local identity failed, can not handle report usage, taskId: {%s}, partyId: {%s}",
 			req.GetTaskId(), req.GetPartyId())
-		return nil, fmt.Errorf("query local identity failed")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 	
 	if err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetIp(), req.GetPort(),
@@ -84,7 +82,7 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 			req.GetUsage().GetTotalProcessor(),
 			req.GetUsage().GetUsedProcessor())); nil != err {
 		log.WithError(err).Error("RPC-API:ReportTaskResourceUsage failed")
-		return nil, ErrReportTaskResourceExpense
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportTaskResourceExpense.ErrCode(), Msg: backend.ErrReportTaskResourceExpense.Error()}, nil
 	}
 
 	return &apicommonpb.SimpleResponse{

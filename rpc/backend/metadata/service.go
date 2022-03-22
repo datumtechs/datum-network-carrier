@@ -19,13 +19,13 @@ func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *pb.GetG
 	metadataList, err := svr.B.GetGlobalMetadataDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataDetailList failed")
-		return nil, ErrGetMetadataDetailList
+		return &pb.GetGlobalMetadataDetailListResponse{ Status: backend.ErrGetMetadataDetailList.ErrCode(), Msg: backend.ErrGetMetadataDetailList.Error()}, nil
 	}
 	log.Debugf("Query all org's metadata list, len: {%d}", len(metadataList))
 	return &pb.GetGlobalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
-		MetadataList: metadataList,
+		Metadatas: metadataList,
 	}, nil
 }
 
@@ -37,13 +37,13 @@ func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *pb.GetLo
 	metadataList, err := svr.B.GetLocalMetadataDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataDetailList failed")
-		return nil, ErrGetMetadataDetailList
+		return &pb.GetLocalMetadataDetailListResponse{ Status: backend.ErrGetMetadataDetailList.ErrCode(), Msg: backend.ErrGetMetadataDetailList.Error()}, nil
 	}
 	log.Debugf("Query current org's global metadata list, len: {%d}", len(metadataList))
 	return &pb.GetLocalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
-		MetadataList: metadataList,
+		Metadatas: metadataList,
 	}, nil
 }
 
@@ -52,29 +52,28 @@ func (svr *Server) GetLocalInternalMetadataDetailList(ctx context.Context, req *
 	metadataList, err := svr.B.GetLocalInternalMetadataDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalInternalMetadataDetailList failed")
-		return nil, ErrGetMetadataDetailList
+		return &pb.GetLocalMetadataDetailListResponse{ Status: backend.ErrGetMetadataDetailList.ErrCode(), Msg: backend.ErrGetMetadataDetailList.Error()}, nil
 	}
 	log.Debugf("Query current org's internal metadata list, len: {%d}", len(metadataList))
 	return &pb.GetLocalMetadataDetailListResponse{
 		Status:       0,
 		Msg:          backend.OK,
-		MetadataList: metadataList,
+		Metadatas: metadataList,
 	}, nil
 }
 
 func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataRequest) (*pb.PublishMetadataResponse, error) {
 	if req.GetInformation() == nil {
-		return nil, ErrReqInfoForPublishMetadata
+		return &pb.PublishMetadataResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "the metadata infomation is empty"}, nil
 	}
 	if req.GetInformation().GetMetadataSummary() == nil {
-		return nil, ErrReqMetaSummaryForPublishMetadata
+		return &pb.PublishMetadataResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "the metadata summary is empty"}, nil
 	}
-
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, query local identity failed, can not publish metadata")
-		return nil, fmt.Errorf("query local identity failed")
+		return &pb.PublishMetadataResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 
 	metadataMsg := types.NewMetadataMessageFromRequest(req)
@@ -82,8 +81,8 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	if err := svr.B.SendMsg(metadataMsg); nil != err {
 		log.WithError(err).Error("RPC-API:PublishMetadata failed")
 
-		errMsg := fmt.Sprintf("%s, metadataId: {%s}", ErrSendMetadataMsg.Msg, metadataMsg.GetMetadataId())
-		return nil, backend.NewRpcBizErr(ErrSendMetadataMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, metadataId: {%s}", backend.ErrPublishMetadataMsg.Error(), metadataMsg.GetMetadataId())
+		return &pb.PublishMetadataResponse{ Status: backend.ErrPublishMetadataMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:PublishMetadata succeed, return metadataId: {%s}", metadataMsg.GetMetadataId())
 	return &pb.PublishMetadataResponse{
@@ -96,13 +95,13 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetMetadataId(), "") {
-		return nil, backend.NewRpcBizErr(ErrSendMetadataRevokeMsg.Code, "require metadataId")
+		return &apicommonpb.SimpleResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
-		return nil, fmt.Errorf("query local identity failed")
+		return &apicommonpb.SimpleResponse { Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
@@ -110,8 +109,8 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 	if err := svr.B.SendMsg(metadataRevokeMsg); nil != err {
 		log.WithError(err).Error("RPC-API:RevokeMetadata failed")
 
-		errMsg := fmt.Sprintf("%s, metadataId: {%s}", ErrSendMetadataRevokeMsg.Msg, req.GetMetadataId())
-		return nil, backend.NewRpcBizErr(ErrSendMetadataRevokeMsg.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, metadataId: {%s}", backend.ErrRevokeMetadataMsg.Error(), req.GetMetadataId())
+		return &apicommonpb.SimpleResponse { Status: backend.ErrRevokeMetadataMsg.ErrCode(), Msg: errMsg }, nil
 	}
 	log.Debugf("RPC-API:RevokeMetadata succeed, metadataId: {%s}", req.GetMetadataId())
 	return &apicommonpb.SimpleResponse{
@@ -123,12 +122,12 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 func (svr *Server) GetMetadataUsedTaskIdList(ctx context.Context, req *pb.GetMetadataUsedTaskIdListRequest) (*pb.GetMetadataUsedTaskIdListResponse, error) {
 
 	if "" == req.GetMetadataId() {
-		return nil, ErrReqMetaIdForMetadataUsedTaskIdList
+		return &pb.GetMetadataUsedTaskIdListResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
 	taskIds, err := svr.B.GetMetadataUsedTaskIdList(req.GetIdentityId(), req.GetMetadataId())
 	if nil != err {
-		errMsg := fmt.Sprintf("%s, IdentityId:{%s}, MetadataId:{%s}", ErrReqListForMetadataUsedTaskIdList.Msg, req.GetIdentityId(), req.GetMetadataId())
-		return nil, backend.NewRpcBizErr(ErrReqListForMetadataUsedTaskIdList.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, IdentityId:{%s}, MetadataId:{%s}", backend.ErrQueryMetadataUsedTaskIdList.Error(), req.GetIdentityId(), req.GetMetadataId())
+		return &pb.GetMetadataUsedTaskIdListResponse { Status: backend.ErrQueryMetadataUsedTaskIdList.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:GetMetadataUsedTaskIdList succeed, taskIds len: {%d}", len(taskIds))
 	return &pb.GetMetadataUsedTaskIdListResponse{

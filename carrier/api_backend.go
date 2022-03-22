@@ -631,10 +631,10 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 }
 
 // GetMetadataDetailList returns a list of all metadata details in the network.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailList executing...")
 	var (
-		arr []*pb.GetGlobalMetadataDetailResponse
+		arr []*pb.GetGlobalMetadataDetail
 		err error
 	)
 
@@ -659,10 +659,10 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailList(lastUpdate, pageSize uin
 }
 
 // GetGlobalMetadataDetailListByIdentityId returns a list of all metadata details in the network by identityId.
-func (s *CarrierAPIBackend) GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalMetadataDetailListByIdentityId(identityId string, lastUpdate, pageSize uint64) ([]*pb.GetGlobalMetadataDetail, error) {
 	log.Debug("Invoke: GetGlobalMetadataDetailListByIdentityId executing...")
 	var (
-		arr []*pb.GetGlobalMetadataDetailResponse
+		arr []*pb.GetGlobalMetadataDetail
 		err error
 	)
 
@@ -686,11 +686,11 @@ func (s *CarrierAPIBackend) GetGlobalMetadataDetailListByIdentityId(identityId s
 	return arr, err
 }
 
-func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetLocalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetLocalMetadataDetail, error) {
 	log.Debug("Invoke: GetLocalMetadataDetailList executing...")
 
 	var (
-		arr []*pb.GetLocalMetadataDetailResponse
+		arr []*pb.GetLocalMetadataDetail
 		err error
 	)
 
@@ -720,11 +720,11 @@ func (s *CarrierAPIBackend) GetLocalMetadataDetailList(lastUpdate uint64, pageSi
 	return arr, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalInternalMetadataDetailList() ([]*pb.GetLocalMetadataDetail, error) {
 	log.Debug("Invoke: GetLocalInternalMetadataDetailList executing...")
 
 	var (
-		arr []*pb.GetLocalMetadataDetailResponse
+		arr []*pb.GetLocalMetadataDetail
 		err error
 	)
 
@@ -764,18 +764,18 @@ func (s *CarrierAPIBackend) GetMetadataUsedTaskIdList(identityId, metadataId str
 
 // power api
 
-func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummaryResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummary, error) {
 	log.Debug("Invoke: GetGlobalPowerSummaryList executing...")
 	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceSummaryList()
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Query all org's power summary list, len: {%d}", len(resourceList))
-	powerList := make([]*pb.GetGlobalPowerSummaryResponse, 0, resourceList.Len())
+	powerList := make([]*pb.GetGlobalPowerSummary, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
-		powerList = append(powerList, &pb.GetGlobalPowerSummaryResponse{
+		powerList = append(powerList, &pb.GetGlobalPowerSummary{
 			Owner: resource.GetOwner(),
-			Power: &libtypes.PowerUsageDetail{
+			Information: &libtypes.PowerUsageDetail{
 				TotalTaskCount:   0,
 				CurrentTaskCount: 0,
 				Tasks:            make([]*libtypes.PowerTask, 0),
@@ -795,14 +795,14 @@ func (s *CarrierAPIBackend) GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSum
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize uint64) ([]*pb.GetGlobalPowerDetail, error) {
 	log.Debug("Invoke: GetGlobalPowerDetailList executing...")
 	resourceList, err := s.carrier.carrierDB.QueryGlobalResourceDetailList(lastUpdate, pageSize)
 	if err != nil {
 		return nil, err
 	}
 	log.Debugf("Query all org's power detail list, len: {%d}", len(resourceList))
-	powerList := make([]*pb.GetGlobalPowerDetailResponse, 0, resourceList.Len())
+	powerList := make([]*pb.GetGlobalPowerDetail, 0, resourceList.Len())
 	for _, resource := range resourceList.To() {
 
 		jobNodeId, _ := s.carrier.carrierDB.QueryJobNodeIdByPowerId(resource.GetDataId())
@@ -815,10 +815,10 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 			currentTaskCount, _ = s.carrier.carrierDB.QueryJobNodeRunningTaskCount(jobNodeId)
 		}
 
-		powerList = append(powerList, &pb.GetGlobalPowerDetailResponse{
+		powerList = append(powerList, &pb.GetGlobalPowerDetail{
 			Owner:   resource.GetOwner(),
 			PowerId: resource.GetDataId(),
-			Power: &libtypes.PowerUsageDetail{
+			Information: &libtypes.PowerUsageDetail{
 				TotalTaskCount:   totalTaskCount,
 				CurrentTaskCount: currentTaskCount,
 				Tasks:            make([]*libtypes.PowerTask, 0),
@@ -841,7 +841,7 @@ func (s *CarrierAPIBackend) GetGlobalPowerDetailList(lastUpdate uint64, pageSize
 	return powerList, nil
 }
 
-func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetailResponse, error) {
+func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail, error) {
 	log.Debug("Invoke:GetLocalPowerDetailList executing...")
 	// query local resource list from db.
 	machineList, err := s.carrier.carrierDB.QueryLocalResourceList()
@@ -964,10 +964,10 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 
 	resourceList := machineList.To()
 	// handle  resource one by one
-	result := make([]*pb.GetLocalPowerDetailResponse, len(resourceList))
+	result := make([]*pb.GetLocalPowerDetail, len(resourceList))
 	for i, resource := range resourceList {
 
-		nodePowerDetail := &pb.GetLocalPowerDetailResponse{
+		nodePowerDetail := &pb.GetLocalPowerDetail{
 			JobNodeId: resource.GetJobNodeId(),
 			PowerId:   resource.GetDataId(),
 			Owner:     resource.GetOwner(),

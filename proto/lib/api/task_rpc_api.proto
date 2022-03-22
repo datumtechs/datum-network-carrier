@@ -55,7 +55,7 @@ message TaskEventShow {
 }
 
 // 查看本组织参与过的全部任务详情列表
-message GetTaskDetailResponse {
+message GetTaskDetail {
   TaskDetailShow                     information = 1;                  // 任务(展示)详情
 }
 
@@ -72,7 +72,7 @@ message GetTaskDetailListByTaskIdsRequest {
 message GetTaskDetailListResponse {
   int32                          status = 1;                 // 响应码
   string                         msg = 2;                    // 错误信息
-  repeated GetTaskDetailResponse task_list = 3;              // 任务详情列表
+  repeated GetTaskDetail         tasks = 3;                  // 任务详情列表
 }
 
 // 查看某个任务的全部事件列表 req
@@ -87,7 +87,7 @@ message GetTaskEventListByTaskIdsRequest {
 message GetTaskEventListResponse {
   int32                  status = 1;                      // 响应码
   string                 msg = 2;                         // 错误信息
-  repeated TaskEventShow task_event_list = 3;             // 任务事件列表
+  repeated TaskEventShow task_events = 3;                 // 任务事件列表
 }
 
 // 发布任务 req

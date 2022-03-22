@@ -13,15 +13,15 @@ import (
 func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFileSummaryRequest) (*apicommonpb.SimpleResponse, error) {
 
 	if "" == req.GetOriginId() {
-		return nil, ErrReqOriginIdForReportUpFileSummary
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
 	}
 
 	if "" == req.GetFilePath() {
-		return nil, ErrReqFilePathForReportUpFileSummary
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require filePath"}, nil
 	}
 
 	if "" == req.GetIp() || "" == req.GetPort() {
-		return nil, ErrReqIpOrPortForReportUpFileSummary
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 
 	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
@@ -29,9 +29,9 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call QueryRegisterNodeList() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 
-		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s", ErrGetRegisterNodeListForReportUpFileSummary.Msg,
+		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s", backend.ErrReportUpFileSummary.Error(),
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
-		return nil, backend.NewRpcBizErr(ErrGetRegisterNodeListForReportUpFileSummary.Code, errMsg)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportUpFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 	var resourceId string
 	for _, dataNode := range dataNodeList {
@@ -44,18 +44,18 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 		log.Errorf("RPC-API:ReportUpFileSummary failed, not found resourceId, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s, ", ErrFoundResourceIdForReportUpFileSummary.Msg,
+		errMsg := fmt.Sprintf("%s, not found resourceId, originId: %s, filePath: %s, ip: %s, port: %s, resourceId: %s", backend.ErrReportUpFileSummary.Error(),
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
-		return nil, backend.NewRpcBizErr(ErrFoundResourceIdForReportUpFileSummary.Code, errMsg)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportUpFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 	err = svr.B.StoreDataResourceFileUpload(types.NewDataResourceFileUpload(resourceId, req.GetOriginId(), "", req.GetFilePath()))
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ReportUpFileSummary failed, call StoreDataResourceFileUpload() failed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s", ErrStoreDataResourceFileUpload.Msg,
+		errMsg := fmt.Sprintf("%s, call StoreDataResourceFileUpload() failed, originId: %s, filePath: %s, ip: %s, port: %s, resourceId: %s", backend.ErrReportUpFileSummary.Error(),
 			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
-		return nil, backend.NewRpcBizErr(ErrStoreDataResourceFileUpload.Code, errMsg)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportUpFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	log.Debugf("RPC-API:ReportUpFileSummary succeed, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
@@ -70,19 +70,19 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.ReportTaskResultFileSummaryRequest) (*apicommonpb.SimpleResponse, error) {
 
 	if "" == req.GetTaskId() {
-		return nil, ErrReqTaskIdForReportTaskResultFileSummary
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
 	if "" == req.GetOriginId() {
-		return nil, ErrReqOriginIdForReportTaskResultFileSummary
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
 	}
 
 	if "" == req.GetFilePath() {
-		return nil, ErrReqFilePathForReportTaskResultFileSummary
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require filePath"}, nil
 	}
 
 	if "" == req.GetIp() || "" == req.GetPort() {
-		return nil, ErrReqIpOrPortForReportTaskResultFileSummary
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 
 	dataNodeList, err := svr.B.GetRegisterNodeList(pb.PrefixTypeDataNode)
@@ -90,9 +90,9 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call QueryRegisterNodeList() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
 
-		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s", ErrGetRegisterNodeListForReportTaskResultFileSummary.Msg,
-			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
-		return nil, backend.NewRpcBizErr(ErrGetRegisterNodeListForReportTaskResultFileSummary.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, call QueryRegisterNodeList() failed, originId: %s, filePath: %s, ip: %s, port: %s", backend.ErrReportTaskResultFileSummary.Error(),
+			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort())
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 	var resourceId string
 	for _, dataNode := range dataNodeList {
@@ -105,9 +105,9 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 		log.Errorf("RPC-API:ReportTaskResultFileSummary failed, not found resourceId, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", ErrFoundResourceIdForReportTaskResultFileSummary.Msg,
-			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
-		return nil, backend.NewRpcBizErr(ErrFoundResourceIdForReportTaskResultFileSummary.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, not found resourceId, originId: %s, filePath: %s, ip: %s, port: %s, resourceId: %s", backend.ErrReportTaskResultFileSummary.Error(),
+			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	// the empty fileHash for task result file
@@ -116,9 +116,9 @@ func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.Repo
 		log.WithError(err).Errorf("RPC-API:ReportTaskResultFileSummary failed, call StoreTaskResultFileSummary() failed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",
 			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
 
-		errMsg := fmt.Sprintf("%s, %s, %s, %s, %s, %s, %s", ErrStoreTaskResultFileSummary.Msg,
-			req.GetTaskId(), req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
-		return nil, backend.NewRpcBizErr(ErrStoreTaskResultFileSummary.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, call StoreTaskResultFileSummary() failed, originId: %s, filePath: %s, ip: %s, port: %s, resourceId: %s", backend.ErrReportTaskResultFileSummary.Error(),
+			req.GetOriginId(), req.GetFilePath(), req.GetIp(), req.GetPort(), resourceId)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrReportTaskResultFileSummary.ErrCode(), Msg: errMsg}, nil
 	}
 
 	log.Debugf("RPC-API:ReportTaskResultFileSummary succeed, req.TaskId: {%s}, req.GetOriginId: {%s}, req.GetFilePath: {%s}, req.Ip: {%s}, req.Port: {%s}, found dataNodeId: {%s}",

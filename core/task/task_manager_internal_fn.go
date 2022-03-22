@@ -921,7 +921,7 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 
 
 // make terminate rpc req
-func (m *Manager) makeTerminateTaskReq(task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
+func (m *Manager) makeTerminateTaskReq (task *types.NeedExecuteTask) (*fightercommon.TaskCancelReq, error) {
 	return &fightercommon.TaskCancelReq{
 		TaskId:  task.GetTaskId(),
 		PartyId: task.GetLocalTaskOrganization().GetPartyId(),

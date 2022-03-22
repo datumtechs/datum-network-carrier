@@ -16,14 +16,13 @@ func (svr *Server) GetGlobalPowerSummaryList(ctx context.Context, req *emptypb.E
 	powerList, err := svr.B.GetGlobalPowerSummaryList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalPowerSummaryList failed")
-		return nil, ErrGetTotalPowerList
+		return &pb.GetGlobalPowerSummaryListResponse { Status: backend.ErrQueryGlobalPowerList.ErrCode(), Msg: backend.ErrQueryGlobalPowerList.Error()}, nil
 	}
-	//log.Debugf("RPC-API:GetGlobalPowerSummaryList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerSummaryResponseArrString(powerList))
 	log.Debugf("RPC-API:GetGlobalPowerSummaryList succeed, powerList: {%d}", len(powerList))
 	return &pb.GetGlobalPowerSummaryListResponse{
 		Status:    0,
 		Msg:       backend.OK,
-		PowerList: powerList,
+		Powers: powerList,
 	}, nil
 }
 
@@ -35,14 +34,13 @@ func (svr *Server) GetGlobalPowerDetailList(ctx context.Context, req *pb.GetGlob
 	powerList, err := svr.B.GetGlobalPowerDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalPowerDetailList failed")
-		return nil, ErrGetTotalPowerList
+		return &pb.GetGlobalPowerDetailListResponse { Status: backend.ErrQueryGlobalPowerList.ErrCode(), Msg: backend.ErrQueryGlobalPowerList.Error()}, nil
 	}
-	//log.Debugf("RPC-API:GetGlobalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetGlobalPowerDetailResponseArrString(powerList))
 	log.Debugf("RPC-API:GetGlobalPowerDetailList succeed, powerList: {%d}", len(powerList))
 	return &pb.GetGlobalPowerDetailListResponse{
 		Status:    0,
 		Msg:       backend.OK,
-		PowerList: powerList,
+		Powers: powerList,
 	}, nil
 }
 
@@ -50,17 +48,16 @@ func (svr *Server) GetLocalPowerDetailList(ctx context.Context, req *emptypb.Emp
 	powerList, err := svr.B.GetLocalPowerDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalPowerDetailList failed")
-		return nil, ErrGetSinglePowerList
+		return &pb.GetLocalPowerDetailListResponse { Status: backend.ErrQueryLocalPowerList.ErrCode(), Msg: backend.ErrQueryLocalPowerList.Error()}, nil
 	}
-	//log.Debugf("RPC-API:GetLocalPowerDetailList succeed, powerList: {%d}, json: %s", len(powerList), utilGetLocalPowerDetailResponseArrString(powerList))
 	log.Debugf("RPC-API:GetLocalPowerDetailList succeed, powerList: {%d}", len(powerList))
 	return &pb.GetLocalPowerDetailListResponse{
 		Status:    0,
 		Msg:       backend.OK,
-		PowerList: powerList,
+		Powers: powerList,
 	}, nil
 }
-func utilGetGlobalPowerSummaryResponseArrString(resp []*pb.GetGlobalPowerSummaryResponse) string {
+func utilGetGlobalPowerSummaryResponseArrString(resp []*pb.GetGlobalPowerSummary) string {
 	arr := make([]string, len(resp))
 	for i, u := range resp {
 		arr[i] = u.String()
@@ -70,7 +67,7 @@ func utilGetGlobalPowerSummaryResponseArrString(resp []*pb.GetGlobalPowerSummary
 	}
 	return "[]"
 }
-func utilGetGlobalPowerDetailResponseArrString(resp []*pb.GetGlobalPowerDetailResponse) string {
+func utilGetGlobalPowerDetailResponseArrString(resp []*pb.GetGlobalPowerDetail) string {
 	arr := make([]string, len(resp))
 	for i, u := range resp {
 		arr[i] = u.String()
@@ -80,7 +77,7 @@ func utilGetGlobalPowerDetailResponseArrString(resp []*pb.GetGlobalPowerDetailRe
 	}
 	return "[]"
 }
-func utilGetLocalPowerDetailResponseArrString(resp []*pb.GetLocalPowerDetailResponse) string {
+func utilGetLocalPowerDetailResponseArrString(resp []*pb.GetLocalPowerDetail) string {
 	arr := make([]string, len(resp))
 	for i, u := range resp {
 		arr[i] = u.String()
@@ -92,30 +89,30 @@ func utilGetLocalPowerDetailResponseArrString(resp []*pb.GetLocalPowerDetailResp
 }
 
 func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
-	if req == nil {
-		return nil, ErrReqEmptyForPublishPower
+	if nil == req {
+		return &pb.PublishPowerResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
 	}
 
 	if "" == strings.Trim(req.GetJobNodeId(), "") {
 		log.Error("RPC-API:PublishPower failed, jobNodeId must be not empty")
-		return nil, ErrSendPowerMsg
+		return &pb.PublishPowerResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require jobNodeId"}, nil
 	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
-		return nil, fmt.Errorf("query local identity failed")
+		return &pb.PublishPowerResponse { Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 
 	jobNode, err := svr.B.GetRegisterNode(pb.PrefixTypeJobNode, req.GetJobNodeId())
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, query jobNode failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
-		return nil, fmt.Errorf("query jobNode failed")
+		return &pb.PublishPowerResponse { Status: backend.ErrPublishPowerMsg.ErrCode(), Msg: "query jobNode failed"}, nil
 	}
 	if jobNode.GetConnState() != pb.ConnState_ConnState_Connected {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNode was not connected, can not publish power, jonNodeId: {%s}， connState: {%s}",
 			req.GetJobNodeId(), jobNode.GetConnState().String())
-		return nil, fmt.Errorf("jobNode was not connected")
+		return &pb.PublishPowerResponse { Status: backend.ErrPublishPowerMsg.ErrCode(), Msg: "jobNode was not connected"}, nil
 	}
 
 	powerMsg := types.NewPowerMessageFromRequest(req)
@@ -123,8 +120,8 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 
 	if err = svr.B.SendMsg(powerMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, jobNodeId: {%s}, powerId: {%s}", req.GetJobNodeId(), powerId)
-		errMsg := fmt.Sprintf("%s, jobNodeId:{%s}, powerId:{%s}", ErrSendPowerMsgByNidAndPowerId.Msg, req.GetJobNodeId(), powerId)
-		return nil, backend.NewRpcBizErr(ErrSendPowerMsgByNidAndPowerId.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, jobNodeId:{%s}, powerId:{%s}", backend.ErrPublishPowerMsg.Error(), req.GetJobNodeId(), powerId)
+		return &pb.PublishPowerResponse { Status: backend.ErrPublishPowerMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:PublishPower succeed, jobNodeId: {%s}, powerId: {%s}", req.GetJobNodeId(), powerId)
 	return &pb.PublishPowerResponse{
@@ -136,16 +133,16 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 
 func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*apicommonpb.SimpleResponse, error) {
 	if req == nil {
-		return nil, ErrReqEmptyForRevokePower
+		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
 	}
 	if "" == strings.Trim(req.GetPowerId(), "") {
-		return nil, ErrReqEmptyPowerIdForRevokePower
+		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require powerId"}, nil
 	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
-		return nil, fmt.Errorf("query local identity failed")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
 	}
 
 	// First check whether there is a task being executed on jobNode
@@ -153,20 +150,20 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local running taskIdList failed, powerId: {%s}", req.GetPowerId())
 		errMsg := fmt.Sprintf("query local running taskIdList failed, powerId:{%s}", req.GetPowerId())
-		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	if len(taskIdList) > 0 {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, the old jobNode have been running {%d} task current, don't revoke it, powerId: {%s}", len(taskIdList), req.GetPowerId())
 		errMsg := fmt.Sprintf("the old jobNode have been running {%d} task current, don't revoke it, powerId: {%s}", len(taskIdList), req.GetPowerId())
-		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
 	}
 
 	powerRevokeMsg := types.NewPowerRevokeMessageFromRequest(req)
 
 	if err = svr.B.SendMsg(powerRevokeMsg); nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, powerId: {%s}", req.GetPowerId())
-		errMsg := fmt.Sprintf("%s, powerId:{%s}", ErrSendPowerRevokeMsgByPowerId.Msg, req.GetPowerId())
-		return nil, backend.NewRpcBizErr(ErrSendPowerRevokeMsgByPowerId.Code, errMsg)
+		errMsg := fmt.Sprintf("%s, powerId:{%s}", backend.ErrRevokePowerMsg.Error(), req.GetPowerId())
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokePowerMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:RevokePower succeed, powerId: {%s}", req.GetPowerId())
 	return &apicommonpb.SimpleResponse{

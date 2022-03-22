@@ -14,22 +14,22 @@ import "google/protobuf/empty.proto";
 //  ------------------------  power  ------------------------
 
 // 单个组织的总算力信息
-message GetGlobalPowerSummaryResponse {
+message GetGlobalPowerSummary {
   api.protobuf.Organization owner = 1;                  // 算力拥有者信息
-  types.PowerUsageDetail    power = 2;                  // 算力单个摘要
+  types.PowerUsageDetail    information = 2;            // 算力单个摘要
 }
 
 // 查看全网各个组织的总算力(累加)详情列表 resp
 message GetGlobalPowerSummaryListResponse {
   int32                                 status = 1;       // 响应码
   string                                msg = 2;          // 错误提示信息
-  repeated GetGlobalPowerSummaryResponse power_list = 3;  // 全网的各个组织的累加power详情列表
+  repeated GetGlobalPowerSummary        powers = 3;       // 全网的各个组织的累加power详情列表
 }
 
 // 单个组织的各个算力信息
-message GetGlobalPowerDetailResponse {
+message GetGlobalPowerDetail {
   api.protobuf.Organization owner = 1;                  // 算力拥有者信息
-  types.PowerUsageDetail    power = 2;                  // 算力总详细
+  types.PowerUsageDetail    information = 2;            // 算力总详细
   string                    power_id = 3;               // 算力id
 }
 
@@ -42,11 +42,11 @@ message GetGlobalPowerDetailListRequest {
 message GetGlobalPowerDetailListResponse {
   int32                                 status = 1;      // 响应码
   string                                msg = 2;         // 错误提示信息
-  repeated GetGlobalPowerDetailResponse power_list = 3;  // 全网的各个组织的各个power详情列表
+  repeated GetGlobalPowerDetail         powers = 3;      // 全网的各个组织的各个power详情列表
 }
 
 // 本组织的单个(宿主机)算力信息 (包含【未发布】和【已发布】的) resp
-message GetLocalPowerDetailResponse {
+message GetLocalPowerDetail {
   api.protobuf.Organization owner = 1;                  // 算力拥有者信息
   types.PowerUsageDetail    power = 2;                  // 算力单个摘要
   string                    job_node_id = 3;            // 计算服务id (单个宿主机的id)
@@ -62,7 +62,7 @@ message GetLocalPowerDetailListRequest {
 message GetLocalPowerDetailListResponse {
   int32                                   status = 1;         // 响应码
   string                                  msg = 2;            // 错误提示信息
-  repeated GetLocalPowerDetailResponse    power_list = 3;     // 单个节点的算力总摘要列表
+  repeated GetLocalPowerDetail            powers = 3;         // 单个节点的算力总摘要列表
 }
 
 
