@@ -101,7 +101,7 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
-		return &pb.PublishPowerResponse { Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &pb.PublishPowerResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	jobNode, err := svr.B.GetRegisterNode(pb.PrefixTypeJobNode, req.GetJobNodeId())
@@ -142,7 +142,7 @@ func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	// First check whether there is a task being executed on jobNode

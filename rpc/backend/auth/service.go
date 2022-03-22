@@ -112,7 +112,7 @@ func (svr *Server) GetNodeIdentity(ctx context.Context, req *emptypb.Empty) (*pb
 	identity, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetNodeIdentity failed")
-		return &pb.GetNodeIdentityResponse{Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &pb.GetNodeIdentityResponse{Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 	return &pb.GetNodeIdentityResponse{
 		Status: 0,
@@ -136,7 +136,7 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 	identityList, err := svr.B.GetIdentityList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:QueryIdentityList failed")
-		return &pb.GetIdentityListResponse{Status: backend.ErrGetIdentityList.ErrCode(), Msg: backend.ErrGetIdentityList.Error()}, nil
+		return &pb.GetIdentityListResponse{Status: backend.ErrQueryIdentityList.ErrCode(), Msg: backend.ErrQueryIdentityList.Error()}, nil
 	}
 	arr := make([]*apicommonpb.Organization, len(identityList))
 	for i, identity := range identityList {
@@ -178,7 +178,7 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query local identity failed")
-		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	now := timeutils.UnixMsecUint64()
@@ -300,7 +300,7 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local identity failed")
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
@@ -375,7 +375,7 @@ func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMeta
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:AuditMetadataAuthority failed, query local identity failed")
-		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	option, err := svr.B.AuditMetadataAuthority(types.NewMetadataAuthAudit(req.GetMetadataAuthId(), req.GetSuggestion(), req.GetAudit()))
@@ -404,7 +404,7 @@ func (svr *Server) GetLocalMetadataAuthorityList(ctx context.Context, req *pb.Ge
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataAuthorityList failed")
-		return &pb.GetMetadataAuthorityListResponse{ Status: backend.ErrGetAuthorityList.ErrCode(), Msg: backend.ErrGetAuthorityList.Error()}, nil
+		return &pb.GetMetadataAuthorityListResponse{ Status: backend.ErrQueryAuthorityList.ErrCode(), Msg: backend.ErrQueryAuthorityList.Error()}, nil
 	}
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {
@@ -438,7 +438,7 @@ func (svr *Server) GetGlobalMetadataAuthorityList(ctx context.Context, req *pb.G
 	authorityList, err := svr.B.GetGlobalMetadataAuthorityList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataAuthorityList failed")
-		return &pb.GetMetadataAuthorityListResponse{ Status: backend.ErrGetAuthorityList.ErrCode(), Msg: backend.ErrGetAuthorityList.Error()}, nil
+		return &pb.GetMetadataAuthorityListResponse{ Status: backend.ErrQueryAuthorityList.ErrCode(), Msg: backend.ErrQueryAuthorityList.Error()}, nil
 	}
 	arr := make([]*pb.GetMetadataAuthority, len(authorityList))
 	for i, auth := range authorityList {

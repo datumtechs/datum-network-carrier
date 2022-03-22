@@ -59,11 +59,11 @@ type IdentityMsg struct {
 func NewIdentityMessageFromRequest(req *pb.ApplyIdentityJoinRequest) *IdentityMsg {
 	return &IdentityMsg{
 		organization: &apicommonpb.Organization{
-			NodeName:   req.GetMember().GetNodeName(),
-			NodeId:     req.GetMember().GetNodeId(),
-			IdentityId: req.GetMember().GetIdentityId(),
-			ImageUrl:   req.GetMember().GetImageUrl(),
-			Details:    req.GetMember().GetDetails(),
+			NodeName:   req.GetInformation().GetNodeName(),
+			NodeId:     req.GetInformation().GetNodeId(),
+			IdentityId: req.GetInformation().GetIdentityId(),
+			ImageUrl:   req.GetInformation().GetImageUrl(),
+			Details:    req.GetInformation().GetDetails(),
 		},
 		CreateAt: timeutils.UnixMsecUint64(),
 	}

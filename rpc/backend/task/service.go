@@ -18,7 +18,7 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailL
 	tasks, err := svr.B.GetTaskDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
-		return &pb.GetTaskDetailListResponse { Status: backend.ErrGetNodeTaskList.ErrCode(), Msg: backend.ErrGetNodeTaskList.Error()}, nil
+		return &pb.GetTaskDetailListResponse { Status: backend.ErrQueryNodeTaskList.ErrCode(), Msg: backend.ErrQueryNodeTaskList.Error()}, nil
 	}
 
 	arr := make([]*pb.GetTaskDetail, len(tasks))
@@ -45,7 +45,7 @@ func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *pb.GetTa
 	tasks, err := svr.B.GetTaskDetailListByTaskIds(req.GetTaskIds())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailListByTaskIds failed")
-		return &pb.GetTaskDetailListResponse { Status: backend.ErrGetNodeTaskList.ErrCode(), Msg: backend.ErrGetNodeTaskList.Error()}, nil
+		return &pb.GetTaskDetailListResponse { Status: backend.ErrQueryNodeTaskList.ErrCode(), Msg: backend.ErrQueryNodeTaskList.Error()}, nil
 	}
 
 	arr := make([]*pb.GetTaskDetail, len(tasks))
@@ -72,8 +72,8 @@ func (svr *Server) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventLis
 	events, err := svr.B.GetTaskEventList(req.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryTaskEventList failed, taskId: {%s}", req.GetTaskId())
-		errMsg := fmt.Sprintf("%s, taskId: {%s}", backend.ErrGetNodeTaskEventList.Error(), req.GetTaskId())
-		return &pb.GetTaskEventListResponse { Status: backend.ErrGetNodeTaskEventList.ErrCode(), Msg: errMsg}, nil
+		errMsg := fmt.Sprintf("%s, taskId: {%s}", backend.ErrQueryNodeTaskEventList.Error(), req.GetTaskId())
+		return &pb.GetTaskEventListResponse { Status: backend.ErrQueryNodeTaskEventList.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:QueryTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.GetTaskId(), len(events))
 	return &pb.GetTaskEventListResponse{
@@ -92,8 +92,8 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 	events, err := svr.B.GetTaskEventListByTaskIds(req.GetTaskIds())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:QueryTaskEventListByTaskIds failed, taskId: {%v}", req.GetTaskIds())
-		errMsg := fmt.Sprintf("%s, taskId: {%s}",backend. ErrGetNodeTaskEventList.Error(), req.GetTaskIds())
-		return &pb.GetTaskEventListResponse { Status: backend.ErrGetNodeTaskEventList.ErrCode(), Msg: errMsg}, nil
+		errMsg := fmt.Sprintf("%s, taskId: {%s}",backend.ErrQueryNodeTaskEventList.Error(), req.GetTaskIds())
+		return &pb.GetTaskEventListResponse { Status: backend.ErrQueryNodeTaskEventList.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:QueryTaskEventListByTaskIds succeed, taskIds: %v,  eventList len: {%d}", req.GetTaskIds(), len(events))
 	return &pb.GetTaskEventListResponse{
@@ -151,7 +151,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed")
-		return &pb.PublishTaskDeclareResponse { Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &pb.PublishTaskDeclareResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	taskMsg := types.NewTaskMessageFromRequest(req)
@@ -219,7 +219,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	task, err := svr.B.GetLocalTask(req.GetTaskId())

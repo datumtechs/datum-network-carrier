@@ -19,7 +19,7 @@ func (svr *Server) GetGlobalMetadataDetailList(ctx context.Context, req *pb.GetG
 	metadataList, err := svr.B.GetGlobalMetadataDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetGlobalMetadataDetailList failed")
-		return &pb.GetGlobalMetadataDetailListResponse{ Status: backend.ErrGetMetadataDetailList.ErrCode(), Msg: backend.ErrGetMetadataDetailList.Error()}, nil
+		return &pb.GetGlobalMetadataDetailListResponse{ Status: backend.ErrQueryMetadataDetailList.ErrCode(), Msg: backend.ErrQueryMetadataDetailList.Error()}, nil
 	}
 	log.Debugf("Query all org's metadata list, len: {%d}", len(metadataList))
 	return &pb.GetGlobalMetadataDetailListResponse{
@@ -37,7 +37,7 @@ func (svr *Server) GetLocalMetadataDetailList(ctx context.Context, req *pb.GetLo
 	metadataList, err := svr.B.GetLocalMetadataDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalMetadataDetailList failed")
-		return &pb.GetLocalMetadataDetailListResponse{ Status: backend.ErrGetMetadataDetailList.ErrCode(), Msg: backend.ErrGetMetadataDetailList.Error()}, nil
+		return &pb.GetLocalMetadataDetailListResponse{ Status: backend.ErrQueryMetadataDetailList.ErrCode(), Msg: backend.ErrQueryMetadataDetailList.Error()}, nil
 	}
 	log.Debugf("Query current org's global metadata list, len: {%d}", len(metadataList))
 	return &pb.GetLocalMetadataDetailListResponse{
@@ -52,7 +52,7 @@ func (svr *Server) GetLocalInternalMetadataDetailList(ctx context.Context, req *
 	metadataList, err := svr.B.GetLocalInternalMetadataDetailList()
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetLocalInternalMetadataDetailList failed")
-		return &pb.GetLocalMetadataDetailListResponse{ Status: backend.ErrGetMetadataDetailList.ErrCode(), Msg: backend.ErrGetMetadataDetailList.Error()}, nil
+		return &pb.GetLocalMetadataDetailListResponse{ Status: backend.ErrQueryMetadataDetailList.ErrCode(), Msg: backend.ErrQueryMetadataDetailList.Error()}, nil
 	}
 	log.Debugf("Query current org's internal metadata list, len: {%d}", len(metadataList))
 	return &pb.GetLocalMetadataDetailListResponse{
@@ -73,7 +73,7 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, query local identity failed, can not publish metadata")
-		return &pb.PublishMetadataResponse{ Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &pb.PublishMetadataResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	metadataMsg := types.NewMetadataMessageFromRequest(req)
@@ -101,7 +101,7 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
-		return &apicommonpb.SimpleResponse { Status: backend.ErrGetNodeIdentity.ErrCode(), Msg: backend.ErrGetNodeIdentity.Error()}, nil
+		return &apicommonpb.SimpleResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)

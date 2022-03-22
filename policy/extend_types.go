@@ -116,8 +116,8 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 	return result
 }
 
-func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetadataDetailResponse {
-	response := &pb.GetGlobalMetadataDetailResponse{
+func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetadataDetail {
+	response := &pb.GetGlobalMetadataDetail{
 		Owner: input.GetData().GetOwner(),
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
@@ -139,8 +139,8 @@ func NewGlobalMetadataInfoFromMetadata(input *types.Metadata) *pb.GetGlobalMetad
 	return response
 }
 
-func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *pb.GetLocalMetadataDetailResponse {
-	response := &pb.GetLocalMetadataDetailResponse{
+func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *pb.GetLocalMetadataDetail {
+	response := &pb.GetLocalMetadataDetail{
 		Owner: input.GetData().GetOwner(),
 		Information: &libtypes.MetadataDetail{
 			MetadataSummary: &libtypes.MetadataSummary{
@@ -164,8 +164,8 @@ func NewLocalMetadataInfoFromMetadata(isInternal bool, input *types.Metadata) *p
 	return response
 }
 
-func NewGlobalMetadataInfoArrayFromMetadataArray(input types.MetadataArray) []*pb.GetGlobalMetadataDetailResponse {
-	result := make([]*pb.GetGlobalMetadataDetailResponse, 0, input.Len())
+func NewGlobalMetadataInfoArrayFromMetadataArray(input types.MetadataArray) []*pb.GetGlobalMetadataDetail {
+	result := make([]*pb.GetGlobalMetadataDetail, 0, input.Len())
 	for _, metadata := range input {
 		if metadata == nil {
 			continue
@@ -175,8 +175,8 @@ func NewGlobalMetadataInfoArrayFromMetadataArray(input types.MetadataArray) []*p
 	return result
 }
 
-func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr types.MetadataArray) []*pb.GetLocalMetadataDetailResponse {
-	result := make([]*pb.GetLocalMetadataDetailResponse, 0, internalArr.Len()+publishArr.Len())
+func NewLocalMetadataInfoArrayFromMetadataArray(internalArr, publishArr types.MetadataArray) []*pb.GetLocalMetadataDetail {
+	result := make([]*pb.GetLocalMetadataDetail, 0, internalArr.Len()+publishArr.Len())
 
 	for _, metadata := range internalArr {
 		if metadata == nil {
