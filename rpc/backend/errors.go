@@ -61,23 +61,22 @@ var (
 
 // yarn
 var (
-	ErrQueryRegisteredPeers           = &RpcBizErr{Code: 14001, Msg: "Query all registeredNodes failed"}
-	ErrSetSeedNode                    = &RpcBizErr{Code: 14002, Msg: "Set seed node failed"}
-	ErrDeleteSeedNode                 = &RpcBizErr{Code: 14003, Msg: "Delete seed node failed"}
-	ErrQuerySeedNodeList              = &RpcBizErr{Code: 14004, Msg: "Query seed nodes failed"}
-	ErrSetDataNode                    = &RpcBizErr{Code: 14005, Msg: "Set data node failed"}
-	ErrDeleteDataNode                 = &RpcBizErr{Code: 14006, Msg: "Delete data node failed"}
-	ErrQueryDataNodeList              = &RpcBizErr{Code: 14007, Msg: "Query data nodes failed"}
-	ErrSetJobNode                     = &RpcBizErr{Code: 14009, Msg: "Set job node failed"}
-	ErrDeleteJobNode                  = &RpcBizErr{Code: 14011, Msg: "Delete job node failed"}
-	ErrQueryJobNodeList               = &RpcBizErr{Code: 14010, Msg: "Query job nodes failed"}
-	ErrReportTaskEvent                = &RpcBizErr{Code: 14012, Msg: "Report taskEvent failed"}
-	ErrReportUpFileSummary            = &RpcBizErr{Code: 14013, Msg: "Report upFileSummary failed"}
-	ErrQueryTaskResultFileSummary     = &RpcBizErr{Code: 14016, Msg: "Query taskResultFileSummary failed"}
-	ErrQueryNodeInfo                  = &RpcBizErr{Code: 14017, Msg: "Query yarn node information failed"}
-	ErrReportTaskResultFileSummary    = &RpcBizErr{Code: 14024, Msg: "Report task result file summary failed"}
-	ErrQueryAvailableDataNode         = &RpcBizErr{Code: 14031, Msg: "Query availableDataNode failed"}
-	ErrQueryFilePosition              = &RpcBizErr{Code: 14032, Msg: "Query filePosition failed"}
-	ErrQueryTaskResultFileSummaryList = &RpcBizErr{Code: 14035, Msg: "Query taskResultFileSummary list failed"}
-	ErrReportTaskResourceExpense      = &RpcBizErr{Code: 14036, Msg: "FReport taskResourceExpense failed"}
+	ErrSetSeedNode                    = &RpcBizErr{Code: 14001, Msg: "Set seed node failed"}
+	ErrDeleteSeedNode                 = &RpcBizErr{Code: 14002, Msg: "Delete seed node failed"}
+	ErrQuerySeedNodeList              = &RpcBizErr{Code: 14003, Msg: "Query seed nodes failed"}
+	ErrSetDataNode                    = &RpcBizErr{Code: 14011, Msg: "Set data node failed"}
+	ErrDeleteDataNode                 = &RpcBizErr{Code: 14012, Msg: "Delete data node failed"}
+	ErrQueryDataNodeList              = &RpcBizErr{Code: 14013, Msg: "Query data nodes failed"}
+	ErrSetJobNode                     = &RpcBizErr{Code: 14021, Msg: "Set job node failed"}
+	ErrDeleteJobNode                  = &RpcBizErr{Code: 14022, Msg: "Delete job node failed"}
+	ErrQueryJobNodeList               = &RpcBizErr{Code: 14023, Msg: "Query job nodes failed"}
+	ErrReportTaskEvent                = &RpcBizErr{Code: 14031, Msg: "Report taskEvent failed"}
+	ErrReportUpFileSummary            = &RpcBizErr{Code: 14032, Msg: "Report upFileSummary failed"}
+	ErrQueryTaskResultFileSummary     = &RpcBizErr{Code: 14033, Msg: "Query taskResultFileSummary failed"}
+	ErrQueryNodeInfo                  = &RpcBizErr{Code: 14034, Msg: "Query yarn node information failed"}
+	ErrReportTaskResultFileSummary    = &RpcBizErr{Code: 14035, Msg: "Report task result file summary failed"}
+	ErrQueryAvailableDataNode         = &RpcBizErr{Code: 14036, Msg: "Query availableDataNode failed"}
+	ErrQueryFilePosition              = &RpcBizErr{Code: 14037, Msg: "Query filePosition failed"}
+	ErrQueryTaskResultFileSummaryList = &RpcBizErr{Code: 14038, Msg: "Query taskResultFileSummary list failed"}
+	ErrReportTaskResourceExpense      = &RpcBizErr{Code: 14039, Msg: "FReport taskResourceExpense failed"}
 )
