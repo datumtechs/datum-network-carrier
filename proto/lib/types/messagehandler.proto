@@ -26,7 +26,6 @@ message MetadataMsg {
   /**
   MetadataId      string                    `json:"metadataId"`
 	MetadataSummary *libtypes.MetadataSummary `json:"metadataSummary"`
-	ColumnMetas     []*types.MetadataColumn   `json:"columnMetas"`
 	CreateAt        uint64                    `json:"createAt"`
    */
   string                    metadata_id = 1;
@@ -55,8 +54,6 @@ message MetadataAuthorityMsg {
 message TaskMsg {
   /**
   Data          *Task
-	PowerPartyIds []string `json:"powerPartyIds"`
    */
   TaskPB                  data = 1;
-  repeated string         power_party_ids = 2;
 }

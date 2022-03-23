@@ -13,19 +13,21 @@ import (
 func TestRunningTask(t *testing.T) {
 	database := db.NewMemoryDatabase()
 	task := types.NewTask(&libtypes.TaskPB{
-		IdentityId:           "identity-task",
-		NodeId:               "nodeId-task",
-		NodeName:             "nodeName",
-		DataId:               "",
-		DataStatus:           pbcommon.DataStatus_DataStatus_Normal,
-		TaskId:               "taskID-01",
-		TaskName:             "taskName-01",
-		State:                pbcommon.TaskState_TaskState_Succeed,
-		Reason:               "",
-		EventCount:           0,
-		Desc:                 "",
-		CreateAt:             0,
-		EndAt:                0,
+		Sender: &pbcommon.TaskOrganization{
+			PartyId:    "p0",
+			IdentityId: "identity-task",
+			NodeId:     "nodeId-task",
+			NodeName:   "nodeName",
+		},
+		DataId:     "",
+		DataStatus: pbcommon.DataStatus_DataStatus_Valid,
+		TaskId:     "taskID-01",
+		TaskName:   "taskName-01",
+		State:      pbcommon.TaskState_TaskState_Succeed,
+		Reason:     "",
+		Desc:       "",
+		CreateAt:   0,
+		EndAt:      0,
 	})
 	WriteRunningTask(database, task)
 

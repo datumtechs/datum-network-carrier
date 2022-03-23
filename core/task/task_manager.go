@@ -514,7 +514,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	for _, badMsg := range nonParsedMsgArr {
 
 		m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-parsed task
-		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(),
 			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
 		if e := m.storeBadTask(badMsg.GetTaskMsg().GetTask(), events, "failed to parse taskMsg"); nil != e {
@@ -525,7 +525,7 @@ func (m *Manager) SendTaskMsgArr(msgArr types.TaskMsgArr) error {
 	nonValidatedMsgArr, validatedMsgArr := m.validator.validateTaskMsg(parsedMsgArr)
 	for _, badMsg := range nonValidatedMsgArr {
 		m.resourceMng.GetDB().RemoveTaskMsg(badMsg.GetTaskMsg().GetTaskId()) // remove from disk if task been non-validated task
-		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.Type,
+		events := []*libtypes.TaskEvent{m.eventEngine.GenerateEvent(ev.TaskFailed.GetType(),
 			badMsg.GetTaskMsg().GetTaskId(), badMsg.GetTaskMsg().GetSenderIdentityId(), badMsg.GetTaskMsg().GetSenderPartyId(), badMsg.GetErrStr())}
 
 		if e := m.storeBadTask(badMsg.GetTaskMsg().GetTask(), events, "failed to validate taskMsg"); nil != e {
