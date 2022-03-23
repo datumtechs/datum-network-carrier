@@ -339,15 +339,15 @@
       ],
       "default": "Audit_Pending"
     },
-    "protobufCommonStatus": {
+    "protobufDataStatus": {
       "type": "string",
       "enum": [
-        "CommonStatus_Unknown",
-        "CommonStatus_Normal",
-        "CommonStatus_NonNormal"
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
       ],
-      "default": "CommonStatus_Unknown",
-      "title": "Y : normal, N non-normal"
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
     },
     "protobufMetadataAuthorityState": {
       "type": "string",
@@ -387,8 +387,8 @@
           "title": "the identity for org"
         },
         "status": {
-          "$ref": "#/definitions/protobufCommonStatus",
-          "title": "the status for organization(deleted/normal)"
+          "$ref": "#/definitions/protobufDataStatus",
+          "title": "the status for organization(1 means valid, 2 means invalid)"
         },
         "update_at": {
           "type": "string",
@@ -433,7 +433,7 @@
     "rpcapiApplyIdentityJoinRequest": {
       "type": "object",
       "properties": {
-        "member": {
+        "information": {
           "$ref": "#/definitions/protobufOrganization"
         }
       },
@@ -517,7 +517,7 @@
         "msg": {
           "type": "string"
         },
-        "member_list": {
+        "identitys": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/protobufOrganization"
@@ -578,7 +578,7 @@
         "msg": {
           "type": "string"
         },
-        "list": {
+        "metadata_auths": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiGetMetadataAuthority"
@@ -597,7 +597,7 @@
         "msg": {
           "type": "string"
         },
-        "owner": {
+        "information": {
           "$ref": "#/definitions/protobufOrganization"
         }
       },

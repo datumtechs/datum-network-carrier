@@ -131,10 +131,17 @@ message TerminateTaskRequest {
 // ## 任务 相关接口
 service TaskService {
 
-  // 查看本组织参与过的全部任务详情列表
-  rpc GetTaskDetailList (GetTaskDetailListRequest) returns (GetTaskDetailListResponse) {
+  // 查看本组织参与过的全部任务详情列表 (支持分页)
+  rpc GetLocalTaskDetailList (GetTaskDetailListRequest) returns (GetTaskDetailListResponse) {
     option (google.api.http) = {
-      get: "/carrier/v1/task/list"
+      get: "/carrier/v1/task/localList"
+    };
+  }
+
+  // 查看全网全部任务详情列表 (支持分页)
+  rpc GetGlobalTaskDetailList (GetTaskDetailListRequest) returns (GetTaskDetailListResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/task/globalList"
     };
   }
 

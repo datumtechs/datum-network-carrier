@@ -225,15 +225,15 @@
         }
       }
     },
-    "protobufCommonStatus": {
+    "protobufDataStatus": {
       "type": "string",
       "enum": [
-        "CommonStatus_Unknown",
-        "CommonStatus_Normal",
-        "CommonStatus_NonNormal"
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
       ],
-      "default": "CommonStatus_Unknown",
-      "title": "Y : normal, N non-normal"
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
     },
     "protobufMetadataState": {
       "type": "string",
@@ -262,8 +262,8 @@
           "title": "the identity for org"
         },
         "status": {
-          "$ref": "#/definitions/protobufCommonStatus",
-          "title": "the status for organization(deleted/normal)"
+          "$ref": "#/definitions/protobufDataStatus",
+          "title": "the status for organization(1 means valid, 2 means invalid)"
         },
         "update_at": {
           "type": "string",
@@ -304,26 +304,7 @@
         }
       }
     },
-    "rpcapiGetGlobalMetadataDetailListResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "metadata_list": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiGetGlobalMetadataDetailResponse"
-          }
-        }
-      },
-      "title": "查看 全网元数据列表  resp"
-    },
-    "rpcapiGetGlobalMetadataDetailResponse": {
+    "rpcapiGetGlobalMetadataDetail": {
       "type": "object",
       "properties": {
         "owner": {
@@ -335,7 +316,7 @@
       },
       "title": "(全网) 单个元数据详情 resp"
     },
-    "rpcapiGetLocalMetadataDetailListResponse": {
+    "rpcapiGetGlobalMetadataDetailListResponse": {
       "type": "object",
       "properties": {
         "status": {
@@ -345,16 +326,16 @@
         "msg": {
           "type": "string"
         },
-        "metadata_list": {
+        "metadatas": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiGetLocalMetadataDetailResponse"
+            "$ref": "#/definitions/rpcapiGetGlobalMetadataDetail"
           }
         }
       },
-      "title": "查看 本组织元数据列表  resp"
+      "title": "查看 全网元数据列表  resp"
     },
-    "rpcapiGetLocalMetadataDetailResponse": {
+    "rpcapiGetLocalMetadataDetail": {
       "type": "object",
       "properties": {
         "owner": {
@@ -368,6 +349,25 @@
         }
       },
       "title": "(本组织) 单个元数据详情 resp"
+    },
+    "rpcapiGetLocalMetadataDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "metadatas": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetLocalMetadataDetail"
+          }
+        }
+      },
+      "title": "查看 本组织元数据列表  resp"
     },
     "rpcapiGetMetadataUsedTaskIdListRequest": {
       "type": "object",
@@ -455,40 +455,11 @@
         }
       }
     },
-    "typesMetadataColumn": {
-      "type": "object",
-      "properties": {
-        "c_index": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "c_name": {
-          "type": "string"
-        },
-        "c_type": {
-          "type": "string"
-        },
-        "c_size": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "c_comment": {
-          "type": "string"
-        }
-      },
-      "title": "元数据中的列描述"
-    },
     "typesMetadataDetail": {
       "type": "object",
       "properties": {
         "metadata_summary": {
           "$ref": "#/definitions/typesMetadataSummary"
-        },
-        "metadata_columns": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/typesMetadataColumn"
-          }
         },
         "total_task_count": {
           "type": "integer",
@@ -503,35 +474,21 @@
         "metadata_id": {
           "type": "string"
         },
-        "origin_id": {
+        "metadata_name": {
           "type": "string"
         },
-        "table_name": {
+        "metadata_type": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "file_hash": {
           "type": "string"
         },
         "desc": {
           "type": "string"
         },
-        "file_path": {
-          "type": "string"
-        },
-        "rows": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "columns": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "size": {
-          "type": "string",
-          "format": "uint64"
-        },
         "file_type": {
           "$ref": "#/definitions/protobufOriginFileType"
-        },
-        "has_title": {
-          "type": "boolean"
         },
         "industry": {
           "type": "string"
@@ -547,6 +504,13 @@
         "update_at": {
           "type": "string",
           "format": "uint64"
+        },
+        "nonce": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "metadata_option": {
+          "type": "string"
         }
       },
       "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"

@@ -1214,7 +1214,7 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.
 	}
 
 	// the task is executing.
-	localTaskArray, err := s.carrier.carrierDB.QueryLocalTaskList()
+	localTaskList, err := s.carrier.carrierDB.QueryLocalTaskList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
@@ -1224,7 +1224,7 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.
 		taskIdCache[taskId] = struct{}{}
 	}
 
-	for _, task := range localTaskArray {
+	for _, task := range localTaskList {
 		if _, ok := taskIdCache[task.GetTaskId()]; ok {
 			delete(taskIdCache, task.GetTaskId())
 		}
@@ -1252,8 +1252,10 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.
 	result := make([]*pb.TaskDetailShow, 0)
 
 next:
-	for _, task := range localTaskArray {
+	for _, task := range localTaskList {
 
+		// 1、If we are not task sender
+		//
 		// Filter out the local tasks belonging to the computing power provider that have not been started
 		// (Note: the tasks under consensus are also tasks that have not been started)
 		if identity.GetIdentityId() != task.GetTaskSender().GetIdentityId() {
@@ -1267,6 +1269,8 @@ next:
 			}
 		}
 
+		// 2、If we are task sender
+		//
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
 		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Pending {

@@ -739,35 +739,7 @@
       },
       "title": "查询种子节点列表 resp"
     },
-    "rpcapiGetTaskResultFileSummaryListResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "metadata_list": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiGetTaskResultFileSummaryResponse"
-          }
-        }
-      },
-      "title": "查询当前组织参与的所有任务结果文件摘要 resp"
-    },
-    "rpcapiGetTaskResultFileSummaryRequest": {
-      "type": "object",
-      "properties": {
-        "task_id": {
-          "type": "string"
-        }
-      },
-      "title": "查询 任务结果文件摘要 req"
-    },
-    "rpcapiGetTaskResultFileSummaryResponse": {
+    "rpcapiGetTaskResultFileSummary": {
       "type": "object",
       "properties": {
         "task_id": {
@@ -794,6 +766,49 @@
       },
       "title": "查询 任务结果文件摘要 resp"
     },
+    "rpcapiGetTaskResultFileSummaryListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "task_result_files": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetTaskResultFileSummary"
+          }
+        }
+      },
+      "title": "查询当前组织参与的所有任务结果文件摘要 resp"
+    },
+    "rpcapiGetTaskResultFileSummaryRequest": {
+      "type": "object",
+      "properties": {
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "title": "查询 任务结果文件摘要 req"
+    },
+    "rpcapiGetTaskResultFileSummaryResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiGetTaskResultFileSummary"
+        }
+      }
+    },
     "rpcapiNodeType": {
       "type": "string",
       "enum": [
@@ -805,6 +820,18 @@
       ],
       "default": "NodeType_Unknown",
       "title": "节点进程类型"
+    },
+    "rpcapiQueryAvailableDataNode": {
+      "type": "object",
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "port": {
+          "type": "string"
+        }
+      },
+      "title": "查询可用数据服务资源目标 ip:port 信息 resp"
     },
     "rpcapiQueryAvailableDataNodeRequest": {
       "type": "object",
@@ -822,25 +849,19 @@
     "rpcapiQueryAvailableDataNodeResponse": {
       "type": "object",
       "properties": {
-        "ip": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
           "type": "string"
         },
-        "port": {
-          "type": "string"
+        "information": {
+          "$ref": "#/definitions/rpcapiQueryAvailableDataNode"
         }
-      },
-      "title": "查询可用数据服务资源目标 ip:port 信息 resp"
+      }
     },
-    "rpcapiQueryFilePositionRequest": {
-      "type": "object",
-      "properties": {
-        "origin_id": {
-          "type": "string"
-        }
-      },
-      "title": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 req"
-    },
-    "rpcapiQueryFilePositionResponse": {
+    "rpcapiQueryFilePosition": {
       "type": "object",
       "properties": {
         "ip": {
@@ -854,6 +875,30 @@
         }
       },
       "title": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 resp"
+    },
+    "rpcapiQueryFilePositionRequest": {
+      "type": "object",
+      "properties": {
+        "origin_id": {
+          "type": "string"
+        }
+      },
+      "title": "查询需要下载的目标原始文件所在的 数据服务信息和文件的完整相对路径 req"
+    },
+    "rpcapiQueryFilePositionResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "information": {
+          "$ref": "#/definitions/rpcapiQueryFilePosition"
+        }
+      }
     },
     "rpcapiReportTaskEventRequest": {
       "type": "object",

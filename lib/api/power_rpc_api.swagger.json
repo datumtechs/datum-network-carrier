@@ -176,15 +176,15 @@
         }
       }
     },
-    "protobufCommonStatus": {
+    "protobufDataStatus": {
       "type": "string",
       "enum": [
-        "CommonStatus_Unknown",
-        "CommonStatus_Normal",
-        "CommonStatus_NonNormal"
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
       ],
-      "default": "CommonStatus_Unknown",
-      "title": "Y : normal, N non-normal"
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
     },
     "protobufOrganization": {
       "type": "object",
@@ -202,8 +202,8 @@
           "title": "the identity for org"
         },
         "status": {
-          "$ref": "#/definitions/protobufCommonStatus",
-          "title": "the status for organization(deleted/normal)"
+          "$ref": "#/definitions/protobufDataStatus",
+          "title": "the status for organization(1 means valid, 2 means invalid)"
         },
         "update_at": {
           "type": "string",
@@ -273,6 +273,21 @@
       },
       "title": "任务需要花费的资源声明"
     },
+    "rpcapiGetGlobalPowerDetail": {
+      "type": "object",
+      "properties": {
+        "owner": {
+          "$ref": "#/definitions/protobufOrganization"
+        },
+        "information": {
+          "$ref": "#/definitions/typesPowerUsageDetail"
+        },
+        "power_id": {
+          "type": "string"
+        }
+      },
+      "title": "单个组织的各个算力信息"
+    },
     "rpcapiGetGlobalPowerDetailListResponse": {
       "type": "object",
       "properties": {
@@ -283,29 +298,26 @@
         "msg": {
           "type": "string"
         },
-        "power_list": {
+        "powers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiGetGlobalPowerDetailResponse"
+            "$ref": "#/definitions/rpcapiGetGlobalPowerDetail"
           }
         }
       },
       "title": "全网各个组织的各个算力列表 resp"
     },
-    "rpcapiGetGlobalPowerDetailResponse": {
+    "rpcapiGetGlobalPowerSummary": {
       "type": "object",
       "properties": {
         "owner": {
           "$ref": "#/definitions/protobufOrganization"
         },
-        "power": {
+        "information": {
           "$ref": "#/definitions/typesPowerUsageDetail"
-        },
-        "power_id": {
-          "type": "string"
         }
       },
-      "title": "单个组织的各个算力信息"
+      "title": "单个组织的总算力信息"
     },
     "rpcapiGetGlobalPowerSummaryListResponse": {
       "type": "object",
@@ -317,47 +329,16 @@
         "msg": {
           "type": "string"
         },
-        "power_list": {
+        "powers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiGetGlobalPowerSummaryResponse"
+            "$ref": "#/definitions/rpcapiGetGlobalPowerSummary"
           }
         }
       },
       "title": "查看全网各个组织的总算力(累加)详情列表 resp"
     },
-    "rpcapiGetGlobalPowerSummaryResponse": {
-      "type": "object",
-      "properties": {
-        "owner": {
-          "$ref": "#/definitions/protobufOrganization"
-        },
-        "power": {
-          "$ref": "#/definitions/typesPowerUsageDetail"
-        }
-      },
-      "title": "单个组织的总算力信息"
-    },
-    "rpcapiGetLocalPowerDetailListResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "msg": {
-          "type": "string"
-        },
-        "power_list": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/rpcapiGetLocalPowerDetailResponse"
-          }
-        }
-      },
-      "title": "本组织的多个(宿主机)算力信息 (包含【未发布】和【已发布】的)"
-    },
-    "rpcapiGetLocalPowerDetailResponse": {
+    "rpcapiGetLocalPowerDetail": {
       "type": "object",
       "properties": {
         "owner": {
@@ -374,6 +355,25 @@
         }
       },
       "title": "本组织的单个(宿主机)算力信息 (包含【未发布】和【已发布】的) resp"
+    },
+    "rpcapiGetLocalPowerDetailListResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "msg": {
+          "type": "string"
+        },
+        "powers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/rpcapiGetLocalPowerDetail"
+          }
+        }
+      },
+      "title": "本组织的多个(宿主机)算力信息 (包含【未发布】和【已发布】的)"
     },
     "rpcapiPublishPowerRequest": {
       "type": "object",

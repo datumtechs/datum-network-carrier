@@ -77,10 +77,10 @@
         ]
       }
     },
-    "/carrier/v1/task/list": {
+    "/carrier/v1/task/globalList": {
       "get": {
-        "summary": "查看本组织参与过的全部任务详情列表",
-        "operationId": "TaskService_GetTaskDetailList",
+        "summary": "查看全网全部任务详情列表 (支持分页)",
+        "operationId": "TaskService_GetGlobalTaskDetailList",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -144,6 +144,45 @@
               "type": "string"
             },
             "collectionFormat": "multi"
+          }
+        ],
+        "tags": [
+          "TaskService"
+        ]
+      }
+    },
+    "/carrier/v1/task/localList": {
+      "get": {
+        "summary": "查看本组织参与过的全部任务详情列表 (支持分页)",
+        "operationId": "TaskService_GetLocalTaskDetailList",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/rpcapiGetTaskDetailListResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "last_updated",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "uint64"
           }
         ],
         "tags": [
@@ -231,15 +270,15 @@
         }
       }
     },
-    "protobufCommonStatus": {
+    "protobufDataStatus": {
       "type": "string",
       "enum": [
-        "CommonStatus_Unknown",
-        "CommonStatus_Normal",
-        "CommonStatus_NonNormal"
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
       ],
-      "default": "CommonStatus_Unknown",
-      "title": "Y : normal, N non-normal"
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
     },
     "protobufOrganization": {
       "type": "object",
@@ -257,8 +296,8 @@
           "title": "the identity for org"
         },
         "status": {
-          "$ref": "#/definitions/protobufCommonStatus",
-          "title": "the status for organization(deleted/normal)"
+          "$ref": "#/definitions/protobufDataStatus",
+          "title": "the status for organization(1 means valid, 2 means invalid)"
         },
         "update_at": {
           "type": "string",
@@ -359,6 +398,15 @@
       ],
       "default": "User_Unknown"
     },
+    "rpcapiGetTaskDetail": {
+      "type": "object",
+      "properties": {
+        "information": {
+          "$ref": "#/definitions/rpcapiTaskDetailShow"
+        }
+      },
+      "title": "查看本组织参与过的全部任务详情列表"
+    },
     "rpcapiGetTaskDetailListResponse": {
       "type": "object",
       "properties": {
@@ -369,23 +417,14 @@
         "msg": {
           "type": "string"
         },
-        "task_list": {
+        "tasks": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiGetTaskDetailResponse"
+            "$ref": "#/definitions/rpcapiGetTaskDetail"
           }
         }
       },
       "title": "查看本组织参与过的全部任务详情列表 resp"
-    },
-    "rpcapiGetTaskDetailResponse": {
-      "type": "object",
-      "properties": {
-        "information": {
-          "$ref": "#/definitions/rpcapiTaskDetailShow"
-        }
-      },
-      "title": "查看本组织参与过的全部任务详情列表"
     },
     "rpcapiGetTaskEventListByTaskIdsRequest": {
       "type": "object",
@@ -418,7 +457,7 @@
         "msg": {
           "type": "string"
         },
-        "task_event_list": {
+        "task_events": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/rpcapiTaskEventShow"
@@ -448,13 +487,7 @@
         "data_suppliers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/rpcapiTaskDataSupplierDeclare"
-          }
-        },
-        "power_party_ids": {
-          "type": "array",
-          "items": {
-            "type": "string"
+            "$ref": "#/definitions/protobufTaskOrganization"
           }
         },
         "receivers": {
@@ -463,13 +496,34 @@
             "$ref": "#/definitions/protobufTaskOrganization"
           }
         },
+        "data_policy_type": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "data_policy_option": {
+          "type": "string"
+        },
+        "power_policy_type": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "power_policy_option": {
+          "type": "string"
+        },
+        "data_flow_policy_type": {
+          "type": "integer",
+          "format": "int64"
+        },
+        "data_flow_policy_option": {
+          "type": "string"
+        },
         "operation_cost": {
           "$ref": "#/definitions/protobufTaskResourceCostDeclare"
         },
-        "calculate_contract_code": {
+        "algorithm_code": {
           "type": "string"
         },
-        "data_split_contract_code": {
+        "meta_algorithm_id": {
           "type": "string"
         },
         "contract_extra_params": {
@@ -500,18 +554,6 @@
         }
       },
       "title": "发布任务 resp"
-    },
-    "rpcapiTaskDataSupplierDeclare": {
-      "type": "object",
-      "properties": {
-        "organization": {
-          "$ref": "#/definitions/protobufTaskOrganization"
-        },
-        "metadata_info": {
-          "$ref": "#/definitions/rpcapiTaskMetadataDeclare"
-        }
-      },
-      "title": "任务数据供应者信息 (任务详情定义用)"
     },
     "rpcapiTaskDataSupplierShow": {
       "type": "object",
@@ -619,25 +661,6 @@
         }
       },
       "title": "定义：任务事件（仅用于web页面交互使用）"
-    },
-    "rpcapiTaskMetadataDeclare": {
-      "type": "object",
-      "properties": {
-        "metadata_id": {
-          "type": "string"
-        },
-        "key_column": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "selected_columns": {
-          "type": "array",
-          "items": {
-            "type": "integer",
-            "format": "int64"
-          }
-        }
-      }
     },
     "rpcapiTaskPowerSupplierShow": {
       "type": "object",

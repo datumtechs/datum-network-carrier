@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailListRequest) (*pb.GetTaskDetailListResponse, error) {
+func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *pb.GetTaskDetailListRequest) (*pb.GetTaskDetailListResponse, error) {
 	pageSize := req.GetPageSize()
 	if pageSize == 0 {
 		pageSize = backend.DefaultPageSize
@@ -34,6 +34,11 @@ func (svr *Server) GetTaskDetailList(ctx context.Context, req *pb.GetTaskDetailL
 		Msg:      backend.OK,
 		Tasks: arr,
 	}, nil
+}
+
+func (svr *Server) GetGlobalTaskDetailList(ctx context.Context, req *pb.GetTaskDetailListRequest) (*pb.GetTaskDetailListResponse, error) {
+
+	return nil, nil
 }
 
 func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *pb.GetTaskDetailListByTaskIdsRequest) (*pb.GetTaskDetailListResponse, error) {
