@@ -89,6 +89,13 @@ func utilGetLocalPowerDetailResponseArrString(resp []*pb.GetLocalPowerDetail) st
 }
 
 func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest) (*pb.PublishPowerResponse, error) {
+
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
+		return &pb.PublishPowerResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
 	if nil == req {
 		return &pb.PublishPowerResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
 	}
@@ -96,12 +103,6 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 	if "" == strings.Trim(req.GetJobNodeId(), "") {
 		log.Error("RPC-API:PublishPower failed, jobNodeId must be not empty")
 		return &pb.PublishPowerResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require jobNodeId"}, nil
-	}
-
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishPower failed, query local identity failed, can not publish power, jonNodeId: {%s}", req.GetJobNodeId())
-		return &pb.PublishPowerResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	jobNode, err := svr.B.GetRegisterNode(pb.PrefixTypeJobNode, req.GetJobNodeId())
@@ -132,17 +133,18 @@ func (svr *Server) PublishPower(ctx context.Context, req *pb.PublishPowerRequest
 }
 
 func (svr *Server) RevokePower(ctx context.Context, req *pb.RevokePowerRequest) (*apicommonpb.SimpleResponse, error) {
-	if req == nil {
-		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
-	}
-	if "" == strings.Trim(req.GetPowerId(), "") {
-		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require powerId"}, nil
-	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokePower failed, query local identity failed, can not revoke power")
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
+	if nil == req {
+		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: backend.ErrRequireParams.Error()}, nil
+	}
+	if "" == strings.Trim(req.GetPowerId(), "") {
+		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require powerId"}, nil
 	}
 
 	// First check whether there is a task being executed on jobNode

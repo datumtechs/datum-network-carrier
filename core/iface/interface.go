@@ -135,6 +135,7 @@ type TaskCarrierDB interface {
 	RemoveTaskEventListByPartyId(taskId, partyId string) error
 	// about task on datacenter
 	InsertTask(task *types.Task) error
+	QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskListByTaskIds(taskIds []string) (types.TaskDataArray, error)
 	QueryTaskEventListByTaskId(taskId string) ([]*libtypes.TaskEvent, error)

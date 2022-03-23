@@ -5,6 +5,7 @@ import (
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
 	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -15,10 +16,10 @@ func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *pb.GetTaskDe
 	if pageSize == 0 {
 		pageSize = backend.DefaultPageSize
 	}
-	tasks, err := svr.B.GetTaskDetailList(req.GetLastUpdated(), pageSize)
+	tasks, err := svr.B.GetLocalTaskDetailList(req.GetLastUpdated(), pageSize)
 	if nil != err {
-		log.WithError(err).Error("RPC-API:GetTaskDetailList failed")
-		return &pb.GetTaskDetailListResponse { Status: backend.ErrQueryNodeTaskList.ErrCode(), Msg: backend.ErrQueryNodeTaskList.Error()}, nil
+		log.WithError(err).Error("RPC-API:GetLocalTaskDetailList failed")
+		return &pb.GetTaskDetailListResponse { Status: backend.ErrQueryLocalTaskList.ErrCode(), Msg: backend.ErrQueryLocalTaskList.Error()}, nil
 	}
 
 	arr := make([]*pb.GetTaskDetail, len(tasks))
@@ -28,7 +29,7 @@ func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *pb.GetTaskDe
 		}
 		arr[i] = t
 	}
-	log.Debugf("RPC-API:GetTaskDetailList succeed, taskList len: {%d}", len(arr))
+	log.Debugf("RPC-API:GetLocalTaskDetailList succeed, taskList len: {%d}", len(arr))
 	return &pb.GetTaskDetailListResponse{
 		Status:   0,
 		Msg:      backend.OK,
@@ -37,8 +38,29 @@ func (svr *Server) GetLocalTaskDetailList(ctx context.Context, req *pb.GetTaskDe
 }
 
 func (svr *Server) GetGlobalTaskDetailList(ctx context.Context, req *pb.GetTaskDetailListRequest) (*pb.GetTaskDetailListResponse, error) {
+	pageSize := req.GetPageSize()
+	if pageSize == 0 {
+		pageSize = backend.DefaultPageSize
+	}
+	tasks, err := svr.B.GetGlobalTaskDetailList(req.GetLastUpdated(), pageSize)
+	if nil != err {
+		log.WithError(err).Error("RPC-API:GetGlobalTaskDetailList failed")
+		return &pb.GetTaskDetailListResponse { Status: backend.ErrQueryGlobalTaskList.ErrCode(), Msg: backend.ErrQueryGlobalTaskList.Error()}, nil
+	}
 
-	return nil, nil
+	arr := make([]*pb.GetTaskDetail, len(tasks))
+	for i, task := range tasks {
+		t := &pb.GetTaskDetail{
+			Information: task,
+		}
+		arr[i] = t
+	}
+	log.Debugf("RPC-API:GetGlobalTaskDetailList succeed, taskList len: {%d}", len(arr))
+	return &pb.GetTaskDetailListResponse{
+		Status:   0,
+		Msg:      backend.OK,
+		Tasks: arr,
+	}, nil
 }
 
 func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *pb.GetTaskDetailListByTaskIdsRequest) (*pb.GetTaskDetailListResponse, error) {
@@ -50,7 +72,7 @@ func (svr *Server) GetTaskDetailListByTaskIds(ctx context.Context, req *pb.GetTa
 	tasks, err := svr.B.GetTaskDetailListByTaskIds(req.GetTaskIds())
 	if nil != err {
 		log.WithError(err).Error("RPC-API:GetTaskDetailListByTaskIds failed")
-		return &pb.GetTaskDetailListResponse { Status: backend.ErrQueryNodeTaskList.ErrCode(), Msg: backend.ErrQueryNodeTaskList.Error()}, nil
+		return &pb.GetTaskDetailListResponse { Status: backend.ErrQueryTaskListByIds.ErrCode(), Msg: backend.ErrQueryTaskListByIds.Error()}, nil
 	}
 
 	arr := make([]*pb.GetTaskDetail, len(tasks))
@@ -76,11 +98,11 @@ func (svr *Server) GetTaskEventList(ctx context.Context, req *pb.GetTaskEventLis
 
 	events, err := svr.B.GetTaskEventList(req.GetTaskId())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryTaskEventList failed, taskId: {%s}", req.GetTaskId())
-		errMsg := fmt.Sprintf("%s, taskId: {%s}", backend.ErrQueryNodeTaskEventList.Error(), req.GetTaskId())
-		return &pb.GetTaskEventListResponse { Status: backend.ErrQueryNodeTaskEventList.ErrCode(), Msg: errMsg}, nil
+		log.WithError(err).Errorf("RPC-API:GetTaskEventList failed, taskId: {%s}", req.GetTaskId())
+		errMsg := fmt.Sprintf("%s, taskId: {%s}", backend.ErrQueryTaskEventList.Error(), req.GetTaskId())
+		return &pb.GetTaskEventListResponse { Status: backend.ErrQueryTaskEventList.ErrCode(), Msg: errMsg}, nil
 	}
-	log.Debugf("RPC-API:QueryTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.GetTaskId(), len(events))
+	log.Debugf("RPC-API:GetTaskEventList succeed, taskId: {%s},  eventList len: {%d}", req.GetTaskId(), len(events))
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
@@ -96,11 +118,11 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 
 	events, err := svr.B.GetTaskEventListByTaskIds(req.GetTaskIds())
 	if nil != err {
-		log.WithError(err).Errorf("RPC-API:QueryTaskEventListByTaskIds failed, taskId: {%v}", req.GetTaskIds())
-		errMsg := fmt.Sprintf("%s, taskId: {%s}",backend.ErrQueryNodeTaskEventList.Error(), req.GetTaskIds())
-		return &pb.GetTaskEventListResponse { Status: backend.ErrQueryNodeTaskEventList.ErrCode(), Msg: errMsg}, nil
+		log.WithError(err).Errorf("RPC-API:GetTaskEventListByTaskIds failed, taskId: {%v}", req.GetTaskIds())
+		errMsg := fmt.Sprintf("%s, taskId: {%s}",backend.ErrQueryTaskEventList.Error(), req.GetTaskIds())
+		return &pb.GetTaskEventListResponse { Status: backend.ErrQueryTaskEventList.ErrCode(), Msg: errMsg}, nil
 	}
-	log.Debugf("RPC-API:QueryTaskEventListByTaskIds succeed, taskIds: %v,  eventList len: {%d}", req.GetTaskIds(), len(events))
+	log.Debugf("RPC-API:GetTaskEventListByTaskIds succeed, taskIds: %v,  eventList len: {%d}", req.GetTaskIds(), len(events))
 	return &pb.GetTaskEventListResponse{
 		Status:        0,
 		Msg:           backend.OK,
@@ -110,54 +132,98 @@ func (svr *Server) GetTaskEventListByTaskIds(ctx context.Context, req *pb.GetTas
 
 func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDeclareRequest) (*pb.PublishTaskDeclareResponse, error) {
 
+	identity, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed")
+		return &pb.PublishTaskDeclareResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
+	if "" == strings.Trim(req.GetTaskName(), "") {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check taskName failed, taskName is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require taskName"}, nil
+	}
 	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check userType failed, wrong userType: {%s}", req.GetUserType().String())
 		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
 	}
-	if "" == req.GetUser() {
+	if "" == strings.Trim(req.GetUser(), "") {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check user failed, user is empty")
 		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require user"}, nil
 	}
-	if len(req.GetSign()) == 0 {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check sign failed, sign is empty")
-		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
+	if nil == req.GetSender() {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check taskSender failed, taskSender is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require taskSender"}, nil
 	}
-	if req.GetOperationCost() == nil {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check OperationCost failed, OperationCost is empty")
-		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require operationCost"}, nil
+	if req.GetSender().GetIdentityId() != identity.GetIdentityId() {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check taskSender failed, the taskSender is not current identity")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "invalid taskSender"}, nil
 	}
-	if len(req.GetReceivers()) == 0 {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check receivers failed, receivers is empty")
-		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require receivers"}, nil
+	if nil == req.GetAlgoSupplier() {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check algoSupplier failed, algoSupplier is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require algoSupplier"}, nil
 	}
 	if len(req.GetDataSuppliers()) == 0 {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check dataSuppliers failed, dataSuppliers is empty")
 		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataSuppliers"}, nil
 	}
-	if "" == req.GetAlgorithmCode() && "" == req.GetMetaAlgorithmId() {
-		log.Errorf("RPC-API:PublishTaskDeclare failed, check AlgorithmCode AND MetaAlgorithmId failed, AlgorithmCode AND MetaAlgorithmId is empty")
-		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require algorithmCode OR metaAlgorithmId"}, nil
+	if len(req.GetReceivers()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check receivers failed, receivers is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require receivers"}, nil
 	}
 	if 0 == req.GetDataPolicyType() {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyType failed, DataPolicyType is zero value")
 		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown dataPolicyType"}, nil
 	}
-	if "" == req.GetDataPolicyOption() {
+	if "" == strings.Trim(req.GetDataPolicyOption(), "") {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataPolicyOption failed, DataPolicyOption is empty")
 		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataPolicyOption"}, nil
 	}
 	if 0 == req.GetPowerPolicyType() {
-
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyType failed, PowerPolicyType is zero value")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown powerPolicyType"}, nil
 	}
-	if "" == req.GetPowerPolicyOption() {
-
+	if "" == strings.Trim(req.GetPowerPolicyOption(), "") {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check PowerPolicyOption failed, PowerPolicyOption is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require powerPolicyOption"}, nil
 	}
-
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:PublishTaskDeclare failed, query local identity failed")
-		return &pb.PublishTaskDeclareResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	if 0 == req.GetDataFlowPolicyType() {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyType failed, DataFlowPolicyType is zero value")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown dataFlowPolicyType"}, nil
 	}
+	// Maybe the dataFlowPolicyOption is empty,
+	// Because dataFlowPolicyType can already represent the way the data flows.
+	//
+	//if "" == strings.Trim(req.GetDataFlowPolicyOption(), "") {
+	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check DataFlowPolicyOption failed, DataFlowPolicyOption is empty")
+	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require dataFlowPolicyOption"}, nil
+	//}
+	if req.GetOperationCost() == nil {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check OperationCost failed, OperationCost is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require operationCost"}, nil
+	}
+	if "" == strings.Trim(req.GetAlgorithmCode(), "") && "" == strings.Trim(req.GetMetaAlgorithmId(), "") {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check AlgorithmCode AND MetaAlgorithmId failed, AlgorithmCode AND MetaAlgorithmId is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require algorithmCode OR metaAlgorithmId"}, nil
+	}
+	// Maybe the contractExtraParams is empty,
+	// Because contractExtraParams is not necessary.
+	// Whether contractExtraParams has a value depends on the specific matching algorithmCode requirements.
+	//
+	//if "" == strings.Trim(req.GetContractExtraParams(), "") {
+	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check ContractExtraParams failed, ContractExtraParams is empty")
+	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require contractExtraParams"}, nil
+	//}
+	if len(req.GetSign()) == 0 {
+		log.Errorf("RPC-API:PublishTaskDeclare failed, check sign failed, sign is empty")
+		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
+	}
+	// Maybe the desc is empty,
+	// Because desc is not necessary.
+	//
+	//if "" == strings.Trim(req.GetDesc(), "") {
+	//	log.Errorf("RPC-API:PublishTaskDeclare failed, check Desc failed, Desc is empty")
+	//	return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require desc"}, nil
+	//}
 
 	taskMsg := types.NewTaskMessageFromRequest(req)
 
@@ -181,6 +247,21 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	}
 
 	// check partyId of powerSuppliers
+	powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyType(), req.GetPowerPolicyOption())
+	if nil != err {
+		log.WithError(err).Errorf("not fetch partyIds from powerPolicy")
+		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from powerPolicy" }, nil
+	}
+	for _, partyId := range powerPartyIds {
+		if _, ok := checkPartyIdCache[partyId]; ok {
+			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of powerSuppliers failed, this partyId has alreay exist, partyId: {%s}",
+				partyId)
+			return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: fmt.Sprintf("The partyId of the task participants cannot be repeated on powerSuppliers, partyId: {%s}", partyId)}, nil
+		}
+		checkPartyIdCache[partyId] = struct{}{}
+	}
+
+	// check partyId of receivers
 	for _, v := range req.GetReceivers() {
 		if _, ok := checkPartyIdCache[v.GetPartyId()]; ok {
 			log.Errorf("RPC-API:PublishTaskDeclare failed, check partyId of receiver failed, this partyId has alreay exist, partyId: {%s}",
@@ -208,6 +289,13 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 }
 
 func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskRequest) (*apicommonpb.SimpleResponse, error) {
+
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
 	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
 		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
 	}
@@ -219,12 +307,6 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 	}
 	if len(req.GetSign()) == 0 {
 		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
-	}
-
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	task, err := svr.B.GetLocalTask(req.GetTaskId())

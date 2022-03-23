@@ -47,4 +47,3 @@ func FetchPowerPartyIds(policyType uint32, policyOption string) ([]string, error
 	}
 	return nil, types.NotFoundPowerPolicy
 }
-

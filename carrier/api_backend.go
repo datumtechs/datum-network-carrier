@@ -1141,26 +1141,21 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 	return detailShow, nil
 }
 
-func (s *CarrierAPIBackend) GetTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error) {
+func (s *CarrierAPIBackend) GetLocalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
 	if nil != err {
 		return nil, fmt.Errorf("query local identity failed, %s", err)
 	}
-
 	// the task is executing.
 	localTaskArray, err := s.carrier.carrierDB.QueryLocalTaskList()
 
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
-	localIdentityId, err := s.carrier.carrierDB.QueryIdentityId()
-	if err != nil {
-		return nil, fmt.Errorf("query local identityId failed, %s", err)
-	}
 
 	// the task has been executed.
-	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByIdentityId(localIdentityId, lastUpdate, pageSize)
+	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByIdentityId(identity.GetIdentityId(), lastUpdate, pageSize)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
 	}
@@ -1204,8 +1199,29 @@ next:
 	}
 	return result, err
 }
+// v0.4.0
+func (s *CarrierAPIBackend) GetGlobalTaskDetailList(lastUpdate, pageSize uint64) ([]*pb.TaskDetailShow, error) {
 
-// v3.0
+	// the task has been executed.
+	networkTaskList, err := s.carrier.carrierDB.QueryGlobalTaskList(lastUpdate, pageSize)
+	if rawdb.IsNoDBNotFoundErr(err) {
+		return nil, err
+	}
+
+	makeTaskViewFn := func(task *types.Task) *pb.TaskDetailShow {
+		return policy.NewTaskDetailShowFromTaskData(task)
+	}
+	result := make([]*pb.TaskDetailShow, 0)
+
+	for _, networkTask := range networkTaskList {
+		if taskView := makeTaskViewFn(networkTask); nil != taskView {
+			result = append(result, taskView)
+		}
+	}
+	return result, err
+}
+
+// v0.3.0
 func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.TaskDetailShow, error) {
 
 	identity, err := s.carrier.carrierDB.QueryIdentity()
@@ -1213,7 +1229,7 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.
 		return nil, fmt.Errorf("query local identity failed, %s", err)
 	}
 
-	// the task is executing.
+	// the task status is pending and running.
 	localTaskList, err := s.carrier.carrierDB.QueryLocalTaskList()
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
@@ -1239,7 +1255,7 @@ func (s *CarrierAPIBackend) GetTaskDetailListByTaskIds(taskIds []string) ([]*pb.
 		}
 	}
 
-	// the task has been executed.
+	// the task status was finished (failed or succeed).
 	networkTaskList, err := s.carrier.carrierDB.QueryTaskListByTaskIds(ids)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
@@ -1296,7 +1312,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 		return nil, err
 	}
 
-	// 先查出 task 在本地的 eventList
+	// 1、 If it is a local task, first find out the local eventList of the task
 	localEventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
 	if rawdb.IsNoDBNotFoundErr(err) {
 		return nil, err
@@ -1317,7 +1333,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 			PartyId: e.GetPartyId(),
 		}
 	}
-	// 再查数据中心的.
+	// 2、Then find out the eventList of the task in the data center
 	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskId(taskId)
 	if nil != err {
 		return nil, err
@@ -1335,7 +1351,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 
 	evenList := make([]*pb.TaskEventShow, 0)
 
-	// 先查出 task 在本地的 eventList
+	// 1、 If it is a local task, first find out the local eventList of the task
 	for _, taskId := range taskIds {
 		localEventList, err := s.carrier.carrierDB.QueryTaskEventList(taskId)
 		if rawdb.IsNoDBNotFoundErr(err) {
@@ -1359,7 +1375,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 			})
 		}
 	}
-	// 再查数据中心的.
+	// 2、Then find out the eventList of the task in the data center
 	taskEvent, err := s.carrier.carrierDB.QueryTaskEventListByTaskIds(taskIds)
 	if nil != err {
 		return nil, err

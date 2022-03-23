@@ -195,6 +195,16 @@ func (dc *DataCenter) InsertTask(task *types.Task) error {
 	return nil
 }
 
+func (dc *DataCenter) QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.TaskDataArray, error) {
+	dc.serviceMu.RLock()
+	defer dc.serviceMu.RUnlock()
+	taskListResponse, err := dc.client.ListTask(dc.ctx, &api.ListTaskRequest{
+		LastUpdated: lastUpdate,
+		PageSize:    pageSize,
+	})
+	return types.NewTaskArrayFromResponse(taskListResponse), err
+}
+
 func (dc *DataCenter) QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error) {
 	dc.serviceMu.RLock()
 	defer dc.serviceMu.RUnlock()
@@ -240,11 +250,9 @@ func (dc *DataCenter) QueryTaskEventListByTaskIds(taskIds []string) ([]*libtypes
 			TaskId: taskId,
 		})
 		if nil != err {
-			//return nil, err
 			continue
 		}
 		if nil == taskEventResponse {
-			//return nil, rawdb.ErrNotFound
 			continue
 		}
 		eventList = append(eventList, taskEventResponse.GetTaskEvents()...)

@@ -42,15 +42,22 @@ func (svr *Server) ReportTaskEvent(ctx context.Context, req *pb.ReportTaskEventR
 
 func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportTaskResourceUsageRequest) (*apicommonpb.SimpleResponse, error) {
 
-	if req.GetTaskId() == "" {
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:ReportTaskResourceUsage failed, query local identity failed, can not handle report usage, taskId: {%s}, partyId: {%s}",
+			req.GetTaskId(), req.GetPartyId())
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
+	if "" == strings.Trim(req.GetTaskId(), "") {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
-	if req.GetPartyId() == "" {
+	if "" == strings.Trim(req.GetPartyId(), "") {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require partyId"}, nil
 	}
 
-	if req.GetIp() == "" || req.GetPort() == "" {
+	if "" == strings.Trim(req.GetIp(), "") || "" == strings.Trim(req.GetPort(), "") {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 
@@ -62,13 +69,6 @@ func (svr *Server) ReportTaskResourceUsage (ctx context.Context, req *pb.ReportT
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown resourceUsage"}, nil
 	}
 
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ReportTaskResourceUsage failed, query local identity failed, can not handle report usage, taskId: {%s}, partyId: {%s}",
-			req.GetTaskId(), req.GetPartyId())
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
-	}
-	
 	if err := svr.B.ReportTaskResourceUsage(req.GetNodeType(), req.GetIp(), req.GetPort(),
 		types.NewTaskResuorceUsage(
 			req.GetTaskId(),

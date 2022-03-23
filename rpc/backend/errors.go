@@ -53,10 +53,12 @@ var (
 
 // task
 var (
-	ErrQueryNodeTaskList      = &RpcBizErr{Code: 13001, Msg: "Query all task of current node failed"}
-	ErrQueryNodeTaskEventList = &RpcBizErr{Code: 13002, Msg: "Query all event of current node's task failed"}
-	ErrPublishTaskMsg         = &RpcBizErr{Code: 13003, Msg: "PublishTask failed"}
-	ErrTerminateTaskMsg       = &RpcBizErr{Code: 13004, Msg: "TerminateTask failed, send task terminate msg failed"}
+	ErrQueryLocalTaskList  = &RpcBizErr{Code: 13001, Msg: "Query all tasks of current node failed"}
+	ErrQueryGlobalTaskList = &RpcBizErr{Code: 13002, Msg: "Query all tasks of global node failed"}
+	ErrQueryTaskListByIds  = &RpcBizErr{Code: 13003, Msg: "Query all tasks by taskIds failed"}
+	ErrQueryTaskEventList  = &RpcBizErr{Code: 13004, Msg: "Query all events of task by taskId failed"}
+	ErrPublishTaskMsg      = &RpcBizErr{Code: 13005, Msg: "PublishTask failed"}
+	ErrTerminateTaskMsg    = &RpcBizErr{Code: 13006, Msg: "TerminateTask failed, send task terminate msg failed"}
 )
 
 // yarn

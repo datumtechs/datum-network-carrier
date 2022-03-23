@@ -162,6 +162,13 @@ func (svr *Server) GetIdentityList(ctx context.Context, req *pb.GetIdentityListR
 // for metadata authority apply
 
 func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMetadataAuthorityRequest) (*pb.ApplyMetadataAuthorityResponse, error) {
+
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query local identity failed")
+		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
 	if req.GetUser() == "" {
 		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user is empty"}, nil
 	}
@@ -173,12 +180,6 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 	}
 	if len(req.GetSign()) == 0 {
 		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrApplyMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
-	}
-
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:ApplyMetadataAuthority failed, query local identity failed")
-		return &pb.ApplyMetadataAuthorityResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	now := timeutils.UnixMsecUint64()
@@ -284,6 +285,13 @@ func (svr *Server) ApplyMetadataAuthority(ctx context.Context, req *pb.ApplyMeta
 }
 
 func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMetadataAuthorityRequest) (*apicommonpb.SimpleResponse, error) {
+
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local identity failed")
+		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
 	if req.GetUser() == "" {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user is empty"}, nil
 	}
@@ -295,12 +303,6 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 	}
 	if len(req.GetSign()) == 0 {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRevokeMetadataAuthority.ErrCode(), Msg: "the user signature is nil"}, nil
-	}
-
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:RevokeMetadataAuthority failed, query local identity failed")
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	authorityList, err := svr.B.GetLocalMetadataAuthorityList(timeutils.BeforeYearUnixMsecUint64(), backend.DefaultMaxPageSize)
@@ -364,18 +366,18 @@ func (svr *Server) RevokeMetadataAuthority(ctx context.Context, req *pb.RevokeMe
 
 func (svr *Server) AuditMetadataAuthority(ctx context.Context, req *pb.AuditMetadataAuthorityRequest) (*pb.AuditMetadataAuthorityResponse, error) {
 
+	_, err := svr.B.GetNodeIdentity()
+	if nil != err {
+		log.WithError(err).Errorf("RPC-API:AuditMetadataAuthority failed, query local identity failed")
+		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
 	if "" == req.GetMetadataAuthId() {
 		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrAuditMetadataAuth.ErrCode(), Msg: "the metadataAuth Id is empty"}, nil
 	}
 
 	if req.GetAudit() == apicommonpb.AuditMetadataOption_Audit_Pending {
 		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrAuditMetadataAuth.ErrCode(), Msg: "the valid audit metadata option must cannot pending"}, nil
-	}
-
-	_, err := svr.B.GetNodeIdentity()
-	if nil != err {
-		log.WithError(err).Errorf("RPC-API:AuditMetadataAuthority failed, query local identity failed")
-		return &pb.AuditMetadataAuthorityResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	option, err := svr.B.AuditMetadataAuthority(types.NewMetadataAuthAudit(req.GetMetadataAuthId(), req.GetSuggestion(), req.GetAudit()))

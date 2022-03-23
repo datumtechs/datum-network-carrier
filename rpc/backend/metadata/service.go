@@ -63,17 +63,18 @@ func (svr *Server) GetLocalInternalMetadataDetailList(ctx context.Context, req *
 }
 
 func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataRequest) (*pb.PublishMetadataResponse, error) {
-	if req.GetInformation() == nil {
-		return &pb.PublishMetadataResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "the metadata infomation is empty"}, nil
-	}
-	if req.GetInformation().GetMetadataSummary() == nil {
-		return &pb.PublishMetadataResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "the metadata summary is empty"}, nil
-	}
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:PublishMetadata failed, query local identity failed, can not publish metadata")
 		return &pb.PublishMetadataResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
+	if nil == req.GetInformation() {
+		return &pb.PublishMetadataResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "the metadata infomation is empty"}, nil
+	}
+	if req.GetInformation().GetMetadataSummary() == nil {
+		return &pb.PublishMetadataResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "the metadata summary is empty"}, nil
 	}
 
 	metadataMsg := types.NewMetadataMessageFromRequest(req)
@@ -94,14 +95,14 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 
 func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
 
-	if "" == strings.Trim(req.GetMetadataId(), "") {
-		return &apicommonpb.SimpleResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
-	}
-
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
 		return &apicommonpb.SimpleResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+	}
+
+	if "" == strings.Trim(req.GetMetadataId(), "") {
+		return &apicommonpb.SimpleResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)

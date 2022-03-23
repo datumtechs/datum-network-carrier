@@ -69,19 +69,19 @@ func (svr *Server) ReportUpFileSummary(ctx context.Context, req *pb.ReportUpFile
 
 func (svr *Server) ReportTaskResultFileSummary(ctx context.Context, req *pb.ReportTaskResultFileSummaryRequest) (*apicommonpb.SimpleResponse, error) {
 
-	if "" == req.GetTaskId() {
+	if "" == strings.Trim(req.GetTaskId(), "") {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 
-	if "" == req.GetOriginId() {
+	if "" == strings.Trim(req.GetOriginId(), "") {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require originId"}, nil
 	}
 
-	if "" == req.GetFilePath() {
+	if "" == strings.Trim(req.GetFilePath(), "") {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require filePath"}, nil
 	}
 
-	if "" == req.GetIp() || "" == req.GetPort() {
+	if "" == strings.Trim(req.GetIp(), "") || "" == strings.Trim(req.GetPort(), "") {
 		return &apicommonpb.SimpleResponse{ Status: backend.ErrRequireParams.ErrCode(), Msg: "require ip and port"}, nil
 	}
 
