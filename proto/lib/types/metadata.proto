@@ -13,7 +13,7 @@ message MetadataPB {
   string                      metadata_id = 1;                // 元数据ID
   api.protobuf.Organization   owner = 2;                      // 元数据所属的组织信息
   string                      data_id = 3;                    // 预留
-  api.protobuf.DataStatus     data_status = 4;                // 数据状态, N means normal, D means deleted.
+  api.protobuf.DataStatus     data_status = 4;                // the status of data for local storage, 1 means valid, 2 means invalid.
   string                      metadata_name = 5;              // 元数据的名称 (对外的表名)
   uint32                      metadata_type = 6;              // 表示该元数据是 普通数据 还是 模型数据的元数据 (0: 未定义; 1: 普通数据元数据; 2: 模型数据元数据)
   string                      file_hash = 7;                  // 原始数据的Hash
