@@ -10,7 +10,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/grpclient"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/fighter/computesvc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/policy"
@@ -180,16 +180,16 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 	return seeds, nil
 }
 
-func (s *CarrierAPIBackend) storeLocalResource(identity *apicommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
+func (s *CarrierAPIBackend) storeLocalResource(identity *libcommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
 
 	// store into local db
 	if err := s.carrier.carrierDB.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
 		Owner:      identity,
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
-		DataStatus: apicommonpb.DataStatus_DataStatus_Valid,
+		DataStatus: libcommonpb.DataStatus_DataStatus_Valid,
 		// resource status, eg: create/release/revoke
-		State: apicommonpb.PowerState_PowerState_Created,
+		State: libcommonpb.PowerState_PowerState_Created,
 		// unit: byte
 		TotalMem: jobNodeStatus.GetTotalMemory(),
 		UsedMem:  0,
@@ -423,9 +423,9 @@ func (s *CarrierAPIBackend) DeleteRegisterNode(typ pb.RegisteredNodeType, id str
 				Owner:  identity,
 				DataId: resourceTable.GetPowerId(),
 				// the status of data, N means normal, D means deleted.
-				DataStatus: apicommonpb.DataStatus_DataStatus_Invalid,
+				DataStatus: libcommonpb.DataStatus_DataStatus_Invalid,
 				// resource status, eg: create/release/revoke
-				State:    apicommonpb.PowerState_PowerState_Revoked,
+				State:    libcommonpb.PowerState_PowerState_Revoked,
 				UpdateAt: timeutils.UnixMsecUint64(),
 			})); nil != err {
 				log.WithError(err).Errorf("Failed to remove dataCenter resource on RemoveRegisterNode with revoke power, powerId: {%s}, jobNodeId: {%s}",
@@ -877,13 +877,13 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			powerTask := &libtypes.PowerTask{
 				TaskId:   taskId,
 				TaskName: task.GetTaskData().TaskName,
-				Owner: &apicommonpb.Organization{
+				Owner: &libcommonpb.Organization{
 					NodeName:   task.GetTaskSender().GetNodeName(),
 					NodeId:     task.GetTaskSender().GetNodeId(),
 					IdentityId: task.GetTaskSender().GetIdentityId(),
 				},
-				Receivers: make([]*apicommonpb.Organization, 0),
-				OperationCost: &apicommonpb.TaskResourceCostDeclare{
+				Receivers: make([]*libcommonpb.Organization, 0),
+				OperationCost: &libcommonpb.TaskResourceCostDeclare{
 					Processor: task.GetTaskData().GetOperationCost().GetProcessor(),
 					Memory:    task.GetTaskData().GetOperationCost().GetMemory(),
 					Bandwidth: task.GetTaskData().GetOperationCost().GetBandwidth(),
@@ -894,7 +894,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			}
 			// build dataSuppliers of task info
 			for _, dataSupplier := range task.GetTaskData().GetDataSuppliers() {
-				powerTask.Partners = append(powerTask.GetPartners(), &apicommonpb.Organization{
+				powerTask.Partners = append(powerTask.GetPartners(), &libcommonpb.Organization{
 					NodeName:   dataSupplier.GetNodeName(),
 					NodeId:     dataSupplier.GetNodeId(),
 					IdentityId: dataSupplier.GetIdentityId(),
@@ -902,7 +902,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			}
 			// build receivers of task info
 			for _, receiver := range task.GetTaskData().GetReceivers() {
-				powerTask.Receivers = append(powerTask.GetReceivers(), &apicommonpb.Organization{
+				powerTask.Receivers = append(powerTask.GetReceivers(), &libcommonpb.Organization{
 					NodeName:   receiver.GetNodeName(),
 					NodeId:     receiver.GetNodeId(),
 					IdentityId: receiver.GetIdentityId(),
@@ -932,7 +932,7 @@ func (s *CarrierAPIBackend) GetLocalPowerDetailList() ([]*pb.GetLocalPowerDetail
 			if task.GetTaskData().GetStartAt() != 0 {
 				duration = timeutils.UnixMsecUint64() - task.GetTaskData().GetStartAt()
 			}
-			powerTask.OperationSpend = &apicommonpb.TaskResourceCostDeclare{
+			powerTask.OperationSpend = &libcommonpb.TaskResourceCostDeclare{
 				Processor: processor,
 				Memory:    memory,
 				Bandwidth: bandwidth,
@@ -1018,7 +1018,7 @@ func (s *CarrierAPIBackend) GetIdentityList(lastUpdate uint64, pageSize uint64) 
 
 // for metadataAuthority
 
-func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error) {
+func (s *CarrierAPIBackend) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libcommonpb.AuditMetadataOption, error) {
 	return s.carrier.authManager.AuditMetadataAuthority(audit)
 }
 
@@ -1030,7 +1030,7 @@ func (s *CarrierAPIBackend) GetGlobalMetadataAuthorityList(lastUpdate, pageSize 
 	return s.carrier.authManager.GetGlobalMetadataAuthorityList(lastUpdate, pageSize)
 }
 
-func (s *CarrierAPIBackend) HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {
+func (s *CarrierAPIBackend) HasValidMetadataAuth(userType libcommonpb.UserType, user, identityId, metadataId string) (bool, error) {
 	return s.carrier.authManager.HasValidMetadataAuth(userType, user, identityId, metadataId)
 }
 
@@ -1053,13 +1053,13 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 		TaskName: localTask.GetTaskData().GetTaskName(),
 		UserType: localTask.GetTaskData().GetUserType(),
 		User:     localTask.GetTaskData().GetUser(),
-		Sender: &apicommonpb.TaskOrganization{
+		Sender: &libcommonpb.TaskOrganization{
 			PartyId:    localTask.GetTaskSender().GetPartyId(),
 			NodeName:   localTask.GetTaskSender().GetNodeName(),
 			NodeId:     localTask.GetTaskSender().GetNodeId(),
 			IdentityId: localTask.GetTaskSender().GetIdentityId(),
 		},
-		AlgoSupplier: &apicommonpb.TaskOrganization{
+		AlgoSupplier: &libcommonpb.TaskOrganization{
 			PartyId:    localTask.GetTaskData().GetAlgoSupplier().GetPartyId(),
 			NodeName:   localTask.GetTaskData().GetAlgoSupplier().GetNodeName(),
 			NodeId:     localTask.GetTaskData().GetAlgoSupplier().GetNodeId(),
@@ -1072,7 +1072,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 		StartAt:        localTask.GetTaskData().GetStartAt(),
 		EndAt:          localTask.GetTaskData().GetEndAt(),
 		State:          localTask.GetTaskData().GetState(),
-		OperationCost: &apicommonpb.TaskResourceCostDeclare{
+		OperationCost: &libcommonpb.TaskResourceCostDeclare{
 			Processor: localTask.GetTaskData().GetOperationCost().GetProcessor(),
 			Memory:    localTask.GetTaskData().GetOperationCost().GetMemory(),
 			Bandwidth: localTask.GetTaskData().GetOperationCost().GetBandwidth(),
@@ -1095,7 +1095,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 		}
 
 		detailShow.DataSuppliers = append(detailShow.DataSuppliers, &pb.TaskDataSupplierShow{
-			Organization: &apicommonpb.TaskOrganization{
+			Organization: &libcommonpb.TaskOrganization{
 				PartyId:    dataSupplier.GetPartyId(),
 				NodeName:   dataSupplier.GetNodeName(),
 				NodeId:     dataSupplier.GetNodeId(),
@@ -1119,7 +1119,7 @@ func (s *CarrierAPIBackend) GetLocalTask(taskId string) (*pb.TaskDetailShow, err
 		}
 
 		detailShow.PowerSuppliers = append(detailShow.PowerSuppliers, &pb.TaskPowerSupplierShow{
-			Organization: &apicommonpb.TaskOrganization{
+			Organization: &libcommonpb.TaskOrganization{
 				PartyId:    data.GetPartyId(),
 				NodeName:   data.GetNodeName(),
 				NodeId:     data.GetNodeId(),
@@ -1184,7 +1184,7 @@ next:
 
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == libcommonpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1289,7 +1289,7 @@ next:
 		//
 		// For the initiator's local task, when the task has not started execution
 		// (i.e. the status is still: pending), the 'powersuppliers' of the task should not be returned.
-		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == apicommonpb.TaskState_TaskState_Pending {
+		if identity.GetIdentityId() == task.GetTaskSender().GetIdentityId() && task.GetTaskData().GetState() == libcommonpb.TaskState_TaskState_Pending {
 			task.RemovePowerSuppliers() // clean powerSupplier when before return.
 		}
 
@@ -1325,7 +1325,7 @@ func (s *CarrierAPIBackend) GetTaskEventList(taskId string) ([]*pb.TaskEventShow
 			Type:     e.GetType(),
 			CreateAt: e.GetCreateAt(),
 			Content:  e.GetContent(),
-			Owner: &apicommonpb.Organization{
+			Owner: &libcommonpb.Organization{
 				NodeName:   identity.GetNodeName(),
 				NodeId:     identity.GetNodeId(),
 				IdentityId: identity.GetIdentityId(),
@@ -1366,7 +1366,7 @@ func (s *CarrierAPIBackend) GetTaskEventListByTaskIds(taskIds []string) ([]*pb.T
 				Type:     e.GetType(),
 				CreateAt: e.GetCreateAt(),
 				Content:  e.GetContent(),
-				Owner: &apicommonpb.Organization{
+				Owner: &libcommonpb.Organization{
 					NodeName:   identity.GetNodeName(),
 					NodeId:     identity.GetNodeId(),
 					IdentityId: identity.GetIdentityId(),
@@ -1484,15 +1484,15 @@ func (s *CarrierAPIBackend) StoreTaskResultFileSummary(taskId, originId, fileHas
 		MetadataId:   metadataId,
 		Owner:        identity,
 		DataId:       metadataId,
-		DataStatus:   apicommonpb.DataStatus_DataStatus_Valid,
+		DataStatus:   libcommonpb.DataStatus_DataStatus_Valid,
 		MetadataName: fmt.Sprintf("task `%s` result file", taskId),
 		MetadataType: 2,  // It means this is a module.
 		FileHash:     "", // todo fill it.
 		Desc:         fmt.Sprintf("the task `%s` result file after executed", taskId),
-		FileType:     apicommonpb.OriginFileType_FileType_Unknown,
+		FileType:     libcommonpb.OriginFileType_FileType_Unknown,
 		Industry:     "Unknown",
 		// metaData status, eg: create/release/revoke
-		State:          apicommonpb.MetadataState_MetadataState_Created,
+		State:          libcommonpb.MetadataState_MetadataState_Created,
 		PublishAt:      0, // have not publish
 		UpdateAt:       timeutils.UnixMsecUint64(),
 		Nonce:          0,

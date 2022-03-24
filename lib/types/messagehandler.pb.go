@@ -161,7 +161,7 @@ type MetadataAuthorityMsg struct {
 	//*
 	//MetadataAuthId string                   `json:"metaDataAuthId"`
 	//User           string                   `json:"user"`
-	//UserType       apicommonpb.UserType     `json:"userType"`
+	//UserType       libcommonpb.UserType     `json:"userType"`
 	//Auth           *types.MetadataAuthority `json:"auth"`
 	//Sign           []byte                   `json:"sign"`
 	//CreateAt       uint64

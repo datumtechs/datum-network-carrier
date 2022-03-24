@@ -5,7 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/db"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/stretchr/testify/require"
@@ -24,10 +24,10 @@ func TestLocalTask(t *testing.T) {
 		NodeId:     "nodeid",
 		NodeName:   "nodename",
 		DataId:     "taskId",
-		DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+		DataStatus: libcommonpb.DataStatus_DataStatus_Deleted,
 		TaskId:     "taskID",
 		TaskName:   "taskName",
-		State:      apicommonpb.TaskState_TaskState_Failed,
+		State:      libcommonpb.TaskState_TaskState_Failed,
 		Reason:     "reason",
 		EventCount: 4,
 		Desc:       "desc",
@@ -40,7 +40,7 @@ func TestLocalTask(t *testing.T) {
 	assert.Assert(t, strings.EqualFold(data01.TaskId, res.GetTaskId()))
 
 	// test update state
-	res.GetTaskData().State = apicommonpb.TaskState_TaskState_Failed
+	res.GetTaskData().State = libcommonpb.TaskState_TaskState_Failed
 	RemoveLocalTask(database, data01.TaskId)
 	StoreLocalTask(database, res)
 
@@ -162,7 +162,7 @@ func TestTaskEvent(t *testing.T) {
 
 func TestLocalIdentity(t *testing.T) {
 	database := db.NewMemoryDatabase()
-	nodeAlias := &apicommonpb.Organization{
+	nodeAlias := &libcommonpb.Organization{
 		NodeName:   "node-name",
 		NodeId:     "node-nodeId",
 		IdentityId: "node-identityId",
@@ -188,8 +188,8 @@ func TestLocalResource(t *testing.T) {
 		NodeName:       "01-nodename",
 		JobNodeId:      "01",
 		DataId:         "01-dataId",
-		DataStatus:     apicommonpb.DataStatus_DataStatus_Deleted,
-		State:          apicommonpb.PowerState_PowerState_Created,
+		DataStatus:     libcommonpb.DataStatus_DataStatus_Deleted,
+		State:          libcommonpb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,
@@ -207,8 +207,8 @@ func TestLocalResource(t *testing.T) {
 		NodeName:       "01-nodename",
 		JobNodeId:      "02",
 		DataId:         "01-dataId",
-		DataStatus:     apicommonpb.DataStatus_DataStatus_Normal,
-		State:         apicommonpb.PowerState_PowerState_Created,
+		DataStatus:     libcommonpb.DataStatus_DataStatus_Normal,
+		State:         libcommonpb.PowerState_PowerState_Created,
 		TotalMem:       111,
 		UsedMem:        222,
 		TotalProcessor: 11,

@@ -3,7 +3,8 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"gotest.tools/assert"
 	"reflect"
@@ -11,26 +12,26 @@ import (
 )
 
 var metadata = NewMetadata(&types.MetadataPB{
-	IdentityId: "Identity",
-	NodeId:     "nodeId",
-	DataId:     "dataId",
-	DataStatus: apicommonpb.DataStatus_DataStatus_Normal,
-	FilePath:   "/a/a",
-	Desc:       "desc",
-	Rows:       1,
-	Columns:    2,
-	Size_:      3,
-	FileType:   apicommonpb.OriginFileType_FileType_CSV,
-	State:      apicommonpb.MetadataState_MetadataState_Created,
-	HasTitle:   false,
-	MetadataColumns: []*types.MetadataColumn {
-		{
-			CIndex: 2,
-			CName:  "cname",
-			CType:  "ctype",
-			CSize:  10,
-		},
+	MetadataId: "xxxxx",
+	Owner: &libcommonpb.Organization{
+		IdentityId: "identity",
+		NodeId:     "nodeId",
+		NodeName:   "nodeName",
 	},
+	DataId:         "dataId",
+	DataStatus:     libcommonpb.DataStatus_DataStatus_Valid,
+	MetadataName:   "this is a metadata",
+	MetadataType:   1,
+	FileHash:       "hash",
+	Desc:           "desc",
+	FileType:       libcommonpb.OriginFileType_FileType_CSV,
+	Industry:       "1",
+	State:          libcommonpb.MetadataState_MetadataState_Created,
+	PublishAt:      timeutils.UnixMsecUint64(),
+	UpdateAt:       timeutils.UnixMsecUint64(),
+	Nonce:          1,
+	MetadataOption: "option",
+	TokenAddress:   "",
 })
 
 func TestMetadataEncode(t *testing.T) {
@@ -68,7 +69,7 @@ func TestMetadata(t *testing.T) {
 	check("hash", dmetadata.Hash(), metadata.Hash())
 }
 
-func TestMetadataArrLen(t *testing.T)  {
+func TestMetadataArrLen(t *testing.T) {
 	var metadataArray MetadataArray = nil
 
 	t.Log(metadataArray.Len())

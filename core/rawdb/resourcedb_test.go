@@ -8,7 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/db"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	dbtype "github.com/RosettaFlow/Carrier-Go/lib/db"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
@@ -75,13 +75,13 @@ func NeedExecuteTask() (KeyValueStore, dbtype.TaskArrayPB) {
 		taskList.TaskList = append(taskList.TaskList, taskPB)
 		for _, partyId := range partyIds {
 			remotepid := "remotepid"
-			localTaskOrganization := &apicommonpb.TaskOrganization{
+			localTaskOrganization := &libcommonpb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   "NodeName",
 				NodeId:     "NodeId_0001",
 				IdentityId: "IdentityId_0001",
 			}
-			remoteTaskOrganization := &apicommonpb.TaskOrganization{
+			remoteTaskOrganization := &libcommonpb.TaskOrganization{
 				PartyId:    partyId,
 				NodeName:   "NodeName",
 				NodeId:     "NodeId_0002",

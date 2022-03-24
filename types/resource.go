@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"strings"
@@ -51,9 +51,9 @@ func (m *Resource) Hash() common.Hash {
 func (m *Resource) GetIdentityId() string                 { return m.data.GetOwner().IdentityId }
 func (m *Resource) GetNodeId() string                     { return m.data.GetOwner().NodeId }
 func (m *Resource) GetNodeName() string                   { return m.data.GetOwner().NodeName }
-func (m *Resource) GetDataStatus() apicommonpb.DataStatus { return m.data.DataStatus }
+func (m *Resource) GetDataStatus() libcommonpb.DataStatus { return m.data.DataStatus }
 func (m *Resource) GetDataId() string                     { return m.data.DataId }
-func (m *Resource) GetState() apicommonpb.PowerState      { return m.data.State }
+func (m *Resource) GetState() libcommonpb.PowerState      { return m.data.State }
 func (m *Resource) GetTotalMem() uint64                   { return m.data.TotalMem }
 func (m *Resource) GetUsedMem() uint64                    { return m.data.UsedMem }
 func (m *Resource) GetTotalBandWidth() uint64             { return m.data.TotalBandwidth }

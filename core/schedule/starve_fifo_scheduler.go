@@ -12,7 +12,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -201,7 +201,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	}
 	return types.NewNeedConsensusTask(task, nonce, weights, now), bullet.GetTaskId(), nil
 }
-func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole apicommonpb.TaskRole, replayTask *types.NeedReplayScheduleTask) *types.ReplayScheduleResult {
+func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRole libcommonpb.TaskRole, replayTask *types.NeedReplayScheduleTask) *types.ReplayScheduleResult {
 
 	task := replayTask.GetTask()
 
@@ -226,7 +226,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 	switch localTaskRole {
 
-	case apicommonpb.TaskRole_TaskRole_DataSupplier:
+	case libcommonpb.TaskRole_TaskRole_DataSupplier:
 
 		powerPartyIds := make([]string, len(task.GetTaskData().GetPowerSuppliers()))
 		for i, power := range task.GetTaskData().GetPowerSuppliers() {
@@ -327,7 +327,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 	// select your own internal power resource and lock it,
 	// and finally click 'publishfinishedtasktodatacenter'
 	// or 'sendtaskresultmsgtotasksender' in taskmnager.
-	case apicommonpb.TaskRole_TaskRole_PowerSupplier:
+	case libcommonpb.TaskRole_TaskRole_PowerSupplier:
 
 		log.Debugf("Succeed CalculateSlotCount when role is powerSupplier on SchedulerStarveFIFO.ReplaySchedule(), taskId: {%s}, role: {%s}, partyId: {%s}, cost.mem: {%d}, cost.Bandwidth: {%d}, cost.Processor: {%d}",
 			task.GetTaskId(), localTaskRole.String(), localPartyId, cost.Mem, cost.Bandwidth, cost.Processor)
@@ -352,7 +352,7 @@ func (sche *SchedulerStarveFIFO) ReplaySchedule(localPartyId string, localTaskRo
 
 	// If the current participant is resultsupplier.
 	// just select their own available datanodes.
-	case apicommonpb.TaskRole_TaskRole_Receiver:
+	case libcommonpb.TaskRole_TaskRole_Receiver:
 
 		dataResourceTables, err := sche.resourceMng.GetDB().QueryDataResourceTables()
 		if nil != err {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -93,16 +93,16 @@ func (svr *Server) PublishMetadata(ctx context.Context, req *pb.PublishMetadataR
 	}, nil
 }
 
-func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*apicommonpb.SimpleResponse, error) {
+func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataRequest) (*libcommonpb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RevokeMetadata failed, query local identity failed, can not revoke metadata")
-		return &apicommonpb.SimpleResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+		return &libcommonpb.SimpleResponse { Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
 	if "" == strings.Trim(req.GetMetadataId(), "") {
-		return &apicommonpb.SimpleResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
+		return &libcommonpb.SimpleResponse { Status: backend.ErrRequireParams.ErrCode(), Msg: "require metadataId"}, nil
 	}
 
 	metadataRevokeMsg := types.NewMetadataRevokeMessageFromRequest(req)
@@ -111,10 +111,10 @@ func (svr *Server) RevokeMetadata(ctx context.Context, req *pb.RevokeMetadataReq
 		log.WithError(err).Error("RPC-API:RevokeMetadata failed")
 
 		errMsg := fmt.Sprintf("%s, metadataId: {%s}", backend.ErrRevokeMetadataMsg.Error(), req.GetMetadataId())
-		return &apicommonpb.SimpleResponse { Status: backend.ErrRevokeMetadataMsg.ErrCode(), Msg: errMsg }, nil
+		return &libcommonpb.SimpleResponse { Status: backend.ErrRevokeMetadataMsg.ErrCode(), Msg: errMsg }, nil
 	}
 	log.Debugf("RPC-API:RevokeMetadata succeed, metadataId: {%s}", req.GetMetadataId())
-	return &apicommonpb.SimpleResponse{
+	return &libcommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

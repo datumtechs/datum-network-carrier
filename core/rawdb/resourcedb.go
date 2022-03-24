@@ -3,7 +3,7 @@ package rawdb
 import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/ethereum/go-ethereum/rlp"
@@ -982,7 +982,7 @@ func HasLocalTaskExecuteStatusTerminateByPartyId(db DatabaseReader, taskId, part
 	return true, nil
 }
 
-func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error {
+func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType libcommonpb.UserType, user, metadataId, metadataAuthId string) error {
 
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 	val, err := rlp.EncodeToBytes(metadataAuthId)
@@ -994,7 +994,7 @@ func StoreUserMetadataAuthIdByMetadataId(db DatabaseWriter, userType apicommonpb
 	return db.Put(key, val)
 }
 
-func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType apicommonpb.UserType, user, metadataId string) (string, error) {
+func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType libcommonpb.UserType, user, metadataId string) (string, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	val, err := db.Get(key)
@@ -1015,7 +1015,7 @@ func QueryUserMetadataAuthIdByMetadataId(db DatabaseReader, userType apicommonpb
 	return metadataAuthId, nil
 }
 
-func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType apicommonpb.UserType, user, metadataId string) (bool, error) {
+func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType libcommonpb.UserType, user, metadataId string) (bool, error) {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	has, err := db.Has(key)
@@ -1029,7 +1029,7 @@ func HasUserMetadataAuthIdByMetadataId(db DatabaseReader, userType apicommonpb.U
 	return true, nil
 }
 
-func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType apicommonpb.UserType, user, metadataId string) error {
+func RemoveUserMetadataAuthIdByMetadataId(db KeyValueStore, userType libcommonpb.UserType, user, metadataId string) error {
 	key := GetUserMetadataAuthByMetadataIdKey(userType, user, metadataId)
 
 	has, err := db.Has(key)

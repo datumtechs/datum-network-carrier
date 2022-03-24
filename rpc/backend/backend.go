@@ -2,7 +2,7 @@ package backend
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -40,10 +40,10 @@ type Backend interface {
 	GetMetadataUsedTaskIdList(identityId, metadataId string) ([]string, error)
 
 	// metadataAuthority api
-	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error)
+	AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libcommonpb.AuditMetadataOption, error)
 	GetLocalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
 	GetGlobalMetadataAuthorityList(lastUpdate, pageSize uint64) (types.MetadataAuthArray, error)
-	HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error)
+	HasValidMetadataAuth(userType libcommonpb.UserType, user, identityId, metadataId string) (bool, error)
 
 	// power api
 	GetGlobalPowerSummaryList() ([]*pb.GetGlobalPowerSummary, error)

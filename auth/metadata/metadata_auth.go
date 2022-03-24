@@ -5,7 +5,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	"github.com/RosettaFlow/Carrier-Go/core"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -24,7 +24,7 @@ func (ma *MetadataAuthority) ApplyMetadataAuthority(metadataAuth *types.Metadata
 	return ma.dataCenter.InsertMetadataAuthority(metadataAuth)
 }
 
-func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (apicommonpb.AuditMetadataOption, error) {
+func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAudit) (libcommonpb.AuditMetadataOption, error) {
 
 	log.Debugf("Start audit metadataAuth on MetadataAuthority.AuditMetadataAuthority(), the audit: %s", audit.String())
 
@@ -35,20 +35,20 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query old metadataAuth on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
 			audit.GetMetadataAuthId())
-		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query metadataAuth failed, %s", err)
+		return libcommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query metadataAuth failed, %s", err)
 	}
 
 	identity, err := ma.dataCenter.QueryIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("Failed to query local identity on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
 			audit.GetMetadataAuthId())
-		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query local identity failed, %s", err)
+		return libcommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query local identity failed, %s", err)
 	}
 
 	if identity.GetIdentityId() != metadataAuth.GetData().GetAuth().GetOwner().GetIdentityId() {
 		log.Errorf("Failed to verify local identity and identity of metadataAuth owner, they is not same identity on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
 			audit.GetMetadataAuthId())
-		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("metadataAuth did not current own, %s", err)
+		return libcommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("metadataAuth did not current own, %s", err)
 	}
 
 	// find metadataAuthId second (from local db)
@@ -56,22 +56,22 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 	if rawdb.IsNoDBNotFoundErr(err) {
 		log.WithError(err).Errorf("Failed to query user metadataAuthId by metadataId on MetadataAuthority.AuditMetadataAuthority(), userType: {%s}, user: {%s}, metadataId: {%s}",
 			metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId())
-		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query local only valid metadataAuthId by metadataId failed, %s", err)
+		return libcommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("query local only valid metadataAuthId by metadataId failed, %s", err)
 	}
 
 	if audit.GetMetadataAuthId() == metadataAuthId {
 		log.Errorf("Failed to verify metadataAuthId. this metadataAuth have been already audit on MetadataAuthority.AuditMetadataAuthority(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}",
 			metadataAuth.GetUserType(), metadataAuth.GetUser(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuthId)
-		return apicommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("This metadataAuth have been already audited")
+		return libcommonpb.AuditMetadataOption_Audit_Pending, fmt.Errorf("This metadataAuth have been already audited")
 	}
 
-	if metadataAuth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Pending {
+	if metadataAuth.GetData().GetAuditOption() != libcommonpb.AuditMetadataOption_Audit_Pending {
 		log.Errorf("the old metadataAuth has already audited on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}, audit option: {%s}",
 			audit.GetMetadataAuthId(), audit.GetAuditOption().String())
 		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("the old metadataAuth has already audited, %s", audit.GetAuditOption().String())
 	}
 
-	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
+	if metadataAuth.GetData().GetState() != libcommonpb.MetadataAuthorityState_MAState_Released {
 		log.Errorf("the old metadataAuth state is not release on MetadataAuthority.AuditMetadataAuthority(), metadataAuthId: {%s}",
 			audit.GetMetadataAuthId())
 		return metadataAuth.GetData().GetAuditOption(), fmt.Errorf("the old metadataAuth state is %s", metadataAuth.GetData().GetState().String())
@@ -84,20 +84,20 @@ func (ma *MetadataAuthority) AuditMetadataAuthority(audit *types.MetadataAuthAud
 
 	// check usageType/endTime once again before store and pushlish
 	switch metadataAuth.GetData().GetAuth().GetUsageRule().GetUsageType() {
-	case apicommonpb.MetadataUsageType_Usage_Period:
+	case libcommonpb.MetadataUsageType_Usage_Period:
 		if timeutils.UnixMsecUint64() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetEndAt() {
 			metadataAuth.GetData().GetUsedQuo().Expire = true // update state, maybe state has invalid.
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			metadataAuth.GetData().State = libcommonpb.MetadataAuthorityState_MAState_Invalid
 			//
-			auditOption = apicommonpb.AuditMetadataOption_Audit_Refused
+			auditOption = libcommonpb.AuditMetadataOption_Audit_Refused
 			auditSuggestion = "metadataAuth has expired, refused it"
 			invalid = true
 		}
-	case apicommonpb.MetadataUsageType_Usage_Times:
+	case libcommonpb.MetadataUsageType_Usage_Times:
 		if  metadataAuth.GetData().GetUsedQuo().GetUsedTimes() >= metadataAuth.GetData().GetAuth().GetUsageRule().GetTimes() {
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			metadataAuth.GetData().State = libcommonpb.MetadataAuthorityState_MAState_Invalid
 			//
-			auditOption = apicommonpb.AuditMetadataOption_Audit_Refused
+			auditOption = libcommonpb.AuditMetadataOption_Audit_Refused
 			auditSuggestion = "metadataAuth has no enough remain times, refused it"
 			invalid = true
 		}
@@ -160,14 +160,14 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 	}
 
 	// check audit option first
-	if metadataAuth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Passed {
+	if metadataAuth.GetData().GetAuditOption() != libcommonpb.AuditMetadataOption_Audit_Passed {
 		log.Errorf("the old metadataAuth audit option is not passed on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}, audit option: {%s}",
 			metadataAuthId, metadataAuth.GetData().GetAuditOption().String())
 		return fmt.Errorf("the old metadataAuth audit option is not passed")
 	}
 
 	// check state second
-	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
+	if metadataAuth.GetData().GetState() != libcommonpb.MetadataAuthorityState_MAState_Released {
 		log.Errorf("the old metadataAuth state is not released on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}, state: {%s}",
 			metadataAuthId, metadataAuth.GetData().GetState().String())
 		return fmt.Errorf("the old metadataAuth state is not released")
@@ -180,17 +180,17 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 
 	// check anything else next...
 	switch usageRule.GetUsageType() {
-	case apicommonpb.MetadataUsageType_Usage_Period:
+	case libcommonpb.MetadataUsageType_Usage_Period:
 		if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 			usedQuo.Expire = true
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			metadataAuth.GetData().State = libcommonpb.MetadataAuthorityState_MAState_Invalid
 			needUpdate = true
 		}
-	case apicommonpb.MetadataUsageType_Usage_Times:
+	case libcommonpb.MetadataUsageType_Usage_Times:
 
 		usedQuo.UsedTimes += 1
 		if usedQuo.GetUsedTimes() >= usageRule.GetTimes() {
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			metadataAuth.GetData().State = libcommonpb.MetadataAuthorityState_MAState_Invalid
 		}
 		needUpdate = true
 	default:
@@ -212,7 +212,7 @@ func (ma *MetadataAuthority) ConsumeMetadataAuthority(metadataAuthId string) err
 	}
 
 	// remove
-	if metadataAuth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Invalid {
+	if metadataAuth.GetData().GetState() == libcommonpb.MetadataAuthorityState_MAState_Invalid {
 
 		log.Debugf("the metadataAuth was invalid need to call `RemoveUserMetadataAuthIdByMetadataId()` on MetadataAuthority.ConsumeMetadataAuthority(), metadataAuthId: {%s}, metadataId: {%s}, userType: {%s}, user:{%s}",
 			metadataAuth.GetData().GetMetadataAuthId(), metadataAuth.GetData().GetAuth().GetMetadataId(), metadataAuth.GetUserType(), metadataAuth.GetUser())
@@ -247,7 +247,7 @@ func (ma *MetadataAuthority) GetMetadataAuthorityListByIds(metadataAuthIds []str
 	return ma.dataCenter.QueryMetadataAuthorityListByIds(metadataAuthIds)
 }
 
-func (ma *MetadataAuthority) HasValidMetadataAuth(userType apicommonpb.UserType, user, identityId, metadataId string) (bool, error) {
+func (ma *MetadataAuthority) HasValidMetadataAuth(userType libcommonpb.UserType, user, identityId, metadataId string) (bool, error) {
 
 
 	// query metadataAuthList with target identityId (metadataId of target org)
@@ -270,11 +270,11 @@ func (ma *MetadataAuthority) HasValidMetadataAuth(userType apicommonpb.UserType,
 		if auth.GetUserType() == userType &&
 			auth.GetUser() == user &&
 			auth.GetData().GetAuth().GetMetadataId() == metadataId &&
-			auth.GetData().GetState() == apicommonpb.MetadataAuthorityState_MAState_Released {
+			auth.GetData().GetState() == libcommonpb.MetadataAuthorityState_MAState_Released {
 
 			// filter one by one
 
-			if auth.GetData().GetAuditOption() == apicommonpb.AuditMetadataOption_Audit_Refused {
+			if auth.GetData().GetAuditOption() == libcommonpb.AuditMetadataOption_Audit_Refused {
 				continue
 			}
 
@@ -283,13 +283,13 @@ func (ma *MetadataAuthority) HasValidMetadataAuth(userType apicommonpb.UserType,
 
 
 			switch usageRule.GetUsageType() {
-			case apicommonpb.MetadataUsageType_Usage_Period:
+			case libcommonpb.MetadataUsageType_Usage_Period:
 				if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 					log.Warnf("the metadataAuth was expired on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, identityId: {%s}, metadataId: {%s}",
 						userType.String(), user,identityId,  metadataId)
 					continue
 				}
-			case apicommonpb.MetadataUsageType_Usage_Times:
+			case libcommonpb.MetadataUsageType_Usage_Times:
 				if usedQuo.GetUsedTimes() >= usageRule.GetTimes() {
 					log.Warnf("the metadataAuth was used times exceed the limit on MetadataAuthority.HasValidMetadataAuth(), userType: {%s}, user:{%s}, identityId: {%s}, metadataId: {%s}",
 						userType.String(), user,identityId,  metadataId)
@@ -309,7 +309,7 @@ func (ma *MetadataAuthority) HasValidMetadataAuth(userType apicommonpb.UserType,
 	return find, nil
 }
 
-func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType apicommonpb.UserType, user, ideneityId, metadataId string) (bool, error) {
+func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType libcommonpb.UserType, user, ideneityId, metadataId string) (bool, error) {
 	has, err := ma.HasValidMetadataAuth(userType, user, ideneityId, metadataId)
 	if nil != err {
 		return false, err
@@ -320,7 +320,7 @@ func (ma *MetadataAuthority) HasNotValidMetadataAuth(userType apicommonpb.UserTy
 	return true, nil
 }
 
-func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, user, metadataId string) error {
+func (ma *MetadataAuthority) VerifyMetadataAuth(userType libcommonpb.UserType, user, metadataId string) error {
 
 	log.Debugf("Start verify metadataAuth, userType: {%s}, user: {%s}, metadataId: {%s}", userType.String(), user, metadataId)
 
@@ -367,13 +367,13 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 		return fmt.Errorf("user information of metadataAuth and input params is defferent")
 	}
 
-	if metadataAuth.GetData().GetAuditOption() != apicommonpb.AuditMetadataOption_Audit_Passed {
+	if metadataAuth.GetData().GetAuditOption() != libcommonpb.AuditMetadataOption_Audit_Passed {
 		log.Errorf("the old metadataAuth audit option is not passed on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}, audit option: {%s}",
 			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetAuditOption().String())
 		return fmt.Errorf("the metadataAuth audit option is not passed")
 	}
 
-	if metadataAuth.GetData().GetState() != apicommonpb.MetadataAuthorityState_MAState_Released {
+	if metadataAuth.GetData().GetState() != libcommonpb.MetadataAuthorityState_MAState_Released {
 		log.Errorf("the old metadataAuth state is not release on MetadataAuthority.VerifyMetadataAuth(), userType: {%s}, user: {%s}, metadataId: {%s}, metadataAuthId: {%s}, state: {%s}",
 			userType.String(), user, metadataId, metadataAuthId, metadataAuth.GetData().GetState().String())
 		return fmt.Errorf("the metadataAuth state is invalid")
@@ -385,16 +385,16 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	var invalid bool
 
 	switch usageRule.UsageType {
-	case apicommonpb.MetadataUsageType_Usage_Period:
-		usedQuo.UsageType = apicommonpb.MetadataUsageType_Usage_Period
+	case libcommonpb.MetadataUsageType_Usage_Period:
+		usedQuo.UsageType = libcommonpb.MetadataUsageType_Usage_Period
 		if timeutils.UnixMsecUint64() >= usageRule.GetEndAt() {
 			usedQuo.Expire = true
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			metadataAuth.GetData().State = libcommonpb.MetadataAuthorityState_MAState_Invalid
 			invalid = true
 		}
-	case apicommonpb.MetadataUsageType_Usage_Times:
+	case libcommonpb.MetadataUsageType_Usage_Times:
 		if usedQuo.GetUsedTimes() >= usageRule.GetTimes() {
-			metadataAuth.GetData().State = apicommonpb.MetadataAuthorityState_MAState_Invalid
+			metadataAuth.GetData().State = libcommonpb.MetadataAuthorityState_MAState_Invalid
 			invalid = true
 		}
 	default:
@@ -428,7 +428,7 @@ func (ma *MetadataAuthority) VerifyMetadataAuth(userType apicommonpb.UserType, u
 	return nil
 }
 
-func (ma *MetadataAuthority) QueryMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (string, error) {
+func (ma *MetadataAuthority) QueryMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) (string, error) {
 	return ma.dataCenter.QueryUserMetadataAuthIdByMetadataId(userType, user, metadataId)
 }
 
@@ -436,6 +436,6 @@ func (ma *MetadataAuthority) UpdateMetadataAuthority (metadataAuth *types.Metada
 	return ma.dataCenter.UpdateMetadataAuthority(metadataAuth)
 }
 
-func (ma *MetadataAuthority) RemoveUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) error {
+func (ma *MetadataAuthority) RemoveUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) error {
 	return ma.dataCenter.RemoveUserMetadataAuthIdByMetadataId(userType, user, metadataId)
 }

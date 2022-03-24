@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"io"
 	"sync/atomic"
@@ -56,23 +56,23 @@ func (m *Task) GetTaskData() *libtypes.TaskPB {
 	return m.data
 }
 
-func (m *Task) GetTaskSender() *apicommonpb.TaskOrganization {
+func (m *Task) GetTaskSender() *libcommonpb.TaskOrganization {
 	return m.data.GetSender()
 }
 
 func (m *Task) SetEventList(eventList []*libtypes.TaskEvent) {
 	m.data.TaskEvents = eventList
 }
-func (m *Task) SetPowerSuppliers(arr []*apicommonpb.TaskOrganization) {
+func (m *Task) SetPowerSuppliers(arr []*libcommonpb.TaskOrganization) {
 	m.data.PowerSuppliers = arr
 }
 func (m *Task) SetPowerResources (arr []*libtypes.TaskPowerResourceOption) {
 	m.data.PowerResourceOptions = arr
 }
 func (m *Task) RemovePowerSuppliers() {
-	m.data.PowerSuppliers = make([]*apicommonpb.TaskOrganization, 0)
+	m.data.PowerSuppliers = make([]*libcommonpb.TaskOrganization, 0)
 }
-func (m *Task) SetReceivers(arr []*apicommonpb.TaskOrganization) {
+func (m *Task) SetReceivers(arr []*libcommonpb.TaskOrganization) {
 	m.data.Receivers = arr
 }
 
@@ -108,11 +108,11 @@ func (s TaskDataArray) To() []*libtypes.TaskPB {
 }
 
 //type TaskEventShowAndRole struct {
-//	Roles []apicommonpb.TaskRole
+//	Roles []libcommonpb.TaskRole
 //	Data  *pb.TaskDetailShow
 //}
 //
-//func (t *TaskEventShowAndRole) GetRoles() []apicommonpb.TaskRole { return t.Roles }
+//func (t *TaskEventShowAndRole) GetRoles() []libcommonpb.TaskRole { return t.Roles }
 //func (t *TaskEventShowAndRole) GetData() *pb.TaskDetailShow   { return t.Data }
 
 type TaskResultFileSummary struct {

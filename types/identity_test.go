@@ -3,7 +3,7 @@ package types
 import (
 	"bytes"
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/lib/types"
 	"testing"
 )
@@ -13,8 +13,8 @@ var identities = NewIdentity(&types.IdentityPB{
 	NodeId:     "",
 	NodeName:   "",
 	DataId:     "",
-	DataStatus: apicommonpb.DataStatus_DataStatus_Unknown,
-	Status:     apicommonpb.CommonStatus_CommonStatus_Unknown,
+	DataStatus: libcommonpb.DataStatus_DataStatus_Unknown,
+	Status:     libcommonpb.CommonStatus_CommonStatus_Unknown,
 	Credential: "",
 })
 

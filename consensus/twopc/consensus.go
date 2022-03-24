@@ -11,7 +11,7 @@ import (
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
 	ev "github.com/RosettaFlow/Carrier-Go/core/evengine"
 	"github.com/RosettaFlow/Carrier-Go/core/resource"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
@@ -139,7 +139,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 		log.Errorf("Failed to check org proposalTask whether have been not exist on OnHandle, but it's alreay exist, taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		t.stopTaskConsensus(ctypes.ErrPrososalTaskIsProcessed.Error(), common.Hash{}, task.GetTaskId(),
-			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(),
+			libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(),
 			types.TaskConsensusInterrupt)
 		return ctypes.ErrPrososalTaskIsProcessed
 	}
@@ -149,7 +149,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 		log.WithError(err).Errorf("Failed to store local task about `cons` status on OnHandle,  taskId: {%s}, partyId: {%s}",
 			task.GetTaskId(), task.GetTaskSender().GetPartyId())
 		t.stopTaskConsensus("store task executeStatus about `cons` failed", common.Hash{}, task.GetTaskId(),
-			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(),
+			libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(),
 			types.TaskConsensusInterrupt)
 		return err
 	}
@@ -167,7 +167,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 	// Store some local cache
 	t.storeOrgProposalState(
 		ctypes.NewOrgProposalState(proposalId, task.GetTaskId(),
-			apicommonpb.TaskRole_TaskRole_Sender,
+			libcommonpb.TaskRole_TaskRole_Sender,
 			task.GetTaskSender(), task.GetTaskSender(),
 			nonConsTask.GetElectionAt()),
 	)
@@ -183,7 +183,7 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 				proposalId.String(), task.GetTaskId(), task.GetTaskSender().GetPartyId(), err)
 			// Send consensus result to Scheduler
 			t.stopTaskConsensus("send prepareMsg failed", proposalId, task.GetTaskId(),
-				apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(), types.TaskConsensusInterrupt)
+				libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(), types.TaskConsensusInterrupt)
 			// clean some invalid data
 			t.removeOrgProposalStateAndTask(proposalId, task.GetTaskSender().GetPartyId())
 		}
@@ -253,7 +253,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 
 	log.WithField("traceId", traceutil.GenerateTraceID(prepareMsg.GetData())).Debugf("Received prepareMsg, consensusSymbol: {%s}, remote pid: {%s}, prepareMsg: %s", nmls.String(), pid, msg.String())
 
-	org := &apicommonpb.TaskOrganization{
+	org := &libcommonpb.TaskOrganization{
 		PartyId:    msg.GetMsgOption().GetReceiverPartyId(),
 		NodeName:   identity.GetNodeName(),
 		NodeId:     identity.GetNodeId(),
@@ -432,7 +432,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 
 		// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 		t.stopTaskConsensus(fmt.Sprintf("query local identity failed %s, when received prepareVote", err), vote.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
-			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+			libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
 		t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("query local identity failed when received prepareVote, %s", err)
 	}
@@ -511,7 +511,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 						vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId(), err)
 					// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 					t.stopTaskConsensus("send confirmMsg failed", vote.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
-						apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+						libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
 					t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 				}
 			}()
@@ -532,7 +532,7 @@ func (t *Twopc) onPrepareVote(pid peer.ID, prepareVote *types.PrepareVoteWrap, n
 				}
 				// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 				t.stopTaskConsensus("the prepareMsg voting result was not passed", vote.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
-					apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+					libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
 				t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 			}()
 		}
@@ -614,7 +614,7 @@ func (t *Twopc) onConfirmMsg(pid peer.ID, confirmMsg *types.ConfirmMsgWrap, nmls
 
 	log.WithField("traceId", traceutil.GenerateTraceID(confirmMsg.GetData())).Debugf("Received remote confirmMsg, consensusSymbol: {%s}, remote pid: {%s}, confirmMsg: %s", nmls.String(), pid, msg.String())
 
-	org := &apicommonpb.TaskOrganization{
+	org := &libcommonpb.TaskOrganization{
 		PartyId:    msg.GetMsgOption().GetReceiverPartyId(),
 		NodeName:   identity.GetNodeName(),
 		NodeId:     identity.GetNodeId(),
@@ -782,7 +782,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 
 		// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 		t.stopTaskConsensus(fmt.Sprintf("query local identity failed %s, when received confirmVote", err), vote.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
-			apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+			libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
 		t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 		return fmt.Errorf("query local identity failed when received confirmVote, %s", err)
 	}
@@ -849,7 +849,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 						vote.GetMsgOption().GetProposalId().String(), proposalTask.GetTaskId(), vote.GetMsgOption().GetReceiverRole().String(), vote.GetMsgOption().GetReceiverPartyId(), err)
 					// Send consensus result (on task sender)
 					t.stopTaskConsensus("send commitMsg failed", vote.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
-						apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+						libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
 				} else {
 					// Send consensus result (on task sender)
 					t.replyTaskConsensusResult(types.NewTaskConsResult(proposalTask.GetTaskId(), types.TaskConsensusFinished, nil))
@@ -875,7 +875,7 @@ func (t *Twopc) onConfirmVote(pid peer.ID, confirmVote *types.ConfirmVoteWrap, n
 				}
 				// Send consensus result to interrupt consensus epoch and clean some data (on task sender)
 				t.stopTaskConsensus("the cofirmMsg voting result was not passed", vote.GetMsgOption().GetProposalId(), proposalTask.GetTaskId(),
-					apicommonpb.TaskRole_TaskRole_Sender, apicommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
+					libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, receiver, receiver, types.TaskConsensusInterrupt)
 				t.removeOrgProposalStateAndTask(vote.GetMsgOption().GetProposalId(), vote.GetMsgOption().GetReceiverPartyId())
 			}()
 		}

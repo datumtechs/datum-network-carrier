@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	"github.com/RosettaFlow/Carrier-Go/lib/center/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"strings"
@@ -156,7 +156,7 @@ func (dc *DataCenter) RemoveTaskEventListByPartyId(taskId, partyId string) error
 	return rawdb.RemoveTaskEventByPartyId(dc.db, taskId, partyId)
 }
 
-func sprintPowerOrgs(powers []*apicommonpb.TaskOrganization) string {
+func sprintPowerOrgs(powers []*libcommonpb.TaskOrganization) string {
 	arr := make([]string, 0)
 	for _, power := range powers {
 		arr = append(arr, power.String())

@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/RosettaFlow/Carrier-Go/common"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"reflect"
 	"testing"
@@ -16,13 +16,13 @@ func newBlock() *Block {
 					IdentityId: "identity",
 					NodeId:     "NodeId",
 					DataId:     "dataId",
-					DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+					DataStatus: libcommonpb.DataStatus_DataStatus_Deleted,
 					FilePath:   "/a/b/c",
 					Desc:       "desc",
 					Rows:       10,
 					Columns:    100,
-					FileType:   apicommonpb.OriginFileType_FileType_CSV,
-					State:      apicommonpb.MetadataState_MetadataState_Unknown,
+					FileType:   libcommonpb.OriginFileType_FileType_CSV,
+					State:      libcommonpb.MetadataState_MetadataState_Unknown,
 					HasTitle:   true,
 					MetadataColumns: []*libtypes.MetadataColumn{
 						{
@@ -44,8 +44,8 @@ func newBlock() *Block {
 					NodeId:         "resource-nodeId",
 					NodeName:       "resource-nodeName",
 					DataId:         "resource-dataId",
-					DataStatus:     apicommonpb.DataStatus_DataStatus_Deleted,
-					State:          apicommonpb.PowerState_PowerState_Unknown,
+					DataStatus:     libcommonpb.DataStatus_DataStatus_Deleted,
+					State:          libcommonpb.PowerState_PowerState_Unknown,
 					TotalMem:       100 * 1024,
 					UsedMem:        100 * 2014,
 					TotalProcessor: 0,
@@ -64,8 +64,8 @@ func newBlock() *Block {
 					NodeId:     "identity-nodeId",
 					NodeName:   "identity-nodeName",
 					DataId:     "identity-nodeId",
-					DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
-					Status:     apicommonpb.CommonStatus_CommonStatus_NonNormal,
+					DataStatus: libcommonpb.DataStatus_DataStatus_Deleted,
+					Status:     libcommonpb.CommonStatus_CommonStatus_NonNormal,
 					Credential: "{\"a\":\"b\"}",
 				},
 			},
@@ -79,9 +79,9 @@ func newBlock() *Block {
 					NodeId:     "task-nodeId",
 					NodeName:   "task-nodeName",
 					DataId:     "task-dataId",
-					DataStatus: apicommonpb.DataStatus_DataStatus_Deleted,
+					DataStatus: libcommonpb.DataStatus_DataStatus_Deleted,
 					TaskId:     "task-taskId",
-					State:      apicommonpb.TaskState_TaskState_Unknown,
+					State:      libcommonpb.TaskState_TaskState_Unknown,
 					Reason:     "task-reason",
 					EventCount: 1,
 					Desc:       "task-desc",

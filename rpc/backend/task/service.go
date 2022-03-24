@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -142,7 +142,7 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check taskName failed, taskName is empty")
 		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require taskName"}, nil
 	}
-	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
+	if req.GetUserType() == libcommonpb.UserType_User_Unknown {
 		log.Errorf("RPC-API:PublishTaskDeclare failed, check userType failed, wrong userType: {%s}", req.GetUserType().String())
 		return &pb.PublishTaskDeclareResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
 	}
@@ -288,31 +288,31 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	}, nil
 }
 
-func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskRequest) (*apicommonpb.SimpleResponse, error) {
+func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskRequest) (*libcommonpb.SimpleResponse, error) {
 
 	_, err := svr.B.GetNodeIdentity()
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local identity failed")
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
+		return &libcommonpb.SimpleResponse{ Status: backend.ErrQueryNodeIdentity.ErrCode(), Msg: backend.ErrQueryNodeIdentity.Error()}, nil
 	}
 
-	if req.GetUserType() == apicommonpb.UserType_User_Unknown {
-		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
+	if req.GetUserType() == libcommonpb.UserType_User_Unknown {
+		return &libcommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "unknown userType"}, nil
 	}
 	if "" == req.GetUser() {
-		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require user"}, nil
+		return &libcommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require user"}, nil
 	}
 	if "" == req.GetTaskId() {
-		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
+		return &libcommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require taskId"}, nil
 	}
 	if len(req.GetSign()) == 0 {
-		return &apicommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
+		return &libcommonpb.SimpleResponse{ Status:  backend.ErrRequireParams.ErrCode(), Msg: "require sign"}, nil
 	}
 
 	task, err := svr.B.GetLocalTask(req.GetTaskId())
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:TerminateTask failed, query local task failed")
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "query local task failed"}, nil
+		return &libcommonpb.SimpleResponse{ Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: "query local task failed"}, nil
 	}
 
 	// check user
@@ -320,7 +320,7 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 		task.GetUserType() != req.GetUserType() {
 		log.WithError(err).Errorf("terminate task user and publish task user must be same, taskId: {%s}",
 			task.GetTaskId())
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: fmt.Sprintf("terminate task user and publish task user must be same, taskId: {%s}",
+		return &libcommonpb.SimpleResponse{ Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: fmt.Sprintf("terminate task user and publish task user must be same, taskId: {%s}",
 			task.GetTaskId())}, nil
 	}
 	// todo verify user sign with terminate task
@@ -333,10 +333,10 @@ func (svr *Server) TerminateTask(ctx context.Context, req *pb.TerminateTaskReque
 			req.GetTaskId())
 
 		errMsg := fmt.Sprintf("%s, taskId: {%s}", backend.ErrTerminateTaskMsg.Error(), req.GetTaskId())
-		return &apicommonpb.SimpleResponse{ Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: errMsg}, nil
+		return &libcommonpb.SimpleResponse{ Status: backend.ErrTerminateTaskMsg.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:TerminateTask succeed, userType: {%s}, user: {%s}, taskId: {%s}", req.GetUserType(), req.GetUser(), req.GetTaskId())
-	return &apicommonpb.SimpleResponse{
+	return &libcommonpb.SimpleResponse{
 		Status: 0,
 		Msg:    backend.OK,
 	}, nil

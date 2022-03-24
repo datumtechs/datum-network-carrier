@@ -8,7 +8,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/common/rlputil"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	ctypes "github.com/RosettaFlow/Carrier-Go/consensus/twopc/types"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -71,13 +71,13 @@ func TestUpdateOrgProposalState(t *testing.T) {
 			generateProposalId(),
 			"TASK001",
 			3,
-			&apicommonpb.TaskOrganization{
+			&libcommonpb.TaskOrganization{
 				PartyId:    value + "",
 				NodeName:   value + "NodeName",
 				NodeId:     value + "NodeId",
 				IdentityId: value + "IdentityId",
 			},
-			&apicommonpb.TaskOrganization{
+			&libcommonpb.TaskOrganization{
 				PartyId:    value + "P2",
 				NodeName:   value + "NodeName",
 				NodeId:     value + "NodeId",
@@ -128,7 +128,7 @@ func TestUpdatePrepareVotes(t *testing.T) {
 				SenderPartyId:   value + "",
 				ReceiverRole:    2,
 				ReceiverPartyId: "P2",
-				Owner: &apicommonpb.TaskOrganization{
+				Owner: &libcommonpb.TaskOrganization{
 					PartyId:    "P1",
 					NodeName:   "NodeName",
 					NodeId:     "NodeId",
@@ -160,7 +160,7 @@ func TestUpdateConfirmVotes(t *testing.T) {
 				SenderPartyId:   value + "",
 				ReceiverRole:    2,
 				ReceiverPartyId: "P2",
-				Owner: &apicommonpb.TaskOrganization{
+				Owner: &libcommonpb.TaskOrganization{
 					PartyId:    "P1",
 					NodeName:   "NodeName",
 					NodeId:     "NodeId",

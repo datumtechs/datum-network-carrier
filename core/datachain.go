@@ -7,7 +7,7 @@ import (
 	"github.com/RosettaFlow/Carrier-Go/db"
 	"github.com/RosettaFlow/Carrier-Go/event"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -178,7 +178,7 @@ func (dc *DataChain) StoreTaskEvent(event *libtypes.TaskEvent) error {
 }
 
 // TODO 本地存储当前调度服务自身的  identity
-func (dc *DataChain) StoreIdentity(identity *apicommonpb.Organization) error {return nil}
+func (dc *DataChain) StoreIdentity(identity *libcommonpb.Organization) error {return nil}
 func (dc *DataChain) DelIdentity() error                                     {return nil}
 
 func (dc *DataChain) GetYarnName() (string, error) {
@@ -191,7 +191,7 @@ func (dc *DataChain) GetIdentityId() (string, error) {
 	return "", nil
 }
 
-func (dc *DataChain) GetIdentity() (*apicommonpb.Organization, error) {
+func (dc *DataChain) GetIdentity() (*libcommonpb.Organization, error) {
 	// todo: implements by datacenter
 	return nil, nil
 }

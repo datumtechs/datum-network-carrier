@@ -2,7 +2,7 @@ package policy
 
 import (
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/types"
 )
@@ -14,13 +14,13 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 		TaskName: taskData.GetTaskName(),
 		UserType: taskData.GetUserType(),
 		User:     taskData.GetUser(),
-		Sender: &apicommonpb.TaskOrganization{
+		Sender: &libcommonpb.TaskOrganization{
 			PartyId:    input.GetTaskSender().GetPartyId(),
 			NodeName:   input.GetTaskSender().GetNodeName(),
 			NodeId:     input.GetTaskSender().GetNodeId(),
 			IdentityId: input.GetTaskSender().GetIdentityId(),
 		},
-		AlgoSupplier: &apicommonpb.TaskOrganization{
+		AlgoSupplier: &libcommonpb.TaskOrganization{
 			PartyId:    input.GetTaskData().GetAlgoSupplier().GetPartyId(),
 			NodeName:   input.GetTaskData().GetAlgoSupplier().GetNodeName(),
 			NodeId:     input.GetTaskData().GetAlgoSupplier().GetNodeId(),
@@ -33,7 +33,7 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 		StartAt:        taskData.GetStartAt(),
 		EndAt:          taskData.GetEndAt(),
 		State:          taskData.GetState(),
-		OperationCost: &apicommonpb.TaskResourceCostDeclare{
+		OperationCost: &libcommonpb.TaskResourceCostDeclare{
 			Processor: taskData.GetOperationCost().GetProcessor(),
 			Memory:    taskData.GetOperationCost().GetMemory(),
 			Bandwidth: taskData.GetOperationCost().GetBandwidth(),
@@ -55,7 +55,7 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 				taskData.GetTaskId(), dataSupplier.GetPartyId())
 		}
 		supplier := &pb.TaskDataSupplierShow{
-			Organization: &apicommonpb.TaskOrganization{
+			Organization: &libcommonpb.TaskOrganization{
 				PartyId:    dataSupplier.GetPartyId(),
 				NodeName:   dataSupplier.GetNodeName(),
 				NodeId:     dataSupplier.GetNodeId(),
@@ -77,7 +77,7 @@ func NewTaskDetailShowFromTaskData(input *types.Task) *pb.TaskDetailShow {
 			}
 		}
 		supplier := &pb.TaskPowerSupplierShow{
-			Organization: &apicommonpb.TaskOrganization{
+			Organization: &libcommonpb.TaskOrganization{
 				PartyId:    data.GetPartyId(),
 				NodeName:   data.GetNodeName(),
 				NodeId:     data.GetNodeId(),
@@ -107,7 +107,7 @@ func NewTaskEventFromAPIEvent(input []*libtypes.TaskEvent) []*pb.TaskEventShow {
 			Type:     event.GetType(),
 			CreateAt: event.GetCreateAt(),
 			Content:  event.GetContent(),
-			Owner: &apicommonpb.Organization{
+			Owner: &libcommonpb.Organization{
 				IdentityId: event.GetIdentityId(),
 			},
 			PartyId: event.GetPartyId(),

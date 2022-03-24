@@ -2,7 +2,7 @@ package schedule
 
 import (
 	"container/heap"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/types"
 
 	log "github.com/sirupsen/logrus"
@@ -150,6 +150,6 @@ func (sche *SchedulerStarveFIFO) increaseTotalTaskTerm() {
 	}
 }
 
-func (sche *SchedulerStarveFIFO) verifyUserMetadataAuthOnTask(userType apicommonpb.UserType, user, metadataId string) error {
+func (sche *SchedulerStarveFIFO) verifyUserMetadataAuthOnTask(userType libcommonpb.UserType, user, metadataId string) error {
 	return sche.authMng.VerifyMetadataAuth(userType, user, metadataId)
 }

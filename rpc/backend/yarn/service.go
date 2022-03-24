@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/core/rawdb"
 	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	"github.com/RosettaFlow/Carrier-Go/rpc/backend"
 	"github.com/RosettaFlow/Carrier-Go/service/discovery"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -68,20 +68,20 @@ func (svr *Server) SetSeedNode(ctx context.Context, req *pb.SetSeedNodeRequest) 
 	}, nil
 }
 
-func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteSeedNodeRequest) (*apicommonpb.SimpleResponse, error) {
+func (svr *Server) DeleteSeedNode(ctx context.Context, req *pb.DeleteSeedNodeRequest) (*libcommonpb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetAddr(), "") {
-		return &apicommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require addr of seedNode"}, nil
+		return &libcommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require addr of seedNode"}, nil
 	}
 
 	err := svr.B.DeleteSeedNode(strings.Trim(req.GetAddr(), ""))
 	if nil != err {
 		log.WithError(err).Errorf("RPC-API:RemoveSeedNode failed, addr: {%s}", req.GetAddr())
 		errMsg := fmt.Sprintf("%s, %s", backend.ErrDeleteSeedNode.Error(), req.GetAddr())
-		return &apicommonpb.SimpleResponse{Status: backend.ErrDeleteSeedNode.ErrCode(), Msg: errMsg}, nil
+		return &libcommonpb.SimpleResponse{Status: backend.ErrDeleteSeedNode.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:RemoveSeedNode succeed, addr: {%s}", req.GetAddr())
-	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
+	return &libcommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *Server) GetSeedNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetSeedNodeListResponse, error) {
@@ -204,20 +204,20 @@ func (svr *Server) UpdateDataNode(ctx context.Context, req *pb.UpdateDataNodeReq
 	}, nil
 }
 
-func (svr *Server) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
+func (svr *Server) DeleteDataNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*libcommonpb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetId(), "") {
-		return &apicommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of data node"}, nil
+		return &libcommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of data node"}, nil
 	}
 
 	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeDataNode, req.GetId()); nil != err {
 		log.WithError(err).Errorf("RPC-API:DeleteDataNode failed, dataNodeId: {%s}", req.GetId())
 
 		errMsg := fmt.Sprintf("%s, %s", backend.ErrDeleteDataNode.Error(), req.GetId())
-		return &apicommonpb.SimpleResponse{Status: backend.ErrDeleteDataNode.ErrCode(), Msg: errMsg}, nil
+		return &libcommonpb.SimpleResponse{Status: backend.ErrDeleteDataNode.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:DeleteDataNode succeed, dataNodeId: {%s}", req.GetId())
-	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
+	return &libcommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *Server) GetDataNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetRegisteredNodeListResponse, error) {
@@ -364,20 +364,20 @@ func (svr *Server) UpdateJobNode(ctx context.Context, req *pb.UpdateJobNodeReque
 	}, nil
 }
 
-func (svr *Server) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*apicommonpb.SimpleResponse, error) {
+func (svr *Server) DeleteJobNode(ctx context.Context, req *pb.DeleteRegisteredNodeRequest) (*libcommonpb.SimpleResponse, error) {
 
 	if "" == strings.Trim(req.GetId(), "") {
-		return &apicommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of job node"}, nil
+		return &libcommonpb.SimpleResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "require id of job node"}, nil
 	}
 
 	if err := svr.B.DeleteRegisterNode(pb.PrefixTypeJobNode, req.GetId()); nil != err {
 		log.WithError(err).Errorf("RPC-API:DeleteJobNode failed, jobNodeId: {%s}", req.GetId())
 
 		errMsg := fmt.Sprintf("%s, %s", backend.ErrDeleteJobNode.Error(), req.GetId())
-		return &apicommonpb.SimpleResponse{Status: backend.ErrDeleteJobNode.ErrCode(), Msg: errMsg}, nil
+		return &libcommonpb.SimpleResponse{Status: backend.ErrDeleteJobNode.ErrCode(), Msg: errMsg}, nil
 	}
 	log.Debugf("RPC-API:DeleteJobNode succeed, jobNodeId: {%s}", req.GetId())
-	return &apicommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
+	return &libcommonpb.SimpleResponse{Status: 0, Msg: backend.OK}, nil
 }
 
 func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.GetRegisteredNodeListResponse, error) {
@@ -415,7 +415,7 @@ func (svr *Server) GetJobNodeList(ctx context.Context, req *emptypb.Empty) (*pb.
 
 func (svr *Server) QueryAvailableDataNode(ctx context.Context, req *pb.QueryAvailableDataNodeRequest) (*pb.QueryAvailableDataNodeResponse, error) {
 
-	if req.GetFileType() == apicommonpb.OriginFileType_FileType_Unknown {
+	if req.GetFileType() == libcommonpb.OriginFileType_FileType_Unknown {
 		return &pb.QueryAvailableDataNodeResponse{Status: backend.ErrRequireParams.ErrCode(), Msg: "unknown fileType"}, nil
 	}
 

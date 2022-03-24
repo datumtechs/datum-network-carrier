@@ -1,8 +1,8 @@
 package iface
 
 import (
-	pb "github.com/RosettaFlow/Carrier-Go/lib/api"
-	apicommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
+	libapipb "github.com/RosettaFlow/Carrier-Go/lib/api"
+	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/params"
 	"github.com/RosettaFlow/Carrier-Go/types"
@@ -13,13 +13,13 @@ type LocalStoreCarrierDB interface {
 	SetConfig (config *params.CarrierChainConfig) error
 	// about carrier
 	QueryYarnName() (string, error)
-	SetSeedNode(seed *pb.SeedPeer) error
+	SetSeedNode(seed *libapipb.SeedPeer) error
 	RemoveSeedNode(addr string) error
-	QuerySeedNodeList() ([]*pb.SeedPeer, error)
-	SetRegisterNode(typ pb.RegisteredNodeType, node *pb.YarnRegisteredPeerDetail) error
-	DeleteRegisterNode(typ pb.RegisteredNodeType, id string) error
-	QueryRegisterNode(typ pb.RegisteredNodeType, id string) (*pb.YarnRegisteredPeerDetail, error)
-	QueryRegisterNodeList(typ pb.RegisteredNodeType) ([]*pb.YarnRegisteredPeerDetail, error)
+	QuerySeedNodeList() ([]*libapipb.SeedPeer, error)
+	SetRegisterNode(typ libapipb.RegisteredNodeType, node *libapipb.YarnRegisteredPeerDetail) error
+	DeleteRegisterNode(typ libapipb.RegisteredNodeType, id string) error
+	QueryRegisterNode(typ libapipb.RegisteredNodeType, id string) (*libapipb.YarnRegisteredPeerDetail, error)
+	QueryRegisterNodeList(typ libapipb.RegisteredNodeType) ([]*libapipb.YarnRegisteredPeerDetail, error)
 	// about local resource (local jobNode resource)
 	InsertLocalResource(resource *types.LocalResource) error
 	RemoveLocalResource(jobNodeId string) error
@@ -52,10 +52,10 @@ type LocalStoreCarrierDB interface {
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
 	// v 2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
-	StoreUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId, metadataAuthId string) error
-	QueryUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (string, error)
-	HasUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) (bool, error)
-	RemoveUserMetadataAuthIdByMetadataId(userType apicommonpb.UserType, user, metadataId string) error
+	StoreUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId, metadataAuthId string) error
+	QueryUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) (string, error)
+	HasUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) (bool, error)
+	RemoveUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) error
 	// v 2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
 	StoreMetadataHistoryTaskId(metadataId, taskId string) error
 	HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error)
@@ -99,14 +99,14 @@ type ResourceCarrierDB interface {
 
 type IdentityCarrierDB interface {
 	InsertIdentity(identity *types.Identity) error
-	StoreIdentity(identity *apicommonpb.Organization) error
+	StoreIdentity(identity *libcommonpb.Organization) error
 	RemoveIdentity() error
 	QueryIdentityId() (string, error)
-	QueryIdentity() (*apicommonpb.Organization, error)
+	QueryIdentity() (*libcommonpb.Organization, error)
 	RevokeIdentity(identity *types.Identity) error
 	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
 	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
-	HasIdentity(identity *apicommonpb.Organization) (bool, error)
+	HasIdentity(identity *libcommonpb.Organization) (bool, error)
 	// v2.0
 	InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error
