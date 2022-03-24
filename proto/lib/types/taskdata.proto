@@ -11,7 +11,7 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
 message TaskPB {
   string                                      task_id = 1;                                // 任务Id
-  string                                      data_id = 2;                                //
+  string                                      data_id = 2;                                // 预留
   api.protobuf.DataStatus                     data_status = 3;                            // the status of data for local storage, 1 means valid, 2 means invalid.
   string                                      user = 4;                                   // 发起任务的用户的信息 (task是属于用户的)
   api.protobuf.UserType                       user_type = 5;                              // 用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
@@ -39,16 +39,15 @@ message TaskPB {
   uint64                                      end_at = 27;                                // 任务的终止<成功or失败>时间戳 (单位: ms)
   uint64                                      start_at = 28;                              // 任务的开始执行时间戳 (单位: ms)
   repeated TaskEvent                          task_events = 29;                           // 任务的所有产生事件列表
-  bytes                                       sign = 30;
+  bytes                                       sign = 30;                                  // 消息签名 (userType 和 user决定算法)
+  uint64                                      nonce = 31;                                 // 任务的 nonce (用来标识该任务在任务发起方组织中的任务的序号, 从 0 开始递增)
 }
 
 
 // 任务算力提供方信息
 message TaskPowerResourceOption {
-  // 身份信息
-  string party_id = 1;
-  // 算力使用情况
-  types.ResourceUsageOverview resource_used_overview = 2;
+  string                        party_id = 1;                       // 身份信息
+  types.ResourceUsageOverview   resource_used_overview = 2;         // 算力使用情况
 }
 
 // 任务事件定义

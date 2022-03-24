@@ -12,7 +12,7 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 message MetadataPB {
   string                      metadata_id = 1;                // 元数据ID
   api.protobuf.Organization   owner = 2;                      // 元数据所属的组织信息
-  string                      data_id = 3;                    //
+  string                      data_id = 3;                    // 预留
   api.protobuf.DataStatus     data_status = 4;                // 数据状态, N means normal, D means deleted.
   string                      metadata_name = 5;              // 元数据的名称 (对外的表名)
   uint32                      metadata_type = 6;              // 表示该元数据是 普通数据 还是 模型数据的元数据 (0: 未定义; 1: 普通数据元数据; 2: 模型数据元数据)
@@ -23,7 +23,7 @@ message MetadataPB {
   api.protobuf.MetadataState  state = 11;                     // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
   uint64                      publish_at = 12;                // 元数据发布时间
   uint64                      update_at = 13;                 // 元数据更新时间
-  uint64                      nonce = 14;                     // 元数据的 nonce 用来标识该 元数据
+  uint64                      nonce = 14;                     // 元数据的 nonce (用来标识该元数据在所属组织中的元数据的序号, 从 0 开始递增)
   string                      metadata_option = 15;           // 元数据的选项，和 file_type 配套使用.
   string                      token_address = 16;             // 元数据对应的 dataToken 合约的地址
 }
@@ -32,7 +32,7 @@ message MetadataPB {
 message MetadataAuthorityPB {
   string                                      metadata_auth_id = 1;     // 元数据授权申请Id
   string                                      user = 2;                 // 申请人地址
-  string                                      data_id = 3;              //
+  string                                      data_id = 3;              // 预留
   api.protobuf.DataStatus                     data_status = 4;          // the status of data for local storage, 1 means valid, 2 means invalid.
   api.protobuf.UserType                       user_type = 5;            // 申请人类型
   MetadataAuthority                           auth = 6;                 // 元数据使用授权信息
@@ -59,7 +59,6 @@ message MetadataSummary {
   api.protobuf.OriginFileType   file_type = 6;              // 源文件的类型 (目前只有 csv)
   string                        industry = 7;               // 元数据所属行业
   api.protobuf.MetadataState    state = 8;                  // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)
-  // v 2.0
   uint64                        publish_at = 9;             // 数据发布时间
   uint64                        update_at = 10;             // 数据更新时间
   uint64                        nonce = 11;                 // 元数据的 nonce 用来标识该 元数据

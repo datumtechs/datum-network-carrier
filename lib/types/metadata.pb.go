@@ -354,22 +354,21 @@ func (m *MetadataAuthorityPB) GetUpdateAt() uint64 {
 // =============================== For API =========================
 // 元数据的摘要内容 (不包含详细 列描述)
 type MetadataSummary struct {
-	MetadataId   string                `protobuf:"bytes,1,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
-	MetadataName string                `protobuf:"bytes,2,opt,name=metadata_name,json=metadataName,proto3" json:"metadata_name,omitempty"`
-	MetadataType uint32                `protobuf:"varint,3,opt,name=metadata_type,json=metadataType,proto3" json:"metadata_type,omitempty"`
-	FileHash     string                `protobuf:"bytes,4,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
-	Desc         string                `protobuf:"bytes,5,opt,name=desc,proto3" json:"desc,omitempty"`
-	FileType     common.OriginFileType `protobuf:"varint,6,opt,name=file_type,json=fileType,proto3,enum=api.protobuf.OriginFileType" json:"file_type,omitempty"`
-	Industry     string                `protobuf:"bytes,7,opt,name=industry,proto3" json:"industry,omitempty"`
-	State        common.MetadataState  `protobuf:"varint,8,opt,name=state,proto3,enum=api.protobuf.MetadataState" json:"state,omitempty"`
-	// v 2.0
-	PublishAt            uint64   `protobuf:"varint,9,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
-	UpdateAt             uint64   `protobuf:"varint,10,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
-	Nonce                uint64   `protobuf:"varint,11,opt,name=nonce,proto3" json:"nonce,omitempty"`
-	MetadataOption       string   `protobuf:"bytes,12,opt,name=metadata_option,json=metadataOption,proto3" json:"metadata_option,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
+	MetadataId           string                `protobuf:"bytes,1,opt,name=metadata_id,json=metadataId,proto3" json:"metadata_id,omitempty"`
+	MetadataName         string                `protobuf:"bytes,2,opt,name=metadata_name,json=metadataName,proto3" json:"metadata_name,omitempty"`
+	MetadataType         uint32                `protobuf:"varint,3,opt,name=metadata_type,json=metadataType,proto3" json:"metadata_type,omitempty"`
+	FileHash             string                `protobuf:"bytes,4,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
+	Desc                 string                `protobuf:"bytes,5,opt,name=desc,proto3" json:"desc,omitempty"`
+	FileType             common.OriginFileType `protobuf:"varint,6,opt,name=file_type,json=fileType,proto3,enum=api.protobuf.OriginFileType" json:"file_type,omitempty"`
+	Industry             string                `protobuf:"bytes,7,opt,name=industry,proto3" json:"industry,omitempty"`
+	State                common.MetadataState  `protobuf:"varint,8,opt,name=state,proto3,enum=api.protobuf.MetadataState" json:"state,omitempty"`
+	PublishAt            uint64                `protobuf:"varint,9,opt,name=publish_at,json=publishAt,proto3" json:"publish_at,omitempty"`
+	UpdateAt             uint64                `protobuf:"varint,10,opt,name=update_at,json=updateAt,proto3" json:"update_at,omitempty"`
+	Nonce                uint64                `protobuf:"varint,11,opt,name=nonce,proto3" json:"nonce,omitempty"`
+	MetadataOption       string                `protobuf:"bytes,12,opt,name=metadata_option,json=metadataOption,proto3" json:"metadata_option,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *MetadataSummary) Reset()         { *m = MetadataSummary{} }
