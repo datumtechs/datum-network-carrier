@@ -20,11 +20,6 @@ type LocalStoreCarrierDB interface {
 	DeleteRegisterNode(typ libapipb.RegisteredNodeType, id string) error
 	QueryRegisterNode(typ libapipb.RegisteredNodeType, id string) (*libapipb.YarnRegisteredPeerDetail, error)
 	QueryRegisterNodeList(typ libapipb.RegisteredNodeType) ([]*libapipb.YarnRegisteredPeerDetail, error)
-	// about local resource (local jobNode resource)
-	InsertLocalResource(resource *types.LocalResource) error
-	RemoveLocalResource(jobNodeId string) error
-	QueryLocalResource(jobNodeId string) (*types.LocalResource, error)
-	QueryLocalResourceList() (types.LocalResourceArray, error)
 	// about powerId -> jobNodeId
 	StoreJobNodeIdIdByPowerId(powerId, jobNodeId string) error
 	RemoveJobNodeIdByPowerId(powerId string) error
@@ -51,17 +46,17 @@ type LocalStoreCarrierDB interface {
 	StoreDataResourceDiskUsed(dataResourceDiskUsed *types.DataResourceDiskUsed) error
 	RemoveDataResourceDiskUsed(metaDataId string) error
 	QueryDataResourceDiskUsed(metaDataId string) (*types.DataResourceDiskUsed, error)
-	// v 2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
+	// v 0.2.0  about user metadataAuthUsed by metadataId (userType + user + metadataId -> metadataAuthId)
 	StoreUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId, metadataAuthId string) error
 	QueryUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) (string, error)
 	HasUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) (bool, error)
 	RemoveUserMetadataAuthIdByMetadataId(userType libcommonpb.UserType, user, metadataId string) error
-	// v 2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
+	// v 0.2.0 about metadata used taskId    (metadataId -> [taskId, taskId, ..., taskId])
 	StoreMetadataHistoryTaskId(metadataId, taskId string) error
 	HasMetadataHistoryTaskId(metadataId, taskId string) (bool, error)
 	QueryMetadataHistoryTaskIdCount(metadataId string) (uint32, error)
 	QueryMetadataHistoryTaskIds(metadataId string) ([]string, error)
-	// v 2.0 about Message Cache
+	// v 0.2.0 about Message Cache
 	StoreMessageCache(value interface{}) error
 	RemovePowerMsg(powerId string) error
 	RemoveAllPowerMsg() error
@@ -78,35 +73,48 @@ type LocalStoreCarrierDB interface {
 }
 
 type MetadataCarrierDB interface {
+	// about global metadata
+	InsertMetadata(metadata *types.Metadata) error
+	RevokeMetadata(metadata *types.Metadata) error
+	QueryMetadataById(metadataId string) (*types.Metadata, error)
+	QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error)
+	QueryMetadataListByIdentity(identityId string, lastUpdate, pageSize uint64) (types.MetadataArray, error)
+	// v 0.3.0 about internal metadata (generate from a task result file)
 	StoreInternalMetadata(metadata *types.Metadata) error
 	IsInternalMetadataByDataId(metadataId string) (bool, error)
 	QueryInternalMetadataByDataId(metadataId string) (*types.Metadata, error)
 	QueryInternalMetadataList() (types.MetadataArray, error)
-	InsertMetadata(metadata *types.Metadata) error
-	RevokeMetadata(metadata *types.Metadata) error
-	QueryMetadataByDataId(dataId string) (*types.Metadata, error)
-	QueryMetadataList(lastUpdate, pageSize uint64) (types.MetadataArray, error)
-	QueryMetadataListByIdentity(identityId string, lastUpdate, pageSize uint64) (types.MetadataArray, error)
 }
 
 type ResourceCarrierDB interface {
+	// about global power resource
 	InsertResource(resource *types.Resource) error
 	RevokeResource(resource *types.Resource) error
 	QueryGlobalResourceSummaryList() (types.ResourceArray, error)
 	QueryGlobalResourceDetailList(lastUpdate, pageSize uint64) (types.ResourceArray, error)
 	SyncPowerUsed(resource *types.LocalResource) error
+	// about local resource (local jobNode resource)
+	StoreLocalResource(resource *types.LocalResource) error
+	RemoveLocalResource(jobNodeId string) error
+	QueryLocalResource(jobNodeId string) (*types.LocalResource, error)
+	QueryLocalResourceList() (types.LocalResourceArray, error)
 }
 
 type IdentityCarrierDB interface {
+	// about global identity
 	InsertIdentity(identity *types.Identity) error
+	RevokeIdentity(identity *types.Identity) error
+	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
+	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
+	// about local identity
+	HasIdentity(identity *libcommonpb.Organization) (bool, error)
 	StoreIdentity(identity *libcommonpb.Organization) error
 	RemoveIdentity() error
 	QueryIdentityId() (string, error)
 	QueryIdentity() (*libcommonpb.Organization, error)
-	RevokeIdentity(identity *types.Identity) error
-	QueryIdentityList(lastUpdate, pageSize uint64) (types.IdentityArray, error)
-	//QueryIdentityListByIds(identityIds []string) (types.IdentityArray, error)
-	HasIdentity(identity *libcommonpb.Organization) (bool, error)
+}
+
+type MetadataAuthorityCarrierDB interface {
 	// v2.0
 	InsertMetadataAuthority(metadataAuth *types.MetadataAuthority) error
 	UpdateMetadataAuthority(metadataAuth *types.MetadataAuthority) error
@@ -133,7 +141,7 @@ type TaskCarrierDB interface {
 	QueryTaskEventListByPartyId (taskId, partyId string) ([]*libtypes.TaskEvent, error)
 	RemoveTaskEventList(taskId string) error
 	RemoveTaskEventListByPartyId(taskId, partyId string) error
-	// about task on datacenter
+	// about global task on datacenter
 	InsertTask(task *types.Task) error
 	QueryGlobalTaskList(lastUpdate, pageSize uint64) (types.TaskDataArray, error)
 	QueryTaskListByIdentityId(identityId string, lastUpdate, pageSize uint64) (types.TaskDataArray, error)
@@ -169,10 +177,6 @@ type TaskCarrierDB interface {
 	QueryTaskUpResultFile(taskId string) (*types.TaskUpResultFile, error)
 	QueryTaskUpResultFileList() ([]*types.TaskUpResultFile, error)
 	RemoveTaskUpResultFile(taskId string) error
-	// v 2.0 about task powerPartyIds (prefix + taskId -> powerPartyIds)
-	StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error
-	QueryTaskPowerPartyIds(taskId string) ([]string, error)
-	RemoveTaskPowerPartyIds (taskId string) error
 	// v 2.0 about task partyIds of all partners (prefix + taskId -> [partyId, ..., partyId]  for task sender)
 	StoreTaskPartnerPartyIds(taskId string, partyIds []string) error
 	HasTaskPartnerPartyIds(taskId string) (bool, error)
@@ -212,6 +216,7 @@ type ForHandleDB interface {
 	IdentityCarrierDB
 	ResourceCarrierDB
 	MetadataCarrierDB
+	MetadataAuthorityCarrierDB
 	TaskCarrierDB
 }
 

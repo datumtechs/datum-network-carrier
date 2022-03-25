@@ -6,8 +6,6 @@ import (
 	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
-	"math/big"
-	"strings"
 )
 
 type ConsensusEngineType string
@@ -187,67 +185,23 @@ func FetchMsgOption(option *msgcommonpb.MsgOption) *MsgOption {
 type PrepareMsg struct {
 	MsgOption *MsgOption
 	TaskInfo  *Task
-	Nonce     []byte
-	Weights   [][]byte
+	Evidence  string
 	CreateAt  uint64
 	Sign      []byte
 }
 
 func (msg *PrepareMsg) String() string {
-	nonceStr := "0x"
-	if len(msg.Nonce) != 0 {
-		nonceStr = common.BytesToHash(msg.Nonce).Hex()
-	}
-	weightsStr := "[]"
-	if len(msg.Weights) != 0 {
-		arr := make([]string, len(msg.Weights))
-		for i, weight := range msg.Weights {
-			arr[i] = new(big.Int).SetBytes(weight).String()
-		}
-		weightsStr = "[" + strings.Join(arr, ",") + "]"
-	}
-	return fmt.Sprintf(`{"msgOption": %s, "nonce": %s, "weights": %s, "createAt": %d, "sign": %v}`,
-		msg.GetMsgOption().String(), nonceStr, weightsStr, msg.GetCreateAt(), msg.GetSign())
+	return fmt.Sprintf(`{"msgOption": %s, "evidence": %s, "createAt": %d, "sign": %v}`,
+		msg.GetMsgOption().String(), msg.GetEvidence(), msg.GetCreateAt(), msg.GetSign())
 }
 func (msg *PrepareMsg) StringWithTask() string {
-	nonceStr := "0x"
-	if len(msg.Nonce) != 0 {
-		nonceStr = common.BytesToHash(msg.Nonce).Hex()
-	}
-	weightsStr := "[]"
-	if len(msg.Weights) != 0 {
-		arr := make([]string, len(msg.Weights))
-		for i, weight := range msg.Weights {
-			arr[i] = new(big.Int).SetBytes(weight).String()
-		}
-		weightsStr = "[" + strings.Join(arr, ",") + "]"
-	}
-	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "nonce": %s, "weights": %s, "createAt": %d, "sign": %v}`,
-		msg.GetMsgOption().String(), msg.GetTask().GetTaskData().String(), nonceStr, weightsStr, msg.GetCreateAt(), msg.GetSign())
+	return fmt.Sprintf(`{"msgOption": %s, "taskInfo": %s, "evidence": %s, "createAt": %d, "sign": %v}`,
+		msg.GetMsgOption().String(), msg.GetTask().GetTaskData().String(), msg.GetEvidence(), msg.GetCreateAt(), msg.GetSign())
 }
 
 func (msg *PrepareMsg) GetMsgOption() *MsgOption { return msg.MsgOption }
 func (msg *PrepareMsg) GetTask() *Task           { return msg.TaskInfo }
-func (msg *PrepareMsg) GetNonce() []byte         { return msg.Nonce }
-func (msg *PrepareMsg) GetWeights() [][]byte     { return msg.Weights }
-func (msg *PrepareMsg) GetNonceHex() string {
-	nonceStr := "0x"
-	if len(msg.Nonce) != 0 {
-		nonceStr = common.BytesToHash(msg.Nonce).Hex()
-	}
-	return nonceStr
-}
-
-func (msg *PrepareMsg) GetWeightsBigInt() []*big.Int {
-	var weights []*big.Int
-	if len(msg.Weights) != 0 {
-		weights = make([]*big.Int, len(msg.Weights))
-		for i, weight := range msg.Weights {
-			weights[i] = new(big.Int).SetBytes(weight)
-		}
-	}
-	return weights
-}
+func (msg *PrepareMsg) GetEvidence() string { return msg.Evidence }
 func (msg *PrepareMsg) GetCreateAt() uint64 { return msg.CreateAt }
 func (msg *PrepareMsg) GetSign() []byte     { return msg.Sign }
 

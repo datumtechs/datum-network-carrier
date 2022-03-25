@@ -68,11 +68,11 @@ func (dc *DataCenter) RevokeMetadata(metadata *types.Metadata) error {
 	return nil
 }
 
-func (dc *DataCenter) QueryMetadataByDataId(dataId string) (*types.Metadata, error) {
+func (dc *DataCenter) QueryMetadataById(metadataId string) (*types.Metadata, error) {
 	dc.serviceMu.Lock()
 	defer dc.serviceMu.Unlock()
 	metadataByIdResponse, err := dc.client.GetMetadataById(dc.ctx, &api.FindMetadataByIdRequest{
-		MetadataId: dataId,
+		MetadataId: metadataId,
 	})
 	return types.NewMetadataFromResponse(metadataByIdResponse), err
 }

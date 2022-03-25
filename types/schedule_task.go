@@ -3,14 +3,12 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/timeutils"
 	libcommonpb "github.com/RosettaFlow/Carrier-Go/lib/common"
 	msgcommonpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/common"
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math"
-	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -67,68 +65,47 @@ func (res *TaskConsResult) String() string {
 
 // Local tasks that need to be agreed (scheduled but not yet agreed)
 type NeedConsensusTask struct {
-	task       *Task
-	nonce      []byte
-	weights    [][]byte
-	electionAt uint64
+	task *Task
+	//nonce      []byte
+	//weights    [][]byte
+	//electionAt uint64
+	evidence string
 }
 
-func NewNeedConsensusTask(task *Task, nonce []byte, weights [][]byte, electionAt uint64) *NeedConsensusTask {
+func NewNeedConsensusTask(task *Task, evidence string) *NeedConsensusTask {
 	return &NeedConsensusTask{
-		task:       task,
-		nonce:      nonce,
-		weights:    weights,
-		electionAt: electionAt,
+		task:     task,
+		evidence: evidence,
 	}
 }
 
-func (nct *NeedConsensusTask) GetTask() *Task        { return nct.task }
-func (nct *NeedConsensusTask) GetNonce() []byte      { return nct.nonce }
-func (nct *NeedConsensusTask) GetWeights() [][]byte  { return nct.weights }
-func (nct *NeedConsensusTask) GetElectionAt() uint64 { return nct.electionAt }
+func (nct *NeedConsensusTask) GetTask() *Task      { return nct.task }
+func (nct *NeedConsensusTask) GetEvidence() string { return nct.evidence }
 func (nct *NeedConsensusTask) String() string {
 	taskStr := "{}"
 	if nil != nct.task {
 		taskStr = nct.task.GetTaskData().String()
 	}
-
-	nonceStr := "0x"
-	if len(nct.nonce) != 0 {
-		nonceStr = common.BytesToHash(nct.nonce).Hex()
-	}
-
-	weightsStr := "[]"
-	if len(nct.weights) != 0 {
-		arr := make([]string, len(nct.weights))
-		for i, weight := range nct.weights {
-			arr[i] = new(big.Int).SetBytes(weight).String()
-		}
-		weightsStr = "[" + strings.Join(arr, ",") + "]"
-	}
-	return fmt.Sprintf(`{"task": %s, "nonce": %s, "weights": %s, "electionAt": %d}`, taskStr, nonceStr, weightsStr, nct.electionAt)
+	return fmt.Sprintf(`{"task": %s, "evidence": %s}`, taskStr, nct.evidence)
 }
 
 // Remote tasks that need to be scheduled again
 // (those that are in the process of consensus and need to be scheduled again after receiving the proposal from the opposite end)
 type NeedReplayScheduleTask struct {
-	localTaskRole libcommonpb.TaskRole
-	localPartyId  string
-	task          *Task
-	nonce         []byte
-	weights       [][]byte
-	electionAt    uint64
-	resultCh      chan *ReplayScheduleResult
+	partyId  string
+	taskRole libcommonpb.TaskRole
+	task     *Task
+	evidence string
+	resultCh chan *ReplayScheduleResult
 }
 
-func NewNeedReplayScheduleTask(role libcommonpb.TaskRole, partyId string, task *Task, nonce []byte, weights [][]byte, electionAt uint64) *NeedReplayScheduleTask {
+func NewNeedReplayScheduleTask(role libcommonpb.TaskRole, partyId string, task *Task, evidence string) *NeedReplayScheduleTask {
 	return &NeedReplayScheduleTask{
-		localTaskRole: role,
-		localPartyId:  partyId,
-		task:          task,
-		nonce:         nonce,
-		weights:       weights,
-		electionAt:    electionAt,
-		resultCh:      make(chan *ReplayScheduleResult),
+		taskRole:   role,
+		partyId:    partyId,
+		task:       task,
+		evidence:      evidence,
+		resultCh:   make(chan *ReplayScheduleResult),
 	}
 }
 func (nrst *NeedReplayScheduleTask) SendFailedResult(taskId string, err error) {
@@ -144,33 +121,18 @@ func (nrst *NeedReplayScheduleTask) SendResult(result *ReplayScheduleResult) {
 func (nrst *NeedReplayScheduleTask) ReceiveResult() *ReplayScheduleResult {
 	return <-nrst.resultCh
 }
-func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libcommonpb.TaskRole  { return nrst.localTaskRole }
-func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.localPartyId }
+func (nrst *NeedReplayScheduleTask) GetLocalTaskRole() libcommonpb.TaskRole  { return nrst.taskRole }
+func (nrst *NeedReplayScheduleTask) GetLocalPartyId() string                 { return nrst.partyId }
 func (nrst *NeedReplayScheduleTask) GetTask() *Task                          { return nrst.task }
-func (nrst *NeedReplayScheduleTask) GetNonce() []byte                        { return nrst.nonce }
-func (nrst *NeedReplayScheduleTask) GetWeights() [][]byte                    { return nrst.weights }
-func (nrst *NeedReplayScheduleTask) GetElectionAt() uint64                   { return nrst.electionAt }
+func (nrst *NeedReplayScheduleTask) GetEvidence() string                     { return nrst.evidence }
 func (nrst *NeedReplayScheduleTask) GetResultCh() chan *ReplayScheduleResult { return nrst.resultCh }
 func (nrst *NeedReplayScheduleTask) String() string {
 	taskStr := "{}"
 	if nil != nrst.task {
 		taskStr = nrst.task.GetTaskData().String()
 	}
-	nonceStr := "0x"
-	if len(nrst.nonce) != 0 {
-		nonceStr = common.BytesToHash(nrst.nonce).Hex()
-	}
-
-	weightsStr := "[]"
-	if len(nrst.weights) != 0 {
-		arr := make([]string, len(nrst.weights))
-		for i, weight := range nrst.weights {
-			arr[i] = new(big.Int).SetBytes(weight).String()
-		}
-		weightsStr = "[" + strings.Join(arr, ",") + "]"
-	}
-	return fmt.Sprintf(`{"taskRole": %s, "localPartyId": %s, "task": %s, "nonce": %s, "weights": %s, "resultCh": %p}`,
-		nrst.localTaskRole.String(), nrst.localPartyId, taskStr, nonceStr, weightsStr, nrst.resultCh)
+	return fmt.Sprintf(`{"taskRole": %s, "partyId": %s, "task": %s, "evidence": %s, "resultCh": %p}`,
+		nrst.taskRole.String(), nrst.partyId, taskStr, nrst.evidence, nrst.resultCh)
 }
 
 type ReplayScheduleResult struct {
@@ -289,8 +251,7 @@ func NewExecuteTaskMonitor(taskId, partyId string, when int64, fn func()) *Execu
 	}
 }
 
-
-func (etm *ExecuteTaskMonitor) String() string      {
+func (etm *ExecuteTaskMonitor) String() string {
 	return fmt.Sprintf(`{"index": %d, "taskId": %s, "partyId": %s, "when": %d}`,
 		etm.GetIndex(), etm.GetTaskId(), etm.GetPartyId(), etm.GetWhen())
 }
@@ -306,7 +267,7 @@ func (queue *executeTaskMonitorQueue) String() string {
 	for i, ett := range *queue {
 		arr[i] = ett.String()
 	}
-	return "[" + strings.Join(arr, ",") +  "]"
+	return "[" + strings.Join(arr, ",") + "]"
 }
 
 type SyncExecuteTaskMonitorQueue struct {
@@ -370,7 +331,7 @@ func (syncQueue *SyncExecuteTaskMonitorQueue) AddMonitor(m *ExecuteTaskMonitor) 
 	// when must never be negative;
 	if m.when-timeutils.UnixMsec() < 0 {
 		log.Warnf("target time is negative number, taskId: %s, partyId: %s, when: %d, now: %d",
-			 m.GetTaskId(), m.GetPartyId(), m.when, timeutils.UnixMsec())
+			m.GetTaskId(), m.GetPartyId(), m.when, timeutils.UnixMsec())
 	}
 	i := len(*(syncQueue.queue))
 	m.index = i

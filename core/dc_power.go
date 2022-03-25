@@ -8,7 +8,7 @@ import (
 )
 
 // about power on local
-func (dc *DataCenter) InsertLocalResource(resource *types.LocalResource) error {
+func (dc *DataCenter) StoreLocalResource(resource *types.LocalResource) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()
 	return rawdb.StoreLocalResource(dc.db, resource)

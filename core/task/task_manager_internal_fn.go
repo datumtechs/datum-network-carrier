@@ -652,7 +652,6 @@ func (m *Manager) storeBadTask(task *types.Task, events []*libtypes.TaskEvent, r
 	task.GetTaskData().EndAt = timeutils.UnixMsecUint64()
 
 	m.resourceMng.GetDB().RemoveLocalTask(task.GetTaskId())
-	m.resourceMng.GetDB().RemoveTaskPowerPartyIds(task.GetTaskId())
 	m.resourceMng.GetDB().RemoveTaskEventList(task.GetTaskId())
 
 	return m.resourceMng.GetDB().InsertTask(task)
@@ -820,7 +819,7 @@ func (m *Manager) metadataPolicyRowColumn(task *types.NeedExecuteTask, localTask
 					}
 				} else {
 					// query published metadata
-					metadata, err = m.resourceMng.GetDB().QueryMetadataByDataId(metadataId)
+					metadata, err = m.resourceMng.GetDB().QueryMetadataById(metadataId)
 					if nil != err {
 						return "", fmt.Errorf("query publish metadata failed %s, taskId: {%s}, partyId: {%s}, metadataId: {%s}",
 							err, localTask.GetTaskId(), partyId, metadataId)

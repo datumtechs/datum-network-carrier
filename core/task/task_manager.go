@@ -690,7 +690,7 @@ func (m *Manager) storeTaskHanlderPartyIds(task *types.Task, powerPolicyType uin
 	// partyId of powerSuppliers
 	partyIds, err := policy.FetchPowerPartyIds(powerPolicyType, powerPolicyOption)
 	if nil != err {
-		log.WithError(err).Errorf("not fetch partyIds from powerPolicy, taskId: {%s}", task.GetTaskId())
+		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy, taskId: {%s}", task.GetTaskId())
 		return err
 	}
 

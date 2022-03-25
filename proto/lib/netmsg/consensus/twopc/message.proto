@@ -12,14 +12,9 @@ option go_package = "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twop
 message PrepareMsg {
   common.MsgOption             msg_option = 1;
   bytes                        task_info = 2 [(gogoproto.moretags) = "ssz-max:\"16777216\""];             // 任务 types.TaskData serial by pb.
-  bytes                        nonce = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                     // vrf 的 proof + rand 的byte值
-  repeated  Weight             weights = 4 [(gogoproto.moretags) = "ssz-max:\"16777216\""];               // 备选出来对应各个powerSupplier 的权重值
-  uint64                       create_at = 5 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // proposal 创建的时间戳 (单位: ms)
-  bytes                        sign = 6 [(gogoproto.moretags) = "ssz-max:\"1024\""];                      // 任务发起者签名
-}
-
-message Weight {
-  bytes                        value = 1 [(gogoproto.moretags) = "ssz-max:\"1024\""];                     // 备选出来对应单个个powerSupplier 的权重值
+  bytes                        evidence = 3 [(gogoproto.moretags) = "ssz-max:\"1024\""];                  // 选举算力的依据信息
+  uint64                       create_at = 4 [(gogoproto.moretags) = "ssz-size:\"8\""];                   // proposal 创建的时间戳 (单位: ms)
+  bytes                        sign = 5 [(gogoproto.moretags) = "ssz-max:\"1024\""];                      // 任务发起者签名
 }
 
 // 2pc prepareVote

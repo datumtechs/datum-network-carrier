@@ -249,8 +249,8 @@ func (svr *Server) PublishTaskDeclare(ctx context.Context, req *pb.PublishTaskDe
 	// check partyId of powerSuppliers
 	powerPartyIds, err := policy.FetchPowerPartyIds(req.GetPowerPolicyType(), req.GetPowerPolicyOption())
 	if nil != err {
-		log.WithError(err).Errorf("not fetch partyIds from powerPolicy")
-		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from powerPolicy" }, nil
+		log.WithError(err).Errorf("not fetch partyIds from task powerPolicy")
+		return &pb.PublishTaskDeclareResponse { Status: backend.ErrPublishTaskMsg.ErrCode(), Msg: "not fetch partyIds from task powerPolicy" }, nil
 	}
 	for _, partyId := range powerPartyIds {
 		if _, ok := checkPartyIdCache[partyId]; ok {

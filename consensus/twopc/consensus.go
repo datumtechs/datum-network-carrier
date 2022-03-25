@@ -2,6 +2,7 @@ package twopc
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/RosettaFlow/Carrier-Go/common"
 	"github.com/RosettaFlow/Carrier-Go/common/bytesutil"
@@ -15,6 +16,7 @@ import (
 	twopcpb "github.com/RosettaFlow/Carrier-Go/lib/netmsg/consensus/twopc"
 	libtypes "github.com/RosettaFlow/Carrier-Go/lib/types"
 	"github.com/RosettaFlow/Carrier-Go/p2p"
+	"github.com/RosettaFlow/Carrier-Go/policy"
 	"github.com/RosettaFlow/Carrier-Go/types"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"strings"
@@ -154,12 +156,26 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 		return err
 	}
 
+	createAt := timeutils.UnixMsecUint64()
+	if task.GetTaskData().GetPowerPolicyType() == types.TASK_POWER_POLICY_ASSIGNMENT_LABEL {
+		var evidence *policy.VRFElectionEvidence
+		if err := json.Unmarshal([]byte(nonConsTask.GetEvidence()), &evidence); nil != err {
+			log.WithError(err).Errorf("can not decode evidence of powerSuppliers election on OnHandle, taskId: {%s}, partyId: {%s}",
+				task.GetTaskId(), task.GetTaskSender().GetPartyId())
+			t.stopTaskConsensus("can not decode evidence of powerSuppliers election", common.Hash{}, task.GetTaskId(),
+				libcommonpb.TaskRole_TaskRole_Sender, libcommonpb.TaskRole_TaskRole_Sender, task.GetTaskSender(), task.GetTaskSender(),
+				types.TaskConsensusInterrupt)
+			return err
+		}
+		createAt = evidence.GetElectionAt()
+	}
+
 	var buf bytes.Buffer
 	buf.Write(t.config.Option.NodeID.Bytes())
 	buf.Write([]byte(task.GetTaskId()))
 	buf.Write([]byte(task.GetTaskData().GetTaskName()))
 	buf.Write(bytesutil.Uint64ToBytes(task.GetTaskData().GetCreateAt()))
-	buf.Write(bytesutil.Uint64ToBytes(nonConsTask.GetElectionAt()))
+	buf.Write(bytesutil.Uint64ToBytes(createAt))
 	proposalId := rlputil.RlpHash(buf.Bytes())
 
 	log.Infof("Generate proposal, proposalId: {%s}, taskId: {%s}, partyId: {%s}", proposalId.String(), task.GetTaskId(), task.GetTaskSender().GetPartyId())
@@ -169,16 +185,16 @@ func (t *Twopc) OnHandle(nonConsTask *types.NeedConsensusTask) error {
 		ctypes.NewOrgProposalState(proposalId, task.GetTaskId(),
 			libcommonpb.TaskRole_TaskRole_Sender,
 			task.GetTaskSender(), task.GetTaskSender(),
-			nonConsTask.GetElectionAt()),
+			createAt),
 	)
 
-	proposalTask := ctypes.NewProposalTask(proposalId, task.GetTaskId(), nonConsTask.GetElectionAt())
+	proposalTask := ctypes.NewProposalTask(proposalId, task.GetTaskId(), createAt)
 	t.state.StoreProposalTaskWithPartyId(task.GetTaskSender().GetPartyId(), proposalTask)
 	t.wal.StoreProposalTask(task.GetTaskSender().GetPartyId(), proposalTask)
 	// Start handle task ...
 	go func() {
 
-		if err := t.sendPrepareMsg(proposalId, nonConsTask, nonConsTask.GetElectionAt()); nil != err {
+		if err := t.sendPrepareMsg(proposalId, nonConsTask, createAt); nil != err {
 			log.Errorf("Failed to call `sendPrepareMsg`, consensus epoch finished, proposalId: {%s}, taskId: {%s}, partyId: {%s}, err: \n%s",
 				proposalId.String(), task.GetTaskId(), task.GetTaskSender().GetPartyId(), err)
 			// Send consensus result to Scheduler
@@ -292,7 +308,7 @@ func (t *Twopc) onPrepareMsg(pid peer.ID, prepareMsg *types.PrepareMsgWrap, nmls
 	t.wal.StoreProposalTask(msg.GetMsgOption().GetReceiverPartyId(), proposalTask)
 
 	// Send task to Scheduler to replay sched.
-	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetNonce(), msg.GetWeights(), msg.GetCreateAt())
+	needReplayScheduleTask := types.NewNeedReplayScheduleTask(msg.GetMsgOption().GetReceiverRole(), msg.GetMsgOption().GetReceiverPartyId(), msg.GetTask(), msg.GetEvidence())
 	t.sendNeedReplayScheduleTask(needReplayScheduleTask)
 	replayTaskResult := needReplayScheduleTask.ReceiveResult()
 

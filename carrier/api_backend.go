@@ -183,7 +183,7 @@ func (s *CarrierAPIBackend) GetSeedNodeList() ([]*pb.SeedPeer, error) {
 func (s *CarrierAPIBackend) storeLocalResource(identity *libcommonpb.Organization, jobNodeId string, jobNodeStatus *computesvc.GetStatusReply) error {
 
 	// store into local db
-	if err := s.carrier.carrierDB.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
+	if err := s.carrier.carrierDB.StoreLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
 		Owner:      identity,
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
@@ -619,7 +619,7 @@ func (s *CarrierAPIBackend) GetMetadataDetail(identityId, metadataId string) (*t
 			return metadata, nil
 		}
 	}
-	metadata, err = s.carrier.carrierDB.QueryMetadataByDataId(metadataId)
+	metadata, err = s.carrier.carrierDB.QueryMetadataById(metadataId)
 	if nil != err {
 		return nil, fmt.Errorf("not found local metadata by special Id, %s", err)
 	}

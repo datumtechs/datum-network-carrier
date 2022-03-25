@@ -44,8 +44,6 @@ var (
 
 	// prefix + taskId -> resultfile summary (auto build metadataId)
 	taskResultFileMetadataIdKeyPrefix = []byte("taskResultFileMetadataIdKeyPrefix:")
-	// prefix + taskId -> powerPartyIds
-	taskPowerPartyIdsKeyPrefix = []byte("taskPowerPartyIdsKeyPrefix:")
 	// prefix + taskId -> [partyId, ..., partyId]  for task sender
 	taskPartnerPartyIdsKeyPrefix = []byte("taskPartnerPartyIdsKeyPrefix:")
 
@@ -199,10 +197,6 @@ func GetTaskResultFileMetadataIdKey(taskId string) []byte {
 
 func GetTaskResultFileMetadataIdKeyPrefix() []byte {
 	return taskResultFileMetadataIdKeyPrefix
-}
-
-func GetTaskPowerPartyIdsKey(taskId string) []byte {
-	return append(taskPowerPartyIdsKeyPrefix, []byte(taskId)...)
 }
 
 func GetTaskPartnerPartyIdsKey(taskId string) []byte {

@@ -415,24 +415,6 @@ func (dc *DataCenter) RemoveTaskUpResultFile(taskId string) error {
 	return rawdb.RemoveTaskUpResultFile(dc.db, taskId)
 }
 
-func (dc *DataCenter) StoreTaskPowerPartyIds(taskId string, powerPartyIds []string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.StoreTaskPowerPartyIds(dc.db, taskId, powerPartyIds)
-}
-
-func (dc *DataCenter) QueryTaskPowerPartyIds(taskId string) ([]string, error) {
-	dc.mu.RLock()
-	defer dc.mu.RUnlock()
-	return rawdb.QueryTaskPowerPartyIds(dc.db, taskId)
-}
-
-func (dc *DataCenter) RemoveTaskPowerPartyIds(taskId string) error {
-	dc.mu.Lock()
-	defer dc.mu.Unlock()
-	return rawdb.RemoveTaskPowerPartyIds(dc.db, taskId)
-}
-
 func (dc *DataCenter) StoreTaskPartnerPartyIds(taskId string, partyIds []string) error {
 	dc.mu.Lock()
 	defer dc.mu.Unlock()

@@ -194,23 +194,23 @@ func (s *VrfElector) EnoughAvailableOrganization(taskId string, calculateCount i
 	return true, nil
 }
 
-func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libcommonpb.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte) (bool, error) {
+func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []*libcommonpb.TaskOrganization, powerResources []*libtypes.TaskPowerResourceOption, nodeIdStr string, extra, nonce []byte, weights [][]byte) error {
 
 	if len(powerSuppliers) != len(weights) {
-		return false, fmt.Errorf("powerSuppliers count is invalid, powerSuppliers count : %d, weights count: %d", len(powerSuppliers), len(weights))
+		return fmt.Errorf("powerSuppliers count is invalid, powerSuppliers count : %d, weights count: %d", len(powerSuppliers), len(weights))
 	}
 
 	if len(nonce) == 0 {
-		return false, fmt.Errorf("empty vrf nonce <proof + rand>")
+		return fmt.Errorf("empty vrf nonce <proof + rand>")
 	}
 
 	nodeId, err := p2p.HexID(nodeIdStr)
 	if nil != err {
-		return false, fmt.Errorf("convert nodeId from hex failed, %s", err)
+		return fmt.Errorf("convert nodeId from hex failed, %s", err)
 	}
 	pubKey, err := nodeId.Pubkey()
 	if nil != err {
-		return false, fmt.Errorf("fetch publicKey from nodeId failed, %s", err)
+		return fmt.Errorf("fetch publicKey from nodeId failed, %s", err)
 	}
 
 	input := rlputil.RlpHash(extra) // extra just is a taskId + electionAt
@@ -220,10 +220,10 @@ func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []
 
 	flag, err := vrf.Verify(pubKey, nonce, input.Bytes())
 	if nil != err {
-		return false, fmt.Errorf("verify vrf nonce <proof + rand> failed, %s", err)
+		return fmt.Errorf("verify vrf nonce <proof + rand> failed, %s", err)
 	}
 	if !flag {
-		return false, fmt.Errorf("verify vrf nonce <proof + rand> result is %v", flag)
+		return fmt.Errorf("verify vrf nonce <proof + rand> result is %v", flag)
 	}
 
 	weightMap := make(map[string]struct{}, len(weights))
@@ -238,7 +238,7 @@ func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []
 		dh := rlputil.RlpHash(powerSupplier.GetIdentityId()) // len(dh) == 32
 		value := new(big.Int).Xor(new(big.Int).SetBytes(dh.Bytes()), new(big.Int).SetBytes(rand)).String()
 		if _, ok := weightMap[value]; !ok {
-			return false, fmt.Errorf("not found vrf xor weight value of powerSupplier, identity: %s, weight: %s", powerSupplier.GetIdentityId(), value)
+			return fmt.Errorf("not found vrf xor weight value of powerSupplier, identity: %s, weight: %s", powerSupplier.GetIdentityId(), value)
 		}
 		identityIdMap[powerSupplier.GetIdentityId()] = struct{}{}
 	}
@@ -246,27 +246,27 @@ func (s *VrfElector) VerifyElectionOrganization(taskId string, powerSuppliers []
 	// Find global power resources
 	globalpowerSummarys, err := s.queryValidGlobalPowerList("VerifyElectionOrganization()", taskId)
 	if nil != err {
-		return false, err
+		return err
 	}
 
 	log.Debugf("GetRemoteResouceTables on VrfElector.VerifyElectionOrganization(), taskId: {%s}, len: {%d}, globalpowerSummarys: %s", taskId, len(globalpowerSummarys), globalpowerSummarys.String())
 
 	if len(globalpowerSummarys) < len(powerSuppliers) {
-		return false, fmt.Errorf("query valid org's power resource count less calculate count")
+		return fmt.Errorf("query valid org's power resource count less calculate count")
 	}
 	queue, reweights := s.vrfElectionOrganizationResourceQueue(globalpowerSummarys, nonce, len(powerSuppliers))
 	for _, powerSupplier := range queue {
 		if _, ok := identityIdMap[powerSupplier.GetIdentityId()]; !ok {
-			return false, fmt.Errorf("not found identityId of powerSupplier when reElectionOrganizationResource, identity: %s", powerSupplier.GetIdentityId())
+			return fmt.Errorf("not found identityId of powerSupplier when reElectionOrganizationResource, identity: %s", powerSupplier.GetIdentityId())
 		}
 	}
 	for _, weight := range reweights {
 		value := new(big.Int).SetBytes(weight).String()
 		if _, ok := weightMap[value]; !ok {
-			return false, fmt.Errorf("not found reweight value of powerSupplier when reElectionOrganizationResource, weight: %s", value)
+			return fmt.Errorf("not found reweight value of powerSupplier when reElectionOrganizationResource, weight: %s", value)
 		}
 	}
-	return true, nil
+	return nil
 }
 
 // data is taskId

@@ -1201,41 +1201,6 @@ func RemoveTaskUpResultFile(db KeyValueStore, taskId string) error {
 	return db.Delete(key)
 }
 
-func StoreTaskPowerPartyIds(db DatabaseWriter, taskId string, powerPartyIds []string) error {
-	key := GetTaskPowerPartyIdsKey(taskId)
-	val, err := rlp.EncodeToBytes(powerPartyIds)
-	if nil != err {
-		return err
-	}
-	return db.Put(key, val)
-}
-
-func QueryTaskPowerPartyIds(db DatabaseReader, taskId string) ([]string, error) {
-	key := GetTaskPowerPartyIdsKey(taskId)
-
-	vb, err := db.Get(key)
-	if nil != err {
-		return nil, err
-	}
-	var powerPartyIds []string
-	if err = rlp.DecodeBytes(vb, &powerPartyIds); nil != err {
-		return nil, err
-	}
-	return powerPartyIds, nil
-}
-
-func RemoveTaskPowerPartyIds(db KeyValueStore, taskId string) error {
-	key := GetTaskPowerPartyIdsKey(taskId)
-	has, err := db.Has(key)
-	switch {
-	case IsNoDBNotFoundErr(err):
-		return err
-	case IsDBNotFoundErr(err), nil == err && !has:
-		return nil
-	}
-	return db.Delete(key)
-}
-
 func StoreTaskPartnerPartyIds(db DatabaseWriter, taskId string, partyIds []string) error {
 	key := GetTaskPartnerPartyIdsKey(taskId)
 	val, err := rlp.EncodeToBytes(partyIds)

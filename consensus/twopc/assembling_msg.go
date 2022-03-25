@@ -26,18 +26,10 @@ func makePrepareMsg(
 		return nil, err
 	}
 
-	weights := make([]*twopcpb.Weight, len(nonConsTaks.GetWeights()))
-	for i, weight := range nonConsTaks.GetWeights() {
-		weights[i] = &twopcpb.Weight{
-			Value: weight,
-		}
-	}
-
 	return &twopcpb.PrepareMsg{
 		MsgOption: types.MakeMsgOption(proposalId, senderRole, receiverRole, senderPartyId, receiverPartyId, nonConsTaks.GetTask().GetTaskSender()),
 		TaskInfo:  taskBytes.Bytes(),
-		Nonce:     nonConsTaks.GetNonce(),
-		Weights:   weights,
+		Evidence:  []byte(nonConsTaks.GetEvidence()),
 		CreateAt:  startTime,
 		Sign:      nil,
 	}, nil
@@ -130,16 +122,10 @@ func fetchPrepareMsg(msg *types.PrepareMsgWrap) (*types.PrepareMsg, error) {
 		return nil, fmt.Errorf("decode task info failed from prepareMsg, %s", err)
 	}
 
-	weights := make([][]byte, len(msg.GetWeights()))
-	for i, weight := range msg.GetWeights() {
-		weights[i] = weight.GetValue()
-	}
-
 	return &types.PrepareMsg{
 			MsgOption: types.FetchMsgOption(msg.GetMsgOption()),
 			TaskInfo:  task,
-			Nonce:     msg.GetNonce(),
-			Weights:   weights,
+			Evidence:     string(msg.GetEvidence()),
 			CreateAt:  msg.GetCreateAt(),
 			Sign:      msg.GetSign(),
 		},

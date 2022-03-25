@@ -234,7 +234,7 @@ func (m *Manager) LockLocalResourceWithTask(partyId, jobNodeId string, mem, band
 
 		jobNodeResource.GetData().State = libcommonpb.PowerState_PowerState_Occupation
 	}
-	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
+	if err := m.dataCenter.StoreLocalResource(jobNodeResource); nil != err {
 		// rollback useSlot => freeSlot
 		// rollback addPartyTaskPowerUsedOnJobNode
 		m.freeSlot(task.GetTaskId(), partyId, jobNodeId, mem, bandwidth, disk, processor)
@@ -383,7 +383,7 @@ func (m *Manager) UnLockLocalResourceWithTask(taskId, partyId string) error {
 
 		jobNodeResource.GetData().State = libcommonpb.PowerState_PowerState_Released
 	}
-	if err := m.dataCenter.InsertLocalResource(jobNodeResource); nil != err {
+	if err := m.dataCenter.StoreLocalResource(jobNodeResource); nil != err {
 		log.WithError(err).Errorf("Failed to update local jobNodeResource on resourceManager.UnLockLocalResourceWithTask(), taskId: {%s}, partyId: {%s}, jobNodeId: {%s}, freeMemCount: {%d}, freeBandwidthCount: {%d}, freeDiskCount: {%d}, freeProcessorCount: {%d}, LocalResource: %s",
 			taskId, partyId, jobNodeId, freeMemCount, freeBandwidthCount, freeDiskCount, freeProcessorCount, jobNodeResource.GetData().String())
 		return err
@@ -456,12 +456,6 @@ func (m *Manager) ReleaseLocalResourceWithTask(logdesc, taskId, partyId string, 
 			// Remove the only task that everyone refers to together
 			if err := m.dataCenter.RemoveLocalTask(taskId); nil != err {
 				log.WithError(err).Errorf("Failed to remove local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
-					logdesc, taskId, partyId, option)
-			}
-
-			// Remove the only things in task that everyone refers to together
-			if err := m.dataCenter.RemoveTaskPowerPartyIds(taskId); nil != err {
-				log.WithError(err).Errorf("Failed to remove power's partyIds of local task  %s, taskId: {%s}, partyId: {%s}, releaseOption: {%d}",
 					logdesc, taskId, partyId, option)
 			}
 
@@ -686,7 +680,7 @@ func (m *Manager) AddDiscoveryJobNodeResource(identity *libcommonpb.Organization
 	// 1. add local jobNode resource
 	// add resource usage first, but not own power now (mem, proccessor, bandwidth)
 	// store into local db
-	if err := m.dataCenter.InsertLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
+	if err := m.dataCenter.StoreLocalResource(types.NewLocalResource(&libtypes.LocalResourcePB{
 		Owner: identity,
 		JobNodeId:  jobNodeId,
 		DataId:     "", // can not own powerId now, because power have not publish
@@ -832,7 +826,7 @@ func (m *Manager) UpdateDiscoveryJobNodeResource(identity *libcommonpb.Organizat
 			resource.GetData().TotalProcessor = jobNodeStatus.GetTotalCpu()
 			resource.GetData().TotalDisk = jobNodeStatus.GetTotalDisk()
 
-			if err := m.dataCenter.InsertLocalResource(resource); nil != err {
+			if err := m.dataCenter.StoreLocalResource(resource); nil != err {
 				log.WithError(err).Errorf("Failed to update local resource when jobNode total resource had change from consul server on resourceManager.UpdateDiscoveryJobNodeResource(), jobNodeServiceId: {%s}, jobNodeService: {%s:%s}",
 					jobNodeId, jobNodeIP, jobNodePort)
 				return err

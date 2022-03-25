@@ -446,7 +446,7 @@ func (m *MessageHandler) BroadcastPowerMsgArr(powerMsgArr types.PowerMsgArr) {
 		}
 
 		// update local resource
-		if err := m.resourceMng.GetDB().InsertLocalResource(resource); nil != err {
+		if err := m.resourceMng.GetDB().StoreLocalResource(resource); nil != err {
 			log.WithError(err).Errorf("Failed to update local resource with powerId to local on MessageHandler with broadcast msg, powerId: {%s}, jobNodeId: {%s}",
 				msg.GetPowerId(), msg.GetJobNodeId())
 			continue
@@ -531,7 +531,7 @@ func (m *MessageHandler) BroadcastPowerRevokeMsgArr(powerRevokeMsgArr types.Powe
 		resource.GetData().UsedMem = 0
 
 		// update local resource
-		if err := m.resourceMng.GetDB().InsertLocalResource(resource); nil != err {
+		if err := m.resourceMng.GetDB().StoreLocalResource(resource); nil != err {
 			log.WithError(err).Errorf("Failed to update local resource with powerId to local on MessageHandler with revoke power, powerId: {%s}, jobNodeId: {%s}",
 				revoke.GetPowerId(), jobNodeId)
 			continue

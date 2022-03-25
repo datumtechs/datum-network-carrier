@@ -8,6 +8,7 @@ import (
 type CarrierDB interface {
 	iface.LocalStoreCarrierDB
 	iface.MetadataCarrierDB
+	iface.MetadataAuthorityCarrierDB
 	iface.ResourceCarrierDB
 	iface.IdentityCarrierDB
 	iface.TaskCarrierDB
