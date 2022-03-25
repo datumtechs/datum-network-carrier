@@ -198,6 +198,7 @@ func (sche *SchedulerStarveFIFO) TrySchedule() (resTask *types.NeedConsensusTask
 	}
 	return resTask, bullet.GetTaskId(), nil
 }
+
 func (sche *SchedulerStarveFIFO) ReplaySchedule(
 	partyId string, taskRole libcommonpb.TaskRole,
 	replayTask *types.NeedReplayScheduleTask) *types.ReplayScheduleResult {
