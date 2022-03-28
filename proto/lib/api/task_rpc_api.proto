@@ -17,7 +17,7 @@ message TaskDetailShow {
   string                                 user = 3;                            // 发起任务的用户的信息 (task是属于用户的)
   types.UserType                         user_type = 4;                       // 用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
   types.TaskOrganization                 sender = 5;                          // 任务发起者 组织信息
-  types.TaskOrganization                 algo_supplier = 6;                   // 算法提供方组织信息 (目前就是和 任务发起方是同一个 ...)
+  TaskAlgoSupplier                       algo_supplier = 6;                   // 算法提供方组织信息
   repeated TaskDataSupplierShow          data_suppliers = 7;                  // 数据提供方组织信息
   repeated TaskPowerSupplierShow         power_suppliers = 8;                 // 算力提供方组织信息
   repeated types.TaskOrganization        receivers = 9;                       // 任务结果方
@@ -28,6 +28,13 @@ message TaskDetailShow {
   types.TaskResourceCostDeclare          operation_cost = 14;                 // 任务所需资源声明
   string                                 desc = 15;                           // 任务描述 (非必须)
   uint64                                 update_at = 16;                      // 数据的最后更新时间，UTC毫秒数
+  uint64                                 nonce = 17;                          // 任务的 nonce (用来标识该任务在任务发起方组织中的任务的序号, 从 0 开始递增)
+}
+
+message TaskAlgoSupplier {
+  types.TaskOrganization        organization = 1;                             // 身份信息
+  string                        meta_algorithm_id = 2;                        // 算法元数据Id (为了后续支持 算法市场而用, 使用内置算法时则该值为 "" 空字符串)
+  string                        meta_algorithm_name = 3;                      // 算法元数据名称 (为了后续支持 算法市场而用, 使用内置算法时则该值为 "" 空字符串)
 }
 
 // 定义：任务数据提供方（仅用于web页面交互使用）
@@ -105,9 +112,9 @@ message PublishTaskDeclareRequest {
   uint32                                    data_flow_policy_type = 12;           //  任务的数据流向策略的类型
   string                                    data_flow_policy_option = 13;         //  任务的数据流向策略的内容 (json字符串, 和 data_flow_policy_type 配套使用)
   types.TaskResourceCostDeclare             operation_cost = 14;                  //  任务所需资源声明
-  string                                    algorithm_code = 15;                  //  算法代码 (在不使用 算法市场前提下用)
-  string                                    meta_algorithm_id = 16;               //  算法元数据Id (为了后续支持 算法市场而用)
-  string                                    contract_extra_params = 17;           //  合约调用的额外可变入参 (json 字符串, 根据算法来)
+  string                                    algorithm_code = 15;                  //  内置算法代码 (使用内置算法, 在不使用算法市场前提下用)
+  string                                    meta_algorithm_id = 16;               //  算法元数据Id (为了后续支持 算法市场而用, 使用内置算法时则该值为 "" 空字符串)
+  string                                    algorithm_code_extra_params = 17;     //  内置算法的额外超参 (使用内置算法, 内置算法的额外超参数 json 字符串, 内容可为""空字符串, 根据算法来)
   bytes                                     sign = 18;                            //  发起任务的账户的签名
   string                                    desc = 19;                            //  任务描述 (非必须)
 }

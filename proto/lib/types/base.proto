@@ -68,10 +68,19 @@ enum AuditMetadataOption {
   Audit_Refused = 2;          // 审核拒绝
 }
 
+// 元数据类型
+enum MetadataType {
+  MetadataType_Unknown = 0;         // 未知
+  MetadataType_DataFile = 1;        // 普通数据
+  MetadataType_ModuleFile = 2;      // 模型数据
+  MetadataType_ModuleFile = 2;      // 模型数据
+
+}
+
 //原始文件类型
 enum OriginFileType {
   FileType_Unknown = 0;   // 未知
-  FileType_CSV = 1;       // csv, 目前只支持这个.
+  FileType_CSV = 1;       // csv, 目前只支持这个
 }
 
 // 元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)

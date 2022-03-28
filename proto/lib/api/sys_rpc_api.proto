@@ -53,6 +53,7 @@ message YarnNodeInfo {
   uint32                      relate_peers = 13;                         // 本调度服务被外部组织(调度服务/种子节点)的连接数目
   string                      local_bootstrap_node = 14;                 // 当前系统的本地节点，可以作为引导节点提供给三方节点
   string                      local_multi_addr = 15;                     // 当前系统本地的 multiAddr, eg: /ip4/127.0.0.1/tcp/18001/p2p/16Uiu2HAmKMo4Ci5TYcXspnKnMWK4G4CRWSHBV4qCUAFYrtirhcuz
+  string                      observer_proxy_wallet_address = 16;        // 当前组织内置系统钱包地址 (见证人代理钱包)
 }
 
 
@@ -241,13 +242,15 @@ message GetTaskResultFileSummaryRequest {
 // 查询 任务结果文件摘要 resp
 message GetTaskResultFileSummary {
   string task_id = 1;                 // 任务结果文件对应的任务Id
-  string table_name = 2;              // 任务结果文件的(系统生成的、内部的)元数据名称
+  string matedata_name = 2;           // 任务结果文件的(系统生成的、内部的)元数据名称
   string metadata_id = 3;             // 任务结果文件的元数据Id <系统默认生成的元数据>
   string origin_id = 4;               // 任务结果文件的原始文件Id
-  string file_path = 5;               // 任务结果文件的完整相对路径名
+  string file_path = 5;               // 任务结果文件的完整相对路径名(目录名，不是文件名，因为文件名称是算法里面定的)
   string ip = 6;                      // 任务结果文件所在的 数据服务内网ip
   string port = 7;                    // 任务结果文件所在的 数据服务内网port
+  string extra = 8;                   // 任务结果文件的额外字段 (如: 训练任务的模型评估结果json 等)
 }
+
 message GetTaskResultFileSummaryResponse {
   int32  status = 1;                          // 响应码
   string msg = 2;                             // 错误信息
@@ -259,6 +262,12 @@ message GetTaskResultFileSummaryListResponse {
   int32                              status = 1;                      // 响应码
   string                             msg = 2;                         // 错误信息
   repeated GetTaskResultFileSummary  task_result_files = 3;           // 当前组织参与的所有任务结果文件摘要列表
+}
+
+message GetObServerProxyWalletAddressResponse {
+  int32   status = 1;    // 响应码
+  string  msg = 2;       // 错误信息
+  string  address = 3;   // 当前组织内置系统钱包地址 (见证人代理钱包)
 }
 
 // ## 调度服务 - 系统状态 接口
@@ -425,5 +434,19 @@ service YarnService {
       get: "/carrier/v1/yarn/taskResultFileSummaryList"
     };
   }
+
+  // v 0.4.0 生成当前组织内置系统钱包地址 (见证人代理钱包, 全局只有一个)
+  rpc GetObServerProxyWalletAddress (google.protobuf.Empty) returns (GetObServerProxyWalletAddressResponse) {
+    option (google.api.http) = {
+      get: "/carrier/v1/yarn/generateObserverProxyWallet"
+    };
+  }
+
+//  // v 0.4.0 查询当前组织内置系统钱包地址 (见证人代理钱包)
+//  rpc GetObServerProxyWalletAddress (google.protobuf.Empty) returns (GetObServerProxyWalletAddressResponse) {
+//    option (google.api.http) = {
+//      get: "/carrier/v1/yarn/observerProxyWalletAddress"
+//    };
+//  }
 
 }

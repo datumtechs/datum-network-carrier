@@ -7,6 +7,9 @@ import "lib/types/base.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
+// todo 定义 metadata_type 枚举
+// todo 是否支持 algo_metadata ?
+// todo 是否支持 module_metadata ?
 // Metadata body data struct.
 message MetadataPB {
   string                      metadata_id = 1;                // 元数据ID
@@ -23,8 +26,9 @@ message MetadataPB {
   uint64                      publish_at = 12;                // 元数据发布时间
   uint64                      update_at = 13;                 // 元数据更新时间
   uint64                      nonce = 14;                     // 元数据的 nonce (用来标识该元数据在所属组织中的元数据的序号, 从 0 开始递增)
-  string                      metadata_option = 15;           // 元数据的选项，和 file_type 配套使用.
-  string                      token_address = 16;             // 元数据对应的 dataToken 合约的地址
+  string                      metadata_option = 15;           // 元数据的选项，和 file_type 配套使用
+  bool                        allow_download = 16;            // 
+  string                      token_address = 17;             // 元数据对应的 dataToken 合约的地址
 }
 
 // 元数据申请记录实体

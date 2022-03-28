@@ -26,11 +26,10 @@ message TaskPB {
   string                                      power_policy_option = 15;                   // 任务的算力提供方选择算力策略的内容 (json字符串, 和 power_policy_type 配套使用)
   uint32                                      data_flow_policy_type = 16;                 // 任务的数据流向策略的类型
   string                                      data_flow_policy_option = 17;               // 任务的数据流向策略的内容 (json字符串, 和 data_flow_policy_type 配套使用)
-
   TaskResourceCostDeclare                     operation_cost = 18;                        // 任务的初始资源声明
-  string                                      algorithm_code = 19;                        // 算法代码 (在不使用 算法市场前提下用)
-  string                                      meta_algorithm_id = 20;                     // 算法元数据Id (为了后续支持 算法市场而用)
-  string                                      contract_extra_params = 21;                 // 合约调用的额外可变入参 (json 字符串, 根据算法来)
+  string                                      algorithm_code = 19;                        // 内置算法代码 (使用内置算法, 在不使用算法市场前提下用)
+  string                                      meta_algorithm_id = 20;                     // 算法元数据Id (为了后续支持 算法市场而用, 使用内置算法时则该值为 "" 空字符串)
+  string                                      algorithm_code_extra_params = 21;           // 内置算法的额外超参 (使用内置算法, 内置算法的额外超参数 json 字符串, 内容可为""空字符串, 根据算法来)
   repeated TaskPowerResourceOption            power_resource_options = 22;                // 算力的资源消耗明细
   TaskState                                   state = 23;                                 // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
   string                                      reason = 24;                                // 任务失败原因

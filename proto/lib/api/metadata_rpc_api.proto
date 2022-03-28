@@ -78,6 +78,16 @@ message GetMetadataUsedTaskIdListResponse {
   repeated string             task_ids = 3;         // 任务Id
 }
 
+// 将内部元数据重新发布成 对外的元数据 req
+message PublishMetadataByInteranlMetadataRequest {
+  string metadata_id = 1; // 内部元数据Id
+}
+
+// 将任务的结果数据重新发布成 对外的元数据 req
+message PublishMetadataByTaskResultFileRequest {
+  string  task_id = 1; //任务id
+}
+
 // ## 元数据 相关接口
 service MetadataService {
 
@@ -117,11 +127,26 @@ service MetadataService {
     };
   }
 
-  // V 2.0 新增
+  // V 0.2.0 新增
   // 查询某 metadata 参与过的任务的taskId列表
   rpc GetMetadataUsedTaskIdList (GetMetadataUsedTaskIdListRequest) returns (GetMetadataUsedTaskIdListResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/metadata/usedTaskIdList"
+      body: "*"
+    };
+  }
+
+  // v 0.4.0 将内部元数据重新发布成 对外的元数据
+  rpc PublishMetadataByInteranlMetadata (PublishMetadataByInteranlMetadataRequest) returns (types.SimpleResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/publishByInteranlMetadata"
+      body: "*"
+    };
+  }
+  // v 0.4.0 将任务的结果数据重新发布成 对外的元数据
+  rpc PublishMetadataByTaskResultFile (PublishMetadataByTaskResultFileRequest) returns (PublishMetadataResponse) {
+    option (google.api.http) = {
+      post: "/carrier/v1/metadata/publishByTaskResultFile"
       body: "*"
     };
   }
