@@ -153,7 +153,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufSimpleResponse"
+              "$ref": "#/definitions/typesSimpleResponse"
             }
           },
           "default": {
@@ -225,90 +225,11 @@
         }
       }
     },
-    "protobufDataStatus": {
-      "type": "string",
-      "enum": [
-        "DataStatus_Unknown",
-        "DataStatus_Valid",
-        "DataStatus_Invalid"
-      ],
-      "default": "DataStatus_Unknown",
-      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
-    },
-    "protobufMetadataState": {
-      "type": "string",
-      "enum": [
-        "MetadataState_Unknown",
-        "MetadataState_Created",
-        "MetadataState_Released",
-        "MetadataState_Revoked"
-      ],
-      "default": "MetadataState_Unknown",
-      "title": "元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)"
-    },
-    "protobufOrganization": {
-      "type": "object",
-      "properties": {
-        "node_name": {
-          "type": "string",
-          "title": "org name"
-        },
-        "node_id": {
-          "type": "string",
-          "title": "the node_id for org"
-        },
-        "identity_id": {
-          "type": "string",
-          "title": "the identity for org"
-        },
-        "status": {
-          "$ref": "#/definitions/protobufDataStatus",
-          "title": "the status for organization(1 means valid, 2 means invalid)"
-        },
-        "update_at": {
-          "type": "string",
-          "format": "uint64",
-          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
-        },
-        "image_url": {
-          "type": "string",
-          "title": "the link of face image (with a length limit)"
-        },
-        "details": {
-          "type": "string",
-          "title": "description of the node (with a length limit)"
-        }
-      },
-      "description": "A represents the basic information of the organization."
-    },
-    "protobufOriginFileType": {
-      "type": "string",
-      "enum": [
-        "FileType_Unknown",
-        "FileType_CSV"
-      ],
-      "default": "FileType_Unknown",
-      "title": "原始文件类型"
-    },
-    "protobufSimpleResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32",
-          "title": "the code for response"
-        },
-        "msg": {
-          "type": "string",
-          "title": "the message for response"
-        }
-      }
-    },
     "rpcapiGetGlobalMetadataDetail": {
       "type": "object",
       "properties": {
         "owner": {
-          "$ref": "#/definitions/protobufOrganization"
+          "$ref": "#/definitions/typesOrganization"
         },
         "information": {
           "$ref": "#/definitions/typesMetadataDetail"
@@ -339,7 +260,7 @@
       "type": "object",
       "properties": {
         "owner": {
-          "$ref": "#/definitions/protobufOrganization"
+          "$ref": "#/definitions/typesOrganization"
         },
         "information": {
           "$ref": "#/definitions/typesMetadataDetail"
@@ -455,6 +376,16 @@
         }
       }
     },
+    "typesDataStatus": {
+      "type": "string",
+      "enum": [
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
+      ],
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+    },
     "typesMetadataDetail": {
       "type": "object",
       "properties": {
@@ -467,6 +398,17 @@
         }
       },
       "title": "元数据的详情信息"
+    },
+    "typesMetadataState": {
+      "type": "string",
+      "enum": [
+        "MetadataState_Unknown",
+        "MetadataState_Created",
+        "MetadataState_Released",
+        "MetadataState_Revoked"
+      ],
+      "default": "MetadataState_Unknown",
+      "title": "元数据的状态 (0: 未知; 1: 还未发布的新表; 2: 已发布的表; 3: 已撤销的表)"
     },
     "typesMetadataSummary": {
       "type": "object",
@@ -488,18 +430,17 @@
           "type": "string"
         },
         "file_type": {
-          "$ref": "#/definitions/protobufOriginFileType"
+          "$ref": "#/definitions/typesOriginFileType"
         },
         "industry": {
           "type": "string"
         },
         "state": {
-          "$ref": "#/definitions/protobufMetadataState"
+          "$ref": "#/definitions/typesMetadataState"
         },
         "publish_at": {
           "type": "string",
-          "format": "uint64",
-          "title": "v 2.0"
+          "format": "uint64"
         },
         "update_at": {
           "type": "string",
@@ -511,9 +452,70 @@
         },
         "metadata_option": {
           "type": "string"
+        },
+        "token_address": {
+          "type": "string"
         }
       },
       "title": "=============================== For API =========================\n元数据的摘要内容 (不包含详细 列描述)"
+    },
+    "typesOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        },
+        "status": {
+          "$ref": "#/definitions/typesDataStatus",
+          "title": "the status for organization(1 means valid, 2 means invalid)"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64",
+          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+        },
+        "image_url": {
+          "type": "string",
+          "title": "the link of face image (with a length limit)"
+        },
+        "details": {
+          "type": "string",
+          "title": "description of the node (with a length limit)"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
+    "typesOriginFileType": {
+      "type": "string",
+      "enum": [
+        "FileType_Unknown",
+        "FileType_CSV"
+      ],
+      "default": "FileType_Unknown",
+      "title": "原始文件类型"
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
     }
   }
 }

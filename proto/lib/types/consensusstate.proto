@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package types;
 
-import "lib/common/base.proto";
+import "lib/types/base.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/types";
 
@@ -21,11 +21,11 @@ message OrgProposalState{
   uint64                        start_at = 1;
   uint64                        deadline_duration = 2;
   uint64                        create_at = 3;
-  api.protobuf.TaskRole         task_role = 4;
-  api.protobuf.TaskOrganization task_org = 5;
+  TaskRole                      task_role = 4;
+  TaskOrganization              task_org = 5;
   uint32                        period_num = 6;
   string                        task_id = 7;
-  api.protobuf.TaskOrganization task_sender = 8;
+  TaskOrganization              task_sender = 8;
 }
 
 message PrepareVoteResource{
@@ -37,11 +37,11 @@ message PrepareVoteResource{
 
 message MsgOption{
   string                        proposal_id = 1;
-  api.protobuf.TaskRole         sender_role = 2;
+  TaskRole                      sender_role = 2;
   string                        sender_party_id = 3;
-  api.protobuf.TaskRole         receiver_role = 4;
+  TaskRole                      receiver_role = 4;
   string                        receiver_party_id = 5;
-  api.protobuf.TaskOrganization owner = 6;
+  TaskOrganization              owner = 6;
 }
 
 message PrepareVote{

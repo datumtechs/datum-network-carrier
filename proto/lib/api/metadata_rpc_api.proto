@@ -4,7 +4,7 @@ package rpcapi;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
-import "lib/common/base.proto";
+import "lib/types/base.proto";
 import "lib/types/metadata.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
@@ -13,7 +13,7 @@ import "google/protobuf/empty.proto";
 
 // (全网) 单个元数据详情 resp
 message GetGlobalMetadataDetail {
-  api.protobuf.Organization owner = 1;              // 元数据的拥有者
+  types.Organization        owner = 1;              // 元数据的拥有者
   types.MetadataDetail      information = 2;        // 元文件详情主体
 }
 
@@ -31,7 +31,7 @@ message GetGlobalMetadataDetailListResponse {
 
 // (本组织) 单个元数据详情 resp
 message GetLocalMetadataDetail {
-  api.protobuf.Organization owner = 1;                  // 元数据的拥有者
+  types.Organization        owner = 1;                  // 元数据的拥有者
   types.MetadataDetail      information = 2;            // 元文件详情主体
   bool                      is_internal = 3;            // 是否为本组织内部元数据 (不对外的元数据, true: 是内部元数据; false: 不是)
 }
@@ -110,7 +110,7 @@ service MetadataService {
     };
   }
   // 撤销元数据 (从底层网络撤销)
-  rpc RevokeMetadata (RevokeMetadataRequest) returns (api.protobuf.SimpleResponse) {
+  rpc RevokeMetadata (RevokeMetadataRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/metadata/revoke"
       body: "*"

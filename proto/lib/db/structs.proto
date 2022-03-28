@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package db;
 
-import "repos/protobuf/gogoproto/gogo.proto";
 import "lib/types/taskdata.proto";
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/db";

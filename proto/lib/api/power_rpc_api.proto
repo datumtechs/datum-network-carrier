@@ -4,10 +4,8 @@ package rpcapi;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
-import "lib/common/base.proto";
-import "lib/common/data.proto";
+import "lib/types/base.proto";
 import "lib/types/resourcedata.proto";
-import "lib/api/task_rpc_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
@@ -15,7 +13,7 @@ import "google/protobuf/empty.proto";
 
 // 单个组织的总算力信息
 message GetGlobalPowerSummary {
-  api.protobuf.Organization owner = 1;                  // 算力拥有者信息
+  types.Organization        owner = 1;                  // 算力拥有者信息
   types.PowerUsageDetail    information = 2;            // 算力单个摘要
 }
 
@@ -28,7 +26,7 @@ message GetGlobalPowerSummaryListResponse {
 
 // 单个组织的各个算力信息
 message GetGlobalPowerDetail {
-  api.protobuf.Organization owner = 1;                  // 算力拥有者信息
+  types.Organization        owner = 1;                  // 算力拥有者信息
   types.PowerUsageDetail    information = 2;            // 算力总详细
   string                    power_id = 3;               // 算力id
 }
@@ -47,7 +45,7 @@ message GetGlobalPowerDetailListResponse {
 
 // 本组织的单个(宿主机)算力信息 (包含【未发布】和【已发布】的) resp
 message GetLocalPowerDetail {
-  api.protobuf.Organization owner = 1;                  // 算力拥有者信息
+  types.Organization        owner = 1;                  // 算力拥有者信息
   types.PowerUsageDetail    power = 2;                  // 算力单个摘要
   string                    job_node_id = 3;            // 计算服务id (单个宿主机的id)
   string                    power_id = 4;               // 算力id (对于未发布的算力, powerId为"")
@@ -118,7 +116,7 @@ service PowerService {
   }
 
   // 停用算力 (撤销算力)
-  rpc RevokePower (RevokePowerRequest) returns (api.protobuf.SimpleResponse) {
+  rpc RevokePower (RevokePowerRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/power/revoke"
       body: "*"

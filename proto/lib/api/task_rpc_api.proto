@@ -4,43 +4,42 @@ package rpcapi;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
-import "lib/common/base.proto";
-import "lib/common/data.proto";
-import "lib/types/taskdata.proto";
+import "lib/types/base.proto";
+//import "lib/types/taskdata.proto";
 import "lib/types/resourcedata.proto";
 import "google/api/annotations.proto";
-import "google/protobuf/empty.proto";
+//import "google/protobuf/empty.proto";
 
 // 定义：任务详情（仅用户与前端交互展示使用）
 message TaskDetailShow {
   string                                 task_id = 1;                         // 任务Id
   string                                 task_name = 2;                       // 任务名称
   string                                 user = 3;                            // 发起任务的用户的信息 (task是属于用户的)
-  api.protobuf.UserType                  user_type = 4;                       // 用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
-  api.protobuf.TaskOrganization          sender = 5;                          // 任务发起者 组织信息
-  api.protobuf.TaskOrganization          algo_supplier = 6;                   // 算法提供方组织信息 (目前就是和 任务发起方是同一个 ...)
+  types.UserType                         user_type = 4;                       // 用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
+  types.TaskOrganization                 sender = 5;                          // 任务发起者 组织信息
+  types.TaskOrganization                 algo_supplier = 6;                   // 算法提供方组织信息 (目前就是和 任务发起方是同一个 ...)
   repeated TaskDataSupplierShow          data_suppliers = 7;                  // 数据提供方组织信息
   repeated TaskPowerSupplierShow         power_suppliers = 8;                 // 算力提供方组织信息
-  repeated api.protobuf.TaskOrganization receivers = 9;                       // 任务结果方
+  repeated types.TaskOrganization        receivers = 9;                       // 任务结果方
   uint64                                 create_at = 10;                      // 任务发起时间 (单位: ms)
   uint64                                 start_at = 11;                       // 任务启动时间 (单位: ms)
   uint64                                 end_at = 12;                         // 任务结束时间 (单位: ms)
-  api.protobuf.TaskState                 state = 13;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
-  api.protobuf.TaskResourceCostDeclare   operation_cost = 14;                 // 任务所需资源声明
+  types.TaskState                        state = 13;                          // 任务的状态 (0: 未知; 1: 等在中; 2: 计算中; 3: 失败; 4: 成功)
+  types.TaskResourceCostDeclare          operation_cost = 14;                 // 任务所需资源声明
   string                                 desc = 15;                           // 任务描述 (非必须)
   uint64                                 update_at = 16;                      // 数据的最后更新时间，UTC毫秒数
 }
 
 // 定义：任务数据提供方（仅用于web页面交互使用）
 message TaskDataSupplierShow {
-  api.protobuf.TaskOrganization organization = 1;                             // 身份信息
+  types.TaskOrganization        organization = 1;                             // 身份信息
   string                        metadata_id = 2;                              // 元数据Id
   string                        metadata_name = 3;                            // 元数据名称
 }
 
 // 定义：算力提供方（仅用于web页面交互使用）
 message TaskPowerSupplierShow {
-  api.protobuf.TaskOrganization organization = 1;                         // 身份信息
+  types.TaskOrganization        organization = 1;                         // 身份信息
   types.ResourceUsageOverview   power_info = 2;                           // 算力使用情况
 }
 
@@ -48,7 +47,7 @@ message TaskPowerSupplierShow {
 message TaskEventShow {
   string                    type = 1;                        // 事件类型码
   string                    task_id = 2;                     // 事件对应的任务id
-  api.protobuf.Organization owner = 3;                       // 产生事件的节点身份
+  types.Organization        owner = 3;                       // 产生事件的节点身份
   string                    party_id = 4;                    // 产生事件的partyId (单个组织可以担任任务的多个party, 区分是哪一方产生的event)
   string                    content = 5;                     // 事件内容
   uint64                    create_at = 6;                   // 事件产生时间 (单位: ms)
@@ -94,18 +93,18 @@ message GetTaskEventListResponse {
 message PublishTaskDeclareRequest {
   string                                    task_name = 1;                        //  任务名称
   string                                    user = 2;                             //  发起任务的用户的信息 (task是属于用户的)
-  api.protobuf.UserType                     user_type = 3;                        //  用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
-  api.protobuf.TaskOrganization             sender = 4;                           //  任务发起者 组织信息
-  api.protobuf.TaskOrganization             algo_supplier = 5;                    //  任务算法提供方 组织信息
-  repeated api.protobuf.TaskOrganization    data_suppliers = 6;                   //  任务的数据提供方 (包含发起者和参与方)
-  repeated api.protobuf.TaskOrganization    receivers = 7;                        //  任务结果接受者 (包含发起者和参与方)
+  types.UserType                            user_type = 3;                        //  用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
+  types.TaskOrganization                    sender = 4;                           //  任务发起者 组织信息
+  types.TaskOrganization                    algo_supplier = 5;                    //  任务算法提供方 组织信息
+  repeated types.TaskOrganization           data_suppliers = 6;                   //  任务的数据提供方 (包含发起者和参与方)
+  repeated types.TaskOrganization           receivers = 7;                        //  任务结果接受者 (包含发起者和参与方)
   uint32                                    data_policy_type = 8;                 //  任务的数据提供方选择数据策略的类型
   string                                    data_policy_option = 9;               //  任务的数据提供方选择数据策略的内容 (json字符串, 和 data_policy_type 配套使用)
   uint32                                    power_policy_type = 10;               //  任务的算力提供方选择算力策略的类型
   string                                    power_policy_option = 11;             //  任务的算力提供方选择算力策略的内容 (json字符串, 和 power_policy_type 配套使用)
   uint32                                    data_flow_policy_type = 12;           //  任务的数据流向策略的类型
   string                                    data_flow_policy_option = 13;         //  任务的数据流向策略的内容 (json字符串, 和 data_flow_policy_type 配套使用)
-  api.protobuf.TaskResourceCostDeclare      operation_cost = 14;                  //  任务所需资源声明
+  types.TaskResourceCostDeclare             operation_cost = 14;                  //  任务所需资源声明
   string                                    algorithm_code = 15;                  //  算法代码 (在不使用 算法市场前提下用)
   string                                    meta_algorithm_id = 16;               //  算法元数据Id (为了后续支持 算法市场而用)
   string                                    contract_extra_params = 17;           //  合约调用的额外可变入参 (json 字符串, 根据算法来)
@@ -123,7 +122,7 @@ message PublishTaskDeclareResponse {
 // 终止任务 req
 message TerminateTaskRequest {
   string                user = 1;                             //  发起任务的用户的信息 (task是属于用户的)
-  api.protobuf.UserType user_type = 2;                        //  用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
+  types.UserType        user_type = 2;                        //  用户类型 (0: 未定义; 1: 第二地址; 2: 测试网地址; 3: 主网地址)
   string                task_id = 3;                          //  任务id
   bytes                 sign = 12;                            //  发起任务的账户的签名
 }
@@ -177,7 +176,7 @@ service TaskService {
   }
 
   // 终止任务
-  rpc TerminateTask (TerminateTaskRequest) returns (api.protobuf.SimpleResponse) {
+  rpc TerminateTask (TerminateTaskRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/task/terminate"
       body: "*"

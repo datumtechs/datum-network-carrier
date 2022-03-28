@@ -4,13 +4,13 @@ package api;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
-import "lib/common/base.proto";
-import "lib/types/identitydata.proto";
+import "lib/types/base.proto";
+//import "lib/types/identitydata.proto";
 import "lib/types/metadata.proto";
-import "google/protobuf/empty.proto";
+//import "google/protobuf/empty.proto";
 
 message SaveIdentityRequest {
-  api.protobuf.Organization member = 1;
+  types.Organization member = 1;
   // 节点的身份凭证（DID中的凭证信息）
   string credential = 2;
 }
@@ -26,7 +26,7 @@ message ListIdentityRequest {
 }
 
 message ListIdentityResponse {
-  repeated api.protobuf.Organization identities = 1;
+  repeated types.Organization identities = 1;
 }
 
 // 定义：元数据授权申请记录
@@ -59,18 +59,18 @@ service IdentityService {
   rpc ListIdentity(ListIdentityRequest) returns (ListIdentityResponse);
 
   // 存储身份信息（节点用于申请接入网络的基本信息，详细的存于本地）
-  rpc SaveIdentity (SaveIdentityRequest) returns (api.protobuf.SimpleResponse);
+  rpc SaveIdentity (SaveIdentityRequest) returns (types.SimpleResponse);
 
   // 注销准入网络
-  rpc RevokeIdentity (RevokeIdentityRequest) returns (api.protobuf.SimpleResponse);
+  rpc RevokeIdentity (RevokeIdentityRequest) returns (types.SimpleResponse);
 
   // v2.0
   // 存储元数据鉴权申请记录
-  rpc SaveMetadataAuthority(MetadataAuthorityRequest) returns (api.protobuf.SimpleResponse);
+  rpc SaveMetadataAuthority(MetadataAuthorityRequest) returns (types.SimpleResponse);
 
   // 数据授权审核，规则：
   // 1、直接进行数据覆盖更新
-  rpc UpdateMetadataAuthority(MetadataAuthorityRequest) returns (api.protobuf.SimpleResponse);
+  rpc UpdateMetadataAuthority(MetadataAuthorityRequest) returns (types.SimpleResponse);
 
   // 获取数据授权申请列表
   // 规则：参数存在时根据条件获取，参数不存在时全量返回

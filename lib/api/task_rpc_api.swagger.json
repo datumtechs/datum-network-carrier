@@ -231,7 +231,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufSimpleResponse"
+              "$ref": "#/definitions/typesSimpleResponse"
             }
           },
           "default": {
@@ -269,134 +269,6 @@
           "format": "byte"
         }
       }
-    },
-    "protobufDataStatus": {
-      "type": "string",
-      "enum": [
-        "DataStatus_Unknown",
-        "DataStatus_Valid",
-        "DataStatus_Invalid"
-      ],
-      "default": "DataStatus_Unknown",
-      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
-    },
-    "protobufOrganization": {
-      "type": "object",
-      "properties": {
-        "node_name": {
-          "type": "string",
-          "title": "org name"
-        },
-        "node_id": {
-          "type": "string",
-          "title": "the node_id for org"
-        },
-        "identity_id": {
-          "type": "string",
-          "title": "the identity for org"
-        },
-        "status": {
-          "$ref": "#/definitions/protobufDataStatus",
-          "title": "the status for organization(1 means valid, 2 means invalid)"
-        },
-        "update_at": {
-          "type": "string",
-          "format": "uint64",
-          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
-        },
-        "image_url": {
-          "type": "string",
-          "title": "the link of face image (with a length limit)"
-        },
-        "details": {
-          "type": "string",
-          "title": "description of the node (with a length limit)"
-        }
-      },
-      "description": "A represents the basic information of the organization."
-    },
-    "protobufSimpleResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32",
-          "title": "the code for response"
-        },
-        "msg": {
-          "type": "string",
-          "title": "the message for response"
-        }
-      }
-    },
-    "protobufTaskOrganization": {
-      "type": "object",
-      "properties": {
-        "party_id": {
-          "type": "string"
-        },
-        "node_name": {
-          "type": "string",
-          "title": "org name"
-        },
-        "node_id": {
-          "type": "string",
-          "title": "the node_id for org"
-        },
-        "identity_id": {
-          "type": "string",
-          "title": "the identity for org"
-        }
-      },
-      "title": "任务下的组织信息"
-    },
-    "protobufTaskResourceCostDeclare": {
-      "type": "object",
-      "properties": {
-        "memory": {
-          "type": "string",
-          "format": "uint64",
-          "title": "任务所需的内存 (单位: byte)"
-        },
-        "processor": {
-          "type": "integer",
-          "format": "int64",
-          "title": "任务所需的核数 (单位: 个)"
-        },
-        "bandwidth": {
-          "type": "string",
-          "format": "uint64",
-          "title": "任务所需的带宽 (单位: bps)"
-        },
-        "duration": {
-          "type": "string",
-          "format": "uint64",
-          "title": "任务所需的运行时长 (单位: ms)"
-        }
-      },
-      "title": "任务需要花费的资源声明"
-    },
-    "protobufTaskState": {
-      "type": "string",
-      "enum": [
-        "TaskState_Unknown",
-        "TaskState_Pending",
-        "TaskState_Running",
-        "TaskState_Failed",
-        "TaskState_Succeed"
-      ],
-      "default": "TaskState_Unknown",
-      "title": "task的状态"
-    },
-    "protobufUserType": {
-      "type": "string",
-      "enum": [
-        "User_Unknown",
-        "User_1",
-        "User_2",
-        "User_3"
-      ],
-      "default": "User_Unknown"
     },
     "rpcapiGetTaskDetail": {
       "type": "object",
@@ -476,24 +348,24 @@
           "type": "string"
         },
         "user_type": {
-          "$ref": "#/definitions/protobufUserType"
+          "$ref": "#/definitions/typesUserType"
         },
         "sender": {
-          "$ref": "#/definitions/protobufTaskOrganization"
+          "$ref": "#/definitions/typesTaskOrganization"
         },
         "algo_supplier": {
-          "$ref": "#/definitions/protobufTaskOrganization"
+          "$ref": "#/definitions/typesTaskOrganization"
         },
         "data_suppliers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufTaskOrganization"
+            "$ref": "#/definitions/typesTaskOrganization"
           }
         },
         "receivers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufTaskOrganization"
+            "$ref": "#/definitions/typesTaskOrganization"
           }
         },
         "data_policy_type": {
@@ -518,7 +390,7 @@
           "type": "string"
         },
         "operation_cost": {
-          "$ref": "#/definitions/protobufTaskResourceCostDeclare"
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
         },
         "algorithm_code": {
           "type": "string"
@@ -559,7 +431,7 @@
       "type": "object",
       "properties": {
         "organization": {
-          "$ref": "#/definitions/protobufTaskOrganization"
+          "$ref": "#/definitions/typesTaskOrganization"
         },
         "metadata_id": {
           "type": "string"
@@ -583,13 +455,13 @@
           "type": "string"
         },
         "user_type": {
-          "$ref": "#/definitions/protobufUserType"
+          "$ref": "#/definitions/typesUserType"
         },
         "sender": {
-          "$ref": "#/definitions/protobufTaskOrganization"
+          "$ref": "#/definitions/typesTaskOrganization"
         },
         "algo_supplier": {
-          "$ref": "#/definitions/protobufTaskOrganization"
+          "$ref": "#/definitions/typesTaskOrganization"
         },
         "data_suppliers": {
           "type": "array",
@@ -606,7 +478,7 @@
         "receivers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufTaskOrganization"
+            "$ref": "#/definitions/typesTaskOrganization"
           }
         },
         "create_at": {
@@ -622,10 +494,10 @@
           "format": "uint64"
         },
         "state": {
-          "$ref": "#/definitions/protobufTaskState"
+          "$ref": "#/definitions/typesTaskState"
         },
         "operation_cost": {
-          "$ref": "#/definitions/protobufTaskResourceCostDeclare"
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
         },
         "desc": {
           "type": "string"
@@ -647,7 +519,7 @@
           "type": "string"
         },
         "owner": {
-          "$ref": "#/definitions/protobufOrganization"
+          "$ref": "#/definitions/typesOrganization"
         },
         "party_id": {
           "type": "string"
@@ -666,7 +538,7 @@
       "type": "object",
       "properties": {
         "organization": {
-          "$ref": "#/definitions/protobufTaskOrganization"
+          "$ref": "#/definitions/typesTaskOrganization"
         },
         "power_info": {
           "$ref": "#/definitions/typesResourceUsageOverview"
@@ -681,7 +553,7 @@
           "type": "string"
         },
         "user_type": {
-          "$ref": "#/definitions/protobufUserType"
+          "$ref": "#/definitions/typesUserType"
         },
         "task_id": {
           "type": "string"
@@ -714,51 +586,171 @@
         }
       }
     },
+    "typesDataStatus": {
+      "type": "string",
+      "enum": [
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
+      ],
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+    },
+    "typesOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        },
+        "status": {
+          "$ref": "#/definitions/typesDataStatus",
+          "title": "the status for organization(1 means valid, 2 means invalid)"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64",
+          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+        },
+        "image_url": {
+          "type": "string",
+          "title": "the link of face image (with a length limit)"
+        },
+        "details": {
+          "type": "string",
+          "title": "description of the node (with a length limit)"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
     "typesResourceUsageOverview": {
       "type": "object",
       "properties": {
         "total_mem": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务系统的总内存 (单位: byte)"
+          "format": "uint64"
         },
         "used_mem": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务系统的已用内存  (单位: byte)"
+          "format": "uint64"
         },
         "total_processor": {
           "type": "integer",
-          "format": "int64",
-          "title": "服务的总内核数 (单位: 个)"
+          "format": "int64"
         },
         "used_processor": {
           "type": "integer",
-          "format": "int64",
-          "title": "服务的已用内核数 (单位: 个)"
+          "format": "int64"
         },
         "total_bandwidth": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的总带宽数 (单位: bps)"
+          "format": "uint64"
         },
         "used_bandwidth": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的已用带宽数 (单位: bps)"
+          "format": "uint64"
         },
         "total_disk": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的总磁盘空间 (单位: byte)"
+          "format": "uint64"
         },
         "used_disk": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的已用磁盘空间 (单位: byte)"
+          "format": "uint64"
         }
       },
       "title": "系统资源消耗概览"
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    },
+    "typesTaskOrganization": {
+      "type": "object",
+      "properties": {
+        "party_id": {
+          "type": "string"
+        },
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        }
+      },
+      "title": "任务下的组织信息"
+    },
+    "typesTaskResourceCostDeclare": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的内存 (单位: byte)"
+        },
+        "processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "任务所需的核数 (单位: 个)"
+        },
+        "bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的带宽 (单位: bps)"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的运行时长 (单位: ms)"
+        }
+      },
+      "title": "任务需要花费的资源声明"
+    },
+    "typesTaskState": {
+      "type": "string",
+      "enum": [
+        "TaskState_Unknown",
+        "TaskState_Pending",
+        "TaskState_Running",
+        "TaskState_Failed",
+        "TaskState_Succeed"
+      ],
+      "default": "TaskState_Unknown",
+      "title": "task的状态"
+    },
+    "typesUserType": {
+      "type": "string",
+      "enum": [
+        "User_Unknown",
+        "User_1",
+        "User_2",
+        "User_3"
+      ],
+      "default": "User_Unknown"
     }
   }
 }

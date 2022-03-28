@@ -2,8 +2,7 @@ syntax = "proto3";
 
 package types;
 
-import "lib/common/base.proto";
-import "lib/types/types.proto";
+import "lib/types/base.proto";
 import "lib/types/metadata.proto";
 import "lib/types/taskdata.proto";
 
@@ -45,7 +44,7 @@ message MetadataAuthorityMsg {
    */
   string                        metadata_auth_id = 1;
   string                        user = 2;
-  api.protobuf.UserType         user_type = 3;
+  types.UserType                user_type = 3;
   MetadataAuthority             auth = 4;
   bytes                         sign = 5;
   uint64                        create_at = 6;

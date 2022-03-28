@@ -4,9 +4,9 @@ package api;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
-import "lib/common/base.proto";
+import "lib/types/base.proto";
 import "lib/types/metadata.proto";
-import "google/protobuf/empty.proto";
+//import "google/protobuf/empty.proto";
 
 
 message SaveMetadataRequest {
@@ -15,7 +15,7 @@ message SaveMetadataRequest {
 
 message RevokeMetadataRequest {
   // 元数据拥有者
-  api.protobuf.Organization owner = 1;
+  types.Organization owner = 1;
   string                    metadata_id = 2;
 }
 
@@ -32,7 +32,7 @@ message ListMetadataSummaryResponse {
 
 message MetadataSummaryOwner {
   // 元数据的拥有者
-  api.protobuf.Organization owner = 1;
+  types.Organization owner = 1;
   // 元文件摘要主体
   types.MetadataSummary information = 2;
 }
@@ -48,7 +48,7 @@ message ListMetadataSummaryByStateResponse {
 }
 
 /*message Metadata {
-    api.protobuf.Organization     owner                = 1;
+    types.Organization     owner                = 1;
     types.MetadataSummary         meta_summary         = 2;
     repeated types.MetadataColumn metadata_columns = 3;
 }*/
@@ -79,7 +79,7 @@ message FindMetadataByIdResponse {
 service MetadataService {
 
   // 保存元数据
-  rpc SaveMetadata (SaveMetadataRequest) returns (api.protobuf.SimpleResponse);
+  rpc SaveMetadata (SaveMetadataRequest) returns (types.SimpleResponse);
 
   // 查看全部元数据摘要列表 (不包含 列字段描述)，状态为可用
   rpc ListMetadataSummary (ListMetadataSummaryRequest) returns (ListMetadataSummaryResponse);
@@ -94,5 +94,5 @@ service MetadataService {
   rpc FindMetadataById(FindMetadataByIdRequest) returns (FindMetadataByIdResponse);
 
   // 撤销元数据 (从底层网络撤销)
-  rpc RevokeMetadata (RevokeMetadataRequest) returns (api.protobuf.SimpleResponse);
+  rpc RevokeMetadata (RevokeMetadataRequest) returns (types.SimpleResponse);
 }

@@ -4,10 +4,10 @@ package api;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
-import "lib/common/base.proto";
+import "lib/types/base.proto";
 import "lib/types/taskdata.proto";
-import "google/protobuf/empty.proto";
-import "lib/center/api/metadata.proto";
+//import "google/protobuf/empty.proto";
+//import "lib/center/api/metadata.proto";
 
 message SaveTaskRequest {
   types.TaskPB task = 1;
@@ -57,7 +57,7 @@ message ListTaskEventResponse {
 service TaskService {
 
   // 存储任务
-  rpc SaveTask(SaveTaskRequest) returns (api.protobuf.SimpleResponse);
+  rpc SaveTask(SaveTaskRequest) returns (types.SimpleResponse);
 
   // 查询任务详情（任务ID、节点ID、参与方标识）
   rpc GetTaskDetail(GetTaskDetailRequest) returns (GetTaskDetailResponse);

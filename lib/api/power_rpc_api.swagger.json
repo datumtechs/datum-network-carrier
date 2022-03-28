@@ -137,7 +137,7 @@
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/protobufSimpleResponse"
+              "$ref": "#/definitions/typesSimpleResponse"
             }
           },
           "default": {
@@ -176,108 +176,11 @@
         }
       }
     },
-    "protobufDataStatus": {
-      "type": "string",
-      "enum": [
-        "DataStatus_Unknown",
-        "DataStatus_Valid",
-        "DataStatus_Invalid"
-      ],
-      "default": "DataStatus_Unknown",
-      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
-    },
-    "protobufOrganization": {
-      "type": "object",
-      "properties": {
-        "node_name": {
-          "type": "string",
-          "title": "org name"
-        },
-        "node_id": {
-          "type": "string",
-          "title": "the node_id for org"
-        },
-        "identity_id": {
-          "type": "string",
-          "title": "the identity for org"
-        },
-        "status": {
-          "$ref": "#/definitions/protobufDataStatus",
-          "title": "the status for organization(1 means valid, 2 means invalid)"
-        },
-        "update_at": {
-          "type": "string",
-          "format": "uint64",
-          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
-        },
-        "image_url": {
-          "type": "string",
-          "title": "the link of face image (with a length limit)"
-        },
-        "details": {
-          "type": "string",
-          "title": "description of the node (with a length limit)"
-        }
-      },
-      "description": "A represents the basic information of the organization."
-    },
-    "protobufPowerState": {
-      "type": "string",
-      "enum": [
-        "PowerState_Unknown",
-        "PowerState_Created",
-        "PowerState_Released",
-        "PowerState_Occupation",
-        "PowerState_Revoked"
-      ],
-      "default": "PowerState_Unknown",
-      "title": "算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力(算力未被占用); 3: 已发布的算力(算力正在被占用); 4: 已撤销的算力)"
-    },
-    "protobufSimpleResponse": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "integer",
-          "format": "int32",
-          "title": "the code for response"
-        },
-        "msg": {
-          "type": "string",
-          "title": "the message for response"
-        }
-      }
-    },
-    "protobufTaskResourceCostDeclare": {
-      "type": "object",
-      "properties": {
-        "memory": {
-          "type": "string",
-          "format": "uint64",
-          "title": "任务所需的内存 (单位: byte)"
-        },
-        "processor": {
-          "type": "integer",
-          "format": "int64",
-          "title": "任务所需的核数 (单位: 个)"
-        },
-        "bandwidth": {
-          "type": "string",
-          "format": "uint64",
-          "title": "任务所需的带宽 (单位: bps)"
-        },
-        "duration": {
-          "type": "string",
-          "format": "uint64",
-          "title": "任务所需的运行时长 (单位: ms)"
-        }
-      },
-      "title": "任务需要花费的资源声明"
-    },
     "rpcapiGetGlobalPowerDetail": {
       "type": "object",
       "properties": {
         "owner": {
-          "$ref": "#/definitions/protobufOrganization"
+          "$ref": "#/definitions/typesOrganization"
         },
         "information": {
           "$ref": "#/definitions/typesPowerUsageDetail"
@@ -311,7 +214,7 @@
       "type": "object",
       "properties": {
         "owner": {
-          "$ref": "#/definitions/protobufOrganization"
+          "$ref": "#/definitions/typesOrganization"
         },
         "information": {
           "$ref": "#/definitions/typesPowerUsageDetail"
@@ -342,7 +245,7 @@
       "type": "object",
       "properties": {
         "owner": {
-          "$ref": "#/definitions/protobufOrganization"
+          "$ref": "#/definitions/typesOrganization"
         },
         "power": {
           "$ref": "#/definitions/typesPowerUsageDetail"
@@ -430,6 +333,63 @@
         }
       }
     },
+    "typesDataStatus": {
+      "type": "string",
+      "enum": [
+        "DataStatus_Unknown",
+        "DataStatus_Valid",
+        "DataStatus_Invalid"
+      ],
+      "default": "DataStatus_Unknown",
+      "title": "the status of data for local storage, 1 means valid, 2 means invalid"
+    },
+    "typesOrganization": {
+      "type": "object",
+      "properties": {
+        "node_name": {
+          "type": "string",
+          "title": "org name"
+        },
+        "node_id": {
+          "type": "string",
+          "title": "the node_id for org"
+        },
+        "identity_id": {
+          "type": "string",
+          "title": "the identity for org"
+        },
+        "status": {
+          "$ref": "#/definitions/typesDataStatus",
+          "title": "the status for organization(1 means valid, 2 means invalid)"
+        },
+        "update_at": {
+          "type": "string",
+          "format": "uint64",
+          "title": "v 3.0\nthe last_update time of corresponding datacenter (unit: UTC ms)"
+        },
+        "image_url": {
+          "type": "string",
+          "title": "the link of face image (with a length limit)"
+        },
+        "details": {
+          "type": "string",
+          "title": "description of the node (with a length limit)"
+        }
+      },
+      "description": "A represents the basic information of the organization."
+    },
+    "typesPowerState": {
+      "type": "string",
+      "enum": [
+        "PowerState_Unknown",
+        "PowerState_Created",
+        "PowerState_Released",
+        "PowerState_Occupation",
+        "PowerState_Revoked"
+      ],
+      "default": "PowerState_Unknown",
+      "title": "算力的状态 (0: 未知; 1: 还未发布的算力; 2: 已发布的算力(算力未被占用); 3: 已发布的算力(算力正在被占用); 4: 已撤销的算力)"
+    },
     "typesPowerTask": {
       "type": "object",
       "properties": {
@@ -440,25 +400,25 @@
           "type": "string"
         },
         "owner": {
-          "$ref": "#/definitions/protobufOrganization"
+          "$ref": "#/definitions/typesOrganization"
         },
         "partners": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufOrganization"
+            "$ref": "#/definitions/typesOrganization"
           }
         },
         "receivers": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/protobufOrganization"
+            "$ref": "#/definitions/typesOrganization"
           }
         },
         "operation_cost": {
-          "$ref": "#/definitions/protobufTaskResourceCostDeclare"
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
         },
         "operation_spend": {
-          "$ref": "#/definitions/protobufTaskResourceCostDeclare"
+          "$ref": "#/definitions/typesTaskResourceCostDeclare"
         },
         "createAt": {
           "type": "string",
@@ -488,14 +448,17 @@
           }
         },
         "state": {
-          "$ref": "#/definitions/protobufPowerState"
+          "$ref": "#/definitions/typesPowerState"
         },
         "publish_at": {
           "type": "string",
-          "format": "uint64",
-          "title": "v 2.0"
+          "format": "uint64"
         },
         "update_at": {
+          "type": "string",
+          "format": "uint64"
+        },
+        "nonce": {
           "type": "string",
           "format": "uint64"
         }
@@ -507,46 +470,78 @@
       "properties": {
         "total_mem": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务系统的总内存 (单位: byte)"
+          "format": "uint64"
         },
         "used_mem": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务系统的已用内存  (单位: byte)"
+          "format": "uint64"
         },
         "total_processor": {
           "type": "integer",
-          "format": "int64",
-          "title": "服务的总内核数 (单位: 个)"
+          "format": "int64"
         },
         "used_processor": {
           "type": "integer",
-          "format": "int64",
-          "title": "服务的已用内核数 (单位: 个)"
+          "format": "int64"
         },
         "total_bandwidth": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的总带宽数 (单位: bps)"
+          "format": "uint64"
         },
         "used_bandwidth": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的已用带宽数 (单位: bps)"
+          "format": "uint64"
         },
         "total_disk": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的总磁盘空间 (单位: byte)"
+          "format": "uint64"
         },
         "used_disk": {
           "type": "string",
-          "format": "uint64",
-          "title": "服务的已用磁盘空间 (单位: byte)"
+          "format": "uint64"
         }
       },
       "title": "系统资源消耗概览"
+    },
+    "typesSimpleResponse": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "integer",
+          "format": "int32",
+          "title": "the code for response"
+        },
+        "msg": {
+          "type": "string",
+          "title": "the message for response"
+        }
+      }
+    },
+    "typesTaskResourceCostDeclare": {
+      "type": "object",
+      "properties": {
+        "memory": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的内存 (单位: byte)"
+        },
+        "processor": {
+          "type": "integer",
+          "format": "int64",
+          "title": "任务所需的核数 (单位: 个)"
+        },
+        "bandwidth": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的带宽 (单位: bps)"
+        },
+        "duration": {
+          "type": "string",
+          "format": "uint64",
+          "title": "任务所需的运行时长 (单位: ms)"
+        }
+      },
+      "title": "任务需要花费的资源声明"
     }
   }
 }

@@ -4,30 +4,13 @@ package api;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/center/api";
 
-import "lib/common/base.proto";
-import "lib/common/data.proto";
-import "lib/types/identitydata.proto";
+import "lib/types/base.proto";
+//import "lib/types/identitydata.proto";
 import "lib/types/resourcedata.proto";
 import "google/protobuf/empty.proto";
 
-// 算力的基本仨元素
-/*message PurePower {
-  // 系统的总内存
-  uint64 mem = 1;
-  // 系统的总内核数
-  uint32 processor = 2;
-  // 系统的总带宽数
-  uint64 bandwidth = 3;
-}*/
-
 // 发布算力请求参数
 message PublishPowerRequest {
-  /*// 算力的拥有者
-  api.protobuf.Organization owner = 1;
-  // 算力ID
-  string power_id = 2;
-  // 发布的算力信息
-  PurePower information = 3;*/
   types.ResourcePB power = 1;
 }
 
@@ -40,7 +23,7 @@ message PublishPowerResponse {
 
 message RevokePowerRequest {
   // 算力的拥有者
-  api.protobuf.Organization owner = 1;
+  types.Organization owner = 1;
   // 算力id
   string power_id = 2;
 }
@@ -52,12 +35,12 @@ message PowerSummary {
   // 算力上总共执行的任务数 (已完成的和正在执行的)
   uint32 total_task_count = 2;
   // 算力状态 (create: 还未发布的算力; release: 已发布的算力; revoke: 已撤销的算力)
-  api.protobuf.PowerState state = 3;
+  types.PowerState state = 3;
 }
 
 message PowerSummaryResponse {
   // 算力拥有者信息
-  api.protobuf.Organization owner = 1;
+  types.Organization owner = 1;
   // 算力总摘要
   PowerSummary power_summary = 2;
 }
@@ -89,13 +72,13 @@ message SyncPowerRequest {
 service ResourceService {
 
   // 存储资源
-  rpc PublishPower (PublishPowerRequest) returns (api.protobuf.SimpleResponse);
+  rpc PublishPower (PublishPowerRequest) returns (types.SimpleResponse);
 
   // 新增，算力同步，实时通知算力的使用情况（组织下的具体的服务器）
-  rpc SyncPower(SyncPowerRequest) returns(api.protobuf.SimpleResponse);
+  rpc SyncPower(SyncPowerRequest) returns(types.SimpleResponse);
 
   // 撤销资源
-  rpc RevokePower (RevokePowerRequest) returns (api.protobuf.SimpleResponse);
+  rpc RevokePower (RevokePowerRequest) returns (types.SimpleResponse);
 
   // 新增，用于同步给管理台，获取所有算力资源信息
   rpc ListPower(ListPowerRequest) returns (ListPowerResponse);

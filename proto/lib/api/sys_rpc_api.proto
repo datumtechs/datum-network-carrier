@@ -4,11 +4,9 @@ package rpcapi;
 
 option go_package = "github.com/RosettaFlow/Carrier-Go/lib/api";
 
-import "lib/common/base.proto";
-import "lib/common/data.proto";
+import "lib/types/base.proto";
 import "lib/types/taskdata.proto";
 import "lib/types/resourcedata.proto";
-import "lib/api/task_rpc_api.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
@@ -207,7 +205,7 @@ message ReportTaskResultFileSummaryRequest {
 // 查询可用数据服务资源目标 ip:port 信息 req
 message QueryAvailableDataNodeRequest {
   uint64                              file_size = 1;       // 要被上传的目标文件 大小 (单位: byte)
-  api.protobuf.OriginFileType         file_type = 2;       // 要被上传的目标文件  类型 (默认: 1 "csv")
+  types.OriginFileType                file_type = 2;       // 要被上传的目标文件  类型 (默认: 1 "csv")
 }
 // 查询可用数据服务资源目标 ip:port 信息 resp
 message QueryAvailableDataNode {
@@ -285,7 +283,7 @@ service YarnService {
   }
 
   // 删除种子节点信息
-  rpc DeleteSeedNode (DeleteSeedNodeRequest) returns (api.protobuf.SimpleResponse) {
+  rpc DeleteSeedNode (DeleteSeedNodeRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/deleteSeed"
       body: "*"
@@ -317,7 +315,7 @@ service YarnService {
   }
 
   // 删除数据服务信息
-  rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (api.protobuf.SimpleResponse) {
+  rpc DeleteDataNode (DeleteRegisteredNodeRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/deleteDataNode"
       body: "*"
@@ -349,7 +347,7 @@ service YarnService {
   }
 
   // 删除计算服务信息
-  rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (api.protobuf.SimpleResponse) {
+  rpc DeleteJobNode (DeleteRegisteredNodeRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/deleteJobNode"
       body: "*"
@@ -366,7 +364,7 @@ service YarnService {
 
   // about report
   // 数据/计算服务 上报任务事件
-  rpc ReportTaskEvent (ReportTaskEventRequest) returns (api.protobuf.SimpleResponse) {
+  rpc ReportTaskEvent (ReportTaskEventRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/reportTaskEvent"
       body: "*"
@@ -374,7 +372,7 @@ service YarnService {
   }
 
   // 数据/计算服务 上报资源使用实况
-  rpc ReportTaskResourceUsage (ReportTaskResourceUsageRequest) returns (api.protobuf.SimpleResponse) {
+  rpc ReportTaskResourceUsage (ReportTaskResourceUsageRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/reportTaskResourceUsage"
       body: "*"
@@ -382,7 +380,7 @@ service YarnService {
   }
 
   // 上报 成功上传的原始文件Id
-  rpc  ReportUpFileSummary (ReportUpFileSummaryRequest) returns (api.protobuf.SimpleResponse) {
+  rpc  ReportUpFileSummary (ReportUpFileSummaryRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/reportUpFileSummary"
       body: "*"
@@ -390,7 +388,7 @@ service YarnService {
   }
 
   // 上报 任务结果文件摘要
-  rpc ReportTaskResultFileSummary (ReportTaskResultFileSummaryRequest) returns (api.protobuf.SimpleResponse) {
+  rpc ReportTaskResultFileSummary (ReportTaskResultFileSummaryRequest) returns (types.SimpleResponse) {
     option (google.api.http) = {
       post: "/carrier/v1/yarn/reportTaskResultFileSummary"
       body: "*"
